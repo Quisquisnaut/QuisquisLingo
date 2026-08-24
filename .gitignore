@@ -1,0 +1,30 @@
+# Dart / Flutter
+.dart_tool/
+.pub/
+.pub-cache/
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+
+# Android local/generated
+android/.gradle/
+android/local.properties
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# Python tools
+__pycache__/
+*.py[cod]
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary / backup files
+*.log
+*.tmp
+*.bak

@@ -1,0 +1,1064 @@
+[
+  {
+    "id": "bread",
+    "label": "Bread",
+    "category": "food",
+    "tags": [
+      "bread"
+    ],
+    "assetPath": "assets/exercise_images/bread.webp"
+  },
+  {
+    "id": "apple",
+    "label": "Apple",
+    "category": "food",
+    "tags": [
+      "apple"
+    ],
+    "assetPath": "assets/exercise_images/apple.webp"
+  },
+  {
+    "id": "house",
+    "label": "House",
+    "category": "home",
+    "tags": [
+      "house",
+      "home"
+    ],
+    "assetPath": "assets/exercise_images/house.webp"
+  },
+  {
+    "id": "water",
+    "label": "Water",
+    "category": "food",
+    "tags": [
+      "water",
+      "drink"
+    ],
+    "assetPath": "assets/exercise_images/water.webp"
+  },
+  {
+    "id": "book",
+    "label": "Book",
+    "category": "school_work",
+    "tags": [
+      "book",
+      "read",
+      "reading"
+    ],
+    "assetPath": "assets/exercise_images/book.webp"
+  },
+  {
+    "id": "cat",
+    "label": "Cat",
+    "category": "animals",
+    "tags": [
+      "cat"
+    ],
+    "assetPath": "assets/exercise_images/cat.webp"
+  },
+  {
+    "id": "car",
+    "label": "Car",
+    "category": "transport",
+    "tags": [
+      "car",
+      "automobile"
+    ],
+    "assetPath": "assets/exercise_images/car.webp"
+  },
+  {
+    "id": "chair",
+    "label": "Chair",
+    "category": "home",
+    "tags": [
+      "chair",
+      "seat"
+    ],
+    "assetPath": "assets/exercise_images/chair.webp"
+  },
+  {
+    "id": "coffee",
+    "label": "Coffee",
+    "category": "food",
+    "tags": [
+      "coffee"
+    ],
+    "assetPath": "assets/exercise_images/coffee.webp"
+  },
+  {
+    "id": "train",
+    "label": "Train",
+    "category": "transport",
+    "tags": [
+      "train"
+    ],
+    "assetPath": "assets/exercise_images/train.webp"
+  },
+  {
+    "id": "bicycle",
+    "label": "Bicycle",
+    "category": "transport",
+    "tags": [
+      "bicycle",
+      "bike",
+      "cycling"
+    ],
+    "assetPath": "assets/exercise_images/bicycle.webp"
+  },
+  {
+    "id": "tree",
+    "label": "Tree",
+    "category": "nature",
+    "tags": [
+      "tree"
+    ],
+    "assetPath": "assets/exercise_images/tree.webp"
+  },
+  {
+    "id": "hello",
+    "label": "Hello",
+    "category": "greetings",
+    "tags": [
+      "hello",
+      "hi",
+      "greet",
+      "greeting"
+    ],
+    "assetPath": "assets/exercise_images/hello.webp"
+  },
+  {
+    "id": "people_family_man",
+    "label": "Man",
+    "category": "people_family",
+    "tags": [
+      "man",
+      "adult man",
+      "male"
+    ],
+    "assetPath": "assets/exercise_images/man.webp"
+  },
+  {
+    "id": "people_family_woman",
+    "label": "Woman",
+    "category": "people_family",
+    "tags": [
+      "woman",
+      "adult woman",
+      "female"
+    ],
+    "assetPath": "assets/exercise_images/woman.webp"
+  },
+  {
+    "id": "people_family_boy",
+    "label": "Boy",
+    "category": "people_family",
+    "tags": [
+      "boy"
+    ],
+    "assetPath": "assets/exercise_images/boy.webp"
+  },
+  {
+    "id": "people_family_girl",
+    "label": "Girl",
+    "category": "people_family",
+    "tags": [
+      "girl"
+    ],
+    "assetPath": "assets/exercise_images/girl.webp"
+  },
+  {
+    "id": "people_family_baby",
+    "label": "Baby",
+    "category": "people_family",
+    "tags": [
+      "baby",
+      "infant"
+    ],
+    "assetPath": "assets/exercise_images/baby.webp"
+  },
+  {
+    "id": "people_family_grandfather",
+    "label": "Grandfather",
+    "category": "people_family",
+    "tags": [
+      "grandfather",
+      "grandpa"
+    ],
+    "assetPath": "assets/exercise_images/grandfather.webp"
+  },
+  {
+    "id": "people_family_grandmother",
+    "label": "Grandmother",
+    "category": "people_family",
+    "tags": [
+      "grandmother",
+      "grandma"
+    ],
+    "assetPath": "assets/exercise_images/grandmother.webp"
+  },
+  {
+    "id": "body_parts_ear",
+    "label": "Ear",
+    "category": "body_parts",
+    "tags": [
+      "ear"
+    ],
+    "assetPath": "assets/exercise_images/ear.webp"
+  },
+  {
+    "id": "body_parts_eye",
+    "label": "Eye",
+    "category": "body_parts",
+    "tags": [
+      "eye"
+    ],
+    "assetPath": "assets/exercise_images/eye.webp"
+  },
+  {
+    "id": "body_parts_nose",
+    "label": "Nose",
+    "category": "body_parts",
+    "tags": [
+      "nose"
+    ],
+    "assetPath": "assets/exercise_images/nose.webp"
+  },
+  {
+    "id": "body_parts_mouth",
+    "label": "Mouth",
+    "category": "body_parts",
+    "tags": [
+      "mouth"
+    ],
+    "assetPath": "assets/exercise_images/mouth.webp"
+  },
+  {
+    "id": "body_parts_hand",
+    "label": "Hand",
+    "category": "body_parts",
+    "tags": [
+      "hand"
+    ],
+    "assetPath": "assets/exercise_images/hand.webp"
+  },
+  {
+    "id": "body_parts_foot",
+    "label": "Foot",
+    "category": "body_parts",
+    "tags": [
+      "foot"
+    ],
+    "assetPath": "assets/exercise_images/foot.webp"
+  },
+  {
+    "id": "clothing_accessories_t_shirt",
+    "label": "T-shirt",
+    "category": "clothing_accessories",
+    "tags": [
+      "t-shirt",
+      "tee shirt"
+    ],
+    "assetPath": "assets/exercise_images/t_shirt.webp"
+  },
+  {
+    "id": "clothing_accessories_pants",
+    "label": "Pants",
+    "category": "clothing_accessories",
+    "tags": [
+      "pants",
+      "trousers"
+    ],
+    "assetPath": "assets/exercise_images/pants.webp"
+  },
+  {
+    "id": "clothing_accessories_dress",
+    "label": "Dress",
+    "category": "clothing_accessories",
+    "tags": [
+      "dress"
+    ],
+    "assetPath": "assets/exercise_images/dress.webp"
+  },
+  {
+    "id": "clothing_accessories_jacket",
+    "label": "Jacket",
+    "category": "clothing_accessories",
+    "tags": [
+      "jacket"
+    ],
+    "assetPath": "assets/exercise_images/jacket.webp"
+  },
+  {
+    "id": "clothing_accessories_shoes",
+    "label": "Shoes",
+    "category": "clothing_accessories",
+    "tags": [
+      "shoes"
+    ],
+    "assetPath": "assets/exercise_images/shoes.webp"
+  },
+  {
+    "id": "clothing_accessories_hat",
+    "label": "Hat",
+    "category": "clothing_accessories",
+    "tags": [
+      "hat"
+    ],
+    "assetPath": "assets/exercise_images/hat.webp"
+  },
+  {
+    "id": "clothing_accessories_glasses",
+    "label": "Glasses",
+    "category": "clothing_accessories",
+    "tags": [
+      "glasses",
+      "eyeglasses"
+    ],
+    "assetPath": "assets/exercise_images/glasses.webp"
+  },
+  {
+    "id": "clothing_accessories_backpack",
+    "label": "Backpack",
+    "category": "clothing_accessories",
+    "tags": [
+      "backpack",
+      "rucksack"
+    ],
+    "assetPath": "assets/exercise_images/backpack.webp"
+  },
+  {
+    "id": "clothing_accessories_umbrella",
+    "label": "Umbrella",
+    "category": "clothing_accessories",
+    "tags": [
+      "umbrella"
+    ],
+    "assetPath": "assets/exercise_images/umbrella.webp"
+  },
+  {
+    "id": "clothing_accessories_scarf",
+    "label": "Scarf",
+    "category": "clothing_accessories",
+    "tags": [
+      "scarf"
+    ],
+    "assetPath": "assets/exercise_images/scarf.webp"
+  },
+  {
+    "id": "clothing_accessories_gloves",
+    "label": "Gloves",
+    "category": "clothing_accessories",
+    "tags": [
+      "gloves"
+    ],
+    "assetPath": "assets/exercise_images/gloves.webp"
+  },
+  {
+    "id": "clothing_accessories_shorts",
+    "label": "Shorts",
+    "category": "clothing_accessories",
+    "tags": [
+      "shorts"
+    ],
+    "assetPath": "assets/exercise_images/shorts.webp"
+  },
+  {
+    "id": "clothing_accessories_socks",
+    "label": "Socks",
+    "category": "clothing_accessories",
+    "tags": [
+      "socks"
+    ],
+    "assetPath": "assets/exercise_images/socks.webp"
+  },
+  {
+    "id": "clothing_accessories_watch",
+    "label": "Watch",
+    "category": "clothing_accessories",
+    "tags": [
+      "watch",
+      "wristwatch"
+    ],
+    "assetPath": "assets/exercise_images/watch.webp"
+  },
+  {
+    "id": "clothing_accessories_ring",
+    "label": "Ring",
+    "category": "clothing_accessories",
+    "tags": [
+      "ring"
+    ],
+    "assetPath": "assets/exercise_images/ring.webp"
+  },
+  {
+    "id": "clothing_accessories_necklace",
+    "label": "Necklace",
+    "category": "clothing_accessories",
+    "tags": [
+      "necklace"
+    ],
+    "assetPath": "assets/exercise_images/necklace.webp"
+  },
+  {
+    "id": "clothing_accessories_wallet",
+    "label": "Wallet",
+    "category": "clothing_accessories",
+    "tags": [
+      "wallet"
+    ],
+    "assetPath": "assets/exercise_images/wallet.webp"
+  },
+  {
+    "id": "actions_walk",
+    "label": "Walk",
+    "category": "actions",
+    "tags": [
+      "walk",
+      "walking"
+    ],
+    "assetPath": "assets/exercise_images/walk.webp"
+  },
+  {
+    "id": "actions_run",
+    "label": "Run",
+    "category": "actions",
+    "tags": [
+      "run",
+      "running"
+    ],
+    "assetPath": "assets/exercise_images/run.webp"
+  },
+  {
+    "id": "actions_jump",
+    "label": "Jump",
+    "category": "actions",
+    "tags": [
+      "jump",
+      "jumping"
+    ],
+    "assetPath": "assets/exercise_images/jump.webp"
+  },
+  {
+    "id": "actions_sit",
+    "label": "Sit",
+    "category": "actions",
+    "tags": [
+      "sit",
+      "sitting"
+    ],
+    "assetPath": "assets/exercise_images/sit.webp"
+  },
+  {
+    "id": "actions_stand",
+    "label": "Stand",
+    "category": "actions",
+    "tags": [
+      "stand",
+      "standing"
+    ],
+    "assetPath": "assets/exercise_images/stand.webp"
+  },
+  {
+    "id": "actions_write",
+    "label": "Write",
+    "category": "actions",
+    "tags": [
+      "write",
+      "writing"
+    ],
+    "assetPath": "assets/exercise_images/write.webp"
+  },
+  {
+    "id": "actions_brush_teeth",
+    "label": "Brush teeth",
+    "category": "actions",
+    "tags": [
+      "brush teeth",
+      "brushing teeth"
+    ],
+    "assetPath": "assets/exercise_images/brush_teeth.webp"
+  },
+  {
+    "id": "actions_sleep",
+    "label": "Sleep",
+    "category": "actions",
+    "tags": [
+      "sleep",
+      "sleeping"
+    ],
+    "assetPath": "assets/exercise_images/sleep.webp"
+  },
+  {
+    "id": "emotions_happy",
+    "label": "Happy",
+    "category": "emotions",
+    "tags": [
+      "happy",
+      "happily"
+    ],
+    "assetPath": "assets/exercise_images/happy.webp"
+  },
+  {
+    "id": "emotions_sad",
+    "label": "Sad",
+    "category": "emotions",
+    "tags": [
+      "sad",
+      "sadly"
+    ],
+    "assetPath": "assets/exercise_images/sad.webp"
+  },
+  {
+    "id": "emotions_angry",
+    "label": "Angry",
+    "category": "emotions",
+    "tags": [
+      "angry",
+      "angrily"
+    ],
+    "assetPath": "assets/exercise_images/angry.webp"
+  },
+  {
+    "id": "emotions_surprised",
+    "label": "Surprised",
+    "category": "emotions",
+    "tags": [
+      "surprised",
+      "surprise"
+    ],
+    "assetPath": "assets/exercise_images/surprised.webp"
+  },
+  {
+    "id": "emotions_laugh",
+    "label": "Laugh",
+    "category": "emotions",
+    "tags": [
+      "laugh",
+      "laughing"
+    ],
+    "assetPath": "assets/exercise_images/laugh.webp"
+  },
+  {
+    "id": "food_drinks_orange",
+    "label": "Orange",
+    "category": "food_drinks",
+    "tags": [
+      "orange"
+    ],
+    "assetPath": "assets/exercise_images/orange.webp"
+  },
+  {
+    "id": "food_drinks_bananas",
+    "label": "Bananas",
+    "category": "food_drinks",
+    "tags": [
+      "bananas",
+      "banana"
+    ],
+    "assetPath": "assets/exercise_images/bananas.webp"
+  },
+  {
+    "id": "food_drinks_strawberry",
+    "label": "Strawberry",
+    "category": "food_drinks",
+    "tags": [
+      "strawberry"
+    ],
+    "assetPath": "assets/exercise_images/strawberry.webp"
+  },
+  {
+    "id": "food_drinks_carrot",
+    "label": "Carrot",
+    "category": "food_drinks",
+    "tags": [
+      "carrot"
+    ],
+    "assetPath": "assets/exercise_images/carrot.webp"
+  },
+  {
+    "id": "food_drinks_tomato",
+    "label": "Tomato",
+    "category": "food_drinks",
+    "tags": [
+      "tomato"
+    ],
+    "assetPath": "assets/exercise_images/tomato.webp"
+  },
+  {
+    "id": "food_drinks_broccoli",
+    "label": "Broccoli",
+    "category": "food_drinks",
+    "tags": [
+      "broccoli"
+    ],
+    "assetPath": "assets/exercise_images/broccoli.webp"
+  },
+  {
+    "id": "food_drinks_potato",
+    "label": "Potato",
+    "category": "food_drinks",
+    "tags": [
+      "potato"
+    ],
+    "assetPath": "assets/exercise_images/potato.webp"
+  },
+  {
+    "id": "food_drinks_cheese",
+    "label": "Cheese",
+    "category": "food_drinks",
+    "tags": [
+      "cheese"
+    ],
+    "assetPath": "assets/exercise_images/cheese.webp"
+  },
+  {
+    "id": "food_drinks_egg",
+    "label": "Egg",
+    "category": "food_drinks",
+    "tags": [
+      "egg"
+    ],
+    "assetPath": "assets/exercise_images/egg.webp"
+  },
+  {
+    "id": "food_drinks_burger",
+    "label": "Burger",
+    "category": "food_drinks",
+    "tags": [
+      "burger"
+    ],
+    "assetPath": "assets/exercise_images/burger.webp"
+  },
+  {
+    "id": "food_drinks_pizza",
+    "label": "Pizza",
+    "category": "food_drinks",
+    "tags": [
+      "pizza"
+    ],
+    "assetPath": "assets/exercise_images/pizza.webp"
+  },
+  {
+    "id": "food_drinks_rice",
+    "label": "Rice",
+    "category": "food_drinks",
+    "tags": [
+      "rice"
+    ],
+    "assetPath": "assets/exercise_images/rice.webp"
+  },
+  {
+    "id": "food_drinks_soup",
+    "label": "Soup",
+    "category": "food_drinks",
+    "tags": [
+      "soup"
+    ],
+    "assetPath": "assets/exercise_images/soup.webp"
+  },
+  {
+    "id": "food_drinks_salad",
+    "label": "Salad",
+    "category": "food_drinks",
+    "tags": [
+      "salad"
+    ],
+    "assetPath": "assets/exercise_images/salad.webp"
+  },
+  {
+    "id": "food_drinks_milk",
+    "label": "Milk",
+    "category": "food_drinks",
+    "tags": [
+      "milk"
+    ],
+    "assetPath": "assets/exercise_images/milk.webp"
+  },
+  {
+    "id": "food_drinks_juice",
+    "label": "Juice",
+    "category": "food_drinks",
+    "tags": [
+      "juice"
+    ],
+    "assetPath": "assets/exercise_images/juice.webp"
+  },
+  {
+    "id": "food_drinks_tea",
+    "label": "Tea",
+    "category": "food_drinks",
+    "tags": [
+      "tea"
+    ],
+    "assetPath": "assets/exercise_images/tea.webp"
+  },
+  {
+    "id": "food_drinks_ice_cream",
+    "label": "Ice cream",
+    "category": "food_drinks",
+    "tags": [
+      "ice cream"
+    ],
+    "assetPath": "assets/exercise_images/ice_cream.webp"
+  },
+  {
+    "id": "food_drinks_chocolate",
+    "label": "Chocolate",
+    "category": "food_drinks",
+    "tags": [
+      "chocolate"
+    ],
+    "assetPath": "assets/exercise_images/chocolate.webp"
+  },
+  {
+    "id": "food_drinks_cake",
+    "label": "Cake",
+    "category": "food_drinks",
+    "tags": [
+      "cake"
+    ],
+    "assetPath": "assets/exercise_images/cake.webp"
+  },
+  {
+    "id": "food_drinks_croissant",
+    "label": "Croissant",
+    "category": "food_drinks",
+    "tags": [
+      "croissant"
+    ],
+    "assetPath": "assets/exercise_images/croissant.webp"
+  },
+  {
+    "id": "animals_dog",
+    "label": "Dog",
+    "category": "animals",
+    "tags": [
+      "dog"
+    ],
+    "assetPath": "assets/exercise_images/dog.webp"
+  },
+  {
+    "id": "animals_rabbit",
+    "label": "Rabbit",
+    "category": "animals",
+    "tags": [
+      "rabbit"
+    ],
+    "assetPath": "assets/exercise_images/rabbit.webp"
+  },
+  {
+    "id": "animals_bird",
+    "label": "Bird",
+    "category": "animals",
+    "tags": [
+      "bird"
+    ],
+    "assetPath": "assets/exercise_images/bird.webp"
+  },
+  {
+    "id": "animals_fish",
+    "label": "Fish",
+    "category": "animals",
+    "tags": [
+      "fish"
+    ],
+    "assetPath": "assets/exercise_images/fish.webp"
+  },
+  {
+    "id": "animals_horse",
+    "label": "Horse",
+    "category": "animals",
+    "tags": [
+      "horse"
+    ],
+    "assetPath": "assets/exercise_images/horse.webp"
+  },
+  {
+    "id": "animals_cow",
+    "label": "Cow",
+    "category": "animals",
+    "tags": [
+      "cow"
+    ],
+    "assetPath": "assets/exercise_images/cow.webp"
+  },
+  {
+    "id": "animals_pig",
+    "label": "Pig",
+    "category": "animals",
+    "tags": [
+      "pig"
+    ],
+    "assetPath": "assets/exercise_images/pig.webp"
+  },
+  {
+    "id": "animals_sheep",
+    "label": "Sheep",
+    "category": "animals",
+    "tags": [
+      "sheep"
+    ],
+    "assetPath": "assets/exercise_images/sheep.webp"
+  },
+  {
+    "id": "animals_duck",
+    "label": "Duck",
+    "category": "animals",
+    "tags": [
+      "duck"
+    ],
+    "assetPath": "assets/exercise_images/duck.webp"
+  },
+  {
+    "id": "home_household_bed",
+    "label": "Bed",
+    "category": "home_household",
+    "tags": [
+      "bed"
+    ],
+    "assetPath": "assets/exercise_images/bed.webp"
+  },
+  {
+    "id": "home_household_table",
+    "label": "Table",
+    "category": "home_household",
+    "tags": [
+      "table"
+    ],
+    "assetPath": "assets/exercise_images/table.webp"
+  },
+  {
+    "id": "home_household_lamp",
+    "label": "Lamp",
+    "category": "home_household",
+    "tags": [
+      "lamp"
+    ],
+    "assetPath": "assets/exercise_images/lamp.webp"
+  },
+  {
+    "id": "home_household_door",
+    "label": "Door",
+    "category": "home_household",
+    "tags": [
+      "door"
+    ],
+    "assetPath": "assets/exercise_images/door.webp"
+  },
+  {
+    "id": "home_household_window",
+    "label": "Window",
+    "category": "home_household",
+    "tags": [
+      "window"
+    ],
+    "assetPath": "assets/exercise_images/window.webp"
+  },
+  {
+    "id": "home_household_sofa",
+    "label": "Sofa",
+    "category": "home_household",
+    "tags": [
+      "sofa"
+    ],
+    "assetPath": "assets/exercise_images/sofa.webp"
+  },
+  {
+    "id": "home_household_toilet",
+    "label": "Toilet",
+    "category": "home_household",
+    "tags": [
+      "toilet"
+    ],
+    "assetPath": "assets/exercise_images/toilet.webp"
+  },
+  {
+    "id": "home_household_sink",
+    "label": "Sink",
+    "category": "home_household",
+    "tags": [
+      "sink"
+    ],
+    "assetPath": "assets/exercise_images/sink.webp"
+  },
+  {
+    "id": "home_household_bathtub",
+    "label": "Bathtub",
+    "category": "home_household",
+    "tags": [
+      "bathtub"
+    ],
+    "assetPath": "assets/exercise_images/bathtub.webp"
+  },
+  {
+    "id": "home_household_shower",
+    "label": "Shower",
+    "category": "home_household",
+    "tags": [
+      "shower"
+    ],
+    "assetPath": "assets/exercise_images/shower.webp"
+  },
+  {
+    "id": "home_household_refrigerator",
+    "label": "Refrigerator",
+    "category": "home_household",
+    "tags": [
+      "refrigerator",
+      "fridge"
+    ],
+    "assetPath": "assets/exercise_images/refrigerator.webp"
+  },
+  {
+    "id": "home_household_oven",
+    "label": "Oven",
+    "category": "home_household",
+    "tags": [
+      "oven"
+    ],
+    "assetPath": "assets/exercise_images/oven.webp"
+  },
+  {
+    "id": "home_household_frying_pan",
+    "label": "Frying pan",
+    "category": "home_household",
+    "tags": [
+      "frying pan",
+      "pan"
+    ],
+    "assetPath": "assets/exercise_images/frying_pan.webp"
+  },
+  {
+    "id": "home_household_pot",
+    "label": "Pot",
+    "category": "home_household",
+    "tags": [
+      "pot"
+    ],
+    "assetPath": "assets/exercise_images/pot.webp"
+  },
+  {
+    "id": "home_household_knife",
+    "label": "Knife",
+    "category": "home_household",
+    "tags": [
+      "knife"
+    ],
+    "assetPath": "assets/exercise_images/knife.webp"
+  },
+  {
+    "id": "home_household_fork",
+    "label": "Fork",
+    "category": "home_household",
+    "tags": [
+      "fork"
+    ],
+    "assetPath": "assets/exercise_images/fork.webp"
+  },
+  {
+    "id": "home_household_spoon",
+    "label": "Spoon",
+    "category": "home_household",
+    "tags": [
+      "spoon"
+    ],
+    "assetPath": "assets/exercise_images/spoon.webp"
+  },
+  {
+    "id": "home_household_broom",
+    "label": "Broom",
+    "category": "home_household",
+    "tags": [
+      "broom"
+    ],
+    "assetPath": "assets/exercise_images/broom.webp"
+  },
+  {
+    "id": "home_household_trash_can",
+    "label": "Trash can",
+    "category": "home_household",
+    "tags": [
+      "trash can",
+      "garbage can",
+      "bin"
+    ],
+    "assetPath": "assets/exercise_images/trash_can.webp"
+  },
+  {
+    "id": "home_household_vacuum_cleaner",
+    "label": "Vacuum cleaner",
+    "category": "home_household",
+    "tags": [
+      "vacuum cleaner",
+      "vacuum"
+    ],
+    "assetPath": "assets/exercise_images/vacuum_cleaner.webp"
+  },
+  {
+    "id": "technology_laptop",
+    "label": "Laptop",
+    "category": "technology",
+    "tags": [
+      "laptop"
+    ],
+    "assetPath": "assets/exercise_images/laptop.webp"
+  },
+  {
+    "id": "technology_camera",
+    "label": "Camera",
+    "category": "technology",
+    "tags": [
+      "camera"
+    ],
+    "assetPath": "assets/exercise_images/camera.webp"
+  },
+  {
+    "id": "transport_airplane",
+    "label": "Airplane",
+    "category": "transport",
+    "tags": [
+      "airplane",
+      "aeroplane",
+      "plane"
+    ],
+    "assetPath": "assets/exercise_images/airplane.webp"
+  },
+  {
+    "id": "transport_bus",
+    "label": "Bus",
+    "category": "transport",
+    "tags": [
+      "bus"
+    ],
+    "assetPath": "assets/exercise_images/bus.webp"
+  },
+  {
+    "id": "city_public_places_shop",
+    "label": "Shop",
+    "category": "city_public_places",
+    "tags": [
+      "shop",
+      "store"
+    ],
+    "assetPath": "assets/exercise_images/shop.webp"
+  },
+  {
+    "id": "city_public_places_hospital",
+    "label": "Hospital",
+    "category": "city_public_places",
+    "tags": [
+      "hospital"
+    ],
+    "assetPath": "assets/exercise_images/hospital.webp"
+  },
+  {
+    "id": "nature_mountain",
+    "label": "Mountain",
+    "category": "nature",
+    "tags": [
+      "mountain"
+    ],
+    "assetPath": "assets/exercise_images/mountain.webp"
+  }
+]

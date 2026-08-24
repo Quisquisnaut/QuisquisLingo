@@ -1,0 +1,13 @@
+QUISQUISLINGO ALPHA DIAGNOSTIC LOG
+
+QuisquisLingo shows these testing instructions automatically when the Alpha starts, including standalone Windows release builds.
+
+1. Start QuisquisLingo and press Start testing.
+2. Use the app normally and reproduce the problem.
+3. Open Documents > QuisquisLingo Logs.
+4. Send the complete file quisquislingo_crash.log as an attachment. Do not send only a screenshot.
+5. In your message, say what you clicked immediately before the problem.
+
+The log starts at every app launch and includes technical system information such as Windows version, CPU architecture, logical processor count, locale, Dart runtime, app version, build mode, diagnostic events, errors and stack traces. It does not intentionally record learner names, exercise answers or course content.
+
+If you delete quisquislingo_crash.log, QuisquisLingo recreates it automatically at the next launch or diagnostic write.

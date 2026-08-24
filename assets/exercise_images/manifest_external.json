@@ -1,0 +1,1177 @@
+[
+  {
+    "id": "bread",
+    "primary_term": "Bread",
+    "keywords": [
+      "bread"
+    ],
+    "category": "food",
+    "filename": "bread.webp",
+    "asset_path": "assets/exercise_images/bread.webp"
+  },
+  {
+    "id": "apple",
+    "primary_term": "Apple",
+    "keywords": [
+      "apple"
+    ],
+    "category": "food",
+    "filename": "apple.webp",
+    "asset_path": "assets/exercise_images/apple.webp"
+  },
+  {
+    "id": "house",
+    "primary_term": "House",
+    "keywords": [
+      "house",
+      "home"
+    ],
+    "category": "home",
+    "filename": "house.webp",
+    "asset_path": "assets/exercise_images/house.webp"
+  },
+  {
+    "id": "water",
+    "primary_term": "Water",
+    "keywords": [
+      "water",
+      "drink"
+    ],
+    "category": "food",
+    "filename": "water.webp",
+    "asset_path": "assets/exercise_images/water.webp"
+  },
+  {
+    "id": "book",
+    "primary_term": "Book",
+    "keywords": [
+      "book",
+      "read",
+      "reading"
+    ],
+    "category": "school_work",
+    "filename": "book.webp",
+    "asset_path": "assets/exercise_images/book.webp"
+  },
+  {
+    "id": "cat",
+    "primary_term": "Cat",
+    "keywords": [
+      "cat"
+    ],
+    "category": "animals",
+    "filename": "cat.webp",
+    "asset_path": "assets/exercise_images/cat.webp"
+  },
+  {
+    "id": "car",
+    "primary_term": "Car",
+    "keywords": [
+      "car",
+      "automobile"
+    ],
+    "category": "transport",
+    "filename": "car.webp",
+    "asset_path": "assets/exercise_images/car.webp"
+  },
+  {
+    "id": "chair",
+    "primary_term": "Chair",
+    "keywords": [
+      "chair",
+      "seat"
+    ],
+    "category": "home",
+    "filename": "chair.webp",
+    "asset_path": "assets/exercise_images/chair.webp"
+  },
+  {
+    "id": "coffee",
+    "primary_term": "Coffee",
+    "keywords": [
+      "coffee"
+    ],
+    "category": "food",
+    "filename": "coffee.webp",
+    "asset_path": "assets/exercise_images/coffee.webp"
+  },
+  {
+    "id": "train",
+    "primary_term": "Train",
+    "keywords": [
+      "train"
+    ],
+    "category": "transport",
+    "filename": "train.webp",
+    "asset_path": "assets/exercise_images/train.webp"
+  },
+  {
+    "id": "bicycle",
+    "primary_term": "Bicycle",
+    "keywords": [
+      "bicycle",
+      "bike",
+      "cycling"
+    ],
+    "category": "transport",
+    "filename": "bicycle.webp",
+    "asset_path": "assets/exercise_images/bicycle.webp"
+  },
+  {
+    "id": "tree",
+    "primary_term": "Tree",
+    "keywords": [
+      "tree"
+    ],
+    "category": "nature",
+    "filename": "tree.webp",
+    "asset_path": "assets/exercise_images/tree.webp"
+  },
+  {
+    "id": "hello",
+    "primary_term": "Hello",
+    "keywords": [
+      "hello",
+      "hi",
+      "greet",
+      "greeting"
+    ],
+    "category": "greetings",
+    "filename": "hello.webp",
+    "asset_path": "assets/exercise_images/hello.webp"
+  },
+  {
+    "id": "people_family_man",
+    "primary_term": "Man",
+    "keywords": [
+      "man",
+      "adult man",
+      "male"
+    ],
+    "category": "people_family",
+    "filename": "man.webp",
+    "asset_path": "assets/exercise_images/man.webp"
+  },
+  {
+    "id": "people_family_woman",
+    "primary_term": "Woman",
+    "keywords": [
+      "woman",
+      "adult woman",
+      "female"
+    ],
+    "category": "people_family",
+    "filename": "woman.webp",
+    "asset_path": "assets/exercise_images/woman.webp"
+  },
+  {
+    "id": "people_family_boy",
+    "primary_term": "Boy",
+    "keywords": [
+      "boy"
+    ],
+    "category": "people_family",
+    "filename": "boy.webp",
+    "asset_path": "assets/exercise_images/boy.webp"
+  },
+  {
+    "id": "people_family_girl",
+    "primary_term": "Girl",
+    "keywords": [
+      "girl"
+    ],
+    "category": "people_family",
+    "filename": "girl.webp",
+    "asset_path": "assets/exercise_images/girl.webp"
+  },
+  {
+    "id": "people_family_baby",
+    "primary_term": "Baby",
+    "keywords": [
+      "baby",
+      "infant"
+    ],
+    "category": "people_family",
+    "filename": "baby.webp",
+    "asset_path": "assets/exercise_images/baby.webp"
+  },
+  {
+    "id": "people_family_grandfather",
+    "primary_term": "Grandfather",
+    "keywords": [
+      "grandfather",
+      "grandpa"
+    ],
+    "category": "people_family",
+    "filename": "grandfather.webp",
+    "asset_path": "assets/exercise_images/grandfather.webp"
+  },
+  {
+    "id": "people_family_grandmother",
+    "primary_term": "Grandmother",
+    "keywords": [
+      "grandmother",
+      "grandma"
+    ],
+    "category": "people_family",
+    "filename": "grandmother.webp",
+    "asset_path": "assets/exercise_images/grandmother.webp"
+  },
+  {
+    "id": "body_parts_ear",
+    "primary_term": "Ear",
+    "keywords": [
+      "ear"
+    ],
+    "category": "body_parts",
+    "filename": "ear.webp",
+    "asset_path": "assets/exercise_images/ear.webp"
+  },
+  {
+    "id": "body_parts_eye",
+    "primary_term": "Eye",
+    "keywords": [
+      "eye"
+    ],
+    "category": "body_parts",
+    "filename": "eye.webp",
+    "asset_path": "assets/exercise_images/eye.webp"
+  },
+  {
+    "id": "body_parts_nose",
+    "primary_term": "Nose",
+    "keywords": [
+      "nose"
+    ],
+    "category": "body_parts",
+    "filename": "nose.webp",
+    "asset_path": "assets/exercise_images/nose.webp"
+  },
+  {
+    "id": "body_parts_mouth",
+    "primary_term": "Mouth",
+    "keywords": [
+      "mouth"
+    ],
+    "category": "body_parts",
+    "filename": "mouth.webp",
+    "asset_path": "assets/exercise_images/mouth.webp"
+  },
+  {
+    "id": "body_parts_hand",
+    "primary_term": "Hand",
+    "keywords": [
+      "hand"
+    ],
+    "category": "body_parts",
+    "filename": "hand.webp",
+    "asset_path": "assets/exercise_images/hand.webp"
+  },
+  {
+    "id": "body_parts_foot",
+    "primary_term": "Foot",
+    "keywords": [
+      "foot"
+    ],
+    "category": "body_parts",
+    "filename": "foot.webp",
+    "asset_path": "assets/exercise_images/foot.webp"
+  },
+  {
+    "id": "clothing_accessories_t_shirt",
+    "primary_term": "T-shirt",
+    "keywords": [
+      "t-shirt",
+      "tee shirt"
+    ],
+    "category": "clothing_accessories",
+    "filename": "t_shirt.webp",
+    "asset_path": "assets/exercise_images/t_shirt.webp"
+  },
+  {
+    "id": "clothing_accessories_pants",
+    "primary_term": "Pants",
+    "keywords": [
+      "pants",
+      "trousers"
+    ],
+    "category": "clothing_accessories",
+    "filename": "pants.webp",
+    "asset_path": "assets/exercise_images/pants.webp"
+  },
+  {
+    "id": "clothing_accessories_dress",
+    "primary_term": "Dress",
+    "keywords": [
+      "dress"
+    ],
+    "category": "clothing_accessories",
+    "filename": "dress.webp",
+    "asset_path": "assets/exercise_images/dress.webp"
+  },
+  {
+    "id": "clothing_accessories_jacket",
+    "primary_term": "Jacket",
+    "keywords": [
+      "jacket"
+    ],
+    "category": "clothing_accessories",
+    "filename": "jacket.webp",
+    "asset_path": "assets/exercise_images/jacket.webp"
+  },
+  {
+    "id": "clothing_accessories_shoes",
+    "primary_term": "Shoes",
+    "keywords": [
+      "shoes"
+    ],
+    "category": "clothing_accessories",
+    "filename": "shoes.webp",
+    "asset_path": "assets/exercise_images/shoes.webp"
+  },
+  {
+    "id": "clothing_accessories_hat",
+    "primary_term": "Hat",
+    "keywords": [
+      "hat"
+    ],
+    "category": "clothing_accessories",
+    "filename": "hat.webp",
+    "asset_path": "assets/exercise_images/hat.webp"
+  },
+  {
+    "id": "clothing_accessories_glasses",
+    "primary_term": "Glasses",
+    "keywords": [
+      "glasses",
+      "eyeglasses"
+    ],
+    "category": "clothing_accessories",
+    "filename": "glasses.webp",
+    "asset_path": "assets/exercise_images/glasses.webp"
+  },
+  {
+    "id": "clothing_accessories_backpack",
+    "primary_term": "Backpack",
+    "keywords": [
+      "backpack",
+      "rucksack"
+    ],
+    "category": "clothing_accessories",
+    "filename": "backpack.webp",
+    "asset_path": "assets/exercise_images/backpack.webp"
+  },
+  {
+    "id": "clothing_accessories_umbrella",
+    "primary_term": "Umbrella",
+    "keywords": [
+      "umbrella"
+    ],
+    "category": "clothing_accessories",
+    "filename": "umbrella.webp",
+    "asset_path": "assets/exercise_images/umbrella.webp"
+  },
+  {
+    "id": "clothing_accessories_scarf",
+    "primary_term": "Scarf",
+    "keywords": [
+      "scarf"
+    ],
+    "category": "clothing_accessories",
+    "filename": "scarf.webp",
+    "asset_path": "assets/exercise_images/scarf.webp"
+  },
+  {
+    "id": "clothing_accessories_gloves",
+    "primary_term": "Gloves",
+    "keywords": [
+      "gloves"
+    ],
+    "category": "clothing_accessories",
+    "filename": "gloves.webp",
+    "asset_path": "assets/exercise_images/gloves.webp"
+  },
+  {
+    "id": "clothing_accessories_shorts",
+    "primary_term": "Shorts",
+    "keywords": [
+      "shorts"
+    ],
+    "category": "clothing_accessories",
+    "filename": "shorts.webp",
+    "asset_path": "assets/exercise_images/shorts.webp"
+  },
+  {
+    "id": "clothing_accessories_socks",
+    "primary_term": "Socks",
+    "keywords": [
+      "socks"
+    ],
+    "category": "clothing_accessories",
+    "filename": "socks.webp",
+    "asset_path": "assets/exercise_images/socks.webp"
+  },
+  {
+    "id": "clothing_accessories_watch",
+    "primary_term": "Watch",
+    "keywords": [
+      "watch",
+      "wristwatch"
+    ],
+    "category": "clothing_accessories",
+    "filename": "watch.webp",
+    "asset_path": "assets/exercise_images/watch.webp"
+  },
+  {
+    "id": "clothing_accessories_ring",
+    "primary_term": "Ring",
+    "keywords": [
+      "ring"
+    ],
+    "category": "clothing_accessories",
+    "filename": "ring.webp",
+    "asset_path": "assets/exercise_images/ring.webp"
+  },
+  {
+    "id": "clothing_accessories_necklace",
+    "primary_term": "Necklace",
+    "keywords": [
+      "necklace"
+    ],
+    "category": "clothing_accessories",
+    "filename": "necklace.webp",
+    "asset_path": "assets/exercise_images/necklace.webp"
+  },
+  {
+    "id": "clothing_accessories_wallet",
+    "primary_term": "Wallet",
+    "keywords": [
+      "wallet"
+    ],
+    "category": "clothing_accessories",
+    "filename": "wallet.webp",
+    "asset_path": "assets/exercise_images/wallet.webp"
+  },
+  {
+    "id": "actions_walk",
+    "primary_term": "Walk",
+    "keywords": [
+      "walk",
+      "walking"
+    ],
+    "category": "actions",
+    "filename": "walk.webp",
+    "asset_path": "assets/exercise_images/walk.webp"
+  },
+  {
+    "id": "actions_run",
+    "primary_term": "Run",
+    "keywords": [
+      "run",
+      "running"
+    ],
+    "category": "actions",
+    "filename": "run.webp",
+    "asset_path": "assets/exercise_images/run.webp"
+  },
+  {
+    "id": "actions_jump",
+    "primary_term": "Jump",
+    "keywords": [
+      "jump",
+      "jumping"
+    ],
+    "category": "actions",
+    "filename": "jump.webp",
+    "asset_path": "assets/exercise_images/jump.webp"
+  },
+  {
+    "id": "actions_sit",
+    "primary_term": "Sit",
+    "keywords": [
+      "sit",
+      "sitting"
+    ],
+    "category": "actions",
+    "filename": "sit.webp",
+    "asset_path": "assets/exercise_images/sit.webp"
+  },
+  {
+    "id": "actions_stand",
+    "primary_term": "Stand",
+    "keywords": [
+      "stand",
+      "standing"
+    ],
+    "category": "actions",
+    "filename": "stand.webp",
+    "asset_path": "assets/exercise_images/stand.webp"
+  },
+  {
+    "id": "actions_write",
+    "primary_term": "Write",
+    "keywords": [
+      "write",
+      "writing"
+    ],
+    "category": "actions",
+    "filename": "write.webp",
+    "asset_path": "assets/exercise_images/write.webp"
+  },
+  {
+    "id": "actions_brush_teeth",
+    "primary_term": "Brush teeth",
+    "keywords": [
+      "brush teeth",
+      "brushing teeth"
+    ],
+    "category": "actions",
+    "filename": "brush_teeth.webp",
+    "asset_path": "assets/exercise_images/brush_teeth.webp"
+  },
+  {
+    "id": "actions_sleep",
+    "primary_term": "Sleep",
+    "keywords": [
+      "sleep",
+      "sleeping"
+    ],
+    "category": "actions",
+    "filename": "sleep.webp",
+    "asset_path": "assets/exercise_images/sleep.webp"
+  },
+  {
+    "id": "emotions_happy",
+    "primary_term": "Happy",
+    "keywords": [
+      "happy",
+      "happily"
+    ],
+    "category": "emotions",
+    "filename": "happy.webp",
+    "asset_path": "assets/exercise_images/happy.webp"
+  },
+  {
+    "id": "emotions_sad",
+    "primary_term": "Sad",
+    "keywords": [
+      "sad",
+      "sadly"
+    ],
+    "category": "emotions",
+    "filename": "sad.webp",
+    "asset_path": "assets/exercise_images/sad.webp"
+  },
+  {
+    "id": "emotions_angry",
+    "primary_term": "Angry",
+    "keywords": [
+      "angry",
+      "angrily"
+    ],
+    "category": "emotions",
+    "filename": "angry.webp",
+    "asset_path": "assets/exercise_images/angry.webp"
+  },
+  {
+    "id": "emotions_surprised",
+    "primary_term": "Surprised",
+    "keywords": [
+      "surprised",
+      "surprise"
+    ],
+    "category": "emotions",
+    "filename": "surprised.webp",
+    "asset_path": "assets/exercise_images/surprised.webp"
+  },
+  {
+    "id": "emotions_laugh",
+    "primary_term": "Laugh",
+    "keywords": [
+      "laugh",
+      "laughing"
+    ],
+    "category": "emotions",
+    "filename": "laugh.webp",
+    "asset_path": "assets/exercise_images/laugh.webp"
+  },
+  {
+    "id": "food_drinks_orange",
+    "primary_term": "Orange",
+    "keywords": [
+      "orange"
+    ],
+    "category": "food_drinks",
+    "filename": "orange.webp",
+    "asset_path": "assets/exercise_images/orange.webp"
+  },
+  {
+    "id": "food_drinks_bananas",
+    "primary_term": "Bananas",
+    "keywords": [
+      "bananas",
+      "banana"
+    ],
+    "category": "food_drinks",
+    "filename": "bananas.webp",
+    "asset_path": "assets/exercise_images/bananas.webp"
+  },
+  {
+    "id": "food_drinks_strawberry",
+    "primary_term": "Strawberry",
+    "keywords": [
+      "strawberry"
+    ],
+    "category": "food_drinks",
+    "filename": "strawberry.webp",
+    "asset_path": "assets/exercise_images/strawberry.webp"
+  },
+  {
+    "id": "food_drinks_carrot",
+    "primary_term": "Carrot",
+    "keywords": [
+      "carrot"
+    ],
+    "category": "food_drinks",
+    "filename": "carrot.webp",
+    "asset_path": "assets/exercise_images/carrot.webp"
+  },
+  {
+    "id": "food_drinks_tomato",
+    "primary_term": "Tomato",
+    "keywords": [
+      "tomato"
+    ],
+    "category": "food_drinks",
+    "filename": "tomato.webp",
+    "asset_path": "assets/exercise_images/tomato.webp"
+  },
+  {
+    "id": "food_drinks_broccoli",
+    "primary_term": "Broccoli",
+    "keywords": [
+      "broccoli"
+    ],
+    "category": "food_drinks",
+    "filename": "broccoli.webp",
+    "asset_path": "assets/exercise_images/broccoli.webp"
+  },
+  {
+    "id": "food_drinks_potato",
+    "primary_term": "Potato",
+    "keywords": [
+      "potato"
+    ],
+    "category": "food_drinks",
+    "filename": "potato.webp",
+    "asset_path": "assets/exercise_images/potato.webp"
+  },
+  {
+    "id": "food_drinks_cheese",
+    "primary_term": "Cheese",
+    "keywords": [
+      "cheese"
+    ],
+    "category": "food_drinks",
+    "filename": "cheese.webp",
+    "asset_path": "assets/exercise_images/cheese.webp"
+  },
+  {
+    "id": "food_drinks_egg",
+    "primary_term": "Egg",
+    "keywords": [
+      "egg"
+    ],
+    "category": "food_drinks",
+    "filename": "egg.webp",
+    "asset_path": "assets/exercise_images/egg.webp"
+  },
+  {
+    "id": "food_drinks_burger",
+    "primary_term": "Burger",
+    "keywords": [
+      "burger"
+    ],
+    "category": "food_drinks",
+    "filename": "burger.webp",
+    "asset_path": "assets/exercise_images/burger.webp"
+  },
+  {
+    "id": "food_drinks_pizza",
+    "primary_term": "Pizza",
+    "keywords": [
+      "pizza"
+    ],
+    "category": "food_drinks",
+    "filename": "pizza.webp",
+    "asset_path": "assets/exercise_images/pizza.webp"
+  },
+  {
+    "id": "food_drinks_rice",
+    "primary_term": "Rice",
+    "keywords": [
+      "rice"
+    ],
+    "category": "food_drinks",
+    "filename": "rice.webp",
+    "asset_path": "assets/exercise_images/rice.webp"
+  },
+  {
+    "id": "food_drinks_soup",
+    "primary_term": "Soup",
+    "keywords": [
+      "soup"
+    ],
+    "category": "food_drinks",
+    "filename": "soup.webp",
+    "asset_path": "assets/exercise_images/soup.webp"
+  },
+  {
+    "id": "food_drinks_salad",
+    "primary_term": "Salad",
+    "keywords": [
+      "salad"
+    ],
+    "category": "food_drinks",
+    "filename": "salad.webp",
+    "asset_path": "assets/exercise_images/salad.webp"
+  },
+  {
+    "id": "food_drinks_milk",
+    "primary_term": "Milk",
+    "keywords": [
+      "milk"
+    ],
+    "category": "food_drinks",
+    "filename": "milk.webp",
+    "asset_path": "assets/exercise_images/milk.webp"
+  },
+  {
+    "id": "food_drinks_juice",
+    "primary_term": "Juice",
+    "keywords": [
+      "juice"
+    ],
+    "category": "food_drinks",
+    "filename": "juice.webp",
+    "asset_path": "assets/exercise_images/juice.webp"
+  },
+  {
+    "id": "food_drinks_tea",
+    "primary_term": "Tea",
+    "keywords": [
+      "tea"
+    ],
+    "category": "food_drinks",
+    "filename": "tea.webp",
+    "asset_path": "assets/exercise_images/tea.webp"
+  },
+  {
+    "id": "food_drinks_ice_cream",
+    "primary_term": "Ice cream",
+    "keywords": [
+      "ice cream"
+    ],
+    "category": "food_drinks",
+    "filename": "ice_cream.webp",
+    "asset_path": "assets/exercise_images/ice_cream.webp"
+  },
+  {
+    "id": "food_drinks_chocolate",
+    "primary_term": "Chocolate",
+    "keywords": [
+      "chocolate"
+    ],
+    "category": "food_drinks",
+    "filename": "chocolate.webp",
+    "asset_path": "assets/exercise_images/chocolate.webp"
+  },
+  {
+    "id": "food_drinks_cake",
+    "primary_term": "Cake",
+    "keywords": [
+      "cake"
+    ],
+    "category": "food_drinks",
+    "filename": "cake.webp",
+    "asset_path": "assets/exercise_images/cake.webp"
+  },
+  {
+    "id": "food_drinks_croissant",
+    "primary_term": "Croissant",
+    "keywords": [
+      "croissant"
+    ],
+    "category": "food_drinks",
+    "filename": "croissant.webp",
+    "asset_path": "assets/exercise_images/croissant.webp"
+  },
+  {
+    "id": "animals_dog",
+    "primary_term": "Dog",
+    "keywords": [
+      "dog"
+    ],
+    "category": "animals",
+    "filename": "dog.webp",
+    "asset_path": "assets/exercise_images/dog.webp"
+  },
+  {
+    "id": "animals_rabbit",
+    "primary_term": "Rabbit",
+    "keywords": [
+      "rabbit"
+    ],
+    "category": "animals",
+    "filename": "rabbit.webp",
+    "asset_path": "assets/exercise_images/rabbit.webp"
+  },
+  {
+    "id": "animals_bird",
+    "primary_term": "Bird",
+    "keywords": [
+      "bird"
+    ],
+    "category": "animals",
+    "filename": "bird.webp",
+    "asset_path": "assets/exercise_images/bird.webp"
+  },
+  {
+    "id": "animals_fish",
+    "primary_term": "Fish",
+    "keywords": [
+      "fish"
+    ],
+    "category": "animals",
+    "filename": "fish.webp",
+    "asset_path": "assets/exercise_images/fish.webp"
+  },
+  {
+    "id": "animals_horse",
+    "primary_term": "Horse",
+    "keywords": [
+      "horse"
+    ],
+    "category": "animals",
+    "filename": "horse.webp",
+    "asset_path": "assets/exercise_images/horse.webp"
+  },
+  {
+    "id": "animals_cow",
+    "primary_term": "Cow",
+    "keywords": [
+      "cow"
+    ],
+    "category": "animals",
+    "filename": "cow.webp",
+    "asset_path": "assets/exercise_images/cow.webp"
+  },
+  {
+    "id": "animals_pig",
+    "primary_term": "Pig",
+    "keywords": [
+      "pig"
+    ],
+    "category": "animals",
+    "filename": "pig.webp",
+    "asset_path": "assets/exercise_images/pig.webp"
+  },
+  {
+    "id": "animals_sheep",
+    "primary_term": "Sheep",
+    "keywords": [
+      "sheep"
+    ],
+    "category": "animals",
+    "filename": "sheep.webp",
+    "asset_path": "assets/exercise_images/sheep.webp"
+  },
+  {
+    "id": "animals_duck",
+    "primary_term": "Duck",
+    "keywords": [
+      "duck"
+    ],
+    "category": "animals",
+    "filename": "duck.webp",
+    "asset_path": "assets/exercise_images/duck.webp"
+  },
+  {
+    "id": "home_household_bed",
+    "primary_term": "Bed",
+    "keywords": [
+      "bed"
+    ],
+    "category": "home_household",
+    "filename": "bed.webp",
+    "asset_path": "assets/exercise_images/bed.webp"
+  },
+  {
+    "id": "home_household_table",
+    "primary_term": "Table",
+    "keywords": [
+      "table"
+    ],
+    "category": "home_household",
+    "filename": "table.webp",
+    "asset_path": "assets/exercise_images/table.webp"
+  },
+  {
+    "id": "home_household_lamp",
+    "primary_term": "Lamp",
+    "keywords": [
+      "lamp"
+    ],
+    "category": "home_household",
+    "filename": "lamp.webp",
+    "asset_path": "assets/exercise_images/lamp.webp"
+  },
+  {
+    "id": "home_household_door",
+    "primary_term": "Door",
+    "keywords": [
+      "door"
+    ],
+    "category": "home_household",
+    "filename": "door.webp",
+    "asset_path": "assets/exercise_images/door.webp"
+  },
+  {
+    "id": "home_household_window",
+    "primary_term": "Window",
+    "keywords": [
+      "window"
+    ],
+    "category": "home_household",
+    "filename": "window.webp",
+    "asset_path": "assets/exercise_images/window.webp"
+  },
+  {
+    "id": "home_household_sofa",
+    "primary_term": "Sofa",
+    "keywords": [
+      "sofa"
+    ],
+    "category": "home_household",
+    "filename": "sofa.webp",
+    "asset_path": "assets/exercise_images/sofa.webp"
+  },
+  {
+    "id": "home_household_toilet",
+    "primary_term": "Toilet",
+    "keywords": [
+      "toilet"
+    ],
+    "category": "home_household",
+    "filename": "toilet.webp",
+    "asset_path": "assets/exercise_images/toilet.webp"
+  },
+  {
+    "id": "home_household_sink",
+    "primary_term": "Sink",
+    "keywords": [
+      "sink"
+    ],
+    "category": "home_household",
+    "filename": "sink.webp",
+    "asset_path": "assets/exercise_images/sink.webp"
+  },
+  {
+    "id": "home_household_bathtub",
+    "primary_term": "Bathtub",
+    "keywords": [
+      "bathtub"
+    ],
+    "category": "home_household",
+    "filename": "bathtub.webp",
+    "asset_path": "assets/exercise_images/bathtub.webp"
+  },
+  {
+    "id": "home_household_shower",
+    "primary_term": "Shower",
+    "keywords": [
+      "shower"
+    ],
+    "category": "home_household",
+    "filename": "shower.webp",
+    "asset_path": "assets/exercise_images/shower.webp"
+  },
+  {
+    "id": "home_household_refrigerator",
+    "primary_term": "Refrigerator",
+    "keywords": [
+      "refrigerator",
+      "fridge"
+    ],
+    "category": "home_household",
+    "filename": "refrigerator.webp",
+    "asset_path": "assets/exercise_images/refrigerator.webp"
+  },
+  {
+    "id": "home_household_oven",
+    "primary_term": "Oven",
+    "keywords": [
+      "oven"
+    ],
+    "category": "home_household",
+    "filename": "oven.webp",
+    "asset_path": "assets/exercise_images/oven.webp"
+  },
+  {
+    "id": "home_household_frying_pan",
+    "primary_term": "Frying pan",
+    "keywords": [
+      "frying pan",
+      "pan"
+    ],
+    "category": "home_household",
+    "filename": "frying_pan.webp",
+    "asset_path": "assets/exercise_images/frying_pan.webp"
+  },
+  {
+    "id": "home_household_pot",
+    "primary_term": "Pot",
+    "keywords": [
+      "pot"
+    ],
+    "category": "home_household",
+    "filename": "pot.webp",
+    "asset_path": "assets/exercise_images/pot.webp"
+  },
+  {
+    "id": "home_household_knife",
+    "primary_term": "Knife",
+    "keywords": [
+      "knife"
+    ],
+    "category": "home_household",
+    "filename": "knife.webp",
+    "asset_path": "assets/exercise_images/knife.webp"
+  },
+  {
+    "id": "home_household_fork",
+    "primary_term": "Fork",
+    "keywords": [
+      "fork"
+    ],
+    "category": "home_household",
+    "filename": "fork.webp",
+    "asset_path": "assets/exercise_images/fork.webp"
+  },
+  {
+    "id": "home_household_spoon",
+    "primary_term": "Spoon",
+    "keywords": [
+      "spoon"
+    ],
+    "category": "home_household",
+    "filename": "spoon.webp",
+    "asset_path": "assets/exercise_images/spoon.webp"
+  },
+  {
+    "id": "home_household_broom",
+    "primary_term": "Broom",
+    "keywords": [
+      "broom"
+    ],
+    "category": "home_household",
+    "filename": "broom.webp",
+    "asset_path": "assets/exercise_images/broom.webp"
+  },
+  {
+    "id": "home_household_trash_can",
+    "primary_term": "Trash can",
+    "keywords": [
+      "trash can",
+      "garbage can",
+      "bin"
+    ],
+    "category": "home_household",
+    "filename": "trash_can.webp",
+    "asset_path": "assets/exercise_images/trash_can.webp"
+  },
+  {
+    "id": "home_household_vacuum_cleaner",
+    "primary_term": "Vacuum cleaner",
+    "keywords": [
+      "vacuum cleaner",
+      "vacuum"
+    ],
+    "category": "home_household",
+    "filename": "vacuum_cleaner.webp",
+    "asset_path": "assets/exercise_images/vacuum_cleaner.webp"
+  },
+  {
+    "id": "technology_laptop",
+    "primary_term": "Laptop",
+    "keywords": [
+      "laptop"
+    ],
+    "category": "technology",
+    "filename": "laptop.webp",
+    "asset_path": "assets/exercise_images/laptop.webp"
+  },
+  {
+    "id": "technology_camera",
+    "primary_term": "Camera",
+    "keywords": [
+      "camera"
+    ],
+    "category": "technology",
+    "filename": "camera.webp",
+    "asset_path": "assets/exercise_images/camera.webp"
+  },
+  {
+    "id": "transport_airplane",
+    "primary_term": "Airplane",
+    "keywords": [
+      "airplane",
+      "aeroplane",
+      "plane"
+    ],
+    "category": "transport",
+    "filename": "airplane.webp",
+    "asset_path": "assets/exercise_images/airplane.webp"
+  },
+  {
+    "id": "transport_bus",
+    "primary_term": "Bus",
+    "keywords": [
+      "bus"
+    ],
+    "category": "transport",
+    "filename": "bus.webp",
+    "asset_path": "assets/exercise_images/bus.webp"
+  },
+  {
+    "id": "city_public_places_shop",
+    "primary_term": "Shop",
+    "keywords": [
+      "shop",
+      "store"
+    ],
+    "category": "city_public_places",
+    "filename": "shop.webp",
+    "asset_path": "assets/exercise_images/shop.webp"
+  },
+  {
+    "id": "city_public_places_hospital",
+    "primary_term": "Hospital",
+    "keywords": [
+      "hospital"
+    ],
+    "category": "city_public_places",
+    "filename": "hospital.webp",
+    "asset_path": "assets/exercise_images/hospital.webp"
+  },
+  {
+    "id": "nature_mountain",
+    "primary_term": "Mountain",
+    "keywords": [
+      "mountain"
+    ],
+    "category": "nature",
+    "filename": "mountain.webp",
+    "asset_path": "assets/exercise_images/mountain.webp"
+  }
+]
