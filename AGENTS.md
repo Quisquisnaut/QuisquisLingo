@@ -21,7 +21,8 @@ These are persistent instructions for Codex when working on QuisquisLingo.
 - `2.0.7+207` is the conservative display-rebranding release from LingoGrow to QuisquisLingo.
 - Build 207 changes user-visible branding, user-facing filesystem paths and filenames, display-only window and descriptive metadata, and current documentation while preserving repository URLs, application/package/bundle IDs, executable names, SharedPreferences keys, serialization tokens, course namespaces, environment variables and internal symbols.
 - `2.0.8+208` completes the technical rebrand of application-owned identifiers and update infrastructure without legacy LingoGrow compatibility machinery.
-- Do not start Phase 2 modularization as part of build 208. Any future modularization requires a separate explicit user request and must keep the build 206 characterization tests green.
+- `2.0.9+209` completes Phase 2A modularization by extracting Round completion orchestration into `LearningCompletionService`.
+- Phase 2B (`LearningActivityService` in build 210) and Phase 2C (`XpCalculator` in build 211) require separate explicit user requests and must keep characterization tests green.
 
 ## Architecture and service boundaries
 

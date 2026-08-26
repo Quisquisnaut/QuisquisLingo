@@ -1,3 +1,13 @@
+# 2.0.9 (build 209) - 2026-08-26
+
+- Completed Phase 2A modularization by extracting Round completion orchestration into `LearningCompletionService`.
+- Extracted completed-Round persistence, recent-Round error recording, permanent laurel vs provisional TTS-skipped state determination, XP calculation (first-pass correct and repeat-cap scoring), learner-global Weekly XP reads/accounting, second learning-activity registration, and atomic weekly goal celebration claiming.
+- Retained UI presentation, exercise attempt state tracking, user input handling, mistake-review flow, preview-mode dialog, victory sound playback, mounted-lifecycle checks, weekly goal celebration dialog, and route navigation in `RoundScreen`.
+- Preserved exact sequential, non-transactional persistence ordering and interleaving behavior, including laurel persistence -> victory sound -> XP calculation -> XP persistence -> second activity registration.
+- Added comprehensive behavior and characterization test coverage in `test/learning_completion_service_test.dart`, `test/round_xp_completion_regression_test.dart`, and `test/topic_completion_regression_test.dart`.
+- Preserved all learner behavior, course behavior, progress, Topic completion rules, Duel rules, Course Model v3, and persistence keys/formats; no scoring or compatibility changes.
+- Refreshed the 30-day Alpha lifecycle; build 209 expires at the end of **2026-09-25**.
+
 # 2.0.8 (build 208) - 2026-08-23
 
 - Completed the technical rebrand of application-owned Dart/package/plugin symbols, Windows and Linux executable/application identifiers, SharedPreferences keys, serialization markers, bundled-course extension namespaces and diagnostic environment variables from LingoGrow to QuisquisLingo.
