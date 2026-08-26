@@ -5,6 +5,7 @@ import '../services/alpha_lifecycle_service.dart';
 import '../widgets/alpha_expired_view.dart';
 import '../models/course_models.dart';
 import '../services/progress_service.dart';
+import '../services/learning_completion_service.dart';
 import '../services/report_service.dart';
 import '../services/tts_cache_service.dart';
 import '../services/settings_service.dart';
@@ -65,6 +66,7 @@ class _MatchPairView {
 
 class _RoundScreenState extends State<RoundScreen> {
   final _progress = ProgressService();
+  late final LearningCompletionService _completion;
   final _ttsCache = TtsCacheService();
   final _reports = ReportService();
   final _settings = SettingsService();
@@ -126,6 +128,7 @@ class _RoundScreenState extends State<RoundScreen> {
   @override
   void initState() {
     super.initState();
+    _completion = LearningCompletionService(progressService: _progress);
     _initializeRound();
   }
 
@@ -716,60 +719,38 @@ class _RoundScreenState extends State<RoundScreen> {
       return;
     }
     final code = CourseService.codeForCourse(widget.course);
-    await _progress.completeRound(
-      widget.round.id,
-      courseId: widget.course.courseId,
-      courseCode: code,
-    );
-    await _progress.recordRecentRound(
-      widget.course.courseId,
-      widget.round.id,
-      errors: _errorsThisAttempt,
-    );
-    if (_errorsThisAttempt == 0 && !_ttsWasSkipped) {
-      // A perfect result is permanent once earned, regardless of how the round
-      // is entered (course path or Review) or of later imperfect attempts.
-      final newlyEarned = await _progress.markPerfectRound(
-        widget.round.id,
+    final completion = await _completion.completeRound(
+      LearningCompletionRequest(
+        roundId: widget.round.id,
         courseId: widget.course.courseId,
-      );
-      if (newlyEarned && await _settings.areSoundEffectsEnabled()) {
-        await _sounds.playDuelWin();
-      }
-    } else if (_errorsThisAttempt == 0 && _ttsWasSkipped) {
-      // Zero errors among presented exercises gets a separate mark when any
-      // TTS exercise was skipped. A later full zero-error attempt can still
-      // replace this with the permanent laurel crown.
-      await _progress.markTtsSkippedPerfectRound(
-        widget.round.id,
-        courseId: widget.course.courseId,
-      );
-    }
-    final fullRoundXp = _queue.length * 5;
-    final awardedXp = _errorsThisAttempt == 0 && _wasCompleted
-        ? fullRoundXp ~/ 2
-        : _firstPassCorrect * 5;
-    final weekBefore = await _progress.getWeeklyXp();
-    await _progress.addXp(
-      awardedXp,
-      courseCode: code,
-      courseId: widget.course.courseId,
+        courseCode: code,
+        readAttemptFacts: () => LearningCompletionAttemptFacts(
+          errorsThisAttempt: _errorsThisAttempt,
+          firstPassCorrect: _firstPassCorrect,
+          repeatCapExerciseCount: _queue.length,
+          wasCompletedAtStart: _wasCompleted,
+          ttsWasSkipped: _ttsWasSkipped,
+        ),
+      ),
+      onNewLaurel: () async {
+        if (await _settings.areSoundEffectsEnabled()) {
+          await _sounds.playDuelWin();
+        }
+      },
+      getWeeklyXpTarget: _settings.getWeeklyXpTarget,
     );
-    final weekAfter = await _progress.getWeeklyXp();
-    final weekTarget = await _settings.getWeeklyXpTarget();
-    await _progress.registerLearningActivity(courseCode: code);
     if (mounted &&
-        weekBefore < weekTarget &&
-        weekAfter >= weekTarget &&
-        !await _progress.isWeeklyGoalCelebrated()) {
-      await _progress.markWeeklyGoalCelebrated();
+        completion.crossedWeeklyXpTarget &&
+        await _completion.claimWeeklyGoalCelebration()) {
       if (await _settings.areSoundEffectsEnabled()) await _sounds.playDuelWin();
       if (!mounted) return;
       await showDialog<void>(
         context: context,
         builder: (ctx) => AlertDialog(
           title: const Text('Weekly goal reached!'),
-          content: Text('$weekAfter / $weekTarget XP'),
+          content: Text(
+            '${completion.weeklyXpAfter} / ${completion.weeklyXpTarget} XP',
+          ),
           actions: [
             FilledButton(
               onPressed: () => Navigator.pop(ctx),

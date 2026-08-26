@@ -1,0 +1,477 @@
+import 'package:flutter_test/flutter_test.dart';
+import 'package:quisquislingo_app/services/learning_completion_service.dart';
+
+void main() {
+  test(
+    'perfect first completion preserves sequential persistence and accounting order',
+    () async {
+      final events = <String>[];
+      final progress = _FakeLearningCompletionProgress(
+        events: events,
+        weeklyXpValues: [90, 105],
+        newlyEarnedLaurel: true,
+      );
+      final service = LearningCompletionService.withProgress(progress);
+
+      final result = await service.completeRound(
+        _request(
+          errorsThisAttempt: 0,
+          firstPassCorrect: 3,
+          repeatCapExerciseCount: 7,
+          wasCompletedAtStart: false,
+          ttsWasSkipped: false,
+          factEvents: events,
+        ),
+        onNewLaurel: () => _event(events, 'newLaurel'),
+        getWeeklyXpTarget: () => _valueEvent(events, 'weeklyTarget', 100),
+      );
+
+      expect(events, [
+        'completeRound:start',
+        'completeRound:completedRoundPersisted',
+        'activity:first',
+        'completeRound:end',
+        'attemptFacts:recent',
+        'recentRound:start',
+        'recentRound:end',
+        'attemptFacts:perfect',
+        'perfectRound:start',
+        'perfectRound:end',
+        'newLaurel:start',
+        'newLaurel:end',
+        'attemptFacts:scoring',
+        'weeklyXp:1:start',
+        'weeklyXp:1:end',
+        'addXp:15:start',
+        'addXp:15:end',
+        'weeklyXp:2:start',
+        'weeklyXp:2:end',
+        'weeklyTarget:start',
+        'weeklyTarget:end',
+        'activity:second:start',
+        'activity:second:end',
+      ]);
+      expect(progress.completedRoundId, 'round_1');
+      expect(progress.completedCourseId, 'course_1');
+      expect(progress.completedCourseCode, 'IT');
+      expect(progress.recentCourseId, 'course_1');
+      expect(progress.recentRoundId, 'round_1');
+      expect(progress.recentRoundErrors, 0);
+      expect(progress.perfectCourseId, 'course_1');
+      expect(progress.perfectRoundId, 'round_1');
+      expect(progress.addedXp, 15);
+      expect(progress.addedCourseId, 'course_1');
+      expect(progress.addedCourseCode, 'IT');
+      expect(progress.activityCourseCode, 'IT');
+      expect(progress.effectiveActivityRegistrations, 2);
+      expect(result.awardedXp, 15);
+      expect(result.weeklyXpBefore, 90);
+      expect(result.weeklyXpAfter, 105);
+      expect(result.weeklyXpTarget, 100);
+      expect(result.newlyEarnedLaurel, isTrue);
+      expect(result.crossedWeeklyXpTarget, isTrue);
+    },
+  );
+
+  test(
+    'attempt facts are read lazily at the original await boundaries',
+    () async {
+      final events = <String>[];
+      final progress = _FakeLearningCompletionProgress(
+        events: events,
+        weeklyXpValues: [40, 50],
+      );
+      final service = LearningCompletionService.withProgress(progress);
+      final stagedFacts = [
+        const LearningCompletionAttemptFacts(
+          errorsThisAttempt: 0,
+          firstPassCorrect: 0,
+          repeatCapExerciseCount: 1,
+          wasCompletedAtStart: false,
+          ttsWasSkipped: false,
+        ),
+        const LearningCompletionAttemptFacts(
+          errorsThisAttempt: 1,
+          firstPassCorrect: 2,
+          repeatCapExerciseCount: 3,
+          wasCompletedAtStart: false,
+          ttsWasSkipped: false,
+        ),
+        const LearningCompletionAttemptFacts(
+          errorsThisAttempt: 1,
+          firstPassCorrect: 2,
+          repeatCapExerciseCount: 3,
+          wasCompletedAtStart: false,
+          ttsWasSkipped: false,
+        ),
+      ];
+      var factsRead = 0;
+
+      final result = await service.completeRound(
+        LearningCompletionRequest(
+          roundId: 'round_1',
+          courseId: 'course_1',
+          courseCode: 'IT',
+          readAttemptFacts: () {
+            events.add('attemptFacts:${factsRead + 1}');
+            return stagedFacts[factsRead++];
+          },
+        ),
+        onNewLaurel: () async {},
+        getWeeklyXpTarget: () async => 100,
+      );
+
+      expect(
+        events.indexOf('attemptFacts:1'),
+        greaterThan(events.indexOf('completeRound:end')),
+      );
+      expect(
+        events.indexOf('attemptFacts:2'),
+        greaterThan(events.indexOf('recentRound:end')),
+      );
+      expect(
+        events.indexOf('attemptFacts:3'),
+        greaterThan(events.indexOf('attemptFacts:2')),
+      );
+      expect(progress.recentRoundErrors, 0);
+      expect(progress.perfectRoundCalls, 0);
+      expect(progress.ttsSkippedPerfectRoundCalls, 0);
+      expect(progress.addedXp, 10);
+      expect(result.awardedXp, 10);
+      expect(factsRead, 3);
+    },
+  );
+
+  test(
+    'perfect repeat uses the final mutable queue length and floors the cap',
+    () async {
+      final progress = _FakeLearningCompletionProgress(
+        events: <String>[],
+        weeklyXpValues: [20, 27],
+        newlyEarnedLaurel: false,
+      );
+      final service = LearningCompletionService.withProgress(progress);
+      var laurelCallbackCalled = false;
+
+      final result = await service.completeRound(
+        _request(
+          errorsThisAttempt: 0,
+          firstPassCorrect: 99,
+          repeatCapExerciseCount: 3,
+          wasCompletedAtStart: true,
+          ttsWasSkipped: false,
+        ),
+        onNewLaurel: () async => laurelCallbackCalled = true,
+        getWeeklyXpTarget: () async => 100,
+      );
+
+      expect(result.awardedXp, 7);
+      expect(progress.addedXp, 7);
+      expect(progress.perfectRoundCalls, 1);
+      expect(progress.ttsSkippedPerfectRoundCalls, 0);
+      expect(laurelCallbackCalled, isFalse);
+    },
+  );
+
+  test('imperfect repeat keeps first-pass-correct scoring', () async {
+    final progress = _FakeLearningCompletionProgress(
+      events: <String>[],
+      weeklyXpValues: [12, 22],
+    );
+    final service = LearningCompletionService.withProgress(progress);
+
+    final result = await service.completeRound(
+      _request(
+        errorsThisAttempt: 2,
+        firstPassCorrect: 2,
+        repeatCapExerciseCount: 100,
+        wasCompletedAtStart: true,
+        ttsWasSkipped: false,
+      ),
+      onNewLaurel: () async {},
+      getWeeklyXpTarget: () async => 100,
+    );
+
+    expect(result.awardedXp, 10);
+    expect(progress.addedXp, 10);
+    expect(progress.perfectRoundCalls, 0);
+    expect(progress.ttsSkippedPerfectRoundCalls, 0);
+  });
+
+  test(
+    'TTS-skipped perfect completion persists provisional state and adds zero XP',
+    () async {
+      final events = <String>[];
+      final progress = _FakeLearningCompletionProgress(
+        events: events,
+        weeklyXpValues: [0, 0],
+      );
+      final service = LearningCompletionService.withProgress(progress);
+      var laurelCallbackCalled = false;
+
+      final result = await service.completeRound(
+        _request(
+          errorsThisAttempt: 0,
+          firstPassCorrect: 0,
+          repeatCapExerciseCount: 0,
+          wasCompletedAtStart: false,
+          ttsWasSkipped: true,
+        ),
+        onNewLaurel: () async => laurelCallbackCalled = true,
+        getWeeklyXpTarget: () => _valueEvent(events, 'weeklyTarget', 100),
+      );
+
+      expect(
+        events.indexOf('ttsSkippedPerfectRound:start'),
+        greaterThan(events.indexOf('recentRound:end')),
+      );
+      expect(
+        events.indexOf('ttsSkippedPerfectRound:end'),
+        lessThan(events.indexOf('weeklyXp:1:start')),
+      );
+      expect(events.where((event) => event == 'addXp:0:start'), hasLength(1));
+      expect(progress.addedXp, 0);
+      expect(progress.addXpCalls, 1);
+      expect(progress.perfectRoundCalls, 0);
+      expect(progress.ttsSkippedPerfectRoundCalls, 1);
+      expect(progress.ttsSkippedPerfectCourseId, 'course_1');
+      expect(progress.ttsSkippedPerfectRoundId, 'round_1');
+      expect(progress.effectiveActivityRegistrations, 2);
+      expect(laurelCallbackCalled, isFalse);
+      expect(result.awardedXp, 0);
+      expect(result.newlyEarnedLaurel, isFalse);
+    },
+  );
+
+  test(
+    'new-laurel callback failure stops before XP and later activity',
+    () async {
+      final events = <String>[];
+      final progress = _FakeLearningCompletionProgress(
+        events: events,
+        weeklyXpValues: [0, 5],
+        newlyEarnedLaurel: true,
+      );
+      final service = LearningCompletionService.withProgress(progress);
+
+      await expectLater(
+        service.completeRound(
+          _request(
+            errorsThisAttempt: 0,
+            firstPassCorrect: 1,
+            repeatCapExerciseCount: 1,
+            wasCompletedAtStart: false,
+            ttsWasSkipped: false,
+          ),
+          onNewLaurel: () async {
+            events.add('newLaurel:start');
+            throw StateError('sound failed');
+          },
+          getWeeklyXpTarget: () async => 100,
+        ),
+        throwsStateError,
+      );
+
+      expect(events, [
+        'completeRound:start',
+        'completeRound:completedRoundPersisted',
+        'activity:first',
+        'completeRound:end',
+        'recentRound:start',
+        'recentRound:end',
+        'perfectRound:start',
+        'perfectRound:end',
+        'newLaurel:start',
+      ]);
+      expect(progress.addXpCalls, 0);
+      expect(progress.effectiveActivityRegistrations, 1);
+    },
+  );
+
+  test(
+    'weekly celebration is claimed only when not already celebrated',
+    () async {
+      final events = <String>[];
+      final progress = _FakeLearningCompletionProgress(
+        events: events,
+        weeklyXpValues: const [],
+      );
+      final service = LearningCompletionService.withProgress(progress);
+
+      expect(await service.claimWeeklyGoalCelebration(), isTrue);
+      expect(events, [
+        'weeklyCelebrated:start',
+        'weeklyCelebrated:end',
+        'markWeeklyCelebrated:start',
+        'markWeeklyCelebrated:end',
+      ]);
+
+      events.clear();
+      expect(await service.claimWeeklyGoalCelebration(), isFalse);
+      expect(events, ['weeklyCelebrated:start', 'weeklyCelebrated:end']);
+    },
+  );
+}
+
+LearningCompletionRequest _request({
+  required int errorsThisAttempt,
+  required int firstPassCorrect,
+  required int repeatCapExerciseCount,
+  required bool wasCompletedAtStart,
+  required bool ttsWasSkipped,
+  List<String>? factEvents,
+}) {
+  final facts = LearningCompletionAttemptFacts(
+    errorsThisAttempt: errorsThisAttempt,
+    firstPassCorrect: firstPassCorrect,
+    repeatCapExerciseCount: repeatCapExerciseCount,
+    wasCompletedAtStart: wasCompletedAtStart,
+    ttsWasSkipped: ttsWasSkipped,
+  );
+  const readStages = ['recent', 'perfect', 'scoring'];
+  var readIndex = 0;
+  return LearningCompletionRequest(
+    roundId: 'round_1',
+    courseId: 'course_1',
+    courseCode: 'IT',
+    readAttemptFacts: () {
+      factEvents?.add('attemptFacts:${readStages[readIndex]}');
+      readIndex++;
+      return facts;
+    },
+  );
+}
+
+Future<void> _event(List<String> events, String name) async {
+  events.add('$name:start');
+  await Future<void>.delayed(Duration.zero);
+  events.add('$name:end');
+}
+
+Future<T> _valueEvent<T>(List<String> events, String name, T value) async {
+  await _event(events, name);
+  return value;
+}
+
+class _FakeLearningCompletionProgress implements LearningCompletionProgress {
+  final List<String> events;
+  final List<int> weeklyXpValues;
+  final bool newlyEarnedLaurel;
+
+  String? completedRoundId;
+  String? completedCourseId;
+  String? completedCourseCode;
+  String? recentCourseId;
+  String? recentRoundId;
+  int? recentRoundErrors;
+  String? perfectCourseId;
+  String? perfectRoundId;
+  String? ttsSkippedPerfectCourseId;
+  String? ttsSkippedPerfectRoundId;
+  int? addedXp;
+  String? addedCourseId;
+  String? addedCourseCode;
+  String? activityCourseCode;
+  int addXpCalls = 0;
+  int perfectRoundCalls = 0;
+  int ttsSkippedPerfectRoundCalls = 0;
+  int effectiveActivityRegistrations = 0;
+  int _weeklyXpReadIndex = 0;
+  bool _weeklyGoalCelebrated = false;
+
+  _FakeLearningCompletionProgress({
+    required this.events,
+    required this.weeklyXpValues,
+    this.newlyEarnedLaurel = false,
+  });
+
+  @override
+  Future<void> completeRound(
+    String id, {
+    required String courseId,
+    required String courseCode,
+  }) async {
+    events.add('completeRound:start');
+    await Future<void>.delayed(Duration.zero);
+    completedRoundId = id;
+    completedCourseId = courseId;
+    completedCourseCode = courseCode;
+    events.add('completeRound:completedRoundPersisted');
+    await Future<void>.delayed(Duration.zero);
+    effectiveActivityRegistrations++;
+    events.add('activity:first');
+    await Future<void>.delayed(Duration.zero);
+    events.add('completeRound:end');
+  }
+
+  @override
+  Future<void> recordRecentRound(
+    String courseId,
+    String roundId, {
+    required int errors,
+  }) async {
+    recentCourseId = courseId;
+    recentRoundId = roundId;
+    recentRoundErrors = errors;
+    await _event(events, 'recentRound');
+  }
+
+  @override
+  Future<bool> markPerfectRound(
+    String roundId, {
+    required String courseId,
+  }) async {
+    perfectRoundCalls++;
+    perfectCourseId = courseId;
+    perfectRoundId = roundId;
+    return _valueEvent(events, 'perfectRound', newlyEarnedLaurel);
+  }
+
+  @override
+  Future<void> markTtsSkippedPerfectRound(
+    String roundId, {
+    required String courseId,
+  }) async {
+    ttsSkippedPerfectRoundCalls++;
+    ttsSkippedPerfectCourseId = courseId;
+    ttsSkippedPerfectRoundId = roundId;
+    await _event(events, 'ttsSkippedPerfectRound');
+  }
+
+  @override
+  Future<int> getWeeklyXp() {
+    final readNumber = _weeklyXpReadIndex + 1;
+    final value = weeklyXpValues[_weeklyXpReadIndex++];
+    return _valueEvent(events, 'weeklyXp:$readNumber', value);
+  }
+
+  @override
+  Future<void> addXp(
+    int amount, {
+    required String courseCode,
+    required String courseId,
+  }) async {
+    addXpCalls++;
+    addedXp = amount;
+    addedCourseId = courseId;
+    addedCourseCode = courseCode;
+    await _event(events, 'addXp:$amount');
+  }
+
+  @override
+  Future<void> registerLearningActivity({required String courseCode}) async {
+    effectiveActivityRegistrations++;
+    activityCourseCode = courseCode;
+    await _event(events, 'activity:second');
+  }
+
+  @override
+  Future<bool> isWeeklyGoalCelebrated() =>
+      _valueEvent(events, 'weeklyCelebrated', _weeklyGoalCelebrated);
+
+  @override
+  Future<void> markWeeklyGoalCelebrated() async {
+    await _event(events, 'markWeeklyCelebrated');
+    _weeklyGoalCelebrated = true;
+  }
+}
