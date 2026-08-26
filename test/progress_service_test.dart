@@ -1,22 +1,34 @@
 import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:quisquislingo_app/services/learner_backup_service.dart';
 import 'package:quisquislingo_app/services/profile_service.dart';
 import 'package:quisquislingo_app/services/progress_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+class _MutableClock {
+  _MutableClock(this.value);
+
+  DateTime value;
+
+  DateTime call() => value;
+}
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   setUp(() => SharedPreferences.setMockInitialValues({}));
 
-  Future<ProgressService> progress({String learner = 'Tester'}) async {
+  Future<ProgressService> progress({
+    String learner = 'Tester',
+    DateTime Function()? now,
+  }) async {
     await ProfileService().addProfile(
       learner,
       skinTone: 'light',
       hairTone: 'dark',
     );
-    return ProgressService();
+    return ProgressService(now: now);
   }
 
   Future<Map<String, int>> currentWeeklyXpByCourse(String learner) async {
@@ -155,6 +167,89 @@ void main() {
       },
     );
   });
+
+  test(
+    'two courses with one normalized language share activity but not course progress',
+    () async {
+      final clock = _MutableClock(DateTime(2026, 3, 1, 8));
+      final service = await progress(now: clock.call);
+      final prefs = await SharedPreferences.getInstance();
+
+      await service.completeRound(
+        'round_a',
+        courseId: 'course_a',
+        courseCode: ' it ',
+      );
+      clock.value = DateTime(2026, 3, 2, 8);
+      await service.completeRound(
+        'round_b',
+        courseId: 'course_b',
+        courseCode: 'IT',
+      );
+
+      expect(await service.getStreak(courseCode: 'it'), 2);
+      expect(await service.getDaysStudied(courseCode: ' IT '), 2);
+      expect(await service.getCompletedRounds(courseId: 'course_a'), {
+        'round_a',
+      });
+      expect(await service.getCompletedRounds(courseId: 'course_b'), {
+        'round_b',
+      });
+      expect(prefs.getKeys().where((key) => key.contains('streak_')).toSet(), {
+        'learner_Tester_streak_IT',
+      });
+      expect(
+        prefs.getKeys().where(
+          (key) => key.contains('study_days') && key.contains('course_'),
+        ),
+        isEmpty,
+      );
+    },
+  );
+
+  test(
+    'Round, Topic, and Duel composite methods each record their current activity step',
+    () async {
+      final clock = _MutableClock(DateTime(2026, 3, 10, 8));
+      final service = await progress(now: clock.call);
+      final prefs = await SharedPreferences.getInstance();
+
+      await service.completeRound(
+        'round_1',
+        courseId: 'course_a',
+        courseCode: 'IT',
+      );
+      expect(await service.getStreak(courseCode: 'IT'), 1);
+
+      clock.value = DateTime(2026, 3, 11, 8);
+      await service.completeTopic(
+        'topic_1',
+        courseId: 'course_a',
+        courseCode: 'IT',
+      );
+      expect(await service.getStreak(courseCode: 'IT'), 2);
+
+      clock.value = DateTime(2026, 3, 12, 8);
+      await service.winDuel('duel_1', courseId: 'course_a', courseCode: 'IT');
+
+      expect(await service.getStreak(courseCode: 'IT'), 3);
+      expect(await service.getDaysStudied(courseCode: 'IT'), 3);
+      expect(prefs.getStringList('learner_Tester_study_days_IT'), [
+        '2026-03-10',
+        '2026-03-11',
+        '2026-03-12',
+      ]);
+      expect(await service.getCompletedRounds(courseId: 'course_a'), {
+        'round_1',
+      });
+      expect(await service.getCompletedTopics(courseId: 'course_a'), {
+        'topic_1',
+      });
+      expect(await service.getWonDuels(courseId: 'course_a'), {'duel_1'});
+      expect(await service.getXp(courseCode: 'IT'), 75);
+      expect(await service.getWeeklyXp(), 75);
+    },
+  );
 
   test(
     'all progress and XP scopes are isolated between learner profiles',
@@ -483,6 +578,119 @@ void main() {
         )).single.roundId,
         'bob_round_a',
       );
+    },
+  );
+
+  test(
+    'resetCourse preserves exact language and global activity state',
+    () async {
+      final clock = _MutableClock(DateTime(2026, 4, 5, 8));
+      final service = await progress(now: clock.call);
+      final prefs = await SharedPreferences.getInstance();
+
+      await service.completeRound(
+        'round_a',
+        courseId: 'course_a',
+        courseCode: 'IT',
+      );
+      await service.markPerfectRound('round_a', courseId: 'course_a');
+      clock.value = DateTime(2026, 4, 6, 8);
+      await service.registerLearningActivity(courseCode: 'DE');
+
+      final activityKeys = prefs
+          .getKeys()
+          .where(
+            (key) =>
+                key.startsWith('learner_Tester_streak_') ||
+                key.startsWith('learner_Tester_last_active_') ||
+                key.startsWith('learner_Tester_study_days_'),
+          )
+          .toSet();
+      final activityBefore = <String, Object?>{
+        for (final key in activityKeys) key: prefs.get(key),
+      };
+
+      await service.resetCourse('course_a');
+
+      expect(await service.getCompletedRounds(courseId: 'course_a'), isEmpty);
+      expect(await service.getPerfectRounds(courseId: 'course_a'), isEmpty);
+      expect(<String, Object?>{
+        for (final key in activityKeys) key: prefs.get(key),
+      }, activityBefore);
+      expect(await service.getStreak(courseCode: 'IT'), 1);
+      expect(await service.getDaysStudied(courseCode: 'IT'), 1);
+      expect(await service.getStreak(courseCode: 'DE'), 1);
+      expect(await service.getDaysStudied(courseCode: 'DE'), 1);
+      expect(prefs.getStringList('learner_Tester_study_days_all'), [
+        '2026-04-05',
+        '2026-04-06',
+      ]);
+    },
+  );
+
+  test(
+    'profile deletion removes all activity families and recreation starts at zero',
+    () async {
+      final clock = _MutableClock(DateTime(2026, 5, 1, 8));
+      final profiles = ProfileService();
+      final service = await progress(learner: 'Solo', now: clock.call);
+      final prefs = await SharedPreferences.getInstance();
+
+      await service.registerLearningActivity(courseCode: 'IT');
+      await service.registerLearningActivity(courseCode: 'DE');
+      final activityKeys = prefs
+          .getKeys()
+          .where(
+            (key) =>
+                key.startsWith('learner_Solo_streak_') ||
+                key.startsWith('learner_Solo_last_active_') ||
+                key.startsWith('learner_Solo_study_days_'),
+          )
+          .toSet();
+      expect(activityKeys, hasLength(7));
+
+      await profiles.deleteProfile('Solo');
+
+      expect(activityKeys.where(prefs.containsKey), isEmpty);
+      await profiles.addProfile('Solo');
+      final recreated = ProgressService(now: clock.call);
+      expect(await recreated.getStreak(courseCode: 'IT'), 0);
+      expect(await recreated.getDaysStudied(courseCode: 'IT'), 0);
+      expect(await recreated.getStreak(courseCode: 'DE'), 0);
+      expect(await recreated.getDaysStudied(courseCode: 'DE'), 0);
+    },
+  );
+
+  test(
+    'KNOWN CURRENT BEHAVIOR / RISK: A prefix operations export and delete A_B learner data',
+    () async {
+      final clock = _MutableClock(DateTime(2026, 5, 2, 8));
+      final profiles = ProfileService();
+      await profiles.addProfile('A');
+      final service = ProgressService(now: clock.call);
+      await service.registerLearningActivity(courseCode: 'IT');
+      await profiles.addProfile('A_B');
+      await service.registerLearningActivity(courseCode: 'DE');
+      final prefs = await SharedPreferences.getInstance();
+      expect(prefs.getInt('learner_A_B_streak_DE'), 1);
+
+      await profiles.setActiveProfile('A');
+      final exported = await LearnerBackupService().exportActiveProfile();
+      final data = Map<String, dynamic>.from(exported['data'] as Map);
+
+      expect(data['streak_IT'], 1);
+      expect(data['B_streak_DE'], 1);
+      expect(data['B_last_active_DE'], '2026-05-02T00:00:00.000');
+      expect(data['B_study_days_DE'], ['2026-05-02']);
+
+      await profiles.deleteProfile('A');
+
+      expect(prefs.containsKey('learner_A_B_streak_DE'), isFalse);
+      expect(prefs.containsKey('learner_A_B_last_active_DE'), isFalse);
+      expect(prefs.containsKey('learner_A_B_study_days_DE'), isFalse);
+      final remainingLearner = ProgressService(now: clock.call);
+      expect(await remainingLearner.getStreak(courseCode: 'DE'), 0);
+      expect(await remainingLearner.getDaysStudied(courseCode: 'DE'), 0);
     },
   );
 

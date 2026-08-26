@@ -1,7 +1,22 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:quisquislingo_app/services/learning_completion_service.dart';
+import 'package:quisquislingo_app/services/profile_service.dart';
+import 'package:quisquislingo_app/services/progress_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+class _MutableClock {
+  _MutableClock(this.value);
+
+  DateTime value;
+
+  DateTime call() => value;
+}
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
+  setUp(() => SharedPreferences.setMockInitialValues({}));
+
   test(
     'perfect first completion preserves sequential persistence and accounting order',
     () async {
@@ -285,6 +300,49 @@ void main() {
       ]);
       expect(progress.addXpCalls, 0);
       expect(progress.effectiveActivityRegistrations, 1);
+    },
+  );
+
+  test(
+    'real Round completion preserves two activity dates when its duplicate registrations cross midnight',
+    () async {
+      final clock = _MutableClock(DateTime(2026, 8, 25, 23, 59));
+      await ProfileService().addProfile('Midnight Learner');
+      final progress = ProgressService(now: clock.call);
+      final service = LearningCompletionService(progressService: progress);
+
+      await service.completeRound(
+        _request(
+          errorsThisAttempt: 1,
+          firstPassCorrect: 1,
+          repeatCapExerciseCount: 1,
+          wasCompletedAtStart: false,
+          ttsWasSkipped: false,
+        ),
+        onNewLaurel: () async {},
+        getWeeklyXpTarget: () async {
+          clock.value = DateTime(2026, 8, 26);
+          return 100;
+        },
+      );
+
+      final prefs = await SharedPreferences.getInstance();
+      const prefix = 'learner_Midnight%20Learner_';
+      expect(await progress.getStreak(courseCode: 'IT'), 2);
+      expect(await progress.getDaysStudied(courseCode: 'IT'), 2);
+      expect(prefs.getInt('${prefix}streak_IT'), 2);
+      expect(
+        prefs.getString('${prefix}last_active_IT'),
+        '2026-08-26T00:00:00.000',
+      );
+      expect(prefs.getStringList('${prefix}study_days_IT'), [
+        '2026-08-25',
+        '2026-08-26',
+      ]);
+      expect(prefs.getStringList('${prefix}study_days_all'), [
+        '2026-08-25',
+        '2026-08-26',
+      ]);
     },
   );
 
