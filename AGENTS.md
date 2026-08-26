@@ -22,7 +22,9 @@ These are persistent instructions for Codex when working on QuisquisLingo.
 - Build 207 changes user-visible branding, user-facing filesystem paths and filenames, display-only window and descriptive metadata, and current documentation while preserving repository URLs, application/package/bundle IDs, executable names, SharedPreferences keys, serialization tokens, course namespaces, environment variables and internal symbols.
 - `2.0.8+208` completes the technical rebrand of application-owned identifiers and update infrastructure without legacy LingoGrow compatibility machinery.
 - `2.0.9+209` completes Phase 2A modularization by extracting Round completion orchestration into `LearningCompletionService`.
-- Phase 2B (`LearningActivityService` in build 210) and Phase 2C (`XpCalculator` in build 211) require separate explicit user requests and must keep characterization tests green.
+- `2.0.10+210` completes Modularization Phase 2B by extracting learning activity, streak, and study-day logic into `LearningActivityService` behind the existing `ProgressService` public facade.
+- Future build 211 Status Bar work must consume the existing service boundaries rather than moving responsibilities back into `ProgressService` or UI screens.
+- Future build 212 Streak Celebration, build 213 `XpCalculator` extraction, and build 214 XP formula changes are separate phases that require explicit user requests and must keep characterization tests green.
 
 ## Architecture and service boundaries
 
@@ -41,14 +43,28 @@ UI screens should primarily handle presentation and interaction. Business rules,
 - Review history
 - Duel state
 - course reset behavior
-- streaks
-- study days
-- learning activity timestamps
 - local leaderboard participation preference
+
+`ProgressService` retains the public learning-activity facade and delegates its activity, streak, and study-day APIs to `LearningActivityService`.
 
 Do not move unrelated responsibilities into or out of `ProgressService` during a narrowly scoped change.
 
 Existing public `ProgressService` APIs may temporarily delegate to more specialized services to preserve screen and caller compatibility.
+
+### LearningActivityService
+
+`LearningActivityService` owns learning activity, streak, and study-day implementation, including:
+
+- the activity-specific injected clock
+- activity persistence key handling
+- activity-specific language normalization
+- date formatting and parsing
+- language-scoped study-day reads
+- profile-global study-day reads
+- days-studied and streak calculations
+- learning-activity registration
+
+Preserve the existing `ProgressService` public facade, persistence keys and formats, clock semantics, and activity ordering unless an explicit behavior or migration request says otherwise. Keep completed Rounds, completed Topics, won Duels, Review history and timestamps, course reset, Guidebook state, leaderboard participation, completion orchestration, and XP outside `LearningActivityService`.
 
 ### XpService
 

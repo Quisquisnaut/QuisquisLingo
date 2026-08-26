@@ -1,13 +1,13 @@
 # QuisquisLingo App
 
-**Current source version: 2.0.9+209 · Course Model v3 (`formatVersion: 3`).**
+**Current source version: 2.0.10+210 · Course Model v3 (`formatVersion: 3`).**
 
 
-**QuisquisLingo 2.0.9 Alpha**
+**QuisquisLingo 2.0.10 Alpha**
 
-Current project version: 2.0.9
+Current project version: 2.0.10
 
-Build 209 completes Phase 2A modularization by extracting Round completion orchestration into `LearningCompletionService` while preserving exact runtime ordering, XP formulas, non-transactional persistence behavior, and learner-visible flow. The official repository is `Quisquisnaut/QuisquisLingo`.
+Build 210 completes Modularization Phase 2B by extracting learning-activity, streak, and study-day logic into `LearningActivityService` behind the existing `ProgressService` public facade. Persistence keys and formats, activity ordering, XP and streak rules, and learner-visible behavior remain unchanged. The official repository is `Quisquisnaut/QuisquisLingo`.
 
 
 A Flutter prototype for an offline-first language-learning app.
@@ -26,7 +26,7 @@ The MPL-2.0 covers the QuisquisLingo software source. Courses, the Image Bank an
 
 ## Alpha lifecycle
 
-Version 2.0.9 is a time-limited alpha and expires on **2026-09-25**. Near expiry it displays reminders. After expiry, learner exercises and Review are blocked until a newer alpha is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when an alpha expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM. Future stable builds can disable alpha expiry.
+Version 2.0.10 is a time-limited alpha and expires on **2026-09-25**. Near expiry it displays reminders. After expiry, learner exercises and Review are blocked until a newer alpha is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when an alpha expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM. Future stable builds can disable alpha expiry.
 
 ## Core logic
 

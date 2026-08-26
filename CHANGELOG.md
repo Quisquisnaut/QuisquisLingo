@@ -1,3 +1,11 @@
+# 2.0.10 (build 210) - 2026-08-27
+
+- Completed Modularization Phase 2B by extracting learning-activity, streak, and study-day logic into `LearningActivityService` while retaining the public `ProgressService` facade.
+- Preserved the existing activity persistence keys and formats, injected-clock semantics, activity registration ordering, and all established streak and study-day behavior.
+- Added characterization coverage before extraction for persistence compatibility, temporal edge cases, cross-language behavior, reset/profile behavior, and completion activity side effects.
+- Preserved all learner-facing XP and streak rules; build 210 contains no scoring or other learner-behavior change.
+- Retained the existing Alpha expiry at the end of **2026-09-25**.
+
 # 2.0.9 (build 209) - 2026-08-26
 
 - Completed Phase 2A modularization by extracting Round completion orchestration into `LearningCompletionService`.
