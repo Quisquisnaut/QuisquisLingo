@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -76,6 +78,8 @@ void main() {
       });
       expect(await progress.getXp(courseCode: courseCode), 10);
       expect(await progress.getWeeklyXp(), 10);
+      expect(await progress.getStreak(courseCode: courseCode), 1);
+      expect(await progress.getDaysStudied(courseCode: courseCode), 1);
       final recent = await progress.getRecentRounds(courseId: courseId);
       expect(recent.single.errors, 0);
     },
@@ -152,6 +156,153 @@ void main() {
     expect(await progress.getRecentRounds(courseId: courseId), isEmpty);
     expect(await progress.getXp(courseCode: courseCode), 0);
     expect(await progress.getWeeklyXp(), 0);
+    expect(await progress.getStreak(courseCode: courseCode), 0);
+    expect(await progress.getDaysStudied(courseCode: courseCode), 0);
+  });
+
+  testWidgets(
+    'a dynamically skipped TTS-only round completes with zero XP and activity',
+    (tester) async {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('tts_enabled', false);
+      final fixture = _roundFixture(exerciseCount: 0, includeTtsExercise: true);
+      final routeResults = <bool?>[];
+      await _openRound(
+        tester,
+        fixture,
+        routeResults: routeResults,
+        waitForChoice: false,
+      );
+      await _pumpUntil(tester, () => routeResults.isNotEmpty);
+
+      final progress = ProgressService();
+      expect(routeResults, [true]);
+      expect(await progress.getCompletedRounds(courseId: courseId), {
+        fixture.round.id,
+      });
+      expect(await progress.getPerfectRounds(courseId: courseId), isEmpty);
+      expect(await progress.getTtsSkippedPerfectRounds(courseId: courseId), {
+        fixture.round.id,
+      });
+      expect(await progress.getXp(courseCode: courseCode), 0);
+      expect(await progress.getWeeklyXp(), 0);
+      expect(await progress.getStreak(courseCode: courseCode), 1);
+      expect(await progress.getDaysStudied(courseCode: courseCode), 1);
+
+      final recent = await progress.getRecentRounds(courseId: courseId);
+      expect(recent, hasLength(1));
+      expect(recent.single.roundId, fixture.round.id);
+      expect(recent.single.errors, 0);
+
+      const prefix = 'learner_Round%20Characterization%20Learner_';
+      expect(prefs.getInt('${prefix}xp_IT'), 0);
+      expect(prefs.getInt('${prefix}week_xp'), 0);
+      expect(jsonDecode(prefs.getString('${prefix}week_xp_by_course')!), {
+        courseId: 0,
+      });
+    },
+  );
+
+  testWidgets(
+    'weekly goal state and completion persist before dialog and celebrate once',
+    (tester) async {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setInt('weekly_xp_target', 10);
+      final fixture = _roundFixture(exerciseCount: 2);
+      final routeResults = <bool?>[];
+      await _openRound(tester, fixture, routeResults: routeResults);
+
+      await _completePerfectRound(tester, exerciseCount: 2);
+      expect(find.text('Weekly goal reached!'), findsOneWidget);
+
+      final progress = ProgressService();
+      expect(routeResults, isEmpty);
+      expect(await progress.getCompletedRounds(courseId: courseId), {
+        fixture.round.id,
+      });
+      expect(await progress.getPerfectRounds(courseId: courseId), {
+        fixture.round.id,
+      });
+      expect(await progress.getXp(courseCode: courseCode), 10);
+      expect(await progress.getWeeklyXp(), 10);
+      expect(await progress.getStreak(courseCode: courseCode), 1);
+      expect(await progress.getDaysStudied(courseCode: courseCode), 1);
+      expect(await progress.isWeeklyGoalCelebrated(), isTrue);
+      final recent = await progress.getRecentRounds(courseId: courseId);
+      expect(recent.single.roundId, fixture.round.id);
+      expect(recent.single.errors, 0);
+
+      await _tapAndPump(tester, 'Continue');
+      expect(routeResults, [true]);
+
+      await _openRound(tester, fixture, routeResults: routeResults);
+      await _completePerfectRound(tester, exerciseCount: 2);
+
+      expect(find.text('Weekly goal reached!'), findsNothing);
+      expect(routeResults, [true, true]);
+      expect(await progress.getWeeklyXp(), 15);
+      expect(await progress.isWeeklyGoalCelebrated(), isTrue);
+    },
+  );
+
+  testWidgets('imperfect repeat keeps first-pass-correct scoring', (
+    tester,
+  ) async {
+    final fixture = _roundFixture(exerciseCount: 2);
+    final progress = ProgressService();
+    await progress.completeRound(
+      fixture.round.id,
+      courseId: courseId,
+      courseCode: courseCode,
+    );
+    final routeResults = <bool?>[];
+    await _openRound(tester, fixture, routeResults: routeResults);
+
+    await _answerChoice(tester, correctly: false);
+    await _tapAndPump(tester, 'Next');
+    await _answerChoice(tester, correctly: true);
+    await _tapAndPump(tester, 'Review mistakes');
+    await _tapAndPump(tester, 'Continue');
+    await _answerChoice(tester, correctly: true);
+    await _tapAndPump(tester, 'Finish round');
+
+    expect(routeResults, [true]);
+    expect(await progress.getXp(courseCode: courseCode), 5);
+    expect(await progress.getWeeklyXp(), 5);
+    expect(await progress.getPerfectRounds(courseId: courseId), isEmpty);
+    final recent = await progress.getRecentRounds(courseId: courseId);
+    expect(recent.single.errors, 1);
+  });
+
+  testWidgets('course reset restores perfect first-completion XP eligibility', (
+    tester,
+  ) async {
+    final fixture = _roundFixture(exerciseCount: 2);
+    final progress = ProgressService();
+    await progress.completeRound(
+      fixture.round.id,
+      courseId: courseId,
+      courseCode: courseCode,
+    );
+    await progress.markPerfectRound(fixture.round.id, courseId: courseId);
+    await progress.addXp(10, courseCode: courseCode, courseId: courseId);
+    await progress.resetCourse(courseId);
+    expect(await progress.getCompletedRounds(courseId: courseId), isEmpty);
+    expect(await progress.getPerfectRounds(courseId: courseId), isEmpty);
+
+    final routeResults = <bool?>[];
+    await _openRound(tester, fixture, routeResults: routeResults);
+    await _completePerfectRound(tester, exerciseCount: 2);
+
+    expect(routeResults, [true]);
+    expect(await progress.getCompletedRounds(courseId: courseId), {
+      fixture.round.id,
+    });
+    expect(await progress.getPerfectRounds(courseId: courseId), {
+      fixture.round.id,
+    });
+    expect(await progress.getXp(courseCode: courseCode), 20);
+    expect(await progress.getWeeklyXp(), 20);
   });
 }
 
@@ -291,6 +442,7 @@ Future<void> _openRound(
   _RoundFixture fixture, {
   required List<bool?> routeResults,
   bool previewMode = false,
+  bool waitForChoice = true,
 }) async {
   await tester.pumpWidget(
     MaterialApp(
@@ -327,9 +479,22 @@ Future<void> _openRound(
   await tester.runAsync(
     () => Future<void>.delayed(const Duration(milliseconds: 250)),
   );
+  if (!waitForChoice) return;
   await _pumpUntilText(tester, 'Correct characterization');
   expect(find.byType(RoundScreen), findsOneWidget);
   expect(find.text('Correct characterization'), findsOneWidget);
+}
+
+Future<void> _pumpUntil(
+  WidgetTester tester,
+  bool Function() condition, {
+  int maxFrames = 100,
+}) async {
+  for (var frame = 0; frame < maxFrames; frame++) {
+    await tester.pump(const Duration(milliseconds: 50));
+    if (condition()) return;
+  }
+  fail('Timed out waiting for the expected completion state.');
 }
 
 Future<void> _answerChoice(
