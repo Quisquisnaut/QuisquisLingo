@@ -182,7 +182,7 @@ Every Chapter can contain Editor notes. These are internal technical/editorial n
 
 ## Alpha expiry and authoring
 
-The current time-limited alpha expires on 2026-09-25. Expiry blocks learner exercises and Review but deliberately leaves Course Editor available so authoring work can be inspected, recovered and exported. Expiry never deletes local data.
+The current time-limited alpha expires on 2026-09-27. Expiry blocks learner exercises and Review but deliberately leaves Course Editor available so authoring work can be inspected, recovered and exported. Expiry never deletes local data.
 
 
 ## Current bundled course and My custom courses

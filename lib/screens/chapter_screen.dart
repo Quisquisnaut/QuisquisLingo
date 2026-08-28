@@ -6,6 +6,7 @@ import '../services/settings_service.dart';
 import 'topic_screen.dart';
 import 'duel_screen.dart';
 import '../widgets/flag_art.dart';
+import '../widgets/learner_shell.dart';
 
 class ChapterScreen extends StatefulWidget {
   final Course course;
@@ -110,72 +111,78 @@ class _ChapterScreenState extends State<ChapterScreen> {
           _handleBack();
         }
       },
-      child: Scaffold(
-        appBar: AppBar(
-          leading: BackButton(onPressed: _handleBack),
-          toolbarHeight: 68,
-          title: Text(
-            'Chapter $chapterNumber: ${widget.chapter.title}',
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
+      child: LearnerStatusPage(
+        child: Scaffold(
+          appBar: LearnerStatusAppBar(
+            appBar: AppBar(
+              leading: BackButton(onPressed: _handleBack),
+              toolbarHeight: 68,
+              title: Text(
+                'Chapter $chapterNumber: ${widget.chapter.title}',
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+              backgroundColor: Colors.transparent,
+            ),
           ),
-          backgroundColor: Colors.transparent,
-        ),
-        body: Stack(
-          children: [
-            Positioned.fill(
-              child: IgnorePointer(
-                child: CourseFlagBackdrop(
-                  course: widget.course,
-                  fallbackCode: CourseService.codeForCourse(widget.course),
-                  opacity: .90,
+          body: Stack(
+            children: [
+              Positioned.fill(
+                child: IgnorePointer(
+                  child: CourseFlagBackdrop(
+                    course: widget.course,
+                    fallbackCode: CourseService.codeForCourse(widget.course),
+                    opacity: .90,
+                  ),
                 ),
               ),
-            ),
-            const Positioned.fill(
-              child: IgnorePointer(child: ColoredBox(color: Color(0x16FFFDF7))),
-            ),
-            ListView(
-              padding: const EdgeInsets.fromLTRB(18, 8, 18, 28),
-              children: [
-                if (widget.chapter.temporarySample)
-                  const Align(
-                    alignment: Alignment.centerLeft,
-                    child: Chip(
-                      label: Text(
-                        'TEMPORARY SAMPLE',
-                        style: TextStyle(
-                          fontWeight: FontWeight.w800,
-                          fontSize: 10,
+              const Positioned.fill(
+                child: IgnorePointer(
+                  child: ColoredBox(color: Color(0x16FFFDF7)),
+                ),
+              ),
+              ListView(
+                padding: const EdgeInsets.fromLTRB(18, 8, 18, 28),
+                children: [
+                  if (widget.chapter.temporarySample)
+                    const Align(
+                      alignment: Alignment.centerLeft,
+                      child: Chip(
+                        label: Text(
+                          'TEMPORARY SAMPLE',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w800,
+                            fontSize: 10,
+                          ),
                         ),
                       ),
                     ),
+                  Text(
+                    '$done/$total topics completed',
+                    style: Theme.of(context).textTheme.bodyMedium,
                   ),
-                Text(
-                  '$done/$total topics completed',
-                  style: Theme.of(context).textTheme.bodyMedium,
-                ),
-                const SizedBox(height: 8),
-                LinearProgressIndicator(value: total == 0 ? 0 : done / total),
-                const SizedBox(height: 12),
-                const _FreedomCard(),
-                const SizedBox(height: 22),
-                _TopicTree(
-                  topics: learningTopics,
-                  completedTopics: _completedTopics,
-                  completedRounds: _completedRounds,
-                  onTap: _openTopic,
-                ),
-                const SizedBox(height: 24),
-                if (widget.nextChapter != null)
-                  _DuelGate(
-                    duelWon: duelWon,
-                    nextTitle: widget.nextChapter!.title,
-                    onTap: _openDuel,
+                  const SizedBox(height: 8),
+                  LinearProgressIndicator(value: total == 0 ? 0 : done / total),
+                  const SizedBox(height: 12),
+                  const _FreedomCard(),
+                  const SizedBox(height: 22),
+                  _TopicTree(
+                    topics: learningTopics,
+                    completedTopics: _completedTopics,
+                    completedRounds: _completedRounds,
+                    onTap: _openTopic,
                   ),
-              ],
-            ),
-          ],
+                  const SizedBox(height: 24),
+                  if (widget.nextChapter != null)
+                    _DuelGate(
+                      duelWon: duelWon,
+                      nextTitle: widget.nextChapter!.title,
+                      onTap: _openDuel,
+                    ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );

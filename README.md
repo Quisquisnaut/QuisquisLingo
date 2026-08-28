@@ -1,13 +1,13 @@
 # QuisquisLingo App
 
-**Current source version: 2.0.10+210 · Course Model v3 (`formatVersion: 3`).**
+**Current source version: 2.0.11+211 · Course Model v3 (`formatVersion: 3`).**
 
 
-**QuisquisLingo 2.0.10 Alpha**
+**QuisquisLingo 2.0.11 Alpha**
 
-Current project version: 2.0.10
+Current project version: 2.0.11
 
-Build 210 completes Modularization Phase 2B by extracting learning-activity, streak, and study-day logic into `LearningActivityService` behind the existing `ProgressService` public facade. Persistence keys and formats, activity ordering, XP and streak rules, and learner-visible behavior remain unchanged. The official repository is `Quisquisnaut/QuisquisLingo`.
+Build 211 adds the persistent learner status bar to non-exercise learner navigation while preserving the existing XP, streak, Laurel, progress, navigation and persistence rules. The official repository is `Quisquisnaut/QuisquisLingo`.
 
 
 A Flutter prototype for an offline-first language-learning app.
@@ -26,7 +26,7 @@ The MPL-2.0 covers the QuisquisLingo software source. Courses, the Image Bank an
 
 ## Alpha lifecycle
 
-Version 2.0.10 is a time-limited alpha and expires on **2026-09-25**. Near expiry it displays reminders. After expiry, learner exercises and Review are blocked until a newer alpha is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when an alpha expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM. Future stable builds can disable alpha expiry.
+Version 2.0.11 is a time-limited alpha and expires on **2026-09-27**. Near expiry it displays reminders. After expiry, learner exercises and Review are blocked until a newer alpha is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when an alpha expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM. Future stable builds can disable alpha expiry.
 
 ## Core logic
 

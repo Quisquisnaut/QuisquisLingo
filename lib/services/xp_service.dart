@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'profile_service.dart';
+import 'learner_status_events.dart';
 
 class LocalLeaderboardEntry {
   final String learnerName;
@@ -196,5 +197,6 @@ class XpService {
     final old = byCourse[stableCourseId] ?? 0;
     byCourse[stableCourseId] = (old + amount).clamp(0, 2147483647).toInt();
     await p.setString(byCourseKey, jsonEncode(byCourse));
+    LearnerStatusEvents.publish(LearnerStatusInvalidation.xp);
   }
 }

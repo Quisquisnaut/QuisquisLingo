@@ -13,6 +13,8 @@ import 'services/startup_diagnostic_service.dart';
 import 'services/diagnostic_log_service.dart';
 import 'services/update_service.dart';
 import 'widgets/flag_art.dart';
+import 'widgets/learner_shell.dart';
+import 'widgets/learner_navigation.dart';
 
 Future<void> main() async {
   StartupDiagnosticService.checkpoint('DART_MAIN_ENTER');
@@ -99,21 +101,26 @@ class QuisquisLingoApp extends StatelessWidget {
         },
       ),
       debugShowCheckedModeBanner: false,
+      navigatorKey: learnerNavigatorKey,
+      navigatorObservers: [learnerStatusRouteObserver],
       builder: (context, child) {
+        final content = child == null
+            ? const SizedBox.shrink()
+            : LearnerShell(child: child);
         final portraitDesktop =
             !kIsWeb &&
             (defaultTargetPlatform == TargetPlatform.windows ||
                 defaultTargetPlatform == TargetPlatform.linux ||
                 defaultTargetPlatform == TargetPlatform.macOS);
-        if (!portraitDesktop || child == null) {
-          return child ?? const SizedBox.shrink();
+        if (!portraitDesktop) {
+          return content;
         }
         return ColoredBox(
           color: const Color(0xFFE7E1CF),
           child: Center(
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 430),
-              child: child,
+              child: content,
             ),
           ),
         );

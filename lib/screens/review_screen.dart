@@ -4,6 +4,7 @@ import '../widgets/alpha_expired_view.dart';
 import '../models/course_models.dart';
 import '../services/progress_service.dart';
 import 'round_screen.dart';
+import '../widgets/learner_shell.dart';
 
 class ReviewScreen extends StatefulWidget {
   final Course course;
@@ -98,44 +99,48 @@ class _ReviewScreenState extends State<ReviewScreen> {
       if (location != null) resolved.add((location, entry));
     }
 
-    return Scaffold(
-      appBar: AppBar(title: const Text('Review')),
-      body: resolved.isEmpty
-          ? const Center(
-              child: Padding(
-                padding: EdgeInsets.all(28),
-                child: Text(
-                  'Complete some rounds first. Up to 50 recent rounds will appear here, with the rounds where you made more errors prioritized.',
-                  textAlign: TextAlign.center,
-                ),
-              ),
-            )
-          : ListView.separated(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 28),
-              itemCount: resolved.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 8),
-              itemBuilder: (context, index) {
-                final location = resolved[index].$1;
-                final entry = resolved[index].$2;
-                return Card(
-                  child: ListTile(
-                    leading: _perfect.contains(location.round.id)
-                        ? const CircleAvatar(
-                            child: Icon(Icons.workspace_premium_outlined),
-                          )
-                        : _ttsSkippedPerfect.contains(location.round.id)
-                        ? const CircleAvatar(child: Icon(Icons.eco_outlined))
-                        : CircleAvatar(child: Text('${entry.errors}')),
-                    title: Text(location.round.title),
-                    subtitle: Text(
-                      'Chapter ${location.chapterIndex + 1}: ${location.chapter.title} · ${location.topic.title} · ${entry.errors} ${entry.errors == 1 ? 'error' : 'errors'} in latest attempt',
-                    ),
-                    trailing: const Icon(Icons.replay_outlined),
-                    onTap: () => _open(location),
+    return LearnerStatusPage(
+      child: Scaffold(
+        appBar: LearnerStatusAppBar(
+          appBar: AppBar(title: const Text('Review')),
+        ),
+        body: resolved.isEmpty
+            ? const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(28),
+                  child: Text(
+                    'Complete some rounds first. Up to 50 recent rounds will appear here, with the rounds where you made more errors prioritized.',
+                    textAlign: TextAlign.center,
                   ),
-                );
-              },
-            ),
+                ),
+              )
+            : ListView.separated(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 28),
+                itemCount: resolved.length,
+                separatorBuilder: (_, __) => const SizedBox(height: 8),
+                itemBuilder: (context, index) {
+                  final location = resolved[index].$1;
+                  final entry = resolved[index].$2;
+                  return Card(
+                    child: ListTile(
+                      leading: _perfect.contains(location.round.id)
+                          ? const CircleAvatar(
+                              child: Icon(Icons.workspace_premium_outlined),
+                            )
+                          : _ttsSkippedPerfect.contains(location.round.id)
+                          ? const CircleAvatar(child: Icon(Icons.eco_outlined))
+                          : CircleAvatar(child: Text('${entry.errors}')),
+                      title: Text(location.round.title),
+                      subtitle: Text(
+                        'Chapter ${location.chapterIndex + 1}: ${location.chapter.title} · ${location.topic.title} · ${entry.errors} ${entry.errors == 1 ? 'error' : 'errors'} in latest attempt',
+                      ),
+                      trailing: const Icon(Icons.replay_outlined),
+                      onTap: () => _open(location),
+                    ),
+                  );
+                },
+              ),
+      ),
     );
   }
 }

@@ -1,3 +1,10 @@
+# 2.0.11 (build 211) - 2026-08-28
+
+- Added a persistent, reactive learner status bar to Home, Chapters, Chapter, Topic and Review navigation while keeping normal Round exercises outside the shared shell.
+- Added authoritative course-title, language-streak, Laurel and learner-global Weekly XP status with responsive layout, adaptive foreground contrast, accessibility semantics and contextual explanations.
+- Preserved all existing XP, streak, Laurel, Topic bonus, progress, navigation and persistence rules.
+- Refreshed the 30-day Alpha lifecycle; build 211 expires at the end of **2026-09-27**.
+
 # 2.0.10 (build 210) - 2026-08-27
 
 - Completed Modularization Phase 2B by extracting learning-activity, streak, and study-day logic into `LearningActivityService` while retaining the public `ProgressService` facade.

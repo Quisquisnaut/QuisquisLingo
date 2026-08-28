@@ -6,6 +6,7 @@ import '../services/course_service.dart';
 import '../services/settings_service.dart';
 import '../services/crash_log_service.dart';
 import 'chapter_screen.dart';
+import '../widgets/learner_shell.dart';
 
 class ChaptersScreen extends StatefulWidget {
   final Course course;
@@ -126,123 +127,128 @@ class _ChaptersScreenState extends State<ChaptersScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(widget.course.title),
-            if (widget.course.authors.isNotEmpty ||
-                widget.course.author.trim().isNotEmpty)
-              Text(
-                'Course by ${widget.course.authors.isNotEmpty ? widget.course.authors.map((a) => a.name).join(', ') : widget.course.author.trim()}',
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
-          ],
-        ),
-        backgroundColor: Colors.transparent,
-      ),
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Color(0xFFFFF7D6), Color(0xFFEAF5D7), Color(0xFFFFE6CF)],
+    return LearnerStatusPage(
+      child: Scaffold(
+        appBar: LearnerStatusAppBar(
+          appBar: AppBar(
+            title: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(widget.course.title),
+                if (widget.course.authors.isNotEmpty ||
+                    widget.course.author.trim().isNotEmpty)
+                  Text(
+                    'Course by ${widget.course.authors.isNotEmpty ? widget.course.authors.map((a) => a.name).join(', ') : widget.course.author.trim()}',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+              ],
+            ),
+            backgroundColor: Colors.transparent,
           ),
         ),
-        child: SafeArea(
-          top: false,
-          child: widget.course.chapters.isEmpty
-              ? Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(28),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(Icons.menu_book_outlined, size: 48),
-                        const SizedBox(height: 12),
-                        Text(
-                          '${widget.course.targetLanguage} course in preparation',
-                          textAlign: TextAlign.center,
-                          style: Theme.of(context).textTheme.titleLarge
-                              ?.copyWith(fontWeight: FontWeight.w800),
-                        ),
-                        const SizedBox(height: 8),
-                        const Text(
-                          'This course is currently empty. Course creators can add Chapters, Topics, Rounds and exercises in Course Editor.',
-                          textAlign: TextAlign.center,
-                        ),
-                      ],
+        body: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [Color(0xFFFFF7D6), Color(0xFFEAF5D7), Color(0xFFFFE6CF)],
+            ),
+          ),
+          child: SafeArea(
+            top: false,
+            child: widget.course.chapters.isEmpty
+                ? Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(28),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.menu_book_outlined, size: 48),
+                          const SizedBox(height: 12),
+                          Text(
+                            '${widget.course.targetLanguage} course in preparation',
+                            textAlign: TextAlign.center,
+                            style: Theme.of(context).textTheme.titleLarge
+                                ?.copyWith(fontWeight: FontWeight.w800),
+                          ),
+                          const SizedBox(height: 8),
+                          const Text(
+                            'This course is currently empty. Course creators can add Chapters, Topics, Rounds and exercises in Course Editor.',
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                )
-              : ListView.builder(
-                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 28),
-                  itemCount: widget.course.chapters.length,
-                  itemBuilder: (context, index) {
-                    final chapter = widget.course.chapters[index];
-                    final genuinelyUnlocked = _unlock.isChapterUnlocked(
-                      chapterIndex: index,
-                      course: widget.course,
-                      completedTopics: _completed,
-                      wonDuels: _duels,
-                    );
-                    final unlocked = genuinelyUnlocked || _iddqdMode;
-                    final learningTopics = chapter.learningTopics;
-                    final done = learningTopics
-                        .where((t) => _completed.contains(t.id))
-                        .length;
-                    return Card(
-                      margin: const EdgeInsets.only(bottom: 12),
-                      color: const Color(0xEEFFFFFF),
-                      child: InkWell(
-                        borderRadius: BorderRadius.circular(18),
-                        onTap: unlocked ? () => _open(index) : null,
-                        child: Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Row(
-                            children: [
-                              CircleAvatar(
-                                child: Icon(
-                                  genuinelyUnlocked
-                                      ? Icons.eco
-                                      : Icons.lock_outline,
+                  )
+                : ListView.builder(
+                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 28),
+                    itemCount: widget.course.chapters.length,
+                    itemBuilder: (context, index) {
+                      final chapter = widget.course.chapters[index];
+                      final genuinelyUnlocked = _unlock.isChapterUnlocked(
+                        chapterIndex: index,
+                        course: widget.course,
+                        completedTopics: _completed,
+                        wonDuels: _duels,
+                      );
+                      final unlocked = genuinelyUnlocked || _iddqdMode;
+                      final learningTopics = chapter.learningTopics;
+                      final done = learningTopics
+                          .where((t) => _completed.contains(t.id))
+                          .length;
+                      return Card(
+                        margin: const EdgeInsets.only(bottom: 12),
+                        color: const Color(0xEEFFFFFF),
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(18),
+                          onTap: unlocked ? () => _open(index) : null,
+                          child: Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Row(
+                              children: [
+                                CircleAvatar(
+                                  child: Icon(
+                                    genuinelyUnlocked
+                                        ? Icons.eco
+                                        : Icons.lock_outline,
+                                  ),
                                 ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      'Chapter ${index + 1}: ${chapter.title}',
-                                      maxLines: 2,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .titleMedium
-                                          ?.copyWith(
-                                            fontWeight: FontWeight.w800,
-                                          ),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      '$done/${learningTopics.length} topics completed',
-                                    ),
-                                  ],
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Chapter ${index + 1}: ${chapter.title}',
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .titleMedium
+                                            ?.copyWith(
+                                              fontWeight: FontWeight.w800,
+                                            ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        '$done/${learningTopics.length} topics completed',
+                                      ),
+                                    ],
+                                  ),
                                 ),
-                              ),
-                              const Icon(Icons.chevron_right),
-                            ],
+                                const Icon(Icons.chevron_right),
+                              ],
+                            ),
                           ),
                         ),
-                      ),
-                    );
-                  },
-                ),
+                      );
+                    },
+                  ),
+          ),
         ),
       ),
     );

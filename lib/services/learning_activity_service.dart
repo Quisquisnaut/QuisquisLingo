@@ -1,6 +1,7 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'profile_service.dart';
+import 'learner_status_events.dart';
 
 /// Stores learner activity and language-streak state.
 class LearningActivityService {
@@ -102,5 +103,6 @@ class LearningActivityService {
       await _lk('study_days', code),
       languageDays.toList()..sort(),
     );
+    LearnerStatusEvents.publish(LearnerStatusInvalidation.activity);
   }
 }

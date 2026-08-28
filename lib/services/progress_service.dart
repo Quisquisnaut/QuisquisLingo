@@ -1,4 +1,5 @@
 import 'package:shared_preferences/shared_preferences.dart';
+import 'learner_status_events.dart';
 import 'learning_activity_service.dart';
 import 'profile_service.dart';
 import 'xp_service.dart';
@@ -214,6 +215,9 @@ class ProgressService {
     final skipped = (p.getStringList(skippedKey) ?? []).toSet()
       ..remove(roundId);
     await p.setStringList(skippedKey, skipped.toList());
+    if (newlyEarned) {
+      LearnerStatusEvents.publish(LearnerStatusInvalidation.laurels);
+    }
     return newlyEarned;
   }
 

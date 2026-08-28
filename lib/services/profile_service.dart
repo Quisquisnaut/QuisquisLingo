@@ -1,4 +1,5 @@
 import 'package:shared_preferences/shared_preferences.dart';
+import 'learner_status_events.dart';
 
 /// Manages local learner profiles and appearance preferences.
 ///
@@ -25,12 +26,19 @@ class ProfileService {
     return null;
   }
 
-  Future<void> addProfile(String name, {String skinTone = 'medium', String hairTone = 'dark'}) async {
-    if (!const {'light','medium','dark'}.contains(skinTone)) throw ArgumentError('Invalid avatar skin color');
-    if (!const {'light','dark'}.contains(hairTone)) throw ArgumentError('Invalid avatar hair color');
+  Future<void> addProfile(
+    String name, {
+    String skinTone = 'medium',
+    String hairTone = 'dark',
+  }) async {
+    if (!const {'light', 'medium', 'dark'}.contains(skinTone))
+      throw ArgumentError('Invalid avatar skin color');
+    if (!const {'light', 'dark'}.contains(hairTone))
+      throw ArgumentError('Invalid avatar hair color');
     var clean = name.trim();
     if (clean.isEmpty) return;
-    if (clean.length > _maxNameLength) clean = clean.substring(0, _maxNameLength);
+    if (clean.length > _maxNameLength)
+      clean = clean.substring(0, _maxNameLength);
     final p = await SharedPreferences.getInstance();
     final profiles = p.getStringList(_profilesKey) ?? [];
     if (!profiles.contains(clean)) profiles.add(clean);
@@ -39,6 +47,7 @@ class ProfileService {
     final prefix = 'learner_${Uri.encodeComponent(clean)}_';
     await p.setString('${prefix}skin_tone', skinTone);
     await p.setString('${prefix}hair_tone', hairTone);
+    LearnerStatusEvents.publish(LearnerStatusInvalidation.activeProfile);
   }
 
   Future<void> setActiveProfile(String name) async {
@@ -48,6 +57,7 @@ class ProfileService {
       throw ArgumentError.value(name, 'name', 'Unknown learner profile');
     }
     await p.setString(_activeKey, name);
+    LearnerStatusEvents.publish(LearnerStatusInvalidation.activeProfile);
   }
 
   Future<void> deleteProfile(String name) async {
@@ -57,11 +67,17 @@ class ProfileService {
     await p.setStringList(_profilesKey, profiles);
     final prefix = 'learner_${Uri.encodeComponent(name)}_';
     final keys = p.getKeys().where((key) => key.startsWith(prefix)).toList();
-    for (final key in keys) { await p.remove(key); }
-    if (p.getString(_activeKey) == name) {
-      if (profiles.isEmpty) { await p.remove(_activeKey); }
-      else { await p.setString(_activeKey, profiles.first); }
+    for (final key in keys) {
+      await p.remove(key);
     }
+    if (p.getString(_activeKey) == name) {
+      if (profiles.isEmpty) {
+        await p.remove(_activeKey);
+      } else {
+        await p.setString(_activeKey, profiles.first);
+      }
+    }
+    LearnerStatusEvents.publish(LearnerStatusInvalidation.activeProfile);
   }
 
   Future<String> key(String base) async {
@@ -72,11 +88,14 @@ class ProfileService {
   Future<String> getSkinTone() async {
     final p = await SharedPreferences.getInstance();
     final value = p.getString(await key('skin_tone'));
-    return const {'light','medium','dark'}.contains(value) ? value! : 'medium';
+    return const {'light', 'medium', 'dark'}.contains(value)
+        ? value!
+        : 'medium';
   }
 
   Future<void> setSkinTone(String value) async {
-    if (!const {'light','medium','dark'}.contains(value)) throw ArgumentError('Invalid skin tone');
+    if (!const {'light', 'medium', 'dark'}.contains(value))
+      throw ArgumentError('Invalid skin tone');
     final p = await SharedPreferences.getInstance();
     await p.setString(await key('skin_tone'), value);
   }
@@ -84,11 +103,12 @@ class ProfileService {
   Future<String> getHairTone() async {
     final p = await SharedPreferences.getInstance();
     final value = p.getString(await key('hair_tone'));
-    return const {'light','dark'}.contains(value) ? value! : 'dark';
+    return const {'light', 'dark'}.contains(value) ? value! : 'dark';
   }
 
   Future<void> setHairTone(String value) async {
-    if (!const {'light','dark'}.contains(value)) throw ArgumentError('Invalid hair tone');
+    if (!const {'light', 'dark'}.contains(value))
+      throw ArgumentError('Invalid hair tone');
     final p = await SharedPreferences.getInstance();
     await p.setString(await key('hair_tone'), value);
   }

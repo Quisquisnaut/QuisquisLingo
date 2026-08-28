@@ -20,6 +20,8 @@ import 'info_screen.dart';
 import 'course_entry_screen.dart';
 import 'chapters_screen.dart';
 import '../widgets/flag_art.dart';
+import '../widgets/learner_shell.dart';
+import '../widgets/learner_status_bar.dart';
 
 /// Compact, scroll-safe Home dashboard.
 ///
@@ -649,113 +651,119 @@ class _HomeScreenState extends State<HomeScreen> {
       roundsCompleted: _completedRounds.length,
       laurelCrowns: _perfectRounds.length,
     );
-    return Scaffold(
-      appBar: AppBar(
-        toolbarHeight: 48,
-        title: Text(
-          _activeLearner == null ? 'QuisquisLingo' : 'Hi, $_activeLearner',
-          style: const TextStyle(
-            fontWeight: FontWeight.w900,
-            letterSpacing: .3,
-          ),
-        ),
-        centerTitle: false,
-        foregroundColor: Colors.white,
-        backgroundColor: const Color(0xFF214D3B),
-        surfaceTintColor: Colors.transparent,
-        actions: [
-          IconButton(
-            tooltip: 'Switch learner',
-            icon: const Icon(Icons.people_outline),
-            onPressed: _showLearners,
-          ),
-          IconButton(
-            tooltip: 'Settings',
-            icon: const Icon(Icons.settings_outlined),
-            onPressed: () async {
-              await CrashLogService.instance.recordDebugEvent(
-                'Home: opening Settings',
-              );
-              if (!context.mounted) return;
-              await Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => SettingsScreen(course: course),
-                ),
-              );
-              await _reload();
-            },
-          ),
-        ],
-      ),
-      body: Stack(
-        fit: StackFit.expand,
-        children: [
-          Image.asset(
-            'assets/olive_tree.png',
-            fit: BoxFit.cover,
-            alignment: Alignment.center,
-            opacity: const AlwaysStoppedAnimation(.62),
-          ),
-          const ColoredBox(color: Color(0x18FFF9E8)),
-          SafeArea(
-            top: false,
-            child: RefreshIndicator(
-              onRefresh: _reload,
-              child: ListView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                padding: const EdgeInsets.fromLTRB(14, 10, 14, 24),
-                children: [
-                  _CurrentCourseCard(
-                    course: course,
-                    code: _selectedLanguage,
-                    lastChapterNumber: _lastChapterNumber,
-                    lastChapterTitle: _lastChapterTitle,
-                    onSelectCourse: _showCoursePicker,
-                    onOpenCourse: () => _openCourse(course),
-                  ),
-                  const SizedBox(height: 10),
-                  _StatusCard(
-                    rank: rank,
-                    course: course,
-                    xp: _xp,
-                    weekXp: _weekXp,
-                    weekXpTarget: _weekXpTarget,
-                    streak: _streak,
-                    daysStudied: _daysStudied,
-                    laurels: _perfectRounds.length,
-                    skinTone: _skinTone,
-                    hairTone: _hairTone,
-                  ),
-                  const SizedBox(height: 10),
-                  _QuickActions(
-                    onChapters: () async {
-                      if (AlphaLifecycleService.isExpired()) {
-                        await _showExpiredLearnerNotice();
-                        return;
-                      }
-                      if (!mounted) return;
-                      await Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => ChaptersScreen(course: course),
-                        ),
-                      );
-                      await _reload();
-                    },
-                    onReview: () => _openReview(course),
-                    onInfo: () => Navigator.of(context).push(
-                      MaterialPageRoute(builder: (_) => const InfoScreen()),
-                    ),
-                    onCredits: () => Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => CreditsScreen(course: course),
-                      ),
-                    ),
-                  ),
-                ],
+    return LearnerStatusPage(
+      foreground: LearnerStatusForeground.light,
+      child: Scaffold(
+        appBar: LearnerStatusAppBar(
+          backgroundColor: const Color(0xFF214D3B),
+          appBar: AppBar(
+            toolbarHeight: 48,
+            title: Text(
+              _activeLearner == null ? 'QuisquisLingo' : 'Hi, $_activeLearner',
+              style: const TextStyle(
+                fontWeight: FontWeight.w900,
+                letterSpacing: .3,
               ),
             ),
+            centerTitle: false,
+            foregroundColor: Colors.white,
+            backgroundColor: const Color(0xFF214D3B),
+            surfaceTintColor: Colors.transparent,
+            actions: [
+              IconButton(
+                tooltip: 'Switch learner',
+                icon: const Icon(Icons.people_outline),
+                onPressed: _showLearners,
+              ),
+              IconButton(
+                tooltip: 'Settings',
+                icon: const Icon(Icons.settings_outlined),
+                onPressed: () async {
+                  await CrashLogService.instance.recordDebugEvent(
+                    'Home: opening Settings',
+                  );
+                  if (!context.mounted) return;
+                  await Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => SettingsScreen(course: course),
+                    ),
+                  );
+                  await _reload();
+                },
+              ),
+            ],
           ),
-        ],
+        ),
+        body: Stack(
+          fit: StackFit.expand,
+          children: [
+            Image.asset(
+              'assets/olive_tree.png',
+              fit: BoxFit.cover,
+              alignment: Alignment.center,
+              opacity: const AlwaysStoppedAnimation(.62),
+            ),
+            const ColoredBox(color: Color(0x18FFF9E8)),
+            SafeArea(
+              top: false,
+              child: RefreshIndicator(
+                onRefresh: _reload,
+                child: ListView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.fromLTRB(14, 10, 14, 24),
+                  children: [
+                    _CurrentCourseCard(
+                      course: course,
+                      code: _selectedLanguage,
+                      lastChapterNumber: _lastChapterNumber,
+                      lastChapterTitle: _lastChapterTitle,
+                      onSelectCourse: _showCoursePicker,
+                      onOpenCourse: () => _openCourse(course),
+                    ),
+                    const SizedBox(height: 10),
+                    _StatusCard(
+                      rank: rank,
+                      course: course,
+                      xp: _xp,
+                      weekXp: _weekXp,
+                      weekXpTarget: _weekXpTarget,
+                      streak: _streak,
+                      daysStudied: _daysStudied,
+                      laurels: _perfectRounds.length,
+                      skinTone: _skinTone,
+                      hairTone: _hairTone,
+                    ),
+                    const SizedBox(height: 10),
+                    _QuickActions(
+                      onChapters: () async {
+                        if (AlphaLifecycleService.isExpired()) {
+                          await _showExpiredLearnerNotice();
+                          return;
+                        }
+                        if (!mounted) return;
+                        await Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => ChaptersScreen(course: course),
+                          ),
+                        );
+                        await _reload();
+                      },
+                      onReview: () => _openReview(course),
+                      onInfo: () => Navigator.of(context).push(
+                        MaterialPageRoute(builder: (_) => const InfoScreen()),
+                      ),
+                      onCredits: () => Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => CreditsScreen(course: course),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

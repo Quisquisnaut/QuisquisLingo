@@ -23,7 +23,7 @@ These are persistent instructions for Codex when working on QuisquisLingo.
 - `2.0.8+208` completes the technical rebrand of application-owned identifiers and update infrastructure without legacy LingoGrow compatibility machinery.
 - `2.0.9+209` completes Phase 2A modularization by extracting Round completion orchestration into `LearningCompletionService`.
 - `2.0.10+210` completes Modularization Phase 2B by extracting learning activity, streak, and study-day logic into `LearningActivityService` behind the existing `ProgressService` public facade.
-- Future build 211 Status Bar work must consume the existing service boundaries rather than moving responsibilities back into `ProgressService` or UI screens.
+- `2.0.11+211` adds the learner status bar while consuming the existing service boundaries rather than moving responsibilities back into `ProgressService` or UI screens.
 - Future build 212 Streak Celebration, build 213 `XpCalculator` extraction, and build 214 XP formula changes are separate phases that require explicit user requests and must keep characterization tests green.
 
 ## Architecture and service boundaries

@@ -5,6 +5,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'profile_service.dart';
+import 'learner_status_events.dart';
 
 class LearnerBackupService {
   static const int maxBackupBytes = 10 * 1024 * 1024;
@@ -50,10 +51,14 @@ class LearnerBackupService {
   }
 
   Future<String> saveActiveProfile() async {
-    final payload = const JsonEncoder.withIndent('  ').convert(await exportActiveProfile());
+    final payload = const JsonEncoder.withIndent(
+      '  ',
+    ).convert(await exportActiveProfile());
     final bytes = utf8.encode(payload);
     if (bytes.length > maxBackupBytes) {
-      throw const FormatException('Learner backup exceeds the 10 MB export safety limit.');
+      throw const FormatException(
+        'Learner backup exceeds the 10 MB export safety limit.',
+      );
     }
 
     final profileName = (await _profiles.getActiveProfile() ?? 'learner')
@@ -64,7 +69,8 @@ class LearnerBackupService {
     var path = '${directory.path}${Platform.pathSeparator}$baseName.json';
     var suffix = 2;
     while (await File(path).exists()) {
-      path = '${directory.path}${Platform.pathSeparator}${baseName}_$suffix.json';
+      path =
+          '${directory.path}${Platform.pathSeparator}${baseName}_$suffix.json';
       suffix++;
     }
     await File(path).writeAsBytes(bytes, flush: true);
@@ -80,14 +86,18 @@ class LearnerBackupService {
       );
     }
     if (await file.length() > maxBackupBytes) {
-      throw const FormatException('Learner backup is larger than the 10 MB safety limit.');
+      throw const FormatException(
+        'Learner backup is larger than the 10 MB safety limit.',
+      );
     }
 
     String raw;
     try {
       raw = utf8.decode(await file.readAsBytes());
     } catch (_) {
-      throw const FormatException('learner_import.json must be valid UTF-8 text.');
+      throw const FormatException(
+        'learner_import.json must be valid UTF-8 text.',
+      );
     }
 
     dynamic decoded;
@@ -100,18 +110,24 @@ class LearnerBackupService {
         decoded['format'] != 'quisquislingo_learner_backup_v1' ||
         decoded['profile'] is! String ||
         decoded['data'] is! Map) {
-      throw const FormatException('Not a supported QuisquisLingo learner backup.');
+      throw const FormatException(
+        'Not a supported QuisquisLingo learner backup.',
+      );
     }
     final name = (decoded['profile'] as String).trim();
     if (name.isEmpty) {
       throw const FormatException('Backup profile name is empty.');
     }
     if (name.length > 60) {
-      throw const FormatException('Backup profile name exceeds the 60-character limit.');
+      throw const FormatException(
+        'Backup profile name exceeds the 60-character limit.',
+      );
     }
     final data = decoded['data'] as Map;
     if (data.length > 5000) {
-      throw const FormatException('Learner backup contains too many data entries.');
+      throw const FormatException(
+        'Learner backup contains too many data entries.',
+      );
     }
     await _profiles.addProfile(name);
     final prefs = await SharedPreferences.getInstance();
@@ -137,6 +153,7 @@ class LearnerBackupService {
         await prefs.setStringList(key, v.cast<String>());
       }
     }
+    LearnerStatusEvents.publish(LearnerStatusInvalidation.activeProfile);
     return name;
   }
 }
