@@ -26,6 +26,7 @@ These are persistent instructions for Codex when working on QuisquisLingo.
 - `2.0.11+211` adds the learner status bar while consuming the existing service boundaries rather than moving responsibilities back into `ProgressService` or UI screens.
 - `2.0.12+212` extracts the existing XP formulas into a pure `XpCalculator` without changing behavior.
 - `2.0.13+213` stabilizes the authoritative Round, Review, Topic and Duel XP rules and makes displayed and persisted awards share one calculation result.
+- `2.0.14+214` communicates first Topic completion in the Round XP breakdown, unifies guarded text-entry submission, promotes Leaderboard navigation to Home, and applies narrow status-bar and desktop-resize refinements.
 
 ## Architecture and service boundaries
 

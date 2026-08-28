@@ -90,6 +90,43 @@ void main() {
     },
   );
 
+  test('first Topic completion is included in the same awarded total', () async {
+    final events = <String>[];
+    final progress = _FakeLearningCompletionProgress(
+      events: events,
+      weeklyXpValues: [10, 70],
+      newlyEarnedLaurel: true,
+      topicCompletionAward: 25,
+    );
+    final service = LearningCompletionService.withProgress(progress);
+
+    final result = await service.completeRound(
+      LearningCompletionRequest(
+        roundId: 'round_1',
+        courseId: 'course_1',
+        courseCode: 'IT',
+        completedTopicId: 'topic_1',
+        readAttemptFacts: () => const LearningCompletionAttemptFacts(
+          errorsThisAttempt: 0,
+          firstPassCorrect: 1,
+          evaluableExerciseCount: 1,
+          wasCompletedAtStart: false,
+          ttsWasSkipped: false,
+        ),
+      ),
+      onNewLaurel: () async {},
+      getWeeklyXpTarget: () async => 1000,
+    );
+
+    expect(progress.completedTopicId, 'topic_1');
+    expect(result.roundXp.totalXp, 35);
+    expect(result.topicCompletionXp, 25);
+    expect(result.awardedXp, 60);
+    expect(result.weeklyXpAfter - result.weeklyXpBefore, 60);
+    expect(result.firstPassCorrect, 1);
+    expect(result.evaluableExerciseCount, 1);
+  });
+
   test(
     'attempt facts are read lazily at the original await boundaries',
     () async {
@@ -491,6 +528,7 @@ class _FakeLearningCompletionProgress implements LearningCompletionProgress {
   final List<String> events;
   final List<int> weeklyXpValues;
   final bool newlyEarnedLaurel;
+  final int topicCompletionAward;
 
   String? completedRoundId;
   String? completedCourseId;
@@ -506,6 +544,7 @@ class _FakeLearningCompletionProgress implements LearningCompletionProgress {
   String? addedCourseId;
   String? addedCourseCode;
   String? activityCourseCode;
+  String? completedTopicId;
   int addXpCalls = 0;
   int perfectRoundCalls = 0;
   int ttsSkippedPerfectRoundCalls = 0;
@@ -517,6 +556,7 @@ class _FakeLearningCompletionProgress implements LearningCompletionProgress {
     required this.events,
     required this.weeklyXpValues,
     this.newlyEarnedLaurel = false,
+    this.topicCompletionAward = 0,
   });
 
   @override
@@ -597,6 +637,17 @@ class _FakeLearningCompletionProgress implements LearningCompletionProgress {
     effectiveActivityRegistrations++;
     activityCourseCode = courseCode;
     await _event(events, 'activity:second');
+  }
+
+  @override
+  Future<int> completeTopic(
+    String id, {
+    required String courseId,
+    required String courseCode,
+  }) async {
+    completedTopicId = id;
+    await _event(events, 'completeTopic');
+    return topicCompletionAward;
   }
 
   @override

@@ -289,6 +289,18 @@ Implement missing pieces only where verification shows a real gap.
 
 ---
 
+# 2.0.14+214
+## Bugfix and UI refinement release
+
+- [x] Communicate first Topic completion XP in the final Round popup without a second Topic-page award.
+- [x] Show first-attempt-correct evaluable answers as X/Y and exclude Flashcard/Info/Guide content from Y.
+- [x] Make Enter and Check share guarded text-entry submission behavior.
+- [x] Apply only the requested XP-icon and streak-flame spacing refinements.
+- [x] Open Gamification from Home through Leaderboard and remove its Settings entry.
+- [x] Preserve desktop resizing with a minimum safe size only.
+
+---
+
 # Future release
 ## Full Course Editor QA and hardening
 

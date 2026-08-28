@@ -146,7 +146,10 @@ class LearnerStatusBar extends StatelessWidget {
                 );
 
                 return Padding(
-                  padding: EdgeInsets.symmetric(horizontal: compact ? 0 : 10),
+                  padding: EdgeInsets.only(
+                    left: compact ? 1 : 10,
+                    right: compact ? 0 : 10,
+                  ),
                   child: Row(
                     children: [
                       if (course != null && state.streak != null) ...[
@@ -282,7 +285,7 @@ class LearnerStatusBar extends StatelessWidget {
                                 size: iconSize,
                                 color: _foregroundColor,
                               ),
-                              const SizedBox(width: 2),
+                              const SizedBox(width: 1),
                               SizedBox(
                                 key: const Key('learner-status-xp-numbers'),
                                 width: xpWidth,

@@ -1,3 +1,13 @@
+# 2.0.14 (build 214) - 2026-08-28
+
+- Included the one-time 25 XP Topic completion award in the final Round popup and total, with the same language and Weekly XP persistence and no second Topic-page award notice.
+- Added first-attempt-correct X/Y communication using only evaluable exercises; Flashcard and informational/Guide content remains excluded from both base XP and the denominator.
+- Made Enter and Check share the same guarded submission path for fill-in, listening-spelling and Missing Word text entry, with empty input disabled and ignored.
+- Refined only the requested learner status-bar spacing: a one-pixel compact left inset for the streak flame and a one-pixel XP icon-to-value gap.
+- Replaced Home's Chapters quick action with Leaderboard using the Material trophy icon, routed it directly to Gamification, and removed Gamification from Settings.
+- Preserved desktop resizing on Windows, Linux and macOS while adding a 320×600 minimum supported window size and no maximum size.
+- Retained the 30-day Alpha expiry at the end of **2026-09-27** because build 214 is prepared on the same date as builds 211–213.
+
 # 2.0.13 (build 213) - 2026-08-28
 
 - Stabilized completed-Round XP at 5 XP per first-attempt-correct evaluable exercise on first completion and 2 XP on repeats and in Review; incomplete Rounds award 0 XP.

@@ -10,7 +10,6 @@ import 'tts_settings_screen.dart';
 import 'do_not_disturb_settings_screen.dart';
 import 'user_data_settings_screen.dart';
 import 'avatar_settings_screen.dart';
-import 'gamification_settings_screen.dart';
 import 'update_settings_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -194,19 +193,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     if (!mounted) return;
                     setState(() => _iddqdMode = value);
                   },
-                ),
-                ListTile(
-                  leading: const Icon(Icons.emoji_events_outlined),
-                  title: const Text('Gamification'),
-                  subtitle: const Text(
-                    'Weekly XP target, last week results and local leaderboard.',
-                  ),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => const GamificationSettingsScreen(),
-                    ),
-                  ),
                 ),
                 ListTile(
                   leading: const Icon(Icons.folder_shared_outlined),

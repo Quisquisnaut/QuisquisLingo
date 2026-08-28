@@ -1,13 +1,13 @@
 # QuisquisLingo App
 
-**Current source version: 2.0.13+213 · Course Model v3 (`formatVersion: 3`).**
+**Current source version: 2.0.14+214 · Course Model v3 (`formatVersion: 3`).**
 
 
-**QuisquisLingo 2.0.13 Alpha**
+**QuisquisLingo 2.0.14 Alpha**
 
-Current project version: 2.0.13
+Current project version: 2.0.14
 
-Build 213 stabilizes Round, Review, Topic and Duel XP around one pure `XpCalculator` result so displayed, language and Weekly XP awards agree exactly. The official repository is `Quisquisnaut/QuisquisLingo`.
+Build 214 communicates first Topic completion inside the Round XP popup, improves text-entry submission, promotes Leaderboard navigation to Home, refines status-bar spacing and keeps desktop resizing safe. The official repository is `Quisquisnaut/QuisquisLingo`.
 
 
 A Flutter prototype for an offline-first language-learning app.
@@ -26,7 +26,7 @@ The MPL-2.0 covers the QuisquisLingo software source. Courses, the Image Bank an
 
 ## Alpha lifecycle
 
-Version 2.0.13 is a time-limited alpha and expires on **2026-09-27**. Near expiry it displays reminders. After expiry, learner exercises and Review are blocked until a newer alpha is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when an alpha expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM. Future stable builds can disable alpha expiry.
+Version 2.0.14 is a time-limited alpha and expires on **2026-09-27**. Near expiry it displays reminders. After expiry, learner exercises and Review are blocked until a newer alpha is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when an alpha expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM. Future stable builds can disable alpha expiry.
 
 ## Core logic
 

@@ -40,7 +40,7 @@ void main() {
     expect(find.text('Topic completed: +25 XP'), findsNothing);
   });
 
-  testWidgets('completing the final round awards topic XP and shows notice', (
+  testWidgets('final Round popup includes Topic XP and returning shows no notice', (
     tester,
   ) async {
     final fixture = _topicFixture();
@@ -48,16 +48,26 @@ void main() {
     await _completeForSetup(progress, fixture.firstRound);
     await _openTopic(tester, fixture, expectedCompleted: 1);
 
-    await _completeRoundFromTopic(tester, fixture.finalRound);
-    await _pumpUntilText(tester, 'Topic completed: +25 XP');
+    await _completeRoundFromTopic(
+      tester,
+      fixture.finalRound,
+      closeCompletionDialog: false,
+    );
+
+    expect(find.text('Correct answers: 1/1 — 5 XP'), findsOneWidget);
+    expect(find.text('Perfect bonus: +5 XP'), findsOneWidget);
+    expect(find.text('First Laurel: +25 XP'), findsOneWidget);
+    expect(find.text('Topic completed: +25 XP'), findsOneWidget);
+    expect(find.text('Total: 60 XP'), findsOneWidget);
 
     expect(await progress.getCompletedTopics(courseId: courseId), {
       fixture.topic.id,
     });
     expect(await progress.getXp(courseCode: courseCode), 60);
     expect(await progress.getWeeklyXp(), 60);
-    expect(find.text('2/2 rounds completed'), findsOneWidget);
-    expect(find.text('Topic completed: +25 XP'), findsOneWidget);
+    await _tapAndPump(tester, 'Continue');
+    await _pumpUntilText(tester, '2/2 rounds completed');
+    expect(find.text('Topic completed: +25 XP'), findsNothing);
   });
 
   testWidgets('unrelated completed rounds do not count toward this topic', (
@@ -81,7 +91,7 @@ void main() {
   });
 
   testWidgets(
-    'topic-only weekly threshold crossing does not mark or show celebration',
+    'combined Round and Topic XP crosses the weekly threshold once',
     (tester) async {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setInt('weekly_xp_target', 50);
@@ -90,13 +100,20 @@ void main() {
       await _completeForSetup(progress, fixture.firstRound);
       await _openTopic(tester, fixture, expectedCompleted: 1);
 
-      await _completeRoundFromTopic(tester, fixture.finalRound);
-      await _pumpUntilText(tester, 'Topic completed: +25 XP');
+      await _completeRoundFromTopic(
+        tester,
+        fixture.finalRound,
+        closeCompletionDialog: false,
+      );
+      expect(find.text('Total: 60 XP'), findsOneWidget);
+      await _tapAndPump(tester, 'Continue');
+      await _pumpUntilText(tester, 'Weekly goal reached!');
 
       expect(await progress.getWeeklyXp(), 60);
-      expect(await progress.isWeeklyGoalCelebrated(), isFalse);
-      expect(find.text('Weekly goal reached!'), findsNothing);
-      expect(find.text('Topic completed: +25 XP'), findsOneWidget);
+      expect(await progress.isWeeklyGoalCelebrated(), isTrue);
+      await _tapAndPump(tester, 'Continue');
+      await _pumpUntilText(tester, '2/2 rounds completed');
+      expect(find.text('Topic completed: +25 XP'), findsNothing);
     },
   );
 
@@ -347,13 +364,21 @@ Future<void> _openTopic(
 
 Future<void> _completeRoundFromTopic(
   WidgetTester tester,
-  LearningRound round,
-) async {
+  LearningRound round, {
+  bool closeCompletionDialog = true,
+}) async {
   await tester.tap(find.text(round.title));
   await tester.pump();
   await _pumpUntilText(tester, 'Correct ${round.id}');
   await _answerPerfectChoice(tester, round);
-  await _tapAndPump(tester, 'Finish round');
+  if (closeCompletionDialog) {
+    await _tapAndPump(tester, 'Finish round');
+  } else {
+    final finish = find.text('Finish round');
+    await tester.ensureVisible(finish);
+    await tester.tap(finish);
+    await _pumpUntilText(tester, 'Round completed');
+  }
 }
 
 Future<void> _answerPerfectChoice(

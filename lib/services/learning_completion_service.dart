@@ -5,6 +5,7 @@ class LearningCompletionRequest {
   final String roundId;
   final String courseId;
   final String courseCode;
+  final String? completedTopicId;
 
   /// Reads screen-owned attempt state at the same await boundaries used before
   /// extraction, preserving the existing unguarded completion race behavior.
@@ -14,6 +15,7 @@ class LearningCompletionRequest {
     required this.roundId,
     required this.courseId,
     required this.courseCode,
+    this.completedTopicId,
     required this.readAttemptFacts,
   });
 }
@@ -21,12 +23,14 @@ class LearningCompletionRequest {
 class LearningCompletionAttemptFacts {
   final int errorsThisAttempt;
   final int firstPassCorrect;
+  final int evaluableExerciseCount;
   final bool wasCompletedAtStart;
   final bool ttsWasSkipped;
 
   const LearningCompletionAttemptFacts({
     required this.errorsThisAttempt,
     required this.firstPassCorrect,
+    this.evaluableExerciseCount = 0,
     required this.wasCompletedAtStart,
     required this.ttsWasSkipped,
   });
@@ -38,6 +42,9 @@ class LearningCompletionResult {
   final int weeklyXpAfter;
   final int weeklyXpTarget;
   final bool newlyEarnedLaurel;
+  final int topicCompletionXp;
+  final int firstPassCorrect;
+  final int evaluableExerciseCount;
 
   const LearningCompletionResult({
     required this.roundXp,
@@ -45,9 +52,12 @@ class LearningCompletionResult {
     required this.weeklyXpAfter,
     required this.weeklyXpTarget,
     required this.newlyEarnedLaurel,
+    required this.topicCompletionXp,
+    required this.firstPassCorrect,
+    required this.evaluableExerciseCount,
   });
 
-  int get awardedXp => roundXp.totalXp;
+  int get awardedXp => roundXp.totalXp + topicCompletionXp;
 
   bool get crossedWeeklyXpTarget =>
       weeklyXpBefore < weeklyXpTarget && weeklyXpAfter >= weeklyXpTarget;
@@ -83,6 +93,12 @@ abstract interface class LearningCompletionProgress {
   });
 
   Future<void> registerLearningActivity({required String courseCode});
+
+  Future<int> completeTopic(
+    String id, {
+    required String courseId,
+    required String courseCode,
+  });
 
   Future<bool> isWeeklyGoalCelebrated();
 
@@ -159,6 +175,13 @@ class LearningCompletionService {
       ),
     );
     final weeklyXpBefore = await _progress.getWeeklyXp();
+    final topicCompletionXp = request.completedTopicId == null
+        ? 0
+        : await _progress.completeTopic(
+            request.completedTopicId!,
+            courseId: request.courseId,
+            courseCode: request.courseCode,
+          );
     await _progress.addXp(
       roundXp.totalXp,
       courseCode: request.courseCode,
@@ -176,6 +199,9 @@ class LearningCompletionService {
       weeklyXpAfter: weeklyXpAfter,
       weeklyXpTarget: weeklyXpTarget,
       newlyEarnedLaurel: newlyEarnedLaurel,
+      topicCompletionXp: topicCompletionXp,
+      firstPassCorrect: scoringFacts.firstPassCorrect,
+      evaluableExerciseCount: scoringFacts.evaluableExerciseCount,
     );
   }
 
@@ -231,6 +257,17 @@ class _ProgressServiceLearningCompletionProgress
   @override
   Future<void> registerLearningActivity({required String courseCode}) =>
       _progress.registerLearningActivity(courseCode: courseCode);
+
+  @override
+  Future<int> completeTopic(
+    String id, {
+    required String courseId,
+    required String courseCode,
+  }) => _progress.completeTopic(
+    id,
+    courseId: courseId,
+    courseCode: courseCode,
+  );
 
   @override
   Future<bool> isWeeklyGoalCelebrated() => _progress.isWeeklyGoalCelebrated();

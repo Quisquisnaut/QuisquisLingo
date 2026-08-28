@@ -18,7 +18,7 @@ import 'credits_screen.dart';
 import 'review_screen.dart';
 import 'info_screen.dart';
 import 'course_entry_screen.dart';
-import 'chapters_screen.dart';
+import 'gamification_settings_screen.dart';
 import '../widgets/flag_art.dart';
 import '../widgets/learner_shell.dart';
 import '../widgets/learner_status_bar.dart';
@@ -735,15 +735,10 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     const SizedBox(height: 10),
                     _QuickActions(
-                      onChapters: () async {
-                        if (AlphaLifecycleService.isExpired()) {
-                          await _showExpiredLearnerNotice();
-                          return;
-                        }
-                        if (!mounted) return;
+                      onLeaderboard: () async {
                         await Navigator.of(context).push(
                           MaterialPageRoute(
-                            builder: (_) => ChaptersScreen(course: course),
+                            builder: (_) => const GamificationSettingsScreen(),
                           ),
                         );
                         await _reload();
@@ -1113,9 +1108,9 @@ class _Metric extends StatelessWidget {
 }
 
 class _QuickActions extends StatelessWidget {
-  final VoidCallback onChapters, onReview, onInfo, onCredits;
+  final VoidCallback onLeaderboard, onReview, onInfo, onCredits;
   const _QuickActions({
-    required this.onChapters,
+    required this.onLeaderboard,
     required this.onReview,
     required this.onInfo,
     required this.onCredits,
@@ -1139,9 +1134,9 @@ class _QuickActions extends StatelessWidget {
       children: [
         Expanded(
           child: _QuickAction(
-            icon: Icons.menu_book_outlined,
-            label: 'Chapters',
-            onTap: onChapters,
+            icon: Icons.emoji_events_outlined,
+            label: 'Leaderboard',
+            onTap: onLeaderboard,
           ),
         ),
         const SizedBox(width: 6),

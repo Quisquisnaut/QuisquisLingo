@@ -18,6 +18,7 @@ Future<void> configureQuisquisLingoWindow() async {
   );
   StartupDiagnosticService.verboseCheckpoint('DART_WINDOW_CONFIGURATION_BEGIN');
   await windowManager.waitUntilReadyToShow(windowOptions, () async {
+    await windowManager.setMinimumSize(const Size(320, 600));
     StartupDiagnosticService.verboseCheckpoint('DART_WINDOW_SHOW_BEGIN');
     await windowManager.show();
     StartupDiagnosticService.verboseCheckpoint('DART_WINDOW_SHOW_OK');

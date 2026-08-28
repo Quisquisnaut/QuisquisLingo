@@ -25,6 +25,7 @@ class RoundScreen extends StatefulWidget {
   final String ttsLanguage;
   final int roundIndex;
   final bool previewMode;
+  final bool completeTopicOnFinish;
 
   const RoundScreen({
     super.key,
@@ -35,6 +36,7 @@ class RoundScreen extends StatefulWidget {
     required this.ttsLanguage,
     required this.roundIndex,
     this.previewMode = false,
+    this.completeTopicOnFinish = false,
   });
 
   @override
@@ -83,6 +85,7 @@ class _RoundScreenState extends State<RoundScreen> {
   final Set<int> _wrongFirstPass = {};
   int _position = 0;
   int _firstPassCorrect = 0;
+  int _evaluableExerciseCount = 0;
   int _errorsThisAttempt = 0;
   bool _reviewPhase = false;
   bool _answered = false;
@@ -183,6 +186,9 @@ class _RoundScreenState extends State<RoundScreen> {
           : valid;
       _ttsWasSkipped = filtered.length != valid.length;
       _queue = filtered;
+      _evaluableExerciseCount = valid
+          .where((i) => widget.round.exercises[i].type != 'flashcard')
+          .length;
       _wasCompleted = (await _progress.getCompletedRounds(
         courseId: widget.course.courseId,
       )).contains(widget.round.id);
@@ -631,7 +637,9 @@ class _RoundScreenState extends State<RoundScreen> {
   }
 
   void _submitFill() {
-    final typed = _textController.text;
+    if (_answered) return;
+    final typed = _textController.text.trim();
+    if (typed.isEmpty) return;
     final accepted = <String>{..._exercise.accepted};
 
     // Fill-in exercises accept both the missing fragment and the complete
@@ -719,14 +727,32 @@ class _RoundScreenState extends State<RoundScreen> {
       return;
     }
     final code = CourseService.codeForCourse(widget.course);
+    String? completedTopicId;
+    if (widget.completeTopicOnFinish && widget.topic.rounds.isNotEmpty) {
+      final completedTopics = await _progress.getCompletedTopics(
+        courseId: widget.course.courseId,
+      );
+      final completedRounds = await _progress.getCompletedRounds(
+        courseId: widget.course.courseId,
+      );
+      final completesTopic = widget.topic.rounds.every(
+        (round) =>
+            round.id == widget.round.id || completedRounds.contains(round.id),
+      );
+      if (completesTopic && !completedTopics.contains(widget.topic.id)) {
+        completedTopicId = widget.topic.id;
+      }
+    }
     final completion = await _completion.completeRound(
       LearningCompletionRequest(
         roundId: widget.round.id,
         courseId: widget.course.courseId,
         courseCode: code,
+        completedTopicId: completedTopicId,
         readAttemptFacts: () => LearningCompletionAttemptFacts(
           errorsThisAttempt: _errorsThisAttempt,
           firstPassCorrect: _firstPassCorrect,
+          evaluableExerciseCount: _evaluableExerciseCount,
           wasCompletedAtStart: _wasCompleted,
           ttsWasSkipped: _ttsWasSkipped,
         ),
@@ -748,13 +774,18 @@ class _RoundScreenState extends State<RoundScreen> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (completion.roundXp.correctAnswerXp > 0)
-              Text('Correct answers: ${completion.roundXp.correctAnswerXp} XP'),
+            Text(
+              'Correct answers: ${completion.firstPassCorrect}/'
+              '${completion.evaluableExerciseCount} — '
+              '${completion.roundXp.correctAnswerXp} XP',
+            ),
             if (completion.roundXp.perfectBonusXp > 0)
               Text('Perfect bonus: +${completion.roundXp.perfectBonusXp} XP'),
             if (completion.roundXp.laurelBonusXp > 0)
               Text('First Laurel: +${completion.roundXp.laurelBonusXp} XP'),
-            Text('Total: ${completion.roundXp.totalXp} XP'),
+            if (completion.topicCompletionXp > 0)
+              Text('Topic completed: +${completion.topicCompletionXp} XP'),
+            Text('Total: ${completion.awardedXp} XP'),
           ],
         ),
         actions: [
@@ -826,6 +857,9 @@ class _RoundScreenState extends State<RoundScreen> {
         TextField(
           controller: _textController,
           enabled: !_answered,
+          autofocus: true,
+          onChanged: (_) => setState(() {}),
+          onSubmitted: (_) => _submitFill(),
           decoration: const InputDecoration(
             border: OutlineInputBorder(),
             labelText: 'Your answer',
@@ -833,7 +867,9 @@ class _RoundScreenState extends State<RoundScreen> {
         ),
         const SizedBox(height: 12),
         FilledButton(
-          onPressed: _answered ? null : _submitFill,
+          onPressed: _answered || _textController.text.trim().isEmpty
+              ? null
+              : _submitFill,
           child: const Text('Check'),
         ),
       ],
@@ -859,12 +895,9 @@ class _RoundScreenState extends State<RoundScreen> {
         TextField(
           controller: _textController,
           enabled: !_answered,
+          autofocus: true,
           onChanged: (_) => setState(() {}),
-          onSubmitted: (_) {
-            if (!_answered && _textController.text.trim().isNotEmpty) {
-              _submitFill();
-            }
-          },
+          onSubmitted: (_) => _submitFill(),
           decoration: const InputDecoration(
             border: OutlineInputBorder(),
             labelText: 'Your answer',
@@ -1001,6 +1034,7 @@ class _RoundScreenState extends State<RoundScreen> {
 
   void _submitMissingWords(Exercise ex) {
     if (_answered) return;
+    if (!_missingWordControllers.any((c) => c.text.trim().isNotEmpty)) return;
     var correct = _missingWordControllers.length == ex.missingWords.length;
     for (
       var i = 0;
@@ -1045,15 +1079,9 @@ class _RoundScreenState extends State<RoundScreen> {
           TextField(
             controller: _missingWordControllers[i],
             enabled: !_answered,
+            autofocus: i == 0,
             onChanged: (_) => setState(() {}),
-            onSubmitted: (_) {
-              if (!_answered &&
-                  _missingWordControllers.any(
-                    (c) => c.text.trim().isNotEmpty,
-                  )) {
-                _submitMissingWords(ex);
-              }
-            },
+            onSubmitted: (_) => _submitMissingWords(ex),
             decoration: InputDecoration(
               border: const OutlineInputBorder(),
               labelText: _missingWordControllers.length == 1

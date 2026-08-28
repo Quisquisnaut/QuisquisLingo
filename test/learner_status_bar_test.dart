@@ -270,6 +270,7 @@ void main() {
       final laurel = find.byKey(const Key('learner-status-laurel-icon'));
       final xp = find.byKey(const Key('learner-status-xp-icon'));
       expect(tester.widget<Icon>(flame).color, const Color(0xFFF05A28));
+      expect(tester.getRect(flame).left, greaterThanOrEqualTo(1));
       expect(tester.widget<Icon>(laurel).color, const Color(0xFF2E8B57));
       expect(xp, findsOneWidget);
       expect(flag, findsOneWidget);
@@ -335,7 +336,7 @@ void main() {
         tester.getRect(find.byKey(const Key('learner-status-xp-icon'))).right;
 
     final oneDigitGap = iconToNumberGap('1 / 20000');
-    expect(oneDigitGap, closeTo(2, 0.01));
+    expect(oneDigitGap, closeTo(1, 0.01));
 
     progress.weekly = 99999;
     await controller.refresh();

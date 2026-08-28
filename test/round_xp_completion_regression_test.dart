@@ -75,7 +75,7 @@ void main() {
       await tester.tap(finish);
       await _pumpFrames(tester);
 
-      expect(find.text('Correct answers: 10 XP'), findsOneWidget);
+      expect(find.text('Correct answers: 2/2 — 10 XP'), findsOneWidget);
       expect(find.text('Perfect bonus: +5 XP'), findsOneWidget);
       expect(find.text('First Laurel: +25 XP'), findsOneWidget);
       expect(find.text('Total: 40 XP'), findsOneWidget);
@@ -192,7 +192,7 @@ void main() {
   });
 
   testWidgets(
-    'Flashcards add no base XP and do not block perfect or Laurel bonuses',
+    'Flashcard, Info, and Guide items are excluded from evaluable X/Y',
     (tester) async {
       final fixture = _roundFixture(exerciseCount: 8, flashcardCount: 2);
       final routeResults = <bool?>[];
@@ -203,7 +203,17 @@ void main() {
         waitForChoice: false,
       );
 
-      await _completeMixedPerfectRound(tester, itemCount: 10);
+      await _completeMixedPerfectRound(
+        tester,
+        itemCount: 12,
+        closeCompletionDialog: false,
+      );
+
+      expect(find.text('Correct answers: 8/8 — 40 XP'), findsOneWidget);
+      expect(find.text('Perfect bonus: +5 XP'), findsOneWidget);
+      expect(find.text('First Laurel: +25 XP'), findsOneWidget);
+      expect(find.text('Total: 70 XP'), findsOneWidget);
+      await _tapAndPump(tester, 'Continue');
 
       final progress = ProgressService();
       expect(routeResults, [true]);
@@ -219,7 +229,7 @@ void main() {
         routeResults: routeResults,
         waitForChoice: false,
       );
-      await _completeMixedPerfectRound(tester, itemCount: 10);
+      await _completeMixedPerfectRound(tester, itemCount: 12);
 
       expect(routeResults, [true, true]);
       expect(await progress.getXp(courseCode: courseCode), 91);
@@ -377,7 +387,7 @@ void main() {
     await tester.tap(finish);
     await _pumpFrames(tester);
 
-    expect(find.text('Correct answers: 10 XP'), findsOneWidget);
+    expect(find.text('Correct answers: 5/6 — 10 XP'), findsOneWidget);
     expect(find.text('Perfect bonus: +5 XP'), findsNothing);
     expect(find.text('First Laurel: +25 XP'), findsNothing);
     expect(find.text('Total: 10 XP'), findsOneWidget);
@@ -490,7 +500,23 @@ _RoundFixture _roundFixture({
   final round = LearningRound(
     id: 'round_characterization',
     title: 'Characterization Round',
-    exercises: exercises,
+    content: [
+      for (final exercise in exercises) LearningContent.fromExercise(exercise),
+      if (flashcardCount > 0) ...[
+        LearningContent.textual(
+          id: 'info_1',
+          kind: 'explanation',
+          role: 'round_note',
+          text: 'Informational content.',
+        ),
+        LearningContent.textual(
+          id: 'guide_1',
+          kind: 'example',
+          role: 'round_note',
+          text: 'Guide content.',
+        ),
+      ],
+    ],
   );
   final topic = Topic(
     id: 'topic_characterization',
@@ -661,6 +687,7 @@ Future<void> _completePerfectRound(
 Future<void> _completeMixedPerfectRound(
   WidgetTester tester, {
   required int itemCount,
+  bool closeCompletionDialog = true,
 }) async {
   for (var index = 0; index < itemCount; index++) {
     await _pumpUntil(
@@ -674,7 +701,15 @@ Future<void> _completeMixedPerfectRound(
     } else {
       await _answerChoice(tester, correctly: true);
     }
-    await _tapAndPump(tester, index + 1 == itemCount ? 'Finish round' : 'Next');
+    final label = index + 1 == itemCount ? 'Finish round' : 'Next';
+    if (label == 'Finish round' && !closeCompletionDialog) {
+      final finder = find.text(label);
+      await tester.ensureVisible(finder);
+      await tester.tap(finder);
+      await _pumpFrames(tester);
+    } else {
+      await _tapAndPump(tester, label);
+    }
   }
 }
 
