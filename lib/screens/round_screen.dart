@@ -9,6 +9,7 @@ import '../services/learning_completion_service.dart';
 import '../services/report_service.dart';
 import '../services/tts_cache_service.dart';
 import '../services/settings_service.dart';
+import '../services/xp_calculator.dart';
 import '../services/course_service.dart';
 import '../services/course_audit_service.dart';
 import '../services/sound_effect_service.dart';
@@ -65,6 +66,8 @@ class _MatchPairView {
 }
 
 class _RoundScreenState extends State<RoundScreen> {
+  static const _xpCalculator = XpCalculator();
+
   final _progress = ProgressService();
   late final LearningCompletionService _completion;
   final _ttsCache = TtsCacheService();
@@ -1708,8 +1711,8 @@ class _RoundScreenState extends State<RoundScreen> {
               if (!_reviewPhase && _position + 1 == _queue.length)
                 Text(
                   _wasCompleted
-                      ? 'Perfect completion awards up to ${(_queue.length * 5) ~/ 2} XP (repeat cap).'
-                      : 'Perfect completion awards ${_queue.length * 5} XP.',
+                      ? 'Perfect completion awards up to ${_xpCalculator.calculatePerfectRoundPotential(exerciseCount: _queue.length, wasCompletedAtStart: true)} XP (repeat cap).'
+                      : 'Perfect completion awards ${_xpCalculator.calculatePerfectRoundPotential(exerciseCount: _queue.length, wasCompletedAtStart: false)} XP.',
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
               if (!_reviewPhase && _position + 1 == _queue.length)

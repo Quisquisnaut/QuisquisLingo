@@ -1,4 +1,5 @@
 import 'progress_service.dart';
+import 'xp_calculator.dart';
 
 class LearningCompletionRequest {
   final String roundId;
@@ -90,13 +91,20 @@ abstract interface class LearningCompletionProgress {
 
 class LearningCompletionService {
   final LearningCompletionProgress _progress;
+  final XpCalculator _xpCalculator;
 
-  LearningCompletionService({ProgressService? progressService})
-    : _progress = _ProgressServiceLearningCompletionProgress(
-        progressService ?? ProgressService(),
-      );
+  LearningCompletionService({
+    ProgressService? progressService,
+    XpCalculator xpCalculator = const XpCalculator(),
+  }) : _progress = _ProgressServiceLearningCompletionProgress(
+         progressService ?? ProgressService(),
+       ),
+       _xpCalculator = xpCalculator;
 
-  LearningCompletionService.withProgress(this._progress);
+  LearningCompletionService.withProgress(
+    this._progress, {
+    XpCalculator xpCalculator = const XpCalculator(),
+  }) : _xpCalculator = xpCalculator;
 
   Future<LearningCompletionResult> completeRound(
     LearningCompletionRequest request, {
@@ -141,11 +149,14 @@ class LearningCompletionService {
     }
 
     final scoringFacts = request.readAttemptFacts();
-    final fullRoundXp = scoringFacts.repeatCapExerciseCount * 5;
-    final awardedXp =
-        scoringFacts.errorsThisAttempt == 0 && scoringFacts.wasCompletedAtStart
-        ? fullRoundXp ~/ 2
-        : scoringFacts.firstPassCorrect * 5;
+    final awardedXp = _xpCalculator.calculateRoundAward(
+      RoundXpAwardContext(
+        errorsThisAttempt: scoringFacts.errorsThisAttempt,
+        firstPassCorrect: scoringFacts.firstPassCorrect,
+        repeatCapExerciseCount: scoringFacts.repeatCapExerciseCount,
+        wasCompletedAtStart: scoringFacts.wasCompletedAtStart,
+      ),
+    );
     final weeklyXpBefore = await _progress.getWeeklyXp();
     await _progress.addXp(
       awardedXp,

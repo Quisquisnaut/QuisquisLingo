@@ -44,7 +44,7 @@ Before calling a Windows release ready, also perform the established manual Wind
 - [ ] Continue incremental modularization.
 - [ ] Identify business logic still embedded directly in screens.
 - [ ] Keep UI primarily responsible for presentation and interaction.
-- [ ] Prepare the future `XpCalculator` boundary without changing scoring yet.
+- [x] Extract the current XP formulas into a pure `XpCalculator` without changing scoring.
 - [ ] Consider later extraction of completion orchestration and learning-activity logic where justified.
 - [ ] Avoid broad refactors.
 - [ ] Replace brittle source-text tests with behavior-level tests where practical.
@@ -267,6 +267,17 @@ Implement missing pieces only where verification shows a real gap.
 ---
 
 # 2.0.12+212
+## Pure XpCalculator extraction
+
+- [x] Characterize current Round, repeat, perfect, Topic and Duel XP behavior before extraction.
+- [x] Extract reward calculations into a pure, deterministic `XpCalculator`.
+- [x] Keep XP persistence, Weekly XP aggregation, rollover and leaderboard data in `XpService`.
+- [x] Preserve the current potential-XP display and its known disagreement with imperfect-repeat awards.
+- [x] Defer scoring corrections and repeated-award policy changes to the next explicitly requested XP stabilization release.
+
+---
+
+# Future release
 ## Full Course Editor QA and hardening
 
 Run a dedicated Course Editor campaign covering:

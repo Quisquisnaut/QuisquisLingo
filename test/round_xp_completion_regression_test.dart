@@ -274,6 +274,43 @@ void main() {
     expect(recent.single.errors, 1);
   });
 
+  testWidgets(
+    'imperfect six-exercise repeat displays a 15 XP perfect cap but awards 25 XP',
+    (tester) async {
+      final fixture = _roundFixture(exerciseCount: 6);
+      final progress = ProgressService();
+      await progress.completeRound(
+        fixture.round.id,
+        courseId: courseId,
+        courseCode: courseCode,
+      );
+      final routeResults = <bool?>[];
+      await _openRound(tester, fixture, routeResults: routeResults);
+
+      await _answerChoice(tester, correctly: false);
+      await _tapAndPump(tester, 'Next');
+      for (var index = 1; index < 6; index++) {
+        await _answerChoice(tester, correctly: true);
+        if (index < 5) await _tapAndPump(tester, 'Next');
+      }
+
+      // Candidate 213 issue: this is generic perfect-repeat potential text,
+      // not the award for the already-imperfect attempt being completed.
+      expect(
+        find.text('Perfect completion awards up to 15 XP (repeat cap).'),
+        findsOneWidget,
+      );
+      await _tapAndPump(tester, 'Review mistakes');
+      await _tapAndPump(tester, 'Continue');
+      await _answerChoice(tester, correctly: true);
+      await _tapAndPump(tester, 'Finish round');
+
+      expect(routeResults, [true]);
+      expect(await progress.getXp(courseCode: courseCode), 25);
+      expect(await progress.getWeeklyXp(), 25);
+    },
+  );
+
   testWidgets('course reset restores perfect first-completion XP eligibility', (
     tester,
   ) async {

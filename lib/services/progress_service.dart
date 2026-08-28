@@ -2,6 +2,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'learner_status_events.dart';
 import 'learning_activity_service.dart';
 import 'profile_service.dart';
+import 'xp_calculator.dart';
 import 'xp_service.dart';
 
 export 'xp_service.dart' show LocalLeaderboardEntry;
@@ -43,6 +44,8 @@ class RecentRoundEntry {
 /// studied. Days spent studying another language freeze it. A full day with no
 /// study in any language breaks every active language streak.
 class ProgressService {
+  static const _xpCalculator = XpCalculator();
+
   final _profiles = ProfileService();
   final DateTime Function() _now;
   final XpService _xp;
@@ -259,7 +262,11 @@ class ProgressService {
     final ids = (p.getStringList(k) ?? []).toSet()..add(id);
     await p.setStringList(k, ids.toList());
     await registerLearningActivity(courseCode: courseCode);
-    await addXp(25, courseCode: courseCode, courseId: courseId);
+    await addXp(
+      _xpCalculator.calculateTopicCompletionAward(),
+      courseCode: courseCode,
+      courseId: courseId,
+    );
   }
 
   Future<Set<String>> getWonDuels({required String courseId}) async {
@@ -277,7 +284,11 @@ class ProgressService {
     final ids = (p.getStringList(k) ?? []).toSet()..add(id);
     await p.setStringList(k, ids.toList());
     await registerLearningActivity(courseCode: courseCode);
-    await addXp(50, courseCode: courseCode, courseId: courseId);
+    await addXp(
+      _xpCalculator.calculateDuelWinAward(),
+      courseCode: courseCode,
+      courseId: courseId,
+    );
   }
 
   /// One learner-level notice explains that every learning Topic has its own Guidebook.

@@ -304,6 +304,56 @@ void main() {
   );
 
   test(
+    'imperfect six-exercise repeat plus repeated Topic award raises weekly XP from 85 to 135',
+    () async {
+      final clock = _MutableClock(DateTime(2026, 8, 28, 12));
+      await ProfileService().addProfile('Repeat Topic Learner');
+      final progress = ProgressService(now: clock.call);
+      final service = LearningCompletionService(progressService: progress);
+      await progress.addXp(85, courseCode: 'IT', courseId: 'course_1');
+      await progress.completeTopic(
+        'topic_1',
+        courseId: 'course_1',
+        courseCode: 'IT',
+      );
+      // Preserve the observed starting point while retaining the already-
+      // completed Topic state that causes its fixed award to be repeated.
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setInt('learner_Repeat%20Topic%20Learner_xp_IT', 85);
+      await prefs.setInt('learner_Repeat%20Topic%20Learner_week_xp', 85);
+      await prefs.setString(
+        'learner_Repeat%20Topic%20Learner_week_xp_by_course',
+        '{"course_1":85}',
+      );
+
+      final result = await service.completeRound(
+        _request(
+          errorsThisAttempt: 1,
+          firstPassCorrect: 5,
+          repeatCapExerciseCount: 6,
+          wasCompletedAtStart: true,
+          ttsWasSkipped: false,
+        ),
+        onNewLaurel: () async {},
+        getWeeklyXpTarget: () async => 1000,
+      );
+      expect(result.awardedXp, 25);
+      expect(result.weeklyXpBefore, 85);
+      expect(result.weeklyXpAfter, 110);
+
+      // Candidate 213 issue: completeTopic awards 25 XP even when the Topic ID
+      // was already present, producing the observed combined +50 increase.
+      await progress.completeTopic(
+        'topic_1',
+        courseId: 'course_1',
+        courseCode: 'IT',
+      );
+      expect(await progress.getXp(courseCode: 'IT'), 135);
+      expect(await progress.getWeeklyXp(), 135);
+    },
+  );
+
+  test(
     'real Round completion preserves two activity dates when its duplicate registrations cross midnight',
     () async {
       final clock = _MutableClock(DateTime(2026, 8, 25, 23, 59));

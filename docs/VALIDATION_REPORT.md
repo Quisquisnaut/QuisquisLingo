@@ -1,28 +1,26 @@
-# QuisquisLingo 2.0.10+210 release validation report
+# QuisquisLingo 2.0.12+212 release validation report
 
-Date: 27 August 2026
+Date: 28 August 2026
 
 ## Baseline and scope
 
-- Build 210 starts from the verified `2.0.9+209` Phase 2A modularization baseline.
-- The package version is `2.0.10+210`.
-- The established Alpha expiry is unchanged. Build 210 expires at the end of 25 September 2026.
-- Modularization Phase 2B is complete: learning-activity, streak, and study-day logic has been extracted from `ProgressService` into `LearningActivityService`.
-- `ProgressService` retains the existing public learning-activity facade and continues to own course progress, completion orchestration, Review state, reset behavior, Guidebook state, leaderboard participation, and other non-activity progress responsibilities.
-- `XpService` remains the XP persistence/accounting boundary.
-- Existing activity persistence keys and formats, injected-clock behavior, streak/study-day rules, cross-language freeze behavior, duplicate activity registrations, and completion ordering are unchanged.
-- Learner-facing behavior, XP/scoring rules, Topic completion rules, Duel rules, reset behavior, UI, navigation, and Course Editor behavior are unchanged.
-- Build 210 added characterization coverage before extraction for persistence compatibility, temporal edge cases, cross-language behavior, reset/profile lifecycle, completion side effects, and cross-midnight duplicate registration behavior.
-- Build 211 Status Bar, build 212 Streak Celebration, build 213 `XpCalculator`, and build 214 XP formula changes remain separate future roadmap steps.
+- Build 212 starts from the clean `2.0.11+211` learner-status-bar release.
+- The package version is `2.0.12+212`.
+- The established 30-day Alpha expiry remains at the end of 27 September 2026 because builds 211 and 212 are prepared on the same date.
+- Current Round, Topic, Duel and perfect-potential XP formulas have been extracted into a pure `XpCalculator`.
+- `LearningCompletionService` still resolves attempt and Laurel state, preserves completion ordering, and passes the calculated Round award to the existing progress/accounting boundary.
+- `ProgressService` still decides when Topic and Duel completion operations occur and delegates their calculated fixed awards to its existing `XpService` facade.
+- `XpService` remains the sole XP persistence/accounting boundary and is unchanged.
+- XP values, persistence keys and formats, Weekly XP rollover and aggregation, language XP, profile isolation, leaderboard data, progress state, UI wording and navigation behavior are unchanged.
+- The existing 15 XP perfect-repeat potential display versus 25 XP imperfect six-exercise repeat award, followed by a repeated 25 XP Topic award, is characterized and intentionally deferred for XP stabilization.
 
 ## Validation summary
 
-- `flutter analyze` reported 0 issues.
-- `flutter test` passed all 179 tests across the complete test suite.
-- Bundled course validation (`tools/validate_courses.py`) passed with 0 issues across all 8 bundled courses.
-- Image Bank validation (`tools/validate_images.py`) passed with 0 issues across all 113 assets.
+- Targeted post-refactor tests passed all 49 selected tests across calculator, completion, XP persistence/rollover, Topic, progress/profile and Alpha lifecycle coverage.
+- The focused widget characterization confirmed that the 15 XP perfect-repeat potential text remains visible while the imperfect Round persists 25 XP.
+- Repository-wide `flutter analyze` reported 7 pre-existing `curly_braces_in_flow_control_structures` infos in untouched files and no findings in changed files.
 - `git diff --check` reported 0 whitespace errors.
-- Final release-closure review confirmed that no production behavior, persistence format, Alpha expiry, or build-211+ functionality changed during 210E.
+- The complete Flutter test suite was not run, as required by the scoped build-212 validation plan.
 
 ## Platform notes
 

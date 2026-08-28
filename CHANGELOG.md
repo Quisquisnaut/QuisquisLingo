@@ -1,3 +1,11 @@
+# 2.0.12 (build 212) - 2026-08-28
+
+- Extracted the current Round, Topic, Duel and perfect-potential XP formulas into a pure `XpCalculator` with direct deterministic unit tests.
+- Preserved current production scoring exactly, including first-pass-correct imperfect scoring, the floored perfect-repeat cap, repeated Topic and Duel awards, and the existing potential-XP display behavior.
+- Characterized the observed six-exercise repeat sequence where the UI displays a 15 XP perfect-repeat potential, the imperfect Round awards 25 XP, and an already-completed Topic awards another 25 XP.
+- Kept `XpService` responsible for language XP persistence, learner-global Weekly XP, per-course Weekly XP breakdowns, rollover, leaderboard data, celebration state, validation and clamping without changing keys or formats.
+- Retained the 30-day Alpha expiry at the end of **2026-09-27** because build 212 is prepared on the same date as build 211.
+
 # 2.0.11 (build 211) - 2026-08-28
 
 - Added a persistent, reactive learner status bar to Home, Chapters, Chapter, Topic and Review navigation while keeping normal Round exercises outside the shared shell.
