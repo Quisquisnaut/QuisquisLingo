@@ -5,101 +5,186 @@ void main() {
   const calculator = XpCalculator();
 
   group('Round awards', () {
-    test('normal first completion awards five XP per first-pass correct', () {
+    RoundXpResult award({
+      required bool completed,
+      required int correct,
+      required int errors,
+      required bool repeat,
+      bool firstLaurel = false,
+    }) => calculator.calculateRoundAward(
+      RoundXpAwardContext(
+        completed: completed,
+        errorsThisAttempt: errors,
+        firstPassCorrect: correct,
+        wasCompletedAtStart: repeat,
+        newlyEarnedLaurel: firstLaurel,
+      ),
+    );
+
+    test('first completion partial awards five XP per first-pass correct', () {
+      final result = award(
+        completed: true,
+        correct: 8,
+        errors: 2,
+        repeat: false,
+      );
+
+      expect(result.correctAnswerXp, 40);
+      expect(result.perfectBonusXp, 0);
+      expect(result.laurelBonusXp, 0);
+      expect(result.totalXp, 40);
+    });
+
+    test('first completion perfect with first Laurel awards 80 XP', () {
+      final result = award(
+        completed: true,
+        correct: 10,
+        errors: 0,
+        repeat: false,
+        firstLaurel: true,
+      );
+
+      expect(result.correctAnswerXp, 50);
+      expect(result.perfectBonusXp, 5);
+      expect(result.laurelBonusXp, 25);
+      expect(result.totalXp, 80);
+    });
+
+    test('repeat partial awards two XP per first-pass correct', () {
       expect(
-        calculator.calculateRoundAward(
-          const RoundXpAwardContext(
-            errorsThisAttempt: 0,
-            firstPassCorrect: 3,
-            repeatCapExerciseCount: 7,
-            wasCompletedAtStart: false,
-          ),
-        ),
-        15,
+        award(completed: true, correct: 8, errors: 2, repeat: true).totalXp,
+        16,
       );
     });
 
-    test('completion with errors uses first-pass-correct scoring', () {
+    test('repeat perfect with an existing Laurel awards 25 XP', () {
+      final result = award(
+        completed: true,
+        correct: 10,
+        errors: 0,
+        repeat: true,
+      );
+
+      expect(result.correctAnswerXp, 20);
+      expect(result.perfectBonusXp, 5);
+      expect(result.laurelBonusXp, 0);
+      expect(result.totalXp, 25);
+    });
+
+    test('repeat perfect with first Laurel awards 50 XP', () {
       expect(
-        calculator.calculateRoundAward(
-          const RoundXpAwardContext(
-            errorsThisAttempt: 2,
-            firstPassCorrect: 2,
-            repeatCapExerciseCount: 100,
-            wasCompletedAtStart: false,
-          ),
-        ),
+        award(
+          completed: true,
+          correct: 10,
+          errors: 0,
+          repeat: true,
+          firstLaurel: true,
+        ).totalXp,
+        50,
+      );
+    });
+
+    test('abandoned Round awards no XP or bonuses', () {
+      final result = award(
+        completed: false,
+        correct: 10,
+        errors: 0,
+        repeat: false,
+        firstLaurel: true,
+      );
+
+      expect(result.correctAnswerXp, 0);
+      expect(result.perfectBonusXp, 0);
+      expect(result.laurelBonusXp, 0);
+      expect(result.totalXp, 0);
+    });
+
+    test('non-evaluable items add no base XP and do not break perfect', () {
+      final first = award(
+        completed: true,
+        correct: 8,
+        errors: 0,
+        repeat: false,
+        firstLaurel: true,
+      );
+      final repeat = award(
+        completed: true,
+        correct: 8,
+        errors: 0,
+        repeat: true,
+      );
+
+      expect(first.totalXp, 70);
+      expect(repeat.totalXp, 21);
+    });
+
+    test('wrong then corrected counts only the other first-pass answers', () {
+      expect(
+        award(completed: true, correct: 5, errors: 1, repeat: true).totalXp,
         10,
       );
     });
 
-    test('imperfect repeat still uses first-pass-correct scoring', () {
+    test(
+      'a separately confirmed first Laurel adds 25 XP to a partial repeat',
+      () {
+        expect(
+          award(
+            completed: true,
+            correct: 5,
+            errors: 1,
+            repeat: true,
+            firstLaurel: true,
+          ).totalXp,
+          35,
+        );
+      },
+    );
+
+    test('Review partial always uses repeat scoring', () {
       expect(
-        calculator.calculateRoundAward(
-          const RoundXpAwardContext(
-            errorsThisAttempt: 1,
-            firstPassCorrect: 5,
-            repeatCapExerciseCount: 6,
-            wasCompletedAtStart: true,
-          ),
-        ),
-        25,
+        award(completed: true, correct: 8, errors: 2, repeat: true).totalXp,
+        16,
       );
     });
 
-    test('perfect repeat halves the mutable queue cap and floors odd XP', () {
-      expect(
-        calculator.calculateRoundAward(
-          const RoundXpAwardContext(
-            errorsThisAttempt: 0,
-            firstPassCorrect: 99,
-            repeatCapExerciseCount: 3,
-            wasCompletedAtStart: true,
-          ),
-        ),
-        7,
-      );
-    });
+    test(
+      'Review perfect repeats the perfect bonus with no owned-Laurel bonus',
+      () {
+        expect(
+          award(completed: true, correct: 10, errors: 0, repeat: true).totalXp,
+          25,
+        );
+      },
+    );
 
-    test('zero presented exercises awards zero XP', () {
+    test('Review can award the first Laurel', () {
       expect(
-        calculator.calculateRoundAward(
-          const RoundXpAwardContext(
-            errorsThisAttempt: 0,
-            firstPassCorrect: 0,
-            repeatCapExerciseCount: 0,
-            wasCompletedAtStart: false,
-          ),
-        ),
-        0,
+        award(
+          completed: true,
+          correct: 10,
+          errors: 0,
+          repeat: true,
+          firstLaurel: true,
+        ).totalXp,
+        50,
       );
     });
   });
 
-  test('perfect potential preserves first and repeat display formulas', () {
+  test('Topic completion awards 25 XP only on first completion', () {
     expect(
-      calculator.calculatePerfectRoundPotential(
-        exerciseCount: 6,
-        wasCompletedAtStart: false,
-      ),
-      30,
+      calculator.calculateTopicCompletionAward(isFirstCompletion: true),
+      25,
     );
     expect(
-      calculator.calculatePerfectRoundPotential(
-        exerciseCount: 6,
-        wasCompletedAtStart: true,
-      ),
-      15,
+      calculator.calculateTopicCompletionAward(isFirstCompletion: false),
+      0,
     );
   });
 
-  test('Topic completion award remains 25 XP on every invocation', () {
-    expect(calculator.calculateTopicCompletionAward(), 25);
-    expect(calculator.calculateTopicCompletionAward(), 25);
-  });
-
-  test('Duel win award remains 50 XP on every invocation', () {
-    expect(calculator.calculateDuelWinAward(), 50);
-    expect(calculator.calculateDuelWinAward(), 50);
+  test('Duel victory awards 50 XP first and 10 XP on repeats', () {
+    expect(calculator.calculateDuelWinAward(wasPreviouslyWon: false), 50);
+    expect(calculator.calculateDuelWinAward(wasPreviouslyWon: true), 10);
   });
 }

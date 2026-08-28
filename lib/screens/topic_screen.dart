@@ -73,7 +73,8 @@ class _TopicScreenState extends State<TopicScreen> {
       ),
     );
 
-    if (completed == true) await _reloadRounds();
+    if (completed != true) return;
+    await _reloadRounds();
 
     // Completed rounds are stored for the entire course. Count only this
     // Topic's round IDs when deciding whether the Topic itself is complete.
@@ -82,16 +83,16 @@ class _TopicScreenState extends State<TopicScreen> {
         .length;
     if (widget.topic.rounds.isNotEmpty &&
         completedInTopic == widget.topic.rounds.length) {
-      await _progress.completeTopic(
+      final award = await _progress.completeTopic(
         widget.topic.id,
         courseId: widget.course.courseId,
         courseCode: CourseService.codeForCourse(widget.course),
       );
-      if (mounted) {
+      if (mounted && award > 0) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            duration: Duration(seconds: 8),
-            content: Text('Topic completed. +25 XP'),
+          SnackBar(
+            duration: const Duration(seconds: 8),
+            content: Text('Topic completed: +$award XP'),
           ),
         );
       }

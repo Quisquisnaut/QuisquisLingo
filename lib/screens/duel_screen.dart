@@ -260,8 +260,9 @@ class _DuelScreenState extends State<DuelScreen> {
 
   Future<void> _finishDuel() async {
     final won = _lives > 0 && _index + 1 >= _items.length;
+    int? awardedXp;
     if (won) {
-      await _progress.winDuel(
+      awardedXp = await _progress.winDuel(
         widget.chapter.duel.id,
         courseId: widget.course.courseId,
         courseCode: CourseService.codeForCourse(widget.course),
@@ -278,7 +279,7 @@ class _DuelScreenState extends State<DuelScreen> {
         title: Text(won ? 'Duel won' : 'Duel lost'),
         content: Text(
           won
-              ? 'You proved your knowledge. The next chapter can now unlock.'
+              ? 'Duel won: +$awardedXp XP\n\nYou proved your knowledge. The next chapter can now unlock.'
               : (_lives <= 0
                     ? 'Duel lost. You have lost all four lives.'
                     : 'The duel ended before all 25 questions were completed.'),

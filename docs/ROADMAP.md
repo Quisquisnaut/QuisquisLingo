@@ -277,6 +277,18 @@ Implement missing pieces only where verification shows a real gap.
 
 ---
 
+# 2.0.13+213
+## XP verification and stabilization
+
+- [x] Make `XpCalculator` the single pure authority for Round XP breakdowns and Topic/Duel awards.
+- [x] Apply first/repeat answer rates, repeatable perfect bonuses and one-time Laurel bonuses.
+- [x] Make Topic XP one-time and Duel XP 50 on first victory then 10 on repeats.
+- [x] Keep Topic completion and Duel victory independent.
+- [x] Display the same actual award result that is persisted to language and Weekly XP.
+- [x] Cover Review, incomplete Rounds and non-evaluable Flashcard/Info content.
+
+---
+
 # Future release
 ## Full Course Editor QA and hardening
 
@@ -312,7 +324,7 @@ Every confirmed bug should receive regression coverage.
 
 ---
 
-# 2.0.13+213
+# Future release — Course portability and interoperability
 ## Course portability and interoperability
 
 Guiding principle:

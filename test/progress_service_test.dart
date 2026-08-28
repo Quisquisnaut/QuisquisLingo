@@ -252,6 +252,79 @@ void main() {
   );
 
   test(
+    'Topic and Duel awards are independent, one-time state survives reload, and Duel repeats award 10 XP',
+    () async {
+      final service = await progress();
+
+      expect(
+        await service.completeTopic(
+          'topic_1',
+          courseId: 'course_a',
+          courseCode: 'IT',
+        ),
+        25,
+      );
+      expect(await service.getWonDuels(courseId: 'course_a'), isEmpty);
+      expect(
+        await service.completeTopic(
+          'topic_1',
+          courseId: 'course_a',
+          courseCode: 'IT',
+        ),
+        0,
+      );
+
+      expect(
+        await service.winDuel('duel_1', courseId: 'course_a', courseCode: 'IT'),
+        50,
+      );
+      expect(await service.getCompletedTopics(courseId: 'course_a'), {
+        'topic_1',
+      });
+
+      final reloaded = ProgressService();
+      expect(
+        await reloaded.completeTopic(
+          'topic_1',
+          courseId: 'course_a',
+          courseCode: 'IT',
+        ),
+        0,
+      );
+      expect(
+        await reloaded.winDuel(
+          'duel_1',
+          courseId: 'course_a',
+          courseCode: 'IT',
+        ),
+        10,
+      );
+      expect(
+        await reloaded.winDuel(
+          'duel_1',
+          courseId: 'course_a',
+          courseCode: 'IT',
+        ),
+        10,
+      );
+      expect(await reloaded.getXp(courseCode: 'IT'), 95);
+      expect(await reloaded.getWeeklyXp(), 95);
+    },
+  );
+
+  test('winning a Duel does not mark its learning Topic completed', () async {
+    final service = await progress();
+
+    expect(
+      await service.winDuel('duel_1', courseId: 'course_a', courseCode: 'IT'),
+      50,
+    );
+
+    expect(await service.getCompletedTopics(courseId: 'course_a'), isEmpty);
+    expect(await service.getWonDuels(courseId: 'course_a'), {'duel_1'});
+  });
+
+  test(
     'all progress and XP scopes are isolated between learner profiles',
     () async {
       final profiles = ProfileService();

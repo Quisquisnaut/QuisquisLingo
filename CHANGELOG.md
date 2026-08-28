@@ -1,3 +1,13 @@
+# 2.0.13 (build 213) - 2026-08-28
+
+- Stabilized completed-Round XP at 5 XP per first-attempt-correct evaluable exercise on first completion and 2 XP on repeats and in Review; incomplete Rounds award 0 XP.
+- Added the repeatable 5 XP zero-error bonus and one-time 25 XP first-Laurel bonus, including Laurels first earned on repeats or in Review.
+- Made Flashcards and informational/Guidebook-derived content contribute no base XP or errors while preserving perfect and Laurel eligibility.
+- Replaced theoretical Round potential text with an actual persisted XP breakdown produced by the pure `XpCalculator` result.
+- Made first Topic completion award 25 XP once, and Duel victories award 50 XP first then 10 XP on repeats, while keeping Topic and Duel state independent.
+- Preserved the existing XP persistence keys, language XP, learner-global Weekly XP, per-course breakdowns, profile isolation, rollover, leaderboard aggregation and status-bar layout.
+- Retained the 30-day Alpha expiry at the end of **2026-09-27** because build 213 is prepared on the same date as builds 211 and 212.
+
 # 2.0.12 (build 212) - 2026-08-28
 
 - Extracted the current Round, Topic, Duel and perfect-potential XP formulas into a pure `XpCalculator` with direct deterministic unit tests.

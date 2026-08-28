@@ -9,7 +9,6 @@ import '../services/learning_completion_service.dart';
 import '../services/report_service.dart';
 import '../services/tts_cache_service.dart';
 import '../services/settings_service.dart';
-import '../services/xp_calculator.dart';
 import '../services/course_service.dart';
 import '../services/course_audit_service.dart';
 import '../services/sound_effect_service.dart';
@@ -66,8 +65,6 @@ class _MatchPairView {
 }
 
 class _RoundScreenState extends State<RoundScreen> {
-  static const _xpCalculator = XpCalculator();
-
   final _progress = ProgressService();
   late final LearningCompletionService _completion;
   final _ttsCache = TtsCacheService();
@@ -730,7 +727,6 @@ class _RoundScreenState extends State<RoundScreen> {
         readAttemptFacts: () => LearningCompletionAttemptFacts(
           errorsThisAttempt: _errorsThisAttempt,
           firstPassCorrect: _firstPassCorrect,
-          repeatCapExerciseCount: _queue.length,
           wasCompletedAtStart: _wasCompleted,
           ttsWasSkipped: _ttsWasSkipped,
         ),
@@ -741,6 +737,33 @@ class _RoundScreenState extends State<RoundScreen> {
         }
       },
       getWeeklyXpTarget: _settings.getWeeklyXpTarget,
+    );
+    if (!mounted) return;
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Round completed'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (completion.roundXp.correctAnswerXp > 0)
+              Text('Correct answers: ${completion.roundXp.correctAnswerXp} XP'),
+            if (completion.roundXp.perfectBonusXp > 0)
+              Text('Perfect bonus: +${completion.roundXp.perfectBonusXp} XP'),
+            if (completion.roundXp.laurelBonusXp > 0)
+              Text('First Laurel: +${completion.roundXp.laurelBonusXp} XP'),
+            Text('Total: ${completion.roundXp.totalXp} XP'),
+          ],
+        ),
+        actions: [
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Continue'),
+          ),
+        ],
+      ),
     );
     if (mounted &&
         completion.crossedWeeklyXpTarget &&
@@ -1708,15 +1731,6 @@ class _RoundScreenState extends State<RoundScreen> {
                 ),
               ),
               const SizedBox(height: 12),
-              if (!_reviewPhase && _position + 1 == _queue.length)
-                Text(
-                  _wasCompleted
-                      ? 'Perfect completion awards up to ${_xpCalculator.calculatePerfectRoundPotential(exerciseCount: _queue.length, wasCompletedAtStart: true)} XP (repeat cap).'
-                      : 'Perfect completion awards ${_xpCalculator.calculatePerfectRoundPotential(exerciseCount: _queue.length, wasCompletedAtStart: false)} XP.',
-                  style: Theme.of(context).textTheme.bodySmall,
-                ),
-              if (!_reviewPhase && _position + 1 == _queue.length)
-                const SizedBox(height: 8),
               FilledButton(
                 onPressed: _next,
                 child: Text(

@@ -24,7 +24,8 @@ These are persistent instructions for Codex when working on QuisquisLingo.
 - `2.0.9+209` completes Phase 2A modularization by extracting Round completion orchestration into `LearningCompletionService`.
 - `2.0.10+210` completes Modularization Phase 2B by extracting learning activity, streak, and study-day logic into `LearningActivityService` behind the existing `ProgressService` public facade.
 - `2.0.11+211` adds the learner status bar while consuming the existing service boundaries rather than moving responsibilities back into `ProgressService` or UI screens.
-- Future build 212 Streak Celebration, build 213 `XpCalculator` extraction, and build 214 XP formula changes are separate phases that require explicit user requests and must keep characterization tests green.
+- `2.0.12+212` extracts the existing XP formulas into a pure `XpCalculator` without changing behavior.
+- `2.0.13+213` stabilizes the authoritative Round, Review, Topic and Duel XP rules and makes displayed and persisted awards share one calculation result.
 
 ## Architecture and service boundaries
 
@@ -202,16 +203,18 @@ Chapter access rules:
 
 ## Round XP compatibility rules
 
-Until the user explicitly replaces the scoring system, preserve the established scoring behavior.
+Until the user explicitly replaces the scoring system, preserve the build-213 scoring behavior.
 
-- Preserve the established first-pass scoring logic for non-perfect Rounds.
-- Preserve the established 5 XP per first-pass-correct exercise unless the user explicitly changes the scoring system.
-- Preserve the established behavior for first perfect completion.
-- Preserve the established behavior for perfect repeats of already completed Rounds.
+- A completed Round awards 5 XP per first-attempt-correct evaluable exercise on first completion, or 2 XP on repeats and in Review.
+- Every zero-error completed Round receives a repeatable 5 XP perfect bonus.
+- The first Laurel for a Round receives a one-time 25 XP bonus, including when first earned on a repeat or in Review.
+- Flashcard and informational/guide content awards no base XP, counts as neither correct nor erroneous, and does not block perfect completion or Laurel eligibility.
+- An incomplete or abandoned Round awards no XP or completion bonuses.
+- First Topic completion awards 25 XP once; Topic completion is independent of Duel victory.
+- A Duel awards 50 XP on its first victory and 10 XP on every later victory; Duel victory does not complete the Topic.
 - Preserve reset-related scoring eligibility.
-- Preserve existing Topic and Duel XP behavior unless explicitly changed.
 - Do not introduce new completion bonuses, multipliers, penalties, or reward types implicitly.
-- The finish UI should show the relevant potential/awarded XP clearly.
+- The completion UI must show the actual persisted XP breakdown, never theoretical potential XP.
 - Do not alter XP semantics during structural refactoring.
 - Any deliberate scoring-system change must update direct scoring tests and relevant regression tests.
 

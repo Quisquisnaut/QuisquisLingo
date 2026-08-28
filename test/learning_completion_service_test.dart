@@ -23,7 +23,7 @@ void main() {
       final events = <String>[];
       final progress = _FakeLearningCompletionProgress(
         events: events,
-        weeklyXpValues: [90, 105],
+        weeklyXpValues: [90, 135],
         newlyEarnedLaurel: true,
       );
       final service = LearningCompletionService.withProgress(progress);
@@ -32,7 +32,6 @@ void main() {
         _request(
           errorsThisAttempt: 0,
           firstPassCorrect: 3,
-          repeatCapExerciseCount: 7,
           wasCompletedAtStart: false,
           ttsWasSkipped: false,
           factEvents: events,
@@ -57,8 +56,8 @@ void main() {
         'attemptFacts:scoring',
         'weeklyXp:1:start',
         'weeklyXp:1:end',
-        'addXp:15:start',
-        'addXp:15:end',
+        'addXp:45:start',
+        'addXp:45:end',
         'weeklyXp:2:start',
         'weeklyXp:2:end',
         'weeklyTarget:start',
@@ -74,14 +73,17 @@ void main() {
       expect(progress.recentRoundErrors, 0);
       expect(progress.perfectCourseId, 'course_1');
       expect(progress.perfectRoundId, 'round_1');
-      expect(progress.addedXp, 15);
+      expect(progress.addedXp, 45);
       expect(progress.addedCourseId, 'course_1');
       expect(progress.addedCourseCode, 'IT');
       expect(progress.activityCourseCode, 'IT');
       expect(progress.effectiveActivityRegistrations, 2);
-      expect(result.awardedXp, 15);
+      expect(result.roundXp.correctAnswerXp, 15);
+      expect(result.roundXp.perfectBonusXp, 5);
+      expect(result.roundXp.laurelBonusXp, 25);
+      expect(result.awardedXp, 45);
       expect(result.weeklyXpBefore, 90);
-      expect(result.weeklyXpAfter, 105);
+      expect(result.weeklyXpAfter, 135);
       expect(result.weeklyXpTarget, 100);
       expect(result.newlyEarnedLaurel, isTrue);
       expect(result.crossedWeeklyXpTarget, isTrue);
@@ -101,21 +103,18 @@ void main() {
         const LearningCompletionAttemptFacts(
           errorsThisAttempt: 0,
           firstPassCorrect: 0,
-          repeatCapExerciseCount: 1,
           wasCompletedAtStart: false,
           ttsWasSkipped: false,
         ),
         const LearningCompletionAttemptFacts(
           errorsThisAttempt: 1,
           firstPassCorrect: 2,
-          repeatCapExerciseCount: 3,
           wasCompletedAtStart: false,
           ttsWasSkipped: false,
         ),
         const LearningCompletionAttemptFacts(
           errorsThisAttempt: 1,
           firstPassCorrect: 2,
-          repeatCapExerciseCount: 3,
           wasCompletedAtStart: false,
           ttsWasSkipped: false,
         ),
@@ -158,11 +157,11 @@ void main() {
   );
 
   test(
-    'perfect repeat uses the final mutable queue length and floors the cap',
+    'perfect repeat uses repeat answer XP plus the repeatable perfect bonus',
     () async {
       final progress = _FakeLearningCompletionProgress(
         events: <String>[],
-        weeklyXpValues: [20, 27],
+        weeklyXpValues: [20, 31],
         newlyEarnedLaurel: false,
       );
       final service = LearningCompletionService.withProgress(progress);
@@ -171,8 +170,7 @@ void main() {
       final result = await service.completeRound(
         _request(
           errorsThisAttempt: 0,
-          firstPassCorrect: 99,
-          repeatCapExerciseCount: 3,
+          firstPassCorrect: 3,
           wasCompletedAtStart: true,
           ttsWasSkipped: false,
         ),
@@ -180,26 +178,34 @@ void main() {
         getWeeklyXpTarget: () async => 100,
       );
 
-      expect(result.awardedXp, 7);
-      expect(progress.addedXp, 7);
+      expect(result.roundXp.correctAnswerXp, 6);
+      expect(result.roundXp.perfectBonusXp, 5);
+      expect(result.roundXp.laurelBonusXp, 0);
+      expect(result.awardedXp, 11);
+      expect(progress.addedXp, 11);
       expect(progress.perfectRoundCalls, 1);
       expect(progress.ttsSkippedPerfectRoundCalls, 0);
       expect(laurelCallbackCalled, isFalse);
     },
   );
 
-  test('imperfect repeat keeps first-pass-correct scoring', () async {
-    final progress = _FakeLearningCompletionProgress(
-      events: <String>[],
-      weeklyXpValues: [12, 22],
+  test('reload cannot re-award an already persisted Laurel bonus', () async {
+    await ProfileService().addProfile('Reloaded Laurel Learner');
+    final progress = ProgressService();
+    await progress.completeRound(
+      'round_1',
+      courseId: 'course_1',
+      courseCode: 'IT',
     );
-    final service = LearningCompletionService.withProgress(progress);
+    await progress.markPerfectRound('round_1', courseId: 'course_1');
 
-    final result = await service.completeRound(
+    final reloaded = LearningCompletionService(
+      progressService: ProgressService(),
+    );
+    final result = await reloaded.completeRound(
       _request(
-        errorsThisAttempt: 2,
-        firstPassCorrect: 2,
-        repeatCapExerciseCount: 100,
+        errorsThisAttempt: 0,
+        firstPassCorrect: 1,
         wasCompletedAtStart: true,
         ttsWasSkipped: false,
       ),
@@ -207,19 +213,44 @@ void main() {
       getWeeklyXpTarget: () async => 100,
     );
 
-    expect(result.awardedXp, 10);
-    expect(progress.addedXp, 10);
+    expect(result.roundXp.correctAnswerXp, 2);
+    expect(result.roundXp.perfectBonusXp, 5);
+    expect(result.roundXp.laurelBonusXp, 0);
+    expect(result.awardedXp, 7);
+    expect(await ProgressService().getWeeklyXp(), 7);
+  });
+
+  test('imperfect repeat keeps first-pass-correct scoring', () async {
+    final progress = _FakeLearningCompletionProgress(
+      events: <String>[],
+      weeklyXpValues: [12, 16],
+    );
+    final service = LearningCompletionService.withProgress(progress);
+
+    final result = await service.completeRound(
+      _request(
+        errorsThisAttempt: 2,
+        firstPassCorrect: 2,
+        wasCompletedAtStart: true,
+        ttsWasSkipped: false,
+      ),
+      onNewLaurel: () async {},
+      getWeeklyXpTarget: () async => 100,
+    );
+
+    expect(result.awardedXp, 4);
+    expect(progress.addedXp, 4);
     expect(progress.perfectRoundCalls, 0);
     expect(progress.ttsSkippedPerfectRoundCalls, 0);
   });
 
   test(
-    'TTS-skipped perfect completion persists provisional state and adds zero XP',
+    'TTS-skipped zero-error completion persists provisional state and adds the perfect bonus',
     () async {
       final events = <String>[];
       final progress = _FakeLearningCompletionProgress(
         events: events,
-        weeklyXpValues: [0, 0],
+        weeklyXpValues: [0, 5],
       );
       final service = LearningCompletionService.withProgress(progress);
       var laurelCallbackCalled = false;
@@ -228,7 +259,6 @@ void main() {
         _request(
           errorsThisAttempt: 0,
           firstPassCorrect: 0,
-          repeatCapExerciseCount: 0,
           wasCompletedAtStart: false,
           ttsWasSkipped: true,
         ),
@@ -244,8 +274,8 @@ void main() {
         events.indexOf('ttsSkippedPerfectRound:end'),
         lessThan(events.indexOf('weeklyXp:1:start')),
       );
-      expect(events.where((event) => event == 'addXp:0:start'), hasLength(1));
-      expect(progress.addedXp, 0);
+      expect(events.where((event) => event == 'addXp:5:start'), hasLength(1));
+      expect(progress.addedXp, 5);
       expect(progress.addXpCalls, 1);
       expect(progress.perfectRoundCalls, 0);
       expect(progress.ttsSkippedPerfectRoundCalls, 1);
@@ -253,7 +283,9 @@ void main() {
       expect(progress.ttsSkippedPerfectRoundId, 'round_1');
       expect(progress.effectiveActivityRegistrations, 2);
       expect(laurelCallbackCalled, isFalse);
-      expect(result.awardedXp, 0);
+      expect(result.roundXp.correctAnswerXp, 0);
+      expect(result.roundXp.perfectBonusXp, 5);
+      expect(result.awardedXp, 5);
       expect(result.newlyEarnedLaurel, isFalse);
     },
   );
@@ -274,7 +306,6 @@ void main() {
           _request(
             errorsThisAttempt: 0,
             firstPassCorrect: 1,
-            repeatCapExerciseCount: 1,
             wasCompletedAtStart: false,
             ttsWasSkipped: false,
           ),
@@ -304,7 +335,7 @@ void main() {
   );
 
   test(
-    'imperfect six-exercise repeat plus repeated Topic award raises weekly XP from 85 to 135',
+    'six-exercise repeat and completed Topic add only the authoritative 10 XP',
     () async {
       final clock = _MutableClock(DateTime(2026, 8, 28, 12));
       await ProfileService().addProfile('Repeat Topic Learner');
@@ -316,8 +347,8 @@ void main() {
         courseId: 'course_1',
         courseCode: 'IT',
       );
-      // Preserve the observed starting point while retaining the already-
-      // completed Topic state that causes its fixed award to be repeated.
+      // Preserve the observed starting point while retaining the authoritative
+      // already-completed Topic state.
       final prefs = await SharedPreferences.getInstance();
       await prefs.setInt('learner_Repeat%20Topic%20Learner_xp_IT', 85);
       await prefs.setInt('learner_Repeat%20Topic%20Learner_week_xp', 85);
@@ -330,26 +361,24 @@ void main() {
         _request(
           errorsThisAttempt: 1,
           firstPassCorrect: 5,
-          repeatCapExerciseCount: 6,
           wasCompletedAtStart: true,
           ttsWasSkipped: false,
         ),
         onNewLaurel: () async {},
         getWeeklyXpTarget: () async => 1000,
       );
-      expect(result.awardedXp, 25);
+      expect(result.awardedXp, 10);
       expect(result.weeklyXpBefore, 85);
-      expect(result.weeklyXpAfter, 110);
+      expect(result.weeklyXpAfter, 95);
 
-      // Candidate 213 issue: completeTopic awards 25 XP even when the Topic ID
-      // was already present, producing the observed combined +50 increase.
-      await progress.completeTopic(
+      final topicAward = await progress.completeTopic(
         'topic_1',
         courseId: 'course_1',
         courseCode: 'IT',
       );
-      expect(await progress.getXp(courseCode: 'IT'), 135);
-      expect(await progress.getWeeklyXp(), 135);
+      expect(topicAward, 0);
+      expect(await progress.getXp(courseCode: 'IT'), 95);
+      expect(await progress.getWeeklyXp(), 95);
     },
   );
 
@@ -365,7 +394,6 @@ void main() {
         _request(
           errorsThisAttempt: 1,
           firstPassCorrect: 1,
-          repeatCapExerciseCount: 1,
           wasCompletedAtStart: false,
           ttsWasSkipped: false,
         ),
@@ -424,7 +452,6 @@ void main() {
 LearningCompletionRequest _request({
   required int errorsThisAttempt,
   required int firstPassCorrect,
-  required int repeatCapExerciseCount,
   required bool wasCompletedAtStart,
   required bool ttsWasSkipped,
   List<String>? factEvents,
@@ -432,7 +459,6 @@ LearningCompletionRequest _request({
   final facts = LearningCompletionAttemptFacts(
     errorsThisAttempt: errorsThisAttempt,
     firstPassCorrect: firstPassCorrect,
-    repeatCapExerciseCount: repeatCapExerciseCount,
     wasCompletedAtStart: wasCompletedAtStart,
     ttsWasSkipped: ttsWasSkipped,
   );

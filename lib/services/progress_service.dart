@@ -252,21 +252,24 @@ class ProgressService {
         .toSet();
   }
 
-  Future<void> completeTopic(
+  Future<int> completeTopic(
     String id, {
     required String courseId,
     required String courseCode,
   }) async {
     final p = await _prefs;
     final k = await _ck('completed_topics', courseId);
-    final ids = (p.getStringList(k) ?? []).toSet()..add(id);
+    final ids = (p.getStringList(k) ?? []).toSet();
+    final isFirstCompletion = ids.add(id);
     await p.setStringList(k, ids.toList());
     await registerLearningActivity(courseCode: courseCode);
-    await addXp(
-      _xpCalculator.calculateTopicCompletionAward(),
-      courseCode: courseCode,
-      courseId: courseId,
+    final award = _xpCalculator.calculateTopicCompletionAward(
+      isFirstCompletion: isFirstCompletion,
     );
+    if (award > 0) {
+      await addXp(award, courseCode: courseCode, courseId: courseId);
+    }
+    return award;
   }
 
   Future<Set<String>> getWonDuels({required String courseId}) async {
@@ -274,21 +277,22 @@ class ProgressService {
     return (p.getStringList(await _ck('won_duels', courseId)) ?? []).toSet();
   }
 
-  Future<void> winDuel(
+  Future<int> winDuel(
     String id, {
     required String courseId,
     required String courseCode,
   }) async {
     final p = await _prefs;
     final k = await _ck('won_duels', courseId);
-    final ids = (p.getStringList(k) ?? []).toSet()..add(id);
+    final ids = (p.getStringList(k) ?? []).toSet();
+    final wasPreviouslyWon = !ids.add(id);
     await p.setStringList(k, ids.toList());
     await registerLearningActivity(courseCode: courseCode);
-    await addXp(
-      _xpCalculator.calculateDuelWinAward(),
-      courseCode: courseCode,
-      courseId: courseId,
+    final award = _xpCalculator.calculateDuelWinAward(
+      wasPreviouslyWon: wasPreviouslyWon,
     );
+    await addXp(award, courseCode: courseCode, courseId: courseId);
+    return award;
   }
 
   /// One learner-level notice explains that every learning Topic has its own Guidebook.

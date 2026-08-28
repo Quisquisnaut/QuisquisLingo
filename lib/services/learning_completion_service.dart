@@ -21,33 +21,33 @@ class LearningCompletionRequest {
 class LearningCompletionAttemptFacts {
   final int errorsThisAttempt;
   final int firstPassCorrect;
-  final int repeatCapExerciseCount;
   final bool wasCompletedAtStart;
   final bool ttsWasSkipped;
 
   const LearningCompletionAttemptFacts({
     required this.errorsThisAttempt,
     required this.firstPassCorrect,
-    required this.repeatCapExerciseCount,
     required this.wasCompletedAtStart,
     required this.ttsWasSkipped,
   });
 }
 
 class LearningCompletionResult {
-  final int awardedXp;
+  final RoundXpResult roundXp;
   final int weeklyXpBefore;
   final int weeklyXpAfter;
   final int weeklyXpTarget;
   final bool newlyEarnedLaurel;
 
   const LearningCompletionResult({
-    required this.awardedXp,
+    required this.roundXp,
     required this.weeklyXpBefore,
     required this.weeklyXpAfter,
     required this.weeklyXpTarget,
     required this.newlyEarnedLaurel,
   });
+
+  int get awardedXp => roundXp.totalXp;
 
   bool get crossedWeeklyXpTarget =>
       weeklyXpBefore < weeklyXpTarget && weeklyXpAfter >= weeklyXpTarget;
@@ -149,17 +149,18 @@ class LearningCompletionService {
     }
 
     final scoringFacts = request.readAttemptFacts();
-    final awardedXp = _xpCalculator.calculateRoundAward(
+    final roundXp = _xpCalculator.calculateRoundAward(
       RoundXpAwardContext(
+        completed: true,
         errorsThisAttempt: scoringFacts.errorsThisAttempt,
         firstPassCorrect: scoringFacts.firstPassCorrect,
-        repeatCapExerciseCount: scoringFacts.repeatCapExerciseCount,
         wasCompletedAtStart: scoringFacts.wasCompletedAtStart,
+        newlyEarnedLaurel: newlyEarnedLaurel,
       ),
     );
     final weeklyXpBefore = await _progress.getWeeklyXp();
     await _progress.addXp(
-      awardedXp,
+      roundXp.totalXp,
       courseCode: request.courseCode,
       courseId: request.courseId,
     );
@@ -170,7 +171,7 @@ class LearningCompletionService {
     await _progress.registerLearningActivity(courseCode: request.courseCode);
 
     return LearningCompletionResult(
-      awardedXp: awardedXp,
+      roundXp: roundXp,
       weeklyXpBefore: weeklyXpBefore,
       weeklyXpAfter: weeklyXpAfter,
       weeklyXpTarget: weeklyXpTarget,
