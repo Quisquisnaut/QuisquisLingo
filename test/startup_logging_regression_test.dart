@@ -14,6 +14,26 @@ void main() {
     expect(gate.contains('_StartupCrashLogNotice'), isTrue);
   });
 
+  test('Alpha testing popup retains its instructions and start control', () {
+    final source = File('lib/main.dart').readAsStringSync();
+    final noticeStart = source.indexOf('Future<void> _showInstructions()');
+    final noticeEnd = source.indexOf(
+      'Future<void> _checkForUpdateAtStartup()',
+      noticeStart,
+    );
+    expect(noticeStart, greaterThanOrEqualTo(0));
+    expect(noticeEnd, greaterThan(noticeStart));
+
+    final notice = source.substring(noticeStart, noticeEnd);
+    expect(notice, contains('barrierDismissible: false'));
+    expect(notice, contains("Text('QuisquisLingo Alpha testing')"));
+    expect(notice, contains('SingleChildScrollView('));
+    expect(notice, contains('SelectableText('));
+    expect(notice, contains('logPath,'));
+    expect(notice, contains('FilledButton('));
+    expect(notice, contains("Text('Start testing')"));
+  });
+
   test(
     'crash log records every session start and Windows visible log is not debug-only',
     () {

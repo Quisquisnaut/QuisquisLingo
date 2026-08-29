@@ -82,12 +82,18 @@ void main() {
   });
 
   testWidgets(
-    'Browse All Lessons changes the active Lesson and shows unavailable Duel state',
+    'Lesson selector opens the picker and changes the active Lesson',
     (tester) async {
       final course = await _loadItalianCourse(tester);
       await _openHome(tester, scrollToActions: false);
 
-      await tester.tap(find.byKey(const Key('browse-all-lessons')));
+      final selector = find.byKey(const Key('unified-lesson-selector'));
+      expect(selector, findsOneWidget);
+      expect(
+        tester.widget<OutlinedButton>(selector).style?.alignment,
+        Alignment.centerLeft,
+      );
+      await tester.tap(selector);
       final secondTopic = course.topics[1];
       final secondLesson = find.text('Lesson 2: ${secondTopic.title}');
       await _pumpUntil(tester, secondLesson);
@@ -218,7 +224,7 @@ void main() {
   });
 
   testWidgets(
-    'Unified Home uses the supplied logo and follows system appearance',
+    'Unified Home preserves the learner strip and follows system appearance',
     (tester) async {
       final dispatcher = tester.binding.platformDispatcher;
       dispatcher.platformBrightnessTestValue = Brightness.light;
@@ -232,6 +238,10 @@ void main() {
         (logo.image as AssetImage).assetName,
         'assets/branding/quisquislingo_logo.png',
       );
+      expect(logo.width, 156);
+      expect(logo.height, 36);
+      expect(logo.fit, BoxFit.contain);
+      expect(logo.filterQuality, FilterQuality.high);
       expect(find.byIcon(Icons.forum_rounded), findsNothing);
 
       var page = tester.widget<Scaffold>(
@@ -243,6 +253,20 @@ void main() {
       var pageTheme = Theme.of(
         tester.element(find.byKey(const Key('unified-learner-page'))),
       );
+      final appBar = statusAppBar.appBar as AppBar;
+      expect(appBar.toolbarHeight, 58);
+      expect(appBar.leadingWidth, 150);
+      expect(appBar.centerTitle, isTrue);
+      expect(find.text('Navigation Learner'), findsOneWidget);
+      expect(find.byIcon(Icons.face_outlined), findsOneWidget);
+      expect(find.byTooltip('Settings'), findsOneWidget);
+      expect(find.byIcon(Icons.settings_outlined), findsOneWidget);
+      final stripOrder = [
+        find.byIcon(Icons.face_outlined),
+        logoFinder,
+        find.byIcon(Icons.settings_outlined),
+      ].map((finder) => tester.getRect(finder).center.dx).toList();
+      expect(stripOrder, orderedEquals(stripOrder.toList()..sort()));
       expect(pageTheme.brightness, Brightness.light);
       expect(page.backgroundColor, const Color(0xFFF7F3E8));
       expect(statusAppBar.backgroundColor, const Color(0xFF214D3B));
@@ -271,7 +295,7 @@ void main() {
         greaterThan(.5),
       );
 
-      await tester.tap(find.byKey(const Key('browse-all-lessons')));
+      await tester.tap(find.byKey(const Key('unified-lesson-selector')));
       await tester.pumpAndSettle();
       final lessonSheet = find.byType(BottomSheet);
       expect(lessonSheet, findsOneWidget);
@@ -306,9 +330,58 @@ void main() {
     await _pumpFrames(tester);
 
     expect(find.byType(HomeScreen), findsOneWidget);
-    expect(find.byKey(const Key('browse-all-lessons')), findsOneWidget);
+    expect(find.byKey(const Key('unified-lesson-selector')), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets(
+    'Welcome and Alpha expiry dialogs retain their structure and controls',
+    (tester) async {
+      SharedPreferences.setMockInitialValues({
+        'sound_effects_enabled': false,
+      });
+      await ProfileService().addProfile('Popup Learner');
+
+      await tester.pumpWidget(const MaterialApp(home: HomeScreen()));
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 300)),
+      );
+      await _pumpUntil(tester, find.text('Welcome to QuisquisLingo'));
+
+      expect(find.byType(AlertDialog), findsOneWidget);
+      expect(find.text('Version 2.0.15'), findsOneWidget);
+      expect(find.widgetWithText(FilledButton, 'Continue'), findsOneWidget);
+      expect(
+        tester
+            .widgetList<ModalBarrier>(find.byType(ModalBarrier))
+            .any((barrier) => !barrier.dismissible),
+        isTrue,
+      );
+
+      await tester.tap(find.text('Continue'));
+      await _pumpUntil(tester, find.text('Alpha expiry'));
+
+      late bool welcomeSeen;
+      await tester.runAsync(() async {
+        welcomeSeen = await SettingsService().hasSeenOneTimeNotice(
+          'welcome_2.0.15',
+        );
+      });
+      expect(welcomeSeen, isTrue);
+      expect(find.byType(AlertDialog), findsOneWidget);
+      expect(
+        find.textContaining('Expiry date: 2026-09-27.'),
+        findsOneWidget,
+      );
+      expect(find.widgetWithText(FilledButton, 'OK'), findsOneWidget);
+      expect(
+        tester
+            .widgetList<ModalBarrier>(find.byType(ModalBarrier))
+            .any((barrier) => !barrier.dismissible),
+        isTrue,
+      );
+    },
+  );
 }
 
 void _installEventChannelMock(
