@@ -1,20 +1,20 @@
 # QuisquisLingo App
 
-**Current source version: 2.0.14+214 · Course Model v3 (`formatVersion: 3`).**
+**Current source version: 2.0.15+215 · Course Model v4 (`formatVersion: 4`).**
 
 
-**QuisquisLingo 2.0.14 Alpha**
+**QuisquisLingo 2.0.15 Alpha**
 
-Current project version: 2.0.14
+Current project version: 2.0.15
 
-Build 214 communicates first Topic completion inside the Round XP popup, improves text-entry submission, promotes Leaderboard navigation to Home, refines status-bar spacing and keeps desktop resizing safe. The official repository is `Quisquisnaut/QuisquisLingo`.
+Build 215 removes Chapter from the course architecture, introduces Course Model v4 and makes the unified learner page the direct Course → Lesson → Round hub. Duels are Topic-scoped and become unavailable normally when the selected Topic has fewer than 25 actually eligible exercises. The official repository is `Quisquisnaut/QuisquisLingo`.
 
 
 A Flutter prototype for an offline-first language-learning app.
 
 ## Baseline 200
 
-Version **2.0.0+200** is the reference baseline for **Course Model v3** and for future development with Codex. New work should start from this source tree rather than an older archive. Repository-level agent instructions are in `AGENTS.md`, and the current format reference is `docs/COURSE_JSON_FORMAT.md`.
+Version **2.0.0+200** remains the historical Course Model v3 baseline. Current development starts from this Course Model v4 source tree rather than an older archive. Repository-level agent instructions are in `AGENTS.md`.
 
 ## Project authorship
 
@@ -26,34 +26,31 @@ The MPL-2.0 covers the QuisquisLingo software source. Courses, the Image Bank an
 
 ## Alpha lifecycle
 
-Version 2.0.14 is a time-limited alpha and expires on **2026-09-27**. Near expiry it displays reminders. After expiry, learner exercises and Review are blocked until a newer alpha is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when an alpha expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM. Future stable builds can disable alpha expiry.
+Version 2.0.15 is a time-limited alpha and expires on **2026-09-27**. Near expiry it displays reminders. After expiry, learner exercises and Review are blocked until a newer alpha is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when an alpha expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM. Future stable builds can disable alpha expiry.
 
 ## Core logic
 
 Course
-- Chapter
-  - Topic
-    - Guidebook
-    - Round
-      - Content / Exercise
+- Topic (shown to learners as Lesson)
+  - GuideBook
+  - Round
+    - Content / Exercise
+  - Duel
 
-Each learning Topic has its own Guidebook. Chapters do not own Guidebooks in Course Model v3. The first Content item of a Topic’s first Round may present a short essential introduction drawn from that Topic Guidebook.
+Each Topic has its own GuideBook, ordered Rounds and Topic-scoped Duel in Course Model v4. The first Content item of a Topic’s first Round may present a short essential introduction drawn from that GuideBook.
 
-Users may jump freely among topics inside any unlocked chapter.
+The learner page shows one current Lesson, provides Browse All Lessons, and opens its GuideBook, Rounds and Duel directly.
 
-The next chapter is locked until either:
-1. The completion rule for the current chapter is satisfied, or
-2. The learner wins the chapter's Language Duel.
+The next Lesson unlocks when the current Topic is completed or its Duel is won. A Duel remains unavailable when its actual eligible pool has fewer than the required 25 exercises; Round count is not used to decide availability.
 
 All learner data remains on-device.
 
 ## Included in this prototype
 
 - Course-language selector
-- Chapter tree
-- Freely selectable topics inside an unlocked chapter
-- Locked chapter gates
-- Language Duel skip mechanism
+- Unified Course → Lesson → Round learner page
+- Lesson selector and Browse All Lessons
+- Topic-scoped Duel skip mechanism with actual-pool availability
 - Round and exercise model
 - Local progress persistence
 - Local streak
@@ -128,7 +125,6 @@ Examples:
 - COURSE-001: missing course file
 - COURSE-002: invalid course data
 - TTS-003: TTS generation failed
-- DUEL-001: duel unavailable
 - APP-001: unexpected internal error
 
 User-facing dialogs show a short message plus the error code.
@@ -161,7 +157,7 @@ Version 0.3.0 includes a larger Italian course sample with:
 
 ## Reporting problems
 
-During any exercise, tap the flag in the top-right corner and choose **Course error** or **App bug**. QuisquisLingo copies a ready-to-paste report containing the exact course, chapter, topic, round and exercise context. Nothing is uploaded automatically. See `docs/REPORTING.md`.
+During any exercise, tap the flag in the top-right corner and choose **Course error** or **App bug**. QuisquisLingo copies a ready-to-paste report containing the exact course, Topic, Round and exercise context. Nothing is uploaded automatically. See `docs/REPORTING.md`.
 
 ## Cross-platform text-to-speech
 

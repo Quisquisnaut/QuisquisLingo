@@ -19,7 +19,7 @@ import '../widgets/flag_art.dart';
 
 /// Full local authoring UI.
 ///
-/// The hierarchy is editable at every level: Chapters, Topics, Rounds and v3
+/// The hierarchy is editable at every level: Topics, Rounds and v4
 /// Content can be created, deleted and reordered. Friendly Editor template is immutable
 /// after creation because changing type can silently reinterpret incompatible
 /// fields. To use another type, create a new exercise and delete the old one.
@@ -63,8 +63,7 @@ class _CourseEditorScreenState extends State<CourseEditorScreen> {
   }
 
   Future<void> _showSampleContentNoticeIfNeeded() async {
-    if (!_course.chapters.any((chapter) => chapter.temporarySample) ||
-        !mounted) {
+    if (!_course.temporarySample || !mounted) {
       return;
     }
     await showDialog<void>(
@@ -73,7 +72,7 @@ class _CourseEditorScreenState extends State<CourseEditorScreen> {
       builder: (ctx) => AlertDialog(
         title: const Text('Temporary sample content'),
         content: const Text(
-          'This course still contains Chapters marked TEMPORARY SAMPLE. The preloaded material is provided only to demonstrate and test the editor. Replace it with reviewed course content and remove the TEMPORARY SAMPLE badge from each Chapter before publishing or distributing the course.',
+          'This course is marked TEMPORARY SAMPLE. The preloaded material is provided only to demonstrate and test the editor. Replace it with reviewed course content and remove the TEMPORARY SAMPLE badge before publishing or distributing the course.',
         ),
         actions: [
           FilledButton(
@@ -158,37 +157,24 @@ class _CourseEditorScreenState extends State<CourseEditorScreen> {
       ) ??
       false;
 
-  Chapter _blankChapter(String title) {
+  Topic _blankTopic(String title) {
     final stamp = DateTime.now().microsecondsSinceEpoch;
-    final topics = <Topic>[
-      for (var i = 0; i < 3; i++)
-        Topic(
-          id: 'custom_topic_${stamp + i}',
-          title: 'Topic ${i + 1}',
-          rounds: const [],
-          imageAsset: '',
-          guidebook: Guidebook.empty(),
-        ),
-      Topic(
-        id: 'custom_duel_${stamp + 3}',
-        title: 'Language Duel',
-        role: 'assessment',
-        assessment: const TopicAssessment(),
-        rounds: const [],
-      ),
-    ];
-    return Chapter(
-      id: 'custom_ch_$stamp',
+    return Topic(
+      id: 'custom_topic_$stamp',
       title: title,
-      requiredTopics: 3,
-      topics: topics,
-      editorNotes: '',
-      temporarySample: false,
+      rounds: const [],
+      imageAsset: '',
+      guidebook: Guidebook.empty(),
     );
   }
 
-  Course _withChapters(List<Chapter> chapters) => Course(
+  Course _withTopics(
+    List<Topic> topics, {
+    bool? temporarySample,
+  }) => Course(
     courseId: _course.courseId,
+    parentCourseId: _course.parentCourseId,
+    derivedFromVersion: _course.derivedFromVersion,
     learningLanguage: _course.learningLanguage,
     interfaceLanguage: _course.interfaceLanguage,
     sourceLanguage: _course.sourceLanguage,
@@ -200,7 +186,7 @@ class _CourseEditorScreenState extends State<CourseEditorScreen> {
     updateSummary: _course.updateSummary,
     audioMode: _course.audioMode,
     audioLibrary: _course.audioLibrary,
-    chapters: chapters,
+    topics: topics,
     author: _course.author,
     license: _course.license,
     sourceLanguageTag: _course.sourceLanguageTag,
@@ -215,6 +201,8 @@ class _CourseEditorScreenState extends State<CourseEditorScreen> {
     courseVersion: _course.courseVersion,
     lastUpdated: _course.lastUpdated,
     courseDescription: _course.courseDescription,
+    temporarySample: temporarySample ?? _course.temporarySample,
+    supportUrl: _course.supportUrl,
   );
 
   Future<void> _editCourseInfo() async {
@@ -278,6 +266,7 @@ class _CourseEditorScreenState extends State<CourseEditorScreen> {
     final courseVersion = TextEditingController(text: _course.courseVersion);
     final lastUpdated = TextEditingController(text: _course.lastUpdated);
     final description = TextEditingController(text: _course.courseDescription);
+    final supportUrl = TextEditingController(text: _course.supportUrl);
     final customLicense = TextEditingController(text: _course.license);
     const standardLicenses = <String>[
       'All rights reserved',
@@ -312,6 +301,7 @@ class _CourseEditorScreenState extends State<CourseEditorScreen> {
             String courseVersion,
             String lastUpdated,
             String description,
+            String supportUrl,
           })
         >(
           context: context,
@@ -605,6 +595,17 @@ class _CourseEditorScreenState extends State<CourseEditorScreen> {
                           labelText: 'Course description / information',
                         ),
                       ),
+                      const SizedBox(height: 8),
+                      TextField(
+                        controller: supportUrl,
+                        maxLength: 2000,
+                        decoration: const InputDecoration(
+                          border: OutlineInputBorder(),
+                          labelText: 'Support URL (optional)',
+                          helperText:
+                              'Shown with Course information when provided.',
+                        ),
+                      ),
                       const SizedBox(height: 12),
                       DropdownButtonFormField<String>(
                         initialValue: selected,
@@ -679,6 +680,7 @@ class _CourseEditorScreenState extends State<CourseEditorScreen> {
                       courseVersion: courseVersion.text.trim(),
                       lastUpdated: lastUpdated.text.trim(),
                       description: description.text.trim(),
+                      supportUrl: supportUrl.text.trim(),
                     ));
                   },
                   child: const Text('Save'),
@@ -700,11 +702,14 @@ class _CourseEditorScreenState extends State<CourseEditorScreen> {
     courseVersion.dispose();
     lastUpdated.dispose();
     description.dispose();
+    supportUrl.dispose();
     customLicense.dispose();
     if (result == null || !mounted) return;
     await _persist(
       Course(
         courseId: _course.courseId,
+        parentCourseId: _course.parentCourseId,
+        derivedFromVersion: _course.derivedFromVersion,
         learningLanguage: _course.learningLanguage,
         interfaceLanguage: _course.interfaceLanguage,
         sourceLanguage: _course.sourceLanguage,
@@ -724,50 +729,54 @@ class _CourseEditorScreenState extends State<CourseEditorScreen> {
         courseVersion: result.courseVersion,
         lastUpdated: result.lastUpdated,
         courseDescription: result.description,
+        supportUrl: result.supportUrl,
         sourceLanguageTag: _course.sourceLanguageTag,
         targetLanguageTag: _course.targetLanguageTag,
         textDirection: _course.textDirection,
         flagCode: _course.flagCode,
         flagImageBase64: _course.flagImageBase64,
         audioLibrary: _course.audioLibrary,
-        chapters: _course.chapters,
+        temporarySample: _course.temporarySample,
+        topics: _course.topics,
       ),
     );
   }
 
-  Future<void> _addChapter() async {
-    final title = await _askName('New chapter');
+  Future<void> _addTopic() async {
+    final title = await _askName('New topic');
     if (title == null) return;
-    await _persist(_withChapters([..._course.chapters, _blankChapter(title)]));
+    await _persist(_withTopics([..._course.topics, _blankTopic(title)]));
   }
 
-  Future<void> _deleteChapter(int index) async {
-    if (!await _confirmDelete('chapter')) return;
-    final list = [..._course.chapters]..removeAt(index);
-    await _persist(_withChapters(list));
+  Future<void> _deleteTopic(int index) async {
+    if (_locked) return;
+    if (!await _confirmDelete('topic')) return;
+    final list = [..._course.topics]..removeAt(index);
+    await _persist(_withTopics(list));
   }
 
-  Future<void> _reorderChapter(int oldIndex, int newIndex) async {
+  Future<void> _reorderTopic(int oldIndex, int newIndex) async {
+    if (_locked) return;
     // ReorderableListView.onReorderItem already reports newIndex after removal.
-    final list = [..._course.chapters];
+    final list = [..._course.topics];
     final item = list.removeAt(oldIndex);
     list.insert(newIndex, item);
-    await _persist(_withChapters(list));
+    await _persist(_withTopics(list));
   }
 
-  Future<void> _openChapter(int index) async {
-    final updated = await Navigator.of(context).push<Chapter>(
+  Future<void> _openTopic(int index) async {
+    final updated = await Navigator.of(context).push<Topic>(
       MaterialPageRoute(
-        builder: (_) => ChapterEditorScreen(
+        builder: (_) => TopicEditorScreen(
           course: _course,
-          chapter: _course.chapters[index],
+          topic: _course.topics[index],
         ),
       ),
     );
     if (updated == null || !mounted) return;
-    final list = [..._course.chapters];
+    final list = [..._course.topics];
     list[index] = updated;
-    await _persist(_withChapters(list));
+    await _persist(_withTopics(list));
   }
 
   Future<void> _openAudioLibrary() async {
@@ -822,7 +831,9 @@ class _CourseEditorScreenState extends State<CourseEditorScreen> {
           audioLibrary: _course.audioLibrary
               .where((e) => !ids.contains(e.id))
               .toList(),
-          chapters: _course.chapters,
+          parentCourseId: _course.parentCourseId,
+          derivedFromVersion: _course.derivedFromVersion,
+          topics: _course.topics,
           author: _course.author,
           license: _course.license,
           sourceLanguageTag: _course.sourceLanguageTag,
@@ -837,6 +848,8 @@ class _CourseEditorScreenState extends State<CourseEditorScreen> {
           courseVersion: _course.courseVersion,
           lastUpdated: _course.lastUpdated,
           courseDescription: _course.courseDescription,
+          temporarySample: _course.temporarySample,
+          supportUrl: _course.supportUrl,
         ),
       );
     }
@@ -864,86 +877,68 @@ class _CourseEditorScreenState extends State<CourseEditorScreen> {
 
   Future<void> _openAuditIssue(CourseAuditIssue issue) async {
     if (issue.roundId == null) return;
-    for (var ci = 0; ci < _course.chapters.length; ci++) {
-      final ch = _course.chapters[ci];
-      for (var ti = 0; ti < ch.topics.length; ti++) {
-        final topic = ch.topics[ti];
-        for (var ri = 0; ri < topic.rounds.length; ri++) {
-          final round = topic.rounds[ri];
-          if (round.id != issue.roundId) continue;
-          LearningRound? updatedRound;
-          if (issue.exerciseId != null) {
-            final ei = round.exercises.indexWhere(
-              (e) => e.id == issue.exerciseId,
+    for (var ti = 0; ti < _course.topics.length; ti++) {
+      final topic = _course.topics[ti];
+      for (var ri = 0; ri < topic.rounds.length; ri++) {
+        final round = topic.rounds[ri];
+        if (round.id != issue.roundId) continue;
+        LearningRound? updatedRound;
+        if (issue.exerciseId != null) {
+          final ei = round.exercises.indexWhere(
+            (e) => e.id == issue.exerciseId,
+          );
+          if (ei >= 0) {
+            if (!mounted) return;
+            final updatedExercise = await Navigator.of(context).push<Exercise>(
+              MaterialPageRoute(
+                builder: (_) => ExerciseEditorScreen(
+                  exercise: round.exercises[ei],
+                  title: 'Edit exercise ${ei + 1}',
+                  isNew: false,
+                ),
+              ),
             );
-            if (ei >= 0) {
-              if (!mounted) return;
-              final updatedExercise = await Navigator.of(context)
-                  .push<Exercise>(
-                    MaterialPageRoute(
-                      builder: (_) => ExerciseEditorScreen(
-                        exercise: round.exercises[ei],
-                        title: 'Edit exercise ${ei + 1}',
-                        isNew: false,
-                      ),
-                    ),
-                  );
-              if (updatedExercise != null) {
-                final content = [
-                  for (final item in round.content)
-                    item.id == updatedExercise.id
-                        ? LearningContent.fromExercise(updatedExercise)
-                        : item,
-                ];
-                updatedRound = LearningRound(
-                  id: round.id,
-                  title: round.title,
-                  content: content,
-                );
-              }
+            if (updatedExercise != null) {
+              final content = [
+                for (final item in round.content)
+                  item.id == updatedExercise.id
+                      ? LearningContent.fromExercise(updatedExercise)
+                      : item,
+              ];
+              updatedRound = LearningRound(
+                id: round.id,
+                title: round.title,
+                visualType: round.visualType,
+                content: content,
+              );
             }
           }
-          if (!mounted) return;
-          updatedRound ??= await Navigator.of(context).push<LearningRound>(
-            MaterialPageRoute(
-              builder: (_) => RoundEditorScreen(
-                course: _course,
-                chapter: ch,
-                topic: topic,
-                round: round,
-                roundIndex: ri,
-              ),
-            ),
-          );
-          if (updatedRound == null || !mounted) return;
-          final rounds = [...topic.rounds];
-          rounds[ri] = updatedRound;
-          final topics = [...ch.topics];
-          topics[ti] = Topic(
-            id: topic.id,
-            title: topic.title,
-            rounds: rounds,
-            imageAsset: topic.imageAsset,
-            role: topic.role,
-            assessment: topic.assessment,
-            guidebook: topic.guidebook,
-          );
-          final chapters = [..._course.chapters];
-          chapters[ci] = Chapter(
-            id: ch.id,
-            title: ch.title,
-            requiredTopics: min(
-              ch.requiredTopics,
-              topics.where((t) => t.role != 'assessment').length,
-            ),
-            topics: topics,
-            duel: ch.duel,
-            editorNotes: ch.editorNotes,
-            temporarySample: ch.temporarySample,
-          );
-          await _persist(_withChapters(chapters));
-          return;
         }
+        if (!mounted) return;
+        updatedRound ??= await Navigator.of(context).push<LearningRound>(
+          MaterialPageRoute(
+            builder: (_) => RoundEditorScreen(
+              course: _course,
+              topic: topic,
+              round: round,
+              roundIndex: ri,
+            ),
+          ),
+        );
+        if (updatedRound == null || !mounted) return;
+        final rounds = [...topic.rounds];
+        rounds[ri] = updatedRound;
+        final topics = [..._course.topics];
+        topics[ti] = Topic(
+          id: topic.id,
+          title: topic.title,
+          rounds: rounds,
+          imageAsset: topic.imageAsset,
+          guidebook: topic.guidebook,
+          duel: topic.duel,
+        );
+        await _persist(_withTopics(topics));
+        return;
       }
     }
   }
@@ -1032,6 +1027,14 @@ class _CourseEditorScreenState extends State<CourseEditorScreen> {
                 ),
               );
             }
+            if (v == 'sample' && !_locked) {
+              await _persist(
+                _withTopics(
+                  _course.topics,
+                  temporarySample: !_course.temporarySample,
+                ),
+              );
+            }
             if (v == 'copy' && !widget.userCourse) {
               await _service.copyCourseEdits(_course.learningLanguage);
               if (!context.mounted) return;
@@ -1053,6 +1056,15 @@ class _CourseEditorScreenState extends State<CourseEditorScreen> {
           itemBuilder: (_) => [
             const PopupMenuItem(value: 'audio', child: Text('Audio Library')),
             const PopupMenuItem(value: 'images', child: Text('Image Bank')),
+            PopupMenuItem(
+              value: 'sample',
+              enabled: !_locked,
+              child: Text(
+                _course.temporarySample
+                    ? 'Remove TEMPORARY SAMPLE'
+                    : 'Mark TEMPORARY SAMPLE',
+              ),
+            ),
             if (widget.userCourse)
               const PopupMenuItem(
                 value: 'export_custom',
@@ -1073,9 +1085,9 @@ class _CourseEditorScreenState extends State<CourseEditorScreen> {
       ],
     ),
     floatingActionButton: FloatingActionButton.extended(
-      onPressed: _saving || _locked ? null : _addChapter,
+      onPressed: _saving || _locked ? null : _addTopic,
       icon: const Icon(Icons.add),
-      label: const Text('New chapter'),
+      label: const Text('New topic'),
     ),
     body: Column(
       children: [
@@ -1090,6 +1102,17 @@ class _CourseEditorScreenState extends State<CourseEditorScreen> {
             if (mounted) setState(() => _locked = v);
           },
         ),
+        if (_course.temporarySample)
+          const ListTile(
+            leading: Icon(Icons.label_outline),
+            title: Text(
+              'TEMPORARY SAMPLE',
+              style: TextStyle(fontWeight: FontWeight.w800),
+            ),
+            subtitle: Text(
+              'Replace sample material with reviewed content before distribution.',
+            ),
+          ),
         ListTile(
           leading: const Icon(Icons.edit_note_outlined),
           title: const Text('Course info'),
@@ -1153,7 +1176,7 @@ class _CourseEditorScreenState extends State<CourseEditorScreen> {
         ),
         const Divider(height: 1),
         Expanded(
-          child: _course.chapters.isEmpty
+          child: _course.topics.isEmpty
               ? Center(
                   child: Padding(
                     padding: const EdgeInsets.all(24),
@@ -1168,9 +1191,9 @@ class _CourseEditorScreenState extends State<CourseEditorScreen> {
                         ),
                         const SizedBox(height: 8),
                         FilledButton.icon(
-                          onPressed: _saving ? null : _addChapter,
+                          onPressed: _saving || _locked ? null : _addTopic,
                           icon: const Icon(Icons.add),
-                          label: const Text('Create first Chapter'),
+                          label: const Text('Create first Topic'),
                         ),
                       ],
                     ),
@@ -1178,47 +1201,30 @@ class _CourseEditorScreenState extends State<CourseEditorScreen> {
                 )
               : ReorderableListView.builder(
                   padding: const EdgeInsets.fromLTRB(10, 10, 10, 90),
-                  itemCount: _course.chapters.length,
-                  onReorderItem: _reorderChapter,
+                  itemCount: _course.topics.length,
+                  onReorderItem: _reorderTopic,
                   itemBuilder: (context, index) {
-                    final ch = _course.chapters[index];
+                    final topic = _course.topics[index];
                     return Card(
-                      key: ValueKey(ch.id),
+                      key: ValueKey(topic.id),
                       child: ListTile(
                         leading: ReorderableDragStartListener(
                           index: index,
+                          enabled: !_locked,
                           child: const Icon(Icons.drag_handle),
                         ),
-                        title: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('Chapter ${index + 1}: ${ch.title}'),
-                            if (ch.temporarySample)
-                              const Padding(
-                                padding: EdgeInsets.only(top: 4),
-                                child: Chip(
-                                  visualDensity: VisualDensity.compact,
-                                  label: Text(
-                                    'TEMPORARY SAMPLE',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.w800,
-                                      fontSize: 10,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                          ],
-                        ),
-                        subtitle: Text('${ch.topics.length} topics'),
-                        onTap: _locked ? null : () => _openChapter(index),
+                        title: Text('Topic ${index + 1}: ${topic.title}'),
+                        subtitle: Text('${topic.rounds.length} rounds'),
+                        onTap: _locked ? null : () => _openTopic(index),
                         trailing: PopupMenuButton<String>(
+                          enabled: !_locked,
                           onSelected: (v) {
-                            if (v == 'delete') _deleteChapter(index);
+                            if (v == 'delete') _deleteTopic(index);
                           },
                           itemBuilder: (_) => const [
                             PopupMenuItem(
                               value: 'delete',
-                              child: Text('Delete chapter'),
+                              child: Text('Delete topic'),
                             ),
                           ],
                         ),
@@ -1232,299 +1238,6 @@ class _CourseEditorScreenState extends State<CourseEditorScreen> {
   );
 }
 
-class ChapterEditorScreen extends StatefulWidget {
-  final Course course;
-  final Chapter chapter;
-  const ChapterEditorScreen({
-    super.key,
-    required this.course,
-    required this.chapter,
-  });
-  @override
-  State<ChapterEditorScreen> createState() => _ChapterEditorScreenState();
-}
-
-class _ChapterEditorScreenState extends State<ChapterEditorScreen> {
-  late Chapter _chapter;
-  @override
-  void initState() {
-    super.initState();
-    _chapter = widget.chapter;
-  }
-
-  Topic _blankTopic(String title) => Topic(
-    id: 'custom_topic_${DateTime.now().microsecondsSinceEpoch}',
-    title: title,
-    rounds: const [],
-    imageAsset: '',
-    guidebook: Guidebook.empty(),
-  );
-  Chapter _copy({String? title, List<Topic>? topics, String? editorNotes}) {
-    final nextTopics = topics ?? _chapter.topics;
-    return Chapter(
-      id: _chapter.id,
-      title: title ?? _chapter.title,
-      requiredTopics: min(
-        _chapter.requiredTopics,
-        nextTopics.where((t) => t.role != 'assessment').length,
-      ),
-      topics: nextTopics,
-      duel: _chapter.duel,
-      editorNotes: editorNotes ?? _chapter.editorNotes,
-      temporarySample: _chapter.temporarySample,
-    );
-  }
-
-  Future<String?> _name(String title, {String initial = ''}) async {
-    final c = TextEditingController(text: initial);
-    final v = await showDialog<String>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(title),
-        content: TextField(
-          controller: c,
-          autofocus: true,
-          decoration: const InputDecoration(
-            border: OutlineInputBorder(),
-            labelText: 'Title',
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(ctx, c.text.trim()),
-            child: const Text('Save'),
-          ),
-        ],
-      ),
-    );
-    c.dispose();
-    return v?.trim().isEmpty == true ? null : v;
-  }
-
-  Future<bool> _deleteOk() async =>
-      await showDialog<bool>(
-        context: context,
-        builder: (ctx) => AlertDialog(
-          title: const Text('Delete topic?'),
-          content: const Text(
-            'This deletes the topic and all rounds inside it from the local edited course.',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx, false),
-              child: const Text('Cancel'),
-            ),
-            FilledButton(
-              onPressed: () => Navigator.pop(ctx, true),
-              child: const Text('Delete'),
-            ),
-          ],
-        ),
-      ) ??
-      false;
-  Future<void> _add() async {
-    final n = await _name('New topic');
-    if (n != null) {
-      final topics = [..._chapter.topics];
-      final assessmentIndex = topics.indexWhere((t) => t.role == 'assessment');
-      if (assessmentIndex < 0) {
-        topics.add(_blankTopic(n));
-      } else {
-        topics.insert(assessmentIndex, _blankTopic(n));
-      }
-      setState(() => _chapter = _copy(topics: topics));
-    }
-  }
-
-  Future<void> _rename() async {
-    final n = await _name('Rename chapter', initial: _chapter.title);
-    if (n != null) setState(() => _chapter = _copy(title: n));
-  }
-
-  Future<void> _open(int i) async {
-    final u = await Navigator.of(context).push<Topic>(
-      MaterialPageRoute(
-        builder: (_) => TopicEditorScreen(
-          course: widget.course,
-          chapter: _chapter,
-          topic: _chapter.topics[i],
-        ),
-      ),
-    );
-    if (u != null && mounted) {
-      final l = [..._chapter.topics];
-      l[i] = u;
-      setState(() => _chapter = _copy(topics: l));
-    }
-  }
-
-  Future<void> _remove(int i) async {
-    if (!await _deleteOk()) return;
-    final l = [..._chapter.topics]..removeAt(i);
-    setState(() => _chapter = _copy(topics: l));
-  }
-
-  void _reorder(int oldIndex, int newIndex) {
-    // onReorderItem supplies the insertion index after the item was removed.
-    final topics = [..._chapter.topics];
-    final item = topics.removeAt(oldIndex);
-    topics.insert(newIndex, item);
-    setState(() => _chapter = _copy(topics: topics));
-  }
-
-  Future<void> _editEditorNotes() async {
-    final controller = TextEditingController(text: _chapter.editorNotes);
-    final value = await showDialog<String>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Editor notes'),
-        content: SizedBox(
-          width: 520,
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const Text(
-                  'Internal course-authoring notes. These notes are never shown to learners. Learners see the Guidebook attached to each Topic instead.',
-                ),
-                const SizedBox(height: 10),
-                TextField(
-                  controller: controller,
-                  minLines: 6,
-                  maxLines: 14,
-                  maxLength: 10000,
-                  decoration: const InputDecoration(
-                    border: OutlineInputBorder(),
-                    labelText: 'Technical / editor notes',
-                    hintText:
-                        'TODOs, editorial decisions, sources to verify, known issues...',
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(ctx, controller.text),
-            child: const Text('Save'),
-          ),
-        ],
-      ),
-    );
-    controller.dispose();
-    if (value != null && mounted) {
-      setState(() => _chapter = _copy(editorNotes: value.trim()));
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(
-      title: Text(
-        'Chapter ${widget.course.chapters.indexWhere((c) => c.id == _chapter.id) + 1}: ${_chapter.title}',
-        overflow: TextOverflow.ellipsis,
-      ),
-      actions: [
-        PopupMenuButton<String>(
-          tooltip: 'Chapter actions',
-          onSelected: (value) {
-            if (value == 'notes') _editEditorNotes();
-            if (value == 'sample') {
-              setState(
-                () => _chapter = Chapter(
-                  id: _chapter.id,
-                  title: _chapter.title,
-                  requiredTopics: _chapter.requiredTopics,
-                  topics: _chapter.topics,
-                  duel: _chapter.duel,
-                  editorNotes: _chapter.editorNotes,
-                  temporarySample: !_chapter.temporarySample,
-                ),
-              );
-            }
-            if (value == 'rename') _rename();
-          },
-          itemBuilder: (_) => [
-            const PopupMenuItem(
-              value: 'notes',
-              child: ListTile(
-                leading: Icon(Icons.notes_outlined),
-                title: Text('Editor notes'),
-                subtitle: Text('Internal only'),
-              ),
-            ),
-            PopupMenuItem(
-              value: 'sample',
-              child: ListTile(
-                leading: Icon(
-                  _chapter.temporarySample
-                      ? Icons.label_off_outlined
-                      : Icons.label_outline,
-                ),
-                title: Text(
-                  _chapter.temporarySample
-                      ? 'Remove TEMPORARY SAMPLE'
-                      : 'Mark TEMPORARY SAMPLE',
-                ),
-              ),
-            ),
-            const PopupMenuItem(
-              value: 'rename',
-              child: ListTile(
-                leading: Icon(Icons.edit_outlined),
-                title: Text('Rename chapter'),
-              ),
-            ),
-          ],
-        ),
-        TextButton(
-          onPressed: () => Navigator.pop(context, _chapter),
-          child: const Text('Save'),
-        ),
-      ],
-    ),
-    floatingActionButton: FloatingActionButton.extended(
-      onPressed: _add,
-      icon: const Icon(Icons.add),
-      label: const Text('New topic'),
-    ),
-    body: ReorderableListView.builder(
-      padding: const EdgeInsets.fromLTRB(10, 10, 10, 90),
-      itemCount: _chapter.topics.length,
-      onReorderItem: _reorder,
-      itemBuilder: (context, i) {
-        final t = _chapter.topics[i];
-        return Card(
-          key: ValueKey(t.id),
-          child: ListTile(
-            leading: ReorderableDragStartListener(
-              index: i,
-              child: const Icon(Icons.drag_handle),
-            ),
-            title: Text(t.title),
-            subtitle: Text('${t.rounds.length} rounds'),
-            onTap: () => _open(i),
-            trailing: IconButton(
-              tooltip: 'Delete topic',
-              onPressed: () => _remove(i),
-              icon: const Icon(Icons.delete_outline),
-            ),
-          ),
-        );
-      },
-    ),
-  );
-}
 
 class GuidebookEditorScreen extends StatefulWidget {
   final Guidebook guidebook;
@@ -1681,12 +1394,10 @@ class _GuidebookEditorScreenState extends State<GuidebookEditorScreen> {
 
 class TopicEditorScreen extends StatefulWidget {
   final Course course;
-  final Chapter chapter;
   final Topic topic;
   const TopicEditorScreen({
     super.key,
     required this.course,
-    required this.chapter,
     required this.topic,
   });
   @override
@@ -1767,9 +1478,8 @@ class _TopicEditorScreenState extends State<TopicEditorScreen> {
     title: title ?? _topic.title,
     rounds: rounds ?? _topic.rounds,
     imageAsset: imageAsset ?? _topic.imageAsset,
-    role: _topic.role,
-    assessment: _topic.assessment,
     guidebook: guidebook ?? _topic.guidebook,
+    duel: _topic.duel,
   );
   Future<String?> _name(String title, {String initial = ''}) async {
     final c = TextEditingController(text: initial);
@@ -1831,6 +1541,7 @@ class _TopicEditorScreenState extends State<TopicEditorScreen> {
         LearningRound(
           id: round.id,
           title: round.title,
+          visualType: round.visualType,
           content: [
             for (final content in round.content)
               LearningContent(
@@ -1912,7 +1623,6 @@ class _TopicEditorScreenState extends State<TopicEditorScreen> {
       MaterialPageRoute(
         builder: (_) => RoundEditorScreen(
           course: widget.course,
-          chapter: widget.chapter,
           topic: _topic,
           round: _topic.rounds[i],
           roundIndex: i,
@@ -2387,7 +2097,6 @@ class _TopicEditorScreenState extends State<TopicEditorScreen> {
   }
 
   Future<void> _generateThreeRoundsFromGuidebook() async {
-    if (_topic.role == 'assessment') return;
     final pairs = _topicVocabularyPairs();
     final examples = [
       ..._topic.guidebook.examples,
@@ -2493,9 +2202,7 @@ class _TopicEditorScreenState extends State<TopicEditorScreen> {
       actions: [
         IconButton(
           tooltip: 'Generate 3 Rounds from Guidebook',
-          onPressed: _topic.role == 'assessment'
-              ? null
-              : _generateThreeRoundsFromGuidebook,
+          onPressed: _generateThreeRoundsFromGuidebook,
           icon: const Icon(Icons.auto_awesome_outlined),
         ),
         IconButton(
@@ -2516,26 +2223,24 @@ class _TopicEditorScreenState extends State<TopicEditorScreen> {
     ),
     body: Column(
       children: [
-        if (_topic.role != 'assessment')
-          ListTile(
-            leading: const Icon(Icons.menu_book_outlined),
-            title: const Text('Topic Guidebook'),
-            subtitle: const Text(
-              'Learner reference for this Topic. Its vocabulary and examples can also generate three progressively harder draft Rounds, which must be reviewed and approved before creation.',
-            ),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: _editGuidebook,
+        ListTile(
+          leading: const Icon(Icons.menu_book_outlined),
+          title: const Text('Topic Guidebook'),
+          subtitle: const Text(
+            'Learner reference for this Topic. Its vocabulary and examples can also generate three progressively harder draft Rounds, which must be reviewed and approved before creation.',
           ),
-        if (_topic.role != 'assessment')
-          ListTile(
-            leading: const Icon(Icons.auto_awesome_outlined),
-            title: const Text('Generate 3 Rounds from Guidebook'),
-            subtitle: const Text(
-              'Uses this Topic Guidebook, randomizes suitable material, avoids exact exercise repetition, previews the drafts, and creates them only after approval.',
-            ),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: _generateThreeRoundsFromGuidebook,
+          trailing: const Icon(Icons.chevron_right),
+          onTap: _editGuidebook,
+        ),
+        ListTile(
+          leading: const Icon(Icons.auto_awesome_outlined),
+          title: const Text('Generate 3 Rounds from Guidebook'),
+          subtitle: const Text(
+            'Uses this Topic Guidebook, randomizes suitable material, avoids exact exercise repetition, previews the drafts, and creates them only after approval.',
           ),
+          trailing: const Icon(Icons.chevron_right),
+          onTap: _generateThreeRoundsFromGuidebook,
+        ),
         ListTile(
           leading: _topicImagePreview(),
           title: const Text('Topic image'),
@@ -2602,14 +2307,12 @@ class _TopicEditorScreenState extends State<TopicEditorScreen> {
 
 class RoundEditorScreen extends StatefulWidget {
   final Course course;
-  final Chapter chapter;
   final Topic topic;
   final LearningRound round;
   final int roundIndex;
   const RoundEditorScreen({
     super.key,
     required this.course,
-    required this.chapter,
     required this.topic,
     required this.round,
     required this.roundIndex,
@@ -2635,6 +2338,7 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
   LearningRound _editedRound() => LearningRound(
     id: widget.round.id,
     title: _title,
+    visualType: widget.round.visualType,
     content: [
       ..._preservedIntroContent,
       ..._exercises.map(LearningContent.fromExercise),
@@ -3117,21 +2821,19 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
   List<String> _targetVocabularyWords() {
     final result = <String>[];
     final seen = <String>{};
-    for (final chapter in widget.course.chapters) {
-      for (final topic in chapter.topics) {
-        for (final round in topic.rounds) {
-          for (final exercise in round.exercises) {
-            // Reading passages are guaranteed target-language material in the
-            // course format, so they are a safe source of same-language
-            // distractors for generated listening recognition questions.
-            if (exercise.type != 'reading_comprehension') continue;
-            for (final match in RegExp(
-              r"[A-Za-zÀ-ÖØ-öø-ÿ']{2,}",
-            ).allMatches(exercise.prompt)) {
-              final word = match.group(0)!;
-              final key = _norm(word);
-              if (key.isNotEmpty && seen.add(key)) result.add(word);
-            }
+    for (final topic in widget.course.topics) {
+      for (final round in topic.rounds) {
+        for (final exercise in round.exercises) {
+          // Reading passages are guaranteed target-language material in the
+          // course format, so they are a safe source of same-language
+          // distractors for generated listening recognition questions.
+          if (exercise.type != 'reading_comprehension') continue;
+          for (final match in RegExp(
+            r"[A-Za-zÀ-ÖØ-öø-ÿ']{2,}",
+          ).allMatches(exercise.prompt)) {
+            final word = match.group(0)!;
+            final key = _norm(word);
+            if (key.isNotEmpty && seen.add(key)) result.add(word);
           }
         }
       }
@@ -3147,24 +2849,22 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
       s.toLowerCase().replaceAll(RegExp(r'[^a-zà-öø-ÿ0-9]+'), ' ').trim();
   Map<String, String> _knownTranslationPairs() {
     final result = <String, String>{};
-    for (final ch in widget.course.chapters) {
-      for (final topic in ch.topics) {
-        for (final round in topic.rounds) {
-          for (final exercise in round.exercises) {
-            if (exercise.correct == null ||
-                exercise.correct! < 0 ||
-                exercise.correct! >= exercise.answers.length) {
-              continue;
-            }
-            final match = RegExp(
-              r'[“\"]([^”\"]+)[”\"]',
-            ).firstMatch(exercise.prompt);
-            if (match == null) continue;
-            final source = match.group(1)!.trim();
-            final target = exercise.answers[exercise.correct!].trim();
-            if (source.isNotEmpty && target.isNotEmpty) {
-              result[source] = target;
-            }
+    for (final topic in widget.course.topics) {
+      for (final round in topic.rounds) {
+        for (final exercise in round.exercises) {
+          if (exercise.correct == null ||
+              exercise.correct! < 0 ||
+              exercise.correct! >= exercise.answers.length) {
+            continue;
+          }
+          final match = RegExp(
+            r'[“\"]([^”\"]+)[”\"]',
+          ).firstMatch(exercise.prompt);
+          if (match == null) continue;
+          final source = match.group(1)!.trim();
+          final target = exercise.answers[exercise.correct!].trim();
+          if (source.isNotEmpty && target.isNotEmpty) {
+            result[source] = target;
           }
         }
       }
@@ -3178,7 +2878,6 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
       MaterialPageRoute(
         builder: (_) => RoundScreen(
           course: widget.course,
-          chapter: widget.chapter,
           topic: widget.topic,
           round: preview,
           ttsLanguage: widget.course.ttsLanguage,
@@ -3193,13 +2892,13 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
     final preview = LearningRound(
       id: 'preview_${widget.round.id}',
       title: 'Preview exercise',
+      visualType: widget.round.visualType,
       exercises: [_exercises[index]],
     );
     await Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => RoundScreen(
           course: widget.course,
-          chapter: widget.chapter,
           topic: widget.topic,
           round: preview,
           ttsLanguage: widget.course.ttsLanguage,
@@ -4091,6 +3790,8 @@ class _AudioLibraryScreenState extends State<AudioLibraryScreen> {
 
   Course _copy({String? mode, List<CourseAudioClip>? clips}) => Course(
     courseId: _course.courseId,
+    parentCourseId: _course.parentCourseId,
+    derivedFromVersion: _course.derivedFromVersion,
     learningLanguage: _course.learningLanguage,
     interfaceLanguage: _course.interfaceLanguage,
     sourceLanguage: _course.sourceLanguage,
@@ -4102,7 +3803,7 @@ class _AudioLibraryScreenState extends State<AudioLibraryScreen> {
     updateSummary: _course.updateSummary,
     audioMode: mode ?? _course.audioMode,
     audioLibrary: clips ?? _course.audioLibrary,
-    chapters: _course.chapters,
+    topics: _course.topics,
     author: _course.author,
     license: _course.license,
     sourceLanguageTag: _course.sourceLanguageTag,
@@ -4117,6 +3818,8 @@ class _AudioLibraryScreenState extends State<AudioLibraryScreen> {
     courseVersion: _course.courseVersion,
     lastUpdated: _course.lastUpdated,
     courseDescription: _course.courseDescription,
+    temporarySample: _course.temporarySample,
+    supportUrl: _course.supportUrl,
   );
   Future<void> _import() async {
     try {

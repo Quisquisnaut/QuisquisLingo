@@ -5,10 +5,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:quisquislingo_app/models/course_models.dart';
 
 void main() {
-  test('v3 listening spelling keeps input interaction and acceptedAnswers', () {
-    final json = jsonDecode(r'''
+  test('v4 listening spelling keeps input interaction and acceptedAnswers', () {
+    final json =
+        jsonDecode(r'''
 {
-  "formatVersion": 3,
+  "formatVersion": 4,
   "courseId": "imported",
   "learningLanguage": "Italian",
   "interfaceLanguage": "English",
@@ -17,18 +18,14 @@ void main() {
   "title": "Imported",
   "ttsLanguage": "it-IT",
   "version": "1",
-  "chapters": [{
-    "id": "c1",
-    "title": "Chapter 1",
-    "requiredTopics": 1,
-    "topics": [{
+  "topics": [{
       "id": "t1",
       "title": "Topic 1",
-      "role": "learning",
       "guidebook": {"content": [{"id":"g1","kind":"vocabulary","required":false,"role":"vocabulary","text":"ecco = there"}]},
       "rounds": [{
         "id": "r1",
         "title": "Round 1",
+        "visualType": "listening",
         "content": [{
           "id": "ls1",
           "kind": "exercise",
@@ -40,13 +37,16 @@ void main() {
             "evaluation": {"kind":"text_match","acceptedAnswers":["ecco"]}
           }
         }]
-      }]
+      }],
+      "duel": {"id":"t1_duel","title":"Duel"}
     }]
-  }]
 }
-''') as Map<String, dynamic>;
+''')
+            as Map<String, dynamic>;
 
-    final exercise = Course.fromJson(json).chapters.single.learningTopics.single.rounds.single.exercises.single;
+    final exercise = Course.fromJson(
+      json,
+    ).topics.single.rounds.single.exercises.single;
     expect(exercise.type, 'listening_spelling');
     expect(exercise.interaction.kind, 'input');
     expect(exercise.accepted, ['ecco']);

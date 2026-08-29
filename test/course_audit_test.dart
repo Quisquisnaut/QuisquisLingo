@@ -9,6 +9,12 @@ Exercise sampleChoice({int? correct = 0, List<String> answers = const ['a', 'b']
   orderAnswer: const [], pairs: const [], hint: '', icons: const [],
 );
 
+Course sampleCourse(Topic topic) => Course(
+  courseId: 'course-audit', learningLanguage: 'Italian', interfaceLanguage: 'English',
+  sourceLanguage: 'English', targetLanguage: 'Italian', title: 'Audit course',
+  ttsLanguage: 'it-IT', version: '1', topics: [topic],
+);
+
 void main() {
   test('audit issues expose a stable code field', () {
     final issues = CourseAuditService().auditExercise(sampleChoice(correct: 4));
@@ -18,6 +24,17 @@ void main() {
   test('exercise audit catches an invalid correct answer', () {
     final issues = CourseAuditService().auditExercise(sampleChoice(correct: 4));
     expect(issues.any((i) => i.severity == AuditSeverity.error), isTrue);
+  });
+
+  test('short Topic and insufficient Duel pool are non-blocking guidance', () {
+    final topic=Topic(
+      id:'topic-1',title:'Short Topic',duel:Duel(id:'topic-1-duel',title:'Duel'),
+      rounds:[LearningRound(id:'round-1',title:'Round 1',exercises:[sampleChoice()])],
+    );
+    final issues=CourseAuditService().auditCourse(sampleCourse(topic)).issues;
+    expect(issues.where((i)=>i.code=='TOPIC_ROUND_GUIDANCE').single.severity,AuditSeverity.suggestion);
+    expect(issues.where((i)=>i.code=='DUEL_UNAVAILABLE').single.severity,AuditSeverity.suggestion);
+    expect(issues.any((i)=>i.code=='DUEL_UNAVAILABLE'&&i.severity==AuditSeverity.error),isFalse);
   });
 
   test('exercise audit rejects a fill hint that reveals the answer', () {

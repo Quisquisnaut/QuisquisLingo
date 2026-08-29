@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:shared_preferences/shared_preferences.dart';
 import 'learner_status_events.dart';
 import 'learning_activity_service.dart';
@@ -9,32 +11,58 @@ export 'xp_service.dart' show LocalLeaderboardEntry;
 
 class RecentRoundEntry {
   final String courseId;
+  final String topicId;
   final String roundId;
   final DateTime completedAt;
   final int errors;
 
   const RecentRoundEntry({
     required this.courseId,
+    required this.topicId,
     required this.roundId,
     required this.completedAt,
     required this.errors,
   });
 
-  String encode() =>
-      '${courseId.replaceAll('|', '')}|${roundId.replaceAll('|', '')}|${completedAt.toIso8601String()}|$errors';
+  String encode() => jsonEncode({
+    'courseId': courseId,
+    'topicId': topicId,
+    'roundId': roundId,
+    'completedAt': completedAt.toIso8601String(),
+    'errors': errors,
+  });
 
   static RecentRoundEntry? decode(String raw) {
-    final parts = raw.split('|');
-    if (parts.length < 3) return null;
-    final dt = DateTime.tryParse(parts[2]);
-    if (dt == null) return null;
-    final errors = parts.length >= 4 ? int.tryParse(parts[3]) ?? 0 : 0;
-    return RecentRoundEntry(
-      courseId: parts[0],
-      roundId: parts[1],
-      completedAt: dt,
-      errors: errors.clamp(0, 100000).toInt(),
-    );
+    try {
+      final decoded = jsonDecode(raw);
+      if (decoded is! Map) return null;
+      final courseId = decoded['courseId'];
+      final topicId = decoded['topicId'];
+      final roundId = decoded['roundId'];
+      final completedAt = decoded['completedAt'];
+      final errors = decoded['errors'];
+      if (courseId is! String ||
+          courseId.trim().isEmpty ||
+          topicId is! String ||
+          topicId.trim().isEmpty ||
+          roundId is! String ||
+          roundId.trim().isEmpty ||
+          completedAt is! String ||
+          errors is! int) {
+        return null;
+      }
+      final parsedCompletedAt = DateTime.tryParse(completedAt);
+      if (parsedCompletedAt == null) return null;
+      return RecentRoundEntry(
+        courseId: courseId,
+        topicId: topicId,
+        roundId: roundId,
+        completedAt: parsedCompletedAt,
+        errors: errors.clamp(0, 100000).toInt(),
+      );
+    } catch (_) {
+      return null;
+    }
   }
 }
 
@@ -45,6 +73,21 @@ class RecentRoundEntry {
 /// study in any language breaks every active language streak.
 class ProgressService {
   static const _xpCalculator = XpCalculator();
+  static const _completedRoundsKey = 'v4_completed_rounds';
+  static const _perfectRoundsKey = 'v4_perfect_rounds';
+  static const _ttsSkippedPerfectRoundsKey = 'v4_tts_skipped_perfect_rounds';
+  static const _completedTopicsKey = 'v4_completed_topics';
+  static const _wonDuelsKey = 'v4_won_duels';
+  static const _seenGuidebooksKey = 'v4_seen_guidebooks';
+  static const _recentRoundsKey = 'v4_recent_rounds';
+  static const _courseProgressKeyBases = <String>[
+    _completedRoundsKey,
+    _perfectRoundsKey,
+    _ttsSkippedPerfectRoundsKey,
+    _completedTopicsKey,
+    _wonDuelsKey,
+    _seenGuidebooksKey,
+  ];
 
   final _profiles = ProfileService();
   final DateTime Function() _now;
@@ -118,7 +161,7 @@ class ProgressService {
 
   Future<Set<String>> getCompletedRounds({required String courseId}) async {
     final p = await _prefs;
-    return (p.getStringList(await _ck('completed_rounds', courseId)) ?? [])
+    return (p.getStringList(await _ck(_completedRoundsKey, courseId)) ?? [])
         .toSet();
   }
 
@@ -128,22 +171,23 @@ class ProgressService {
     required String courseCode,
   }) async {
     final p = await _prefs;
-    final k = await _ck('completed_rounds', courseId);
+    final k = await _ck(_completedRoundsKey, courseId);
     final ids = (p.getStringList(k) ?? []).toSet()..add(id);
     await p.setStringList(k, ids.toList());
     await registerLearningActivity(courseCode: courseCode);
   }
 
   /// Records the latest result for one distinct round. Review keeps at most
-  /// 50 distinct rounds per learner and target language. The newest result
+  /// 50 distinct rounds per learner and Course. The newest result
   /// replaces the previous one for prioritization.
   Future<void> recordRecentRound(
     String courseId,
+    String topicId,
     String roundId, {
     required int errors,
   }) async {
     final p = await _prefs;
-    final k = await _k('recent_rounds');
+    final k = await _k(_recentRoundsKey);
     final existing = (p.getStringList(k) ?? [])
         .map(RecentRoundEntry.decode)
         .whereType<RecentRoundEntry>()
@@ -152,6 +196,7 @@ class ProgressService {
     existing.add(
       RecentRoundEntry(
         courseId: courseId,
+        topicId: topicId,
         roundId: roundId,
         completedAt: _now(),
         errors: errors.clamp(0, 100000).toInt(),
@@ -159,12 +204,12 @@ class ProgressService {
     );
 
     // Keep up to 50 distinct rounds for each course, while preserving entries from other courses.
-    final thisLanguage = existing.where((e) => e.courseId == courseId).toList()
+    final thisCourse = existing.where((e) => e.courseId == courseId).toList()
       ..sort((a, b) => a.completedAt.compareTo(b.completedAt));
-    final keepIds = thisLanguage.length <= 50
-        ? thisLanguage.map((e) => e.roundId).toSet()
-        : thisLanguage
-              .sublist(thisLanguage.length - 50)
+    final keepIds = thisCourse.length <= 50
+        ? thisCourse.map((e) => e.roundId).toSet()
+        : thisCourse
+              .sublist(thisCourse.length - 50)
               .map((e) => e.roundId)
               .toSet();
     final kept = existing
@@ -180,7 +225,7 @@ class ProgressService {
     int limit = 50,
   }) async {
     final p = await _prefs;
-    final k = await _k('recent_rounds');
+    final k = await _k(_recentRoundsKey);
     var entries = (p.getStringList(k) ?? [])
         .map(RecentRoundEntry.decode)
         .whereType<RecentRoundEntry>()
@@ -199,7 +244,7 @@ class ProgressService {
 
   Future<Set<String>> getPerfectRounds({required String courseId}) async {
     final p = await _prefs;
-    return (p.getStringList(await _ck('perfect_rounds', courseId)) ?? [])
+    return (p.getStringList(await _ck(_perfectRoundsKey, courseId)) ?? [])
         .toSet();
   }
 
@@ -209,12 +254,12 @@ class ProgressService {
     required String courseId,
   }) async {
     final p = await _prefs;
-    final k = await _ck('perfect_rounds', courseId);
+    final k = await _ck(_perfectRoundsKey, courseId);
     final ids = (p.getStringList(k) ?? []).toSet();
     final newlyEarned = ids.add(roundId);
     await p.setStringList(k, ids.toList());
     // A full perfect result supersedes the provisional TTS-skipped indicator.
-    final skippedKey = await _ck('tts_skipped_perfect_rounds', courseId);
+    final skippedKey = await _ck(_ttsSkippedPerfectRoundsKey, courseId);
     final skipped = (p.getStringList(skippedKey) ?? []).toSet()
       ..remove(roundId);
     await p.setStringList(skippedKey, skipped.toList());
@@ -228,9 +273,7 @@ class ProgressService {
     required String courseId,
   }) async {
     final p = await _prefs;
-    return (p.getStringList(
-              await _ck('tts_skipped_perfect_rounds', courseId),
-            ) ??
+    return (p.getStringList(await _ck(_ttsSkippedPerfectRoundsKey, courseId)) ??
             [])
         .toSet();
   }
@@ -241,14 +284,14 @@ class ProgressService {
   }) async {
     if ((await getPerfectRounds(courseId: courseId)).contains(roundId)) return;
     final p = await _prefs;
-    final k = await _ck('tts_skipped_perfect_rounds', courseId);
+    final k = await _ck(_ttsSkippedPerfectRoundsKey, courseId);
     final ids = (p.getStringList(k) ?? []).toSet()..add(roundId);
     await p.setStringList(k, ids.toList());
   }
 
   Future<Set<String>> getCompletedTopics({required String courseId}) async {
     final p = await _prefs;
-    return (p.getStringList(await _ck('completed_topics', courseId)) ?? [])
+    return (p.getStringList(await _ck(_completedTopicsKey, courseId)) ?? [])
         .toSet();
   }
 
@@ -258,7 +301,7 @@ class ProgressService {
     required String courseCode,
   }) async {
     final p = await _prefs;
-    final k = await _ck('completed_topics', courseId);
+    final k = await _ck(_completedTopicsKey, courseId);
     final ids = (p.getStringList(k) ?? []).toSet();
     final isFirstCompletion = ids.add(id);
     await p.setStringList(k, ids.toList());
@@ -274,7 +317,7 @@ class ProgressService {
 
   Future<Set<String>> getWonDuels({required String courseId}) async {
     final p = await _prefs;
-    return (p.getStringList(await _ck('won_duels', courseId)) ?? []).toSet();
+    return (p.getStringList(await _ck(_wonDuelsKey, courseId)) ?? []).toSet();
   }
 
   Future<int> winDuel(
@@ -283,7 +326,7 @@ class ProgressService {
     required String courseCode,
   }) async {
     final p = await _prefs;
-    final k = await _ck('won_duels', courseId);
+    final k = await _ck(_wonDuelsKey, courseId);
     final ids = (p.getStringList(k) ?? []).toSet();
     final wasPreviouslyWon = !ids.add(id);
     await p.setStringList(k, ids.toList());
@@ -308,22 +351,22 @@ class ProgressService {
   }
 
   Future<bool> hasSeenGuidebook(
-    String chapterId, {
+    String topicId, {
     required String courseId,
   }) async {
     final p = await _prefs;
-    final ids = (p.getStringList(await _ck('seen_guidebooks', courseId)) ?? [])
+    final ids = (p.getStringList(await _ck(_seenGuidebooksKey, courseId)) ?? [])
         .toSet();
-    return ids.contains(chapterId);
+    return ids.contains(topicId);
   }
 
   Future<void> markGuidebookSeen(
-    String chapterId, {
+    String topicId, {
     required String courseId,
   }) async {
     final p = await _prefs;
-    final k = await _ck('seen_guidebooks', courseId);
-    final ids = (p.getStringList(k) ?? []).toSet()..add(chapterId);
+    final k = await _ck(_seenGuidebooksKey, courseId);
+    final ids = (p.getStringList(k) ?? []).toSet()..add(topicId);
     await p.setStringList(k, ids.toList());
   }
 
@@ -335,18 +378,11 @@ class ProgressService {
   /// streaks in the learner's other languages.
   Future<void> resetCourse(String courseId) async {
     final p = await _prefs;
-    final active = await _profiles.getActiveProfile() ?? 'default';
-    final prefix = 'learner_${Uri.encodeComponent(active)}_';
-    final suffix = '_course_${Uri.encodeComponent(courseId.trim())}';
-    final keys = p
-        .getKeys()
-        .where((k) => k.startsWith(prefix) && k.endsWith(suffix))
-        .toList();
-    for (final key in keys) {
-      await p.remove(key);
+    for (final base in _courseProgressKeyBases) {
+      await p.remove(await _ck(base, courseId));
     }
 
-    final recentKey = await _k('recent_rounds');
+    final recentKey = await _k(_recentRoundsKey);
     final recent = (p.getStringList(recentKey) ?? [])
         .map(RecentRoundEntry.decode)
         .whereType<RecentRoundEntry>()

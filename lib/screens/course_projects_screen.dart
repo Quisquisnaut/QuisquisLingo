@@ -12,6 +12,26 @@ import '../widgets/flag_art.dart';
 import 'course_editor_screen.dart';
 import 'editor_help_screen.dart';
 
+class _DisposeOnUnmount extends StatefulWidget {
+  final Widget child;
+  final VoidCallback onDispose;
+  const _DisposeOnUnmount({required this.child, required this.onDispose});
+
+  @override
+  State<_DisposeOnUnmount> createState() => _DisposeOnUnmountState();
+}
+
+class _DisposeOnUnmountState extends State<_DisposeOnUnmount> {
+  @override
+  void dispose() {
+    widget.onDispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => widget.child;
+}
+
 class CourseProjectsScreen extends StatefulWidget {
   final Course currentCourse;
   const CourseProjectsScreen({super.key, required this.currentCourse});
@@ -62,264 +82,253 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
 
     final result = await showDialog<Course>(
       context: context,
-      builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setDialogState) => AlertDialog(
-          title: const Text('Create new course'),
-          content: SizedBox(
-            width: 520,
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextField(
-                    controller: title,
-                    maxLength: 120,
-                    decoration: const InputDecoration(
-                      border: OutlineInputBorder(),
-                      labelText: 'Course title *',
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  TextField(
-                    controller: source,
-                    maxLength: 80,
-                    decoration: const InputDecoration(
-                      border: OutlineInputBorder(),
-                      labelText: 'Source language *',
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  TextField(
-                    controller: target,
-                    maxLength: 80,
-                    onChanged: (_) => setDialogState(() {}),
-                    decoration: const InputDecoration(
-                      border: OutlineInputBorder(),
-                      labelText: 'Target language *',
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  TextField(
-                    controller: author,
-                    maxLength: 120,
-                    decoration: const InputDecoration(
-                      border: OutlineInputBorder(),
-                      labelText: 'Author name',
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  DropdownButtonFormField<String>(
-                    initialValue: selectedFlag,
-                    isExpanded: true,
-                    decoration: const InputDecoration(
-                      border: OutlineInputBorder(),
-                      labelText: 'Course flag',
-                    ),
-                    items: [
-                      const DropdownMenuItem(
-                        value: 'AUTO',
-                        child: Text('Automatic from target language'),
+      builder: (ctx) => _DisposeOnUnmount(
+        onDispose: () {
+          title.dispose();
+          source.dispose();
+          target.dispose();
+          author.dispose();
+        },
+        child: StatefulBuilder(
+          builder: (ctx, setDialogState) => AlertDialog(
+            title: const Text('Create new course'),
+            content: SizedBox(
+              width: 520,
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextField(
+                      controller: title,
+                      maxLength: 120,
+                      decoration: const InputDecoration(
+                        border: OutlineInputBorder(),
+                        labelText: 'Course title *',
                       ),
-                      for (final entry
-                          in CourseFlagService.builtInFlags.entries)
-                        DropdownMenuItem(
-                          value: entry.key,
-                          child: Text('${entry.value} (${entry.key})'),
+                    ),
+                    const SizedBox(height: 8),
+                    TextField(
+                      controller: source,
+                      maxLength: 80,
+                      decoration: const InputDecoration(
+                        border: OutlineInputBorder(),
+                        labelText: 'Source language *',
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    TextField(
+                      controller: target,
+                      maxLength: 80,
+                      onChanged: (_) => setDialogState(() {}),
+                      decoration: const InputDecoration(
+                        border: OutlineInputBorder(),
+                        labelText: 'Target language *',
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    TextField(
+                      controller: author,
+                      maxLength: 120,
+                      decoration: const InputDecoration(
+                        border: OutlineInputBorder(),
+                        labelText: 'Author name',
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    DropdownButtonFormField<String>(
+                      initialValue: selectedFlag,
+                      isExpanded: true,
+                      decoration: const InputDecoration(
+                        border: OutlineInputBorder(),
+                        labelText: 'Course flag',
+                      ),
+                      items: [
+                        const DropdownMenuItem(
+                          value: 'AUTO',
+                          child: Text('Automatic from target language'),
                         ),
-                    ],
-                    onChanged: (value) => setDialogState(() {
-                      selectedFlag = value ?? 'AUTO';
-                      customFlagBase64 = '';
-                      customFlagLabel = '';
-                      flagError = null;
-                    }),
-                  ),
-                  const SizedBox(height: 8),
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Container(
-                          width: 64,
-                          height: 44,
-                          decoration: BoxDecoration(
-                            border: Border.all(
-                              color: Theme.of(ctx).dividerColor,
-                            ),
-                            borderRadius: BorderRadius.circular(8),
+                        for (final entry
+                            in CourseFlagService.builtInFlags.entries)
+                          DropdownMenuItem(
+                            value: entry.key,
+                            child: Text('${entry.value} (${entry.key})'),
                           ),
-                          clipBehavior: Clip.antiAlias,
-                          child: customFlagBase64.isNotEmpty
-                              ? Image.memory(
-                                  base64Decode(customFlagBase64),
-                                  fit: BoxFit.contain,
-                                )
-                              : FlagBadge(
-                                  selectedFlag == 'AUTO'
-                                      ? (_flags
-                                                .codeForLanguage(target.text)
-                                                .isEmpty
-                                            ? 'EN'
-                                            : _flags.codeForLanguage(
-                                                target.text,
-                                              ))
-                                      : selectedFlag,
-                                  width: 64,
-                                  height: 44,
-                                ),
-                        ),
-                        const SizedBox(width: 10),
-                        const Text('Flag preview'),
                       ],
+                      onChanged: (value) => setDialogState(() {
+                        selectedFlag = value ?? 'AUTO';
+                        customFlagBase64 = '';
+                        customFlagLabel = '';
+                        flagError = null;
+                      }),
                     ),
-                  ),
-                  const SizedBox(height: 8),
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      crossAxisAlignment: WrapCrossAlignment.center,
-                      children: [
-                        OutlinedButton.icon(
-                          icon: const Icon(Icons.upload_file),
-                          label: const Text('Import flag'),
-                          onPressed: () async {
-                            try {
-                              final imported = await _flags
-                                  .importPreparedFlag();
-                              if (!ctx.mounted) return;
-                              setDialogState(() {
-                                customFlagBase64 = imported.base64Png;
-                                customFlagLabel =
-                                    '${imported.sourceWidth}×${imported.sourceHeight} → ${imported.outputWidth}×${imported.outputHeight} PNG';
-                                flagError = null;
-                              });
-                            } catch (error) {
-                              if (!ctx.mounted) return;
-                              setDialogState(
-                                () => flagError = error.toString().replaceFirst(
-                                  'FormatException: ',
-                                  '',
-                                ),
-                              );
-                            }
-                          },
-                        ),
-                        if (customFlagLabel.isNotEmpty) Text(customFlagLabel),
-                      ],
-                    ),
-                  ),
-                  if (flagError != null) ...[
-                    const SizedBox(height: 6),
+                    const SizedBox(height: 8),
                     Align(
                       alignment: Alignment.centerLeft,
-                      child: Text(
-                        flagError!,
-                        style: TextStyle(
-                          color: Theme.of(ctx).colorScheme.error,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            width: 64,
+                            height: 44,
+                            decoration: BoxDecoration(
+                              border: Border.all(
+                                color: Theme.of(ctx).dividerColor,
+                              ),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            clipBehavior: Clip.antiAlias,
+                            child: customFlagBase64.isNotEmpty
+                                ? Image.memory(
+                                    base64Decode(customFlagBase64),
+                                    fit: BoxFit.contain,
+                                  )
+                                : FlagBadge(
+                                    selectedFlag == 'AUTO'
+                                        ? (_flags
+                                                  .codeForLanguage(target.text)
+                                                  .isEmpty
+                                              ? 'EN'
+                                              : _flags.codeForLanguage(
+                                                  target.text,
+                                                ))
+                                        : selectedFlag,
+                                    width: 64,
+                                    height: 44,
+                                  ),
+                          ),
+                          const SizedBox(width: 10),
+                          const Text('Flag preview'),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        children: [
+                          OutlinedButton.icon(
+                            icon: const Icon(Icons.upload_file),
+                            label: const Text('Import flag'),
+                            onPressed: () async {
+                              try {
+                                final imported = await _flags
+                                    .importPreparedFlag();
+                                if (!ctx.mounted) return;
+                                setDialogState(() {
+                                  customFlagBase64 = imported.base64Png;
+                                  customFlagLabel =
+                                      '${imported.sourceWidth}×${imported.sourceHeight} → ${imported.outputWidth}×${imported.outputHeight} PNG';
+                                  flagError = null;
+                                });
+                              } catch (error) {
+                                if (!ctx.mounted) return;
+                                setDialogState(
+                                  () => flagError = error
+                                      .toString()
+                                      .replaceFirst('FormatException: ', ''),
+                                );
+                              }
+                            },
+                          ),
+                          if (customFlagLabel.isNotEmpty) Text(customFlagLabel),
+                        ],
+                      ),
+                    ),
+                    if (flagError != null) ...[
+                      const SizedBox(height: 6),
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          flagError!,
+                          style: TextStyle(
+                            color: Theme.of(ctx).colorScheme.error,
+                          ),
                         ),
+                      ),
+                    ],
+                    const SizedBox(height: 8),
+                    const Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        'Custom flag: copy flag.png, flag.jpg, or flag.jpeg to Documents/QuisquisLingo/Exports, then press Import flag. Maximum 2 MB, minimum 64×40 px. Large images are resized to at most 256 px on the longest side while preserving proportions.',
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    const Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        'A basic Course Model v4 structure will be created with 3 placeholder Topics. No Rounds are created automatically.',
                       ),
                     ),
                   ],
-                  const SizedBox(height: 8),
-                  const Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      'Custom flag: copy flag.png, flag.jpg, or flag.jpeg to Documents/QuisquisLingo/Exports, then press Import flag. Maximum 2 MB, minimum 64×40 px. Large images are resized to at most 256 px on the longest side while preserving proportions.',
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  const Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      'A basic Course Model v3 structure will be created with 5 sample Chapters and 3 sample Topics per Chapter. No Rounds are created automatically.',
-                    ),
-                  ),
-                ],
+                ),
               ),
             ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('Cancel'),
+              ),
+              FilledButton(
+                onPressed: () {
+                  final t = title.text.trim();
+                  final s = source.text.trim();
+                  final tg = target.text.trim();
+                  if (t.isEmpty || s.isEmpty || tg.isEmpty) return;
+                  final stamp = DateTime.now().microsecondsSinceEpoch;
+                  final topics = <Topic>[
+                    for (var topicIndex = 0; topicIndex < 3; topicIndex++)
+                      Topic(
+                        id: 'user_topic_${stamp + topicIndex}',
+                        title: 'Topic ${topicIndex + 1}',
+                        rounds: const [],
+                        guidebook: Guidebook.empty(),
+                      ),
+                  ];
+                  final automaticCode = _flags.codeForLanguage(tg);
+                  Navigator.pop(
+                    ctx,
+                    Course(
+                      courseId: Course.newCourseId(),
+                      learningLanguage: tg,
+                      interfaceLanguage: s,
+                      sourceLanguage: s,
+                      targetLanguage: tg,
+                      title: t,
+                      ttsLanguage: 'und',
+                      version: '1.0.0',
+                      courseVersion: '1.0.0',
+                      lastUpdated: DateTime.now().toIso8601String().substring(
+                        0,
+                        10,
+                      ),
+                      authors: author.text.trim().isEmpty
+                          ? const []
+                          : [
+                              CourseAuthor(
+                                name: author.text.trim(),
+                                roles: const ['Course Creator'],
+                              ),
+                            ],
+                      flagCode: selectedFlag == 'AUTO'
+                          ? automaticCode
+                          : selectedFlag,
+                      flagImageBase64: customFlagBase64,
+                      temporarySample: false,
+                      topics: topics,
+                    ),
+                  );
+                },
+                child: const Text('Create'),
+              ),
+            ],
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: const Text('Cancel'),
-            ),
-            FilledButton(
-              onPressed: () {
-                final t = title.text.trim();
-                final s = source.text.trim();
-                final tg = target.text.trim();
-                if (t.isEmpty || s.isEmpty || tg.isEmpty) return;
-                final stamp = DateTime.now().microsecondsSinceEpoch;
-                final chapters = <Chapter>[
-                  for (var chapterIndex = 0; chapterIndex < 5; chapterIndex++)
-                    Chapter(
-                      id: 'user_chapter_${stamp + chapterIndex * 10}',
-                      title: 'Chapter ${chapterIndex + 1}',
-                      requiredTopics: 3,
-                      topics: [
-                        for (var topicIndex = 0; topicIndex < 3; topicIndex++)
-                          Topic(
-                            id: 'user_topic_${stamp + chapterIndex * 10 + topicIndex + 1}',
-                            title: 'Topic ${topicIndex + 1}',
-                            rounds: const [],
-                            guidebook: Guidebook.empty(),
-                          ),
-                        Topic(
-                          id: 'user_duel_${stamp + chapterIndex * 10 + 4}',
-                          title: 'Language Duel',
-                          role: 'assessment',
-                          assessment: const TopicAssessment(),
-                          rounds: const [],
-                        ),
-                      ],
-                    ),
-                ];
-                final automaticCode = _flags.codeForLanguage(tg);
-                Navigator.pop(
-                  ctx,
-                  Course(
-                    courseId: Course.newCourseId(),
-                    learningLanguage: tg,
-                    interfaceLanguage: s,
-                    sourceLanguage: s,
-                    targetLanguage: tg,
-                    title: t,
-                    ttsLanguage: 'und',
-                    version: '1.0.0',
-                    courseVersion: '1.0.0',
-                    lastUpdated: DateTime.now().toIso8601String().substring(
-                      0,
-                      10,
-                    ),
-                    authors: author.text.trim().isEmpty
-                        ? const []
-                        : [
-                            CourseAuthor(
-                              name: author.text.trim(),
-                              roles: const ['Course Creator'],
-                            ),
-                          ],
-                    flagCode: selectedFlag == 'AUTO'
-                        ? automaticCode
-                        : selectedFlag,
-                    flagImageBase64: customFlagBase64,
-                    chapters: chapters,
-                  ),
-                );
-              },
-              child: const Text('Create'),
-            ),
-          ],
         ),
       ),
     );
-    title.dispose();
-    source.dispose();
-    target.dispose();
-    author.dispose();
     return result;
   }
 
@@ -619,7 +628,7 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
                       ),
                     ),
                     title: Text(widget.currentCourse.title),
-                    subtitle: const Text('Bundled course · Course Model v3'),
+                    subtitle: const Text('Bundled course · Course Model v4'),
                     trailing: const Icon(Icons.chevron_right),
                     onTap: _openBundled,
                   ),

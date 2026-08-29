@@ -1,4 +1,5 @@
 import '../models/course_models.dart';
+import 'duel_eligibility_service.dart';
 
 enum AuditSeverity { error, warning, suggestion }
 
@@ -84,7 +85,7 @@ class CourseAuditService {
         issues.add(const CourseAuditIssue(severity:AuditSeverity.warning,code:'COURSE_DATE_INVALID',message:'Last updated should be a valid date in YYYY-MM-DD format.',location:'Course info'));
       }
     }
-    if(course.chapters.isEmpty){issues.add(const CourseAuditIssue(severity:AuditSeverity.warning,message:'Course has no chapters yet. This is valid while a course is being authored.',location:'Course'));}
+    if(course.topics.isEmpty){issues.add(const CourseAuditIssue(severity:AuditSeverity.warning,message:'Course has no Topics yet. This is valid while a course is being authored.',location:'Course'));}
     final audioKeys=<String>{};
     for(final clip in course.audioLibrary){
       final key=clip.text.trim().toLowerCase();
@@ -93,59 +94,48 @@ class CourseAuditService {
     }
     if(course.audioMode=='recorded'&&course.audioLibrary.isEmpty)issues.add(const CourseAuditIssue(severity:AuditSeverity.error,message:'Recorded MP3 mode is enabled but the Audio Library is empty.',location:'Audio Library'));
 
-    for(var ci=0;ci<course.chapters.length;ci++){
-      final ch=course.chapters[ci];final cl='Chapter ${ci+1} · ${ch.title}';
-      idCheck(ch.id,cl);
-      if(ch.editorNotes.length>10000){
-        issues.add(CourseAuditIssue(severity:AuditSeverity.warning,code:'CHAPTER_EDITOR_NOTES_LONG',message:'Chapter editor notes exceed 10,000 characters.',location:'$cl · Editor notes'));
+    for(var ti=0;ti<course.topics.length;ti++){
+      final t=course.topics[ti];final tl='Topic ${ti+1} · ${t.title}';idCheck(t.id,tl);idCheck(t.duel.id,'$tl · Duel');
+      final gb=t.guidebook;
+      for(var gi=0;gi<gb.content.length;gi++){final content=gb.content[gi];final location='$tl · Guidebook Content ${gi+1}';idCheck(content.id,location);for(final ref in content.sourceRefs){pendingSourceRefs.add(MapEntry(ref,location));}}
+      if(gb.content.isEmpty)issues.add(CourseAuditIssue(severity:AuditSeverity.warning,code:'TOPIC_GUIDEBOOK_EMPTY',message:'Topic Guidebook is empty. Add learner-facing vocabulary, examples or explanations before generating Rounds.',location:'$tl · Guidebook'));
+      if(t.rounds.isEmpty)issues.add(CourseAuditIssue(severity:AuditSeverity.warning,message:'Topic has no rounds yet.',location:tl));
+      if(t.rounds.length<6)issues.add(CourseAuditIssue(severity:AuditSeverity.suggestion,code:'TOPIC_ROUND_GUIDANCE',message:'Topics should normally contain at least 6 Rounds. This is author guidance and does not determine Duel availability.',location:tl));
+      if(t.rounds.isNotEmpty){
+        final intro=t.rounds.first.content.where((content)=>content.role=='topic_intro').toList();
+        if(intro.isEmpty)issues.add(CourseAuditIssue(severity:AuditSeverity.suggestion,code:'TOPIC_INTRO_MISSING',message:'The first Round has no short Topic introduction drawn from the Topic Guidebook.',location:'$tl · Round 1'));
       }
-      if(ch.topics.isEmpty)issues.add(CourseAuditIssue(severity:AuditSeverity.warning,message:'Chapter has no topics yet.',location:cl));
-      final duelKeys=<String>{};
-      for(var ti=0;ti<ch.topics.length;ti++){
-        final t=ch.topics[ti];final tl='$cl · Topic ${ti+1} · ${t.title}';idCheck(t.id,tl);
-        if(t.role!='assessment'){
-          final gb=t.guidebook;
-          for(var gi=0;gi<gb.content.length;gi++){final content=gb.content[gi];final location='$tl · Guidebook Content ${gi+1}';idCheck(content.id,location);for(final ref in content.sourceRefs){pendingSourceRefs.add(MapEntry(ref,location));}}
-          if(gb.content.isEmpty)issues.add(CourseAuditIssue(severity:AuditSeverity.warning,code:'TOPIC_GUIDEBOOK_EMPTY',message:'Topic Guidebook is empty. Add learner-facing vocabulary, examples or explanations before generating Rounds.',location:'$tl · Guidebook'));
-          if(t.rounds.isEmpty)issues.add(CourseAuditIssue(severity:AuditSeverity.warning,message:'Topic has no rounds yet.',location:tl));
-          if(t.rounds.isNotEmpty){
-            final intro=t.rounds.first.content.where((content)=>content.role=='topic_intro').toList();
-            if(intro.isEmpty)issues.add(CourseAuditIssue(severity:AuditSeverity.suggestion,code:'TOPIC_INTRO_MISSING',message:'The first Round has no short Topic introduction drawn from the Topic Guidebook.',location:'$tl · Round 1'));
-          }
-        }
-        if(t.role=='assessment'&&t.assessment==null)issues.add(CourseAuditIssue(severity:AuditSeverity.error,message:'Assessment Topic has no assessment configuration.',location:tl));
-        for(var ri=0;ri<t.rounds.length;ri++){
-          final r=t.rounds[ri];final rl='$tl · Round ${ri+1} · ${r.title}';idCheck(r.id,rl,roundId:r.id);
-          if(r.content.isEmpty)issues.add(CourseAuditIssue(severity:AuditSeverity.error,message:'Round has no Content.',location:rl,roundId:r.id));
-          if(r.content.length>10)issues.add(CourseAuditIssue(severity:AuditSeverity.warning,message:'Round has ${r.content.length} Content items; standard sample length is 10.',location:rl,roundId:r.id));
-          if(r.content.length<8&&r.content.isNotEmpty)issues.add(CourseAuditIssue(severity:AuditSeverity.suggestion,message:'Round has ${r.content.length} Content items; standard sample length is 10.',location:rl,roundId:r.id));
-          for(var contentIndex=0;contentIndex<r.content.length;contentIndex++){final content=r.content[contentIndex];final location='$rl · Content ${contentIndex+1}';idCheck(content.id,location,roundId:r.id,exerciseId:content.kind=='exercise'?content.id:null);for(final ref in content.sourceRefs){pendingSourceRefs.add(MapEntry(ref,location));}}
+      for(var ri=0;ri<t.rounds.length;ri++){
+        final r=t.rounds[ri];final rl='$tl · Round ${ri+1} · ${r.title}';idCheck(r.id,rl,roundId:r.id);
+        if(r.content.isEmpty)issues.add(CourseAuditIssue(severity:AuditSeverity.error,message:'Round has no Content.',location:rl,roundId:r.id));
+        if(r.content.length>10)issues.add(CourseAuditIssue(severity:AuditSeverity.warning,message:'Round has ${r.content.length} Content items; standard sample length is 10.',location:rl,roundId:r.id));
+        if(r.content.length<8&&r.content.isNotEmpty)issues.add(CourseAuditIssue(severity:AuditSeverity.suggestion,message:'Round has ${r.content.length} Content items; standard sample length is 10.',location:rl,roundId:r.id));
+        for(var contentIndex=0;contentIndex<r.content.length;contentIndex++){final content=r.content[contentIndex];final location='$rl · Content ${contentIndex+1}';idCheck(content.id,location,roundId:r.id,exerciseId:content.kind=='exercise'?content.id:null);for(final ref in content.sourceRefs){pendingSourceRefs.add(MapEntry(ref,location));}}
 
-          final readingCount=r.exercises.where((e)=>e.type=='reading_comprehension').length;
-          final listeningCount=r.exercises.where((e)=>e.type=='listening_comprehension').length;
-          if(readingCount==0)issues.add(CourseAuditIssue(severity:AuditSeverity.warning,message:'Round has no Reading comprehension exercise.',location:rl,roundId:r.id));
-          if(listeningCount==0)issues.add(CourseAuditIssue(severity:AuditSeverity.warning,message:'Round has no Listening comprehension exercise.',location:rl,roundId:r.id));
+        final readingCount=r.exercises.where((e)=>e.type=='reading_comprehension').length;
+        final listeningCount=r.exercises.where((e)=>e.type=='listening_comprehension').length;
+        if(readingCount==0)issues.add(CourseAuditIssue(severity:AuditSeverity.warning,message:'Round has no Reading comprehension exercise.',location:rl,roundId:r.id));
+        if(listeningCount==0)issues.add(CourseAuditIssue(severity:AuditSeverity.warning,message:'Round has no Listening comprehension exercise.',location:rl,roundId:r.id));
 
-          final duplicatePrompts=<String>{};
-          for(var ei=0;ei<r.exercises.length;ei++){
-            final ex=r.exercises[ei];final el='$rl · Exercise ${ei+1}';
-            final instructionLanguage=_legacyInstructionLanguage(ex.prompt);
-            if(instructionLanguage!=null&&instructionLanguage!=_courseSourceCode(course)){
-              issues.add(CourseAuditIssue(severity:AuditSeverity.warning,message:'Exercise instruction appears to be in the wrong language. Learner instructions must use the course source language.',location:el,roundId:r.id,exerciseId:ex.id));
-            }
-            issues.addAll(auditExercise(ex,location:el,roundId:r.id));
-            final prompt=ex.prompt.trim();
-            final isOpposite=(ex.type=='super_match'&&prompt.toLowerCase().contains('opposit'))||prompt.toLowerCase().contains('contrar')||prompt.toLowerCase().contains('gegenteil')||prompt.toLowerCase().contains('opuesto');
-            if(ri<2&&isOpposite)issues.add(CourseAuditIssue(severity:AuditSeverity.warning,code:'OPPOSITE_TOO_EARLY',message:'Opposite exercises should not be used in the first rounds of a Topic.',location:el,roundId:r.id,exerciseId:ex.id));
-            final isolated=[prompt,ex.question.trim(),...ex.answers].where((v)=>v.isNotEmpty&&!v.contains(RegExp(r'\s')));
-            if(_courseSourceCode(course)!='DE'&&isolated.any((v)=>RegExp(r'^[A-ZÀ-ÖØ-Þ]').hasMatch(v)))issues.add(CourseAuditIssue(severity:AuditSeverity.suggestion,code:'SINGLE_WORD_CASE',message:'An isolated word starts with a capital letter. Use lowercase unless capitalization is linguistically required.',location:el,roundId:r.id,exerciseId:ex.id));
-            final key='${ex.type}|${ex.prompt.trim().toLowerCase()}|${ex.question.trim().toLowerCase()}';
-            if(!duplicatePrompts.add(key))issues.add(CourseAuditIssue(severity:AuditSeverity.warning,code:'ROUND_DUPLICATE_CONTENT',message:'Same exercise prompt/question appears more than once in this round.',location:el,roundId:r.id,exerciseId:ex.id));
-            if(choiceTypes.contains(ex.type)&&ex.correct!=null&&ex.correct!>=0&&ex.correct!<ex.answers.length){duelKeys.add('${ex.prompt}|${ex.question}|${ex.answers[ex.correct!]}');}
+        final duplicatePrompts=<String>{};
+        for(var ei=0;ei<r.exercises.length;ei++){
+          final ex=r.exercises[ei];final el='$rl · Exercise ${ei+1}';
+          final instructionLanguage=_legacyInstructionLanguage(ex.prompt);
+          if(instructionLanguage!=null&&instructionLanguage!=_courseSourceCode(course)){
+            issues.add(CourseAuditIssue(severity:AuditSeverity.warning,message:'Exercise instruction appears to be in the wrong language. Learner instructions must use the course source language.',location:el,roundId:r.id,exerciseId:ex.id));
           }
+          issues.addAll(auditExercise(ex,location:el,roundId:r.id));
+          final prompt=ex.prompt.trim();
+          final isOpposite=(ex.type=='super_match'&&prompt.toLowerCase().contains('opposit'))||prompt.toLowerCase().contains('contrar')||prompt.toLowerCase().contains('gegenteil')||prompt.toLowerCase().contains('opuesto');
+          if(ri<2&&isOpposite)issues.add(CourseAuditIssue(severity:AuditSeverity.warning,code:'OPPOSITE_TOO_EARLY',message:'Opposite exercises should not be used in the first rounds of a Topic.',location:el,roundId:r.id,exerciseId:ex.id));
+          final isolated=[prompt,ex.question.trim(),...ex.answers].where((v)=>v.isNotEmpty&&!v.contains(RegExp(r'\s')));
+          if(_courseSourceCode(course)!='DE'&&isolated.any((v)=>RegExp(r'^[A-ZÀ-ÖØ-Þ]').hasMatch(v)))issues.add(CourseAuditIssue(severity:AuditSeverity.suggestion,code:'SINGLE_WORD_CASE',message:'An isolated word starts with a capital letter. Use lowercase unless capitalization is linguistically required.',location:el,roundId:r.id,exerciseId:ex.id));
+          final key='${ex.type}|${ex.prompt.trim().toLowerCase()}|${ex.question.trim().toLowerCase()}';
+          if(!duplicatePrompts.add(key))issues.add(CourseAuditIssue(severity:AuditSeverity.warning,code:'ROUND_DUPLICATE_CONTENT',message:'Same exercise prompt/question appears more than once in this round.',location:el,roundId:r.id,exerciseId:ex.id));
         }
       }
-      if(duelKeys.length<25)issues.add(CourseAuditIssue(severity:AuditSeverity.warning,code:'DUEL_POOL_TOO_SMALL',message:'Only ${duelKeys.length} unique Duel candidates are available; a 25-question Language Duel needs at least 25.',location:'$cl · Duel'));
+      final eligibility=const DuelEligibilityService().evaluate(t);
+      if(!eligibility.isAvailable)issues.add(CourseAuditIssue(severity:AuditSeverity.suggestion,code:'DUEL_UNAVAILABLE',message:'Duel is unavailable with ${eligibility.eligibleCount} suitable exercises; ${eligibility.requiredCount} are required. This is normal supported behavior.',location:'$tl · Duel'));
     }
     for(final pending in pendingSourceRefs){if(!ids.contains(pending.key))issues.add(CourseAuditIssue(severity:AuditSeverity.error,code:'SOURCE_REF_MISSING',message:'sourceRefs references missing Content ID: ${pending.key}',location:pending.value));}
     return CourseAuditResult(issues);

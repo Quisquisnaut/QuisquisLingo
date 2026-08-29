@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Offline structural validation for bundled QuisquisLingo Course Model v3 JSON."""
+"""Offline structural validation for bundled QuisquisLingo Course Model v4 JSON."""
 from __future__ import annotations
 import json, sys
 from pathlib import Path
@@ -8,10 +8,13 @@ COURSES=ROOT/'assets'/'courses'
 INTERACTIONS={'select','input','arrange','match'}
 EVALUATIONS={'selected_items','text_match','ordered_items','matched_items'}
 CONTENT_KINDS={'exercise','presentation','explanation','example','vocabulary','text','image','audio','dialogue'}
+ROUND_VISUAL_TYPES={'listening','story','generic','test'}
 
 def validate(path:Path)->list[str]:
     data=json.loads(path.read_text(encoding='utf-8')); issues=[]; ids=set(); pending_refs=[]
-    if data.get('formatVersion')!=3:issues.append('root: formatVersion must be 3')
+    if data.get('formatVersion')!=4:issues.append('root: formatVersion must be 4')
+    if 'chapters' in data:issues.append('root: chapters are not allowed in Course Model v4')
+    if not isinstance(data.get('temporarySample'),bool):issues.append('root: temporarySample must be a boolean')
     def add_id(value,where):
         if not isinstance(value,str) or not value.strip():issues.append(f'{where}: missing id');return
         if value in ids:issues.append(f'{where}: duplicate id {value}')
@@ -62,59 +65,50 @@ def validate(path:Path)->list[str]:
             p=c.get('presentation');acts=((p or {}).get('completion') or {}).get('actions',[]) if isinstance(p,dict) else []
             if not {'understood','review_later'}.issubset(set(acts)):issues.append(f'{where}: presentation must support understood and review_later')
 
-    chapters=data.get('chapters')
-    if not isinstance(chapters,list):return issues+['root: chapters must be a list']
-    for ci,ch in enumerate(chapters,1):
-        if not isinstance(ch,dict):issues.append(f'chapter {ci}: must be an object');continue
-        add_id(ch.get('id'),f'chapter {ci}')
-        if 'guidebook' in ch:issues.append(f'chapter {ci}: Chapter-level guidebook is not allowed in Course Model v3')
-        topics=ch.get('topics',[])
-        if not isinstance(topics,list):issues.append(f'chapter {ci}: topics must be a list');continue
-        assessments=0
-        for ti,t in enumerate(topics,1):
-            if not isinstance(t,dict):issues.append(f'chapter {ci} topic {ti}: must be an object');continue
-            where_topic=f'chapter {ci} topic {ti}'
-            add_id(t.get('id'),where_topic)
-            role=t.get('role','learning')
-            if role=='assessment':
-                assessments+=1
-                if 'guidebook' in t:issues.append(f'{where_topic}: assessment Topic must not contain a guidebook')
-                a=t.get('assessment')
-                if not isinstance(a,dict):issues.append(f'{where_topic}: assessment config missing')
-                elif a.get('purpose')=='skip_test':
-                    count=((a.get('selection') or {}).get('count'))
-                    if count != 25:issues.append(f'{where_topic}: Language Duel selection count must be 25')
-                    if 'evaluation' in a and isinstance(a.get('evaluation'),dict) and 'passThreshold' in a.get('evaluation',{}):issues.append(f'{where_topic}: Language Duel must not use passThreshold')
+    topics=data.get('topics')
+    if not isinstance(topics,list):return issues+['root: topics must be a list']
+    for ti,t in enumerate(topics,1):
+        if not isinstance(t,dict):issues.append(f'topic {ti}: must be an object');continue
+        where_topic=f'topic {ti}'
+        add_id(t.get('id'),where_topic)
+        if 'role' in t:issues.append(f'{where_topic}: role is not allowed in Course Model v4')
+        if 'assessment' in t:issues.append(f'{where_topic}: assessment is not allowed in Course Model v4')
+        if not t.get('imageAsset'):issues.append(f'{where_topic}: Topic has no imageAsset')
+        gb=t.get('guidebook')
+        if not isinstance(gb,dict):issues.append(f'{where_topic}: Topic guidebook missing')
+        else:
+            gc=gb.get('content')
+            if not isinstance(gc,list):issues.append(f'{where_topic}: guidebook.content must be a list')
+            elif not gc:issues.append(f'{where_topic}: guidebook.content is empty')
             else:
-                if not t.get('imageAsset'):issues.append(f'{where_topic}: learning Topic has no imageAsset')
-                gb=t.get('guidebook')
-                if not isinstance(gb,dict):issues.append(f'{where_topic}: learning Topic guidebook missing')
-                else:
-                    gc=gb.get('content')
-                    if not isinstance(gc,list):issues.append(f'{where_topic}: guidebook.content must be a list')
-                    elif not gc:issues.append(f'{where_topic}: guidebook.content is empty')
-                    else:
-                        for gi,c in enumerate(gc,1):
-                            if not isinstance(c,dict):issues.append(f'{where_topic} guidebook content {gi}: must be an object')
-                            else:validate_content(c,f'{where_topic} guidebook content {gi}')
-            rounds=t.get('rounds',[])
-            if not isinstance(rounds,list):issues.append(f'{where_topic}: rounds must be a list');continue
-            for ri,r in enumerate(rounds,1):
-                if not isinstance(r,dict):issues.append(f'{where_topic} round {ri}: must be an object');continue
-                round_where=f'{where_topic} round {ri}'
-                add_id(r.get('id'),round_where)
-                content=r.get('content')
-                if not isinstance(content,list):issues.append(f'{round_where}: content must be a list');continue
-                if role!='assessment' and not content:issues.append(f'{round_where}: empty Round')
-                if role!='assessment' and ri==1 and content:
-                    first=content[0]
-                    if not isinstance(first,dict) or first.get('role')!='topic_intro' or first.get('kind')=='exercise':
-                        issues.append(f'{round_where}: first Content must be a non-exercise topic_intro')
-                for xi,c in enumerate(content,1):
-                    where=f'{round_where} content {xi}'
-                    if not isinstance(c,dict):issues.append(f'{where}: must be an object')
-                    else:validate_content(c,where)
-        if assessments!=1:issues.append(f'chapter {ci}: expected exactly one assessment Topic, found {assessments}')
+                for gi,c in enumerate(gc,1):
+                    if not isinstance(c,dict):issues.append(f'{where_topic} guidebook content {gi}: must be an object')
+                    else:validate_content(c,f'{where_topic} guidebook content {gi}')
+        duel=t.get('duel')
+        if not isinstance(duel,dict):issues.append(f'{where_topic}: duel must be an object')
+        else:
+            add_id(duel.get('id'),f'{where_topic} duel')
+            if not isinstance(duel.get('title'),str) or not duel.get('title').strip():issues.append(f'{where_topic} duel: missing title')
+            unsupported=set(duel)-{'id','title'}
+            if unsupported:issues.append(f'{where_topic} duel: unsupported fields: {", ".join(sorted(unsupported))}')
+        rounds=t.get('rounds',[])
+        if not isinstance(rounds,list):issues.append(f'{where_topic}: rounds must be a list');continue
+        for ri,r in enumerate(rounds,1):
+            if not isinstance(r,dict):issues.append(f'{where_topic} round {ri}: must be an object');continue
+            round_where=f'{where_topic} round {ri}'
+            add_id(r.get('id'),round_where)
+            if r.get('visualType') not in ROUND_VISUAL_TYPES:issues.append(f'{round_where}: visualType must be one of {", ".join(sorted(ROUND_VISUAL_TYPES))}')
+            content=r.get('content')
+            if not isinstance(content,list):issues.append(f'{round_where}: content must be a list');continue
+            if not content:issues.append(f'{round_where}: empty Round')
+            if ri==1 and content:
+                first=content[0]
+                if not isinstance(first,dict) or first.get('role')!='topic_intro' or first.get('kind')=='exercise':
+                    issues.append(f'{round_where}: first Content must be a non-exercise topic_intro')
+            for xi,c in enumerate(content,1):
+                where=f'{round_where} content {xi}'
+                if not isinstance(c,dict):issues.append(f'{where}: must be an object')
+                else:validate_content(c,where)
     for ref,where in pending_refs:
         if ref not in ids:issues.append(f'{where}: sourceRefs references missing Content {ref}')
     return issues

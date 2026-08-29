@@ -10,6 +10,7 @@ import 'tts_settings_screen.dart';
 import 'do_not_disturb_settings_screen.dart';
 import 'user_data_settings_screen.dart';
 import 'avatar_settings_screen.dart';
+import 'info_screen.dart';
 import 'update_settings_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -147,6 +148,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
                 const Divider(),
                 ListTile(
+                  leading: const Icon(Icons.help_outline),
+                  title: const Text('App Info'),
+                  subtitle: const Text('Learning rules, metrics and app behavior.'),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const InfoScreen()),
+                  ),
+                ),
+                ListTile(
                   leading: const Icon(Icons.record_voice_over_outlined),
                   title: const Text('TTS Settings'),
                   subtitle: const Text(
@@ -186,7 +196,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 SwitchListTile(
                   secondary: const Icon(Icons.lock_open_outlined),
                   title: const Text('IDDQD Mode (you can walk through locks)'),
-                  subtitle: const Text('Stored separately for this learner and this course. Real progress and genuine Chapter unlocks continue to be recorded.'),
+                  subtitle: const Text('Stored separately for this learner and this course. Real progress and genuine Lesson unlocks continue to be recorded.'),
                   value: _iddqdMode,
                   onChanged: (value) async {
                     await _settings.setIddqdModeEnabled(widget.course.courseId, value);

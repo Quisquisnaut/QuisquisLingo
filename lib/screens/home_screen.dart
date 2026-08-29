@@ -1,27 +1,53 @@
+import 'dart:io';
 import 'dart:math';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../services/settings_service.dart';
 import '../models/course_models.dart';
 import '../services/course_service.dart';
 import '../services/course_editor_service.dart';
+import '../services/duel_eligibility_service.dart';
 import '../services/progress_service.dart';
 import '../services/profile_service.dart';
 import '../services/status_service.dart';
+import '../services/topic_unlock_service.dart';
 import '../services/alpha_lifecycle_service.dart';
 import '../services/app_errors.dart';
 import '../services/error_presenter.dart';
 import '../services/diagnostic_log_service.dart';
 import '../services/crash_log_service.dart';
 import 'settings_screen.dart';
-import 'credits_screen.dart';
 import 'review_screen.dart';
-import 'info_screen.dart';
-import 'course_entry_screen.dart';
+import 'course_info_screen.dart';
+import 'duel_screen.dart';
 import 'gamification_settings_screen.dart';
+import 'guidebook_screen.dart';
+import 'round_screen.dart';
 import '../widgets/flag_art.dart';
 import '../widgets/learner_shell.dart';
 import '../widgets/learner_status_bar.dart';
+
+const _learnerLightPageBackground = Color(0xFFF7F3E8);
+const _learnerDarkPageBackground = Color(0xFF080B09);
+
+ThemeData _unifiedLearnerTheme(BuildContext context) {
+  if (MediaQuery.platformBrightnessOf(context) != Brightness.dark) {
+    return Theme.of(context);
+  }
+  return ThemeData.dark(useMaterial3: true).copyWith(
+    scaffoldBackgroundColor: _learnerDarkPageBackground,
+    colorScheme: ColorScheme.fromSeed(
+      seedColor: const Color(0xFF54D8FF),
+      brightness: Brightness.dark,
+      surface: const Color(0xFF151A17),
+    ),
+    cardTheme: const CardThemeData(
+      color: Color(0xFF151A17),
+      surfaceTintColor: Colors.transparent,
+    ),
+  );
+}
 
 /// Compact, scroll-safe Home dashboard.
 ///
@@ -37,10 +63,11 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final _courseService = CourseService();
   final _courseEditorService = CourseEditorService();
+  final _duelEligibility = const DuelEligibilityService();
   final _progress = ProgressService();
   final _profiles = ProfileService();
-  final _status = StatusService();
   final _settings = SettingsService();
+  final _topicUnlocks = const TopicUnlockService();
   String _appVersion = '';
   static const _welcomePhrases = <String>[
     'Every language starts with a first word.',
@@ -67,14 +94,15 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _addingLearner = false;
   List<String> _learners = [];
   Course? _course;
-  int _xp = 0, _weekXp = 0, _weekXpTarget = 1000, _streak = 0, _daysStudied = 0;
   Set<String> _completedRounds = {};
+  Set<String> _completedTopics = {};
   Set<String> _perfectRounds = {};
-  String _skinTone = 'medium', _hairTone = 'dark';
+  Set<String> _ttsSkippedPerfectRounds = {};
+  Set<String> _wonDuels = {};
+  bool _iddqdMode = false;
   String _selectedLanguage = 'IT';
   String _selectedCourseRef = 'IT';
-  int _lastChapterNumber = 1;
-  String _lastChapterTitle = '';
+  int _activeTopicIndex = 0;
 
   @override
   void initState() {
@@ -98,29 +126,32 @@ class _HomeScreenState extends State<HomeScreen> {
     await showDialog<void>(
       context: context,
       barrierDismissible: false,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Welcome to QuisquisLingo'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              'Version $_appVersion',
-              style: Theme.of(ctx).textTheme.labelLarge,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              phrase,
-              textAlign: TextAlign.center,
-              style: Theme.of(ctx).textTheme.titleMedium,
+      builder: (ctx) => Theme(
+        data: _unifiedLearnerTheme(context),
+        child: AlertDialog(
+          title: const Text('Welcome to QuisquisLingo'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Version $_appVersion',
+                style: Theme.of(ctx).textTheme.labelLarge,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                phrase,
+                textAlign: TextAlign.center,
+                style: Theme.of(ctx).textTheme.titleMedium,
+              ),
+            ],
+          ),
+          actions: [
+            FilledButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Continue'),
             ),
           ],
         ),
-        actions: [
-          FilledButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Continue'),
-          ),
-        ],
       ),
     );
     await _settings.markOneTimeNoticeSeen(id);
@@ -132,17 +163,20 @@ class _HomeScreenState extends State<HomeScreen> {
       await showDialog<void>(
         context: context,
         barrierDismissible: false,
-        builder: (ctx) => AlertDialog(
-          title: const Text('Alpha expired'),
-          content: Text(
-            'This QuisquisLingo alpha expired on ${AlphaLifecycleService.expiryIsoDate}. Install a newer alpha to continue learning. Your local data has not been deleted, and Course Editor remains available.',
-          ),
-          actions: [
-            FilledButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: const Text('OK'),
+        builder: (ctx) => Theme(
+          data: _unifiedLearnerTheme(context),
+          child: AlertDialog(
+            title: const Text('Alpha expired'),
+            content: Text(
+              'This QuisquisLingo alpha expired on ${AlphaLifecycleService.expiryIsoDate}. Install a newer alpha to continue learning. Your local data has not been deleted, and Course Editor remains available.',
             ),
-          ],
+            actions: [
+              FilledButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('OK'),
+              ),
+            ],
+          ),
         ),
       );
       return;
@@ -156,17 +190,20 @@ class _HomeScreenState extends State<HomeScreen> {
     await showDialog<void>(
       context: context,
       barrierDismissible: false,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Alpha expiry'),
-        content: Text(
-          '$message Expiry date: ${AlphaLifecycleService.expiryIsoDate}. Install a newer QuisquisLingo alpha before then to continue learning. Updating does not intentionally delete learner data or course-authoring data.',
-        ),
-        actions: [
-          FilledButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('OK'),
+      builder: (ctx) => Theme(
+        data: _unifiedLearnerTheme(context),
+        child: AlertDialog(
+          title: const Text('Alpha expiry'),
+          content: Text(
+            '$message Expiry date: ${AlphaLifecycleService.expiryIsoDate}. Install a newer QuisquisLingo alpha before then to continue learning. Updating does not intentionally delete learner data or course-authoring data.',
           ),
-        ],
+          actions: [
+            FilledButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -175,97 +212,102 @@ class _HomeScreenState extends State<HomeScreen> {
     if (!mounted) return;
     await showDialog<void>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Alpha expired'),
-        content: Text(
-          'This alpha expired on ${AlphaLifecycleService.expiryIsoDate}. Install a newer alpha to continue learning. Your local data is kept and Course Editor remains available.',
-        ),
-        actions: [
-          FilledButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('OK'),
+      builder: (ctx) => Theme(
+        data: _unifiedLearnerTheme(context),
+        child: AlertDialog(
+          title: const Text('Alpha expired'),
+          content: Text(
+            'This alpha expired on ${AlphaLifecycleService.expiryIsoDate}. Install a newer alpha to continue learning. Your local data is kept and Course Editor remains available.',
           ),
-        ],
+          actions: [
+            FilledButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
       ),
     );
   }
 
   Future<void> _reload() async {
     try {
-      Course course;
-      if (_course == null) {
-        final saved = await _settings.getLastSelectedCourseCode();
-        if (saved != null && saved.startsWith('custom:')) {
-          final courseId = saved.substring('custom:'.length);
-          final userCourses = await _courseEditorService.listUserCourses();
-          final matches = userCourses
-              .where((c) => c.courseId == courseId)
-              .toList();
-          if (matches.isNotEmpty) {
-            course = matches.first;
-            _selectedCourseRef = 'custom:${course.courseId}';
-            _selectedLanguage = CourseService.codeForCourse(course);
-          } else {
-            _selectedCourseRef = 'IT';
-            _selectedLanguage = 'IT';
-            course = await _courseService.loadCourse(_selectedLanguage);
-          }
+      var selectedRef = _course == null
+          ? (await _settings.getLastSelectedCourseCode() ?? _selectedCourseRef)
+          : _selectedCourseRef;
+      var selectedLanguage = _selectedLanguage;
+      late Course course;
+      if (selectedRef.startsWith('custom:')) {
+        final courseId = selectedRef.substring('custom:'.length);
+        final userCourses = await _courseEditorService.listUserCourses();
+        final matches = userCourses
+            .where((candidate) => candidate.courseId == courseId)
+            .toList();
+        if (matches.isNotEmpty) {
+          course = matches.first;
+          selectedRef = 'custom:${course.courseId}';
+          selectedLanguage = CourseService.codeForCourse(course);
         } else {
-          if (saved != null && CourseService.hasCourse(saved)) {
-            _selectedLanguage = saved;
-          }
-          _selectedCourseRef = _selectedLanguage;
-          course = await _courseService.loadCourse(_selectedLanguage);
+          selectedRef = 'IT';
+          selectedLanguage = 'IT';
+          course = await _courseService.loadCourse(selectedLanguage);
+          await _settings.setLastSelectedCourseCode(selectedRef);
         }
       } else {
-        course = _course!;
+        final bundledCode = CourseService.hasCourse(selectedRef)
+            ? selectedRef
+            : 'IT';
+        selectedRef = bundledCode;
+        selectedLanguage = bundledCode;
+        course = await _courseService.loadCourse(bundledCode);
       }
       final learners = await _profiles.getProfiles();
       final active = await _profiles.getActiveProfile();
-      final savedChapterId = await _settings.getLastVisitedChapterId(
+      final savedTopicId = await _settings.getLastVisitedTopicId(
         course.courseId,
       );
-      var lastChapterIndex = course.chapters.indexWhere(
-        (chapter) => chapter.id == savedChapterId,
+      var activeTopicIndex = course.topics.indexWhere(
+        (topic) => topic.id == savedTopicId,
       );
-      if (lastChapterIndex < 0) lastChapterIndex = 0;
-      final lastChapterTitle = course.chapters.isEmpty
-          ? 'Start learning'
-          : course.chapters[lastChapterIndex].title;
-      final lastChapterNumber = course.chapters.isEmpty
-          ? 1
-          : lastChapterIndex + 1;
-      final xp = await _progress.getXp(courseCode: _selectedLanguage);
-      final weekXp = await _progress.getWeeklyXp();
-      final weekXpTarget = await _settings.getWeeklyXpTarget();
-      final streak = await _progress.getStreak(courseCode: _selectedLanguage);
-      final days = await _progress.getDaysStudied(
-        courseCode: _selectedLanguage,
-      );
+      if (activeTopicIndex < 0) activeTopicIndex = 0;
       final rounds = await _progress.getCompletedRounds(
+        courseId: course.courseId,
+      );
+      final topics = await _progress.getCompletedTopics(
         courseId: course.courseId,
       );
       final perfect = await _progress.getPerfectRounds(
         courseId: course.courseId,
       );
-      final skin = await _profiles.getSkinTone();
-      final hair = await _profiles.getHairTone();
+      final skipped = await _progress.getTtsSkippedPerfectRounds(
+        courseId: course.courseId,
+      );
+      final wonDuels = await _progress.getWonDuels(courseId: course.courseId);
+      final iddqdMode = await _settings.isIddqdModeEnabled(course.courseId);
+      if (course.topics.isNotEmpty &&
+          !_topicUnlocks.isTopicUnlocked(
+            topicIndex: activeTopicIndex,
+            course: course,
+            completedTopics: topics,
+            wonDuels: wonDuels,
+          ) &&
+          !iddqdMode) {
+        activeTopicIndex = 0;
+      }
       if (!mounted) return;
       setState(() {
         _course = course;
+        _selectedCourseRef = selectedRef;
+        _selectedLanguage = selectedLanguage;
         _learners = learners;
         _activeLearner = active;
-        _lastChapterNumber = lastChapterNumber;
-        _lastChapterTitle = lastChapterTitle;
-        _xp = xp;
-        _weekXp = weekXp;
-        _weekXpTarget = weekXpTarget;
-        _streak = streak;
-        _daysStudied = days;
         _completedRounds = rounds;
+        _completedTopics = topics;
         _perfectRounds = perfect;
-        _skinTone = skin;
-        _hairTone = hair;
+        _ttsSkippedPerfectRounds = skipped;
+        _wonDuels = wonDuels;
+        _iddqdMode = iddqdMode;
+        _activeTopicIndex = activeTopicIndex;
       });
     } on AppException catch (e) {
       if (mounted) await ErrorPresenter.show(context, e.error);
@@ -323,14 +365,14 @@ class _HomeScreenState extends State<HomeScreen> {
     await _reload();
   }
 
-  Future<void> _addLearner() async {
+  Future<void> _addLearner(BuildContext overlayContext) async {
     if (_addingLearner) return;
     _addingLearner = true;
     final controller = TextEditingController();
     String skin = 'medium';
     String hair = 'dark';
     final result = await showDialog<(String, String, String)>(
-      context: context,
+      context: overlayContext,
       barrierDismissible: _learners.isNotEmpty,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setLocalState) => AlertDialog(
@@ -444,9 +486,9 @@ class _HomeScreenState extends State<HomeScreen> {
     await _reload();
   }
 
-  Future<void> _deleteLearner(String name) async {
+  Future<void> _deleteLearner(String name, BuildContext overlayContext) async {
     final ok = await showDialog<bool>(
-      context: context,
+      context: overlayContext,
       builder: (ctx) => AlertDialog(
         title: const Text('Delete learner?'),
         content: Text('Delete $name and all local progress for this learner?'),
@@ -468,9 +510,9 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  Future<void> _showLearners() async {
+  Future<void> _showLearners(BuildContext overlayContext) async {
     final action = await showModalBottomSheet<String>(
-      context: context,
+      context: overlayContext,
       showDragHandle: true,
       isScrollControlled: true,
       builder: (ctx) => SafeArea(
@@ -512,13 +554,13 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
     );
-    if (!mounted || action == null) return;
+    if (!mounted || !overlayContext.mounted || action == null) return;
     // Start the next route only after the bottom sheet has completely closed.
     // This avoids disposing inherited dependents while Add profile opens.
     await Future<void>.delayed(const Duration(milliseconds: 80));
-    if (!mounted) return;
+    if (!mounted || !overlayContext.mounted) return;
     if (action == 'add') {
-      await _addLearner();
+      await _addLearner(overlayContext);
       return;
     }
     if (action.startsWith('switch:')) {
@@ -526,16 +568,70 @@ class _HomeScreenState extends State<HomeScreen> {
       return;
     }
     if (action.startsWith('delete:')) {
-      await _deleteLearner(action.substring(7));
+      await _deleteLearner(action.substring(7), overlayContext);
     }
   }
 
-  Future<void> _showCoursePicker() async {
+  Future<void> _showCoursePicker(BuildContext overlayContext) async {
     final customCourses = await _courseEditorService.listUserCourses();
-    if (!mounted) return;
+    final recentRefs = (await _settings.getRecentCourseRefs())
+        .where(
+          (ref) =>
+              ref != _selectedCourseRef &&
+              (CourseService.hasCourse(ref.trim().toUpperCase()) ||
+                  (ref.startsWith('custom:') &&
+                      customCourses.any(
+                        (course) =>
+                            course.courseId == ref.substring('custom:'.length),
+                      ))),
+        )
+        .take(3)
+        .toList();
+    if (!mounted || !overlayContext.mounted) return;
     const codes = ['IT', 'DE', 'ES', 'EN', 'CY', 'NL', 'PT', 'FI'];
+    Course? customCourseFor(String ref) {
+      if (!ref.startsWith('custom:')) return null;
+      final id = ref.substring('custom:'.length);
+      for (final course in customCourses) {
+        if (course.courseId == id) return course;
+      }
+      return null;
+    }
+
+    Widget recentCourseTile(BuildContext ctx, String ref) {
+      final custom = customCourseFor(ref);
+      if (custom != null) {
+        return ListTile(
+          leading: CourseFlagBadge(
+            course: custom,
+            fallbackCode: CourseService.codeForCourse(custom),
+          ),
+          title: Text(custom.title),
+          subtitle: const Text('Custom course'),
+          onTap: () {
+            Navigator.pop(ctx);
+            _switchCustomCourse(custom);
+          },
+        );
+      }
+      final code = ref.trim().toUpperCase();
+      return ListTile(
+        leading: FlagBadge(code),
+        title: Text(CourseService.targetLabels[code] ?? code),
+        subtitle: Text(
+          '${CourseService.sourceLabels[code] ?? 'English'} → ${CourseService.targetLabels[code] ?? code}',
+        ),
+        onTap: CourseService.hasCourse(code)
+            ? () {
+                Navigator.pop(ctx);
+                _switchCourse(code);
+              }
+            : null,
+      );
+    }
+
     await showModalBottomSheet<void>(
-      context: context,
+      context: overlayContext,
       showDragHandle: true,
       isScrollControlled: true,
       builder: (ctx) => SafeArea(
@@ -548,7 +644,34 @@ class _HomeScreenState extends State<HomeScreen> {
               const Padding(
                 padding: EdgeInsets.fromLTRB(16, 4, 16, 6),
                 child: Text(
-                  'Included courses',
+                  'Current course',
+                  style: TextStyle(fontWeight: FontWeight.w800),
+                ),
+              ),
+              if (_course != null)
+                ListTile(
+                  leading: CourseFlagBadge(
+                    course: _course!,
+                    fallbackCode: _selectedLanguage,
+                  ),
+                  title: Text(_course!.title),
+                  trailing: const Icon(Icons.check),
+                ),
+              if (recentRefs.isNotEmpty) ...[
+                const Padding(
+                  padding: EdgeInsets.fromLTRB(16, 14, 16, 6),
+                  child: Text(
+                    'Recently opened',
+                    style: TextStyle(fontWeight: FontWeight.w800),
+                  ),
+                ),
+                for (final ref in recentRefs) recentCourseTile(ctx, ref),
+              ],
+              const Divider(),
+              const Padding(
+                padding: EdgeInsets.fromLTRB(16, 4, 16, 6),
+                child: Text(
+                  'All included courses',
                   style: TextStyle(fontWeight: FontWeight.w800),
                 ),
               ),
@@ -602,21 +725,174 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Future<void> _openCourse(Course course) async {
+  Future<bool> _canOpenLearnerContent() async {
     if (AlphaLifecycleService.isExpired()) {
       await _showExpiredLearnerNotice();
+      return false;
+    }
+    return true;
+  }
+
+  bool _isTopicUnlocked(Course course, int index) =>
+      _topicUnlocks.isTopicUnlocked(
+        topicIndex: index,
+        course: course,
+        completedTopics: _completedTopics,
+        wonDuels: _wonDuels,
+      );
+
+  Future<void> _selectTopic(Course course, int index) async {
+    if (index < 0 || index >= course.topics.length) return;
+    if (!_isTopicUnlocked(course, index) && !_iddqdMode) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Complete the previous Lesson or win its Duel to unlock this Lesson.',
+          ),
+        ),
+      );
       return;
     }
+    await _settings.setLastVisitedTopicId(
+      course.courseId,
+      course.topics[index].id,
+    );
+    if (mounted) setState(() => _activeTopicIndex = index);
+  }
+
+  Future<void> _showLessonPicker(
+    Course course,
+    BuildContext overlayContext,
+  ) async {
+    final selected = await showModalBottomSheet<int>(
+      context: overlayContext,
+      showDragHandle: true,
+      isScrollControlled: true,
+      builder: (ctx) => SafeArea(
+        child: FractionallySizedBox(
+          heightFactor: .78,
+          child: Column(
+            children: [
+              const ListTile(
+                leading: Icon(Icons.menu_book_outlined),
+                title: Text('Browse All Lessons'),
+              ),
+              const Divider(height: 1),
+              Expanded(
+                child: ListView.builder(
+                  itemCount: course.topics.length,
+                  itemBuilder: (context, index) {
+                    final topic = course.topics[index];
+                    final unlocked = _isTopicUnlocked(course, index);
+                    final completed = _completedTopics.contains(topic.id);
+                    return ListTile(
+                      leading: Icon(
+                        !unlocked
+                            ? Icons.lock_outline
+                            : completed
+                            ? Icons.check_circle_outline
+                            : Icons.school_outlined,
+                      ),
+                      title: Text('Lesson ${index + 1}: ${topic.title}'),
+                      subtitle: Text(
+                        !unlocked
+                            ? _iddqdMode
+                                  ? completed
+                                        ? 'Completed · Locked · IDDQD access'
+                                        : 'Locked · IDDQD access'
+                                  : completed
+                                  ? 'Completed · Locked'
+                                  : 'Locked'
+                            : completed
+                            ? 'Completed'
+                            : '${topic.rounds.length} Rounds',
+                      ),
+                      trailing: index == _activeTopicIndex
+                          ? const Icon(Icons.check)
+                          : null,
+                      onTap: unlocked || _iddqdMode
+                          ? () => Navigator.pop(ctx, index)
+                          : null,
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    if (selected != null && mounted) await _selectTopic(course, selected);
+  }
+
+  Future<void> _openGuidebook(Topic topic) async {
+    if (!await _canOpenLearnerContent() || !mounted) return;
+    await Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (_) => GuidebookScreen(topic: topic)));
+  }
+
+  Future<void> _openRound(
+    Course course,
+    Topic topic,
+    LearningRound round,
+  ) async {
+    if (!await _canOpenLearnerContent() || !mounted) return;
     await CrashLogService.instance.recordDebugEvent(
-      'Home: opening course ${course.courseId}',
+      'Home: opening Round ${round.id} in Topic ${topic.id}',
     );
     if (!mounted) return;
-    await Navigator.of(context).push(
+    await Navigator.of(context).push<bool>(
       MaterialPageRoute(
-        builder: (_) => CourseEntryScreen(course: course, resumeChapter: true),
+        builder: (_) => RoundScreen(
+          course: course,
+          topic: topic,
+          round: round,
+          roundIndex: topic.rounds.indexOf(round),
+          ttsLanguage: course.ttsLanguage,
+          completeTopicOnFinish: true,
+        ),
       ),
     );
     await _reload();
+  }
+
+  Future<void> _openDuel(Course course, Topic topic) async {
+    final eligibility = _duelEligibility.evaluate(topic);
+    if (!eligibility.isAvailable) return;
+    if (!await _canOpenLearnerContent() || !mounted) return;
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => DuelScreen(
+          course: course,
+          topic: topic,
+          ttsLanguage: course.ttsLanguage,
+        ),
+      ),
+    );
+    await _reload();
+  }
+
+  Future<void> _buyCoffee(Course course) async {
+    final uri = Uri.tryParse(course.supportUrl.trim());
+    if (uri == null || uri.scheme != 'https') {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('This course does not provide an author support link.'),
+        ),
+      );
+      return;
+    }
+    final opened = await launchUrl(uri, mode: LaunchMode.externalApplication);
+    if (!opened && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('The author support link could not open.'),
+        ),
+      );
+    }
   }
 
   Future<void> _openReview(Course course) async {
@@ -635,537 +911,939 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final followsDarkAppearance =
+        MediaQuery.platformBrightnessOf(context) == Brightness.dark;
     final course = _course;
     if (course == null) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
-    }
-    if (_activeLearner == null && !_addingLearner) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted && _activeLearner == null && !_addingLearner) _addLearner();
-      });
-    }
-    final rank = _status.rank(
-      xp: _xp,
-      streak: _streak,
-      daysStudied: _daysStudied,
-      roundsCompleted: _completedRounds.length,
-      laurelCrowns: _perfectRounds.length,
-    );
-    return LearnerStatusPage(
-      foreground: LearnerStatusForeground.light,
-      child: Scaffold(
-        appBar: LearnerStatusAppBar(
-          backgroundColor: const Color(0xFF214D3B),
-          appBar: AppBar(
-            toolbarHeight: 48,
-            title: Text(
-              _activeLearner == null ? 'QuisquisLingo' : 'Hi, $_activeLearner',
-              style: const TextStyle(
-                fontWeight: FontWeight.w900,
-                letterSpacing: .3,
-              ),
-            ),
-            centerTitle: false,
-            foregroundColor: Colors.white,
-            backgroundColor: const Color(0xFF214D3B),
-            surfaceTintColor: Colors.transparent,
-            actions: [
-              IconButton(
-                tooltip: 'Switch learner',
-                icon: const Icon(Icons.people_outline),
-                onPressed: _showLearners,
-              ),
-              IconButton(
-                tooltip: 'Settings',
-                icon: const Icon(Icons.settings_outlined),
-                onPressed: () async {
-                  await CrashLogService.instance.recordDebugEvent(
-                    'Home: opening Settings',
-                  );
-                  if (!context.mounted) return;
-                  await Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => SettingsScreen(course: course),
-                    ),
-                  );
-                  await _reload();
-                },
-              ),
-            ],
+      return Scaffold(
+        key: const Key('unified-learner-loading-page'),
+        backgroundColor: followsDarkAppearance
+            ? _learnerDarkPageBackground
+            : _learnerLightPageBackground,
+        body: Center(
+          child: CircularProgressIndicator(
+            color: followsDarkAppearance ? const Color(0xFF54D8FF) : null,
           ),
         ),
-        body: Stack(
-          fit: StackFit.expand,
-          children: [
-            Image.asset(
-              'assets/olive_tree.png',
-              fit: BoxFit.cover,
-              alignment: Alignment.center,
-              opacity: const AlwaysStoppedAnimation(.62),
-            ),
-            const ColoredBox(color: Color(0x18FFF9E8)),
-            SafeArea(
-              top: false,
-              child: RefreshIndicator(
-                onRefresh: _reload,
-                child: ListView(
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  padding: const EdgeInsets.fromLTRB(14, 10, 14, 24),
-                  children: [
-                    _CurrentCourseCard(
-                      course: course,
-                      code: _selectedLanguage,
-                      lastChapterNumber: _lastChapterNumber,
-                      lastChapterTitle: _lastChapterTitle,
-                      onSelectCourse: _showCoursePicker,
-                      onOpenCourse: () => _openCourse(course),
+      );
+    }
+    final topic = course.topics.isEmpty
+        ? null
+        : course.topics[_activeTopicIndex.clamp(0, course.topics.length - 1)];
+    final pageBackground = followsDarkAppearance
+        ? _learnerDarkPageBackground
+        : _learnerLightPageBackground;
+    final headerBackground = followsDarkAppearance
+        ? _learnerDarkPageBackground
+        : const Color(0xFF214D3B);
+    final learnerTheme = _unifiedLearnerTheme(context);
+    return Theme(
+      data: learnerTheme,
+      child: Builder(
+        builder: (learnerContext) {
+          if (_activeLearner == null && !_addingLearner) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted &&
+                  learnerContext.mounted &&
+                  _activeLearner == null &&
+                  !_addingLearner) {
+                _addLearner(learnerContext);
+              }
+            });
+          }
+          return LearnerStatusPage(
+            foreground: LearnerStatusForeground.light,
+            child: Scaffold(
+              key: const Key('unified-learner-page'),
+              backgroundColor: pageBackground,
+              appBar: LearnerStatusAppBar(
+                key: const Key('unified-learner-status-appbar'),
+                backgroundColor: headerBackground,
+                appBar: AppBar(
+                  toolbarHeight: 58,
+                  leadingWidth: 150,
+                  leading: TextButton.icon(
+                    style: TextButton.styleFrom(foregroundColor: Colors.white),
+                    onPressed: () => _showLearners(learnerContext),
+                    icon: const Icon(Icons.face_outlined),
+                    label: Text(
+                      _activeLearner ?? 'Learner',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(fontWeight: FontWeight.w800),
                     ),
-                    const SizedBox(height: 10),
-                    _StatusCard(
-                      rank: rank,
-                      course: course,
-                      xp: _xp,
-                      weekXp: _weekXp,
-                      weekXpTarget: _weekXpTarget,
-                      streak: _streak,
-                      daysStudied: _daysStudied,
-                      laurels: _perfectRounds.length,
-                      skinTone: _skinTone,
-                      hairTone: _hairTone,
+                  ),
+                  title: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Semantics(
+                      label: 'QuisquisLingo',
+                      header: true,
+                      excludeSemantics: true,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 3,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF8FAFF),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Image.asset(
+                          'assets/branding/quisquislingo_logo.png',
+                          key: const Key('unified-learner-logo'),
+                          width: 156,
+                          height: 36,
+                          fit: BoxFit.contain,
+                          filterQuality: FilterQuality.high,
+                        ),
+                      ),
                     ),
-                    const SizedBox(height: 10),
-                    _QuickActions(
-                      onLeaderboard: () async {
+                  ),
+                  centerTitle: true,
+                  foregroundColor: Colors.white,
+                  backgroundColor: headerBackground,
+                  surfaceTintColor: Colors.transparent,
+                  actions: [
+                    IconButton(
+                      tooltip: 'Settings',
+                      icon: const Icon(Icons.settings_outlined),
+                      onPressed: () async {
+                        await CrashLogService.instance.recordDebugEvent(
+                          'Home: opening Settings',
+                        );
+                        if (!context.mounted) return;
                         await Navigator.of(context).push(
                           MaterialPageRoute(
-                            builder: (_) => const GamificationSettingsScreen(),
+                            builder: (_) => SettingsScreen(course: course),
                           ),
                         );
                         await _reload();
                       },
-                      onReview: () => _openReview(course),
-                      onInfo: () => Navigator.of(context).push(
-                        MaterialPageRoute(builder: (_) => const InfoScreen()),
-                      ),
-                      onCredits: () => Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => CreditsScreen(course: course),
-                        ),
-                      ),
                     ),
                   ],
                 ),
               ),
+              body: Stack(
+                fit: StackFit.expand,
+                children: [
+                  Image.asset(
+                    'assets/olive_tree.png',
+                    fit: BoxFit.cover,
+                    alignment: Alignment.center,
+                    opacity: AlwaysStoppedAnimation(
+                      followsDarkAppearance ? .20 : .62,
+                    ),
+                  ),
+                  ColoredBox(
+                    key: const Key('unified-learner-background-tint'),
+                    color: followsDarkAppearance
+                        ? const Color(0xD9000000)
+                        : const Color(0x18FFF9E8),
+                  ),
+                  SafeArea(
+                    top: false,
+                    child: RefreshIndicator(
+                      onRefresh: _reload,
+                      child: ListView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        padding: const EdgeInsets.fromLTRB(14, 10, 14, 24),
+                        children: [
+                          _CourseSelector(
+                            course: course,
+                            code: _selectedLanguage,
+                            onTap: () => _showCoursePicker(learnerContext),
+                          ),
+                          const SizedBox(height: 14),
+                          if (topic == null)
+                            const _EmptyCourseCard()
+                          else ...[
+                            _LessonNavigation(
+                              topic: topic,
+                              topicIndex: _activeTopicIndex,
+                              roundCount: topic.rounds.length,
+                              completedRoundCount: topic.rounds
+                                  .where(
+                                    (round) =>
+                                        _completedRounds.contains(round.id),
+                                  )
+                                  .length,
+                              onPrevious: _activeTopicIndex > 0
+                                  ? () => _selectTopic(
+                                      course,
+                                      _activeTopicIndex - 1,
+                                    )
+                                  : null,
+                              onNext:
+                                  _activeTopicIndex + 1 <
+                                          course.topics.length &&
+                                      (_isTopicUnlocked(
+                                            course,
+                                            _activeTopicIndex + 1,
+                                          ) ||
+                                          _iddqdMode)
+                                  ? () => _selectTopic(
+                                      course,
+                                      _activeTopicIndex + 1,
+                                    )
+                                  : null,
+                              onBrowse: () =>
+                                  _showLessonPicker(course, learnerContext),
+                            ),
+                            const SizedBox(height: 18),
+                            _GuidebookNode(
+                              topic: topic,
+                              onTap: () => _openGuidebook(topic),
+                            ),
+                            if (topic.imageAsset.trim().isNotEmpty) ...[
+                              const SizedBox(height: 12),
+                              _TopicImage(imageAsset: topic.imageAsset),
+                            ],
+                            const _VerticalConnector(),
+                            _RoundTree(
+                              rounds: topic.rounds,
+                              completedRounds: _completedRounds,
+                              perfectRounds: _perfectRounds,
+                              ttsSkippedPerfectRounds: _ttsSkippedPerfectRounds,
+                              onOpenRound: (round) =>
+                                  _openRound(course, topic, round),
+                            ),
+                            const _VerticalConnector(),
+                            _DuelCard(
+                              eligibility: _duelEligibility.evaluate(topic),
+                              onTap: () => _openDuel(course, topic),
+                            ),
+                          ],
+                          const SizedBox(height: 16),
+                          _QuickActions(
+                            onLeaderboard: () async {
+                              await Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) =>
+                                      const GamificationSettingsScreen(),
+                                ),
+                              );
+                              await _reload();
+                            },
+                            onReview: () => _openReview(course),
+                            onCoffee: () => _buyCoffee(course),
+                            onCourseInfo: () => Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) =>
+                                    CourseInfoScreen(course: course),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _CourseSelector extends StatelessWidget {
+  final Course course;
+  final String code;
+  final VoidCallback onTap;
+
+  const _CourseSelector({
+    required this.course,
+    required this.code,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) => Material(
+    color: Theme.of(context).brightness == Brightness.dark
+        ? Theme.of(context).colorScheme.surface.withValues(alpha: .92)
+        : Colors.white.withValues(alpha: .84),
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(18),
+      side: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
+    ),
+    child: InkWell(
+      key: const Key('unified-course-selector'),
+      borderRadius: BorderRadius.circular(18),
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+        child: Row(
+          children: [
+            CourseFlagBadge(course: course, fallbackCode: code),
+            const SizedBox(width: 12),
+            Text(
+              code,
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                course.title,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(fontWeight: FontWeight.w800),
+              ),
+            ),
+            const Icon(Icons.arrow_drop_down),
           ],
         ),
       ),
-    );
-  }
+    ),
+  );
 }
 
-class _CurrentCourseCard extends StatelessWidget {
-  final Course course;
-  final String code;
-  final int lastChapterNumber;
-  final String lastChapterTitle;
-  final VoidCallback onSelectCourse, onOpenCourse;
-  const _CurrentCourseCard({
-    required this.course,
-    required this.code,
-    required this.lastChapterNumber,
-    required this.lastChapterTitle,
-    required this.onSelectCourse,
-    required this.onOpenCourse,
-  });
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: const Color(0x82FFFDF7),
-        borderRadius: BorderRadius.circular(30),
-        border: Border.all(
-          color: Colors.white.withValues(alpha: .78),
-          width: 1.3,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF16392D).withValues(alpha: .18),
-            blurRadius: 24,
-            offset: const Offset(0, 9),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          Align(
-            alignment: Alignment.topCenter,
-            child: Transform.translate(
-              offset: const Offset(0, -12),
-              child: Material(
-                color: const Color(0xFF23864C),
-                borderRadius: BorderRadius.circular(24),
-                elevation: 4,
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(24),
-                  onTap: onSelectCourse,
-                  child: const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 20, vertical: 9),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.star_rounded,
-                          color: Color(0xFFFFD64A),
-                          size: 20,
-                        ),
-                        SizedBox(width: 7),
-                        Text(
-                          'CURRENT COURSE',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: .7,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(18, 0, 18, 18),
-            child: Column(
-              children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    CourseFlagBadge(course: course, fallbackCode: code),
-                    const SizedBox(width: 15),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            course.targetLanguage,
-                            style: Theme.of(context).textTheme.headlineSmall
-                                ?.copyWith(
-                                  fontWeight: FontWeight.w900,
-                                  color: const Color(0xFF173F35),
-                                ),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            '${course.sourceLanguage} → ${course.targetLanguage}',
-                            style: Theme.of(context).textTheme.bodyMedium
-                                ?.copyWith(
-                                  fontWeight: FontWeight.w700,
-                                  color: const Color(0xFF5A7069),
-                                ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 120),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Text(
-                            'Chapter $lastChapterNumber',
-                            style: Theme.of(context).textTheme.labelLarge
-                                ?.copyWith(
-                                  fontWeight: FontWeight.w900,
-                                  color: const Color(0xFF315B4B),
-                                ),
-                          ),
-                          Text(
-                            lastChapterTitle,
-                            maxLines: 2,
-                            textAlign: TextAlign.end,
-                            overflow: TextOverflow.ellipsis,
-                            style: Theme.of(context).textTheme.bodySmall
-                                ?.copyWith(
-                                  fontWeight: FontWeight.w600,
-                                  color: const Color(0xFF5A7069),
-                                ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: TextButton.icon(
-                    style: TextButton.styleFrom(
-                      foregroundColor: const Color(0xFF1F6A47),
-                      backgroundColor: const Color(0x243F8A5B),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 8,
-                      ),
-                      textStyle: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w900,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                    ),
-                    onPressed: onSelectCourse,
-                    icon: const Icon(Icons.swap_horiz_rounded, size: 21),
-                    label: const Text('Change course'),
-                  ),
-                ),
-                const SizedBox(height: 9),
-                // The primary learning action is intentionally prominent and
-                // remains immediately visible on small desktop windows.
-                SizedBox(
-                  width: double.infinity,
-                  child: FilledButton.icon(
-                    style: FilledButton.styleFrom(
-                      minimumSize: const Size.fromHeight(62),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 20,
-                        vertical: 18,
-                      ),
-                      backgroundColor: const Color(0xFF159B52),
-                      foregroundColor: Colors.white,
-                      elevation: 5,
-                      shadowColor: const Color(
-                        0xFF159B52,
-                      ).withValues(alpha: .35),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(25),
-                      ),
-                      textStyle: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: .5,
-                      ),
-                    ),
-                    onPressed: onOpenCourse,
-                    icon: const Icon(Icons.play_arrow_rounded, size: 30),
-                    label: const Text('GO TO COURSE'),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
+class _LessonNavigation extends StatelessWidget {
+  final Topic topic;
+  final int topicIndex;
+  final int roundCount;
+  final int completedRoundCount;
+  final VoidCallback? onPrevious;
+  final VoidCallback? onNext;
+  final VoidCallback onBrowse;
 
-class _StatusCard extends StatelessWidget {
-  final StatusRank rank;
-  final Course course;
-  final int xp, weekXp, weekXpTarget, streak, daysStudied, laurels;
-  final String skinTone, hairTone;
-  const _StatusCard({
-    required this.rank,
-    required this.course,
-    required this.xp,
-    required this.weekXp,
-    required this.weekXpTarget,
-    required this.streak,
-    required this.daysStudied,
-    required this.laurels,
-    required this.skinTone,
-    required this.hairTone,
+  const _LessonNavigation({
+    required this.topic,
+    required this.topicIndex,
+    required this.roundCount,
+    required this.completedRoundCount,
+    required this.onPrevious,
+    required this.onNext,
+    required this.onBrowse,
   });
+
   @override
-  Widget build(BuildContext context) => Card(
-    color: const Color(0x82FFFDF7),
-    child: Padding(
-      padding: const EdgeInsets.all(14),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            '${course.targetLanguage} progress',
-            style: Theme.of(
-              context,
-            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
+  Widget build(BuildContext context) => LayoutBuilder(
+    builder: (context, constraints) {
+      final compact = constraints.maxWidth < 560;
+      final selector = Expanded(
+        child: OutlinedButton(
+          key: const Key('unified-lesson-selector'),
+          onPressed: onBrowse,
+          style: OutlinedButton.styleFrom(
+            alignment: Alignment.centerLeft,
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 13),
           ),
-          const SizedBox(height: 8),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
+          child: Row(
             children: [
-              SizedBox(
-                width: 82,
-                height: 92,
-                child: CustomPaint(
-                  painter: _StatusAvatarPainter(rank.index, skinTone, hairTone),
-                ),
+              IconButton(
+                tooltip: 'Previous Lesson',
+                onPressed: onPrevious,
+                icon: const Icon(Icons.chevron_left),
               ),
-              const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      '${rank.name} (lev. ${rank.index})',
-                      style: Theme.of(context).textTheme.headlineSmall
-                          ?.copyWith(fontWeight: FontWeight.w800),
+                      'Lesson ${topicIndex + 1}: ${topic.title}',
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w900,
+                      ),
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      rank.nextThreshold == null
-                          ? 'Maximum Status reached'
-                          : 'Progress to ${StatusService.names[rank.index + 1]}',
-                      style: Theme.of(context).textTheme.bodySmall,
+                    Text('$completedRoundCount/$roundCount Rounds completed'),
+                  ],
+                ),
+              ),
+              IconButton(
+                tooltip: 'Next Lesson',
+                onPressed: onNext,
+                icon: const Icon(Icons.chevron_right),
+              ),
+            ],
+          ),
+        ),
+      );
+      final browse = OutlinedButton.icon(
+        key: const Key('browse-all-lessons'),
+        onPressed: onBrowse,
+        icon: const Icon(Icons.menu_book_outlined),
+        label: const Text('Browse All Lessons'),
+      );
+      if (compact) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(children: [selector]),
+            const SizedBox(height: 8),
+            browse,
+          ],
+        );
+      }
+      return Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [selector, const SizedBox(width: 10), browse],
+      );
+    },
+  );
+}
+
+class _GuidebookNode extends StatelessWidget {
+  final Topic topic;
+  final VoidCallback onTap;
+
+  const _GuidebookNode({required this.topic, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final colorScheme = Theme.of(context).colorScheme;
+    return Align(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 520),
+        child: Card(
+          key: const Key('unified-guidebook-node'),
+          color: isDark
+              ? colorScheme.surfaceContainerHigh
+              : const Color(0xFFFFF7C9),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+            side: BorderSide(
+              color: isDark
+                  ? colorScheme.outlineVariant
+                  : const Color(0xFFF1C232),
+            ),
+          ),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(20),
+            onTap: onTap,
+            child: Padding(
+              padding: const EdgeInsets.all(18),
+              child: Row(
+                children: [
+                  CircleAvatar(
+                    radius: 34,
+                    backgroundColor: isDark
+                        ? const Color(0xFF30284B)
+                        : const Color(0xFFEDE2FF),
+                    child: const Icon(Icons.menu_book_outlined, size: 40),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'GuideBook',
+                          style: Theme.of(context).textTheme.titleLarge
+                              ?.copyWith(
+                                fontWeight: FontWeight.w900,
+                                color: isDark
+                                    ? const Color(0xFFC7B8FF)
+                                    : const Color(0xFF3920C8),
+                              ),
+                        ),
+                        Text(
+                          'Your roadmap to ${topic.title}',
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        Text(
+                          'Start here',
+                          style: TextStyle(
+                            color: isDark
+                                ? const Color(0xFF8FB0FF)
+                                : const Color(0xFF154FE7),
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 5),
-                    LinearProgressIndicator(
-                      value: rank.progressToNext,
-                      minHeight: 9,
-                      borderRadius: BorderRadius.circular(20),
+                  ),
+                  const Icon(Icons.chevron_right),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _TopicImage extends StatelessWidget {
+  final String imageAsset;
+
+  const _TopicImage({required this.imageAsset});
+
+  @override
+  Widget build(BuildContext context) {
+    final path = imageAsset.trim();
+    final missing = Card(
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Wrap(
+          crossAxisAlignment: WrapCrossAlignment.center,
+          spacing: 8,
+          runSpacing: 4,
+          children: const [
+            Icon(Icons.broken_image_outlined),
+            Text('Lesson image is missing.'),
+          ],
+        ),
+      ),
+    );
+    final image = path.startsWith('assets/')
+        ? Image.asset(
+            path,
+            fit: BoxFit.contain,
+            errorBuilder: (_, __, ___) => missing,
+          )
+        : File(path).existsSync()
+        ? Image.file(
+            File(path),
+            fit: BoxFit.contain,
+            errorBuilder: (_, __, ___) => missing,
+          )
+        : missing;
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxHeight: 170, maxWidth: 260),
+        child: image,
+      ),
+    );
+  }
+}
+
+class _VerticalConnector extends StatelessWidget {
+  const _VerticalConnector();
+
+  @override
+  Widget build(BuildContext context) => Center(
+    child: Container(
+      key: const Key('learner-tree-connector'),
+      width: 2,
+      height: 24,
+      color: Theme.of(context).colorScheme.outlineVariant,
+    ),
+  );
+}
+
+class _RoundTree extends StatelessWidget {
+  final List<LearningRound> rounds;
+  final Set<String> completedRounds;
+  final Set<String> perfectRounds;
+  final Set<String> ttsSkippedPerfectRounds;
+  final void Function(LearningRound round) onOpenRound;
+
+  const _RoundTree({
+    required this.rounds,
+    required this.completedRounds,
+    required this.perfectRounds,
+    required this.ttsSkippedPerfectRounds,
+    required this.onOpenRound,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (rounds.isEmpty) {
+      return const Card(
+        child: Padding(
+          padding: EdgeInsets.all(18),
+          child: Text('This Lesson does not contain any Rounds yet.'),
+        ),
+      );
+    }
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final columns = constraints.maxWidth >= 620 ? 2 : 1;
+        final textScale = MediaQuery.textScalerOf(context).scale(1);
+        final roundHeight = 142.0 + (textScale - 1.0).clamp(0.0, 2.0) * 72.0;
+        return Stack(
+          children: [
+            Positioned.fill(
+              child: IgnorePointer(
+                child: CustomPaint(
+                  painter: _RoundTreePainter(
+                    itemCount: rounds.length,
+                    columns: columns,
+                    lineColor: Theme.of(context).colorScheme.outlineVariant,
+                  ),
+                ),
+              ),
+            ),
+            GridView.builder(
+              key: const Key('unified-round-tree'),
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: columns,
+                crossAxisSpacing: 16,
+                mainAxisSpacing: 18,
+                mainAxisExtent: roundHeight,
+              ),
+              itemCount: rounds.length,
+              itemBuilder: (context, index) {
+                final round = rounds[index];
+                final node = _RoundNode(
+                  round: round,
+                  roundNumber: index + 1,
+                  completed: completedRounds.contains(round.id),
+                  perfect: perfectRounds.contains(round.id),
+                  ttsSkippedPerfect: ttsSkippedPerfectRounds.contains(round.id),
+                  onTap: () => onOpenRound(round),
+                );
+                if (columns == 2 &&
+                    rounds.length.isOdd &&
+                    index == rounds.length - 1) {
+                  return Transform.translate(
+                    offset: Offset((constraints.maxWidth + 16) / 4, 0),
+                    child: node,
+                  );
+                }
+                return node;
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _RoundNode extends StatelessWidget {
+  final LearningRound round;
+  final int roundNumber;
+  final bool completed;
+  final bool perfect;
+  final bool ttsSkippedPerfect;
+  final VoidCallback onTap;
+
+  const _RoundNode({
+    required this.round,
+    required this.roundNumber,
+    required this.completed,
+    required this.perfect,
+    required this.ttsSkippedPerfect,
+    required this.onTap,
+  });
+
+  IconData get _visualIcon => switch (round.visualType) {
+    'listening' => Icons.headphones_outlined,
+    'story' => Icons.auto_stories_outlined,
+    'test' => Icons.fact_check_outlined,
+    _ => Icons.school_outlined,
+  };
+
+  bool get _needsAudio => round.exercises.any(
+    (exercise) =>
+        (exercise.tts?.trim().isNotEmpty ?? false) ||
+        const {
+          'audio_match',
+          'listening_choice',
+          'listening_comprehension',
+          'listening_spelling',
+          'missing_word',
+        }.contains(exercise.type),
+  );
+
+  bool get _hasDescriptiveTitle => !RegExp(
+    r'^(round|ronda)\s+\d+$',
+    caseSensitive: false,
+  ).hasMatch(round.title.trim());
+
+  String get _status => perfect
+      ? 'Perfect'
+      : completed || ttsSkippedPerfect
+      ? 'Practice'
+      : 'Learn';
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final colorScheme = Theme.of(context).colorScheme;
+    final statusColor = perfect
+        ? (isDark ? const Color(0xFF72DC86) : const Color(0xFF16862E))
+        : completed || ttsSkippedPerfect
+        ? (isDark ? const Color(0xFFFF9B7A) : const Color(0xFFD74B20))
+        : (isDark ? const Color(0xFF8DB8FF) : const Color(0xFF1657D9));
+    return Card(
+      key: ValueKey('unified-round-${round.id}'),
+      color: isDark
+          ? colorScheme.surfaceContainerHigh
+          : const Color(0xFFFFF8D6),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(18),
+        side: BorderSide(
+          color: isDark ? colorScheme.outlineVariant : const Color(0xFFF1C232),
+        ),
+      ),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(18),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(13),
+          child: Row(
+            children: [
+              SizedBox(
+                width: 72,
+                height: 66,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    if (perfect) ...[
+                      Positioned(
+                        left: 0,
+                        bottom: 2,
+                        child: Icon(Icons.eco, size: 34, color: statusColor),
+                      ),
+                      Positioned(
+                        right: 0,
+                        bottom: 2,
+                        child: Transform.flip(
+                          flipX: true,
+                          child: Icon(Icons.eco, size: 34, color: statusColor),
+                        ),
+                      ),
+                    ],
+                    Container(
+                      width: 52,
+                      height: 52,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: isDark
+                            ? const Color(0xFF3A3425)
+                            : const Color(0xFFFFEBC0),
+                      ),
+                      child: Icon(_visualIcon, size: 32),
                     ),
                   ],
                 ),
               ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Round $roundNumber',
+                      style: const TextStyle(fontWeight: FontWeight.w900),
+                    ),
+                    if (_hasDescriptiveTitle)
+                      Text(
+                        round.title,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(fontWeight: FontWeight.w800),
+                      ),
+                    Text(
+                      _status,
+                      style: TextStyle(
+                        color: statusColor,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              if (_needsAudio)
+                Icon(
+                  Icons.volume_up_outlined,
+                  color: isDark
+                      ? const Color(0xFF8DB8FF)
+                      : const Color(0xFF1657D9),
+                ),
             ],
           ),
-          const SizedBox(height: 12),
-          // Keep the four progress metrics in a stable 2x2 grid. A Wrap could
-          // place Week XP on a third line on medium-width desktop windows.
-          Column(
-            children: [
-              Row(
+        ),
+      ),
+    );
+  }
+}
+
+class _RoundTreePainter extends CustomPainter {
+  final int itemCount;
+  final int columns;
+  final Color lineColor;
+
+  const _RoundTreePainter({
+    required this.itemCount,
+    required this.columns,
+    required this.lineColor,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (itemCount < 2 || size.height <= 0) return;
+    final paint = Paint()
+      ..color = lineColor
+      ..strokeWidth = 2
+      ..style = PaintingStyle.stroke;
+    final rows = (itemCount / columns).ceil();
+    final rowHeight = size.height / rows;
+    final centerX = size.width / 2;
+    canvas.drawLine(Offset(centerX, 0), Offset(centerX, size.height), paint);
+    if (columns == 2) {
+      for (var row = 0; row < rows; row++) {
+        final y = rowHeight * row + rowHeight / 2;
+        canvas.drawLine(
+          Offset(size.width * .25, y),
+          Offset(size.width * .75, y),
+          paint,
+        );
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _RoundTreePainter oldDelegate) =>
+      oldDelegate.itemCount != itemCount ||
+      oldDelegate.columns != columns ||
+      oldDelegate.lineColor != lineColor;
+}
+
+class _DuelCard extends StatelessWidget {
+  final DuelEligibilityResult eligibility;
+  final VoidCallback onTap;
+
+  const _DuelCard({required this.eligibility, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) => Card(
+    key: const Key('unified-duel-card'),
+    color: eligibility.isAvailable
+        ? const Color(0xFF0756DF)
+        : Theme.of(context).colorScheme.surfaceContainerHighest,
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
+    child: InkWell(
+      borderRadius: BorderRadius.circular(22),
+      onTap: eligibility.isAvailable ? onTap : null,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+        child: Row(
+          children: [
+            Icon(
+              Icons.sports_martial_arts_outlined,
+              size: 52,
+              color: eligibility.isAvailable ? Colors.white : null,
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(
-                    child: _Metric(value: '$streak', label: 'day streak'),
+                  Text(
+                    'Duel',
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      color: eligibility.isAvailable ? Colors.white : null,
+                      fontWeight: FontWeight.w900,
+                    ),
                   ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: _Metric(
-                      value: '$daysStudied',
-                      label: 'days studying ${course.targetLanguage}',
+                  Text(
+                    eligibility.isAvailable
+                        ? 'Win to skip ahead'
+                        : 'Unavailable for this Lesson: not enough suitable exercises.',
+                    style: TextStyle(
+                      color: eligibility.isAvailable
+                          ? const Color(0xFFFFE600)
+                          : null,
+                      fontWeight: FontWeight.w800,
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 8),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: _Metric(value: '$laurels', label: 'laurel crowns'),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: _Metric(
-                      value: '$weekXp',
-                      label: 'Week XP · All courses / $weekXpTarget',
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ],
+            ),
+            if (eligibility.isAvailable)
+              const Icon(Icons.chevron_right, color: Colors.white),
+          ],
+        ),
       ),
     ),
   );
 }
 
-class _Metric extends StatelessWidget {
-  final String value, label;
-  const _Metric({required this.value, required this.label});
+class _EmptyCourseCard extends StatelessWidget {
+  const _EmptyCourseCard();
+
   @override
-  Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-    decoration: BoxDecoration(
-      color: Colors.white.withValues(alpha: .34),
-      borderRadius: BorderRadius.circular(12),
-    ),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          value,
-          style: Theme.of(
-            context,
-          ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
-        ),
-        Text(
-          label,
-          style: Theme.of(
-            context,
-          ).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w700),
-        ),
-      ],
+  Widget build(BuildContext context) => const Card(
+    child: Padding(
+      padding: EdgeInsets.all(20),
+      child: Text('This course does not contain any Lessons yet.'),
     ),
   );
 }
 
 class _QuickActions extends StatelessWidget {
-  final VoidCallback onLeaderboard, onReview, onInfo, onCredits;
+  final VoidCallback onLeaderboard, onReview, onCoffee, onCourseInfo;
   const _QuickActions({
     required this.onLeaderboard,
     required this.onReview,
-    required this.onInfo,
-    required this.onCredits,
+    required this.onCoffee,
+    required this.onCourseInfo,
   });
   @override
-  Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.all(12),
-    decoration: BoxDecoration(
-      color: const Color(0x78FFFDF7),
-      borderRadius: BorderRadius.circular(26),
-      border: Border.all(color: Colors.white.withValues(alpha: .70)),
-      boxShadow: [
-        BoxShadow(
-          color: Colors.black.withValues(alpha: .09),
-          blurRadius: 17,
-          offset: const Offset(0, 6),
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final colorScheme = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: isDark
+            ? colorScheme.surface.withValues(alpha: .90)
+            : const Color(0x78FFFDF7),
+        borderRadius: BorderRadius.circular(26),
+        border: Border.all(
+          color: isDark
+              ? colorScheme.outlineVariant
+              : Colors.white.withValues(alpha: .70),
         ),
-      ],
-    ),
-    child: Row(
-      children: [
-        Expanded(
-          child: _QuickAction(
-            icon: Icons.emoji_events_outlined,
-            label: 'Leaderboard',
-            onTap: onLeaderboard,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDark ? .30 : .09),
+            blurRadius: 17,
+            offset: const Offset(0, 6),
           ),
-        ),
-        const SizedBox(width: 6),
-        Expanded(
-          child: _QuickAction(
-            icon: Icons.history_edu_outlined,
-            label: 'Review',
-            onTap: onReview,
+        ],
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: _QuickAction(
+              icon: Icons.emoji_events_outlined,
+              label: 'Leaderboard',
+              onTap: onLeaderboard,
+            ),
           ),
-        ),
-        const SizedBox(width: 6),
-        Expanded(
-          child: _QuickAction(
-            icon: Icons.info_outline,
-            label: 'Info',
-            onTap: onInfo,
+          const SizedBox(width: 6),
+          Expanded(
+            child: _QuickAction(
+              icon: Icons.history_edu_outlined,
+              label: 'Review',
+              onTap: onReview,
+            ),
           ),
-        ),
-        const SizedBox(width: 6),
-        Expanded(
-          child: _QuickAction(
-            icon: Icons.attribution_outlined,
-            label: 'Credits',
-            onTap: onCredits,
+          const SizedBox(width: 6),
+          Expanded(
+            child: _QuickAction(
+              icon: Icons.coffee_outlined,
+              label: 'Buy a coffee',
+              onTap: onCoffee,
+            ),
           ),
-        ),
-      ],
-    ),
-  );
+          const SizedBox(width: 6),
+          Expanded(
+            child: _QuickAction(
+              icon: Icons.info_outline,
+              label: 'Course Info',
+              onTap: onCourseInfo,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class _QuickAction extends StatelessWidget {
@@ -1178,35 +1856,49 @@ class _QuickAction extends StatelessWidget {
     required this.onTap,
   });
   @override
-  Widget build(BuildContext context) => Material(
-    color: Colors.white.withValues(alpha: .34),
-    borderRadius: BorderRadius.circular(18),
-    child: InkWell(
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final colorScheme = Theme.of(context).colorScheme;
+    return Material(
+      color: isDark
+          ? colorScheme.surfaceContainerHighest.withValues(alpha: .72)
+          : Colors.white.withValues(alpha: .34),
       borderRadius: BorderRadius.circular(18),
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 10),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 24, color: const Color(0xFF3D704F)),
-            const SizedBox(height: 4),
-            FittedBox(
-              fit: BoxFit.scaleDown,
-              child: Text(
-                label,
-                maxLines: 1,
-                style: const TextStyle(
-                  fontWeight: FontWeight.w800,
-                  color: Color(0xFF254B3D),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(18),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 10),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                icon,
+                size: 24,
+                color: isDark
+                    ? const Color(0xFF9AD5B3)
+                    : const Color(0xFF3D704F),
+              ),
+              const SizedBox(height: 4),
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  style: TextStyle(
+                    fontWeight: FontWeight.w800,
+                    color: isDark
+                        ? colorScheme.onSurface
+                        : const Color(0xFF254B3D),
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
-    ),
-  );
+    );
+  }
 }
 
 /// Small medieval avatar. One painter covers all Status ranks and the six profile

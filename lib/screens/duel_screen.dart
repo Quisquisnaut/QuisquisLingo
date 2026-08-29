@@ -3,9 +3,8 @@ import 'package:flutter/material.dart';
 import '../services/alpha_lifecycle_service.dart';
 import '../widgets/alpha_expired_view.dart';
 import '../models/course_models.dart';
+import '../services/duel_eligibility_service.dart';
 import '../services/progress_service.dart';
-import '../services/app_errors.dart';
-import '../services/diagnostic_log_service.dart';
 import '../services/report_service.dart';
 import '../services/tts_cache_service.dart';
 import '../services/sound_effect_service.dart';
@@ -13,13 +12,13 @@ import '../services/course_service.dart';
 
 class DuelScreen extends StatefulWidget {
   final Course course;
-  final Chapter chapter;
+  final Topic topic;
   final String ttsLanguage;
 
   const DuelScreen({
     super.key,
     required this.course,
-    required this.chapter,
+    required this.topic,
     required this.ttsLanguage,
   });
 
@@ -49,6 +48,7 @@ class _DuelScreenState extends State<DuelScreen> {
   final _reports = ReportService();
   final _tts = TtsCacheService();
   final _sounds = SoundEffectService();
+  final _eligibility = const DuelEligibilityService();
   final _random = Random();
   int _index = 0;
   late List<_DuelItem> _items;
@@ -65,49 +65,22 @@ class _DuelScreenState extends State<DuelScreen> {
   ];
 
   List<_DuelItem> get _duelItems {
-    // Duels are built from the active chapter itself, so switching course
-    // automatically switches language, content and TTS. No Italian fallback.
-    final candidates = <_DuelItem>[];
-    const supportedTypes = {
-      'choice',
-      'gap_choice',
-      'dialogue_response',
-      'icon_choice',
-      'listening_choice',
-      'listening_comprehension',
-      'reading_comprehension',
-    };
-    final seen = <String>{};
-    for (final topic in widget.chapter.learningTopics) {
-      for (final round in topic.rounds) {
-        for (final exercise in round.exercises) {
-          final validCorrect =
-              exercise.correct != null &&
-              exercise.correct! >= 0 &&
-              exercise.correct! < exercise.answers.length;
-          if (supportedTypes.contains(exercise.type) &&
-              exercise.answers.length >= 2 &&
-              validCorrect) {
-            final correctText = exercise.answers[exercise.correct!];
-            final key = [
-              exercise.id,
-              exercise.type,
-              exercise.prompt.trim().toLowerCase(),
-              exercise.question.trim().toLowerCase(),
-              (exercise.tts ?? '').trim().toLowerCase(),
-              correctText.trim().toLowerCase(),
-            ].join('|');
-            if (seen.add(key)) {
-              candidates.add(
-                _DuelItem(topic: topic, round: round, exercise: exercise),
-              );
-            }
-          }
-        }
-      }
-    }
+    // Availability and selection share one Topic-scoped candidate pool.
+    final candidates = _eligibility
+        .evaluate(widget.topic)
+        .candidates
+        .map(
+          (candidate) => _DuelItem(
+            topic: widget.topic,
+            round: candidate.round,
+            exercise: candidate.exercise,
+          ),
+        )
+        .toList();
     candidates.shuffle(_random);
-    return candidates.take(25).toList();
+    return candidates
+        .take(DuelEligibilityService.requiredQuestionCount)
+        .toList();
   }
 
   @override
@@ -195,12 +168,11 @@ class _DuelScreenState extends State<DuelScreen> {
     await _reports.copyExerciseReport(
       kind: kind,
       course: widget.course,
-      chapter: widget.chapter,
       topic: item.topic,
       round: item.round,
       exercise: item.exercise,
       exerciseIndex: roundIndex < 0 ? 0 : roundIndex,
-      screen: 'Language Duel (${_index + 1}/${_duelItems.length})',
+      screen: 'Language Duel (${_index + 1}/${_items.length})',
       answerState: _answerState(item.exercise),
     );
     if (!mounted) return;
@@ -260,10 +232,13 @@ class _DuelScreenState extends State<DuelScreen> {
 
   Future<void> _finishDuel() async {
     final won = _lives > 0 && _index + 1 >= _items.length;
+    final isFinalLesson =
+        widget.course.topics.isNotEmpty &&
+        widget.course.topics.last.id == widget.topic.id;
     int? awardedXp;
     if (won) {
       awardedXp = await _progress.winDuel(
-        widget.chapter.duel.id,
+        widget.topic.duel.id,
         courseId: widget.course.courseId,
         courseCode: CourseService.codeForCourse(widget.course),
       );
@@ -276,10 +251,18 @@ class _DuelScreenState extends State<DuelScreen> {
       context: context,
       barrierDismissible: false,
       builder: (_) => AlertDialog(
-        title: Text(won ? 'Duel won' : 'Duel lost'),
+        title: Text(
+          won && isFinalLesson
+              ? 'Duel Won!'
+              : won
+              ? 'Duel won'
+              : 'Duel lost',
+        ),
         content: Text(
           won
-              ? 'Duel won: +$awardedXp XP\n\nYou proved your knowledge. The next chapter can now unlock.'
+              ? isFinalLesson
+                    ? 'Duel won: +$awardedXp XP'
+                    : 'Duel won: +$awardedXp XP\n\nYou proved your knowledge. The next Lesson can now unlock.'
               : (_lives <= 0
                     ? 'Duel lost. You have lost all four lives.'
                     : 'The duel ended before all 25 questions were completed.'),
@@ -326,18 +309,14 @@ class _DuelScreenState extends State<DuelScreen> {
   Widget build(BuildContext context) {
     if (AlphaLifecycleService.isExpired()) return const AlphaExpiredView();
     final items = _items;
-    if (items.length < 25) {
-      DiagnosticLogService().log(
-        AppErrorCode.duelInsufficientExercises,
-        context: 'Chapter: ${widget.chapter.id}',
-      );
+    if (items.length < DuelEligibilityService.requiredQuestionCount) {
       return Scaffold(
-        appBar: AppBar(title: Text(widget.chapter.duel.title)),
+        appBar: AppBar(title: Text(widget.topic.duel.title)),
         body: const Center(
           child: Padding(
             padding: EdgeInsets.all(24),
             child: Text(
-              'This Chapter does not contain enough exercises for a Language Duel.\n\nError DUEL-001',
+              'Duel unavailable for this Lesson because there are not enough suitable exercises.',
               textAlign: TextAlign.center,
             ),
           ),
@@ -353,7 +332,7 @@ class _DuelScreenState extends State<DuelScreen> {
       backgroundColor: background,
       appBar: AppBar(
         backgroundColor: background,
-        title: Text(widget.chapter.duel.title),
+        title: Text(widget.topic.duel.title),
         actions: [
           IconButton(
             tooltip: 'Report a problem',

@@ -1,6 +1,6 @@
 # QuisquisLingo Course Editor
 
-Updated for current Course Model v3 editor (2.0.0)
+Updated for current Course Model v4 editor (2.0.15+215)
 
 ## Unlocking the editor
 
@@ -10,9 +10,8 @@ Course Editor is an Easter Egg so ordinary learners do not encounter authoring c
 
 The editor supports the whole authoring tree:
 
-- Course → create/delete/reorder Chapters
-- Chapter → create/delete/reorder Topics
-- Topic → create/delete/reorder Rounds
+- Course → create/delete/reorder Topics
+- Topic → edit its Guidebook and image, and create/delete/reorder Rounds; a stable Duel identity is retained automatically
 - Round → create/delete/reorder Exercises
 
 New objects receive generated local IDs. Deleting an object removes its descendants from the local edited course. The bundled JSON asset is never modified. **Reset local edits** restores the bundled course.
@@ -61,7 +60,7 @@ Run **Course Audit** from the top of Course Editor. Severity levels:
 Checks include:
 
 - duplicate or missing IDs
-- empty chapters/topics/rounds
+- empty courses/topics/rounds
 - round length versus the standard 15
 - missing Reading or Listening comprehension in a round
 - unsupported exercise types
@@ -77,9 +76,11 @@ Checks include:
 - fields that do not belong to the selected exercise type
 - likely source/target capitalization inconsistency
 - repeated prompt/question inside one round
-- too few unique Duel candidates
+- unavailable Topic Duels after applying the actual eligibility rules
 
 Audit does not certify grammar, translation accuracy, cultural appropriateness or teaching quality. Those remain human editorial responsibilities.
+
+A Topic with fewer than six Rounds receives author guidance only. Duel availability never depends on Round count: fewer than 25 actual eligible Topic exercises produces a non-blocking `DUEL_UNAVAILABLE` suggestion and is normal supported behavior.
 
 ## Storage and recovery
 
@@ -136,7 +137,7 @@ Blocks, missing Reading/Listening coverage, oversized text and other structural
 problems. Audit does not certify grammar or translation accuracy.
 
 ## Temporary sample courses
-Bundled courses contain exactly three sample Chapters and are marked `temporarySample`. The UI displays a TEMPORARY SAMPLE badge. While at least one Chapter retains this badge, Course Editor displays the sample-content warning every time it is opened. Creators can remove or restore the badge from the Chapter editor. Sample material must be replaced and human-reviewed before publication.
+Bundled courses carry a course-level `temporarySample` flag. The UI displays a TEMPORARY SAMPLE badge and Course Editor displays the sample-content warning every time a marked course is opened. Creators can remove or restore the flag from the Course Editor menu. Sample material must be replaced and human-reviewed before publication.
 
 ## Preview mode
 Round and exercise previews launch the learner renderer but suppress all progress writes, XP, streaks, Review history, unlocks, Status and laurel crowns. A temporary result may be shown and is discarded on exit.
@@ -167,7 +168,7 @@ Course Editor dialogs and author rows are designed to stack vertically on narrow
 
 ## Audit and edge cases
 
-Course Audit should be run after structural edits and before distribution. It checks IDs, round structure, exercise invariants, Duel candidate count, suspicious duplicate content, early Opposite exercises, isolated-word capitalization, author metadata, long descriptions and malformed `lastUpdated` dates. Audit codes are stable identifiers for reporting a rule even if its explanatory text changes.
+Course Audit should be run after structural edits and before distribution. It checks IDs, Round structure, exercise invariants, the actual Topic-local Duel eligible pool, suspicious duplicate content, early Opposite exercises, isolated-word capitalization, author metadata, long descriptions and malformed `lastUpdated` dates. Audit codes are stable identifiers for reporting a rule even if its explanatory text changes.
 
 
 ## 0.7.3 Course Info roles and languages
@@ -176,10 +177,6 @@ Course Info displays Source language and Target language as read-only values. Th
 
 An author can have multiple roles. Course Creator means original creation/design of a substantial part of the course; Editor means ongoing maintenance or substantial revision of existing content; Contributor means a specific or limited contribution. Team Leader coordinates the team and can be combined with other roles. Reviewer, Native Speaker and Audio Contributor describe narrower contributions. Custom roles are allowed. Roles describe contributions, not hierarchy.
 
-## Chapter Editor notes
-
-Every Chapter can contain Editor notes. These are internal technical/editorial notes for course authors, including TODOs, decisions, sources to verify and known issues. They are serialized with the Chapter but never rendered in learner mode. Learner-facing instructional material belongs to the Guidebook of each learning Topic.
-
 ## Alpha expiry and authoring
 
 The current time-limited alpha expires on 2026-09-27. Expiry blocks learner exercises and Review but deliberately leaves Course Editor available so authoring work can be inspected, recovered and exported. Expiry never deletes local data.
@@ -187,20 +184,20 @@ The current time-limited alpha expires on 2026-09-27. Expiry blocks learner exer
 
 ## Current bundled course and My custom courses
 
-The Course Editor entry screen separates the **Current bundled course** from **My custom courses**. A created or imported custom course remains custom even when it is the currently selected course and is never duplicated under Current bundled course. Temporary sample material refers to bundled sample courses supplied with early/current development builds and is progressively replaced by reviewed course content. A newly created custom course starts from a basic Course Model v3 authoring skeleton: five placeholder Chapters, each with three placeholder learning Topics plus its Language Duel assessment. No Rounds are created automatically.
+The Course Editor entry screen separates the **Current bundled course** from **My custom courses**. A created or imported custom course remains custom even when it is the currently selected course and is never duplicated under Current bundled course. Temporary sample material refers to bundled sample courses supplied with early/current development builds and is progressively replaced by reviewed course content. A newly created custom course starts from a basic Course Model v4 authoring skeleton: 3 placeholder Topics, each with a stable Topic-scoped Duel identity. No Rounds are created automatically.
 
 When creating a custom course, the author can use one of QuisquisLingo's existing flags or import a PNG/JPG image. Imported flags are checked for file size and resolution. Images that are too small or excessively large are rejected; accepted large images are resized to a maximum 256 px longest side while preserving their aspect ratio. The processed PNG is stored with the course so it remains available if the original file is moved or deleted.
 
-Custom courses can be imported from and exported to `.json` files without a file chooser. For import, copy the course file to `Documents/QuisquisLingo/Exports/import.json`, then press **Import course JSON**. The imported course is added under **My custom courses** and `import.json` is left in place. Course Audit errors block import; warnings are reported for review but do not block it. Imports are UTF-8 Course Model v3 JSON and are validated through the normal `Course` parser. Course Model v2 files remain importable through a deterministic v2-to-v3 compatibility migration; export writes the canonical v3 structure. Files larger than 10 MB are refused. An imported course with the same stable `courseId` as an existing custom course requires confirmation before replacement. Exports are written to the same `Documents/QuisquisLingo/Exports` directory and contain the canonical human-readable Course Model v3 object, including optional custom flag data. Learner **Export my data** remains separate and does not contain custom courses.
+Custom courses can be imported from and exported to `.json` files without a file chooser. For import, copy the course file to `Documents/QuisquisLingo/Exports/import.json`, then press **Import course JSON**. The imported course is added under **My custom courses** and `import.json` is left in place. Course Audit errors block import; warnings are reported for review but do not block it. Imports must be UTF-8 Course Model v4 JSON and are validated through the normal `Course` parser. Older Chapter-based formats are unsupported and are not read, migrated or converted; export writes the canonical v4 structure. Files larger than 10 MB are refused. An imported course with the same stable `courseId` as an existing custom course requires confirmation before replacement. Exports are written to the same `Documents/QuisquisLingo/Exports` directory and contain the canonical human-readable Course Model v4 object, including optional custom flag data. Learner **Export my data** remains separate and does not contain custom courses.
 
 
 ### Home course selection and navigation
 
-**Home > Change course** lists bundled courses and every locally available custom course, including courses created in the editor and courses imported from JSON. Selecting one makes it the current course. **Go to course** resumes the active learner at the last Chapter opened in that specific course; when no Chapter has been opened yet, it opens the first Chapter. **Quick actions > Chapters** deliberately remains different: it always opens the full Chapter list. Leaving an individual Chapter with the back button always returns to this Chapter list, including when **Go to course** opened the Chapter directly from Home.
+The Home course selector lists bundled courses and every locally available custom course, including courses created in the editor and courses imported from JSON. Selecting one makes it the current course. The unified learner page resumes the active learner at the last Lesson opened in that specific course; first use falls back to Lesson 1. **Browse All Lessons** switches Lesson without an intermediate hierarchy screen, and Back from a Round returns directly to the unified Home learner page.
 
 ### Copy edits as JSON vs Export course JSON
 
-**Copy edits as JSON** is for the Current bundled course. Bundled assets are not rewritten; the editor stores a local override, and this command copies that override JSON to the clipboard. It does not create a file. **Export course JSON** is for a custom course and writes a complete portable Course Model v3 JSON file to `Documents/QuisquisLingo/Exports`.
+**Copy edits as JSON** is for the Current bundled course. Bundled assets are not rewritten; the editor stores a local override, and this command copies that override JSON to the clipboard. It does not create a file. **Export course JSON** is for a custom course and writes a complete portable Course Model v4 JSON file to `Documents/QuisquisLingo/Exports`.
 
 When `Documents/QuisquisLingo/Exports/import.json` is imported successfully, QuisquisLingo validates it, copies the course into local custom-course storage and lists it under **My custom courses**. The stored course no longer depends on `import.json`; the transfer file is left in place. The stable `courseId` identifies the course internally. Course Info remains available even when the course content is locked. Renaming the visible Course name in Course Info does not change `courseId`; the Lock protects structural/content editing, not course metadata. Importing another JSON with the same `courseId` therefore requires confirmation before replacing the existing custom course.
 

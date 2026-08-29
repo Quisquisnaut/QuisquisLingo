@@ -3,12 +3,15 @@
 ```text
 LEARNER PROFILE
 |
-+-- target language/course
-|    |
-|    +-- language-specific XP / streak / study days / Status
-|    +-- completed rounds/topics / Duel wins
-|    +-- permanent laurel crowns
-|    +-- up to 50 distinct Review round results
++-- language
+|    +-- XP / streak / study days
+|
++-- course ID
+|    +-- completed Rounds / Topics / Duel wins
+|    +-- permanent Laurel crowns
+|    +-- up to 50 distinct Review Round results
+|
++-- learner-global Weekly XP and weekly-goal celebration state
 |
 +-- avatar appearance (shared across languages)
 ```
@@ -16,36 +19,36 @@ LEARNER PROFILE
 ```text
 COURSE
 |
-+-- CHAPTER
++-- TOPIC (shown to learners as Lesson)
 |    |
-|    +-- TOPIC
-|    |    |
-|    |    +-- ROUND
-|    |         |
-|    |         +-- exercises
-|    |         +-- latest attempt error count
-|    |         +-- perfectAchieved -> permanent laurel crown
+|    +-- GUIDEBOOK
 |    |
-|    +-- CHAPTER GATE
-|         +-- complete required topics
-|         OR
-|         +-- win Language Duel (standard: 25 questions, 4 lives, no score or pass threshold)
+|    +-- ROUND
+|    |    +-- exercises/content
+|    |    +-- latest attempt error count
+|    |    +-- perfectAchieved -> permanent Laurel crown
+|    |
+|    +-- TOPIC DUEL
+|         +-- actual eligible pool from this Topic only
+|         +-- available at 25 or more eligible exercises
+|         +-- standard: 25 questions, 4 lives, no score or pass threshold
 |
-+-- next CHAPTER
++-- next TOPIC unlocks when the immediately previous Topic is completed
+    OR when the immediately previous Topic Duel is won
 ```
 
-Learners may jump freely among topics and rounds inside an available chapter.
+The first Topic is genuinely unlocked. Learners may open its Rounds freely. IDDQD Mode grants temporary access to genuinely locked Topics without changing their lock state or the progress recorded while they are open.
 
 ## Review priority
 
-For each learner + target language, keep at most 50 distinct recently completed rounds. Repeating a round replaces its latest-attempt record.
+For each learner + Course ID, keep at most 50 distinct recently completed Rounds. Repeating a Round replaces its latest-attempt record.
 
 ```text
 sort key 1: latestErrors descending
 sort key 2: completedAt descending
 ```
 
-A Review attempt can earn a permanent laurel crown exactly like a normal course attempt.
+A Review attempt can earn a permanent Laurel crown exactly like a normal course attempt.
 
 ## Streak freeze rule
 
@@ -53,16 +56,17 @@ A language streak advances only on a new day when that language is studied. A da
 
 ## Course authoring boundary
 
-Bundled JSON files are read-only. Course Editor stores a validated local course override. The hierarchy can be created, deleted and reordered locally. Reset local edits returns to the bundled asset.
+Bundled JSON files are read-only. Course Editor stores a validated local Course Model v4 override. The Topic/Round/content hierarchy can be created, deleted and reordered locally. Reset local edits returns to the bundled asset.
 
 ## Storage boundary
 
 ```text
 DEVICE ONLY
 - learner profiles and avatar preferences
-- language-specific progress and Status inputs
-- Review history
-- local Course Editor overrides
+- language-scoped XP, streaks, study days and Status inputs
+- learner-global Weekly XP and per-course Weekly XP breakdowns
+- course-scoped Round/Topic/Duel progress, Laurels and Review history
+- local Course Model v4 Course Editor overrides
 - settings
 - automatic Crash Log plus separate exportable Diagnostic Log
 

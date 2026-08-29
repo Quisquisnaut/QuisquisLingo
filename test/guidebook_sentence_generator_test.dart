@@ -48,7 +48,6 @@ void main() {
       final fixture = _generatorFixture();
       final originalTopicJson = fixture.topic.toJson();
       final originalCourseJson = fixture.course.toJson();
-      final originalChapterJson = fixture.chapter.toJson();
       final guidebookIds = fixture.topic.guidebook.content
           .map((content) => content.id)
           .toSet();
@@ -68,9 +67,11 @@ void main() {
       final updated = routeResults.single!;
       expect(updated.id, fixture.topic.id);
       expect(updated.title, fixture.topic.title);
+      expect(updated.duel.toJson(), fixture.topic.duel.toJson());
       expect(updated.guidebook.toJson(), fixture.topic.guidebook.toJson());
       expect(updated.rounds, hasLength(4));
       expect(updated.rounds.first.id, 'existing_round');
+      expect(updated.rounds.first.visualType, 'story');
       expect(updated.rounds.skip(1).map((round) => round.title), [
         'Round 1',
         'Round 2',
@@ -79,6 +80,10 @@ void main() {
       expect(
         updated.rounds.skip(1).map((round) => round.exercises.length),
         everyElement(8),
+      );
+      expect(
+        updated.rounds.skip(1).map((round) => round.visualType),
+        everyElement('generic'),
       );
 
       final generatedContent = updated.rounds
@@ -120,7 +125,6 @@ void main() {
       expect(generatedIds, isNot(contains('existing_exercise')));
 
       expect(fixture.topic.toJson(), originalTopicJson);
-      expect(fixture.chapter.toJson(), originalChapterJson);
       expect(fixture.course.toJson(), originalCourseJson);
       final prefs = await SharedPreferences.getInstance();
       expect(prefs.getKeys(), {'sentinel'});
@@ -131,12 +135,10 @@ void main() {
 
 class _GeneratorFixture {
   final Course course;
-  final Chapter chapter;
   final Topic topic;
 
   const _GeneratorFixture({
     required this.course,
-    required this.chapter,
     required this.topic,
   });
 }
@@ -160,6 +162,7 @@ _GeneratorFixture _generatorFixture() {
   final existingRound = LearningRound(
     id: 'existing_round',
     title: 'Existing Round',
+    visualType: 'story',
     exercises: [_choiceExercise('existing_exercise')],
   );
   final topic = Topic(
@@ -167,12 +170,6 @@ _GeneratorFixture _generatorFixture() {
     title: 'Everyday language',
     rounds: [existingRound],
     guidebook: guidebook,
-  );
-  final chapter = Chapter(
-    id: 'chapter_identity',
-    title: 'Chapter identity',
-    requiredTopics: 1,
-    topics: [topic],
   );
   final course = Course(
     courseId: 'course_identity',
@@ -183,9 +180,9 @@ _GeneratorFixture _generatorFixture() {
     title: 'Generator Characterization Course',
     ttsLanguage: 'it-IT',
     version: '1.0.0',
-    chapters: [chapter],
+    topics: [topic],
   );
-  return _GeneratorFixture(course: course, chapter: chapter, topic: topic);
+  return _GeneratorFixture(course: course, topic: topic);
 }
 
 Exercise _choiceExercise(String id) => Exercise(
@@ -221,7 +218,6 @@ Future<void> _openTopicEditor(
                     MaterialPageRoute(
                       builder: (_) => TopicEditorScreen(
                         course: fixture.course,
-                        chapter: fixture.chapter,
                         topic: fixture.topic,
                       ),
                     ),

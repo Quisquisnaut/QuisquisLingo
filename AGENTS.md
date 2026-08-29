@@ -27,6 +27,7 @@ These are persistent instructions for Codex when working on QuisquisLingo.
 - `2.0.12+212` extracts the existing XP formulas into a pure `XpCalculator` without changing behavior.
 - `2.0.13+213` stabilizes the authoritative Round, Review, Topic and Duel XP rules and makes displayed and persisted awards share one calculation result.
 - `2.0.14+214` communicates first Topic completion in the Round XP breakdown, unifies guarded text-entry submission, promotes Leaderboard navigation to Home, and applies narrow status-bar and desktop-resize refinements.
+- `2.0.15+215` removes Chapter through a clean Course Model v4 cut, introduces the unified Course → Lesson → Round learner page, and makes Duel Topic-scoped with actual-pool availability.
 
 ## Architecture and service boundaries
 
@@ -131,16 +132,21 @@ Weekly rollover, streaks, activity timestamps, Review timestamps, and other time
 - Use the numeric build number without dots in package names.
 - Keep the previous packaged release as a rollback copy until the new release has been tested successfully.
 
-## Course Model v3 invariants
+## Course Model v4 invariants
 
-- Canonical course format is `formatVersion: 3`.
-- Hierarchy: Course > Chapter > Topic > Guidebook + Rounds > Content/Exercise.
-- Guidebooks belong to learning Topics. Chapters do not own Guidebooks.
+- Canonical course format is `formatVersion: 4`.
+- Hierarchy: Course > Topic > GuideBook + Rounds + Duel > Content/Exercise.
+- Chapter is not part of the production model, learner navigation, editor or persistence. Chapter-based course formats are unsupported and are not read, migrated or converted.
+- Internal Topic is shown to learners as Lesson.
+- GuideBooks and Duels belong to Topics.
 - Topic Guidebook content may be used to propose or generate exercises or Rounds, but generated content requires preview/review and explicit approval before creation.
-- A newly created custom course starts with 5 placeholder Chapters and 3 learning Topics per Chapter, with no automatic Rounds.
+- A newly created custom course starts with 3 placeholder Topics and no automatic Rounds.
 - A manually created Round starts with 3 editable dummy exercises.
+- Round `visualType` is one of `listening`, `story`, `generic` or `test` and is independent of exercise type.
+- A Topic should normally contain at least 6 Rounds, often roughly 48 exercises, but this is guidance only and never a validity or Duel-availability rule.
+- Duel availability is calculated at runtime from the actual Topic-local pool after applying the established eligibility rules. Fewer than 25 eligible exercises makes that Topic's Duel normally unavailable; never duplicate questions or change gameplay rules to compensate.
 - Preserve stable Item IDs and valid references.
-- Canonical v3 text-match exports use `acceptedAnswers`; legacy `accepted` remains import-compatible.
+- Canonical v4 text-match exports use `acceptedAnswers`; `accepted` remains import-compatible for that exercise field.
 - Imported/custom courses remain custom even when selected. Do not infer bundled/custom origin from title alone.
 
 ## Course identity and collision handling
@@ -193,9 +199,9 @@ Reset rules:
 - It must not reset unrelated learner data.
 - After course progress is reset, a Round may again qualify for the normal first-completion XP rules if that is the established scoring behavior.
 
-Chapter access rules:
+Topic access rules:
 
-- Chapter unlocks are earned by normal completion rules or a Language Duel win.
+- The first Topic is unlocked. Each later Topic unlocks when the immediately preceding Topic is completed or its Topic-scoped Duel is won.
 - `IDDQD Mode (you can walk through locks)` is stored per user and per course.
 - IDDQD grants temporary access without changing genuine unlock state.
 - While IDDQD is active, genuine progress and genuine unlocks must continue to be recorded.
@@ -224,7 +230,7 @@ When a new XP system is explicitly introduced, update this section to describe t
 ## Course Editor invariants
 
 - Keep exercise type names friendly and concrete in the editor. Do not replace them with abstract/internal taxonomy.
-- Guidebooks belong to Topics, not Chapters.
+- GuideBooks belong to Topics.
 - Topic Guidebook content may be used to generate draft exercises/Rounds.
 - Guidebook-generated exercises/Rounds must still be reviewed and explicitly approved before creation.
 - Course Info contributor roles include `Illustrator`.
@@ -232,7 +238,6 @@ When a new XP system is explicitly introduced, update this section to describe t
 - User-created courses may be deleted only through the established double-confirmation flow.
 - Remember the last selected course across app restarts.
 - The Course Editor main page should retain access to Help.
-- Chapter numbering should appear before the Chapter title where the established UI uses numbered Chapters.
 
 ## Exercise-content rules
 

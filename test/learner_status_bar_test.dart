@@ -14,10 +14,7 @@ import 'package:quisquislingo_app/widgets/learner_shell.dart';
 import 'package:quisquislingo_app/widgets/learner_status_bar.dart';
 import 'package:quisquislingo_app/widgets/flag_art.dart';
 import 'package:quisquislingo_app/widgets/learner_navigation.dart';
-import 'package:quisquislingo_app/screens/chapter_screen.dart';
-import 'package:quisquislingo_app/screens/chapters_screen.dart';
 import 'package:quisquislingo_app/screens/review_screen.dart';
-import 'package:quisquislingo_app/screens/topic_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class _Profiles extends ProfileService {
@@ -79,16 +76,10 @@ Course _course({String title = 'Italian', String flagCode = 'IT'}) => Course(
   ttsLanguage: 'it-IT',
   version: '1',
   flagCode: flagCode,
-  chapters: const [],
+  topics: const [],
 );
 
 final _topic = Topic(id: 'topic', title: 'Topic', rounds: const []);
-final _chapter = Chapter(
-  id: 'chapter',
-  title: 'Chapter',
-  requiredTopics: 0,
-  topics: [_topic],
-);
 
 Course _navigationCourse() => Course(
   courseId: 'navigation_course',
@@ -99,7 +90,7 @@ Course _navigationCourse() => Course(
   title: 'Navigation course',
   ttsLanguage: 'it-IT',
   version: '1',
-  chapters: [_chapter],
+  topics: [_topic],
 );
 
 void main() {
@@ -175,12 +166,10 @@ void main() {
                               child: Scaffold(
                                 appBar: LearnerStatusAppBar(
                                   appBar: AppBar(
-                                    title: const Text('ChaptersScreen'),
+                                    title: const Text('Lesson page'),
                                   ),
                                 ),
-                                body: const Text(
-                                  'ChapterScreen TopicScreen Review',
-                                ),
+                                body: const Text('Lesson and Review'),
                               ),
                             ),
                           ),
@@ -231,7 +220,7 @@ void main() {
         before,
       );
 
-      Navigator.of(tester.element(find.text('ChaptersScreen'))).pop();
+      Navigator.of(tester.element(find.text('Lesson page'))).pop();
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const Key('push-round')));
       await tester.pumpAndSettle();
@@ -449,68 +438,30 @@ void main() {
     expect(find.text('1250 / 2000'), findsOneWidget);
   });
 
-  testWidgets(
-    'Chapters, Chapter, Topic, and Review use the identical shell position',
-    (tester) async {
-      SharedPreferences.setMockInitialValues({
-        'learner_default_course_update_seen_IT': '1',
-      });
-      final course = _navigationCourse();
-      await tester.pumpWidget(
-        MaterialApp(
-          navigatorKey: learnerNavigatorKey,
-          navigatorObservers: [learnerStatusRouteObserver],
-          builder: (context, child) =>
-              LearnerShell(controller: controller, child: child!),
-          home: ChaptersScreen(course: course),
+  testWidgets('Home and Review use the identical learner-shell position', (
+    tester,
+  ) async {
+    final course = _navigationCourse();
+    await tester.pumpWidget(app());
+    await tester.pump();
+    final before = tester.getTopLeft(
+      find.byKey(const Key('learner-status-position')),
+    );
+
+    unawaited(
+      Navigator.of(
+        tester.element(find.byType(LearnerStatusPage).last),
+      ).push<void>(
+        MaterialPageRoute(
+          builder: (_) => ReviewScreen(course: course, courseCode: 'IT'),
         ),
-      );
-      await tester.pump();
-      await tester.pump();
-      final positions = <Offset>[
-        tester.getTopLeft(find.byKey(const Key('learner-status-position'))),
-      ];
+      ),
+    );
+    await tester.pumpAndSettle();
 
-      void pushLearnerPage(Widget screen) {
-        unawaited(
-          Navigator.of(
-            tester.element(find.byType(LearnerStatusPage).last),
-          ).push<void>(MaterialPageRoute(builder: (_) => screen)),
-        );
-      }
-
-      final chapterScreen = ChapterScreen(
-        course: course,
-        chapter: _chapter,
-        nextChapter: null,
-        ttsLanguage: course.ttsLanguage,
-      );
-      pushLearnerPage(chapterScreen);
-      await tester.pumpAndSettle();
-      positions.add(
-        tester.getTopLeft(find.byKey(const Key('learner-status-position'))),
-      );
-
-      pushLearnerPage(
-        TopicScreen(
-          course: course,
-          chapter: _chapter,
-          topic: _topic,
-          ttsLanguage: course.ttsLanguage,
-        ),
-      );
-      await tester.pumpAndSettle();
-      positions.add(
-        tester.getTopLeft(find.byKey(const Key('learner-status-position'))),
-      );
-
-      pushLearnerPage(ReviewScreen(course: course, courseCode: 'IT'));
-      await tester.pumpAndSettle();
-      positions.add(
-        tester.getTopLeft(find.byKey(const Key('learner-status-position'))),
-      );
-
-      expect(positions.toSet(), hasLength(1));
-    },
-  );
+    expect(
+      tester.getTopLeft(find.byKey(const Key('learner-status-position'))),
+      before,
+    );
+  });
 }

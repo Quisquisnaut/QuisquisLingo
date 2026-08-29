@@ -52,23 +52,21 @@ class _ReviewScreenState extends State<ReviewScreen> {
     }
   }
 
-  _RoundLocation? _findRound(String roundId) {
-    for (final chapter in widget.course.chapters) {
-      for (final topic in chapter.learningTopics) {
-        for (var i = 0; i < topic.rounds.length; i++) {
-          final round = topic.rounds[i];
-          if (round.id == roundId) {
-            return _RoundLocation(
-              chapterIndex: widget.course.chapters.indexWhere(
-                (c) => c.id == chapter.id,
-              ),
-              chapter: chapter,
-              topic: topic,
-              round: round,
-              roundIndex: i,
-            );
-          }
-        }
+  _RoundLocation? _findRound(String topicId, String roundId) {
+    final topicIndex = widget.course.topics.indexWhere(
+      (topic) => topic.id == topicId,
+    );
+    if (topicIndex < 0) return null;
+    final topic = widget.course.topics[topicIndex];
+    for (var i = 0; i < topic.rounds.length; i++) {
+      final round = topic.rounds[i];
+      if (round.id == roundId) {
+        return _RoundLocation(
+          topicIndex: topicIndex,
+          topic: topic,
+          round: round,
+          roundIndex: i,
+        );
       }
     }
     return null;
@@ -79,7 +77,6 @@ class _ReviewScreenState extends State<ReviewScreen> {
       MaterialPageRoute(
         builder: (_) => RoundScreen(
           course: widget.course,
-          chapter: location.chapter,
           topic: location.topic,
           round: location.round,
           roundIndex: location.roundIndex,
@@ -95,7 +92,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
     if (AlphaLifecycleService.isExpired()) return const AlphaExpiredView();
     final resolved = <(_RoundLocation, RecentRoundEntry)>[];
     for (final entry in _recent) {
-      final location = _findRound(entry.roundId);
+      final location = _findRound(entry.topicId, entry.roundId);
       if (location != null) resolved.add((location, entry));
     }
 
@@ -132,7 +129,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
                           : CircleAvatar(child: Text('${entry.errors}')),
                       title: Text(location.round.title),
                       subtitle: Text(
-                        'Chapter ${location.chapterIndex + 1}: ${location.chapter.title} · ${location.topic.title} · ${entry.errors} ${entry.errors == 1 ? 'error' : 'errors'} in latest attempt',
+                        'Lesson ${location.topicIndex + 1}: ${location.topic.title} · ${entry.errors} ${entry.errors == 1 ? 'error' : 'errors'} in latest attempt',
                       ),
                       trailing: const Icon(Icons.replay_outlined),
                       onTap: () => _open(location),
@@ -146,15 +143,13 @@ class _ReviewScreenState extends State<ReviewScreen> {
 }
 
 class _RoundLocation {
-  final int chapterIndex;
-  final Chapter chapter;
+  final int topicIndex;
   final Topic topic;
   final LearningRound round;
   final int roundIndex;
 
   const _RoundLocation({
-    required this.chapterIndex,
-    required this.chapter,
+    required this.topicIndex,
     required this.topic,
     required this.round,
     required this.roundIndex,

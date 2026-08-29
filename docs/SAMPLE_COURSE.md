@@ -1,10 +1,10 @@
 # Bundled sample courses
 
-Updated for version 2.0.0.
+Updated for version 2.0.15+215.
 
-QuisquisLingo currently bundles eight Course Model v3 sample courses: Italian, German, Spanish, Welsh, Dutch, Portuguese and Finnish from English, plus English from Spanish. Every bundled course has exactly three sample Chapters, and every Chapter has three learning Topics plus its Language Duel assessment Topic. Chapter and learning Topic titles are written in the course source language. The sample material is temporary development/demo content and can be progressively replaced by reviewed content from the course creators.
+QuisquisLingo currently bundles eight Course Model v4 sample courses: Italian, German, Spanish, Welsh, Dutch, Portuguese and Finnish from English, plus English from Spanish. Every bundled course contains nine deterministically ordered Topics with two Rounds per Topic. Topic and Round IDs remain stable, Topic titles are written in the course source language, and the course-level `temporarySample` flag marks the material as temporary development/demo content that can be progressively replaced by reviewed content from the course creators.
 
-The bundled courses use `formatVersion: 3`. Chapters do not contain Guidebooks. Every learning Topic contains its own structured Guidebook and its own Rounds. The first Content item of Round 1 is a short non-exercise `topic_intro` containing essential information drawn from that Topic Guidebook and a reminder to read the Topic Guidebook for more. Topic images are used where appropriate. The sample material includes enough eligible exercises for the 25-question Language Duel in every bundled sample Chapter. The build-time course validator must report all eight bundled course JSON files as OK.
+The bundled courses use `formatVersion: 4`. Every Topic contains its own structured Guidebook, ordered Rounds and stable Duel identity. The first Content item of Round 1 is a short non-exercise `topic_intro` containing essential information drawn from that Topic Guidebook and a reminder to read the Topic Guidebook for more. Topic images are used where appropriate. Each current Topic has 10 or 11 actual Duel-eligible exercises, so its 25-question Duel is normally unavailable; this is supported behavior for the temporary samples, not a validation error. The build-time course validator must report all eight bundled course JSON files as OK.
 
 ## Audio Match
 

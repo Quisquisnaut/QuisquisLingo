@@ -66,7 +66,12 @@ void main() {
           courseId: 'course_a',
           courseCode: 'IT',
         );
-        await service.recordRecentRound('course_a', 'shared_round', errors: 4);
+        await service.recordRecentRound(
+          'course_a',
+          'shared_topic',
+          'shared_round',
+          errors: 4,
+        );
 
         expect(await service.getCompletedRounds(courseId: 'course_a'), {
           'shared_round',
@@ -84,9 +89,14 @@ void main() {
           'shared_duel',
         });
         expect(
-          (await service.getRecentRounds(courseId: 'course_a')).single.roundId,
-          'shared_round',
+          await service.getRecentRounds(courseId: 'course_a'),
+          hasLength(1),
         );
+        final recent = (await service.getRecentRounds(
+          courseId: 'course_a',
+        )).single;
+        expect(recent.topicId, 'shared_topic');
+        expect(recent.roundId, 'shared_round');
 
         expect(await service.getCompletedRounds(courseId: 'course_b'), isEmpty);
         expect(await service.getCompletedTopics(courseId: 'course_b'), isEmpty);
@@ -148,16 +158,17 @@ void main() {
       'Review keeps the latest result per course and prioritizes errors',
       () async {
         final service = await progress();
-        await service.recordRecentRound('course_a', 'r1', errors: 5);
-        await service.recordRecentRound('course_b', 'r1', errors: 9);
-        await service.recordRecentRound('course_a', 'r2', errors: 2);
-        await service.recordRecentRound('course_a', 'r1', errors: 1);
+        await service.recordRecentRound('course_a', 'topic_a', 'r1', errors: 5);
+        await service.recordRecentRound('course_b', 'topic_b', 'r1', errors: 9);
+        await service.recordRecentRound('course_a', 'topic_a', 'r2', errors: 2);
+        await service.recordRecentRound('course_a', 'topic_a', 'r1', errors: 1);
 
         final courseA = await service.getRecentRounds(
           courseId: 'course_a',
           limit: 50,
         );
         expect(courseA.map((entry) => entry.roundId), ['r2', 'r1']);
+        expect(courseA.map((entry) => entry.topicId), ['topic_a', 'topic_a']);
         expect(courseA.map((entry) => entry.errors), [2, 1]);
 
         final courseB = await service.getRecentRounds(courseId: 'course_b');
@@ -349,7 +360,12 @@ void main() {
         courseId: 'shared_course',
         courseCode: 'IT',
       );
-      await alice.recordRecentRound('shared_course', 'alice_round', errors: 3);
+      await alice.recordRecentRound(
+        'shared_course',
+        'alice_topic',
+        'alice_round',
+        errors: 3,
+      );
       await alice.addXp(11, courseCode: 'DE', courseId: 'german_course');
       final aliceWeeklyXp = await alice.getWeeklyXp();
 
@@ -497,7 +513,12 @@ void main() {
     await service.markPerfectRound('perfect_1', courseId: 'course_a');
     await service.markTtsSkippedPerfectRound('tts_1', courseId: 'course_a');
     await service.winDuel('duel_1', courseId: 'course_a', courseCode: 'IT');
-    await service.recordRecentRound('course_a', 'round_1', errors: 6);
+    await service.recordRecentRound(
+      'course_a',
+      'topic_1',
+      'round_1',
+      errors: 6,
+    );
 
     final reloaded = ProgressService();
     expect(await reloaded.getCompletedRounds(courseId: 'course_a'), {
@@ -515,6 +536,7 @@ void main() {
     expect(await reloaded.getWonDuels(courseId: 'course_a'), {'duel_1'});
     final recent = await reloaded.getRecentRounds(courseId: 'course_a');
     expect(recent, hasLength(1));
+    expect(recent.single.topicId, 'topic_1');
     expect(recent.single.roundId, 'round_1');
     expect(recent.single.errors, 6);
     expect(await reloaded.getXp(courseCode: 'IT'), 75);
@@ -540,7 +562,12 @@ void main() {
       await service.markPerfectRound('perfect_a', courseId: 'course_a');
       await service.markTtsSkippedPerfectRound('tts_a', courseId: 'course_a');
       await service.winDuel('duel_a', courseId: 'course_a', courseCode: 'IT');
-      await service.recordRecentRound('course_a', 'round_a', errors: 5);
+      await service.recordRecentRound(
+        'course_a',
+        'topic_a',
+        'round_a',
+        errors: 5,
+      );
       await service.addXp(9, courseCode: 'DE', courseId: 'course_a');
 
       await service.completeRound(
@@ -556,7 +583,12 @@ void main() {
       await service.markPerfectRound('perfect_b', courseId: 'course_b');
       await service.markTtsSkippedPerfectRound('tts_b', courseId: 'course_b');
       await service.winDuel('duel_b', courseId: 'course_b', courseCode: 'IT');
-      await service.recordRecentRound('course_b', 'round_b', errors: 2);
+      await service.recordRecentRound(
+        'course_b',
+        'topic_b',
+        'round_b',
+        errors: 2,
+      );
 
       final languageXpBefore = await service.getXp(courseCode: 'IT');
       final otherLanguageXpBefore = await service.getXp(courseCode: 'DE');
@@ -571,7 +603,12 @@ void main() {
         courseCode: 'IT',
       );
       await bob.markPerfectRound('bob_perfect_a', courseId: 'course_a');
-      await bob.recordRecentRound('course_a', 'bob_round_a', errors: 8);
+      await bob.recordRecentRound(
+        'course_a',
+        'bob_topic_a',
+        'bob_round_a',
+        errors: 8,
+      );
 
       await profiles.setActiveProfile('Alice');
       await ProgressService().resetCourse('course_a');
@@ -767,48 +804,85 @@ void main() {
     },
   );
 
-  test('the 203 progress storage keys remain compatible', () async {
-    final service = await progress(learner: 'Test Learner');
-    const courseId = 'course/a';
+  test(
+    'v4 progress uses new keys without reading or rewriting legacy state',
+    () async {
+      final service = await progress(learner: 'Test Learner');
+      const courseId = 'course/a';
+      final prefs = await SharedPreferences.getInstance();
+      const prefix = 'learner_Test%20Learner_';
+      const suffix = '_course_course%2Fa';
+      await prefs.setStringList('${prefix}completed_rounds$suffix', [
+        'legacy_round',
+      ]);
+      await prefs.setStringList('${prefix}recent_rounds', [
+        'course/a|legacy_round|2026-01-01T00:00:00.000|3',
+      ]);
 
-    await service.completeRound(
-      'round_1',
-      courseId: courseId,
-      courseCode: 'it',
-    );
-    await service.completeTopic(
-      'topic_1',
-      courseId: courseId,
-      courseCode: 'it',
-    );
-    await service.markPerfectRound('perfect_1', courseId: courseId);
-    await service.markTtsSkippedPerfectRound('tts_1', courseId: courseId);
-    await service.winDuel('duel_1', courseId: courseId, courseCode: 'it');
-    await service.recordRecentRound(courseId, 'round_1', errors: 1);
+      expect(await service.getCompletedRounds(courseId: courseId), isEmpty);
+      expect(await service.getRecentRounds(courseId: courseId), isEmpty);
 
-    final prefs = await SharedPreferences.getInstance();
-    const prefix = 'learner_Test%20Learner_';
-    const suffix = '_course_course%2Fa';
-    expect(prefs.getStringList('${prefix}completed_rounds$suffix'), [
-      'round_1',
-    ]);
-    expect(prefs.getStringList('${prefix}completed_topics$suffix'), [
-      'topic_1',
-    ]);
-    expect(prefs.getStringList('${prefix}perfect_rounds$suffix'), [
-      'perfect_1',
-    ]);
-    expect(prefs.getStringList('${prefix}tts_skipped_perfect_rounds$suffix'), [
-      'tts_1',
-    ]);
-    expect(prefs.getStringList('${prefix}won_duels$suffix'), ['duel_1']);
-    expect(prefs.getInt('${prefix}xp_IT'), 75);
-    expect(prefs.getInt('${prefix}week_xp'), 75);
-    expect(jsonDecode(prefs.getString('${prefix}week_xp_by_course')!), {
-      courseId: 75,
-    });
-    expect(prefs.getStringList('${prefix}recent_rounds'), hasLength(1));
-  });
+      await service.completeRound(
+        'round_1',
+        courseId: courseId,
+        courseCode: 'it',
+      );
+      await service.completeTopic(
+        'topic_1',
+        courseId: courseId,
+        courseCode: 'it',
+      );
+      await service.markPerfectRound('perfect_1', courseId: courseId);
+      await service.markTtsSkippedPerfectRound('tts_1', courseId: courseId);
+      await service.winDuel('duel_1', courseId: courseId, courseCode: 'it');
+      await service.markGuidebookSeen('topic_1', courseId: courseId);
+      await service.recordRecentRound(
+        courseId,
+        'topic_1',
+        'round_1',
+        errors: 1,
+      );
+
+      expect(prefs.getStringList('${prefix}v4_completed_rounds$suffix'), [
+        'round_1',
+      ]);
+      expect(prefs.getStringList('${prefix}v4_completed_topics$suffix'), [
+        'topic_1',
+      ]);
+      expect(prefs.getStringList('${prefix}v4_perfect_rounds$suffix'), [
+        'perfect_1',
+      ]);
+      expect(
+        prefs.getStringList('${prefix}v4_tts_skipped_perfect_rounds$suffix'),
+        ['tts_1'],
+      );
+      expect(prefs.getStringList('${prefix}v4_won_duels$suffix'), ['duel_1']);
+      expect(prefs.getStringList('${prefix}v4_seen_guidebooks$suffix'), [
+        'topic_1',
+      ]);
+      expect(prefs.getInt('${prefix}xp_IT'), 75);
+      expect(prefs.getInt('${prefix}week_xp'), 75);
+      expect(jsonDecode(prefs.getString('${prefix}week_xp_by_course')!), {
+        courseId: 75,
+      });
+      final encodedReview = prefs.getStringList('${prefix}v4_recent_rounds')!;
+      expect(encodedReview, hasLength(1));
+      final reviewJson =
+          jsonDecode(encodedReview.single) as Map<String, dynamic>;
+      expect(reviewJson['courseId'], courseId);
+      expect(reviewJson['topicId'], 'topic_1');
+      expect(reviewJson['roundId'], 'round_1');
+      expect(reviewJson['errors'], 1);
+      expect(DateTime.tryParse(reviewJson['completedAt'] as String), isNotNull);
+
+      expect(prefs.getStringList('${prefix}completed_rounds$suffix'), [
+        'legacy_round',
+      ]);
+      expect(prefs.getStringList('${prefix}recent_rounds'), [
+        'course/a|legacy_round|2026-01-01T00:00:00.000|3',
+      ]);
+    },
+  );
 
   test('finishing a Round alone does not award XP', () async {
     final service = await progress();

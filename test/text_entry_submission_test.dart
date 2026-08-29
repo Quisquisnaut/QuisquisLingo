@@ -88,12 +88,6 @@ Future<void> _openTextRound(WidgetTester tester, String type) async {
     guidebook: Guidebook.empty(),
     rounds: [round],
   );
-  final chapter = Chapter(
-    id: '${type}_chapter',
-    title: 'Text Entry Chapter',
-    requiredTopics: 1,
-    topics: [topic],
-  );
   final course = Course(
     courseId: 'text_entry_course',
     learningLanguage: 'Italian',
@@ -103,14 +97,13 @@ Future<void> _openTextRound(WidgetTester tester, String type) async {
     title: 'Text Entry Course',
     ttsLanguage: 'it-IT',
     version: '1.0.0',
-    chapters: [chapter],
+    topics: [topic],
   );
 
   await tester.pumpWidget(
     MaterialApp(
       home: RoundScreen(
         course: course,
-        chapter: chapter,
         topic: topic,
         round: round,
         ttsLanguage: course.ttsLanguage,

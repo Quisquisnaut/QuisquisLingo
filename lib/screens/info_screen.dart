@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/alpha_lifecycle_service.dart';
+import 'credits_screen.dart';
 
 /// Human-readable explanation of learning metrics and game rules.
 class InfoScreen extends StatelessWidget {
@@ -14,7 +15,7 @@ class InfoScreen extends StatelessWidget {
         _InfoSection(
           title: 'Choosing and opening courses',
           body:
-              'Home > Change course lists both bundled courses and My custom courses, including courses created in Course Editor or imported from JSON. Go to course resumes the last Chapter opened by the active learner in the selected course. If that learner has never opened a Chapter in the course, it opens the first Chapter. Quick actions > Chapters always opens the full Chapter list.',
+              'The learner page course selector lists the current course, recently opened courses, bundled courses and My custom courses. Each learner resumes the last Lesson selected in that course, or the first Lesson when no saved selection is valid. Use Browse All Lessons to see the complete course.',
         ),
         _InfoSection(
           title: 'Course identity and progress',
@@ -24,7 +25,7 @@ class InfoScreen extends StatelessWidget {
         _InfoSection(
           title: 'Progress, Week XP and Gamification',
           body:
-              'Language progress, streak, total study days, laurel crowns, completed rounds and Status are stored separately for each learner and target language. Week XP is different: it is the total XP earned by that learner across all courses during the current week. Settings > Gamification contains Weekly XP Target · All courses, Last Week XP · All courses and the Local leaderboard · All courses. Last Week XP refers to the previous completed week; tap your own Last Week XP to see the XP breakdown for each course. The local leaderboard ranks participating learner profiles on this device by their total XP across all courses during that same completed week. Participation can be turned off without deleting the learner’s XP history.',
+              'Language XP, streak, total study days and Status are stored separately for each learner and target language. Completed Rounds and laurel crowns are stored separately for each learner and Course ID. Week XP is different: it is the total XP earned by that learner across all courses during the current week. Home > Leaderboard opens Gamification, which contains Weekly XP Target · All courses, Last Week XP · All courses and the Local leaderboard · All courses. Last Week XP refers to the previous completed week; tap your own Last Week XP to see the XP breakdown for each course. The local leaderboard ranks participating learner profiles on this device by their total XP across all courses during that same completed week. Participation can be turned off without deleting the learner’s XP history.',
         ),
         _InfoSection(
           title: 'Streak and the freeze rule',
@@ -65,17 +66,17 @@ class InfoScreen extends StatelessWidget {
         _InfoSection(
           title: 'Review',
           body:
-              'QuisquisLingo remembers up to 50 distinct recent rounds for each learner and language. Review prioritizes rounds where the latest attempt contained more errors. Ties are ordered by recency. Repeating a round updates its latest error count and can also earn a permanent laurel crown.',
+              'QuisquisLingo remembers up to 50 distinct recent Rounds for each learner and Course ID. Review prioritizes Rounds where the latest attempt contained more errors. Ties are ordered by recency. Repeating a Round updates its latest error count and can also earn a permanent laurel crown.',
         ),
         _InfoSection(
           title: 'Guidebooks',
           body:
-              'The first time you open any Chapter, QuisquisLingo explains that every learning Topic has its own Guidebook with explanations and reference material. The Chapter still opens normally on its Topics. Guidebooks are never opened automatically; open a Topic and use OPEN TOPIC GUIDEBOOK whenever you want that Topic’s reference material.',
+              'Every Lesson has its own GuideBook with explanations and reference material. The GuideBook is the first node on the current Lesson path and opens only when you select it.',
         ),
         _InfoSection(
           title: 'Language Duels',
           body:
-              'A standard Language Duel contains 25 questions and starts with 4 lives. Each incorrect answer costs one life. There is no score and no pass threshold: complete all 25 questions before losing all four lives to win and unlock the next Chapter.',
+              'Each Lesson has its own Duel. A standard Duel uses 25 suitable exercises from that Lesson and starts with 4 lives. Each incorrect answer costs one life. There is no score or separate pass threshold: complete all 25 questions before losing all four lives to win and unlock the next Lesson. If the Lesson does not contain 25 suitable exercises, its Duel is simply unavailable.',
         ),
         _InfoSection(
           title: 'Source and target languages',
@@ -106,6 +107,13 @@ class InfoScreen extends StatelessWidget {
           title: 'Course content and AI',
           body:
               'AI assistance is used only for software development. Official language courses and their educational content are created by human authors.',
+        ),
+        OutlinedButton.icon(
+          onPressed: () => Navigator.of(
+            context,
+          ).push(MaterialPageRoute(builder: (_) => const CreditsScreen())),
+          icon: const Icon(Icons.attribution_outlined),
+          label: const Text('App and image credits'),
         ),
       ],
     ),

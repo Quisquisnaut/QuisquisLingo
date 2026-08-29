@@ -3,6 +3,7 @@ import 'xp_calculator.dart';
 
 class LearningCompletionRequest {
   final String roundId;
+  final String topicId;
   final String courseId;
   final String courseCode;
   final String? completedTopicId;
@@ -13,6 +14,7 @@ class LearningCompletionRequest {
 
   const LearningCompletionRequest({
     required this.roundId,
+    required this.topicId,
     required this.courseId,
     required this.courseCode,
     this.completedTopicId,
@@ -73,6 +75,7 @@ abstract interface class LearningCompletionProgress {
 
   Future<void> recordRecentRound(
     String courseId,
+    String topicId,
     String roundId, {
     required int errors,
   });
@@ -137,6 +140,7 @@ class LearningCompletionService {
     final recentRoundFacts = request.readAttemptFacts();
     await _progress.recordRecentRound(
       request.courseId,
+      request.topicId,
       request.roundId,
       errors: recentRoundFacts.errorsThisAttempt,
     );
@@ -230,9 +234,10 @@ class _ProgressServiceLearningCompletionProgress
   @override
   Future<void> recordRecentRound(
     String courseId,
+    String topicId,
     String roundId, {
     required int errors,
-  }) => _progress.recordRecentRound(courseId, roundId, errors: errors);
+  }) => _progress.recordRecentRound(courseId, topicId, roundId, errors: errors);
 
   @override
   Future<bool> markPerfectRound(String roundId, {required String courseId}) =>

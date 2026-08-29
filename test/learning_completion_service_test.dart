@@ -69,6 +69,7 @@ void main() {
       expect(progress.completedCourseId, 'course_1');
       expect(progress.completedCourseCode, 'IT');
       expect(progress.recentCourseId, 'course_1');
+      expect(progress.recentTopicId, 'topic_1');
       expect(progress.recentRoundId, 'round_1');
       expect(progress.recentRoundErrors, 0);
       expect(progress.perfectCourseId, 'course_1');
@@ -103,6 +104,7 @@ void main() {
     final result = await service.completeRound(
       LearningCompletionRequest(
         roundId: 'round_1',
+        topicId: 'topic_1',
         courseId: 'course_1',
         courseCode: 'IT',
         completedTopicId: 'topic_1',
@@ -161,6 +163,7 @@ void main() {
       final result = await service.completeRound(
         LearningCompletionRequest(
           roundId: 'round_1',
+          topicId: 'topic_1',
           courseId: 'course_1',
           courseCode: 'IT',
           readAttemptFacts: () {
@@ -503,6 +506,7 @@ LearningCompletionRequest _request({
   var readIndex = 0;
   return LearningCompletionRequest(
     roundId: 'round_1',
+    topicId: 'topic_1',
     courseId: 'course_1',
     courseCode: 'IT',
     readAttemptFacts: () {
@@ -534,6 +538,7 @@ class _FakeLearningCompletionProgress implements LearningCompletionProgress {
   String? completedCourseId;
   String? completedCourseCode;
   String? recentCourseId;
+  String? recentTopicId;
   String? recentRoundId;
   int? recentRoundErrors;
   String? perfectCourseId;
@@ -581,10 +586,12 @@ class _FakeLearningCompletionProgress implements LearningCompletionProgress {
   @override
   Future<void> recordRecentRound(
     String courseId,
+    String topicId,
     String roundId, {
     required int errors,
   }) async {
     recentCourseId = courseId;
+    recentTopicId = topicId;
     recentRoundId = roundId;
     recentRoundErrors = errors;
     await _event(events, 'recentRound');

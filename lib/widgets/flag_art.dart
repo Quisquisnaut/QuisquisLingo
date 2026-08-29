@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import '../models/course_models.dart';
 
-/// Shared flag artwork used by selectors, chapter/topic backdrops and short
+/// Shared flag artwork used by selectors, course/Lesson backdrops and short
 /// transition animations. Keeping one painter avoids visual drift between the
 /// same language in different parts of the app.
 class FlagBadge extends StatelessWidget {

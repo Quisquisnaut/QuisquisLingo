@@ -127,7 +127,7 @@ Course _course({
   version: '1',
   flagCode: flagCode,
   flagImageBase64: flagImageBase64,
-  chapters: const [],
+  topics: const [],
 );
 
 Future<void> _flush() => Future<void>.delayed(Duration.zero);

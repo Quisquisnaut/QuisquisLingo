@@ -17,6 +17,7 @@ class SettingsService {
   static const _courseEditorUnlockedKey = 'course_editor_unlocked';
   static const _audioOrphanCheckKey = 'audio_orphan_check_last_';
   static const _lastSelectedCourseKey = 'last_selected_course_code';
+  static const _recentCourseRefsKey = 'recent_course_refs';
   static const _automaticUpdateCheckKey = 'automatic_update_check_enabled';
   static const _updateLastCheckedKey = 'update_last_checked_at';
 
@@ -52,35 +53,25 @@ class SettingsService {
   }
 
   Future<void> setLastSelectedCourseCode(String courseCode) async {
-    await (await SharedPreferences.getInstance()).setString(
-      _lastSelectedCourseKey,
-      courseCode.trim(),
+    final normalized = courseCode.trim();
+    final preferences = await SharedPreferences.getInstance();
+    await preferences.setString(_lastSelectedCourseKey, normalized);
+    final recent = (preferences.getStringList(_recentCourseRefsKey) ?? [])
+      ..remove(normalized)
+      ..insert(0, normalized);
+    await preferences.setStringList(
+      _recentCourseRefsKey,
+      recent.take(4).toList(),
     );
     LearnerStatusEvents.publish(LearnerStatusInvalidation.activeCourse);
   }
 
-  Future<String?> getLastVisitedChapterId(String courseId) async {
-    final key = await ProfileService().key(
-      'last_chapter_${Uri.encodeComponent(courseId.trim())}',
-    );
-    final value = (await SharedPreferences.getInstance())
-        .getString(key)
-        ?.trim();
-    return value == null || value.isEmpty ? null : value;
-  }
-
-  Future<void> setLastVisitedChapterId(
-    String courseId,
-    String chapterId,
-  ) async {
-    final key = await ProfileService().key(
-      'last_chapter_${Uri.encodeComponent(courseId.trim())}',
-    );
-    await (await SharedPreferences.getInstance()).setString(
-      key,
-      chapterId.trim(),
-    );
-  }
+  Future<List<String>> getRecentCourseRefs() async => List.unmodifiable(
+    (await SharedPreferences.getInstance()).getStringList(
+          _recentCourseRefsKey,
+        ) ??
+        const <String>[],
+  );
 
   Future<bool> isIddqdModeEnabled(String courseId) async {
     final key = await ProfileService().key(

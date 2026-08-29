@@ -1,7 +1,43 @@
+import 'dart:convert';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:quisquislingo_app/models/course_models.dart';
+import 'package:quisquislingo_app/services/course_editor_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+Course _metadataCourse() => Course(
+  courseId:'course_metadata',
+  learningLanguage:'Italian',
+  interfaceLanguage:'English',
+  sourceLanguage:'English',
+  targetLanguage:'Italian',
+  title:'Metadata course',
+  ttsLanguage:'it-IT',
+  version:'1.0.0',
+  temporarySample:true,
+  supportUrl:'https://example.com/support',
+  topics:[
+    Topic(
+      id:'t1',
+      title:'Topic',
+      guidebook:Guidebook(content:const [
+        LearningContent(
+          id:'g1',
+          kind:'explanation',
+          required:false,
+          role:'overview',
+          text:'Learner text',
+        ),
+      ]),
+      rounds:const [],
+      duel:Duel(id:'d1',title:'Duel'),
+    ),
+  ],
+);
 
 void main(){
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   test('course author reads legacy role and writes multi-role metadata',(){
     final legacy=CourseAuthor.fromJson({'name':'A','role':'Course Creator'});
     expect(legacy.roles,['Course Creator']);
@@ -11,18 +47,38 @@ void main(){
     expect(json['role'],'Course Creator, Team Leader, Custom role');
   });
 
-  test('chapter editor notes and Topic Guidebook round-trip independently',(){
-    final chapter=Chapter.fromJson({
-      'id':'c1','title':'One','requiredTopics':1,
-      'topics':[
-        {'id':'t1','title':'Topic','role':'learning','guidebook':{'content':[{'id':'g1','kind':'explanation','required':false,'role':'overview','text':'Learner text'}]},'rounds':[]},
-        {'id':'d1','title':'Language Duel','role':'assessment','assessment':{'purpose':'skip_test'},'rounds':[]},
-      ],
-      'editorNotes':'Internal note',
+  test('course metadata and Topic Guidebook round-trip independently',(){
+    final course=_metadataCourse();
+    final json=course.toJson();
+    final decoded=Course.fromJson(json);
+    expect(decoded.temporarySample,isTrue);
+    expect(decoded.supportUrl,'https://example.com/support');
+    expect(decoded.topics.single.guidebook.overview,'Learner text');
+    expect(decoded.topics.single.duel.id,'d1');
+    expect(json.containsKey('chapters'),isFalse);
+  });
+
+  test('Course Editor uses a clean v4 storage namespace',() async {
+    final course=_metadataCourse();
+    final legacyValue=jsonEncode({
+      course.courseId:{'savedAt':'2026-08-28','course':course.toJson()},
     });
-    expect(chapter.editorNotes,'Internal note');
-    expect(chapter.learningTopics.single.guidebook.overview,'Learner text');
-    expect(chapter.toJson()['editorNotes'],'Internal note');
-    expect(chapter.toJson().containsKey('guidebook'),isFalse);
+    SharedPreferences.setMockInitialValues({
+      'quisquislingo_user_courses_v2_100':legacyValue,
+    });
+
+    final service=CourseEditorService();
+    expect(await service.listUserCourses(),isEmpty);
+
+    await service.saveUserCourse(course);
+    final prefs=await SharedPreferences.getInstance();
+    expect(
+      prefs.getString('quisquislingo_user_courses_v4_215'),
+      isNotNull,
+    );
+    expect(
+      prefs.getString('quisquislingo_user_courses_v2_100'),
+      legacyValue,
+    );
   });
 }

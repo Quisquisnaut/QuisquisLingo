@@ -1,5 +1,5 @@
 {
-  "formatVersion": 3,
+  "formatVersion": 4,
   "courseId": "sample_es_en_es",
   "learningLanguage": "Spanish",
   "interfaceLanguage": "English",
@@ -28,24 +28,20 @@
   "license": "All rights reserved",
   "courseVersion": "1.5.6",
   "lastUpdated": "2026-08-17",
-  "courseDescription": "TEMPORARY SAMPLE course regenerated for Course Model v3.",
+  "courseDescription": "TEMPORARY SAMPLE course regenerated for Course Model v4.",
   "textDirection": "ltr",
-  "chapters": [
-    {
-      "id": "chapter_1",
-      "title": "Greetings and people",
-      "requiredTopics": 3,
-      "temporarySample": true,
-      "topics": [
+  "author": "Sample Author Elena, Sample Author Pablo",
+  "temporarySample": true,
+  "topics": [
         {
           "id": "chapter_1_topic_1",
           "title": "Hello and thanks",
-          "role": "learning",
           "imageAsset": "assets/exercise_images/hello.webp",
           "rounds": [
             {
               "id": "c1t1_round_1",
               "title": "Round 1",
+              "visualType": "generic",
               "content": [
                 {
                   "id": "chapter_1_topic_1_intro",
@@ -533,6 +529,7 @@
             {
               "id": "c1t1_round_2",
               "title": "Round 2",
+              "visualType": "generic",
               "content": [
                 {
                   "id": "c1t1_round_2_e1",
@@ -1127,17 +1124,21 @@
                 "text": "Muchas gracias."
               }
             ]
+          },
+          "duel": {
+            "id": "chapter_1_topic_1_duel",
+            "title": "Duel"
           }
         },
         {
           "id": "chapter_1_topic_2",
           "title": "People and animals",
-          "role": "learning",
           "imageAsset": "assets/exercise_images/book.webp",
           "rounds": [
             {
               "id": "c1t2_round_1",
               "title": "Round 1",
+              "visualType": "generic",
               "content": [
                 {
                   "id": "chapter_1_topic_2_intro",
@@ -1582,6 +1583,7 @@
             {
               "id": "c1t2_round_2",
               "title": "Round 2",
+              "visualType": "generic",
               "content": [
                 {
                   "id": "c1t2_round_2_e1",
@@ -2154,16 +2156,20 @@
                 "text": "Choose the picture for “niño”."
               }
             ]
+          },
+          "duel": {
+            "id": "chapter_1_topic_2_duel",
+            "title": "Duel"
           }
         },
         {
           "id": "c1t3",
           "title": "Useful words",
-          "role": "learning",
           "rounds": [
             {
               "id": "c1t3_round_1",
               "title": "Round 1",
+              "visualType": "generic",
               "content": [
                 {
                   "id": "c1t3_intro",
@@ -2659,6 +2665,7 @@
             {
               "id": "c1t3_round_2",
               "title": "Round 2",
+              "visualType": "generic",
               "content": [
                 {
                   "id": "c1t3_round_2_e1",
@@ -3178,50 +3185,21 @@
                 "text": "Read “libro”. What does it mean?"
               }
             ]
+          },
+          "duel": {
+            "id": "c1t3_duel",
+            "title": "Duel"
           }
         },
         {
-          "id": "chapter_1_duel",
-          "title": "Language Duel",
-          "role": "assessment",
-          "assessment": {
-            "purpose": "skip_test",
-            "source": {
-              "scope": "chapter",
-              "kind": "exercise"
-            },
-            "selection": {
-              "count": 25
-            },
-            "outcome": {
-              "onPass": "unlock_next_chapter"
-            },
-            "extensions": {
-              "quisquislingo": {
-                "presentation": "language_duel",
-                "lives": 3
-              }
-            }
-          },
-          "rounds": []
-        }
-      ]
-    },
-    {
-      "id": "chapter_2",
-      "title": "Food and home",
-      "requiredTopics": 3,
-      "temporarySample": true,
-      "topics": [
-        {
           "id": "chapter_2_topic_1",
           "title": "Food and drinks",
-          "role": "learning",
           "imageAsset": "assets/exercise_images/coffee.webp",
           "rounds": [
             {
               "id": "c2t1_round_1",
               "title": "Round 1",
+              "visualType": "generic",
               "content": [
                 {
                   "id": "chapter_2_topic_1_intro",
@@ -3718,6 +3696,7 @@
             {
               "id": "c2t1_round_2",
               "title": "Round 2",
+              "visualType": "generic",
               "content": [
                 {
                   "id": "c2t1_round_2_e1",
@@ -4323,17 +4302,21 @@
                 "text": "Read “café”. What does it mean?"
               }
             ]
+          },
+          "duel": {
+            "id": "chapter_2_topic_1_duel",
+            "title": "Duel"
           }
         },
         {
           "id": "chapter_2_topic_2",
           "title": "At home",
-          "role": "learning",
           "imageAsset": "assets/exercise_images/shop.webp",
           "rounds": [
             {
               "id": "c2t2_round_1",
               "title": "Round 1",
+              "visualType": "generic",
               "content": [
                 {
                   "id": "chapter_2_topic_2_intro",
@@ -4797,6 +4780,7 @@
             {
               "id": "c2t2_round_2",
               "title": "Round 2",
+              "visualType": "generic",
               "content": [
                 {
                   "id": "c2t2_round_2_e1",
@@ -5369,16 +5353,20 @@
                 "text": "Choose the picture for “queso”."
               }
             ]
+          },
+          "duel": {
+            "id": "chapter_2_topic_2_duel",
+            "title": "Duel"
           }
         },
         {
           "id": "c2t3",
           "title": "More everyday words",
-          "role": "learning",
           "rounds": [
             {
               "id": "c2t3_round_1",
               "title": "Round 1",
+              "visualType": "generic",
               "content": [
                 {
                   "id": "c2t3_intro",
@@ -5885,6 +5873,7 @@
             {
               "id": "c2t3_round_2",
               "title": "Round 2",
+              "visualType": "generic",
               "content": [
                 {
                   "id": "c2t3_round_2_e1",
@@ -6418,50 +6407,21 @@
                 "text": "Read “cama”. What does it mean?"
               }
             ]
+          },
+          "duel": {
+            "id": "c2t3_duel",
+            "title": "Duel"
           }
         },
         {
-          "id": "chapter_2_duel",
-          "title": "Language Duel",
-          "role": "assessment",
-          "assessment": {
-            "purpose": "skip_test",
-            "source": {
-              "scope": "chapter",
-              "kind": "exercise"
-            },
-            "selection": {
-              "count": 25
-            },
-            "outcome": {
-              "onPass": "unlock_next_chapter"
-            },
-            "extensions": {
-              "quisquislingo": {
-                "presentation": "language_duel",
-                "lives": 3
-              }
-            }
-          },
-          "rounds": []
-        }
-      ]
-    },
-    {
-      "id": "chapter_3",
-      "title": "Places and travel",
-      "requiredTopics": 3,
-      "temporarySample": true,
-      "topics": [
-        {
           "id": "chapter_3_topic_1",
           "title": "Around town",
-          "role": "learning",
           "imageAsset": "assets/exercise_images/man.webp",
           "rounds": [
             {
               "id": "c3t1_round_1",
               "title": "Round 1",
+              "visualType": "generic",
               "content": [
                 {
                   "id": "chapter_3_topic_1_intro",
@@ -6958,6 +6918,7 @@
             {
               "id": "c3t1_round_2",
               "title": "Round 2",
+              "visualType": "generic",
               "content": [
                 {
                   "id": "c3t1_round_2_e1",
@@ -7541,17 +7502,21 @@
                 "text": "Choose the picture for “tren”."
               }
             ]
+          },
+          "duel": {
+            "id": "chapter_3_topic_1_duel",
+            "title": "Duel"
           }
         },
         {
           "id": "chapter_3_topic_2",
           "title": "Transport and actions",
-          "role": "learning",
           "imageAsset": "assets/exercise_images/house.webp",
           "rounds": [
             {
               "id": "c3t2_round_1",
               "title": "Round 1",
+              "visualType": "generic",
               "content": [
                 {
                   "id": "chapter_3_topic_2_intro",
@@ -8026,6 +7991,7 @@
             {
               "id": "c3t2_round_2",
               "title": "Round 2",
+              "visualType": "generic",
               "content": [
                 {
                   "id": "c3t2_round_2_e1",
@@ -8631,16 +8597,20 @@
                 "text": "Type the word for “hospital”."
               }
             ]
+          },
+          "duel": {
+            "id": "chapter_3_topic_2_duel",
+            "title": "Duel"
           }
         },
         {
           "id": "c3t3",
           "title": "Travel phrases",
-          "role": "learning",
           "rounds": [
             {
               "id": "c3t3_round_1",
               "title": "Round 1",
+              "visualType": "generic",
               "content": [
                 {
                   "id": "c3t3_intro",
@@ -9158,6 +9128,7 @@
             {
               "id": "c3t3_round_2",
               "title": "Round 2",
+              "visualType": "generic",
               "content": [
                 {
                   "id": "c3t3_round_2_e1",
@@ -9691,35 +9662,11 @@
                 "text": "Read “correr”. What does it mean?"
               }
             ]
-          }
-        },
-        {
-          "id": "chapter_3_duel",
-          "title": "Language Duel",
-          "role": "assessment",
-          "assessment": {
-            "purpose": "skip_test",
-            "source": {
-              "scope": "chapter",
-              "kind": "exercise"
-            },
-            "selection": {
-              "count": 25
-            },
-            "outcome": {
-              "onPass": "unlock_next_chapter"
-            },
-            "extensions": {
-              "quisquislingo": {
-                "presentation": "language_duel",
-                "lives": 3
-              }
-            }
           },
-          "rounds": []
+          "duel": {
+            "id": "c3t3_duel",
+            "title": "Duel"
+          }
         }
-      ]
-    }
-  ],
-  "author": "Sample Author Elena, Sample Author Pablo"
+  ]
 }

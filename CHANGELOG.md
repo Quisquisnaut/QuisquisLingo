@@ -1,3 +1,14 @@
+# 2.0.15 (build 215) - 2026-08-28
+
+- Removed Chapter from the production domain and learner navigation. Course Model v4 (`formatVersion: 4`) now stores ordered Topics directly under Course; old Chapter-based course structures are rejected without migration or compatibility fallback.
+- Replaced the standalone Chapters/Chapter/Topic learner path with a unified Course → Lesson → Round page containing the course and Lesson selectors, GuideBook, responsive Round path, Topic-scoped Duel and the established Leaderboard/Review/Buy a coffee/Course Info actions.
+- Added Chapter-free v4 progress namespaces, Topic-aware Review entries and Topic unlock progression while preserving course isolation, learner isolation, reset behavior, Laurels and the build-214 final-Round + first-Topic XP popup flow.
+- Made Duel selection and availability use the actual eligible exercise pool of the current Topic. The 25-question, four-life, existing-eligibility and XP rules are unchanged; an insufficient pool is normal unavailable behavior rather than an error.
+- Added non-blocking Course Editor guidance that Topics should normally contain at least six Rounds; this guidance does not validate Duel availability. New custom courses start with 3 placeholder Topics and no Chapters or automatic Rounds.
+- Converted all eight bundled courses to native v4 Course → Topic data while preserving deterministic Topic/Round/content ordering and stable IDs.
+- Preserved the 214 text-entry submission fix, authoritative XP formulas, Home Leaderboard route, reactive learner status bar and desktop resize behavior.
+- Refreshed the 30-day Alpha lifecycle for build 215; because it is prepared on the same date as build 214, expiry remains at the end of **2026-09-27**.
+
 # 2.0.14 (build 214) - 2026-08-28
 
 - Included the one-time 25 XP Topic completion award in the final Round popup and total, with the same language and Weekly XP persistence and no second Topic-page award notice.

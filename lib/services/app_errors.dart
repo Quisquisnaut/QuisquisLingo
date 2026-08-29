@@ -11,8 +11,6 @@ enum AppErrorCode {
   localStorageError('DATA-001', 'Local data could not be saved or loaded.'),
   corruptedProgressData('DATA-002', 'Local progress data appears to be invalid.'),
 
-  duelInsufficientExercises('DUEL-001', 'This Chapter does not contain enough exercises for a Language Duel.'),
-
   unexpectedError('APP-001', 'An unexpected internal error occurred.');
 
   final String code;

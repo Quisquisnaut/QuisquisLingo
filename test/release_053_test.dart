@@ -10,13 +10,19 @@ import 'package:quisquislingo_app/services/settings_service.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  test('all bundled sample courses have at most three sample chapters', () async {
+  test('all bundled sample courses use the direct Topic model', () async {
     for (final asset in CourseService.courseAssets.values) {
       final raw = await rootBundle.loadString(asset);
       final json = jsonDecode(raw) as Map<String, dynamic>;
       final course = Course.fromJson(json);
-      expect(course.chapters.length, lessThanOrEqualTo(3), reason: asset);
-      expect(course.chapters.every((c) => c.temporarySample), isTrue, reason: asset);
+      expect(course.formatVersion, Course.currentFormatVersion, reason: asset);
+      expect(course.temporarySample, isTrue, reason: asset);
+      expect(course.topics, isNotEmpty, reason: asset);
+      expect(
+        course.topics.every((topic) => topic.duel.id == '${topic.id}_duel'),
+        isTrue,
+        reason: asset,
+      );
       expect(course.contentRevision, isNotEmpty, reason: asset);
       expect(course.updateSummary, isNotEmpty, reason: asset);
     }

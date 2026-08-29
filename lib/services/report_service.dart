@@ -5,7 +5,7 @@ import '../models/course_models.dart';
 enum ReportKind { bug, courseError }
 
 class ReportService {
-  static const String appVersion = '0.5.0';
+  static const String appVersion = '2.0.15+215';
 
   String _platformName() {
     if (kIsWeb) return 'web';
@@ -15,7 +15,6 @@ class ReportService {
   Future<void> copyExerciseReport({
     required ReportKind kind,
     required Course course,
-    required Chapter chapter,
     required Topic topic,
     required LearningRound round,
     required Exercise exercise,
@@ -33,11 +32,12 @@ class ReportService {
       ..writeln('Platform: ${_platformName()}')
       ..writeln('Course: ${course.title} (${course.courseId})')
       ..writeln('Course version: ${course.version}')
-      ..writeln('Chapter: ${chapter.id} | ${chapter.title}')
       ..writeln('Topic: ${topic.id} | ${topic.title}')
       ..writeln('Round: ${round.id} | ${round.title}')
       ..writeln('Exercise: ${exercise.id}')
-      ..writeln('Exercise position: ${exerciseIndex + 1}/${round.exercises.length}')
+      ..writeln(
+        'Exercise position: ${exerciseIndex + 1}/${round.exercises.length}',
+      )
       ..writeln('Exercise type: ${exercise.type}');
 
     if (screen != null && screen.trim().isNotEmpty) {

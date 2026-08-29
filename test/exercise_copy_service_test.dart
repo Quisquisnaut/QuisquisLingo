@@ -11,7 +11,7 @@ Course _course({required String sourceLanguage, required String interfaceLanguag
       title: 'Test',
       ttsLanguage: 'xx-XX',
       version: '1',
-      chapters: const [],
+      topics: const [],
     );
 
 void main() {

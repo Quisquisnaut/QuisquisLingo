@@ -19,7 +19,6 @@ import 'guidebook_screen.dart';
 
 class RoundScreen extends StatefulWidget {
   final Course course;
-  final Chapter chapter;
   final Topic topic;
   final LearningRound round;
   final String ttsLanguage;
@@ -30,7 +29,6 @@ class RoundScreen extends StatefulWidget {
   const RoundScreen({
     super.key,
     required this.course,
-    required this.chapter,
     required this.topic,
     required this.round,
     required this.ttsLanguage,
@@ -119,13 +117,6 @@ class _RoundScreenState extends State<RoundScreen> {
       }
     }
     return null;
-  }
-
-  int get _chapterNumber {
-    final index = widget.course.chapters.indexWhere(
-      (c) => c.id == widget.chapter.id,
-    );
-    return index < 0 ? 1 : index + 1;
   }
 
   @override
@@ -479,7 +470,6 @@ class _RoundScreenState extends State<RoundScreen> {
     await _reports.copyExerciseReport(
       kind: kind,
       course: widget.course,
-      chapter: widget.chapter,
       topic: widget.topic,
       round: widget.round,
       exercise: _exercise,
@@ -746,6 +736,7 @@ class _RoundScreenState extends State<RoundScreen> {
     final completion = await _completion.completeRound(
       LearningCompletionRequest(
         roundId: widget.round.id,
+        topicId: widget.topic.id,
         courseId: widget.course.courseId,
         courseCode: code,
         completedTopicId: completedTopicId,
@@ -784,7 +775,7 @@ class _RoundScreenState extends State<RoundScreen> {
             if (completion.roundXp.laurelBonusXp > 0)
               Text('First Laurel: +${completion.roundXp.laurelBonusXp} XP'),
             if (completion.topicCompletionXp > 0)
-              Text('Topic completed: +${completion.topicCompletionXp} XP'),
+              Text('Lesson completed: +${completion.topicCompletionXp} XP'),
             Text('Total: ${completion.awardedXp} XP'),
           ],
         ),
@@ -1576,11 +1567,7 @@ class _RoundScreenState extends State<RoundScreen> {
               OutlinedButton.icon(
                 onPressed: () => Navigator.of(context).push(
                   MaterialPageRoute(
-                    builder: (_) => GuidebookScreen(
-                      chapter: widget.chapter,
-                      topic: widget.topic,
-                      chapterNumber: _chapterNumber,
-                    ),
+                    builder: (_) => GuidebookScreen(topic: widget.topic),
                   ),
                 ),
                 icon: const Icon(Icons.menu_book_outlined),
@@ -1662,7 +1649,7 @@ class _RoundScreenState extends State<RoundScreen> {
                   : widget.round.title,
             ),
             Text(
-              '${widget.course.targetLanguage} · Chapter ${widget.course.chapters.indexWhere((c) => c.id == widget.chapter.id) + 1} · ${widget.topic.title}',
+              '${widget.course.targetLanguage} · Lesson ${widget.course.topics.indexWhere((topic) => topic.id == widget.topic.id) + 1} · ${widget.topic.title}',
               style: Theme.of(context).textTheme.labelSmall,
             ),
           ],

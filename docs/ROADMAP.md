@@ -307,9 +307,7 @@ Implement missing pieces only where verification shows a real gap.
 Run a dedicated Course Editor campaign covering:
 
 - [ ] new custom course creation;
-- [ ] 5 initial placeholder Chapters;
-- [ ] 3 initial Topics per Chapter;
-- [ ] Chapters;
+- [ ] 3 initial placeholder Topics;
 - [ ] Topics;
 - [ ] Guidebooks;
 - [ ] manually created Rounds;
@@ -329,7 +327,7 @@ Run a dedicated Course Editor campaign covering:
 - [ ] remembered selected course;
 - [ ] restart persistence;
 - [ ] custom/imported course identity;
-- [ ] Course Model v3 validation;
+- [ ] Course Model v4 validation;
 - [ ] JSON round-trip.
 
 Every confirmed bug should receive regression coverage.
@@ -345,7 +343,7 @@ Guiding principle:
 
 ### Interchange specification
 
-- [ ] Formalize Course Model v3 as a portable interchange specification.
+- [ ] Formalize Course Model v4 as a portable interchange specification.
 - [ ] Document required fields.
 - [ ] Document optional fields.
 - [ ] Document stable IDs and references.
@@ -413,7 +411,7 @@ Consider:
 - [ ] customizable personal goals;
 - [ ] statistics/history;
 - [ ] local profile-vs-profile challenges;
-- [ ] Chapter-completion achievements;
+- [ ] Topic-completion achievements;
 - [ ] laurel achievements.
 
 Keep gamification offline-first.
@@ -423,23 +421,19 @@ Avoid mandatory servers, artificial purchase economies, lives, or monetization-d
 ---
 
 # 2.0.15+215
-## Community, Credits and UX polish
+## Chapter-free architecture and Unified Learner
 
-### Credits
-
-- [ ] Add a reference to the QuisquisLingo Discord server.
-- [ ] Add a safe external link.
-- [ ] Briefly explain that it is used for community/support/course creators where appropriate.
-
-### UX polish
-
-- [ ] gamification UI consistency;
-- [ ] accessibility;
-- [ ] keyboard handling;
-- [ ] Windows scaling;
-- [ ] Help consistency;
-- [ ] text consistency;
-- [ ] remove UX inconsistencies accumulated during previous builds.
+- [x] Promote Course Model v4 with the direct Course → Topic → Round/content hierarchy.
+- [x] Make the schema change a clean cut with no Chapter reader, fallback, migration or old progress-key migration.
+- [x] Replace standalone Chapter navigation with the unified learner page and learner-facing Lesson terminology.
+- [x] Keep active Course, one current Lesson, GuideBook, Rounds, progress, Duel and the existing status bar in one learner hub.
+- [x] Keep Home Leaderboard routed to the existing Gamification page and keep Gamification out of Settings.
+- [x] Scope Duel to the selected Topic and determine availability from its actual eligible exercise pool at runtime.
+- [x] Treat insufficient eligible Duel content as normal unavailable behavior without changing question count, lives, pass behavior, eligibility or XP.
+- [x] Document six Rounds (often roughly 48 exercises) as author guidance only.
+- [x] Update Course Editor to Course → Topic → Round/content and start new courses with 3 placeholder Topics.
+- [x] Convert all bundled courses to deterministic v4 Topic ordering.
+- [x] Preserve build-214 Topic completion XP, text-entry, Leaderboard, status-bar and desktop-resize behavior.
 
 ---
 

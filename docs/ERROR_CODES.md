@@ -29,9 +29,6 @@ Local storage read/write failure.
 DATA-002
 Progress data invalid or corrupted.
 
-DUEL-001
-This Chapter does not contain enough exercises for a Language Duel.
-
 APP-001
 Unexpected internal error.
 

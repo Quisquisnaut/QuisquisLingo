@@ -4,17 +4,17 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/course_models.dart';
 import 'learner_status_events.dart';
 
-/// Local, offline Course Model v3 authoring storage.
+/// Local, offline Course Model v4 authoring storage.
 ///
 /// Bundled samples are immutable assets. Local edits to a bundled course are a
-/// complete formatVersion 3 override. User-created courses are stored as
-/// independent Course Model v3 projects keyed by stable courseId.
+/// complete formatVersion 4 override. User-created courses are stored as
+/// independent Course Model v4 projects keyed by stable courseId.
 class CourseEditorService {
-  // Keep these QuisquisLingo key names stable across future Course Model upgrades.
-  static const _storageKey = 'quisquislingo_course_editor_overrides_v2_100';
-  static const _userCoursesKey = 'quisquislingo_user_courses_v2_100';
+  // Clean-cut v4 storage intentionally does not read or migrate legacy projects.
+  static const _storageKey = 'quisquislingo_course_editor_overrides_v4_215';
+  static const _userCoursesKey = 'quisquislingo_user_courses_v4_215';
   static const _corruptBackupKey =
-      'quisquislingo_course_editor_corrupt_backup_100';
+      'quisquislingo_course_editor_corrupt_backup_v4_215';
   static const _maxBytes = 8 * 1024 * 1024;
 
   String _normalizeCode(String value) {
@@ -75,7 +75,7 @@ class CourseEditorService {
     await prefs.setString(key, encoded);
   }
 
-  /// Applies only a valid v3 override to a bundled v3 course.
+  /// Applies only a valid v4 override to a bundled v4 course.
   Future<Map<String, dynamic>> applyToCourse(
     String languageCode,
     Map<String, dynamic> base,
@@ -161,7 +161,7 @@ class CourseEditorService {
     final all = await _loadKey(_storageKey);
     final code = _normalizeCode(languageCode);
     return const JsonEncoder.withIndent('  ').convert({
-      'format': 'QuisquisLingo Course Model v3 local override',
+      'format': 'QuisquisLingo Course Model v4 local override',
       'language': code,
       'override': all[code] ?? <String, dynamic>{},
     });
