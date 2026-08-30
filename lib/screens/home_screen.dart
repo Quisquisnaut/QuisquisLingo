@@ -109,9 +109,10 @@ class _HomeScreenState extends State<HomeScreen> {
   String _selectedLanguage = 'IT';
   String _selectedCourseRef = 'IT';
   int _activeTopicIndex = 0;
-  int _flowStartTopicIndex = 0;
   String? _flowCourseId;
   String? _flowLearner;
+  int? _lessonScrollTargetIndex;
+  int _lessonScrollTargetAttempts = 0;
   bool _lessonVisibilityCheckScheduled = false;
 
   @override
@@ -321,9 +322,7 @@ class _HomeScreenState extends State<HomeScreen> {
       }
       if (!mounted) return;
       final resetFlow =
-          _flowCourseId != course.courseId ||
-          _flowLearner != active ||
-          _flowStartTopicIndex >= course.topics.length;
+          _flowCourseId != course.courseId || _flowLearner != active;
       setState(() {
         _course = course;
         _selectedCourseRef = selectedRef;
@@ -338,12 +337,11 @@ class _HomeScreenState extends State<HomeScreen> {
         _iddqdMode = iddqdMode;
         _activeTopicIndex = activeTopicIndex;
         if (resetFlow) {
-          _flowStartTopicIndex = activeTopicIndex;
           _flowCourseId = course.courseId;
           _flowLearner = active;
         }
       });
-      if (resetFlow) _resetLearnerScroll();
+      if (resetFlow) _scrollToTopic(course, activeTopicIndex);
     } on AppException catch (e) {
       if (mounted) await ErrorPresenter.show(context, e.error);
     } catch (e, st) {
@@ -778,35 +776,82 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _selectTopic(Course course, int index) async {
     if (index < 0 || index >= course.topics.length) return;
-    if (!_isTopicUnlocked(course, index) && !_iddqdMode) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Complete the previous Lesson or win its Duel to unlock this Lesson.',
-          ),
-        ),
-      );
-      return;
-    }
     await _settings.setLastVisitedTopicId(
       course.courseId,
       course.topics[index].id,
     );
     if (!mounted) return;
-    setState(() {
-      _activeTopicIndex = index;
-      _flowStartTopicIndex = index;
-    });
-    _resetLearnerScroll();
+    setState(() => _activeTopicIndex = index);
+    _scrollToTopic(course, index);
   }
 
-  void _resetLearnerScroll() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted && _learnerScrollController.hasClients) {
-        _learnerScrollController.jumpTo(0);
-      }
-    });
+  void _scrollToTopic(Course course, int index) {
+    if (index < 0 || index >= course.topics.length) return;
+    _lessonScrollTargetIndex = index;
+    _lessonScrollTargetAttempts = 0;
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) => _advanceLessonScrollTarget(course, index),
+    );
+  }
+
+  void _advanceLessonScrollTarget(Course course, int index) {
+    if (!mounted ||
+        !identical(_course, course) ||
+        _lessonScrollTargetIndex != index) {
+      return;
+    }
+    if (!_learnerScrollController.hasClients) {
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) => _advanceLessonScrollTarget(course, index),
+      );
+      return;
+    }
+    final sectionContext = _lessonSectionKey(
+      course,
+      course.topics[index],
+    ).currentContext;
+    if (sectionContext != null) {
+      unawaited(
+        Scrollable.ensureVisible(
+          sectionContext,
+          alignment: 0,
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.easeOut,
+        ).whenComplete(() {
+          if (mounted && _lessonScrollTargetIndex == index) {
+            _lessonScrollTargetIndex = null;
+          }
+        }),
+      );
+      return;
+    }
+
+    final position = _learnerScrollController.position;
+    final step = position.viewportDimension * .8;
+    final builtIndexes = <int>[
+      for (var builtIndex = 0; builtIndex < course.topics.length; builtIndex++)
+        if (_lessonSectionKey(
+              course,
+              course.topics[builtIndex],
+            ).currentContext !=
+            null)
+          builtIndex,
+    ];
+    final moveBackward = builtIndexes.isNotEmpty && index < builtIndexes.first;
+    final nextOffset = (position.pixels + (moveBackward ? -step : step))
+        .clamp(position.minScrollExtent, position.maxScrollExtent)
+        .toDouble();
+    if (nextOffset != position.pixels) {
+      _learnerScrollController.jumpTo(nextOffset);
+    }
+    _lessonScrollTargetAttempts++;
+    if (_lessonScrollTargetAttempts >= 120) {
+      _lessonScrollTargetIndex = null;
+      return;
+    }
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) => _advanceLessonScrollTarget(course, index),
+    );
   }
 
   GlobalKey _lessonSectionKey(Course course, Topic topic) => _lessonSectionKeys
@@ -824,6 +869,7 @@ class _HomeScreenState extends State<HomeScreen> {
   void _syncPrimaryVisibleLesson(Course course) {
     if (!identical(_course, course) ||
         !_learnerScrollController.hasClients ||
+        _lessonScrollTargetIndex != null ||
         course.topics.isEmpty) {
       return;
     }
@@ -834,11 +880,7 @@ class _HomeScreenState extends State<HomeScreen> {
     var candidateVisibleExtent = 0.0;
     var activeVisibleExtent = 0.0;
 
-    for (
-      var index = _flowStartTopicIndex;
-      index < course.topics.length;
-      index++
-    ) {
+    for (var index = 0; index < course.topics.length; index++) {
       final context = _lessonSectionKey(
         course,
         course.topics[index],
@@ -1199,12 +1241,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                           : null,
                                       onNext:
                                           _activeTopicIndex + 1 <
-                                                  course.topics.length &&
-                                              (_isTopicUnlocked(
-                                                    course,
-                                                    _activeTopicIndex + 1,
-                                                  ) ||
-                                                  _iddqdMode)
+                                              course.topics.length
                                           ? () => _selectTopic(
                                               course,
                                               _activeTopicIndex + 1,
@@ -1241,14 +1278,12 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ),
                                 itemCount: course.topics.isEmpty
                                     ? 1
-                                    : course.topics.length -
-                                          _flowStartTopicIndex,
+                                    : course.topics.length,
                                 itemBuilder: (context, flowIndex) {
                                   if (course.topics.isEmpty) {
                                     return const _EmptyCourseCard();
                                   }
-                                  final topicIndex =
-                                      _flowStartTopicIndex + flowIndex;
+                                  final topicIndex = flowIndex;
                                   final sectionTopic =
                                       course.topics[topicIndex];
                                   final unlocked = _isTopicUnlocked(
@@ -1265,7 +1300,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                     ),
                                     topic: sectionTopic,
                                     topicIndex: topicIndex,
-                                    showBoundary: flowIndex > 0,
+                                    showBoundary: topicIndex > 0,
                                     unlocked: unlocked,
                                     hasAccess: unlocked || _iddqdMode,
                                     completedRounds: _completedRounds,
@@ -1353,7 +1388,7 @@ class _CourseSelector extends StatelessWidget {
       borderRadius: BorderRadius.circular(18),
       onTap: onTap,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
         child: Row(
           children: [
             CourseFlagBadge(course: course, fallbackCode: code),
@@ -1412,7 +1447,7 @@ class _LessonNavigation extends StatelessWidget {
             backgroundColor: Theme.of(context).brightness == Brightness.dark
                 ? Theme.of(context).colorScheme.surface.withValues(alpha: .5)
                 : Colors.white.withValues(alpha: .5),
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 13),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
           ),
           child: Row(
             children: [
@@ -1438,9 +1473,12 @@ class _LessonNavigation extends StatelessWidget {
                     ),
                     Text(
                       '$completedRoundCount/$roundCount Rounds completed',
-                      style: Theme.of(context).brightness == Brightness.dark
-                          ? const TextStyle(color: Colors.white)
-                          : null,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        fontWeight: FontWeight.normal,
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? Colors.white
+                            : null,
+                      ),
                     ),
                   ],
                 ),

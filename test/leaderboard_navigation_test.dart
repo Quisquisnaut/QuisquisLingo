@@ -97,17 +97,21 @@ void main() {
         find.byKey(const Key('unified-learner-scroll')),
       );
       expect(listView.childrenDelegate, isA<SliverChildBuilderDelegate>());
+      expect(
+        listView.childrenDelegate.estimatedChildCount,
+        course.topics.length,
+      );
 
       final scrollable = _mainLearnerScrollable();
       final position = tester.state<ScrollableState>(scrollable).position;
       final visitedOffsets = <double>[];
-      for (final topic in course.topics.take(4)) {
+      for (final topic in course.topics) {
         final section = find.byKey(
           ValueKey('unified-lesson-section-${topic.id}'),
         );
         await tester.scrollUntilVisible(section, 260, scrollable: scrollable);
         await tester.pumpAndSettle();
-        expect(section, findsOneWidget);
+        expect(section, findsOneWidget, reason: topic.id);
         visitedOffsets.add(position.pixels);
       }
 
@@ -119,7 +123,112 @@ void main() {
   );
 
   testWidgets(
-    'Lesson selector opens the picker and changes the active Lesson',
+    'restored intermediate Lesson is the initial target with earlier and later Lessons retained',
+    (tester) async {
+      final course = await _loadItalianCourse(tester);
+      final restoredTopic = course.topics[1];
+      await SettingsService().setLastVisitedTopicId(
+        course.courseId,
+        restoredTopic.id,
+      );
+
+      await _openHome(tester, scrollToActions: false);
+      await tester.pumpAndSettle();
+
+      final scrollable = _mainLearnerScrollable();
+      final restoredSection = find.byKey(
+        ValueKey('unified-lesson-section-${restoredTopic.id}'),
+      );
+      expect(_lessonSelectorLabel(course, 1), findsOneWidget);
+      expect(restoredSection, findsOneWidget);
+      expect(
+        tester.getRect(restoredSection).overlaps(tester.getRect(scrollable)),
+        isTrue,
+      );
+      expect(
+        tester.state<ScrollableState>(scrollable).position.pixels,
+        greaterThan(0),
+      );
+
+      final firstSection = find.byKey(
+        ValueKey('unified-lesson-section-${course.topics.first.id}'),
+      );
+      await tester.scrollUntilVisible(
+        firstSection,
+        -260,
+        scrollable: scrollable,
+      );
+      await tester.drag(
+        find.byKey(const Key('unified-learner-scroll')),
+        const Offset(0, 260),
+      );
+      await tester.pumpAndSettle();
+      expect(firstSection, findsOneWidget);
+      expect(_lessonSelectorLabel(course, 0), findsOneWidget);
+
+      final thirdSection = find.byKey(
+        ValueKey('unified-lesson-section-${course.topics[2].id}'),
+      );
+      await tester.scrollUntilVisible(
+        thirdSection,
+        260,
+        scrollable: scrollable,
+      );
+      await tester.pumpAndSettle();
+      expect(thirdSection, findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'restored final Lesson is the initial target with previous Lessons retained',
+    (tester) async {
+      final course = await _loadItalianCourse(tester);
+      final finalIndex = course.topics.length - 1;
+      final finalTopic = course.topics[finalIndex];
+      await SettingsService().setLastVisitedTopicId(
+        course.courseId,
+        finalTopic.id,
+      );
+
+      await _openHome(tester, scrollToActions: false);
+      await tester.pumpAndSettle();
+
+      final scrollable = _mainLearnerScrollable();
+      final finalSection = find.byKey(
+        ValueKey('unified-lesson-section-${finalTopic.id}'),
+      );
+      expect(_lessonSelectorLabel(course, finalIndex), findsOneWidget);
+      expect(finalSection, findsOneWidget);
+      expect(
+        tester.getRect(finalSection).overlaps(tester.getRect(scrollable)),
+        isTrue,
+      );
+      expect(
+        tester.widget<IconButton>(_lessonArrowButton('Next Lesson')).onPressed,
+        isNull,
+      );
+      expect(
+        tester
+            .widget<IconButton>(_lessonArrowButton('Previous Lesson'))
+            .onPressed,
+        isNotNull,
+      );
+
+      final firstSection = find.byKey(
+        ValueKey('unified-lesson-section-${course.topics.first.id}'),
+      );
+      await tester.scrollUntilVisible(
+        firstSection,
+        -400,
+        scrollable: scrollable,
+      );
+      await tester.pumpAndSettle();
+      expect(firstSection, findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'Lesson picker scrolls to the selected Lesson without truncating the flow',
     (tester) async {
       final course = await _loadItalianCourse(tester);
       await _openHome(tester, scrollToActions: false);
@@ -132,39 +241,42 @@ void main() {
         Alignment.centerLeft,
       );
       await tester.tap(selector);
-      final secondTopic = course.topics[1];
-      final secondLesson = find.text('Lesson 2: ${secondTopic.title}');
-      await _pumpUntil(tester, secondLesson);
+      final selectedTopic = course.topics[2];
+      final selectedLesson = find.text('Lesson 3: ${selectedTopic.title}');
+      await _pumpUntil(tester, selectedLesson);
       await tester.pumpAndSettle();
       expect(find.text('Browse All Lessons'), findsNothing);
-      expect(secondLesson, findsOneWidget);
-      final secondLessonTile = find.ancestor(
-        of: secondLesson,
+      expect(selectedLesson, findsOneWidget);
+      final selectedLessonTile = find.ancestor(
+        of: selectedLesson,
         matching: find.byType(ListTile),
       );
       expect(
         find.descendant(
-          of: secondLessonTile,
+          of: selectedLessonTile,
           matching: find.byIcon(Icons.lock_outline),
         ),
         findsOneWidget,
       );
-      await tester.tap(secondLesson);
-      await _pumpFrames(tester);
-      expect(find.text('Lesson 2: ${secondTopic.title}'), findsOneWidget);
+      await tester.tap(selectedLesson);
+      await tester.pumpAndSettle();
       expect(
-        find.byKey(ValueKey('unified-lesson-section-${secondTopic.id}')),
+        find.descendant(
+          of: selector,
+          matching: find.text('Lesson 3: ${selectedTopic.title}'),
+        ),
         findsOneWidget,
       );
       expect(
-        find.byKey(
-          ValueKey('unified-lesson-section-${course.topics.first.id}'),
-        ),
-        findsNothing,
+        find.byKey(ValueKey('unified-lesson-section-${selectedTopic.id}')),
+        findsOneWidget,
+      );
+      final firstSection = find.byKey(
+        ValueKey('unified-lesson-section-${course.topics.first.id}'),
       );
       expect(
         tester.state<ScrollableState>(_mainLearnerScrollable()).position.pixels,
-        0,
+        greaterThan(0),
       );
       late String? persistedTopicId;
       await tester.runAsync(() async {
@@ -172,33 +284,100 @@ void main() {
           course.courseId,
         );
       });
-      expect(persistedTopicId, secondTopic.id);
+      expect(persistedTopicId, selectedTopic.id);
+      await tester.scrollUntilVisible(
+        firstSection,
+        -260,
+        scrollable: _mainLearnerScrollable(),
+      );
+      expect(firstSection, findsOneWidget);
 
       const unavailable =
           'Unavailable for this Lesson: not enough suitable exercises.';
-      final secondDuel = find.byKey(ValueKey('unified-duel-${secondTopic.id}'));
+      final selectedDuel = find.byKey(
+        ValueKey('unified-duel-${selectedTopic.id}'),
+      );
       await tester.scrollUntilVisible(
-        secondDuel,
+        selectedDuel,
         240,
         scrollable: _mainLearnerScrollable(),
       );
       await tester.pump();
-      final unavailableInSecondLesson = find.descendant(
-        of: secondDuel,
+      final unavailableInSelectedLesson = find.descendant(
+        of: selectedDuel,
         matching: find.text(unavailable),
       );
-      await tester.ensureVisible(unavailableInSecondLesson);
-      expect(unavailableInSecondLesson, findsOneWidget);
-      final thirdSection = find.byKey(
-        ValueKey('unified-lesson-section-${course.topics[2].id}'),
+      await tester.ensureVisible(unavailableInSelectedLesson);
+      expect(unavailableInSelectedLesson, findsOneWidget);
+      final laterSection = find.byKey(
+        ValueKey('unified-lesson-section-${course.topics[3].id}'),
       );
       await tester.scrollUntilVisible(
-        thirdSection,
+        laterSection,
         240,
         scrollable: _mainLearnerScrollable(),
       );
-      expect(thirdSection, findsOneWidget);
+      expect(laterSection, findsOneWidget);
       expect(find.byType(HomeScreen), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'Lesson arrows navigate within the full flow without opening the picker',
+    (tester) async {
+      final course = await _loadItalianCourse(tester, enableIddqd: false);
+      await _openHome(tester, scrollToActions: false);
+
+      expect(
+        tester
+            .widget<IconButton>(_lessonArrowButton('Previous Lesson'))
+            .onPressed,
+        isNull,
+      );
+      expect(
+        tester.widget<IconButton>(_lessonArrowButton('Next Lesson')).onPressed,
+        isNotNull,
+      );
+
+      await tester.tap(_lessonArrowButton('Next Lesson'));
+      await tester.pumpAndSettle();
+      expect(find.byType(BottomSheet), findsNothing);
+      expect(_lessonSelectorLabel(course, 1), findsOneWidget);
+      final lockedTopic = course.topics[1];
+      expect(
+        find.byKey(ValueKey('unified-lesson-locked-${lockedTopic.id}')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(ValueKey('unified-round-${lockedTopic.rounds.first.id}')),
+        findsNothing,
+      );
+      expect(
+        tester
+            .widget<IconButton>(_lessonArrowButton('Previous Lesson'))
+            .onPressed,
+        isNotNull,
+      );
+      expect(
+        tester.widget<IconButton>(_lessonArrowButton('Next Lesson')).onPressed,
+        isNotNull,
+      );
+
+      await tester.tap(_lessonArrowButton('Previous Lesson'));
+      await tester.pumpAndSettle();
+      expect(find.byType(BottomSheet), findsNothing);
+      expect(_lessonSelectorLabel(course, 0), findsOneWidget);
+      expect(
+        tester
+            .widget<ListView>(find.byKey(const Key('unified-learner-scroll')))
+            .childrenDelegate
+            .estimatedChildCount,
+        course.topics.length,
+      );
+
+      await tester.tap(_lessonSelectorLabel(course, 0));
+      await tester.pumpAndSettle();
+      expect(find.byType(BottomSheet), findsOneWidget);
     },
   );
 
@@ -619,6 +798,19 @@ void main() {
       );
       expect(courseSelectorSurface, findsOneWidget);
       final courseSelectorRect = tester.getRect(courseSelectorSurface);
+      final courseSelectorInkWell = tester.widget<InkWell>(
+        find.byKey(const Key('unified-course-selector')),
+      );
+      expect(
+        (courseSelectorInkWell.child! as Padding).padding,
+        const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+      );
+      expect(
+        tester.widget<OutlinedButton>(selector).style?.padding?.resolve({}),
+        const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
+      );
+      expect(courseSelectorRect.height, greaterThanOrEqualTo(48));
+      expect(tester.getRect(selector).height, greaterThanOrEqualTo(48));
       expect(
         tester.widget<Material>(courseSelectorSurface).color,
         Colors.white.withValues(alpha: .5),
@@ -675,7 +867,17 @@ void main() {
         ),
       );
       expect(lessonTitle.style?.color, Colors.white);
+      expect(
+        lessonTitle.style?.fontSize,
+        pageTheme.textTheme.titleMedium?.fontSize,
+      );
+      expect(lessonTitle.style?.fontWeight, FontWeight.w900);
       expect(lessonProgress.style?.color, Colors.white);
+      expect(
+        lessonProgress.style?.fontSize,
+        pageTheme.textTheme.bodySmall?.fontSize,
+      );
+      expect(lessonProgress.style?.fontWeight, FontWeight.normal);
       expect(
         _contrastRatio(Colors.white, page.backgroundColor!),
         greaterThanOrEqualTo(4.5),
@@ -1005,6 +1207,18 @@ double _contrastRatio(Color foreground, Color background) {
 Finder _mainLearnerScrollable() => find.byWidgetPredicate(
   (widget) =>
       widget is Scrollable && widget.physics is AlwaysScrollableScrollPhysics,
+);
+
+Finder _lessonSelectorLabel(Course course, int topicIndex) => find.descendant(
+  of: find.byKey(const Key('unified-lesson-selector')),
+  matching: find.text(
+    'Lesson ${topicIndex + 1}: ${course.topics[topicIndex].title}',
+  ),
+);
+
+Finder _lessonArrowButton(String tooltip) => find.widgetWithIcon(
+  IconButton,
+  tooltip == 'Previous Lesson' ? Icons.chevron_left : Icons.chevron_right,
 );
 
 Finder _flagBackdropText() => find.byWidgetPredicate((widget) {
