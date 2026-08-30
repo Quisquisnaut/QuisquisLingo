@@ -1,6 +1,6 @@
 # QuisquisLingo Course Editor
 
-Updated for current Course Model v4 editor (2.0.15+215)
+Updated for current Course Model v4 editor (2.0.16+216)
 
 ## Unlocking the editor
 
@@ -179,7 +179,7 @@ An author can have multiple roles. Course Creator means original creation/design
 
 ## Alpha expiry and authoring
 
-The current time-limited alpha expires on 2026-09-27. Expiry blocks learner exercises and Review but deliberately leaves Course Editor available so authoring work can be inspected, recovered and exported. Expiry never deletes local data.
+The current time-limited alpha expires on 2026-09-28. Expiry blocks learner exercises and Review but deliberately leaves Course Editor available so authoring work can be inspected, recovered and exported. Expiry never deletes local data.
 
 
 ## Current bundled course and My custom courses
@@ -193,7 +193,7 @@ Custom courses can be imported from and exported to `.json` files without a file
 
 ### Home course selection and navigation
 
-The Home course selector lists bundled courses and every locally available custom course, including courses created in the editor and courses imported from JSON. Selecting one makes it the current course. The unified learner page resumes the active learner at the last Lesson opened in that specific course; first use falls back to Lesson 1. **Browse All Lessons** switches Lesson without an intermediate hierarchy screen, and Back from a Round returns directly to the unified Home learner page.
+The Home course selector lists bundled courses and every locally available custom course, including courses created in the editor and courses imported from JSON. Selecting one makes it the current course. The unified learner page resumes the active learner at the last Lesson opened in that specific course; first use falls back to Lesson 1. The Lesson selector opens the complete Lesson picker without an intermediate hierarchy screen, and Back from a Round returns directly to the unified Home learner page.
 
 ### Copy edits as JSON vs Export course JSON
 

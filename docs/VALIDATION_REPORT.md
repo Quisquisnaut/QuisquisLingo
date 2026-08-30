@@ -1,16 +1,18 @@
-# QuisquisLingo 2.0.15+215 release validation report
+# QuisquisLingo 2.0.16+216 release validation report
 
-Date: 28 August 2026
+Date: 29 August 2026
 
 ## Baseline and scope
 
-- Work began on `main` at commit `c796dbd12d1efb3308c38ed38b5fdd519d3cb8a6` with a clean working tree and package version `2.0.14+214`.
-- The target package version is `2.0.15+215`.
-- The established 30-day Alpha lifetime expires at the end of 27 September 2026; the date is unchanged because builds 214 and 215 were prepared on the same day.
+- Phase 2 work began at Phase 1 regression-protection commit `444fbf9` with a clean working tree; the approved production baseline remains `409a75f` (`2.0.15+215`).
+- The target package version is `2.0.16+216`.
+- The established 30-day Alpha lifetime expires at the end of 28 September 2026.
 - Course Model v4 is a clean cut: Course owns ordered Topics directly, Chapter-based structures are rejected, and no legacy course or progress migration is present.
 - A newly created custom Course starts with three placeholder Topics and no automatically created Rounds.
 - Learner navigation is unified around Course → Lesson → Round while retaining the existing learner status bar, Leaderboard/Gamification route, Review, Course Info and Settings behavior.
-- The unified learner page uses the supplied QuisquisLingo logo and follows the operating-system light/dark appearance without adding an application switch or changing unrelated screens.
+- The unified learner page retains the supplied QuisquisLingo logo, uses the selected-course flag as its background, places the protected user/logo/Settings strip above the unchanged status bar, and follows the operating-system light/dark appearance.
+- The standalone Browse All Lessons button is removed while the existing Lesson selector continues to open the complete Lesson picker and retain its established navigation/persistence behavior.
+- The existing course picker continues to place up to three newest other recent courses between the current course and complete course list without changing recent-course persistence.
 - Topic Duel availability is derived at runtime from the actual Topic-local eligible pool. Fewer than 25 eligible exercises is a normal unavailable state, independent of the six-Round author recommendation.
 
 ## Preserved scoring and progress behavior
@@ -30,8 +32,8 @@ Date: 28 August 2026
 
 ## Automated validation
 
-- `flutter test --no-pub --reporter compact`: **260 tests passed, 0 failed** in approximately **2m01s**.
-- Focused widget coverage includes the three-Topic custom-Course default, final-Lesson `Duel Won!` wording, the supplied header logo, operating-system light/dark rendering for the learner page, loading state and Lesson picker, direct Course → Lesson → Round navigation, Back behavior, Lesson switching, normal unavailable-Duel messaging, Home Leaderboard routing, Gamification absence from Settings, course refresh after returning from Settings, four-life Duel loss and a 320 px Home with 1.5× text scaling.
+- `flutter test --no-pub`: **264 tests passed, 0 failed** in approximately **1m18s**.
+- Focused widget coverage includes the supplied header logo contract, white Welcome-dialog text, selected-course flag background and course switching in light/dark appearance, protected strip/status-bar order, absence of the standalone Browse All Lessons button, retained Lesson-selector navigation, visible recent-course placement/maximum/order, loading state, direct Course → Lesson → Round navigation, Back behavior, normal unavailable-Duel messaging, Home Leaderboard routing, Settings return refresh and a 320 px Home with 1.5× text scaling.
 - `flutter analyze --no-pub`: no errors or warnings; the same **7 pre-existing info-only** `curly_braces_in_flow_control_structures` findings remain in `course_editor_service.dart`, `profile_service.dart` and `settings_service.dart`.
 - `git diff --check`: passed with no whitespace errors.
 

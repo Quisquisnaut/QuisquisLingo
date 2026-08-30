@@ -1,13 +1,13 @@
 # QuisquisLingo App
 
-**Current source version: 2.0.15+215 · Course Model v4 (`formatVersion: 4`).**
+**Current source version: 2.0.16+216 · Course Model v4 (`formatVersion: 4`).**
 
 
-**QuisquisLingo 2.0.15 Alpha**
+**QuisquisLingo 2.0.16 Alpha**
 
-Current project version: 2.0.15
+Current project version: 2.0.16
 
-Build 215 removes Chapter from the course architecture, introduces Course Model v4 and makes the unified learner page the direct Course → Lesson → Round hub. Duels are Topic-scoped and become unavailable normally when the selected Topic has fewer than 25 actually eligible exercises. The official repository is `Quisquisnaut/QuisquisLingo`.
+Build 216 keeps the approved Chapter-free Course Model v4 learner architecture while correcting the Welcome-dialog contrast, learner flag background, top-strip/status-bar order and redundant Lesson-browse control. Duels remain Topic-scoped and normally unavailable when the selected Topic has fewer than 25 actually eligible exercises. The official repository is `Quisquisnaut/QuisquisLingo`.
 
 
 A Flutter prototype for an offline-first language-learning app.
@@ -26,7 +26,7 @@ The MPL-2.0 covers the QuisquisLingo software source. Courses, the Image Bank an
 
 ## Alpha lifecycle
 
-Version 2.0.15 is a time-limited alpha and expires on **2026-09-27**. Near expiry it displays reminders. After expiry, learner exercises and Review are blocked until a newer alpha is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when an alpha expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM. Future stable builds can disable alpha expiry.
+Version 2.0.16 is a time-limited alpha and expires on **2026-09-28**. Near expiry it displays reminders. After expiry, learner exercises and Review are blocked until a newer alpha is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when an alpha expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM. Future stable builds can disable alpha expiry.
 
 ## Core logic
 
@@ -39,7 +39,7 @@ Course
 
 Each Topic has its own GuideBook, ordered Rounds and Topic-scoped Duel in Course Model v4. The first Content item of a Topic’s first Round may present a short essential introduction drawn from that GuideBook.
 
-The learner page shows one current Lesson, provides Browse All Lessons, and opens its GuideBook, Rounds and Duel directly.
+The learner page shows one current Lesson, opens the complete Lesson picker from the Lesson selector, and opens its GuideBook, Rounds and Duel directly.
 
 The next Lesson unlocks when the current Topic is completed or its Duel is won. A Duel remains unavailable when its actual eligible pool has fewer than the required 25 exercises; Round count is not used to decide availability.
 
@@ -49,7 +49,7 @@ All learner data remains on-device.
 
 - Course-language selector
 - Unified Course → Lesson → Round learner page
-- Lesson selector and Browse All Lessons
+- Lesson selector with complete Lesson picker
 - Topic-scoped Duel skip mechanism with actual-pool availability
 - Round and exercise model
 - Local progress persistence

@@ -28,6 +28,7 @@ These are persistent instructions for Codex when working on QuisquisLingo.
 - `2.0.13+213` stabilizes the authoritative Round, Review, Topic and Duel XP rules and makes displayed and persisted awards share one calculation result.
 - `2.0.14+214` communicates first Topic completion in the Round XP breakdown, unifies guarded text-entry submission, promotes Leaderboard navigation to Home, and applies narrow status-bar and desktop-resize refinements.
 - `2.0.15+215` removes Chapter through a clean Course Model v4 cut, introduces the unified Course → Lesson → Round learner page, and makes Duel Topic-scoped with actual-pool availability.
+- `2.0.16+216` corrects the Welcome-dialog contrast, uses the selected-course flag as the learner background, places the protected learner strip above the unchanged status bar, removes the redundant Browse All Lessons button while retaining the Lesson selector, and preserves the established recent-course presentation.
 
 ## Architecture and service boundaries
 

@@ -129,19 +129,26 @@ class _HomeScreenState extends State<HomeScreen> {
       builder: (ctx) => Theme(
         data: _unifiedLearnerTheme(context),
         child: AlertDialog(
-          title: const Text('Welcome to QuisquisLingo'),
+          title: const Text(
+            'Welcome to QuisquisLingo',
+            style: TextStyle(color: Colors.white),
+          ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
                 'Version $_appVersion',
-                style: Theme.of(ctx).textTheme.labelLarge,
+                style: Theme.of(
+                  ctx,
+                ).textTheme.labelLarge?.copyWith(color: Colors.white),
               ),
               const SizedBox(height: 16),
               Text(
                 phrase,
                 textAlign: TextAlign.center,
-                style: Theme.of(ctx).textTheme.titleMedium,
+                style: Theme.of(
+                  ctx,
+                ).textTheme.titleMedium?.copyWith(color: Colors.white),
               ),
             ],
           ),
@@ -953,6 +960,7 @@ class _HomeScreenState extends State<HomeScreen> {
           }
           return LearnerStatusPage(
             foreground: LearnerStatusForeground.light,
+            statusBarTop: 58,
             child: Scaffold(
               key: const Key('unified-learner-page'),
               backgroundColor: pageBackground,
@@ -1026,19 +1034,11 @@ class _HomeScreenState extends State<HomeScreen> {
               body: Stack(
                 fit: StackFit.expand,
                 children: [
-                  Image.asset(
-                    'assets/olive_tree.png',
-                    fit: BoxFit.cover,
-                    alignment: Alignment.center,
-                    opacity: AlwaysStoppedAnimation(
-                      followsDarkAppearance ? .20 : .62,
-                    ),
-                  ),
-                  ColoredBox(
-                    key: const Key('unified-learner-background-tint'),
-                    color: followsDarkAppearance
-                        ? const Color(0xD9000000)
-                        : const Color(0x18FFF9E8),
+                  CourseFlagBackdrop(
+                    key: const Key('unified-learner-flag-background'),
+                    course: course,
+                    fallbackCode: _selectedLanguage,
+                    opacity: 1,
                   ),
                   SafeArea(
                     top: false,
@@ -1220,10 +1220,9 @@ class _LessonNavigation extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) => LayoutBuilder(
-    builder: (context, constraints) {
-      final compact = constraints.maxWidth < 560;
-      final selector = Expanded(
+  Widget build(BuildContext context) => Row(
+    children: [
+      Expanded(
         child: OutlinedButton(
           key: const Key('unified-lesson-selector'),
           onPressed: onBrowse,
@@ -1262,28 +1261,8 @@ class _LessonNavigation extends StatelessWidget {
             ],
           ),
         ),
-      );
-      final browse = OutlinedButton.icon(
-        key: const Key('browse-all-lessons'),
-        onPressed: onBrowse,
-        icon: const Icon(Icons.menu_book_outlined),
-        label: const Text('Browse All Lessons'),
-      );
-      if (compact) {
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Row(children: [selector]),
-            const SizedBox(height: 8),
-            browse,
-          ],
-        );
-      }
-      return Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [selector, const SizedBox(width: 10), browse],
-      );
-    },
+      ),
+    ],
   );
 }
 

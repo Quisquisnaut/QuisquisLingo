@@ -15,7 +15,7 @@ class InfoScreen extends StatelessWidget {
         _InfoSection(
           title: 'Choosing and opening courses',
           body:
-              'The learner page course selector lists the current course, recently opened courses, bundled courses and My custom courses. Each learner resumes the last Lesson selected in that course, or the first Lesson when no saved selection is valid. Use Browse All Lessons to see the complete course.',
+              'The learner page course selector lists the current course, recently opened courses, bundled courses and My custom courses. Each learner resumes the last Lesson selected in that course, or the first Lesson when no saved selection is valid. Use the Lesson selector to see the complete course.',
         ),
         _InfoSection(
           title: 'Course identity and progress',

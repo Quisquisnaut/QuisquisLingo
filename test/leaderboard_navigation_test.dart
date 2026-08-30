@@ -11,6 +11,8 @@ import 'package:quisquislingo_app/services/course_editor_service.dart';
 import 'package:quisquislingo_app/services/course_service.dart';
 import 'package:quisquislingo_app/services/profile_service.dart';
 import 'package:quisquislingo_app/services/settings_service.dart';
+import 'package:quisquislingo_app/widgets/flag_art.dart';
+import 'package:quisquislingo_app/widgets/learner_navigation.dart';
 import 'package:quisquislingo_app/widgets/learner_shell.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -18,6 +20,7 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   setUp(() async {
+    resetLearnerStatusRouteObserver();
     final messenger =
         TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
     messenger.setMockMethodCallHandler(
@@ -48,12 +51,12 @@ void main() {
     PackageInfo.setMockInitialValues(
       appName: 'QuisquisLingo',
       packageName: 'com.quisquislingo.app',
-      version: '2.0.15',
-      buildNumber: '215',
+      version: '2.0.16',
+      buildNumber: '216',
       buildSignature: '',
     );
     SharedPreferences.setMockInitialValues({
-      'one_time_notice_seen_welcome_2.0.15': true,
+      'one_time_notice_seen_welcome_2.0.16': true,
       'sound_effects_enabled': false,
     });
     await ProfileService().addProfile('Navigation Learner');
@@ -89,6 +92,7 @@ void main() {
 
       final selector = find.byKey(const Key('unified-lesson-selector'));
       expect(selector, findsOneWidget);
+      expect(find.byKey(const Key('browse-all-lessons')), findsNothing);
       expect(
         tester.widget<OutlinedButton>(selector).style?.alignment,
         Alignment.centerLeft,
@@ -229,7 +233,12 @@ void main() {
       final dispatcher = tester.binding.platformDispatcher;
       dispatcher.platformBrightnessTestValue = Brightness.light;
       addTearDown(dispatcher.clearPlatformBrightnessTestValue);
-      await _openHome(tester, scrollToActions: false);
+      final italianCourse = await _loadItalianCourse(tester);
+      await _openHome(
+        tester,
+        scrollToActions: false,
+        includeLearnerShell: true,
+      );
 
       final logoFinder = find.byKey(const Key('unified-learner-logo'));
       expect(logoFinder, findsOneWidget);
@@ -267,9 +276,32 @@ void main() {
         find.byIcon(Icons.settings_outlined),
       ].map((finder) => tester.getRect(finder).center.dx).toList();
       expect(stripOrder, orderedEquals(stripOrder.toList()..sort()));
+      final stripRect = tester.getRect(logoFinder);
+      final statusRect = tester.getRect(
+        find.byKey(const Key('learner-status-position')),
+      );
+      final contentRect = tester.getRect(
+        find.byKey(const Key('unified-course-selector')),
+      );
+      expect(stripRect.bottom, lessThanOrEqualTo(statusRect.top));
+      expect(statusRect.bottom, lessThanOrEqualTo(contentRect.top));
       expect(pageTheme.brightness, Brightness.light);
       expect(page.backgroundColor, const Color(0xFFF7F3E8));
       expect(statusAppBar.backgroundColor, const Color(0xFF214D3B));
+      var background = tester.widget<CourseFlagBackdrop>(
+        find.byKey(const Key('unified-learner-flag-background')),
+      );
+      expect(background.course.courseId, italianCourse.courseId);
+      expect(background.fallbackCode, 'IT');
+      expect(background.opacity, 1);
+      expect(
+        find.image(const AssetImage('assets/olive_tree.png')),
+        findsNothing,
+      );
+      expect(
+        find.byKey(const Key('unified-learner-background-tint')),
+        findsNothing,
+      );
 
       dispatcher.platformBrightnessTestValue = Brightness.dark;
       await _pumpFrames(tester, count: 4);
@@ -283,13 +315,15 @@ void main() {
       pageTheme = Theme.of(
         tester.element(find.byKey(const Key('unified-learner-page'))),
       );
-      final tint = tester.widget<ColoredBox>(
-        find.byKey(const Key('unified-learner-background-tint')),
+      background = tester.widget<CourseFlagBackdrop>(
+        find.byKey(const Key('unified-learner-flag-background')),
       );
       expect(pageTheme.brightness, Brightness.dark);
       expect(page.backgroundColor, const Color(0xFF080B09));
       expect(statusAppBar.backgroundColor, page.backgroundColor);
-      expect(tint.color, const Color(0xD9000000));
+      expect(background.course.courseId, italianCourse.courseId);
+      expect(background.fallbackCode, 'IT');
+      expect(background.opacity, 1);
       expect(
         pageTheme.colorScheme.onSurface.computeLuminance(),
         greaterThan(.5),
@@ -334,12 +368,80 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('selected course changes the learner flag background', (
+    tester,
+  ) async {
+    final germanCourse = await _loadCourse(tester, 'DE');
+    await _openHome(tester, scrollToActions: false);
+
+    var background = tester.widget<CourseFlagBackdrop>(
+      find.byKey(const Key('unified-learner-flag-background')),
+    );
+    expect(background.fallbackCode, 'IT');
+
+    await tester.tap(find.byKey(const Key('unified-course-selector')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(ListTile, 'German').last);
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 300)),
+    );
+    await _pumpFrames(tester, count: 20);
+    expect(find.byType(BottomSheet), findsNothing);
+
+    background = tester.widget<CourseFlagBackdrop>(
+      find.byKey(const Key('unified-learner-flag-background')),
+    );
+    expect(background.course.courseId, germanCourse.courseId);
+    expect(background.fallbackCode, 'DE');
+  });
+
+  testWidgets(
+    'course picker places three other recent courses before the complete list',
+    (tester) async {
+      final settings = SettingsService();
+      for (final ref in ['DE', 'ES', 'FI', 'PT', 'IT']) {
+        await settings.setLastSelectedCourseCode(ref);
+      }
+      await _openHome(tester, scrollToActions: false);
+
+      await tester.tap(find.byKey(const Key('unified-course-selector')));
+      await tester.pumpAndSettle();
+
+      final currentTop = tester.getRect(find.text('Current course')).top;
+      final recentTop = tester.getRect(find.text('Recently opened')).top;
+      final allTop = tester.getRect(find.text('All included courses')).top;
+      expect(currentTop, lessThan(recentTop));
+      expect(recentTop, lessThan(allTop));
+
+      final recentTiles = find.byType(ListTile).evaluate().where((element) {
+        final center = tester
+            .getRect(
+              find.byElementPredicate(
+                (candidate) => identical(candidate, element),
+              ),
+            )
+            .center
+            .dy;
+        return center > recentTop && center < allTop;
+      }).toList();
+      expect(recentTiles, hasLength(3));
+
+      final recentTitles = ['Portuguese', 'Finnish', 'Spanish'];
+      final recentPositions = recentTitles
+          .map((title) => tester.getRect(find.text(title).first).center.dy)
+          .toList();
+      expect(recentPositions, orderedEquals(recentPositions.toList()..sort()));
+      for (final position in recentPositions) {
+        expect(position, greaterThan(recentTop));
+        expect(position, lessThan(allTop));
+      }
+    },
+  );
+
   testWidgets(
     'Welcome and Alpha expiry dialogs retain their structure and controls',
     (tester) async {
-      SharedPreferences.setMockInitialValues({
-        'sound_effects_enabled': false,
-      });
+      SharedPreferences.setMockInitialValues({'sound_effects_enabled': false});
       await ProfileService().addProfile('Popup Learner');
 
       await tester.pumpWidget(const MaterialApp(home: HomeScreen()));
@@ -349,7 +451,30 @@ void main() {
       await _pumpUntil(tester, find.text('Welcome to QuisquisLingo'));
 
       expect(find.byType(AlertDialog), findsOneWidget);
-      expect(find.text('Version 2.0.15'), findsOneWidget);
+      final dialogTexts = tester
+          .widgetList<Text>(
+            find.descendant(
+              of: find.byType(AlertDialog),
+              matching: find.byType(Text),
+            ),
+          )
+          .where((text) => text.data != null)
+          .toList();
+      final phrase = dialogTexts.singleWhere(
+        (text) =>
+            text.data != 'Welcome to QuisquisLingo' &&
+            text.data != 'Version 2.0.16' &&
+            text.data != 'Continue',
+      );
+      expect(
+        tester.widget<Text>(find.text('Welcome to QuisquisLingo')).style?.color,
+        Colors.white,
+      );
+      expect(
+        tester.widget<Text>(find.text('Version 2.0.16')).style?.color,
+        Colors.white,
+      );
+      expect(phrase.style?.color, Colors.white);
       expect(find.widgetWithText(FilledButton, 'Continue'), findsOneWidget);
       expect(
         tester
@@ -364,15 +489,12 @@ void main() {
       late bool welcomeSeen;
       await tester.runAsync(() async {
         welcomeSeen = await SettingsService().hasSeenOneTimeNotice(
-          'welcome_2.0.15',
+          'welcome_2.0.16',
         );
       });
       expect(welcomeSeen, isTrue);
       expect(find.byType(AlertDialog), findsOneWidget);
-      expect(
-        find.textContaining('Expiry date: 2026-09-27.'),
-        findsOneWidget,
-      );
+      expect(find.textContaining('Expiry date: 2026-09-28.'), findsOneWidget);
       expect(find.widgetWithText(FilledButton, 'OK'), findsOneWidget);
       expect(
         tester
@@ -406,9 +528,13 @@ Course _courseFixture() => Course(
 );
 
 Future<Course> _loadItalianCourse(WidgetTester tester) async {
+  return _loadCourse(tester, 'IT');
+}
+
+Future<Course> _loadCourse(WidgetTester tester, String code) async {
   late Course course;
   await tester.runAsync(() async {
-    course = await CourseService().loadCourse('IT');
+    course = await CourseService().loadCourse(code);
     await SettingsService().setIddqdModeEnabled(course.courseId, true);
   });
   return course;
@@ -417,8 +543,20 @@ Future<Course> _loadItalianCourse(WidgetTester tester) async {
 Future<void> _openHome(
   WidgetTester tester, {
   bool scrollToActions = true,
+  bool includeLearnerShell = false,
 }) async {
-  await tester.pumpWidget(const MaterialApp(home: HomeScreen()));
+  await tester.pumpWidget(
+    MaterialApp(
+      navigatorKey: includeLearnerShell ? learnerNavigatorKey : null,
+      navigatorObservers: includeLearnerShell
+          ? [learnerStatusRouteObserver]
+          : const [],
+      builder: includeLearnerShell
+          ? (context, child) => LearnerShell(child: child!)
+          : null,
+      home: const HomeScreen(),
+    ),
+  );
   await tester.runAsync(
     () => Future<void>.delayed(const Duration(milliseconds: 300)),
   );

@@ -1,3 +1,12 @@
+# 2.0.16 (build 216) - 2026-08-29
+
+- Corrected the dark Welcome dialog's text contrast without changing its structure, controls, persistence or action styling.
+- Replaced the unified learner page's decorative olive-tree background and tint with the selected course's existing flag rendering in light and dark appearances.
+- Reordered the existing learner header and status bar so the protected user/logo/Settings strip appears first and the unchanged status bar appears directly below it.
+- Removed the redundant standalone **Browse All Lessons** button while retaining the existing Lesson selector, picker, navigation and persistence behavior.
+- Verified that the existing course picker already shows up to three newest other recent courses between the current course and complete course list; no recent-course persistence or presentation rewrite was required.
+- Refreshed the 30-day Alpha lifecycle; build 216 expires at the end of **2026-09-28**.
+
 # 2.0.15 (build 215) - 2026-08-28
 
 - Removed Chapter from the production domain and learner navigation. Course Model v4 (`formatVersion: 4`) now stores ordered Topics directly under Course; old Chapter-based course structures are rejected without migration or compatibility fallback.

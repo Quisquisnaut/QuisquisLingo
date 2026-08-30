@@ -22,9 +22,10 @@ class LearnerShell extends StatefulWidget {
 class LearnerShellState extends State<LearnerShell> {
   late final LearnerStatusController _controller;
   late final bool _ownsController;
-  final ValueNotifier<(bool, LearnerStatusForeground)> _presentation =
-      ValueNotifier((false, LearnerStatusForeground.dark));
-  final Map<ModalRoute<dynamic>, LearnerStatusForeground> _eligibleRoutes = {};
+  final ValueNotifier<(bool, LearnerStatusForeground, double)> _presentation =
+      ValueNotifier((false, LearnerStatusForeground.dark, kToolbarHeight));
+  final Map<ModalRoute<dynamic>, (LearnerStatusForeground, double)>
+  _eligibleRoutes = {};
   bool _reconcileScheduled = false;
 
   @override
@@ -37,8 +38,9 @@ class LearnerShellState extends State<LearnerShell> {
   void registerRoute(
     ModalRoute<dynamic> route,
     LearnerStatusForeground foreground,
+    double statusBarTop,
   ) {
-    _eligibleRoutes[route] = foreground;
+    _eligibleRoutes[route] = (foreground, statusBarTop);
     scheduleReconcile();
   }
 
@@ -53,13 +55,13 @@ class LearnerShellState extends State<LearnerShell> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _reconcileScheduled = false;
       if (!mounted) return;
-      MapEntry<ModalRoute<dynamic>, LearnerStatusForeground>? current;
+      MapEntry<ModalRoute<dynamic>, (LearnerStatusForeground, double)>? current;
       for (final entry in _eligibleRoutes.entries) {
         if (entry.key.isCurrent) current = entry;
       }
       final next = current == null
-          ? (false, _presentation.value.$2)
-          : (true, current.value);
+          ? (false, _presentation.value.$2, _presentation.value.$3)
+          : (true, current.value.$1, current.value.$2);
       if (_presentation.value != next) _presentation.value = next;
     });
   }
@@ -79,13 +81,13 @@ class LearnerShellState extends State<LearnerShell> {
         fit: StackFit.expand,
         children: [
           widget.child,
-          ValueListenableBuilder<(bool, LearnerStatusForeground)>(
+          ValueListenableBuilder<(bool, LearnerStatusForeground, double)>(
             valueListenable: _presentation,
             builder: (context, presentation, _) {
               if (!presentation.$1) return const SizedBox.shrink();
               return Positioned(
                 key: const Key('learner-status-position'),
-                top: MediaQuery.paddingOf(context).top,
+                top: MediaQuery.paddingOf(context).top + presentation.$3,
                 left: 0,
                 right: 0,
                 height: LearnerShell.statusSlotHeight,
@@ -115,11 +117,13 @@ class _LearnerShellScope extends InheritedWidget {
 class LearnerStatusPage extends StatefulWidget {
   final Widget child;
   final LearnerStatusForeground foreground;
+  final double statusBarTop;
 
   const LearnerStatusPage({
     super.key,
     required this.child,
     this.foreground = LearnerStatusForeground.dark,
+    this.statusBarTop = kToolbarHeight,
   });
 
   @override
@@ -144,15 +148,17 @@ class _LearnerStatusPageState extends State<LearnerStatusPage> with RouteAware {
     _shell = shell;
     if (route != null) {
       learnerStatusRouteObserver.subscribe(this, route);
-      shell?.registerRoute(route, widget.foreground);
+      shell?.registerRoute(route, widget.foreground, widget.statusBarTop);
     }
   }
 
   @override
   void didUpdateWidget(LearnerStatusPage oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.foreground != widget.foreground && _route != null) {
-      _shell?.registerRoute(_route!, widget.foreground);
+    if ((oldWidget.foreground != widget.foreground ||
+            oldWidget.statusBarTop != widget.statusBarTop) &&
+        _route != null) {
+      _shell?.registerRoute(_route!, widget.foreground, widget.statusBarTop);
     }
   }
 
@@ -179,7 +185,7 @@ class _LearnerStatusPageState extends State<LearnerStatusPage> with RouteAware {
   Widget build(BuildContext context) => widget.child;
 }
 
-/// Reserves the transparent, fixed-height shell slot above a page's app bar.
+/// Reserves the transparent, fixed-height shell slot below a page's app bar.
 class LearnerStatusAppBar extends StatelessWidget
     implements PreferredSizeWidget {
   final PreferredSizeWidget appBar;
@@ -202,7 +208,6 @@ class LearnerStatusAppBar extends StatelessWidget
       color: backgroundColor ?? Colors.transparent,
       child: Column(
         children: [
-          const SizedBox(height: LearnerShell.statusSlotHeight),
           Expanded(
             child: MediaQuery.removePadding(
               context: context,
@@ -210,6 +215,7 @@ class LearnerStatusAppBar extends StatelessWidget
               child: appBar,
             ),
           ),
+          const SizedBox(height: LearnerShell.statusSlotHeight),
         ],
       ),
     );
