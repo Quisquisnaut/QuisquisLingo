@@ -12,6 +12,26 @@ class InfoScreen extends StatelessWidget {
     body: ListView(
       padding: const EdgeInsets.fromLTRB(18, 12, 18, 28),
       children: [
+        Semantics(
+          image: true,
+          label: 'QuisquisLingo logo',
+          child: Container(
+            margin: const EdgeInsets.only(bottom: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF8FAFF),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Image.asset(
+              'assets/branding/quisquislingo_logo.png',
+              key: const Key('app-info-full-logo'),
+              width: double.infinity,
+              height: 96,
+              fit: BoxFit.contain,
+              filterQuality: FilterQuality.high,
+            ),
+          ),
+        ),
         _InfoSection(
           title: 'Choosing and opening courses',
           body:

@@ -1,3 +1,11 @@
+# 2.0.18 (build 218) - 2026-08-30
+
+- Replaced the separate learner User Bar and Status Bar with one fixed, single-row Top Bar ordered as User, compact QuisquisLingo mark, Streak, Laurel progress, Weekly XP and Settings.
+- Kept Streak language-scoped, Laurel progress current-course-scoped and Weekly XP learner-global without changing their calculation, persistence or update rules.
+- Used the graphical portion of the existing branding asset in the Top Bar without changing the source image, and added the complete logo above the existing App Info content.
+- Added responsive value-width, spacing, light/dark surface and narrow-layout coverage while preserving the separate Course and Lesson selectors, course-flag background, continuous Lesson flow and fixed bottom controls.
+- Retained the Alpha expiry at the end of **2026-09-29** because build 218 was prepared on the same date as build 217.
+
 # 2.0.17 (build 217) - 2026-08-30
 
 - Replaced the learner page's single-Lesson central content with a lazy continuous vertical flow from the selected Lesson through every subsequent Lesson in authoritative course order.

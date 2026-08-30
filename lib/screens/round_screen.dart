@@ -10,7 +10,7 @@ import '../services/report_service.dart';
 import '../services/tts_cache_service.dart';
 import '../services/settings_service.dart';
 import '../services/course_service.dart';
-import '../services/course_audit_service.dart';
+import '../services/round_playability_service.dart';
 import '../services/sound_effect_service.dart';
 import '../services/recorded_audio_service.dart';
 import '../services/exercise_copy_service.dart';
@@ -72,6 +72,7 @@ class _RoundScreenState extends State<RoundScreen> {
   final _settings = SettingsService();
   final _sounds = SoundEffectService();
   final _recordedAudio = RecordedAudioService();
+  final _roundPlayability = RoundPlayabilityService();
   final _random = Random();
 
   List<int> _queue = [];
@@ -160,14 +161,7 @@ class _RoundScreenState extends State<RoundScreen> {
       // Locally edited courses may temporarily contain invalid exercises. The
       // Course Editor reports them, while the learner-facing Round screen skips
       // exercises with structural audit errors instead of indexing invalid data.
-      final audit = CourseAuditService();
-      final valid = List<int>.generate(widget.round.exercises.length, (i) => i)
-          .where(
-            (i) => !audit
-                .auditExercise(widget.round.exercises[i])
-                .any((issue) => issue.severity == AuditSeverity.error),
-          )
-          .toList();
+      final valid = _roundPlayability.playableExerciseIndices(widget.round);
       await CrashLogService.instance.recordDebugEvent(
         'Round: audit completed ${widget.round.id}, valid=${valid.length}',
       );

@@ -50,7 +50,10 @@ class _Progress extends ProgressService {
 
   final _Profiles profiles;
   final Map<String, int> weeklyByProfile = {'Alice': 1250, 'Bob': 75};
-  final Map<String, int> streakByProfile = {'Alice': 14, 'Bob': 3};
+  final Map<String, Map<String, int>> streakByProfileAndLanguage = {
+    'Alice': {'IT': 14, 'EN': 9},
+    'Bob': {'IT': 3, 'EN': 2},
+  };
   final Map<String, Set<String>> laurelsByCourse = {
     'bundled_it': {'round_1', 'round_2'},
   };
@@ -64,7 +67,7 @@ class _Progress extends ProgressService {
 
   @override
   Future<int> getStreak({required String courseCode}) async =>
-      streakByProfile[profiles.active] ?? 0;
+      streakByProfileAndLanguage[profiles.active]?[courseCode] ?? 0;
 
   @override
   Future<Set<String>> getPerfectRounds({required String courseId}) async =>
@@ -116,6 +119,7 @@ Course _course({
   String target = 'Italian',
   String flagCode = '',
   String flagImageBase64 = '',
+  List<LearningRound>? rounds,
 }) => Course(
   courseId: id,
   learningLanguage: target,
@@ -127,7 +131,41 @@ Course _course({
   version: '1',
   flagCode: flagCode,
   flagImageBase64: flagImageBase64,
-  topics: const [],
+  topics: [
+    Topic(
+      id: '${id}_topic',
+      title: 'Lesson',
+      rounds:
+          rounds ??
+          [
+            _eligibleRound('round_1'),
+            _eligibleRound('round_2'),
+            _eligibleRound('round_3'),
+          ],
+    ),
+  ],
+);
+
+LearningRound _eligibleRound(String id) => LearningRound(
+  id: id,
+  title: id,
+  exercises: [
+    Exercise(
+      id: '${id}_exercise',
+      type: 'choice',
+      prompt: 'Choose the answer.',
+      question: '',
+      answers: const ['Correct', 'Incorrect'],
+      correct: 0,
+      tts: null,
+      accepted: const [],
+      tokens: const [],
+      orderAnswer: const [],
+      pairs: const [],
+      hint: '',
+      icons: const [],
+    ),
+  ],
 );
 
 Future<void> _flush() => Future<void>.delayed(Duration.zero);
@@ -183,7 +221,92 @@ void main() {
       expect(controller.state.weeklyXpGoal, 1000);
       expect(controller.state.streak, 14);
       expect(controller.state.laurels, 2);
+      expect(controller.state.laurelMaximum, 3);
       expect(controller.state.activeProfile, 'Alice');
+      controller.dispose();
+    },
+  );
+
+  test(
+    'bundled and custom English courses share the EN streak while Laurels remain course-owned and Weekly XP remains global',
+    () async {
+      settings.selected = 'EN';
+      courses.bundled = _course(
+        id: 'bundled_en',
+        title: 'American English',
+        target: 'English',
+      );
+      progress.laurelsByCourse['bundled_en'] = {'round_1'};
+      progress.laurelsByCourse['custom_en'] = {'round_1', 'round_2'};
+      final controller = createController();
+      await controller.refresh();
+
+      expect(controller.state.courseCode, 'EN');
+      expect(controller.state.streak, 9);
+      expect(controller.state.laurels, 1);
+      expect(controller.state.laurelMaximum, 3);
+      expect(controller.state.weeklyXp, 1250);
+
+      settings.selected = 'custom:custom_en';
+      editor.courses = [
+        _course(id: 'custom_en', title: 'Business English', target: 'English'),
+      ];
+      events.add(LearnerStatusInvalidation.activeCourse);
+      await _flush();
+
+      expect(controller.state.course?.courseId, 'custom_en');
+      expect(controller.state.courseCode, 'EN');
+      expect(controller.state.streak, 9);
+      expect(controller.state.laurels, 2);
+      expect(controller.state.laurelMaximum, 3);
+      expect(controller.state.weeklyXp, 1250);
+
+      settings.selected = 'IT';
+      courses.bundled = _course();
+      events.add(LearnerStatusInvalidation.activeCourse);
+      await _flush();
+
+      expect(controller.state.courseCode, 'IT');
+      expect(controller.state.streak, 14);
+      expect(controller.state.laurels, 2);
+      expect(controller.state.laurelMaximum, 3);
+      expect(controller.state.weeklyXp, 1250);
+      controller.dispose();
+    },
+  );
+
+  test(
+    'Laurel projection intersects persisted IDs with eligible current-course Rounds',
+    () async {
+      courses.bundled = _course(
+        id: 'projection_course',
+        rounds: [
+          _eligibleRound('eligible_1'),
+          _eligibleRound('eligible_2'),
+          LearningRound(
+            id: 'topic_intro_only',
+            title: 'Topic intro only',
+            content: [
+              LearningContent.textual(
+                id: 'intro',
+                kind: 'explanation',
+                role: 'topic_intro',
+                text: 'Read the Guidebook first.',
+              ),
+            ],
+          ),
+        ],
+      );
+      progress.laurelsByCourse['projection_course'] = {
+        'eligible_1',
+        'topic_intro_only',
+        'orphaned_round',
+      };
+      final controller = createController();
+      await controller.refresh();
+
+      expect(controller.state.laurels, 1);
+      expect(controller.state.laurelMaximum, 2);
       controller.dispose();
     },
   );
@@ -242,6 +365,7 @@ void main() {
       expect(controller.state.courseCode, isNull);
       expect(controller.state.streak, isNull);
       expect(controller.state.laurels, isNull);
+      expect(controller.state.laurelMaximum, isNull);
       expect(controller.state.weeklyXp, 1250);
       controller.dispose();
     },
@@ -266,6 +390,7 @@ void main() {
       expect(controller.state.weeklyXpGoal, 2000);
       expect(controller.state.streak, 3);
       expect(controller.state.laurels, 2);
+      expect(controller.state.laurelMaximum, 3);
       expect(controller.state.course?.title, 'New title');
       expect(controller.state.course?.flagCode, 'DE');
       controller.dispose();
@@ -287,6 +412,7 @@ void main() {
       await _flush();
 
       expect(controller.state.laurels, 3);
+      expect(controller.state.laurelMaximum, 3);
       controller.dispose();
     },
   );
@@ -317,7 +443,7 @@ void main() {
     final controller = createController();
     await controller.refresh();
     progress.weeklyByProfile['Alice'] = 0;
-    progress.streakByProfile['Alice'] = 0;
+    progress.streakByProfileAndLanguage['Alice']!['IT'] = 0;
 
     timers.single.fire();
     await _flush();
@@ -438,6 +564,7 @@ void main() {
       expect(first.state.weeklyXpGoal, 2000);
       expect(first.state.streak, 1);
       expect(first.state.laurels, 1);
+      expect(first.state.laurelMaximum, 3);
       first.dispose();
 
       final recreated = buildController();
@@ -448,6 +575,7 @@ void main() {
       expect(recreated.state.weeklyXpGoal, 2000);
       expect(recreated.state.streak, 1);
       expect(recreated.state.laurels, 1);
+      expect(recreated.state.laurelMaximum, 3);
       recreated.dispose();
     },
   );

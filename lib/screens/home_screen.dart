@@ -5,6 +5,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../controllers/learner_status_controller.dart';
 import '../services/settings_service.dart';
 import '../models/course_models.dart';
 import '../services/course_service.dart';
@@ -28,7 +29,7 @@ import 'guidebook_screen.dart';
 import 'round_screen.dart';
 import '../widgets/flag_art.dart';
 import '../widgets/learner_shell.dart';
-import '../widgets/learner_status_bar.dart';
+import '../widgets/unified_learner_top_bar.dart';
 
 const _learnerLightPageBackground = Color(0xFFF7F3E8);
 const _learnerDarkPageBackground = Color(0xFF080B09);
@@ -73,6 +74,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final _settings = SettingsService();
   final _topicUnlocks = const TopicUnlockService();
   final _learnerScrollController = ScrollController();
+  LearnerStatusController? _standaloneStatusController;
   final Map<String, GlobalKey> _lessonSectionKeys = {};
   String _appVersion = '';
   static const _welcomePhrases = <String>[
@@ -125,8 +127,13 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void dispose() {
     _learnerScrollController.dispose();
+    _standaloneStatusController?.dispose();
     super.dispose();
   }
+
+  LearnerStatusController _topBarController(BuildContext context) =>
+      LearnerShell.maybeOf(context)?.controller ??
+      (_standaloneStatusController ??= LearnerStatusController());
 
   Future<void> _prepareWelcome() async {
     final info = await PackageInfo.fromPlatform();
@@ -1086,9 +1093,6 @@ class _HomeScreenState extends State<HomeScreen> {
     final pageBackground = followsDarkAppearance
         ? _learnerDarkPageBackground
         : _learnerLightPageBackground;
-    final headerBackground = followsDarkAppearance
-        ? _learnerDarkPageBackground
-        : const Color(0xFF214D3B);
     final learnerTheme = _unifiedLearnerTheme(context);
     return Theme(
       data: learnerTheme,
@@ -1105,8 +1109,7 @@ class _HomeScreenState extends State<HomeScreen> {
             });
           }
           return LearnerStatusPage(
-            foreground: LearnerStatusForeground.light,
-            statusBarTop: 58,
+            showStatusBar: false,
             child: Scaffold(
               key: const Key('unified-learner-page'),
               backgroundColor: pageBackground,
@@ -1125,86 +1128,24 @@ class _HomeScreenState extends State<HomeScreen> {
                         Column(
                           key: const Key('unified-learner-header'),
                           children: [
-                            SizedBox(
-                              height: 58 + LearnerShell.statusSlotHeight,
-                              child: LearnerStatusAppBar(
-                                key: const Key('unified-learner-status-appbar'),
-                                backgroundColor: headerBackground,
-                                appBar: AppBar(
-                                  toolbarHeight: 58,
-                                  leadingWidth: 150,
-                                  leading: TextButton.icon(
-                                    style: TextButton.styleFrom(
-                                      foregroundColor: Colors.white,
-                                    ),
-                                    onPressed: () =>
-                                        _showLearners(learnerContext),
-                                    icon: const Icon(Icons.face_outlined),
-                                    label: Text(
-                                      _activeLearner ?? 'Learner',
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.w800,
-                                      ),
-                                    ),
+                            UnifiedLearnerTopBar(
+                              controller: _topBarController(learnerContext),
+                              learnerName: _activeLearner,
+                              onUserPressed: () =>
+                                  _showLearners(learnerContext),
+                              onSettingsPressed: () async {
+                                await CrashLogService.instance.recordDebugEvent(
+                                  'Home: opening Settings',
+                                );
+                                if (!context.mounted) return;
+                                await Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (_) =>
+                                        SettingsScreen(course: course),
                                   ),
-                                  title: FittedBox(
-                                    fit: BoxFit.scaleDown,
-                                    child: Semantics(
-                                      label: 'QuisquisLingo',
-                                      header: true,
-                                      excludeSemantics: true,
-                                      child: Container(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 8,
-                                          vertical: 3,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color: const Color(0xFFF8FAFF),
-                                          borderRadius: BorderRadius.circular(
-                                            10,
-                                          ),
-                                        ),
-                                        child: Image.asset(
-                                          'assets/branding/quisquislingo_logo.png',
-                                          key: const Key(
-                                            'unified-learner-logo',
-                                          ),
-                                          width: 156,
-                                          height: 36,
-                                          fit: BoxFit.contain,
-                                          filterQuality: FilterQuality.high,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                  centerTitle: true,
-                                  foregroundColor: Colors.white,
-                                  backgroundColor: headerBackground,
-                                  surfaceTintColor: Colors.transparent,
-                                  actions: [
-                                    IconButton(
-                                      tooltip: 'Settings',
-                                      icon: const Icon(Icons.settings_outlined),
-                                      onPressed: () async {
-                                        await CrashLogService.instance
-                                            .recordDebugEvent(
-                                              'Home: opening Settings',
-                                            );
-                                        if (!context.mounted) return;
-                                        await Navigator.of(context).push(
-                                          MaterialPageRoute(
-                                            builder: (_) =>
-                                                SettingsScreen(course: course),
-                                          ),
-                                        );
-                                        await _reload();
-                                      },
-                                    ),
-                                  ],
-                                ),
-                              ),
+                                );
+                                await _reload();
+                              },
                             ),
                             Padding(
                               padding: const EdgeInsets.fromLTRB(

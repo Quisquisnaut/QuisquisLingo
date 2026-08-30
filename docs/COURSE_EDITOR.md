@@ -1,6 +1,6 @@
 # QuisquisLingo Course Editor
 
-Updated for current Course Model v4 editor (2.0.17+217)
+Updated for current Course Model v4 editor (2.0.18+218)
 
 ## Unlocking the editor
 

@@ -9,6 +9,7 @@ import '../services/course_service.dart';
 import '../services/learner_status_events.dart';
 import '../services/profile_service.dart';
 import '../services/progress_service.dart';
+import '../services/round_playability_service.dart';
 import '../services/settings_service.dart';
 
 typedef LearnerStatusTimerFactory =
@@ -21,6 +22,7 @@ class LearnerStatusController extends ChangeNotifier
   final CourseEditorService _courseEditor;
   final ProfileService _profiles;
   final ProgressService _progress;
+  final RoundPlayabilityService _roundPlayability;
   final SettingsService _settings;
   final DateTime Function() _now;
   final LearnerStatusTimerFactory _timerFactory;
@@ -38,6 +40,7 @@ class LearnerStatusController extends ChangeNotifier
     CourseEditorService? courseEditorService,
     ProfileService? profileService,
     ProgressService? progressService,
+    RoundPlayabilityService? roundPlayabilityService,
     SettingsService? settingsService,
     DateTime Function()? now,
     LearnerStatusTimerFactory? timerFactory,
@@ -47,6 +50,7 @@ class LearnerStatusController extends ChangeNotifier
        _courseEditor = courseEditorService ?? CourseEditorService(),
        _profiles = profileService ?? ProfileService(),
        _progress = progressService ?? ProgressService(now: now),
+       _roundPlayability = roundPlayabilityService ?? RoundPlayabilityService(),
        _settings = settingsService ?? SettingsService(),
        _now = now ?? DateTime.now,
        _timerFactory = timerFactory ?? Timer.new,
@@ -91,9 +95,16 @@ class LearnerStatusController extends ChangeNotifier
     final streak = courseCode == null
         ? null
         : await _progress.getStreak(courseCode: courseCode);
-    final laurels = course == null
+    final eligibleRoundIds = course == null
         ? null
-        : (await _progress.getPerfectRounds(courseId: course.courseId)).length;
+        : _roundPlayability.laurelEligibleRoundIds(course);
+    final perfectRoundIds = course == null
+        ? null
+        : await _progress.getPerfectRounds(courseId: course.courseId);
+    final laurels = eligibleRoundIds == null || perfectRoundIds == null
+        ? null
+        : perfectRoundIds.intersection(eligibleRoundIds).length;
+    final laurelMaximum = eligibleRoundIds?.length;
 
     if (_disposed || generation != _generation) return;
     _state = LearnerStatusState(
@@ -104,6 +115,7 @@ class LearnerStatusController extends ChangeNotifier
       weeklyXpGoal: weeklyGoal,
       streak: streak,
       laurels: laurels,
+      laurelMaximum: laurelMaximum,
     );
     notifyListeners();
   }

@@ -28,6 +28,8 @@ class LearnerShellState extends State<LearnerShell> {
   _eligibleRoutes = {};
   bool _reconcileScheduled = false;
 
+  LearnerStatusController get controller => _controller;
+
   @override
   void initState() {
     super.initState();
@@ -118,12 +120,14 @@ class LearnerStatusPage extends StatefulWidget {
   final Widget child;
   final LearnerStatusForeground foreground;
   final double statusBarTop;
+  final bool showStatusBar;
 
   const LearnerStatusPage({
     super.key,
     required this.child,
     this.foreground = LearnerStatusForeground.dark,
     this.statusBarTop = kToolbarHeight,
+    this.showStatusBar = true,
   });
 
   @override
@@ -148,16 +152,22 @@ class _LearnerStatusPageState extends State<LearnerStatusPage> with RouteAware {
     _shell = shell;
     if (route != null) {
       learnerStatusRouteObserver.subscribe(this, route);
-      shell?.registerRoute(route, widget.foreground, widget.statusBarTop);
+      if (widget.showStatusBar) {
+        shell?.registerRoute(route, widget.foreground, widget.statusBarTop);
+      }
     }
   }
 
   @override
   void didUpdateWidget(LearnerStatusPage oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if ((oldWidget.foreground != widget.foreground ||
-            oldWidget.statusBarTop != widget.statusBarTop) &&
-        _route != null) {
+    if (_route == null) return;
+    if (oldWidget.showStatusBar && !widget.showStatusBar) {
+      _shell?.unregisterRoute(_route!);
+    } else if (widget.showStatusBar &&
+        (!oldWidget.showStatusBar ||
+            oldWidget.foreground != widget.foreground ||
+            oldWidget.statusBarTop != widget.statusBarTop)) {
       _shell?.registerRoute(_route!, widget.foreground, widget.statusBarTop);
     }
   }

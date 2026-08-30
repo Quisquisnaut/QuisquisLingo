@@ -54,12 +54,12 @@ void main() {
     PackageInfo.setMockInitialValues(
       appName: 'QuisquisLingo',
       packageName: 'com.quisquislingo.app',
-      version: '2.0.17',
-      buildNumber: '217',
+      version: '2.0.18',
+      buildNumber: '218',
       buildSignature: '',
     );
     SharedPreferences.setMockInitialValues({
-      'one_time_notice_seen_welcome_2.0.17': true,
+      'one_time_notice_seen_welcome_2.0.18': true,
       'sound_effects_enabled': false,
     });
     await ProfileService().addProfile('Navigation Learner');
@@ -562,14 +562,13 @@ void main() {
       );
       final semantics = tester.ensureSemantics();
       final learnerHeader = find.byKey(const Key('unified-learner-header'));
-      final userBar = find.byKey(const Key('unified-learner-logo'));
-      final statusBar = find.byKey(const Key('learner-status-position'));
+      final topBar = find.byKey(const Key('unified-learner-top-bar'));
       final courseSelector = find.byKey(const Key('unified-course-selector'));
       final lessonSelector = find.byKey(const Key('unified-lesson-selector'));
       final controls = find.byKey(const Key('unified-bottom-controls'));
       expect(learnerHeader, findsOneWidget);
-      expect(userBar, findsOneWidget);
-      expect(statusBar, findsOneWidget);
+      expect(topBar, findsOneWidget);
+      expect(find.byKey(const Key('learner-status-position')), findsNothing);
       expect(courseSelector, findsOneWidget);
       expect(lessonSelector, findsOneWidget);
       expect(controls, findsOneWidget);
@@ -618,8 +617,7 @@ void main() {
       );
 
       final learnerHeaderBefore = tester.getRect(learnerHeader);
-      final userBarBefore = tester.getRect(userBar);
-      final statusBarBefore = tester.getRect(statusBar);
+      final topBarBefore = tester.getRect(topBar);
       final courseSelectorBefore = tester.getRect(courseSelector);
       final lessonSelectorBefore = tester.getRect(lessonSelector);
       final controlsBefore = tester.getRect(controls);
@@ -633,8 +631,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(tester.getRect(learnerHeader), learnerHeaderBefore);
-      expect(tester.getRect(userBar), userBarBefore);
-      expect(tester.getRect(statusBar), statusBarBefore);
+      expect(tester.getRect(topBar), topBarBefore);
       expect(tester.getRect(courseSelector), courseSelectorBefore);
       expect(tester.getRect(lessonSelector), lessonSelectorBefore);
       expect(tester.getRect(controls), controlsBefore);
@@ -685,6 +682,19 @@ void main() {
     },
   );
 
+  testWidgets('unified Top Bar keeps learner management action', (
+    tester,
+  ) async {
+    await _openHome(tester, scrollToActions: false, includeLearnerShell: true);
+
+    await tester.tap(find.byKey(const Key('unified-topbar-user')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Learners'), findsOneWidget);
+    expect(find.text('Navigation Learner'), findsWidgets);
+    expect(find.text('Add learner'), findsOneWidget);
+  });
+
   testWidgets('Settings no longer exposes Gamification', (tester) async {
     await tester.pumpWidget(
       MaterialApp(home: SettingsScreen(course: _courseFixture())),
@@ -726,58 +736,74 @@ void main() {
         includeLearnerShell: true,
       );
 
-      final logoFinder = find.byKey(const Key('unified-learner-logo'));
+      final topBar = find.byKey(const Key('unified-learner-top-bar'));
+      final logoFinder = find.byKey(const Key('unified-topbar-logo-image'));
       expect(logoFinder, findsOneWidget);
       final logo = tester.widget<Image>(logoFinder);
       expect(
         (logo.image as AssetImage).assetName,
         'assets/branding/quisquislingo_logo.png',
       );
+      expect(logo.height, 52);
       expect(logo.width, 156);
-      expect(logo.height, 36);
-      expect(logo.fit, BoxFit.contain);
+      expect(logo.fit, BoxFit.fill);
       expect(logo.filterQuality, FilterQuality.high);
+      expect(
+        find.ancestor(of: logoFinder, matching: find.byType(ClipRect)),
+        findsOneWidget,
+      );
       expect(find.byIcon(Icons.forum_rounded), findsNothing);
 
       var page = tester.widget<Scaffold>(
         find.byKey(const Key('unified-learner-page')),
       );
-      var statusAppBar = tester.widget<LearnerStatusAppBar>(
-        find.byKey(const Key('unified-learner-status-appbar')),
-      );
       var pageTheme = Theme.of(
         tester.element(find.byKey(const Key('unified-learner-page'))),
       );
-      final appBar = statusAppBar.appBar as AppBar;
-      expect(appBar.toolbarHeight, 58);
-      expect(appBar.leadingWidth, 150);
-      expect(appBar.centerTitle, isTrue);
       expect(find.text('Navigation Learner'), findsOneWidget);
       expect(find.byIcon(Icons.face_outlined), findsOneWidget);
       expect(find.byTooltip('Settings'), findsOneWidget);
       expect(find.byIcon(Icons.settings_outlined), findsOneWidget);
-      final stripOrder = [
-        find.byIcon(Icons.face_outlined),
-        logoFinder,
-        find.byIcon(Icons.settings_outlined),
+      final topBarOrder = [
+        find.byKey(const Key('unified-topbar-user')),
+        find.byKey(const Key('unified-topbar-logo-mark')),
+        find.byKey(const Key('unified-topbar-streak')),
+        find.byKey(const Key('unified-topbar-laurels')),
+        find.byKey(const Key('unified-topbar-weekly-xp')),
+        find.byKey(const Key('unified-topbar-settings')),
       ].map((finder) => tester.getRect(finder).center.dx).toList();
-      expect(stripOrder, orderedEquals(stripOrder.toList()..sort()));
-      final stripRect = tester.getRect(logoFinder);
-      final statusRect = tester.getRect(
-        find.byKey(const Key('learner-status-position')),
+      expect(topBarOrder, orderedEquals(topBarOrder.toList()..sort()));
+      expect(
+        find.descendant(of: topBar, matching: find.text(italianCourse.title)),
+        findsNothing,
       );
+      expect(
+        find.descendant(
+          of: find.byKey(const Key('unified-course-selector')),
+          matching: find.text(italianCourse.title),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(of: topBar, matching: find.byType(CourseFlagBadge)),
+        findsNothing,
+      );
+      expect(find.textContaining('Course Progress'), findsNothing);
+      expect(find.byKey(const Key('learner-status-position')), findsNothing);
+      final topBarRect = tester.getRect(topBar);
       final contentRect = tester.getRect(
         find.byKey(const Key('unified-course-selector')),
       );
       final lessonSelectorRect = tester.getRect(
         find.byKey(const Key('unified-lesson-selector')),
       );
-      expect(stripRect.bottom, lessThanOrEqualTo(statusRect.top));
-      expect(statusRect.bottom, lessThanOrEqualTo(contentRect.top));
+      expect(topBarRect.bottom, lessThanOrEqualTo(contentRect.top));
       expect(contentRect.bottom, lessThanOrEqualTo(lessonSelectorRect.top));
       expect(pageTheme.brightness, Brightness.light);
       expect(page.backgroundColor, const Color(0xFFF7F3E8));
-      expect(statusAppBar.backgroundColor, const Color(0xFF214D3B));
+      var topBarMaterial = tester.widget<Material>(topBar);
+      expect(topBarMaterial.color, pageTheme.colorScheme.surface);
+      expect(topBarMaterial.color!.computeLuminance(), greaterThan(.5));
       var background = tester.widget<CourseFlagBackdrop>(
         find.byKey(const Key('unified-learner-flag-background')),
       );
@@ -826,18 +852,17 @@ void main() {
       page = tester.widget<Scaffold>(
         find.byKey(const Key('unified-learner-page')),
       );
-      statusAppBar = tester.widget<LearnerStatusAppBar>(
-        find.byKey(const Key('unified-learner-status-appbar')),
-      );
       pageTheme = Theme.of(
         tester.element(find.byKey(const Key('unified-learner-page'))),
       );
+      topBarMaterial = tester.widget<Material>(topBar);
       background = tester.widget<CourseFlagBackdrop>(
         find.byKey(const Key('unified-learner-flag-background')),
       );
       expect(pageTheme.brightness, Brightness.dark);
       expect(page.backgroundColor, const Color(0xFF080B09));
-      expect(statusAppBar.backgroundColor, page.backgroundColor);
+      expect(topBarMaterial.color, pageTheme.colorScheme.surface);
+      expect(topBarMaterial.color!.computeLuminance(), lessThan(.2));
       expect(background.course.courseId, italianCourse.courseId);
       expect(background.fallbackCode, 'IT');
       expect(background.opacity, 1);
@@ -1029,7 +1054,7 @@ void main() {
       final phrase = dialogTexts.singleWhere(
         (text) =>
             text.data != 'Welcome to QuisquisLingo' &&
-            text.data != 'Version 2.0.17' &&
+            text.data != 'Version 2.0.18' &&
             text.data != 'Continue',
       );
       final welcomeDialog = tester.widget<AlertDialog>(
@@ -1042,7 +1067,7 @@ void main() {
         const Color(0xFF0756DF),
       );
       expect(
-        tester.widget<Text>(find.text('Version 2.0.17')).style?.color,
+        tester.widget<Text>(find.text('Version 2.0.18')).style?.color,
         const Color(0xFF0756DF),
       );
       expect(phrase.style?.color, const Color(0xFF0756DF));
@@ -1060,7 +1085,7 @@ void main() {
       late bool welcomeSeen;
       await tester.runAsync(() async {
         welcomeSeen = await SettingsService().hasSeenOneTimeNotice(
-          'welcome_2.0.17',
+          'welcome_2.0.18',
         );
       });
       expect(welcomeSeen, isTrue);

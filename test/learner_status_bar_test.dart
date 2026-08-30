@@ -76,7 +76,27 @@ Course _course({String title = 'Italian', String flagCode = 'IT'}) => Course(
   ttsLanguage: 'it-IT',
   version: '1',
   flagCode: flagCode,
-  topics: const [],
+  topics: [
+    Topic(
+      id: 'topic_it',
+      title: 'Lesson',
+      rounds: [
+        for (var index = 0; index < 7; index++)
+          LearningRound(
+            id: 'round_$index',
+            title: 'Round ${index + 1}',
+            content: [
+              LearningContent.textual(
+                id: 'content_$index',
+                kind: 'explanation',
+                role: 'round_note',
+                text: 'Information $index',
+              ),
+            ],
+          ),
+      ],
+    ),
+  ],
 );
 
 final _topic = Topic(id: 'topic', title: 'Topic', rounds: const []);

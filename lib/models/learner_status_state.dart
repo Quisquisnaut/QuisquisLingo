@@ -9,6 +9,7 @@ class LearnerStatusState {
   final int? weeklyXpGoal;
   final int? streak;
   final int? laurels;
+  final int? laurelMaximum;
 
   const LearnerStatusState({
     required this.activeProfile,
@@ -18,6 +19,7 @@ class LearnerStatusState {
     required this.weeklyXpGoal,
     required this.streak,
     required this.laurels,
+    required this.laurelMaximum,
   });
 
   const LearnerStatusState.loading()
@@ -27,7 +29,8 @@ class LearnerStatusState {
       weeklyXp = 0,
       weeklyXpGoal = null,
       streak = null,
-      laurels = null;
+      laurels = null,
+      laurelMaximum = null;
 
   bool get hasCourse => course != null;
 }
