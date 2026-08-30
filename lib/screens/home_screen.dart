@@ -1,7 +1,9 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:math';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../services/settings_service.dart';
 import '../models/course_models.dart';
@@ -30,6 +32,8 @@ import '../widgets/learner_status_bar.dart';
 
 const _learnerLightPageBackground = Color(0xFFF7F3E8);
 const _learnerDarkPageBackground = Color(0xFF080B09);
+const _welcomeDialogBackground = Color(0xFFFFE600);
+const _welcomeDialogForeground = Color(0xFF0756DF);
 
 ThemeData _unifiedLearnerTheme(BuildContext context) {
   if (MediaQuery.platformBrightnessOf(context) != Brightness.dark) {
@@ -68,6 +72,8 @@ class _HomeScreenState extends State<HomeScreen> {
   final _profiles = ProfileService();
   final _settings = SettingsService();
   final _topicUnlocks = const TopicUnlockService();
+  final _learnerScrollController = ScrollController();
+  final Map<String, GlobalKey> _lessonSectionKeys = {};
   String _appVersion = '';
   static const _welcomePhrases = <String>[
     'Every language starts with a first word.',
@@ -103,12 +109,22 @@ class _HomeScreenState extends State<HomeScreen> {
   String _selectedLanguage = 'IT';
   String _selectedCourseRef = 'IT';
   int _activeTopicIndex = 0;
+  int _flowStartTopicIndex = 0;
+  String? _flowCourseId;
+  String? _flowLearner;
+  bool _lessonVisibilityCheckScheduled = false;
 
   @override
   void initState() {
     super.initState();
     _reload();
     WidgetsBinding.instance.addPostFrameCallback((_) => _prepareWelcome());
+  }
+
+  @override
+  void dispose() {
+    _learnerScrollController.dispose();
+    super.dispose();
   }
 
   Future<void> _prepareWelcome() async {
@@ -129,26 +145,28 @@ class _HomeScreenState extends State<HomeScreen> {
       builder: (ctx) => Theme(
         data: _unifiedLearnerTheme(context),
         child: AlertDialog(
+          backgroundColor: _welcomeDialogBackground,
+          surfaceTintColor: Colors.transparent,
           title: const Text(
             'Welcome to QuisquisLingo',
-            style: TextStyle(color: Colors.white),
+            style: TextStyle(color: _welcomeDialogForeground),
           ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
                 'Version $_appVersion',
-                style: Theme.of(
-                  ctx,
-                ).textTheme.labelLarge?.copyWith(color: Colors.white),
+                style: Theme.of(ctx).textTheme.labelLarge?.copyWith(
+                  color: _welcomeDialogForeground,
+                ),
               ),
               const SizedBox(height: 16),
               Text(
                 phrase,
                 textAlign: TextAlign.center,
-                style: Theme.of(
-                  ctx,
-                ).textTheme.titleMedium?.copyWith(color: Colors.white),
+                style: Theme.of(ctx).textTheme.titleMedium?.copyWith(
+                  color: _welcomeDialogForeground,
+                ),
               ),
             ],
           ),
@@ -302,6 +320,10 @@ class _HomeScreenState extends State<HomeScreen> {
         activeTopicIndex = 0;
       }
       if (!mounted) return;
+      final resetFlow =
+          _flowCourseId != course.courseId ||
+          _flowLearner != active ||
+          _flowStartTopicIndex >= course.topics.length;
       setState(() {
         _course = course;
         _selectedCourseRef = selectedRef;
@@ -315,7 +337,13 @@ class _HomeScreenState extends State<HomeScreen> {
         _wonDuels = wonDuels;
         _iddqdMode = iddqdMode;
         _activeTopicIndex = activeTopicIndex;
+        if (resetFlow) {
+          _flowStartTopicIndex = activeTopicIndex;
+          _flowCourseId = course.courseId;
+          _flowLearner = active;
+        }
       });
+      if (resetFlow) _resetLearnerScroll();
     } on AppException catch (e) {
       if (mounted) await ErrorPresenter.show(context, e.error);
     } catch (e, st) {
@@ -765,7 +793,88 @@ class _HomeScreenState extends State<HomeScreen> {
       course.courseId,
       course.topics[index].id,
     );
-    if (mounted) setState(() => _activeTopicIndex = index);
+    if (!mounted) return;
+    setState(() {
+      _activeTopicIndex = index;
+      _flowStartTopicIndex = index;
+    });
+    _resetLearnerScroll();
+  }
+
+  void _resetLearnerScroll() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted && _learnerScrollController.hasClients) {
+        _learnerScrollController.jumpTo(0);
+      }
+    });
+  }
+
+  GlobalKey _lessonSectionKey(Course course, Topic topic) => _lessonSectionKeys
+      .putIfAbsent('${course.courseId}:${topic.id}', () => GlobalKey());
+
+  void _schedulePrimaryLessonSync(Course course) {
+    if (_lessonVisibilityCheckScheduled) return;
+    _lessonVisibilityCheckScheduled = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _lessonVisibilityCheckScheduled = false;
+      if (mounted) _syncPrimaryVisibleLesson(course);
+    });
+  }
+
+  void _syncPrimaryVisibleLesson(Course course) {
+    if (!identical(_course, course) ||
+        !_learnerScrollController.hasClients ||
+        course.topics.isEmpty) {
+      return;
+    }
+    final position = _learnerScrollController.position;
+    final viewportStart = position.pixels;
+    final viewportEnd = viewportStart + position.viewportDimension;
+    var candidateIndex = _activeTopicIndex;
+    var candidateVisibleExtent = 0.0;
+    var activeVisibleExtent = 0.0;
+
+    for (
+      var index = _flowStartTopicIndex;
+      index < course.topics.length;
+      index++
+    ) {
+      final context = _lessonSectionKey(
+        course,
+        course.topics[index],
+      ).currentContext;
+      final renderBox = context?.findRenderObject();
+      if (renderBox is! RenderBox || !renderBox.attached) continue;
+      final viewport = RenderAbstractViewport.of(renderBox);
+      final sectionStart = viewport.getOffsetToReveal(renderBox, 0).offset;
+      final sectionEnd = sectionStart + renderBox.size.height;
+      final visibleExtent =
+          min(sectionEnd, viewportEnd) - max(sectionStart, viewportStart);
+      final clampedVisibleExtent = max(0.0, visibleExtent);
+      if (index == _activeTopicIndex) {
+        activeVisibleExtent = clampedVisibleExtent;
+      }
+      if (clampedVisibleExtent > candidateVisibleExtent) {
+        candidateIndex = index;
+        candidateVisibleExtent = clampedVisibleExtent;
+      }
+    }
+
+    if (candidateIndex == _activeTopicIndex || candidateVisibleExtent <= 0) {
+      return;
+    }
+    final hysteresis = position.viewportDimension * .1;
+    if (activeVisibleExtent > 0 &&
+        candidateVisibleExtent < activeVisibleExtent + hysteresis) {
+      return;
+    }
+    setState(() => _activeTopicIndex = candidateIndex);
+    unawaited(
+      _settings.setLastVisitedTopicId(
+        course.courseId,
+        course.topics[candidateIndex].id,
+      ),
+    );
   }
 
   Future<void> _showLessonPicker(
@@ -1115,47 +1224,66 @@ class _HomeScreenState extends State<HomeScreen> {
                         Expanded(
                           child: RefreshIndicator(
                             onRefresh: _reload,
-                            child: ListView(
-                              key: const Key('unified-learner-scroll'),
-                              physics: const AlwaysScrollableScrollPhysics(),
-                              padding: const EdgeInsets.fromLTRB(
-                                14,
-                                8,
-                                14,
-                                112,
-                              ),
-                              children: [
-                                if (topic == null)
-                                  const _EmptyCourseCard()
-                                else ...[
-                                  _GuidebookNode(
-                                    topic: topic,
-                                    onTap: () => _openGuidebook(topic),
-                                  ),
-                                  if (topic.imageAsset.trim().isNotEmpty) ...[
-                                    const SizedBox(height: 12),
-                                    _TopicImage(imageAsset: topic.imageAsset),
-                                  ],
-                                  const _VerticalConnector(),
-                                  _RoundTree(
-                                    rounds: topic.rounds,
+                            child: NotificationListener<ScrollEndNotification>(
+                              onNotification: (_) {
+                                _schedulePrimaryLessonSync(course);
+                                return false;
+                              },
+                              child: ListView.builder(
+                                key: const Key('unified-learner-scroll'),
+                                controller: _learnerScrollController,
+                                physics: const AlwaysScrollableScrollPhysics(),
+                                padding: const EdgeInsets.fromLTRB(
+                                  14,
+                                  8,
+                                  14,
+                                  112,
+                                ),
+                                itemCount: course.topics.isEmpty
+                                    ? 1
+                                    : course.topics.length -
+                                          _flowStartTopicIndex,
+                                itemBuilder: (context, flowIndex) {
+                                  if (course.topics.isEmpty) {
+                                    return const _EmptyCourseCard();
+                                  }
+                                  final topicIndex =
+                                      _flowStartTopicIndex + flowIndex;
+                                  final sectionTopic =
+                                      course.topics[topicIndex];
+                                  final unlocked = _isTopicUnlocked(
+                                    course,
+                                    topicIndex,
+                                  );
+                                  return _LessonSection(
+                                    key: ValueKey(
+                                      'unified-lesson-section-${sectionTopic.id}',
+                                    ),
+                                    visibilityKey: _lessonSectionKey(
+                                      course,
+                                      sectionTopic,
+                                    ),
+                                    topic: sectionTopic,
+                                    topicIndex: topicIndex,
+                                    showBoundary: flowIndex > 0,
+                                    unlocked: unlocked,
+                                    hasAccess: unlocked || _iddqdMode,
                                     completedRounds: _completedRounds,
                                     perfectRounds: _perfectRounds,
                                     ttsSkippedPerfectRounds:
                                         _ttsSkippedPerfectRounds,
-                                    onOpenRound: (round) =>
-                                        _openRound(course, topic, round),
-                                  ),
-                                  const _VerticalConnector(),
-                                  _DuelCard(
-                                    eligibility: _duelEligibility.evaluate(
-                                      topic,
+                                    duelEligibility: _duelEligibility.evaluate(
+                                      sectionTopic,
                                     ),
-                                    onTap: () => _openDuel(course, topic),
-                                  ),
-                                ],
-                                const SizedBox(height: 16),
-                              ],
+                                    onOpenGuidebook: () =>
+                                        _openGuidebook(sectionTopic),
+                                    onOpenRound: (round) =>
+                                        _openRound(course, sectionTopic, round),
+                                    onOpenDuel: () =>
+                                        _openDuel(course, sectionTopic),
+                                  );
+                                },
+                              ),
                             ),
                           ),
                         ),
@@ -1212,9 +1340,10 @@ class _CourseSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Material(
+    key: const Key('unified-course-selector-surface'),
     color: Theme.of(context).brightness == Brightness.dark
-        ? Theme.of(context).colorScheme.surface.withValues(alpha: .92)
-        : Colors.white.withValues(alpha: .84),
+        ? Theme.of(context).colorScheme.surface.withValues(alpha: .5)
+        : Colors.white.withValues(alpha: .5),
     shape: RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(18),
       side: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
@@ -1325,6 +1454,115 @@ class _LessonNavigation extends StatelessWidget {
           ),
         ),
       ),
+    ],
+  );
+}
+
+class _LessonSection extends StatelessWidget {
+  final GlobalKey visibilityKey;
+  final Topic topic;
+  final int topicIndex;
+  final bool showBoundary;
+  final bool unlocked;
+  final bool hasAccess;
+  final Set<String> completedRounds;
+  final Set<String> perfectRounds;
+  final Set<String> ttsSkippedPerfectRounds;
+  final DuelEligibilityResult duelEligibility;
+  final VoidCallback onOpenGuidebook;
+  final void Function(LearningRound round) onOpenRound;
+  final VoidCallback onOpenDuel;
+
+  const _LessonSection({
+    super.key,
+    required this.visibilityKey,
+    required this.topic,
+    required this.topicIndex,
+    required this.showBoundary,
+    required this.unlocked,
+    required this.hasAccess,
+    required this.completedRounds,
+    required this.perfectRounds,
+    required this.ttsSkippedPerfectRounds,
+    required this.duelEligibility,
+    required this.onOpenGuidebook,
+    required this.onOpenRound,
+    required this.onOpenDuel,
+  });
+
+  @override
+  Widget build(BuildContext context) => Column(
+    key: visibilityKey,
+    crossAxisAlignment: CrossAxisAlignment.stretch,
+    children: [
+      if (showBoundary) ...[
+        const SizedBox(height: 20),
+        const Divider(),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(8, 12, 8, 18),
+          child: Semantics(
+            header: true,
+            child: Row(
+              children: [
+                Icon(unlocked ? Icons.school_outlined : Icons.lock_outline),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: _FlagBackdropText(
+                    'Lesson ${topicIndex + 1}: ${topic.title}',
+                    key: ValueKey('flag-backdrop-lesson-title-${topic.id}'),
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+      if (!hasAccess)
+        Padding(
+          key: ValueKey('unified-lesson-locked-${topic.id}'),
+          padding: const EdgeInsets.fromLTRB(18, 12, 18, 28),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.lock_outline),
+              const SizedBox(width: 12),
+              Flexible(
+                child: _FlagBackdropText(
+                  'Complete the previous Lesson or win its Duel to unlock this Lesson.',
+                  key: ValueKey('flag-backdrop-locked-message-${topic.id}'),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w700),
+                ),
+              ),
+            ],
+          ),
+        )
+      else ...[
+        _GuidebookNode(topic: topic, onTap: onOpenGuidebook),
+        if (topic.imageAsset.trim().isNotEmpty) ...[
+          const SizedBox(height: 12),
+          _TopicImage(imageAsset: topic.imageAsset),
+        ],
+        const _VerticalConnector(),
+        _RoundTree(
+          rounds: topic.rounds,
+          completedRounds: completedRounds,
+          perfectRounds: perfectRounds,
+          ttsSkippedPerfectRounds: ttsSkippedPerfectRounds,
+          onOpenRound: onOpenRound,
+        ),
+        const _VerticalConnector(),
+        _DuelCard(
+          key: ValueKey('unified-duel-${topic.id}'),
+          eligibility: duelEligibility,
+          onTap: onOpenDuel,
+        ),
+      ],
+      const SizedBox(height: 16),
     ],
   );
 }
@@ -1749,7 +1987,7 @@ class _DuelCard extends StatelessWidget {
   final DuelEligibilityResult eligibility;
   final VoidCallback onTap;
 
-  const _DuelCard({required this.eligibility, required this.onTap});
+  const _DuelCard({super.key, required this.eligibility, required this.onTap});
 
   @override
   Widget build(BuildContext context) => Card(
@@ -1817,6 +2055,43 @@ class _EmptyCourseCard extends StatelessWidget {
   );
 }
 
+class _FlagBackdropText extends StatelessWidget {
+  final String data;
+  final TextStyle? style;
+
+  const _FlagBackdropText(this.data, {super.key, this.style});
+
+  @override
+  Widget build(BuildContext context) {
+    final effectiveStyle = DefaultTextStyle.of(context).style.merge(style);
+    final foregroundColor =
+        effectiveStyle.foreground?.color ??
+        effectiveStyle.color ??
+        Theme.of(context).colorScheme.onSurface;
+    final outlineColor = foregroundColor.computeLuminance() > .5
+        ? Colors.black
+        : Colors.white;
+    return Stack(
+      alignment: AlignmentDirectional.centerStart,
+      clipBehavior: Clip.none,
+      children: [
+        ExcludeSemantics(
+          child: Text(
+            data,
+            style: effectiveStyle.copyWith(
+              foreground: Paint()
+                ..style = PaintingStyle.stroke
+                ..strokeWidth = 2
+                ..color = outlineColor,
+            ),
+          ),
+        ),
+        Text(data, style: effectiveStyle),
+      ],
+    );
+  }
+}
+
 class _QuickActions extends StatelessWidget {
   final VoidCallback onLeaderboard, onReview, onCoffee, onCourseInfo;
   const _QuickActions({
@@ -1827,66 +2102,44 @@ class _QuickActions extends StatelessWidget {
     required this.onCourseInfo,
   });
   @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final colorScheme = Theme.of(context).colorScheme;
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: isDark
-            ? colorScheme.surface.withValues(alpha: .90)
-            : const Color(0x78FFFDF7),
-        borderRadius: BorderRadius.circular(26),
-        border: Border.all(
-          color: isDark
-              ? colorScheme.outlineVariant
-              : Colors.white.withValues(alpha: .70),
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.all(12),
+    child: Row(
+      children: [
+        Expanded(
+          child: _QuickAction(
+            icon: Icons.emoji_events_outlined,
+            label: 'Leaderboard',
+            onTap: onLeaderboard,
+          ),
         ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? .30 : .09),
-            blurRadius: 17,
-            offset: const Offset(0, 6),
+        const SizedBox(width: 6),
+        Expanded(
+          child: _QuickAction(
+            icon: Icons.history_edu_outlined,
+            label: 'Review',
+            onTap: onReview,
           ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: _QuickAction(
-              icon: Icons.emoji_events_outlined,
-              label: 'Leaderboard',
-              onTap: onLeaderboard,
-            ),
+        ),
+        const SizedBox(width: 6),
+        Expanded(
+          child: _QuickAction(
+            icon: Icons.coffee_outlined,
+            label: 'Buy a coffee',
+            onTap: onCoffee,
           ),
-          const SizedBox(width: 6),
-          Expanded(
-            child: _QuickAction(
-              icon: Icons.history_edu_outlined,
-              label: 'Review',
-              onTap: onReview,
-            ),
+        ),
+        const SizedBox(width: 6),
+        Expanded(
+          child: _QuickAction(
+            icon: Icons.info_outline,
+            label: 'Course Info',
+            onTap: onCourseInfo,
           ),
-          const SizedBox(width: 6),
-          Expanded(
-            child: _QuickAction(
-              icon: Icons.coffee_outlined,
-              label: 'Buy a coffee',
-              onTap: onCoffee,
-            ),
-          ),
-          const SizedBox(width: 6),
-          Expanded(
-            child: _QuickAction(
-              icon: Icons.info_outline,
-              label: 'Course Info',
-              onTap: onCourseInfo,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+        ),
+      ],
+    ),
+  );
 }
 
 class _QuickAction extends StatelessWidget {

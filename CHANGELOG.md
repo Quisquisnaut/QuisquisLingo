@@ -1,3 +1,12 @@
+# 2.0.17 (build 217) - 2026-08-30
+
+- Replaced the learner page's single-Lesson central content with a lazy continuous vertical flow from the selected Lesson through every subsequent Lesson in authoritative course order.
+- Kept the complete four-zone Learner Header and icon-only bottom controls fixed while Lesson content scrolls beneath them with retained bottom clearance.
+- Retained the existing Lesson picker and persistence; direct selection now restarts the flow at that Lesson, while stable visible-area synchronization updates the selector after scrolling into another Lesson.
+- Preserved genuine Lesson locks and IDDQD access, kept locked Lesson content inaccessible without permission, and left Topic-scoped Duel eligibility, gameplay and XP unchanged.
+- Added focused learner regressions for ordered flow, no duplication, lazy construction, selector jumps, scroll synchronization, fixed controls, final-content reachability and locked-Lesson gating.
+- Refreshed the 30-day Alpha lifecycle; build 217 expires at the end of **2026-09-29**.
+
 # 2.0.16 (build 216) - 2026-08-29
 
 - Corrected the dark Welcome dialog's text contrast without changing its structure, controls, persistence or action styling.

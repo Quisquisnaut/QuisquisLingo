@@ -1,17 +1,18 @@
-# QuisquisLingo 2.0.16+216 release validation report
+# QuisquisLingo 2.0.17+217 release validation report
 
-Date: 29 August 2026
+Date: 30 August 2026
 
 ## Baseline and scope
 
-- Phase 2 work began at Phase 1 regression-protection commit `444fbf9` with a clean working tree; the approved production baseline remains `409a75f` (`2.0.15+215`).
-- The target package version is `2.0.16+216`.
-- The established 30-day Alpha lifetime expires at the end of 28 September 2026.
+- Build 217 work began from clean commit `d7fae5b` (`2.0.16+216`).
+- The target package version is `2.0.17+217`.
+- The established 30-day Alpha lifetime expires at the end of 29 September 2026.
 - Course Model v4 is a clean cut: Course owns ordered Topics directly, Chapter-based structures are rejected, and no legacy course or progress migration is present.
 - A newly created custom Course starts with three placeholder Topics and no automatically created Rounds.
-- Learner navigation is unified around Course → Lesson → Round while retaining the existing learner status bar, Leaderboard/Gamification route, Review, Course Info and Settings behavior.
+- Learner navigation remains unified around Course → Lesson → Round; the central learner area now flows continuously from the selected Lesson through every subsequent Lesson in course order while retaining the existing learner status bar, Leaderboard/Gamification route, Review, Course Info and Settings behavior.
 - The unified learner page retains the supplied QuisquisLingo logo, uses the selected-course flag as its background, places the protected user/logo/Settings strip above the unchanged status bar, and follows the operating-system light/dark appearance.
-- The standalone Browse All Lessons button is removed while the existing Lesson selector continues to open the complete Lesson picker and retain its established navigation/persistence behavior.
+- The existing Lesson selector continues to open the complete Lesson picker and retain its established persistence behavior. Direct selection restarts the continuous flow at that Lesson; after natural scrolling ends, the selector follows the Lesson with the greatest visible section area using viewport-relative hysteresis.
+- Lessons are built lazily at the outer list level. Locked Lessons remain present in course order but their GuideBook, Rounds and Duel stay inaccessible unless genuine progress or existing IDDQD access permits them.
 - The existing course picker continues to place up to three newest other recent courses between the current course and complete course list without changing recent-course persistence.
 - Topic Duel availability is derived at runtime from the actual Topic-local eligible pool. Fewer than 25 eligible exercises is a normal unavailable state, independent of the six-Round author recommendation.
 
@@ -32,14 +33,14 @@ Date: 29 August 2026
 
 ## Automated validation
 
-- `flutter test --no-pub`: **264 tests passed, 0 failed** in approximately **1m18s**.
-- Focused widget coverage includes the supplied header logo contract, white Welcome-dialog text, selected-course flag background and course switching in light/dark appearance, protected strip/status-bar order, absence of the standalone Browse All Lessons button, retained Lesson-selector navigation, visible recent-course placement/maximum/order, loading state, direct Course → Lesson → Round navigation, Back behavior, normal unavailable-Duel messaging, Home Leaderboard routing, Settings return refresh and a 320 px Home with 1.5× text scaling.
-- `flutter analyze --no-pub`: no errors or warnings; the same **7 pre-existing info-only** `curly_braces_in_flow_control_structures` findings remain in `course_editor_service.dart`, `profile_service.dart` and `settings_service.dart`.
+- `flutter test --no-pub`: **268 tests passed, 0 failed** in approximately **1m35s**.
+- Focused learner/version coverage passed **20 tests** and includes lazy ordered flow through multiple subsequent Lessons, one section per Lesson, direct selector restart/persistence, scroll-driven selector synchronization without boundary oscillation, inaccessible locked content, fixed User Bar/Status Bar/course selector/Lesson selector, fixed icon-only bottom controls, final-Lesson reachability, direct Course → Lesson → Round navigation, normal unavailable-Duel messaging and the refreshed Alpha lifecycle.
+- `flutter analyze`: no errors or warnings; the same **7 pre-existing info-only** `curly_braces_in_flow_control_structures` findings remain in `course_editor_service.dart`, `profile_service.dart` and `settings_service.dart`.
 - `git diff --check`: passed with no whitespace errors.
 
 ## Manual release checks still required
 
-- Visually compare the unified learner page in both operating-system appearances at phone, tablet and desktop sizes, including high system text scaling, odd Round counts, Perfect laurels and Topic images.
+- Visually compare the continuous Lesson flow in both operating-system appearances at phone, tablet and desktop sizes, including selector synchronization across boundaries, locked/IDDQD sections, high system text scaling, odd Round counts, Perfect laurels and Topic images.
 - Exercise a real custom-course create/import/edit/export/delete cycle and confirm Home refresh and double-confirmation deletion on each supported desktop platform.
 - Manually open a content-rich custom Topic with at least 25 eligible exercises and complete both a winning and losing Duel path with audio enabled.
 - Smoke-test platform TTS, external support links, file-system export/import paths and desktop window resizing on release targets.

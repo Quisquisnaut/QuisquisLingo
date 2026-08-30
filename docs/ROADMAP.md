@@ -437,6 +437,18 @@ Avoid mandatory servers, artificial purchase economies, lives, or monetization-d
 
 ---
 
+# 2.0.17+217
+## Continuous Lesson flow
+
+- [x] Keep the complete four-zone Learner Header and bottom controls fixed.
+- [x] Render the selected Lesson and all subsequent Lessons as one lazy vertical course flow.
+- [x] Preserve direct Lesson-picker jumps and last-visited-Lesson persistence.
+- [x] Synchronize the fixed Lesson selector to the primary visible Lesson after scrolling.
+- [x] Preserve genuine Lesson locks, IDDQD access and Topic-scoped Duel behavior.
+- [x] Retain enough bottom clearance for the final Lesson content above fixed controls.
+
+---
+
 # 2.0.16+216
 ## Stabilization and compatibility release
 
