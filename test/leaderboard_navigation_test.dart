@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -102,6 +104,7 @@ void main() {
       final secondLesson = find.text('Lesson 2: ${secondTopic.title}');
       await _pumpUntil(tester, secondLesson);
       await tester.pumpAndSettle();
+      expect(find.text('Browse All Lessons'), findsNothing);
       expect(secondLesson, findsOneWidget);
       final secondLessonTile = find.ancestor(
         of: secondLesson,
@@ -113,11 +116,6 @@ void main() {
           matching: find.byIcon(Icons.lock_outline),
         ),
         findsOneWidget,
-      );
-      await tester.scrollUntilVisible(
-        secondLesson,
-        160,
-        scrollable: find.byType(Scrollable).last,
       );
       await tester.tap(secondLesson);
       await _pumpFrames(tester);
@@ -135,7 +133,7 @@ void main() {
       await tester.scrollUntilVisible(
         find.byKey(const Key('unified-duel-card')),
         240,
-        scrollable: find.byType(Scrollable).last,
+        scrollable: _mainLearnerScrollable(),
       );
       await tester.pump();
       await tester.ensureVisible(find.text(unavailable));
@@ -149,28 +147,96 @@ void main() {
   ) async {
     await _openHome(tester);
 
-    expect(find.text('Leaderboard'), findsOneWidget);
-    final action = find.ancestor(
-      of: find.text('Leaderboard'),
-      matching: find.byType(InkWell),
-    );
-    final icon = find.descendant(
-      of: action,
-      matching: find.byIcon(Icons.emoji_events_outlined),
-    );
-    expect(icon, findsOneWidget);
+    final semantics = tester.ensureSemantics();
+    expect(find.text('Leaderboard'), findsNothing);
+    expect(find.bySemanticsLabel('Leaderboard'), findsOneWidget);
+    expect(find.byIcon(Icons.emoji_events_outlined), findsOneWidget);
 
-    await tester.tap(find.text('Leaderboard'));
+    await tester.tap(find.bySemanticsLabel('Leaderboard'));
     await _pumpUntil(tester, find.byType(GamificationSettingsScreen));
     await _pumpFrames(tester);
     expect(find.text('Gamification'), findsOneWidget);
 
     await tester.pageBack();
     await _pumpFrames(tester);
-    await _pumpUntil(tester, find.text('Leaderboard'));
+    await _pumpUntil(tester, find.bySemanticsLabel('Leaderboard'));
     expect(find.byType(HomeScreen), findsOneWidget);
     expect(find.byType(GamificationSettingsScreen), findsNothing);
+    semantics.dispose();
   });
+
+  testWidgets(
+    'selectors and bottom controls stay fixed while learner content scrolls',
+    (tester) async {
+      await _openHome(
+        tester,
+        scrollToActions: false,
+        includeLearnerShell: true,
+      );
+      final semantics = tester.ensureSemantics();
+      final learnerHeader = find.byKey(const Key('unified-learner-header'));
+      final userBar = find.byKey(const Key('unified-learner-logo'));
+      final statusBar = find.byKey(const Key('learner-status-position'));
+      final courseSelector = find.byKey(const Key('unified-course-selector'));
+      final lessonSelector = find.byKey(const Key('unified-lesson-selector'));
+      final controls = find.byKey(const Key('unified-bottom-controls'));
+      expect(learnerHeader, findsOneWidget);
+      expect(userBar, findsOneWidget);
+      expect(statusBar, findsOneWidget);
+      expect(courseSelector, findsOneWidget);
+      expect(lessonSelector, findsOneWidget);
+      expect(controls, findsOneWidget);
+      for (final label in [
+        'Leaderboard',
+        'Review',
+        'Buy a coffee',
+        'Course Info',
+      ]) {
+        expect(find.text(label), findsNothing);
+        expect(find.bySemanticsLabel(label), findsOneWidget);
+      }
+      expect(find.byIcon(Icons.emoji_events_outlined), findsOneWidget);
+      expect(find.byIcon(Icons.history_edu_outlined), findsOneWidget);
+      expect(find.byIcon(Icons.coffee_outlined), findsOneWidget);
+      expect(find.byIcon(Icons.info_outline), findsOneWidget);
+
+      final learnerHeaderBefore = tester.getRect(learnerHeader);
+      final userBarBefore = tester.getRect(userBar);
+      final statusBarBefore = tester.getRect(statusBar);
+      final courseSelectorBefore = tester.getRect(courseSelector);
+      final lessonSelectorBefore = tester.getRect(lessonSelector);
+      final controlsBefore = tester.getRect(controls);
+      final scrollable = _mainLearnerScrollable();
+      final position = tester.state<ScrollableState>(scrollable).position;
+      final contentOffsetBefore = position.pixels;
+      await tester.drag(
+        find.byKey(const Key('unified-learner-scroll')),
+        const Offset(0, -500),
+      );
+      await tester.pumpAndSettle();
+
+      expect(tester.getRect(learnerHeader), learnerHeaderBefore);
+      expect(tester.getRect(userBar), userBarBefore);
+      expect(tester.getRect(statusBar), statusBarBefore);
+      expect(tester.getRect(courseSelector), courseSelectorBefore);
+      expect(tester.getRect(lessonSelector), lessonSelectorBefore);
+      expect(tester.getRect(controls), controlsBefore);
+      expect(position.pixels, greaterThan(contentOffsetBefore));
+      expect(
+        controlsBefore.bottom,
+        lessThanOrEqualTo(
+          tester.getRect(find.byKey(const Key('unified-learner-page'))).bottom,
+        ),
+      );
+      position.jumpTo(position.maxScrollExtent);
+      await tester.pumpAndSettle();
+      expect(
+        tester.getRect(find.byKey(const Key('unified-duel-card'))).bottom,
+        lessThanOrEqualTo(tester.getRect(controls).top),
+      );
+      semantics.dispose();
+    },
+  );
 
   testWidgets(
     'Home reloads the selected course after returning from Settings',
@@ -283,8 +349,12 @@ void main() {
       final contentRect = tester.getRect(
         find.byKey(const Key('unified-course-selector')),
       );
+      final lessonSelectorRect = tester.getRect(
+        find.byKey(const Key('unified-lesson-selector')),
+      );
       expect(stripRect.bottom, lessThanOrEqualTo(statusRect.top));
       expect(statusRect.bottom, lessThanOrEqualTo(contentRect.top));
+      expect(contentRect.bottom, lessThanOrEqualTo(lessonSelectorRect.top));
       expect(pageTheme.brightness, Brightness.light);
       expect(page.backgroundColor, const Color(0xFFF7F3E8));
       expect(statusAppBar.backgroundColor, const Color(0xFF214D3B));
@@ -301,6 +371,11 @@ void main() {
       expect(
         find.byKey(const Key('unified-learner-background-tint')),
         findsNothing,
+      );
+      final selector = find.byKey(const Key('unified-lesson-selector'));
+      expect(
+        _buttonBackgroundColor(tester, selector),
+        Colors.white.withValues(alpha: .5),
       );
 
       dispatcher.platformBrightnessTestValue = Brightness.dark;
@@ -328,8 +403,30 @@ void main() {
         pageTheme.colorScheme.onSurface.computeLuminance(),
         greaterThan(.5),
       );
+      expect(
+        _buttonBackgroundColor(tester, selector),
+        pageTheme.colorScheme.surface.withValues(alpha: .5),
+      );
+      final lessonTitle = tester.widget<Text>(
+        find.descendant(
+          of: selector,
+          matching: find.text('Lesson 1: ${italianCourse.topics.first.title}'),
+        ),
+      );
+      final lessonProgress = tester.widget<Text>(
+        find.descendant(
+          of: selector,
+          matching: find.textContaining('Rounds completed'),
+        ),
+      );
+      expect(lessonTitle.style?.color, Colors.white);
+      expect(lessonProgress.style?.color, Colors.white);
+      expect(
+        _contrastRatio(Colors.white, page.backgroundColor!),
+        greaterThanOrEqualTo(4.5),
+      );
 
-      await tester.tap(find.byKey(const Key('unified-lesson-selector')));
+      await tester.tap(selector);
       await tester.pumpAndSettle();
       final lessonSheet = find.byType(BottomSheet);
       expect(lessonSheet, findsOneWidget);
@@ -364,7 +461,19 @@ void main() {
     await _pumpFrames(tester);
 
     expect(find.byType(HomeScreen), findsOneWidget);
-    expect(find.byKey(const Key('unified-lesson-selector')), findsOneWidget);
+    final pageWidth = tester
+        .getRect(find.byKey(const Key('unified-learner-page')))
+        .width;
+    final courseSelectorWidth = tester
+        .getRect(find.byKey(const Key('unified-course-selector')))
+        .width;
+    final lessonSelectorWidth = tester
+        .getRect(find.byKey(const Key('unified-lesson-selector')))
+        .width;
+    expect(courseSelectorWidth, lessThan(pageWidth - 28));
+    expect(lessonSelectorWidth, lessThan(pageWidth - 28));
+    expect(courseSelectorWidth, greaterThanOrEqualTo(pageWidth * .85));
+    expect(lessonSelectorWidth, greaterThanOrEqualTo(pageWidth * .85));
     expect(tester.takeException(), isNull);
   });
 
@@ -566,14 +675,34 @@ Future<void> _openHome(
     await tester.pump(const Duration(milliseconds: 50));
   }
   if (scrollToActions) {
-    await tester.scrollUntilVisible(
-      find.text('Leaderboard'),
-      200,
-      scrollable: find.byType(Scrollable).last,
+    await tester.ensureVisible(
+      find.byKey(const Key('unified-bottom-controls')),
     );
-    await tester.pump();
   }
 }
+
+double _contrastRatio(Color foreground, Color background) {
+  final lighter = max(
+    foreground.computeLuminance(),
+    background.computeLuminance(),
+  );
+  final darker = min(
+    foreground.computeLuminance(),
+    background.computeLuminance(),
+  );
+  return (lighter + .05) / (darker + .05);
+}
+
+Finder _mainLearnerScrollable() => find.byWidgetPredicate(
+  (widget) =>
+      widget is Scrollable && widget.physics is AlwaysScrollableScrollPhysics,
+);
+
+Color? _buttonBackgroundColor(WidgetTester tester, Finder button) => tester
+    .widget<OutlinedButton>(button)
+    .style
+    ?.backgroundColor
+    ?.resolve(const {});
 
 Future<void> _dismissAlphaNotice(WidgetTester tester) async {
   if (find.text('Alpha expiry').evaluate().isEmpty) return;

@@ -781,11 +781,6 @@ class _HomeScreenState extends State<HomeScreen> {
           heightFactor: .78,
           child: Column(
             children: [
-              const ListTile(
-                leading: Icon(Icons.menu_book_outlined),
-                title: Text('Browse All Lessons'),
-              ),
-              const Divider(height: 1),
               Expanded(
                 child: ListView.builder(
                   itemCount: course.topics.length,
@@ -964,73 +959,6 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Scaffold(
               key: const Key('unified-learner-page'),
               backgroundColor: pageBackground,
-              appBar: LearnerStatusAppBar(
-                key: const Key('unified-learner-status-appbar'),
-                backgroundColor: headerBackground,
-                appBar: AppBar(
-                  toolbarHeight: 58,
-                  leadingWidth: 150,
-                  leading: TextButton.icon(
-                    style: TextButton.styleFrom(foregroundColor: Colors.white),
-                    onPressed: () => _showLearners(learnerContext),
-                    icon: const Icon(Icons.face_outlined),
-                    label: Text(
-                      _activeLearner ?? 'Learner',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(fontWeight: FontWeight.w800),
-                    ),
-                  ),
-                  title: FittedBox(
-                    fit: BoxFit.scaleDown,
-                    child: Semantics(
-                      label: 'QuisquisLingo',
-                      header: true,
-                      excludeSemantics: true,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 3,
-                        ),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFF8FAFF),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Image.asset(
-                          'assets/branding/quisquislingo_logo.png',
-                          key: const Key('unified-learner-logo'),
-                          width: 156,
-                          height: 36,
-                          fit: BoxFit.contain,
-                          filterQuality: FilterQuality.high,
-                        ),
-                      ),
-                    ),
-                  ),
-                  centerTitle: true,
-                  foregroundColor: Colors.white,
-                  backgroundColor: headerBackground,
-                  surfaceTintColor: Colors.transparent,
-                  actions: [
-                    IconButton(
-                      tooltip: 'Settings',
-                      icon: const Icon(Icons.settings_outlined),
-                      onPressed: () async {
-                        await CrashLogService.instance.recordDebugEvent(
-                          'Home: opening Settings',
-                        );
-                        if (!context.mounted) return;
-                        await Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => SettingsScreen(course: course),
-                          ),
-                        );
-                        await _reload();
-                      },
-                    ),
-                  ],
-                ),
-              ),
               body: Stack(
                 fit: StackFit.expand,
                 children: [
@@ -1041,99 +969,223 @@ class _HomeScreenState extends State<HomeScreen> {
                     opacity: 1,
                   ),
                   SafeArea(
-                    top: false,
-                    child: RefreshIndicator(
-                      onRefresh: _reload,
-                      child: ListView(
-                        physics: const AlwaysScrollableScrollPhysics(),
-                        padding: const EdgeInsets.fromLTRB(14, 10, 14, 24),
-                        children: [
-                          _CourseSelector(
-                            course: course,
-                            code: _selectedLanguage,
-                            onTap: () => _showCoursePicker(learnerContext),
-                          ),
-                          const SizedBox(height: 14),
-                          if (topic == null)
-                            const _EmptyCourseCard()
-                          else ...[
-                            _LessonNavigation(
-                              topic: topic,
-                              topicIndex: _activeTopicIndex,
-                              roundCount: topic.rounds.length,
-                              completedRoundCount: topic.rounds
-                                  .where(
-                                    (round) =>
-                                        _completedRounds.contains(round.id),
-                                  )
-                                  .length,
-                              onPrevious: _activeTopicIndex > 0
-                                  ? () => _selectTopic(
-                                      course,
-                                      _activeTopicIndex - 1,
-                                    )
-                                  : null,
-                              onNext:
-                                  _activeTopicIndex + 1 <
-                                          course.topics.length &&
-                                      (_isTopicUnlocked(
-                                            course,
-                                            _activeTopicIndex + 1,
-                                          ) ||
-                                          _iddqdMode)
-                                  ? () => _selectTopic(
-                                      course,
-                                      _activeTopicIndex + 1,
-                                    )
-                                  : null,
-                              onBrowse: () =>
-                                  _showLessonPicker(course, learnerContext),
-                            ),
-                            const SizedBox(height: 18),
-                            _GuidebookNode(
-                              topic: topic,
-                              onTap: () => _openGuidebook(topic),
-                            ),
-                            if (topic.imageAsset.trim().isNotEmpty) ...[
-                              const SizedBox(height: 12),
-                              _TopicImage(imageAsset: topic.imageAsset),
-                            ],
-                            const _VerticalConnector(),
-                            _RoundTree(
-                              rounds: topic.rounds,
-                              completedRounds: _completedRounds,
-                              perfectRounds: _perfectRounds,
-                              ttsSkippedPerfectRounds: _ttsSkippedPerfectRounds,
-                              onOpenRound: (round) =>
-                                  _openRound(course, topic, round),
-                            ),
-                            const _VerticalConnector(),
-                            _DuelCard(
-                              eligibility: _duelEligibility.evaluate(topic),
-                              onTap: () => _openDuel(course, topic),
-                            ),
-                          ],
-                          const SizedBox(height: 16),
-                          _QuickActions(
-                            onLeaderboard: () async {
-                              await Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (_) =>
-                                      const GamificationSettingsScreen(),
+                    child: Column(
+                      children: [
+                        Column(
+                          key: const Key('unified-learner-header'),
+                          children: [
+                            SizedBox(
+                              height: 58 + LearnerShell.statusSlotHeight,
+                              child: LearnerStatusAppBar(
+                                key: const Key('unified-learner-status-appbar'),
+                                backgroundColor: headerBackground,
+                                appBar: AppBar(
+                                  toolbarHeight: 58,
+                                  leadingWidth: 150,
+                                  leading: TextButton.icon(
+                                    style: TextButton.styleFrom(
+                                      foregroundColor: Colors.white,
+                                    ),
+                                    onPressed: () =>
+                                        _showLearners(learnerContext),
+                                    icon: const Icon(Icons.face_outlined),
+                                    label: Text(
+                                      _activeLearner ?? 'Learner',
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.w800,
+                                      ),
+                                    ),
+                                  ),
+                                  title: FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    child: Semantics(
+                                      label: 'QuisquisLingo',
+                                      header: true,
+                                      excludeSemantics: true,
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 8,
+                                          vertical: 3,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFFF8FAFF),
+                                          borderRadius: BorderRadius.circular(
+                                            10,
+                                          ),
+                                        ),
+                                        child: Image.asset(
+                                          'assets/branding/quisquislingo_logo.png',
+                                          key: const Key(
+                                            'unified-learner-logo',
+                                          ),
+                                          width: 156,
+                                          height: 36,
+                                          fit: BoxFit.contain,
+                                          filterQuality: FilterQuality.high,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  centerTitle: true,
+                                  foregroundColor: Colors.white,
+                                  backgroundColor: headerBackground,
+                                  surfaceTintColor: Colors.transparent,
+                                  actions: [
+                                    IconButton(
+                                      tooltip: 'Settings',
+                                      icon: const Icon(Icons.settings_outlined),
+                                      onPressed: () async {
+                                        await CrashLogService.instance
+                                            .recordDebugEvent(
+                                              'Home: opening Settings',
+                                            );
+                                        if (!context.mounted) return;
+                                        await Navigator.of(context).push(
+                                          MaterialPageRoute(
+                                            builder: (_) =>
+                                                SettingsScreen(course: course),
+                                          ),
+                                        );
+                                        await _reload();
+                                      },
+                                    ),
+                                  ],
                                 ),
-                              );
-                              await _reload();
-                            },
-                            onReview: () => _openReview(course),
-                            onCoffee: () => _buyCoffee(course),
-                            onCourseInfo: () => Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (_) =>
-                                    CourseInfoScreen(course: course),
                               ),
                             ),
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(
+                                20,
+                                10,
+                                20,
+                                10,
+                              ),
+                              child: Column(
+                                children: [
+                                  _CourseSelector(
+                                    course: course,
+                                    code: _selectedLanguage,
+                                    onTap: () =>
+                                        _showCoursePicker(learnerContext),
+                                  ),
+                                  if (topic != null) ...[
+                                    const SizedBox(height: 10),
+                                    _LessonNavigation(
+                                      topic: topic,
+                                      topicIndex: _activeTopicIndex,
+                                      roundCount: topic.rounds.length,
+                                      completedRoundCount: topic.rounds
+                                          .where(
+                                            (round) => _completedRounds
+                                                .contains(round.id),
+                                          )
+                                          .length,
+                                      onPrevious: _activeTopicIndex > 0
+                                          ? () => _selectTopic(
+                                              course,
+                                              _activeTopicIndex - 1,
+                                            )
+                                          : null,
+                                      onNext:
+                                          _activeTopicIndex + 1 <
+                                                  course.topics.length &&
+                                              (_isTopicUnlocked(
+                                                    course,
+                                                    _activeTopicIndex + 1,
+                                                  ) ||
+                                                  _iddqdMode)
+                                          ? () => _selectTopic(
+                                              course,
+                                              _activeTopicIndex + 1,
+                                            )
+                                          : null,
+                                      onBrowse: () => _showLessonPicker(
+                                        course,
+                                        learnerContext,
+                                      ),
+                                    ),
+                                  ],
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                        Expanded(
+                          child: RefreshIndicator(
+                            onRefresh: _reload,
+                            child: ListView(
+                              key: const Key('unified-learner-scroll'),
+                              physics: const AlwaysScrollableScrollPhysics(),
+                              padding: const EdgeInsets.fromLTRB(
+                                14,
+                                8,
+                                14,
+                                112,
+                              ),
+                              children: [
+                                if (topic == null)
+                                  const _EmptyCourseCard()
+                                else ...[
+                                  _GuidebookNode(
+                                    topic: topic,
+                                    onTap: () => _openGuidebook(topic),
+                                  ),
+                                  if (topic.imageAsset.trim().isNotEmpty) ...[
+                                    const SizedBox(height: 12),
+                                    _TopicImage(imageAsset: topic.imageAsset),
+                                  ],
+                                  const _VerticalConnector(),
+                                  _RoundTree(
+                                    rounds: topic.rounds,
+                                    completedRounds: _completedRounds,
+                                    perfectRounds: _perfectRounds,
+                                    ttsSkippedPerfectRounds:
+                                        _ttsSkippedPerfectRounds,
+                                    onOpenRound: (round) =>
+                                        _openRound(course, topic, round),
+                                  ),
+                                  const _VerticalConnector(),
+                                  _DuelCard(
+                                    eligibility: _duelEligibility.evaluate(
+                                      topic,
+                                    ),
+                                    onTap: () => _openDuel(course, topic),
+                                  ),
+                                ],
+                                const SizedBox(height: 16),
+                              ],
+                            ),
                           ),
-                        ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  Positioned(
+                    left: 14,
+                    right: 14,
+                    bottom: 12,
+                    child: SafeArea(
+                      top: false,
+                      child: _QuickActions(
+                        key: const Key('unified-bottom-controls'),
+                        onLeaderboard: () async {
+                          await Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) =>
+                                  const GamificationSettingsScreen(),
+                            ),
+                          );
+                          await _reload();
+                        },
+                        onReview: () => _openReview(course),
+                        onCoffee: () => _buyCoffee(course),
+                        onCourseInfo: () => Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => CourseInfoScreen(course: course),
+                          ),
+                        ),
                       ),
                     ),
                   ),
@@ -1228,6 +1280,9 @@ class _LessonNavigation extends StatelessWidget {
           onPressed: onBrowse,
           style: OutlinedButton.styleFrom(
             alignment: Alignment.centerLeft,
+            backgroundColor: Theme.of(context).brightness == Brightness.dark
+                ? Theme.of(context).colorScheme.surface.withValues(alpha: .5)
+                : Colors.white.withValues(alpha: .5),
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 13),
           ),
           child: Row(
@@ -1247,9 +1302,17 @@ class _LessonNavigation extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w900,
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? Colors.white
+                            : null,
                       ),
                     ),
-                    Text('$completedRoundCount/$roundCount Rounds completed'),
+                    Text(
+                      '$completedRoundCount/$roundCount Rounds completed',
+                      style: Theme.of(context).brightness == Brightness.dark
+                          ? const TextStyle(color: Colors.white)
+                          : null,
+                    ),
                   ],
                 ),
               ),
@@ -1757,6 +1820,7 @@ class _EmptyCourseCard extends StatelessWidget {
 class _QuickActions extends StatelessWidget {
   final VoidCallback onLeaderboard, onReview, onCoffee, onCourseInfo;
   const _QuickActions({
+    super.key,
     required this.onLeaderboard,
     required this.onReview,
     required this.onCoffee,
@@ -1843,36 +1907,21 @@ class _QuickAction extends StatelessWidget {
           ? colorScheme.surfaceContainerHighest.withValues(alpha: .72)
           : Colors.white.withValues(alpha: .34),
       borderRadius: BorderRadius.circular(18),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(18),
+      child: Semantics(
+        button: true,
+        label: label,
         onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 10),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                icon,
-                size: 24,
-                color: isDark
-                    ? const Color(0xFF9AD5B3)
-                    : const Color(0xFF3D704F),
-              ),
-              const SizedBox(height: 4),
-              FittedBox(
-                fit: BoxFit.scaleDown,
-                child: Text(
-                  label,
-                  maxLines: 1,
-                  style: TextStyle(
-                    fontWeight: FontWeight.w800,
-                    color: isDark
-                        ? colorScheme.onSurface
-                        : const Color(0xFF254B3D),
-                  ),
-                ),
-              ),
-            ],
+        excludeSemantics: true,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(18),
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 10),
+            child: Icon(
+              icon,
+              size: 24,
+              color: isDark ? const Color(0xFF9AD5B3) : const Color(0xFF3D704F),
+            ),
           ),
         ),
       ),
