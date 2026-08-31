@@ -13,6 +13,8 @@ Date: 31 August 2026
 - The fixed Learner Header now contains one theme-aware Top Bar followed by the separate Lesson selector. The Top Bar is ordered as compact Language/Course flag selector, one-line language Streak, vertical current/max course Laurel progress, vertical current/max learner-global Weekly XP, QuisquisLingo cat mark and Settings.
 - The compact flag-only control opens the unchanged full-size Language/Course picker, while learner-profile management is available through Settings. The User group and redundant full-width course control are absent from the Top Bar and header.
 - The Top Bar uses only the cat portion of the supplied logo through a non-destructive clipped presentation. The cat opens the existing App Info screen, where the unchanged complete logo appears above the existing content.
+- Streak and Laurel dialogs state their language and course scopes explicitly. Standard informational tooltips identify the course flag dynamically, language Streak, course Laurels, learner-global Weekly XP and App Info without adding permanent labels or changing the existing actions.
+- The Streak, Laurel and Weekly XP icons are subtly enlarged while the fixed 64 px Top Bar height, artwork, metric spacing and numeric presentation remain preserved.
 - The selected-course flag remains behind the approximately 50%-opacity Lesson selector and the central learner content, but not behind the solid white or near-black Top Bar. No separate Course Progress Bar is present.
 - The existing Lesson selector continues to open the complete Lesson picker and retain its established persistence behavior. Direct selection restarts the continuous flow at that Lesson; after natural scrolling ends, the selector follows the Lesson with the greatest visible section area using viewport-relative hysteresis.
 - Lessons are built lazily at the outer list level. Locked Lessons remain present in course order but their GuideBook, Rounds and Duel stay inaccessible unless genuine progress or existing IDDQD access permits them.
@@ -38,10 +40,11 @@ Date: 31 August 2026
 
 ## Automated validation
 
-- Focused unified Top Bar coverage passed **9 tests** for exact order/actions, compact flag-only selection, semantics, non-destructive cat cropping, vertical metrics, explanatory dialogs, all required numeric ranges, stable single-row layout, group spacing and light/dark contrast.
+- Focused unified Top Bar coverage passed **11 tests** for exact order/actions, compact flag-only selection, semantics, standard tooltips, non-destructive cat cropping, subtly enlarged metric icons, preserved height, vertical metrics, exact explanatory-dialog wording, all required numeric ranges, stable single-row layout, group spacing and light/dark contrast.
+- Focused streak and study-day clock coverage passed **21 tests**, including language-scoped counters and automatic cross-language freezing.
 - Focused learner-status, shared Round playability, Round-XP regression, App Info and Alpha-lifecycle coverage passed **31 tests**.
 - Focused final learner-navigation integration coverage passed **22 tests**, including the full course picker, Settings profile management, App Info navigation, Lesson selector separation and narrow layout.
-- Full `flutter test --no-pub` passed **288 tests** in **2 minutes 10 seconds**.
+- Full `flutter test --no-pub` passed **290 tests** in **1 minute 13 seconds**.
 - Full `flutter analyze --no-pub` reported **no errors or warnings** and the same **7 pre-existing info-only** `curly_braces_in_flow_control_structures` diagnostics in untouched service files.
 - `python tools\validate_courses.py` passed all eight bundled courses, and final `git diff --check` passed.
 - At the documented 320 px narrow test width with 1.5× text, all six required groups, the clearly visible flag and maximum numeric values remain in one row without overflow, with the required interactive controls retaining at least 48 px height.

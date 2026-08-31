@@ -145,6 +145,7 @@ void main() {
     double width = 430,
     double textScale = 1,
     ThemeMode themeMode = ThemeMode.light,
+    String courseCode = 'IT',
     VoidCallback? onCoursePressed,
     VoidCallback? onLogoPressed,
     VoidCallback? onSettingsPressed,
@@ -177,7 +178,7 @@ void main() {
             child: UnifiedLearnerTopBar(
               controller: controller,
               course: courses.course,
-              courseCode: 'IT',
+              courseCode: courseCode,
               onCoursePressed: onCoursePressed ?? () {},
               onLogoPressed: onLogoPressed ?? () {},
               onSettingsPressed: onSettingsPressed ?? () {},
@@ -320,6 +321,47 @@ void main() {
     semantics.dispose();
   });
 
+  testWidgets('standard tooltips identify Top Bar actions without labels', (
+    tester,
+  ) async {
+    await tester.pumpWidget(app(courseCode: 'en'));
+    await tester.pump();
+
+    const tooltips = [
+      'EN - Course name belongs only in the selector',
+      'Language Streak',
+      'Course Laurels',
+      'Weekly XP across all courses',
+      'QuisquisLingo App Info',
+    ];
+    for (final tooltip in tooltips) {
+      expect(find.byTooltip(tooltip), findsOneWidget);
+      expect(find.text(tooltip), findsNothing);
+    }
+  });
+
+  testWidgets('metric icons grow subtly without changing Top Bar height', (
+    tester,
+  ) async {
+    for (final item in [(320.0, 15.0), (430.0, 19.0)]) {
+      await tester.pumpWidget(app(width: item.$1));
+      await tester.pump();
+
+      expect(
+        tester.getSize(find.byKey(const Key('unified-learner-top-bar'))).height,
+        unifiedLearnerTopBarHeight,
+      );
+      for (final key in [
+        const Key('unified-topbar-flame-icon'),
+        const Key('unified-topbar-laurel-icon'),
+        const Key('unified-topbar-xp-icon'),
+      ]) {
+        expect(tester.widget<Icon>(find.byKey(key)).size, item.$2);
+      }
+      expect(tester.takeException(), isNull);
+    }
+  });
+
   testWidgets('required number ranges remain unpadded and do not overflow', (
     tester,
   ) async {
@@ -451,11 +493,11 @@ void main() {
     for (final item in [
       (
         const Key('unified-topbar-streak'),
-        'Italian streak: 14 days. It tracks your current run of study days for this language.',
+        'Your streak is specific to the language you are learning and is shared across courses in that language. Studying another language does not count toward that streak, but studying any language freezes all your streaks, preventing them from resetting.',
       ),
       (
         const Key('unified-topbar-laurels'),
-        'Course Laurels: 7 out of 42. A Laurel marks a Round completed with zero errors.',
+        'Laurels are specific to each course. A Laurel earned in this course belongs to this course only and does not carry over to other courses, even if the target language is the same.',
       ),
       (
         const Key('unified-topbar-weekly-xp'),

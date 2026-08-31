@@ -3,6 +3,8 @@
 - Replaced the separate learner User Bar and Status Bar with one fixed, single-row Top Bar ordered as compact Language/Course flag selector, Streak, Laurel progress, Weekly XP, QuisquisLingo cat mark and Settings.
 - Kept Streak language-scoped, Laurel progress current-course-scoped and Weekly XP learner-global without changing their calculation, persistence or update rules.
 - Presented Laurel and Weekly XP as compact vertical current/max metrics, kept Streak on one line, and added concise explanatory dialogs for all three metrics.
+- Clarified in the Streak and Laurel dialogs that Streak is language-scoped with cross-language study-day freezing, while Laurels remain specific to the course in which they were earned.
+- Slightly enlarged the three metric icons and added standard informational tooltips to the course flag, Streak, Laurels, Weekly XP and App Info mark without changing their actions or the Top Bar height.
 - Kept the existing full-size Language/Course picker behind the compact flag, moved learner-profile management into Settings, and kept the Lesson selector separate.
 - Used the graphical portion of the existing branding asset in the Top Bar without changing the source image; the cat opens the existing App Info screen, whose complete logo remains unchanged.
 - Added responsive spacing, white/near-black surface and narrow-layout coverage while preserving the course-flag background, continuous Lesson flow and fixed bottom controls.
