@@ -8,6 +8,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:quisquislingo_app/models/course_models.dart';
 import 'package:quisquislingo_app/screens/gamification_settings_screen.dart';
 import 'package:quisquislingo_app/screens/home_screen.dart';
+import 'package:quisquislingo_app/screens/info_screen.dart';
 import 'package:quisquislingo_app/screens/round_screen.dart';
 import 'package:quisquislingo_app/screens/settings_screen.dart';
 import 'package:quisquislingo_app/services/course_editor_service.dart';
@@ -563,7 +564,9 @@ void main() {
       final semantics = tester.ensureSemantics();
       final learnerHeader = find.byKey(const Key('unified-learner-header'));
       final topBar = find.byKey(const Key('unified-learner-top-bar'));
-      final courseSelector = find.byKey(const Key('unified-course-selector'));
+      final courseSelector = find.byKey(
+        const Key('unified-topbar-course-selector'),
+      );
       final lessonSelector = find.byKey(const Key('unified-lesson-selector'));
       final controls = find.byKey(const Key('unified-bottom-controls'));
       expect(learnerHeader, findsOneWidget);
@@ -677,17 +680,26 @@ void main() {
       await tester.runAsync(
         () => Future<void>.delayed(const Duration(milliseconds: 300)),
       );
-      await _pumpUntil(tester, find.text(updatedTitle));
+      await _pumpUntil(
+        tester,
+        find.byKey(const Key('unified-topbar-course-selector')),
+      );
+      await tester.tap(find.byKey(const Key('unified-topbar-course-selector')));
+      await tester.pumpAndSettle();
       expect(find.text(updatedTitle), findsWidgets);
     },
   );
 
-  testWidgets('unified Top Bar keeps learner management action', (
+  testWidgets('Settings exposes the existing learner management action', (
     tester,
   ) async {
     await _openHome(tester, scrollToActions: false, includeLearnerShell: true);
 
-    await tester.tap(find.byKey(const Key('unified-topbar-user')));
+    expect(find.byKey(const Key('unified-topbar-user')), findsNothing);
+    await tester.tap(find.byTooltip('Settings'));
+    await _pumpUntil(tester, find.byType(SettingsScreen));
+    await _pumpFrames(tester);
+    await tester.tap(find.widgetWithText(ListTile, 'Learner profiles'));
     await tester.pumpAndSettle();
 
     expect(find.text('Learners'), findsOneWidget);
@@ -695,9 +707,26 @@ void main() {
     expect(find.text('Add learner'), findsOneWidget);
   });
 
+  testWidgets('Top Bar cat logo opens the existing App Info screen', (
+    tester,
+  ) async {
+    await _openHome(tester, scrollToActions: false, includeLearnerShell: true);
+
+    await tester.tap(find.byKey(const Key('unified-topbar-logo')));
+    await _pumpUntil(tester, find.byType(InfoScreen));
+    await _pumpFrames(tester);
+
+    expect(find.byKey(const Key('app-info-full-logo')), findsOneWidget);
+  });
+
   testWidgets('Settings no longer exposes Gamification', (tester) async {
     await tester.pumpWidget(
-      MaterialApp(home: SettingsScreen(course: _courseFixture())),
+      MaterialApp(
+        home: SettingsScreen(
+          course: _courseFixture(),
+          onManageLearners: (_) async {},
+        ),
+      ),
     );
     await tester.runAsync(
       () => Future<void>.delayed(const Duration(milliseconds: 300)),
@@ -760,16 +789,16 @@ void main() {
       var pageTheme = Theme.of(
         tester.element(find.byKey(const Key('unified-learner-page'))),
       );
-      expect(find.text('Navigation Learner'), findsOneWidget);
-      expect(find.byIcon(Icons.face_outlined), findsOneWidget);
+      expect(find.text('Navigation Learner'), findsNothing);
+      expect(find.byIcon(Icons.face_outlined), findsNothing);
       expect(find.byTooltip('Settings'), findsOneWidget);
       expect(find.byIcon(Icons.settings_outlined), findsOneWidget);
       final topBarOrder = [
-        find.byKey(const Key('unified-topbar-user')),
-        find.byKey(const Key('unified-topbar-logo-mark')),
+        find.byKey(const Key('unified-topbar-course-selector')),
         find.byKey(const Key('unified-topbar-streak')),
         find.byKey(const Key('unified-topbar-laurels')),
         find.byKey(const Key('unified-topbar-weekly-xp')),
+        find.byKey(const Key('unified-topbar-logo')),
         find.byKey(const Key('unified-topbar-settings')),
       ].map((finder) => tester.getRect(finder).center.dx).toList();
       expect(topBarOrder, orderedEquals(topBarOrder.toList()..sort()));
@@ -777,32 +806,23 @@ void main() {
         find.descendant(of: topBar, matching: find.text(italianCourse.title)),
         findsNothing,
       );
-      expect(
-        find.descendant(
-          of: find.byKey(const Key('unified-course-selector')),
-          matching: find.text(italianCourse.title),
-        ),
-        findsOneWidget,
-      );
+      expect(find.text(italianCourse.title), findsNothing);
       expect(
         find.descendant(of: topBar, matching: find.byType(CourseFlagBadge)),
-        findsNothing,
+        findsOneWidget,
       );
+      expect(find.byKey(const Key('unified-course-selector')), findsNothing);
       expect(find.textContaining('Course Progress'), findsNothing);
       expect(find.byKey(const Key('learner-status-position')), findsNothing);
       final topBarRect = tester.getRect(topBar);
-      final contentRect = tester.getRect(
-        find.byKey(const Key('unified-course-selector')),
-      );
       final lessonSelectorRect = tester.getRect(
         find.byKey(const Key('unified-lesson-selector')),
       );
-      expect(topBarRect.bottom, lessThanOrEqualTo(contentRect.top));
-      expect(contentRect.bottom, lessThanOrEqualTo(lessonSelectorRect.top));
+      expect(topBarRect.bottom, lessThanOrEqualTo(lessonSelectorRect.top));
       expect(pageTheme.brightness, Brightness.light);
       expect(page.backgroundColor, const Color(0xFFF7F3E8));
       var topBarMaterial = tester.widget<Material>(topBar);
-      expect(topBarMaterial.color, pageTheme.colorScheme.surface);
+      expect(topBarMaterial.color, Colors.white);
       expect(topBarMaterial.color!.computeLuminance(), greaterThan(.5));
       var background = tester.widget<CourseFlagBackdrop>(
         find.byKey(const Key('unified-learner-flag-background')),
@@ -819,28 +839,26 @@ void main() {
         findsNothing,
       );
       final selector = find.byKey(const Key('unified-lesson-selector'));
-      final courseSelectorSurface = find.byKey(
-        const Key('unified-course-selector-surface'),
+      final courseSelector = find.byKey(
+        const Key('unified-topbar-course-selector'),
       );
-      expect(courseSelectorSurface, findsOneWidget);
-      final courseSelectorRect = tester.getRect(courseSelectorSurface);
+      expect(courseSelector, findsOneWidget);
+      final courseSelectorRect = tester.getRect(courseSelector);
       final courseSelectorInkWell = tester.widget<InkWell>(
-        find.byKey(const Key('unified-course-selector')),
+        find.descendant(of: courseSelector, matching: find.byType(InkWell)),
       );
+      expect(courseSelectorInkWell.onTap, isNotNull);
       expect(
-        (courseSelectorInkWell.child! as Padding).padding,
-        const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+        find.descendant(of: courseSelector, matching: find.byType(Text)),
+        findsNothing,
       );
       expect(
         tester.widget<OutlinedButton>(selector).style?.padding?.resolve({}),
         const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
       );
       expect(courseSelectorRect.height, greaterThanOrEqualTo(48));
+      expect(courseSelectorRect.width, lessThanOrEqualTo(56));
       expect(tester.getRect(selector).height, greaterThanOrEqualTo(48));
-      expect(
-        tester.widget<Material>(courseSelectorSurface).color,
-        Colors.white.withValues(alpha: .5),
-      );
       expect(
         _buttonBackgroundColor(tester, selector),
         Colors.white.withValues(alpha: .5),
@@ -870,11 +888,7 @@ void main() {
         pageTheme.colorScheme.onSurface.computeLuminance(),
         greaterThan(.5),
       );
-      expect(tester.getRect(courseSelectorSurface), courseSelectorRect);
-      expect(
-        tester.widget<Material>(courseSelectorSurface).color,
-        pageTheme.colorScheme.surface.withValues(alpha: .5),
-      );
+      expect(tester.getRect(courseSelector), courseSelectorRect);
       expect(
         _buttonBackgroundColor(tester, selector),
         pageTheme.colorScheme.surface.withValues(alpha: .5),
@@ -946,32 +960,59 @@ void main() {
     final pageWidth = tester
         .getRect(find.byKey(const Key('unified-learner-page')))
         .width;
-    final courseSelectorWidth = tester
-        .getRect(find.byKey(const Key('unified-course-selector')))
-        .width;
+    final courseSelector = find.byKey(
+      const Key('unified-topbar-course-selector'),
+    );
+    final courseSelectorWidth = tester.getRect(courseSelector).width;
     final lessonSelectorWidth = tester
         .getRect(find.byKey(const Key('unified-lesson-selector')))
         .width;
-    expect(courseSelectorWidth, lessThan(pageWidth - 28));
+    expect(courseSelectorWidth, lessThanOrEqualTo(56));
     expect(lessonSelectorWidth, lessThan(pageWidth - 28));
-    expect(courseSelectorWidth, greaterThanOrEqualTo(pageWidth * .85));
     expect(lessonSelectorWidth, greaterThanOrEqualTo(pageWidth * .85));
+    for (final key in const [
+      Key('unified-topbar-course-selector'),
+      Key('unified-topbar-streak'),
+      Key('unified-topbar-laurels'),
+      Key('unified-topbar-weekly-xp'),
+      Key('unified-topbar-logo'),
+      Key('unified-topbar-settings'),
+    ]) {
+      expect(find.byKey(key), findsOneWidget);
+    }
+    expect(
+      find.descendant(of: courseSelector, matching: find.byType(Text)),
+      findsNothing,
+    );
     expect(tester.takeException(), isNull);
   });
 
   testWidgets('selected course changes the learner flag background', (
     tester,
   ) async {
+    final italianCourse = await _loadItalianCourse(tester);
     final germanCourse = await _loadCourse(tester, 'DE');
     await _openHome(tester, scrollToActions: false);
 
     var background = tester.widget<CourseFlagBackdrop>(
       find.byKey(const Key('unified-learner-flag-background')),
     );
+    expect(background.course.courseId, italianCourse.courseId);
     expect(background.fallbackCode, 'IT');
 
-    await tester.tap(find.byKey(const Key('unified-course-selector')));
+    await tester.tap(find.byKey(const Key('unified-topbar-course-selector')));
     await tester.pumpAndSettle();
+    final fullPicker = tester.widget<FractionallySizedBox>(
+      find.descendant(
+        of: find.byType(BottomSheet),
+        matching: find.byType(FractionallySizedBox),
+      ),
+    );
+    expect(fullPicker.heightFactor, greaterThanOrEqualTo(.65));
+    expect(find.text('Choose course'), findsOneWidget);
+    expect(find.text('Current course'), findsOneWidget);
+    expect(find.text('All included courses'), findsOneWidget);
+    expect(find.text(italianCourse.title), findsWidgets);
     await tester.tap(find.widgetWithText(ListTile, 'German').last);
     await tester.runAsync(
       () => Future<void>.delayed(const Duration(milliseconds: 300)),
@@ -984,6 +1025,14 @@ void main() {
     );
     expect(background.course.courseId, germanCourse.courseId);
     expect(background.fallbackCode, 'DE');
+    final compactFlag = tester.widget<CourseFlagBadge>(
+      find.descendant(
+        of: find.byKey(const Key('unified-topbar-course-selector')),
+        matching: find.byType(CourseFlagBadge),
+      ),
+    );
+    expect(compactFlag.course.courseId, germanCourse.courseId);
+    expect(compactFlag.fallbackCode, 'DE');
   });
 
   testWidgets(
@@ -995,7 +1044,7 @@ void main() {
       }
       await _openHome(tester, scrollToActions: false);
 
-      await tester.tap(find.byKey(const Key('unified-course-selector')));
+      await tester.tap(find.byKey(const Key('unified-topbar-course-selector')));
       await tester.pumpAndSettle();
 
       final currentTop = tester.getRect(find.text('Current course')).top;

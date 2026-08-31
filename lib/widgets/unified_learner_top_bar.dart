@@ -1,24 +1,30 @@
 import 'package:flutter/material.dart';
 
 import '../controllers/learner_status_controller.dart';
+import '../models/course_models.dart';
 import '../models/learner_status_state.dart';
+import 'flag_art.dart';
 
 const double unifiedLearnerTopBarHeight = 64;
 
-/// The fixed Home header row. Course identity remains in the selector below.
+/// The fixed Home header row containing course access and learner metrics.
 class UnifiedLearnerTopBar extends StatelessWidget {
   static const _logoAsset = 'assets/branding/quisquislingo_logo.png';
 
   final LearnerStatusController controller;
-  final String? learnerName;
-  final VoidCallback onUserPressed;
+  final Course course;
+  final String courseCode;
+  final VoidCallback onCoursePressed;
+  final VoidCallback onLogoPressed;
   final VoidCallback onSettingsPressed;
 
   const UnifiedLearnerTopBar({
     super.key,
     required this.controller,
-    required this.learnerName,
-    required this.onUserPressed,
+    required this.course,
+    required this.courseCode,
+    required this.onCoursePressed,
+    required this.onLogoPressed,
     required this.onSettingsPressed,
   });
 
@@ -37,66 +43,63 @@ class UnifiedLearnerTopBar extends StatelessWidget {
         ),
       );
 
-  String _streakExplanation(LearnerStatusState state) {
-    final language = state.course?.targetLanguage ?? 'Learning language';
-    final days = state.streak ?? 0;
-    return '$language streak: $days ${days == 1 ? 'day' : 'days'}';
+  String _languageName(LearnerStatusState state) {
+    final stateLanguage = state.course?.targetLanguage.trim() ?? '';
+    if (stateLanguage.isNotEmpty) return stateLanguage;
+    final targetLanguage = course.targetLanguage.trim();
+    return targetLanguage.isEmpty ? course.learningLanguage : targetLanguage;
   }
 
-  String _laurelExplanation(LearnerStatusState state) =>
-      'Laurels in this course: ${state.laurels ?? 0} out of ${state.laurelMaximum ?? 0}';
+  String _streakSemantics(LearnerStatusState state) {
+    final days = state.streak ?? 0;
+    return '${_languageName(state)} streak: $days '
+        '${days == 1 ? 'day' : 'days'}';
+  }
 
-  String _xpExplanation(LearnerStatusState state) {
+  String _streakExplanation(LearnerStatusState state) =>
+      '${_streakSemantics(state)}. It tracks your current run of study days '
+      'for this language.';
+
+  String _laurelSemantics(LearnerStatusState state) =>
+      'Laurels in this course: ${state.laurels ?? 0} out of '
+      '${state.laurelMaximum ?? 0}';
+
+  String _laurelExplanation(LearnerStatusState state) =>
+      'Course Laurels: ${state.laurels ?? 0} out of '
+      '${state.laurelMaximum ?? 0}. A Laurel marks a Round completed with '
+      'zero errors.';
+
+  String _xpSemantics(LearnerStatusState state) {
     final goal = state.weeklyXpGoal;
     return goal == null
         ? 'Weekly XP: ${state.weeklyXp}'
         : 'Weekly XP: ${state.weeklyXp} out of $goal';
   }
 
-  double _reservedTextWidth(
-    BuildContext context,
-    String text,
-    TextStyle style,
-  ) {
-    final painter = TextPainter(
-      text: TextSpan(text: text, style: style),
-      textDirection: Directionality.of(context),
-      textScaler: TextScaler.noScaling,
-      maxLines: 1,
-    )..layout();
-    return painter.width;
-  }
+  String _xpExplanation(LearnerStatusState state) =>
+      '${_xpSemantics(state)}. It totals this learner\'s XP across all courses '
+      'for the current week.';
 
-  Widget _number(
-    BuildContext context, {
+  Widget _numberLine({
     required Key key,
     required String text,
-    required String reserved,
     required TextStyle style,
-    required TextAlign textAlign,
-    double? reservedWidth,
+    required double width,
+    required double height,
+    AlignmentGeometry alignment = Alignment.center,
   }) {
     return SizedBox(
-      key: key,
-      width: reservedWidth ?? _reservedTextWidth(context, reserved, style),
+      width: width,
+      height: height,
       child: FittedBox(
         fit: BoxFit.scaleDown,
-        alignment: textAlign == TextAlign.start
-            ? AlignmentDirectional.centerStart
-            : Alignment.center,
-        child: Text(
-          text,
-          maxLines: 1,
-          softWrap: false,
-          textAlign: textAlign,
-          style: style,
-        ),
+        alignment: alignment,
+        child: Text(text, key: key, maxLines: 1, softWrap: false, style: style),
       ),
     );
   }
 
   Widget _metric({
-    required BuildContext context,
     required Key key,
     required String semanticsLabel,
     required VoidCallback onTap,
@@ -104,24 +107,28 @@ class UnifiedLearnerTopBar extends StatelessWidget {
     required Key iconKey,
     required Color iconColor,
     required double iconSize,
-    required Widget number,
+    required double width,
+    required double spacing,
+    required Widget numbers,
   }) {
     return Semantics(
       button: true,
       excludeSemantics: true,
       label: semanticsLabel,
-      child: InkWell(
+      onTap: onTap,
+      child: SizedBox(
         key: key,
-        borderRadius: BorderRadius.circular(10),
-        onTap: onTap,
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(minHeight: 48),
+        width: width,
+        height: 48,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(10),
+          onTap: onTap,
           child: Row(
-            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(icon, key: iconKey, size: iconSize, color: iconColor),
-              const SizedBox(width: 2),
-              number,
+              SizedBox(width: spacing),
+              numbers,
             ],
           ),
         ),
@@ -138,168 +145,214 @@ class UnifiedLearnerTopBar extends StatelessWidget {
       animation: controller,
       builder: (context, _) {
         final state = controller.state;
-        final resolvedLearner = state.activeProfile ?? learnerName ?? 'Learner';
-        final streakText = '${state.streak ?? 0}';
-        final laurelText =
-            '${state.laurels ?? 0} / ${state.laurelMaximum ?? 0}';
-        final xpText = state.weeklyXpGoal == null
-            ? '${state.weeklyXp}'
-            : '${state.weeklyXp} / ${state.weeklyXpGoal}';
-        final colorScheme = Theme.of(context).colorScheme;
+        final brightness = Theme.of(context).brightness;
+        final isDark = brightness == Brightness.dark;
+        final surfaceColor = isDark
+            ? Theme.of(context).colorScheme.surface
+            : Colors.white;
+        final contentColor = isDark ? Colors.white : const Color(0xFF111111);
 
         return Material(
           key: const Key('unified-learner-top-bar'),
-          color: colorScheme.surface,
+          color: surfaceColor,
           surfaceTintColor: Colors.transparent,
           child: SizedBox(
             height: unifiedLearnerTopBarHeight,
             child: LayoutBuilder(
               builder: (context, constraints) {
-                final compact = constraints.maxWidth <= 430;
-                final gap = constraints.maxWidth < 400 ? 3.0 : 6.0;
-                final iconSize = compact ? 14.0 : 17.0;
+                final dense = constraints.maxWidth < 400;
+                final gap = dense ? 3.0 : 6.0;
+                final iconSize = dense ? 14.0 : 17.0;
+                final iconSpacing = dense ? 2.0 : 3.0;
                 final numberStyle = TextStyle(
-                  color: colorScheme.onSurface,
-                  fontSize: compact ? 10 : 11,
+                  color: contentColor,
+                  fontSize: dense ? 10 : 11,
+                  height: 1,
                   fontWeight: FontWeight.w800,
                   fontFeatures: const [FontFeature.tabularFigures()],
                 );
+                final maximumStyle = numberStyle.copyWith(
+                  fontSize: dense ? 9 : 10,
+                  fontWeight: FontWeight.w700,
+                );
+                final streakSemantics = _streakSemantics(state);
+                final laurelSemantics = _laurelSemantics(state);
+                final xpSemantics = _xpSemantics(state);
 
                 return Padding(
-                  padding: EdgeInsets.symmetric(horizontal: compact ? 1 : 6),
+                  padding: EdgeInsets.symmetric(horizontal: dense ? 1 : 6),
                   child: Row(
                     key: const Key('unified-topbar-row'),
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Expanded(
-                        child: Semantics(
-                          button: true,
-                          excludeSemantics: true,
-                          label: 'Learner: $resolvedLearner',
-                          child: InkWell(
-                            key: const Key('unified-topbar-user'),
-                            borderRadius: BorderRadius.circular(10),
-                            onTap: onUserPressed,
-                            child: ConstrainedBox(
-                              constraints: const BoxConstraints(minHeight: 48),
-                              child: Row(
-                                children: [
-                                  Icon(
-                                    Icons.face_outlined,
-                                    size: iconSize,
-                                    color: colorScheme.onSurface,
-                                  ),
-                                  SizedBox(width: compact ? 1 : 3),
-                                  Expanded(
-                                    child: Text(
-                                      resolvedLearner,
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: numberStyle,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                      _gap('user-logo', gap),
                       Semantics(
-                        label: 'QuisquisLingo logo',
-                        image: true,
+                        button: true,
+                        excludeSemantics: true,
+                        label: 'Choose course: ${course.title}',
+                        onTap: onCoursePressed,
                         child: SizedBox(
-                          key: const Key('unified-topbar-logo-mark'),
-                          width: compact ? 29 : 37,
+                          key: const Key('unified-topbar-course-selector'),
+                          width: dense ? 48 : 52,
                           height: 48,
-                          child: ClipRect(
-                            key: const Key('unified-topbar-logo-clip'),
-                            child: OverflowBox(
-                              alignment: Alignment.centerLeft,
-                              minWidth: compact ? 120 : 156,
-                              maxWidth: compact ? 120 : 156,
-                              minHeight: compact ? 40 : 52,
-                              maxHeight: compact ? 40 : 52,
-                              child: Image.asset(
-                                _logoAsset,
-                                key: const Key('unified-topbar-logo-image'),
-                                width: compact ? 120 : 156,
-                                height: compact ? 40 : 52,
-                                fit: BoxFit.fill,
-                                filterQuality: FilterQuality.high,
-                                excludeFromSemantics: true,
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(10),
+                            onTap: onCoursePressed,
+                            child: Center(
+                              child: CourseFlagBadge(
+                                course: course,
+                                fallbackCode: courseCode,
+                                width: dense ? 40 : 44,
+                                height: dense ? 28 : 31,
                               ),
                             ),
                           ),
                         ),
                       ),
-                      _gap('logo-streak', gap),
+                      _gap('course-streak', gap),
                       _metric(
-                        context: context,
                         key: const Key('unified-topbar-streak'),
-                        semanticsLabel: _streakExplanation(state),
+                        semanticsLabel: streakSemantics,
                         onTap: () => _showExplanation(
                           context,
                           _streakExplanation(state),
                         ),
                         icon: Icons.local_fire_department,
                         iconKey: const Key('unified-topbar-flame-icon'),
-                        iconColor: const Color(0xFFF05A28),
+                        iconColor: isDark
+                            ? const Color(0xFFFF8A5B)
+                            : const Color(0xFFC8430F),
                         iconSize: iconSize,
-                        number: _number(
-                          context,
+                        width: dense ? 48 : 54,
+                        spacing: iconSpacing,
+                        numbers: _numberLine(
                           key: const Key('unified-topbar-streak-number'),
-                          text: streakText,
-                          reserved: '9999',
+                          text: '${state.streak ?? 0}',
                           style: numberStyle,
-                          textAlign: TextAlign.center,
-                          reservedWidth: compact ? 27 : null,
+                          width: dense ? 32 : 34,
+                          height: 18,
                         ),
                       ),
                       _gap('streak-laurel', gap),
                       _metric(
-                        context: context,
                         key: const Key('unified-topbar-laurels'),
-                        semanticsLabel: _laurelExplanation(state),
+                        semanticsLabel: laurelSemantics,
                         onTap: () => _showExplanation(
                           context,
                           _laurelExplanation(state),
                         ),
                         icon: Icons.workspace_premium_outlined,
                         iconKey: const Key('unified-topbar-laurel-icon'),
-                        iconColor: const Color(0xFF2E8B57),
+                        iconColor: isDark
+                            ? const Color(0xFF69DB9C)
+                            : const Color(0xFF18733B),
                         iconSize: iconSize,
-                        number: _number(
-                          context,
-                          key: const Key('unified-topbar-laurel-numbers'),
-                          text: laurelText,
-                          reserved: '999 / 999',
-                          style: numberStyle,
-                          textAlign: TextAlign.center,
-                          reservedWidth: compact ? 60 : null,
+                        width: dense ? 50 : 62,
+                        spacing: iconSpacing,
+                        numbers: SizedBox(
+                          width: dense ? 34 : 42,
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              _numberLine(
+                                key: const Key('unified-topbar-laurel-current'),
+                                text: '${state.laurels ?? 0}',
+                                style: numberStyle,
+                                width: dense ? 34 : 42,
+                                height: 15,
+                              ),
+                              _numberLine(
+                                key: const Key('unified-topbar-laurel-maximum'),
+                                text: '/ ${state.laurelMaximum ?? 0}',
+                                style: maximumStyle,
+                                width: dense ? 34 : 42,
+                                height: 15,
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                       _gap('laurel-xp', gap),
                       _metric(
-                        context: context,
                         key: const Key('unified-topbar-weekly-xp'),
-                        semanticsLabel: _xpExplanation(state),
+                        semanticsLabel: xpSemantics,
                         onTap: () =>
                             _showExplanation(context, _xpExplanation(state)),
                         icon: Icons.bolt,
                         iconKey: const Key('unified-topbar-xp-icon'),
-                        iconColor: colorScheme.onSurface,
+                        iconColor: contentColor,
                         iconSize: iconSize,
-                        number: _number(
-                          context,
-                          key: const Key('unified-topbar-xp-numbers'),
-                          text: xpText,
-                          reserved: '99999 / 99999',
-                          style: numberStyle,
-                          textAlign: TextAlign.start,
-                          reservedWidth: compact ? 87 : null,
+                        width: dense ? 64 : 78,
+                        spacing: iconSpacing,
+                        numbers: SizedBox(
+                          width: dense ? 48 : 58,
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              _numberLine(
+                                key: const Key('unified-topbar-xp-current'),
+                                text: '${state.weeklyXp}',
+                                style: numberStyle,
+                                width: dense ? 48 : 58,
+                                height: 15,
+                              ),
+                              _numberLine(
+                                key: const Key('unified-topbar-xp-maximum'),
+                                text: state.weeklyXpGoal == null
+                                    ? '/ —'
+                                    : '/ ${state.weeklyXpGoal}',
+                                style: maximumStyle,
+                                width: dense ? 48 : 58,
+                                height: 15,
+                              ),
+                            ],
+                          ),
                         ),
                       ),
-                      _gap('xp-settings', gap),
+                      _gap('xp-logo', gap),
+                      Semantics(
+                        button: true,
+                        excludeSemantics: true,
+                        label: 'QuisquisLingo logo, open App Info',
+                        onTap: onLogoPressed,
+                        child: SizedBox(
+                          key: const Key('unified-topbar-logo'),
+                          width: 48,
+                          height: 48,
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(10),
+                            onTap: onLogoPressed,
+                            child: Center(
+                              child: SizedBox(
+                                key: const Key('unified-topbar-logo-mark'),
+                                width: dense ? 29 : 37,
+                                height: 48,
+                                child: ClipRect(
+                                  key: const Key('unified-topbar-logo-clip'),
+                                  child: OverflowBox(
+                                    alignment: Alignment.centerLeft,
+                                    minWidth: dense ? 120 : 156,
+                                    maxWidth: dense ? 120 : 156,
+                                    minHeight: dense ? 40 : 52,
+                                    maxHeight: dense ? 40 : 52,
+                                    child: Image.asset(
+                                      _logoAsset,
+                                      key: const Key(
+                                        'unified-topbar-logo-image',
+                                      ),
+                                      width: dense ? 120 : 156,
+                                      height: dense ? 40 : 52,
+                                      fit: BoxFit.fill,
+                                      filterQuality: FilterQuality.high,
+                                      excludeFromSemantics: true,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      _gap('logo-settings', gap),
                       Semantics(
                         button: true,
                         excludeSemantics: true,
@@ -308,15 +361,15 @@ class UnifiedLearnerTopBar extends StatelessWidget {
                         child: IconButton(
                           key: const Key('unified-topbar-settings'),
                           tooltip: 'Settings',
-                          visualDensity: compact
+                          visualDensity: dense
                               ? const VisualDensity(horizontal: -4)
                               : VisualDensity.compact,
                           constraints: BoxConstraints(
-                            minWidth: compact ? 40 : 44,
+                            minWidth: dense ? 40 : 44,
                             minHeight: 48,
                           ),
-                          color: colorScheme.onSurface,
-                          iconSize: compact ? 18 : 22,
+                          color: contentColor,
+                          iconSize: dense ? 18 : 22,
                           icon: const Icon(Icons.settings_outlined),
                           onPressed: onSettingsPressed,
                         ),

@@ -7,7 +7,7 @@
 
 Current project version: 2.0.18
 
-Build 218 replaces the separate learner User Bar and Status Bar with one fixed, theme-aware Top Bar containing User, the compact QuisquisLingo mark, language Streak, current-course Laurel progress, global Weekly XP and Settings. The complete unchanged QuisquisLingo logo is also shown at the top of App Info. The separate Course and Lesson selectors, continuous Lesson flow and fixed bottom controls remain unchanged. The official repository is `Quisquisnaut/QuisquisLingo`.
+Build 218 replaces the separate learner User Bar and Status Bar with one fixed, theme-aware Top Bar ordered as compact Language/Course flag selector, language Streak, vertical current/max Laurel progress, vertical current/max global Weekly XP, the clickable QuisquisLingo cat mark and Settings. The flag opens the existing full-size course picker, learner-profile management is available through Settings, and the cat opens the existing App Info screen with its complete unchanged logo. The Lesson selector remains separate, while the continuous Lesson flow and fixed bottom controls remain unchanged. The official repository is `Quisquisnaut/QuisquisLingo`.
 
 
 A Flutter prototype for an offline-first language-learning app.

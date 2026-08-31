@@ -26,6 +26,7 @@ import 'course_info_screen.dart';
 import 'duel_screen.dart';
 import 'gamification_settings_screen.dart';
 import 'guidebook_screen.dart';
+import 'info_screen.dart';
 import 'round_screen.dart';
 import '../widgets/flag_art.dart';
 import '../widgets/learner_shell.dart';
@@ -1130,9 +1131,15 @@ class _HomeScreenState extends State<HomeScreen> {
                           children: [
                             UnifiedLearnerTopBar(
                               controller: _topBarController(learnerContext),
-                              learnerName: _activeLearner,
-                              onUserPressed: () =>
-                                  _showLearners(learnerContext),
+                              course: course,
+                              courseCode: _selectedLanguage,
+                              onCoursePressed: () =>
+                                  _showCoursePicker(learnerContext),
+                              onLogoPressed: () => Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) => const InfoScreen(),
+                                ),
+                              ),
                               onSettingsPressed: () async {
                                 await CrashLogService.instance.recordDebugEvent(
                                   'Home: opening Settings',
@@ -1140,8 +1147,10 @@ class _HomeScreenState extends State<HomeScreen> {
                                 if (!context.mounted) return;
                                 await Navigator.of(context).push(
                                   MaterialPageRoute(
-                                    builder: (_) =>
-                                        SettingsScreen(course: course),
+                                    builder: (_) => SettingsScreen(
+                                      course: course,
+                                      onManageLearners: _showLearners,
+                                    ),
                                   ),
                                 );
                                 await _reload();
@@ -1154,17 +1163,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                 20,
                                 10,
                               ),
-                              child: Column(
-                                children: [
-                                  _CourseSelector(
-                                    course: course,
-                                    code: _selectedLanguage,
-                                    onTap: () =>
-                                        _showCoursePicker(learnerContext),
-                                  ),
-                                  if (topic != null) ...[
-                                    const SizedBox(height: 10),
-                                    _LessonNavigation(
+                              child: topic == null
+                                  ? const SizedBox.shrink()
+                                  : _LessonNavigation(
                                       topic: topic,
                                       topicIndex: _activeTopicIndex,
                                       roundCount: topic.rounds.length,
@@ -1193,9 +1194,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                         learnerContext,
                                       ),
                                     ),
-                                  ],
-                                ],
-                              ),
                             ),
                           ],
                         ),
@@ -1301,60 +1299,6 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
-}
-
-class _CourseSelector extends StatelessWidget {
-  final Course course;
-  final String code;
-  final VoidCallback onTap;
-
-  const _CourseSelector({
-    required this.course,
-    required this.code,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) => Material(
-    key: const Key('unified-course-selector-surface'),
-    color: Theme.of(context).brightness == Brightness.dark
-        ? Theme.of(context).colorScheme.surface.withValues(alpha: .5)
-        : Colors.white.withValues(alpha: .5),
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(18),
-      side: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
-    ),
-    child: InkWell(
-      key: const Key('unified-course-selector'),
-      borderRadius: BorderRadius.circular(18),
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
-        child: Row(
-          children: [
-            CourseFlagBadge(course: course, fallbackCode: code),
-            const SizedBox(width: 12),
-            Text(
-              code,
-              style: Theme.of(
-                context,
-              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                course.title,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontWeight: FontWeight.w800),
-              ),
-            ),
-            const Icon(Icons.arrow_drop_down),
-          ],
-        ),
-      ),
-    ),
-  );
 }
 
 class _LessonNavigation extends StatelessWidget {

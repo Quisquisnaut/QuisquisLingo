@@ -193,7 +193,7 @@ Custom courses can be imported from and exported to `.json` files without a file
 
 ### Home course selection and navigation
 
-The Home course selector lists bundled courses and every locally available custom course, including courses created in the editor and courses imported from JSON. Selecting one makes it the current course. The unified learner page resumes the active learner at the last Lesson opened in that specific course; first use falls back to Lesson 1. The Lesson selector opens the complete Lesson picker without an intermediate hierarchy screen, and Back from a Round returns directly to the unified Home learner page.
+The compact flag in the Home Top Bar opens the full-size course selector, which lists bundled courses and every locally available custom course, including courses created in the editor and courses imported from JSON. Selecting one makes it the current course. The unified learner page resumes the active learner at the last Lesson opened in that specific course; first use falls back to Lesson 1. The separate Lesson selector opens the complete Lesson picker without an intermediate hierarchy screen, and Back from a Round returns directly to the unified Home learner page.
 
 ### Copy edits as JSON vs Export course JSON
 

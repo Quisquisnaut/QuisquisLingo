@@ -10,6 +10,7 @@ import 'package:quisquislingo_app/services/learner_status_events.dart';
 import 'package:quisquislingo_app/services/profile_service.dart';
 import 'package:quisquislingo_app/services/progress_service.dart';
 import 'package:quisquislingo_app/services/settings_service.dart';
+import 'package:quisquislingo_app/widgets/flag_art.dart';
 import 'package:quisquislingo_app/widgets/unified_learner_top_bar.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -144,7 +145,8 @@ void main() {
     double width = 430,
     double textScale = 1,
     ThemeMode themeMode = ThemeMode.light,
-    VoidCallback? onUserPressed,
+    VoidCallback? onCoursePressed,
+    VoidCallback? onLogoPressed,
     VoidCallback? onSettingsPressed,
   }) => MaterialApp(
     theme: ThemeData(
@@ -174,8 +176,10 @@ void main() {
             ),
             child: UnifiedLearnerTopBar(
               controller: controller,
-              learnerName: 'Top Bar Learner',
-              onUserPressed: onUserPressed ?? () {},
+              course: courses.course,
+              courseCode: 'IT',
+              onCoursePressed: onCoursePressed ?? () {},
+              onLogoPressed: onLogoPressed ?? () {},
               onSettingsPressed: onSettingsPressed ?? () {},
             ),
           ),
@@ -185,24 +189,26 @@ void main() {
   );
 
   testWidgets(
-    'one row has exact User, mark, Streak, Laurel, Weekly XP, Settings order',
+    'one row has exact course, Streak, Laurel, Weekly XP, logo, Settings order',
     (tester) async {
-      var userTaps = 0;
+      var courseTaps = 0;
+      var logoTaps = 0;
       var settingsTaps = 0;
       await tester.pumpWidget(
         app(
-          onUserPressed: () => userTaps++,
+          onCoursePressed: () => courseTaps++,
+          onLogoPressed: () => logoTaps++,
           onSettingsPressed: () => settingsTaps++,
         ),
       );
       await tester.pump();
 
       final groups = [
-        find.byKey(const Key('unified-topbar-user')),
-        find.byKey(const Key('unified-topbar-logo-mark')),
+        find.byKey(const Key('unified-topbar-course-selector')),
         find.byKey(const Key('unified-topbar-streak')),
         find.byKey(const Key('unified-topbar-laurels')),
         find.byKey(const Key('unified-topbar-weekly-xp')),
+        find.byKey(const Key('unified-topbar-logo')),
         find.byKey(const Key('unified-topbar-settings')),
       ];
       final centers = groups
@@ -212,19 +218,44 @@ void main() {
       expect(groups.map((group) => tester.getRect(group).center.dy).toSet(), {
         tester.getRect(groups.first).center.dy,
       });
-      expect(find.text('Top Bar Learner'), findsOneWidget);
-      expect(find.byIcon(Icons.face_outlined), findsOneWidget);
+      expect(find.byKey(const Key('unified-topbar-user')), findsNothing);
+      expect(find.text('Top Bar Learner'), findsNothing);
+      expect(find.byIcon(Icons.face_outlined), findsNothing);
       expect(
         find.text('Course name belongs only in the selector'),
         findsNothing,
       );
 
       await tester.tap(groups.first);
+      await tester.tap(groups[4]);
       await tester.tap(groups.last);
-      expect(userTaps, 1);
+      expect(courseTaps, 1);
+      expect(logoTaps, 1);
       expect(settingsTaps, 1);
     },
   );
+
+  testWidgets('course entry point is a compact, clearly visible flag only', (
+    tester,
+  ) async {
+    await tester.pumpWidget(app(width: 320));
+    await tester.pump();
+
+    final selector = find.byKey(const Key('unified-topbar-course-selector'));
+    final flag = find.descendant(
+      of: selector,
+      matching: find.byType(CourseFlagBadge),
+    );
+    expect(flag, findsOneWidget);
+    expect(
+      find.descendant(of: selector, matching: find.byType(Text)),
+      findsNothing,
+    );
+    expect(tester.getSize(flag).width, greaterThanOrEqualTo(40));
+    expect(tester.getSize(flag).height, greaterThanOrEqualTo(28));
+    expect(tester.getSize(selector).width, lessThanOrEqualTo(56));
+    expect(tester.getSize(selector).height, greaterThanOrEqualTo(48));
+  });
 
   testWidgets('compact mark clips the unchanged full-logo asset', (
     tester,
@@ -265,8 +296,17 @@ void main() {
     await tester.pumpWidget(app());
     await tester.pump();
 
-    expect(find.bySemanticsLabel('Learner: Top Bar Learner'), findsOneWidget);
-    expect(find.bySemanticsLabel('QuisquisLingo logo'), findsOneWidget);
+    expect(
+      find.bySemanticsLabel(
+        'Choose course: Course name belongs only in the selector',
+      ),
+      findsOneWidget,
+    );
+    expect(
+      find.bySemanticsLabel('QuisquisLingo logo, open App Info'),
+      findsOneWidget,
+    );
+    expect(find.bySemanticsLabel('Learner: Top Bar Learner'), findsNothing);
     expect(find.bySemanticsLabel('Italian streak: 14 days'), findsOneWidget);
     expect(
       find.bySemanticsLabel('Laurels in this course: 7 out of 42'),
@@ -316,9 +356,40 @@ void main() {
       await controller.refresh();
       await tester.pump();
 
-      expect(find.text('${item.$1}'), findsOneWidget);
-      expect(find.text('${item.$2} / ${item.$3}'), findsOneWidget);
-      expect(find.text('${item.$4} / ${item.$5}'), findsOneWidget);
+      expect(
+        tester
+            .widget<Text>(find.byKey(const Key('unified-topbar-streak-number')))
+            .data,
+        '${item.$1}',
+      );
+      expect(
+        tester
+            .widget<Text>(
+              find.byKey(const Key('unified-topbar-laurel-current')),
+            )
+            .data,
+        '${item.$2}',
+      );
+      expect(
+        tester
+            .widget<Text>(
+              find.byKey(const Key('unified-topbar-laurel-maximum')),
+            )
+            .data,
+        '/ ${item.$3}',
+      );
+      expect(
+        tester
+            .widget<Text>(find.byKey(const Key('unified-topbar-xp-current')))
+            .data,
+        '${item.$4}',
+      );
+      expect(
+        tester
+            .widget<Text>(find.byKey(const Key('unified-topbar-xp-maximum')))
+            .data,
+        '/ ${item.$5}',
+      );
       expect(tester.takeException(), isNull);
       expect(
         [
@@ -332,16 +403,83 @@ void main() {
     }
   });
 
+  testWidgets('Laurel and Weekly XP are vertical while Streak stays one line', (
+    tester,
+  ) async {
+    await tester.pumpWidget(app());
+    await tester.pump();
+
+    final laurelCurrent = find.byKey(
+      const Key('unified-topbar-laurel-current'),
+    );
+    final laurelMaximum = find.byKey(
+      const Key('unified-topbar-laurel-maximum'),
+    );
+    final xpCurrent = find.byKey(const Key('unified-topbar-xp-current'));
+    final xpMaximum = find.byKey(const Key('unified-topbar-xp-maximum'));
+    expect(
+      tester.getRect(laurelCurrent).center.dy,
+      lessThan(tester.getRect(laurelMaximum).center.dy),
+    );
+    expect(
+      tester.getRect(laurelCurrent).center.dx,
+      closeTo(tester.getRect(laurelMaximum).center.dx, .5),
+    );
+    expect(
+      tester.getRect(xpCurrent).center.dy,
+      lessThan(tester.getRect(xpMaximum).center.dy),
+    );
+    expect(
+      tester.getRect(xpCurrent).center.dx,
+      closeTo(tester.getRect(xpMaximum).center.dx, .5),
+    );
+    expect(
+      find.descendant(
+        of: find.byKey(const Key('unified-topbar-streak')),
+        matching: find.byType(Text),
+      ),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('Streak, Laurel, and Weekly XP explain their meaning', (
+    tester,
+  ) async {
+    await tester.pumpWidget(app());
+    await tester.pump();
+
+    for (final item in [
+      (
+        const Key('unified-topbar-streak'),
+        'Italian streak: 14 days. It tracks your current run of study days for this language.',
+      ),
+      (
+        const Key('unified-topbar-laurels'),
+        'Course Laurels: 7 out of 42. A Laurel marks a Round completed with zero errors.',
+      ),
+      (
+        const Key('unified-topbar-weekly-xp'),
+        'Weekly XP: 1250 out of 2000. It totals this learner\'s XP across all courses for the current week.',
+      ),
+    ]) {
+      await tester.tap(find.byKey(item.$1));
+      await tester.pumpAndSettle();
+      expect(find.text(item.$2), findsOneWidget);
+      await tester.tap(find.widgetWithText(TextButton, 'OK'));
+      await tester.pumpAndSettle();
+    }
+  });
+
   testWidgets('logical groups have explicit horizontal gaps', (tester) async {
     await tester.pumpWidget(app());
     await tester.pump();
 
     for (final name in [
-      'user-logo',
-      'logo-streak',
+      'course-streak',
       'streak-laurel',
       'laurel-xp',
-      'xp-settings',
+      'xp-logo',
+      'logo-settings',
     ]) {
       expect(
         tester.getSize(find.byKey(ValueKey('unified-topbar-gap-$name'))).width,
@@ -359,11 +497,14 @@ void main() {
       final material = tester.widget<Material>(
         find.byKey(const Key('unified-learner-top-bar')),
       );
-      final text = tester.widget<Text>(find.text('Top Bar Learner'));
+      final text = tester.widget<Text>(
+        find.byKey(const Key('unified-topbar-streak-number')),
+      );
       return (material.color!, text.style!.color!);
     }
 
     final light = await colors(ThemeMode.light);
+    expect(light.$1, Colors.white);
     expect(light.$1.computeLuminance(), greaterThan(.5));
     expect(_contrastRatio(light.$2, light.$1), greaterThanOrEqualTo(4.5));
 

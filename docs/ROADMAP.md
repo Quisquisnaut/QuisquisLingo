@@ -441,10 +441,11 @@ Avoid mandatory servers, artificial purchase economies, lives, or monetization-d
 ## Unified learner Top Bar
 
 - [x] Replace the separate User Bar and Status Bar with one fixed, single-row Top Bar.
-- [x] Keep User, compact logo mark, Streak, Laurel progress, Weekly XP and Settings visible in that order.
+- [x] Keep compact Language/Course flag selector, Streak, Laurel progress, Weekly XP, clickable cat mark and Settings visible in that order.
 - [x] Keep Streak language-scoped, Laurel progress current-course-scoped and Weekly XP learner-global.
-- [x] Retain the separate Course and Lesson selectors over the selected-course flag background.
-- [x] Add the complete unchanged QuisquisLingo logo above the existing App Info content.
+- [x] Keep Streak on one line, show Laurel and Weekly XP as vertical current/max metrics, and explain all three when activated.
+- [x] Open the existing full-size course picker from the compact flag, keep the Lesson selector separate, and move learner-profile management into Settings.
+- [x] Make the unchanged cat mark open App Info and retain the complete unchanged QuisquisLingo logo above its existing content.
 - [x] Preserve the continuous Lesson flow and fixed bottom controls.
 
 ---

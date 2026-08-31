@@ -30,7 +30,7 @@ These are persistent instructions for Codex when working on QuisquisLingo.
 - `2.0.15+215` removes Chapter through a clean Course Model v4 cut, introduces the unified Course → Lesson → Round learner page, and makes Duel Topic-scoped with actual-pool availability.
 - `2.0.16+216` corrects the Welcome-dialog contrast, uses the selected-course flag as the learner background, places the protected learner strip above the unchanged status bar, removes the redundant Browse All Lessons button while retaining the Lesson selector, and preserves the established recent-course presentation.
 - `2.0.17+217` keeps the approved fixed Learner Header and bottom controls while making the central learner content a continuous lazy flow from the selected Lesson through the remaining Lessons in course order, with direct selector jumps, stable scroll-driven selector synchronization and unchanged lock/Duel rules.
-- `2.0.18+218` replaces the separate learner User Bar and Status Bar with one theme-aware unified Top Bar containing User, compact logo mark, Streak, Laurel progress, Weekly XP and Settings, and adds the complete unchanged logo to App Info while preserving the separate selectors, continuous Lesson flow and bottom controls.
+- `2.0.18+218` replaces the separate learner User Bar and Status Bar with one theme-aware unified Top Bar ordered as compact Language/Course flag selector, one-line Streak, vertical Laurel progress, vertical Weekly XP, clickable cat mark and Settings; learner-profile management moves to Settings, the cat opens App Info, and the Lesson selector, full-size course picker, continuous Lesson flow and bottom controls remain preserved.
 
 ## Architecture and service boundaries
 

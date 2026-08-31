@@ -15,7 +15,13 @@ import 'update_settings_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   final Course course;
-  const SettingsScreen({super.key, required this.course});
+  final Future<void> Function(BuildContext context) onManageLearners;
+
+  const SettingsScreen({
+    super.key,
+    required this.course,
+    required this.onManageLearners,
+  });
   @override State<SettingsScreen> createState() => _SettingsScreenState();
 }
 
@@ -133,6 +139,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
           : ListView(
               padding: const EdgeInsets.only(bottom: 24),
               children: [
+                ListTile(
+                  leading: const Icon(Icons.people_outline),
+                  title: const Text('Learner profiles'),
+                  subtitle: const Text(
+                    'Switch, add or delete learner profiles.',
+                  ),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () async {
+                    await widget.onManageLearners(context);
+                    if (mounted) await _load();
+                  },
+                ),
                 ListTile(
                   leading: const Icon(Icons.face_retouching_natural_outlined),
                   title: const Text('Avatar'),
