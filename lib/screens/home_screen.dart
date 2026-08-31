@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:math';
+import 'dart:ui' as ui;
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -1251,6 +1252,16 @@ class _HomeScreenState extends State<HomeScreen> {
                                     topic: sectionTopic,
                                     courseId: course.courseId,
                                     topicIndex: topicIndex,
+                                    mascotPositionOffset:
+                                        learnerMascotPositionOffsetForLesson(
+                                          course.topics,
+                                          topicIndex,
+                                        ),
+                                    roundPositionOffset:
+                                        learnerRoundPositionOffsetForLesson(
+                                          course.topics,
+                                          topicIndex,
+                                        ),
                                     showBoundary: topicIndex > 0,
                                     unlocked: unlocked,
                                     hasAccess: unlocked || _iddqdMode,
@@ -1398,6 +1409,8 @@ class _LessonSection extends StatelessWidget {
   final Topic topic;
   final String courseId;
   final int topicIndex;
+  final int mascotPositionOffset;
+  final int roundPositionOffset;
   final bool showBoundary;
   final bool unlocked;
   final bool hasAccess;
@@ -1415,6 +1428,8 @@ class _LessonSection extends StatelessWidget {
     required this.topic,
     required this.courseId,
     required this.topicIndex,
+    required this.mascotPositionOffset,
+    required this.roundPositionOffset,
     required this.showBoundary,
     required this.unlocked,
     required this.hasAccess,
@@ -1487,6 +1502,8 @@ class _LessonSection extends StatelessWidget {
           completedRounds: completedRounds,
           perfectRounds: perfectRounds,
           ttsSkippedPerfectRounds: ttsSkippedPerfectRounds,
+          mascotPositionOffset: mascotPositionOffset,
+          roundPositionOffset: roundPositionOffset,
           onOpenRound: onOpenRound,
         ),
         const _VerticalConnector(),
@@ -1629,7 +1646,42 @@ List<String> learnerMascotAssetsFromManifest(Iterable<String> assets) {
 
 Future<List<String>> loadLearnerMascotAssets(AssetBundle bundle) async {
   final manifest = await AssetManifest.loadFromAssetBundle(bundle);
-  return learnerMascotAssetsFromManifest(manifest.listAssets());
+  return loadRenderableLearnerMascotAssets(bundle, manifest.listAssets());
+}
+
+Future<List<String>>? _productionLearnerMascotAssetsFuture;
+
+Future<List<String>> loadProductionLearnerMascotAssets() =>
+    _productionLearnerMascotAssetsFuture ??= loadLearnerMascotAssets(
+      rootBundle,
+    );
+
+Future<List<String>> loadRenderableLearnerMascotAssets(
+  AssetBundle bundle,
+  Iterable<String> assets,
+) async {
+  final renderable = <String>[];
+  for (final asset in learnerMascotAssetsFromManifest(assets)) {
+    ui.Codec? codec;
+    ui.Image? image;
+    try {
+      final data = await bundle.load(asset);
+      codec = await ui.instantiateImageCodec(
+        data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes),
+        targetWidth: 1,
+        targetHeight: 1,
+      );
+      final frame = await codec.getNextFrame();
+      image = frame.image;
+      renderable.add(asset);
+    } catch (_) {
+      // An invalid mascot leaves no slot and never enters the selection cycle.
+    } finally {
+      image?.dispose();
+      codec?.dispose();
+    }
+  }
+  return renderable;
 }
 
 enum LearnerRoundPathSide { left, right }
@@ -1652,9 +1704,47 @@ LearnerRoundPathSide learnerRoundPathSide(int index) {
   return pattern[index % pattern.length];
 }
 
-bool learnerRoundPathShowsMascot(int index) {
-  const positions = <int>{0, 3, 6, 8};
-  return positions.contains(index % 10);
+bool learnerRoundPathShowsMascot(int index, {int roundPositionOffset = 0}) {
+  const positions = <int>{0, 3, 5, 8};
+  return positions.contains((roundPositionOffset + index) % 10);
+}
+
+int learnerRoundPathMascotSlotCount(
+  int roundCount, {
+  int roundPositionOffset = 0,
+}) {
+  var count = 0;
+  for (var index = 0; index < roundCount; index++) {
+    if (learnerRoundPathShowsMascot(
+      index,
+      roundPositionOffset: roundPositionOffset,
+    )) {
+      count++;
+    }
+  }
+  return count;
+}
+
+int learnerRoundPositionOffsetForLesson(List<Topic> topics, int lessonIndex) =>
+    topics
+        .take(lessonIndex)
+        .fold(0, (total, topic) => total + topic.rounds.length);
+
+int learnerMascotPositionOffsetForLesson(List<Topic> topics, int lessonIndex) =>
+    learnerRoundPathMascotSlotCount(
+      learnerRoundPositionOffsetForLesson(topics, lessonIndex),
+    );
+
+int _learnerMascotSeed(String courseId) {
+  var hash = 0;
+  for (final codeUnit in courseId.codeUnits) {
+    hash = (hash + codeUnit) & 0x7FFFFFFF;
+    hash = (hash + (hash << 10)) & 0x7FFFFFFF;
+    hash ^= hash >> 6;
+  }
+  hash = (hash + (hash << 3)) & 0x7FFFFFFF;
+  hash ^= hash >> 11;
+  return (hash + (hash << 15)) & 0x7FFFFFFF;
 }
 
 List<String> learnerCourseMascotOrder(
@@ -1662,20 +1752,27 @@ List<String> learnerCourseMascotOrder(
   List<String> mascotAssets,
 ) {
   final ordered = mascotAssets.toSet().toList(growable: false);
+  ordered.sort();
   if (ordered.length < 2) return ordered;
-  var state = 0x811C9DC5;
-  for (final codeUnit in courseId.codeUnits) {
-    state ^= codeUnit;
-    state = (state * 0x01000193) & 0x7FFFFFFF;
-  }
+  final random = Random(_learnerMascotSeed(courseId));
   for (var index = ordered.length - 1; index > 0; index--) {
-    state = (state * 1664525 + 1013904223) & 0x7FFFFFFF;
-    final swapIndex = state % (index + 1);
+    final swapIndex = random.nextInt(index + 1);
     final value = ordered[index];
     ordered[index] = ordered[swapIndex];
     ordered[swapIndex] = value;
   }
   return ordered;
+}
+
+String learnerMascotAssetAtPosition(List<String> orderedAssets, int position) {
+  if (orderedAssets.isEmpty) {
+    throw ArgumentError.value(orderedAssets, 'orderedAssets', 'is empty');
+  }
+  final cycleLength = orderedAssets.length;
+  final cycle = position ~/ cycleLength;
+  final indexInCycle = position % cycleLength;
+  final cycleShift = cycleLength == 2 ? 0 : cycle % cycleLength;
+  return orderedAssets[(indexInCycle + cycleShift) % cycleLength];
 }
 
 class LearnerRoundPath extends StatefulWidget {
@@ -1686,6 +1783,8 @@ class LearnerRoundPath extends StatefulWidget {
   final Set<String> ttsSkippedPerfectRounds;
   final void Function(LearningRound round) onOpenRound;
   final List<String>? mascotAssets;
+  final int mascotPositionOffset;
+  final int roundPositionOffset;
 
   const LearnerRoundPath({
     super.key,
@@ -1696,6 +1795,8 @@ class LearnerRoundPath extends StatefulWidget {
     required this.ttsSkippedPerfectRounds,
     required this.onOpenRound,
     this.mascotAssets,
+    this.mascotPositionOffset = 0,
+    this.roundPositionOffset = 0,
   });
 
   @override
@@ -1721,7 +1822,7 @@ class _LearnerRoundPathState extends State<LearnerRoundPath> {
 
   void _resolveMascotAssets() {
     if (widget.mascotAssets == null) {
-      _mascotAssetsFuture = loadLearnerMascotAssets(rootBundle);
+      _mascotAssetsFuture = loadProductionLearnerMascotAssets();
     }
   }
 
@@ -1754,7 +1855,7 @@ class _LearnerRoundPathState extends State<LearnerRoundPath> {
         final cardHeight = 108.0 + (textScale - 1.0).clamp(0.0, 2.0) * 72.0;
         const verticalGap = 28.0;
         final rowExtent = cardHeight + verticalGap;
-        final showMascots = width >= 280 && mascotAssets.isNotEmpty;
+        final showMascots = width >= 320 && mascotAssets.isNotEmpty;
         final cardWidth = min(
           width,
           max(196.0, min(276.0, width * (showMascots ? .68 : .82))),
@@ -1769,7 +1870,7 @@ class _LearnerRoundPathState extends State<LearnerRoundPath> {
           widget.courseId,
           mascotAssets,
         );
-        var mascotPosition = 0;
+        var mascotPosition = widget.mascotPositionOffset;
         return SizedBox(
           key: const Key('unified-round-tree'),
           height: rowExtent * widget.rounds.length - verticalGap,
@@ -1793,7 +1894,10 @@ class _LearnerRoundPathState extends State<LearnerRoundPath> {
               ),
               if (showMascots)
                 for (var index = 0; index < widget.rounds.length; index++)
-                  if (learnerRoundPathShowsMascot(index))
+                  if (learnerRoundPathShowsMascot(
+                    index,
+                    roundPositionOffset: widget.roundPositionOffset,
+                  ))
                     Positioned(
                       key: ValueKey('learner-round-mascot-$index'),
                       top: index * rowExtent + (cardHeight - mascotExtent) / 2,
@@ -1806,9 +1910,10 @@ class _LearnerRoundPathState extends State<LearnerRoundPath> {
                       width: mascotExtent,
                       height: mascotExtent,
                       child: _MascotDecoration(
-                        asset:
-                            courseMascots[mascotPosition++ %
-                                courseMascots.length],
+                        asset: learnerMascotAssetAtPosition(
+                          courseMascots,
+                          mascotPosition++,
+                        ),
                       ),
                     ),
               for (var index = 0; index < widget.rounds.length; index++)
@@ -1953,23 +2058,27 @@ class _RoundNode extends StatelessWidget {
           child: Row(
             children: [
               SizedBox(
-                width: 56,
-                height: 54,
+                key: perfect
+                    ? ValueKey('unified-round-laurel-${round.id}')
+                    : null,
+                width: perfect ? 72 : 56,
+                height: perfect ? 66 : 54,
                 child: Stack(
                   alignment: Alignment.center,
+                  clipBehavior: Clip.none,
                   children: [
                     if (perfect) ...[
                       Positioned(
-                        left: 0,
-                        bottom: 0,
-                        child: Icon(Icons.eco, size: 34, color: statusColor),
+                        left: -2,
+                        bottom: -1,
+                        child: Icon(Icons.eco, size: 44, color: statusColor),
                       ),
                       Positioned(
-                        right: 0,
-                        bottom: 0,
+                        right: -2,
+                        bottom: -1,
                         child: Transform.flip(
                           flipX: true,
-                          child: Icon(Icons.eco, size: 34, color: statusColor),
+                          child: Icon(Icons.eco, size: 44, color: statusColor),
                         ),
                       ),
                     ],
@@ -1979,7 +2088,11 @@ class _RoundNode extends StatelessWidget {
                       height: 46,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: completed
+                        color: perfect
+                            ? (isDark
+                                  ? const Color(0xFF4CD964)
+                                  : const Color(0xFF34C759))
+                            : completed
                             ? (isDark
                                   ? const Color(0xFFFFB62E)
                                   : const Color(0xFFFFB000))
@@ -1987,7 +2100,11 @@ class _RoundNode extends StatelessWidget {
                             ? const Color(0xFF3A3425)
                             : const Color(0xFFFFEBC0),
                       ),
-                      child: Icon(_visualIcon, size: 28),
+                      child: Icon(
+                        _visualIcon,
+                        size: 28,
+                        color: perfect ? const Color(0xFF082A10) : null,
+                      ),
                     ),
                   ],
                 ),

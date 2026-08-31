@@ -7,7 +7,7 @@
 
 Current project version: 2.0.19
 
-Build 219 redesigns the Unified Learner Page's central Round path with smaller 75%-opaque deterministic left/right cards, occasional consecutive same-side Rounds, a curved connector, manifest-discovered opposite-side QuisquisLingo mascots in a stable course-specific order and a bright yellow-orange icon background for Rounds already completed. Perfect Laurels remain distinct, GuideBook and Duel stay centered in a smaller form, and dark mode adds a subtle neutral veil over the course flag. The surrounding Top Bar, Lesson selector, continuous Lesson flow and fixed bottom controls remain unchanged. The official repository is `Quisquisnaut/QuisquisLingo`.
+Build 219 redesigns the Unified Learner Page's central Round path with smaller 75%-opaque deterministic left/right cards, occasional consecutive same-side Rounds, a curved connector and decode-validated `assets/mascots/` PNGs in a stable course-specific sequence that continues across Lessons. Completed Rounds use a bright yellow-orange icon; the existing perfect/Laurel state uses a distinct bright-green icon and a larger Laurel frame. GuideBook and Duel stay centered in a smaller form, and dark mode adds a subtle neutral veil over the course flag. The surrounding Top Bar, Lesson selector, continuous Lesson flow and fixed bottom controls remain unchanged. The official repository is `Quisquisnaut/QuisquisLingo`.
 
 
 A Flutter prototype for an offline-first language-learning app.
