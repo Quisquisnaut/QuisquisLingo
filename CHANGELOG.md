@@ -1,3 +1,15 @@
+# 2.0.19 (build 219) - 2026-08-31
+
+- Replaced the Unified Learner Page's large regular Round grid with smaller side-aligned cards following a deterministic balanced path that includes occasional consecutive same-side Rounds and consistent vertical whitespace.
+- Adapted the connector into a curved 2 px, round-ended, 50%-opaque behind-content journey through every Round position, including same-side pairs and arbitrary Lesson lengths.
+- Added intermittent, noninteractive QuisquisLingo mascot decorations discovered from Flutter's `assets/mascots/` manifest on the side opposite nearby Rounds, with a stable course-ID shuffle, full-set use before reuse, padded `BoxFit.contain` artwork, 50%-transparent theme surfaces, missing-asset fallback and narrow-layout priority for the core path.
+- Removed the former between-Round Lesson image presentation from the learner path and retained the intentional deletion of `assets/exercise_images/hello.webp`; course data and editor image support remain unchanged.
+- Made the Round icon background bright yellow-orange whenever the existing course-scoped persisted completed-Round state contains that Round, independent of errors, Laurels, perfection or later repeats.
+- Made perfect-Round Laurel leaves more evident without changing eligibility, reduced and centered GuideBook and Duel cards, and applied 75% opacity to Round, GuideBook and Duel surfaces without fading their content.
+- Added a continuous theme-neutral 18% veil between the course flag and learner content in dark mode only.
+- Added focused deterministic-layout, persistence, decoration, interaction, theme and responsive coverage, plus actual Flutter web visual checks at 320, 375 and 390 logical pixels in light and dark modes.
+- Refreshed the 30-day Alpha lifetime through the end of **2026-09-30**.
+
 # 2.0.18 (build 218) - 2026-08-30
 
 - Replaced the separate learner User Bar and Status Bar with one fixed, single-row Top Bar ordered as compact Language/Course flag selector, Streak, Laurel progress, Weekly XP, QuisquisLingo cat mark and Settings.

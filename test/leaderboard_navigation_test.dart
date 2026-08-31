@@ -14,6 +14,7 @@ import 'package:quisquislingo_app/screens/settings_screen.dart';
 import 'package:quisquislingo_app/services/course_editor_service.dart';
 import 'package:quisquislingo_app/services/course_service.dart';
 import 'package:quisquislingo_app/services/profile_service.dart';
+import 'package:quisquislingo_app/services/progress_service.dart';
 import 'package:quisquislingo_app/services/settings_service.dart';
 import 'package:quisquislingo_app/widgets/flag_art.dart';
 import 'package:quisquislingo_app/widgets/learner_navigation.dart';
@@ -55,12 +56,12 @@ void main() {
     PackageInfo.setMockInitialValues(
       appName: 'QuisquisLingo',
       packageName: 'com.quisquislingo.app',
-      version: '2.0.18',
-      buildNumber: '218',
+      version: '2.0.19',
+      buildNumber: '219',
       buildSignature: '',
     );
     SharedPreferences.setMockInitialValues({
-      'one_time_notice_seen_welcome_2.0.18': true,
+      'one_time_notice_seen_welcome_2.0.19': true,
       'sound_effects_enabled': false,
     });
     await ProfileService().addProfile('Navigation Learner');
@@ -87,6 +88,88 @@ void main() {
     expect(find.byType(RoundScreen), findsNothing);
     expect(find.byType(HomeScreen), findsOneWidget);
   });
+
+  testWidgets(
+    'GuideBook and Duel stay centered, compact, and surface-only translucent',
+    (tester) async {
+      final course = await _loadItalianCourse(tester);
+      await _openHome(tester, scrollToActions: false);
+      final viewport = tester.getRect(
+        find.byKey(const Key('unified-learner-scroll')),
+      );
+
+      final guidebook = find.byKey(const Key('unified-guidebook-node')).first;
+      final guidebookRect = tester.getRect(guidebook);
+      expect(guidebookRect.width, lessThanOrEqualTo(400));
+      expect(guidebookRect.center.dx, closeTo(viewport.center.dx, 1));
+      expect(tester.widget<Card>(guidebook).color!.a, closeTo(.75, .01));
+
+      final duel = find.byKey(
+        ValueKey('unified-duel-${course.topics.first.id}'),
+      );
+      await tester.scrollUntilVisible(
+        duel,
+        240,
+        scrollable: _mainLearnerScrollable(),
+      );
+      await tester.pumpAndSettle();
+      final duelCardFinder = find.descendant(
+        of: duel,
+        matching: find.byKey(const Key('unified-duel-card')),
+      );
+      final duelRect = tester.getRect(duelCardFinder);
+      expect(duelRect.width, lessThanOrEqualTo(400));
+      expect(duelRect.center.dx, closeTo(viewport.center.dx, 1));
+      final duelCard = tester.widget<Card>(duelCardFinder);
+      expect(duelCard.color!.a, closeTo(.75, .01));
+    },
+  );
+
+  testWidgets(
+    'persisted completion with errors keeps the Round icon bright after rebuild and repeat',
+    (tester) async {
+      final course = await _loadItalianCourse(tester);
+      final lesson = course.topics.first;
+      final completedRound = lesson.rounds.first;
+      final incompleteRound = lesson.rounds.last;
+      final progress = ProgressService();
+      await progress.completeRound(
+        completedRound.id,
+        courseId: course.courseId,
+        courseCode: 'IT',
+      );
+      await progress.recordRecentRound(
+        course.courseId,
+        lesson.id,
+        completedRound.id,
+        errors: 3,
+      );
+
+      Color iconColor(LearningRound round) {
+        final container = tester.widget<Container>(
+          find.byKey(ValueKey('unified-round-icon-${round.id}')),
+        );
+        return (container.decoration! as BoxDecoration).color!;
+      }
+
+      await _openHome(tester, scrollToActions: false);
+      expect(iconColor(completedRound), const Color(0xFFFFB000));
+      expect(iconColor(incompleteRound), const Color(0xFFFFEBC0));
+
+      await tester.pumpWidget(const SizedBox.shrink());
+      await _openHome(tester, scrollToActions: false);
+      expect(iconColor(completedRound), const Color(0xFFFFB000));
+
+      await progress.completeRound(
+        completedRound.id,
+        courseId: course.courseId,
+        courseCode: 'IT',
+      );
+      await tester.pumpWidget(const SizedBox.shrink());
+      await _openHome(tester, scrollToActions: false);
+      expect(iconColor(completedRound), const Color(0xFFFFB000));
+    },
+  );
 
   testWidgets(
     'learner content flows through subsequent Lessons once in course order',
@@ -838,6 +921,7 @@ void main() {
         find.byKey(const Key('unified-learner-background-tint')),
         findsNothing,
       );
+      expect(find.byKey(const Key('unified-learner-dark-veil')), findsNothing);
       final selector = find.byKey(const Key('unified-lesson-selector'));
       final courseSelector = find.byKey(
         const Key('unified-topbar-course-selector'),
@@ -884,6 +968,14 @@ void main() {
       expect(background.course.courseId, italianCourse.courseId);
       expect(background.fallbackCode, 'IT');
       expect(background.opacity, 1);
+      final darkVeil = tester.widget<ColoredBox>(
+        find.byKey(const Key('unified-learner-dark-veil')),
+      );
+      expect(darkVeil.color.a, closeTo(.18, .01));
+      expect(
+        darkVeil.color.withValues(alpha: 1),
+        pageTheme.colorScheme.surface,
+      );
       expect(
         pageTheme.colorScheme.onSurface.computeLuminance(),
         greaterThan(.5),
@@ -1103,7 +1195,7 @@ void main() {
       final phrase = dialogTexts.singleWhere(
         (text) =>
             text.data != 'Welcome to QuisquisLingo' &&
-            text.data != 'Version 2.0.18' &&
+            text.data != 'Version 2.0.19' &&
             text.data != 'Continue',
       );
       final welcomeDialog = tester.widget<AlertDialog>(
@@ -1116,7 +1208,7 @@ void main() {
         const Color(0xFF0756DF),
       );
       expect(
-        tester.widget<Text>(find.text('Version 2.0.18')).style?.color,
+        tester.widget<Text>(find.text('Version 2.0.19')).style?.color,
         const Color(0xFF0756DF),
       );
       expect(phrase.style?.color, const Color(0xFF0756DF));
@@ -1134,7 +1226,7 @@ void main() {
       late bool welcomeSeen;
       await tester.runAsync(() async {
         welcomeSeen = await SettingsService().hasSeenOneTimeNotice(
-          'welcome_2.0.18',
+          'welcome_2.0.19',
         );
       });
       expect(welcomeSeen, isTrue);
@@ -1142,7 +1234,7 @@ void main() {
       final alphaDialog = tester.widget<AlertDialog>(find.byType(AlertDialog));
       expect(alphaDialog.backgroundColor, isNull);
       expect(alphaDialog.surfaceTintColor, isNull);
-      expect(find.textContaining('Expiry date: 2026-09-29.'), findsOneWidget);
+      expect(find.textContaining('Expiry date: 2026-09-30.'), findsOneWidget);
       expect(find.widgetWithText(FilledButton, 'OK'), findsOneWidget);
       expect(
         tester

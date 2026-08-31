@@ -1,9 +1,9 @@
 import 'dart:async';
-import 'dart:io';
 import 'dart:math';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../controllers/learner_status_controller.dart';
 import '../services/settings_service.dart';
@@ -36,6 +36,10 @@ const _learnerLightPageBackground = Color(0xFFF7F3E8);
 const _learnerDarkPageBackground = Color(0xFF080B09);
 const _welcomeDialogBackground = Color(0xFFFFE600);
 const _welcomeDialogForeground = Color(0xFF0756DF);
+const learnerPathSurfaceOpacity = .75;
+const learnerPathConnectorOpacity = .5;
+const learnerPathConnectorStrokeWidth = 2.0;
+const learnerDarkFlagVeilOpacity = .18;
 
 ThemeData _unifiedLearnerTheme(BuildContext context) {
   if (MediaQuery.platformBrightnessOf(context) != Brightness.dark) {
@@ -1123,6 +1127,13 @@ class _HomeScreenState extends State<HomeScreen> {
                     fallbackCode: _selectedLanguage,
                     opacity: 1,
                   ),
+                  if (followsDarkAppearance)
+                    ColoredBox(
+                      key: const Key('unified-learner-dark-veil'),
+                      color: learnerTheme.colorScheme.surface.withValues(
+                        alpha: learnerDarkFlagVeilOpacity,
+                      ),
+                    ),
                   SafeArea(
                     child: Column(
                       children: [
@@ -1238,6 +1249,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                       sectionTopic,
                                     ),
                                     topic: sectionTopic,
+                                    courseId: course.courseId,
                                     topicIndex: topicIndex,
                                     showBoundary: topicIndex > 0,
                                     unlocked: unlocked,
@@ -1384,6 +1396,7 @@ class _LessonNavigation extends StatelessWidget {
 class _LessonSection extends StatelessWidget {
   final GlobalKey visibilityKey;
   final Topic topic;
+  final String courseId;
   final int topicIndex;
   final bool showBoundary;
   final bool unlocked;
@@ -1400,6 +1413,7 @@ class _LessonSection extends StatelessWidget {
     super.key,
     required this.visibilityKey,
     required this.topic,
+    required this.courseId,
     required this.topicIndex,
     required this.showBoundary,
     required this.unlocked,
@@ -1466,12 +1480,9 @@ class _LessonSection extends StatelessWidget {
         )
       else ...[
         _GuidebookNode(topic: topic, onTap: onOpenGuidebook),
-        if (topic.imageAsset.trim().isNotEmpty) ...[
-          const SizedBox(height: 12),
-          _TopicImage(imageAsset: topic.imageAsset),
-        ],
         const _VerticalConnector(),
-        _RoundTree(
+        LearnerRoundPath(
+          courseId: courseId,
           rounds: topic.rounds,
           completedRounds: completedRounds,
           perfectRounds: perfectRounds,
@@ -1501,117 +1512,80 @@ class _GuidebookNode extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final colorScheme = Theme.of(context).colorScheme;
     return Align(
+      alignment: Alignment.center,
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 520),
-        child: Card(
-          key: const Key('unified-guidebook-node'),
-          color: isDark
-              ? colorScheme.surfaceContainerHigh
-              : const Color(0xFFFFF7C9),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-            side: BorderSide(
-              color: isDark
-                  ? colorScheme.outlineVariant
-                  : const Color(0xFFF1C232),
+        constraints: const BoxConstraints(maxWidth: 400),
+        child: FractionallySizedBox(
+          widthFactor: .88,
+          child: Card(
+            key: const Key('unified-guidebook-node'),
+            margin: EdgeInsets.zero,
+            color:
+                (isDark
+                        ? colorScheme.surfaceContainerHigh
+                        : const Color(0xFFFFF7C9))
+                    .withValues(alpha: learnerPathSurfaceOpacity),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(18),
+              side: BorderSide(
+                color: isDark
+                    ? colorScheme.outlineVariant
+                    : const Color(0xFFF1C232),
+              ),
             ),
-          ),
-          child: InkWell(
-            borderRadius: BorderRadius.circular(20),
-            onTap: onTap,
-            child: Padding(
-              padding: const EdgeInsets.all(18),
-              child: Row(
-                children: [
-                  CircleAvatar(
-                    radius: 34,
-                    backgroundColor: isDark
-                        ? const Color(0xFF30284B)
-                        : const Color(0xFFEDE2FF),
-                    child: const Icon(Icons.menu_book_outlined, size: 40),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'GuideBook',
-                          style: Theme.of(context).textTheme.titleLarge
-                              ?.copyWith(
-                                fontWeight: FontWeight.w900,
-                                color: isDark
-                                    ? const Color(0xFFC7B8FF)
-                                    : const Color(0xFF3920C8),
-                              ),
-                        ),
-                        Text(
-                          'Your roadmap to ${topic.title}',
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        Text(
-                          'Start here',
-                          style: TextStyle(
-                            color: isDark
-                                ? const Color(0xFF8FB0FF)
-                                : const Color(0xFF154FE7),
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ],
+            child: InkWell(
+              borderRadius: BorderRadius.circular(18),
+              onTap: onTap,
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 26,
+                      backgroundColor: isDark
+                          ? const Color(0xFF30284B)
+                          : const Color(0xFFEDE2FF),
+                      child: const Icon(Icons.menu_book_outlined, size: 32),
                     ),
-                  ),
-                  const Icon(Icons.chevron_right),
-                ],
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'GuideBook',
+                            style: Theme.of(context).textTheme.titleMedium
+                                ?.copyWith(
+                                  fontWeight: FontWeight.w900,
+                                  color: isDark
+                                      ? const Color(0xFFC7B8FF)
+                                      : const Color(0xFF3920C8),
+                                ),
+                          ),
+                          Text(
+                            'Your roadmap to ${topic.title}',
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          Text(
+                            'Start here',
+                            style: TextStyle(
+                              color: isDark
+                                  ? const Color(0xFF8FB0FF)
+                                  : const Color(0xFF154FE7),
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const Icon(Icons.chevron_right),
+                  ],
+                ),
               ),
             ),
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _TopicImage extends StatelessWidget {
-  final String imageAsset;
-
-  const _TopicImage({required this.imageAsset});
-
-  @override
-  Widget build(BuildContext context) {
-    final path = imageAsset.trim();
-    final missing = Card(
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Wrap(
-          crossAxisAlignment: WrapCrossAlignment.center,
-          spacing: 8,
-          runSpacing: 4,
-          children: const [
-            Icon(Icons.broken_image_outlined),
-            Text('Lesson image is missing.'),
-          ],
-        ),
-      ),
-    );
-    final image = path.startsWith('assets/')
-        ? Image.asset(
-            path,
-            fit: BoxFit.contain,
-            errorBuilder: (_, __, ___) => missing,
-          )
-        : File(path).existsSync()
-        ? Image.file(
-            File(path),
-            fit: BoxFit.contain,
-            errorBuilder: (_, __, ___) => missing,
-          )
-        : missing;
-    return Center(
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxHeight: 170, maxWidth: 260),
-        child: image,
       ),
     );
   }
@@ -1624,31 +1598,136 @@ class _VerticalConnector extends StatelessWidget {
   Widget build(BuildContext context) => Center(
     child: Container(
       key: const Key('learner-tree-connector'),
-      width: 2,
+      width: learnerPathConnectorStrokeWidth,
       height: 24,
-      color: Theme.of(context).colorScheme.outlineVariant,
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(
+          alpha: learnerPathConnectorOpacity,
+        ),
+        borderRadius: BorderRadius.circular(
+          learnerPathConnectorStrokeWidth / 2,
+        ),
+      ),
     ),
   );
 }
 
-class _RoundTree extends StatelessWidget {
+const learnerMascotAssetDirectory = 'assets/mascots/';
+
+List<String> learnerMascotAssetsFromManifest(Iterable<String> assets) {
+  final mascots = assets
+      .where(
+        (asset) =>
+            asset.startsWith(learnerMascotAssetDirectory) &&
+            asset.toLowerCase().endsWith('.png'),
+      )
+      .toSet()
+      .toList();
+  mascots.sort();
+  return mascots;
+}
+
+Future<List<String>> loadLearnerMascotAssets(AssetBundle bundle) async {
+  final manifest = await AssetManifest.loadFromAssetBundle(bundle);
+  return learnerMascotAssetsFromManifest(manifest.listAssets());
+}
+
+enum LearnerRoundPathSide { left, right }
+
+LearnerRoundPathSide learnerRoundPathSide(int index) {
+  const pattern = <LearnerRoundPathSide>[
+    LearnerRoundPathSide.right,
+    LearnerRoundPathSide.left,
+    LearnerRoundPathSide.right,
+    LearnerRoundPathSide.left,
+    LearnerRoundPathSide.left,
+    LearnerRoundPathSide.right,
+    LearnerRoundPathSide.left,
+    LearnerRoundPathSide.right,
+    LearnerRoundPathSide.right,
+    LearnerRoundPathSide.left,
+    LearnerRoundPathSide.left,
+    LearnerRoundPathSide.right,
+  ];
+  return pattern[index % pattern.length];
+}
+
+bool learnerRoundPathShowsMascot(int index) {
+  const positions = <int>{0, 3, 6, 8};
+  return positions.contains(index % 10);
+}
+
+List<String> learnerCourseMascotOrder(
+  String courseId,
+  List<String> mascotAssets,
+) {
+  final ordered = mascotAssets.toSet().toList(growable: false);
+  if (ordered.length < 2) return ordered;
+  var state = 0x811C9DC5;
+  for (final codeUnit in courseId.codeUnits) {
+    state ^= codeUnit;
+    state = (state * 0x01000193) & 0x7FFFFFFF;
+  }
+  for (var index = ordered.length - 1; index > 0; index--) {
+    state = (state * 1664525 + 1013904223) & 0x7FFFFFFF;
+    final swapIndex = state % (index + 1);
+    final value = ordered[index];
+    ordered[index] = ordered[swapIndex];
+    ordered[swapIndex] = value;
+  }
+  return ordered;
+}
+
+class LearnerRoundPath extends StatefulWidget {
+  final String courseId;
   final List<LearningRound> rounds;
   final Set<String> completedRounds;
   final Set<String> perfectRounds;
   final Set<String> ttsSkippedPerfectRounds;
   final void Function(LearningRound round) onOpenRound;
+  final List<String>? mascotAssets;
 
-  const _RoundTree({
+  const LearnerRoundPath({
+    super.key,
+    required this.courseId,
     required this.rounds,
     required this.completedRounds,
     required this.perfectRounds,
     required this.ttsSkippedPerfectRounds,
     required this.onOpenRound,
+    this.mascotAssets,
   });
 
   @override
+  State<LearnerRoundPath> createState() => _LearnerRoundPathState();
+}
+
+class _LearnerRoundPathState extends State<LearnerRoundPath> {
+  late Future<List<String>> _mascotAssetsFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _resolveMascotAssets();
+  }
+
+  @override
+  void didUpdateWidget(covariant LearnerRoundPath oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!identical(oldWidget.mascotAssets, widget.mascotAssets)) {
+      _resolveMascotAssets();
+    }
+  }
+
+  void _resolveMascotAssets() {
+    if (widget.mascotAssets == null) {
+      _mascotAssetsFuture = loadLearnerMascotAssets(rootBundle);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    if (rounds.isEmpty) {
+    if (widget.rounds.isEmpty) {
       return const Card(
         child: Padding(
           padding: EdgeInsets.all(18),
@@ -1656,59 +1735,144 @@ class _RoundTree extends StatelessWidget {
         ),
       );
     }
+    final injectedMascots = widget.mascotAssets;
+    if (injectedMascots != null) {
+      return _buildPath(context, injectedMascots);
+    }
+    return FutureBuilder<List<String>>(
+      future: _mascotAssetsFuture,
+      builder: (context, snapshot) =>
+          _buildPath(context, snapshot.data ?? const <String>[]),
+    );
+  }
+
+  Widget _buildPath(BuildContext context, List<String> mascotAssets) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final columns = constraints.maxWidth >= 620 ? 2 : 1;
+        final width = constraints.maxWidth;
         final textScale = MediaQuery.textScalerOf(context).scale(1);
-        final roundHeight = 142.0 + (textScale - 1.0).clamp(0.0, 2.0) * 72.0;
-        return Stack(
-          children: [
-            Positioned.fill(
-              child: IgnorePointer(
-                child: CustomPaint(
-                  painter: _RoundTreePainter(
-                    itemCount: rounds.length,
-                    columns: columns,
-                    lineColor: Theme.of(context).colorScheme.outlineVariant,
+        final cardHeight = 108.0 + (textScale - 1.0).clamp(0.0, 2.0) * 72.0;
+        const verticalGap = 28.0;
+        final rowExtent = cardHeight + verticalGap;
+        final showMascots = width >= 280 && mascotAssets.isNotEmpty;
+        final cardWidth = min(
+          width,
+          max(196.0, min(276.0, width * (showMascots ? .68 : .82))),
+        );
+        final mascotExtent = min(112.0, width - cardWidth - 12);
+        final sides = List<LearnerRoundPathSide>.generate(
+          widget.rounds.length,
+          learnerRoundPathSide,
+          growable: false,
+        );
+        final courseMascots = learnerCourseMascotOrder(
+          widget.courseId,
+          mascotAssets,
+        );
+        var mascotPosition = 0;
+        return SizedBox(
+          key: const Key('unified-round-tree'),
+          height: rowExtent * widget.rounds.length - verticalGap,
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Positioned.fill(
+                child: IgnorePointer(
+                  child: CustomPaint(
+                    key: const Key('learner-round-connector'),
+                    painter: _RoundPathPainter(
+                      sides: sides,
+                      cardWidth: cardWidth,
+                      cardHeight: cardHeight,
+                      rowExtent: rowExtent,
+                      lineColor: Theme.of(context).colorScheme.onSurfaceVariant
+                          .withValues(alpha: learnerPathConnectorOpacity),
+                    ),
                   ),
                 ),
               ),
-            ),
-            GridView.builder(
-              key: const Key('unified-round-tree'),
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: columns,
-                crossAxisSpacing: 16,
-                mainAxisSpacing: 18,
-                mainAxisExtent: roundHeight,
-              ),
-              itemCount: rounds.length,
-              itemBuilder: (context, index) {
-                final round = rounds[index];
-                final node = _RoundNode(
-                  round: round,
-                  roundNumber: index + 1,
-                  completed: completedRounds.contains(round.id),
-                  perfect: perfectRounds.contains(round.id),
-                  ttsSkippedPerfect: ttsSkippedPerfectRounds.contains(round.id),
-                  onTap: () => onOpenRound(round),
-                );
-                if (columns == 2 &&
-                    rounds.length.isOdd &&
-                    index == rounds.length - 1) {
-                  return Transform.translate(
-                    offset: Offset((constraints.maxWidth + 16) / 4, 0),
-                    child: node,
-                  );
-                }
-                return node;
-              },
-            ),
-          ],
+              if (showMascots)
+                for (var index = 0; index < widget.rounds.length; index++)
+                  if (learnerRoundPathShowsMascot(index))
+                    Positioned(
+                      key: ValueKey('learner-round-mascot-$index'),
+                      top: index * rowExtent + (cardHeight - mascotExtent) / 2,
+                      left: sides[index] == LearnerRoundPathSide.right
+                          ? 0
+                          : null,
+                      right: sides[index] == LearnerRoundPathSide.left
+                          ? 0
+                          : null,
+                      width: mascotExtent,
+                      height: mascotExtent,
+                      child: _MascotDecoration(
+                        asset:
+                            courseMascots[mascotPosition++ %
+                                courseMascots.length],
+                      ),
+                    ),
+              for (var index = 0; index < widget.rounds.length; index++)
+                Positioned(
+                  key: ValueKey('learner-round-row-$index'),
+                  top: index * rowExtent,
+                  left: sides[index] == LearnerRoundPathSide.left ? 0 : null,
+                  right: sides[index] == LearnerRoundPathSide.right ? 0 : null,
+                  width: cardWidth,
+                  height: cardHeight,
+                  child: _RoundNode(
+                    round: widget.rounds[index],
+                    roundNumber: index + 1,
+                    completed: widget.completedRounds.contains(
+                      widget.rounds[index].id,
+                    ),
+                    perfect: widget.perfectRounds.contains(
+                      widget.rounds[index].id,
+                    ),
+                    ttsSkippedPerfect: widget.ttsSkippedPerfectRounds.contains(
+                      widget.rounds[index].id,
+                    ),
+                    onTap: () => widget.onOpenRound(widget.rounds[index]),
+                  ),
+                ),
+            ],
+          ),
         );
       },
+    );
+  }
+}
+
+class _MascotDecoration extends StatelessWidget {
+  final String asset;
+
+  const _MascotDecoration({required this.asset});
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final colorScheme = Theme.of(context).colorScheme;
+    return IgnorePointer(
+      child: ExcludeSemantics(
+        child: DecoratedBox(
+          key: ValueKey('learner-round-mascot-surface-$asset'),
+          decoration: BoxDecoration(
+            color:
+                (isDark
+                        ? colorScheme.surfaceContainerHigh
+                        : colorScheme.surfaceContainerLowest)
+                    .withValues(alpha: .5),
+            borderRadius: BorderRadius.circular(18),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(10),
+            child: Image.asset(
+              asset,
+              fit: BoxFit.contain,
+              errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
@@ -1771,9 +1935,10 @@ class _RoundNode extends StatelessWidget {
         : (isDark ? const Color(0xFF8DB8FF) : const Color(0xFF1657D9));
     return Card(
       key: ValueKey('unified-round-${round.id}'),
-      color: isDark
-          ? colorScheme.surfaceContainerHigh
-          : const Color(0xFFFFF8D6),
+      margin: EdgeInsets.zero,
+      color:
+          (isDark ? colorScheme.surfaceContainerHigh : const Color(0xFFFFF8D6))
+              .withValues(alpha: learnerPathSurfaceOpacity),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(18),
         side: BorderSide(
@@ -1784,24 +1949,24 @@ class _RoundNode extends StatelessWidget {
         borderRadius: BorderRadius.circular(18),
         onTap: onTap,
         child: Padding(
-          padding: const EdgeInsets.all(13),
+          padding: const EdgeInsets.all(10),
           child: Row(
             children: [
               SizedBox(
-                width: 72,
-                height: 66,
+                width: 56,
+                height: 54,
                 child: Stack(
                   alignment: Alignment.center,
                   children: [
                     if (perfect) ...[
                       Positioned(
                         left: 0,
-                        bottom: 2,
+                        bottom: 0,
                         child: Icon(Icons.eco, size: 34, color: statusColor),
                       ),
                       Positioned(
                         right: 0,
-                        bottom: 2,
+                        bottom: 0,
                         child: Transform.flip(
                           flipX: true,
                           child: Icon(Icons.eco, size: 34, color: statusColor),
@@ -1809,20 +1974,25 @@ class _RoundNode extends StatelessWidget {
                       ),
                     ],
                     Container(
-                      width: 52,
-                      height: 52,
+                      key: ValueKey('unified-round-icon-${round.id}'),
+                      width: 46,
+                      height: 46,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: isDark
+                        color: completed
+                            ? (isDark
+                                  ? const Color(0xFFFFB62E)
+                                  : const Color(0xFFFFB000))
+                            : isDark
                             ? const Color(0xFF3A3425)
                             : const Color(0xFFFFEBC0),
                       ),
-                      child: Icon(_visualIcon, size: 32),
+                      child: Icon(_visualIcon, size: 28),
                     ),
                   ],
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 9),
               Expanded(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -1865,44 +2035,63 @@ class _RoundNode extends StatelessWidget {
   }
 }
 
-class _RoundTreePainter extends CustomPainter {
-  final int itemCount;
-  final int columns;
+class _RoundPathPainter extends CustomPainter {
+  final List<LearnerRoundPathSide> sides;
+  final double cardWidth;
+  final double cardHeight;
+  final double rowExtent;
   final Color lineColor;
 
-  const _RoundTreePainter({
-    required this.itemCount,
-    required this.columns,
+  const _RoundPathPainter({
+    required this.sides,
+    required this.cardWidth,
+    required this.cardHeight,
+    required this.rowExtent,
     required this.lineColor,
   });
 
   @override
   void paint(Canvas canvas, Size size) {
-    if (itemCount < 2 || size.height <= 0) return;
+    if (sides.isEmpty || size.height <= 0) return;
     final paint = Paint()
       ..color = lineColor
-      ..strokeWidth = 2
+      ..strokeWidth = learnerPathConnectorStrokeWidth
+      ..strokeCap = StrokeCap.round
       ..style = PaintingStyle.stroke;
-    final rows = (itemCount / columns).ceil();
-    final rowHeight = size.height / rows;
-    final centerX = size.width / 2;
-    canvas.drawLine(Offset(centerX, 0), Offset(centerX, size.height), paint);
-    if (columns == 2) {
-      for (var row = 0; row < rows; row++) {
-        final y = rowHeight * row + rowHeight / 2;
-        canvas.drawLine(
-          Offset(size.width * .25, y),
-          Offset(size.width * .75, y),
-          paint,
-        );
-      }
+    final points = <Offset>[
+      for (var index = 0; index < sides.length; index++)
+        Offset(
+          sides[index] == LearnerRoundPathSide.left
+              ? cardWidth / 2
+              : size.width - cardWidth / 2,
+          index * rowExtent + cardHeight / 2,
+        ),
+    ];
+    final path = Path()..moveTo(size.width / 2, 0);
+    var previous = Offset(size.width / 2, 0);
+    for (final point in points) {
+      final middleY = (previous.dy + point.dy) / 2;
+      path.cubicTo(previous.dx, middleY, point.dx, middleY, point.dx, point.dy);
+      previous = point;
     }
+    final middleY = (previous.dy + size.height) / 2;
+    path.cubicTo(
+      previous.dx,
+      middleY,
+      size.width / 2,
+      middleY,
+      size.width / 2,
+      size.height,
+    );
+    canvas.drawPath(path, paint);
   }
 
   @override
-  bool shouldRepaint(covariant _RoundTreePainter oldDelegate) =>
-      oldDelegate.itemCount != itemCount ||
-      oldDelegate.columns != columns ||
+  bool shouldRepaint(covariant _RoundPathPainter oldDelegate) =>
+      oldDelegate.sides != sides ||
+      oldDelegate.cardWidth != cardWidth ||
+      oldDelegate.cardHeight != cardHeight ||
+      oldDelegate.rowExtent != rowExtent ||
       oldDelegate.lineColor != lineColor;
 }
 
@@ -1913,57 +2102,80 @@ class _DuelCard extends StatelessWidget {
   const _DuelCard({super.key, required this.eligibility, required this.onTap});
 
   @override
-  Widget build(BuildContext context) => Card(
-    key: const Key('unified-duel-card'),
-    color: eligibility.isAvailable
-        ? const Color(0xFF0756DF)
-        : Theme.of(context).colorScheme.surfaceContainerHighest,
-    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
-    child: InkWell(
-      borderRadius: BorderRadius.circular(22),
-      onTap: eligibility.isAvailable ? onTap : null,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
-        child: Row(
-          children: [
-            Icon(
-              Icons.sports_martial_arts_outlined,
-              size: 52,
-              color: eligibility.isAvailable ? Colors.white : null,
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Align(
+      alignment: Alignment.center,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 400),
+        child: FractionallySizedBox(
+          widthFactor: .88,
+          child: Card(
+            key: const Key('unified-duel-card'),
+            margin: EdgeInsets.zero,
+            color:
+                (eligibility.isAvailable
+                        ? const Color(0xFF0756DF)
+                        : colorScheme.surfaceContainerHighest)
+                    .withValues(alpha: learnerPathSurfaceOpacity),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(18),
             ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Duel',
-                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+            child: InkWell(
+              borderRadius: BorderRadius.circular(18),
+              onTap: eligibility.isAvailable ? onTap : null,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 12,
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.sports_martial_arts_outlined,
+                      size: 40,
                       color: eligibility.isAvailable ? Colors.white : null,
-                      fontWeight: FontWeight.w900,
                     ),
-                  ),
-                  Text(
-                    eligibility.isAvailable
-                        ? 'Win to skip ahead'
-                        : 'Unavailable for this Lesson: not enough suitable exercises.',
-                    style: TextStyle(
-                      color: eligibility.isAvailable
-                          ? const Color(0xFFFFE600)
-                          : null,
-                      fontWeight: FontWeight.w800,
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Duel',
+                            style: Theme.of(context).textTheme.titleLarge
+                                ?.copyWith(
+                                  color: eligibility.isAvailable
+                                      ? Colors.white
+                                      : null,
+                                  fontWeight: FontWeight.w900,
+                                ),
+                          ),
+                          Text(
+                            eligibility.isAvailable
+                                ? 'Win to skip ahead'
+                                : 'Unavailable for this Lesson: not enough suitable exercises.',
+                            style: TextStyle(
+                              color: eligibility.isAvailable
+                                  ? const Color(0xFFFFE600)
+                                  : null,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                ],
+                    if (eligibility.isAvailable)
+                      const Icon(Icons.chevron_right, color: Colors.white),
+                  ],
+                ),
               ),
             ),
-            if (eligibility.isAvailable)
-              const Icon(Icons.chevron_right, color: Colors.white),
-          ],
+          ),
         ),
       ),
-    ),
-  );
+    );
+  }
 }
 
 class _EmptyCourseCard extends StatelessWidget {

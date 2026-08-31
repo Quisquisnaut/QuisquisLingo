@@ -437,6 +437,19 @@ Avoid mandatory servers, artificial purchase economies, lives, or monetization-d
 
 ---
 
+# 2.0.19+219
+## Unified learner central Round path
+
+- [x] Replace the regular Round grid with smaller deterministic left/right cards and occasional same-side pairs.
+- [x] Keep clear vertical spacing and draw a visible 2 px, round-ended, 50%-opaque curved connector behind the Round content.
+- [x] Discover all PNG mascots from the bundled asset manifest and place them intermittently opposite nearby Rounds with a stable course-specific shuffle, full-set use before reuse, 50%-transparent light/dark surfaces and graceful failure.
+- [x] Remove the previous between-Round Lesson imagery from the learner path.
+- [x] Mark persisted completed Rounds with a bright yellow-orange icon background without changing completion or scoring rules.
+- [x] Use 75%-opaque Round, GuideBook and Duel surfaces, strengthen Laurel visibility, keep smaller GuideBook/Duel cards centered and add a theme-neutral 18% dark-mode flag veil.
+- [x] Preserve the surrounding learner interface, continuous Lesson flow, locks, navigation, Duel behavior and persistence formats.
+
+---
+
 # 2.0.18+218
 ## Unified learner Top Bar
 
