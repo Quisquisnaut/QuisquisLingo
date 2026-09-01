@@ -1,13 +1,13 @@
 # QuisquisLingo App
 
-**Current source version: 2.0.20+220 · Course Model v4 (`formatVersion: 4`).**
+**Current source version: 2.0.21+221 · Course Model v4 (`formatVersion: 4`).**
 
 
-**QuisquisLingo 2.0.20 Alpha**
+**QuisquisLingo 2.0.21 Alpha**
 
-Current project version: 2.0.20
+Current project version: 2.0.21
 
-Build 220 makes Profile the central learner-personalization hub for the active avatar and name, Avatar customization, local learner profiles and Gamification. The fixed learner bottom area now contains only Profile, Review and Course Info; Buy a coffee remains available inside Course Info. Local logout clears only the active-profile selection and returns to the stored learner selection/create flow without deleting any learner data. The build-219 Round path and all scoring, Review, Duel and course behavior remain unchanged. The official repository is `Quisquisnaut/QuisquisLingo`.
+Build 221 refines the Unified Learner panel with contained, aspect-ratio-preserving course flags, theme-aware light/dark veils, Guidebook-owned Lesson identities, 244 px maximum Round cards, modestly roomier Duel-to-next-Guidebook transitions and lighter, subtly arched lateral Laurel branches. Standalone path headings are gone: each Guidebook shows `Lesson <number>: <title>` with a regular structural prefix, emphasized title and two-line ellipsis, followed by the distinct compact `Guidebook` and `Start Here` row; the fixed Lesson selector is unchanged. Round surfaces remain 75% opaque; GuideBook and Duel surfaces are 70%, the connector keeps its 2 px, 55%-opaque main stroke above a subtle theme-aware contrast-support stroke, and mascot-container surfaces are 10% while all foreground content and mascot artwork remain fully opaque. The unchanged fixed 68 px learner controls occupy structurally reserved space below the scroll viewport, whose retained bottom inset lets the final content clear the full controls and safe area. One compact utility cycles Default, Light and Dark per real learner profile; a separate far-right utility cycles the per-learner flag background through Small, Off and Extended. Each learner also retains an independent last active course across direct profile switches, logout/reselect and app restart. Three taps on an individual locked Lesson's lock reveal a non-persistent, non-interactive preview retained for the app session without changing its genuine lock, progress or XP. No learner-local touchpad-scroll workaround was added. The build-220 Profile navigation and all scoring, Review, Duel and Course Model v4 behavior remain unchanged. The official repository is `Quisquisnaut/QuisquisLingo`.
 
 
 A Flutter prototype for an offline-first language-learning app.
@@ -26,7 +26,7 @@ The MPL-2.0 covers the QuisquisLingo software source. Courses, the Image Bank an
 
 ## Alpha lifecycle
 
-Version 2.0.20 is a time-limited alpha and expires on **2026-10-01**. Near expiry it displays reminders. After expiry, learner exercises and Review are blocked until a newer alpha is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when an alpha expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM. Future stable builds can disable alpha expiry.
+Version 2.0.21 is a time-limited alpha and expires on **2026-10-01**. Near expiry it displays reminders. After expiry, learner exercises and Review are blocked until a newer alpha is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when an alpha expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM. Future stable builds can disable alpha expiry.
 
 ## Core logic
 

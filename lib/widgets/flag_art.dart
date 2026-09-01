@@ -30,20 +30,55 @@ class FlagBadge extends StatelessWidget {
 class FlagBackdrop extends StatelessWidget {
   final String code;
   final double opacity;
+  final BoxFit fit;
 
-  const FlagBackdrop({super.key, required this.code, this.opacity = .82});
+  const FlagBackdrop({
+    super.key,
+    required this.code,
+    this.opacity = .82,
+    this.fit = BoxFit.contain,
+  });
 
   @override
   Widget build(BuildContext context) => IgnorePointer(
-        child: Opacity(
-          opacity: opacity,
-          child: CustomPaint(
-            painter: FlagPainter(code),
-            child: const SizedBox.expand(),
-          ),
-        ),
-      );
+    child: Opacity(
+      opacity: opacity,
+      child: fit == BoxFit.contain
+          ? Center(
+              child: AspectRatio(
+                aspectRatio: _flagAspectRatio(code),
+                child: CustomPaint(
+                  painter: FlagPainter(code),
+                  child: const SizedBox.expand(),
+                ),
+              ),
+            )
+          : SizedBox.expand(
+              child: ClipRect(
+                child: FittedBox(
+                  fit: fit,
+                  clipBehavior: Clip.hardEdge,
+                  child: SizedBox(
+                    width: _flagAspectRatio(code) * 100,
+                    height: 100,
+                    child: CustomPaint(
+                      painter: FlagPainter(code),
+                      child: const SizedBox.expand(),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+    ),
+  );
 }
+
+double _flagAspectRatio(String code) => switch (code.trim().toUpperCase()) {
+  'UK' || 'EN' => 2,
+  'DE' || 'CY' => 5 / 3,
+  'FI' => 18 / 11,
+  _ => 3 / 2,
+};
 
 class FlagPainter extends CustomPainter {
   final String code;
@@ -237,12 +272,14 @@ class CourseFlagBackdrop extends StatelessWidget {
   final Course course;
   final String fallbackCode;
   final double opacity;
+  final BoxFit fit;
 
   const CourseFlagBackdrop({
     super.key,
     required this.course,
     required this.fallbackCode,
     this.opacity = .82,
+    this.fit = BoxFit.contain,
   });
 
   @override
@@ -254,7 +291,9 @@ class CourseFlagBackdrop extends StatelessWidget {
         return IgnorePointer(
           child: Opacity(
             opacity: opacity,
-            child: SizedBox.expand(child: Image.memory(bytes, fit: BoxFit.cover, gaplessPlayback: true)),
+            child: SizedBox.expand(
+              child: Image.memory(bytes, fit: fit, gaplessPlayback: true),
+            ),
           ),
         );
       } catch (_) {
@@ -264,6 +303,6 @@ class CourseFlagBackdrop extends StatelessWidget {
     final code = course.flagCode.trim().isEmpty
         ? fallbackCode
         : course.flagCode;
-    return FlagBackdrop(code: code, opacity: opacity);
+    return FlagBackdrop(code: code, opacity: opacity, fit: fit);
   }
 }

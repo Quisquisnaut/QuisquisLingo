@@ -2,10 +2,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'profile_service.dart';
 import 'learner_status_events.dart';
 
-/// Persistent device-level settings.
+/// Persistent device and learner-scoped settings.
 ///
 /// Learner-specific appearance lives in ProfileService. TTS skipping is a
 /// device preference because it changes which exercise types the app presents.
+/// The last active course is learner-scoped; recent courses remain device-wide.
 class SettingsService {
   static const _ttsEnabledKey = 'tts_enabled';
   static const _ttsVoicePreferenceKey = 'tts_voice_preference';
@@ -16,7 +17,7 @@ class SettingsService {
   static const _oneTimeNoticePrefix = 'one_time_notice_seen_';
   static const _courseEditorUnlockedKey = 'course_editor_unlocked';
   static const _audioOrphanCheckKey = 'audio_orphan_check_last_';
-  static const _lastSelectedCourseKey = 'last_selected_course_code';
+  static const _lastSelectedCourseKeyBase = 'last_selected_course_code';
   static const _recentCourseRefsKey = 'recent_course_refs';
   static const _automaticUpdateCheckKey = 'automatic_update_check_enabled';
   static const _updateLastCheckedKey = 'update_last_checked_at';
@@ -46,8 +47,12 @@ class SettingsService {
       );
 
   Future<String?> getLastSelectedCourseCode() async {
+    final profiles = ProfileService();
+    final active = await profiles.getActiveProfile();
+    if (active == null) return null;
+    final key = profiles.keyForProfile(active, _lastSelectedCourseKeyBase);
     final value = (await SharedPreferences.getInstance())
-        .getString(_lastSelectedCourseKey)
+        .getString(key)
         ?.trim();
     return value == null || value.isEmpty ? null : value;
   }
@@ -55,7 +60,12 @@ class SettingsService {
   Future<void> setLastSelectedCourseCode(String courseCode) async {
     final normalized = courseCode.trim();
     final preferences = await SharedPreferences.getInstance();
-    await preferences.setString(_lastSelectedCourseKey, normalized);
+    final profiles = ProfileService();
+    final active = await profiles.getActiveProfile();
+    if (active != null) {
+      final key = profiles.keyForProfile(active, _lastSelectedCourseKeyBase);
+      await preferences.setString(key, normalized);
+    }
     final recent = (preferences.getStringList(_recentCourseRefsKey) ?? [])
       ..remove(normalized)
       ..insert(0, normalized);

@@ -450,6 +450,27 @@ Avoid mandatory servers, artificial purchase economies, lives, or monetization-d
 
 ---
 
+# 2.0.21+221
+## Learner panel refinement and locked-Lesson preview
+
+- [x] Contain course-flag backgrounds at the correct built-in or custom-image aspect ratio instead of stretching or aggressively cropping them.
+- [x] Use one theme-neutral veil above the flag and below learner content at 25% in dark mode and 10% in light mode.
+- [x] Remove every standalone in-flow Lesson heading and move the correct two-line/ellipsized mixed-weight `Lesson <number>: <title>` identity into each Guidebook while preserving the fixed Lesson selector.
+- [x] Keep the redundant GuideBook roadmap line absent, retain the avatar, and place the distinctly styled `Guidebook` and `Start Here` elements on one compact row below the integrated Lesson identity.
+- [x] Reduce only the Round-card maximum width from approximately 276 to 244 logical pixels while preserving its height, internals, states, Laurel, routing, vertical spacing and interaction.
+- [x] Keep Round surfaces at 75% opacity, set GuideBook and Duel surfaces to 70%, keep the connector's 2 px main stroke at 55% above a subtle theme-aware contrast-support stroke, and set mascot-container surfaces to 10%, while leaving foreground content fully opaque.
+- [x] Keep GuideBook centered while narrowing it responsively to 78% within the existing 400 logical-pixel cap; preserve Duel width and content-driven GuideBook height.
+- [x] Increase only the external Duel-to-next-Guidebook pre-divider spacer from 20 to 32 logical pixels while preserving Duel internals, Round spacing, ordering and navigation.
+- [x] Add a structurally secondary learner-bottom control after Profile, Review and Course Info that cycles Default, Light and Dark immediately and persists the choice per real learner profile without changing the 68 px bar height.
+- [x] Add a separate far-right Flag background utility that persists per learner and cycles Small → Off → Extended → Small, retaining the current veil for flag modes and omitting it when the flag is Off.
+- [x] Keep the learner bottom controls outside the scroll layer and retain the 112 logical-pixel content inset so the final learner element can clear them at 320/375/430 px without changing the 68 px control height.
+- [x] Attribute coarse Windows touchpad wheel steps to Flutter's legacy pointer-wheel handling and add no local interpolation, pointer interception or shared ScrollPhysics workaround.
+- [x] Reveal a locked Lesson after three same-lock taps as a clearly labelled, non-persistent view-only preview retained for the running app session; allow multiple specifically activated Lessons and clear them only on restart.
+- [x] Keep previewed GuideBook, Round and Duel actions disabled while preserving genuine locks, normal unlocks, XP, progress, Review and IDDQD behavior.
+- [x] Cover the 320, 375 and 430 logical-pixel learner widths in both light and dark themes.
+
+---
+
 # 2.0.20+220
 ## Profile navigation and learner bottom area
 

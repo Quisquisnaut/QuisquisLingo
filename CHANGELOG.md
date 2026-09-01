@@ -1,3 +1,24 @@
+# 2.0.21 (build 221) - 2026-09-01
+
+- Changed built-in and custom learner course flags from stretched/cropped viewport fills to contained, aspect-ratio-preserving artwork with neutral surrounding space.
+- Raised the continuous dark-mode neutral flag veil to 25% and added a continuous 10% light-mode neutral veil below fully opaque learner content.
+- Removed every standalone in-flow Lesson heading. Each centered Guidebook now owns the correct `Lesson <number>: <title>` identity, with a regular structural prefix, emphasized title, two-line/ellipsis boundary and no duplicate heading elsewhere; the fixed Lesson selector remains unchanged.
+- Kept the redundant `Your roadmap to <Lesson title>` line absent, retained the centered Guidebook at 78% of the available width within the existing 400 px cap, and arranged its distinct `Guidebook` and `Start Here` styles on one compact row below the Lesson identity while preserving its avatar and navigation.
+- Reduced only the responsive Round-card maximum width from approximately 276 to 244 logical pixels. The 108 px default height, padding, icon, two-line title, states, Laurel, left/right routing, 28 px vertical gap and interaction remain unchanged.
+- Preserved 75%-opaque Round surfaces while setting GuideBook and Duel surfaces to 70%, the behind-content connector to 55%, and mascot-container surfaces to 10%; foreground text, icons, Laurel artwork and mascot PNGs remain fully opaque.
+- Replaced the perfect-Round wreath-like leaves with two lighter, subtly arched lateral Laurel branches without changing the green icon, `Perfect` label, Round layout, eligibility, persistence or XP.
+- Added non-persistent three-tap locked-Lesson previews. Each specifically activated Lesson remains previewable for the running app session, multiple Lessons may be active, all GuideBook/Round/Duel actions remain disabled, and only an application restart clears the in-memory preview set.
+- Added a compact secondary theme-mode control after Profile, Review and Course Info in the unchanged 68 px learner bottom area. It cycles Default → Light → Dark → Default, applies immediately, and persists independently for each real learner profile while Default keeps following the system appearance.
+- Added a separate compact far-right Flag background control that persists per learner and cycles Small → Off → Extended → Small. Small keeps the contained flag and current veil, Off uses the neutral learner background without a flag veil, and Extended restores an aspect-ratio-preserving immersive crop with the same theme veil.
+- Scoped the last active course reference to each learner profile. Direct profile switches, logout/reselect and app restart now restore that learner's own bundled course code or authoritative custom `courseId` reference without changing another learner's selection; the former global preference is not migrated or used as a fallback.
+- Kept the learner-path connector's 2 px, 55%-opaque theme-aware main stroke while adding a subtle 4 px, 32%-opaque theme-surface support stroke beneath the same path for continuous contrast across mixed flag regions.
+- Increased only the external pre-divider spacing between each Duel and the following Lesson Guidebook from 20 to 32 logical pixels, leaving Duel internals, Round spacing, ordering and navigation unchanged.
+- Moved the unchanged fixed 68 px learner controls into structurally reserved space below the scroll viewport, retained the 112 px scroll-bottom inset, and verified at 320/375/430 logical pixels that all five controls remain fully visible while the final Duel scrolls completely above them.
+- Confirmed the Flutter/Windows pointer-wheel behavior is the source of coarse touchpad scrolling and deliberately added no learner-local interpolation, event interception or ScrollPhysics workaround.
+- Added focused regressions for the complete opacity hierarchy, contained flag geometry, Guidebook-owned Lesson identities, compact single-row actions, the 244 px Round cap, fixed bottom layering, Duel spacing, Laurel artwork, responsive 320/375/430 layouts, and locked-preview isolation with unchanged XP/progress.
+- Retained the 30-day Alpha expiry through the end of **2026-10-01** because builds 220 and 221 were prepared on the same date.
+- Preserved build-220 Profile behavior, normal Lesson unlocks, Round completion/scoring, Review, Duel, Course Model v4, TTS, mascot discovery/order and connector geometry.
+
 # 2.0.20 (build 220) - 2026-09-01
 
 - Replaced the fixed learner-bottom Leaderboard action with Profile, rendered from the active learner's existing avatar appearance with name and standard-person fallbacks, full-name tooltip and Profile-aware accessibility semantics.

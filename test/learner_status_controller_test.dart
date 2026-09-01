@@ -500,7 +500,7 @@ void main() {
       SharedPreferences.setMockInitialValues({
         'learner_profiles': ['Tester'],
         'active_learner': 'Tester',
-        'last_selected_course_code': 'IT',
+        'learner_Tester_last_selected_course_code': 'IT',
       });
       final xp = XpService(now: clock.call);
       await xp.addXp(25, courseCode: 'IT', courseId: 'course_it');
@@ -538,7 +538,7 @@ void main() {
       SharedPreferences.setMockInitialValues({
         'learner_profiles': ['Persisted'],
         'active_learner': 'Persisted',
-        'last_selected_course_code': 'IT',
+        'learner_Persisted_last_selected_course_code': 'IT',
         'weekly_xp_target': 2000,
       });
       final actualProgress = ProgressService(now: clock.call);

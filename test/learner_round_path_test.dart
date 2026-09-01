@@ -382,12 +382,12 @@ void main() {
       PackageInfo.setMockInitialValues(
         appName: 'QuisquisLingo',
         packageName: 'com.quisquislingo.app',
-        version: '2.0.20',
-        buildNumber: '220',
+        version: '2.0.21',
+        buildNumber: '221',
         buildSignature: '',
       );
       SharedPreferences.setMockInitialValues({
-        'one_time_notice_seen_welcome_2.0.20': true,
+        'one_time_notice_seen_welcome_2.0.21': true,
         'sound_effects_enabled': false,
       });
       await ProfileService().addProfile('Mascot Learner');
@@ -434,7 +434,7 @@ void main() {
             key.value.startsWith('learner-round-mascot-surface-');
       });
       await pumpUntil(learnerScroll);
-      final firstRoundPath = find.byKey(const Key('unified-round-tree'));
+      final firstRoundPath = find.byKey(const Key('unified-round-tree')).first;
       await pumpUntil(firstRoundPath);
       expect(tester.getSize(firstRoundPath).width, greaterThanOrEqualTo(320));
       await tester.runAsync(() => Future<void>.delayed(Duration.zero));
@@ -556,7 +556,7 @@ void main() {
     expect(find.text('Perfect'), findsNothing);
   });
 
-  testWidgets('perfect completion keeps its Laurel around the bright icon', (
+  testWidgets('perfect completion uses two light Laurel branches', (
     tester,
   ) async {
     final sample = rounds(1);
@@ -571,14 +571,22 @@ void main() {
 
     final round = find.byKey(ValueKey('unified-round-${sample.single.id}'));
     expect(
-      find.descendant(of: round, matching: find.byIcon(Icons.eco)),
+      find.descendant(
+        of: round,
+        matching: find.byWidgetPredicate(
+          (widget) =>
+              widget.key is ValueKey<String> &&
+              (widget.key! as ValueKey<String>).value.startsWith(
+                'unified-round-laurel-branch-',
+              ),
+        ),
+      ),
       findsNWidgets(2),
     );
-    for (final laurel in tester.widgetList<Icon>(
+    expect(
       find.descendant(of: round, matching: find.byIcon(Icons.eco)),
-    )) {
-      expect(laurel.size, 44);
-    }
+      findsNothing,
+    );
     final laurelFrame = tester.widget<SizedBox>(
       find.byKey(ValueKey('unified-round-laurel-${sample.single.id}')),
     );
@@ -620,6 +628,27 @@ void main() {
     );
   });
 
+  testWidgets('non-perfect completion has no Laurel branch artwork', (
+    tester,
+  ) async {
+    final sample = rounds(1);
+    await tester.pumpWidget(
+      app(rounds: sample, completedRounds: {sample.single.id}),
+    );
+
+    expect(
+      find.byWidgetPredicate(
+        (widget) =>
+            widget.key is ValueKey<String> &&
+            (widget.key! as ValueKey<String>).value.startsWith(
+              'unified-round-laurel-branch-',
+            ),
+      ),
+      findsNothing,
+    );
+    expect(find.text('Practice'), findsOneWidget);
+  });
+
   testWidgets('long Round title stays at two lines on a 320 px page', (
     tester,
   ) async {
@@ -655,6 +684,39 @@ void main() {
     expect(card.color!.a, closeTo(.75, .01));
     expect(tester.widget<Text>(find.text('Round 1')).style?.color?.a ?? 1, 1);
   });
+
+  testWidgets(
+    'connector keeps its main stroke and adds subtle theme contrast support',
+    (tester) async {
+      Future<(Color, Color)> colors(ThemeMode mode) async {
+        await tester.pumpWidget(app(rounds: rounds(2), themeMode: mode));
+        await tester.pumpAndSettle();
+        final connector = tester.widget<CustomPaint>(
+          find.byKey(const Key('learner-round-connector')),
+        );
+        final dynamic painter = connector.painter;
+        return (painter.lineColor as Color, painter.supportColor as Color);
+      }
+
+      final light = await colors(ThemeMode.light);
+      final dark = await colors(ThemeMode.dark);
+
+      expect(light.$1.a, closeTo(.55, .01));
+      expect(dark.$1.a, closeTo(.55, .01));
+      expect(light.$2.a, lessThan(light.$1.a));
+      expect(dark.$2.a, lessThan(dark.$1.a));
+      expect(
+        light.$2.computeLuminance(),
+        greaterThan(light.$1.computeLuminance()),
+      );
+      expect(dark.$2.computeLuminance(), lessThan(dark.$1.computeLuminance()));
+      expect(learnerPathConnectorStrokeWidth, 2);
+      expect(
+        learnerPathConnectorSupportStrokeWidth,
+        greaterThan(learnerPathConnectorStrokeWidth),
+      );
+    },
+  );
 
   testWidgets(
     'mascots are intermittent, opposite, padded, and noninteractive',
@@ -742,7 +804,7 @@ void main() {
     tester,
   ) async {
     final sample = rounds(6);
-    for (final pageWidth in [320.0, 375.0, 390.0]) {
+    for (final pageWidth in [320.0, 375.0, 430.0]) {
       await tester.pumpWidget(app(rounds: sample, width: pageWidth - 28));
       final pathRect = tester.getRect(
         find.byKey(const Key('unified-round-tree')),
@@ -753,6 +815,16 @@ void main() {
         );
         expect(roundRect.left, greaterThanOrEqualTo(pathRect.left));
         expect(roundRect.right, lessThanOrEqualTo(pathRect.right));
+        expect(roundRect.width, lessThanOrEqualTo(244.01));
+        expect(roundRect.height, closeTo(108, .01));
+      }
+      if (pageWidth == 430) {
+        expect(
+          tester
+              .getRect(find.byKey(ValueKey('unified-round-${sample.first.id}')))
+              .width,
+          closeTo(244, .01),
+        );
       }
       final mascotFinder = find.byKey(const ValueKey('learner-round-mascot-0'));
       if (mascotFinder.evaluate().isNotEmpty) {
@@ -807,7 +879,7 @@ void main() {
     final light = await decorationColor(ThemeMode.light);
     final dark = await decorationColor(ThemeMode.dark);
     expect(light, isNot(dark));
-    expect(light.a, closeTo(.5, .01));
-    expect(dark.a, closeTo(.5, .01));
+    expect(light.a, closeTo(.10, .01));
+    expect(dark.a, closeTo(.10, .01));
   });
 }

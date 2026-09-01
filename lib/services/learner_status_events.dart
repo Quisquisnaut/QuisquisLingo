@@ -9,6 +9,8 @@ enum LearnerStatusInvalidation {
   courseMetadata,
   activeProfile,
   avatar,
+  theme,
+  flagBackground,
 }
 
 /// Process-local invalidations. Values remain authoritative in their services.

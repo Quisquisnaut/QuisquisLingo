@@ -2,7 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:quisquislingo_app/services/alpha_lifecycle_service.dart';
 
 void main() {
-  test('build 220 alpha expiry is inclusive through the expiry day', () {
+  test('build 221 alpha expiry is inclusive through the expiry day', () {
     expect(AlphaLifecycleService.expiryIsoDate, '2026-10-01');
     expect(AlphaLifecycleService.daysRemaining(DateTime(2026, 9, 1)), 30);
     expect(AlphaLifecycleService.isExpired(DateTime(2026, 10, 1, 12)), isFalse);

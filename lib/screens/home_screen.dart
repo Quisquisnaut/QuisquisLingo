@@ -32,18 +32,38 @@ import '../widgets/learner_avatar.dart';
 import '../widgets/learner_bottom_actions.dart';
 import '../widgets/learner_shell.dart';
 import '../widgets/unified_learner_top_bar.dart';
+import '../widgets/learner_theme_mode_scope.dart';
 
 const _learnerLightPageBackground = Color(0xFFF7F3E8);
 const _learnerDarkPageBackground = Color(0xFF080B09);
 const _welcomeDialogBackground = Color(0xFFFFE600);
 const _welcomeDialogForeground = Color(0xFF0756DF);
 const learnerPathSurfaceOpacity = .75;
-const learnerPathConnectorOpacity = .5;
+const learnerGuidebookSurfaceOpacity = .70;
+const learnerDuelSurfaceOpacity = .70;
+const learnerGuidebookWidthFactor = .78;
+const learnerRoundCardMaxWidth = 244.0;
+const learnerMascotSurfaceOpacity = .10;
+const learnerPathConnectorOpacity = .55;
 const learnerPathConnectorStrokeWidth = 2.0;
-const learnerDarkFlagVeilOpacity = .18;
+const learnerPathConnectorSupportOpacity = .32;
+const learnerPathConnectorSupportStrokeWidth = 4.0;
+const learnerDarkFlagVeilOpacity = .25;
+const learnerLightFlagVeilOpacity = .10;
+const _learnerScrollBottomInset = learnerBottomActionsHeight + 44;
+const _lockedLessonPreviewTapCount = 3;
+const _lockedLessonPreviewTapTimeout = Duration(seconds: 5);
+
+typedef _LockedLessonPreviewKey = ({String courseId, String topicId});
+
+final Set<_LockedLessonPreviewKey> _sessionPreviewedLockedLessons = {};
+
+@visibleForTesting
+void resetLockedLessonPreviewSessionForTesting() =>
+    _sessionPreviewedLockedLessons.clear();
 
 ThemeData _unifiedLearnerTheme(BuildContext context) {
-  if (MediaQuery.platformBrightnessOf(context) != Brightness.dark) {
+  if (!_usesDarkLearnerAppearance(context)) {
     return Theme.of(context);
   }
   return ThemeData.dark(useMaterial3: true).copyWith(
@@ -58,6 +78,16 @@ ThemeData _unifiedLearnerTheme(BuildContext context) {
       surfaceTintColor: Colors.transparent,
     ),
   );
+}
+
+bool _usesDarkLearnerAppearance(BuildContext context) {
+  final mode = LearnerThemeModeScope.maybeModeOf(context);
+  return switch (mode) {
+    LearnerThemeMode.light => false,
+    LearnerThemeMode.dark => true,
+    LearnerThemeMode.defaultMode ||
+    null => MediaQuery.platformBrightnessOf(context) == Brightness.dark,
+  };
 }
 
 /// Compact, scroll-safe Home dashboard.
@@ -123,6 +153,9 @@ class _HomeScreenState extends State<HomeScreen> {
   int? _lessonScrollTargetIndex;
   int _lessonScrollTargetAttempts = 0;
   bool _lessonVisibilityCheckScheduled = false;
+  String? _lockedLessonTapTopicId;
+  int _lockedLessonTapCount = 0;
+  Timer? _lockedLessonTapResetTimer;
 
   @override
   void initState() {
@@ -133,6 +166,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void dispose() {
+    _resetLockedLessonTapSequence();
     _learnerScrollController.dispose();
     _standaloneStatusController?.dispose();
     super.dispose();
@@ -271,10 +305,13 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _reload() async {
+    _resetLockedLessonTapSequence();
     try {
-      var selectedRef = _course == null
-          ? (await _settings.getLastSelectedCourseCode() ?? _selectedCourseRef)
-          : _selectedCourseRef;
+      final learners = await _profiles.getProfiles();
+      final active = await _profiles.getActiveProfile();
+      var selectedRef = active == null
+          ? _selectedCourseRef
+          : (await _settings.getLastSelectedCourseCode() ?? 'IT');
       var selectedLanguage = _selectedLanguage;
       late Course course;
       if (selectedRef.startsWith('custom:')) {
@@ -301,8 +338,6 @@ class _HomeScreenState extends State<HomeScreen> {
         selectedLanguage = bundledCode;
         course = await _courseService.loadCourse(bundledCode);
       }
-      final learners = await _profiles.getProfiles();
-      final active = await _profiles.getActiveProfile();
       final savedTopicId = await _settings.getLastVisitedTopicId(
         course.courseId,
       );
@@ -512,6 +547,7 @@ class _HomeScreenState extends State<HomeScreen> {
     await Future<void>.delayed(const Duration(milliseconds: 80));
     controller.dispose();
     if (result != null) {
+      if (mounted) setState(() => _course = null);
       await _profiles.addProfile(
         result.$1,
         skinTone: result.$2,
@@ -527,6 +563,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _switchLearner(String name) async {
+    if (mounted) setState(() => _course = null);
     await _profiles.setActiveProfile(name);
     await _reload();
   }
@@ -801,6 +838,37 @@ class _HomeScreenState extends State<HomeScreen> {
         wonDuels: _wonDuels,
       );
 
+  void _resetLockedLessonTapSequence() {
+    _lockedLessonTapResetTimer?.cancel();
+    _lockedLessonTapResetTimer = null;
+    _lockedLessonTapTopicId = null;
+    _lockedLessonTapCount = 0;
+  }
+
+  void _recordLockedLessonTap(String courseId, String topicId) {
+    _lockedLessonTapResetTimer?.cancel();
+    _lockedLessonTapResetTimer = null;
+    if (_lockedLessonTapTopicId != topicId) {
+      _lockedLessonTapTopicId = topicId;
+      _lockedLessonTapCount = 0;
+    }
+    _lockedLessonTapCount++;
+    if (_lockedLessonTapCount >= _lockedLessonPreviewTapCount) {
+      setState(() {
+        _sessionPreviewedLockedLessons.add((
+          courseId: courseId,
+          topicId: topicId,
+        ));
+        _lockedLessonTapTopicId = null;
+        _lockedLessonTapCount = 0;
+      });
+      return;
+    }
+    _lockedLessonTapResetTimer = Timer(_lockedLessonPreviewTapTimeout, () {
+      _resetLockedLessonTapSequence();
+    });
+  }
+
   Future<void> _selectTopic(Course course, int index) async {
     if (index < 0 || index >= course.topics.length) return;
     await _settings.setLastVisitedTopicId(
@@ -808,7 +876,10 @@ class _HomeScreenState extends State<HomeScreen> {
       course.topics[index].id,
     );
     if (!mounted) return;
-    setState(() => _activeTopicIndex = index);
+    _resetLockedLessonTapSequence();
+    setState(() {
+      _activeTopicIndex = index;
+    });
     _scrollToTopic(course, index);
   }
 
@@ -937,7 +1008,10 @@ class _HomeScreenState extends State<HomeScreen> {
         candidateVisibleExtent < activeVisibleExtent + hysteresis) {
       return;
     }
-    setState(() => _activeTopicIndex = candidateIndex);
+    _resetLockedLessonTapSequence();
+    setState(() {
+      _activeTopicIndex = candidateIndex;
+    });
     unawaited(
       _settings.setLastVisitedTopicId(
         course.courseId,
@@ -1007,6 +1081,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _openGuidebook(Topic topic) async {
+    _resetLockedLessonTapSequence();
     if (!await _canOpenLearnerContent() || !mounted) return;
     await Navigator.of(
       context,
@@ -1018,6 +1093,7 @@ class _HomeScreenState extends State<HomeScreen> {
     Topic topic,
     LearningRound round,
   ) async {
+    _resetLockedLessonTapSequence();
     if (!await _canOpenLearnerContent() || !mounted) return;
     await CrashLogService.instance.recordDebugEvent(
       'Home: opening Round ${round.id} in Topic ${topic.id}',
@@ -1041,6 +1117,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _openDuel(Course course, Topic topic) async {
     final eligibility = _duelEligibility.evaluate(topic);
     if (!eligibility.isAvailable) return;
+    _resetLockedLessonTapSequence();
     if (!await _canOpenLearnerContent() || !mounted) return;
     await Navigator.of(context).push(
       MaterialPageRoute(
@@ -1055,6 +1132,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _openReview(Course course) async {
+    _resetLockedLessonTapSequence();
     if (AlphaLifecycleService.isExpired()) {
       await _showExpiredLearnerNotice();
       return;
@@ -1070,8 +1148,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final followsDarkAppearance =
-        MediaQuery.platformBrightnessOf(context) == Brightness.dark;
+    final followsDarkAppearance = _usesDarkLearnerAppearance(context);
     final course = _course;
     if (course == null) {
       return Scaffold(
@@ -1092,6 +1169,11 @@ class _HomeScreenState extends State<HomeScreen> {
     final pageBackground = followsDarkAppearance
         ? _learnerDarkPageBackground
         : _learnerLightPageBackground;
+    final flagBackgroundMode =
+        LearnerFlagBackgroundModeScope.maybeModeOf(context) ??
+        LearnerFlagBackgroundMode.small;
+    final showsFlagBackground =
+        flagBackgroundMode != LearnerFlagBackgroundMode.off;
     final learnerTheme = _unifiedLearnerTheme(context);
     return Theme(
       data: learnerTheme,
@@ -1116,19 +1198,29 @@ class _HomeScreenState extends State<HomeScreen> {
               body: Stack(
                 fit: StackFit.expand,
                 children: [
-                  CourseFlagBackdrop(
-                    key: const Key('unified-learner-flag-background'),
-                    course: course,
-                    fallbackCode: _selectedLanguage,
-                    opacity: 1,
-                  ),
-                  if (followsDarkAppearance)
+                  if (showsFlagBackground) ...[
+                    CourseFlagBackdrop(
+                      key: const Key('unified-learner-flag-background'),
+                      course: course,
+                      fallbackCode: _selectedLanguage,
+                      opacity: 1,
+                      fit:
+                          flagBackgroundMode ==
+                              LearnerFlagBackgroundMode.extended
+                          ? BoxFit.cover
+                          : BoxFit.contain,
+                    ),
                     ColoredBox(
-                      key: const Key('unified-learner-dark-veil'),
+                      key: followsDarkAppearance
+                          ? const Key('unified-learner-dark-veil')
+                          : const Key('unified-learner-light-veil'),
                       color: learnerTheme.colorScheme.surface.withValues(
-                        alpha: learnerDarkFlagVeilOpacity,
+                        alpha: followsDarkAppearance
+                            ? learnerDarkFlagVeilOpacity
+                            : learnerLightFlagVeilOpacity,
                       ),
                     ),
+                  ],
                   SafeArea(
                     child: Column(
                       children: [
@@ -1141,12 +1233,16 @@ class _HomeScreenState extends State<HomeScreen> {
                               courseCode: _selectedLanguage,
                               onCoursePressed: () =>
                                   _showCoursePicker(learnerContext),
-                              onLogoPressed: () => Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (_) => const InfoScreen(),
-                                ),
-                              ),
+                              onLogoPressed: () {
+                                _resetLockedLessonTapSequence();
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (_) => const InfoScreen(),
+                                  ),
+                                );
+                              },
                               onSettingsPressed: () async {
+                                _resetLockedLessonTapSequence();
                                 await CrashLogService.instance.recordDebugEvent(
                                   'Home: opening Settings',
                                 );
@@ -1219,7 +1315,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   14,
                                   8,
                                   14,
-                                  112,
+                                  _learnerScrollBottomInset,
                                 ),
                                 itemCount: course.topics.isEmpty
                                     ? 1
@@ -1235,6 +1331,13 @@ class _HomeScreenState extends State<HomeScreen> {
                                     course,
                                     topicIndex,
                                   );
+                                  final previewOnly =
+                                      !unlocked &&
+                                      !_iddqdMode &&
+                                      _sessionPreviewedLockedLessons.contains((
+                                        courseId: course.courseId,
+                                        topicId: sectionTopic.id,
+                                      ));
                                   return _LessonSection(
                                     key: ValueKey(
                                       'unified-lesson-section-${sectionTopic.id}',
@@ -1258,7 +1361,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                         ),
                                     showBoundary: topicIndex > 0,
                                     unlocked: unlocked,
-                                    hasAccess: unlocked || _iddqdMode,
+                                    hasAccess:
+                                        unlocked || _iddqdMode || previewOnly,
+                                    previewOnly: previewOnly,
                                     completedRounds: _completedRounds,
                                     perfectRounds: _perfectRounds,
                                     ttsSkippedPerfectRounds:
@@ -1272,40 +1377,46 @@ class _HomeScreenState extends State<HomeScreen> {
                                         _openRound(course, sectionTopic, round),
                                     onOpenDuel: () =>
                                         _openDuel(course, sectionTopic),
+                                    onLockedTap: unlocked || _iddqdMode
+                                        ? null
+                                        : () => _recordLockedLessonTap(
+                                            course.courseId,
+                                            sectionTopic.id,
+                                          ),
                                   );
                                 },
                               ),
                             ),
                           ),
                         ),
-                      ],
-                    ),
-                  ),
-                  Positioned(
-                    left: 14,
-                    right: 14,
-                    bottom: 12,
-                    child: SafeArea(
-                      top: false,
-                      child: LearnerBottomActions(
-                        key: const Key('unified-bottom-controls'),
-                        onProfile: () async {
-                          await Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (_) => ProfileScreen(
-                                onManageLearners: _showLearners,
-                              ),
-                            ),
-                          );
-                          await _reload();
-                        },
-                        onReview: () => _openReview(course),
-                        onCourseInfo: () => Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => CourseInfoScreen(course: course),
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(14, 0, 14, 12),
+                          child: LearnerBottomActions(
+                            key: const Key('unified-bottom-controls'),
+                            onProfile: () async {
+                              _resetLockedLessonTapSequence();
+                              await Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) => ProfileScreen(
+                                    onManageLearners: _showLearners,
+                                  ),
+                                ),
+                              );
+                              await _reload();
+                            },
+                            onReview: () => _openReview(course),
+                            onCourseInfo: () {
+                              _resetLockedLessonTapSequence();
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) =>
+                                      CourseInfoScreen(course: course),
+                                ),
+                              );
+                            },
                           ),
                         ),
-                      ),
+                      ],
                     ),
                   ),
                 ],
@@ -1362,12 +1473,24 @@ class _LessonNavigation extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      'Lesson ${topicIndex + 1}: ${topic.title}',
+                    Text.rich(
+                      TextSpan(
+                        children: [
+                          TextSpan(
+                            text: 'Lesson ${topicIndex + 1}: ',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.normal,
+                            ),
+                          ),
+                          TextSpan(
+                            text: topic.title,
+                            style: const TextStyle(fontWeight: FontWeight.w900),
+                          ),
+                        ],
+                      ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w900,
                         color: Theme.of(context).brightness == Brightness.dark
                             ? Colors.white
                             : null,
@@ -1408,6 +1531,7 @@ class _LessonSection extends StatelessWidget {
   final bool showBoundary;
   final bool unlocked;
   final bool hasAccess;
+  final bool previewOnly;
   final Set<String> completedRounds;
   final Set<String> perfectRounds;
   final Set<String> ttsSkippedPerfectRounds;
@@ -1415,6 +1539,7 @@ class _LessonSection extends StatelessWidget {
   final VoidCallback onOpenGuidebook;
   final void Function(LearningRound round) onOpenRound;
   final VoidCallback onOpenDuel;
+  final VoidCallback? onLockedTap;
 
   const _LessonSection({
     super.key,
@@ -1427,6 +1552,7 @@ class _LessonSection extends StatelessWidget {
     required this.showBoundary,
     required this.unlocked,
     required this.hasAccess,
+    required this.previewOnly,
     required this.completedRounds,
     required this.perfectRounds,
     required this.ttsSkippedPerfectRounds,
@@ -1434,6 +1560,7 @@ class _LessonSection extends StatelessWidget {
     required this.onOpenGuidebook,
     required this.onOpenRound,
     required this.onOpenDuel,
+    required this.onLockedTap,
   });
 
   @override
@@ -1442,30 +1569,59 @@ class _LessonSection extends StatelessWidget {
     crossAxisAlignment: CrossAxisAlignment.stretch,
     children: [
       if (showBoundary) ...[
-        const SizedBox(height: 20),
+        SizedBox(
+          key: ValueKey('unified-lesson-transition-${topic.id}'),
+          height: 32,
+        ),
         const Divider(),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(8, 12, 8, 18),
-          child: Semantics(
-            header: true,
+      ],
+      if (previewOnly)
+        Align(
+          alignment: Alignment.center,
+          child: Container(
+            key: ValueKey('unified-lesson-preview-${topic.id}'),
+            margin: const EdgeInsets.only(bottom: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+            decoration: BoxDecoration(
+              color: Theme.of(
+                context,
+              ).colorScheme.surface.withValues(alpha: .88),
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(
+                color: Theme.of(context).colorScheme.outlineVariant,
+              ),
+            ),
             child: Row(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(unlocked ? Icons.school_outlined : Icons.lock_outline),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: _FlagBackdropText(
-                    'Lesson ${topicIndex + 1}: ${topic.title}',
-                    key: ValueKey('flag-backdrop-lesson-title-${topic.id}'),
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.w900,
+                const Icon(Icons.lock_outline, size: 20),
+                const SizedBox(width: 8),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Preview only',
+                      style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                        fontWeight: FontWeight.w800,
+                      ),
                     ),
-                  ),
+                    Text(
+                      'Lesson still locked',
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                  ],
                 ),
               ],
             ),
           ),
         ),
-      ],
+      _GuidebookNode(
+        topic: topic,
+        topicIndex: topicIndex,
+        unlocked: unlocked,
+        onLockedTap: onLockedTap,
+        onTap: hasAccess && !previewOnly ? onOpenGuidebook : null,
+      ),
       if (!hasAccess)
         Padding(
           key: ValueKey('unified-lesson-locked-${topic.id}'),
@@ -1488,7 +1644,6 @@ class _LessonSection extends StatelessWidget {
           ),
         )
       else ...[
-        _GuidebookNode(topic: topic, onTap: onOpenGuidebook),
         const _VerticalConnector(),
         LearnerRoundPath(
           courseId: courseId,
@@ -1498,13 +1653,14 @@ class _LessonSection extends StatelessWidget {
           ttsSkippedPerfectRounds: ttsSkippedPerfectRounds,
           mascotPositionOffset: mascotPositionOffset,
           roundPositionOffset: roundPositionOffset,
+          interactive: !previewOnly,
           onOpenRound: onOpenRound,
         ),
         const _VerticalConnector(),
         _DuelCard(
           key: ValueKey('unified-duel-${topic.id}'),
           eligibility: duelEligibility,
-          onTap: onOpenDuel,
+          onTap: previewOnly ? null : onOpenDuel,
         ),
       ],
       const SizedBox(height: 16),
@@ -1514,9 +1670,18 @@ class _LessonSection extends StatelessWidget {
 
 class _GuidebookNode extends StatelessWidget {
   final Topic topic;
-  final VoidCallback onTap;
+  final int topicIndex;
+  final bool unlocked;
+  final VoidCallback? onLockedTap;
+  final VoidCallback? onTap;
 
-  const _GuidebookNode({required this.topic, required this.onTap});
+  const _GuidebookNode({
+    required this.topic,
+    required this.topicIndex,
+    required this.unlocked,
+    required this.onLockedTap,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -1527,7 +1692,7 @@ class _GuidebookNode extends StatelessWidget {
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 400),
         child: FractionallySizedBox(
-          widthFactor: .88,
+          widthFactor: learnerGuidebookWidthFactor,
           child: Card(
             key: const Key('unified-guidebook-node'),
             margin: EdgeInsets.zero,
@@ -1535,7 +1700,7 @@ class _GuidebookNode extends StatelessWidget {
                 (isDark
                         ? colorScheme.surfaceContainerHigh
                         : const Color(0xFFFFF7C9))
-                    .withValues(alpha: learnerPathSurfaceOpacity),
+                    .withValues(alpha: learnerGuidebookSurfaceOpacity),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(18),
               side: BorderSide(
@@ -1549,22 +1714,107 @@ class _GuidebookNode extends StatelessWidget {
               onTap: onTap,
               child: Padding(
                 padding: const EdgeInsets.all(12),
-                child: Row(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    CircleAvatar(
-                      radius: 26,
-                      backgroundColor: isDark
-                          ? const Color(0xFF30284B)
-                          : const Color(0xFFEDE2FF),
-                      child: const Icon(Icons.menu_book_outlined, size: 32),
+                    Row(
+                      children: [
+                        SizedBox(
+                          width: 52,
+                          height: 52,
+                          child: Stack(
+                            clipBehavior: Clip.none,
+                            children: [
+                              CircleAvatar(
+                                radius: 26,
+                                backgroundColor: isDark
+                                    ? const Color(0xFF30284B)
+                                    : const Color(0xFFEDE2FF),
+                                child: const Icon(
+                                  Icons.menu_book_outlined,
+                                  size: 32,
+                                ),
+                              ),
+                              if (!unlocked)
+                                Positioned(
+                                  right: -3,
+                                  bottom: -3,
+                                  child: Semantics(
+                                    button: onLockedTap != null,
+                                    label: 'Locked Lesson ${topicIndex + 1}',
+                                    child: GestureDetector(
+                                      key: ValueKey(
+                                        'unified-lesson-preview-lock-${topic.id}',
+                                      ),
+                                      behavior: HitTestBehavior.opaque,
+                                      onTap: onLockedTap ?? () {},
+                                      child: DecoratedBox(
+                                        decoration: BoxDecoration(
+                                          color: colorScheme.surface,
+                                          shape: BoxShape.circle,
+                                          border: Border.all(
+                                            color: colorScheme.outlineVariant,
+                                          ),
+                                        ),
+                                        child: const Padding(
+                                          padding: EdgeInsets.all(3),
+                                          child: Icon(
+                                            Icons.lock_outline,
+                                            size: 18,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Semantics(
+                            header: true,
+                            child: Text.rich(
+                              TextSpan(
+                                children: [
+                                  TextSpan(
+                                    text: 'Lesson ${topicIndex + 1}: ',
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.normal,
+                                    ),
+                                  ),
+                                  TextSpan(
+                                    text: topic.title,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w900,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              key: ValueKey(
+                                'unified-guidebook-lesson-title-${topic.id}',
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: Theme.of(context).textTheme.titleMedium,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                    const SizedBox(height: 8),
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.centerLeft,
+                      child: Row(
+                        key: ValueKey(
+                          'unified-guidebook-content-row-${topic.id}',
+                        ),
+                        mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(
-                            'GuideBook',
+                            'Guidebook',
+                            maxLines: 1,
                             style: Theme.of(context).textTheme.titleMedium
                                 ?.copyWith(
                                   fontWeight: FontWeight.w900,
@@ -1573,13 +1823,10 @@ class _GuidebookNode extends StatelessWidget {
                                       : const Color(0xFF3920C8),
                                 ),
                           ),
+                          const SizedBox(width: 10),
                           Text(
-                            'Your roadmap to ${topic.title}',
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          Text(
-                            'Start here',
+                            'Start Here',
+                            maxLines: 1,
                             style: TextStyle(
                               color: isDark
                                   ? const Color(0xFF8FB0FF)
@@ -1587,10 +1834,10 @@ class _GuidebookNode extends StatelessWidget {
                               fontWeight: FontWeight.w700,
                             ),
                           ),
+                          const Icon(Icons.chevron_right),
                         ],
                       ),
                     ),
-                    const Icon(Icons.chevron_right),
                   ],
                 ),
               ),
@@ -1779,6 +2026,7 @@ class LearnerRoundPath extends StatefulWidget {
   final List<String>? mascotAssets;
   final int mascotPositionOffset;
   final int roundPositionOffset;
+  final bool interactive;
 
   const LearnerRoundPath({
     super.key,
@@ -1791,6 +2039,7 @@ class LearnerRoundPath extends StatefulWidget {
     this.mascotAssets,
     this.mascotPositionOffset = 0,
     this.roundPositionOffset = 0,
+    this.interactive = true,
   });
 
   @override
@@ -1852,7 +2101,10 @@ class _LearnerRoundPathState extends State<LearnerRoundPath> {
         final showMascots = width >= 320 && mascotAssets.isNotEmpty;
         final cardWidth = min(
           width,
-          max(196.0, min(276.0, width * (showMascots ? .68 : .82))),
+          max(
+            196.0,
+            min(learnerRoundCardMaxWidth, width * (showMascots ? .68 : .82)),
+          ),
         );
         final mascotExtent = min(112.0, width - cardWidth - 12);
         final sides = List<LearnerRoundPathSide>.generate(
@@ -1882,6 +2134,10 @@ class _LearnerRoundPathState extends State<LearnerRoundPath> {
                       rowExtent: rowExtent,
                       lineColor: Theme.of(context).colorScheme.onSurfaceVariant
                           .withValues(alpha: learnerPathConnectorOpacity),
+                      supportColor: Theme.of(context).colorScheme.surface
+                          .withValues(
+                            alpha: learnerPathConnectorSupportOpacity,
+                          ),
                     ),
                   ),
                 ),
@@ -1930,7 +2186,9 @@ class _LearnerRoundPathState extends State<LearnerRoundPath> {
                     ttsSkippedPerfect: widget.ttsSkippedPerfectRounds.contains(
                       widget.rounds[index].id,
                     ),
-                    onTap: () => widget.onOpenRound(widget.rounds[index]),
+                    onTap: widget.interactive
+                        ? () => widget.onOpenRound(widget.rounds[index])
+                        : null,
                   ),
                 ),
             ],
@@ -1959,7 +2217,7 @@ class _MascotDecoration extends StatelessWidget {
                 (isDark
                         ? colorScheme.surfaceContainerHigh
                         : colorScheme.surfaceContainerLowest)
-                    .withValues(alpha: .5),
+                    .withValues(alpha: learnerMascotSurfaceOpacity),
             borderRadius: BorderRadius.circular(18),
           ),
           child: Padding(
@@ -1982,7 +2240,7 @@ class _RoundNode extends StatelessWidget {
   final bool completed;
   final bool perfect;
   final bool ttsSkippedPerfect;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
 
   const _RoundNode({
     required this.round,
@@ -2063,16 +2321,29 @@ class _RoundNode extends StatelessWidget {
                   children: [
                     if (perfect) ...[
                       Positioned(
-                        left: -2,
-                        bottom: -1,
-                        child: Icon(Icons.eco, size: 44, color: statusColor),
+                        left: 3,
+                        child: CustomPaint(
+                          key: ValueKey(
+                            'unified-round-laurel-branch-left-${round.id}',
+                          ),
+                          size: const Size(13, 42),
+                          painter: _LaurelBranchPainter(
+                            color: statusColor,
+                            mirror: false,
+                          ),
+                        ),
                       ),
                       Positioned(
-                        right: -2,
-                        bottom: -1,
-                        child: Transform.flip(
-                          flipX: true,
-                          child: Icon(Icons.eco, size: 44, color: statusColor),
+                        right: 3,
+                        child: CustomPaint(
+                          key: ValueKey(
+                            'unified-round-laurel-branch-right-${round.id}',
+                          ),
+                          size: const Size(13, 42),
+                          painter: _LaurelBranchPainter(
+                            color: statusColor,
+                            mirror: true,
+                          ),
                         ),
                       ),
                     ],
@@ -2146,12 +2417,69 @@ class _RoundNode extends StatelessWidget {
   }
 }
 
+class _LaurelBranchPainter extends CustomPainter {
+  final Color color;
+  final bool mirror;
+
+  const _LaurelBranchPainter({required this.color, required this.mirror});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    canvas.save();
+    if (mirror) {
+      canvas.translate(size.width, 0);
+      canvas.scale(-1, 1);
+    }
+    final stem = Paint()
+      ..color = color.withValues(alpha: .9)
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round
+      ..strokeWidth = 1.4;
+    final branch = Path()
+      ..moveTo(size.width - 1, size.height - 1)
+      ..cubicTo(
+        size.width * .78,
+        size.height * .74,
+        size.width * .05,
+        size.height * .34,
+        size.width * .46,
+        1,
+      );
+    canvas.drawPath(branch, stem);
+
+    final leaf = Paint()
+      ..color = color.withValues(alpha: .82)
+      ..style = PaintingStyle.fill;
+    for (final point in const [
+      (Offset(8.7, 32), -.55),
+      (Offset(5.7, 24), -.38),
+      (Offset(3.5, 16), -.2),
+      (Offset(2.0, 8), -.05),
+    ]) {
+      canvas.save();
+      canvas.translate(point.$1.dx, point.$1.dy);
+      canvas.rotate(point.$2);
+      canvas.drawOval(
+        Rect.fromCenter(center: Offset.zero, width: 7, height: 3.6),
+        leaf,
+      );
+      canvas.restore();
+    }
+    canvas.restore();
+  }
+
+  @override
+  bool shouldRepaint(covariant _LaurelBranchPainter oldDelegate) =>
+      oldDelegate.color != color || oldDelegate.mirror != mirror;
+}
+
 class _RoundPathPainter extends CustomPainter {
   final List<LearnerRoundPathSide> sides;
   final double cardWidth;
   final double cardHeight;
   final double rowExtent;
   final Color lineColor;
+  final Color supportColor;
 
   const _RoundPathPainter({
     required this.sides,
@@ -2159,11 +2487,17 @@ class _RoundPathPainter extends CustomPainter {
     required this.cardHeight,
     required this.rowExtent,
     required this.lineColor,
+    required this.supportColor,
   });
 
   @override
   void paint(Canvas canvas, Size size) {
     if (sides.isEmpty || size.height <= 0) return;
+    final supportPaint = Paint()
+      ..color = supportColor
+      ..strokeWidth = learnerPathConnectorSupportStrokeWidth
+      ..strokeCap = StrokeCap.round
+      ..style = PaintingStyle.stroke;
     final paint = Paint()
       ..color = lineColor
       ..strokeWidth = learnerPathConnectorStrokeWidth
@@ -2194,6 +2528,7 @@ class _RoundPathPainter extends CustomPainter {
       size.width / 2,
       size.height,
     );
+    canvas.drawPath(path, supportPaint);
     canvas.drawPath(path, paint);
   }
 
@@ -2203,12 +2538,13 @@ class _RoundPathPainter extends CustomPainter {
       oldDelegate.cardWidth != cardWidth ||
       oldDelegate.cardHeight != cardHeight ||
       oldDelegate.rowExtent != rowExtent ||
-      oldDelegate.lineColor != lineColor;
+      oldDelegate.lineColor != lineColor ||
+      oldDelegate.supportColor != supportColor;
 }
 
 class _DuelCard extends StatelessWidget {
   final DuelEligibilityResult eligibility;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
 
   const _DuelCard({super.key, required this.eligibility, required this.onTap});
 
@@ -2228,7 +2564,7 @@ class _DuelCard extends StatelessWidget {
                 (eligibility.isAvailable
                         ? const Color(0xFF0756DF)
                         : colorScheme.surfaceContainerHighest)
-                    .withValues(alpha: learnerPathSurfaceOpacity),
+                    .withValues(alpha: learnerDuelSurfaceOpacity),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(18),
             ),
@@ -2317,14 +2653,15 @@ class _FlagBackdropText extends StatelessWidget {
     final outlineColor = foregroundColor.computeLuminance() > .5
         ? Colors.black
         : Colors.white;
+    Text textLayer(TextStyle layerStyle) => Text(data, style: layerStyle);
+
     return Stack(
       alignment: AlignmentDirectional.centerStart,
       clipBehavior: Clip.none,
       children: [
         ExcludeSemantics(
-          child: Text(
-            data,
-            style: effectiveStyle.copyWith(
+          child: textLayer(
+            effectiveStyle.copyWith(
               foreground: Paint()
                 ..style = PaintingStyle.stroke
                 ..strokeWidth = 2
@@ -2332,7 +2669,7 @@ class _FlagBackdropText extends StatelessWidget {
             ),
           ),
         ),
-        Text(data, style: effectiveStyle),
+        textLayer(effectiveStyle),
       ],
     );
   }

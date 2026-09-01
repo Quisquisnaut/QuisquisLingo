@@ -1,6 +1,51 @@
 import 'package:shared_preferences/shared_preferences.dart';
 import 'learner_status_events.dart';
 
+enum LearnerThemeMode {
+  defaultMode('default', 'Default'),
+  light('light', 'Light'),
+  dark('dark', 'Dark');
+
+  final String storageValue;
+  final String label;
+
+  const LearnerThemeMode(this.storageValue, this.label);
+
+  LearnerThemeMode get next => switch (this) {
+    LearnerThemeMode.defaultMode => LearnerThemeMode.light,
+    LearnerThemeMode.light => LearnerThemeMode.dark,
+    LearnerThemeMode.dark => LearnerThemeMode.defaultMode,
+  };
+
+  static LearnerThemeMode fromStorage(String? value) => values.firstWhere(
+    (mode) => mode.storageValue == value,
+    orElse: () => LearnerThemeMode.defaultMode,
+  );
+}
+
+enum LearnerFlagBackgroundMode {
+  small('small', 'Small'),
+  off('off', 'Off'),
+  extended('extended', 'Extended');
+
+  final String storageValue;
+  final String label;
+
+  const LearnerFlagBackgroundMode(this.storageValue, this.label);
+
+  LearnerFlagBackgroundMode get next => switch (this) {
+    LearnerFlagBackgroundMode.small => LearnerFlagBackgroundMode.off,
+    LearnerFlagBackgroundMode.off => LearnerFlagBackgroundMode.extended,
+    LearnerFlagBackgroundMode.extended => LearnerFlagBackgroundMode.small,
+  };
+
+  static LearnerFlagBackgroundMode fromStorage(String? value) =>
+      values.firstWhere(
+        (mode) => mode.storageValue == value,
+        orElse: () => LearnerFlagBackgroundMode.small,
+      );
+}
+
 class ProfileAvatarAppearance {
   final String skinTone;
   final String hairTone;
@@ -13,8 +58,8 @@ class ProfileAvatarAppearance {
 
 /// Manages local learner profiles and appearance preferences.
 ///
-/// Avatar skin/hair choices belong to the local profile and describe only the
-/// avatar appearance. Learning progress belongs to the profile plus the selected
+/// Avatar skin/hair, theme and flag-background choices belong to the local
+/// profile. Learning progress belongs to the profile plus the selected
 /// course/language.
 class ProfileService {
   static const _profilesKey = 'learner_profiles';
@@ -108,9 +153,66 @@ class ProfileService {
     LearnerStatusEvents.publish(LearnerStatusInvalidation.activeProfile);
   }
 
+  Future<LearnerThemeMode> getThemeMode() async {
+    final active = await getActiveProfile();
+    if (active == null) return LearnerThemeMode.defaultMode;
+    return getThemeModeForProfile(active);
+  }
+
+  Future<LearnerThemeMode> getThemeModeForProfile(String profileName) async {
+    final p = await SharedPreferences.getInstance();
+    final profiles = p.getStringList(_profilesKey) ?? [];
+    if (!profiles.contains(profileName)) return LearnerThemeMode.defaultMode;
+    final prefix = 'learner_${Uri.encodeComponent(profileName)}_';
+    return LearnerThemeMode.fromStorage(p.getString('${prefix}theme_mode'));
+  }
+
+  Future<void> setThemeMode(LearnerThemeMode mode) async {
+    final p = await SharedPreferences.getInstance();
+    final profiles = p.getStringList(_profilesKey) ?? [];
+    final active = p.getString(_activeKey);
+    if (active == null || !profiles.contains(active)) return;
+    final prefix = 'learner_${Uri.encodeComponent(active)}_';
+    await p.setString('${prefix}theme_mode', mode.storageValue);
+    LearnerStatusEvents.publish(LearnerStatusInvalidation.theme);
+  }
+
+  Future<LearnerFlagBackgroundMode> getFlagBackgroundMode() async {
+    final active = await getActiveProfile();
+    if (active == null) return LearnerFlagBackgroundMode.small;
+    return getFlagBackgroundModeForProfile(active);
+  }
+
+  Future<LearnerFlagBackgroundMode> getFlagBackgroundModeForProfile(
+    String profileName,
+  ) async {
+    final p = await SharedPreferences.getInstance();
+    final profiles = p.getStringList(_profilesKey) ?? [];
+    if (!profiles.contains(profileName)) {
+      return LearnerFlagBackgroundMode.small;
+    }
+    final prefix = 'learner_${Uri.encodeComponent(profileName)}_';
+    return LearnerFlagBackgroundMode.fromStorage(
+      p.getString('${prefix}flag_background_mode'),
+    );
+  }
+
+  Future<void> setFlagBackgroundMode(LearnerFlagBackgroundMode mode) async {
+    final p = await SharedPreferences.getInstance();
+    final profiles = p.getStringList(_profilesKey) ?? [];
+    final active = p.getString(_activeKey);
+    if (active == null || !profiles.contains(active)) return;
+    final prefix = 'learner_${Uri.encodeComponent(active)}_';
+    await p.setString('${prefix}flag_background_mode', mode.storageValue);
+    LearnerStatusEvents.publish(LearnerStatusInvalidation.flagBackground);
+  }
+
+  String keyForProfile(String profileName, String base) =>
+      'learner_${Uri.encodeComponent(profileName)}_$base';
+
   Future<String> key(String base) async {
     final active = await getActiveProfile() ?? 'default';
-    return 'learner_${Uri.encodeComponent(active)}_$base';
+    return keyForProfile(active, base);
   }
 
   Future<String> getSkinTone() async {

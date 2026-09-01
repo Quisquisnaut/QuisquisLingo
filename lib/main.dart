@@ -9,12 +9,15 @@ import 'services/window_setup.dart';
 import 'services/crash_log_service.dart';
 import 'screens/home_screen.dart';
 import 'services/settings_service.dart';
+import 'services/profile_service.dart';
+import 'services/learner_status_events.dart';
 import 'services/startup_diagnostic_service.dart';
 import 'services/diagnostic_log_service.dart';
 import 'services/update_service.dart';
 import 'widgets/flag_art.dart';
 import 'widgets/learner_shell.dart';
 import 'widgets/learner_navigation.dart';
+import 'widgets/learner_theme_mode_scope.dart';
 
 Future<void> main() async {
   StartupDiagnosticService.checkpoint('DART_MAIN_ENTER');
@@ -82,8 +85,72 @@ void _installStartupDiagnosticErrorHandlers() {
   };
 }
 
-class QuisquisLingoApp extends StatelessWidget {
-  const QuisquisLingoApp({super.key});
+class QuisquisLingoApp extends StatefulWidget {
+  @visibleForTesting
+  final ProfileService? profileService;
+
+  @visibleForTesting
+  final Widget? home;
+
+  const QuisquisLingoApp({super.key, this.profileService, this.home});
+
+  @override
+  State<QuisquisLingoApp> createState() => _QuisquisLingoAppState();
+}
+
+class _QuisquisLingoAppState extends State<QuisquisLingoApp> {
+  late final ProfileService _profiles;
+  StreamSubscription<LearnerStatusInvalidation>? _appearanceSubscription;
+  LearnerThemeMode _themeMode = LearnerThemeMode.defaultMode;
+  LearnerFlagBackgroundMode _flagBackgroundMode =
+      LearnerFlagBackgroundMode.small;
+  int _loadGeneration = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _profiles = widget.profileService ?? ProfileService();
+    _appearanceSubscription = LearnerStatusEvents.stream.listen((event) {
+      if (event == LearnerStatusInvalidation.activeProfile ||
+          event == LearnerStatusInvalidation.theme ||
+          event == LearnerStatusInvalidation.flagBackground) {
+        _loadAppearance();
+      }
+    });
+    _loadAppearance();
+  }
+
+  Future<void> _loadAppearance() async {
+    final generation = ++_loadGeneration;
+    var themeMode = LearnerThemeMode.defaultMode;
+    var flagBackgroundMode = LearnerFlagBackgroundMode.small;
+    try {
+      themeMode = await _profiles.getThemeMode();
+      flagBackgroundMode = await _profiles.getFlagBackgroundMode();
+    } catch (_) {
+      // Appearance loading falls back to the application's normal defaults.
+    }
+    if (!mounted || generation != _loadGeneration) return;
+    if (themeMode == _themeMode && flagBackgroundMode == _flagBackgroundMode) {
+      return;
+    }
+    setState(() {
+      _themeMode = themeMode;
+      _flagBackgroundMode = flagBackgroundMode;
+    });
+  }
+
+  @override
+  void dispose() {
+    _appearanceSubscription?.cancel();
+    super.dispose();
+  }
+
+  ThemeMode get _materialThemeMode => switch (_themeMode) {
+    LearnerThemeMode.defaultMode => ThemeMode.system,
+    LearnerThemeMode.light => ThemeMode.light,
+    LearnerThemeMode.dark => ThemeMode.dark,
+  };
 
   @override
   Widget build(BuildContext context) {
@@ -107,20 +174,24 @@ class QuisquisLingoApp extends StatelessWidget {
         final content = child == null
             ? const SizedBox.shrink()
             : LearnerShell(child: child);
+        final scopedContent = LearnerFlagBackgroundModeScope(
+          mode: _flagBackgroundMode,
+          child: LearnerThemeModeScope(mode: _themeMode, child: content),
+        );
         final portraitDesktop =
             !kIsWeb &&
             (defaultTargetPlatform == TargetPlatform.windows ||
                 defaultTargetPlatform == TargetPlatform.linux ||
                 defaultTargetPlatform == TargetPlatform.macOS);
         if (!portraitDesktop) {
-          return content;
+          return scopedContent;
         }
         return ColoredBox(
           color: const Color(0xFFE7E1CF),
           child: Center(
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 430),
-              child: content,
+              child: scopedContent,
             ),
           ),
         );
@@ -228,7 +299,20 @@ class QuisquisLingoApp extends StatelessWidget {
           ),
         ),
       ),
-      home: const _StartupGate(),
+      darkTheme: ThemeData.dark(useMaterial3: true).copyWith(
+        scaffoldBackgroundColor: const Color(0xFF080B09),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFF54D8FF),
+          brightness: Brightness.dark,
+          surface: const Color(0xFF151A17),
+        ),
+        cardTheme: const CardThemeData(
+          color: Color(0xFF151A17),
+          surfaceTintColor: Colors.transparent,
+        ),
+      ),
+      themeMode: _materialThemeMode,
+      home: widget.home ?? const _StartupGate(),
     );
   }
 }

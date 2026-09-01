@@ -31,6 +31,9 @@ class _LearnerBottomActionsState extends State<LearnerBottomActions> {
   StreamSubscription<LearnerStatusInvalidation>? _subscription;
   String? _learnerName;
   ProfileAvatarAppearance? _appearance;
+  LearnerThemeMode _themeMode = LearnerThemeMode.defaultMode;
+  LearnerFlagBackgroundMode _flagBackgroundMode =
+      LearnerFlagBackgroundMode.small;
   int _loadGeneration = 0;
 
   @override
@@ -39,7 +42,9 @@ class _LearnerBottomActionsState extends State<LearnerBottomActions> {
     _profiles = widget.profileService ?? ProfileService();
     _subscription = LearnerStatusEvents.stream.listen((event) {
       if (event == LearnerStatusInvalidation.activeProfile ||
-          event == LearnerStatusInvalidation.avatar) {
+          event == LearnerStatusInvalidation.avatar ||
+          event == LearnerStatusInvalidation.theme ||
+          event == LearnerStatusInvalidation.flagBackground) {
         _load();
       }
     });
@@ -50,12 +55,16 @@ class _LearnerBottomActionsState extends State<LearnerBottomActions> {
     final generation = ++_loadGeneration;
     String? learnerName;
     ProfileAvatarAppearance? appearance;
+    var themeMode = LearnerThemeMode.defaultMode;
+    var flagBackgroundMode = LearnerFlagBackgroundMode.small;
     try {
       final active = await _profiles.getActiveProfile();
       final cleanName = active?.trim() ?? '';
       if (cleanName.isNotEmpty) {
         learnerName = active;
         appearance = await _profiles.getAvatarAppearanceForProfile(active!);
+        themeMode = await _profiles.getThemeMode();
+        flagBackgroundMode = await _profiles.getFlagBackgroundMode();
       }
     } catch (_) {
       // Presentation falls through to the best information that was readable.
@@ -64,7 +73,41 @@ class _LearnerBottomActionsState extends State<LearnerBottomActions> {
     setState(() {
       _learnerName = learnerName;
       _appearance = appearance;
+      _themeMode = themeMode;
+      _flagBackgroundMode = flagBackgroundMode;
     });
+  }
+
+  Future<void> _cycleThemeMode() async {
+    if (_learnerName == null) {
+      if (_themeMode != LearnerThemeMode.defaultMode) {
+        setState(() => _themeMode = LearnerThemeMode.defaultMode);
+      }
+      return;
+    }
+    final nextMode = _themeMode.next;
+    setState(() => _themeMode = nextMode);
+    try {
+      await _profiles.setThemeMode(nextMode);
+    } catch (_) {
+      await _load();
+    }
+  }
+
+  Future<void> _cycleFlagBackgroundMode() async {
+    if (_learnerName == null) {
+      if (_flagBackgroundMode != LearnerFlagBackgroundMode.small) {
+        setState(() => _flagBackgroundMode = LearnerFlagBackgroundMode.small);
+      }
+      return;
+    }
+    final nextMode = _flagBackgroundMode.next;
+    setState(() => _flagBackgroundMode = nextMode);
+    try {
+      await _profiles.setFlagBackgroundMode(nextMode);
+    } catch (_) {
+      await _load();
+    }
   }
 
   @override
@@ -109,12 +152,115 @@ class _LearnerBottomActionsState extends State<LearnerBottomActions> {
                   onTap: widget.onCourseInfo,
                 ),
               ),
+              const SizedBox(width: 8),
+              _ThemeModeAction(mode: _themeMode, onTap: _cycleThemeMode),
+              const SizedBox(width: 4),
+              _FlagBackgroundModeAction(
+                mode: _flagBackgroundMode,
+                onTap: _cycleFlagBackgroundMode,
+              ),
             ],
           ),
         ),
       ),
     ),
   );
+}
+
+class _FlagBackgroundModeAction extends StatelessWidget {
+  final LearnerFlagBackgroundMode mode;
+  final VoidCallback onTap;
+
+  const _FlagBackgroundModeAction({required this.mode, required this.onTap});
+
+  IconData get _icon => switch (mode) {
+    LearnerFlagBackgroundMode.small => Icons.flag_outlined,
+    LearnerFlagBackgroundMode.off => Icons.hide_image_outlined,
+    LearnerFlagBackgroundMode.extended => Icons.flag,
+  };
+
+  @override
+  Widget build(BuildContext context) {
+    final label = 'Flag background: ${mode.label}';
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return SizedBox(
+      key: const Key('learner-bottom-flag-background'),
+      width: 40,
+      height: 40,
+      child: Tooltip(
+        message: label,
+        child: Material(
+          color: isDark
+              ? Theme.of(
+                  context,
+                ).colorScheme.surfaceContainerHighest.withValues(alpha: .36)
+              : Colors.white.withValues(alpha: .16),
+          borderRadius: BorderRadius.circular(20),
+          child: Semantics(
+            button: true,
+            label: label,
+            onTap: onTap,
+            excludeSemantics: true,
+            child: InkWell(
+              borderRadius: BorderRadius.circular(20),
+              onTap: onTap,
+              child: Center(
+                child: Icon(_icon, size: 20, color: _actionColor(context)),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ThemeModeAction extends StatelessWidget {
+  final LearnerThemeMode mode;
+  final VoidCallback onTap;
+
+  const _ThemeModeAction({required this.mode, required this.onTap});
+
+  IconData get _icon => switch (mode) {
+    LearnerThemeMode.defaultMode => Icons.brightness_auto_outlined,
+    LearnerThemeMode.light => Icons.light_mode_outlined,
+    LearnerThemeMode.dark => Icons.dark_mode_outlined,
+  };
+
+  @override
+  Widget build(BuildContext context) {
+    final label = 'Theme: ${mode.label}';
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return SizedBox(
+      key: const Key('learner-bottom-theme'),
+      width: 40,
+      height: 40,
+      child: Tooltip(
+        message: label,
+        child: Material(
+          color: isDark
+              ? Theme.of(
+                  context,
+                ).colorScheme.surfaceContainerHighest.withValues(alpha: .36)
+              : Colors.white.withValues(alpha: .16),
+          borderRadius: BorderRadius.circular(20),
+          child: Semantics(
+            button: true,
+            label: label,
+            onTap: onTap,
+            excludeSemantics: true,
+            child: InkWell(
+              borderRadius: BorderRadius.circular(20),
+              onTap: onTap,
+              child: Center(
+                child: Icon(_icon, size: 20, color: _actionColor(context)),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 class _ProfileAction extends StatelessWidget {

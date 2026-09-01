@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:quisquislingo_app/controllers/learner_status_controller.dart';
+import 'package:quisquislingo_app/main.dart';
 import 'package:quisquislingo_app/models/course_models.dart';
 import 'package:quisquislingo_app/screens/avatar_settings_screen.dart';
 import 'package:quisquislingo_app/screens/course_info_screen.dart';
@@ -9,6 +10,7 @@ import 'package:quisquislingo_app/screens/profile_screen.dart';
 import 'package:quisquislingo_app/services/profile_service.dart';
 import 'package:quisquislingo_app/widgets/learner_avatar.dart';
 import 'package:quisquislingo_app/widgets/learner_bottom_actions.dart';
+import 'package:quisquislingo_app/widgets/learner_theme_mode_scope.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
@@ -57,8 +59,93 @@ void main() {
     expect(prefs.getInt('learner_Stored%20Learner_xp_IT'), 275);
   });
 
+  test(
+    'theme modes are learner-scoped and survive logout and service restart',
+    () async {
+      final profiles = ProfileService();
+      await profiles.addProfile('Learner A');
+      expect(await profiles.getThemeMode(), LearnerThemeMode.defaultMode);
+      await profiles.setThemeMode(LearnerThemeMode.dark);
+
+      await profiles.addProfile('Learner B');
+      await profiles.setThemeMode(LearnerThemeMode.light);
+      expect(await profiles.getThemeMode(), LearnerThemeMode.light);
+
+      await profiles.setActiveProfile('Learner A');
+      expect(await profiles.getThemeMode(), LearnerThemeMode.dark);
+      await profiles.clearActiveProfile();
+      expect(await profiles.getThemeMode(), LearnerThemeMode.defaultMode);
+      await profiles.setThemeMode(LearnerThemeMode.dark);
+      expect(await profiles.getThemeMode(), LearnerThemeMode.defaultMode);
+
+      final prefs = await SharedPreferences.getInstance();
+      expect(prefs.containsKey('learner_default_theme_mode'), isFalse);
+      expect(prefs.getString('learner_Learner%20A_theme_mode'), 'dark');
+      expect(prefs.getString('learner_Learner%20B_theme_mode'), 'light');
+
+      final restartedProfiles = ProfileService();
+      await restartedProfiles.setActiveProfile('Learner A');
+      expect(await restartedProfiles.getThemeMode(), LearnerThemeMode.dark);
+      await restartedProfiles.setActiveProfile('Learner B');
+      expect(await restartedProfiles.getThemeMode(), LearnerThemeMode.light);
+    },
+  );
+
+  test(
+    'flag background modes are learner-scoped and survive service restart',
+    () async {
+      final profiles = ProfileService();
+      await profiles.addProfile('Learner A');
+      expect(
+        await profiles.getFlagBackgroundMode(),
+        LearnerFlagBackgroundMode.small,
+      );
+      await profiles.setFlagBackgroundMode(LearnerFlagBackgroundMode.off);
+
+      await profiles.addProfile('Learner B');
+      await profiles.setFlagBackgroundMode(LearnerFlagBackgroundMode.extended);
+      expect(
+        await profiles.getFlagBackgroundMode(),
+        LearnerFlagBackgroundMode.extended,
+      );
+
+      await profiles.setActiveProfile('Learner A');
+      expect(
+        await profiles.getFlagBackgroundMode(),
+        LearnerFlagBackgroundMode.off,
+      );
+      await profiles.clearActiveProfile();
+      expect(
+        await profiles.getFlagBackgroundMode(),
+        LearnerFlagBackgroundMode.small,
+      );
+      await profiles.setFlagBackgroundMode(LearnerFlagBackgroundMode.extended);
+
+      final prefs = await SharedPreferences.getInstance();
+      expect(
+        prefs.containsKey('learner_default_flag_background_mode'),
+        isFalse,
+      );
+      expect(
+        prefs.getString('learner_Learner%20A_flag_background_mode'),
+        'off',
+      );
+      expect(
+        prefs.getString('learner_Learner%20B_flag_background_mode'),
+        'extended',
+      );
+
+      final restartedProfiles = ProfileService();
+      await restartedProfiles.setActiveProfile('Learner B');
+      expect(
+        await restartedProfiles.getFlagBackgroundMode(),
+        LearnerFlagBackgroundMode.extended,
+      );
+    },
+  );
+
   testWidgets(
-    'learner bottom actions render exactly Profile, Review, and Course Info',
+    'learner bottom keeps three primary actions plus compact appearance utilities',
     (tester) async {
       await ProfileService().addProfile('Bottom Learner');
       var reviewTaps = 0;
@@ -88,11 +175,214 @@ void main() {
       expect(find.bySemanticsLabel('Buy a coffee'), findsNothing);
       expect(find.byIcon(Icons.emoji_events_outlined), findsNothing);
       expect(find.byIcon(Icons.coffee_outlined), findsNothing);
+      expect(find.byKey(const Key('learner-bottom-theme')), findsOneWidget);
+      expect(find.byTooltip('Theme: Default'), findsOneWidget);
+      expect(find.bySemanticsLabel('Theme: Default'), findsOneWidget);
+      expect(
+        find.byKey(const Key('learner-bottom-flag-background')),
+        findsOneWidget,
+      );
+      expect(find.byTooltip('Flag background: Small'), findsOneWidget);
+      expect(find.bySemanticsLabel('Flag background: Small'), findsOneWidget);
 
       await tester.tap(find.byKey(const Key('learner-bottom-profile')));
       await tester.tap(find.byKey(const Key('learner-bottom-review')));
       await tester.tap(find.byKey(const Key('learner-bottom-course-info')));
       expect((profileTaps, reviewTaps, courseInfoTaps), (1, 1, 1));
+    },
+  );
+
+  testWidgets(
+    'flag background utility cycles Small, Off, Extended, then Small',
+    (tester) async {
+      final profiles = ProfileService();
+      await profiles.addProfile('Flag Learner');
+
+      await tester.pumpWidget(
+        QuisquisLingoApp(
+          profileService: profiles,
+          home: Scaffold(
+            body: LearnerBottomActions(
+              profileService: profiles,
+              onProfile: () {},
+              onReview: () {},
+              onCourseInfo: () {},
+            ),
+          ),
+        ),
+      );
+      await _pumpFrames(tester);
+
+      LearnerFlagBackgroundMode scopedMode() => tester
+          .widget<LearnerFlagBackgroundModeScope>(
+            find.byType(LearnerFlagBackgroundModeScope),
+          )
+          .mode;
+      final control = find.byKey(const Key('learner-bottom-flag-background'));
+
+      expect(scopedMode(), LearnerFlagBackgroundMode.small);
+      expect(find.byTooltip('Flag background: Small'), findsOneWidget);
+
+      Future<void> tapAndExpect(LearnerFlagBackgroundMode mode) async {
+        await tester.tap(control);
+        await _pumpFrames(tester);
+        expect(await profiles.getFlagBackgroundMode(), mode);
+        expect(scopedMode(), mode);
+        expect(
+          find.byTooltip('Flag background: ${mode.label}'),
+          findsOneWidget,
+        );
+        expect(
+          find.bySemanticsLabel('Flag background: ${mode.label}'),
+          findsOneWidget,
+        );
+      }
+
+      await tapAndExpect(LearnerFlagBackgroundMode.off);
+      await tapAndExpect(LearnerFlagBackgroundMode.extended);
+      await tapAndExpect(LearnerFlagBackgroundMode.small);
+    },
+  );
+
+  testWidgets(
+    'theme utility cycles Default, Light, Dark and immediately applies each mode',
+    (tester) async {
+      final dispatcher = tester.binding.platformDispatcher;
+      dispatcher.platformBrightnessTestValue = Brightness.light;
+      addTearDown(dispatcher.clearPlatformBrightnessTestValue);
+      final profiles = ProfileService();
+      await profiles.addProfile('Theme Learner');
+
+      await tester.pumpWidget(
+        QuisquisLingoApp(
+          profileService: profiles,
+          home: Scaffold(
+            body: LearnerBottomActions(
+              profileService: profiles,
+              onProfile: () {},
+              onReview: () {},
+              onCourseInfo: () {},
+            ),
+          ),
+        ),
+      );
+      await _pumpFrames(tester);
+
+      MaterialApp app() => tester.widget<MaterialApp>(find.byType(MaterialApp));
+      LearnerThemeMode scopedMode() => tester
+          .widget<LearnerThemeModeScope>(find.byType(LearnerThemeModeScope))
+          .mode;
+      final control = find.byKey(const Key('learner-bottom-theme'));
+
+      expect(app().themeMode, ThemeMode.system);
+      expect(scopedMode(), LearnerThemeMode.defaultMode);
+      expect(find.byIcon(Icons.brightness_auto_outlined), findsOneWidget);
+
+      Future<void> tapAndExpect({
+        required LearnerThemeMode mode,
+        required ThemeMode materialMode,
+        required IconData icon,
+      }) async {
+        await tester.tap(control);
+        await _pumpFrames(tester);
+        expect(await profiles.getThemeMode(), mode);
+        expect(app().themeMode, materialMode);
+        expect(scopedMode(), mode);
+        expect(find.byTooltip('Theme: ${mode.label}'), findsOneWidget);
+        expect(find.bySemanticsLabel('Theme: ${mode.label}'), findsOneWidget);
+        expect(find.byIcon(icon), findsOneWidget);
+      }
+
+      await tapAndExpect(
+        mode: LearnerThemeMode.light,
+        materialMode: ThemeMode.light,
+        icon: Icons.light_mode_outlined,
+      );
+      await tapAndExpect(
+        mode: LearnerThemeMode.dark,
+        materialMode: ThemeMode.dark,
+        icon: Icons.dark_mode_outlined,
+      );
+      expect(Theme.of(tester.element(control)).brightness, Brightness.dark);
+      await tapAndExpect(
+        mode: LearnerThemeMode.defaultMode,
+        materialMode: ThemeMode.system,
+        icon: Icons.brightness_auto_outlined,
+      );
+      await tapAndExpect(
+        mode: LearnerThemeMode.light,
+        materialMode: ThemeMode.light,
+        icon: Icons.light_mode_outlined,
+      );
+    },
+  );
+
+  testWidgets(
+    'active learner immediately restores theme and no learner falls back to Default',
+    (tester) async {
+      final profiles = ProfileService();
+      await profiles.addProfile('Dark Learner');
+      await profiles.setThemeMode(LearnerThemeMode.dark);
+      await profiles.addProfile('Light Learner');
+      await profiles.setThemeMode(LearnerThemeMode.light);
+
+      Widget app() => QuisquisLingoApp(
+        profileService: profiles,
+        home: Scaffold(
+          body: LearnerBottomActions(
+            profileService: profiles,
+            onProfile: () {},
+            onReview: () {},
+            onCourseInfo: () {},
+          ),
+        ),
+      );
+
+      await tester.pumpWidget(app());
+      await _pumpFrames(tester);
+      expect(
+        tester.widget<MaterialApp>(find.byType(MaterialApp)).themeMode,
+        ThemeMode.light,
+      );
+      expect(find.byTooltip('Theme: Light'), findsOneWidget);
+
+      await profiles.setActiveProfile('Dark Learner');
+      await _pumpFrames(tester);
+      expect(
+        tester.widget<MaterialApp>(find.byType(MaterialApp)).themeMode,
+        ThemeMode.dark,
+      );
+      expect(find.byTooltip('Theme: Dark'), findsOneWidget);
+
+      await profiles.clearActiveProfile();
+      await _pumpFrames(tester);
+      expect(
+        tester.widget<MaterialApp>(find.byType(MaterialApp)).themeMode,
+        ThemeMode.system,
+      );
+      expect(
+        tester
+            .widget<LearnerThemeModeScope>(find.byType(LearnerThemeModeScope))
+            .mode,
+        LearnerThemeMode.defaultMode,
+      );
+      expect(find.byTooltip('Theme: Default'), findsOneWidget);
+      await tester.tap(find.byKey(const Key('learner-bottom-theme')));
+      await _pumpFrames(tester);
+      expect(
+        tester.widget<MaterialApp>(find.byType(MaterialApp)).themeMode,
+        ThemeMode.system,
+      );
+      expect(find.byTooltip('Theme: Default'), findsOneWidget);
+
+      await profiles.setActiveProfile('Dark Learner');
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pumpWidget(app());
+      await _pumpFrames(tester);
+      expect(
+        tester.widget<MaterialApp>(find.byType(MaterialApp)).themeMode,
+        ThemeMode.dark,
+      );
     },
   );
 
@@ -193,7 +483,7 @@ void main() {
     },
   );
 
-  testWidgets('three bottom actions remain balanced at required phone widths', (
+  testWidgets('bottom actions and theme utility fit required phone widths', (
     tester,
   ) async {
     await ProfileService().addProfile('Responsive Learner');
@@ -225,8 +515,31 @@ void main() {
         final actions = tester.getRect(
           find.byKey(const Key('learner-bottom-actions')),
         );
+        final themeControl = tester.getRect(
+          find.byKey(const Key('learner-bottom-theme')),
+        );
+        final flagControl = tester.getRect(
+          find.byKey(const Key('learner-bottom-flag-background')),
+        );
+        final profile = tester.getRect(
+          find.byKey(const Key('learner-bottom-profile')),
+        );
+        final review = tester.getRect(
+          find.byKey(const Key('learner-bottom-review')),
+        );
+        final courseInfo = tester.getRect(
+          find.byKey(const Key('learner-bottom-course-info')),
+        );
         expect(actions.left, greaterThanOrEqualTo(0));
         expect(actions.right, lessThanOrEqualTo(width));
+        expect(flagControl.right, lessThanOrEqualTo(actions.right));
+        expect(themeControl.left, greaterThan(courseInfo.right));
+        expect(flagControl.left, greaterThan(themeControl.right));
+        expect(themeControl.size, const Size(40, 40));
+        expect(flagControl.size, const Size(40, 40));
+        expect(profile.width, greaterThan(themeControl.width));
+        expect(review.width, greaterThan(themeControl.width));
+        expect(courseInfo.width, greaterThan(themeControl.width));
         heights.add(actions.height);
         expect(tester.takeException(), isNull);
       }
