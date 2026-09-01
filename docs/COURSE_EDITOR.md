@@ -1,6 +1,6 @@
 # QuisquisLingo Course Editor
 
-Updated for current Course Model v4 editor (2.0.19+219)
+Updated for current Course Model v4 editor (2.0.20+220)
 
 ## Unlocking the editor
 
@@ -179,7 +179,7 @@ An author can have multiple roles. Course Creator means original creation/design
 
 ## Alpha expiry and authoring
 
-The current time-limited alpha expires on 2026-09-30. Expiry blocks learner exercises and Review but deliberately leaves Course Editor available so authoring work can be inspected, recovered and exported. Expiry never deletes local data.
+The current time-limited alpha expires on 2026-10-01. Expiry blocks learner exercises and Review but deliberately leaves Course Editor available so authoring work can be inspected, recovered and exported. Expiry never deletes local data.
 
 
 ## Current bundled course and My custom courses

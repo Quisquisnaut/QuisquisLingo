@@ -1,6 +1,16 @@
 import 'package:shared_preferences/shared_preferences.dart';
 import 'learner_status_events.dart';
 
+class ProfileAvatarAppearance {
+  final String skinTone;
+  final String hairTone;
+
+  const ProfileAvatarAppearance({
+    required this.skinTone,
+    required this.hairTone,
+  });
+}
+
 /// Manages local learner profiles and appearance preferences.
 ///
 /// Avatar skin/hair choices belong to the local profile and describe only the
@@ -19,11 +29,23 @@ class ProfileService {
     final profiles = p.getStringList(_profilesKey) ?? [];
     final active = p.getString(_activeKey);
     if (active != null && profiles.contains(active)) return active;
-    if (profiles.isNotEmpty) {
-      await p.setString(_activeKey, profiles.first);
-      return profiles.first;
-    }
     return null;
+  }
+
+  Future<ProfileAvatarAppearance?> getAvatarAppearanceForProfile(
+    String profileName,
+  ) async {
+    final p = await SharedPreferences.getInstance();
+    final profiles = p.getStringList(_profilesKey) ?? [];
+    if (!profiles.contains(profileName)) return null;
+    final prefix = 'learner_${Uri.encodeComponent(profileName)}_';
+    final skinTone = p.getString('${prefix}skin_tone');
+    final hairTone = p.getString('${prefix}hair_tone');
+    if (!const {'light', 'medium', 'dark'}.contains(skinTone) ||
+        !const {'light', 'dark'}.contains(hairTone)) {
+      return null;
+    }
+    return ProfileAvatarAppearance(skinTone: skinTone!, hairTone: hairTone!);
   }
 
   Future<void> addProfile(
@@ -57,6 +79,12 @@ class ProfileService {
       throw ArgumentError.value(name, 'name', 'Unknown learner profile');
     }
     await p.setString(_activeKey, name);
+    LearnerStatusEvents.publish(LearnerStatusInvalidation.activeProfile);
+  }
+
+  Future<void> clearActiveProfile() async {
+    final p = await SharedPreferences.getInstance();
+    await p.remove(_activeKey);
     LearnerStatusEvents.publish(LearnerStatusInvalidation.activeProfile);
   }
 
@@ -98,6 +126,7 @@ class ProfileService {
       throw ArgumentError('Invalid skin tone');
     final p = await SharedPreferences.getInstance();
     await p.setString(await key('skin_tone'), value);
+    LearnerStatusEvents.publish(LearnerStatusInvalidation.avatar);
   }
 
   Future<String> getHairTone() async {
@@ -111,5 +140,6 @@ class ProfileService {
       throw ArgumentError('Invalid hair tone');
     final p = await SharedPreferences.getInstance();
     await p.setString(await key('hair_tone'), value);
+    LearnerStatusEvents.publish(LearnerStatusInvalidation.avatar);
   }
 }

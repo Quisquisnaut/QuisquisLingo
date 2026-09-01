@@ -6,9 +6,11 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:quisquislingo_app/models/course_models.dart';
-import 'package:quisquislingo_app/screens/gamification_settings_screen.dart';
+import 'package:quisquislingo_app/screens/course_info_screen.dart';
 import 'package:quisquislingo_app/screens/home_screen.dart';
 import 'package:quisquislingo_app/screens/info_screen.dart';
+import 'package:quisquislingo_app/screens/profile_screen.dart';
+import 'package:quisquislingo_app/screens/review_screen.dart';
 import 'package:quisquislingo_app/screens/round_screen.dart';
 import 'package:quisquislingo_app/screens/settings_screen.dart';
 import 'package:quisquislingo_app/services/course_editor_service.dart';
@@ -56,12 +58,12 @@ void main() {
     PackageInfo.setMockInitialValues(
       appName: 'QuisquisLingo',
       packageName: 'com.quisquislingo.app',
-      version: '2.0.19',
-      buildNumber: '219',
+      version: '2.0.20',
+      buildNumber: '220',
       buildSignature: '',
     );
     SharedPreferences.setMockInitialValues({
-      'one_time_notice_seen_welcome_2.0.19': true,
+      'one_time_notice_seen_welcome_2.0.20': true,
       'sound_effects_enabled': false,
     });
     await ProfileService().addProfile('Navigation Learner');
@@ -612,27 +614,56 @@ void main() {
     },
   );
 
-  testWidgets('Home Leaderboard opens Gamification and back returns Home', (
+  testWidgets('Home Profile opens Profile and back returns Home', (
     tester,
   ) async {
     await _openHome(tester);
 
     final semantics = tester.ensureSemantics();
     expect(find.text('Leaderboard'), findsNothing);
-    expect(find.bySemanticsLabel('Leaderboard'), findsOneWidget);
-    expect(find.byIcon(Icons.emoji_events_outlined), findsOneWidget);
+    expect(find.bySemanticsLabel('Leaderboard'), findsNothing);
+    expect(
+      find.bySemanticsLabel('Profile, Navigation Learner'),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const Key('learner-bottom-profile-avatar')),
+      findsOneWidget,
+    );
 
-    await tester.tap(find.bySemanticsLabel('Leaderboard'));
-    await _pumpUntil(tester, find.byType(GamificationSettingsScreen));
+    await tester.tap(find.byKey(const Key('learner-bottom-profile')));
+    await _pumpUntil(tester, find.byType(ProfileScreen));
     await _pumpFrames(tester);
-    expect(find.text('Gamification'), findsOneWidget);
+    expect(find.text('Profile'), findsOneWidget);
 
     await tester.pageBack();
     await _pumpFrames(tester);
-    await _pumpUntil(tester, find.bySemanticsLabel('Leaderboard'));
+    await _pumpUntil(
+      tester,
+      find.bySemanticsLabel('Profile, Navigation Learner'),
+    );
     expect(find.byType(HomeScreen), findsOneWidget);
-    expect(find.byType(GamificationSettingsScreen), findsNothing);
+    expect(find.byType(ProfileScreen), findsNothing);
     semantics.dispose();
+  });
+
+  testWidgets('Home Review and Course Info destinations remain unchanged', (
+    tester,
+  ) async {
+    await _openHome(tester);
+
+    await tester.tap(find.byKey(const Key('learner-bottom-review')));
+    await _pumpUntil(tester, find.byType(ReviewScreen));
+    expect(find.text('Review'), findsOneWidget);
+    await tester.pageBack();
+    await _pumpFrames(tester);
+
+    await tester.tap(find.byKey(const Key('learner-bottom-course-info')));
+    await _pumpUntil(tester, find.byType(CourseInfoScreen));
+    expect(find.text('Course Info'), findsOneWidget);
+    await tester.pageBack();
+    await _pumpFrames(tester);
+    expect(find.byType(HomeScreen), findsOneWidget);
   });
 
   testWidgets(
@@ -658,12 +689,11 @@ void main() {
       expect(courseSelector, findsOneWidget);
       expect(lessonSelector, findsOneWidget);
       expect(controls, findsOneWidget);
-      for (final label in [
-        'Leaderboard',
-        'Review',
-        'Buy a coffee',
-        'Course Info',
-      ]) {
+      expect(
+        find.bySemanticsLabel('Profile, Navigation Learner'),
+        findsOneWidget,
+      );
+      for (final label in ['Review', 'Course Info']) {
         expect(find.text(label), findsNothing);
         final control = find.bySemanticsLabel(label);
         expect(control, findsOneWidget);
@@ -675,10 +705,11 @@ void main() {
           isTrue,
         );
       }
+      expect(find.bySemanticsLabel('Leaderboard'), findsNothing);
+      expect(find.bySemanticsLabel('Buy a coffee'), findsNothing);
       final controlIcons = [
-        find.byIcon(Icons.emoji_events_outlined),
+        find.byKey(const Key('learner-bottom-profile-avatar')),
         find.byIcon(Icons.history_edu_outlined),
-        find.byIcon(Icons.coffee_outlined),
         find.byIcon(Icons.info_outline),
       ];
       for (final icon in controlIcons) {
@@ -773,7 +804,7 @@ void main() {
     },
   );
 
-  testWidgets('Settings exposes the existing learner management action', (
+  testWidgets('Settings exposes Profile as the learner identity entry point', (
     tester,
   ) async {
     await _openHome(tester, scrollToActions: false, includeLearnerShell: true);
@@ -782,12 +813,54 @@ void main() {
     await tester.tap(find.byTooltip('Settings'));
     await _pumpUntil(tester, find.byType(SettingsScreen));
     await _pumpFrames(tester);
+    expect(find.widgetWithText(ListTile, 'Profile'), findsOneWidget);
+    expect(find.widgetWithText(ListTile, 'Avatar'), findsNothing);
+    expect(find.widgetWithText(ListTile, 'Learner profiles'), findsNothing);
+    await tester.tap(find.widgetWithText(ListTile, 'Profile'));
+    await _pumpUntil(tester, find.byType(ProfileScreen));
     await tester.tap(find.widgetWithText(ListTile, 'Learner profiles'));
     await tester.pumpAndSettle();
 
     expect(find.text('Learners'), findsOneWidget);
     expect(find.text('Navigation Learner'), findsWidgets);
     expect(find.text('Add learner'), findsOneWidget);
+  });
+
+  testWidgets('Profile logout returns Home to learner selection', (
+    tester,
+  ) async {
+    await _openHome(tester);
+
+    await tester.tap(find.byKey(const Key('learner-bottom-profile')));
+    await _pumpUntil(tester, find.byType(ProfileScreen));
+    await tester.drag(
+      find.descendant(
+        of: find.byType(ProfileScreen),
+        matching: find.byType(ListView),
+      ),
+      const Offset(0, -260),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('profile-logout')));
+    await _pumpUntil(tester, find.text('Log out of this local profile?'));
+    await tester.tap(find.widgetWithText(FilledButton, 'Log out'));
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 300)),
+    );
+    await _pumpUntil(tester, find.text('Learners'));
+    await _pumpFrames(tester);
+
+    expect(find.text('Navigation Learner'), findsOneWidget);
+    expect(find.text('Add learner'), findsOneWidget);
+    expect(await ProfileService().getActiveProfile(), isNull);
+
+    await tester.tap(find.text('Navigation Learner'));
+    await _pumpFrames(tester);
+    await _pumpUntil(
+      tester,
+      find.bySemanticsLabel('Profile, Navigation Learner'),
+    );
+    expect(await ProfileService().getActiveProfile(), 'Navigation Learner');
   });
 
   testWidgets('Top Bar cat logo opens the existing App Info screen', (
@@ -1195,7 +1268,7 @@ void main() {
       final phrase = dialogTexts.singleWhere(
         (text) =>
             text.data != 'Welcome to QuisquisLingo' &&
-            text.data != 'Version 2.0.19' &&
+            text.data != 'Version 2.0.20' &&
             text.data != 'Continue',
       );
       final welcomeDialog = tester.widget<AlertDialog>(
@@ -1208,7 +1281,7 @@ void main() {
         const Color(0xFF0756DF),
       );
       expect(
-        tester.widget<Text>(find.text('Version 2.0.19')).style?.color,
+        tester.widget<Text>(find.text('Version 2.0.20')).style?.color,
         const Color(0xFF0756DF),
       );
       expect(phrase.style?.color, const Color(0xFF0756DF));
@@ -1226,7 +1299,7 @@ void main() {
       late bool welcomeSeen;
       await tester.runAsync(() async {
         welcomeSeen = await SettingsService().hasSeenOneTimeNotice(
-          'welcome_2.0.19',
+          'welcome_2.0.20',
         );
       });
       expect(welcomeSeen, isTrue);
@@ -1234,7 +1307,7 @@ void main() {
       final alphaDialog = tester.widget<AlertDialog>(find.byType(AlertDialog));
       expect(alphaDialog.backgroundColor, isNull);
       expect(alphaDialog.surfaceTintColor, isNull);
-      expect(find.textContaining('Expiry date: 2026-09-30.'), findsOneWidget);
+      expect(find.textContaining('Expiry date: 2026-10-01.'), findsOneWidget);
       expect(find.widgetWithText(FilledButton, 'OK'), findsOneWidget);
       expect(
         tester

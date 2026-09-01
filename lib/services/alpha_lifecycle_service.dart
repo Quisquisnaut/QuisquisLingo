@@ -5,8 +5,8 @@
 /// a future stable build by setting [isAlphaBuild] to false.
 class AlphaLifecycleService {
   static const bool isAlphaBuild = true;
-  // Thirty days from the 2026-08-31 build 219 release date.
-  static final DateTime expiryDate = DateTime(2026, 9, 30, 23, 59, 59);
+  // Thirty days from the 2026-09-01 build 220 release date.
+  static final DateTime expiryDate = DateTime(2026, 10, 1, 23, 59, 59);
 
   static DateTime _day(DateTime value) =>
       DateTime(value.year, value.month, value.day);

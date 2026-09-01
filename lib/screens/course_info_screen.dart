@@ -1,12 +1,40 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../models/course_models.dart';
 import '../widgets/learner_shell.dart';
 
 class CourseInfoScreen extends StatelessWidget {
   final Course course;
+  final Future<bool> Function(Uri uri)? launchExternal;
 
-  const CourseInfoScreen({super.key, required this.course});
+  const CourseInfoScreen({
+    super.key,
+    required this.course,
+    this.launchExternal,
+  });
+
+  Future<void> _buyCoffee(BuildContext context) async {
+    final uri = Uri.tryParse(course.supportUrl.trim());
+    if (uri == null || uri.scheme != 'https') {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('This course does not provide an author support link.'),
+        ),
+      );
+      return;
+    }
+    final opened = launchExternal == null
+        ? await launchUrl(uri, mode: LaunchMode.externalApplication)
+        : await launchExternal!(uri);
+    if (!opened && context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('The author support link could not open.'),
+        ),
+      );
+    }
+  }
 
   String get _authors {
     if (course.authors.isNotEmpty) {
@@ -62,6 +90,16 @@ class CourseInfoScreen extends StatelessWidget {
               title: 'Support the authors',
               body: course.supportUrl.trim(),
             ),
+          const Divider(height: 24),
+          ListTile(
+            key: const Key('course-info-buy-coffee'),
+            contentPadding: EdgeInsets.zero,
+            leading: const Icon(Icons.coffee_outlined),
+            title: const Text('Buy a coffee'),
+            subtitle: const Text('Support this course\'s authors.'),
+            trailing: const Icon(Icons.open_in_new),
+            onTap: () => _buyCoffee(context),
+          ),
         ],
       ),
     ),

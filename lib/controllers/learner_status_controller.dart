@@ -86,6 +86,12 @@ class LearnerStatusController extends ChangeNotifier
   Future<void> refresh() async {
     final generation = ++_generation;
     final profile = await _profiles.getActiveProfile();
+    if (profile == null) {
+      if (_disposed || generation != _generation) return;
+      _state = const LearnerStatusState.loading();
+      notifyListeners();
+      return;
+    }
     final course = await _resolveActiveCourse();
     final courseCode = course == null
         ? null

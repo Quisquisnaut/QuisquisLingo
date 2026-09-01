@@ -9,8 +9,8 @@ import 'course_projects_screen.dart';
 import 'tts_settings_screen.dart';
 import 'do_not_disturb_settings_screen.dart';
 import 'user_data_settings_screen.dart';
-import 'avatar_settings_screen.dart';
 import 'info_screen.dart';
+import 'profile_screen.dart';
 import 'update_settings_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -141,28 +141,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
               children: [
                 ListTile(
                   leading: const Icon(Icons.people_outline),
-                  title: const Text('Learner profiles'),
+                  title: const Text('Profile'),
                   subtitle: const Text(
-                    'Switch, add or delete learner profiles.',
+                    'Learner identity, avatar, profiles and gamification.',
                   ),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () async {
-                    await widget.onManageLearners(context);
+                    await Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => ProfileScreen(
+                          onManageLearners: widget.onManageLearners,
+                        ),
+                      ),
+                    );
                     if (mounted) await _load();
                   },
-                ),
-                ListTile(
-                  leading: const Icon(Icons.face_retouching_natural_outlined),
-                  title: const Text('Avatar'),
-                  subtitle: const Text(
-                    'Avatar skin color and hair color for the active learner profile.',
-                  ),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => const AvatarSettingsScreen(),
-                    ),
-                  ),
                 ),
                 const Divider(),
                 ListTile(

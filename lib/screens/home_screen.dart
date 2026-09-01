@@ -5,7 +5,6 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../controllers/learner_status_controller.dart';
 import '../services/settings_service.dart';
 import '../models/course_models.dart';
@@ -14,7 +13,6 @@ import '../services/course_editor_service.dart';
 import '../services/duel_eligibility_service.dart';
 import '../services/progress_service.dart';
 import '../services/profile_service.dart';
-import '../services/status_service.dart';
 import '../services/topic_unlock_service.dart';
 import '../services/alpha_lifecycle_service.dart';
 import '../services/app_errors.dart';
@@ -25,11 +23,13 @@ import 'settings_screen.dart';
 import 'review_screen.dart';
 import 'course_info_screen.dart';
 import 'duel_screen.dart';
-import 'gamification_settings_screen.dart';
 import 'guidebook_screen.dart';
 import 'info_screen.dart';
+import 'profile_screen.dart';
 import 'round_screen.dart';
 import '../widgets/flag_art.dart';
+import '../widgets/learner_avatar.dart';
+import '../widgets/learner_bottom_actions.dart';
 import '../widgets/learner_shell.dart';
 import '../widgets/unified_learner_top_bar.dart';
 
@@ -106,6 +106,7 @@ class _HomeScreenState extends State<HomeScreen> {
   ];
   String? _activeLearner;
   bool _addingLearner = false;
+  bool _learnerFlowOpen = false;
   List<String> _learners = [];
   Course? _course;
   Set<String> _completedRounds = {};
@@ -482,9 +483,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: SizedBox(
                     width: 72,
                     height: 82,
-                    child: CustomPaint(
-                      painter: _StatusAvatarPainter(0, skin, hair),
-                    ),
+                    child: LearnerAvatar(skinTone: skin, hairTone: hair),
                   ),
                 ),
               ],
@@ -615,6 +614,21 @@ class _HomeScreenState extends State<HomeScreen> {
     }
     if (action.startsWith('delete:')) {
       await _deleteLearner(action.substring(7), overlayContext);
+    }
+  }
+
+  Future<void> _showInitialLearnerFlow(BuildContext overlayContext) async {
+    if (_learnerFlowOpen) return;
+    _learnerFlowOpen = true;
+    try {
+      if (_learners.isEmpty) {
+        await _addLearner(overlayContext);
+      } else {
+        await _showLearners(overlayContext);
+      }
+    } finally {
+      _learnerFlowOpen = false;
+      if (mounted) setState(() {});
     }
   }
 
@@ -1040,27 +1054,6 @@ class _HomeScreenState extends State<HomeScreen> {
     await _reload();
   }
 
-  Future<void> _buyCoffee(Course course) async {
-    final uri = Uri.tryParse(course.supportUrl.trim());
-    if (uri == null || uri.scheme != 'https') {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('This course does not provide an author support link.'),
-        ),
-      );
-      return;
-    }
-    final opened = await launchUrl(uri, mode: LaunchMode.externalApplication);
-    if (!opened && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('The author support link could not open.'),
-        ),
-      );
-    }
-  }
-
   Future<void> _openReview(Course course) async {
     if (AlphaLifecycleService.isExpired()) {
       await _showExpiredLearnerNotice();
@@ -1104,13 +1097,14 @@ class _HomeScreenState extends State<HomeScreen> {
       data: learnerTheme,
       child: Builder(
         builder: (learnerContext) {
-          if (_activeLearner == null && !_addingLearner) {
+          if (_activeLearner == null && !_addingLearner && !_learnerFlowOpen) {
             WidgetsBinding.instance.addPostFrameCallback((_) {
               if (mounted &&
                   learnerContext.mounted &&
                   _activeLearner == null &&
-                  !_addingLearner) {
-                _addLearner(learnerContext);
+                  !_addingLearner &&
+                  !_learnerFlowOpen) {
+                _showInitialLearnerFlow(learnerContext);
               }
             });
           }
@@ -1293,19 +1287,19 @@ class _HomeScreenState extends State<HomeScreen> {
                     bottom: 12,
                     child: SafeArea(
                       top: false,
-                      child: _QuickActions(
+                      child: LearnerBottomActions(
                         key: const Key('unified-bottom-controls'),
-                        onLeaderboard: () async {
+                        onProfile: () async {
                           await Navigator.of(context).push(
                             MaterialPageRoute(
-                              builder: (_) =>
-                                  const GamificationSettingsScreen(),
+                              builder: (_) => ProfileScreen(
+                                onManageLearners: _showLearners,
+                              ),
                             ),
                           );
                           await _reload();
                         },
                         onReview: () => _openReview(course),
-                        onCoffee: () => _buyCoffee(course),
                         onCourseInfo: () => Navigator.of(context).push(
                           MaterialPageRoute(
                             builder: (_) => CourseInfoScreen(course: course),
@@ -2342,178 +2336,4 @@ class _FlagBackdropText extends StatelessWidget {
       ],
     );
   }
-}
-
-class _QuickActions extends StatelessWidget {
-  final VoidCallback onLeaderboard, onReview, onCoffee, onCourseInfo;
-  const _QuickActions({
-    super.key,
-    required this.onLeaderboard,
-    required this.onReview,
-    required this.onCoffee,
-    required this.onCourseInfo,
-  });
-  @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.all(12),
-    child: Row(
-      children: [
-        Expanded(
-          child: _QuickAction(
-            icon: Icons.emoji_events_outlined,
-            label: 'Leaderboard',
-            onTap: onLeaderboard,
-          ),
-        ),
-        const SizedBox(width: 6),
-        Expanded(
-          child: _QuickAction(
-            icon: Icons.history_edu_outlined,
-            label: 'Review',
-            onTap: onReview,
-          ),
-        ),
-        const SizedBox(width: 6),
-        Expanded(
-          child: _QuickAction(
-            icon: Icons.coffee_outlined,
-            label: 'Buy a coffee',
-            onTap: onCoffee,
-          ),
-        ),
-        const SizedBox(width: 6),
-        Expanded(
-          child: _QuickAction(
-            icon: Icons.info_outline,
-            label: 'Course Info',
-            onTap: onCourseInfo,
-          ),
-        ),
-      ],
-    ),
-  );
-}
-
-class _QuickAction extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final VoidCallback onTap;
-  const _QuickAction({
-    required this.icon,
-    required this.label,
-    required this.onTap,
-  });
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final colorScheme = Theme.of(context).colorScheme;
-    return Material(
-      color: isDark
-          ? colorScheme.surfaceContainerHighest.withValues(alpha: .72)
-          : Colors.white.withValues(alpha: .34),
-      borderRadius: BorderRadius.circular(18),
-      child: Semantics(
-        button: true,
-        label: label,
-        onTap: onTap,
-        excludeSemantics: true,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(18),
-          onTap: onTap,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 10),
-            child: Icon(
-              icon,
-              size: 24,
-              color: isDark ? const Color(0xFF9AD5B3) : const Color(0xFF3D704F),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// Small medieval avatar. One painter covers all Status ranks and the six profile
-/// appearance combinations, avoiding 60 near-identical bitmap assets.
-class _StatusAvatarPainter extends CustomPainter {
-  final int level;
-  final String skin, hair;
-  const _StatusAvatarPainter(this.level, this.skin, this.hair);
-  @override
-  void paint(Canvas c, Size s) {
-    final skinColor =
-        {
-          'light': const Color(0xFFF2C7A5),
-          'medium': const Color(0xFFC98D62),
-          'dark': const Color(0xFF7A4A31),
-        }[skin] ??
-        const Color(0xFFC98D62);
-    final hairColor = hair == 'light'
-        ? const Color(0xFFD6B56C)
-        : const Color(0xFF4A3428);
-    final robe = Paint()
-      ..color = Color.lerp(
-        const Color(0xFF718447),
-        const Color(0xFF5B477C),
-        level / (StatusService.names.length - 1),
-      )!;
-    final center = Offset(s.width / 2, s.height * .42);
-    c.drawCircle(center, s.width * .22, Paint()..color = skinColor);
-    c.drawArc(
-      Rect.fromCircle(center: center, radius: s.width * .23),
-      3.2,
-      3.0,
-      false,
-      Paint()
-        ..color = hairColor
-        ..strokeWidth = 8
-        ..style = PaintingStyle.stroke,
-    );
-    c.drawRRect(
-      RRect.fromRectAndRadius(
-        Rect.fromLTWH(
-          s.width * .22,
-          s.height * .58,
-          s.width * .56,
-          s.height * .34,
-        ),
-        const Radius.circular(14),
-      ),
-      robe,
-    );
-    if (level >= 2) {
-      c.drawLine(
-        Offset(s.width * .78, s.height * .44),
-        Offset(s.width * .84, s.height * .9),
-        Paint()
-          ..color = const Color(0xFF795548)
-          ..strokeWidth = 4,
-      );
-    }
-    if (level >= 4) {
-      c.drawPath(
-        Path()
-          ..moveTo(s.width * .30, s.height * .25)
-          ..lineTo(s.width * .50, s.height * .05)
-          ..lineTo(s.width * .70, s.height * .25)
-          ..close(),
-        Paint()
-          ..color = level >= 6
-              ? const Color(0xFF66528A)
-              : const Color(0xFF8B6B45),
-      );
-    }
-    if (level >= 8) {
-      c.drawCircle(
-        Offset(s.width * .50, s.height * .10),
-        5,
-        Paint()..color = const Color(0xFFD5A927),
-      );
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant _StatusAvatarPainter o) =>
-      o.level != level || o.skin != skin || o.hair != hair;
 }

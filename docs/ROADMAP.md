@@ -450,6 +450,20 @@ Avoid mandatory servers, artificial purchase economies, lives, or monetization-d
 
 ---
 
+# 2.0.20+220
+## Profile navigation and learner bottom area
+
+- [x] Make Profile the central learner identity and personalization page with the active avatar and learner name.
+- [x] Route Avatar, learner-profile management and Gamification through Profile with natural back navigation.
+- [x] Replace the learner-bottom Leaderboard action with the active learner Profile representation.
+- [x] Keep exactly Profile, Review and Course Info in the fixed learner bottom area.
+- [x] Move Buy a coffee into Course Info without changing its external support behavior.
+- [x] Replace direct Settings Avatar and Learner profiles entries with one Profile entry.
+- [x] Add confirmed local-only logout that clears only the active-profile reference and returns to learner selection/create.
+- [x] Preserve the build-219 Round path, Review, Duel, XP, course model and learner persistence formats.
+
+---
+
 # 2.0.18+218
 ## Unified learner Top Bar
 

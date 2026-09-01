@@ -1,13 +1,13 @@
 # QuisquisLingo App
 
-**Current source version: 2.0.19+219 · Course Model v4 (`formatVersion: 4`).**
+**Current source version: 2.0.20+220 · Course Model v4 (`formatVersion: 4`).**
 
 
-**QuisquisLingo 2.0.19 Alpha**
+**QuisquisLingo 2.0.20 Alpha**
 
-Current project version: 2.0.19
+Current project version: 2.0.20
 
-Build 219 redesigns the Unified Learner Page's central Round path with smaller 75%-opaque deterministic left/right cards, occasional consecutive same-side Rounds, a curved connector and decode-validated `assets/mascots/` PNGs in a stable course-specific sequence that continues across Lessons. Completed Rounds use a bright yellow-orange icon; the existing perfect/Laurel state uses a distinct bright-green icon and a larger Laurel frame. GuideBook and Duel stay centered in a smaller form, and dark mode adds a subtle neutral veil over the course flag. The surrounding Top Bar, Lesson selector, continuous Lesson flow and fixed bottom controls remain unchanged. The official repository is `Quisquisnaut/QuisquisLingo`.
+Build 220 makes Profile the central learner-personalization hub for the active avatar and name, Avatar customization, local learner profiles and Gamification. The fixed learner bottom area now contains only Profile, Review and Course Info; Buy a coffee remains available inside Course Info. Local logout clears only the active-profile selection and returns to the stored learner selection/create flow without deleting any learner data. The build-219 Round path and all scoring, Review, Duel and course behavior remain unchanged. The official repository is `Quisquisnaut/QuisquisLingo`.
 
 
 A Flutter prototype for an offline-first language-learning app.
@@ -26,7 +26,7 @@ The MPL-2.0 covers the QuisquisLingo software source. Courses, the Image Bank an
 
 ## Alpha lifecycle
 
-Version 2.0.19 is a time-limited alpha and expires on **2026-09-30**. Near expiry it displays reminders. After expiry, learner exercises and Review are blocked until a newer alpha is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when an alpha expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM. Future stable builds can disable alpha expiry.
+Version 2.0.20 is a time-limited alpha and expires on **2026-10-01**. Near expiry it displays reminders. After expiry, learner exercises and Review are blocked until a newer alpha is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when an alpha expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM. Future stable builds can disable alpha expiry.
 
 ## Core logic
 

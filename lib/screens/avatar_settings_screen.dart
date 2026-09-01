@@ -2,14 +2,16 @@ import 'package:flutter/material.dart';
 import '../services/profile_service.dart';
 
 class AvatarSettingsScreen extends StatefulWidget {
-  const AvatarSettingsScreen({super.key});
+  final ProfileService? profileService;
+
+  const AvatarSettingsScreen({super.key, this.profileService});
 
   @override
   State<AvatarSettingsScreen> createState() => _AvatarSettingsScreenState();
 }
 
 class _AvatarSettingsScreenState extends State<AvatarSettingsScreen> {
-  final _profiles = ProfileService();
+  late final ProfileService _profiles;
   bool _loading = true;
   String _skinTone = 'medium';
   String _hairTone = 'dark';
@@ -17,6 +19,7 @@ class _AvatarSettingsScreenState extends State<AvatarSettingsScreen> {
   @override
   void initState() {
     super.initState();
+    _profiles = widget.profileService ?? ProfileService();
     _load();
   }
 

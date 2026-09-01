@@ -32,6 +32,7 @@ These are persistent instructions for Codex when working on QuisquisLingo.
 - `2.0.17+217` keeps the approved fixed Learner Header and bottom controls while making the central learner content a continuous lazy flow from the selected Lesson through the remaining Lessons in course order, with direct selector jumps, stable scroll-driven selector synchronization and unchanged lock/Duel rules.
 - `2.0.18+218` replaces the separate learner User Bar and Status Bar with one theme-aware unified Top Bar ordered as compact Language/Course flag selector, one-line Streak, vertical Laurel progress, vertical Weekly XP, clickable cat mark and Settings; learner-profile management moves to Settings, the cat opens App Info, and the Lesson selector, full-size course picker, continuous Lesson flow and bottom controls remain preserved.
 - `2.0.19+219` redesigns the central learner Round path with smaller deterministic left/right cards, intermittent opposite-side QuisquisLingo mascots in a stable course-specific order, a following connector and persisted completed-Round icon accents while preserving surrounding learner behavior.
+- `2.0.20+220` centralizes local learner identity, avatar, profile management and Gamification behind Profile, simplifies the learner bottom area to Profile, Review and Course Info, moves Buy a coffee into Course Info, and adds non-destructive local logout.
 
 ## Architecture and service boundaries
 

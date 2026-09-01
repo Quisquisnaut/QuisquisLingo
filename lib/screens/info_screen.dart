@@ -45,7 +45,7 @@ class InfoScreen extends StatelessWidget {
         _InfoSection(
           title: 'Progress, Week XP and Gamification',
           body:
-              'Language XP, streak, total study days and Status are stored separately for each learner and target language. Completed Rounds and laurel crowns are stored separately for each learner and Course ID. Week XP is different: it is the total XP earned by that learner across all courses during the current week. Home > Leaderboard opens Gamification, which contains Weekly XP Target · All courses, Last Week XP · All courses and the Local leaderboard · All courses. Last Week XP refers to the previous completed week; tap your own Last Week XP to see the XP breakdown for each course. The local leaderboard ranks participating learner profiles on this device by their total XP across all courses during that same completed week. Participation can be turned off without deleting the learner’s XP history.',
+              'Language XP, streak, total study days and Status are stored separately for each learner and target language. Completed Rounds and laurel crowns are stored separately for each learner and Course ID. Week XP is different: it is the total XP earned by that learner across all courses during the current week. Profile > Gamification contains Weekly XP Target · All courses, Last Week XP · All courses and the Local leaderboard · All courses. Last Week XP refers to the previous completed week; tap your own Last Week XP to see the XP breakdown for each course. The local leaderboard ranks participating learner profiles on this device by their total XP across all courses during that same completed week. Participation can be turned off without deleting the learner’s XP history.',
         ),
         _InfoSection(
           title: 'Streak and the freeze rule',
@@ -81,7 +81,7 @@ class InfoScreen extends StatelessWidget {
         _InfoSection(
           title: 'Avatar appearance',
           body:
-              'Settings > Avatar contains Avatar skin color and Avatar hair color. These controls customize only the profile avatar. They do not describe the learner. The same avatar appearance is used across languages, while Status itself changes by language.',
+              'Profile > Avatar contains Avatar skin color and Avatar hair color. These controls customize only the profile avatar. They do not describe the learner. The same avatar appearance is used across languages, while Status itself changes by language.',
         ),
         _InfoSection(
           title: 'Review',

@@ -1,3 +1,14 @@
+# 2.0.20 (build 220) - 2026-09-01
+
+- Replaced the fixed learner-bottom Leaderboard action with Profile, rendered from the active learner's existing avatar appearance with name and standard-person fallbacks, full-name tooltip and Profile-aware accessibility semantics.
+- Simplified the fixed learner bottom area to exactly Profile, Review and Course Info with the existing 68 px height, responsive spacing and unchanged Review/Course Info destinations.
+- Added a central Profile page with the larger active learner avatar/name and links to Avatar customization, local learner-profile management and Gamification, all returning naturally to Profile.
+- Replaced the direct Settings Avatar and Learner profiles entries with one Profile entry.
+- Added confirmed local-only logout that removes only the `active_learner` selection, preserves profiles, avatar, progress, XP, streaks and course data, and returns to the existing learner selection/create flow.
+- Moved Buy a coffee from the learner bottom area into the lower support area of Course Info while preserving HTTPS validation, external launching and existing failure messages.
+- Preserved the build-219 Round path, mascots, connector, Laurel/completion accents, GuideBook/Duel presentation, XP, Review, Duel, TTS and Course Model v4 behavior.
+- Refreshed the 30-day Alpha lifetime through the end of **2026-10-01**.
+
 # 2.0.19 (build 219) - 2026-08-31
 
 - Replaced the Unified Learner Page's large regular Round grid with smaller side-aligned cards following a deterministic balanced path that includes occasional consecutive same-side Rounds and consistent vertical whitespace.
