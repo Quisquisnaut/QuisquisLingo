@@ -160,25 +160,28 @@ void main() {
       'e.png',
       'f.png',
     ];
-    final topics = List.generate(
+    final lessons = List.generate(
       9,
-      (index) =>
-          Topic(id: 'lesson-$index', title: 'Lesson $index', rounds: rounds(2)),
+      (index) => Lesson(
+        lessonId: 'lesson-$index',
+        title: 'Lesson $index',
+        rounds: rounds(2),
+      ),
     );
     final order = learnerCourseMascotOrder('sample_it_en_it', assets);
     final selected = <String>[];
-    for (var lessonIndex = 0; lessonIndex < topics.length; lessonIndex++) {
+    for (var lessonIndex = 0; lessonIndex < lessons.length; lessonIndex++) {
       final roundOffset = learnerRoundPositionOffsetForLesson(
-        topics,
+        lessons,
         lessonIndex,
       );
       var mascotPosition = learnerMascotPositionOffsetForLesson(
-        topics,
+        lessons,
         lessonIndex,
       );
       for (
         var roundIndex = 0;
-        roundIndex < topics[lessonIndex].rounds.length;
+        roundIndex < lessons[lessonIndex].rounds.length;
         roundIndex++
       ) {
         if (learnerRoundPathShowsMascot(
@@ -256,10 +259,10 @@ void main() {
       'e.png',
       'f.png',
     ];
-    final topics = List.generate(
+    final lessons = List.generate(
       9,
-      (index) => Topic(
-        id: 'lesson-$index',
+      (index) => Lesson(
+        lessonId: 'lesson-$index',
         title: 'Lesson $index',
         rounds: [
           LearningRound(id: 'lesson-$index-round-1', title: 'Round 1'),
@@ -275,25 +278,25 @@ void main() {
               children: [
                 for (
                   var lessonIndex = 0;
-                  lessonIndex < topics.length;
+                  lessonIndex < lessons.length;
                   lessonIndex++
                 )
                   SizedBox(
                     width: 430,
                     child: LearnerRoundPath(
                       courseId: 'sample_it_en_it',
-                      rounds: topics[lessonIndex].rounds,
+                      rounds: lessons[lessonIndex].rounds,
                       completedRounds: const {},
                       perfectRounds: const {},
                       ttsSkippedPerfectRounds: const {},
                       mascotAssets: assets,
                       mascotPositionOffset:
                           learnerMascotPositionOffsetForLesson(
-                            topics,
+                            lessons,
                             lessonIndex,
                           ),
                       roundPositionOffset: learnerRoundPositionOffsetForLesson(
-                        topics,
+                        lessons,
                         lessonIndex,
                       ),
                       onOpenRound: (_) {},
@@ -382,12 +385,12 @@ void main() {
       PackageInfo.setMockInitialValues(
         appName: 'QuisquisLingo',
         packageName: 'com.quisquislingo.app',
-        version: '2.0.22',
-        buildNumber: '222',
+        version: '2.0.23',
+        buildNumber: '223',
         buildSignature: '',
       );
       SharedPreferences.setMockInitialValues({
-        'one_time_notice_seen_welcome_2.0.22': true,
+        'one_time_notice_seen_welcome_2.0.23': true,
         'sound_effects_enabled': false,
       });
       await ProfileService().addProfile('Mascot Learner');
@@ -440,9 +443,9 @@ void main() {
       await tester.runAsync(() => Future<void>.delayed(Duration.zero));
       await pumpUntil(mascotSurface);
       final selected = <String>[];
-      for (final topic in course.topics) {
+      for (final lesson in course.lessons) {
         final section = find.byKey(
-          ValueKey('unified-lesson-section-${topic.id}'),
+          ValueKey('unified-lesson-section-${lesson.lessonId}'),
         );
         await tester.scrollUntilVisible(
           section,

@@ -163,12 +163,13 @@ void main() {
   );
 
   testWidgets(
-    'learner bottom keeps three primary actions plus compact appearance utilities',
+    'learner bottom keeps Profile primary and all other actions compact',
     (tester) async {
       await ProfileService().addProfile('Bottom Learner');
       var reviewTaps = 0;
       var courseInfoTaps = 0;
       var profileTaps = 0;
+      bool? iddqdValue;
 
       await tester.pumpWidget(
         MaterialApp(
@@ -177,6 +178,8 @@ void main() {
               onProfile: () => profileTaps++,
               onReview: () => reviewTaps++,
               onCourseInfo: () => courseInfoTaps++,
+              iddqdEnabled: false,
+              onIddqdChanged: (value) => iddqdValue = value,
             ),
           ),
         ),
@@ -194,6 +197,8 @@ void main() {
       expect(find.byIcon(Icons.emoji_events_outlined), findsNothing);
       expect(find.byIcon(Icons.coffee_outlined), findsNothing);
       expect(find.byKey(const Key('learner-bottom-theme')), findsOneWidget);
+      expect(find.byKey(const Key('learner-bottom-iddqd')), findsOneWidget);
+      expect(find.byTooltip('IDDQD: Off'), findsOneWidget);
       expect(find.byTooltip('Theme: Default'), findsOneWidget);
       expect(find.bySemanticsLabel('Theme: Default'), findsOneWidget);
       expect(
@@ -206,7 +211,17 @@ void main() {
       await tester.tap(find.byKey(const Key('learner-bottom-profile')));
       await tester.tap(find.byKey(const Key('learner-bottom-review')));
       await tester.tap(find.byKey(const Key('learner-bottom-course-info')));
+      await tester.tap(find.byKey(const Key('learner-bottom-iddqd')));
       expect((profileTaps, reviewTaps, courseInfoTaps), (1, 1, 1));
+      expect(iddqdValue, isTrue);
+      expect(
+        tester.getSize(find.byKey(const Key('learner-bottom-review'))),
+        const Size(40, 40),
+      );
+      expect(
+        tester.getSize(find.byKey(const Key('learner-bottom-course-info'))),
+        const Size(40, 40),
+      );
     },
   );
 
@@ -548,6 +563,9 @@ void main() {
         final courseInfo = tester.getRect(
           find.byKey(const Key('learner-bottom-course-info')),
         );
+        final iddqd = tester.getRect(
+          find.byKey(const Key('learner-bottom-iddqd')),
+        );
         expect(actions.left, greaterThanOrEqualTo(0));
         expect(actions.right, lessThanOrEqualTo(width));
         expect(flagControl.right, lessThanOrEqualTo(actions.right));
@@ -556,8 +574,9 @@ void main() {
         expect(themeControl.size, const Size(40, 40));
         expect(flagControl.size, const Size(40, 40));
         expect(profile.width, greaterThan(themeControl.width));
-        expect(review.width, greaterThan(themeControl.width));
-        expect(courseInfo.width, greaterThan(themeControl.width));
+        expect(review.size, const Size(40, 40));
+        expect(courseInfo.size, const Size(40, 40));
+        expect(iddqd.size, const Size(40, 40));
         heights.add(actions.height);
         expect(tester.takeException(), isNull);
       }
@@ -732,7 +751,7 @@ Course _courseFixture({required String supportUrl}) => Course(
   ttsLanguage: 'it-IT',
   version: '1.0.0',
   supportUrl: supportUrl,
-  topics: const [],
+  lessons: const [],
 );
 
 Future<void> _pumpFrames(WidgetTester tester, {int count = 12}) async {

@@ -260,7 +260,7 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
                     const Align(
                       alignment: Alignment.centerLeft,
                       child: Text(
-                        'A basic Course Model v4 structure will be created with 3 placeholder Topics. No Rounds are created automatically.',
+                        'A basic Course Model v5 structure will be created with 3 placeholder Lessons. No Rounds are created automatically.',
                       ),
                     ),
                   ],
@@ -279,11 +279,11 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
                   final tg = target.text.trim();
                   if (t.isEmpty || s.isEmpty || tg.isEmpty) return;
                   final stamp = DateTime.now().microsecondsSinceEpoch;
-                  final topics = <Topic>[
-                    for (var topicIndex = 0; topicIndex < 3; topicIndex++)
-                      Topic(
-                        id: 'user_topic_${stamp + topicIndex}',
-                        title: 'Topic ${topicIndex + 1}',
+                  final lessons = <Lesson>[
+                    for (var lessonIndex = 0; lessonIndex < 3; lessonIndex++)
+                      Lesson(
+                        lessonId: 'user_lesson_${stamp + lessonIndex}',
+                        title: 'Lesson ${lessonIndex + 1}',
                         rounds: const [],
                         guidebook: Guidebook.empty(),
                       ),
@@ -318,7 +318,7 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
                           : selectedFlag,
                       flagImageBase64: customFlagBase64,
                       temporarySample: false,
-                      topics: topics,
+                      lessons: lessons,
                     ),
                   );
                 },
@@ -628,7 +628,7 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
                       ),
                     ),
                     title: Text(widget.currentCourse.title),
-                    subtitle: const Text('Bundled course · Course Model v4'),
+                    subtitle: const Text('Bundled course · Course Model v5'),
                     trailing: const Icon(Icons.chevron_right),
                     onTap: _openBundled,
                   ),

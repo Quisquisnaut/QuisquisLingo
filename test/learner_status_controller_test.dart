@@ -131,9 +131,9 @@ Course _course({
   version: '1',
   flagCode: flagCode,
   flagImageBase64: flagImageBase64,
-  topics: [
-    Topic(
-      id: '${id}_topic',
+  lessons: [
+    Lesson(
+      lessonId: '${id}_lesson',
       title: 'Lesson',
       rounds:
           rounds ??
@@ -284,13 +284,13 @@ void main() {
           _eligibleRound('eligible_1'),
           _eligibleRound('eligible_2'),
           LearningRound(
-            id: 'topic_intro_only',
-            title: 'Topic intro only',
+            id: 'lesson_intro_only',
+            title: 'Lesson intro only',
             content: [
               LearningContent.textual(
                 id: 'intro',
                 kind: 'explanation',
-                role: 'topic_intro',
+                role: 'lesson_intro',
                 text: 'Read the Guidebook first.',
               ),
             ],
@@ -299,7 +299,7 @@ void main() {
       );
       progress.laurelsByCourse['projection_course'] = {
         'eligible_1',
-        'topic_intro_only',
+        'lesson_intro_only',
         'orphaned_round',
       };
       final controller = createController();

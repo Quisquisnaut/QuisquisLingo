@@ -29,9 +29,9 @@ Exercise _exercise(
 LearningRound _round(String id, List<Exercise> exercises) =>
     LearningRound(id: id, title: id, exercises: exercises);
 
-Topic _topic(List<List<Exercise>> rounds) => Topic(
-  id: 'topic',
-  title: 'Topic',
+Lesson _lesson(List<List<Exercise>> rounds) => Lesson(
+  lessonId: 'lesson',
+  title: 'Lesson',
   rounds: [
     for (var i = 0; i < rounds.length; i++) _round('round_$i', rounds[i]),
   ],
@@ -46,7 +46,7 @@ void main() {
   const service = DuelEligibilityService();
 
   test('more than 25 eligible exercises is available without pool capping', () {
-    final result = service.evaluate(_topic([_eligibleRange(0, 30)]));
+    final result = service.evaluate(_lesson([_eligibleRange(0, 30)]));
 
     expect(result.requiredCount, 25);
     expect(result.eligibleCount, 30);
@@ -55,14 +55,14 @@ void main() {
   });
 
   test('exactly 25 eligible exercises is available', () {
-    final result = service.evaluate(_topic([_eligibleRange(0, 25)]));
+    final result = service.evaluate(_lesson([_eligibleRange(0, 25)]));
 
     expect(result.eligibleCount, 25);
     expect(result.isAvailable, isTrue);
   });
 
   test('fewer than 25 eligible exercises is unavailable', () {
-    final result = service.evaluate(_topic([_eligibleRange(0, 24)]));
+    final result = service.evaluate(_lesson([_eligibleRange(0, 24)]));
 
     expect(result.eligibleCount, 24);
     expect(result.isAvailable, isFalse);
@@ -76,7 +76,7 @@ void main() {
         _exercise('one_answer_$i', answers: const ['Only']),
       for (var i = 0; i < 10; i++) _exercise('no_correct_$i', correct: null),
     ];
-    final result = service.evaluate(_topic([_eligibleRange(0, 10), invalid]));
+    final result = service.evaluate(_lesson([_eligibleRange(0, 10), invalid]));
 
     expect(result.eligibleCount, 10);
     expect(result.isAvailable, isFalse);
@@ -84,7 +84,7 @@ void main() {
 
   test('fewer than six Rounds can still provide an available Duel', () {
     final result = service.evaluate(
-      _topic([_eligibleRange(0, 13), _eligibleRange(13, 13)]),
+      _lesson([_eligibleRange(0, 13), _eligibleRange(13, 13)]),
     );
 
     expect(result.eligibleCount, 26);
@@ -93,7 +93,7 @@ void main() {
 
   test('six or more Rounds do not make an insufficient pool available', () {
     final result = service.evaluate(
-      _topic([
+      _lesson([
         _eligibleRange(0, 4),
         _eligibleRange(4, 4),
         _eligibleRange(8, 4),
@@ -110,7 +110,7 @@ void main() {
   test('duplicate-key exercises count only once', () {
     final duplicate = _exercise('duplicate');
     final result = service.evaluate(
-      _topic([
+      _lesson([
         [for (var i = 0; i < 30; i++) duplicate],
       ]),
     );
@@ -124,7 +124,7 @@ void main() {
       for (final type in DuelEligibilityService.supportedExerciseTypes)
         _exercise(type, type: type),
     ];
-    final result = service.evaluate(_topic([exercises]));
+    final result = service.evaluate(_lesson([exercises]));
 
     expect(
       result.candidates.map((candidate) => candidate.exercise.type).toSet(),

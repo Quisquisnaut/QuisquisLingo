@@ -11,14 +11,14 @@ export 'xp_service.dart' show LocalLeaderboardEntry;
 
 class RecentRoundEntry {
   final String courseId;
-  final String topicId;
+  final String lessonId;
   final String roundId;
   final DateTime completedAt;
   final int errors;
 
   const RecentRoundEntry({
     required this.courseId,
-    required this.topicId,
+    required this.lessonId,
     required this.roundId,
     required this.completedAt,
     required this.errors,
@@ -26,7 +26,7 @@ class RecentRoundEntry {
 
   String encode() => jsonEncode({
     'courseId': courseId,
-    'topicId': topicId,
+    'lessonId': lessonId,
     'roundId': roundId,
     'completedAt': completedAt.toIso8601String(),
     'errors': errors,
@@ -37,14 +37,14 @@ class RecentRoundEntry {
       final decoded = jsonDecode(raw);
       if (decoded is! Map) return null;
       final courseId = decoded['courseId'];
-      final topicId = decoded['topicId'];
+      final lessonId = decoded['lessonId'];
       final roundId = decoded['roundId'];
       final completedAt = decoded['completedAt'];
       final errors = decoded['errors'];
       if (courseId is! String ||
           courseId.trim().isEmpty ||
-          topicId is! String ||
-          topicId.trim().isEmpty ||
+          lessonId is! String ||
+          lessonId.trim().isEmpty ||
           roundId is! String ||
           roundId.trim().isEmpty ||
           completedAt is! String ||
@@ -55,7 +55,7 @@ class RecentRoundEntry {
       if (parsedCompletedAt == null) return null;
       return RecentRoundEntry(
         courseId: courseId,
-        topicId: topicId,
+        lessonId: lessonId,
         roundId: roundId,
         completedAt: parsedCompletedAt,
         errors: errors.clamp(0, 100000).toInt(),
@@ -76,7 +76,7 @@ class ProgressService {
   static const _completedRoundsKey = 'v4_completed_rounds';
   static const _perfectRoundsKey = 'v4_perfect_rounds';
   static const _ttsSkippedPerfectRoundsKey = 'v4_tts_skipped_perfect_rounds';
-  static const _completedTopicsKey = 'v4_completed_topics';
+  static const _completedLessonsKey = 'v4_completed_lessons';
   static const _wonDuelsKey = 'v4_won_duels';
   static const _seenGuidebooksKey = 'v4_seen_guidebooks';
   static const _recentRoundsKey = 'v4_recent_rounds';
@@ -84,7 +84,7 @@ class ProgressService {
     _completedRoundsKey,
     _perfectRoundsKey,
     _ttsSkippedPerfectRoundsKey,
-    _completedTopicsKey,
+    _completedLessonsKey,
     _wonDuelsKey,
     _seenGuidebooksKey,
   ];
@@ -182,7 +182,7 @@ class ProgressService {
   /// replaces the previous one for prioritization.
   Future<void> recordRecentRound(
     String courseId,
-    String topicId,
+    String lessonId,
     String roundId, {
     required int errors,
   }) async {
@@ -196,7 +196,7 @@ class ProgressService {
     existing.add(
       RecentRoundEntry(
         courseId: courseId,
-        topicId: topicId,
+        lessonId: lessonId,
         roundId: roundId,
         completedAt: _now(),
         errors: errors.clamp(0, 100000).toInt(),
@@ -289,24 +289,24 @@ class ProgressService {
     await p.setStringList(k, ids.toList());
   }
 
-  Future<Set<String>> getCompletedTopics({required String courseId}) async {
+  Future<Set<String>> getCompletedLessons({required String courseId}) async {
     final p = await _prefs;
-    return (p.getStringList(await _ck(_completedTopicsKey, courseId)) ?? [])
+    return (p.getStringList(await _ck(_completedLessonsKey, courseId)) ?? [])
         .toSet();
   }
 
-  Future<int> completeTopic(
+  Future<int> completeLesson(
     String id, {
     required String courseId,
     required String courseCode,
   }) async {
     final p = await _prefs;
-    final k = await _ck(_completedTopicsKey, courseId);
+    final k = await _ck(_completedLessonsKey, courseId);
     final ids = (p.getStringList(k) ?? []).toSet();
     final isFirstCompletion = ids.add(id);
     await p.setStringList(k, ids.toList());
     await registerLearningActivity(courseCode: courseCode);
-    final award = _xpCalculator.calculateTopicCompletionAward(
+    final award = _xpCalculator.calculateLessonCompletionAward(
       isFirstCompletion: isFirstCompletion,
     );
     if (award > 0) {
@@ -338,7 +338,7 @@ class ProgressService {
     return award;
   }
 
-  /// One learner-level notice explains that every learning Topic has its own Guidebook.
+  /// One learner-level notice explains that every learning Lesson has its own Guidebook.
   /// It is independent of language progress and is shown only once.
   Future<bool> hasSeenGuidebookAvailabilityNotice() async {
     final p = await _prefs;
@@ -351,22 +351,22 @@ class ProgressService {
   }
 
   Future<bool> hasSeenGuidebook(
-    String topicId, {
+    String lessonId, {
     required String courseId,
   }) async {
     final p = await _prefs;
     final ids = (p.getStringList(await _ck(_seenGuidebooksKey, courseId)) ?? [])
         .toSet();
-    return ids.contains(topicId);
+    return ids.contains(lessonId);
   }
 
   Future<void> markGuidebookSeen(
-    String topicId, {
+    String lessonId, {
     required String courseId,
   }) async {
     final p = await _prefs;
     final k = await _ck(_seenGuidebooksKey, courseId);
-    final ids = (p.getStringList(k) ?? []).toSet()..add(topicId);
+    final ids = (p.getStringList(k) ?? []).toSet()..add(lessonId);
     await p.setStringList(k, ids.toList());
   }
 

@@ -89,9 +89,9 @@ The Course Editor uses `ReorderableListView.onReorderItem` on current Flutter re
   avatar appearance, global device settings and Course Editor overrides remain.
 - Empty course shells are valid authoring states and do not cause null/index
   access in Chapters or Course Editor.
-- Chapter/Topic/Round/Exercise lists use scrollable or reorderable lists and
+- Chapter/Lesson/Round/Exercise lists use scrollable or reorderable lists and
   flexible/wrapping layouts rather than fixed-height columns where content can
-  grow. Topic decorations are below the Round list and cannot cover controls.
+  grow. Lesson decorations are below the Round list and cannot cover controls.
 - Flag and animation graphics are drawn locally and do not load remote content.
 - Image-credit letter pages are scrollable, including empty-letter states.
 

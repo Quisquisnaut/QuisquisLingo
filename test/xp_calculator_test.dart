@@ -172,13 +172,13 @@ void main() {
     });
   });
 
-  test('Topic completion awards 25 XP only on first completion', () {
+  test('Lesson completion awards 25 XP only on first completion', () {
     expect(
-      calculator.calculateTopicCompletionAward(isFirstCompletion: true),
+      calculator.calculateLessonCompletionAward(isFirstCompletion: true),
       25,
     );
     expect(
-      calculator.calculateTopicCompletionAward(isFirstCompletion: false),
+      calculator.calculateLessonCompletionAward(isFirstCompletion: false),
       0,
     );
   });

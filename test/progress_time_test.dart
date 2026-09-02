@@ -577,9 +577,9 @@ void main() {
     await addProfile('Tester');
     final service = ProgressService(now: clock.call);
 
-    await service.recordRecentRound('course_a', 'topic_a', 'older', errors: 2);
+    await service.recordRecentRound('course_a', 'lesson_a', 'older', errors: 2);
     clock.value = DateTime(2026, 2, 1, 9);
-    await service.recordRecentRound('course_a', 'topic_a', 'newer', errors: 2);
+    await service.recordRecentRound('course_a', 'lesson_a', 'newer', errors: 2);
 
     final recent = await service.getRecentRounds(courseId: 'course_a');
     expect(recent.map((entry) => entry.roundId), ['newer', 'older']);

@@ -77,7 +77,7 @@ Current collision handling is known to operate against custom courses.
 
 ### Replace/update and orphaned progress
 
-- [ ] Study what happens when an update with the same `courseId` removes or changes existing Round or Topic IDs.
+- [ ] Study what happens when an update with the same `courseId` removes or changes existing Round or Lesson IDs.
 - [ ] Decide whether obsolete course-owned progress should be preserved, migrated, ignored, or cleaned up.
 - [ ] Do not introduce automatic migration without an explicit compatibility policy and tests.
 
@@ -253,7 +253,7 @@ Implement missing pieces only where verification shows a real gap.
 # 2.0.11+211
 ## Safe YouTube links in Guidebooks
 
-- [ ] Allow safe YouTube links in Topic Guidebooks.
+- [ ] Allow safe YouTube links in Lesson Guidebooks.
 - [ ] Support at least `youtube.com` and `youtu.be`.
 - [ ] Validate URL schemes and hosts.
 - [ ] Keep course import data-only.
@@ -400,7 +400,7 @@ Consider reporting imported features as:
 Consider:
 
 - [ ] Personal Best per Round;
-- [ ] Topic mastery;
+- [ ] Lesson mastery;
 - [ ] perfect streaks;
 - [ ] local achievements;
 - [ ] unlockable cosmetic badges;
@@ -411,7 +411,7 @@ Consider:
 - [ ] customizable personal goals;
 - [ ] statistics/history;
 - [ ] local profile-vs-profile challenges;
-- [ ] Topic-completion achievements;
+- [ ] Lesson-completion achievements;
 - [ ] laurel achievements.
 
 Keep gamification offline-first.
@@ -447,6 +447,23 @@ Avoid mandatory servers, artificial purchase economies, lives, or monetization-d
 - [x] Mark persisted completed Rounds with a bright yellow-orange icon and the existing perfect/Laurel state with a distinct bright-green icon, without changing completion or scoring rules.
 - [x] Use 75%-opaque Round, GuideBook and Duel surfaces, enlarge the Laurel reward frame, keep smaller GuideBook/Duel cards centered and add a theme-neutral 18% dark-mode flag veil.
 - [x] Preserve the surrounding learner interface, continuous Lesson flow, locks, navigation, Duel behavior and persistence formats.
+
+---
+
+# 2.0.23+223
+
+## Lesson normalization, Sections and theme icons
+
+- [x] Make Lesson canonical in Course Model v5, active Dart architecture, authoring, course JSON and Lesson-semantic learner persistence without v4 compatibility aliases or fallback parsing.
+- [x] Keep learner backup schema v2 because it remains an opaque profile-key/value envelope with no structured Topic field.
+- [x] Add optional consecutive-order Section metadata without a Section hierarchy, identity, state, navigation, progress or persisted relative numbering.
+- [x] Replace the Lesson selector with a Section-block selector when real Sections exist, including UI-only `Other lessons` blocks and deterministic scroll synchronization without Section persistence.
+- [x] Expand the canonical controlled Lesson icon family to 14 labeled 256 × 256 transparent PNG assets and expose all of them in the responsive visual editor picker.
+- [x] Refocus the Lesson editor on metadata and move the authoritative Round list/create/edit/delete/reorder flow to one linked draft-preserving subpage without regenerating stable IDs.
+- [x] Remove the obsolete decorative Lesson image field/control and keep Exercise images separate.
+- [x] Standardize themed and fallback GuideBook icons at 84 × 84, permit three title lines, remove the lower label row and add the direct right-side GuideBook action.
+- [x] Keep Profile primary, compact Review and Course Info, and move the existing learner/course-scoped IDDQD toggle from Settings into the fixed learner bottom area.
+- [x] Regenerate every bundled v5 Lesson with valid Section/icon metadata and representative meaningful Round titles while preserving opaque IDs, references, exercise content and gameplay behavior.
 
 ---
 

@@ -1,13 +1,13 @@
 import 'dart:math';
 
-/// QuisquisLingo Course Model v4.
+/// QuisquisLingo Course Model v5.
 ///
-/// The serialized course format is formatVersion 4. Course content is stored as
-/// Course > Topic > Guidebook + Round > Content. Exercises are one Content kind
+/// The serialized course format is formatVersion 5. Course content is stored as
+/// Course > Lesson > Guidebook + Round > Content. Exercises are one Content kind
 /// and are represented through Prompt + Interaction + Evaluation primitives.
 ///
 /// A few read-only convenience getters expose the author-friendly vocabulary
-/// used by the existing learner/editor widgets. They are derived from the v4
+/// used by the existing learner/editor widgets. They are derived from the v5
 /// primitives and are not a second runtime model.
 
 class CourseAuthor {
@@ -38,7 +38,7 @@ class CourseAuthor {
 }
 
 class Course {
-  static const int currentFormatVersion = 4;
+  static const int currentFormatVersion = 5;
   final int formatVersion;
   final String courseId;
   final String? parentCourseId;
@@ -70,7 +70,7 @@ class Course {
   final bool temporarySample;
   final String supportUrl;
   final List<CourseAudioClip> audioLibrary;
-  final List<Topic> topics;
+  final List<Lesson> lessons;
 
   Course({
     this.formatVersion = currentFormatVersion,
@@ -104,7 +104,7 @@ class Course {
     this.temporarySample = false,
     this.supportUrl = '',
     this.audioLibrary = const [],
-    required this.topics,
+    required this.lessons,
   });
 
   Map<String, dynamic> toJson() => {
@@ -141,19 +141,24 @@ class Course {
     if (supportUrl.isNotEmpty) 'supportUrl': supportUrl,
     if (audioLibrary.isNotEmpty)
       'audioLibrary': audioLibrary.map((e) => e.toJson()).toList(),
-    'topics': topics.map((e) => e.toJson()).toList(),
+    'lessons': lessons.map((e) => e.toJson()).toList(),
   };
 
   factory Course.fromJson(Map<String, dynamic> json) {
     final fv = json['formatVersion'];
     if (fv != currentFormatVersion) {
       throw FormatException(
-        'Unsupported course formatVersion: $fv. This version of QuisquisLingo supports Course Model formatVersion 4 only.',
+        'Unsupported course formatVersion: $fv. This version of QuisquisLingo supports Course Model formatVersion 5 only.',
+      );
+    }
+    if (json.containsKey('topics')) {
+      throw const FormatException(
+        'Course Model formatVersion 5 does not support the legacy topics field.',
       );
     }
     if (json.containsKey('chapters')) {
       throw const FormatException(
-        'Course Model formatVersion 4 does not support chapters.',
+        'Course Model formatVersion 5 does not support chapters.',
       );
     }
     final learning = _requiredString(json, 'learningLanguage', 'course');
@@ -209,7 +214,7 @@ class Course {
                 )
                 .toList()
           : const [],
-      topics: _parseTopics(json),
+      lessons: _parseLessons(json),
     );
   }
 
@@ -254,7 +259,7 @@ class Course {
     temporarySample: temporarySample,
     supportUrl: supportUrl,
     audioLibrary: audioLibrary,
-    topics: topics,
+    lessons: lessons,
   );
 }
 
@@ -279,18 +284,18 @@ class CourseAudioClip {
   );
 }
 
-List<Topic> _parseTopics(Map<String, dynamic> j) {
-  final raw = j['topics'];
+List<Lesson> _parseLessons(Map<String, dynamic> j) {
+  final raw = j['lessons'];
   if (raw is! List) {
-    throw const FormatException('course.topics must be a list.');
+    throw const FormatException('course.lessons must be a list.');
   }
   return [
     for (final value in raw)
       if (value is Map)
-        Topic.fromJson(Map<String, dynamic>.from(value))
+        Lesson.fromJson(Map<String, dynamic>.from(value))
       else
         throw const FormatException(
-          'course.topics contains a non-object value.',
+          'course.lessons contains a non-object value.',
         ),
   ];
 }
@@ -405,49 +410,119 @@ List<LearningContent> _legacyGuidebookContent(
   ];
 }
 
-class Topic {
-  final String id;
+class Lesson {
+  final String lessonId;
   final String title;
   final List<LearningRound> rounds;
-  final String imageAsset;
+  final bool section;
+  final String? sectionName;
+  final String? themeIconAsset;
   final Guidebook guidebook;
   final Duel duel;
-  Topic({
-    required this.id,
+  Lesson({
+    required this.lessonId,
     required this.title,
     required this.rounds,
-    this.imageAsset = '',
+    this.section = false,
+    String? sectionName,
+    String? themeIconAsset,
     Guidebook? guidebook,
     Duel? duel,
-  }) : guidebook = guidebook ?? Guidebook.empty(),
-       duel = duel ?? Duel(id: '${id}_duel', title: 'Duel');
+  }) : sectionName = section ? sectionName?.trim() : null,
+       themeIconAsset = themeIconAsset?.trim().isEmpty == true
+           ? null
+           : themeIconAsset?.trim(),
+       guidebook = guidebook ?? Guidebook.empty(),
+       duel = duel ?? Duel(id: '${lessonId}_duel', title: 'Duel') {
+    if (section && (this.sectionName == null || this.sectionName!.isEmpty)) {
+      throw ArgumentError.value(
+        sectionName,
+        'sectionName',
+        'Section name is required when section is true.',
+      );
+    }
+    if (!section && sectionName?.trim().isNotEmpty == true) {
+      throw ArgumentError.value(
+        sectionName,
+        'sectionName',
+        'Section name must be absent when section is false.',
+      );
+    }
+  }
   Map<String, dynamic> toJson() => {
-    'id': id,
+    'lessonId': lessonId,
     'title': title,
+    'section': section,
+    if (section) 'sectionName': sectionName,
+    if (themeIconAsset != null) 'themeIconAsset': themeIconAsset,
     'guidebook': guidebook.toJson(),
     'rounds': rounds.map((e) => e.toJson()).toList(),
-    if (imageAsset.isNotEmpty) 'imageAsset': imageAsset,
     'duel': duel.toJson(),
   };
-  factory Topic.fromJson(Map<String, dynamic> j) {
+  factory Lesson.fromJson(Map<String, dynamic> j) {
+    if (j.containsKey('id') || j.containsKey('topicId')) {
+      throw const FormatException(
+        'Course Model formatVersion 5 Lessons require lessonId and reject legacy Lesson identity fields.',
+      );
+    }
     if (j.containsKey('role') || j.containsKey('assessment')) {
       throw const FormatException(
-        'Course Model formatVersion 4 Topics do not support role or assessment fields.',
+        'Course Model formatVersion 5 Lessons do not support role or assessment fields.',
       );
     }
     final rawGuidebook = j['guidebook'];
     if (rawGuidebook is! Map) {
-      throw const FormatException('topic.guidebook must be an object.');
+      throw const FormatException('lesson.guidebook must be an object.');
     }
     final rawDuel = j['duel'];
     if (rawDuel is! Map) {
-      throw const FormatException('topic.duel must be an object.');
+      throw const FormatException('lesson.duel must be an object.');
     }
-    return Topic(
-      id: _requiredString(j, 'id', 'topic'),
-      title: _requiredString(j, 'title', 'topic'),
-      rounds: _mapList(j, 'rounds', 'topic', LearningRound.fromJson),
-      imageAsset: _optionalString(j, 'imageAsset', ''),
+    final section = j['section'] == true;
+    final sectionName = _optionalString(j, 'sectionName', '').trim();
+    if (j.containsKey('section') && j['section'] is! bool) {
+      throw const FormatException('lesson.section must be a boolean.');
+    }
+    if (j.containsKey('imageAsset')) {
+      throw const FormatException(
+        'Course Model formatVersion 5 Lessons do not support the obsolete imageAsset field.',
+      );
+    }
+    if (j.containsKey('sectionName') &&
+        j['sectionName'] != null &&
+        j['sectionName'] is! String) {
+      throw const FormatException('lesson.sectionName must be a string.');
+    }
+    if (section && sectionName.isEmpty) {
+      throw const FormatException(
+        'lesson.sectionName must be non-empty when lesson.section is true.',
+      );
+    }
+    if (!section && sectionName.isNotEmpty) {
+      throw const FormatException(
+        'lesson.sectionName must be absent when lesson.section is false.',
+      );
+    }
+    final themeIconAsset = _optionalString(j, 'themeIconAsset', '').trim();
+    if (j.containsKey('themeIconAsset') &&
+        j['themeIconAsset'] != null &&
+        j['themeIconAsset'] is! String) {
+      throw const FormatException('lesson.themeIconAsset must be a string.');
+    }
+    if (themeIconAsset.isNotEmpty &&
+        (!themeIconAsset.startsWith('assets/lesson_icons/') ||
+            !themeIconAsset.toLowerCase().endsWith('.png'))) {
+      throw const FormatException(
+        'lesson.themeIconAsset must reference a PNG under assets/lesson_icons/.',
+      );
+    }
+    return Lesson(
+      lessonId: _requiredString(j, 'lessonId', 'lesson'),
+      title: _requiredString(j, 'title', 'lesson'),
+      rounds: _mapList(j, 'rounds', 'lesson', LearningRound.fromJson),
+      section: section,
+      sectionName: sectionName.isEmpty ? null : sectionName,
+      themeIconAsset: themeIconAsset.isEmpty ? null : themeIconAsset,
       guidebook: Guidebook.fromJson(Map<String, dynamic>.from(rawGuidebook)),
       duel: Duel.fromJson(Map<String, dynamic>.from(rawDuel)),
     );
@@ -474,7 +549,7 @@ class LearningRound {
            ];
   Map<String, dynamic> toJson() => {
     'id': id,
-    'title': title,
+    if (title.trim().isNotEmpty) 'title': title.trim(),
     'visualType': visualType,
     'content': content.map((e) => e.toJson()).toList(),
   };
@@ -487,16 +562,16 @@ class LearningRound {
     }
     return LearningRound(
       id: _requiredString(j, 'id', 'round'),
-      title: _requiredString(j, 'title', 'round'),
+      title: _optionalString(j, 'title', ''),
       visualType: visualType,
       content: _mapList(j, 'content', 'round', LearningContent.fromJson),
     );
   }
 
   /// Current learner/editor widgets consume this derived runnable view. It is
-  /// generated from v4 Content and therefore does not preserve a legacy file model.
+  /// generated from v5 Content and therefore does not preserve a legacy file model.
   List<Exercise> get exercises => content
-      .where((c) => c.role != 'topic_intro')
+      .where((c) => c.role != 'lesson_intro')
       .map((c) => c.asRunnableExercise())
       .whereType<Exercise>()
       .toList(growable: false);
@@ -809,7 +884,7 @@ class ExerciseEvaluation {
     final normalization = j['normalization'] is Map
         ? Map<String, dynamic>.from(j['normalization'] as Map)
         : <String, dynamic>{};
-    // Explicit normalization booleans are normalized into the v4 internal map.
+    // Explicit normalization booleans are normalized into the v5 internal map.
     if (j['caseSensitive'] is bool) {
       normalization['case'] = j['caseSensitive'] == true
           ? 'preserve'

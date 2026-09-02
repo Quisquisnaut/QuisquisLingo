@@ -52,18 +52,18 @@ class _ReviewScreenState extends State<ReviewScreen> {
     }
   }
 
-  _RoundLocation? _findRound(String topicId, String roundId) {
-    final topicIndex = widget.course.topics.indexWhere(
-      (topic) => topic.id == topicId,
+  _RoundLocation? _findRound(String lessonId, String roundId) {
+    final lessonIndex = widget.course.lessons.indexWhere(
+      (lesson) => lesson.lessonId == lessonId,
     );
-    if (topicIndex < 0) return null;
-    final topic = widget.course.topics[topicIndex];
-    for (var i = 0; i < topic.rounds.length; i++) {
-      final round = topic.rounds[i];
+    if (lessonIndex < 0) return null;
+    final lesson = widget.course.lessons[lessonIndex];
+    for (var i = 0; i < lesson.rounds.length; i++) {
+      final round = lesson.rounds[i];
       if (round.id == roundId) {
         return _RoundLocation(
-          topicIndex: topicIndex,
-          topic: topic,
+          lessonIndex: lessonIndex,
+          lesson: lesson,
           round: round,
           roundIndex: i,
         );
@@ -77,7 +77,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
       MaterialPageRoute(
         builder: (_) => RoundScreen(
           course: widget.course,
-          topic: location.topic,
+          lesson: location.lesson,
           round: location.round,
           roundIndex: location.roundIndex,
           ttsLanguage: widget.course.ttsLanguage,
@@ -92,7 +92,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
     if (AlphaLifecycleService.isExpired()) return const AlphaExpiredView();
     final resolved = <(_RoundLocation, RecentRoundEntry)>[];
     for (final entry in _recent) {
-      final location = _findRound(entry.topicId, entry.roundId);
+      final location = _findRound(entry.lessonId, entry.roundId);
       if (location != null) resolved.add((location, entry));
     }
 
@@ -127,9 +127,13 @@ class _ReviewScreenState extends State<ReviewScreen> {
                           : _ttsSkippedPerfect.contains(location.round.id)
                           ? const CircleAvatar(child: Icon(Icons.eco_outlined))
                           : CircleAvatar(child: Text('${entry.errors}')),
-                      title: Text(location.round.title),
+                      title: Text(
+                        location.round.title.trim().isEmpty
+                            ? 'Round ${location.roundIndex + 1}'
+                            : location.round.title,
+                      ),
                       subtitle: Text(
-                        'Lesson ${location.topicIndex + 1}: ${location.topic.title} · ${entry.errors} ${entry.errors == 1 ? 'error' : 'errors'} in latest attempt',
+                        'Lesson ${location.lessonIndex + 1}: ${location.lesson.title} · ${entry.errors} ${entry.errors == 1 ? 'error' : 'errors'} in latest attempt',
                       ),
                       trailing: const Icon(Icons.replay_outlined),
                       onTap: () => _open(location),
@@ -143,14 +147,14 @@ class _ReviewScreenState extends State<ReviewScreen> {
 }
 
 class _RoundLocation {
-  final int topicIndex;
-  final Topic topic;
+  final int lessonIndex;
+  final Lesson lesson;
   final LearningRound round;
   final int roundIndex;
 
   const _RoundLocation({
-    required this.topicIndex,
-    required this.topic,
+    required this.lessonIndex,
+    required this.lesson,
     required this.round,
     required this.roundIndex,
   });

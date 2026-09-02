@@ -82,7 +82,7 @@ class CourseInfoScreen extends StatelessWidget {
               if (course.lastUpdated.trim().isNotEmpty)
                 'Last updated: ${course.lastUpdated}',
               'License: ${course.license.trim().isEmpty ? 'Not specified' : course.license}',
-              'Lessons: ${course.topics.length}',
+              'Lessons: ${course.lessons.length}',
             ].join('\n'),
           ),
           if (course.supportUrl.trim().isNotEmpty)

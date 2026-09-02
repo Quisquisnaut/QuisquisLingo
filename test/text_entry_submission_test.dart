@@ -82,9 +82,9 @@ Future<void> _openTextRound(WidgetTester tester, String type) async {
     title: 'Text Entry Round',
     exercises: [exercise],
   );
-  final topic = Topic(
-    id: '${type}_topic',
-    title: 'Text Entry Topic',
+  final lesson = Lesson(
+    lessonId: '${type}_lesson',
+    title: 'Text Entry Lesson',
     guidebook: Guidebook.empty(),
     rounds: [round],
   );
@@ -97,14 +97,14 @@ Future<void> _openTextRound(WidgetTester tester, String type) async {
     title: 'Text Entry Course',
     ttsLanguage: 'it-IT',
     version: '1.0.0',
-    topics: [topic],
+    lessons: [lesson],
   );
 
   await tester.pumpWidget(
     MaterialApp(
       home: RoundScreen(
         course: course,
-        topic: topic,
+        lesson: lesson,
         round: round,
         ttsLanguage: course.ttsLanguage,
         roundIndex: 0,

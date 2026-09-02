@@ -79,8 +79,8 @@ void main() {
     PackageInfo.setMockInitialValues(
       appName: 'QuisquisLingo',
       packageName: 'quisquislingo_app',
-      version: '2.0.22',
-      buildNumber: '222',
+      version: '2.0.23',
+      buildNumber: '223',
       buildSignature: '',
     );
   });
@@ -769,7 +769,7 @@ Course _course() => Course(
   title: 'Italian',
   ttsLanguage: 'it-IT',
   version: '1.0.0',
-  topics: const [],
+  lessons: const [],
 );
 
 Future<void> _pumpUntil(WidgetTester tester, Finder finder) async {

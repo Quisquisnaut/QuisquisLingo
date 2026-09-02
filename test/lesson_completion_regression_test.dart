@@ -11,8 +11,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  const learner = 'Topic Characterization Learner';
-  const courseId = 'topic_characterization_course';
+  const learner = 'Lesson Characterization Learner';
+  const courseId = 'lesson_characterization_course';
   const courseCode = 'IT';
 
   setUp(() async {
@@ -24,31 +24,31 @@ void main() {
     await ProfileService().addProfile(learner);
   });
 
-  testWidgets('completing a non-final round does not complete its topic', (
+  testWidgets('completing a non-final round does not complete its lesson', (
     tester,
   ) async {
-    final fixture = _topicFixture();
+    final fixture = _lessonFixture();
     await _openLesson(tester, fixture, expectedCompleted: 0);
 
-    await _completeRoundFromTopic(tester, fixture.firstRound);
+    await _completeRoundFromLesson(tester, fixture.firstRound);
     await _pumpUntilText(tester, '1/2 rounds completed');
 
     final progress = ProgressService();
-    expect(await progress.getCompletedTopics(courseId: courseId), isEmpty);
+    expect(await progress.getCompletedLessons(courseId: courseId), isEmpty);
     expect(await progress.getXp(courseCode: courseCode), 35);
     expect(await progress.getWeeklyXp(), 35);
     expect(find.text('Lesson completed: +25 XP'), findsNothing);
   });
 
   testWidgets(
-    'final Round popup includes Topic XP and returning shows no notice',
+    'final Round popup includes Lesson XP and returning shows no notice',
     (tester) async {
-      final fixture = _topicFixture();
+      final fixture = _lessonFixture();
       final progress = ProgressService();
       await _completeForSetup(progress, fixture.firstRound);
       await _openLesson(tester, fixture, expectedCompleted: 1);
 
-      await _completeRoundFromTopic(
+      await _completeRoundFromLesson(
         tester,
         fixture.finalRound,
         closeCompletionDialog: false,
@@ -60,8 +60,8 @@ void main() {
       expect(find.text('Lesson completed: +25 XP'), findsOneWidget);
       expect(find.text('Total: 60 XP'), findsOneWidget);
 
-      expect(await progress.getCompletedTopics(courseId: courseId), {
-        fixture.topic.id,
+      expect(await progress.getCompletedLessons(courseId: courseId), {
+        fixture.lesson.lessonId,
       });
       expect(await progress.getXp(courseCode: courseCode), 60);
       expect(await progress.getWeeklyXp(), 60);
@@ -71,86 +71,87 @@ void main() {
     },
   );
 
-  testWidgets('unrelated completed rounds do not count toward this topic', (
+  testWidgets('unrelated completed rounds do not count toward this lesson', (
     tester,
   ) async {
-    final fixture = _topicFixture();
+    final fixture = _lessonFixture();
     final progress = ProgressService();
     await _completeForSetup(progress, fixture.unrelatedRound);
     await _openLesson(tester, fixture, expectedCompleted: 0);
 
-    await _completeRoundFromTopic(tester, fixture.firstRound);
+    await _completeRoundFromLesson(tester, fixture.firstRound);
     await _pumpUntilText(tester, '1/2 rounds completed');
 
     expect(await progress.getCompletedRounds(courseId: courseId), {
       fixture.unrelatedRound.id,
       fixture.firstRound.id,
     });
-    expect(await progress.getCompletedTopics(courseId: courseId), isEmpty);
+    expect(await progress.getCompletedLessons(courseId: courseId), isEmpty);
     expect(await progress.getXp(courseCode: courseCode), 35);
     expect(find.text('Lesson completed: +25 XP'), findsNothing);
   });
 
-  testWidgets('combined Round and Topic XP crosses the weekly threshold once', (
+  testWidgets(
+    'combined Round and Lesson XP crosses the weekly threshold once',
+    (tester) async {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setInt('weekly_xp_target', 50);
+      final fixture = _lessonFixture();
+      final progress = ProgressService();
+      await _completeForSetup(progress, fixture.firstRound);
+      await _openLesson(tester, fixture, expectedCompleted: 1);
+
+      await _completeRoundFromLesson(
+        tester,
+        fixture.finalRound,
+        closeCompletionDialog: false,
+      );
+      expect(find.text('Total: 60 XP'), findsOneWidget);
+      await _tapAndPump(tester, 'Continue');
+      await _pumpUntilText(tester, 'Weekly goal reached!');
+
+      expect(await progress.getWeeklyXp(), 60);
+      expect(await progress.isWeeklyGoalCelebrated(), isTrue);
+      await _tapAndPump(tester, 'Continue');
+      await _pumpUntilText(tester, '2/2 rounds completed');
+      expect(find.text('Lesson completed: +25 XP'), findsNothing);
+    },
+  );
+
+  testWidgets('replaying a round cannot award completed Lesson XP again', (
     tester,
   ) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt('weekly_xp_target', 50);
-    final fixture = _topicFixture();
-    final progress = ProgressService();
-    await _completeForSetup(progress, fixture.firstRound);
-    await _openLesson(tester, fixture, expectedCompleted: 1);
-
-    await _completeRoundFromTopic(
-      tester,
-      fixture.finalRound,
-      closeCompletionDialog: false,
-    );
-    expect(find.text('Total: 60 XP'), findsOneWidget);
-    await _tapAndPump(tester, 'Continue');
-    await _pumpUntilText(tester, 'Weekly goal reached!');
-
-    expect(await progress.getWeeklyXp(), 60);
-    expect(await progress.isWeeklyGoalCelebrated(), isTrue);
-    await _tapAndPump(tester, 'Continue');
-    await _pumpUntilText(tester, '2/2 rounds completed');
-    expect(find.text('Lesson completed: +25 XP'), findsNothing);
-  });
-
-  testWidgets('replaying a round cannot award completed Topic XP again', (
-    tester,
-  ) async {
-    final fixture = _topicFixture();
+    final fixture = _lessonFixture();
     final progress = ProgressService();
     await _completeForSetup(progress, fixture.firstRound);
     await _completeForSetup(progress, fixture.finalRound);
-    await progress.completeTopic(
-      fixture.topic.id,
+    await progress.completeLesson(
+      fixture.lesson.lessonId,
       courseId: courseId,
       courseCode: courseCode,
     );
     await _openLesson(tester, fixture, expectedCompleted: 2);
 
-    await _completeRoundFromTopic(tester, fixture.firstRound);
+    await _completeRoundFromLesson(tester, fixture.firstRound);
     await _pumpUntilText(tester, '2/2 rounds completed');
 
-    expect(await progress.getCompletedTopics(courseId: courseId), {
-      fixture.topic.id,
+    expect(await progress.getCompletedLessons(courseId: courseId), {
+      fixture.lesson.lessonId,
     });
     expect(await progress.getXp(courseCode: courseCode), 57);
     expect(await progress.getWeeklyXp(), 57);
     expect(find.text('Lesson completed: +25 XP'), findsNothing);
   });
 
-  testWidgets('backing out of a round cannot award completed Topic XP again', (
+  testWidgets('backing out of a round cannot award completed Lesson XP again', (
     tester,
   ) async {
-    final fixture = _topicFixture();
+    final fixture = _lessonFixture();
     final progress = ProgressService();
     await _completeForSetup(progress, fixture.firstRound);
     await _completeForSetup(progress, fixture.finalRound);
-    await progress.completeTopic(
-      fixture.topic.id,
+    await progress.completeLesson(
+      fixture.lesson.lessonId,
       courseId: courseId,
       courseCode: courseCode,
     );
@@ -162,8 +163,8 @@ void main() {
     await tester.pageBack();
     await _pumpUntilText(tester, '2/2 rounds completed');
 
-    expect(await progress.getCompletedTopics(courseId: courseId), {
-      fixture.topic.id,
+    expect(await progress.getCompletedLessons(courseId: courseId), {
+      fixture.lesson.lessonId,
     });
     expect(await progress.getXp(courseCode: courseCode), 25);
     expect(await progress.getWeeklyXp(), 25);
@@ -172,14 +173,14 @@ void main() {
   });
 
   testWidgets(
-    'Review perfect replay updates round state without topic completion XP',
+    'Review perfect replay updates round state without lesson completion XP',
     (tester) async {
-      final fixture = _topicFixture();
+      final fixture = _lessonFixture();
       final progress = ProgressService();
       await _completeForSetup(progress, fixture.firstRound);
       await progress.recordRecentRound(
         courseId,
-        fixture.topic.id,
+        fixture.lesson.lessonId,
         fixture.firstRound.id,
         errors: 1,
       );
@@ -199,7 +200,7 @@ void main() {
       await _tapAndPump(tester, 'Finish round');
       await _pumpUntilText(
         tester,
-        'Lesson 1: Characterization Topic · '
+        'Lesson 1: Characterization Lesson · '
         '0 errors in latest attempt',
       );
 
@@ -210,7 +211,7 @@ void main() {
       expect(recent, hasLength(1));
       expect(recent.single.roundId, fixture.firstRound.id);
       expect(recent.single.errors, 0);
-      expect(await progress.getCompletedTopics(courseId: courseId), isEmpty);
+      expect(await progress.getCompletedLessons(courseId: courseId), isEmpty);
       expect(await progress.getXp(courseCode: courseCode), 32);
       expect(await progress.getWeeklyXp(), 32);
     },
@@ -257,50 +258,50 @@ void _installEventChannelMock(
   });
 }
 
-class _TopicFixture {
+class _LessonFixture {
   final Course course;
-  final Topic topic;
+  final Lesson lesson;
   final LearningRound firstRound;
   final LearningRound finalRound;
   final LearningRound unrelatedRound;
 
-  const _TopicFixture({
+  const _LessonFixture({
     required this.course,
-    required this.topic,
+    required this.lesson,
     required this.firstRound,
     required this.finalRound,
     required this.unrelatedRound,
   });
 }
 
-_TopicFixture _topicFixture() {
-  final firstRound = _round('topic_round_1', 'First Topic Round');
-  final finalRound = _round('topic_round_2', 'Final Topic Round');
+_LessonFixture _lessonFixture() {
+  final firstRound = _round('lesson_round_1', 'First Lesson Round');
+  final finalRound = _round('lesson_round_2', 'Final Lesson Round');
   final unrelatedRound = _round('unrelated_round', 'Unrelated Round');
-  final topic = Topic(
-    id: 'topic_characterization',
-    title: 'Characterization Topic',
+  final lesson = Lesson(
+    lessonId: 'lesson_characterization',
+    title: 'Characterization Lesson',
     rounds: [firstRound, finalRound],
   );
-  final unrelatedTopic = Topic(
-    id: 'unrelated_topic',
-    title: 'Unrelated Topic',
+  final unrelatedLesson = Lesson(
+    lessonId: 'unrelated_lesson',
+    title: 'Unrelated Lesson',
     rounds: [unrelatedRound],
   );
   final course = Course(
-    courseId: 'topic_characterization_course',
+    courseId: 'lesson_characterization_course',
     learningLanguage: 'Italian',
     interfaceLanguage: 'English',
     sourceLanguage: 'English',
     targetLanguage: 'Italian',
-    title: 'Topic Characterization Course',
+    title: 'Lesson Characterization Course',
     ttsLanguage: 'it-IT',
     version: '1.0.0',
-    topics: [topic, unrelatedTopic],
+    lessons: [lesson, unrelatedLesson],
   );
-  return _TopicFixture(
+  return _LessonFixture(
     course: course,
-    topic: topic,
+    lesson: lesson,
     firstRound: firstRound,
     finalRound: finalRound,
     unrelatedRound: unrelatedRound,
@@ -330,7 +331,7 @@ LearningRound _round(String id, String title) => LearningRound(
 );
 
 class _LessonRoundLauncher extends StatefulWidget {
-  final _TopicFixture fixture;
+  final _LessonFixture fixture;
 
   const _LessonRoundLauncher({required this.fixture});
 
@@ -354,7 +355,7 @@ class _LessonRoundLauncherState extends State<_LessonRoundLauncher> {
     );
     if (!mounted) return;
     setState(() {
-      _completed = widget.fixture.topic.rounds
+      _completed = widget.fixture.lesson.rounds
           .where((round) => completed.contains(round.id))
           .length;
     });
@@ -365,11 +366,11 @@ class _LessonRoundLauncherState extends State<_LessonRoundLauncher> {
       MaterialPageRoute(
         builder: (_) => RoundScreen(
           course: widget.fixture.course,
-          topic: widget.fixture.topic,
+          lesson: widget.fixture.lesson,
           round: round,
           ttsLanguage: widget.fixture.course.ttsLanguage,
-          roundIndex: widget.fixture.topic.rounds.indexOf(round),
-          completeTopicOnFinish: true,
+          roundIndex: widget.fixture.lesson.rounds.indexOf(round),
+          completeLessonOnFinish: true,
         ),
       ),
     );
@@ -378,13 +379,13 @@ class _LessonRoundLauncherState extends State<_LessonRoundLauncher> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: Text(widget.fixture.topic.title)),
+    appBar: AppBar(title: Text(widget.fixture.lesson.title)),
     body: Column(
       children: [
         Text(
-          '$_completed/${widget.fixture.topic.rounds.length} rounds completed',
+          '$_completed/${widget.fixture.lesson.rounds.length} rounds completed',
         ),
-        for (final round in widget.fixture.topic.rounds)
+        for (final round in widget.fixture.lesson.rounds)
           FilledButton(onPressed: () => _open(round), child: Text(round.title)),
       ],
     ),
@@ -394,13 +395,13 @@ class _LessonRoundLauncherState extends State<_LessonRoundLauncher> {
 Future<void> _completeForSetup(ProgressService progress, LearningRound round) =>
     progress.completeRound(
       round.id,
-      courseId: 'topic_characterization_course',
+      courseId: 'lesson_characterization_course',
       courseCode: 'IT',
     );
 
 Future<void> _openLesson(
   WidgetTester tester,
-  _TopicFixture fixture, {
+  _LessonFixture fixture, {
   required int expectedCompleted,
 }) async {
   await tester.pumpWidget(
@@ -409,7 +410,7 @@ Future<void> _openLesson(
   await _pumpUntilText(tester, '$expectedCompleted/2 rounds completed');
 }
 
-Future<void> _completeRoundFromTopic(
+Future<void> _completeRoundFromLesson(
   WidgetTester tester,
   LearningRound round, {
   bool closeCompletionDialog = true,

@@ -1,32 +1,52 @@
-# QuisquisLingo Course JSON format 4
+# QuisquisLingo Course JSON format 5
 
 Status: implemented current format. The in-app Editor Help remains the author-facing reference.
 
 ## Root
 
-Every native Course Model v4 course declares:
+Every native Course Model v5 course declares:
 
 ```json
-"formatVersion": 4
+"formatVersion": 5
 ```
 
 `courseId` is an immutable globally unique course identity. Course updates retain it so learner course progress follows the update. A fork or separate imported copy receives a new `courseId` and may include `parentCourseId` plus `derivedFromVersion` to preserve its lineage.
 
 The canonical hierarchy is:
 
-`Course > topics[] > guidebook + rounds[] + duel > content[]`
+`Course > lessons[] > guidebook + rounds[] + duel > content[]`
 
-Course owns an ordered list of Topics. Every Topic owns its Guidebook, ordered Rounds and stable Duel identity. Chapter and assessment-Topic fields are not part of Course Model v4.
+Course owns an ordered list of Lessons. Every Lesson owns its Guidebook, ordered Rounds and stable Duel identity. Chapter and assessment-Lesson fields are not part of Course Model v5.
 
-## Topic Guidebook
+Every Lesson requires `lessonId` and `title`. Optional presentational metadata uses this shape:
 
-A Topic contains `guidebook.content[]`. Guidebook Content can include explanations, vocabulary, examples and text. It is learner-facing reference material and may also be used as authoring source material. `sourceRefs` can connect generated or derived Content to stable Guidebook Content IDs.
+```json
+{
+  "lessonId": "stable_opaque_id",
+  "title": "At the railway station",
+  "section": true,
+  "sectionName": "Travel",
+  "themeIconAsset": "assets/lesson_icons/train.png"
+}
+```
 
-The first Content item of Round 1 may be a non-exercise `topic_intro` derived from essential Topic Guidebook information. Bundled sample courses use this convention and tell the learner to read the Topic Guidebook for more.
+`section` defaults to false. When false, `sectionName` is omitted; when true, `sectionName` must be a non-empty trimmed string. Consecutive Lessons with the same name form one visual Section block. Section has no ID, persistence, progress, unlock, XP, Duel or navigation state, and relative Section Lesson numbering is derived from Lesson order.
+
+`themeIconAsset` is optional and, when present, must name an approved 256 × 256 transparent PNG from the canonical Lesson icon registry under `assets/lesson_icons/`. Each registry entry has a stable internal ID, author-facing label and asset path. Course JSON stores only the asset path, never image bytes, Base64, dimensions, scale or padding. Build-time asset validation verifies the exact registry/disk set, path, PNG structure and decoding, dimensions, transparency and four-color maximum.
+
+The former decorative Lesson `imageAsset` field is not part of Course Model v5 and is rejected. It is not an alias for `themeIconAsset` and is not migrated into one. Exercise Content may still use its own image field where that exercise type requires it.
+
+The structural fields `topics`, `topicId` and Lesson `id` are invalid in v5. Opaque stable identifier values from earlier bundled content may retain historical text because changing their values would break references and course-owned progress.
+
+## Lesson Guidebook
+
+A Lesson contains `guidebook.content[]`. Guidebook Content can include explanations, vocabulary, examples and text. It is learner-facing reference material and may also be used as authoring source material. `sourceRefs` can connect generated or derived Content to stable Guidebook Content IDs.
+
+The first Content item of Round 1 may be a non-exercise `lesson_intro` derived from essential Lesson Guidebook information. Bundled sample courses use this convention and tell the learner to read the Lesson Guidebook for more.
 
 ## Round
 
-A Round contains a stable `id`, `title`, `visualType` and ordered `content[]`. `visualType` is one of `listening`, `story`, `generic` or `test` and is independent of exercise type.
+A Round contains a stable `id`, optional learner-facing `title`, `visualType` and ordered `content[]`. An empty or omitted title is valid and the learner/editor UI falls back to its derived `Round N` label without changing identity. `visualType` is one of `listening`, `story`, `generic` or `test` and is independent of exercise type.
 
 ## Content
 
@@ -44,18 +64,18 @@ Initial interaction primitives are `select`, `input`, `arrange`, and `match`.
 
 Initial evaluation primitives are `selected_items`, `text_match`, `ordered_items`, and `matched_items`.
 
-Options, tokens and match members are stable Items. Evaluation refers to Item IDs, never display indexes. For `text_match`, v4 writes accepted text as `acceptedAnswers`; the parser also accepts `accepted` for that exercise field.
+Options, tokens and match members are stable Items. Evaluation refers to Item IDs, never display indexes. For `text_match`, v5 writes accepted text as `acceptedAnswers`; the parser also accepts `accepted` for that exercise field.
 
 ## Presentation
 
 Flashcard is `kind: presentation`. Its completion actions include `understood` and `review_later`. It has no correct/incorrect result.
 
-## Topic Duel
+## Lesson Duel
 
-Every Topic serializes a Duel object with a stable `id` and `title`. Availability is not serialized. At runtime QuisquisLingo collects exercises from that Topic only, applies the established eligibility and deduplication rules, and requires 25 eligible exercises.
+Every Lesson serializes a Duel object with a stable `id` and `title`. Availability is not serialized. At runtime QuisquisLingo collects exercises from that Lesson only, applies the established eligibility and deduplication rules, and requires 25 eligible exercises.
 
-The standard Duel uses 25 unique questions and 4 lives. There is no score or pass threshold: the learner wins by completing all 25 questions before losing all four lives. If the actual eligible pool has fewer than 25 exercises, that Topic's Duel is normally unavailable; questions are not duplicated and gameplay rules are not changed. Six Rounds, often roughly 48 exercises, is author guidance only and never determines availability.
+The standard Duel uses 25 unique questions and 4 lives. There is no score or pass threshold: the learner wins by completing all 25 questions before losing all four lives. If the actual eligible pool has fewer than 25 exercises, that Lesson's Duel is normally unavailable; questions are not duplicated and gameplay rules are not changed. Six Rounds, often roughly 48 exercises, is author guidance only and never determines availability.
 
 ## Compatibility
 
-Course Model v4 is the only native runtime, import and export format. Chapter-based formats and any other `formatVersion` are unsupported and rejected; QuisquisLingo does not read, migrate or convert them. Export writes `formatVersion: 4`.
+Course Model v5 is the only native runtime, import and export format. Chapter-based formats and any other `formatVersion` are unsupported and rejected; QuisquisLingo does not read, migrate or convert them. Export writes `formatVersion: 5`.

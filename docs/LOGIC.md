@@ -7,7 +7,7 @@ LEARNER PROFILE
 |    +-- XP / streak / study days
 |
 +-- course ID
-|    +-- completed Rounds / Topics / Duel wins
+|    +-- completed Rounds / Lessons / Duel wins
 |    +-- permanent Laurel crowns
 |    +-- up to 50 distinct Review Round results
 |
@@ -19,7 +19,7 @@ LEARNER PROFILE
 ```text
 COURSE
 |
-+-- TOPIC (shown to learners as Lesson)
++-- LESSON (shown to learners as Lesson)
 |    |
 |    +-- GUIDEBOOK
 |    |
@@ -28,16 +28,16 @@ COURSE
 |    |    +-- latest attempt error count
 |    |    +-- perfectAchieved -> permanent Laurel crown
 |    |
-|    +-- TOPIC DUEL
-|         +-- actual eligible pool from this Topic only
+|    +-- LESSON DUEL
+|         +-- actual eligible pool from this Lesson only
 |         +-- available at 25 or more eligible exercises
 |         +-- standard: 25 questions, 4 lives, no score or pass threshold
 |
-+-- next TOPIC unlocks when the immediately previous Topic is completed
-    OR when the immediately previous Topic Duel is won
++-- next LESSON unlocks when the immediately previous Lesson is completed
+    OR when the immediately previous Lesson Duel is won
 ```
 
-The first Topic is genuinely unlocked. Learners may open its Rounds freely. IDDQD Mode grants temporary access to genuinely locked Topics without changing their lock state or the progress recorded while they are open.
+The first Lesson is genuinely unlocked. Learners may open its Rounds freely. IDDQD Mode grants temporary access to genuinely locked Lessons without changing their lock state or the progress recorded while they are open.
 
 ## Review priority
 
@@ -56,7 +56,7 @@ A language streak advances only on a new day when that language is studied. A da
 
 ## Course authoring boundary
 
-Bundled JSON files are read-only. Course Editor stores a validated local Course Model v4 override. The Topic/Round/content hierarchy can be created, deleted and reordered locally. Reset local edits returns to the bundled asset.
+Bundled JSON files are read-only. Course Editor stores a validated local Course Model v5 override. The Lesson/Round/content hierarchy can be created, deleted and reordered locally. Reset local edits returns to the bundled asset.
 
 ## Storage boundary
 
@@ -65,10 +65,14 @@ DEVICE ONLY
 - learner profiles and avatar preferences
 - language-scoped XP, streaks, study days and Status inputs
 - learner-global Weekly XP and per-course Weekly XP breakdowns
-- course-scoped Round/Topic/Duel progress, Laurels and Review history
-- local Course Model v4 Course Editor overrides
+- course-scoped Round/Lesson/Duel progress, Laurels and Review history
+- local Course Model v5 Course Editor overrides
 - settings
 - automatic Crash Log plus separate exportable Diagnostic Log
+
+Build 223 makes three clean-cut Lesson-semantic persistence changes: `v4_completed_topics` becomes `v4_completed_lessons`, `last_topic_<encodedCourseId>` becomes `last_lesson_<encodedCourseId>`, and each `v4_recent_rounds` JSON entry uses `lessonId` instead of `topicId`. The other `v4_` prefixes identify the established chapter-free progress namespace rather than Topic semantics and remain unchanged. Course Editor overrides/user-course storage moves from the v4/build-215 keys to the v5/build-223 keys so old-format course objects are not parsed as v5.
+
+Learner backup schema v2 remains unchanged. Its only learner-state payload is an opaque `data` map of profile namespace suffixes to primitive/list values; it does not define Topic/Lesson fields of its own. Export/restore therefore carries the current Lesson keys without changing `schemaVersion`, `format`, or `learnerProfileId` semantics.
 
 SERVER
 - none required by the current prototype

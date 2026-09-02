@@ -10,13 +10,13 @@ void main() {
   setUp(() => SharedPreferences.setMockInitialValues({'sentinel': 'keep'}));
 
   testWidgets(
-    'cancelling the Guidebook generator leaves the Topic and preferences unchanged',
+    'cancelling the Guidebook generator leaves the Lesson and preferences unchanged',
     (tester) async {
       final fixture = _generatorFixture();
-      final originalTopicJson = fixture.topic.toJson();
+      final originalLessonJson = fixture.lesson.toJson();
       final originalCourseJson = fixture.course.toJson();
-      final routeResults = <Topic?>[];
-      await _openTopicEditor(tester, fixture, routeResults: routeResults);
+      final routeResults = <Lesson?>[];
+      await _openLessonEditor(tester, fixture, routeResults: routeResults);
 
       await tester.tap(find.byTooltip('Generate 3 Rounds from Guidebook'));
       await tester.pumpAndSettle();
@@ -33,8 +33,8 @@ void main() {
       await _tapAndSettle(tester, 'Save');
 
       expect(routeResults, hasLength(1));
-      expect(routeResults.single?.toJson(), originalTopicJson);
-      expect(fixture.topic.toJson(), originalTopicJson);
+      expect(routeResults.single?.toJson(), originalLessonJson);
+      expect(fixture.lesson.toJson(), originalLessonJson);
       expect(fixture.course.toJson(), originalCourseJson);
       final prefs = await SharedPreferences.getInstance();
       expect(prefs.getKeys(), {'sentinel'});
@@ -43,16 +43,16 @@ void main() {
   );
 
   testWidgets(
-    'approval appends three reviewed Rounds derived from the Topic Guidebook',
+    'approval appends three reviewed Rounds derived from the Lesson Guidebook',
     (tester) async {
       final fixture = _generatorFixture();
-      final originalTopicJson = fixture.topic.toJson();
+      final originalLessonJson = fixture.lesson.toJson();
       final originalCourseJson = fixture.course.toJson();
-      final guidebookIds = fixture.topic.guidebook.content
+      final guidebookIds = fixture.lesson.guidebook.content
           .map((content) => content.id)
           .toSet();
-      final routeResults = <Topic?>[];
-      await _openTopicEditor(tester, fixture, routeResults: routeResults);
+      final routeResults = <Lesson?>[];
+      await _openLessonEditor(tester, fixture, routeResults: routeResults);
 
       await tester.tap(find.byTooltip('Generate 3 Rounds from Guidebook'));
       await tester.pumpAndSettle();
@@ -65,10 +65,10 @@ void main() {
 
       expect(routeResults, hasLength(1));
       final updated = routeResults.single!;
-      expect(updated.id, fixture.topic.id);
-      expect(updated.title, fixture.topic.title);
-      expect(updated.duel.toJson(), fixture.topic.duel.toJson());
-      expect(updated.guidebook.toJson(), fixture.topic.guidebook.toJson());
+      expect(updated.lessonId, fixture.lesson.lessonId);
+      expect(updated.title, fixture.lesson.title);
+      expect(updated.duel.toJson(), fixture.lesson.duel.toJson());
+      expect(updated.guidebook.toJson(), fixture.lesson.guidebook.toJson());
       expect(updated.rounds, hasLength(4));
       expect(updated.rounds.first.id, 'existing_round');
       expect(updated.rounds.first.visualType, 'story');
@@ -112,9 +112,9 @@ void main() {
         }),
       );
       final intro = generatedContent.singleWhere(
-        (content) => content.role == 'topic_intro',
+        (content) => content.role == 'lesson_intro',
       );
-      expect(intro.text, contains('Read this Topic Guidebook for more'));
+      expect(intro.text, contains('Read this Lesson Guidebook for more'));
       expect(intro.sourceRefs, isNotEmpty);
       expect(intro.sourceRefs, everyElement(isIn(guidebookIds)));
 
@@ -124,7 +124,7 @@ void main() {
       expect(generatedIds.toSet(), hasLength(generatedIds.length));
       expect(generatedIds, isNot(contains('existing_exercise')));
 
-      expect(fixture.topic.toJson(), originalTopicJson);
+      expect(fixture.lesson.toJson(), originalLessonJson);
       expect(fixture.course.toJson(), originalCourseJson);
       final prefs = await SharedPreferences.getInstance();
       expect(prefs.getKeys(), {'sentinel'});
@@ -135,12 +135,9 @@ void main() {
 
 class _GeneratorFixture {
   final Course course;
-  final Topic topic;
+  final Lesson lesson;
 
-  const _GeneratorFixture({
-    required this.course,
-    required this.topic,
-  });
+  const _GeneratorFixture({required this.course, required this.lesson});
 }
 
 _GeneratorFixture _generatorFixture() {
@@ -165,8 +162,8 @@ _GeneratorFixture _generatorFixture() {
     visualType: 'story',
     exercises: [_choiceExercise('existing_exercise')],
   );
-  final topic = Topic(
-    id: 'topic_identity',
+  final lesson = Lesson(
+    lessonId: 'lesson_identity',
     title: 'Everyday language',
     rounds: [existingRound],
     guidebook: guidebook,
@@ -180,9 +177,9 @@ _GeneratorFixture _generatorFixture() {
     title: 'Generator Characterization Course',
     ttsLanguage: 'it-IT',
     version: '1.0.0',
-    topics: [topic],
+    lessons: [lesson],
   );
-  return _GeneratorFixture(course: course, topic: topic);
+  return _GeneratorFixture(course: course, lesson: lesson);
 }
 
 Exercise _choiceExercise(String id) => Exercise(
@@ -201,10 +198,10 @@ Exercise _choiceExercise(String id) => Exercise(
   icons: const [],
 );
 
-Future<void> _openTopicEditor(
+Future<void> _openLessonEditor(
   WidgetTester tester,
   _GeneratorFixture fixture, {
-  required List<Topic?> routeResults,
+  required List<Lesson?> routeResults,
 }) async {
   await tester.pumpWidget(
     MaterialApp(
@@ -214,26 +211,26 @@ Future<void> _openTopicEditor(
             child: FilledButton(
               onPressed: () async {
                 routeResults.add(
-                  await Navigator.of(context).push<Topic>(
+                  await Navigator.of(context).push<Lesson>(
                     MaterialPageRoute(
-                      builder: (_) => TopicEditorScreen(
+                      builder: (_) => LessonEditorScreen(
                         course: fixture.course,
-                        topic: fixture.topic,
+                        lesson: fixture.lesson,
                       ),
                     ),
                   ),
                 );
               },
-              child: const Text('Open Topic Editor'),
+              child: const Text('Open Lesson Editor'),
             ),
           ),
         ),
       ),
     ),
   );
-  await tester.tap(find.text('Open Topic Editor'));
+  await tester.tap(find.text('Open Lesson Editor'));
   await tester.pumpAndSettle();
-  expect(find.byType(TopicEditorScreen), findsOneWidget);
+  expect(find.byType(LessonEditorScreen), findsOneWidget);
 }
 
 Future<void> _tapAndSettle(WidgetTester tester, String label) async {

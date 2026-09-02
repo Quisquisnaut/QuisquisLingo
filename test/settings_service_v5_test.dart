@@ -8,25 +8,31 @@ void main() {
 
   setUp(() => SharedPreferences.setMockInitialValues({}));
 
-  test('last Topic remains isolated by learner and Course', () async {
+  test('last Lesson remains isolated by learner and Course', () async {
     final profiles = ProfileService();
     final settings = SettingsService();
     await profiles.addProfile('Alice');
 
-    await settings.setLastVisitedTopicId('course_a', 'topic_a2');
-    await settings.setLastVisitedTopicId('course_b', 'topic_b3');
-    expect(await settings.getLastVisitedTopicId('course_a'), 'topic_a2');
-    expect(await settings.getLastVisitedTopicId('course_b'), 'topic_b3');
+    await settings.setLastVisitedLessonId('course_a', 'lesson_a2');
+    await settings.setLastVisitedLessonId('course_b', 'lesson_b3');
+    expect(await settings.getLastVisitedLessonId('course_a'), 'lesson_a2');
+    expect(await settings.getLastVisitedLessonId('course_b'), 'lesson_b3');
 
     await profiles.addProfile('Bob');
-    expect(await settings.getLastVisitedTopicId('course_a'), isNull);
-    await settings.setLastVisitedTopicId('course_a', 'topic_a1');
+    expect(await settings.getLastVisitedLessonId('course_a'), isNull);
+    await settings.setLastVisitedLessonId('course_a', 'lesson_a1');
 
     await profiles.setActiveProfile('Alice');
-    expect(await settings.getLastVisitedTopicId('course_a'), 'topic_a2');
-    expect(await settings.getLastVisitedTopicId('course_b'), 'topic_b3');
+    expect(await settings.getLastVisitedLessonId('course_a'), 'lesson_a2');
+    expect(await settings.getLastVisitedLessonId('course_b'), 'lesson_b3');
 
     final prefs = await SharedPreferences.getInstance();
+    final aliceId = (await profiles.getProfileRecords())
+        .singleWhere((profile) => profile.displayName == 'Alice')
+        .learnerProfileId;
+    final alicePrefix = ProfileService.prefixForProfileId(aliceId);
+    expect(prefs.getString('${alicePrefix}last_lesson_course_a'), 'lesson_a2');
+    expect(prefs.getKeys().where((key) => key.contains('last_topic')), isEmpty);
     expect(
       prefs.getKeys().where((key) => key.contains('last_chapter')),
       isEmpty,
@@ -103,4 +109,29 @@ void main() {
       ]);
     },
   );
+
+  test('IDDQD remains isolated by opaque learner ID and Course ID', () async {
+    final profiles = ProfileService();
+    final settings = SettingsService();
+    await profiles.addProfile('Alice');
+    final aliceId = (await profiles.getActiveProfileId())!;
+
+    await settings.setIddqdModeEnabled('course_a', true);
+    expect(await settings.isIddqdModeEnabled('course_a'), isTrue);
+    expect(await settings.isIddqdModeEnabled('course_b'), isFalse);
+
+    await profiles.addProfile('Bob');
+    expect(await settings.isIddqdModeEnabled('course_a'), isFalse);
+    await settings.setIddqdModeEnabled('course_b', true);
+
+    await profiles.setActiveProfile('Alice');
+    expect(await settings.isIddqdModeEnabled('course_a'), isTrue);
+    expect(await settings.isIddqdModeEnabled('course_b'), isFalse);
+
+    final prefs = await SharedPreferences.getInstance();
+    expect(
+      prefs.getBool(profiles.keyForProfileId(aliceId, 'iddqd_course_a')),
+      isTrue,
+    );
+  });
 }

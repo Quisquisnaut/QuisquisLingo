@@ -37,13 +37,13 @@ void main() {
           ],
         ),
         LearningRound(
-          id: 'topic_intro_only',
-          title: 'Topic intro only',
+          id: 'lesson_intro_only',
+          title: 'Lesson intro only',
           content: [
             LearningContent.textual(
               id: 'intro',
               kind: 'explanation',
-              role: 'topic_intro',
+              role: 'lesson_intro',
               text: 'Read the Guidebook first.',
             ),
           ],
@@ -85,7 +85,7 @@ Course _course(List<LearningRound> rounds) => Course(
   title: 'Course',
   ttsLanguage: 'en-US',
   version: '1',
-  topics: [Topic(id: 'topic', title: 'Lesson', rounds: rounds)],
+  lessons: [Lesson(lessonId: 'lesson', title: 'Lesson', rounds: rounds)],
 );
 
 Exercise _choiceExercise(String id, {List<String>? answers}) => Exercise(

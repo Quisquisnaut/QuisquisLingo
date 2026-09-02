@@ -34,11 +34,11 @@ class DuelEligibilityService {
 
   const DuelEligibilityService();
 
-  DuelEligibilityResult evaluate(Topic topic) {
+  DuelEligibilityResult evaluate(Lesson lesson) {
     final candidates = <DuelCandidate>[];
     final seen = <String>{};
 
-    for (final round in topic.rounds) {
+    for (final round in lesson.rounds) {
       for (final exercise in round.exercises) {
         final answers = exercise.answers;
         final correct = exercise.correct;

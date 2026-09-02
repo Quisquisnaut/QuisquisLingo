@@ -475,12 +475,12 @@ void _installEventChannelMock(
 
 class _RoundFixture {
   final Course course;
-  final Topic topic;
+  final Lesson lesson;
   final LearningRound round;
 
   const _RoundFixture({
     required this.course,
-    required this.topic,
+    required this.lesson,
     required this.round,
   });
 }
@@ -518,9 +518,9 @@ _RoundFixture _roundFixture({
       ],
     ],
   );
-  final topic = Topic(
-    id: 'topic_characterization',
-    title: 'Characterization Topic',
+  final lesson = Lesson(
+    lessonId: 'lesson_characterization',
+    title: 'Characterization Lesson',
     rounds: [round],
     guidebook: Guidebook.empty(),
   );
@@ -533,9 +533,9 @@ _RoundFixture _roundFixture({
     title: 'Characterization Course',
     ttsLanguage: 'it-IT',
     version: '1.0.0',
-    topics: [topic],
+    lessons: [lesson],
   );
-  return _RoundFixture(course: course, topic: topic, round: round);
+  return _RoundFixture(course: course, lesson: lesson, round: round);
 }
 
 Exercise _choiceExercise(String id) => Exercise(
@@ -605,7 +605,7 @@ Future<void> _openRound(
                     MaterialPageRoute(
                       builder: (_) => RoundScreen(
                         course: fixture.course,
-                        topic: fixture.topic,
+                        lesson: fixture.lesson,
                         round: fixture.round,
                         ttsLanguage: fixture.course.ttsLanguage,
                         roundIndex: 0,

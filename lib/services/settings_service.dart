@@ -100,9 +100,9 @@ class SettingsService {
     await (await SharedPreferences.getInstance()).setBool(key, enabled);
   }
 
-  Future<String?> getLastVisitedTopicId(String courseId) async {
+  Future<String?> getLastVisitedLessonId(String courseId) async {
     final key = await ProfileService().key(
-      'last_topic_${Uri.encodeComponent(courseId.trim())}',
+      'last_lesson_${Uri.encodeComponent(courseId.trim())}',
     );
     final value = (await SharedPreferences.getInstance())
         .getString(key)
@@ -110,13 +110,13 @@ class SettingsService {
     return value == null || value.isEmpty ? null : value;
   }
 
-  Future<void> setLastVisitedTopicId(String courseId, String topicId) async {
+  Future<void> setLastVisitedLessonId(String courseId, String lessonId) async {
     final key = await ProfileService().key(
-      'last_topic_${Uri.encodeComponent(courseId.trim())}',
+      'last_lesson_${Uri.encodeComponent(courseId.trim())}',
     );
     await (await SharedPreferences.getInstance()).setString(
       key,
-      topicId.trim(),
+      lessonId.trim(),
     );
   }
 

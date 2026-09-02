@@ -19,22 +19,22 @@ import 'guidebook_screen.dart';
 
 class RoundScreen extends StatefulWidget {
   final Course course;
-  final Topic topic;
+  final Lesson lesson;
   final LearningRound round;
   final String ttsLanguage;
   final int roundIndex;
   final bool previewMode;
-  final bool completeTopicOnFinish;
+  final bool completeLessonOnFinish;
 
   const RoundScreen({
     super.key,
     required this.course,
-    required this.topic,
+    required this.lesson,
     required this.round,
     required this.ttsLanguage,
     required this.roundIndex,
     this.previewMode = false,
-    this.completeTopicOnFinish = false,
+    this.completeLessonOnFinish = false,
   });
 
   @override
@@ -65,6 +65,9 @@ class _MatchPairView {
 }
 
 class _RoundScreenState extends State<RoundScreen> {
+  String get _roundTitle => widget.round.title.trim().isEmpty
+      ? 'Round ${widget.roundIndex + 1}'
+      : widget.round.title;
   final _progress = ProgressService();
   late final LearningCompletionService _completion;
   final _ttsCache = TtsCacheService();
@@ -111,9 +114,9 @@ class _RoundScreenState extends State<RoundScreen> {
 
   int get _exerciseIndex => _queue[_position];
   Exercise get _exercise => widget.round.exercises[_exerciseIndex];
-  LearningContent? get _topicIntro {
+  LearningContent? get _lessonIntro {
     for (final content in widget.round.content) {
-      if (content.role == 'topic_intro' && content.text.trim().isNotEmpty) {
+      if (content.role == 'lesson_intro' && content.text.trim().isNotEmpty) {
         return content;
       }
     }
@@ -464,7 +467,7 @@ class _RoundScreenState extends State<RoundScreen> {
     await _reports.copyExerciseReport(
       kind: kind,
       course: widget.course,
-      topic: widget.topic,
+      lesson: widget.lesson,
       round: widget.round,
       exercise: _exercise,
       exerciseIndex: _exerciseIndex,
@@ -711,29 +714,30 @@ class _RoundScreenState extends State<RoundScreen> {
       return;
     }
     final code = CourseService.codeForCourse(widget.course);
-    String? completedTopicId;
-    if (widget.completeTopicOnFinish && widget.topic.rounds.isNotEmpty) {
-      final completedTopics = await _progress.getCompletedTopics(
+    String? completedLessonId;
+    if (widget.completeLessonOnFinish && widget.lesson.rounds.isNotEmpty) {
+      final completedLessons = await _progress.getCompletedLessons(
         courseId: widget.course.courseId,
       );
       final completedRounds = await _progress.getCompletedRounds(
         courseId: widget.course.courseId,
       );
-      final completesTopic = widget.topic.rounds.every(
+      final completesLesson = widget.lesson.rounds.every(
         (round) =>
             round.id == widget.round.id || completedRounds.contains(round.id),
       );
-      if (completesTopic && !completedTopics.contains(widget.topic.id)) {
-        completedTopicId = widget.topic.id;
+      if (completesLesson &&
+          !completedLessons.contains(widget.lesson.lessonId)) {
+        completedLessonId = widget.lesson.lessonId;
       }
     }
     final completion = await _completion.completeRound(
       LearningCompletionRequest(
         roundId: widget.round.id,
-        topicId: widget.topic.id,
+        lessonId: widget.lesson.lessonId,
         courseId: widget.course.courseId,
         courseCode: code,
-        completedTopicId: completedTopicId,
+        completedLessonId: completedLessonId,
         readAttemptFacts: () => LearningCompletionAttemptFacts(
           errorsThisAttempt: _errorsThisAttempt,
           firstPassCorrect: _firstPassCorrect,
@@ -768,8 +772,8 @@ class _RoundScreenState extends State<RoundScreen> {
               Text('Perfect bonus: +${completion.roundXp.perfectBonusXp} XP'),
             if (completion.roundXp.laurelBonusXp > 0)
               Text('First Laurel: +${completion.roundXp.laurelBonusXp} XP'),
-            if (completion.topicCompletionXp > 0)
-              Text('Lesson completed: +${completion.topicCompletionXp} XP'),
+            if (completion.lessonCompletionXp > 0)
+              Text('Lesson completed: +${completion.lessonCompletionXp} XP'),
             Text('Total: ${completion.awardedXp} XP'),
           ],
         ),
@@ -1523,7 +1527,7 @@ class _RoundScreenState extends State<RoundScreen> {
     }
     final background =
         _autumnBackgrounds[widget.roundIndex % _autumnBackgrounds.length];
-    final intro = _topicIntro;
+    final intro = _lessonIntro;
     if (intro != null && !_introAcknowledged) {
       return Scaffold(
         backgroundColor: background,
@@ -1531,8 +1535,8 @@ class _RoundScreenState extends State<RoundScreen> {
           backgroundColor: background,
           title: Text(
             widget.previewMode
-                ? 'PREVIEW · ${widget.round.title}'
-                : widget.round.title,
+                ? 'PREVIEW · $_roundTitle'
+                : _roundTitle,
           ),
         ),
         body: SafeArea(
@@ -1561,7 +1565,7 @@ class _RoundScreenState extends State<RoundScreen> {
               OutlinedButton.icon(
                 onPressed: () => Navigator.of(context).push(
                   MaterialPageRoute(
-                    builder: (_) => GuidebookScreen(topic: widget.topic),
+                    builder: (_) => GuidebookScreen(lesson: widget.lesson),
                   ),
                 ),
                 icon: const Icon(Icons.menu_book_outlined),
@@ -1584,8 +1588,8 @@ class _RoundScreenState extends State<RoundScreen> {
           backgroundColor: background,
           title: Text(
             widget.previewMode
-                ? 'PREVIEW · ${widget.round.title}'
-                : widget.round.title,
+                ? 'PREVIEW · $_roundTitle'
+                : _roundTitle,
           ),
         ),
         body: const Center(child: CircularProgressIndicator()),
@@ -1598,8 +1602,8 @@ class _RoundScreenState extends State<RoundScreen> {
           backgroundColor: background,
           title: Text(
             widget.previewMode
-                ? 'PREVIEW · ${widget.round.title}'
-                : widget.round.title,
+                ? 'PREVIEW · $_roundTitle'
+                : _roundTitle,
           ),
         ),
         body: SafeArea(
@@ -1639,11 +1643,11 @@ class _RoundScreenState extends State<RoundScreen> {
           children: [
             Text(
               _reviewPhase
-                  ? '${widget.round.title} · Review'
-                  : widget.round.title,
+                  ? '$_roundTitle · Review'
+                  : _roundTitle,
             ),
             Text(
-              '${widget.course.targetLanguage} · Lesson ${widget.course.topics.indexWhere((topic) => topic.id == widget.topic.id) + 1} · ${widget.topic.title}',
+              '${widget.course.targetLanguage} · Lesson ${widget.course.lessons.indexWhere((lesson) => lesson.lessonId == widget.lesson.lessonId) + 1} · ${widget.lesson.title}',
               style: Theme.of(context).textTheme.labelSmall,
             ),
           ],

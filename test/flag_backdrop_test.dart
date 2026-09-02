@@ -18,7 +18,7 @@ void main() {
         version: '1.0.0',
         flagCode: flagCode,
         flagImageBase64: flagImageBase64,
-        topics: const [],
+        lessons: const [],
       );
 
   Widget app(Course value, {BoxFit fit = BoxFit.contain}) => MaterialApp(

@@ -13,7 +13,7 @@ import '../services/course_editor_service.dart';
 import '../services/duel_eligibility_service.dart';
 import '../services/progress_service.dart';
 import '../services/profile_service.dart';
-import '../services/topic_unlock_service.dart';
+import '../services/lesson_unlock_service.dart';
 import '../services/alpha_lifecycle_service.dart';
 import '../services/app_errors.dart';
 import '../services/error_presenter.dart';
@@ -54,13 +54,67 @@ const _learnerScrollBottomInset = learnerBottomActionsHeight + 44;
 const _lockedLessonPreviewTapCount = 3;
 const _lockedLessonPreviewTapTimeout = Duration(seconds: 5);
 
-typedef _LockedLessonPreviewKey = ({String courseId, String topicId});
+typedef _LockedLessonPreviewKey = ({String courseId, String lessonId});
 
 final Set<_LockedLessonPreviewKey> _sessionPreviewedLockedLessons = {};
 
 @visibleForTesting
 void resetLockedLessonPreviewSessionForTesting() =>
     _sessionPreviewedLockedLessons.clear();
+
+@immutable
+class LearnerSectionBlock {
+  final String label;
+  final int firstLessonIndex;
+  final int lastLessonIndex;
+  final bool synthetic;
+
+  const LearnerSectionBlock({
+    required this.label,
+    required this.firstLessonIndex,
+    required this.lastLessonIndex,
+    required this.synthetic,
+  });
+
+  bool containsLesson(int index) =>
+      index >= firstLessonIndex && index <= lastLessonIndex;
+}
+
+/// Consecutive Section metadata forms navigation blocks. Unsectioned runs are
+/// represented only in the learner UI and never written back to the Course.
+@visibleForTesting
+List<LearnerSectionBlock> learnerSectionBlocks(List<Lesson> lessons) {
+  if (!lessons.any((lesson) => lesson.section)) return const [];
+  final blocks = <LearnerSectionBlock>[];
+  for (var index = 0; index < lessons.length; index++) {
+    final lesson = lessons[index];
+    final synthetic = !lesson.section;
+    final label = synthetic ? 'Other lessons' : lesson.sectionName!;
+    if (blocks.isNotEmpty &&
+        blocks.last.synthetic == synthetic &&
+        blocks.last.label == label) {
+      final previous = blocks.removeLast();
+      blocks.add(
+        LearnerSectionBlock(
+          label: label,
+          firstLessonIndex: previous.firstLessonIndex,
+          lastLessonIndex: index,
+          synthetic: synthetic,
+        ),
+      );
+    } else {
+      blocks.add(
+        LearnerSectionBlock(
+          label: label,
+          firstLessonIndex: index,
+          lastLessonIndex: index,
+          synthetic: synthetic,
+        ),
+      );
+    }
+  }
+  return List.unmodifiable(blocks);
+}
 
 ThemeData _unifiedLearnerTheme(BuildContext context) {
   if (!_usesDarkLearnerAppearance(context)) {
@@ -108,7 +162,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final _progress = ProgressService();
   final _profiles = ProfileService();
   final _settings = SettingsService();
-  final _topicUnlocks = const TopicUnlockService();
+  final _lessonUnlocks = const LessonUnlockService();
   final _learnerScrollController = ScrollController();
   LearnerStatusController? _standaloneStatusController;
   final Map<String, GlobalKey> _lessonSectionKeys = {};
@@ -141,20 +195,20 @@ class _HomeScreenState extends State<HomeScreen> {
   List<LearnerProfile> _learners = [];
   Course? _course;
   Set<String> _completedRounds = {};
-  Set<String> _completedTopics = {};
+  Set<String> _completedLessons = {};
   Set<String> _perfectRounds = {};
   Set<String> _ttsSkippedPerfectRounds = {};
   Set<String> _wonDuels = {};
   bool _iddqdMode = false;
   String _selectedLanguage = 'IT';
   String _selectedCourseRef = 'IT';
-  int _activeTopicIndex = 0;
+  int _activeLessonIndex = 0;
   String? _flowCourseId;
   String? _flowLearner;
   int? _lessonScrollTargetIndex;
   int _lessonScrollTargetAttempts = 0;
   bool _lessonVisibilityCheckScheduled = false;
-  String? _lockedLessonTapTopicId;
+  String? _lockedLessonTapLessonId;
   int _lockedLessonTapCount = 0;
   Timer? _lockedLessonTapResetTimer;
 
@@ -341,19 +395,19 @@ class _HomeScreenState extends State<HomeScreen> {
         selectedLanguage = bundledCode;
         course = await _courseService.loadCourse(bundledCode);
       }
-      final savedTopicId = activeId == null
+      final savedLessonId = activeId == null
           ? null
-          : await _settings.getLastVisitedTopicId(course.courseId);
-      var activeTopicIndex = course.topics.indexWhere(
-        (topic) => topic.id == savedTopicId,
+          : await _settings.getLastVisitedLessonId(course.courseId);
+      var activeLessonIndex = course.lessons.indexWhere(
+        (lesson) => lesson.lessonId == savedLessonId,
       );
-      if (activeTopicIndex < 0) activeTopicIndex = 0;
+      if (activeLessonIndex < 0) activeLessonIndex = 0;
       final rounds = activeId == null
           ? <String>{}
           : await _progress.getCompletedRounds(courseId: course.courseId);
-      final topics = activeId == null
+      final lessons = activeId == null
           ? <String>{}
-          : await _progress.getCompletedTopics(courseId: course.courseId);
+          : await _progress.getCompletedLessons(courseId: course.courseId);
       final perfect = activeId == null
           ? <String>{}
           : await _progress.getPerfectRounds(courseId: course.courseId);
@@ -368,15 +422,15 @@ class _HomeScreenState extends State<HomeScreen> {
       final iddqdMode = activeId == null
           ? false
           : await _settings.isIddqdModeEnabled(course.courseId);
-      if (course.topics.isNotEmpty &&
-          !_topicUnlocks.isTopicUnlocked(
-            topicIndex: activeTopicIndex,
+      if (course.lessons.isNotEmpty &&
+          !_lessonUnlocks.isLessonUnlocked(
+            lessonIndex: activeLessonIndex,
             course: course,
-            completedTopics: topics,
+            completedLessons: lessons,
             wonDuels: wonDuels,
           ) &&
           !iddqdMode) {
-        activeTopicIndex = 0;
+        activeLessonIndex = 0;
       }
       if (!mounted) return;
       final resetFlow =
@@ -389,18 +443,18 @@ class _HomeScreenState extends State<HomeScreen> {
         _activeLearner = active;
         _activeLearnerId = activeId;
         _completedRounds = rounds;
-        _completedTopics = topics;
+        _completedLessons = lessons;
         _perfectRounds = perfect;
         _ttsSkippedPerfectRounds = skipped;
         _wonDuels = wonDuels;
         _iddqdMode = iddqdMode;
-        _activeTopicIndex = activeTopicIndex;
+        _activeLessonIndex = activeLessonIndex;
         if (resetFlow) {
           _flowCourseId = course.courseId;
           _flowLearner = activeId;
         }
       });
-      if (resetFlow) _scrollToTopic(course, activeTopicIndex);
+      if (resetFlow) _scrollToLesson(course, activeLessonIndex);
     } on AppException catch (e) {
       if (mounted) await ErrorPresenter.show(context, e.error);
     } catch (e, st) {
@@ -874,26 +928,26 @@ class _HomeScreenState extends State<HomeScreen> {
     return true;
   }
 
-  bool _isTopicUnlocked(Course course, int index) =>
-      _topicUnlocks.isTopicUnlocked(
-        topicIndex: index,
+  bool _isLessonUnlocked(Course course, int index) =>
+      _lessonUnlocks.isLessonUnlocked(
+        lessonIndex: index,
         course: course,
-        completedTopics: _completedTopics,
+        completedLessons: _completedLessons,
         wonDuels: _wonDuels,
       );
 
   void _resetLockedLessonTapSequence() {
     _lockedLessonTapResetTimer?.cancel();
     _lockedLessonTapResetTimer = null;
-    _lockedLessonTapTopicId = null;
+    _lockedLessonTapLessonId = null;
     _lockedLessonTapCount = 0;
   }
 
-  void _recordLockedLessonTap(String courseId, String topicId) {
+  void _recordLockedLessonTap(String courseId, String lessonId) {
     _lockedLessonTapResetTimer?.cancel();
     _lockedLessonTapResetTimer = null;
-    if (_lockedLessonTapTopicId != topicId) {
-      _lockedLessonTapTopicId = topicId;
+    if (_lockedLessonTapLessonId != lessonId) {
+      _lockedLessonTapLessonId = lessonId;
       _lockedLessonTapCount = 0;
     }
     _lockedLessonTapCount++;
@@ -901,9 +955,9 @@ class _HomeScreenState extends State<HomeScreen> {
       setState(() {
         _sessionPreviewedLockedLessons.add((
           courseId: courseId,
-          topicId: topicId,
+          lessonId: lessonId,
         ));
-        _lockedLessonTapTopicId = null;
+        _lockedLessonTapLessonId = null;
         _lockedLessonTapCount = 0;
       });
       return;
@@ -913,22 +967,22 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-  Future<void> _selectTopic(Course course, int index) async {
-    if (index < 0 || index >= course.topics.length) return;
-    await _settings.setLastVisitedTopicId(
+  Future<void> _selectLesson(Course course, int index) async {
+    if (index < 0 || index >= course.lessons.length) return;
+    await _settings.setLastVisitedLessonId(
       course.courseId,
-      course.topics[index].id,
+      course.lessons[index].lessonId,
     );
     if (!mounted) return;
     _resetLockedLessonTapSequence();
     setState(() {
-      _activeTopicIndex = index;
+      _activeLessonIndex = index;
     });
-    _scrollToTopic(course, index);
+    _scrollToLesson(course, index);
   }
 
-  void _scrollToTopic(Course course, int index) {
-    if (index < 0 || index >= course.topics.length) return;
+  void _scrollToLesson(Course course, int index) {
+    if (index < 0 || index >= course.lessons.length) return;
     _lessonScrollTargetIndex = index;
     _lessonScrollTargetAttempts = 0;
     WidgetsBinding.instance.addPostFrameCallback(
@@ -950,7 +1004,7 @@ class _HomeScreenState extends State<HomeScreen> {
     }
     final sectionContext = _lessonSectionKey(
       course,
-      course.topics[index],
+      course.lessons[index],
     ).currentContext;
     if (sectionContext != null) {
       unawaited(
@@ -971,10 +1025,10 @@ class _HomeScreenState extends State<HomeScreen> {
     final position = _learnerScrollController.position;
     final step = position.viewportDimension * .8;
     final builtIndexes = <int>[
-      for (var builtIndex = 0; builtIndex < course.topics.length; builtIndex++)
+      for (var builtIndex = 0; builtIndex < course.lessons.length; builtIndex++)
         if (_lessonSectionKey(
               course,
-              course.topics[builtIndex],
+              course.lessons[builtIndex],
             ).currentContext !=
             null)
           builtIndex,
@@ -996,8 +1050,11 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  GlobalKey _lessonSectionKey(Course course, Topic topic) => _lessonSectionKeys
-      .putIfAbsent('${course.courseId}:${topic.id}', () => GlobalKey());
+  GlobalKey _lessonSectionKey(Course course, Lesson lesson) =>
+      _lessonSectionKeys.putIfAbsent(
+        '${course.courseId}:${lesson.lessonId}',
+        () => GlobalKey(),
+      );
 
   void _schedulePrimaryLessonSync(Course course) {
     if (_lessonVisibilityCheckScheduled) return;
@@ -1012,20 +1069,20 @@ class _HomeScreenState extends State<HomeScreen> {
     if (!identical(_course, course) ||
         !_learnerScrollController.hasClients ||
         _lessonScrollTargetIndex != null ||
-        course.topics.isEmpty) {
+        course.lessons.isEmpty) {
       return;
     }
     final position = _learnerScrollController.position;
     final viewportStart = position.pixels;
     final viewportEnd = viewportStart + position.viewportDimension;
-    var candidateIndex = _activeTopicIndex;
+    var candidateIndex = _activeLessonIndex;
     var candidateVisibleExtent = 0.0;
     var activeVisibleExtent = 0.0;
 
-    for (var index = 0; index < course.topics.length; index++) {
+    for (var index = 0; index < course.lessons.length; index++) {
       final context = _lessonSectionKey(
         course,
-        course.topics[index],
+        course.lessons[index],
       ).currentContext;
       final renderBox = context?.findRenderObject();
       if (renderBox is! RenderBox || !renderBox.attached) continue;
@@ -1035,7 +1092,7 @@ class _HomeScreenState extends State<HomeScreen> {
       final visibleExtent =
           min(sectionEnd, viewportEnd) - max(sectionStart, viewportStart);
       final clampedVisibleExtent = max(0.0, visibleExtent);
-      if (index == _activeTopicIndex) {
+      if (index == _activeLessonIndex) {
         activeVisibleExtent = clampedVisibleExtent;
       }
       if (clampedVisibleExtent > candidateVisibleExtent) {
@@ -1044,9 +1101,13 @@ class _HomeScreenState extends State<HomeScreen> {
       }
     }
 
-    if (candidateIndex == _activeTopicIndex || candidateVisibleExtent <= 0) {
+    if (candidateIndex == _activeLessonIndex || candidateVisibleExtent <= 0) {
       return;
     }
+    // The selector follows the Lesson with the greatest visible extent only
+    // after it exceeds the current Lesson by 10% of the viewport. This keeps
+    // the derived Section block stable around boundaries while remaining
+    // deterministic for the same scroll position.
     final hysteresis = position.viewportDimension * .1;
     if (activeVisibleExtent > 0 &&
         candidateVisibleExtent < activeVisibleExtent + hysteresis) {
@@ -1054,20 +1115,25 @@ class _HomeScreenState extends State<HomeScreen> {
     }
     _resetLockedLessonTapSequence();
     setState(() {
-      _activeTopicIndex = candidateIndex;
+      _activeLessonIndex = candidateIndex;
     });
     unawaited(
-      _settings.setLastVisitedTopicId(
+      _settings.setLastVisitedLessonId(
         course.courseId,
-        course.topics[candidateIndex].id,
+        course.lessons[candidateIndex].lessonId,
       ),
     );
   }
 
-  Future<void> _showLessonPicker(
+  Future<void> _showSectionPicker(
     Course course,
     BuildContext overlayContext,
   ) async {
+    final blocks = learnerSectionBlocks(course.lessons);
+    if (blocks.isEmpty) return;
+    final activeBlockIndex = blocks.indexWhere(
+      (block) => block.containsLesson(_activeLessonIndex),
+    );
     final selected = await showModalBottomSheet<int>(
       context: overlayContext,
       showDragHandle: true,
@@ -1079,39 +1145,20 @@ class _HomeScreenState extends State<HomeScreen> {
             children: [
               Expanded(
                 child: ListView.builder(
-                  itemCount: course.topics.length,
+                  itemCount: blocks.length,
                   itemBuilder: (context, index) {
-                    final topic = course.topics[index];
-                    final unlocked = _isTopicUnlocked(course, index);
-                    final completed = _completedTopics.contains(topic.id);
+                    final block = blocks[index];
                     return ListTile(
                       leading: Icon(
-                        !unlocked
-                            ? Icons.lock_outline
-                            : completed
-                            ? Icons.check_circle_outline
-                            : Icons.school_outlined,
+                        block.synthetic
+                            ? Icons.more_horiz
+                            : Icons.view_agenda_outlined,
                       ),
-                      title: Text('Lesson ${index + 1}: ${topic.title}'),
-                      subtitle: Text(
-                        !unlocked
-                            ? _iddqdMode
-                                  ? completed
-                                        ? 'Completed · Locked · IDDQD access'
-                                        : 'Locked · IDDQD access'
-                                  : completed
-                                  ? 'Completed · Locked'
-                                  : 'Locked'
-                            : completed
-                            ? 'Completed'
-                            : '${topic.rounds.length} Rounds',
-                      ),
-                      trailing: index == _activeTopicIndex
+                      title: Text(block.label),
+                      trailing: index == activeBlockIndex
                           ? const Icon(Icons.check)
                           : null,
-                      onTap: unlocked || _iddqdMode
-                          ? () => Navigator.pop(ctx, index)
-                          : null,
+                      onTap: () => Navigator.pop(ctx, index),
                     );
                   },
                 ),
@@ -1121,45 +1168,47 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
     );
-    if (selected != null && mounted) await _selectTopic(course, selected);
+    if (selected != null && mounted) {
+      await _selectLesson(course, blocks[selected].firstLessonIndex);
+    }
   }
 
-  Future<void> _openGuidebook(Topic topic) async {
+  Future<void> _openGuidebook(Lesson lesson) async {
     _resetLockedLessonTapSequence();
     if (!await _canOpenLearnerContent() || !mounted) return;
     await Navigator.of(
       context,
-    ).push(MaterialPageRoute(builder: (_) => GuidebookScreen(topic: topic)));
+    ).push(MaterialPageRoute(builder: (_) => GuidebookScreen(lesson: lesson)));
   }
 
   Future<void> _openRound(
     Course course,
-    Topic topic,
+    Lesson lesson,
     LearningRound round,
   ) async {
     _resetLockedLessonTapSequence();
     if (!await _canOpenLearnerContent() || !mounted) return;
     await CrashLogService.instance.recordDebugEvent(
-      'Home: opening Round ${round.id} in Topic ${topic.id}',
+      'Home: opening Round ${round.id} in Lesson ${lesson.lessonId}',
     );
     if (!mounted) return;
     await Navigator.of(context).push<bool>(
       MaterialPageRoute(
         builder: (_) => RoundScreen(
           course: course,
-          topic: topic,
+          lesson: lesson,
           round: round,
-          roundIndex: topic.rounds.indexOf(round),
+          roundIndex: lesson.rounds.indexOf(round),
           ttsLanguage: course.ttsLanguage,
-          completeTopicOnFinish: true,
+          completeLessonOnFinish: true,
         ),
       ),
     );
     await _reload();
   }
 
-  Future<void> _openDuel(Course course, Topic topic) async {
-    final eligibility = _duelEligibility.evaluate(topic);
+  Future<void> _openDuel(Course course, Lesson lesson) async {
+    final eligibility = _duelEligibility.evaluate(lesson);
     if (!eligibility.isAvailable) return;
     _resetLockedLessonTapSequence();
     if (!await _canOpenLearnerContent() || !mounted) return;
@@ -1167,7 +1216,7 @@ class _HomeScreenState extends State<HomeScreen> {
       MaterialPageRoute(
         builder: (_) => DuelScreen(
           course: course,
-          topic: topic,
+          lesson: lesson,
           ttsLanguage: course.ttsLanguage,
         ),
       ),
@@ -1207,9 +1256,6 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       );
     }
-    final topic = course.topics.isEmpty
-        ? null
-        : course.topics[_activeTopicIndex.clamp(0, course.topics.length - 1)];
     final pageBackground = followsDarkAppearance
         ? _learnerDarkPageBackground
         : _learnerLightPageBackground;
@@ -1302,51 +1348,54 @@ class _HomeScreenState extends State<HomeScreen> {
                                 await _reload();
                               },
                             ),
-                            Padding(
-                              padding: const EdgeInsets.fromLTRB(
-                                20,
-                                10,
-                                20,
-                                10,
-                              ),
-                              child: topic == null
-                                  ? const SizedBox.shrink()
-                                  : _LessonNavigation(
-                                      topic: topic,
-                                      topicIndex: _activeTopicIndex,
-                                      roundCount: topic.rounds.length,
-                                      completedRoundCount: topic.rounds
-                                          .where(
-                                            (round) => _completedRounds
-                                                .contains(round.id),
-                                          )
-                                          .length,
-                                      onPrevious: _activeTopicIndex > 0
-                                          ? () => _selectTopic(
+                            if (learnerSectionBlocks(course.lessons).isNotEmpty)
+                              Builder(
+                                builder: (context) {
+                                  final blocks = learnerSectionBlocks(
+                                    course.lessons,
+                                  );
+                                  final activeBlock = blocks.indexWhere(
+                                    (block) => block.containsLesson(
+                                      _activeLessonIndex,
+                                    ),
+                                  );
+                                  return Padding(
+                                    padding: const EdgeInsets.fromLTRB(
+                                      20,
+                                      10,
+                                      20,
+                                      10,
+                                    ),
+                                    child: _SectionNavigation(
+                                      label: blocks[activeBlock].label,
+                                      onPrevious: activeBlock > 0
+                                          ? () => _selectLesson(
                                               course,
-                                              _activeTopicIndex - 1,
+                                              blocks[activeBlock - 1]
+                                                  .firstLessonIndex,
                                             )
                                           : null,
-                                      onNext:
-                                          _activeTopicIndex + 1 <
-                                              course.topics.length
-                                          ? () => _selectTopic(
+                                      onNext: activeBlock + 1 < blocks.length
+                                          ? () => _selectLesson(
                                               course,
-                                              _activeTopicIndex + 1,
+                                              blocks[activeBlock + 1]
+                                                  .firstLessonIndex,
                                             )
                                           : null,
-                                      onBrowse: () => _showLessonPicker(
+                                      onBrowse: () => _showSectionPicker(
                                         course,
                                         learnerContext,
                                       ),
                                     ),
-                            ),
+                                  );
+                                },
+                              ),
                           ],
                         ),
                         Expanded(
                           child: RefreshIndicator(
                             onRefresh: _reload,
-                            child: NotificationListener<ScrollEndNotification>(
+                            child: NotificationListener<ScrollNotification>(
                               onNotification: (_) {
                                 _schedulePrimaryLessonSync(course);
                                 return false;
@@ -1361,49 +1410,55 @@ class _HomeScreenState extends State<HomeScreen> {
                                   14,
                                   _learnerScrollBottomInset,
                                 ),
-                                itemCount: course.topics.isEmpty
+                                itemCount: course.lessons.isEmpty
                                     ? 1
-                                    : course.topics.length,
+                                    : course.lessons.length,
                                 itemBuilder: (context, flowIndex) {
-                                  if (course.topics.isEmpty) {
+                                  if (course.lessons.isEmpty) {
                                     return const _EmptyCourseCard();
                                   }
-                                  final topicIndex = flowIndex;
-                                  final sectionTopic =
-                                      course.topics[topicIndex];
-                                  final unlocked = _isTopicUnlocked(
+                                  final lessonIndex = flowIndex;
+                                  final sectionLesson =
+                                      course.lessons[lessonIndex];
+                                  final showSectionHeader =
+                                      learnerShowsSectionHeader(
+                                        course.lessons,
+                                        lessonIndex,
+                                      );
+                                  final unlocked = _isLessonUnlocked(
                                     course,
-                                    topicIndex,
+                                    lessonIndex,
                                   );
                                   final previewOnly =
                                       !unlocked &&
                                       !_iddqdMode &&
                                       _sessionPreviewedLockedLessons.contains((
                                         courseId: course.courseId,
-                                        topicId: sectionTopic.id,
+                                        lessonId: sectionLesson.lessonId,
                                       ));
                                   return _LessonSection(
                                     key: ValueKey(
-                                      'unified-lesson-section-${sectionTopic.id}',
+                                      'unified-lesson-section-${sectionLesson.lessonId}',
                                     ),
                                     visibilityKey: _lessonSectionKey(
                                       course,
-                                      sectionTopic,
+                                      sectionLesson,
                                     ),
-                                    topic: sectionTopic,
+                                    lesson: sectionLesson,
                                     courseId: course.courseId,
-                                    topicIndex: topicIndex,
+                                    lessonIndex: lessonIndex,
                                     mascotPositionOffset:
                                         learnerMascotPositionOffsetForLesson(
-                                          course.topics,
-                                          topicIndex,
+                                          course.lessons,
+                                          lessonIndex,
                                         ),
                                     roundPositionOffset:
                                         learnerRoundPositionOffsetForLesson(
-                                          course.topics,
-                                          topicIndex,
+                                          course.lessons,
+                                          lessonIndex,
                                         ),
-                                    showBoundary: topicIndex > 0,
+                                    showBoundary: lessonIndex > 0,
+                                    showSectionHeader: showSectionHeader,
                                     unlocked: unlocked,
                                     hasAccess:
                                         unlocked || _iddqdMode || previewOnly,
@@ -1413,19 +1468,22 @@ class _HomeScreenState extends State<HomeScreen> {
                                     ttsSkippedPerfectRounds:
                                         _ttsSkippedPerfectRounds,
                                     duelEligibility: _duelEligibility.evaluate(
-                                      sectionTopic,
+                                      sectionLesson,
                                     ),
                                     onOpenGuidebook: () =>
-                                        _openGuidebook(sectionTopic),
-                                    onOpenRound: (round) =>
-                                        _openRound(course, sectionTopic, round),
+                                        _openGuidebook(sectionLesson),
+                                    onOpenRound: (round) => _openRound(
+                                      course,
+                                      sectionLesson,
+                                      round,
+                                    ),
                                     onOpenDuel: () =>
-                                        _openDuel(course, sectionTopic),
+                                        _openDuel(course, sectionLesson),
                                     onLockedTap: unlocked || _iddqdMode
                                         ? null
                                         : () => _recordLockedLessonTap(
                                             course.courseId,
-                                            sectionTopic.id,
+                                            sectionLesson.lessonId,
                                           ),
                                   );
                                 },
@@ -1449,6 +1507,20 @@ class _HomeScreenState extends State<HomeScreen> {
                               await _reload();
                             },
                             onReview: () => _openReview(course),
+                            iddqdEnabled: _iddqdMode,
+                            onIddqdChanged: (value) async {
+                              setState(() => _iddqdMode = value);
+                              try {
+                                await _settings.setIddqdModeEnabled(
+                                  course.courseId,
+                                  value,
+                                );
+                              } catch (_) {
+                                if (mounted) {
+                                  setState(() => _iddqdMode = !value);
+                                }
+                              }
+                            },
                             onCourseInfo: () {
                               _resetLockedLessonTapSequence();
                               Navigator.of(context).push(
@@ -1473,106 +1545,82 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-class _LessonNavigation extends StatelessWidget {
-  final Topic topic;
-  final int topicIndex;
-  final int roundCount;
-  final int completedRoundCount;
+class _SectionNavigation extends StatelessWidget {
+  final String label;
   final VoidCallback? onPrevious;
   final VoidCallback? onNext;
   final VoidCallback onBrowse;
 
-  const _LessonNavigation({
-    required this.topic,
-    required this.topicIndex,
-    required this.roundCount,
-    required this.completedRoundCount,
+  const _SectionNavigation({
+    required this.label,
     required this.onPrevious,
     required this.onNext,
     required this.onBrowse,
   });
 
   @override
-  Widget build(BuildContext context) => Row(
-    children: [
-      Expanded(
-        child: OutlinedButton(
-          key: const Key('unified-lesson-selector'),
-          onPressed: onBrowse,
-          style: OutlinedButton.styleFrom(
-            alignment: Alignment.centerLeft,
-            backgroundColor: Theme.of(context).brightness == Brightness.dark
-                ? Theme.of(context).colorScheme.surface.withValues(alpha: .5)
-                : Colors.white.withValues(alpha: .5),
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
-          ),
-          child: Row(
-            children: [
-              IconButton(
-                tooltip: 'Previous Lesson',
-                onPressed: onPrevious,
-                icon: const Icon(Icons.chevron_left),
-              ),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text.rich(
-                      TextSpan(
-                        children: [
-                          TextSpan(
-                            text: 'Lesson ${topicIndex + 1}: ',
-                            style: const TextStyle(
-                              fontWeight: FontWeight.normal,
-                            ),
-                          ),
-                          TextSpan(
-                            text: topic.title,
-                            style: const TextStyle(fontWeight: FontWeight.w900),
-                          ),
-                        ],
-                      ),
+  Widget build(BuildContext context) => SizedBox(
+    height: 68,
+    child: Row(
+      children: [
+        Expanded(
+          child: OutlinedButton(
+            key: const Key('unified-section-selector'),
+            onPressed: onBrowse,
+            style: OutlinedButton.styleFrom(
+              alignment: Alignment.centerLeft,
+              backgroundColor: Theme.of(context).brightness == Brightness.dark
+                  ? Theme.of(context).colorScheme.surface.withValues(alpha: .5)
+                  : Colors.white.withValues(alpha: .5),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+            ),
+            child: Row(
+              children: [
+                IconButton(
+                  tooltip: 'Previous Section',
+                  onPressed: onPrevious,
+                  icon: const Icon(Icons.chevron_left),
+                ),
+                Expanded(
+                  child: Tooltip(
+                    message: label,
+                    child: Text(
+                      label,
+                      key: const Key('unified-section-selector-title'),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        color: Theme.of(context).brightness == Brightness.dark
-                            ? Colors.white
-                            : null,
-                      ),
-                    ),
-                    Text(
-                      '$completedRoundCount/$roundCount Rounds completed',
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         fontWeight: FontWeight.normal,
                         color: Theme.of(context).brightness == Brightness.dark
                             ? Colors.white
                             : null,
                       ),
                     ),
-                  ],
+                  ),
                 ),
-              ),
-              IconButton(
-                tooltip: 'Next Lesson',
-                onPressed: onNext,
-                icon: const Icon(Icons.chevron_right),
-              ),
-            ],
+                IconButton(
+                  tooltip: 'Next Section',
+                  onPressed: onNext,
+                  icon: const Icon(Icons.chevron_right),
+                ),
+              ],
+            ),
           ),
         ),
-      ),
-    ],
+      ],
+    ),
   );
 }
 
 class _LessonSection extends StatelessWidget {
   final GlobalKey visibilityKey;
-  final Topic topic;
+  final Lesson lesson;
   final String courseId;
-  final int topicIndex;
+  final int lessonIndex;
   final int mascotPositionOffset;
   final int roundPositionOffset;
   final bool showBoundary;
+  final bool showSectionHeader;
   final bool unlocked;
   final bool hasAccess;
   final bool previewOnly;
@@ -1588,12 +1636,13 @@ class _LessonSection extends StatelessWidget {
   const _LessonSection({
     super.key,
     required this.visibilityKey,
-    required this.topic,
+    required this.lesson,
     required this.courseId,
-    required this.topicIndex,
+    required this.lessonIndex,
     required this.mascotPositionOffset,
     required this.roundPositionOffset,
     required this.showBoundary,
+    required this.showSectionHeader,
     required this.unlocked,
     required this.hasAccess,
     required this.previewOnly,
@@ -1614,16 +1663,17 @@ class _LessonSection extends StatelessWidget {
     children: [
       if (showBoundary) ...[
         SizedBox(
-          key: ValueKey('unified-lesson-transition-${topic.id}'),
+          key: ValueKey('unified-lesson-transition-${lesson.lessonId}'),
           height: 32,
         ),
         const Divider(),
       ],
+      if (showSectionHeader) LessonSectionHeader(lesson: lesson),
       if (previewOnly)
         Align(
           alignment: Alignment.center,
           child: Container(
-            key: ValueKey('unified-lesson-preview-${topic.id}'),
+            key: ValueKey('unified-lesson-preview-${lesson.lessonId}'),
             margin: const EdgeInsets.only(bottom: 12),
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
             decoration: BoxDecoration(
@@ -1660,15 +1710,15 @@ class _LessonSection extends StatelessWidget {
           ),
         ),
       _GuidebookNode(
-        topic: topic,
-        topicIndex: topicIndex,
+        lesson: lesson,
+        lessonIndex: lessonIndex,
         unlocked: unlocked,
         onLockedTap: onLockedTap,
         onTap: hasAccess && !previewOnly ? onOpenGuidebook : null,
       ),
       if (!hasAccess)
         Padding(
-          key: ValueKey('unified-lesson-locked-${topic.id}'),
+          key: ValueKey('unified-lesson-locked-${lesson.lessonId}'),
           padding: const EdgeInsets.fromLTRB(18, 12, 18, 28),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -1678,7 +1728,9 @@ class _LessonSection extends StatelessWidget {
               Flexible(
                 child: _FlagBackdropText(
                   'Complete the previous Lesson or win its Duel to unlock this Lesson.',
-                  key: ValueKey('flag-backdrop-locked-message-${topic.id}'),
+                  key: ValueKey(
+                    'flag-backdrop-locked-message-${lesson.lessonId}',
+                  ),
                   style: Theme.of(
                     context,
                   ).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w700),
@@ -1691,7 +1743,7 @@ class _LessonSection extends StatelessWidget {
         const _VerticalConnector(),
         LearnerRoundPath(
           courseId: courseId,
-          rounds: topic.rounds,
+          rounds: lesson.rounds,
           completedRounds: completedRounds,
           perfectRounds: perfectRounds,
           ttsSkippedPerfectRounds: ttsSkippedPerfectRounds,
@@ -1702,7 +1754,7 @@ class _LessonSection extends StatelessWidget {
         ),
         const _VerticalConnector(),
         _DuelCard(
-          key: ValueKey('unified-duel-${topic.id}'),
+          key: ValueKey('unified-duel-${lesson.lessonId}'),
           eligibility: duelEligibility,
           onTap: previewOnly ? null : onOpenDuel,
         ),
@@ -1713,15 +1765,15 @@ class _LessonSection extends StatelessWidget {
 }
 
 class _GuidebookNode extends StatelessWidget {
-  final Topic topic;
-  final int topicIndex;
+  final Lesson lesson;
+  final int lessonIndex;
   final bool unlocked;
   final VoidCallback? onLockedTap;
   final VoidCallback? onTap;
 
   const _GuidebookNode({
-    required this.topic,
-    required this.topicIndex,
+    required this.lesson,
+    required this.lessonIndex,
     required this.unlocked,
     required this.onLockedTap,
     required this.onTap,
@@ -1764,20 +1816,31 @@ class _GuidebookNode extends StatelessWidget {
                     Row(
                       children: [
                         SizedBox(
-                          width: 52,
-                          height: 52,
+                          key: const Key('guidebook-lesson-icon-slot'),
+                          width: 84,
+                          height: 84,
                           child: Stack(
                             clipBehavior: Clip.none,
                             children: [
-                              CircleAvatar(
-                                radius: 26,
-                                backgroundColor: isDark
-                                    ? const Color(0xFF30284B)
-                                    : const Color(0xFFEDE2FF),
-                                child: const Icon(
-                                  Icons.menu_book_outlined,
-                                  size: 32,
-                                ),
+                              Positioned.fill(
+                                child: lesson.themeIconAsset == null
+                                    ? CircleAvatar(
+                                        radius: 42,
+                                        backgroundColor: isDark
+                                            ? const Color(0xFF30284B)
+                                            : const Color(0xFFEDE2FF),
+                                        child: const Icon(
+                                          Icons.menu_book_outlined,
+                                          size: 42,
+                                        ),
+                                      )
+                                    : Image.asset(
+                                        lesson.themeIconAsset!,
+                                        key: const Key(
+                                          'guidebook-theme-icon-image',
+                                        ),
+                                        fit: BoxFit.contain,
+                                      ),
                               ),
                               if (!unlocked)
                                 Positioned(
@@ -1785,10 +1848,10 @@ class _GuidebookNode extends StatelessWidget {
                                   bottom: -3,
                                   child: Semantics(
                                     button: onLockedTap != null,
-                                    label: 'Locked Lesson ${topicIndex + 1}',
+                                    label: 'Locked Lesson ${lessonIndex + 1}',
                                     child: GestureDetector(
                                       key: ValueKey(
-                                        'unified-lesson-preview-lock-${topic.id}',
+                                        'unified-lesson-preview-lock-${lesson.lessonId}',
                                       ),
                                       behavior: HitTestBehavior.opaque,
                                       onTap: onLockedTap ?? () {},
@@ -1822,13 +1885,13 @@ class _GuidebookNode extends StatelessWidget {
                               TextSpan(
                                 children: [
                                   TextSpan(
-                                    text: 'Lesson ${topicIndex + 1}: ',
+                                    text: 'Lesson ${lessonIndex + 1}: ',
                                     style: const TextStyle(
                                       fontWeight: FontWeight.normal,
                                     ),
                                   ),
                                   TextSpan(
-                                    text: topic.title,
+                                    text: lesson.title,
                                     style: const TextStyle(
                                       fontWeight: FontWeight.w900,
                                     ),
@@ -1836,51 +1899,24 @@ class _GuidebookNode extends StatelessWidget {
                                 ],
                               ),
                               key: ValueKey(
-                                'unified-guidebook-lesson-title-${topic.id}',
+                                'unified-guidebook-lesson-title-${lesson.lessonId}',
                               ),
-                              maxLines: 2,
+                              maxLines: 3,
                               overflow: TextOverflow.ellipsis,
                               style: Theme.of(context).textTheme.titleMedium,
                             ),
                           ),
                         ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    FittedBox(
-                      fit: BoxFit.scaleDown,
-                      alignment: Alignment.centerLeft,
-                      child: Row(
-                        key: ValueKey(
-                          'unified-guidebook-content-row-${topic.id}',
+                        IconButton(
+                          key: ValueKey(
+                            'unified-guidebook-action-${lesson.lessonId}',
+                          ),
+                          tooltip: 'GuideBook',
+                          onPressed: onTap,
+                          color: isDark ? Colors.white : Colors.black87,
+                          icon: const Icon(Icons.menu_book_outlined, size: 24),
                         ),
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            'Guidebook',
-                            maxLines: 1,
-                            style: Theme.of(context).textTheme.titleMedium
-                                ?.copyWith(
-                                  fontWeight: FontWeight.w900,
-                                  color: isDark
-                                      ? const Color(0xFFC7B8FF)
-                                      : const Color(0xFF3920C8),
-                                ),
-                          ),
-                          const SizedBox(width: 10),
-                          Text(
-                            'Start Here',
-                            maxLines: 1,
-                            style: TextStyle(
-                              color: isDark
-                                  ? const Color(0xFF8FB0FF)
-                                  : const Color(0xFF154FE7),
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                          const Icon(Icons.chevron_right),
-                        ],
-                      ),
+                      ],
                     ),
                   ],
                 ),
@@ -2010,15 +2046,69 @@ int learnerRoundPathMascotSlotCount(
   return count;
 }
 
-int learnerRoundPositionOffsetForLesson(List<Topic> topics, int lessonIndex) =>
-    topics
-        .take(lessonIndex)
-        .fold(0, (total, topic) => total + topic.rounds.length);
+int learnerRoundPositionOffsetForLesson(
+  List<Lesson> lessons,
+  int lessonIndex,
+) => lessons
+    .take(lessonIndex)
+    .fold(0, (total, lesson) => total + lesson.rounds.length);
 
-int learnerMascotPositionOffsetForLesson(List<Topic> topics, int lessonIndex) =>
-    learnerRoundPathMascotSlotCount(
-      learnerRoundPositionOffsetForLesson(topics, lessonIndex),
-    );
+int learnerMascotPositionOffsetForLesson(
+  List<Lesson> lessons,
+  int lessonIndex,
+) => learnerRoundPathMascotSlotCount(
+  learnerRoundPositionOffsetForLesson(lessons, lessonIndex),
+);
+
+/// One-based position inside the current consecutive Section block.
+/// A non-Section Lesson has no Section-relative number and returns zero.
+int learnerSectionLessonNumber(List<Lesson> lessons, int lessonIndex) {
+  if (lessonIndex < 0 || lessonIndex >= lessons.length) return 0;
+  final lesson = lessons[lessonIndex];
+  final sectionName = lesson.sectionName?.trim();
+  if (!lesson.section || sectionName == null || sectionName.isEmpty) return 0;
+  var firstIndex = lessonIndex;
+  while (firstIndex > 0) {
+    final previous = lessons[firstIndex - 1];
+    if (!previous.section || previous.sectionName?.trim() != sectionName) break;
+    firstIndex--;
+  }
+  return lessonIndex - firstIndex + 1;
+}
+
+bool learnerShowsSectionHeader(List<Lesson> lessons, int lessonIndex) {
+  if (lessonIndex < 0 || lessonIndex >= lessons.length) return false;
+  final lesson = lessons[lessonIndex];
+  final sectionName = lesson.sectionName?.trim();
+  if (!lesson.section || sectionName == null || sectionName.isEmpty) {
+    return false;
+  }
+  if (lessonIndex == 0) return true;
+  final previous = lessons[lessonIndex - 1];
+  return !previous.section || previous.sectionName?.trim() != sectionName;
+}
+
+class LessonSectionHeader extends StatelessWidget {
+  final Lesson lesson;
+
+  const LessonSectionHeader({super.key, required this.lesson});
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    key: ValueKey('lesson-section-header-${lesson.lessonId}'),
+    padding: const EdgeInsets.fromLTRB(8, 4, 8, 14),
+    child: Semantics(
+      header: true,
+      child: Text(
+        lesson.sectionName!,
+        style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+          fontWeight: FontWeight.w700,
+          color: Theme.of(context).colorScheme.primary,
+        ),
+      ),
+    ),
+  );
+}
 
 int _learnerMascotSeed(String courseId) {
   var hash = 0;
@@ -2139,7 +2229,7 @@ class _LearnerRoundPathState extends State<LearnerRoundPath> {
       builder: (context, constraints) {
         final width = constraints.maxWidth;
         final textScale = MediaQuery.textScalerOf(context).scale(1);
-        final cardHeight = 108.0 + (textScale - 1.0).clamp(0.0, 2.0) * 72.0;
+        final cardHeight = 108.0 + (textScale - 1.0).clamp(0.0, 2.0) * 148.0;
         const verticalGap = 28.0;
         final rowExtent = cardHeight + verticalGap;
         final showMascots = width >= 320 && mascotAssets.isNotEmpty;
@@ -2314,10 +2404,14 @@ class _RoundNode extends StatelessWidget {
         }.contains(exercise.type),
   );
 
-  bool get _hasDescriptiveTitle => !RegExp(
-    r'^(round|ronda)\s+\d+$',
-    caseSensitive: false,
-  ).hasMatch(round.title.trim());
+  bool get _hasDescriptiveTitle {
+    final title = round.title.trim();
+    return title.isNotEmpty &&
+        !RegExp(
+          r'^(round|ronda)\s+\d+$',
+          caseSensitive: false,
+        ).hasMatch(title);
+  }
 
   String get _status => perfect
       ? 'Perfect'

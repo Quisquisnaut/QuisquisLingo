@@ -40,7 +40,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
   late final bool _ownsSounds;
   bool _loading = true;
   bool _editorUnlocked = false;
-  bool _iddqdMode = false;
   bool _hasDiagnosticLog = false;
   String? _diagnosticExportPath;
   String? _crashLogPath;
@@ -89,7 +88,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
       final diagnosticExportPath = await _logs.exportPath();
       final crashLogPath = CrashLogService.instance.crashLogPath;
       final editorUnlocked = await _settings.isCourseEditorUnlocked();
-      final iddqdMode = await _settings.isIddqdModeEnabled(widget.course.courseId);
       final info = await PackageInfo.fromPlatform();
       if (!mounted) return;
       setState(() {
@@ -97,7 +95,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
         _diagnosticExportPath = diagnosticExportPath;
         _crashLogPath = crashLogPath;
         _editorUnlocked = editorUnlocked;
-        _iddqdMode = iddqdMode;
         _versionLabel = 'QuisquisLingo v${info.version}';
         _loading = false;
       });
@@ -262,17 +259,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       MaterialPageRoute(builder: (_) => CourseProjectsScreen(currentCourse: widget.course)),
                     ),
                   ),
-                SwitchListTile(
-                  secondary: const Icon(Icons.lock_open_outlined),
-                  title: const Text('IDDQD Mode (you can walk through locks)'),
-                  subtitle: const Text('Stored separately for this learner and this course. Real progress and genuine Lesson unlocks continue to be recorded.'),
-                  value: _iddqdMode,
-                  onChanged: (value) async {
-                    await _settings.setIddqdModeEnabled(widget.course.courseId, value);
-                    if (!mounted) return;
-                    setState(() => _iddqdMode = value);
-                  },
-                ),
                 ListTile(
                   leading: const Icon(Icons.folder_shared_outlined),
                   title: const Text('User Data'),

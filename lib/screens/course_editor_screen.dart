@@ -8,6 +8,7 @@ import '../services/course_editor_service.dart';
 import '../services/course_service.dart';
 import '../services/course_audit_service.dart';
 import '../services/settings_service.dart';
+import '../services/lesson_icon_catalog.dart';
 import '../services/recorded_audio_service.dart';
 import 'round_screen.dart';
 import 'flat_image_library_screen.dart';
@@ -19,7 +20,7 @@ import '../widgets/flag_art.dart';
 
 /// Full local authoring UI.
 ///
-/// The hierarchy is editable at every level: Topics, Rounds and v4
+/// The hierarchy is editable at every level: Lessons, Rounds and v5
 /// Content can be created, deleted and reordered. Friendly Editor template is immutable
 /// after creation because changing type can silently reinterpret incompatible
 /// fields. To use another type, create a new exercise and delete the old one.
@@ -157,21 +158,17 @@ class _CourseEditorScreenState extends State<CourseEditorScreen> {
       ) ??
       false;
 
-  Topic _blankTopic(String title) {
+  Lesson _blankLesson(String title) {
     final stamp = DateTime.now().microsecondsSinceEpoch;
-    return Topic(
-      id: 'custom_topic_$stamp',
+    return Lesson(
+      lessonId: 'custom_lesson_$stamp',
       title: title,
       rounds: const [],
-      imageAsset: '',
       guidebook: Guidebook.empty(),
     );
   }
 
-  Course _withTopics(
-    List<Topic> topics, {
-    bool? temporarySample,
-  }) => Course(
+  Course _withLessons(List<Lesson> lessons, {bool? temporarySample}) => Course(
     courseId: _course.courseId,
     parentCourseId: _course.parentCourseId,
     derivedFromVersion: _course.derivedFromVersion,
@@ -186,7 +183,7 @@ class _CourseEditorScreenState extends State<CourseEditorScreen> {
     updateSummary: _course.updateSummary,
     audioMode: _course.audioMode,
     audioLibrary: _course.audioLibrary,
-    topics: topics,
+    lessons: lessons,
     author: _course.author,
     license: _course.license,
     sourceLanguageTag: _course.sourceLanguageTag,
@@ -737,46 +734,44 @@ class _CourseEditorScreenState extends State<CourseEditorScreen> {
         flagImageBase64: _course.flagImageBase64,
         audioLibrary: _course.audioLibrary,
         temporarySample: _course.temporarySample,
-        topics: _course.topics,
+        lessons: _course.lessons,
       ),
     );
   }
 
-  Future<void> _addTopic() async {
-    final title = await _askName('New topic');
+  Future<void> _addLesson() async {
+    final title = await _askName('New lesson');
     if (title == null) return;
-    await _persist(_withTopics([..._course.topics, _blankTopic(title)]));
+    await _persist(_withLessons([..._course.lessons, _blankLesson(title)]));
   }
 
-  Future<void> _deleteTopic(int index) async {
+  Future<void> _deleteLesson(int index) async {
     if (_locked) return;
-    if (!await _confirmDelete('topic')) return;
-    final list = [..._course.topics]..removeAt(index);
-    await _persist(_withTopics(list));
+    if (!await _confirmDelete('lesson')) return;
+    final list = [..._course.lessons]..removeAt(index);
+    await _persist(_withLessons(list));
   }
 
-  Future<void> _reorderTopic(int oldIndex, int newIndex) async {
+  Future<void> _reorderLesson(int oldIndex, int newIndex) async {
     if (_locked) return;
     // ReorderableListView.onReorderItem already reports newIndex after removal.
-    final list = [..._course.topics];
+    final list = [..._course.lessons];
     final item = list.removeAt(oldIndex);
     list.insert(newIndex, item);
-    await _persist(_withTopics(list));
+    await _persist(_withLessons(list));
   }
 
-  Future<void> _openTopic(int index) async {
-    final updated = await Navigator.of(context).push<Topic>(
+  Future<void> _openLesson(int index) async {
+    final updated = await Navigator.of(context).push<Lesson>(
       MaterialPageRoute(
-        builder: (_) => TopicEditorScreen(
-          course: _course,
-          topic: _course.topics[index],
-        ),
+        builder: (_) =>
+            LessonEditorScreen(course: _course, lesson: _course.lessons[index]),
       ),
     );
     if (updated == null || !mounted) return;
-    final list = [..._course.topics];
+    final list = [..._course.lessons];
     list[index] = updated;
-    await _persist(_withTopics(list));
+    await _persist(_withLessons(list));
   }
 
   Future<void> _openAudioLibrary() async {
@@ -833,7 +828,7 @@ class _CourseEditorScreenState extends State<CourseEditorScreen> {
               .toList(),
           parentCourseId: _course.parentCourseId,
           derivedFromVersion: _course.derivedFromVersion,
-          topics: _course.topics,
+          lessons: _course.lessons,
           author: _course.author,
           license: _course.license,
           sourceLanguageTag: _course.sourceLanguageTag,
@@ -877,10 +872,10 @@ class _CourseEditorScreenState extends State<CourseEditorScreen> {
 
   Future<void> _openAuditIssue(CourseAuditIssue issue) async {
     if (issue.roundId == null) return;
-    for (var ti = 0; ti < _course.topics.length; ti++) {
-      final topic = _course.topics[ti];
-      for (var ri = 0; ri < topic.rounds.length; ri++) {
-        final round = topic.rounds[ri];
+    for (var ti = 0; ti < _course.lessons.length; ti++) {
+      final lesson = _course.lessons[ti];
+      for (var ri = 0; ri < lesson.rounds.length; ri++) {
+        final round = lesson.rounds[ri];
         if (round.id != issue.roundId) continue;
         LearningRound? updatedRound;
         if (issue.exerciseId != null) {
@@ -919,25 +914,27 @@ class _CourseEditorScreenState extends State<CourseEditorScreen> {
           MaterialPageRoute(
             builder: (_) => RoundEditorScreen(
               course: _course,
-              topic: topic,
+              lesson: lesson,
               round: round,
               roundIndex: ri,
             ),
           ),
         );
         if (updatedRound == null || !mounted) return;
-        final rounds = [...topic.rounds];
+        final rounds = [...lesson.rounds];
         rounds[ri] = updatedRound;
-        final topics = [..._course.topics];
-        topics[ti] = Topic(
-          id: topic.id,
-          title: topic.title,
+        final lessons = [..._course.lessons];
+        lessons[ti] = Lesson(
+          lessonId: lesson.lessonId,
+          title: lesson.title,
           rounds: rounds,
-          imageAsset: topic.imageAsset,
-          guidebook: topic.guidebook,
-          duel: topic.duel,
+          section: lesson.section,
+          sectionName: lesson.sectionName,
+          themeIconAsset: lesson.themeIconAsset,
+          guidebook: lesson.guidebook,
+          duel: lesson.duel,
         );
-        await _persist(_withTopics(topics));
+        await _persist(_withLessons(lessons));
         return;
       }
     }
@@ -1029,8 +1026,8 @@ class _CourseEditorScreenState extends State<CourseEditorScreen> {
             }
             if (v == 'sample' && !_locked) {
               await _persist(
-                _withTopics(
-                  _course.topics,
+                _withLessons(
+                  _course.lessons,
                   temporarySample: !_course.temporarySample,
                 ),
               );
@@ -1085,9 +1082,9 @@ class _CourseEditorScreenState extends State<CourseEditorScreen> {
       ],
     ),
     floatingActionButton: FloatingActionButton.extended(
-      onPressed: _saving || _locked ? null : _addTopic,
+      onPressed: _saving || _locked ? null : _addLesson,
       icon: const Icon(Icons.add),
-      label: const Text('New topic'),
+      label: const Text('New lesson'),
     ),
     body: Column(
       children: [
@@ -1176,7 +1173,7 @@ class _CourseEditorScreenState extends State<CourseEditorScreen> {
         ),
         const Divider(height: 1),
         Expanded(
-          child: _course.topics.isEmpty
+          child: _course.lessons.isEmpty
               ? Center(
                   child: Padding(
                     padding: const EdgeInsets.all(24),
@@ -1191,9 +1188,9 @@ class _CourseEditorScreenState extends State<CourseEditorScreen> {
                         ),
                         const SizedBox(height: 8),
                         FilledButton.icon(
-                          onPressed: _saving || _locked ? null : _addTopic,
+                          onPressed: _saving || _locked ? null : _addLesson,
                           icon: const Icon(Icons.add),
-                          label: const Text('Create first Topic'),
+                          label: const Text('Create first Lesson'),
                         ),
                       ],
                     ),
@@ -1201,30 +1198,30 @@ class _CourseEditorScreenState extends State<CourseEditorScreen> {
                 )
               : ReorderableListView.builder(
                   padding: const EdgeInsets.fromLTRB(10, 10, 10, 90),
-                  itemCount: _course.topics.length,
-                  onReorderItem: _reorderTopic,
+                  itemCount: _course.lessons.length,
+                  onReorderItem: _reorderLesson,
                   itemBuilder: (context, index) {
-                    final topic = _course.topics[index];
+                    final lesson = _course.lessons[index];
                     return Card(
-                      key: ValueKey(topic.id),
+                      key: ValueKey(lesson.lessonId),
                       child: ListTile(
                         leading: ReorderableDragStartListener(
                           index: index,
                           enabled: !_locked,
                           child: const Icon(Icons.drag_handle),
                         ),
-                        title: Text('Topic ${index + 1}: ${topic.title}'),
-                        subtitle: Text('${topic.rounds.length} rounds'),
-                        onTap: _locked ? null : () => _openTopic(index),
+                        title: Text('Lesson ${index + 1}: ${lesson.title}'),
+                        subtitle: Text('${lesson.rounds.length} rounds'),
+                        onTap: _locked ? null : () => _openLesson(index),
                         trailing: PopupMenuButton<String>(
                           enabled: !_locked,
                           onSelected: (v) {
-                            if (v == 'delete') _deleteTopic(index);
+                            if (v == 'delete') _deleteLesson(index);
                           },
                           itemBuilder: (_) => const [
                             PopupMenuItem(
                               value: 'delete',
-                              child: Text('Delete topic'),
+                              child: Text('Delete lesson'),
                             ),
                           ],
                         ),
@@ -1237,7 +1234,6 @@ class _CourseEditorScreenState extends State<CourseEditorScreen> {
     ),
   );
 }
-
 
 class GuidebookEditorScreen extends StatefulWidget {
   final Guidebook guidebook;
@@ -1371,7 +1367,7 @@ class _GuidebookEditorScreenState extends State<GuidebookEditorScreen> {
           'Vocabulary',
           lines: 4,
           helper:
-              'One target/source pair per line. Example: casa = house. This learner-facing Topic Guidebook can also be used to automatically generate new exercises, which must be reviewed and approved before creation.',
+              'One target/source pair per line. Example: casa = house. This learner-facing Lesson Guidebook can also be used to automatically generate new exercises, which must be reviewed and approved before creation.',
         ),
         _field(_grammar, 'Grammar'),
         _field(_expressions, 'Useful expressions'),
@@ -1380,7 +1376,7 @@ class _GuidebookEditorScreenState extends State<GuidebookEditorScreen> {
           'Examples',
           lines: 4,
           helper:
-              'One target-language example sentence per line. Vocabulary and examples can be used to generate three progressively harder draft Rounds from this Topic. Drafts must be reviewed and approved before creation.',
+              'One target-language example sentence per line. Vocabulary and examples can be used to generate three progressively harder draft Rounds from this Lesson. Drafts must be reviewed and approved before creation.',
         ),
         FilledButton.icon(
           onPressed: _save,
@@ -1392,103 +1388,86 @@ class _GuidebookEditorScreenState extends State<GuidebookEditorScreen> {
   );
 }
 
-class TopicEditorScreen extends StatefulWidget {
+class LessonEditorScreen extends StatefulWidget {
   final Course course;
-  final Topic topic;
-  const TopicEditorScreen({
+  final Lesson lesson;
+  const LessonEditorScreen({
     super.key,
     required this.course,
-    required this.topic,
+    required this.lesson,
   });
   @override
-  State<TopicEditorScreen> createState() => _TopicEditorScreenState();
+  State<LessonEditorScreen> createState() => _LessonEditorScreenState();
 }
 
-class _TopicEditorScreenState extends State<TopicEditorScreen> {
-  late Topic _topic;
+class _LessonEditorScreenState extends State<LessonEditorScreen> {
+  late Lesson _lesson;
+  late bool _belongsToSection;
+  late final TextEditingController _sectionName;
+  String? _themeIconAsset;
+
   @override
   void initState() {
     super.initState();
-    _topic = widget.topic;
+    _lesson = widget.lesson;
+    _belongsToSection = _lesson.section;
+    _sectionName = TextEditingController(text: _lesson.sectionName ?? '');
+    _themeIconAsset = _lesson.themeIconAsset;
   }
 
-  LearningRound _blankRound(String title) {
-    final stamp = DateTime.now().microsecondsSinceEpoch;
-    final exercises = <Exercise>[
-      Exercise(
-        id: 'custom_ex_${stamp}_1',
-        type: 'choice',
-        prompt: 'Replace this question.',
-        question: '',
-        answers: const ['Correct answer', 'Distractor A', 'Distractor B'],
-        correct: 0,
-        tts: null,
-        accepted: const [],
-        tokens: const [],
-        orderAnswer: const [],
-        pairs: const [],
-        hint: '',
-        icons: const [],
+  @override
+  void dispose() {
+    _sectionName.dispose();
+    super.dispose();
+  }
+
+  Lesson _copy({
+    String? title,
+    List<LearningRound>? rounds,
+    Guidebook? guidebook,
+  }) => Lesson(
+    lessonId: _lesson.lessonId,
+    title: title ?? _lesson.title,
+    rounds: rounds ?? _lesson.rounds,
+    section: _lesson.section,
+    sectionName: _lesson.sectionName,
+    themeIconAsset: _lesson.themeIconAsset,
+    guidebook: guidebook ?? _lesson.guidebook,
+    duel: _lesson.duel,
+  );
+
+  void _saveLesson() {
+    final sectionName = _sectionName.text.trim();
+    if (_belongsToSection && sectionName.isEmpty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Enter a Section name.')));
+      return;
+    }
+    Navigator.pop(
+      context,
+      Lesson(
+        lessonId: _lesson.lessonId,
+        title: _lesson.title,
+        rounds: _lesson.rounds,
+        section: _belongsToSection,
+        sectionName: _belongsToSection ? sectionName : null,
+        themeIconAsset: _themeIconAsset,
+        guidebook: _lesson.guidebook,
+        duel: _lesson.duel,
       ),
-      Exercise(
-        id: 'custom_ex_${stamp}_2',
-        type: 'fill_blank',
-        prompt: '',
-        question: 'Replace this prompt.',
-        answers: const [],
-        correct: null,
-        tts: null,
-        accepted: const ['answer'],
-        tokens: const [],
-        orderAnswer: const [],
-        pairs: const [],
-        hint: '',
-        icons: const [],
-      ),
-      Exercise(
-        id: 'custom_ex_${stamp}_3',
-        type: 'word_order',
-        prompt: 'Build the sentence.',
-        question: '',
-        answers: const [],
-        correct: null,
-        tts: null,
-        accepted: const [],
-        tokens: const ['Edit', 'this', 'exercise'],
-        orderAnswer: const ['Edit', 'this', 'exercise'],
-        pairs: const [],
-        hint: '',
-        icons: const [],
-      ),
-    ];
-    return LearningRound(
-      id: 'custom_round_$stamp',
-      title: title,
-      exercises: exercises,
     );
   }
 
-  Topic _copy({
-    String? title,
-    List<LearningRound>? rounds,
-    String? imageAsset,
-    Guidebook? guidebook,
-  }) => Topic(
-    id: _topic.id,
-    title: title ?? _topic.title,
-    rounds: rounds ?? _topic.rounds,
-    imageAsset: imageAsset ?? _topic.imageAsset,
-    guidebook: guidebook ?? _topic.guidebook,
-    duel: _topic.duel,
-  );
   Future<String?> _name(String title, {String initial = ''}) async {
-    final c = TextEditingController(text: initial);
+    var edited = initial;
     final v = await showDialog<String>(
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text(title),
-        content: TextField(
-          controller: c,
+        content: TextFormField(
+          initialValue: initial,
+          onChanged: (value) => edited = value,
           autofocus: true,
           decoration: const InputDecoration(
             border: OutlineInputBorder(),
@@ -1501,43 +1480,33 @@ class _TopicEditorScreenState extends State<TopicEditorScreen> {
             child: const Text('Cancel'),
           ),
           FilledButton(
-            onPressed: () => Navigator.pop(ctx, c.text.trim()),
+            onPressed: () => Navigator.pop(ctx, edited.trim()),
             child: const Text('Save'),
           ),
         ],
       ),
     );
-    c.dispose();
     return v?.trim().isEmpty == true ? null : v;
   }
 
-  Future<void> _add() async {
-    final n = await _name('New round');
-    if (n != null) {
-      setState(
-        () => _topic = _copy(rounds: [..._topic.rounds, _blankRound(n)]),
-      );
-    }
-  }
-
   Future<void> _rename() async {
-    final n = await _name('Rename topic', initial: _topic.title);
-    if (n != null) setState(() => _topic = _copy(title: n));
+    final n = await _name('Rename lesson', initial: _lesson.title);
+    if (n != null) setState(() => _lesson = _copy(title: n));
   }
 
   Future<void> _editGuidebook() async {
-    final oldGuideIds = _topic.guidebook.content
+    final oldGuideIds = _lesson.guidebook.content
         .map((content) => content.id)
         .toSet();
     final g = await Navigator.of(context).push<Guidebook>(
       MaterialPageRoute(
-        builder: (_) => GuidebookEditorScreen(guidebook: _topic.guidebook),
+        builder: (_) => GuidebookEditorScreen(guidebook: _lesson.guidebook),
       ),
     );
     if (g == null || !mounted) return;
     final newGuideIds = g.content.map((content) => content.id).toSet();
     final rounds = [
-      for (final round in _topic.rounds)
+      for (final round in _lesson.rounds)
         LearningRound(
           id: round.id,
           title: round.title,
@@ -1564,111 +1533,129 @@ class _TopicEditorScreenState extends State<TopicEditorScreen> {
           ],
         ),
     ];
-    setState(() => _topic = _copy(guidebook: g, rounds: rounds));
+    setState(() => _lesson = _copy(guidebook: g, rounds: rounds));
   }
 
-  Future<void> _chooseTopicImage() async {
-    final selected = await Navigator.of(context).push<String>(
-      MaterialPageRoute(builder: (_) => const FlatImageLibraryScreen()),
+  Future<void> _openRounds() async {
+    final sectionName = _sectionName.text.trim();
+    final draftLesson = Lesson(
+      lessonId: _lesson.lessonId,
+      title: _lesson.title,
+      rounds: _lesson.rounds,
+      section: _belongsToSection && sectionName.isNotEmpty,
+      sectionName: _belongsToSection && sectionName.isNotEmpty
+          ? sectionName
+          : null,
+      themeIconAsset: _themeIconAsset,
+      guidebook: _lesson.guidebook,
+      duel: _lesson.duel,
     );
-    if (selected != null && mounted) {
-      setState(() => _topic = _copy(imageAsset: selected));
-    }
-  }
-
-  Future<void> _importTopicImage() async {
-    try {
-      final selected = await ExerciseImageService().importImage();
-      if (selected != null && mounted) {
-        setState(() => _topic = _copy(imageAsset: selected));
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(duration: Duration(seconds: 8), content: Text('$e')),
-        );
-      }
-    }
-  }
-
-  Widget _topicImagePreview() {
-    if (_topic.imageAsset.isEmpty) return const Icon(Icons.image_outlined);
-    if (_topic.imageAsset.startsWith('assets/')) {
-      return Image.asset(
-        _topic.imageAsset,
-        width: 52,
-        height: 52,
-        fit: BoxFit.contain,
-        errorBuilder: (_, __, ___) => const Icon(Icons.broken_image_outlined),
-      );
-    }
-    final file = File(_topic.imageAsset);
-    if (!file.existsSync()) {
-      return const Tooltip(
-        message: 'Image asset file is missing',
-        child: Icon(Icons.broken_image_outlined),
-      );
-    }
-    return Image.file(
-      file,
-      width: 52,
-      height: 52,
-      fit: BoxFit.contain,
-      errorBuilder: (_, __, ___) => const Icon(Icons.broken_image_outlined),
-    );
-  }
-
-  Future<void> _open(int i) async {
-    final u = await Navigator.of(context).push<LearningRound>(
+    final rounds = await Navigator.of(context).push<List<LearningRound>>(
       MaterialPageRoute(
-        builder: (_) => RoundEditorScreen(
-          course: widget.course,
-          topic: _topic,
-          round: _topic.rounds[i],
-          roundIndex: i,
-        ),
+        builder: (_) =>
+            LessonRoundsScreen(course: widget.course, lesson: draftLesson),
       ),
     );
-    if (u != null && mounted) {
-      final l = [..._topic.rounds];
-      l[i] = u;
-      setState(() => _topic = _copy(rounds: l));
+    if (rounds != null && mounted) {
+      setState(() => _lesson = _copy(rounds: rounds));
     }
   }
 
-  Future<void> _remove(int i) async {
-    final ok =
-        await showDialog<bool>(
-          context: context,
-          builder: (ctx) => AlertDialog(
-            title: const Text('Delete round?'),
-            content: const Text(
-              'All exercises in this round will be removed from the local edited course.',
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(ctx, false),
-                child: const Text('Cancel'),
+  Future<void> _chooseThemeIcon() async {
+    const none = '__none__';
+    final selected = await showModalBottomSheet<String>(
+      context: context,
+      showDragHandle: true,
+      isScrollControlled: true,
+      builder: (context) => SafeArea(
+        child: FractionallySizedBox(
+          heightFactor: .76,
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 4, 20, 12),
+                child: Text(
+                  'Lesson theme icon',
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
               ),
-              FilledButton(
-                onPressed: () => Navigator.pop(ctx, true),
-                child: const Text('Delete'),
+              Expanded(
+                child: GridView.builder(
+                  key: const Key('lesson-theme-icon-grid'),
+                  padding: const EdgeInsets.fromLTRB(12, 0, 12, 20),
+                  gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                    maxCrossAxisExtent: 132,
+                    mainAxisExtent: 126,
+                    crossAxisSpacing: 8,
+                    mainAxisSpacing: 8,
+                  ),
+                  itemCount: LessonIconCatalog.options.length + 1,
+                  itemBuilder: (context, index) {
+                    final option = index == 0
+                        ? null
+                        : LessonIconCatalog.options[index - 1];
+                    final value = option?.assetPath;
+                    final selected = value == _themeIconAsset;
+                    return Semantics(
+                      selected: selected,
+                      label: option?.label ?? 'None',
+                      child: Card(
+                        key: ValueKey(
+                          'lesson-theme-icon-option-${option?.id ?? 'none'}',
+                        ),
+                        color: selected
+                            ? Theme.of(context).colorScheme.secondaryContainer
+                            : null,
+                        clipBehavior: Clip.antiAlias,
+                        child: InkWell(
+                          onTap: () => Navigator.pop(
+                            context,
+                            option == null ? none : option.assetPath,
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(8),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                SizedBox(
+                                  width: 64,
+                                  height: 64,
+                                  child: option == null
+                                      ? const Icon(
+                                          Icons.menu_book_outlined,
+                                          size: 42,
+                                        )
+                                      : Image.asset(
+                                          option.assetPath,
+                                          fit: BoxFit.contain,
+                                        ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  option?.label ?? 'None',
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  textAlign: TextAlign.center,
+                                  style: Theme.of(
+                                    context,
+                                  ).textTheme.labelMedium,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
               ),
             ],
           ),
-        ) ??
-        false;
-    if (!ok) return;
-    final l = [..._topic.rounds]..removeAt(i);
-    setState(() => _topic = _copy(rounds: l));
-  }
-
-  void _reorder(int oldIndex, int newIndex) {
-    // onReorderItem supplies the insertion index after the item was removed.
-    final rounds = [..._topic.rounds];
-    final item = rounds.removeAt(oldIndex);
-    rounds.insert(newIndex, item);
-    setState(() => _topic = _copy(rounds: rounds));
+        ),
+      ),
+    );
+    if (selected == null || !mounted) return;
+    setState(() => _themeIconAsset = selected == none ? null : selected);
   }
 
   String _generatorNorm(String value) => value
@@ -1677,10 +1664,10 @@ class _TopicEditorScreenState extends State<TopicEditorScreen> {
       .replaceAll(RegExp(r'\s+'), ' ')
       .trim();
 
-  List<MapEntry<String, String>> _topicVocabularyPairs() {
+  List<MapEntry<String, String>> _lessonVocabularyPairs() {
     final out = <MapEntry<String, String>>[];
     final seen = <String>{};
-    for (final raw in _topic.guidebook.vocabulary) {
+    for (final raw in _lesson.guidebook.vocabulary) {
       final line = raw.trim();
       if (line.isEmpty) continue;
       var at = line.indexOf(' = ');
@@ -2026,7 +2013,7 @@ class _TopicEditorScreenState extends State<TopicEditorScreen> {
       else
         _generatedChoice(
           id('context'),
-          'Which expression would best convey “${p(0).value}” in this Topic?',
+          'Which expression would best convey “${p(0).value}” in this Lesson?',
           p(0).key,
           _distractors(pairs, p(0), targets: true),
         ),
@@ -2054,7 +2041,7 @@ class _TopicEditorScreenState extends State<TopicEditorScreen> {
       ),
       _generatedChoice(
         id('reverse'),
-        'In this Topic, which expression corresponds to “${p(2).value}”?',
+        'In this Lesson, which expression corresponds to “${p(2).value}”?',
         p(2).key,
         _distractors(pairs, p(2), targets: true),
       ),
@@ -2065,15 +2052,15 @@ class _TopicEditorScreenState extends State<TopicEditorScreen> {
         _distractors(pairs, p(0), targets: false),
       ),
     ];
-    final refs = _topic.guidebook.content.take(6).map((c) => c.id).toList();
+    final refs = _lesson.guidebook.content.take(6).map((c) => c.id).toList();
     final keyTerms = pairs.take(4).map((e) => e.key).join(', ');
     final introText =
-        'Before you start: ${_topic.guidebook.overview.trim().isNotEmpty ? _topic.guidebook.overview.trim() : _topic.title}. Key items include $keyTerms. Read this Topic Guidebook for more explanations, vocabulary and examples.';
+        'Before you start: ${_lesson.guidebook.overview.trim().isNotEmpty ? _lesson.guidebook.overview.trim() : _lesson.title}. Key items include $keyTerms. Read this Lesson Guidebook for more explanations, vocabulary and examples.';
     final intro = LearningContent(
       id: id('intro'),
       kind: 'explanation',
       required: false,
-      role: 'topic_intro',
+      role: 'lesson_intro',
       text: introText,
       sourceRefs: refs,
     );
@@ -2097,17 +2084,17 @@ class _TopicEditorScreenState extends State<TopicEditorScreen> {
   }
 
   Future<void> _generateThreeRoundsFromGuidebook() async {
-    final pairs = _topicVocabularyPairs();
+    final pairs = _lessonVocabularyPairs();
     final examples = [
-      ..._topic.guidebook.examples,
-      ..._topic.guidebook.expressions,
+      ..._lesson.guidebook.examples,
+      ..._lesson.guidebook.expressions,
     ].map((e) => e.trim()).where((e) => e.isNotEmpty).toSet().toList();
     if (pairs.length < 3) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           duration: Duration(seconds: 8),
           content: Text(
-            'Add at least three target/source vocabulary pairs to this Topic Guidebook first. Example: casa = house.',
+            'Add at least three target/source vocabulary pairs to this Lesson Guidebook first. Example: casa = house.',
           ),
         ),
       );
@@ -2143,7 +2130,7 @@ class _TopicEditorScreenState extends State<TopicEditorScreen> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 const Text(
-                  'The Topic Guidebook is the only source. Material and option order are randomized, exact duplicate exercises are avoided, and difficulty increases across the three Rounds. Nothing is created until you approve this preview.',
+                  'The Lesson Guidebook is the only source. Material and option order are randomized, exact duplicate exercises are avoided, and difficulty increases across the three Rounds. Nothing is created until you approve this preview.',
                 ),
                 const SizedBox(height: 12),
                 for (final round in proposals) ...[
@@ -2191,14 +2178,16 @@ class _TopicEditorScreenState extends State<TopicEditorScreen> {
       ),
     );
     if (approve == true && mounted) {
-      setState(() => _topic = _copy(rounds: [..._topic.rounds, ...proposals]));
+      setState(
+        () => _lesson = _copy(rounds: [..._lesson.rounds, ...proposals]),
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(
-      title: Text(_topic.title),
+      title: Text(_lesson.title),
       actions: [
         IconButton(
           tooltip: 'Generate 3 Rounds from Guidebook',
@@ -2206,28 +2195,33 @@ class _TopicEditorScreenState extends State<TopicEditorScreen> {
           icon: const Icon(Icons.auto_awesome_outlined),
         ),
         IconButton(
-          tooltip: 'Rename topic',
+          tooltip: 'Rename lesson',
           onPressed: _rename,
           icon: const Icon(Icons.edit_outlined),
         ),
         TextButton(
-          onPressed: () => Navigator.pop(context, _topic),
+          key: const Key('save-lesson'),
+          onPressed: _saveLesson,
           child: const Text('Save'),
         ),
       ],
     ),
-    floatingActionButton: FloatingActionButton.extended(
-      onPressed: _add,
-      icon: const Icon(Icons.add),
-      label: const Text('New round'),
-    ),
-    body: Column(
+    body: ListView(
+      key: const Key('lesson-metadata-controls'),
       children: [
         ListTile(
+          key: const Key('lesson-title-control'),
+          leading: const Icon(Icons.title),
+          title: const Text('Lesson title'),
+          subtitle: Text(_lesson.title),
+          trailing: const Icon(Icons.edit_outlined),
+          onTap: _rename,
+        ),
+        ListTile(
           leading: const Icon(Icons.menu_book_outlined),
-          title: const Text('Topic Guidebook'),
+          title: const Text('Lesson Guidebook'),
           subtitle: const Text(
-            'Learner reference for this Topic. Its vocabulary and examples can also generate three progressively harder draft Rounds, which must be reviewed and approved before creation.',
+            'Learner reference for this Lesson. Its vocabulary and examples can also generate three progressively harder draft Rounds, which must be reviewed and approved before creation.',
           ),
           trailing: const Icon(Icons.chevron_right),
           onTap: _editGuidebook,
@@ -2236,84 +2230,310 @@ class _TopicEditorScreenState extends State<TopicEditorScreen> {
           leading: const Icon(Icons.auto_awesome_outlined),
           title: const Text('Generate 3 Rounds from Guidebook'),
           subtitle: const Text(
-            'Uses this Topic Guidebook, randomizes suitable material, avoids exact exercise repetition, previews the drafts, and creates them only after approval.',
+            'Uses this Lesson Guidebook, randomizes suitable material, avoids exact exercise repetition, previews the drafts, and creates them only after approval.',
           ),
           trailing: const Icon(Icons.chevron_right),
           onTap: _generateThreeRoundsFromGuidebook,
         ),
-        ListTile(
-          leading: _topicImagePreview(),
-          title: const Text('Topic image'),
-          subtitle: Text(
-            _topic.imageAsset.isEmpty
-                ? 'Optional · choose from Image Bank or import'
-                : (!_topic.imageAsset.startsWith('assets/') &&
-                          !File(_topic.imageAsset).existsSync()
-                      ? 'Image asset file is missing'
-                      : 'Image assigned'),
+        SwitchListTile(
+          key: const Key('lesson-section-toggle'),
+          value: _belongsToSection,
+          title: const Text('Belongs to a Section'),
+          subtitle: const Text(
+            'Section is display metadata only and does not change progression.',
           ),
-          trailing: PopupMenuButton<String>(
-            onSelected: (v) {
-              if (v == 'bank') _chooseTopicImage();
-              if (v == 'import') _importTopicImage();
-              if (v == 'remove') setState(() => _topic = _copy(imageAsset: ''));
-            },
-            itemBuilder: (_) => [
-              const PopupMenuItem(
-                value: 'bank',
-                child: Text('Choose from Image Bank'),
-              ),
-              const PopupMenuItem(value: 'import', child: Text('Import image')),
-              if (_topic.imageAsset.isNotEmpty)
-                const PopupMenuItem(
-                  value: 'remove',
-                  child: Text('Remove image'),
-                ),
-            ],
-          ),
+          onChanged: (value) {
+            setState(() {
+              _belongsToSection = value;
+              if (!value) _sectionName.clear();
+            });
+          },
         ),
-        const Divider(height: 1),
-        Expanded(
-          child: ReorderableListView.builder(
-            padding: const EdgeInsets.fromLTRB(10, 10, 10, 90),
-            itemCount: _topic.rounds.length,
-            onReorderItem: _reorder,
-            itemBuilder: (context, i) {
-              final r = _topic.rounds[i];
-              return Card(
-                key: ValueKey(r.id),
-                child: ListTile(
-                  leading: ReorderableDragStartListener(
-                    index: i,
-                    child: const Icon(Icons.drag_handle),
-                  ),
-                  title: Text(r.title),
-                  subtitle: Text('${r.exercises.length} exercises'),
-                  onTap: () => _open(i),
-                  trailing: IconButton(
-                    tooltip: 'Delete round',
-                    onPressed: () => _remove(i),
-                    icon: const Icon(Icons.delete_outline),
-                  ),
-                ),
-              );
-            },
+        if (_belongsToSection)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+            child: TextField(
+              key: const Key('lesson-section-name'),
+              controller: _sectionName,
+              decoration: const InputDecoration(
+                border: OutlineInputBorder(),
+                labelText: 'Section name',
+              ),
+            ),
           ),
+        ListTile(
+          key: const Key('lesson-theme-icon-field'),
+          leading: SizedBox(
+            width: 56,
+            height: 56,
+            child: _themeIconAsset == null
+                ? const Icon(Icons.menu_book_outlined, size: 38)
+                : Image.asset(
+                    _themeIconAsset!,
+                    key: const Key('lesson-theme-icon-preview'),
+                    fit: BoxFit.contain,
+                  ),
+          ),
+          title: const Text('Lesson theme icon'),
+          subtitle: Text(
+            _themeIconAsset == null
+                ? 'None'
+                : LessonIconCatalog.options
+                      .singleWhere(
+                        (option) => option.assetPath == _themeIconAsset,
+                      )
+                      .label,
+          ),
+          trailing: const Icon(Icons.grid_view_outlined),
+          onTap: _chooseThemeIcon,
+        ),
+        const Divider(),
+        ListTile(
+          key: const Key('lesson-rounds-navigation'),
+          leading: const Icon(Icons.view_list_outlined),
+          title: const Text('Rounds'),
+          subtitle: Text('${_lesson.rounds.length} Rounds'),
+          trailing: const Icon(Icons.chevron_right),
+          onTap: _openRounds,
         ),
       ],
     ),
   );
 }
 
+class LessonRoundsScreen extends StatefulWidget {
+  final Course course;
+  final Lesson lesson;
+
+  const LessonRoundsScreen({
+    super.key,
+    required this.course,
+    required this.lesson,
+  });
+
+  @override
+  State<LessonRoundsScreen> createState() => _LessonRoundsScreenState();
+}
+
+class _LessonRoundsScreenState extends State<LessonRoundsScreen> {
+  late List<LearningRound> _rounds;
+
+  @override
+  void initState() {
+    super.initState();
+    _rounds = [...widget.lesson.rounds];
+  }
+
+  LearningRound _blankRound(String title) {
+    final stamp = DateTime.now().microsecondsSinceEpoch;
+    final exercises = <Exercise>[
+      Exercise(
+        id: 'custom_ex_${stamp}_1',
+        type: 'choice',
+        prompt: 'Replace this question.',
+        question: '',
+        answers: const ['Correct answer', 'Distractor A', 'Distractor B'],
+        correct: 0,
+        tts: null,
+        accepted: const [],
+        tokens: const [],
+        orderAnswer: const [],
+        pairs: const [],
+        hint: '',
+        icons: const [],
+      ),
+      Exercise(
+        id: 'custom_ex_${stamp}_2',
+        type: 'fill_blank',
+        prompt: '',
+        question: 'Replace this prompt.',
+        answers: const [],
+        correct: null,
+        tts: null,
+        accepted: const ['answer'],
+        tokens: const [],
+        orderAnswer: const [],
+        pairs: const [],
+        hint: '',
+        icons: const [],
+      ),
+      Exercise(
+        id: 'custom_ex_${stamp}_3',
+        type: 'word_order',
+        prompt: 'Build the sentence.',
+        question: '',
+        answers: const [],
+        correct: null,
+        tts: null,
+        accepted: const [],
+        tokens: const ['Edit', 'this', 'exercise'],
+        orderAnswer: const ['Edit', 'this', 'exercise'],
+        pairs: const [],
+        hint: '',
+        icons: const [],
+      ),
+    ];
+    return LearningRound(
+      id: 'custom_round_$stamp',
+      title: title,
+      exercises: exercises,
+    );
+  }
+
+  Future<String?> _name(String title, {String initial = ''}) async {
+    var edited = initial;
+    final value = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(title),
+        content: TextFormField(
+          initialValue: initial,
+          onChanged: (value) => edited = value,
+          autofocus: true,
+          decoration: const InputDecoration(
+            border: OutlineInputBorder(),
+            labelText: 'Title',
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, edited.trim()),
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
+    return value?.trim().isEmpty == true ? null : value;
+  }
+
+  Future<void> _add() async {
+    final title = await _name('New round');
+    if (title != null && mounted) {
+      setState(() => _rounds = [..._rounds, _blankRound(title)]);
+    }
+  }
+
+  Lesson get _draftLesson => Lesson(
+    lessonId: widget.lesson.lessonId,
+    title: widget.lesson.title,
+    rounds: _rounds,
+    section: widget.lesson.section,
+    sectionName: widget.lesson.sectionName,
+    themeIconAsset: widget.lesson.themeIconAsset,
+    guidebook: widget.lesson.guidebook,
+    duel: widget.lesson.duel,
+  );
+
+  Future<void> _open(int index) async {
+    final updated = await Navigator.of(context).push<LearningRound>(
+      MaterialPageRoute(
+        builder: (_) => RoundEditorScreen(
+          course: widget.course,
+          lesson: _draftLesson,
+          round: _rounds[index],
+          roundIndex: index,
+        ),
+      ),
+    );
+    if (updated != null && mounted) {
+      final rounds = [..._rounds]..[index] = updated;
+      setState(() => _rounds = rounds);
+    }
+  }
+
+  Future<void> _remove(int index) async {
+    final confirmed =
+        await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Delete round?'),
+            content: const Text(
+              'All exercises in this round will be removed from the local edited course.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('Cancel'),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: const Text('Delete'),
+              ),
+            ],
+          ),
+        ) ??
+        false;
+    if (!confirmed || !mounted) return;
+    setState(() => _rounds = [..._rounds]..removeAt(index));
+  }
+
+  void _reorder(int oldIndex, int newIndex) {
+    final rounds = [..._rounds];
+    final round = rounds.removeAt(oldIndex);
+    rounds.insert(newIndex, round);
+    setState(() => _rounds = rounds);
+  }
+
+  void _returnToLesson() => Navigator.pop(context, _rounds);
+
+  @override
+  Widget build(BuildContext context) => PopScope<List<LearningRound>>(
+    canPop: false,
+    onPopInvokedWithResult: (didPop, _) {
+      if (!didPop) _returnToLesson();
+    },
+    child: Scaffold(
+      appBar: AppBar(title: Text('Rounds · ${widget.lesson.title}')),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: _add,
+        icon: const Icon(Icons.add),
+        label: const Text('New round'),
+      ),
+      body: ReorderableListView.builder(
+        key: const Key('lesson-rounds-list'),
+        padding: const EdgeInsets.fromLTRB(10, 10, 10, 90),
+        itemCount: _rounds.length,
+        onReorderItem: _reorder,
+        itemBuilder: (context, index) {
+          final round = _rounds[index];
+          return Card(
+            key: ValueKey(round.id),
+            child: ListTile(
+              leading: ReorderableDragStartListener(
+                index: index,
+                child: const Icon(Icons.drag_handle),
+              ),
+              title: Text(
+                round.title.trim().isEmpty ? 'Round ${index + 1}' : round.title,
+              ),
+              subtitle: Text('${round.exercises.length} exercises'),
+              onTap: () => _open(index),
+              trailing: IconButton(
+                tooltip: 'Delete round',
+                onPressed: () => _remove(index),
+                icon: const Icon(Icons.delete_outline),
+              ),
+            ),
+          );
+        },
+      ),
+    ),
+  );
+}
+
 class RoundEditorScreen extends StatefulWidget {
   final Course course;
-  final Topic topic;
+  final Lesson lesson;
   final LearningRound round;
   final int roundIndex;
   const RoundEditorScreen({
     super.key,
     required this.course,
-    required this.topic,
+    required this.lesson,
     required this.round,
     required this.roundIndex,
   });
@@ -2330,7 +2550,7 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
     super.initState();
     _exercises = [...widget.round.exercises];
     _preservedIntroContent = widget.round.content
-        .where((c) => c.role == 'topic_intro')
+        .where((c) => c.role == 'lesson_intro')
         .toList(growable: false);
     _title = widget.round.title;
   }
@@ -2501,7 +2721,7 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
       ),
     );
     c.dispose();
-    if (n != null && n.trim().isNotEmpty && mounted) {
+    if (n != null && mounted) {
       setState(() => _title = n.trim());
     }
   }
@@ -2821,8 +3041,8 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
   List<String> _targetVocabularyWords() {
     final result = <String>[];
     final seen = <String>{};
-    for (final topic in widget.course.topics) {
-      for (final round in topic.rounds) {
+    for (final lesson in widget.course.lessons) {
+      for (final round in lesson.rounds) {
         for (final exercise in round.exercises) {
           // Reading passages are guaranteed target-language material in the
           // course format, so they are a safe source of same-language
@@ -2849,8 +3069,8 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
       s.toLowerCase().replaceAll(RegExp(r'[^a-zà-öø-ÿ0-9]+'), ' ').trim();
   Map<String, String> _knownTranslationPairs() {
     final result = <String, String>{};
-    for (final topic in widget.course.topics) {
-      for (final round in topic.rounds) {
+    for (final lesson in widget.course.lessons) {
+      for (final round in lesson.rounds) {
         for (final exercise in round.exercises) {
           if (exercise.correct == null ||
               exercise.correct! < 0 ||
@@ -2878,7 +3098,7 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
       MaterialPageRoute(
         builder: (_) => RoundScreen(
           course: widget.course,
-          topic: widget.topic,
+          lesson: widget.lesson,
           round: preview,
           ttsLanguage: widget.course.ttsLanguage,
           roundIndex: widget.roundIndex,
@@ -2899,7 +3119,7 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
       MaterialPageRoute(
         builder: (_) => RoundScreen(
           course: widget.course,
-          topic: widget.topic,
+          lesson: widget.lesson,
           round: preview,
           ttsLanguage: widget.course.ttsLanguage,
           roundIndex: widget.roundIndex,
@@ -2912,7 +3132,7 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(
-      title: Text(_title),
+      title: Text(_title.isEmpty ? 'Round ${widget.roundIndex + 1}' : _title),
       actions: [
         if (ExerciseTransferService.hasPending)
           IconButton(
@@ -3803,7 +4023,7 @@ class _AudioLibraryScreenState extends State<AudioLibraryScreen> {
     updateSummary: _course.updateSummary,
     audioMode: mode ?? _course.audioMode,
     audioLibrary: clips ?? _course.audioLibrary,
-    topics: _course.topics,
+    lessons: _course.lessons,
     author: _course.author,
     license: _course.license,
     sourceLanguageTag: _course.sourceLanguageTag,

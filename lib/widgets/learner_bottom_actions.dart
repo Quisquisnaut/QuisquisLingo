@@ -12,6 +12,8 @@ class LearnerBottomActions extends StatefulWidget {
   final VoidCallback onProfile;
   final VoidCallback onReview;
   final VoidCallback onCourseInfo;
+  final bool iddqdEnabled;
+  final ValueChanged<bool>? onIddqdChanged;
   final ProfileService? profileService;
 
   const LearnerBottomActions({
@@ -19,6 +21,8 @@ class LearnerBottomActions extends StatefulWidget {
     required this.onProfile,
     required this.onReview,
     required this.onCourseInfo,
+    this.iddqdEnabled = false,
+    this.onIddqdChanged,
     this.profileService,
   });
 
@@ -139,25 +143,28 @@ class _LearnerBottomActionsState extends State<LearnerBottomActions> {
                   onTap: widget.onProfile,
                 ),
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _BottomAction(
-                  key: const Key('learner-bottom-review'),
-                  icon: Icons.history_edu_outlined,
-                  label: 'Review',
-                  onTap: widget.onReview,
-                ),
+              const SizedBox(width: 4),
+              _BottomAction(
+                key: const Key('learner-bottom-review'),
+                icon: Icons.history_edu_outlined,
+                label: 'Review',
+                onTap: widget.onReview,
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _BottomAction(
-                  key: const Key('learner-bottom-course-info'),
-                  icon: Icons.info_outline,
-                  label: 'Course Info',
-                  onTap: widget.onCourseInfo,
-                ),
+              const SizedBox(width: 4),
+              _BottomAction(
+                key: const Key('learner-bottom-course-info'),
+                icon: Icons.info_outline,
+                label: 'Course Info',
+                onTap: widget.onCourseInfo,
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 4),
+              _IddqdAction(
+                enabled: widget.iddqdEnabled,
+                onTap: widget.onIddqdChanged == null
+                    ? null
+                    : () => widget.onIddqdChanged!(!widget.iddqdEnabled),
+              ),
+              const SizedBox(width: 4),
               _ThemeModeAction(mode: _themeMode, onTap: _cycleThemeMode),
               const SizedBox(width: 4),
               _FlagBackgroundModeAction(
@@ -335,12 +342,64 @@ class _BottomAction extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) => _ActionSurface(
-    tooltip: label,
-    semanticsLabel: label,
-    onTap: onTap,
-    child: Icon(icon, size: 24, color: _actionColor(context)),
+  Widget build(BuildContext context) => SizedBox(
+    width: 40,
+    height: 40,
+    child: _ActionSurface(
+      tooltip: label,
+      semanticsLabel: label,
+      onTap: onTap,
+      child: Icon(icon, size: 22, color: _actionColor(context)),
+    ),
   );
+}
+
+class _IddqdAction extends StatelessWidget {
+  final bool enabled;
+  final VoidCallback? onTap;
+
+  const _IddqdAction({required this.enabled, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final label = 'IDDQD: ${enabled ? 'On' : 'Off'}';
+    return SizedBox(
+      key: const Key('learner-bottom-iddqd'),
+      width: 40,
+      height: 40,
+      child: Tooltip(
+        message: label,
+        child: Material(
+          color: enabled
+              ? Theme.of(context).colorScheme.secondaryContainer
+              : Theme.of(context).brightness == Brightness.dark
+              ? Theme.of(
+                  context,
+                ).colorScheme.surfaceContainerHighest.withValues(alpha: .36)
+              : Colors.white.withValues(alpha: .16),
+          borderRadius: BorderRadius.circular(20),
+          child: Semantics(
+            button: true,
+            toggled: enabled,
+            label: label,
+            onTap: onTap,
+            excludeSemantics: true,
+            child: InkWell(
+              borderRadius: BorderRadius.circular(20),
+              onTap: onTap,
+              child: Center(
+                child: Icon(
+                  enabled ? Icons.lock_open : Icons.lock_outline,
+                  size: 20,
+                  color: _actionColor(context),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 class _ActionSurface extends StatelessWidget {

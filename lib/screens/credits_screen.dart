@@ -83,8 +83,8 @@ class ImageCreditsScreen extends StatelessWidget {
             ),
             SizedBox(height: 8),
             _CreditCard(
-              title: 'Topic images and decorative plants',
-              text: 'Topic images shown in the main course interface come from the bundled QuisquisLingo Image Bank or decorative topic-plant assets. Only images actually used by the app belong in this list; removed or unused assets are not credited here.',
+              title: 'Lesson theme icons and decorative plants',
+              text: 'The flat multicolor Lesson theme icons were generated specifically for QuisquisLingo with OpenAI ImageGen; no third-party source artwork is used. Exercise images remain separate Image Bank content. Only images actually used by the app belong in this list.',
             ),
             SizedBox(height: 8),
             _CreditCard(

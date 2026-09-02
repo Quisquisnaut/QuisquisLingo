@@ -75,13 +75,13 @@ LearningRound _eligibleRound(int index) => LearningRound(
 );
 
 LearningRound _nonEligibleRound() => LearningRound(
-  id: 'topic_intro_only',
-  title: 'Topic introduction only',
+  id: 'lesson_intro_only',
+  title: 'Lesson introduction only',
   content: [
     LearningContent.textual(
-      id: 'topic_intro_content',
+      id: 'lesson_intro_content',
       kind: 'explanation',
-      role: 'topic_intro',
+      role: 'lesson_intro',
       text: 'Introduction',
     ),
   ],
@@ -96,9 +96,9 @@ Course _course(int eligibleRounds) => Course(
   title: 'Course name belongs only in the selector',
   ttsLanguage: 'it-IT',
   version: '1',
-  topics: [
-    Topic(
-      id: 'topic',
+  lessons: [
+    Lesson(
+      lessonId: 'lesson',
       title: 'Lesson',
       rounds: [
         for (var index = 0; index < eligibleRounds; index++)

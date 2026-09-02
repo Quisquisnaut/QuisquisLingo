@@ -26,13 +26,25 @@ class CourseService {
   };
 
   static const Map<String, String> targetLabels = {
-    'IT': 'Italian', 'DE': 'German', 'ES': 'Spanish', 'EN': 'English',
-    'CY': 'Welsh', 'NL': 'Dutch', 'PT': 'Portuguese', 'FI': 'Finnish',
+    'IT': 'Italian',
+    'DE': 'German',
+    'ES': 'Spanish',
+    'EN': 'English',
+    'CY': 'Welsh',
+    'NL': 'Dutch',
+    'PT': 'Portuguese',
+    'FI': 'Finnish',
   };
 
   static const Map<String, String> sourceLabels = {
-    'IT': 'English', 'DE': 'English', 'ES': 'English', 'EN': 'Spanish',
-    'CY': 'English', 'NL': 'English', 'PT': 'English', 'FI': 'English',
+    'IT': 'English',
+    'DE': 'English',
+    'ES': 'English',
+    'EN': 'Spanish',
+    'CY': 'English',
+    'NL': 'English',
+    'PT': 'English',
+    'FI': 'English',
   };
 
   Future<Course> loadItalianCourse() => loadCourse('IT');
@@ -65,17 +77,39 @@ class CourseService {
       final raw = await rootBundle.loadString(asset);
       try {
         final decodedValue = jsonDecode(raw);
-        if (decodedValue is! Map) throw const FormatException('Course root must be an object.');
+        if (decodedValue is! Map)
+          throw const FormatException('Course root must be an object.');
         final decoded = Map<String, dynamic>.from(decodedValue);
-        final withLocalEdits = await _editor.applyToCourse(normalizedCode, decoded);
+        final withLocalEdits = await _editor.applyToCourse(
+          normalizedCode,
+          decoded,
+        );
         return Course.fromJson(withLocalEdits);
       } catch (e, st) {
-        await _log.log(AppErrorCode.invalidCourseData, context: asset, exception: e, stackTrace: st);
-        throw AppException(AppErrorCode.invalidCourseData, cause: e, stackTrace: st);
+        await _log.log(
+          AppErrorCode.invalidCourseData,
+          context: asset,
+          exception: e,
+          stackTrace: st,
+        );
+        throw AppException(
+          AppErrorCode.invalidCourseData,
+          cause: e,
+          stackTrace: st,
+        );
       }
     } on FlutterError catch (e, st) {
-      await _log.log(AppErrorCode.courseFileMissing, context: asset, exception: e, stackTrace: st);
-      throw AppException(AppErrorCode.courseFileMissing, cause: e, stackTrace: st);
+      await _log.log(
+        AppErrorCode.courseFileMissing,
+        context: asset,
+        exception: e,
+        stackTrace: st,
+      );
+      throw AppException(
+        AppErrorCode.courseFileMissing,
+        cause: e,
+        stackTrace: st,
+      );
     }
   }
 }

@@ -1,6 +1,6 @@
 # QuisquisLingo Course Editor
 
-Updated for current Course Model v4 editor (2.0.22+222)
+Updated for current Course Model v5 editor (2.0.23+223)
 
 ## Unlocking the editor
 
@@ -10,11 +10,17 @@ Course Editor is an Easter Egg so ordinary learners do not encounter authoring c
 
 The editor supports the whole authoring tree:
 
-- Course → create/delete/reorder Topics
-- Topic → edit its Guidebook and image, and create/delete/reorder Rounds; a stable Duel identity is retained automatically
+- Course → create/delete/reorder Lessons
+- Lesson → edit its title, Section metadata, preinstalled theme icon and Guidebook; open the linked Rounds page to create/delete/reorder Rounds; a stable Duel identity is retained automatically
 - Round → create/delete/reorder Exercises
 
 New objects receive generated local IDs. Deleting an object removes its descendants from the local edited course. The bundled JSON asset is never modified. **Reset local edits** restores the bundled course.
+
+Each Lesson can optionally enable **Belongs to a Section** and then requires a trimmed, non-empty **Section name**. Section is consecutive-order display metadata only: it is not a hierarchy, has no ID, and owns no progress or navigation. Disabling the switch clears the stored Section name.
+
+The controlled **Lesson theme icon** field opens a responsive visual grid containing `None` and every release-owned PNG from the canonical registry, with labels, selection state and an in-editor contained preview. Arbitrary paths, uploads, cropping and per-Lesson image sizing are intentionally unsupported in 223. The former decorative Lesson image field is not part of Course Model v5.
+
+The Lesson form keeps Lesson metadata readily accessible and links to one dedicated **Rounds** page instead of expanding the complete list inline. The page reuses the existing Round create/edit/delete/reorder workflow and returns naturally to the Lesson draft. Unsaved title, Section and icon edits, returned Round edits and every existing stable ID remain intact until the parent Lesson form is saved or cancelled.
 
 Rounds normally contain 15 exercises. The editor does not enforce 15 as a hard maximum. Course Audit reports unusually short or long rounds so the author can review them.
 
@@ -34,7 +40,7 @@ Technical fields such as numeric JSON indices are minimized. Correct choice rema
 
 ## Word Blocks
 
-A valid Word Block exercise may have 0, 1 or at most 2 extra distractor blocks. The correct sentence is reconstructed from the required block occurrences. Repeated words are counted by occurrence, not only by distinct spelling. Early Topic rounds should normally use fewer distractors and later rounds may use more.
+A valid Word Block exercise may have 0, 1 or at most 2 extra distractor blocks. The correct sentence is reconstructed from the required block occurrences. Repeated words are counted by occurrence, not only by distinct spelling. Early Lesson rounds should normally use fewer distractors and later rounds may use more.
 
 ## Generate exercise set from reading
 
@@ -60,7 +66,7 @@ Run **Course Audit** from the top of Course Editor. Severity levels:
 Checks include:
 
 - duplicate or missing IDs
-- empty courses/topics/rounds
+- empty courses/lessons/rounds
 - round length versus the standard 15
 - missing Reading or Listening comprehension in a round
 - unsupported exercise types
@@ -76,11 +82,11 @@ Checks include:
 - fields that do not belong to the selected exercise type
 - likely source/target capitalization inconsistency
 - repeated prompt/question inside one round
-- unavailable Topic Duels after applying the actual eligibility rules
+- unavailable Lesson Duels after applying the actual eligibility rules
 
 Audit does not certify grammar, translation accuracy, cultural appropriateness or teaching quality. Those remain human editorial responsibilities.
 
-A Topic with fewer than six Rounds receives author guidance only. Duel availability never depends on Round count: fewer than 25 actual eligible Topic exercises produces a non-blocking `DUEL_UNAVAILABLE` suggestion and is normal supported behavior.
+A Lesson with fewer than six Rounds receives author guidance only. Duel availability never depends on Round count: fewer than 25 actual eligible Lesson exercises produces a non-blocking `DUEL_UNAVAILABLE` suggestion and is normal supported behavior.
 
 ## Storage and recovery
 
@@ -103,15 +109,15 @@ or click the version label 10 times within about five seconds to unlock it. The
 Duel victory sound confirms the unlock when sound effects are enabled.
 
 The editor can work with an entirely empty course. An empty course shows
-**Create first Chapter** rather than failing. Chapters, Topics, Rounds and
+**Create first Lesson** rather than failing. Lessons, Rounds and
 Exercises can be created, deleted and reordered within their parent. Every learning
-Topic has its own editable Guidebook; Chapters no longer have Guidebooks. Deletions require confirmation. Exercise type is selected only at
+Lesson has its own editable Guidebook. Deletions require confirmation. Exercise type is selected only at
 creation time and cannot be changed afterwards; create a replacement exercise
 when a different type is needed.
 
 Word Blocks may contain 0, 1 or at most 2 extra distractors in the same
 language as the blocks. The learner is expected to leave any distractor blocks
-unused. Early Topic rounds should normally use fewer distractors than later ones.
+unused. Early Lesson rounds should normally use fewer distractors than later ones.
 
 A Reading comprehension exercise can optionally generate a linked draft set:
 Listening comprehension, Audio Match, translation exercises and Word Blocks.
@@ -119,18 +125,18 @@ Generation is opt-in and previews the drafts before insertion. Automatically
 generated Word Blocks only take a distractor from the same-language passage;
 when no safe distractor exists, that derived Word Block is not generated.
 
-Each learning Topic has a dedicated **Topic Guidebook** available from the Topic page.
+Each learning Lesson has a dedicated **Lesson Guidebook** available from the Lesson page.
 It can store overview text, goals, vocabulary pairs, grammar notes, expressions and
-example sentences. Its contents are also authoring source material. In the Topic
+example sentences. Its contents are also authoring source material. In the Lesson
 Editor, **Generate 3 Rounds from Guidebook** proposes three progressively harder
-Rounds using only the Topic Guidebook vocabulary and examples. Suitable material
+Rounds using only the Lesson Guidebook vocabulary and examples. Suitable material
 and choice order are randomized, exact duplicate exercises are avoided, and Round 1
-starts with a short non-exercise `topic_intro` Content item containing essential
-Guidebook information plus a reminder to read the Topic Guidebook for more. All
+starts with a short non-exercise `lesson_intro` Content item containing essential
+Guidebook information plus a reminder to read the Lesson Guidebook for more. All
 three Rounds are previewed and audited first. They are created only after explicit
 author approval and remain fully editable afterwards.
 
-Course Audit treats an empty course/Chapter/Topic as an authoring warning rather
+Course Audit treats an empty course/Lesson as an authoring warning rather
 than a learner-runtime crash. It continues to report invalid answer indices,
 missing fields, duplicate IDs, duplicate Audio Match words, malformed Word
 Blocks, missing Reading/Listening coverage, oversized text and other structural
@@ -168,7 +174,7 @@ Course Editor dialogs and author rows are designed to stack vertically on narrow
 
 ## Audit and edge cases
 
-Course Audit should be run after structural edits and before distribution. It checks IDs, Round structure, exercise invariants, the actual Topic-local Duel eligible pool, suspicious duplicate content, early Opposite exercises, isolated-word capitalization, author metadata, long descriptions and malformed `lastUpdated` dates. Audit codes are stable identifiers for reporting a rule even if its explanatory text changes.
+Course Audit should be run after structural edits and before distribution. It checks IDs, Round structure, exercise invariants, the actual Lesson-local Duel eligible pool, suspicious duplicate content, early Opposite exercises, isolated-word capitalization, author metadata, long descriptions and malformed `lastUpdated` dates. Audit codes are stable identifiers for reporting a rule even if its explanatory text changes.
 
 
 ## 0.7.3 Course Info roles and languages
@@ -184,20 +190,20 @@ The current time-limited alpha expires on 2026-10-02. Expiry blocks learner exer
 
 ## Current bundled course and My custom courses
 
-The Course Editor entry screen separates the **Current bundled course** from **My custom courses**. A created or imported custom course remains custom even when it is the currently selected course and is never duplicated under Current bundled course. Temporary sample material refers to bundled sample courses supplied with early/current development builds and is progressively replaced by reviewed course content. A newly created custom course starts from a basic Course Model v4 authoring skeleton: 3 placeholder Topics, each with a stable Topic-scoped Duel identity. No Rounds are created automatically.
+The Course Editor entry screen separates the **Current bundled course** from **My custom courses**. A created or imported custom course remains custom even when it is the currently selected course and is never duplicated under Current bundled course. Temporary sample material refers to bundled sample courses supplied with early/current development builds and is progressively replaced by reviewed course content. A newly created custom course starts from a basic Course Model v5 authoring skeleton: 3 placeholder Lessons, each with a stable Lesson-scoped Duel identity. No Rounds are created automatically.
 
 When creating a custom course, the author can use one of QuisquisLingo's existing flags or import a PNG/JPG image. Imported flags are checked for file size and resolution. Images that are too small or excessively large are rejected; accepted large images are resized to a maximum 256 px longest side while preserving their aspect ratio. The processed PNG is stored with the course so it remains available if the original file is moved or deleted.
 
-Custom courses can be imported from and exported to `.json` files without a file chooser. For import, copy the course file to `Documents/QuisquisLingo/Exports/import.json`, then press **Import course JSON**. The imported course is added under **My custom courses** and `import.json` is left in place. Course Audit errors block import; warnings are reported for review but do not block it. Imports must be UTF-8 Course Model v4 JSON and are validated through the normal `Course` parser. Older Chapter-based formats are unsupported and are not read, migrated or converted; export writes the canonical v4 structure. Files larger than 10 MB are refused. An imported course with the same stable `courseId` as an existing custom course requires confirmation before replacement. Exports are written to the same `Documents/QuisquisLingo/Exports` directory and contain the canonical human-readable Course Model v4 object, including optional custom flag data. Learner **Export my data** remains separate and does not contain custom courses.
+Custom courses can be imported from and exported to `.json` files without a file chooser. For import, copy the course file to `Documents/QuisquisLingo/Exports/import.json`, then press **Import course JSON**. The imported course is added under **My custom courses** and `import.json` is left in place. Course Audit errors block import; warnings are reported for review but do not block it. Imports must be UTF-8 Course Model v5 JSON and are validated through the normal `Course` parser. Older Chapter-based formats are unsupported and are not read, migrated or converted; export writes the canonical v5 structure. Files larger than 10 MB are refused. An imported course with the same stable `courseId` as an existing custom course requires confirmation before replacement. Exports are written to the same `Documents/QuisquisLingo/Exports` directory and contain the canonical human-readable Course Model v5 object, including optional custom flag data. Learner **Export my data** remains separate and does not contain custom courses.
 
 
 ### Home course selection and navigation
 
-The compact flag in the Home Top Bar opens the full-size course selector, which lists bundled courses and every locally available custom course, including courses created in the editor and courses imported from JSON. Selecting one makes it the current course. The unified learner page resumes the active learner at the last Lesson opened in that specific course; first use falls back to Lesson 1. The separate Lesson selector opens the complete Lesson picker without an intermediate hierarchy screen, and Back from a Round returns directly to the unified Home learner page.
+The compact flag in the Home Top Bar opens the full-size course selector, which lists bundled courses and every locally available custom course, including courses created in the editor and courses imported from JSON. Selecting one makes it the current course. The unified learner page resumes the active learner at the last Lesson opened in that specific course; first use falls back to Lesson 1. When real Section metadata exists, the fixed Section selector opens the ordered consecutive Section blocks and jumps to each block's first Lesson; consecutive unsectioned runs appear only in that UI as `Other lessons`. Courses with no real Sections show no Section selector. Back from a Round returns directly to the unified Home learner page.
 
 ### Copy edits as JSON vs Export course JSON
 
-**Copy edits as JSON** is for the Current bundled course. Bundled assets are not rewritten; the editor stores a local override, and this command copies that override JSON to the clipboard. It does not create a file. **Export course JSON** is for a custom course and writes a complete portable Course Model v4 JSON file to `Documents/QuisquisLingo/Exports`.
+**Copy edits as JSON** is for the Current bundled course. Bundled assets are not rewritten; the editor stores a local override, and this command copies that override JSON to the clipboard. It does not create a file. **Export course JSON** is for a custom course and writes a complete portable Course Model v5 JSON file to `Documents/QuisquisLingo/Exports`.
 
 When `Documents/QuisquisLingo/Exports/import.json` is imported successfully, QuisquisLingo validates it, copies the course into local custom-course storage and lists it under **My custom courses**. The stored course no longer depends on `import.json`; the transfer file is left in place. The stable `courseId` identifies the course internally. Course Info remains available even when the course content is locked. Renaming the visible Course name in Course Info does not change `courseId`; the Lock protects structural/content editing, not course metadata. Importing another JSON with the same `courseId` therefore requires confirmation before replacing the existing custom course.
 

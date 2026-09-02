@@ -35,6 +35,7 @@ These are persistent instructions for Codex when working on QuisquisLingo.
 - `2.0.20+220` centralizes local learner identity, avatar, profile management and Gamification behind Profile, simplifies the learner bottom area to Profile, Review and Course Info, moves Buy a coffee into Course Info, and adds non-destructive local logout.
 - `2.0.21+221` refines contained course-flag backgrounds, light/dark veils, Guidebook-integrated mixed-weight Lesson identities, 244 px maximum Round cards, a narrower 70%-opaque GuideBook, 70%-opaque Duel, roomier Duel-to-next-Lesson transitions, a 55%-opaque main connector with subtle theme-aware contrast support, 10%-opaque mascot containers and subtly arched Laurel artwork; keeps fixed learner-bottom controls with a persisted per-profile Default/Light/Dark utility; and adds session-long view-only three-tap previews for specifically activated locked Lessons without altering progression or persistence.
 - `2.0.22+222` makes opaque UUIDv4 learner IDs authoritative through a clean persistence cut and backup-v2 restore/copy workflow; adds a separately licensed 266-entity world-flags manifest; and adds the five-tap Settings Flag Game with four cumulative pools, searchable read-only references and ID-keyed device-local scorecards with best-result dates, without changing course flags or learner progression.
+- `2.0.23+223` makes Lesson canonical through a clean Course Model v5 cut; adds consecutive-order Section navigation and a controlled 14-icon 256 px Lesson theme library; moves Round management to a draft-preserving editor subpage; standardizes the GuideBook icon/action layout; and moves learner/course-scoped IDDQD into the fixed learner controls while preserving progression, scoring, Duel, Review, learner identity and backup-v2 behavior.
 
 ## Architecture and service boundaries
 
@@ -47,7 +48,7 @@ UI screens should primarily handle presentation and interaction. Business rules,
 `ProgressService` remains the compatibility-facing progress service and currently owns or coordinates non-XP learner progress concerns, including where applicable:
 
 - completed Rounds
-- completed Topics
+- completed Lessons
 - laurels and perfect-completion state
 - TTS-skipped perfect state
 - Review history
@@ -74,7 +75,7 @@ Existing public `ProgressService` APIs may temporarily delegate to more speciali
 - days-studied and streak calculations
 - learning-activity registration
 
-Preserve the existing `ProgressService` public facade, persistence keys and formats, clock semantics, and activity ordering unless an explicit behavior or migration request says otherwise. Keep completed Rounds, completed Topics, won Duels, Review history and timestamps, course reset, Guidebook state, leaderboard participation, completion orchestration, and XP outside `LearningActivityService`.
+Preserve the existing `ProgressService` public facade, persistence keys and formats, clock semantics, and activity ordering unless an explicit behavior or migration request says otherwise. Keep completed Rounds, completed Lessons, won Duels, Review history and timestamps, course reset, Guidebook state, leaderboard participation, completion orchestration, and XP outside `LearningActivityService`.
 
 ### XpService
 
@@ -139,21 +140,23 @@ Weekly rollover, streaks, activity timestamps, Review timestamps, and other time
 - Use the numeric build number without dots in package names.
 - Keep the previous packaged release as a rollback copy until the new release has been tested successfully.
 
-## Course Model v4 invariants
+## Course Model v5 invariants
 
-- Canonical course format is `formatVersion: 4`.
-- Hierarchy: Course > Topic > GuideBook + Rounds + Duel > Content/Exercise.
+- Canonical course format is `formatVersion: 5`.
+- Hierarchy: Course > Lesson > GuideBook + Rounds + Duel > Content/Exercise.
 - Chapter is not part of the production model, learner navigation, editor or persistence. Chapter-based course formats are unsupported and are not read, migrated or converted.
-- Internal Topic is shown to learners as Lesson.
-- GuideBooks and Duels belong to Topics.
-- Topic Guidebook content may be used to propose or generate exercises or Rounds, but generated content requires preview/review and explicit approval before creation.
-- A newly created custom course starts with 3 placeholder Topics and no automatic Rounds.
+- Lesson is canonical in the model, JSON, services, persistence, editor and learner UI. Do not add Topic compatibility aliases or v4 parsing fallbacks.
+- GuideBooks and Duels belong to Lessons.
+- Lesson Guidebook content may be used to propose or generate exercises or Rounds, but generated content requires preview/review and explicit approval before creation.
+- A newly created custom course starts with 3 placeholder Lessons and no automatic Rounds.
 - A manually created Round starts with 3 editable dummy exercises.
 - Round `visualType` is one of `listening`, `story`, `generic` or `test` and is independent of exercise type.
-- A Topic should normally contain at least 6 Rounds, often roughly 48 exercises, but this is guidance only and never a validity or Duel-availability rule.
-- Duel availability is calculated at runtime from the actual Topic-local pool after applying the established eligibility rules. Fewer than 25 eligible exercises makes that Topic's Duel normally unavailable; never duplicate questions or change gameplay rules to compensate.
+- A Lesson should normally contain at least 6 Rounds, often roughly 48 exercises, but this is guidance only and never a validity or Duel-availability rule.
+- Duel availability is calculated at runtime from the actual Lesson-local pool after applying the established eligibility rules. Fewer than 25 eligible exercises makes that Lesson's Duel normally unavailable; never duplicate questions or change gameplay rules to compensate.
 - Preserve stable Item IDs and valid references.
-- Canonical v4 text-match exports use `acceptedAnswers`; `accepted` remains import-compatible for that exercise field.
+- Optional `section` and `sectionName` are presentational Lesson metadata only. Section has no ID, progress, unlock, XP, Duel, Guidebook, Review or navigation state, and consecutive grouping/relative numbering derive from Lesson order.
+- Optional `themeIconAsset` must reference an approved 256 × 256 transparent PNG under `assets/lesson_icons/`; JSON stores only the asset path.
+- Canonical v5 text-match exports use `acceptedAnswers`; `accepted` remains import-compatible for that exercise field.
 - Imported/custom courses remain custom even when selected. Do not infer bundled/custom origin from title alone.
 
 ## Course identity and collision handling
@@ -179,7 +182,7 @@ Course-owned state is keyed by `courseId`, including where applicable:
 - completed Rounds
 - Review state/history
 - laurels
-- Topic completion
+- Lesson completion
 - Duels
 - Guidebook learner state
 - course-specific progression
@@ -206,9 +209,9 @@ Reset rules:
 - It must not reset unrelated learner data.
 - After course progress is reset, a Round may again qualify for the normal first-completion XP rules if that is the established scoring behavior.
 
-Topic access rules:
+Lesson access rules:
 
-- The first Topic is unlocked. Each later Topic unlocks when the immediately preceding Topic is completed or its Topic-scoped Duel is won.
+- The first Lesson is unlocked. Each later Lesson unlocks when the immediately preceding Lesson is completed or its Lesson-scoped Duel is won.
 - `IDDQD Mode (you can walk through locks)` is stored per user and per course.
 - IDDQD grants temporary access without changing genuine unlock state.
 - While IDDQD is active, genuine progress and genuine unlocks must continue to be recorded.
@@ -224,8 +227,8 @@ Until the user explicitly replaces the scoring system, preserve the build-213 sc
 - The first Laurel for a Round receives a one-time 25 XP bonus, including when first earned on a repeat or in Review.
 - Flashcard and informational/guide content awards no base XP, counts as neither correct nor erroneous, and does not block perfect completion or Laurel eligibility.
 - An incomplete or abandoned Round awards no XP or completion bonuses.
-- First Topic completion awards 25 XP once; Topic completion is independent of Duel victory.
-- A Duel awards 50 XP on its first victory and 10 XP on every later victory; Duel victory does not complete the Topic.
+- First Lesson completion awards 25 XP once; Lesson completion is independent of Duel victory.
+- A Duel awards 50 XP on its first victory and 10 XP on every later victory; Duel victory does not complete the Lesson.
 - Preserve reset-related scoring eligibility.
 - Do not introduce new completion bonuses, multipliers, penalties, or reward types implicitly.
 - The completion UI must show the actual persisted XP breakdown, never theoretical potential XP.
@@ -237,8 +240,8 @@ When a new XP system is explicitly introduced, update this section to describe t
 ## Course Editor invariants
 
 - Keep exercise type names friendly and concrete in the editor. Do not replace them with abstract/internal taxonomy.
-- GuideBooks belong to Topics.
-- Topic Guidebook content may be used to generate draft exercises/Rounds.
+- GuideBooks belong to Lessons.
+- Lesson Guidebook content may be used to generate draft exercises/Rounds.
 - Guidebook-generated exercises/Rounds must still be reviewed and explicitly approved before creation.
 - Course Info contributor roles include `Illustrator`.
 - Preserve existing contributor roles unless explicitly changed.
@@ -249,7 +252,7 @@ When a new XP system is explicitly introduced, update this section to describe t
 ## Exercise-content rules
 
 - Word/letter block exercises may have 0, 1, or at most 2 distractor blocks.
-- Prefer fewer distractors in early Rounds of a Topic and more in later Rounds.
+- Prefer fewer distractors in early Rounds of a Lesson and more in later Rounds.
 - A hint must not simply reveal the solution.
 - Do not change content-generation rules unless explicitly requested.
 

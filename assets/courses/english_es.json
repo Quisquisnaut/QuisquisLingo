@@ -1,5 +1,5 @@
 {
-  "formatVersion": 4,
+  "formatVersion": 5,
   "courseId": "sample_en_es_en",
   "learningLanguage": "English",
   "interfaceLanguage": "Spanish",
@@ -7,9 +7,9 @@
   "targetLanguage": "English",
   "title": "English",
   "ttsLanguage": "en-GB",
-  "version": "1.5.6",
-  "contentRevision": "sample-topic-intros-v156",
-  "updateSummary": "Regenerated bundled sample courses. The first content item of the first Round in every learning Topic is now a short Guidebook-based explanation with a reminder to read the Guidebook for more.",
+  "version": "1.5.7",
+  "contentRevision": "sample-lessons-v223",
+  "updateSummary": "Regenerated bundled sample courses for Course Model v5 Lessons, Section navigation metadata and complete Lesson theme icons.",
   "audioMode": "tts",
   "authors": [
     {
@@ -26,17 +26,19 @@
     }
   ],
   "license": "All rights reserved",
-  "courseVersion": "1.5.6",
-  "lastUpdated": "2026-08-17",
-  "courseDescription": "TEMPORARY SAMPLE course regenerated for Course Model v4.",
+  "courseVersion": "1.5.7",
+  "lastUpdated": "2026-09-02",
+  "courseDescription": "TEMPORARY SAMPLE course regenerated for Course Model v5.",
   "textDirection": "ltr",
   "author": "Sample Author Sofia, Sample Author Taylor",
   "temporarySample": true,
-  "topics": [
+  "lessons": [
         {
-          "id": "chapter_1_topic_1",
+          "lessonId": "chapter_1_topic_1",
           "title": "Hola y gracias",
-          "imageAsset": "assets/exercise_images/hello.webp",
+          "section": true,
+          "sectionName": "Fundamentos",
+          "themeIconAsset": "assets/lesson_icons/speech_bubbles.png",
           "rounds": [
             {
               "id": "c1t1_round_1",
@@ -47,7 +49,7 @@
                   "id": "chapter_1_topic_1_intro",
                   "kind": "explanation",
                   "required": false,
-                  "role": "topic_intro",
+                  "role": "lesson_intro",
                   "sourceRefs": [
                     "chapter_1_topic_1_gb_overview",
                     "g1_v1",
@@ -55,7 +57,7 @@
                     "g1_v3",
                     "g1_v4"
                   ],
-                  "text": "Antes de empezar: Hola y gracias: practica hello, thank you, yes, no. Lee el Guidebook de este Topic para ver más explicaciones, vocabulario y ejemplos."
+                  "text": "Antes de empezar: Hola y gracias: practica hello, thank you, yes, no. Lee el Guidebook de este Lesson para ver más explicaciones, vocabulario y ejemplos."
                 },
                 {
                   "id": "c1t1_round_1_e1",
@@ -1046,7 +1048,7 @@
                 "kind": "text",
                 "required": false,
                 "role": "goal",
-                "text": "Reconoce y usa el vocabulario principal de este Topic."
+                "text": "Reconoce y usa el vocabulario principal de este Lesson."
               },
               {
                 "id": "g1_v1",
@@ -1098,9 +1100,11 @@
           }
         },
         {
-          "id": "chapter_1_topic_2",
+          "lessonId": "chapter_1_topic_2",
           "title": "Personas y animales",
-          "imageAsset": "assets/exercise_images/book.webp",
+          "section": true,
+          "sectionName": "Fundamentos",
+          "themeIconAsset": "assets/lesson_icons/family.png",
           "rounds": [
             {
               "id": "c1t2_round_1",
@@ -1111,7 +1115,7 @@
                   "id": "chapter_1_topic_2_intro",
                   "kind": "explanation",
                   "required": false,
-                  "role": "topic_intro",
+                  "role": "lesson_intro",
                   "sourceRefs": [
                     "chapter_1_topic_2_gb_overview",
                     "g1_v5",
@@ -1119,7 +1123,7 @@
                     "g1_v7",
                     "g1_v8"
                   ],
-                  "text": "Antes de empezar: Personas y animales: practica man, woman, boy, girl. Lee el Guidebook de este Topic para ver más explicaciones, vocabulario y ejemplos."
+                  "text": "Antes de empezar: Personas y animales: practica man, woman, boy, girl. Lee el Guidebook de este Lesson para ver más explicaciones, vocabulario y ejemplos."
                 },
                 {
                   "id": "c1t2_round_1_e1",
@@ -2078,7 +2082,7 @@
                 "kind": "text",
                 "required": false,
                 "role": "goal",
-                "text": "Reconoce y usa el vocabulario principal de este Topic."
+                "text": "Reconoce y usa el vocabulario principal de este Lesson."
               },
               {
                 "id": "g1_v5",
@@ -2130,8 +2134,11 @@
           }
         },
         {
-          "id": "c1t3",
+          "lessonId": "c1t3",
           "title": "Palabras útiles",
+          "section": true,
+          "sectionName": "Fundamentos",
+          "themeIconAsset": "assets/lesson_icons/school.png",
           "rounds": [
             {
               "id": "c1t3_round_1",
@@ -2142,7 +2149,7 @@
                   "id": "c1t3_intro",
                   "kind": "explanation",
                   "required": false,
-                  "role": "topic_intro",
+                  "role": "lesson_intro",
                   "sourceRefs": [
                     "c1t3_gb_overview",
                     "g1_v9",
@@ -2150,7 +2157,7 @@
                     "g1_v11",
                     "g1_v12"
                   ],
-                  "text": "Antes de empezar: Palabras útiles: practica cat, dog, book, backpack. Lee el Guidebook de este Topic para ver más explicaciones, vocabulario y ejemplos."
+                  "text": "Antes de empezar: Palabras útiles: practica cat, dog, book, backpack. Lee el Guidebook de este Lesson para ver más explicaciones, vocabulario y ejemplos."
                 },
                 {
                   "id": "c1t3_round_1_e1",
@@ -3110,7 +3117,6 @@
               ]
             }
           ],
-          "imageAsset": "assets/exercise_images/backpack.webp",
           "guidebook": {
             "content": [
               {
@@ -3125,7 +3131,7 @@
                 "kind": "text",
                 "required": false,
                 "role": "goal",
-                "text": "Reconoce y usa el vocabulario principal de este Topic."
+                "text": "Reconoce y usa el vocabulario principal de este Lesson."
               },
               {
                 "id": "g1_v9",
@@ -3170,9 +3176,11 @@
           }
         },
         {
-          "id": "chapter_2_topic_1",
+          "lessonId": "chapter_2_topic_1",
           "title": "Comida y bebidas",
-          "imageAsset": "assets/exercise_images/coffee.webp",
+          "section": true,
+          "sectionName": "Vida cotidiana",
+          "themeIconAsset": "assets/lesson_icons/food.png",
           "rounds": [
             {
               "id": "c2t1_round_1",
@@ -3183,7 +3191,7 @@
                   "id": "chapter_2_topic_1_intro",
                   "kind": "explanation",
                   "required": false,
-                  "role": "topic_intro",
+                  "role": "lesson_intro",
                   "sourceRefs": [
                     "chapter_2_topic_1_gb_overview",
                     "g2_v1",
@@ -3191,7 +3199,7 @@
                     "g2_v3",
                     "g2_v4"
                   ],
-                  "text": "Antes de empezar: Comida y bebidas: practica water, bread, coffee, tea. Lee el Guidebook de este Topic para ver más explicaciones, vocabulario y ejemplos."
+                  "text": "Antes de empezar: Comida y bebidas: practica water, bread, coffee, tea. Lee el Guidebook de este Lesson para ver más explicaciones, vocabulario y ejemplos."
                 },
                 {
                   "id": "c2t1_round_1_e1",
@@ -4213,7 +4221,7 @@
                 "kind": "text",
                 "required": false,
                 "role": "goal",
-                "text": "Reconoce y usa el vocabulario principal de este Topic."
+                "text": "Reconoce y usa el vocabulario principal de este Lesson."
               },
               {
                 "id": "g2_v1",
@@ -4265,9 +4273,11 @@
           }
         },
         {
-          "id": "chapter_2_topic_2",
+          "lessonId": "chapter_2_topic_2",
           "title": "En casa",
-          "imageAsset": "assets/exercise_images/shop.webp",
+          "section": true,
+          "sectionName": "Vida cotidiana",
+          "themeIconAsset": "assets/lesson_icons/home.png",
           "rounds": [
             {
               "id": "c2t2_round_1",
@@ -4278,7 +4288,7 @@
                   "id": "chapter_2_topic_2_intro",
                   "kind": "explanation",
                   "required": false,
-                  "role": "topic_intro",
+                  "role": "lesson_intro",
                   "sourceRefs": [
                     "chapter_2_topic_2_gb_overview",
                     "g2_v5",
@@ -4286,7 +4296,7 @@
                     "g2_v7",
                     "g2_v8"
                   ],
-                  "text": "Antes de empezar: En casa: practica apple, banana, cheese, house. Lee el Guidebook de este Topic para ver más explicaciones, vocabulario y ejemplos."
+                  "text": "Antes de empezar: En casa: practica apple, banana, cheese, house. Lee el Guidebook de este Lesson para ver más explicaciones, vocabulario y ejemplos."
                 },
                 {
                   "id": "c2t2_round_1_e1",
@@ -5286,7 +5296,7 @@
                 "kind": "text",
                 "required": false,
                 "role": "goal",
-                "text": "Reconoce y usa el vocabulario principal de este Topic."
+                "text": "Reconoce y usa el vocabulario principal de este Lesson."
               },
               {
                 "id": "g2_v5",
@@ -5338,8 +5348,11 @@
           }
         },
         {
-          "id": "c2t3",
+          "lessonId": "c2t3",
           "title": "Más palabras cotidianas",
+          "section": true,
+          "sectionName": "Vida cotidiana",
+          "themeIconAsset": "assets/lesson_icons/coffee.png",
           "rounds": [
             {
               "id": "c2t3_round_1",
@@ -5350,7 +5363,7 @@
                   "id": "c2t3_intro",
                   "kind": "explanation",
                   "required": false,
-                  "role": "topic_intro",
+                  "role": "lesson_intro",
                   "sourceRefs": [
                     "c2t3_gb_overview",
                     "g2_v9",
@@ -5358,7 +5371,7 @@
                     "g2_v11",
                     "g2_v12"
                   ],
-                  "text": "Antes de empezar: Más palabras cotidianas: practica table, chair, bed, door. Lee el Guidebook de este Topic para ver más explicaciones, vocabulario y ejemplos."
+                  "text": "Antes de empezar: Más palabras cotidianas: practica table, chair, bed, door. Lee el Guidebook de este Lesson para ver más explicaciones, vocabulario y ejemplos."
                 },
                 {
                   "id": "c2t3_round_1_e1",
@@ -6343,7 +6356,6 @@
               ]
             }
           ],
-          "imageAsset": "assets/exercise_images/apple.webp",
           "guidebook": {
             "content": [
               {
@@ -6358,7 +6370,7 @@
                 "kind": "text",
                 "required": false,
                 "role": "goal",
-                "text": "Reconoce y usa el vocabulario principal de este Topic."
+                "text": "Reconoce y usa el vocabulario principal de este Lesson."
               },
               {
                 "id": "g2_v9",
@@ -6403,9 +6415,11 @@
           }
         },
         {
-          "id": "chapter_3_topic_1",
+          "lessonId": "chapter_3_topic_1",
           "title": "Por la ciudad",
-          "imageAsset": "assets/exercise_images/man.webp",
+          "section": true,
+          "sectionName": "Viajes",
+          "themeIconAsset": "assets/lesson_icons/directions.png",
           "rounds": [
             {
               "id": "c3t1_round_1",
@@ -6416,7 +6430,7 @@
                   "id": "chapter_3_topic_1_intro",
                   "kind": "explanation",
                   "required": false,
-                  "role": "topic_intro",
+                  "role": "lesson_intro",
                   "sourceRefs": [
                     "chapter_3_topic_1_gb_overview",
                     "g3_v1",
@@ -6424,7 +6438,7 @@
                     "g3_v3",
                     "g3_v4"
                   ],
-                  "text": "Antes de empezar: Por la ciudad: practica car, bus, train, bicycle. Lee el Guidebook de este Topic para ver más explicaciones, vocabulario y ejemplos."
+                  "text": "Antes de empezar: Por la ciudad: practica car, bus, train, bicycle. Lee el Guidebook de este Lesson para ver más explicaciones, vocabulario y ejemplos."
                 },
                 {
                   "id": "c3t1_round_1_e1",
@@ -7479,7 +7493,7 @@
                 "kind": "text",
                 "required": false,
                 "role": "goal",
-                "text": "Reconoce y usa el vocabulario principal de este Topic."
+                "text": "Reconoce y usa el vocabulario principal de este Lesson."
               },
               {
                 "id": "g3_v1",
@@ -7531,9 +7545,11 @@
           }
         },
         {
-          "id": "chapter_3_topic_2",
-          "title": "Transporte y acciones",
-          "imageAsset": "assets/exercise_images/house.webp",
+          "lessonId": "chapter_3_topic_2",
+          "title": "Transporte, direcciones y compra de billetes en la estación de tren",
+          "section": true,
+          "sectionName": "Viajes",
+          "themeIconAsset": "assets/lesson_icons/train.png",
           "rounds": [
             {
               "id": "c3t2_round_1",
@@ -7544,7 +7560,7 @@
                   "id": "chapter_3_topic_2_intro",
                   "kind": "explanation",
                   "required": false,
-                  "role": "topic_intro",
+                  "role": "lesson_intro",
                   "sourceRefs": [
                     "chapter_3_topic_2_gb_overview",
                     "g3_v5",
@@ -7552,7 +7568,7 @@
                     "g3_v7",
                     "g3_v8"
                   ],
-                  "text": "Antes de empezar: Transporte y acciones: practica airplane, hospital, shop, mountain. Lee el Guidebook de este Topic para ver más explicaciones, vocabulario y ejemplos."
+                  "text": "Antes de empezar: Transporte y acciones: practica airplane, hospital, shop, mountain. Lee el Guidebook de este Lesson para ver más explicaciones, vocabulario y ejemplos."
                 },
                 {
                   "id": "c3t2_round_1_e1",
@@ -8585,7 +8601,7 @@
                 "kind": "text",
                 "required": false,
                 "role": "goal",
-                "text": "Reconoce y usa el vocabulario principal de este Topic."
+                "text": "Reconoce y usa el vocabulario principal de este Lesson."
               },
               {
                 "id": "g3_v5",
@@ -8637,8 +8653,11 @@
           }
         },
         {
-          "id": "c3t3",
+          "lessonId": "c3t3",
           "title": "Frases para viajar",
+          "section": true,
+          "sectionName": "Viajes",
+          "themeIconAsset": "assets/lesson_icons/airport.png",
           "rounds": [
             {
               "id": "c3t3_round_1",
@@ -8649,7 +8668,7 @@
                   "id": "c3t3_intro",
                   "kind": "explanation",
                   "required": false,
-                  "role": "topic_intro",
+                  "role": "lesson_intro",
                   "sourceRefs": [
                     "c3t3_gb_overview",
                     "g3_v9",
@@ -8657,7 +8676,7 @@
                     "g3_v11",
                     "g3_v12"
                   ],
-                  "text": "Antes de empezar: Frases para viajar: practica tree, walk, run, sleep. Lee el Guidebook de este Topic para ver más explicaciones, vocabulario y ejemplos."
+                  "text": "Antes de empezar: Frases para viajar: practica tree, walk, run, sleep. Lee el Guidebook de este Lesson para ver más explicaciones, vocabulario y ejemplos."
                 },
                 {
                   "id": "c3t3_round_1_e1",
@@ -9642,7 +9661,6 @@
               ]
             }
           ],
-          "imageAsset": "assets/exercise_images/train.webp",
           "guidebook": {
             "content": [
               {
@@ -9657,7 +9675,7 @@
                 "kind": "text",
                 "required": false,
                 "role": "goal",
-                "text": "Reconoce y usa el vocabulario principal de este Topic."
+                "text": "Reconoce y usa el vocabulario principal de este Lesson."
               },
               {
                 "id": "g3_v9",

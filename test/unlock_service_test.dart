@@ -1,15 +1,15 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:quisquislingo_app/models/course_models.dart';
-import 'package:quisquislingo_app/services/topic_unlock_service.dart';
+import 'package:quisquislingo_app/services/lesson_unlock_service.dart';
 
-Topic _topic(String id) => Topic(
-  id: id,
+Lesson _lesson(String id) => Lesson(
+  lessonId: id,
   title: id,
   rounds: const [],
   duel: Duel(id: 'duel_$id', title: 'Duel $id'),
 );
 
-Course _course({List<Topic>? topics}) => Course(
+Course _course({List<Lesson>? lessons}) => Course(
   courseId: 'test',
   learningLanguage: 'Italian',
   interfaceLanguage: 'English',
@@ -18,96 +18,96 @@ Course _course({List<Topic>? topics}) => Course(
   title: 'Test',
   ttsLanguage: 'it-IT',
   version: '1',
-  topics: topics ?? [_topic('t1'), _topic('t2'), _topic('t3')],
+  lessons: lessons ?? [_lesson('t1'), _lesson('t2'), _lesson('t3')],
 );
 
 void main() {
-  const service = TopicUnlockService();
+  const service = LessonUnlockService();
 
-  test('first Topic is unlocked when it exists', () {
+  test('first Lesson is unlocked when it exists', () {
     expect(
-      service.isTopicUnlocked(
-        topicIndex: 0,
+      service.isLessonUnlocked(
+        lessonIndex: 0,
         course: _course(),
-        completedTopics: const {},
+        completedLessons: const {},
         wonDuels: const {},
       ),
       isTrue,
     );
   });
 
-  test('later Topic stays locked without previous Topic progress', () {
+  test('later Lesson stays locked without previous Lesson progress', () {
     expect(
-      service.isTopicUnlocked(
-        topicIndex: 1,
+      service.isLessonUnlocked(
+        lessonIndex: 1,
         course: _course(),
-        completedTopics: const {},
+        completedLessons: const {},
         wonDuels: const {},
       ),
       isFalse,
     );
   });
 
-  test('later Topic unlocks after completing the previous Topic', () {
+  test('later Lesson unlocks after completing the previous Lesson', () {
     expect(
-      service.isTopicUnlocked(
-        topicIndex: 1,
+      service.isLessonUnlocked(
+        lessonIndex: 1,
         course: _course(),
-        completedTopics: const {'t1'},
+        completedLessons: const {'t1'},
         wonDuels: const {},
       ),
       isTrue,
     );
   });
 
-  test('later Topic unlocks after winning the previous Topic Duel', () {
+  test('later Lesson unlocks after winning the previous Lesson Duel', () {
     expect(
-      service.isTopicUnlocked(
-        topicIndex: 1,
+      service.isLessonUnlocked(
+        lessonIndex: 1,
         course: _course(),
-        completedTopics: const {},
+        completedLessons: const {},
         wonDuels: const {'duel_t1'},
       ),
       isTrue,
     );
   });
 
-  test('only the immediately previous Topic can unlock a later Topic', () {
+  test('only the immediately previous Lesson can unlock a later Lesson', () {
     expect(
-      service.isTopicUnlocked(
-        topicIndex: 2,
+      service.isLessonUnlocked(
+        lessonIndex: 2,
         course: _course(),
-        completedTopics: const {'t1', 'unrelated'},
+        completedLessons: const {'t1', 'unrelated'},
         wonDuels: const {'duel_t1'},
       ),
       isFalse,
     );
   });
 
-  test('missing Topic indices are not unlocked', () {
+  test('missing Lesson indices are not unlocked', () {
     expect(
-      service.isTopicUnlocked(
-        topicIndex: -1,
+      service.isLessonUnlocked(
+        lessonIndex: -1,
         course: _course(),
-        completedTopics: const {},
+        completedLessons: const {},
         wonDuels: const {},
       ),
       isFalse,
     );
     expect(
-      service.isTopicUnlocked(
-        topicIndex: 3,
+      service.isLessonUnlocked(
+        lessonIndex: 3,
         course: _course(),
-        completedTopics: const {'t3'},
+        completedLessons: const {'t3'},
         wonDuels: const {'duel_t3'},
       ),
       isFalse,
     );
     expect(
-      service.isTopicUnlocked(
-        topicIndex: 0,
-        course: _course(topics: const []),
-        completedTopics: const {},
+      service.isLessonUnlocked(
+        lessonIndex: 0,
+        course: _course(lessons: const []),
+        completedLessons: const {},
         wonDuels: const {},
       ),
       isFalse,

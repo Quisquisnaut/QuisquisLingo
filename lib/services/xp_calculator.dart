@@ -37,7 +37,7 @@ class XpCalculator {
   static const int _repeatCorrectAnswerXp = 2;
   static const int _perfectCompletionXp = 5;
   static const int _firstLaurelXp = 25;
-  static const int _topicCompletionXp = 25;
+  static const int _lessonCompletionXp = 25;
   static const int _firstDuelWinXp = 50;
   static const int _repeatDuelWinXp = 10;
 
@@ -61,8 +61,8 @@ class XpCalculator {
     );
   }
 
-  int calculateTopicCompletionAward({required bool isFirstCompletion}) =>
-      isFirstCompletion ? _topicCompletionXp : 0;
+  int calculateLessonCompletionAward({required bool isFirstCompletion}) =>
+      isFirstCompletion ? _lessonCompletionXp : 0;
 
   int calculateDuelWinAward({required bool wasPreviouslyWon}) =>
       wasPreviouslyWon ? _repeatDuelWinXp : _firstDuelWinXp;

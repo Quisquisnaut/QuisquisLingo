@@ -27,10 +27,10 @@ void main() {
     expect(await progress.getXp(courseCode: 'IT'), 50);
     expect(await progress.getWeeklyXp(), 50);
     expect(await progress.getWonDuels(courseId: fixture.course.courseId), {
-      fixture.topic.duel.id,
+      fixture.lesson.duel.id,
     });
     expect(
-      await progress.getCompletedTopics(courseId: fixture.course.courseId),
+      await progress.getCompletedLessons(courseId: fixture.course.courseId),
       isEmpty,
     );
     await _closeDuelResult(tester);
@@ -43,7 +43,7 @@ void main() {
   });
 
   testWidgets('final Lesson Duel win uses final-only wording', (tester) async {
-    final fixture = _duelFixture(topicIsFinal: true);
+    final fixture = _duelFixture(lessonIsFinal: true);
     await _pumpLauncher(tester, fixture);
 
     await _openAndWinDuel(tester);
@@ -54,7 +54,7 @@ void main() {
     final progress = ProgressService();
     expect(await progress.getXp(courseCode: 'IT'), 50);
     expect(await progress.getWonDuels(courseId: fixture.course.courseId), {
-      fixture.topic.duel.id,
+      fixture.lesson.duel.id,
     });
   });
 
@@ -92,12 +92,12 @@ void main() {
 
 class _DuelFixture {
   final Course course;
-  final Topic topic;
+  final Lesson lesson;
 
-  const _DuelFixture({required this.course, required this.topic});
+  const _DuelFixture({required this.course, required this.lesson});
 }
 
-_DuelFixture _duelFixture({bool topicIsFinal = false}) {
+_DuelFixture _duelFixture({bool lessonIsFinal = false}) {
   final round = LearningRound(
     id: 'duel_source_round',
     title: 'Duel Source Round',
@@ -120,14 +120,14 @@ _DuelFixture _duelFixture({bool topicIsFinal = false}) {
         ),
     ],
   );
-  final topic = Topic(
-    id: 'duel_source_topic',
-    title: 'Duel Source Topic',
+  final lesson = Lesson(
+    lessonId: 'duel_source_lesson',
+    title: 'Duel Source Lesson',
     rounds: [round],
   );
-  final followingTopic = Topic(
-    id: 'following_topic',
-    title: 'Following Topic',
+  final followingLesson = Lesson(
+    lessonId: 'following_lesson',
+    title: 'Following Lesson',
     rounds: const [],
   );
   final course = Course(
@@ -139,9 +139,9 @@ _DuelFixture _duelFixture({bool topicIsFinal = false}) {
     title: 'Duel XP Course',
     ttsLanguage: 'it-IT',
     version: '1.0.0',
-    topics: topicIsFinal ? [topic] : [topic, followingTopic],
+    lessons: lessonIsFinal ? [lesson] : [lesson, followingLesson],
   );
-  return _DuelFixture(course: course, topic: topic);
+  return _DuelFixture(course: course, lesson: lesson);
 }
 
 Future<void> _pumpLauncher(WidgetTester tester, _DuelFixture fixture) async {
@@ -154,7 +154,7 @@ Future<void> _pumpLauncher(WidgetTester tester, _DuelFixture fixture) async {
               MaterialPageRoute(
                 builder: (_) => DuelScreen(
                   course: fixture.course,
-                  topic: fixture.topic,
+                  lesson: fixture.lesson,
                   ttsLanguage: fixture.course.ttsLanguage,
                 ),
               ),

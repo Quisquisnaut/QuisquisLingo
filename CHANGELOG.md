@@ -1,3 +1,19 @@
+# 2.0.23 (build 223) - 2026-09-02
+
+- Promoted Course Model v5 with canonical `lessons` and `lessonId` fields across the model, services, bundled/custom courses, Course Editor, learner UI, Guidebook, Duel, Review, progress and tests; v4 `topics`/Lesson `id` data are rejected without compatibility aliases or fallback parsing.
+- Renamed Lesson-semantic learner persistence from `v4_completed_topics` to `v4_completed_lessons`, `last_topic_<courseId>` to `last_lesson_<courseId>`, and recent-Round entry `topicId` to `lessonId`; unrelated opaque v4-prefixed keys remain unchanged.
+- Kept learner backup schema v2 unchanged because its schema exposes only an opaque profile-scoped key/value `data` envelope and no structured Topic field.
+- Added optional `section`/`sectionName` Lesson metadata, strict consistency validation, consecutive-order visual grouping and derived relative numbering without introducing Section identity, progress, unlock, XP, Duel, Guidebook, Review or navigation state.
+- Added noninteractive Section headers immediately before the first Lesson in each consecutive same-name Section block, with no placeholder or reserved space for Lessons outside a Section.
+- Replaced the fixed Lesson selector with a Section selector when real Sections exist. It groups consecutive equal Section names, uses a UI-only `Other lessons` group for unsectioned blocks, jumps to each block's first Lesson, and keeps scroll synchronization deterministic without adding persisted Section state.
+- Expanded the canonical preinstalled Lesson icon registry to 14 stable, labeled, coherent flat multicolor 256 × 256 transparent PNG assets under `assets/lesson_icons/`, generated specifically for QuisquisLingo with OpenAI ImageGen and documented in the asset license/provenance note.
+- Refocused the Lesson editor on metadata, added an all-catalog responsive visual icon grid with `None` and a contained preview, removed the obsolete Lesson `imageAsset` field/control, and moved the existing Round management workflow to one draft-preserving linked subpage without changing stable IDs or save/cancel semantics.
+- Standardized both themed and fallback GuideBook visuals to the same 84 × 84 slot, allowed Lesson titles up to three lines, removed the old lower `Guidebook`/`Start Here` row, and added the direct monochrome `GuideBook` action at the right of the main row.
+- Made Profile the primary learner-bottom action, compacted Review and Course Info, and moved the existing learner/course-scoped IDDQD control out of Settings into the fixed bottom area with immediate persistence and unchanged genuine lock/progress semantics.
+- Regenerated all eight bundled sample courses as Course Model v5 with complete Section and theme-icon metadata plus representative meaningful Round 1 titles, while preserving optional untitled-Round support, existing opaque identifiers, references, exercises and gameplay behavior.
+- Added focused Course Model, terminology guard, Section, selector, Guidebook icon, editor, icon decode/dimension, persistence, backup and responsive regression coverage; preserved XP, Weekly XP, streak, Review, Duel, Round completion, profile identity, Flag Game and course-flag behavior.
+- Refreshed the mandatory 30-day Alpha lifetime through the end of **2026-10-02**.
+
 # 2.0.22 (build 222) - 2026-09-02
 
 - Replaced display-name-based learner identity with generated opaque UUIDv4 `learnerProfileId` values, one centralized ID namespace and an ID-only active learner reference. This is an intentional clean cut: legacy learner registries and namespaces are neither migrated nor read.

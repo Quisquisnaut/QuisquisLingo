@@ -1,20 +1,20 @@
 # QuisquisLingo App
 
-**Current source version: 2.0.22+222 · Course Model v4 (`formatVersion: 4`).**
+**Current source version: 2.0.23+223 · Course Model v5 (`formatVersion: 5`).**
 
 
-**QuisquisLingo 2.0.22 Alpha**
+**QuisquisLingo 2.0.23 Alpha**
 
-Current project version: 2.0.22
+Current project version: 2.0.23
 
-Build 222 makes opaque UUIDv4 `learnerProfileId` values authoritative for local learner identity, using a deliberate clean cut from the former display-name namespaces and a versioned preserve-or-copy backup flow. It adds an independent, licensed 266-entity world-flag manifest and a hidden Settings Flag Game with four cumulative pools, 12 five-choice questions, fair metadata-guided distractors, searchable read-only references and local per-mode Top 5 scorecards showing the best result date. Flag Game records are keyed by learner ID and never award XP, streak, Laurel or course progress. Existing course flags, `flagCode`, `flagImageBase64` precedence and `FlagPainter` remain unchanged. The official repository is `Quisquisnaut/QuisquisLingo`.
+Build 223 makes Lesson canonical throughout Course Model v5, active code, persistence and authoring. Lessons use presentational consecutive Section metadata and a controlled 14-icon 256×256 transparent PNG theme library. The learner now navigates Section blocks, GuideBooks use one consistent icon footprint, Round management has its own draft-preserving editor page, and IDDQD is available in the fixed learner controls. Section remains metadata rather than a hierarchy or progress level. The official repository is `Quisquisnaut/QuisquisLingo`.
 
 
 A Flutter prototype for an offline-first language-learning app.
 
 ## Baseline 200
 
-Version **2.0.0+200** remains the historical Course Model v3 baseline. Current development starts from this Course Model v4 source tree rather than an older archive. Repository-level agent instructions are in `AGENTS.md`.
+Version **2.0.0+200** remains the historical Course Model v3 baseline. Current development starts from this Course Model v5 source tree rather than an older archive. Repository-level agent instructions are in `AGENTS.md`.
 
 ## Project authorship
 
@@ -26,22 +26,22 @@ The MPL-2.0 covers the QuisquisLingo software source. Courses, the Image Bank an
 
 ## Alpha lifecycle
 
-Version 2.0.22 is a time-limited alpha and expires on **2026-10-02**. Near expiry it displays reminders. After expiry, learner exercises and Review are blocked until a newer alpha is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when an alpha expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM. Future stable builds can disable alpha expiry.
+Version 2.0.23 is a time-limited alpha and expires on **2026-10-02**. Near expiry it displays reminders. After expiry, learner exercises and Review are blocked until a newer alpha is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when an alpha expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM. Future stable builds can disable alpha expiry.
 
 ## Core logic
 
 Course
-- Topic (shown to learners as Lesson)
+- Lesson (shown to learners as Lesson)
   - GuideBook
   - Round
     - Content / Exercise
   - Duel
 
-Each Topic has its own GuideBook, ordered Rounds and Topic-scoped Duel in Course Model v4. The first Content item of a Topic’s first Round may present a short essential introduction drawn from that GuideBook.
+Each Lesson has its own GuideBook, ordered Rounds and Lesson-scoped Duel in Course Model v5. The first Content item of a Lesson’s first Round may present a short essential introduction drawn from that GuideBook.
 
-The learner page shows one current Lesson, opens the complete Lesson picker from the Lesson selector, and opens its GuideBook, Rounds and Duel directly.
+The learner page shows a continuous Lesson path, opens the Section picker from the fixed Section selector when real Sections exist, and opens GuideBooks, Rounds and Duels directly.
 
-The next Lesson unlocks when the current Topic is completed or its Duel is won. A Duel remains unavailable when its actual eligible pool has fewer than the required 25 exercises; Round count is not used to decide availability.
+The next Lesson unlocks when the current Lesson is completed or its Duel is won. A Duel remains unavailable when its actual eligible pool has fewer than the required 25 exercises; Round count is not used to decide availability.
 
 All learner data remains on-device.
 
@@ -49,8 +49,8 @@ All learner data remains on-device.
 
 - Course-language selector
 - Unified Course → Lesson → Round learner page
-- Lesson selector with complete Lesson picker
-- Topic-scoped Duel skip mechanism with actual-pool availability
+- Section selector with consecutive-block navigation
+- Lesson-scoped Duel skip mechanism with actual-pool availability
 - Round and exercise model
 - Local progress persistence
 - Local streak
@@ -157,7 +157,7 @@ Version 0.3.0 includes a larger Italian course sample with:
 
 ## Reporting problems
 
-During any exercise, tap the flag in the top-right corner and choose **Course error** or **App bug**. QuisquisLingo copies a ready-to-paste report containing the exact course, Topic, Round and exercise context. Nothing is uploaded automatically. See `docs/REPORTING.md`.
+During any exercise, tap the flag in the top-right corner and choose **Course error** or **App bug**. QuisquisLingo copies a ready-to-paste report containing the exact course, Lesson, Round and exercise context. Nothing is uploaded automatically. See `docs/REPORTING.md`.
 
 ## Cross-platform text-to-speech
 

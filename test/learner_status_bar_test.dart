@@ -76,9 +76,9 @@ Course _course({String title = 'Italian', String flagCode = 'IT'}) => Course(
   ttsLanguage: 'it-IT',
   version: '1',
   flagCode: flagCode,
-  topics: [
-    Topic(
-      id: 'topic_it',
+  lessons: [
+    Lesson(
+      lessonId: 'lesson_it',
       title: 'Lesson',
       rounds: [
         for (var index = 0; index < 7; index++)
@@ -99,7 +99,7 @@ Course _course({String title = 'Italian', String flagCode = 'IT'}) => Course(
   ],
 );
 
-final _topic = Topic(id: 'topic', title: 'Topic', rounds: const []);
+final _lesson = Lesson(lessonId: 'lesson', title: 'Lesson', rounds: const []);
 
 Course _navigationCourse() => Course(
   courseId: 'navigation_course',
@@ -110,7 +110,7 @@ Course _navigationCourse() => Course(
   title: 'Navigation course',
   ttsLanguage: 'it-IT',
   version: '1',
-  topics: [_topic],
+  lessons: [_lesson],
 );
 
 void main() {

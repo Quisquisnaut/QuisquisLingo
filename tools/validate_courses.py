@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Offline structural validation for bundled QuisquisLingo Course Model v4 JSON."""
+"""Offline structural validation for bundled QuisquisLingo Course Model v5 JSON."""
 from __future__ import annotations
-import json, sys
+import json, re, sys
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 COURSES=ROOT/'assets'/'courses'
@@ -9,11 +9,16 @@ INTERACTIONS={'select','input','arrange','match'}
 EVALUATIONS={'selected_items','text_match','ordered_items','matched_items'}
 CONTENT_KINDS={'exercise','presentation','explanation','example','vocabulary','text','image','audio','dialogue'}
 ROUND_VISUAL_TYPES={'listening','story','generic','test'}
+LESSON_ICON_PATHS=set(re.findall(
+    r"assets/lesson_icons/[a-z0-9_]+\.png",
+    (ROOT/'lib'/'services'/'lesson_icon_catalog.dart').read_text(encoding='utf-8'),
+))
 
 def validate(path:Path)->list[str]:
     data=json.loads(path.read_text(encoding='utf-8')); issues=[]; ids=set(); pending_refs=[]
-    if data.get('formatVersion')!=4:issues.append('root: formatVersion must be 4')
-    if 'chapters' in data:issues.append('root: chapters are not allowed in Course Model v4')
+    if data.get('formatVersion')!=5:issues.append('root: formatVersion must be 5')
+    if 'topics' in data:issues.append('root: legacy topics field is not allowed in Course Model v5')
+    if 'chapters' in data:issues.append('root: chapters are not allowed in Course Model v5')
     if not isinstance(data.get('temporarySample'),bool):issues.append('root: temporarySample must be a boolean')
     def add_id(value,where):
         if not isinstance(value,str) or not value.strip():issues.append(f'{where}: missing id');return
@@ -65,37 +70,47 @@ def validate(path:Path)->list[str]:
             p=c.get('presentation');acts=((p or {}).get('completion') or {}).get('actions',[]) if isinstance(p,dict) else []
             if not {'understood','review_later'}.issubset(set(acts)):issues.append(f'{where}: presentation must support understood and review_later')
 
-    topics=data.get('topics')
-    if not isinstance(topics,list):return issues+['root: topics must be a list']
-    for ti,t in enumerate(topics,1):
-        if not isinstance(t,dict):issues.append(f'topic {ti}: must be an object');continue
-        where_topic=f'topic {ti}'
-        add_id(t.get('id'),where_topic)
-        if 'role' in t:issues.append(f'{where_topic}: role is not allowed in Course Model v4')
-        if 'assessment' in t:issues.append(f'{where_topic}: assessment is not allowed in Course Model v4')
-        if not t.get('imageAsset'):issues.append(f'{where_topic}: Topic has no imageAsset')
+    lessons=data.get('lessons')
+    if not isinstance(lessons,list):return issues+['root: lessons must be a list']
+    for ti,t in enumerate(lessons,1):
+        if not isinstance(t,dict):issues.append(f'lesson {ti}: must be an object');continue
+        where_lesson=f'lesson {ti}'
+        if 'id' in t or 'topicId' in t:issues.append(f'{where_lesson}: legacy identity field is not allowed')
+        add_id(t.get('lessonId'),where_lesson)
+        if 'role' in t:issues.append(f'{where_lesson}: role is not allowed in Course Model v5')
+        if 'assessment' in t:issues.append(f'{where_lesson}: assessment is not allowed in Course Model v5')
+        if 'imageAsset' in t:issues.append(f'{where_lesson}: obsolete Lesson imageAsset is not allowed in Course Model v5')
+        section=t.get('section',False);section_name=t.get('sectionName')
+        if not isinstance(section,bool):issues.append(f'{where_lesson}: section must be a boolean')
+        elif section and (not isinstance(section_name,str) or not section_name.strip()):issues.append(f'{where_lesson}: sectionName is required when section is true')
+        elif not section and isinstance(section_name,str) and section_name.strip():issues.append(f'{where_lesson}: sectionName must be absent when section is false')
+        icon=t.get('themeIconAsset')
+        if icon is not None:
+            if not isinstance(icon,str) or not icon.startswith('assets/lesson_icons/') or not icon.lower().endswith('.png'):issues.append(f'{where_lesson}: invalid themeIconAsset path')
+            elif icon not in LESSON_ICON_PATHS:issues.append(f'{where_lesson}: themeIconAsset is not in the canonical catalog: {icon}')
+            elif not (ROOT/icon).is_file():issues.append(f'{where_lesson}: themeIconAsset does not exist: {icon}')
         gb=t.get('guidebook')
-        if not isinstance(gb,dict):issues.append(f'{where_topic}: Topic guidebook missing')
+        if not isinstance(gb,dict):issues.append(f'{where_lesson}: Lesson guidebook missing')
         else:
             gc=gb.get('content')
-            if not isinstance(gc,list):issues.append(f'{where_topic}: guidebook.content must be a list')
-            elif not gc:issues.append(f'{where_topic}: guidebook.content is empty')
+            if not isinstance(gc,list):issues.append(f'{where_lesson}: guidebook.content must be a list')
+            elif not gc:issues.append(f'{where_lesson}: guidebook.content is empty')
             else:
                 for gi,c in enumerate(gc,1):
-                    if not isinstance(c,dict):issues.append(f'{where_topic} guidebook content {gi}: must be an object')
-                    else:validate_content(c,f'{where_topic} guidebook content {gi}')
+                    if not isinstance(c,dict):issues.append(f'{where_lesson} guidebook content {gi}: must be an object')
+                    else:validate_content(c,f'{where_lesson} guidebook content {gi}')
         duel=t.get('duel')
-        if not isinstance(duel,dict):issues.append(f'{where_topic}: duel must be an object')
+        if not isinstance(duel,dict):issues.append(f'{where_lesson}: duel must be an object')
         else:
-            add_id(duel.get('id'),f'{where_topic} duel')
-            if not isinstance(duel.get('title'),str) or not duel.get('title').strip():issues.append(f'{where_topic} duel: missing title')
+            add_id(duel.get('id'),f'{where_lesson} duel')
+            if not isinstance(duel.get('title'),str) or not duel.get('title').strip():issues.append(f'{where_lesson} duel: missing title')
             unsupported=set(duel)-{'id','title'}
-            if unsupported:issues.append(f'{where_topic} duel: unsupported fields: {", ".join(sorted(unsupported))}')
+            if unsupported:issues.append(f'{where_lesson} duel: unsupported fields: {", ".join(sorted(unsupported))}')
         rounds=t.get('rounds',[])
-        if not isinstance(rounds,list):issues.append(f'{where_topic}: rounds must be a list');continue
+        if not isinstance(rounds,list):issues.append(f'{where_lesson}: rounds must be a list');continue
         for ri,r in enumerate(rounds,1):
-            if not isinstance(r,dict):issues.append(f'{where_topic} round {ri}: must be an object');continue
-            round_where=f'{where_topic} round {ri}'
+            if not isinstance(r,dict):issues.append(f'{where_lesson} round {ri}: must be an object');continue
+            round_where=f'{where_lesson} round {ri}'
             add_id(r.get('id'),round_where)
             if r.get('visualType') not in ROUND_VISUAL_TYPES:issues.append(f'{round_where}: visualType must be one of {", ".join(sorted(ROUND_VISUAL_TYPES))}')
             content=r.get('content')
@@ -103,8 +118,8 @@ def validate(path:Path)->list[str]:
             if not content:issues.append(f'{round_where}: empty Round')
             if ri==1 and content:
                 first=content[0]
-                if not isinstance(first,dict) or first.get('role')!='topic_intro' or first.get('kind')=='exercise':
-                    issues.append(f'{round_where}: first Content must be a non-exercise topic_intro')
+                if not isinstance(first,dict) or first.get('role')!='lesson_intro' or first.get('kind')=='exercise':
+                    issues.append(f'{round_where}: first Content must be a non-exercise lesson_intro')
             for xi,c in enumerate(content,1):
                 where=f'{round_where} content {xi}'
                 if not isinstance(c,dict):issues.append(f'{where}: must be an object')

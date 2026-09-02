@@ -18,8 +18,8 @@ class RoundPlayabilityService {
           .toList();
 
   Set<String> laurelEligibleRoundIds(Course course) => {
-    for (final topic in course.topics)
-      for (final round in topic.rounds)
+    for (final lesson in course.lessons)
+      for (final round in lesson.rounds)
         if (playableExerciseIndices(round).isNotEmpty) round.id,
   };
 }

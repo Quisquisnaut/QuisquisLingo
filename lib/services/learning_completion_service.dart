@@ -3,10 +3,10 @@ import 'xp_calculator.dart';
 
 class LearningCompletionRequest {
   final String roundId;
-  final String topicId;
+  final String lessonId;
   final String courseId;
   final String courseCode;
-  final String? completedTopicId;
+  final String? completedLessonId;
 
   /// Reads screen-owned attempt state at the same await boundaries used before
   /// extraction, preserving the existing unguarded completion race behavior.
@@ -14,10 +14,10 @@ class LearningCompletionRequest {
 
   const LearningCompletionRequest({
     required this.roundId,
-    required this.topicId,
+    required this.lessonId,
     required this.courseId,
     required this.courseCode,
-    this.completedTopicId,
+    this.completedLessonId,
     required this.readAttemptFacts,
   });
 }
@@ -44,7 +44,7 @@ class LearningCompletionResult {
   final int weeklyXpAfter;
   final int weeklyXpTarget;
   final bool newlyEarnedLaurel;
-  final int topicCompletionXp;
+  final int lessonCompletionXp;
   final int firstPassCorrect;
   final int evaluableExerciseCount;
 
@@ -54,12 +54,12 @@ class LearningCompletionResult {
     required this.weeklyXpAfter,
     required this.weeklyXpTarget,
     required this.newlyEarnedLaurel,
-    required this.topicCompletionXp,
+    required this.lessonCompletionXp,
     required this.firstPassCorrect,
     required this.evaluableExerciseCount,
   });
 
-  int get awardedXp => roundXp.totalXp + topicCompletionXp;
+  int get awardedXp => roundXp.totalXp + lessonCompletionXp;
 
   bool get crossedWeeklyXpTarget =>
       weeklyXpBefore < weeklyXpTarget && weeklyXpAfter >= weeklyXpTarget;
@@ -75,7 +75,7 @@ abstract interface class LearningCompletionProgress {
 
   Future<void> recordRecentRound(
     String courseId,
-    String topicId,
+    String lessonId,
     String roundId, {
     required int errors,
   });
@@ -97,7 +97,7 @@ abstract interface class LearningCompletionProgress {
 
   Future<void> registerLearningActivity({required String courseCode});
 
-  Future<int> completeTopic(
+  Future<int> completeLesson(
     String id, {
     required String courseId,
     required String courseCode,
@@ -140,7 +140,7 @@ class LearningCompletionService {
     final recentRoundFacts = request.readAttemptFacts();
     await _progress.recordRecentRound(
       request.courseId,
-      request.topicId,
+      request.lessonId,
       request.roundId,
       errors: recentRoundFacts.errorsThisAttempt,
     );
@@ -179,10 +179,10 @@ class LearningCompletionService {
       ),
     );
     final weeklyXpBefore = await _progress.getWeeklyXp();
-    final topicCompletionXp = request.completedTopicId == null
+    final lessonCompletionXp = request.completedLessonId == null
         ? 0
-        : await _progress.completeTopic(
-            request.completedTopicId!,
+        : await _progress.completeLesson(
+            request.completedLessonId!,
             courseId: request.courseId,
             courseCode: request.courseCode,
           );
@@ -203,7 +203,7 @@ class LearningCompletionService {
       weeklyXpAfter: weeklyXpAfter,
       weeklyXpTarget: weeklyXpTarget,
       newlyEarnedLaurel: newlyEarnedLaurel,
-      topicCompletionXp: topicCompletionXp,
+      lessonCompletionXp: lessonCompletionXp,
       firstPassCorrect: scoringFacts.firstPassCorrect,
       evaluableExerciseCount: scoringFacts.evaluableExerciseCount,
     );
@@ -234,10 +234,11 @@ class _ProgressServiceLearningCompletionProgress
   @override
   Future<void> recordRecentRound(
     String courseId,
-    String topicId,
+    String lessonId,
     String roundId, {
     required int errors,
-  }) => _progress.recordRecentRound(courseId, topicId, roundId, errors: errors);
+  }) =>
+      _progress.recordRecentRound(courseId, lessonId, roundId, errors: errors);
 
   @override
   Future<bool> markPerfectRound(String roundId, {required String courseId}) =>
@@ -264,15 +265,12 @@ class _ProgressServiceLearningCompletionProgress
       _progress.registerLearningActivity(courseCode: courseCode);
 
   @override
-  Future<int> completeTopic(
+  Future<int> completeLesson(
     String id, {
     required String courseId,
     required String courseCode,
-  }) => _progress.completeTopic(
-    id,
-    courseId: courseId,
-    courseCode: courseCode,
-  );
+  }) =>
+      _progress.completeLesson(id, courseId: courseId, courseCode: courseCode);
 
   @override
   Future<bool> isWeeklyGoalCelebrated() => _progress.isWeeklyGoalCelebrated();

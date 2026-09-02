@@ -17,7 +17,7 @@ void main() {
     final start = source.indexOf(
       "finalnarrowCourseInfo=MediaQuery.sizeOf(context).width<560;",
     );
-    final end = source.indexOf('Future<void>_addTopic()', start);
+    final end = source.indexOf('Future<void>_addLesson()', start);
     expect(start, greaterThanOrEqualTo(0));
     expect(end, greaterThan(start));
     final courseInfo = source.substring(start, end);
@@ -26,19 +26,19 @@ void main() {
     expect(courseInfo.contains('for(finalcincustomRoles){'), isTrue);
   });
 
-  test('Course Editor owns Topics directly without a Chapter editor', () {
+  test('Course Editor owns Lessons directly without a Chapter editor', () {
     final source = File(
       'lib/screens/course_editor_screen.dart',
     ).readAsStringSync();
-    expect(source, contains('Future<void> _addTopic()'));
-    expect(source, contains('Future<void> _openTopic(int index)'));
-    expect(source, contains('itemCount: _course.topics.length'));
-    expect(source, contains("label: const Text('New topic')"));
+    expect(source, contains('Future<void> _addLesson()'));
+    expect(source, contains('Future<void> _openLesson(int index)'));
+    expect(source, contains('itemCount: _course.lessons.length'));
+    expect(source, contains("label: const Text('New lesson')"));
     expect(source, isNot(contains('class ChapterEditorScreen')));
     expect(source, isNot(contains('required this.chapter')));
   });
 
-  testWidgets('new course starts with 3 direct placeholder Topics', (
+  testWidgets('new course starts with 3 direct placeholder Lessons', (
     tester,
   ) async {
     SharedPreferences.setMockInitialValues({});
@@ -51,7 +51,7 @@ void main() {
       title: 'Bundled test',
       ttsLanguage: 'it-IT',
       version: '1.0.0',
-      topics: const [],
+      lessons: const [],
     );
     await tester.pumpWidget(
       MaterialApp(home: CourseProjectsScreen(currentCourse: currentCourse)),
@@ -70,7 +70,7 @@ void main() {
           widget is TextField &&
           widget.decoration?.labelText == 'Target language *',
     );
-    await tester.enterText(titleField, 'Direct Topics');
+    await tester.enterText(titleField, 'Direct Lessons');
     await tester.enterText(targetField, 'Italian');
     await tester.tap(find.widgetWithText(FilledButton, 'Create'));
     await tester.pumpAndSettle();
@@ -78,13 +78,19 @@ void main() {
     final stored = await CourseEditorService().listUserCourses();
     expect(stored, hasLength(1));
     final created = stored.single;
-    expect(created.topics, hasLength(3));
-    expect(created.topics.expand((topic) => topic.rounds), isEmpty);
+    expect(created.lessons, hasLength(3));
+    expect(created.lessons.expand((lesson) => lesson.rounds), isEmpty);
     expect(created.temporarySample, isFalse);
-    expect(created.topics.map((topic) => topic.id).toSet(), hasLength(3));
-    expect(created.topics.map((topic) => topic.duel.id).toSet(), hasLength(3));
-    for (final topic in created.topics) {
-      expect(topic.duel.id, '${topic.id}_duel');
+    expect(
+      created.lessons.map((lesson) => lesson.lessonId).toSet(),
+      hasLength(3),
+    );
+    expect(
+      created.lessons.map((lesson) => lesson.duel.id).toSet(),
+      hasLength(3),
+    );
+    for (final lesson in created.lessons) {
+      expect(lesson.duel.id, '${lesson.lessonId}_duel');
     }
   });
 }

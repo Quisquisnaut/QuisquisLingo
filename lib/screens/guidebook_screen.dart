@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import '../models/course_models.dart';
 
 class GuidebookScreen extends StatelessWidget {
-  final Topic topic;
+  final Lesson lesson;
 
-  const GuidebookScreen({super.key, required this.topic});
+  const GuidebookScreen({super.key, required this.lesson});
 
   @override
   Widget build(BuildContext context) {
-    final guide = topic.guidebook;
+    final guide = lesson.guidebook;
     return Scaffold(
       appBar: AppBar(
         title: const Text(
@@ -21,7 +21,7 @@ class GuidebookScreen extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(18, 8, 18, 28),
         children: [
           Text(
-            topic.title,
+            lesson.title,
             style: Theme.of(
               context,
             ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800),

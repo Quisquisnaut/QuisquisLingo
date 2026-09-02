@@ -5,11 +5,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:quisquislingo_app/models/course_models.dart';
 
 void main() {
-  test('v4 listening spelling keeps input interaction and acceptedAnswers', () {
+  test('v5 listening spelling keeps input interaction and acceptedAnswers', () {
     final json =
         jsonDecode(r'''
 {
-  "formatVersion": 4,
+  "formatVersion": 5,
   "courseId": "imported",
   "learningLanguage": "Italian",
   "interfaceLanguage": "English",
@@ -18,9 +18,9 @@ void main() {
   "title": "Imported",
   "ttsLanguage": "it-IT",
   "version": "1",
-  "topics": [{
-      "id": "t1",
-      "title": "Topic 1",
+  "lessons": [{
+      "lessonId": "lesson_1",
+      "title": "Lesson 1",
       "guidebook": {"content": [{"id":"g1","kind":"vocabulary","required":false,"role":"vocabulary","text":"ecco = there"}]},
       "rounds": [{
         "id": "r1",
@@ -38,7 +38,7 @@ void main() {
           }
         }]
       }],
-      "duel": {"id":"t1_duel","title":"Duel"}
+      "duel": {"id":"lesson_1_duel","title":"Duel"}
     }]
 }
 ''')
@@ -46,7 +46,7 @@ void main() {
 
     final exercise = Course.fromJson(
       json,
-    ).topics.single.rounds.single.exercises.single;
+    ).lessons.single.rounds.single.exercises.single;
     expect(exercise.type, 'listening_spelling');
     expect(exercise.interaction.kind, 'input');
     expect(exercise.accepted, ['ecco']);
@@ -58,14 +58,34 @@ void main() {
       id: 'read1',
       editorTemplate: 'reading_comprehension',
       promptElements: const [
-        PromptElement(role: 'passage', type: 'text', text: 'Va bene, ci sentiamo dopo.'),
-        PromptElement(role: 'question', type: 'text', text: 'Which expression means all right?'),
+        PromptElement(
+          role: 'passage',
+          type: 'text',
+          text: 'Va bene, ci sentiamo dopo.',
+        ),
+        PromptElement(
+          role: 'question',
+          type: 'text',
+          text: 'Which expression means all right?',
+        ),
       ],
-      interaction: const ExerciseInteraction(kind: 'select', items: [
-        ExerciseItem(id: 'wrong', content: [PromptElement(type: 'text', text: 'ecco')]),
-        ExerciseItem(id: 'right', content: [PromptElement(type: 'text', text: 'va bene')]),
-      ]),
-      evaluation: const ExerciseEvaluation(kind: 'selected_items', correctItemIds: ['right']),
+      interaction: const ExerciseInteraction(
+        kind: 'select',
+        items: [
+          ExerciseItem(
+            id: 'wrong',
+            content: [PromptElement(type: 'text', text: 'ecco')],
+          ),
+          ExerciseItem(
+            id: 'right',
+            content: [PromptElement(type: 'text', text: 'va bene')],
+          ),
+        ],
+      ),
+      evaluation: const ExerciseEvaluation(
+        kind: 'selected_items',
+        correctItemIds: ['right'],
+      ),
     );
     expect(exercise.correct, 1);
     expect(exercise.answers[exercise.correct!], 'va bene');
@@ -73,7 +93,10 @@ void main() {
 
   test('learner source has a dedicated listening spelling input renderer', () {
     final source = File('lib/screens/round_screen.dart').readAsStringSync();
-    expect(source.contains('Widget _listeningSpellingExercise(Exercise ex)'), isTrue);
+    expect(
+      source.contains('Widget _listeningSpellingExercise(Exercise ex)'),
+      isTrue,
+    );
     expect(
       RegExp(
         r"case 'listening_spelling':\r?\n[ \t]+return _listeningSpellingExercise\(ex\);",
@@ -84,8 +107,20 @@ void main() {
   });
 
   test('Course Editor uses persisted custom selection origin', () {
-    final source = File('lib/screens/course_projects_screen.dart').readAsStringSync();
-    expect(source.contains("selectedRef == 'custom:\${widget.currentCourse.courseId}'"), isTrue);
-    expect(source.contains('_user.any((course) => course.courseId == widget.currentCourse.courseId)'), isFalse);
+    final source = File(
+      'lib/screens/course_projects_screen.dart',
+    ).readAsStringSync();
+    expect(
+      source.contains(
+        "selectedRef == 'custom:\${widget.currentCourse.courseId}'",
+      ),
+      isTrue,
+    );
+    expect(
+      source.contains(
+        '_user.any((course) => course.courseId == widget.currentCourse.courseId)',
+      ),
+      isFalse,
+    );
   });
 }

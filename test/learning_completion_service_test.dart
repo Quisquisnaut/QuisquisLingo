@@ -69,7 +69,7 @@ void main() {
       expect(progress.completedCourseId, 'course_1');
       expect(progress.completedCourseCode, 'IT');
       expect(progress.recentCourseId, 'course_1');
-      expect(progress.recentTopicId, 'topic_1');
+      expect(progress.recentLessonId, 'lesson_1');
       expect(progress.recentRoundId, 'round_1');
       expect(progress.recentRoundErrors, 0);
       expect(progress.perfectCourseId, 'course_1');
@@ -91,43 +91,46 @@ void main() {
     },
   );
 
-  test('first Topic completion is included in the same awarded total', () async {
-    final events = <String>[];
-    final progress = _FakeLearningCompletionProgress(
-      events: events,
-      weeklyXpValues: [10, 70],
-      newlyEarnedLaurel: true,
-      topicCompletionAward: 25,
-    );
-    final service = LearningCompletionService.withProgress(progress);
+  test(
+    'first Lesson completion is included in the same awarded total',
+    () async {
+      final events = <String>[];
+      final progress = _FakeLearningCompletionProgress(
+        events: events,
+        weeklyXpValues: [10, 70],
+        newlyEarnedLaurel: true,
+        lessonCompletionAward: 25,
+      );
+      final service = LearningCompletionService.withProgress(progress);
 
-    final result = await service.completeRound(
-      LearningCompletionRequest(
-        roundId: 'round_1',
-        topicId: 'topic_1',
-        courseId: 'course_1',
-        courseCode: 'IT',
-        completedTopicId: 'topic_1',
-        readAttemptFacts: () => const LearningCompletionAttemptFacts(
-          errorsThisAttempt: 0,
-          firstPassCorrect: 1,
-          evaluableExerciseCount: 1,
-          wasCompletedAtStart: false,
-          ttsWasSkipped: false,
+      final result = await service.completeRound(
+        LearningCompletionRequest(
+          roundId: 'round_1',
+          lessonId: 'lesson_1',
+          courseId: 'course_1',
+          courseCode: 'IT',
+          completedLessonId: 'lesson_1',
+          readAttemptFacts: () => const LearningCompletionAttemptFacts(
+            errorsThisAttempt: 0,
+            firstPassCorrect: 1,
+            evaluableExerciseCount: 1,
+            wasCompletedAtStart: false,
+            ttsWasSkipped: false,
+          ),
         ),
-      ),
-      onNewLaurel: () async {},
-      getWeeklyXpTarget: () async => 1000,
-    );
+        onNewLaurel: () async {},
+        getWeeklyXpTarget: () async => 1000,
+      );
 
-    expect(progress.completedTopicId, 'topic_1');
-    expect(result.roundXp.totalXp, 35);
-    expect(result.topicCompletionXp, 25);
-    expect(result.awardedXp, 60);
-    expect(result.weeklyXpAfter - result.weeklyXpBefore, 60);
-    expect(result.firstPassCorrect, 1);
-    expect(result.evaluableExerciseCount, 1);
-  });
+      expect(progress.completedLessonId, 'lesson_1');
+      expect(result.roundXp.totalXp, 35);
+      expect(result.lessonCompletionXp, 25);
+      expect(result.awardedXp, 60);
+      expect(result.weeklyXpAfter - result.weeklyXpBefore, 60);
+      expect(result.firstPassCorrect, 1);
+      expect(result.evaluableExerciseCount, 1);
+    },
+  );
 
   test(
     'attempt facts are read lazily at the original await boundaries',
@@ -163,7 +166,7 @@ void main() {
       final result = await service.completeRound(
         LearningCompletionRequest(
           roundId: 'round_1',
-          topicId: 'topic_1',
+          lessonId: 'lesson_1',
           courseId: 'course_1',
           courseCode: 'IT',
           readAttemptFacts: () {
@@ -375,21 +378,21 @@ void main() {
   );
 
   test(
-    'six-exercise repeat and completed Topic add only the authoritative 10 XP',
+    'six-exercise repeat and completed Lesson add only the authoritative 10 XP',
     () async {
       final clock = _MutableClock(DateTime(2026, 8, 28, 12));
       final profiles = ProfileService();
-      await profiles.addProfile('Repeat Topic Learner');
+      await profiles.addProfile('Repeat Lesson Learner');
       final progress = ProgressService(now: clock.call);
       final service = LearningCompletionService(progressService: progress);
       await progress.addXp(85, courseCode: 'IT', courseId: 'course_1');
-      await progress.completeTopic(
-        'topic_1',
+      await progress.completeLesson(
+        'lesson_1',
         courseId: 'course_1',
         courseCode: 'IT',
       );
       // Preserve the observed starting point while retaining the authoritative
-      // already-completed Topic state.
+      // already-completed Lesson state.
       final prefs = await SharedPreferences.getInstance();
       final prefix = ProfileService.prefixForProfileId(
         (await profiles.getActiveProfileId())!,
@@ -412,12 +415,12 @@ void main() {
       expect(result.weeklyXpBefore, 85);
       expect(result.weeklyXpAfter, 95);
 
-      final topicAward = await progress.completeTopic(
-        'topic_1',
+      final lessonAward = await progress.completeLesson(
+        'lesson_1',
         courseId: 'course_1',
         courseCode: 'IT',
       );
-      expect(topicAward, 0);
+      expect(lessonAward, 0);
       expect(await progress.getXp(courseCode: 'IT'), 95);
       expect(await progress.getWeeklyXp(), 95);
     },
@@ -510,7 +513,7 @@ LearningCompletionRequest _request({
   var readIndex = 0;
   return LearningCompletionRequest(
     roundId: 'round_1',
-    topicId: 'topic_1',
+    lessonId: 'lesson_1',
     courseId: 'course_1',
     courseCode: 'IT',
     readAttemptFacts: () {
@@ -536,13 +539,13 @@ class _FakeLearningCompletionProgress implements LearningCompletionProgress {
   final List<String> events;
   final List<int> weeklyXpValues;
   final bool newlyEarnedLaurel;
-  final int topicCompletionAward;
+  final int lessonCompletionAward;
 
   String? completedRoundId;
   String? completedCourseId;
   String? completedCourseCode;
   String? recentCourseId;
-  String? recentTopicId;
+  String? recentLessonId;
   String? recentRoundId;
   int? recentRoundErrors;
   String? perfectCourseId;
@@ -553,7 +556,7 @@ class _FakeLearningCompletionProgress implements LearningCompletionProgress {
   String? addedCourseId;
   String? addedCourseCode;
   String? activityCourseCode;
-  String? completedTopicId;
+  String? completedLessonId;
   int addXpCalls = 0;
   int perfectRoundCalls = 0;
   int ttsSkippedPerfectRoundCalls = 0;
@@ -565,7 +568,7 @@ class _FakeLearningCompletionProgress implements LearningCompletionProgress {
     required this.events,
     required this.weeklyXpValues,
     this.newlyEarnedLaurel = false,
-    this.topicCompletionAward = 0,
+    this.lessonCompletionAward = 0,
   });
 
   @override
@@ -590,12 +593,12 @@ class _FakeLearningCompletionProgress implements LearningCompletionProgress {
   @override
   Future<void> recordRecentRound(
     String courseId,
-    String topicId,
+    String lessonId,
     String roundId, {
     required int errors,
   }) async {
     recentCourseId = courseId;
-    recentTopicId = topicId;
+    recentLessonId = lessonId;
     recentRoundId = roundId;
     recentRoundErrors = errors;
     await _event(events, 'recentRound');
@@ -651,14 +654,14 @@ class _FakeLearningCompletionProgress implements LearningCompletionProgress {
   }
 
   @override
-  Future<int> completeTopic(
+  Future<int> completeLesson(
     String id, {
     required String courseId,
     required String courseCode,
   }) async {
-    completedTopicId = id;
-    await _event(events, 'completeTopic');
-    return topicCompletionAward;
+    completedLessonId = id;
+    await _event(events, 'completeLesson');
+    return lessonCompletionAward;
   }
 
   @override

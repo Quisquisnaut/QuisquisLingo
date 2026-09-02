@@ -15,7 +15,7 @@ class ReportService {
   Future<void> copyExerciseReport({
     required ReportKind kind,
     required Course course,
-    required Topic topic,
+    required Lesson lesson,
     required LearningRound round,
     required Exercise exercise,
     required int exerciseIndex,
@@ -32,7 +32,7 @@ class ReportService {
       ..writeln('Platform: ${_platformName()}')
       ..writeln('Course: ${course.title} (${course.courseId})')
       ..writeln('Course version: ${course.version}')
-      ..writeln('Topic: ${topic.id} | ${topic.title}')
+      ..writeln('Lesson: ${lesson.lessonId} | ${lesson.title}')
       ..writeln('Round: ${round.id} | ${round.title}')
       ..writeln('Exercise: ${exercise.id}')
       ..writeln(

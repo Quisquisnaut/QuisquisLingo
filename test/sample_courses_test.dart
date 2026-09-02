@@ -15,29 +15,38 @@ void main() {
     'finnish_en.json',
   ];
   for (final file in files) {
-    test('$file has nine direct temporary-sample Topics', () async {
+    test('$file has nine direct temporary-sample Lessons', () async {
       final raw = await rootBundle.loadString('assets/courses/$file');
       final data = jsonDecode(raw) as Map<String, dynamic>;
-      expect(data['formatVersion'], 4);
+      expect(data['formatVersion'], 5);
       expect(data['temporarySample'], isTrue);
       expect(data.containsKey('chapters'), isFalse);
-      final topics = (data['topics'] as List).cast<Map<String, dynamic>>();
-      expect(topics, hasLength(9));
-      for (final topic in topics) {
-        expect(topic['guidebook'], isA<Map>());
-        expect(topic['duel'], {'id': '${topic['id']}_duel', 'title': 'Duel'});
+      final lessons = (data['lessons'] as List).cast<Map<String, dynamic>>();
+      expect(lessons, hasLength(9));
+      for (final lesson in lessons) {
+        expect(lesson['guidebook'], isA<Map>());
+        expect(lesson['lessonId'], isA<String>());
+        expect(lesson.containsKey('id'), isFalse);
+        expect(lesson.containsKey('imageAsset'), isFalse);
+        expect(lesson['section'], isTrue);
+        expect(lesson['sectionName'], isA<String>());
+        expect(lesson['themeIconAsset'], isA<String>());
+        expect(lesson['duel'], {
+          'id': '${lesson['lessonId']}_duel',
+          'title': 'Duel',
+        });
       }
     });
 
     test(
-      '$file gives every learning Topic its own Guidebook and non-exercise Round 1 intro',
+      '$file gives every learning Lesson its own Guidebook and non-exercise Round 1 intro',
       () async {
         final raw = await rootBundle.loadString('assets/courses/$file');
         final data = jsonDecode(raw) as Map<String, dynamic>;
-        final topics = (data['topics'] as List).cast<Map<String, dynamic>>();
-        for (final topic in topics) {
+        final lessons = (data['lessons'] as List).cast<Map<String, dynamic>>();
+        for (final lesson in lessons) {
           final guidebook = Map<String, dynamic>.from(
-            topic['guidebook'] as Map,
+            lesson['guidebook'] as Map,
           );
           final guideContent = (guidebook['content'] as List)
               .cast<Map<String, dynamic>>();
@@ -46,13 +55,14 @@ void main() {
             guideContent.where((item) => item['kind'] == 'vocabulary').length,
             greaterThanOrEqualTo(4),
           );
-          final rounds = (topic['rounds'] as List).cast<Map<String, dynamic>>();
+          final rounds = (lesson['rounds'] as List)
+              .cast<Map<String, dynamic>>();
           expect(rounds, isNotEmpty);
           final content = (rounds.first['content'] as List)
               .cast<Map<String, dynamic>>();
           final first = content.first;
           expect(first['kind'], 'explanation');
-          expect(first['role'], 'topic_intro');
+          expect(first['role'], 'lesson_intro');
           expect(first['required'], isFalse);
           expect(first.containsKey('exercise'), isFalse);
           expect(
@@ -63,4 +73,37 @@ void main() {
       },
     );
   }
+
+  test(
+    'sample Lessons cover complete Sections, icons and Round title layouts',
+    () async {
+      final raw = await rootBundle.loadString('assets/courses/italian_en.json');
+      final data = jsonDecode(raw) as Map<String, dynamic>;
+      final lessons = (data['lessons'] as List).cast<Map<String, dynamic>>();
+
+      expect(lessons.every((lesson) => lesson['section'] == true), isTrue);
+      expect(
+        lessons.every((lesson) => lesson['themeIconAsset'] != null),
+        isTrue,
+      );
+      expect(
+        lessons.any((lesson) => (lesson['title'] as String).length > 50),
+        isTrue,
+      );
+      expect(lessons[0]['sectionName'], lessons[1]['sectionName']);
+      expect(lessons[1]['sectionName'], lessons[2]['sectionName']);
+      expect(lessons[3]['sectionName'], isNot(lessons[0]['sectionName']));
+      expect(lessons[3]['sectionName'], lessons[5]['sectionName']);
+      expect(lessons[6]['sectionName'], lessons[8]['sectionName']);
+
+      final roundTitles = lessons
+          .expand((lesson) => (lesson['rounds'] as List).cast<Map>())
+          .map((round) => round['title'] as String)
+          .toList();
+      expect(roundTitles, contains('Greetings and introductions'));
+      expect(roundTitles, contains('Ordering food'));
+      expect(roundTitles, contains('At the railway station'));
+      expect(roundTitles, contains('Round 2'));
+    },
+  );
 }

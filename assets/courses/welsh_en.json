@@ -1,5 +1,5 @@
 {
-  "formatVersion": 4,
+  "formatVersion": 5,
   "courseId": "sample_cy_en_cy",
   "learningLanguage": "Welsh",
   "interfaceLanguage": "English",
@@ -7,9 +7,9 @@
   "targetLanguage": "Welsh",
   "title": "Welsh",
   "ttsLanguage": "cy-GB",
-  "version": "1.5.6",
-  "contentRevision": "sample-topic-intros-v156",
-  "updateSummary": "Regenerated bundled sample courses. The first content item of the first Round in every learning Topic is now a short Guidebook-based explanation with a reminder to read the Guidebook for more.",
+  "version": "1.5.7",
+  "contentRevision": "sample-lessons-v223",
+  "updateSummary": "Regenerated bundled sample courses for Course Model v5 Lessons, Section navigation metadata and complete Lesson theme icons.",
   "audioMode": "tts",
   "authors": [
     {
@@ -26,17 +26,19 @@
     }
   ],
   "license": "All rights reserved",
-  "courseVersion": "1.5.6",
-  "lastUpdated": "2026-08-17",
-  "courseDescription": "TEMPORARY SAMPLE course regenerated for Course Model v4.",
+  "courseVersion": "1.5.7",
+  "lastUpdated": "2026-09-02",
+  "courseDescription": "TEMPORARY SAMPLE course regenerated for Course Model v5.",
   "textDirection": "ltr",
   "author": "Sample Author Ceri, Sample Author Morgan",
   "temporarySample": true,
-  "topics": [
+  "lessons": [
         {
-          "id": "chapter_1_topic_1",
+          "lessonId": "chapter_1_topic_1",
           "title": "Hello and thanks",
-          "imageAsset": "assets/exercise_images/hello.webp",
+          "section": true,
+          "sectionName": "Foundations",
+          "themeIconAsset": "assets/lesson_icons/speech_bubbles.png",
           "rounds": [
             {
               "id": "c1t1_round_1",
@@ -47,7 +49,7 @@
                   "id": "chapter_1_topic_1_intro",
                   "kind": "explanation",
                   "required": false,
-                  "role": "topic_intro",
+                  "role": "lesson_intro",
                   "sourceRefs": [
                     "chapter_1_topic_1_gb_overview",
                     "g1_v1",
@@ -55,7 +57,7 @@
                     "g1_v3",
                     "g1_v4"
                   ],
-                  "text": "Before you start: Hello and thanks: practise helo, diolch, ie, na. Read this Topic Guidebook for more explanations, vocabulary and examples."
+                  "text": "Before you start: Hello and thanks: practise helo, diolch, ie, na. Read this Lesson Guidebook for more explanations, vocabulary and examples."
                 },
                 {
                   "id": "c1t1_round_1_e1",
@@ -1046,7 +1048,7 @@
                 "kind": "text",
                 "required": false,
                 "role": "goal",
-                "text": "Recognise and use the main vocabulary in this Topic."
+                "text": "Recognise and use the main vocabulary in this Lesson."
               },
               {
                 "id": "g1_v1",
@@ -1098,9 +1100,11 @@
           }
         },
         {
-          "id": "chapter_1_topic_2",
+          "lessonId": "chapter_1_topic_2",
           "title": "People and animals",
-          "imageAsset": "assets/exercise_images/book.webp",
+          "section": true,
+          "sectionName": "Foundations",
+          "themeIconAsset": "assets/lesson_icons/family.png",
           "rounds": [
             {
               "id": "c1t2_round_1",
@@ -1111,7 +1115,7 @@
                   "id": "chapter_1_topic_2_intro",
                   "kind": "explanation",
                   "required": false,
-                  "role": "topic_intro",
+                  "role": "lesson_intro",
                   "sourceRefs": [
                     "chapter_1_topic_2_gb_overview",
                     "g1_v5",
@@ -1119,7 +1123,7 @@
                     "g1_v7",
                     "g1_v8"
                   ],
-                  "text": "Before you start: People and animals: practise dyn, menyw, bachgen, merch. Read this Topic Guidebook for more explanations, vocabulary and examples."
+                  "text": "Before you start: People and animals: practise dyn, menyw, bachgen, merch. Read this Lesson Guidebook for more explanations, vocabulary and examples."
                 },
                 {
                   "id": "c1t2_round_1_e1",
@@ -2089,7 +2093,7 @@
                 "kind": "text",
                 "required": false,
                 "role": "goal",
-                "text": "Recognise and use the main vocabulary in this Topic."
+                "text": "Recognise and use the main vocabulary in this Lesson."
               },
               {
                 "id": "g1_v5",
@@ -2141,8 +2145,11 @@
           }
         },
         {
-          "id": "c1t3",
+          "lessonId": "c1t3",
           "title": "Useful words",
+          "section": true,
+          "sectionName": "Foundations",
+          "themeIconAsset": "assets/lesson_icons/school.png",
           "rounds": [
             {
               "id": "c1t3_round_1",
@@ -2153,7 +2160,7 @@
                   "id": "c1t3_intro",
                   "kind": "explanation",
                   "required": false,
-                  "role": "topic_intro",
+                  "role": "lesson_intro",
                   "sourceRefs": [
                     "c1t3_gb_overview",
                     "g1_v9",
@@ -2161,7 +2168,7 @@
                     "g1_v11",
                     "g1_v12"
                   ],
-                  "text": "Before you start: Useful words: practise cath, ci, llyfr, sach gefn. Read this Topic Guidebook for more explanations, vocabulary and examples."
+                  "text": "Before you start: Useful words: practise cath, ci, llyfr, sach gefn. Read this Lesson Guidebook for more explanations, vocabulary and examples."
                 },
                 {
                   "id": "c1t3_round_1_e1",
@@ -3121,7 +3128,6 @@
               ]
             }
           ],
-          "imageAsset": "assets/exercise_images/backpack.webp",
           "guidebook": {
             "content": [
               {
@@ -3136,7 +3142,7 @@
                 "kind": "text",
                 "required": false,
                 "role": "goal",
-                "text": "Recognise and use the main vocabulary in this Topic."
+                "text": "Recognise and use the main vocabulary in this Lesson."
               },
               {
                 "id": "g1_v9",
@@ -3188,9 +3194,11 @@
           }
         },
         {
-          "id": "chapter_2_topic_1",
+          "lessonId": "chapter_2_topic_1",
           "title": "Food and drinks",
-          "imageAsset": "assets/exercise_images/coffee.webp",
+          "section": true,
+          "sectionName": "Everyday Life",
+          "themeIconAsset": "assets/lesson_icons/food.png",
           "rounds": [
             {
               "id": "c2t1_round_1",
@@ -3201,7 +3209,7 @@
                   "id": "chapter_2_topic_1_intro",
                   "kind": "explanation",
                   "required": false,
-                  "role": "topic_intro",
+                  "role": "lesson_intro",
                   "sourceRefs": [
                     "chapter_2_topic_1_gb_overview",
                     "g2_v1",
@@ -3209,7 +3217,7 @@
                     "g2_v3",
                     "g2_v4"
                   ],
-                  "text": "Before you start: Food and drinks: practise dŵr, bara, coffi, te. Read this Topic Guidebook for more explanations, vocabulary and examples."
+                  "text": "Before you start: Food and drinks: practise dŵr, bara, coffi, te. Read this Lesson Guidebook for more explanations, vocabulary and examples."
                 },
                 {
                   "id": "c2t1_round_1_e1",
@@ -4220,7 +4228,7 @@
                 "kind": "text",
                 "required": false,
                 "role": "goal",
-                "text": "Recognise and use the main vocabulary in this Topic."
+                "text": "Recognise and use the main vocabulary in this Lesson."
               },
               {
                 "id": "g2_v1",
@@ -4272,9 +4280,11 @@
           }
         },
         {
-          "id": "chapter_2_topic_2",
+          "lessonId": "chapter_2_topic_2",
           "title": "At home",
-          "imageAsset": "assets/exercise_images/shop.webp",
+          "section": true,
+          "sectionName": "Everyday Life",
+          "themeIconAsset": "assets/lesson_icons/home.png",
           "rounds": [
             {
               "id": "c2t2_round_1",
@@ -4285,7 +4295,7 @@
                   "id": "chapter_2_topic_2_intro",
                   "kind": "explanation",
                   "required": false,
-                  "role": "topic_intro",
+                  "role": "lesson_intro",
                   "sourceRefs": [
                     "chapter_2_topic_2_gb_overview",
                     "g2_v5",
@@ -4293,7 +4303,7 @@
                     "g2_v7",
                     "g2_v8"
                   ],
-                  "text": "Before you start: At home: practise afal, banana, caws, tŷ. Read this Topic Guidebook for more explanations, vocabulary and examples."
+                  "text": "Before you start: At home: practise afal, banana, caws, tŷ. Read this Lesson Guidebook for more explanations, vocabulary and examples."
                 },
                 {
                   "id": "c2t2_round_1_e1",
@@ -5249,7 +5259,7 @@
                 "kind": "text",
                 "required": false,
                 "role": "goal",
-                "text": "Recognise and use the main vocabulary in this Topic."
+                "text": "Recognise and use the main vocabulary in this Lesson."
               },
               {
                 "id": "g2_v5",
@@ -5301,8 +5311,11 @@
           }
         },
         {
-          "id": "c2t3",
+          "lessonId": "c2t3",
           "title": "More everyday words",
+          "section": true,
+          "sectionName": "Everyday Life",
+          "themeIconAsset": "assets/lesson_icons/coffee.png",
           "rounds": [
             {
               "id": "c2t3_round_1",
@@ -5313,7 +5326,7 @@
                   "id": "c2t3_intro",
                   "kind": "explanation",
                   "required": false,
-                  "role": "topic_intro",
+                  "role": "lesson_intro",
                   "sourceRefs": [
                     "c2t3_gb_overview",
                     "g2_v9",
@@ -5321,7 +5334,7 @@
                     "g2_v11",
                     "g2_v12"
                   ],
-                  "text": "Before you start: More everyday words: practise bwrdd, cadair, gwely, drws. Read this Topic Guidebook for more explanations, vocabulary and examples."
+                  "text": "Before you start: More everyday words: practise bwrdd, cadair, gwely, drws. Read this Lesson Guidebook for more explanations, vocabulary and examples."
                 },
                 {
                   "id": "c2t3_round_1_e1",
@@ -6306,7 +6319,6 @@
               ]
             }
           ],
-          "imageAsset": "assets/exercise_images/apple.webp",
           "guidebook": {
             "content": [
               {
@@ -6321,7 +6333,7 @@
                 "kind": "text",
                 "required": false,
                 "role": "goal",
-                "text": "Recognise and use the main vocabulary in this Topic."
+                "text": "Recognise and use the main vocabulary in this Lesson."
               },
               {
                 "id": "g2_v9",
@@ -6366,9 +6378,11 @@
           }
         },
         {
-          "id": "chapter_3_topic_1",
+          "lessonId": "chapter_3_topic_1",
           "title": "Around town",
-          "imageAsset": "assets/exercise_images/man.webp",
+          "section": true,
+          "sectionName": "Travel",
+          "themeIconAsset": "assets/lesson_icons/directions.png",
           "rounds": [
             {
               "id": "c3t1_round_1",
@@ -6379,7 +6393,7 @@
                   "id": "chapter_3_topic_1_intro",
                   "kind": "explanation",
                   "required": false,
-                  "role": "topic_intro",
+                  "role": "lesson_intro",
                   "sourceRefs": [
                     "chapter_3_topic_1_gb_overview",
                     "g3_v1",
@@ -6387,7 +6401,7 @@
                     "g3_v3",
                     "g3_v4"
                   ],
-                  "text": "Before you start: Around town: practise car, bws, trên, beic. Read this Topic Guidebook for more explanations, vocabulary and examples."
+                  "text": "Before you start: Around town: practise car, bws, trên, beic. Read this Lesson Guidebook for more explanations, vocabulary and examples."
                 },
                 {
                   "id": "c3t1_round_1_e1",
@@ -7420,7 +7434,7 @@
                 "kind": "text",
                 "required": false,
                 "role": "goal",
-                "text": "Recognise and use the main vocabulary in this Topic."
+                "text": "Recognise and use the main vocabulary in this Lesson."
               },
               {
                 "id": "g3_v1",
@@ -7472,9 +7486,11 @@
           }
         },
         {
-          "id": "chapter_3_topic_2",
-          "title": "Transport and actions",
-          "imageAsset": "assets/exercise_images/house.webp",
+          "lessonId": "chapter_3_topic_2",
+          "title": "Transport, directions and buying tickets at the railway station",
+          "section": true,
+          "sectionName": "Travel",
+          "themeIconAsset": "assets/lesson_icons/train.png",
           "rounds": [
             {
               "id": "c3t2_round_1",
@@ -7485,7 +7501,7 @@
                   "id": "chapter_3_topic_2_intro",
                   "kind": "explanation",
                   "required": false,
-                  "role": "topic_intro",
+                  "role": "lesson_intro",
                   "sourceRefs": [
                     "chapter_3_topic_2_gb_overview",
                     "g3_v5",
@@ -7493,7 +7509,7 @@
                     "g3_v7",
                     "g3_v8"
                   ],
-                  "text": "Before you start: Transport and actions: practise awyren, ysbyty, siop, mynydd. Read this Topic Guidebook for more explanations, vocabulary and examples."
+                  "text": "Before you start: Transport and actions: practise awyren, ysbyty, siop, mynydd. Read this Lesson Guidebook for more explanations, vocabulary and examples."
                 },
                 {
                   "id": "c3t2_round_1_e1",
@@ -8493,7 +8509,7 @@
                 "kind": "text",
                 "required": false,
                 "role": "goal",
-                "text": "Recognise and use the main vocabulary in this Topic."
+                "text": "Recognise and use the main vocabulary in this Lesson."
               },
               {
                 "id": "g3_v5",
@@ -8545,8 +8561,11 @@
           }
         },
         {
-          "id": "c3t3",
+          "lessonId": "c3t3",
           "title": "Travel phrases",
+          "section": true,
+          "sectionName": "Travel",
+          "themeIconAsset": "assets/lesson_icons/airport.png",
           "rounds": [
             {
               "id": "c3t3_round_1",
@@ -8557,7 +8576,7 @@
                   "id": "c3t3_intro",
                   "kind": "explanation",
                   "required": false,
-                  "role": "topic_intro",
+                  "role": "lesson_intro",
                   "sourceRefs": [
                     "c3t3_gb_overview",
                     "g3_v9",
@@ -8565,7 +8584,7 @@
                     "g3_v11",
                     "g3_v12"
                   ],
-                  "text": "Before you start: Travel phrases: practise coeden, cerdded, rhedeg, cysgu. Read this Topic Guidebook for more explanations, vocabulary and examples."
+                  "text": "Before you start: Travel phrases: practise coeden, cerdded, rhedeg, cysgu. Read this Lesson Guidebook for more explanations, vocabulary and examples."
                 },
                 {
                   "id": "c3t3_round_1_e1",
@@ -9539,7 +9558,6 @@
               ]
             }
           ],
-          "imageAsset": "assets/exercise_images/train.webp",
           "guidebook": {
             "content": [
               {
@@ -9554,7 +9572,7 @@
                 "kind": "text",
                 "required": false,
                 "role": "goal",
-                "text": "Recognise and use the main vocabulary in this Topic."
+                "text": "Recognise and use the main vocabulary in this Lesson."
               },
               {
                 "id": "g3_v9",

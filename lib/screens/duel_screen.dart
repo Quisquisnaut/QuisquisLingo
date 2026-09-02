@@ -12,13 +12,13 @@ import '../services/course_service.dart';
 
 class DuelScreen extends StatefulWidget {
   final Course course;
-  final Topic topic;
+  final Lesson lesson;
   final String ttsLanguage;
 
   const DuelScreen({
     super.key,
     required this.course,
-    required this.topic,
+    required this.lesson,
     required this.ttsLanguage,
   });
 
@@ -27,11 +27,11 @@ class DuelScreen extends StatefulWidget {
 }
 
 class _DuelItem {
-  final Topic topic;
+  final Lesson lesson;
   final LearningRound round;
   final Exercise exercise;
   const _DuelItem({
-    required this.topic,
+    required this.lesson,
     required this.round,
     required this.exercise,
   });
@@ -65,13 +65,13 @@ class _DuelScreenState extends State<DuelScreen> {
   ];
 
   List<_DuelItem> get _duelItems {
-    // Availability and selection share one Topic-scoped candidate pool.
+    // Availability and selection share one Lesson-scoped candidate pool.
     final candidates = _eligibility
-        .evaluate(widget.topic)
+        .evaluate(widget.lesson)
         .candidates
         .map(
           (candidate) => _DuelItem(
-            topic: widget.topic,
+            lesson: widget.lesson,
             round: candidate.round,
             exercise: candidate.exercise,
           ),
@@ -168,7 +168,7 @@ class _DuelScreenState extends State<DuelScreen> {
     await _reports.copyExerciseReport(
       kind: kind,
       course: widget.course,
-      topic: item.topic,
+      lesson: item.lesson,
       round: item.round,
       exercise: item.exercise,
       exerciseIndex: roundIndex < 0 ? 0 : roundIndex,
@@ -233,12 +233,12 @@ class _DuelScreenState extends State<DuelScreen> {
   Future<void> _finishDuel() async {
     final won = _lives > 0 && _index + 1 >= _items.length;
     final isFinalLesson =
-        widget.course.topics.isNotEmpty &&
-        widget.course.topics.last.id == widget.topic.id;
+        widget.course.lessons.isNotEmpty &&
+        widget.course.lessons.last.lessonId == widget.lesson.lessonId;
     int? awardedXp;
     if (won) {
       awardedXp = await _progress.winDuel(
-        widget.topic.duel.id,
+        widget.lesson.duel.id,
         courseId: widget.course.courseId,
         courseCode: CourseService.codeForCourse(widget.course),
       );
@@ -311,7 +311,7 @@ class _DuelScreenState extends State<DuelScreen> {
     final items = _items;
     if (items.length < DuelEligibilityService.requiredQuestionCount) {
       return Scaffold(
-        appBar: AppBar(title: Text(widget.topic.duel.title)),
+        appBar: AppBar(title: Text(widget.lesson.duel.title)),
         body: const Center(
           child: Padding(
             padding: EdgeInsets.all(24),
@@ -332,7 +332,7 @@ class _DuelScreenState extends State<DuelScreen> {
       backgroundColor: background,
       appBar: AppBar(
         backgroundColor: background,
-        title: Text(widget.topic.duel.title),
+        title: Text(widget.lesson.duel.title),
         actions: [
           IconButton(
             tooltip: 'Report a problem',
