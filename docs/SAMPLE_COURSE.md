@@ -1,6 +1,6 @@
 # Bundled sample courses
 
-Updated for version 2.0.23+223.
+Updated for version 2.0.24+224.
 
 QuisquisLingo currently bundles eight Course Model v5 sample courses: Italian, German, Spanish, Welsh, Dutch, Portuguese and Finnish from English, plus English from Spanish. Every bundled course contains nine deterministically ordered Lessons with two Rounds per Lesson. Lesson and Round IDs remain stable, Lesson titles are written in the course source language, and the course-level `temporarySample` flag marks the material as temporary development/demo content that can be progressively replaced by reviewed content from the course creators.
 

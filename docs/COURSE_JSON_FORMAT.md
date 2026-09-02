@@ -66,9 +66,17 @@ Initial evaluation primitives are `selected_items`, `text_match`, `ordered_items
 
 Options, tokens and match members are stable Items. Evaluation refers to Item IDs, never display indexes. For `text_match`, v5 writes accepted text as `acceptedAnswers`; the parser also accepts `accepted` for that exercise field.
 
+Build 224 groups these primitives as the canonical Select, Input, Arrange and Match models, with Presentation for non-response learning material. Concrete `editorTemplate` presets remain authoring metadata and several presets intentionally share one model. Prompt elements can independently carry text, audio or image media plus a semantic `role`; structured dialogue may add an optional `speaker` string to a text element whose role is `dialogue_turn`. Contextual comprehension stores its question and context as separate prompt roles.
+
+Accepted text entries may be separate complete equivalents or use optional `{...}`, alternative `[a|b|c]`, and explicitly scoped reorder `(a <> b)` expressions. Without parentheses, `<>` applies to the whole expression. Expansion is deterministic, de-duplicated and limited to 128 results. Malformed or oversized expressions are invalid course data.
+
+Source-format conversion is isolated behind an import-normalization representation before producing these native structures. No source taxonomy is a runtime exercise discriminator, and build 224 does not include a production converter for third-party course formats.
+
 ## Presentation
 
 Flashcard is `kind: presentation`. Its completion actions include `understood` and `review_later`. It has no correct/incorrect result.
+
+Round `content[]` is also the structured content container for future Story-like sequences: narration, dialogue or other presentation blocks can be interleaved with independently evaluated exercises. There is no separate monolithic Story evaluator.
 
 ## Lesson Duel
 

@@ -17,7 +17,7 @@ void main() {
     final start = source.indexOf(
       "finalnarrowCourseInfo=MediaQuery.sizeOf(context).width<560;",
     );
-    final end = source.indexOf('Future<void>_addLesson()', start);
+    final end = source.indexOf('Future<void>_openLessons()', start);
     expect(start, greaterThanOrEqualTo(0));
     expect(end, greaterThan(start));
     final courseInfo = source.substring(start, end);
@@ -26,17 +26,31 @@ void main() {
     expect(courseInfo.contains('for(finalcincustomRoles){'), isTrue);
   });
 
-  test('Course Editor owns Lessons directly without a Chapter editor', () {
-    final source = File(
-      'lib/screens/course_editor_screen.dart',
-    ).readAsStringSync();
-    expect(source, contains('Future<void> _addLesson()'));
-    expect(source, contains('Future<void> _openLesson(int index)'));
-    expect(source, contains('itemCount: _course.lessons.length'));
-    expect(source, contains("label: const Text('New lesson')"));
-    expect(source, isNot(contains('class ChapterEditorScreen')));
-    expect(source, isNot(contains('required this.chapter')));
-  });
+  test(
+    'Course Editor routes direct Lessons through one management subpage',
+    () {
+      final source = File(
+        'lib/screens/course_editor_screen.dart',
+      ).readAsStringSync();
+      expect(source, contains('Future<void> _addLesson()'));
+      expect(source, contains('Future<void> _openLesson(int index)'));
+      expect(source, contains('itemCount: _course.lessons.length'));
+      expect(source, contains("label: const Text('New lesson')"));
+      expect(source, contains('class LessonManagementScreen'));
+      expect(
+        source,
+        contains("key: const Key('course-editor-lessons-navigation')"),
+      );
+      final mainEditor = source.substring(
+        source.indexOf('class _CourseEditorScreenState'),
+        source.indexOf('class LessonManagementScreen'),
+      );
+      expect(mainEditor, isNot(contains("title: const Text('Lock')")));
+      expect(mainEditor, isNot(contains('ReorderableListView.builder')));
+      expect(source, isNot(contains('class ChapterEditorScreen')));
+      expect(source, isNot(contains('required this.chapter')));
+    },
+  );
 
   testWidgets('new course starts with 3 direct placeholder Lessons', (
     tester,

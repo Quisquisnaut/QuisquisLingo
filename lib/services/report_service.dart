@@ -5,7 +5,7 @@ import '../models/course_models.dart';
 enum ReportKind { bug, courseError }
 
 class ReportService {
-  static const String appVersion = '2.0.20+220';
+  static const String appVersion = '2.0.24+224';
 
   String _platformName() {
     if (kIsWeb) return 'web';

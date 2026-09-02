@@ -1,3 +1,16 @@
+# 2.0.24 (build 224) - 2026-09-03
+
+- Rationalized the retained exercise implementation behind five canonical internal models—Select, Input, Arrange, Match and Presentation—while exposing 20 concrete authoring presets in six searchable Course Editor categories.
+- Added Type the translation with multiple explicit accepted answers, deterministic optional/alternative/reorder expression syntax, a 128-expansion safety limit and conservative single-typo tolerance.
+- Added deterministic closest-correction selection as a separate algorithm from answer acceptance, preserving the established case, punctuation, whitespace, apostrophe and accent behavior.
+- Added Contextual comprehension with a separate question, text/audio/text-and-audio modes, optional structured speaker dialogue, stable item IDs and ordinary Select evaluation.
+- Generalized the documented Match and Arrange mappings without duplicating runtime engines, retained Presentation as non-scored material, and formalized ordered Round content as the future-proof Story/content-sequence boundary.
+- Added an import-only normalized exercise boundary and complete engineering interoperability matrix without adding production external importers or leaking source taxonomies into learner runtime.
+- Replaced the inline Course Editor Lesson list with a compact Lessons row and dedicated management page, moving the single authoritative Lock control to its top while preserving Lesson operations, drafts and stable IDs.
+- Added one registry-driven Exercise Help system covering every offered preset plus answer variants and contextual comprehension, with no external product names in author-facing copy.
+- Added canonical/preset, import mapping, parser, acceptance, correction, contextual, editor-navigation, Help, stable-ID and 320/375/430/desktop responsive regression coverage while preserving Course Model v5, Review, Duel, XP, Round completion, learner identity and progression.
+- Refreshed the mandatory 30-day Alpha lifetime through the end of **2026-10-03**.
+
 # 2.0.23 (build 223) - 2026-09-02
 
 - Promoted Course Model v5 with canonical `lessons` and `lessonId` fields across the model, services, bundled/custom courses, Course Editor, learner UI, Guidebook, Duel, Review, progress and tests; v4 `topics`/Lesson `id` data are rejected without compatibility aliases or fallback parsing.

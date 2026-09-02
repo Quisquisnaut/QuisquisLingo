@@ -18,7 +18,12 @@ void main() {
     await ProfileService().addProfile('Text Entry Learner');
   });
 
-  for (final type in ['fill_blank', 'listening_spelling', 'missing_word']) {
+  for (final type in [
+    'fill_blank',
+    'listening_spelling',
+    'missing_word',
+    'type_translation',
+  ]) {
     testWidgets('$type ignores empty Enter and enables one submit path', (
       tester,
     ) async {
@@ -73,10 +78,61 @@ void main() {
     expect(find.byType(TextField), findsOneWidget);
     expect(tester.testTextInput.isVisible, isTrue);
   });
+
+  testWidgets(
+    'Type the translation accepts variants and shows closest correction',
+    (tester) async {
+      await _openTextRound(
+        tester,
+        'type_translation',
+        accepted: const [
+          'Io prendo un cappuccino',
+          '{Io} [vorrei|desidero] un cappuccino',
+        ],
+      );
+      await tester.enterText(
+        find.byType(TextField).last,
+        'vorrei un cappuccino',
+      );
+      await tester.pump();
+      final check = find.widgetWithText(FilledButton, 'Check');
+      await tester.ensureVisible(check);
+      await tester.tap(check);
+      await tester.pump();
+      expect(find.text('Correct'), findsOneWidget);
+
+      await tester.tap(find.text('Finish round'));
+      await tester.pumpAndSettle();
+    },
+  );
+
+  testWidgets('wrong translation displays the nearest valid answer', (
+    tester,
+  ) async {
+    await _openTextRound(
+      tester,
+      'type_translation',
+      accepted: const ['Io prendo un cappuccino', 'Io vorrei un cappuccino'],
+    );
+    await tester.enterText(find.byType(TextField).last, 'Io vorrei un tè');
+    await tester.pump();
+    final check = find.widgetWithText(FilledButton, 'Check');
+    await tester.ensureVisible(check);
+    await tester.tap(check);
+    await tester.pump();
+    expect(
+      find.text('Correct answer: Io vorrei un cappuccino'),
+      findsOneWidget,
+    );
+  });
 }
 
-Future<void> _openTextRound(WidgetTester tester, String type) async {
-  final exercise = _textExercise(type);
+Future<void> _openTextRound(
+  WidgetTester tester,
+  String type, {
+  List<String>? accepted,
+}) async {
+  final exercise = _textExercise(type, accepted: accepted);
   final round = LearningRound(
     id: '${type}_round',
     title: 'Text Entry Round',
@@ -118,17 +174,21 @@ Future<void> _openTextRound(WidgetTester tester, String type) async {
   fail('Timed out waiting for the $type text field.');
 }
 
-Exercise _textExercise(String type) => Exercise(
+Exercise _textExercise(String type, {List<String>? accepted}) => Exercise(
   id: '${type}_exercise',
   type: type,
-  prompt: type == 'missing_word' ? 'The correct answer.' : '',
+  prompt: type == 'missing_word'
+      ? 'The correct answer.'
+      : type == 'type_translation'
+      ? 'Translate this source text.'
+      : '',
   question: 'Type the answer.',
   answers: const [],
   correct: null,
   tts: type == 'listening_spelling' || type == 'missing_word'
       ? 'correct'
       : null,
-  accepted: type == 'missing_word' ? const [] : const ['correct'],
+  accepted: type == 'missing_word' ? const [] : accepted ?? const ['correct'],
   tokens: const [],
   orderAnswer: const [],
   pairs: const [],

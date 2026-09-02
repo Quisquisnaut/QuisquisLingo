@@ -1,6 +1,6 @@
 # QuisquisLingo Course Editor
 
-Updated for current Course Model v5 editor (2.0.23+223)
+Updated for current Course Model v5 editor (2.0.24+224)
 
 ## Unlocking the editor
 
@@ -10,7 +10,8 @@ Course Editor is an Easter Egg so ordinary learners do not encounter authoring c
 
 The editor supports the whole authoring tree:
 
-- Course → create/delete/reorder Lessons
+- Course → open the compact **Lessons** row
+- Lessons → use the authoritative Lock control and create/delete/reorder Lessons
 - Lesson → edit its title, Section metadata, preinstalled theme icon and Guidebook; open the linked Rounds page to create/delete/reorder Rounds; a stable Duel identity is retained automatically
 - Round → create/delete/reorder Exercises
 
@@ -18,7 +19,7 @@ New objects receive generated local IDs. Deleting an object removes its descenda
 
 Each Lesson can optionally enable **Belongs to a Section** and then requires a trimmed, non-empty **Section name**. Section is consecutive-order display metadata only: it is not a hierarchy, has no ID, and owns no progress or navigation. Disabling the switch clears the stored Section name.
 
-The controlled **Lesson theme icon** field opens a responsive visual grid containing `None` and every release-owned PNG from the canonical registry, with labels, selection state and an in-editor contained preview. Arbitrary paths, uploads, cropping and per-Lesson image sizing are intentionally unsupported in 223. The former decorative Lesson image field is not part of Course Model v5.
+The controlled **Lesson theme icon** field opens a responsive visual grid containing `None` and every release-owned PNG from the canonical registry, with labels, selection state and an in-editor contained preview. Arbitrary paths, uploads, cropping and per-Lesson image sizing remain unsupported. The former decorative Lesson image field is not part of Course Model v5.
 
 The Lesson form keeps Lesson metadata readily accessible and links to one dedicated **Rounds** page instead of expanding the complete list inline. The page reuses the existing Round create/edit/delete/reorder workflow and returns naturally to the Lesson draft. Unsaved title, Section and icon edits, returned Round edits and every existing stable ID remain intact until the parent Lesson form is saved or cancelled.
 
@@ -37,6 +38,38 @@ The editor displays only fields used by the current exercise type. Examples:
 - Audio Match: Three sound matches and five visible choices
 
 Technical fields such as numeric JSON indices are minimized. Correct choice remains an author-facing answer number for compact editing.
+
+## Exercise presets and Help
+
+When creating an exercise, the grouped searchable picker offers concrete teaching presets rather than internal model names:
+
+- **Multiple choice:** How do you say, Fill in the blank, Select the image, What do you hear, Listen and choose, Reading comprehension, Dialogue response, Contextual comprehension
+- **Translation:** Type the translation, Build the translation
+- **Text input:** Type a missing word, Type what you hear, Listen for missing words
+- **Matching:** Match the pairs, Match the words, Match related words, Listen and match
+- **Ordering:** Word order, Image-prompt ordering
+- **Presentation:** Flashcard
+
+The **Exercise Help** action next to the preset control uses the same registry as the picker and validation. It explains what the learner sees and does, the fields and media the author supplies, how correctness is defined, and any restrictions for every available preset.
+
+### Type the translation
+
+Provide source-language text and one or more complete accepted target-language translations, one per line. A hint is optional and must not reveal the solution. The learner types freely. A conservative typo allowance accepts only one accidentally omitted or duplicated repeated letter in a sufficiently long single token while preserving word count, order, diacritics and negation safeguards; substitutions and broader lexical or grammatical changes are not treated as spelling mistakes.
+
+### Contextual comprehension
+
+Question and Context are separate. Choose text, audio, or text and audio context, then provide answer choices and the correct answer. Dialogue is optional and is entered as one `Speaker: text` turn per line; ordinary prose is also valid context. An exercise image may supplement the context. The learner reads and/or listens, then answers the separate question.
+
+### Accepted-answer variants
+
+Multiple complete equivalent answers can always be entered as separate lines. Compact syntax is optional:
+
+- `{Io} prendo un cappuccino` makes `Io` optional.
+- `{Io} [prendo|vorrei] un cappuccino` declares alternatives.
+- `(non arrivo <> oggi)` allows only those declared phrase parts to swap inside the parentheses.
+- `a casa <> domani` applies reordering to the whole expression when no parentheses are present.
+
+Syntax is validated before save. Expansion is deterministic, duplicate results are removed, and the combined limit is 128 answers; larger combinations must be split or simplified. QQL applies its established case, punctuation, whitespace, apostrophe and accent rules. When an answer is wrong, it displays the valid answer closest to the learner's attempted words and structure; that correction choice is separate from deciding whether the response was correct.
 
 ## Word Blocks
 
@@ -185,7 +218,7 @@ An author can have multiple roles. Course Creator means original creation/design
 
 ## Alpha expiry and authoring
 
-The current time-limited alpha expires on 2026-10-02. Expiry blocks learner exercises and Review but deliberately leaves Course Editor available so authoring work can be inspected, recovered and exported. Expiry never deletes local data.
+The current time-limited alpha expires on 2026-10-03. Expiry blocks learner exercises and Review but deliberately leaves Course Editor available so authoring work can be inspected, recovered and exported. Expiry never deletes local data.
 
 
 ## Current bundled course and My custom courses

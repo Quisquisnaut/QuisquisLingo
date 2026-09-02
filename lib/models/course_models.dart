@@ -774,23 +774,27 @@ class PromptElement {
   final String type;
   final String text;
   final String asset;
+  final String speaker;
   const PromptElement({
     this.role = 'primary',
     required this.type,
     this.text = '',
     this.asset = '',
+    this.speaker = '',
   });
   Map<String, dynamic> toJson() => {
     'role': role,
     'type': type,
     if (text.isNotEmpty) 'text': text,
     if (asset.isNotEmpty) 'asset': asset,
+    if (speaker.isNotEmpty) 'speaker': speaker,
   };
   factory PromptElement.fromJson(Map<String, dynamic> j) => PromptElement(
     role: _optionalString(j, 'role', 'primary'),
     type: _requiredString(j, 'type', 'prompt'),
     text: _optionalString(j, 'text', ''),
     asset: _optionalString(j, 'asset', ''),
+    speaker: _optionalString(j, 'speaker', ''),
   );
 }
 
@@ -1121,6 +1125,29 @@ class Exercise {
           .map((e) => e.asset)
           .firstOrNull ??
       '';
+
+  String get contextText =>
+      promptElements
+          .where((e) => e.role == 'context' && e.type == 'text')
+          .map((e) => e.text)
+          .firstOrNull ??
+      '';
+  String get contextAudio =>
+      promptElements
+          .where((e) => e.role == 'context' && e.type == 'audio')
+          .map((e) => e.text)
+          .firstOrNull ??
+      '';
+  List<PromptElement> get dialogueTurns => promptElements
+      .where((e) => e.role == 'dialogue_turn' && e.type == 'text')
+      .toList(growable: false);
+  String get contextMode {
+    final hasText = contextText.isNotEmpty || dialogueTurns.isNotEmpty;
+    final hasAudio = contextAudio.isNotEmpty;
+    if (hasText && hasAudio) return 'textAndAudio';
+    if (hasAudio) return 'audio';
+    return 'text';
+  }
 }
 
 List<PromptElement> _legacyPrompt(
@@ -1132,8 +1159,9 @@ List<PromptElement> _legacyPrompt(
 ) {
   final out = <PromptElement>[];
   if (prompt.isNotEmpty) {
-    final role =
-        const {'reading_comprehension', 'dialogue_response'}.contains(type)
+    final role = type == 'contextual_comprehension'
+        ? 'context'
+        : const {'reading_comprehension', 'dialogue_response'}.contains(type)
         ? 'passage'
         : const {'word_order', 'image_word'}.contains(type)
         ? 'clue'
@@ -1146,7 +1174,9 @@ List<PromptElement> _legacyPrompt(
   if (tts != null && tts.isNotEmpty) {
     out.add(
       PromptElement(
-        role: const {'listening_comprehension'}.contains(type)
+        role: type == 'contextual_comprehension'
+            ? 'context'
+            : const {'listening_comprehension'}.contains(type)
             ? 'passage'
             : 'primary',
         type: 'audio',
@@ -1176,6 +1206,7 @@ ExerciseInteraction _legacyInteraction(
     'listening_comprehension',
     'reading_comprehension',
     'dialogue_response',
+    'contextual_comprehension',
   }.contains(type)) {
     final items = <ExerciseItem>[];
     for (var i = 0; i < answers.length; i++) {
@@ -1196,10 +1227,11 @@ ExerciseInteraction _legacyInteraction(
     'fill_blank',
     'listening_spelling',
     'missing_word',
+    'type_translation',
   }.contains(type)) {
     return const ExerciseInteraction(kind: 'input', inputType: 'text');
   }
-  if (const {'word_order', 'image_word'}.contains(type)) {
+  if (const {'word_order', 'image_word', 'build_translation'}.contains(type)) {
     return ExerciseInteraction(
       kind: 'arrange',
       items: [
@@ -1262,6 +1294,7 @@ ExerciseEvaluation _legacyEvaluation(
     'listening_comprehension',
     'reading_comprehension',
     'dialogue_response',
+    'contextual_comprehension',
   }.contains(type)) {
     return ExerciseEvaluation(
       kind: 'selected_items',
@@ -1275,6 +1308,7 @@ ExerciseEvaluation _legacyEvaluation(
     'fill_blank',
     'listening_spelling',
     'missing_word',
+    'type_translation',
   }.contains(type)) {
     return ExerciseEvaluation(
       kind: 'text_match',
@@ -1287,7 +1321,7 @@ ExerciseEvaluation _legacyEvaluation(
       },
     );
   }
-  if (const {'word_order', 'image_word'}.contains(type)) {
+  if (const {'word_order', 'image_word', 'build_translation'}.contains(type)) {
     final used = <int>{};
     final ids = <String>[];
     for (final word in order) {

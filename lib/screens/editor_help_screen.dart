@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../models/exercise_authoring.dart';
 
 class EditorHelpScreen extends StatelessWidget {
   const EditorHelpScreen({super.key});
@@ -78,7 +79,7 @@ class EditorHelpScreen extends StatelessWidget {
         _HelpSection(
           title: 'Lesson theme icons and Preview',
           body:
-              'Each Lesson can select one preinstalled theme icon from the visual grid or choose None for the default GuideBook icon. Theme icons cannot be uploaded or entered as arbitrary paths in build 223. Exercise images remain separate Image Bank content. Round Preview and Preview exercise let you test authored content before saving or distributing it.',
+              'Each Lesson can select one preinstalled theme icon from the visual grid or choose None for the default GuideBook icon. Theme icons cannot be uploaded or entered as arbitrary paths. Exercise images remain separate Image Bank content. Round Preview and Preview exercise let you test authored content before saving or distributing it.',
         ),
         _HelpSection(
           title: 'Exercise image specifications',
@@ -157,6 +158,14 @@ class _TechnicalLinks extends StatelessWidget {
           ),
           ListTile(
             contentPadding: EdgeInsets.zero,
+            title: Text('Exercise types'),
+            trailing: Icon(Icons.chevron_right),
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const ExerciseHelpScreen()),
+            ),
+          ),
+          ListTile(
+            contentPadding: EdgeInsets.zero,
             title: Text('QuisquisLingo Course Model v5'),
             trailing: Icon(Icons.chevron_right),
             onTap: () => Navigator.of(context).push(
@@ -185,6 +194,53 @@ class _TechnicalLinks extends StatelessWidget {
           ),
         ],
       ),
+    ),
+  );
+}
+
+class ExerciseHelpScreen extends StatelessWidget {
+  const ExerciseHelpScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+    appBar: AppBar(title: const Text('Exercise Help')),
+    body: ListView(
+      key: const Key('exercise-help-list'),
+      padding: const EdgeInsets.all(16),
+      children: [
+        for (final category in ExerciseCategory.values)
+          if (ExercisePresetRegistry.inCategory(category).isNotEmpty) ...[
+            Padding(
+              padding: const EdgeInsets.fromLTRB(4, 12, 4, 8),
+              child: Text(
+                category.label,
+                style: Theme.of(
+                  context,
+                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
+              ),
+            ),
+            for (final preset in ExercisePresetRegistry.inCategory(category))
+              _HelpSection(
+                title: preset.name,
+                body: ExercisePresetRegistry.helpByPreset[preset.id]!,
+              ),
+          ],
+        const _HelpSection(
+          title: 'Answer variants',
+          body:
+              'Multiple complete equivalent answers may be entered on separate lines. Compact syntax is optional: {Io} makes “Io” optional; [prendo|vorrei] chooses one listed alternative; and (non arrivo <> oggi) allows only the declared phrase parts inside parentheses to swap. Without parentheses, <> applies to the whole expression. QQL expands variants deterministically, removes duplicates and rejects malformed syntax or more than 128 expansions instead of truncating. Avoid very large combinations.',
+        ),
+        const _HelpSection(
+          title: 'Text evaluation and corrections',
+          body:
+              'QQL accepts any configured complete answer or syntax-expanded variant after the established case, punctuation, whitespace, apostrophe and accent rules. Type the translation also permits one omitted or duplicated repeated letter in a word of at least five characters when every word position is otherwise unchanged. Substitutions and missing, extra or decisively different words remain incorrect. After an incorrect response, QQL displays the valid answer closest to the learner’s attempted words and order; this correction choice never changes correctness.',
+        ),
+        const _HelpSection(
+          title: 'Contextual comprehension example',
+          body:
+              'Question: What does Jane mean?\n\nContext:\nJane: I thought Jim was coming with us.\nJim: I changed my mind.\nJane: That’s just great.\n\nQuestion and Context are separate. Context can be text, audio, or both. Dialogue turns are optional; an announcement, short passage or situation is equally valid. Configure answer choices separately.',
+        ),
+      ],
     ),
   );
 }

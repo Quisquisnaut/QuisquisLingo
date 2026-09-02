@@ -1,4 +1,6 @@
 import '../models/course_models.dart';
+import '../models/exercise_authoring.dart';
+import 'answer_engine.dart';
 import 'duel_eligibility_service.dart';
 import 'lesson_icon_catalog.dart';
 
@@ -52,6 +54,9 @@ class CourseAuditService {
     'dialogue_response',
     'word_match',
     'super_match',
+    'type_translation',
+    'build_translation',
+    'contextual_comprehension',
   };
   static const choiceTypes = {
     'choice',
@@ -61,6 +66,7 @@ class CourseAuditService {
     'listening_comprehension',
     'reading_comprehension',
     'dialogue_response',
+    'contextual_comprehension',
   };
 
   String _courseSourceCode(Course course) {
@@ -815,6 +821,70 @@ class CourseAuditService {
     );
     if (!supportedTypes.contains(ex.type))
       add(AuditSeverity.error, 'Unknown exercise type: ${ex.type}');
+    // Older v5 courses can retain an authoring-template alias such as
+    // `choose_answer`. The runtime type is authoritative at this boundary, so
+    // validate it against the corresponding current preset without rewriting
+    // stored authoring metadata.
+    final preset =
+        ExercisePresetRegistry.byId(ex.editorTemplate) ??
+        ExercisePresetRegistry.byId(ex.type) ??
+        (ex.type == 'flashcard'
+            ? ExercisePresetRegistry.byId('flashcard')
+            : null);
+    if (preset == null) {
+      add(
+        AuditSeverity.error,
+        'Exercise preset “${ex.editorTemplate}” is not available.',
+        code: 'EXERCISE_PRESET_UNKNOWN',
+      );
+    } else if (preset.model != CanonicalExerciseModel.presentation) {
+      final expectedInteraction = switch (preset.model) {
+        CanonicalExerciseModel.select => 'select',
+        CanonicalExerciseModel.input => 'input',
+        CanonicalExerciseModel.arrange => 'arrange',
+        CanonicalExerciseModel.match => 'match',
+        CanonicalExerciseModel.presentation => '',
+      };
+      if (ex.interaction.kind != expectedInteraction) {
+        add(
+          AuditSeverity.error,
+          '${preset.name} has an incompatible response configuration.',
+          code: 'PRESET_CANONICAL_MISMATCH',
+        );
+      }
+    }
+    const promptMedia = {'text', 'audio', 'image'};
+    if (ex.promptElements.any(
+      (element) => !promptMedia.contains(element.type),
+    )) {
+      add(
+        AuditSeverity.error,
+        'Prompt media must be text, audio or image.',
+        code: 'PROMPT_MEDIA_UNSUPPORTED',
+      );
+    }
+    final itemIds = ex.interaction.items.map((item) => item.id).toList();
+    if (itemIds.any((id) => id.trim().isEmpty) ||
+        itemIds.toSet().length != itemIds.length) {
+      add(
+        AuditSeverity.error,
+        'Exercise Item IDs must be non-empty and unique.',
+        code: 'EXERCISE_ITEM_IDS',
+      );
+    }
+    final itemIdSet = itemIds.toSet();
+    final referencedIds = <String>{
+      ...ex.evaluation.correctItemIds,
+      ...ex.evaluation.correctOrder,
+      for (final pair in ex.evaluation.pairs) ...pair,
+    };
+    if (referencedIds.any((id) => !itemIdSet.contains(id))) {
+      add(
+        AuditSeverity.error,
+        'Exercise evaluation references an unknown Item ID.',
+        code: 'EXERCISE_ITEM_REFERENCE',
+      );
+    }
     if (ex.prompt.length > 1200 || ex.question.length > 800)
       add(
         AuditSeverity.warning,
@@ -838,17 +908,29 @@ class CourseAuditService {
       'correct answer',
     );
     unexpected(
-      !const {'fill_blank', 'listening_spelling'}.contains(ex.type) &&
+      !const {
+            'fill_blank',
+            'listening_spelling',
+            'type_translation',
+          }.contains(ex.type) &&
           ex.accepted.isNotEmpty,
       'accepted answers',
     );
     unexpected(
-      !const {'word_order', 'image_word'}.contains(ex.type) &&
+      !const {
+            'word_order',
+            'image_word',
+            'build_translation',
+          }.contains(ex.type) &&
           ex.tokens.isNotEmpty,
       'word blocks',
     );
     unexpected(
-      !const {'word_order', 'image_word'}.contains(ex.type) &&
+      !const {
+            'word_order',
+            'image_word',
+            'build_translation',
+          }.contains(ex.type) &&
           ex.orderAnswer.isNotEmpty,
       'correct sentence/order',
     );
@@ -862,7 +944,11 @@ class CourseAuditService {
           ex.pairs.isNotEmpty,
       'pairs',
     );
-    unexpected(ex.type != 'fill_blank' && ex.hint.isNotEmpty, 'hint');
+    unexpected(
+      !const {'fill_blank', 'type_translation'}.contains(ex.type) &&
+          ex.hint.isNotEmpty,
+      'hint',
+    );
     unexpected(
       ex.type != 'missing_word' && ex.missingWords.isNotEmpty,
       'missing words',
@@ -965,6 +1051,72 @@ class CourseAuditService {
         'Listening Spelling needs at least one accepted text answer.',
         code: 'LISTENING_SPELLING_NO_ANSWER',
       );
+    if (const {
+          'fill_blank',
+          'listening_spelling',
+          'type_translation',
+        }.contains(ex.type) &&
+        ex.accepted.isNotEmpty) {
+      for (final expression in ex.accepted) {
+        try {
+          AnswerExpressionParser.expand(expression);
+        } on AnswerExpressionException catch (error) {
+          add(
+            AuditSeverity.error,
+            error.message,
+            code: 'ANSWER_EXPRESSION_INVALID',
+          );
+        }
+      }
+      try {
+        AnswerExpressionParser.expandAll(ex.accepted);
+      } on AnswerExpressionException catch (error) {
+        add(AuditSeverity.error, error.message, code: 'ANSWER_EXPANSION_LIMIT');
+      }
+    }
+    if (ex.type == 'type_translation') {
+      if (ex.prompt.trim().isEmpty) {
+        add(
+          AuditSeverity.error,
+          'Type the translation needs source text.',
+          code: 'TRANSLATION_SOURCE_REQUIRED',
+        );
+      }
+      if (ex.accepted.isEmpty) {
+        add(
+          AuditSeverity.error,
+          'Type the translation needs at least one accepted answer.',
+          code: 'TRANSLATION_ANSWER_REQUIRED',
+        );
+      }
+    }
+    if (ex.type == 'contextual_comprehension') {
+      if (ex.question.trim().isEmpty) {
+        add(
+          AuditSeverity.error,
+          'Contextual comprehension needs a separate question.',
+          code: 'CONTEXT_QUESTION_REQUIRED',
+        );
+      }
+      if (ex.contextText.trim().isEmpty &&
+          ex.contextAudio.trim().isEmpty &&
+          ex.dialogueTurns.isEmpty) {
+        add(
+          AuditSeverity.error,
+          'Contextual comprehension needs text, audio or dialogue context.',
+          code: 'CONTEXT_REQUIRED',
+        );
+      }
+      if (ex.dialogueTurns.any(
+        (turn) => turn.speaker.trim().isEmpty || turn.text.trim().isEmpty,
+      )) {
+        add(
+          AuditSeverity.error,
+          'Every dialogue turn needs a speaker and text.',
+          code: 'DIALOGUE_TURN_INVALID',
+        );
+      }
+    }
     if (ex.type == 'missing_word') {
       if (ex.prompt.trim().isEmpty)
         add(
@@ -1021,7 +1173,11 @@ class CourseAuditService {
           code: 'HINT_REVEALS_ANSWER',
         );
     }
-    if (const {'word_order', 'image_word'}.contains(ex.type)) {
+    if (const {
+      'word_order',
+      'image_word',
+      'build_translation',
+    }.contains(ex.type)) {
       if (ex.tokens.isEmpty || ex.orderAnswer.isEmpty)
         add(
           AuditSeverity.error,

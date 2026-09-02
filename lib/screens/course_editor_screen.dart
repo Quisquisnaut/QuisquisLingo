@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:audioplayers/audioplayers.dart';
 
 import '../models/course_models.dart';
+import '../models/exercise_authoring.dart';
 import '../services/course_editor_service.dart';
 import '../services/course_service.dart';
 import '../services/course_audit_service.dart';
@@ -45,7 +46,6 @@ class _CourseEditorScreenState extends State<CourseEditorScreen> {
   late Course _course;
   CourseAuditResult? _lastAudit;
   bool _auditOutdated = true;
-  bool _saving = false;
   bool _locked = true;
 
   @override
@@ -88,52 +88,16 @@ class _CourseEditorScreenState extends State<CourseEditorScreen> {
   String get _code => CourseService.codeForCourse(_course);
 
   Future<void> _persist(Course value) async {
-    setState(() => _saving = true);
-    try {
-      if (widget.userCourse) {
-        await _service.saveUserCourse(value);
-      } else {
-        await _service.saveCourse(languageCode: _code, course: value);
-      }
-      if (!mounted) return;
-      setState(() {
-        _course = value;
-        _auditOutdated = true;
-      });
-    } finally {
-      if (mounted) setState(() => _saving = false);
+    if (widget.userCourse) {
+      await _service.saveUserCourse(value);
+    } else {
+      await _service.saveCourse(languageCode: _code, course: value);
     }
-  }
-
-  Future<String?> _askName(String title, {String initial = ''}) async {
-    final c = TextEditingController(text: initial);
-    final value = await showDialog<String>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(title),
-        content: TextField(
-          controller: c,
-          autofocus: true,
-          maxLength: 120,
-          decoration: const InputDecoration(
-            border: OutlineInputBorder(),
-            labelText: 'Title',
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(ctx, c.text.trim()),
-            child: const Text('Save'),
-          ),
-        ],
-      ),
-    );
-    c.dispose();
-    return value?.trim().isEmpty == true ? null : value;
+    if (!mounted) return;
+    setState(() {
+      _course = value;
+      _auditOutdated = true;
+    });
   }
 
   Future<bool> _confirmDelete(String what) async =>
@@ -157,16 +121,6 @@ class _CourseEditorScreenState extends State<CourseEditorScreen> {
         ),
       ) ??
       false;
-
-  Lesson _blankLesson(String title) {
-    final stamp = DateTime.now().microsecondsSinceEpoch;
-    return Lesson(
-      lessonId: 'custom_lesson_$stamp',
-      title: title,
-      rounds: const [],
-      guidebook: Guidebook.empty(),
-    );
-  }
 
   Course _withLessons(List<Lesson> lessons, {bool? temporarySample}) => Course(
     courseId: _course.courseId,
@@ -739,39 +693,24 @@ class _CourseEditorScreenState extends State<CourseEditorScreen> {
     );
   }
 
-  Future<void> _addLesson() async {
-    final title = await _askName('New lesson');
-    if (title == null) return;
-    await _persist(_withLessons([..._course.lessons, _blankLesson(title)]));
-  }
-
-  Future<void> _deleteLesson(int index) async {
-    if (_locked) return;
-    if (!await _confirmDelete('lesson')) return;
-    final list = [..._course.lessons]..removeAt(index);
-    await _persist(_withLessons(list));
-  }
-
-  Future<void> _reorderLesson(int oldIndex, int newIndex) async {
-    if (_locked) return;
-    // ReorderableListView.onReorderItem already reports newIndex after removal.
-    final list = [..._course.lessons];
-    final item = list.removeAt(oldIndex);
-    list.insert(newIndex, item);
-    await _persist(_withLessons(list));
-  }
-
-  Future<void> _openLesson(int index) async {
-    final updated = await Navigator.of(context).push<Lesson>(
+  Future<void> _openLessons() async {
+    final updated = await Navigator.of(context).push<Course>(
       MaterialPageRoute(
-        builder: (_) =>
-            LessonEditorScreen(course: _course, lesson: _course.lessons[index]),
+        builder: (_) => LessonManagementScreen(
+          course: _course,
+          userCourse: widget.userCourse,
+          initiallyLocked: _locked,
+        ),
       ),
     );
-    if (updated == null || !mounted) return;
-    final list = [..._course.lessons];
-    list[index] = updated;
-    await _persist(_withLessons(list));
+    if (!mounted) return;
+    final locked = await _settings.isCourseEditorLocked(_course.courseId);
+    if (!mounted) return;
+    setState(() {
+      if (updated != null) _course = updated;
+      _locked = locked;
+      _auditOutdated = true;
+    });
   }
 
   Future<void> _openAudioLibrary() async {
@@ -1081,24 +1020,9 @@ class _CourseEditorScreenState extends State<CourseEditorScreen> {
         ),
       ],
     ),
-    floatingActionButton: FloatingActionButton.extended(
-      onPressed: _saving || _locked ? null : _addLesson,
-      icon: const Icon(Icons.add),
-      label: const Text('New lesson'),
-    ),
-    body: Column(
+    body: ListView(
+      padding: const EdgeInsets.only(bottom: 24),
       children: [
-        SwitchListTile(
-          title: const Text('Lock'),
-          subtitle: const Text(
-            'Prevents accidental course edits. Stored separately for each course.',
-          ),
-          value: _locked,
-          onChanged: (v) async {
-            await _settings.setCourseEditorLocked(_course.courseId, v);
-            if (mounted) setState(() => _locked = v);
-          },
-        ),
         if (_course.temporarySample)
           const ListTile(
             leading: Icon(Icons.label_outline),
@@ -1118,6 +1042,18 @@ class _CourseEditorScreenState extends State<CourseEditorScreen> {
           ),
           trailing: const Icon(Icons.chevron_right),
           onTap: _editCourseInfo,
+        ),
+        const Divider(height: 1),
+        ListTile(
+          key: const Key('course-editor-lessons-navigation'),
+          leading: const Icon(Icons.school_outlined),
+          title: const Text(
+            'Lessons',
+            style: TextStyle(fontWeight: FontWeight.w800),
+          ),
+          subtitle: Text('${_course.lessons.length} Lessons'),
+          trailing: const Icon(Icons.chevron_right),
+          onTap: _openLessons,
         ),
         const Divider(height: 1),
         ListTile(
@@ -1171,66 +1107,263 @@ class _CourseEditorScreenState extends State<CourseEditorScreen> {
             ),
           ),
         ),
-        const Divider(height: 1),
-        Expanded(
-          child: _course.lessons.isEmpty
-              ? Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(24),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(Icons.add_box_outlined, size: 46),
-                        const SizedBox(height: 10),
-                        const Text(
-                          'This course is empty.',
-                          style: TextStyle(fontWeight: FontWeight.w800),
-                        ),
-                        const SizedBox(height: 8),
-                        FilledButton.icon(
-                          onPressed: _saving || _locked ? null : _addLesson,
-                          icon: const Icon(Icons.add),
-                          label: const Text('Create first Lesson'),
-                        ),
-                      ],
-                    ),
-                  ),
-                )
-              : ReorderableListView.builder(
-                  padding: const EdgeInsets.fromLTRB(10, 10, 10, 90),
-                  itemCount: _course.lessons.length,
-                  onReorderItem: _reorderLesson,
-                  itemBuilder: (context, index) {
-                    final lesson = _course.lessons[index];
-                    return Card(
-                      key: ValueKey(lesson.lessonId),
-                      child: ListTile(
-                        leading: ReorderableDragStartListener(
-                          index: index,
-                          enabled: !_locked,
-                          child: const Icon(Icons.drag_handle),
-                        ),
-                        title: Text('Lesson ${index + 1}: ${lesson.title}'),
-                        subtitle: Text('${lesson.rounds.length} rounds'),
-                        onTap: _locked ? null : () => _openLesson(index),
-                        trailing: PopupMenuButton<String>(
-                          enabled: !_locked,
-                          onSelected: (v) {
-                            if (v == 'delete') _deleteLesson(index);
-                          },
-                          itemBuilder: (_) => const [
-                            PopupMenuItem(
-                              value: 'delete',
-                              child: Text('Delete lesson'),
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
-                ),
-        ),
       ],
+    ),
+  );
+}
+
+class LessonManagementScreen extends StatefulWidget {
+  const LessonManagementScreen({
+    super.key,
+    required this.course,
+    required this.userCourse,
+    required this.initiallyLocked,
+  });
+
+  final Course course;
+  final bool userCourse;
+  final bool initiallyLocked;
+
+  @override
+  State<LessonManagementScreen> createState() => _LessonManagementScreenState();
+}
+
+class _LessonManagementScreenState extends State<LessonManagementScreen> {
+  final _service = CourseEditorService();
+  final _settings = SettingsService();
+  late Course _course;
+  late bool _locked;
+  bool _saving = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _course = widget.course;
+    _locked = widget.initiallyLocked;
+  }
+
+  String get _code => CourseService.codeForCourse(_course);
+
+  Course _withLessons(List<Lesson> lessons) => Course(
+    courseId: _course.courseId,
+    parentCourseId: _course.parentCourseId,
+    derivedFromVersion: _course.derivedFromVersion,
+    learningLanguage: _course.learningLanguage,
+    interfaceLanguage: _course.interfaceLanguage,
+    sourceLanguage: _course.sourceLanguage,
+    targetLanguage: _course.targetLanguage,
+    title: _course.title,
+    ttsLanguage: _course.ttsLanguage,
+    version: _course.version,
+    contentRevision: _course.contentRevision,
+    updateSummary: _course.updateSummary,
+    audioMode: _course.audioMode,
+    audioLibrary: _course.audioLibrary,
+    lessons: lessons,
+    author: _course.author,
+    license: _course.license,
+    sourceLanguageTag: _course.sourceLanguageTag,
+    targetLanguageTag: _course.targetLanguageTag,
+    textDirection: _course.textDirection,
+    flagCode: _course.flagCode,
+    flagImageBase64: _course.flagImageBase64,
+    authors: _course.authors,
+    languageVariant: _course.languageVariant,
+    startLevel: _course.startLevel,
+    targetLevel: _course.targetLevel,
+    courseVersion: _course.courseVersion,
+    lastUpdated: _course.lastUpdated,
+    courseDescription: _course.courseDescription,
+    temporarySample: _course.temporarySample,
+    supportUrl: _course.supportUrl,
+  );
+
+  Future<void> _persist(Course value) async {
+    setState(() => _saving = true);
+    try {
+      if (widget.userCourse) {
+        await _service.saveUserCourse(value);
+      } else {
+        await _service.saveCourse(languageCode: _code, course: value);
+      }
+      if (mounted) setState(() => _course = value);
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
+  }
+
+  Future<String?> _askName() async {
+    final controller = TextEditingController();
+    final result = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('New lesson'),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          decoration: const InputDecoration(
+            border: OutlineInputBorder(),
+            labelText: 'Title',
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, controller.text.trim()),
+            child: const Text('Create'),
+          ),
+        ],
+      ),
+    );
+    WidgetsBinding.instance.addPostFrameCallback((_) => controller.dispose());
+    return result == null || result.isEmpty ? null : result;
+  }
+
+  Future<void> _addLesson() async {
+    if (_locked) return;
+    final title = await _askName();
+    if (title == null) return;
+    final stamp = DateTime.now().microsecondsSinceEpoch;
+    await _persist(
+      _withLessons([
+        ..._course.lessons,
+        Lesson(
+          lessonId: 'custom_lesson_$stamp',
+          title: title,
+          rounds: const [],
+          guidebook: Guidebook.empty(),
+        ),
+      ]),
+    );
+  }
+
+  Future<void> _deleteLesson(int index) async {
+    if (_locked) return;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete lesson?'),
+        content: const Text(
+          'This removes the Lesson from the local edited course.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    final lessons = [..._course.lessons]..removeAt(index);
+    await _persist(_withLessons(lessons));
+  }
+
+  Future<void> _reorder(int oldIndex, int newIndex) async {
+    if (_locked) return;
+    final lessons = [..._course.lessons];
+    final lesson = lessons.removeAt(oldIndex);
+    lessons.insert(newIndex, lesson);
+    await _persist(_withLessons(lessons));
+  }
+
+  Future<void> _openLesson(int index) async {
+    if (_locked) return;
+    final updated = await Navigator.of(context).push<Lesson>(
+      MaterialPageRoute(
+        builder: (_) =>
+            LessonEditorScreen(course: _course, lesson: _course.lessons[index]),
+      ),
+    );
+    if (updated == null || !mounted) return;
+    final lessons = [..._course.lessons]..[index] = updated;
+    await _persist(_withLessons(lessons));
+  }
+
+  @override
+  Widget build(BuildContext context) => PopScope(
+    canPop: false,
+    onPopInvokedWithResult: (didPop, result) {
+      if (!didPop) Navigator.pop(context, _course);
+    },
+    child: Scaffold(
+      appBar: AppBar(
+        title: const Text('Lessons'),
+        leading: BackButton(onPressed: () => Navigator.pop(context, _course)),
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: _saving || _locked ? null : _addLesson,
+        icon: const Icon(Icons.add),
+        label: const Text('New lesson'),
+      ),
+      body: Column(
+        children: [
+          SwitchListTile(
+            key: const Key('lesson-management-lock'),
+            title: const Text('Lock'),
+            subtitle: const Text(
+              'Prevents accidental course edits. Stored separately for each course.',
+            ),
+            value: _locked,
+            onChanged: (value) async {
+              await _settings.setCourseEditorLocked(_course.courseId, value);
+              if (mounted) setState(() => _locked = value);
+            },
+          ),
+          const Divider(height: 1),
+          Expanded(
+            child: _course.lessons.isEmpty
+                ? const Center(child: Text('No Lessons yet.'))
+                : ReorderableListView.builder(
+                    key: const Key('lesson-management-list'),
+                    padding: const EdgeInsets.fromLTRB(10, 10, 10, 90),
+                    itemCount: _course.lessons.length,
+                    onReorderItem: _reorder,
+                    itemBuilder: (context, index) {
+                      final lesson = _course.lessons[index];
+                      final section =
+                          lesson.section && lesson.sectionName != null
+                          ? ' · ${lesson.sectionName}'
+                          : '';
+                      return Card(
+                        key: ValueKey(lesson.lessonId),
+                        child: ListTile(
+                          leading: ReorderableDragStartListener(
+                            index: index,
+                            enabled: !_locked,
+                            child: const Icon(Icons.drag_handle),
+                          ),
+                          title: Text('Lesson ${index + 1}: ${lesson.title}'),
+                          subtitle: Text(
+                            '${lesson.rounds.length} Rounds$section',
+                          ),
+                          onTap: _locked ? null : () => _openLesson(index),
+                          trailing: PopupMenuButton<String>(
+                            enabled: !_locked,
+                            onSelected: (value) {
+                              if (value == 'delete') _deleteLesson(index);
+                            },
+                            itemBuilder: (_) => const [
+                              PopupMenuItem(
+                                value: 'delete',
+                                child: Text('Delete lesson'),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+          ),
+        ],
+      ),
     ),
   );
 }
@@ -3318,47 +3451,12 @@ class ExerciseEditorScreen extends StatefulWidget {
 class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
   final _imageService = ExerciseImageService();
   late String _imageAsset;
-  static const _types = [
-    'choice',
-    'gap_choice',
-    'flashcard',
-    'icon_choice',
-    'fill_blank',
-    'word_order',
-    'matching',
-    'listening_choice',
-    'listening_comprehension',
-    'reading_comprehension',
-    'audio_match',
-    'missing_word',
-    'listening_spelling',
-    'image_word',
-    'dialogue_response',
-    'word_match',
-    'super_match',
-  ];
-  static const _typeLabels = <String, String>{
-    'choice': 'Choose an answer',
-    'gap_choice': 'Complete the phrase',
-    'flashcard': 'Flashcard',
-    'icon_choice': 'Choose a picture',
-    'fill_blank': 'Fill in the blank',
-    'word_order': 'Build the sentence',
-    'matching': 'Match the pairs',
-    'listening_choice': 'What do you hear?',
-    'listening_comprehension': 'Listening comprehension',
-    'reading_comprehension': 'Reading comprehension',
-    'audio_match': 'Match the sounds',
-    'missing_word': 'Missing word',
-    'listening_spelling': 'Listening spelling',
-    'image_word': 'Build the word',
-    'dialogue_response': 'Dialogue response',
-    'word_match': 'Match the words',
-    'super_match': 'Match related words',
-  };
+  static List<String> get _types =>
+      ExercisePresetRegistry.presets.map((preset) => preset.id).toList();
   static String labelForType(String type) =>
-      _typeLabels[type] ?? type.replaceAll('_', ' ');
+      ExercisePresetRegistry.byId(type)?.name ?? type.replaceAll('_', ' ');
   late String _type;
+  late String _contextMode;
   late final TextEditingController _prompt,
       _question,
       _tts,
@@ -3370,7 +3468,9 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
       _order,
       _pairs,
       _icons,
-      _missingWords;
+      _missingWords,
+      _context,
+      _dialogue;
   @override
   void initState() {
     super.initState();
@@ -3392,6 +3492,13 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
     );
     _icons = TextEditingController(text: e.icons.join('\n'));
     _missingWords = TextEditingController(text: e.missingWords.join('\n'));
+    _context = TextEditingController(text: e.contextText);
+    _dialogue = TextEditingController(
+      text: e.dialogueTurns
+          .map((turn) => '${turn.speaker}: ${turn.text}')
+          .join('\n'),
+    );
+    _contextMode = e.contextMode;
     _imageAsset = e.imageAsset;
   }
 
@@ -3410,6 +3517,8 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
       _pairs,
       _icons,
       _missingWords,
+      _context,
+      _dialogue,
     ]) {
       c.dispose();
     }
@@ -3435,6 +3544,28 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
     return out;
   }
 
+  List<PromptElement> _dialogueTurns() {
+    final turns = <PromptElement>[];
+    for (final line in _lines(_dialogue)) {
+      final separator = line.indexOf(':');
+      if (separator <= 0 || separator >= line.length - 1) {
+        turns.add(
+          PromptElement(role: 'dialogue_turn', type: 'text', text: line),
+        );
+      } else {
+        turns.add(
+          PromptElement(
+            role: 'dialogue_turn',
+            type: 'text',
+            speaker: line.substring(0, separator).trim(),
+            text: line.substring(separator + 1).trim(),
+          ),
+        );
+      }
+    }
+    return turns;
+  }
+
   bool get _choices => const {
     'choice',
     'gap_choice',
@@ -3443,6 +3574,7 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
     'listening_comprehension',
     'reading_comprehension',
     'dialogue_response',
+    'contextual_comprehension',
   }.contains(_type);
   Widget _field(
     TextEditingController c,
@@ -3501,6 +3633,40 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
           _field(_accepted, 'Accepted answers', lines: 3),
           _field(_hint, 'Hint'),
           _field(_tts, 'Complete phrase TTS (optional)'),
+        ];
+      case 'type_translation':
+        return [
+          _field(
+            _prompt,
+            'Source text',
+            lines: 3,
+            helper: 'Enter the text the learner must translate.',
+          ),
+          _field(
+            _accepted,
+            'Accepted translations',
+            lines: 5,
+            helper:
+                'One complete equivalent answer per line. Optional {...}, alternatives [a|b], and scoped reorder (a <> b) syntax are supported.',
+          ),
+          _field(_hint, 'Hint (optional)'),
+        ];
+      case 'build_translation':
+        return [
+          _field(_prompt, 'Source text', lines: 3),
+          _field(
+            _tokens,
+            'Available target-language blocks',
+            lines: 5,
+            helper:
+                'One block per line. You may include 0, 1 or at most 2 distractors.',
+          ),
+          _field(
+            _order,
+            'Correct translation',
+            lines: 5,
+            helper: 'One block per line in the required order.',
+          ),
         ];
       case 'word_order':
         return [
@@ -3650,6 +3816,49 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
                 'Enter 1 or 2. The learner sees the responses in randomized order.',
           ),
         ];
+      case 'contextual_comprehension':
+        return [
+          DropdownButtonFormField<String>(
+            key: const Key('context-mode-selector'),
+            initialValue: _contextMode,
+            decoration: const InputDecoration(
+              border: OutlineInputBorder(),
+              labelText: 'Context mode',
+            ),
+            items: const [
+              DropdownMenuItem(value: 'text', child: Text('Text')),
+              DropdownMenuItem(value: 'audio', child: Text('Audio')),
+              DropdownMenuItem(
+                value: 'textAndAudio',
+                child: Text('Text and audio'),
+              ),
+            ],
+            onChanged: (value) =>
+                setState(() => _contextMode = value ?? _contextMode),
+          ),
+          const SizedBox(height: 12),
+          if (_contextMode != 'audio')
+            _field(
+              _context,
+              'Context text',
+              lines: 5,
+              helper:
+                  'Use this for a passage, announcement, situation or other context.',
+            ),
+          if (_contextMode != 'text')
+            _field(_tts, 'Context audio text', lines: 5),
+          if (_contextMode != 'audio')
+            _field(
+              _dialogue,
+              'Structured dialogue (optional)',
+              lines: 5,
+              helper:
+                  'One turn per line: Speaker: text. Leave blank for non-dialogue context.',
+            ),
+          _field(_question, 'Question', lines: 2),
+          _field(_answers, 'Answers', lines: 4),
+          _field(_correct, 'Correct answer number'),
+        ];
       case 'listening_spelling':
         return [
           _field(_prompt, 'Passage transcript', lines: 5),
@@ -3795,6 +4004,82 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
     );
   }
 
+  Future<void> _choosePreset() async {
+    final search = TextEditingController();
+    var query = '';
+    final selected = await showModalBottomSheet<String>(
+      context: context,
+      isScrollControlled: true,
+      builder: (sheetContext) => StatefulBuilder(
+        builder: (context, setSheetState) {
+          final visible = ExercisePresetRegistry.presets.where((preset) {
+            final needle = query.toLowerCase();
+            return needle.isEmpty ||
+                preset.name.toLowerCase().contains(needle) ||
+                preset.description.toLowerCase().contains(needle) ||
+                preset.category.label.toLowerCase().contains(needle);
+          }).toList();
+          return SafeArea(
+            child: DraggableScrollableSheet(
+              expand: false,
+              initialChildSize: .85,
+              minChildSize: .55,
+              builder: (context, controller) => ListView(
+                controller: controller,
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+                children: [
+                  Text(
+                    'Choose an exercise preset',
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    key: const Key('exercise-preset-search'),
+                    controller: search,
+                    onChanged: (value) =>
+                        setSheetState(() => query = value.trim()),
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                      prefixIcon: Icon(Icons.search),
+                      labelText: 'Search presets',
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  for (final category in ExerciseCategory.values)
+                    if (visible.any(
+                      (preset) => preset.category == category,
+                    )) ...[
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(4, 12, 4, 4),
+                        child: Text(
+                          category.label,
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(fontWeight: FontWeight.w800),
+                        ),
+                      ),
+                      for (final preset in visible.where(
+                        (preset) => preset.category == category,
+                      ))
+                        Card(
+                          child: ListTile(
+                            title: Text(preset.name),
+                            subtitle: Text(preset.description),
+                            trailing: const Icon(Icons.chevron_right),
+                            onTap: () => Navigator.pop(sheetContext, preset.id),
+                          ),
+                        ),
+                    ],
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+    WidgetsBinding.instance.addPostFrameCallback((_) => search.dispose());
+    if (selected != null && mounted) setState(() => _type = selected);
+  }
+
   Future<void> _save() async {
     final answers = _type == 'flashcard'
         ? _lines(_answers)
@@ -3817,77 +4102,141 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
       }
       correct = parsed - 1;
     }
-    final ex = Exercise(
-      id: widget.exercise.id,
-      type: _type,
-      prompt:
-          const {
-            'flashcard',
-            'word_order',
-            'image_word',
-            'matching',
-            'audio_match',
-            'word_match',
-            'super_match',
-            'reading_comprehension',
-            'choice',
-            'missing_word',
-            'listening_spelling',
-            'dialogue_response',
-          }.contains(_type)
-          ? _prompt.text.trim()
-          : '',
-      question:
-          const {
-            'flashcard',
-            'fill_blank',
-            'icon_choice',
-            'listening_choice',
-            'listening_comprehension',
-            'reading_comprehension',
-            'choice',
-            'gap_choice',
-            'dialogue_response',
-          }.contains(_type)
-          ? _question.text.trim()
-          : '',
-      answers: answers,
-      correct: correct,
-      tts:
-          const {
-                'flashcard',
-                'fill_blank',
-                'listening_choice',
-                'listening_comprehension',
-                'missing_word',
-                'listening_spelling',
-              }.contains(_type) &&
-              _tts.text.trim().isNotEmpty
-          ? _tts.text.trim()
-          : null,
-      accepted: _type == 'fill_blank' ? _lines(_accepted) : const [],
-      tokens: const {'word_order', 'image_word'}.contains(_type)
-          ? _lines(_tokens)
-          : const [],
-      orderAnswer: const {'word_order', 'image_word'}.contains(_type)
-          ? _lines(_order)
-          : const [],
-      pairs:
-          const {
-            'matching',
-            'audio_match',
-            'word_match',
-            'super_match',
-          }.contains(_type)
-          ? _pairLines()
-          : const [],
-      hint: _type == 'fill_blank' ? _hint.text.trim() : '',
-      icons: _type == 'icon_choice' ? _lines(_icons) : const [],
-      imageAsset: _imageAsset,
-      missingWords: const {'missing_word', 'listening_spelling'}.contains(_type)
-          ? _lines(_missingWords)
-          : const [],
-    );
+    final Exercise ex;
+    if (_type == 'contextual_comprehension') {
+      final items = <ExerciseItem>[
+        for (var i = 0; i < answers.length; i++)
+          ExerciseItem(
+            id: i < widget.exercise.interaction.items.length
+                ? widget.exercise.interaction.items[i].id
+                : 'item_$i',
+            content: [PromptElement(type: 'text', text: answers[i])],
+          ),
+      ];
+      ex = Exercise.v2(
+        id: widget.exercise.id,
+        editorTemplate: _type,
+        promptElements: [
+          if (_contextMode != 'audio' && _context.text.trim().isNotEmpty)
+            PromptElement(
+              role: 'context',
+              type: 'text',
+              text: _context.text.trim(),
+            ),
+          if (_contextMode != 'text' && _tts.text.trim().isNotEmpty)
+            PromptElement(
+              role: 'context',
+              type: 'audio',
+              text: _tts.text.trim(),
+            ),
+          if (_imageAsset.isNotEmpty)
+            PromptElement(role: 'context', type: 'image', asset: _imageAsset),
+          ..._dialogueTurns(),
+          PromptElement(
+            role: 'question',
+            type: 'text',
+            text: _question.text.trim(),
+          ),
+        ],
+        interaction: ExerciseInteraction(kind: 'select', items: items),
+        evaluation: ExerciseEvaluation(
+          kind: 'selected_items',
+          correctItemIds: correct == null ? const [] : [items[correct].id],
+        ),
+        hint: '',
+      );
+    } else {
+      ex = Exercise(
+        id: widget.exercise.id,
+        type: _type,
+        prompt:
+            const {
+              'flashcard',
+              'word_order',
+              'build_translation',
+              'type_translation',
+              'image_word',
+              'matching',
+              'audio_match',
+              'word_match',
+              'super_match',
+              'reading_comprehension',
+              'choice',
+              'missing_word',
+              'listening_spelling',
+              'dialogue_response',
+            }.contains(_type)
+            ? _prompt.text.trim()
+            : '',
+        question:
+            const {
+              'flashcard',
+              'fill_blank',
+              'icon_choice',
+              'listening_choice',
+              'listening_comprehension',
+              'reading_comprehension',
+              'choice',
+              'gap_choice',
+              'dialogue_response',
+            }.contains(_type)
+            ? _question.text.trim()
+            : '',
+        answers: answers,
+        correct: correct,
+        tts:
+            const {
+                  'flashcard',
+                  'fill_blank',
+                  'listening_choice',
+                  'listening_comprehension',
+                  'missing_word',
+                  'listening_spelling',
+                }.contains(_type) &&
+                _tts.text.trim().isNotEmpty
+            ? _tts.text.trim()
+            : null,
+        accepted: _type == 'listening_spelling'
+            ? _lines(_missingWords)
+            : const {'fill_blank', 'type_translation'}.contains(_type)
+            ? _lines(_accepted)
+            : const [],
+        tokens:
+            const {
+              'word_order',
+              'image_word',
+              'build_translation',
+            }.contains(_type)
+            ? _lines(_tokens)
+            : const [],
+        orderAnswer:
+            const {
+              'word_order',
+              'image_word',
+              'build_translation',
+            }.contains(_type)
+            ? _lines(_order)
+            : const [],
+        pairs:
+            const {
+              'matching',
+              'audio_match',
+              'word_match',
+              'super_match',
+            }.contains(_type)
+            ? _pairLines()
+            : const [],
+        hint: const {'fill_blank', 'type_translation'}.contains(_type)
+            ? _hint.text.trim()
+            : '',
+        icons: _type == 'icon_choice' ? _lines(_icons) : const [],
+        imageAsset: _imageAsset,
+        missingWords:
+            const {'missing_word', 'listening_spelling'}.contains(_type)
+            ? _lines(_missingWords)
+            : const [],
+      );
+    }
     final issues = CourseAuditService().auditExercise(ex);
     final errors = issues
             .where((i) => i.severity == AuditSeverity.error)
@@ -3895,11 +4244,41 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
         warnings = issues
             .where((i) => i.severity == AuditSeverity.warning)
             .length;
-    if (errors > 0 || warnings > 0) {
+    if (errors > 0) {
+      await showDialog<void>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: Text('Exercise audit: $errors errors'),
+          content: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                for (final issue in issues.where(
+                  (issue) => issue.severity == AuditSeverity.error,
+                ))
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 6),
+                    child: Text('${issue.code}: ${issue.message}'),
+                  ),
+              ],
+            ),
+          ),
+          actions: [
+            FilledButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Keep editing'),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
+    if (warnings > 0) {
       final use = await showDialog<bool>(
         context: context,
         builder: (ctx) => AlertDialog(
-          title: Text('Exercise audit: $errors errors · $warnings warnings'),
+          title: Text('Exercise audit: $warnings warnings'),
           content: SingleChildScrollView(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -3943,19 +4322,16 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 28),
       children: [
         if (widget.isNew)
-          DropdownButtonFormField<String>(
-            initialValue: _type,
-            decoration: const InputDecoration(
-              border: OutlineInputBorder(),
-              labelText: 'Exercise type',
+          Card(
+            key: const Key('exercise-preset-selector'),
+            child: ListTile(
+              title: Text(labelForType(_type)),
+              subtitle: Text(
+                '${ExercisePresetRegistry.byId(_type)!.category.label} · ${ExercisePresetRegistry.byId(_type)!.description}',
+              ),
+              trailing: const Icon(Icons.unfold_more),
+              onTap: _choosePreset,
             ),
-            items: _types
-                .map(
-                  (t) =>
-                      DropdownMenuItem(value: t, child: Text(labelForType(t))),
-                )
-                .toList(),
-            onChanged: (v) => setState(() => _type = v ?? _type),
           )
         else
           ListTile(
@@ -3964,6 +4340,16 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
             subtitle: Text(labelForType(_type)),
             trailing: const Icon(Icons.lock_outline),
           ),
+        Align(
+          alignment: Alignment.centerLeft,
+          child: TextButton.icon(
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const ExerciseHelpScreen()),
+            ),
+            icon: const Icon(Icons.help_outline),
+            label: const Text('Exercise Help'),
+          ),
+        ),
         const SizedBox(height: 12),
         ..._specificFields(),
         const SizedBox(height: 12),

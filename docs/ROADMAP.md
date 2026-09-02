@@ -450,6 +450,19 @@ Avoid mandatory servers, artificial purchase economies, lives, or monetization-d
 
 ---
 
+# 2.0.24+224
+
+## Exercise model, answer engine and authoring navigation
+
+- [x] Inventory and retain all 17 build-223 exercise types, add three focused presets, and map the final 20 presets to Select, Input, Arrange, Match and Presentation without changing Course Model v5.
+- [x] Add grouped searchable authoring presets, complete registry-backed Exercise Help, Type the translation and contextual comprehension with text/audio modes and structured dialogue.
+- [x] Add deterministic accepted-answer expression expansion, bounded Type-translation typo tolerance and independently scored closest-correction selection.
+- [x] Formalize the normalized import boundary, engineering interoperability matrix, future Speech seam and ordered content-sequence approach for Story-like material without production external importers.
+- [x] Move the Course Editor Lesson list and unchanged authoritative Lock control to one dedicated management page while preserving draft state, operations and stable IDs.
+- [x] Preserve Review, Duel, XP, Round completion, learner identity, progression, IDDQD, Flag Game and all other out-of-scope behavior.
+
+---
+
 # 2.0.23+223
 
 ## Lesson normalization, Sections and theme icons

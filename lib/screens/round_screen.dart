@@ -15,6 +15,7 @@ import '../services/sound_effect_service.dart';
 import '../services/recorded_audio_service.dart';
 import '../services/exercise_copy_service.dart';
 import '../services/crash_log_service.dart';
+import '../services/answer_engine.dart';
 import 'guidebook_screen.dart';
 
 class RoundScreen extends StatefulWidget {
@@ -76,6 +77,7 @@ class _RoundScreenState extends State<RoundScreen> {
   final _sounds = SoundEffectService();
   final _recordedAudio = RecordedAudioService();
   final _roundPlayability = RoundPlayabilityService();
+  final _answerEngine = const AnswerEngine();
   final _random = Random();
 
   List<int> _queue = [];
@@ -93,6 +95,7 @@ class _RoundScreenState extends State<RoundScreen> {
   bool _answered = false;
   bool _lastAnswerCorrect = false;
   String _feedback = '';
+  String _displayedCorrection = '';
   int? _selected;
   final TextEditingController _textController = TextEditingController();
   final List<String> _builtOrder = [];
@@ -141,6 +144,7 @@ class _RoundScreenState extends State<RoundScreen> {
     return ex.type == 'audio_match' ||
         ex.type == 'listening_choice' ||
         ex.type == 'listening_comprehension' ||
+        (ex.type == 'contextual_comprehension' && ex.contextAudio.isNotEmpty) ||
         text.isNotEmpty;
   }
 
@@ -199,7 +203,8 @@ class _RoundScreenState extends State<RoundScreen> {
             first.type == 'listening_choice' ||
             first.type == 'listening_comprehension' ||
             first.type == 'reading_comprehension' ||
-            first.type == 'dialogue_response';
+            first.type == 'dialogue_response' ||
+            first.type == 'contextual_comprehension';
         if (needsChoices &&
             first.answers.isNotEmpty &&
             _choiceOptions.isEmpty) {
@@ -247,6 +252,7 @@ class _RoundScreenState extends State<RoundScreen> {
     _answered = false;
     _lastAnswerCorrect = false;
     _feedback = '';
+    _displayedCorrection = '';
     _selected = null;
     _textController.clear();
     _builtOrder.clear();
@@ -299,6 +305,7 @@ class _RoundScreenState extends State<RoundScreen> {
       final isListening =
           ex.type == 'listening_choice' ||
           ex.type == 'listening_comprehension' ||
+          ex.type == 'contextual_comprehension' ||
           ex.type == 'audio_match' ||
           ex.type == 'missing_word' ||
           ex.type == 'listening_spelling';
@@ -404,6 +411,7 @@ class _RoundScreenState extends State<RoundScreen> {
       case 'listening_comprehension':
       case 'reading_comprehension':
       case 'dialogue_response':
+      case 'contextual_comprehension':
       case 'icon_choice':
         if (ex.correct != null &&
             ex.correct! >= 0 &&
@@ -417,14 +425,18 @@ class _RoundScreenState extends State<RoundScreen> {
         if (ex.missingWords.isNotEmpty) return ex.missingWords.join(' / ');
         break;
       case 'listening_spelling':
+        if (_displayedCorrection.isNotEmpty) return _displayedCorrection;
         if (ex.accepted.isNotEmpty) return ex.accepted.first;
         if ((ex.tts ?? '').trim().isNotEmpty) return ex.tts!.trim();
         break;
       case 'fill_blank':
+      case 'type_translation':
+        if (_displayedCorrection.isNotEmpty) return _displayedCorrection;
         if (ex.tts != null && ex.tts!.trim().isNotEmpty) return ex.tts!;
         if (ex.accepted.isNotEmpty) return ex.accepted.first;
         break;
       case 'word_order':
+      case 'build_translation':
         if (ex.orderAnswer.isNotEmpty) return ex.orderAnswer.join(' ');
         break;
       case 'image_word':
@@ -565,63 +577,8 @@ class _RoundScreenState extends State<RoundScreen> {
     _mark(_choiceOptions[displayedIndex].correct);
   }
 
-  String _normalize(String value, {bool stripDiacritics = false}) {
-    var s = value.toLowerCase().replaceAll('’', "'");
-    // Preserve apostrophes because they can distinguish correct spelling
-    // (for example un'altra vs un altra). Ignore ordinary punctuation and
-    // redundant whitespace without deleting meaningful word boundaries.
-    s = s.replaceAll(RegExp(r'[.!?,;:\"“”()\[\]{}]'), ' ');
-    s = s.replaceAll(RegExp(r'\s+'), ' ').trim();
-    if (!stripDiacritics) return s;
-    const accents = {
-      'à': 'a',
-      'á': 'a',
-      'â': 'a',
-      'ä': 'a',
-      'ã': 'a',
-      'å': 'a',
-      'è': 'e',
-      'é': 'e',
-      'ê': 'e',
-      'ë': 'e',
-      'ì': 'i',
-      'í': 'i',
-      'î': 'i',
-      'ï': 'i',
-      'ò': 'o',
-      'ó': 'o',
-      'ô': 'o',
-      'ö': 'o',
-      'õ': 'o',
-      'ù': 'u',
-      'ú': 'u',
-      'û': 'u',
-      'ü': 'u',
-      'ç': 'c',
-      'ñ': 'n',
-      'ý': 'y',
-      'ÿ': 'y',
-      'ß': 'ss',
-    };
-    accents.forEach((a, b) => s = s.replaceAll(a, b));
-    return s;
-  }
-
-  bool _hasDiacritic(String value) => RegExp(r'[À-ÖØ-öø-ÿ]').hasMatch(value);
-
-  bool _typedMatches(String typed, String expected) {
-    final a = _normalize(typed);
-    final b = _normalize(expected);
-    if (a == b) return true;
-    // A missing accent is tolerated for learners who do not have the target
-    // keyboard. If the learner typed a diacritic, however, it must be the
-    // correct one rather than a different accent.
-    if (!_hasDiacritic(typed)) {
-      return _normalize(typed, stripDiacritics: true) ==
-          _normalize(expected, stripDiacritics: true);
-    }
-    return false;
-  }
+  bool _typedMatches(String typed, String expected) =>
+      _answerEngine.accepts(typed, [expected], typoTolerance: false);
 
   void _submitFill() {
     if (_answered) return;
@@ -633,9 +590,29 @@ class _RoundScreenState extends State<RoundScreen> {
     // displayed phrase when the course provides it through TTS. This makes
     // answers such as "buonasera" valid for "Buona____" as well as "sera".
     final tts = _exercise.tts?.trim();
-    if (tts != null && tts.isNotEmpty) accepted.add(tts);
 
-    final correct = accepted.any((expected) => _typedMatches(typed, expected));
+    // TTS is a literal full-phrase compatibility answer, not an authored
+    // answer expression. Keep it outside expression parsing so punctuation
+    // such as parentheses cannot be interpreted as author syntax.
+    final correct =
+        _answerEngine.accepts(
+          typed,
+          accepted,
+          normalization: _exercise.evaluation.normalization,
+          typoTolerance: _exercise.type == 'type_translation',
+        ) ||
+        (tts != null && tts.isNotEmpty && _typedMatches(typed, tts));
+    if (!correct) {
+      if (accepted.isNotEmpty) {
+        _displayedCorrection = _answerEngine.bestCorrection(
+          typed,
+          accepted,
+          normalization: _exercise.evaluation.normalization,
+        );
+      } else if (tts != null && tts.isNotEmpty) {
+        _displayedCorrection = tts;
+      }
+    }
     _mark(correct);
   }
 
@@ -821,6 +798,69 @@ class _RoundScreenState extends State<RoundScreen> {
           ),
         );
       }),
+    );
+  }
+
+  Widget _contextualComprehensionExercise(Exercise ex) {
+    final hasAudio = ex.contextAudio.trim().isNotEmpty;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (hasAudio) ...[
+          FilledButton.tonalIcon(
+            onPressed: _answered ? null : () => _speakText(ex.contextAudio),
+            icon: const Icon(Icons.volume_up_outlined),
+            label: const Text('Play context audio'),
+          ),
+          const SizedBox(height: 14),
+        ],
+        if (ex.contextText.trim().isNotEmpty) ...[
+          Container(
+            key: const Key('contextual-comprehension-text'),
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.58),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Text(ex.contextText),
+          ),
+          const SizedBox(height: 12),
+        ],
+        if (ex.dialogueTurns.isNotEmpty) ...[
+          Container(
+            key: const Key('contextual-comprehension-dialogue'),
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.58),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                for (final turn in ex.dialogueTurns)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 6),
+                    child: Text.rich(
+                      TextSpan(
+                        children: [
+                          TextSpan(
+                            text: '${turn.speaker}: ',
+                            style: const TextStyle(fontWeight: FontWeight.w800),
+                          ),
+                          TextSpan(text: turn.text),
+                        ],
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+        ],
+        Text(ex.question, style: Theme.of(context).textTheme.headlineSmall),
+        const SizedBox(height: 16),
+        _choiceExercise(ex),
+      ],
     );
   }
 
@@ -1495,13 +1535,17 @@ class _RoundScreenState extends State<RoundScreen> {
             _choiceExercise(ex),
           ],
         );
+      case 'contextual_comprehension':
+        return _contextualComprehensionExercise(ex);
       case 'icon_choice':
         return _iconChoiceExercise(ex);
       case 'flashcard':
         return _flashcardExercise(ex);
       case 'fill_blank':
+      case 'type_translation':
         return _fillBlankExercise(ex);
       case 'word_order':
+      case 'build_translation':
         return _wordOrderExercise(ex);
       case 'image_word':
         return _imageWordExercise(ex);
@@ -1534,9 +1578,7 @@ class _RoundScreenState extends State<RoundScreen> {
         appBar: AppBar(
           backgroundColor: background,
           title: Text(
-            widget.previewMode
-                ? 'PREVIEW · $_roundTitle'
-                : _roundTitle,
+            widget.previewMode ? 'PREVIEW · $_roundTitle' : _roundTitle,
           ),
         ),
         body: SafeArea(
@@ -1587,9 +1629,7 @@ class _RoundScreenState extends State<RoundScreen> {
         appBar: AppBar(
           backgroundColor: background,
           title: Text(
-            widget.previewMode
-                ? 'PREVIEW · $_roundTitle'
-                : _roundTitle,
+            widget.previewMode ? 'PREVIEW · $_roundTitle' : _roundTitle,
           ),
         ),
         body: const Center(child: CircularProgressIndicator()),
@@ -1601,9 +1641,7 @@ class _RoundScreenState extends State<RoundScreen> {
         appBar: AppBar(
           backgroundColor: background,
           title: Text(
-            widget.previewMode
-                ? 'PREVIEW · $_roundTitle'
-                : _roundTitle,
+            widget.previewMode ? 'PREVIEW · $_roundTitle' : _roundTitle,
           ),
         ),
         body: SafeArea(
@@ -1641,11 +1679,7 @@ class _RoundScreenState extends State<RoundScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(
-              _reviewPhase
-                  ? '$_roundTitle · Review'
-                  : _roundTitle,
-            ),
+            Text(_reviewPhase ? '$_roundTitle · Review' : _roundTitle),
             Text(
               '${widget.course.targetLanguage} · Lesson ${widget.course.lessons.indexWhere((lesson) => lesson.lessonId == widget.lesson.lessonId) + 1} · ${widget.lesson.title}',
               style: Theme.of(context).textTheme.labelSmall,
@@ -1656,7 +1690,8 @@ class _RoundScreenState extends State<RoundScreen> {
           if (ex.tts != null &&
               ex.tts!.isNotEmpty &&
               ex.type != 'listening_choice' &&
-              ex.type != 'listening_comprehension')
+              ex.type != 'listening_comprehension' &&
+              ex.type != 'contextual_comprehension')
             IconButton(
               tooltip: 'Play audio',
               icon: const Icon(Icons.volume_up_outlined),
@@ -1700,6 +1735,7 @@ class _RoundScreenState extends State<RoundScreen> {
               ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
             ),
             if (ex.type != 'reading_comprehension' &&
+                ex.type != 'contextual_comprehension' &&
                 ex.type != 'flashcard' &&
                 ex.type != 'missing_word' &&
                 ex.type != 'image_word' &&
