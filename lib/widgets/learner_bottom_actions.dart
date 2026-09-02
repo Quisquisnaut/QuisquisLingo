@@ -58,11 +58,16 @@ class _LearnerBottomActionsState extends State<LearnerBottomActions> {
     var themeMode = LearnerThemeMode.defaultMode;
     var flagBackgroundMode = LearnerFlagBackgroundMode.small;
     try {
-      final active = await _profiles.getActiveProfile();
-      final cleanName = active?.trim() ?? '';
+      final active = await _profiles.getActiveProfileRecord();
+      final fallbackName = active == null
+          ? await _profiles.getActiveProfile()
+          : null;
+      final cleanName = (active?.displayName ?? fallbackName)?.trim() ?? '';
       if (cleanName.isNotEmpty) {
-        learnerName = active;
-        appearance = await _profiles.getAvatarAppearanceForProfile(active!);
+        learnerName = active?.displayName ?? fallbackName;
+        appearance = await _profiles.getAvatarAppearanceForProfile(
+          active?.learnerProfileId ?? cleanName,
+        );
         themeMode = await _profiles.getThemeMode();
         flagBackgroundMode = await _profiles.getFlagBackgroundMode();
       }

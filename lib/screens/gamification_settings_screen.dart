@@ -4,6 +4,7 @@ import '../services/course_service.dart';
 import '../services/profile_service.dart';
 import '../services/progress_service.dart';
 import '../services/settings_service.dart';
+import '../widgets/learner_avatar.dart';
 
 class GamificationSettingsScreen extends StatefulWidget {
   const GamificationSettingsScreen({super.key});
@@ -25,7 +26,7 @@ class _GamificationSettingsScreenState extends State<GamificationSettingsScreen>
   Map<String, int> _lastWeekByCourse = const {};
   List<LocalLeaderboardEntry> _leaderboard = const [];
   bool _participates = true;
-  String? _activeLearner;
+  String? _activeLearnerId;
   Map<String, String> _courseNames = const {};
 
   @override
@@ -40,7 +41,7 @@ class _GamificationSettingsScreenState extends State<GamificationSettingsScreen>
     final byCourse = await _progress.getLastWeekXpByCourse();
     final leaderboard = await _progress.getLastWeekLocalLeaderboard();
     final participates = await _progress.isLocalLeaderboardParticipationEnabled();
-    final active = await _profiles.getActiveProfile();
+    final activeId = await _profiles.getActiveProfileId();
     final names = <String, String>{};
 
     for (final code in CourseService.courseAssets.keys) {
@@ -63,7 +64,7 @@ class _GamificationSettingsScreenState extends State<GamificationSettingsScreen>
       _lastWeekByCourse = byCourse;
       _leaderboard = leaderboard;
       _participates = participates;
-      _activeLearner = active;
+      _activeLearnerId = activeId;
       _courseNames = names;
       _loading = false;
     });
@@ -182,14 +183,62 @@ class _GamificationSettingsScreenState extends State<GamificationSettingsScreen>
                         else
                           ...List.generate(_leaderboard.length, (index) {
                             final entry = _leaderboard[index];
-                            final mine = entry.learnerName == _activeLearner;
-                            return ListTile(
-                              dense: true,
-                              contentPadding: EdgeInsets.zero,
-                              leading: CircleAvatar(child: Text('${index + 1}')),
-                              title: Text(entry.learnerName, style: TextStyle(fontWeight: mine ? FontWeight.bold : FontWeight.normal)),
-                              trailing: Text('${entry.xp} XP', style: TextStyle(fontWeight: mine ? FontWeight.bold : FontWeight.normal)),
-                              onTap: mine ? _showLastWeekBreakdown : null,
+                            final mine =
+                                entry.learnerProfileId == _activeLearnerId;
+                            return FutureBuilder<ProfileAvatarAppearance?>(
+                              future: _profiles.getAvatarAppearanceForProfile(
+                                entry.learnerProfileId,
+                              ),
+                              builder: (context, snapshot) {
+                                final appearance = snapshot.data;
+                                return ListTile(
+                                  dense: true,
+                                  contentPadding: EdgeInsets.zero,
+                                  leading: SizedBox(
+                                    width: 42,
+                                    height: 48,
+                                    child: appearance == null
+                                        ? CircleAvatar(
+                                            child: Text('${index + 1}'),
+                                          )
+                                        : Stack(
+                                            alignment: Alignment.bottomRight,
+                                            children: [
+                                              LearnerAvatar(
+                                                skinTone: appearance.skinTone,
+                                                hairTone: appearance.hairTone,
+                                              ),
+                                              CircleAvatar(
+                                                radius: 9,
+                                                child: Text(
+                                                  '${index + 1}',
+                                                  style: const TextStyle(
+                                                    fontSize: 10,
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                  ),
+                                  title: Text(
+                                    entry.learnerName,
+                                    style: TextStyle(
+                                      fontWeight: mine
+                                          ? FontWeight.bold
+                                          : FontWeight.normal,
+                                    ),
+                                  ),
+                                  trailing: Text(
+                                    '${entry.xp} XP',
+                                    style: TextStyle(
+                                      fontWeight: mine
+                                          ? FontWeight.bold
+                                          : FontWeight.normal,
+                                    ),
+                                  ),
+                                  onTap: mine ? _showLastWeekBreakdown : null,
+                                );
+                              },
                             );
                           }),
                         const Divider(),

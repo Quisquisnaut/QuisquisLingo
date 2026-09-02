@@ -48,9 +48,9 @@ class SettingsService {
 
   Future<String?> getLastSelectedCourseCode() async {
     final profiles = ProfileService();
-    final active = await profiles.getActiveProfile();
-    if (active == null) return null;
-    final key = profiles.keyForProfile(active, _lastSelectedCourseKeyBase);
+    final activeId = await profiles.getActiveProfileId();
+    if (activeId == null) return null;
+    final key = profiles.keyForProfileId(activeId, _lastSelectedCourseKeyBase);
     final value = (await SharedPreferences.getInstance())
         .getString(key)
         ?.trim();
@@ -61,9 +61,12 @@ class SettingsService {
     final normalized = courseCode.trim();
     final preferences = await SharedPreferences.getInstance();
     final profiles = ProfileService();
-    final active = await profiles.getActiveProfile();
-    if (active != null) {
-      final key = profiles.keyForProfile(active, _lastSelectedCourseKeyBase);
+    final activeId = await profiles.getActiveProfileId();
+    if (activeId != null) {
+      final key = profiles.keyForProfileId(
+        activeId,
+        _lastSelectedCourseKeyBase,
+      );
       await preferences.setString(key, normalized);
     }
     final recent = (preferences.getStringList(_recentCourseRefsKey) ?? [])

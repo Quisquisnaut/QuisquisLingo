@@ -33,12 +33,22 @@ void main() {
 
   Future<Map<String, int>> currentWeeklyXpByCourse(String learner) async {
     final prefs = await SharedPreferences.getInstance();
+    final profile = (await ProfileService().getProfileRecords()).firstWhere(
+      (value) => value.displayName == learner,
+    );
     final raw = prefs.getString(
-      'learner_${Uri.encodeComponent(learner)}_week_xp_by_course',
+      ProfileService().keyForProfileId(
+        profile.learnerProfileId,
+        'week_xp_by_course',
+      ),
     );
     if (raw == null) return <String, int>{};
     return Map<String, int>.from(jsonDecode(raw) as Map);
   }
+
+  Future<String> activePrefix() async => ProfileService.prefixForProfileId(
+    (await ProfileService().getActiveProfileId())!,
+  );
 
   group('course-owned progress', () {
     test(
@@ -207,7 +217,7 @@ void main() {
         'round_b',
       });
       expect(prefs.getKeys().where((key) => key.contains('streak_')).toSet(), {
-        'learner_Tester_streak_IT',
+        '${await activePrefix()}streak_IT',
       });
       expect(
         prefs.getKeys().where(
@@ -245,7 +255,7 @@ void main() {
 
       expect(await service.getStreak(courseCode: 'IT'), 3);
       expect(await service.getDaysStudied(courseCode: 'IT'), 3);
-      expect(prefs.getStringList('learner_Tester_study_days_IT'), [
+      expect(prefs.getStringList('${await activePrefix()}study_days_IT'), [
         '2026-03-10',
         '2026-03-11',
         '2026-03-12',
@@ -470,12 +480,19 @@ void main() {
         '${value.month.toString().padLeft(2, '0')}-'
         '${value.day.toString().padLeft(2, '0')}';
 
+    const learnerId = '00000000-0000-4000-8000-000000000001';
+    final learnerPrefix = ProfileService.prefixForProfileId(learnerId);
     SharedPreferences.setMockInitialValues({
-      'learner_profiles': <String>['Tester'],
-      'active_learner': 'Tester',
-      'learner_Tester_week_xp_week': day(previousSunday),
-      'learner_Tester_week_xp': 55,
-      'learner_Tester_week_xp_by_course': jsonEncode({
+      ProfileService.profilesKey: <String>[
+        const LearnerProfile(
+          learnerProfileId: learnerId,
+          displayName: 'Tester',
+        ).encode(),
+      ],
+      ProfileService.activeProfileIdKey: learnerId,
+      '${learnerPrefix}week_xp_week': day(previousSunday),
+      '${learnerPrefix}week_xp': 55,
+      '${learnerPrefix}week_xp_by_course': jsonEncode({
         'course_a': 25,
         'course_b': 30,
       }),
@@ -707,13 +724,15 @@ void main() {
       clock.value = DateTime(2026, 4, 6, 8);
       await service.registerLearningActivity(courseCode: 'DE');
 
+      final learnerPrefix = await activePrefix();
+
       final activityKeys = prefs
           .getKeys()
           .where(
             (key) =>
-                key.startsWith('learner_Tester_streak_') ||
-                key.startsWith('learner_Tester_last_active_') ||
-                key.startsWith('learner_Tester_study_days_'),
+                key.startsWith('${learnerPrefix}streak_') ||
+                key.startsWith('${learnerPrefix}last_active_') ||
+                key.startsWith('${learnerPrefix}study_days_'),
           )
           .toSet();
       final activityBefore = <String, Object?>{
@@ -731,7 +750,7 @@ void main() {
       expect(await service.getDaysStudied(courseCode: 'IT'), 1);
       expect(await service.getStreak(courseCode: 'DE'), 1);
       expect(await service.getDaysStudied(courseCode: 'DE'), 1);
-      expect(prefs.getStringList('learner_Tester_study_days_all'), [
+      expect(prefs.getStringList('${learnerPrefix}study_days_all'), [
         '2026-04-05',
         '2026-04-06',
       ]);
@@ -748,13 +767,14 @@ void main() {
 
       await service.registerLearningActivity(courseCode: 'IT');
       await service.registerLearningActivity(courseCode: 'DE');
+      final learnerPrefix = await activePrefix();
       final activityKeys = prefs
           .getKeys()
           .where(
             (key) =>
-                key.startsWith('learner_Solo_streak_') ||
-                key.startsWith('learner_Solo_last_active_') ||
-                key.startsWith('learner_Solo_study_days_'),
+                key.startsWith('${learnerPrefix}streak_') ||
+                key.startsWith('${learnerPrefix}last_active_') ||
+                key.startsWith('${learnerPrefix}study_days_'),
           )
           .toSet();
       expect(activityKeys, hasLength(7));
@@ -771,38 +791,41 @@ void main() {
     },
   );
 
-  test(
-    'KNOWN CURRENT BEHAVIOR / RISK: A prefix operations export and delete A_B learner data',
-    () async {
-      final clock = _MutableClock(DateTime(2026, 5, 2, 8));
-      final profiles = ProfileService();
-      await profiles.addProfile('A');
-      final service = ProgressService(now: clock.call);
-      await service.registerLearningActivity(courseCode: 'IT');
-      await profiles.addProfile('A_B');
-      await service.registerLearningActivity(courseCode: 'DE');
-      final prefs = await SharedPreferences.getInstance();
-      expect(prefs.getInt('learner_A_B_streak_DE'), 1);
+  test('opaque profile IDs prevent A and A_B prefix collisions', () async {
+    final clock = _MutableClock(DateTime(2026, 5, 2, 8));
+    final profiles = ProfileService();
+    await profiles.addProfile('A');
+    final learnerAId = (await profiles.getActiveProfileId())!;
+    final service = ProgressService(now: clock.call);
+    await service.registerLearningActivity(courseCode: 'IT');
+    await profiles.addProfile('A_B');
+    final learnerBId = (await profiles.getActiveProfileId())!;
+    await service.registerLearningActivity(courseCode: 'DE');
+    final prefs = await SharedPreferences.getInstance();
+    final learnerBPrefix = ProfileService.prefixForProfileId(learnerBId);
+    expect(prefs.getInt('${learnerBPrefix}streak_DE'), 1);
 
-      await profiles.setActiveProfile('A');
-      final exported = await LearnerBackupService().exportActiveProfile();
-      final data = Map<String, dynamic>.from(exported['data'] as Map);
+    await profiles.setActiveProfile('A');
+    final exported = await LearnerBackupService().exportActiveProfile();
+    final data = Map<String, dynamic>.from(exported['data'] as Map);
 
-      expect(data['streak_IT'], 1);
-      expect(data['B_streak_DE'], 1);
-      expect(data['B_last_active_DE'], '2026-05-02T00:00:00.000');
-      expect(data['B_study_days_DE'], ['2026-05-02']);
+    expect(data['streak_IT'], 1);
+    expect(data.keys.where((key) => key.startsWith('B_')), isEmpty);
 
-      await profiles.deleteProfile('A');
+    await profiles.deleteProfileById(learnerAId);
 
-      expect(prefs.containsKey('learner_A_B_streak_DE'), isFalse);
-      expect(prefs.containsKey('learner_A_B_last_active_DE'), isFalse);
-      expect(prefs.containsKey('learner_A_B_study_days_DE'), isFalse);
-      final remainingLearner = ProgressService(now: clock.call);
-      expect(await remainingLearner.getStreak(courseCode: 'DE'), 0);
-      expect(await remainingLearner.getDaysStudied(courseCode: 'DE'), 0);
-    },
-  );
+    expect(prefs.getInt('${learnerBPrefix}streak_DE'), 1);
+    expect(
+      prefs.getString('${learnerBPrefix}last_active_DE'),
+      '2026-05-02T00:00:00.000',
+    );
+    expect(prefs.getStringList('${learnerBPrefix}study_days_DE'), [
+      '2026-05-02',
+    ]);
+    final remainingLearner = ProgressService(now: clock.call);
+    expect(await remainingLearner.getStreak(courseCode: 'DE'), 1);
+    expect(await remainingLearner.getDaysStudied(courseCode: 'DE'), 1);
+  });
 
   test(
     'v4 progress uses new keys without reading or rewriting legacy state',
@@ -810,12 +833,13 @@ void main() {
       final service = await progress(learner: 'Test Learner');
       const courseId = 'course/a';
       final prefs = await SharedPreferences.getInstance();
-      const prefix = 'learner_Test%20Learner_';
+      const legacyPrefix = 'learner_Test%20Learner_';
+      final prefix = await activePrefix();
       const suffix = '_course_course%2Fa';
-      await prefs.setStringList('${prefix}completed_rounds$suffix', [
+      await prefs.setStringList('${legacyPrefix}completed_rounds$suffix', [
         'legacy_round',
       ]);
-      await prefs.setStringList('${prefix}recent_rounds', [
+      await prefs.setStringList('${legacyPrefix}recent_rounds', [
         'course/a|legacy_round|2026-01-01T00:00:00.000|3',
       ]);
 
@@ -875,10 +899,10 @@ void main() {
       expect(reviewJson['errors'], 1);
       expect(DateTime.tryParse(reviewJson['completedAt'] as String), isNotNull);
 
-      expect(prefs.getStringList('${prefix}completed_rounds$suffix'), [
+      expect(prefs.getStringList('${legacyPrefix}completed_rounds$suffix'), [
         'legacy_round',
       ]);
-      expect(prefs.getStringList('${prefix}recent_rounds'), [
+      expect(prefs.getStringList('${legacyPrefix}recent_rounds'), [
         'course/a|legacy_round|2026-01-01T00:00:00.000|3',
       ]);
     },

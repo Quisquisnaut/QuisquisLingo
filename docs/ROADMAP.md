@@ -450,6 +450,20 @@ Avoid mandatory servers, artificial purchase economies, lives, or monetization-d
 
 ---
 
+# 2.0.22+222
+## Stable learner identity and Flag Game
+
+- [x] Make opaque generated learner IDs authoritative and allow duplicate display names without persistence collisions.
+- [x] Use an intentional clean cut from the former name-based registry and namespaces, with no migration or fallback.
+- [x] Version learner backups and provide preserve-ID, replace-existing and independent separate-copy flows.
+- [x] Add one independent licensed 266-entity world-flag manifest with 193 UN Members, all 249 ISO entities, an eight-item Shortlist and nine language-related community/regional flags.
+- [x] Keep all established course-flag rendering and identity semantics untouched.
+- [x] Add the five-rapid-tap Settings Flag Game with four cumulative pools, 12 questions, five options, sound feedback and responsive light/dark presentation.
+- [x] Derive four read-only reference browsers and four device-local Top 5 scorecards from stable dataset/mode identities.
+- [x] Keep Flag Game completely separate from XP, streak, Laurel, Review, Duel and course progress.
+
+---
+
 # 2.0.21+221
 ## Learner panel refinement and locked-Lesson preview
 

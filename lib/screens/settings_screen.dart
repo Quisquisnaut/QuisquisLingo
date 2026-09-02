@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import '../models/course_models.dart';
@@ -12,15 +14,20 @@ import 'user_data_settings_screen.dart';
 import 'info_screen.dart';
 import 'profile_screen.dart';
 import 'update_settings_screen.dart';
+import 'flag_game_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   final Course course;
   final Future<void> Function(BuildContext context) onManageLearners;
+  final SoundEffectService? soundEffectService;
+  final WidgetBuilder? flagGameBuilder;
 
   const SettingsScreen({
     super.key,
     required this.course,
     required this.onManageLearners,
+    this.soundEffectService,
+    this.flagGameBuilder,
   });
   @override State<SettingsScreen> createState() => _SettingsScreenState();
 }
@@ -29,7 +36,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
   String _versionLabel = 'QuisquisLingo';
   final _settings = SettingsService();
   final _logs = DiagnosticLogService();
-  final _sounds = SoundEffectService();
+  late final SoundEffectService _sounds;
+  late final bool _ownsSounds;
   bool _loading = true;
   bool _editorUnlocked = false;
   bool _iddqdMode = false;
@@ -37,11 +45,41 @@ class _SettingsScreenState extends State<SettingsScreen> {
   String? _diagnosticExportPath;
   String? _crashLogPath;
   int _versionTapCount = 0;
+  int _flagGameTapCount = 0;
+  Timer? _flagGameTapResetTimer;
 
   @override
   void initState() {
     super.initState();
+    _ownsSounds = widget.soundEffectService == null;
+    _sounds = widget.soundEffectService ?? SoundEffectService();
     _load();
+  }
+
+  @override
+  void dispose() {
+    _flagGameTapResetTimer?.cancel();
+    if (_ownsSounds) unawaited(_sounds.dispose());
+    super.dispose();
+  }
+
+  Future<void> _tapFlagGameTrigger() async {
+    _flagGameTapResetTimer?.cancel();
+    _flagGameTapCount++;
+    if (_flagGameTapCount < 5) {
+      _flagGameTapResetTimer = Timer(const Duration(seconds: 3), () {
+        _flagGameTapCount = 0;
+      });
+      return;
+    }
+    _flagGameTapCount = 0;
+    await _sounds.playSuspense();
+    if (!mounted) return;
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: widget.flagGameBuilder ?? (_) => const FlagGameScreen(),
+      ),
+    );
   }
 
   Future<void> _load() async {
@@ -133,7 +171,27 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Settings')),
+      appBar: AppBar(
+        title: GestureDetector(
+          key: const Key('settings-flag-game-trigger'),
+          behavior: HitTestBehavior.opaque,
+          onTap: _tapFlagGameTrigger,
+          child: const Padding(
+            padding: EdgeInsets.symmetric(vertical: 8),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text('Settings'),
+                SizedBox(width: 7),
+                Tooltip(
+                  message: 'Flag Game',
+                  child: Icon(Icons.outlined_flag, size: 18),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : ListView(

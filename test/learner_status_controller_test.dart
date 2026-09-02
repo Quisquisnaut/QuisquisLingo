@@ -497,10 +497,17 @@ void main() {
     'Sunday boundary delegates rollover to XpService while mounted',
     () async {
       final clock = _MutableClock(DateTime(2026, 8, 22, 23, 59));
+      const learnerId = '00000000-0000-4000-8000-000000000001';
+      final learnerPrefix = ProfileService.prefixForProfileId(learnerId);
       SharedPreferences.setMockInitialValues({
-        'learner_profiles': ['Tester'],
-        'active_learner': 'Tester',
-        'learner_Tester_last_selected_course_code': 'IT',
+        ProfileService.profilesKey: [
+          const LearnerProfile(
+            learnerProfileId: learnerId,
+            displayName: 'Tester',
+          ).encode(),
+        ],
+        ProfileService.activeProfileIdKey: learnerId,
+        '${learnerPrefix}last_selected_course_code': 'IT',
       });
       final xp = XpService(now: clock.call);
       await xp.addXp(25, courseCode: 'IT', courseId: 'course_it');
@@ -535,10 +542,17 @@ void main() {
     'controller recreation rereads persisted course/profile/XP/goal/streak',
     () async {
       final clock = _MutableClock(DateTime(2026, 8, 27, 12));
+      const learnerId = '00000000-0000-4000-8000-000000000002';
+      final learnerPrefix = ProfileService.prefixForProfileId(learnerId);
       SharedPreferences.setMockInitialValues({
-        'learner_profiles': ['Persisted'],
-        'active_learner': 'Persisted',
-        'learner_Persisted_last_selected_course_code': 'IT',
+        ProfileService.profilesKey: [
+          const LearnerProfile(
+            learnerProfileId: learnerId,
+            displayName: 'Persisted',
+          ).encode(),
+        ],
+        ProfileService.activeProfileIdKey: learnerId,
+        '${learnerPrefix}last_selected_course_code': 'IT',
         'weekly_xp_target': 2000,
       });
       final actualProgress = ProgressService(now: clock.call);

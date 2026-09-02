@@ -126,6 +126,7 @@ void main() {
   setUp(() async {
     resetLearnerStatusRouteObserver();
     SharedPreferences.setMockInitialValues({});
+    await ProfileService().addProfile('Tester');
     profiles = _Profiles();
     settings = _Settings();
     courses = _Courses()..course = _course();

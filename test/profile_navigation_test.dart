@@ -27,12 +27,16 @@ void main() {
       skinTone: 'light',
       hairTone: 'light',
     );
+    final learnerId = (await profiles.getActiveProfileId())!;
+    final learnerPrefix = ProfileService.prefixForProfileId(learnerId);
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt('learner_Stored%20Learner_xp_IT', 275);
-    await prefs.setStringList('learner_Stored%20Learner_completed_rounds_v4', [
+    await prefs.setInt('${learnerPrefix}xp_IT', 275);
+    await prefs.setStringList('${learnerPrefix}completed_rounds_v4', [
       'round-1',
     ]);
-    final beforeKeys = prefs.getKeys().where((key) => key != 'active_learner');
+    final beforeKeys = prefs.getKeys().where(
+      (key) => key != ProfileService.activeProfileIdKey,
+    );
     final beforeValues = {for (final key in beforeKeys) key: prefs.get(key)};
 
     await profiles.clearActiveProfile();
@@ -46,7 +50,7 @@ void main() {
 
     expect(await profiles.getActiveProfile(), isNull);
     expect(await profiles.getProfiles(), ['Stored Learner']);
-    expect(prefs.containsKey('active_learner'), isFalse);
+    expect(prefs.containsKey(ProfileService.activeProfileIdKey), isFalse);
     expect(prefs.getKeys(), beforeValues.keys.toSet());
     expect({
       for (final key in beforeValues.keys) key: prefs.get(key),
@@ -56,7 +60,7 @@ void main() {
     expect(await profiles.getActiveProfile(), 'Stored Learner');
     expect(await profiles.getSkinTone(), 'light');
     expect(await profiles.getHairTone(), 'light');
-    expect(prefs.getInt('learner_Stored%20Learner_xp_IT'), 275);
+    expect(prefs.getInt('${learnerPrefix}xp_IT'), 275);
   });
 
   test(
@@ -64,10 +68,12 @@ void main() {
     () async {
       final profiles = ProfileService();
       await profiles.addProfile('Learner A');
+      final learnerAId = (await profiles.getActiveProfileId())!;
       expect(await profiles.getThemeMode(), LearnerThemeMode.defaultMode);
       await profiles.setThemeMode(LearnerThemeMode.dark);
 
       await profiles.addProfile('Learner B');
+      final learnerBId = (await profiles.getActiveProfileId())!;
       await profiles.setThemeMode(LearnerThemeMode.light);
       expect(await profiles.getThemeMode(), LearnerThemeMode.light);
 
@@ -80,8 +86,14 @@ void main() {
 
       final prefs = await SharedPreferences.getInstance();
       expect(prefs.containsKey('learner_default_theme_mode'), isFalse);
-      expect(prefs.getString('learner_Learner%20A_theme_mode'), 'dark');
-      expect(prefs.getString('learner_Learner%20B_theme_mode'), 'light');
+      expect(
+        prefs.getString(profiles.keyForProfileId(learnerAId, 'theme_mode')),
+        'dark',
+      );
+      expect(
+        prefs.getString(profiles.keyForProfileId(learnerBId, 'theme_mode')),
+        'light',
+      );
 
       final restartedProfiles = ProfileService();
       await restartedProfiles.setActiveProfile('Learner A');
@@ -96,6 +108,7 @@ void main() {
     () async {
       final profiles = ProfileService();
       await profiles.addProfile('Learner A');
+      final learnerAId = (await profiles.getActiveProfileId())!;
       expect(
         await profiles.getFlagBackgroundMode(),
         LearnerFlagBackgroundMode.small,
@@ -103,6 +116,7 @@ void main() {
       await profiles.setFlagBackgroundMode(LearnerFlagBackgroundMode.off);
 
       await profiles.addProfile('Learner B');
+      final learnerBId = (await profiles.getActiveProfileId())!;
       await profiles.setFlagBackgroundMode(LearnerFlagBackgroundMode.extended);
       expect(
         await profiles.getFlagBackgroundMode(),
@@ -127,11 +141,15 @@ void main() {
         isFalse,
       );
       expect(
-        prefs.getString('learner_Learner%20A_flag_background_mode'),
+        prefs.getString(
+          profiles.keyForProfileId(learnerAId, 'flag_background_mode'),
+        ),
         'off',
       );
       expect(
-        prefs.getString('learner_Learner%20B_flag_background_mode'),
+        prefs.getString(
+          profiles.keyForProfileId(learnerBId, 'flag_background_mode'),
+        ),
         'extended',
       );
 
@@ -601,8 +619,11 @@ void main() {
     (tester) async {
       final profiles = ProfileService();
       await profiles.addProfile('Logout Learner');
+      final learnerPrefix = ProfileService.prefixForProfileId(
+        (await profiles.getActiveProfileId())!,
+      );
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setInt('learner_Logout%20Learner_xp_IT', 90);
+      await prefs.setInt('${learnerPrefix}xp_IT', 90);
 
       await tester.pumpWidget(
         MaterialApp(
@@ -657,7 +678,7 @@ void main() {
       expect(find.text('Open Profile'), findsOneWidget);
       expect(await profiles.getActiveProfile(), isNull);
       expect(await profiles.getProfiles(), ['Logout Learner']);
-      expect(prefs.getInt('learner_Logout%20Learner_xp_IT'), 90);
+      expect(prefs.getInt('${learnerPrefix}xp_IT'), 90);
     },
   );
 

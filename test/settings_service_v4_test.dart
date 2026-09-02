@@ -40,8 +40,10 @@ void main() {
       final settings = SettingsService();
 
       await profiles.addProfile('Learner A');
+      final learnerAId = (await profiles.getActiveProfileId())!;
       await settings.setLastSelectedCourseCode('IT');
       await profiles.addProfile('Learner B');
+      final learnerBId = (await profiles.getActiveProfileId())!;
       await settings.setLastSelectedCourseCode('DE');
 
       expect(await settings.getLastSelectedCourseCode(), 'DE');
@@ -64,11 +66,15 @@ void main() {
       final prefs = await SharedPreferences.getInstance();
       expect(prefs.getString('last_selected_course_code'), isNull);
       expect(
-        prefs.getString('learner_Learner%20A_last_selected_course_code'),
+        prefs.getString(
+          profiles.keyForProfileId(learnerAId, 'last_selected_course_code'),
+        ),
         'ES',
       );
       expect(
-        prefs.getString('learner_Learner%20B_last_selected_course_code'),
+        prefs.getString(
+          profiles.keyForProfileId(learnerBId, 'last_selected_course_code'),
+        ),
         'DE',
       );
     },

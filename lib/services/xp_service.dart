@@ -6,10 +6,15 @@ import 'profile_service.dart';
 import 'learner_status_events.dart';
 
 class LocalLeaderboardEntry {
+  final String learnerProfileId;
   final String learnerName;
   final int xp;
 
-  const LocalLeaderboardEntry({required this.learnerName, required this.xp});
+  const LocalLeaderboardEntry({
+    required this.learnerProfileId,
+    required this.learnerName,
+    required this.xp,
+  });
 }
 
 /// Stores learner XP totals and weekly XP accounting.
@@ -88,9 +93,9 @@ class XpService {
 
   Future<void> _ensureWeeklyRolloverForProfile(
     SharedPreferences p,
-    String profile,
+    String learnerProfileId,
   ) async {
-    final prefix = 'learner_${Uri.encodeComponent(profile)}_';
+    final prefix = ProfileService.prefixForProfileId(learnerProfileId);
     final now = _now();
     final currentWeek = _weekKey(now);
     final previousWeek = _weekKey(now.subtract(const Duration(days: 7)));
@@ -144,18 +149,30 @@ class XpService {
   Future<List<LocalLeaderboardEntry>> getLastWeekLocalLeaderboard() async {
     await _ensureWeeklyRollover();
     final p = await _prefs;
-    final profiles = await _profiles.getProfiles();
+    final profiles = await _profiles.getProfileRecords();
     final entries = <LocalLeaderboardEntry>[];
     for (final profile in profiles) {
-      await _ensureWeeklyRolloverForProfile(p, profile);
-      final prefix = 'learner_${Uri.encodeComponent(profile)}_';
+      await _ensureWeeklyRolloverForProfile(p, profile.learnerProfileId);
+      final prefix = ProfileService.prefixForProfileId(
+        profile.learnerProfileId,
+      );
       final xp = p.getInt('${prefix}last_week_xp') ?? 0;
-      entries.add(LocalLeaderboardEntry(learnerName: profile, xp: xp));
+      entries.add(
+        LocalLeaderboardEntry(
+          learnerProfileId: profile.learnerProfileId,
+          learnerName: profile.displayName,
+          xp: xp,
+        ),
+      );
     }
     entries.sort((a, b) {
       final byXp = b.xp.compareTo(a.xp);
       if (byXp != 0) return byXp;
-      return a.learnerName.toLowerCase().compareTo(b.learnerName.toLowerCase());
+      final byName = a.learnerName.toLowerCase().compareTo(
+        b.learnerName.toLowerCase(),
+      );
+      if (byName != 0) return byName;
+      return a.learnerProfileId.compareTo(b.learnerProfileId);
     });
     return entries;
   }

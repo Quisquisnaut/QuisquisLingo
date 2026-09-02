@@ -275,7 +275,9 @@ void main() {
       expect(recent.single.roundId, fixture.round.id);
       expect(recent.single.errors, 0);
 
-      const prefix = 'learner_Round%20Characterization%20Learner_';
+      final prefix = ProfileService.prefixForProfileId(
+        (await ProfileService().getActiveProfileId())!,
+      );
       expect(prefs.getInt('${prefix}xp_IT'), 5);
       expect(prefs.getInt('${prefix}week_xp'), 5);
       expect(jsonDecode(prefs.getString('${prefix}week_xp_by_course')!), {

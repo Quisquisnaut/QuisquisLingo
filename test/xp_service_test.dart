@@ -23,8 +23,14 @@ void main() {
 
   Future<Map<String, int>> currentBreakdown(String learner) async {
     final prefs = await SharedPreferences.getInstance();
+    final profile = (await ProfileService().getProfileRecords()).firstWhere(
+      (value) => value.displayName == learner,
+    );
     final raw = prefs.getString(
-      'learner_${Uri.encodeComponent(learner)}_week_xp_by_course',
+      ProfileService().keyForProfileId(
+        profile.learnerProfileId,
+        'week_xp_by_course',
+      ),
     );
     if (raw == null) return <String, int>{};
     return Map<String, int>.from(jsonDecode(raw) as Map);
@@ -58,14 +64,17 @@ void main() {
   test('addXp rejects negatives and preserves the 203 integer cap', () async {
     final clock = _MutableClock(DateTime(2026, 8, 24, 12));
     await addProfile('Tester');
+    final learnerPrefix = ProfileService.prefixForProfileId(
+      (await ProfileService().getActiveProfileId())!,
+    );
     final service = XpService(now: clock.call);
     final prefs = await SharedPreferences.getInstance();
 
     await service.getWeeklyXp();
-    await prefs.setInt('learner_Tester_xp_IT', 2147483643);
-    await prefs.setInt('learner_Tester_week_xp', 2147483642);
+    await prefs.setInt('${learnerPrefix}xp_IT', 2147483643);
+    await prefs.setInt('${learnerPrefix}week_xp', 2147483642);
     await prefs.setString(
-      'learner_Tester_week_xp_by_course',
+      '${learnerPrefix}week_xp_by_course',
       jsonEncode({'course_a': 2147483641}),
     );
 

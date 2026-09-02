@@ -63,12 +63,12 @@ void main() {
     PackageInfo.setMockInitialValues(
       appName: 'QuisquisLingo',
       packageName: 'com.quisquislingo.app',
-      version: '2.0.21',
-      buildNumber: '221',
+      version: '2.0.22',
+      buildNumber: '222',
       buildSignature: '',
     );
     SharedPreferences.setMockInitialValues({
-      'one_time_notice_seen_welcome_2.0.21': true,
+      'one_time_notice_seen_welcome_2.0.22': true,
       'sound_effects_enabled': false,
     });
     await ProfileService().addProfile('Navigation Learner');
@@ -1878,7 +1878,7 @@ void main() {
       final phrase = dialogTexts.singleWhere(
         (text) =>
             text.data != 'Welcome to QuisquisLingo' &&
-            text.data != 'Version 2.0.21' &&
+            text.data != 'Version 2.0.22' &&
             text.data != 'Continue',
       );
       final welcomeDialog = tester.widget<AlertDialog>(
@@ -1891,7 +1891,7 @@ void main() {
         const Color(0xFF0756DF),
       );
       expect(
-        tester.widget<Text>(find.text('Version 2.0.21')).style?.color,
+        tester.widget<Text>(find.text('Version 2.0.22')).style?.color,
         const Color(0xFF0756DF),
       );
       expect(phrase.style?.color, const Color(0xFF0756DF));
@@ -1909,7 +1909,7 @@ void main() {
       late bool welcomeSeen;
       await tester.runAsync(() async {
         welcomeSeen = await SettingsService().hasSeenOneTimeNotice(
-          'welcome_2.0.21',
+          'welcome_2.0.22',
         );
       });
       expect(welcomeSeen, isTrue);
@@ -1917,7 +1917,7 @@ void main() {
       final alphaDialog = tester.widget<AlertDialog>(find.byType(AlertDialog));
       expect(alphaDialog.backgroundColor, isNull);
       expect(alphaDialog.surfaceTintColor, isNull);
-      expect(find.textContaining('Expiry date: 2026-10-01.'), findsOneWidget);
+      expect(find.textContaining('Expiry date: 2026-10-02.'), findsOneWidget);
       expect(find.widgetWithText(FilledButton, 'OK'), findsOneWidget);
       expect(
         tester
@@ -1974,13 +1974,20 @@ void main() {
       await _loadCourse(tester, 'DE');
       final profiles = ProfileService();
       final prefs = await SharedPreferences.getInstance();
+      final navigationLearnerId = (await profiles.getActiveProfileId())!;
       await prefs.setString(
-        'learner_Navigation%20Learner_last_selected_course_code',
+        profiles.keyForProfileId(
+          navigationLearnerId,
+          'last_selected_course_code',
+        ),
         'IT',
       );
-      await profiles.addProfile('German Learner');
+      final germanLearner = await profiles.createProfile('German Learner');
       await prefs.setString(
-        'learner_German%20Learner_last_selected_course_code',
+        profiles.keyForProfileId(
+          germanLearner.learnerProfileId,
+          'last_selected_course_code',
+        ),
         'DE',
       );
       await profiles.setActiveProfile('Navigation Learner');

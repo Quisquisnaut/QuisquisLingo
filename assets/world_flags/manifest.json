@@ -1,0 +1,4473 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-09-02",
+  "sources": {
+    "isoAuthority": "https://www.iso.org/obp/ui/#iso:code:3166",
+    "isoMachineReadableCrossCheck": "https://www.ripe.net/community/internet-governance/internet-technical-community/the-rir-system/list-of-country-codes-and-rirs/",
+    "unMembers": "https://www.un.org/en/about-us/member-states",
+    "artwork": "https://github.com/lipis/flag-icons/tree/v7.5.0",
+    "artworkLicense": "MIT",
+    "languageRelatedArtwork": "Wikimedia Commons file pages recorded per entity",
+    "languageRelatedLicenseNotice": "assets/world_flags/LICENSE-language-related-flags.md"
+  },
+  "counts": {
+    "entities": 266,
+    "iso": 249,
+    "unMembers": 193,
+    "isoExtras": 56,
+    "shortlist": 8,
+    "languageRelatedFlags": 9
+  },
+  "entities": [
+    {
+      "id": "afghanistan",
+      "displayNameEn": "Afghanistan",
+      "assetPath": "assets/world_flags/flags/afghanistan.svg",
+      "isoAlpha2": "AF",
+      "isoAlpha3": "AFG",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:green",
+        "color:orange",
+        "color:red",
+        "color:white",
+        "rir:apnic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "albania",
+      "displayNameEn": "Albania",
+      "assetPath": "assets/world_flags/flags/albania.svg",
+      "isoAlpha2": "AL",
+      "isoAlpha3": "ALB",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:white",
+        "rir:ripe_ncc"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "algeria",
+      "displayNameEn": "Algeria",
+      "assetPath": "assets/world_flags/flags/algeria.svg",
+      "isoAlpha2": "DZ",
+      "isoAlpha3": "DZA",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:red",
+        "color:white",
+        "rir:afrinic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "american_samoa",
+      "displayNameEn": "American Samoa",
+      "assetPath": "assets/world_flags/flags/american_samoa.svg",
+      "isoAlpha2": "AS",
+      "isoAlpha3": "ASM",
+      "category": "isoExtra",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:orange",
+        "color:red",
+        "color:white",
+        "rir:apnic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "andorra",
+      "displayNameEn": "Andorra",
+      "assetPath": "assets/world_flags/flags/andorra.svg",
+      "isoAlpha2": "AD",
+      "isoAlpha3": "AND",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:blue",
+        "color:orange",
+        "color:red",
+        "rir:ripe_ncc"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "angola",
+      "displayNameEn": "Angola",
+      "assetPath": "assets/world_flags/flags/angola.svg",
+      "isoAlpha2": "AO",
+      "isoAlpha3": "AGO",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:white",
+        "color:yellow",
+        "rir:afrinic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "anguilla",
+      "displayNameEn": "Anguilla",
+      "assetPath": "assets/world_flags/flags/anguilla.svg",
+      "isoAlpha2": "AI",
+      "isoAlpha3": "AIA",
+      "category": "isoExtra",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:blue",
+        "color:orange",
+        "color:red",
+        "color:white",
+        "rir:arin"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "antarctica",
+      "displayNameEn": "Antarctica",
+      "assetPath": "assets/world_flags/flags/antarctica.svg",
+      "isoAlpha2": "AQ",
+      "isoAlpha3": "ATA",
+      "category": "isoExtra",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:blue",
+        "rir:arin"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "antigua_and_barbuda",
+      "displayNameEn": "Antigua and Barbuda",
+      "assetPath": "assets/world_flags/flags/antigua_and_barbuda.svg",
+      "isoAlpha2": "AG",
+      "isoAlpha3": "ATG",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:blue",
+        "color:orange",
+        "color:red",
+        "color:white",
+        "rir:arin"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "argentina",
+      "displayNameEn": "Argentina",
+      "assetPath": "assets/world_flags/flags/argentina.svg",
+      "isoAlpha2": "AR",
+      "isoAlpha3": "ARG",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:blue",
+        "color:orange",
+        "rir:lacnic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "armenia",
+      "displayNameEn": "Armenia",
+      "assetPath": "assets/world_flags/flags/armenia.svg",
+      "isoAlpha2": "AM",
+      "isoAlpha3": "ARM",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:blue",
+        "color:orange",
+        "color:red",
+        "rir:ripe_ncc"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "aruba",
+      "displayNameEn": "Aruba",
+      "assetPath": "assets/world_flags/flags/aruba.svg",
+      "isoAlpha2": "AW",
+      "isoAlpha3": "ABW",
+      "category": "isoExtra",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:blue",
+        "color:red",
+        "color:yellow",
+        "rir:lacnic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "australia",
+      "displayNameEn": "Australia",
+      "assetPath": "assets/world_flags/flags/australia.svg",
+      "isoAlpha2": "AU",
+      "isoAlpha3": "AUS",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:blue",
+        "rir:apnic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "austria",
+      "displayNameEn": "Austria",
+      "assetPath": "assets/world_flags/flags/austria.svg",
+      "isoAlpha2": "AT",
+      "isoAlpha3": "AUT",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:red",
+        "rir:ripe_ncc"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "azerbaijan",
+      "displayNameEn": "Azerbaijan",
+      "assetPath": "assets/world_flags/flags/azerbaijan.svg",
+      "isoAlpha2": "AZ",
+      "isoAlpha3": "AZE",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:blue",
+        "color:green",
+        "color:red",
+        "rir:ripe_ncc"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "bahamas",
+      "displayNameEn": "Bahamas",
+      "assetPath": "assets/world_flags/flags/bahamas.svg",
+      "isoAlpha2": "BS",
+      "isoAlpha3": "BHS",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:blue",
+        "color:orange",
+        "color:white",
+        "rir:arin"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "bahrain",
+      "displayNameEn": "Bahrain",
+      "assetPath": "assets/world_flags/flags/bahrain.svg",
+      "isoAlpha2": "BH",
+      "isoAlpha3": "BHR",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:red",
+        "rir:ripe_ncc"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "bangladesh",
+      "displayNameEn": "Bangladesh",
+      "assetPath": "assets/world_flags/flags/bangladesh.svg",
+      "isoAlpha2": "BD",
+      "isoAlpha3": "BGD",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:red",
+        "color:white",
+        "rir:apnic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "barbados",
+      "displayNameEn": "Barbados",
+      "assetPath": "assets/world_flags/flags/barbados.svg",
+      "isoAlpha2": "BB",
+      "isoAlpha3": "BRB",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:orange",
+        "color:white",
+        "rir:arin"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "basque_country",
+      "displayNameEn": "Basque Country",
+      "assetPath": "assets/world_flags/flags/basque_country.svg",
+      "category": "shortlist",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:green",
+        "color:red",
+        "region:europe"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "belarus",
+      "displayNameEn": "Belarus",
+      "assetPath": "assets/world_flags/flags/belarus.svg",
+      "isoAlpha2": "BY",
+      "isoAlpha3": "BLR",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:red",
+        "color:white",
+        "rir:ripe_ncc"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "belgium",
+      "displayNameEn": "Belgium",
+      "assetPath": "assets/world_flags/flags/belgium.svg",
+      "isoAlpha2": "BE",
+      "isoAlpha3": "BEL",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:orange",
+        "color:red",
+        "color:white",
+        "rir:ripe_ncc"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "belize",
+      "displayNameEn": "Belize",
+      "assetPath": "assets/world_flags/flags/belize.svg",
+      "isoAlpha2": "BZ",
+      "isoAlpha3": "BLZ",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:blue",
+        "color:green",
+        "color:orange",
+        "color:red",
+        "color:white",
+        "rir:lacnic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "benin",
+      "displayNameEn": "Benin",
+      "assetPath": "assets/world_flags/flags/benin.svg",
+      "isoAlpha2": "BJ",
+      "isoAlpha3": "BEN",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:green",
+        "color:orange",
+        "color:red",
+        "rir:afrinic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "bermuda",
+      "displayNameEn": "Bermuda",
+      "assetPath": "assets/world_flags/flags/bermuda.svg",
+      "isoAlpha2": "BM",
+      "isoAlpha3": "BMU",
+      "category": "isoExtra",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:blue",
+        "color:green",
+        "color:orange",
+        "color:red",
+        "color:white",
+        "rir:arin"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "bhutan",
+      "displayNameEn": "Bhutan",
+      "assetPath": "assets/world_flags/flags/bhutan.svg",
+      "isoAlpha2": "BT",
+      "isoAlpha3": "BTN",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:orange",
+        "color:red",
+        "rir:apnic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "bolivia",
+      "displayNameEn": "Bolivia",
+      "assetPath": "assets/world_flags/flags/bolivia.svg",
+      "isoAlpha2": "BO",
+      "isoAlpha3": "BOL",
+      "category": "unMember",
+      "aliases": [
+        "Bolivia, Plurinational State Of"
+      ],
+      "distractorTags": [
+        "color:black",
+        "color:blue",
+        "color:green",
+        "color:orange",
+        "color:red",
+        "color:white",
+        "rir:lacnic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "bonaire_sint_eustatius_and_saba",
+      "displayNameEn": "Bonaire, Sint Eustatius and Saba",
+      "assetPath": "assets/world_flags/flags/bonaire_sint_eustatius_and_saba.svg",
+      "isoAlpha2": "BQ",
+      "isoAlpha3": "BES",
+      "category": "isoExtra",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:blue",
+        "color:red",
+        "rir:lacnic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "bosnia_and_herzegowina",
+      "displayNameEn": "Bosnia and Herzegowina",
+      "assetPath": "assets/world_flags/flags/bosnia_and_herzegowina.svg",
+      "isoAlpha2": "BA",
+      "isoAlpha3": "BIH",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:blue",
+        "color:orange",
+        "rir:ripe_ncc"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "botswana",
+      "displayNameEn": "Botswana",
+      "assetPath": "assets/world_flags/flags/botswana.svg",
+      "isoAlpha2": "BW",
+      "isoAlpha3": "BWA",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:blue",
+        "color:white",
+        "rir:afrinic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "bouvet_island",
+      "displayNameEn": "Bouvet Island",
+      "assetPath": "assets/world_flags/flags/bouvet_island.svg",
+      "isoAlpha2": "BV",
+      "isoAlpha3": "BVT",
+      "category": "isoExtra",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:blue",
+        "color:red",
+        "rir:arin"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "brazil",
+      "displayNameEn": "Brazil",
+      "assetPath": "assets/world_flags/flags/brazil.svg",
+      "isoAlpha2": "BR",
+      "isoAlpha3": "BRA",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:blue",
+        "color:green",
+        "color:yellow",
+        "rir:lacnic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "breton",
+      "displayNameEn": "Breton",
+      "assetPath": "assets/world_flags/flags/breton.svg",
+      "category": "communityOrRegionalFlagAssociatedWithLanguage",
+      "aliases": [
+        "Brittany",
+        "Gwenn-ha-du"
+      ],
+      "artworkSourcePage": "https://commons.wikimedia.org/wiki/File:Flag_of_Brittany_(Gwenn_ha_du).svg",
+      "artworkLicense": "Public domain",
+      "artworkAuthor": "Gryffindor",
+      "artworkSha1": "74396a0634b69885126907fb21edb6c1c998ad79",
+      "distractorTags": [
+        "color:black",
+        "region:europe"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "british_indian_ocean_territory",
+      "displayNameEn": "British Indian Ocean Territory",
+      "assetPath": "assets/world_flags/flags/british_indian_ocean_territory.svg",
+      "isoAlpha2": "IO",
+      "isoAlpha3": "IOT",
+      "category": "isoExtra",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:orange",
+        "color:red",
+        "color:white",
+        "color:yellow",
+        "rir:apnic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "british_virgin_islands",
+      "displayNameEn": "British Virgin Islands",
+      "assetPath": "assets/world_flags/flags/british_virgin_islands.svg",
+      "isoAlpha2": "VG",
+      "isoAlpha3": "VGB",
+      "category": "isoExtra",
+      "aliases": [
+        "Virgin Islands (British)"
+      ],
+      "distractorTags": [
+        "color:black",
+        "color:orange",
+        "color:red",
+        "color:white",
+        "color:yellow",
+        "rir:arin"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "brunei",
+      "displayNameEn": "Brunei",
+      "assetPath": "assets/world_flags/flags/brunei.svg",
+      "isoAlpha2": "BN",
+      "isoAlpha3": "BRN",
+      "category": "unMember",
+      "aliases": [
+        "Brunei Darussalam"
+      ],
+      "distractorTags": [
+        "color:black",
+        "color:orange",
+        "color:red",
+        "color:white",
+        "rir:apnic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "bulgaria",
+      "displayNameEn": "Bulgaria",
+      "assetPath": "assets/world_flags/flags/bulgaria.svg",
+      "isoAlpha2": "BG",
+      "isoAlpha3": "BGR",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:green",
+        "color:red",
+        "rir:ripe_ncc"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "burkina_faso",
+      "displayNameEn": "Burkina Faso",
+      "assetPath": "assets/world_flags/flags/burkina_faso.svg",
+      "isoAlpha2": "BF",
+      "isoAlpha3": "BFA",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:green",
+        "color:red",
+        "color:yellow",
+        "rir:afrinic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "burundi",
+      "displayNameEn": "Burundi",
+      "assetPath": "assets/world_flags/flags/burundi.svg",
+      "isoAlpha2": "BI",
+      "isoAlpha3": "BDI",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:green",
+        "color:red",
+        "rir:afrinic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "cambodia",
+      "displayNameEn": "Cambodia",
+      "assetPath": "assets/world_flags/flags/cambodia.svg",
+      "isoAlpha2": "KH",
+      "isoAlpha3": "KHM",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:blue",
+        "color:red",
+        "rir:apnic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "cameroon",
+      "displayNameEn": "Cameroon",
+      "assetPath": "assets/world_flags/flags/cameroon.svg",
+      "isoAlpha2": "CM",
+      "isoAlpha3": "CMR",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:orange",
+        "color:red",
+        "color:white",
+        "rir:afrinic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "canada",
+      "displayNameEn": "Canada",
+      "assetPath": "assets/world_flags/flags/canada.svg",
+      "isoAlpha2": "CA",
+      "isoAlpha3": "CAN",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:red",
+        "rir:arin"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "cape_verde",
+      "displayNameEn": "Cape Verde",
+      "assetPath": "assets/world_flags/flags/cape_verde.svg",
+      "isoAlpha2": "CV",
+      "isoAlpha3": "CPV",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:orange",
+        "color:red",
+        "color:white",
+        "rir:afrinic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "catalonia",
+      "displayNameEn": "Catalonia",
+      "assetPath": "assets/world_flags/flags/catalonia.svg",
+      "category": "shortlist",
+      "aliases": [],
+      "distractorTags": [
+        "color:orange",
+        "color:red",
+        "region:europe"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "cayman_islands",
+      "displayNameEn": "Cayman Islands",
+      "assetPath": "assets/world_flags/flags/cayman_islands.svg",
+      "isoAlpha2": "KY",
+      "isoAlpha3": "CYM",
+      "category": "isoExtra",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:blue",
+        "color:green",
+        "color:orange",
+        "color:red",
+        "color:white",
+        "rir:arin"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "central_african_republic",
+      "displayNameEn": "Central African Republic",
+      "assetPath": "assets/world_flags/flags/central_african_republic.svg",
+      "isoAlpha2": "CF",
+      "isoAlpha3": "CAF",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:blue",
+        "color:green",
+        "color:yellow",
+        "rir:afrinic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "chad",
+      "displayNameEn": "Chad",
+      "assetPath": "assets/world_flags/flags/chad.svg",
+      "isoAlpha2": "TD",
+      "isoAlpha3": "TCD",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:orange",
+        "color:red",
+        "color:white",
+        "rir:afrinic"
+      ],
+      "avoidAsDistractorWith": [
+        "romania"
+      ]
+    },
+    {
+      "id": "chile",
+      "displayNameEn": "Chile",
+      "assetPath": "assets/world_flags/flags/chile.svg",
+      "isoAlpha2": "CL",
+      "isoAlpha3": "CHL",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:blue",
+        "color:red",
+        "rir:lacnic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "china",
+      "displayNameEn": "China",
+      "assetPath": "assets/world_flags/flags/china.svg",
+      "isoAlpha2": "CN",
+      "isoAlpha3": "CHN",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:red",
+        "color:yellow",
+        "rir:apnic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "christmas_island",
+      "displayNameEn": "Christmas Island",
+      "assetPath": "assets/world_flags/flags/christmas_island.svg",
+      "isoAlpha2": "CX",
+      "isoAlpha3": "CXR",
+      "category": "isoExtra",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:blue",
+        "color:green",
+        "color:orange",
+        "rir:apnic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "cocos_keeling_islands",
+      "displayNameEn": "Cocos (keeling) Islands",
+      "assetPath": "assets/world_flags/flags/cocos_keeling_islands.svg",
+      "isoAlpha2": "CC",
+      "isoAlpha3": "CCK",
+      "category": "isoExtra",
+      "aliases": [],
+      "distractorTags": [
+        "color:orange",
+        "color:red",
+        "color:white",
+        "rir:apnic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "colombia",
+      "displayNameEn": "Colombia",
+      "assetPath": "assets/world_flags/flags/colombia.svg",
+      "isoAlpha2": "CO",
+      "isoAlpha3": "COL",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:blue",
+        "color:orange",
+        "color:red",
+        "rir:lacnic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "comoros",
+      "displayNameEn": "Comoros",
+      "assetPath": "assets/world_flags/flags/comoros.svg",
+      "isoAlpha2": "KM",
+      "isoAlpha3": "COM",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:blue",
+        "color:green",
+        "color:red",
+        "color:yellow",
+        "rir:afrinic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "cook_islands",
+      "displayNameEn": "Cook Islands",
+      "assetPath": "assets/world_flags/flags/cook_islands.svg",
+      "isoAlpha2": "CK",
+      "isoAlpha3": "COK",
+      "category": "isoExtra",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:red",
+        "color:white",
+        "rir:apnic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "cornish",
+      "displayNameEn": "Cornish",
+      "assetPath": "assets/world_flags/flags/cornish.svg",
+      "category": "communityOrRegionalFlagAssociatedWithLanguage",
+      "aliases": [
+        "Cornwall",
+        "Saint Piran's Flag"
+      ],
+      "artworkSourcePage": "https://commons.wikimedia.org/wiki/File:Flag_of_Cornwall.svg",
+      "artworkLicense": "Public domain",
+      "artworkAuthor": "Jon Harald Søby",
+      "artworkSha1": "013c1beccfadde20546eb86aba7ffa2fd9dcf599",
+      "distractorTags": [
+        "color:black",
+        "region:europe"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "corsican",
+      "displayNameEn": "Corsican",
+      "assetPath": "assets/world_flags/flags/corsican.svg",
+      "category": "communityOrRegionalFlagAssociatedWithLanguage",
+      "aliases": [
+        "Corsica"
+      ],
+      "artworkSourcePage": "https://commons.wikimedia.org/wiki/File:Flag_of_Corsica.svg",
+      "artworkLicense": "CC0 1.0",
+      "artworkAuthor": "Patricia.fidi",
+      "artworkSha1": "10f049eb79b7a8fa9b79547ea0961c876e4a32a1",
+      "distractorTags": [
+        "region:europe"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "costa_rica",
+      "displayNameEn": "Costa Rica",
+      "assetPath": "assets/world_flags/flags/costa_rica.svg",
+      "isoAlpha2": "CR",
+      "isoAlpha3": "CRI",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:blue",
+        "color:red",
+        "rir:lacnic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "croatia_local_name_hrvatska",
+      "displayNameEn": "Croatia (local Name: Hrvatska)",
+      "assetPath": "assets/world_flags/flags/croatia_local_name_hrvatska.svg",
+      "isoAlpha2": "HR",
+      "isoAlpha3": "HRV",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:blue",
+        "color:orange",
+        "rir:ripe_ncc"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "cuba",
+      "displayNameEn": "Cuba",
+      "assetPath": "assets/world_flags/flags/cuba.svg",
+      "isoAlpha2": "CU",
+      "isoAlpha3": "CUB",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:blue",
+        "color:red",
+        "rir:lacnic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "cura_ao",
+      "displayNameEn": "Curaçao",
+      "assetPath": "assets/world_flags/flags/cura_ao.svg",
+      "isoAlpha2": "CW",
+      "isoAlpha3": "CUW",
+      "category": "isoExtra",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:white",
+        "color:yellow",
+        "rir:lacnic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "cyprus",
+      "displayNameEn": "Cyprus",
+      "assetPath": "assets/world_flags/flags/cyprus.svg",
+      "isoAlpha2": "CY",
+      "isoAlpha3": "CYP",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:green",
+        "color:orange",
+        "rir:ripe_ncc"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "czechia",
+      "displayNameEn": "Czechia",
+      "assetPath": "assets/world_flags/flags/czechia.svg",
+      "isoAlpha2": "CZ",
+      "isoAlpha3": "CZE",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:blue",
+        "color:red",
+        "rir:ripe_ncc"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "cote_d_ivoire",
+      "displayNameEn": "Côte d'Ivoire",
+      "assetPath": "assets/world_flags/flags/cote_d_ivoire.svg",
+      "isoAlpha2": "CI",
+      "isoAlpha3": "CIV",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:green",
+        "color:orange",
+        "rir:afrinic"
+      ],
+      "avoidAsDistractorWith": [
+        "ireland"
+      ]
+    },
+    {
+      "id": "democratic_republic_of_the_congo",
+      "displayNameEn": "Democratic Republic of the Congo",
+      "assetPath": "assets/world_flags/flags/democratic_republic_of_the_congo.svg",
+      "isoAlpha2": "CD",
+      "isoAlpha3": "COD",
+      "category": "unMember",
+      "aliases": [
+        "Congo, The Democratic Republic Of The"
+      ],
+      "distractorTags": [
+        "color:blue",
+        "color:orange",
+        "color:red",
+        "rir:afrinic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "denmark",
+      "displayNameEn": "Denmark",
+      "assetPath": "assets/world_flags/flags/denmark.svg",
+      "isoAlpha2": "DK",
+      "isoAlpha3": "DNK",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:red",
+        "rir:ripe_ncc"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "djibouti",
+      "displayNameEn": "Djibouti",
+      "assetPath": "assets/world_flags/flags/djibouti.svg",
+      "isoAlpha2": "DJ",
+      "isoAlpha3": "DJI",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:blue",
+        "color:green",
+        "color:red",
+        "rir:afrinic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "dominica",
+      "displayNameEn": "Dominica",
+      "assetPath": "assets/world_flags/flags/dominica.svg",
+      "isoAlpha2": "DM",
+      "isoAlpha3": "DMA",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:green",
+        "color:orange",
+        "color:purple",
+        "color:red",
+        "color:white",
+        "color:yellow",
+        "rir:arin"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "dominican_republic",
+      "displayNameEn": "Dominican Republic",
+      "assetPath": "assets/world_flags/flags/dominican_republic.svg",
+      "isoAlpha2": "DO",
+      "isoAlpha3": "DOM",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:green",
+        "color:orange",
+        "color:red",
+        "color:white",
+        "color:yellow",
+        "rir:lacnic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "ecuador",
+      "displayNameEn": "Ecuador",
+      "assetPath": "assets/world_flags/flags/ecuador.svg",
+      "isoAlpha2": "EC",
+      "isoAlpha3": "ECU",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:blue",
+        "color:green",
+        "color:orange",
+        "color:red",
+        "color:white",
+        "rir:lacnic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "egypt",
+      "displayNameEn": "Egypt",
+      "assetPath": "assets/world_flags/flags/egypt.svg",
+      "isoAlpha2": "EG",
+      "isoAlpha3": "EGY",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:orange",
+        "color:red",
+        "color:white",
+        "rir:afrinic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "el_salvador",
+      "displayNameEn": "El Salvador",
+      "assetPath": "assets/world_flags/flags/el_salvador.svg",
+      "isoAlpha2": "SV",
+      "isoAlpha3": "SLV",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:blue",
+        "color:green",
+        "color:orange",
+        "color:red",
+        "color:white",
+        "color:yellow",
+        "rir:lacnic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "england",
+      "displayNameEn": "England",
+      "assetPath": "assets/world_flags/flags/england.svg",
+      "category": "shortlist",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:red",
+        "region:europe"
+      ],
+      "avoidAsDistractorWith": [],
+      "subdivisionCode": "GB-ENG"
+    },
+    {
+      "id": "equatorial_guinea",
+      "displayNameEn": "Equatorial Guinea",
+      "assetPath": "assets/world_flags/flags/equatorial_guinea.svg",
+      "isoAlpha2": "GQ",
+      "isoAlpha3": "GNQ",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:blue",
+        "color:green",
+        "color:orange",
+        "color:red",
+        "rir:afrinic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "eritrea",
+      "displayNameEn": "Eritrea",
+      "assetPath": "assets/world_flags/flags/eritrea.svg",
+      "isoAlpha2": "ER",
+      "isoAlpha3": "ERI",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:blue",
+        "color:green",
+        "color:orange",
+        "color:red",
+        "rir:afrinic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "estonia",
+      "displayNameEn": "Estonia",
+      "assetPath": "assets/world_flags/flags/estonia.svg",
+      "isoAlpha2": "EE",
+      "isoAlpha3": "EST",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:blue",
+        "color:white",
+        "rir:ripe_ncc"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "ethiopia",
+      "displayNameEn": "Ethiopia",
+      "assetPath": "assets/world_flags/flags/ethiopia.svg",
+      "isoAlpha2": "ET",
+      "isoAlpha3": "ETH",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:blue",
+        "color:green",
+        "color:orange",
+        "color:red",
+        "rir:afrinic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "falkland_islands",
+      "displayNameEn": "Falkland Islands",
+      "assetPath": "assets/world_flags/flags/falkland_islands.svg",
+      "isoAlpha2": "FK",
+      "isoAlpha3": "FLK",
+      "category": "isoExtra",
+      "aliases": [
+        "Falkland Islands (Malvinas)"
+      ],
+      "distractorTags": [
+        "color:black",
+        "color:blue",
+        "color:gray",
+        "color:orange",
+        "color:red",
+        "color:white",
+        "rir:lacnic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "faroe_islands",
+      "displayNameEn": "Faroe Islands",
+      "assetPath": "assets/world_flags/flags/faroe_islands.svg",
+      "isoAlpha2": "FO",
+      "isoAlpha3": "FRO",
+      "category": "isoExtra",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:blue",
+        "color:red",
+        "rir:ripe_ncc"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "fiji",
+      "displayNameEn": "Fiji",
+      "assetPath": "assets/world_flags/flags/fiji.svg",
+      "isoAlpha2": "FJ",
+      "isoAlpha3": "FJI",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:blue",
+        "color:green",
+        "color:orange",
+        "color:red",
+        "color:white",
+        "color:yellow",
+        "rir:apnic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "finland",
+      "displayNameEn": "Finland",
+      "assetPath": "assets/world_flags/flags/finland.svg",
+      "isoAlpha2": "FI",
+      "isoAlpha3": "FIN",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:white",
+        "rir:ripe_ncc"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "france",
+      "displayNameEn": "France",
+      "assetPath": "assets/world_flags/flags/france.svg",
+      "isoAlpha2": "FR",
+      "isoAlpha3": "FRA",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:blue",
+        "color:red",
+        "rir:ripe_ncc"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "french_guiana",
+      "displayNameEn": "French Guiana",
+      "assetPath": "assets/world_flags/flags/french_guiana.svg",
+      "isoAlpha2": "GF",
+      "isoAlpha3": "GUF",
+      "category": "isoExtra",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:blue",
+        "color:red",
+        "rir:lacnic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "french_polynesia",
+      "displayNameEn": "French Polynesia",
+      "assetPath": "assets/world_flags/flags/french_polynesia.svg",
+      "isoAlpha2": "PF",
+      "isoAlpha3": "PYF",
+      "category": "isoExtra",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:blue",
+        "color:orange",
+        "color:red",
+        "rir:apnic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "french_southern_territories",
+      "displayNameEn": "French Southern Territories",
+      "assetPath": "assets/world_flags/flags/french_southern_territories.svg",
+      "isoAlpha2": "TF",
+      "isoAlpha3": "ATF",
+      "category": "isoExtra",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:blue",
+        "color:red",
+        "rir:apnic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "friulian",
+      "displayNameEn": "Friulian",
+      "assetPath": "assets/world_flags/flags/friulian.svg",
+      "category": "communityOrRegionalFlagAssociatedWithLanguage",
+      "aliases": [
+        "Friuli"
+      ],
+      "artworkSourcePage": "https://commons.wikimedia.org/wiki/File:Friuli_Flag.svg",
+      "artworkLicense": "CC BY-SA 3.0",
+      "artworkAuthor": "Ipankonin",
+      "artworkSha1": "81613fb7063b738b2f1fdd2200be7f36189deee5",
+      "distractorTags": [
+        "color:black",
+        "color:blue",
+        "color:orange",
+        "color:red",
+        "region:europe"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "gabon",
+      "displayNameEn": "Gabon",
+      "assetPath": "assets/world_flags/flags/gabon.svg",
+      "isoAlpha2": "GA",
+      "isoAlpha3": "GAB",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:blue",
+        "color:green",
+        "color:orange",
+        "rir:afrinic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "galicia",
+      "displayNameEn": "Galicia",
+      "assetPath": "assets/world_flags/flags/galicia.svg",
+      "category": "shortlist",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:blue",
+        "color:orange",
+        "color:red",
+        "region:europe"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "gambia",
+      "displayNameEn": "Gambia",
+      "assetPath": "assets/world_flags/flags/gambia.svg",
+      "isoAlpha2": "GM",
+      "isoAlpha3": "GMB",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:blue",
+        "color:green",
+        "rir:afrinic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "georgia",
+      "displayNameEn": "Georgia",
+      "assetPath": "assets/world_flags/flags/georgia.svg",
+      "isoAlpha2": "GE",
+      "isoAlpha3": "GEO",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "rir:ripe_ncc"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "germany",
+      "displayNameEn": "Germany",
+      "assetPath": "assets/world_flags/flags/germany.svg",
+      "isoAlpha2": "DE",
+      "isoAlpha3": "DEU",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:orange",
+        "color:white",
+        "rir:ripe_ncc"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "ghana",
+      "displayNameEn": "Ghana",
+      "assetPath": "assets/world_flags/flags/ghana.svg",
+      "isoAlpha2": "GH",
+      "isoAlpha3": "GHA",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:orange",
+        "color:red",
+        "color:white",
+        "rir:afrinic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "gibraltar",
+      "displayNameEn": "Gibraltar",
+      "assetPath": "assets/world_flags/flags/gibraltar.svg",
+      "isoAlpha2": "GI",
+      "isoAlpha3": "GIB",
+      "category": "isoExtra",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:orange",
+        "color:red",
+        "color:white",
+        "rir:ripe_ncc"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "greece",
+      "displayNameEn": "Greece",
+      "assetPath": "assets/world_flags/flags/greece.svg",
+      "isoAlpha2": "GR",
+      "isoAlpha3": "GRC",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:blue",
+        "rir:ripe_ncc"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "greenland",
+      "displayNameEn": "Greenland",
+      "assetPath": "assets/world_flags/flags/greenland.svg",
+      "isoAlpha2": "GL",
+      "isoAlpha3": "GRL",
+      "category": "isoExtra",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:red",
+        "rir:ripe_ncc"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "grenada",
+      "displayNameEn": "Grenada",
+      "assetPath": "assets/world_flags/flags/grenada.svg",
+      "isoAlpha2": "GD",
+      "isoAlpha3": "GRD",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:orange",
+        "color:red",
+        "color:white",
+        "rir:arin"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "guadeloupe",
+      "displayNameEn": "Guadeloupe",
+      "assetPath": "assets/world_flags/flags/guadeloupe.svg",
+      "isoAlpha2": "GP",
+      "isoAlpha3": "GLP",
+      "category": "isoExtra",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:blue",
+        "color:red",
+        "rir:arin"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "guam",
+      "displayNameEn": "Guam",
+      "assetPath": "assets/world_flags/flags/guam.svg",
+      "isoAlpha2": "GU",
+      "isoAlpha3": "GUM",
+      "category": "isoExtra",
+      "aliases": [],
+      "distractorTags": [
+        "color:blue",
+        "color:green",
+        "color:orange",
+        "color:purple",
+        "color:red",
+        "color:yellow",
+        "rir:apnic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "guatemala",
+      "displayNameEn": "Guatemala",
+      "assetPath": "assets/world_flags/flags/guatemala.svg",
+      "isoAlpha2": "GT",
+      "isoAlpha3": "GTM",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:blue",
+        "color:gray",
+        "color:green",
+        "color:orange",
+        "color:red",
+        "color:white",
+        "rir:lacnic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "guernsey",
+      "displayNameEn": "Guernsey",
+      "assetPath": "assets/world_flags/flags/guernsey.svg",
+      "isoAlpha2": "GG",
+      "isoAlpha3": "GGY",
+      "category": "isoExtra",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:orange",
+        "color:red",
+        "rir:ripe_ncc"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "guinea",
+      "displayNameEn": "Guinea",
+      "assetPath": "assets/world_flags/flags/guinea.svg",
+      "isoAlpha2": "GN",
+      "isoAlpha3": "GIN",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:green",
+        "color:yellow",
+        "rir:afrinic"
+      ],
+      "avoidAsDistractorWith": [
+        "mali"
+      ]
+    },
+    {
+      "id": "guinea_bissau",
+      "displayNameEn": "Guinea-bissau",
+      "assetPath": "assets/world_flags/flags/guinea_bissau.svg",
+      "isoAlpha2": "GW",
+      "isoAlpha3": "GNB",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:green",
+        "color:orange",
+        "color:red",
+        "color:white",
+        "rir:afrinic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "guyana",
+      "displayNameEn": "Guyana",
+      "assetPath": "assets/world_flags/flags/guyana.svg",
+      "isoAlpha2": "GY",
+      "isoAlpha3": "GUY",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:green",
+        "color:orange",
+        "color:red",
+        "color:white",
+        "rir:lacnic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "haiti",
+      "displayNameEn": "Haiti",
+      "assetPath": "assets/world_flags/flags/haiti.svg",
+      "isoAlpha2": "HT",
+      "isoAlpha3": "HTI",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:blue",
+        "color:orange",
+        "color:red",
+        "color:white",
+        "rir:lacnic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "heard_and_mc_donald_islands",
+      "displayNameEn": "Heard and Mc Donald Islands",
+      "assetPath": "assets/world_flags/flags/heard_and_mc_donald_islands.svg",
+      "isoAlpha2": "HM",
+      "isoAlpha3": "HMD",
+      "category": "isoExtra",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:blue",
+        "rir:arin"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "honduras",
+      "displayNameEn": "Honduras",
+      "assetPath": "assets/world_flags/flags/honduras.svg",
+      "isoAlpha2": "HN",
+      "isoAlpha3": "HND",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:blue",
+        "rir:lacnic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "hong_kong",
+      "displayNameEn": "Hong Kong",
+      "assetPath": "assets/world_flags/flags/hong_kong.svg",
+      "isoAlpha2": "HK",
+      "isoAlpha3": "HKG",
+      "category": "isoExtra",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:red",
+        "rir:apnic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "hungary",
+      "displayNameEn": "Hungary",
+      "assetPath": "assets/world_flags/flags/hungary.svg",
+      "isoAlpha2": "HU",
+      "isoAlpha3": "HUN",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:green",
+        "color:red",
+        "rir:ripe_ncc"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "iceland",
+      "displayNameEn": "Iceland",
+      "assetPath": "assets/world_flags/flags/iceland.svg",
+      "isoAlpha2": "IS",
+      "isoAlpha3": "ISL",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:blue",
+        "color:red",
+        "rir:ripe_ncc"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "india",
+      "displayNameEn": "India",
+      "assetPath": "assets/world_flags/flags/india.svg",
+      "isoAlpha2": "IN",
+      "isoAlpha3": "IND",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:blue",
+        "color:green",
+        "color:orange",
+        "rir:apnic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "indonesia",
+      "displayNameEn": "Indonesia",
+      "assetPath": "assets/world_flags/flags/indonesia.svg",
+      "isoAlpha2": "ID",
+      "isoAlpha3": "IDN",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:red",
+        "rir:apnic"
+      ],
+      "avoidAsDistractorWith": [
+        "monaco"
+      ]
+    },
+    {
+      "id": "iran",
+      "displayNameEn": "Iran",
+      "assetPath": "assets/world_flags/flags/iran.svg",
+      "isoAlpha2": "IR",
+      "isoAlpha3": "IRN",
+      "category": "unMember",
+      "aliases": [
+        "Iran, Islamic Republic Of"
+      ],
+      "distractorTags": [
+        "color:black",
+        "color:green",
+        "color:red",
+        "rir:ripe_ncc"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "iraq",
+      "displayNameEn": "Iraq",
+      "assetPath": "assets/world_flags/flags/iraq.svg",
+      "isoAlpha2": "IQ",
+      "isoAlpha3": "IRQ",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:red",
+        "color:white",
+        "rir:ripe_ncc"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "ireland",
+      "displayNameEn": "Ireland",
+      "assetPath": "assets/world_flags/flags/ireland.svg",
+      "isoAlpha2": "IE",
+      "isoAlpha3": "IRL",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:green",
+        "color:orange",
+        "rir:ripe_ncc"
+      ],
+      "avoidAsDistractorWith": [
+        "cote_d_ivoire"
+      ]
+    },
+    {
+      "id": "isle_of_man",
+      "displayNameEn": "Isle of Man",
+      "assetPath": "assets/world_flags/flags/isle_of_man.svg",
+      "isoAlpha2": "IM",
+      "isoAlpha3": "IMN",
+      "category": "isoExtra",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:orange",
+        "color:red",
+        "color:yellow",
+        "rir:ripe_ncc"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "israel",
+      "displayNameEn": "Israel",
+      "assetPath": "assets/world_flags/flags/israel.svg",
+      "isoAlpha2": "IL",
+      "isoAlpha3": "ISR",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:blue",
+        "rir:ripe_ncc"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "italy",
+      "displayNameEn": "Italy",
+      "assetPath": "assets/world_flags/flags/italy.svg",
+      "isoAlpha2": "IT",
+      "isoAlpha3": "ITA",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:green",
+        "color:red",
+        "rir:ripe_ncc"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "jamaica",
+      "displayNameEn": "Jamaica",
+      "assetPath": "assets/world_flags/flags/jamaica.svg",
+      "isoAlpha2": "JM",
+      "isoAlpha3": "JAM",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:green",
+        "color:orange",
+        "color:white",
+        "rir:arin"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "japan",
+      "displayNameEn": "Japan",
+      "assetPath": "assets/world_flags/flags/japan.svg",
+      "isoAlpha2": "JP",
+      "isoAlpha3": "JPN",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:red",
+        "rir:apnic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "jersey",
+      "displayNameEn": "Jersey",
+      "assetPath": "assets/world_flags/flags/jersey.svg",
+      "isoAlpha2": "JE",
+      "isoAlpha3": "JEY",
+      "category": "isoExtra",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:blue",
+        "color:orange",
+        "color:red",
+        "color:white",
+        "rir:ripe_ncc"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "jordan",
+      "displayNameEn": "Jordan",
+      "assetPath": "assets/world_flags/flags/jordan.svg",
+      "isoAlpha2": "JO",
+      "isoAlpha3": "JOR",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:green",
+        "color:white",
+        "rir:ripe_ncc"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "kazakhstan",
+      "displayNameEn": "Kazakhstan",
+      "assetPath": "assets/world_flags/flags/kazakhstan.svg",
+      "isoAlpha2": "KZ",
+      "isoAlpha3": "KAZ",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:blue",
+        "color:orange",
+        "rir:ripe_ncc"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "kenya",
+      "displayNameEn": "Kenya",
+      "assetPath": "assets/world_flags/flags/kenya.svg",
+      "isoAlpha2": "KE",
+      "isoAlpha3": "KEN",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:red",
+        "color:white",
+        "rir:afrinic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "kiribati",
+      "displayNameEn": "Kiribati",
+      "assetPath": "assets/world_flags/flags/kiribati.svg",
+      "isoAlpha2": "KI",
+      "isoAlpha3": "KIR",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:blue",
+        "color:orange",
+        "color:red",
+        "rir:apnic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "kosovo",
+      "displayNameEn": "Kosovo",
+      "assetPath": "assets/world_flags/flags/kosovo.svg",
+      "category": "shortlist",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:blue",
+        "color:orange",
+        "region:europe"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "kuwait",
+      "displayNameEn": "Kuwait",
+      "assetPath": "assets/world_flags/flags/kuwait.svg",
+      "isoAlpha2": "KW",
+      "isoAlpha3": "KWT",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:green",
+        "color:red",
+        "color:white",
+        "rir:ripe_ncc"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "kyrgyzstan",
+      "displayNameEn": "Kyrgyzstan",
+      "assetPath": "assets/world_flags/flags/kyrgyzstan.svg",
+      "isoAlpha2": "KG",
+      "isoAlpha3": "KGZ",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:yellow",
+        "rir:ripe_ncc"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "laos",
+      "displayNameEn": "Laos",
+      "assetPath": "assets/world_flags/flags/laos.svg",
+      "isoAlpha2": "LA",
+      "isoAlpha3": "LAO",
+      "category": "unMember",
+      "aliases": [
+        "Lao People'S Democratic Republic"
+      ],
+      "distractorTags": [
+        "color:black",
+        "color:red",
+        "color:white",
+        "rir:apnic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "latvia",
+      "displayNameEn": "Latvia",
+      "assetPath": "assets/world_flags/flags/latvia.svg",
+      "isoAlpha2": "LV",
+      "isoAlpha3": "LVA",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:red",
+        "rir:ripe_ncc"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "lebanon",
+      "displayNameEn": "Lebanon",
+      "assetPath": "assets/world_flags/flags/lebanon.svg",
+      "isoAlpha2": "LB",
+      "isoAlpha3": "LBN",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:green",
+        "color:red",
+        "rir:ripe_ncc"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "lesotho",
+      "displayNameEn": "Lesotho",
+      "assetPath": "assets/world_flags/flags/lesotho.svg",
+      "isoAlpha2": "LS",
+      "isoAlpha3": "LSO",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:blue",
+        "color:green",
+        "rir:afrinic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "liberia",
+      "displayNameEn": "Liberia",
+      "assetPath": "assets/world_flags/flags/liberia.svg",
+      "isoAlpha2": "LR",
+      "isoAlpha3": "LBR",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:red",
+        "color:white",
+        "rir:afrinic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "libya",
+      "displayNameEn": "Libya",
+      "assetPath": "assets/world_flags/flags/libya.svg",
+      "isoAlpha2": "LY",
+      "isoAlpha3": "LBY",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:green",
+        "color:red",
+        "color:white",
+        "rir:afrinic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "liechtenstein",
+      "displayNameEn": "Liechtenstein",
+      "assetPath": "assets/world_flags/flags/liechtenstein.svg",
+      "isoAlpha2": "LI",
+      "isoAlpha3": "LIE",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:orange",
+        "color:red",
+        "color:white",
+        "rir:ripe_ncc"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "lithuania",
+      "displayNameEn": "Lithuania",
+      "assetPath": "assets/world_flags/flags/lithuania.svg",
+      "isoAlpha2": "LT",
+      "isoAlpha3": "LTU",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:orange",
+        "color:red",
+        "color:white",
+        "rir:ripe_ncc"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "luxembourg",
+      "displayNameEn": "Luxembourg",
+      "assetPath": "assets/world_flags/flags/luxembourg.svg",
+      "isoAlpha2": "LU",
+      "isoAlpha3": "LUX",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:blue",
+        "color:red",
+        "rir:ripe_ncc"
+      ],
+      "avoidAsDistractorWith": [
+        "netherlands"
+      ]
+    },
+    {
+      "id": "macao",
+      "displayNameEn": "Macao",
+      "assetPath": "assets/world_flags/flags/macao.svg",
+      "isoAlpha2": "MO",
+      "isoAlpha3": "MAC",
+      "category": "isoExtra",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:orange",
+        "color:white",
+        "rir:apnic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "madagascar",
+      "displayNameEn": "Madagascar",
+      "assetPath": "assets/world_flags/flags/madagascar.svg",
+      "isoAlpha2": "MG",
+      "isoAlpha3": "MDG",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:red",
+        "color:white",
+        "rir:afrinic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "malawi",
+      "displayNameEn": "Malawi",
+      "assetPath": "assets/world_flags/flags/malawi.svg",
+      "isoAlpha2": "MW",
+      "isoAlpha3": "MWI",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:green",
+        "color:red",
+        "color:white",
+        "rir:afrinic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "malaysia",
+      "displayNameEn": "Malaysia",
+      "assetPath": "assets/world_flags/flags/malaysia.svg",
+      "isoAlpha2": "MY",
+      "isoAlpha3": "MYS",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:orange",
+        "color:red",
+        "color:white",
+        "rir:apnic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "maldives",
+      "displayNameEn": "Maldives",
+      "assetPath": "assets/world_flags/flags/maldives.svg",
+      "isoAlpha2": "MV",
+      "isoAlpha3": "MDV",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:red",
+        "color:white",
+        "rir:apnic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "mali",
+      "displayNameEn": "Mali",
+      "assetPath": "assets/world_flags/flags/mali.svg",
+      "isoAlpha2": "ML",
+      "isoAlpha3": "MLI",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:green",
+        "color:yellow",
+        "rir:afrinic"
+      ],
+      "avoidAsDistractorWith": [
+        "guinea"
+      ]
+    },
+    {
+      "id": "malta",
+      "displayNameEn": "Malta",
+      "assetPath": "assets/world_flags/flags/malta.svg",
+      "isoAlpha2": "MT",
+      "isoAlpha3": "MLT",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:red",
+        "rir:ripe_ncc"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "marshall_islands",
+      "displayNameEn": "Marshall Islands",
+      "assetPath": "assets/world_flags/flags/marshall_islands.svg",
+      "isoAlpha2": "MH",
+      "isoAlpha3": "MHL",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:blue",
+        "color:orange",
+        "rir:apnic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "martinique",
+      "displayNameEn": "Martinique",
+      "assetPath": "assets/world_flags/flags/martinique.svg",
+      "isoAlpha2": "MQ",
+      "isoAlpha3": "MTQ",
+      "category": "isoExtra",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:green",
+        "color:red",
+        "rir:arin"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "mauritania",
+      "displayNameEn": "Mauritania",
+      "assetPath": "assets/world_flags/flags/mauritania.svg",
+      "isoAlpha2": "MR",
+      "isoAlpha3": "MRT",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:orange",
+        "color:red",
+        "color:white",
+        "rir:afrinic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "mauritius",
+      "displayNameEn": "Mauritius",
+      "assetPath": "assets/world_flags/flags/mauritius.svg",
+      "isoAlpha2": "MU",
+      "isoAlpha3": "MUS",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:blue",
+        "color:green",
+        "color:orange",
+        "color:red",
+        "rir:afrinic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "mayotte",
+      "displayNameEn": "Mayotte",
+      "assetPath": "assets/world_flags/flags/mayotte.svg",
+      "isoAlpha2": "YT",
+      "isoAlpha3": "MYT",
+      "category": "isoExtra",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:blue",
+        "color:red",
+        "rir:afrinic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "mexico",
+      "displayNameEn": "Mexico",
+      "assetPath": "assets/world_flags/flags/mexico.svg",
+      "isoAlpha2": "MX",
+      "isoAlpha3": "MEX",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:blue",
+        "color:gray",
+        "color:orange",
+        "color:red",
+        "color:white",
+        "color:yellow",
+        "rir:lacnic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "micronesia",
+      "displayNameEn": "Micronesia",
+      "assetPath": "assets/world_flags/flags/micronesia.svg",
+      "isoAlpha2": "FM",
+      "isoAlpha3": "FSM",
+      "category": "unMember",
+      "aliases": [
+        "Micronesia, Federated States Of"
+      ],
+      "distractorTags": [
+        "color:black",
+        "color:blue",
+        "rir:apnic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "moldova",
+      "displayNameEn": "Moldova",
+      "assetPath": "assets/world_flags/flags/moldova.svg",
+      "isoAlpha2": "MD",
+      "isoAlpha3": "MDA",
+      "category": "unMember",
+      "aliases": [
+        "Moldova, Republic Of"
+      ],
+      "distractorTags": [
+        "color:black",
+        "color:blue",
+        "color:green",
+        "color:orange",
+        "color:red",
+        "color:yellow",
+        "rir:ripe_ncc"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "monaco",
+      "displayNameEn": "Monaco",
+      "assetPath": "assets/world_flags/flags/monaco.svg",
+      "isoAlpha2": "MC",
+      "isoAlpha3": "MCO",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:red",
+        "rir:ripe_ncc"
+      ],
+      "avoidAsDistractorWith": [
+        "indonesia"
+      ]
+    },
+    {
+      "id": "mongolia",
+      "displayNameEn": "Mongolia",
+      "assetPath": "assets/world_flags/flags/mongolia.svg",
+      "isoAlpha2": "MN",
+      "isoAlpha3": "MNG",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:blue",
+        "color:orange",
+        "color:red",
+        "rir:apnic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "montenegro",
+      "displayNameEn": "Montenegro",
+      "assetPath": "assets/world_flags/flags/montenegro.svg",
+      "isoAlpha2": "ME",
+      "isoAlpha3": "MNE",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:blue",
+        "color:green",
+        "color:orange",
+        "color:red",
+        "rir:ripe_ncc"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "montserrat",
+      "displayNameEn": "Montserrat",
+      "assetPath": "assets/world_flags/flags/montserrat.svg",
+      "isoAlpha2": "MS",
+      "isoAlpha3": "MSR",
+      "category": "isoExtra",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:blue",
+        "color:green",
+        "color:orange",
+        "color:red",
+        "color:white",
+        "rir:arin"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "morocco",
+      "displayNameEn": "Morocco",
+      "assetPath": "assets/world_flags/flags/morocco.svg",
+      "isoAlpha2": "MA",
+      "isoAlpha3": "MAR",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:red",
+        "color:white",
+        "rir:afrinic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "mozambique",
+      "displayNameEn": "Mozambique",
+      "assetPath": "assets/world_flags/flags/mozambique.svg",
+      "isoAlpha2": "MZ",
+      "isoAlpha3": "MOZ",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:green",
+        "color:orange",
+        "color:white",
+        "rir:afrinic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "myanmar",
+      "displayNameEn": "Myanmar",
+      "assetPath": "assets/world_flags/flags/myanmar.svg",
+      "isoAlpha2": "MM",
+      "isoAlpha3": "MMR",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:green",
+        "color:orange",
+        "color:red",
+        "rir:apnic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "namibia",
+      "displayNameEn": "Namibia",
+      "assetPath": "assets/world_flags/flags/namibia.svg",
+      "isoAlpha2": "NA",
+      "isoAlpha3": "NAM",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:blue",
+        "color:green",
+        "color:orange",
+        "color:red",
+        "rir:afrinic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "nauru",
+      "displayNameEn": "Nauru",
+      "assetPath": "assets/world_flags/flags/nauru.svg",
+      "isoAlpha2": "NR",
+      "isoAlpha3": "NRU",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:orange",
+        "color:white",
+        "rir:apnic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "nepal",
+      "displayNameEn": "Nepal",
+      "assetPath": "assets/world_flags/flags/nepal.svg",
+      "isoAlpha2": "NP",
+      "isoAlpha3": "NPL",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:red",
+        "color:white",
+        "rir:apnic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "netherlands",
+      "displayNameEn": "Netherlands",
+      "assetPath": "assets/world_flags/flags/netherlands.svg",
+      "isoAlpha2": "NL",
+      "isoAlpha3": "NLD",
+      "category": "unMember",
+      "aliases": [
+        "Netherlands, Kingdom Of The"
+      ],
+      "distractorTags": [
+        "color:black",
+        "color:blue",
+        "color:red",
+        "rir:ripe_ncc"
+      ],
+      "avoidAsDistractorWith": [
+        "luxembourg"
+      ]
+    },
+    {
+      "id": "new_caledonia",
+      "displayNameEn": "New Caledonia",
+      "assetPath": "assets/world_flags/flags/new_caledonia.svg",
+      "isoAlpha2": "NC",
+      "isoAlpha3": "NCL",
+      "category": "isoExtra",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:blue",
+        "color:green",
+        "color:red",
+        "color:white",
+        "color:yellow",
+        "rir:apnic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "new_zealand",
+      "displayNameEn": "New Zealand",
+      "assetPath": "assets/world_flags/flags/new_zealand.svg",
+      "isoAlpha2": "NZ",
+      "isoAlpha3": "NZL",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:red",
+        "color:white",
+        "rir:apnic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "nicaragua",
+      "displayNameEn": "Nicaragua",
+      "assetPath": "assets/world_flags/flags/nicaragua.svg",
+      "isoAlpha2": "NI",
+      "isoAlpha3": "NIC",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:blue",
+        "color:green",
+        "color:orange",
+        "color:red",
+        "color:white",
+        "color:yellow",
+        "rir:lacnic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "niger",
+      "displayNameEn": "Niger",
+      "assetPath": "assets/world_flags/flags/niger.svg",
+      "isoAlpha2": "NE",
+      "isoAlpha3": "NER",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:green",
+        "color:orange",
+        "rir:afrinic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "nigeria",
+      "displayNameEn": "Nigeria",
+      "assetPath": "assets/world_flags/flags/nigeria.svg",
+      "isoAlpha2": "NG",
+      "isoAlpha3": "NGA",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:green",
+        "rir:afrinic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "niue",
+      "displayNameEn": "Niue",
+      "assetPath": "assets/world_flags/flags/niue.svg",
+      "isoAlpha2": "NU",
+      "isoAlpha3": "NIU",
+      "category": "isoExtra",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:orange",
+        "color:red",
+        "color:white",
+        "rir:apnic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "norfolk_island",
+      "displayNameEn": "Norfolk Island",
+      "assetPath": "assets/world_flags/flags/norfolk_island.svg",
+      "isoAlpha2": "NF",
+      "isoAlpha3": "NFK",
+      "category": "isoExtra",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:green",
+        "rir:apnic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "north_korea",
+      "displayNameEn": "North Korea",
+      "assetPath": "assets/world_flags/flags/north_korea.svg",
+      "isoAlpha2": "KP",
+      "isoAlpha3": "PRK",
+      "category": "unMember",
+      "aliases": [
+        "Korea, Democratic People'S Republic Of"
+      ],
+      "distractorTags": [
+        "color:black",
+        "color:blue",
+        "color:red",
+        "rir:apnic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "north_macedonia_republic_of",
+      "displayNameEn": "North Macedonia, Republic of",
+      "assetPath": "assets/world_flags/flags/north_macedonia_republic_of.svg",
+      "isoAlpha2": "MK",
+      "isoAlpha3": "MKD",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:orange",
+        "color:red",
+        "rir:ripe_ncc"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "northern_ireland",
+      "displayNameEn": "Northern Ireland",
+      "assetPath": "assets/world_flags/flags/northern_ireland.svg",
+      "category": "shortlist",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:blue",
+        "color:green",
+        "color:orange",
+        "color:red",
+        "region:europe"
+      ],
+      "avoidAsDistractorWith": [],
+      "subdivisionCode": "GB-NIR"
+    },
+    {
+      "id": "northern_mariana_islands",
+      "displayNameEn": "Northern Mariana Islands",
+      "assetPath": "assets/world_flags/flags/northern_mariana_islands.svg",
+      "isoAlpha2": "MP",
+      "isoAlpha3": "MNP",
+      "category": "isoExtra",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:blue",
+        "color:orange",
+        "color:purple",
+        "color:red",
+        "color:white",
+        "rir:apnic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "norway",
+      "displayNameEn": "Norway",
+      "assetPath": "assets/world_flags/flags/norway.svg",
+      "isoAlpha2": "NO",
+      "isoAlpha3": "NOR",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:red",
+        "color:white",
+        "rir:ripe_ncc"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "occitan",
+      "displayNameEn": "Occitan",
+      "assetPath": "assets/world_flags/flags/occitan.svg",
+      "category": "communityOrRegionalFlagAssociatedWithLanguage",
+      "aliases": [
+        "Occitania"
+      ],
+      "artworkSourcePage": "https://commons.wikimedia.org/wiki/File:Flag_of_Occitania.svg",
+      "artworkLicense": "Public domain",
+      "artworkAuthor": "Nimlar",
+      "artworkSha1": "99aca283b853ad17c2da2a7384561e7bf551f6d2",
+      "distractorTags": [
+        "region:europe"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "oman",
+      "displayNameEn": "Oman",
+      "assetPath": "assets/world_flags/flags/oman.svg",
+      "isoAlpha2": "OM",
+      "isoAlpha3": "OMN",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:green",
+        "color:red",
+        "rir:ripe_ncc"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "pakistan",
+      "displayNameEn": "Pakistan",
+      "assetPath": "assets/world_flags/flags/pakistan.svg",
+      "isoAlpha2": "PK",
+      "isoAlpha3": "PAK",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:green",
+        "rir:apnic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "palau",
+      "displayNameEn": "Palau",
+      "assetPath": "assets/world_flags/flags/palau.svg",
+      "isoAlpha2": "PW",
+      "isoAlpha3": "PLW",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:blue",
+        "color:orange",
+        "rir:apnic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "palestine",
+      "displayNameEn": "Palestine",
+      "assetPath": "assets/world_flags/flags/palestine.svg",
+      "isoAlpha2": "PS",
+      "isoAlpha3": "PSE",
+      "category": "isoExtra",
+      "aliases": [
+        "Palestine, State Of"
+      ],
+      "distractorTags": [
+        "color:black",
+        "color:green",
+        "color:red",
+        "rir:ripe_ncc"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "panama",
+      "displayNameEn": "Panama",
+      "assetPath": "assets/world_flags/flags/panama.svg",
+      "isoAlpha2": "PA",
+      "isoAlpha3": "PAN",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:blue",
+        "color:red",
+        "rir:lacnic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "papua_new_guinea",
+      "displayNameEn": "Papua New Guinea",
+      "assetPath": "assets/world_flags/flags/papua_new_guinea.svg",
+      "isoAlpha2": "PG",
+      "isoAlpha3": "PNG",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:orange",
+        "color:white",
+        "rir:apnic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "paraguay",
+      "displayNameEn": "Paraguay",
+      "assetPath": "assets/world_flags/flags/paraguay.svg",
+      "isoAlpha2": "PY",
+      "isoAlpha3": "PRY",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:blue",
+        "color:green",
+        "color:orange",
+        "color:red",
+        "rir:lacnic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "peru",
+      "displayNameEn": "Peru",
+      "assetPath": "assets/world_flags/flags/peru.svg",
+      "isoAlpha2": "PE",
+      "isoAlpha3": "PER",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:red",
+        "rir:lacnic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "philippines",
+      "displayNameEn": "Philippines",
+      "assetPath": "assets/world_flags/flags/philippines.svg",
+      "isoAlpha2": "PH",
+      "isoAlpha3": "PHL",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:blue",
+        "color:orange",
+        "color:red",
+        "rir:apnic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "pitcairn",
+      "displayNameEn": "Pitcairn",
+      "assetPath": "assets/world_flags/flags/pitcairn.svg",
+      "isoAlpha2": "PN",
+      "isoAlpha3": "PCN",
+      "category": "isoExtra",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:blue",
+        "color:green",
+        "color:orange",
+        "color:red",
+        "color:white",
+        "rir:apnic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "poland",
+      "displayNameEn": "Poland",
+      "assetPath": "assets/world_flags/flags/poland.svg",
+      "isoAlpha2": "PL",
+      "isoAlpha3": "POL",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:red",
+        "rir:ripe_ncc"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "portugal",
+      "displayNameEn": "Portugal",
+      "assetPath": "assets/world_flags/flags/portugal.svg",
+      "isoAlpha2": "PT",
+      "isoAlpha3": "PRT",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:blue",
+        "color:white",
+        "color:yellow",
+        "rir:ripe_ncc"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "puerto_rico",
+      "displayNameEn": "Puerto Rico",
+      "assetPath": "assets/world_flags/flags/puerto_rico.svg",
+      "isoAlpha2": "PR",
+      "isoAlpha3": "PRI",
+      "category": "isoExtra",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:blue",
+        "color:red",
+        "rir:arin"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "qatar",
+      "displayNameEn": "Qatar",
+      "assetPath": "assets/world_flags/flags/qatar.svg",
+      "isoAlpha2": "QA",
+      "isoAlpha3": "QAT",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:red",
+        "rir:ripe_ncc"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "republic_of_the_congo",
+      "displayNameEn": "Republic of the Congo",
+      "assetPath": "assets/world_flags/flags/republic_of_the_congo.svg",
+      "isoAlpha2": "CG",
+      "isoAlpha3": "COG",
+      "category": "unMember",
+      "aliases": [
+        "Congo"
+      ],
+      "distractorTags": [
+        "color:green",
+        "color:yellow",
+        "rir:afrinic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "reunion",
+      "displayNameEn": "Reunion",
+      "assetPath": "assets/world_flags/flags/reunion.svg",
+      "isoAlpha2": "RE",
+      "isoAlpha3": "REU",
+      "category": "isoExtra",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:blue",
+        "color:red",
+        "rir:afrinic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "roma",
+      "displayNameEn": "Roma",
+      "assetPath": "assets/world_flags/flags/roma.svg",
+      "category": "communityOrRegionalFlagAssociatedWithLanguage",
+      "aliases": [
+        "Romani"
+      ],
+      "artworkSourcePage": "https://commons.wikimedia.org/wiki/File:Flag_of_the_Romani_people.svg",
+      "artworkLicense": "Public domain",
+      "artworkAuthor": "AdiJapan",
+      "artworkSha1": "912077276e66dbde9017a01542bff5cf4588f93c",
+      "distractorTags": [
+        "color:blue",
+        "color:green",
+        "color:red",
+        "region:europe"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "romania",
+      "displayNameEn": "Romania",
+      "assetPath": "assets/world_flags/flags/romania.svg",
+      "isoAlpha2": "RO",
+      "isoAlpha3": "ROU",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:blue",
+        "color:orange",
+        "color:red",
+        "rir:ripe_ncc"
+      ],
+      "avoidAsDistractorWith": [
+        "chad"
+      ]
+    },
+    {
+      "id": "russia",
+      "displayNameEn": "Russia",
+      "assetPath": "assets/world_flags/flags/russia.svg",
+      "isoAlpha2": "RU",
+      "isoAlpha3": "RUS",
+      "category": "unMember",
+      "aliases": [
+        "Russian Federation"
+      ],
+      "distractorTags": [
+        "color:black",
+        "color:blue",
+        "color:red",
+        "rir:ripe_ncc"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "rwanda",
+      "displayNameEn": "Rwanda",
+      "assetPath": "assets/world_flags/flags/rwanda.svg",
+      "isoAlpha2": "RW",
+      "isoAlpha3": "RWA",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:blue",
+        "color:green",
+        "color:orange",
+        "rir:afrinic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "saint_barth_lemy",
+      "displayNameEn": "Saint Barthélemy",
+      "assetPath": "assets/world_flags/flags/saint_barth_lemy.svg",
+      "isoAlpha2": "BL",
+      "isoAlpha3": "BLM",
+      "category": "isoExtra",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:blue",
+        "color:red",
+        "rir:arin"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "saint_helena_ascension_and_tristan_da_cunha",
+      "displayNameEn": "Saint Helena, Ascension and Tristan Da Cunha",
+      "assetPath": "assets/world_flags/flags/saint_helena_ascension_and_tristan_da_cunha.svg",
+      "isoAlpha2": "SH",
+      "isoAlpha3": "SHN",
+      "category": "isoExtra",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:red",
+        "color:white",
+        "rir:arin"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "saint_kitts_and_nevis",
+      "displayNameEn": "Saint Kitts and Nevis",
+      "assetPath": "assets/world_flags/flags/saint_kitts_and_nevis.svg",
+      "isoAlpha2": "KN",
+      "isoAlpha3": "KNA",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:green",
+        "color:orange",
+        "color:red",
+        "color:white",
+        "rir:arin"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "saint_lucia",
+      "displayNameEn": "Saint Lucia",
+      "assetPath": "assets/world_flags/flags/saint_lucia.svg",
+      "isoAlpha2": "LC",
+      "isoAlpha3": "LCA",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:blue",
+        "color:orange",
+        "color:white",
+        "rir:arin"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "saint_martin_french_part",
+      "displayNameEn": "Saint Martin (french Part)",
+      "assetPath": "assets/world_flags/flags/saint_martin_french_part.svg",
+      "isoAlpha2": "MF",
+      "isoAlpha3": "MAF",
+      "category": "isoExtra",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:blue",
+        "color:red",
+        "rir:arin"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "saint_pierre_and_miquelon",
+      "displayNameEn": "Saint Pierre and Miquelon",
+      "assetPath": "assets/world_flags/flags/saint_pierre_and_miquelon.svg",
+      "isoAlpha2": "PM",
+      "isoAlpha3": "SPM",
+      "category": "isoExtra",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:blue",
+        "color:red",
+        "rir:arin"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "saint_vincent_and_the_grenadines",
+      "displayNameEn": "Saint Vincent and the Grenadines",
+      "assetPath": "assets/world_flags/flags/saint_vincent_and_the_grenadines.svg",
+      "isoAlpha2": "VC",
+      "isoAlpha3": "VCT",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:blue",
+        "color:green",
+        "color:yellow",
+        "rir:arin"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "samoa",
+      "displayNameEn": "Samoa",
+      "assetPath": "assets/world_flags/flags/samoa.svg",
+      "isoAlpha2": "WS",
+      "isoAlpha3": "WSM",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:red",
+        "color:white",
+        "rir:apnic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "san_marino",
+      "displayNameEn": "San Marino",
+      "assetPath": "assets/world_flags/flags/san_marino.svg",
+      "isoAlpha2": "SM",
+      "isoAlpha3": "SMR",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:blue",
+        "color:green",
+        "color:orange",
+        "color:red",
+        "color:white",
+        "rir:ripe_ncc"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "sao_tome_and_principe",
+      "displayNameEn": "Sao Tome and Principe",
+      "assetPath": "assets/world_flags/flags/sao_tome_and_principe.svg",
+      "isoAlpha2": "ST",
+      "isoAlpha3": "STP",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:green",
+        "color:orange",
+        "color:red",
+        "color:white",
+        "rir:afrinic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "sardinian",
+      "displayNameEn": "Sardinian",
+      "assetPath": "assets/world_flags/flags/sardinian.svg",
+      "category": "communityOrRegionalFlagAssociatedWithLanguage",
+      "aliases": [
+        "Sardinia"
+      ],
+      "artworkSourcePage": "https://commons.wikimedia.org/wiki/File:Flag_of_Sardinia,_Italy.svg",
+      "artworkLicense": "CC BY-SA 3.0",
+      "artworkAuthor": "Angelus",
+      "artworkSha1": "593068e1d9b8b1a96010d21ee2be2ba2483a15e9",
+      "distractorTags": [
+        "color:black",
+        "color:red",
+        "region:europe"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "saudi_arabia",
+      "displayNameEn": "Saudi Arabia",
+      "assetPath": "assets/world_flags/flags/saudi_arabia.svg",
+      "isoAlpha2": "SA",
+      "isoAlpha3": "SAU",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:green",
+        "rir:ripe_ncc"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "scotland",
+      "displayNameEn": "Scotland",
+      "assetPath": "assets/world_flags/flags/scotland.svg",
+      "category": "shortlist",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:blue",
+        "region:europe"
+      ],
+      "avoidAsDistractorWith": [],
+      "subdivisionCode": "GB-SCT"
+    },
+    {
+      "id": "senegal",
+      "displayNameEn": "Senegal",
+      "assetPath": "assets/world_flags/flags/senegal.svg",
+      "isoAlpha2": "SN",
+      "isoAlpha3": "SEN",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:green",
+        "color:red",
+        "color:yellow",
+        "rir:afrinic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "serbia",
+      "displayNameEn": "Serbia",
+      "assetPath": "assets/world_flags/flags/serbia.svg",
+      "isoAlpha2": "RS",
+      "isoAlpha3": "SRB",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:blue",
+        "color:orange",
+        "color:red",
+        "rir:ripe_ncc"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "seychelles",
+      "displayNameEn": "Seychelles",
+      "assetPath": "assets/world_flags/flags/seychelles.svg",
+      "isoAlpha2": "SC",
+      "isoAlpha3": "SYC",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:blue",
+        "color:orange",
+        "color:red",
+        "color:white",
+        "rir:afrinic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "sierra_leone",
+      "displayNameEn": "Sierra Leone",
+      "assetPath": "assets/world_flags/flags/sierra_leone.svg",
+      "isoAlpha2": "SL",
+      "isoAlpha3": "SLE",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:blue",
+        "color:green",
+        "rir:afrinic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "singapore",
+      "displayNameEn": "Singapore",
+      "assetPath": "assets/world_flags/flags/singapore.svg",
+      "isoAlpha2": "SG",
+      "isoAlpha3": "SGP",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:red",
+        "rir:apnic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "sint_maarten_dutch_part",
+      "displayNameEn": "Sint Maarten (dutch Part)",
+      "assetPath": "assets/world_flags/flags/sint_maarten_dutch_part.svg",
+      "isoAlpha2": "SX",
+      "isoAlpha3": "SXM",
+      "category": "isoExtra",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:blue",
+        "color:green",
+        "color:red",
+        "color:yellow",
+        "rir:lacnic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "slovakia",
+      "displayNameEn": "Slovakia",
+      "assetPath": "assets/world_flags/flags/slovakia.svg",
+      "isoAlpha2": "SK",
+      "isoAlpha3": "SVK",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:blue",
+        "color:red",
+        "rir:ripe_ncc"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "slovenia",
+      "displayNameEn": "Slovenia",
+      "assetPath": "assets/world_flags/flags/slovenia.svg",
+      "isoAlpha2": "SI",
+      "isoAlpha3": "SVN",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:blue",
+        "color:orange",
+        "color:red",
+        "rir:ripe_ncc"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "solomon_islands",
+      "displayNameEn": "Solomon Islands",
+      "assetPath": "assets/world_flags/flags/solomon_islands.svg",
+      "isoAlpha2": "SB",
+      "isoAlpha3": "SLB",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:blue",
+        "color:orange",
+        "color:white",
+        "rir:apnic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "somalia",
+      "displayNameEn": "Somalia",
+      "assetPath": "assets/world_flags/flags/somalia.svg",
+      "isoAlpha2": "SO",
+      "isoAlpha3": "SOM",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:blue",
+        "rir:afrinic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "sorbian",
+      "displayNameEn": "Sorbian",
+      "assetPath": "assets/world_flags/flags/sorbian.svg",
+      "category": "communityOrRegionalFlagAssociatedWithLanguage",
+      "aliases": [
+        "Sorbs",
+        "Lusatian Sorbs"
+      ],
+      "artworkSourcePage": "https://commons.wikimedia.org/wiki/File:Flag_of_Sorbs.svg",
+      "artworkLicense": "Public domain",
+      "artworkAuthor": "Mysid",
+      "artworkSha1": "d2ba8008939d77e6d2a2b586cc1b8de905299709",
+      "distractorTags": [
+        "color:black",
+        "color:blue",
+        "color:red",
+        "region:europe"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "south_africa",
+      "displayNameEn": "South Africa",
+      "assetPath": "assets/world_flags/flags/south_africa.svg",
+      "isoAlpha2": "ZA",
+      "isoAlpha3": "ZAF",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:blue",
+        "color:orange",
+        "color:red",
+        "color:white",
+        "rir:afrinic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "south_georgia_and_the_south_sandwich_islands",
+      "displayNameEn": "South Georgia and the South Sandwich Islands",
+      "assetPath": "assets/world_flags/flags/south_georgia_and_the_south_sandwich_islands.svg",
+      "isoAlpha2": "GS",
+      "isoAlpha3": "SGS",
+      "category": "isoExtra",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:blue",
+        "color:green",
+        "color:orange",
+        "color:red",
+        "color:white",
+        "color:yellow",
+        "rir:lacnic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "south_korea",
+      "displayNameEn": "South Korea",
+      "assetPath": "assets/world_flags/flags/south_korea.svg",
+      "isoAlpha2": "KR",
+      "isoAlpha3": "KOR",
+      "category": "unMember",
+      "aliases": [
+        "Korea, Republic Of"
+      ],
+      "distractorTags": [
+        "color:black",
+        "color:blue",
+        "color:red",
+        "color:white",
+        "rir:apnic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "south_sudan",
+      "displayNameEn": "South Sudan",
+      "assetPath": "assets/world_flags/flags/south_sudan.svg",
+      "isoAlpha2": "SS",
+      "isoAlpha3": "SSD",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:blue",
+        "color:green",
+        "color:orange",
+        "color:red",
+        "color:white",
+        "rir:afrinic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "spain",
+      "displayNameEn": "Spain",
+      "assetPath": "assets/world_flags/flags/spain.svg",
+      "isoAlpha2": "ES",
+      "isoAlpha3": "ESP",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:blue",
+        "color:orange",
+        "color:red",
+        "rir:ripe_ncc"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "sri_lanka",
+      "displayNameEn": "Sri Lanka",
+      "assetPath": "assets/world_flags/flags/sri_lanka.svg",
+      "isoAlpha2": "LK",
+      "isoAlpha3": "LKA",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:orange",
+        "color:red",
+        "color:white",
+        "rir:apnic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "sudan",
+      "displayNameEn": "Sudan",
+      "assetPath": "assets/world_flags/flags/sudan.svg",
+      "isoAlpha2": "SD",
+      "isoAlpha3": "SDN",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:green",
+        "color:white",
+        "rir:afrinic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "suriname",
+      "displayNameEn": "Suriname",
+      "assetPath": "assets/world_flags/flags/suriname.svg",
+      "isoAlpha2": "SR",
+      "isoAlpha3": "SUR",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:green",
+        "color:orange",
+        "color:red",
+        "rir:lacnic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "svalbard_and_jan_mayen_islands",
+      "displayNameEn": "Svalbard and Jan Mayen Islands",
+      "assetPath": "assets/world_flags/flags/svalbard_and_jan_mayen_islands.svg",
+      "isoAlpha2": "SJ",
+      "isoAlpha3": "SJM",
+      "category": "isoExtra",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:red",
+        "color:white",
+        "rir:ripe_ncc"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "swaziland",
+      "displayNameEn": "Swaziland",
+      "assetPath": "assets/world_flags/flags/swaziland.svg",
+      "isoAlpha2": "SZ",
+      "isoAlpha3": "SWZ",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:blue",
+        "color:orange",
+        "color:red",
+        "rir:afrinic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "sweden",
+      "displayNameEn": "Sweden",
+      "assetPath": "assets/world_flags/flags/sweden.svg",
+      "isoAlpha2": "SE",
+      "isoAlpha3": "SWE",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:blue",
+        "color:orange",
+        "rir:ripe_ncc"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "switzerland",
+      "displayNameEn": "Switzerland",
+      "assetPath": "assets/world_flags/flags/switzerland.svg",
+      "isoAlpha2": "CH",
+      "isoAlpha3": "CHE",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "rir:ripe_ncc"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "syria",
+      "displayNameEn": "Syria",
+      "assetPath": "assets/world_flags/flags/syria.svg",
+      "isoAlpha2": "SY",
+      "isoAlpha3": "SYR",
+      "category": "unMember",
+      "aliases": [
+        "Syrian Arab Republic"
+      ],
+      "distractorTags": [
+        "color:black",
+        "color:red",
+        "color:white",
+        "rir:ripe_ncc"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "sami",
+      "displayNameEn": "Sámi",
+      "assetPath": "assets/world_flags/flags/sami.svg",
+      "category": "communityOrRegionalFlagAssociatedWithLanguage",
+      "aliases": [
+        "Sami",
+        "Saami",
+        "Sápmi"
+      ],
+      "artworkSourcePage": "https://commons.wikimedia.org/wiki/File:Sami_flag.svg",
+      "artworkLicense": "Public domain",
+      "artworkAuthor": "Jeltz",
+      "artworkSha1": "e07bb487ff14695b91fd76a81eb1f697cc4e1049",
+      "distractorTags": [
+        "color:blue",
+        "color:orange",
+        "color:red",
+        "color:white",
+        "region:europe"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "taiwan",
+      "displayNameEn": "Taiwan",
+      "assetPath": "assets/world_flags/flags/taiwan.svg",
+      "isoAlpha2": "TW",
+      "isoAlpha3": "TWN",
+      "category": "isoExtra",
+      "aliases": [
+        "Taiwan, Province Of China"
+      ],
+      "distractorTags": [
+        "color:black",
+        "color:blue",
+        "rir:apnic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "tajikistan",
+      "displayNameEn": "Tajikistan",
+      "assetPath": "assets/world_flags/flags/tajikistan.svg",
+      "isoAlpha2": "TJ",
+      "isoAlpha3": "TJK",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:orange",
+        "color:red",
+        "color:white",
+        "rir:ripe_ncc"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "tanzania",
+      "displayNameEn": "Tanzania",
+      "assetPath": "assets/world_flags/flags/tanzania.svg",
+      "isoAlpha2": "TZ",
+      "isoAlpha3": "TZA",
+      "category": "unMember",
+      "aliases": [
+        "Tanzania, United Republic Of"
+      ],
+      "distractorTags": [
+        "color:blue",
+        "color:green",
+        "color:white",
+        "color:yellow",
+        "rir:afrinic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "thailand",
+      "displayNameEn": "Thailand",
+      "assetPath": "assets/world_flags/flags/thailand.svg",
+      "isoAlpha2": "TH",
+      "isoAlpha3": "THA",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:blue",
+        "color:red",
+        "rir:apnic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "timor_leste",
+      "displayNameEn": "Timor-leste",
+      "assetPath": "assets/world_flags/flags/timor_leste.svg",
+      "isoAlpha2": "TL",
+      "isoAlpha3": "TLS",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:orange",
+        "color:red",
+        "color:white",
+        "rir:apnic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "togo",
+      "displayNameEn": "Togo",
+      "assetPath": "assets/world_flags/flags/togo.svg",
+      "isoAlpha2": "TG",
+      "isoAlpha3": "TGO",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:green",
+        "color:orange",
+        "color:red",
+        "rir:afrinic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "tokelau",
+      "displayNameEn": "Tokelau",
+      "assetPath": "assets/world_flags/flags/tokelau.svg",
+      "isoAlpha2": "TK",
+      "isoAlpha3": "TKL",
+      "category": "isoExtra",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:orange",
+        "color:white",
+        "rir:apnic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "tonga",
+      "displayNameEn": "Tonga",
+      "assetPath": "assets/world_flags/flags/tonga.svg",
+      "isoAlpha2": "TO",
+      "isoAlpha3": "TON",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:red",
+        "rir:apnic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "trinidad_and_tobago",
+      "displayNameEn": "Trinidad and Tobago",
+      "assetPath": "assets/world_flags/flags/trinidad_and_tobago.svg",
+      "isoAlpha2": "TT",
+      "isoAlpha3": "TTO",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:red",
+        "color:white",
+        "rir:lacnic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "tunisia",
+      "displayNameEn": "Tunisia",
+      "assetPath": "assets/world_flags/flags/tunisia.svg",
+      "isoAlpha2": "TN",
+      "isoAlpha3": "TUN",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:red",
+        "rir:afrinic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "turkmenistan",
+      "displayNameEn": "Turkmenistan",
+      "assetPath": "assets/world_flags/flags/turkmenistan.svg",
+      "isoAlpha2": "TM",
+      "isoAlpha3": "TKM",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:green",
+        "color:orange",
+        "color:red",
+        "rir:ripe_ncc"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "turks_and_caicos_islands",
+      "displayNameEn": "Turks and Caicos Islands",
+      "assetPath": "assets/world_flags/flags/turks_and_caicos_islands.svg",
+      "isoAlpha2": "TC",
+      "isoAlpha3": "TCA",
+      "category": "isoExtra",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:green",
+        "color:orange",
+        "color:red",
+        "color:white",
+        "rir:arin"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "tuvalu",
+      "displayNameEn": "Tuvalu",
+      "assetPath": "assets/world_flags/flags/tuvalu.svg",
+      "isoAlpha2": "TV",
+      "isoAlpha3": "TUV",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:blue",
+        "color:red",
+        "color:white",
+        "color:yellow",
+        "rir:apnic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "t_rki_ye",
+      "displayNameEn": "Türki̇ye",
+      "assetPath": "assets/world_flags/flags/t_rki_ye.svg",
+      "isoAlpha2": "TR",
+      "isoAlpha3": "TUR",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:red",
+        "rir:ripe_ncc"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "u_s_virgin_islands",
+      "displayNameEn": "U.S. Virgin Islands",
+      "assetPath": "assets/world_flags/flags/u_s_virgin_islands.svg",
+      "isoAlpha2": "VI",
+      "isoAlpha3": "VIR",
+      "category": "isoExtra",
+      "aliases": [
+        "Virgin Islands (U.S.)"
+      ],
+      "distractorTags": [
+        "color:black",
+        "color:blue",
+        "color:green",
+        "color:orange",
+        "color:red",
+        "color:white",
+        "rir:arin"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "uganda",
+      "displayNameEn": "Uganda",
+      "assetPath": "assets/world_flags/flags/uganda.svg",
+      "isoAlpha2": "UG",
+      "isoAlpha3": "UGA",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:orange",
+        "color:red",
+        "color:white",
+        "rir:afrinic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "ukraine",
+      "displayNameEn": "Ukraine",
+      "assetPath": "assets/world_flags/flags/ukraine.svg",
+      "isoAlpha2": "UA",
+      "isoAlpha3": "UKR",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:blue",
+        "rir:ripe_ncc"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "united_arab_emirates",
+      "displayNameEn": "United Arab Emirates",
+      "assetPath": "assets/world_flags/flags/united_arab_emirates.svg",
+      "isoAlpha2": "AE",
+      "isoAlpha3": "ARE",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:white",
+        "rir:ripe_ncc"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "united_kingdom",
+      "displayNameEn": "United Kingdom",
+      "assetPath": "assets/world_flags/flags/united_kingdom.svg",
+      "isoAlpha2": "GB",
+      "isoAlpha3": "GBR",
+      "category": "unMember",
+      "aliases": [
+        "United Kingdom Of Great Britain And Northern Ireland*"
+      ],
+      "distractorTags": [
+        "color:black",
+        "color:red",
+        "color:white",
+        "rir:ripe_ncc"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "united_states",
+      "displayNameEn": "United States",
+      "assetPath": "assets/world_flags/flags/united_states.svg",
+      "isoAlpha2": "US",
+      "isoAlpha3": "USA",
+      "category": "unMember",
+      "aliases": [
+        "United States Of America"
+      ],
+      "distractorTags": [
+        "color:black",
+        "color:blue",
+        "color:red",
+        "rir:arin"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "united_states_minor_outlying_islands",
+      "displayNameEn": "United States Minor Outlying Islands",
+      "assetPath": "assets/world_flags/flags/united_states_minor_outlying_islands.svg",
+      "isoAlpha2": "UM",
+      "isoAlpha3": "UMI",
+      "category": "isoExtra",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:blue",
+        "color:red",
+        "rir:arin"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "uruguay",
+      "displayNameEn": "Uruguay",
+      "assetPath": "assets/world_flags/flags/uruguay.svg",
+      "isoAlpha2": "UY",
+      "isoAlpha3": "URY",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:blue",
+        "color:orange",
+        "rir:lacnic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "uzbekistan",
+      "displayNameEn": "Uzbekistan",
+      "assetPath": "assets/world_flags/flags/uzbekistan.svg",
+      "isoAlpha2": "UZ",
+      "isoAlpha3": "UZB",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:blue",
+        "color:green",
+        "color:red",
+        "rir:ripe_ncc"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "vanuatu",
+      "displayNameEn": "Vanuatu",
+      "assetPath": "assets/world_flags/flags/vanuatu.svg",
+      "isoAlpha2": "VU",
+      "isoAlpha3": "VUT",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:green",
+        "color:orange",
+        "color:red",
+        "rir:apnic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "vatican_city",
+      "displayNameEn": "Vatican City",
+      "assetPath": "assets/world_flags/flags/vatican_city.svg",
+      "isoAlpha2": "VA",
+      "isoAlpha3": "VAT",
+      "category": "isoExtra",
+      "aliases": [
+        "Holy See"
+      ],
+      "distractorTags": [
+        "color:black",
+        "color:orange",
+        "color:red",
+        "rir:ripe_ncc"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "venezuela",
+      "displayNameEn": "Venezuela",
+      "assetPath": "assets/world_flags/flags/venezuela.svg",
+      "isoAlpha2": "VE",
+      "isoAlpha3": "VEN",
+      "category": "unMember",
+      "aliases": [
+        "Venezuela, Bolivarian Republic Of"
+      ],
+      "distractorTags": [
+        "color:black",
+        "color:orange",
+        "color:red",
+        "color:white",
+        "rir:lacnic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "viet_nam",
+      "displayNameEn": "Viet Nam",
+      "assetPath": "assets/world_flags/flags/viet_nam.svg",
+      "isoAlpha2": "VN",
+      "isoAlpha3": "VNM",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:red",
+        "color:yellow",
+        "rir:apnic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "wales",
+      "displayNameEn": "Wales",
+      "assetPath": "assets/world_flags/flags/wales.svg",
+      "category": "shortlist",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:green",
+        "color:red",
+        "region:europe"
+      ],
+      "avoidAsDistractorWith": [],
+      "subdivisionCode": "GB-WLS"
+    },
+    {
+      "id": "wallis_and_futuna_islands",
+      "displayNameEn": "Wallis and Futuna Islands",
+      "assetPath": "assets/world_flags/flags/wallis_and_futuna_islands.svg",
+      "isoAlpha2": "WF",
+      "isoAlpha3": "WLF",
+      "category": "isoExtra",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:blue",
+        "color:red",
+        "rir:apnic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "western_sahara",
+      "displayNameEn": "Western Sahara",
+      "assetPath": "assets/world_flags/flags/western_sahara.svg",
+      "isoAlpha2": "EH",
+      "isoAlpha3": "ESH",
+      "category": "isoExtra",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:red",
+        "color:white",
+        "rir:afrinic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "yemen",
+      "displayNameEn": "Yemen",
+      "assetPath": "assets/world_flags/flags/yemen.svg",
+      "isoAlpha2": "YE",
+      "isoAlpha3": "YEM",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:red",
+        "color:white",
+        "rir:ripe_ncc"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "zambia",
+      "displayNameEn": "Zambia",
+      "assetPath": "assets/world_flags/flags/zambia.svg",
+      "isoAlpha2": "ZM",
+      "isoAlpha3": "ZMB",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:green",
+        "color:orange",
+        "color:red",
+        "color:white",
+        "rir:afrinic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "zimbabwe",
+      "displayNameEn": "Zimbabwe",
+      "assetPath": "assets/world_flags/flags/zimbabwe.svg",
+      "isoAlpha2": "ZW",
+      "isoAlpha3": "ZWE",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:black",
+        "color:blue",
+        "color:orange",
+        "color:red",
+        "color:white",
+        "rir:afrinic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "aland_islands",
+      "displayNameEn": "Åland Islands",
+      "assetPath": "assets/world_flags/flags/aland_islands.svg",
+      "isoAlpha2": "AX",
+      "isoAlpha3": "ALA",
+      "category": "isoExtra",
+      "aliases": [],
+      "distractorTags": [
+        "color:blue",
+        "color:orange",
+        "color:red",
+        "rir:ripe_ncc"
+      ],
+      "avoidAsDistractorWith": []
+    }
+  ]
+}

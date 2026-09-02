@@ -1,3 +1,21 @@
+# 2.0.22 (build 222) - 2026-09-02
+
+- Replaced display-name-based learner identity with generated opaque UUIDv4 `learnerProfileId` values, one centralized ID namespace and an ID-only active learner reference. This is an intentional clean cut: legacy learner registries and namespaces are neither migrated nor read.
+- Allowed duplicate learner display names while keeping avatar, progress, XP, streak, settings, course selection and deletion isolated by learner ID; logout still removes only the active reference.
+- Introduced learner backup schema v2 with explicit identity-preserving restore, collision-time Replace/Separate copy/Cancel choices, and deliberate separate-copy import under a new ID and user-selected display name.
+- Read learner imports only from `Documents/QuisquisLingo/Imports/learner_import.json`, while preserving automatic learner backup filenames and the existing `Documents/QuisquisLingo/Exports` destination.
+- Added a separate 266-entity world-flag manifest: 193 UN Members, 56 ISO extras, an eight-entry Shortlist and nine language-related community/regional flags. Country and shortlist assets use pinned `lipis/flag-icons` v7.5.0 under its included MIT license; the nine additional SVGs carry per-file Wikimedia Commons provenance and reusable-license notices.
+- Added the hidden Settings Flag Game, activated by five taps within three seconds on the Settings title/flag hint after the existing suspense sound. Four cumulative pools drive 12-question games with five English answers, metadata-guided distractors, explicit near-identical exclusions, randomized targets/options and victory/defeat feedback.
+- Added searchable read-only UN Members, ISO extras, Shortlist and Language-related flags browsers, with compact category explanations and canonical-name/alias matching.
+- Refined the unchanged four Flag Game pools to the learner-facing labels UN, UN + ISO, UN + ISO + Shortlist and All Flags; added the `Flag Game` tooltip and exact 12-question introduction.
+- Added each best score's `achievedAt` date to the existing compact scorecard row without changing card size, stable mode IDs, historical records or ranking.
+- Moved the exact per-question answer feedback directly below the flag and increased only the correct-answer transition delay from 700 ms to 800 ms; wrong-answer timing remains 700 ms.
+- Added device-local Top 5 scorecards for all four modes, keyed by learner ID with one best result per learner/mode and score-descending, time-ascending, achieved-at-ascending ranking.
+- Confirmed Flag Game writes only game-best records and awards no XP, Weekly XP, streak, Laurel, Round/Lesson/Duel/Review or course progress.
+- Preserved every existing course-flag mapping and rendering path, including legacy `CY`/`EN`, custom `flagImageBase64` precedence and `FlagPainter` behavior.
+- Expanded the pinned flag-icons star markers into 50 renderer-compatible explicit stars for the United States and United States Minor Outlying Islands assets, preserving their artwork, identities, dataset membership and MIT provenance.
+- Refreshed the mandatory 30-day Alpha lifetime through the end of **2026-10-02**.
+
 # 2.0.21 (build 221) - 2026-09-01
 
 - Changed built-in and custom learner course flags from stretched/cropped viewport fills to contained, aspect-ratio-preserving artwork with neutral surrounding space.

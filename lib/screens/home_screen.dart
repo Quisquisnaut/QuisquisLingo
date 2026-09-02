@@ -135,9 +135,10 @@ class _HomeScreenState extends State<HomeScreen> {
     "Ready? The words certainly aren't.",
   ];
   String? _activeLearner;
+  String? _activeLearnerId;
   bool _addingLearner = false;
   bool _learnerFlowOpen = false;
-  List<String> _learners = [];
+  List<LearnerProfile> _learners = [];
   Course? _course;
   Set<String> _completedRounds = {};
   Set<String> _completedTopics = {};
@@ -307,8 +308,10 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _reload() async {
     _resetLockedLessonTapSequence();
     try {
-      final learners = await _profiles.getProfiles();
-      final active = await _profiles.getActiveProfile();
+      final learners = await _profiles.getProfileRecords();
+      final activeProfile = await _profiles.getActiveProfileRecord();
+      final active = activeProfile?.displayName;
+      final activeId = activeProfile?.learnerProfileId;
       var selectedRef = active == null
           ? _selectedCourseRef
           : (await _settings.getLastSelectedCourseCode() ?? 'IT');
@@ -338,27 +341,33 @@ class _HomeScreenState extends State<HomeScreen> {
         selectedLanguage = bundledCode;
         course = await _courseService.loadCourse(bundledCode);
       }
-      final savedTopicId = await _settings.getLastVisitedTopicId(
-        course.courseId,
-      );
+      final savedTopicId = activeId == null
+          ? null
+          : await _settings.getLastVisitedTopicId(course.courseId);
       var activeTopicIndex = course.topics.indexWhere(
         (topic) => topic.id == savedTopicId,
       );
       if (activeTopicIndex < 0) activeTopicIndex = 0;
-      final rounds = await _progress.getCompletedRounds(
-        courseId: course.courseId,
-      );
-      final topics = await _progress.getCompletedTopics(
-        courseId: course.courseId,
-      );
-      final perfect = await _progress.getPerfectRounds(
-        courseId: course.courseId,
-      );
-      final skipped = await _progress.getTtsSkippedPerfectRounds(
-        courseId: course.courseId,
-      );
-      final wonDuels = await _progress.getWonDuels(courseId: course.courseId);
-      final iddqdMode = await _settings.isIddqdModeEnabled(course.courseId);
+      final rounds = activeId == null
+          ? <String>{}
+          : await _progress.getCompletedRounds(courseId: course.courseId);
+      final topics = activeId == null
+          ? <String>{}
+          : await _progress.getCompletedTopics(courseId: course.courseId);
+      final perfect = activeId == null
+          ? <String>{}
+          : await _progress.getPerfectRounds(courseId: course.courseId);
+      final skipped = activeId == null
+          ? <String>{}
+          : await _progress.getTtsSkippedPerfectRounds(
+              courseId: course.courseId,
+            );
+      final wonDuels = activeId == null
+          ? <String>{}
+          : await _progress.getWonDuels(courseId: course.courseId);
+      final iddqdMode = activeId == null
+          ? false
+          : await _settings.isIddqdModeEnabled(course.courseId);
       if (course.topics.isNotEmpty &&
           !_topicUnlocks.isTopicUnlocked(
             topicIndex: activeTopicIndex,
@@ -371,13 +380,14 @@ class _HomeScreenState extends State<HomeScreen> {
       }
       if (!mounted) return;
       final resetFlow =
-          _flowCourseId != course.courseId || _flowLearner != active;
+          _flowCourseId != course.courseId || _flowLearner != activeId;
       setState(() {
         _course = course;
         _selectedCourseRef = selectedRef;
         _selectedLanguage = selectedLanguage;
         _learners = learners;
         _activeLearner = active;
+        _activeLearnerId = activeId;
         _completedRounds = rounds;
         _completedTopics = topics;
         _perfectRounds = perfect;
@@ -387,7 +397,7 @@ class _HomeScreenState extends State<HomeScreen> {
         _activeTopicIndex = activeTopicIndex;
         if (resetFlow) {
           _flowCourseId = course.courseId;
-          _flowLearner = active;
+          _flowLearner = activeId;
         }
       });
       if (resetFlow) _scrollToTopic(course, activeTopicIndex);
@@ -562,18 +572,23 @@ class _HomeScreenState extends State<HomeScreen> {
     _addingLearner = false;
   }
 
-  Future<void> _switchLearner(String name) async {
+  Future<void> _switchLearner(String learnerProfileId) async {
     if (mounted) setState(() => _course = null);
-    await _profiles.setActiveProfile(name);
+    await _profiles.setActiveProfileById(learnerProfileId);
     await _reload();
   }
 
-  Future<void> _deleteLearner(String name, BuildContext overlayContext) async {
+  Future<void> _deleteLearner(
+    LearnerProfile profile,
+    BuildContext overlayContext,
+  ) async {
     final ok = await showDialog<bool>(
       context: overlayContext,
       builder: (ctx) => AlertDialog(
         title: const Text('Delete learner?'),
-        content: Text('Delete $name and all local progress for this learner?'),
+        content: Text(
+          'Delete ${profile.displayName} and all local progress for this learner?',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
@@ -587,7 +602,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
     if (ok == true) {
-      await _profiles.deleteProfile(name);
+      await _profiles.deleteProfileById(profile.learnerProfileId);
       await _reload();
     }
   }
@@ -608,19 +623,40 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: ListView(
                   children: [
                     ..._learners.map(
-                      (n) => ListTile(
-                        leading: Icon(
-                          n == _activeLearner
-                              ? Icons.check_circle
-                              : Icons.person_outline,
+                      (profile) => FutureBuilder<ProfileAvatarAppearance?>(
+                        future: _profiles.getAvatarAppearanceForProfile(
+                          profile.learnerProfileId,
                         ),
-                        title: Text(n),
-                        onTap: () => Navigator.pop(ctx, 'switch:$n'),
-                        trailing: IconButton(
-                          tooltip: 'Delete learner',
-                          icon: const Icon(Icons.delete_outline),
-                          onPressed: () => Navigator.pop(ctx, 'delete:$n'),
-                        ),
+                        builder: (context, snapshot) {
+                          final appearance = snapshot.data;
+                          return ListTile(
+                            leading: SizedBox(
+                              width: 42,
+                              height: 48,
+                              child: appearance == null
+                                  ? const Icon(Icons.person_outline)
+                                  : LearnerAvatar(
+                                      skinTone: appearance.skinTone,
+                                      hairTone: appearance.hairTone,
+                                    ),
+                            ),
+                            title: Text(profile.displayName),
+                            selected:
+                                profile.learnerProfileId == _activeLearnerId,
+                            onTap: () => Navigator.pop(
+                              ctx,
+                              'switch:${profile.learnerProfileId}',
+                            ),
+                            trailing: IconButton(
+                              tooltip: 'Delete learner',
+                              icon: const Icon(Icons.delete_outline),
+                              onPressed: () => Navigator.pop(
+                                ctx,
+                                'delete:${profile.learnerProfileId}',
+                              ),
+                            ),
+                          );
+                        },
                       ),
                     ),
                     ListTile(
@@ -650,7 +686,15 @@ class _HomeScreenState extends State<HomeScreen> {
       return;
     }
     if (action.startsWith('delete:')) {
-      await _deleteLearner(action.substring(7), overlayContext);
+      final learnerProfileId = action.substring(7);
+      LearnerProfile? profile;
+      for (final candidate in _learners) {
+        if (candidate.learnerProfileId == learnerProfileId) {
+          profile = candidate;
+          break;
+        }
+      }
+      if (profile != null) await _deleteLearner(profile, overlayContext);
     }
   }
 

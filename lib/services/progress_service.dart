@@ -131,7 +131,7 @@ class ProgressService {
     final p = await _prefs;
     final participating = <LocalLeaderboardEntry>[];
     for (final entry in entries) {
-      final prefix = 'learner_${Uri.encodeComponent(entry.learnerName)}_';
+      final prefix = ProfileService.prefixForProfileId(entry.learnerProfileId);
       final participates =
           p.getBool('${prefix}local_leaderboard_participation') ?? true;
       if (!participates) continue;

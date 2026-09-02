@@ -8,6 +8,9 @@ class SoundEffectService {
   Future<void> playDuelWin() => _play('audio/duel_win.wav');
   Future<void> playDuelLost() => _play('audio/duel_lost.wav');
   Future<void> playDuelSuspense() => _play('audio/duel_suspense.wav');
+  Future<void> playVictory() => playDuelWin();
+  Future<void> playDefeat() => playDuelLost();
+  Future<void> playSuspense() => playDuelSuspense();
 
   Future<void> _play(String assetPath) async {
     if (!await _settings.areSoundEffectsEnabled()) return;

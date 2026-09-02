@@ -382,12 +382,12 @@ void main() {
       PackageInfo.setMockInitialValues(
         appName: 'QuisquisLingo',
         packageName: 'com.quisquislingo.app',
-        version: '2.0.21',
-        buildNumber: '221',
+        version: '2.0.22',
+        buildNumber: '222',
         buildSignature: '',
       );
       SharedPreferences.setMockInitialValues({
-        'one_time_notice_seen_welcome_2.0.21': true,
+        'one_time_notice_seen_welcome_2.0.22': true,
         'sound_effects_enabled': false,
       });
       await ProfileService().addProfile('Mascot Learner');

@@ -106,7 +106,7 @@ class InfoScreen extends StatelessWidget {
         _InfoSection(
           title: 'Export and import learner data',
           body:
-              'Settings > User Data > Export my data creates a backup of the active learner profile, including learner-specific progress and preferences. It is saved directly in Documents/QuisquisLingo/Exports with an automatic filename; there is no Save As dialog. If that filename already exists, QuisquisLingo adds _2, _3 and later numeric suffixes. To import learner data, copy a supported backup to Documents/QuisquisLingo/Exports/learner_import.json and then choose Settings > User Data > Import my data. Course Editor projects, Image Bank packages and Audio Packs are separate authoring resources and are not part of this learner backup.',
+              'Settings > User Data > Export my data creates a backup of the active learner profile, including learner-specific progress and preferences. It is saved directly in Documents/QuisquisLingo/Exports with an automatic filename; there is no Save As dialog. If that filename already exists, QuisquisLingo adds _2, _3 and later numeric suffixes. To import learner data, copy a supported backup to Documents/QuisquisLingo/Imports/learner_import.json and then choose Settings > User Data > Import my data. Course Editor projects, Image Bank packages and Audio Packs are separate authoring resources and are not part of this learner backup.',
         ),
         _InfoSection(
           title: 'Updates',

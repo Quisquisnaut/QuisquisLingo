@@ -38,8 +38,33 @@ class _UserDataSettingsScreenState extends State<UserDataSettingsScreen> {
 
   Future<void> _importLearner() async {
     try {
-      final name = await _backup.importProfile();
-      if (name == null || !mounted) return;
+      final document = await _backup.readImportFile();
+      if (!mounted) return;
+      var action = await _chooseImportAction(document.displayName);
+      if (action == null || !mounted) return;
+      if (action == _LearnerImportAction.restore &&
+          await _profileIdExists(document.learnerProfileId)) {
+        action = await _chooseCollisionAction(document.displayName);
+        if (action == null || !mounted) return;
+      }
+
+      late String name;
+      if (action == _LearnerImportAction.separateCopy) {
+        final chosenName = await _chooseSeparateCopyName(document.displayName);
+        if (chosenName == null || !mounted) return;
+        final profile = await _backup.importAsSeparateCopy(
+          document,
+          displayName: chosenName,
+        );
+        name = profile.displayName;
+      } else {
+        final profile = await _backup.restorePreservingIdentity(
+          document,
+          replaceExisting: action == _LearnerImportAction.replace,
+        );
+        name = profile.displayName;
+      }
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           duration: const Duration(seconds: 8),
@@ -55,6 +80,105 @@ class _UserDataSettingsScreenState extends State<UserDataSettingsScreen> {
         ),
       );
     }
+  }
+
+  Future<bool> _profileIdExists(String learnerProfileId) async =>
+      await _backup.profileExists(learnerProfileId);
+
+  Future<_LearnerImportAction?> _chooseImportAction(
+    String displayName,
+  ) => showDialog<_LearnerImportAction>(
+    context: context,
+    builder: (ctx) => AlertDialog(
+      title: const Text('Import learner data'),
+      content: Text(
+        'Restore $displayName with the same learner identity, or import an independent copy?',
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(ctx),
+          child: const Text('Cancel'),
+        ),
+        TextButton(
+          onPressed: () =>
+              Navigator.pop(ctx, _LearnerImportAction.separateCopy),
+          child: const Text('Import as separate copy'),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.pop(ctx, _LearnerImportAction.restore),
+          child: const Text('Restore / preserve identity'),
+        ),
+      ],
+    ),
+  );
+
+  Future<_LearnerImportAction?> _chooseCollisionAction(
+    String displayName,
+  ) => showDialog<_LearnerImportAction>(
+    context: context,
+    builder: (ctx) => AlertDialog(
+      title: const Text('Learner already exists'),
+      content: Text(
+        '$displayName has the same learner identity as a profile already on this device.',
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(ctx),
+          child: const Text('Cancel'),
+        ),
+        TextButton(
+          onPressed: () =>
+              Navigator.pop(ctx, _LearnerImportAction.separateCopy),
+          child: const Text('Import as separate copy'),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.pop(ctx, _LearnerImportAction.replace),
+          child: const Text('Replace existing'),
+        ),
+      ],
+    ),
+  );
+
+  Future<String?> _chooseSeparateCopyName(String originalName) async {
+    final controller = TextEditingController(text: originalName);
+    String? errorText;
+    final result = await showDialog<String>(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setLocalState) => AlertDialog(
+          title: const Text('Name the separate copy'),
+          content: TextField(
+            controller: controller,
+            autofocus: true,
+            maxLength: 60,
+            decoration: InputDecoration(
+              labelText: 'Learner name',
+              border: const OutlineInputBorder(),
+              errorText: errorText,
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () {
+                final clean = controller.text.trim();
+                if (clean.isEmpty) {
+                  setLocalState(() => errorText = 'Enter a learner name.');
+                  return;
+                }
+                Navigator.pop(ctx, clean);
+              },
+              child: const Text('Import copy'),
+            ),
+          ],
+        ),
+      ),
+    );
+    controller.dispose();
+    return result;
   }
 
   Future<void> _resetCurrentCourse() async {
@@ -138,7 +262,7 @@ class _UserDataSettingsScreenState extends State<UserDataSettingsScreen> {
             leading: const Icon(Icons.download_outlined),
             title: const Text('Import my data'),
             subtitle: const Text(
-              'Copy the backup to Documents/QuisquisLingo/Exports/learner_import.json, then tap here.',
+              'Copy the backup to Documents/QuisquisLingo/Imports/learner_import.json, then tap here.',
             ),
             onTap: _importLearner,
           ),
@@ -155,3 +279,5 @@ class _UserDataSettingsScreenState extends State<UserDataSettingsScreen> {
     );
   }
 }
+
+enum _LearnerImportAction { restore, replace, separateCopy }

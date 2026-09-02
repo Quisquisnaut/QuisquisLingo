@@ -378,7 +378,8 @@ void main() {
     'six-exercise repeat and completed Topic add only the authoritative 10 XP',
     () async {
       final clock = _MutableClock(DateTime(2026, 8, 28, 12));
-      await ProfileService().addProfile('Repeat Topic Learner');
+      final profiles = ProfileService();
+      await profiles.addProfile('Repeat Topic Learner');
       final progress = ProgressService(now: clock.call);
       final service = LearningCompletionService(progressService: progress);
       await progress.addXp(85, courseCode: 'IT', courseId: 'course_1');
@@ -390,12 +391,12 @@ void main() {
       // Preserve the observed starting point while retaining the authoritative
       // already-completed Topic state.
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setInt('learner_Repeat%20Topic%20Learner_xp_IT', 85);
-      await prefs.setInt('learner_Repeat%20Topic%20Learner_week_xp', 85);
-      await prefs.setString(
-        'learner_Repeat%20Topic%20Learner_week_xp_by_course',
-        '{"course_1":85}',
+      final prefix = ProfileService.prefixForProfileId(
+        (await profiles.getActiveProfileId())!,
       );
+      await prefs.setInt('${prefix}xp_IT', 85);
+      await prefs.setInt('${prefix}week_xp', 85);
+      await prefs.setString('${prefix}week_xp_by_course', '{"course_1":85}');
 
       final result = await service.completeRound(
         _request(
@@ -426,7 +427,8 @@ void main() {
     'real Round completion preserves two activity dates when its duplicate registrations cross midnight',
     () async {
       final clock = _MutableClock(DateTime(2026, 8, 25, 23, 59));
-      await ProfileService().addProfile('Midnight Learner');
+      final profiles = ProfileService();
+      await profiles.addProfile('Midnight Learner');
       final progress = ProgressService(now: clock.call);
       final service = LearningCompletionService(progressService: progress);
 
@@ -445,7 +447,9 @@ void main() {
       );
 
       final prefs = await SharedPreferences.getInstance();
-      const prefix = 'learner_Midnight%20Learner_';
+      final prefix = ProfileService.prefixForProfileId(
+        (await profiles.getActiveProfileId())!,
+      );
       expect(await progress.getStreak(courseCode: 'IT'), 2);
       expect(await progress.getDaysStudied(courseCode: 'IT'), 2);
       expect(prefs.getInt('${prefix}streak_IT'), 2);

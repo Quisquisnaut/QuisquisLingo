@@ -45,13 +45,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Future<void> _load() async {
     final generation = ++_loadGeneration;
-    final learnerName = await _profiles.getActiveProfile();
-    final appearance = learnerName == null
+    final profile = await _profiles.getActiveProfileRecord();
+    final appearance = profile == null
         ? null
-        : await _profiles.getAvatarAppearanceForProfile(learnerName);
+        : await _profiles.getAvatarAppearanceForProfile(
+            profile.learnerProfileId,
+          );
     if (!mounted || generation != _loadGeneration) return;
     setState(() {
-      _learnerName = learnerName;
+      _learnerName = profile?.displayName;
       _appearance = appearance;
       _loading = false;
     });

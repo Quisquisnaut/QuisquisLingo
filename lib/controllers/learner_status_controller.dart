@@ -64,6 +64,12 @@ class LearnerStatusController extends ChangeNotifier
 
   LearnerStatusState get state => _state;
 
+  void _showNoActiveProfile(int generation) {
+    if (_disposed || generation != _generation) return;
+    _state = const LearnerStatusState.loading();
+    notifyListeners();
+  }
+
   Future<Course?> _resolveActiveCourse() async {
     final saved = await _settings.getLastSelectedCourseCode();
     if (saved != null && saved.startsWith('custom:')) {
@@ -87,43 +93,50 @@ class LearnerStatusController extends ChangeNotifier
     final generation = ++_generation;
     final profile = await _profiles.getActiveProfile();
     if (profile == null) {
-      if (_disposed || generation != _generation) return;
-      _state = const LearnerStatusState.loading();
-      notifyListeners();
+      _showNoActiveProfile(generation);
       return;
     }
-    final course = await _resolveActiveCourse();
-    final courseCode = course == null
-        ? null
-        : CourseService.codeForCourse(course);
-    final weeklyXp = await _progress.getWeeklyXp();
-    final weeklyGoal = await _settings.getWeeklyXpTarget();
-    final streak = courseCode == null
-        ? null
-        : await _progress.getStreak(courseCode: courseCode);
-    final eligibleRoundIds = course == null
-        ? null
-        : _roundPlayability.laurelEligibleRoundIds(course);
-    final perfectRoundIds = course == null
-        ? null
-        : await _progress.getPerfectRounds(courseId: course.courseId);
-    final laurels = eligibleRoundIds == null || perfectRoundIds == null
-        ? null
-        : perfectRoundIds.intersection(eligibleRoundIds).length;
-    final laurelMaximum = eligibleRoundIds?.length;
+    try {
+      final course = await _resolveActiveCourse();
+      if (_disposed || generation != _generation) return;
+      final courseCode = course == null
+          ? null
+          : CourseService.codeForCourse(course);
+      final weeklyXp = await _progress.getWeeklyXp();
+      final weeklyGoal = await _settings.getWeeklyXpTarget();
+      final streak = courseCode == null
+          ? null
+          : await _progress.getStreak(courseCode: courseCode);
+      final eligibleRoundIds = course == null
+          ? null
+          : _roundPlayability.laurelEligibleRoundIds(course);
+      final perfectRoundIds = course == null
+          ? null
+          : await _progress.getPerfectRounds(courseId: course.courseId);
+      final laurels = eligibleRoundIds == null || perfectRoundIds == null
+          ? null
+          : perfectRoundIds.intersection(eligibleRoundIds).length;
+      final laurelMaximum = eligibleRoundIds?.length;
 
-    if (_disposed || generation != _generation) return;
-    _state = LearnerStatusState(
-      activeProfile: profile,
-      course: course,
-      courseCode: courseCode,
-      weeklyXp: weeklyXp,
-      weeklyXpGoal: weeklyGoal,
-      streak: streak,
-      laurels: laurels,
-      laurelMaximum: laurelMaximum,
-    );
-    notifyListeners();
+      if (_disposed || generation != _generation) return;
+      _state = LearnerStatusState(
+        activeProfile: profile,
+        course: course,
+        courseCode: courseCode,
+        weeklyXp: weeklyXp,
+        weeklyXpGoal: weeklyGoal,
+        streak: streak,
+        laurels: laurels,
+        laurelMaximum: laurelMaximum,
+      );
+      notifyListeners();
+    } on StateError {
+      if (await _profiles.getActiveProfileId() == null) {
+        _showNoActiveProfile(generation);
+        return;
+      }
+      rethrow;
+    }
   }
 
   void _scheduleDayBoundary() {
