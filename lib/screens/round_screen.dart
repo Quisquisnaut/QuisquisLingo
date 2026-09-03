@@ -868,7 +868,13 @@ class _RoundScreenState extends State<RoundScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text(ex.question, style: Theme.of(context).textTheme.headlineSmall),
+        if (ex.type == 'type_translation') ...[
+          Text(
+            'Translate from ${widget.course.sourceLanguage} into ${widget.course.targetLanguage}:',
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+        ] else
+          Text(ex.question, style: Theme.of(context).textTheme.headlineSmall),
         const SizedBox(height: 10),
         if (ex.hint.isNotEmpty)
           Container(

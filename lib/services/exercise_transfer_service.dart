@@ -1,4 +1,5 @@
 import '../models/course_models.dart';
+import 'authoring_duplication_service.dart';
 
 /// Temporary in-app clipboard used to copy or move one exercise between Rounds.
 ///
@@ -27,10 +28,9 @@ class ExerciseTransferService {
   static Exercise? takeForPaste() {
     final source = _exercise;
     if (source == null) return null;
-    final stamp = DateTime.now().microsecondsSinceEpoch;
     final result = _move
         ? source
-        : Exercise.v2(id: '${source.id}_copy_$stamp', editorTemplate: source.editorTemplate, promptElements: source.promptElements, interaction: source.interaction, evaluation: source.evaluation, hint: source.hint, feedback: source.feedback, missingWords: source.missingWords);
+        : AuthoringDuplicationService().duplicateExercise(source);
     clear();
     return result;
   }

@@ -7,7 +7,7 @@ Date: 3 September 2026
 - Version: `2.0.24+224`.
 - Mandatory 30-day Alpha expiry: end of 3 October 2026.
 - Canonical course format remains Course Model v5: `Course -> Lesson -> GuideBook + Round + Duel -> Content/Exercise`.
-- Scope: the exercise architecture and authoring-system consolidation specified for build 224, including the dedicated Lesson manager, canonical interaction models, new authoring presets, contextual comprehension, answer-expression engine, import normalization boundary, registry-backed Help, validation, documentation, and Windows package.
+- Scope: the exercise architecture and authoring-system consolidation specified for build 224, including the dedicated Lesson manager, complete Lesson/Round/Exercise actions, recursive duplication, canonical interaction models, new authoring presets, contextual comprehension, the Exercise Creation Wizard, the configurable GuideBook Round generator, answer-expression and correction engines, import normalization boundary, registry-backed Help, validation, documentation, and Windows package.
 - XP, Weekly XP, streak, Review, Duel rules and eligibility, progression, IDDQD, learner identity, backups, flags, TTS, audio, and established course identity/persistence behavior remain unchanged.
 
 ## Read-only audit and architecture decisions
@@ -23,17 +23,20 @@ Date: 3 September 2026
 ## Editor, answer engine, and validation
 
 - The Course Editor main page now uses a compact Lessons navigation row. The linked Lesson-management subpage owns create, edit, delete, reorder, Round access, and the top-positioned Lock control while preserving the same draft `Course`, stable IDs, metadata, and save boundary.
+- Lesson and Round menus provide Edit, Rename, Delete, Duplicate, and Preview. Exercise menus provide Edit and Duplicate. Rename preserves identity, while duplication recursively replaces owned IDs and remaps internal references without changing external assets or references.
 - The exercise picker is grouped, searchable, and registry-driven. Author-facing Help covers every preset without exposing external product/source names.
 - New authoring support includes Type the translation, Build the translation, and Contextual comprehension. Relevant fields only are shown, and Course Audit blocks errors while allowing an explicit warning override.
-- Answer expressions support `{optional}`, `[a|b|c]`, and scoped or whole-expression `<>` reorder groups. Expansion is deterministic, duplicate-free, structurally validated, and capped at 128 variants.
-- Acceptance and correction are separate. Normalization is Unicode-aware, whitespace/case/punctuation tolerant, apostrophe-preserving, and accent-aware. Optional typo acceptance is restricted to one omitted or duplicated repeated letter in one sufficiently long token; it does not accept tense/person substitutions. Closest-correction selection is deterministic and never changes correctness.
-- Responsive coverage includes 320, 375, and 430 logical px phone widths and desktop layouts for the affected editor, Help, and exercise surfaces.
+- Answer expressions support `{optional}`, `[a|b|c]`, and scoped or whole-expression `<>` reorder groups. Expansion is deterministic, duplicate-free, structurally validated, and capped at 128 variants. Terminal punctuation follows the reordered sentence, and capitalization is recomputed only for structurally generated variants, preserving explicit author answers, acronyms, and proper names.
+- Acceptance and correction are separate. Normalization is Unicode-aware, whitespace/case/punctuation tolerant, apostrophe-preserving, and accent-aware. Optional typo acceptance is restricted to one omitted or duplicated repeated letter in one sufficiently long token; it does not accept tense/person substitutions. Closest-correction selection uses deterministic graded token similarity, missing/extra/order penalties, and author-order tie-breaking; it never changes correctness. The required `Vorrete ...` regression remains incorrect and displays the closer `Volete ...` construction.
+- The registry-backed Exercise Creation Wizard plans an exact configurable count using Balanced, seeded Random, category, selected-type, or repeat-pattern criteria; normal editing and preview are sequential, and cancellation returns only explicitly saved valid work.
+- The GuideBook generator defaults to 6 Rounds of 8 exercises, supports 1-12 Rounds and 1-15 exercises, produces an inspectable no-object plan and editable drafts, normalizes progressive difficulty from 0.0 to 1.0, uses GuideBook-grounded preset pools and descriptive titles, and appends only after explicit approval with fresh recursive IDs.
+- Responsive coverage includes 320, 375, and 430 logical px phone widths and desktop layouts for affected menus, dialogs, editor/Help surfaces, Type the translation help, the Exercise Creation Wizard, and the GuideBook generator.
 
 ## Automated validation
 
 - `flutter pub get` passed; 28 newer package versions are incompatible with the current dependency constraints and were not adopted.
-- Final focused verification passed **47 tests** covering the answer engine, contextual comprehension, Lesson management, picker/Help, Course Model v5, and localized exercise copy.
-- Final full suite: `flutter test --no-pub --reporter compact --timeout 60s` passed **441 tests** in **3 minutes**.
+- Final focused verification passed **147 tests** covering the answer engine, contextual comprehension, recursive duplication, Lesson/Round/Exercise actions, the Creation Wizard, the GuideBook generator, Course Editor draft boundaries, picker/Help, Course Model v5, Duel/XP invariants, Review/completion, and responsive exercise surfaces.
+- Final full suite: `flutter test --no-pub --reporter compact --timeout 60s` passed **461 tests** in **3 minutes 18 seconds**. The final strengthened Rename/Duplicate widget assertions also passed independently afterward (**3/3**).
 - `flutter analyze --no-pub`: **0 errors and 0 warnings**. It reports the same **81** info-only `curly_braces_in_flow_control_structures` notices; none were suppressed or broadly cleaned up.
 - `python tools\validate_courses.py`: all **8** bundled v5 courses passed.
 - `python tools\validate_lesson_icons.py`: **14 assets, 0 issues**.
@@ -46,8 +49,8 @@ Date: 3 September 2026
 - `tools\package_windows_release.ps1` completed the Windows release build, copied the required VC runtime, validated staged contents, extracted the ZIP, and matched the extracted files against staging.
 - Staged directory: `build/packages/quisquislingo_alpha_224_dev_windows_x64/`.
 - ZIP: `build/packages/quisquislingo_alpha_224_dev_windows_x64.zip`.
-- ZIP size: **25,915,203 bytes**.
-- ZIP SHA-256: `5918EC660DE2183D826FC4C42340420CD7D45EBC622501D22478FA1E31E86B94`.
+- ZIP size: **25,945,469 bytes**.
+- ZIP SHA-256: `C735590566FCA06E83EC77199E45F38E6C4DF4B89E1832221EB4ED4AF0E2E6E5`.
 - The build 223 staged directory and ZIP remain present as rollback copies.
 
 ## Deferred and unsupported boundaries

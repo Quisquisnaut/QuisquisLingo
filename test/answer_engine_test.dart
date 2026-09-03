@@ -7,8 +7,8 @@ void main() {
       expect(
         AnswerExpressionParser.expand('{Io} [prendo|vorrei] un cappuccino'),
         [
-          'prendo un cappuccino',
-          'vorrei un cappuccino',
+          'Prendo un cappuccino',
+          'Vorrei un cappuccino',
           'Io prendo un cappuccino',
           'Io vorrei un cappuccino',
         ],
@@ -17,15 +17,33 @@ void main() {
 
     test('reorders only declared scoped phrase parts', () {
       expect(AnswerExpressionParser.expand('{io} (non arrivo <> oggi)'), [
-        'non arrivo oggi',
-        'oggi non arrivo',
-        'io non arrivo oggi',
-        'io oggi non arrivo',
+        'Non arrivo oggi',
+        'Oggi non arrivo',
+        'Io non arrivo oggi',
+        'Io oggi non arrivo',
+      ]);
+    });
+
+    test('reordering keeps terminal punctuation terminal and fixes case', () {
+      final variants = AnswerExpressionParser.expand(
+        '{[Tu|Voi]} [vuoi|volete] un cappuccino <> oggi?',
+      );
+      expect(variants, hasLength(12));
+      expect(variants, everyElement(endsWith('?')));
+      expect(variants, contains('Oggi tu vuoi un cappuccino?'));
+      expect(variants, isNot(contains('Oggi Tu vuoi un cappuccino?')));
+      expect(AnswerExpressionParser.expand('Jane visita Roma <> oggi.'), [
+        'Jane visita Roma oggi.',
+        'Oggi Jane visita Roma.',
+      ]);
+      expect(AnswerExpressionParser.expand('USA arriva <> ora!'), [
+        'USA arriva ora!',
+        'Ora USA arriva!',
       ]);
     });
 
     test('whole-expression reorder, duplicate removal and validation work', () {
-      expect(AnswerExpressionParser.expand('oggi <> oggi'), ['oggi oggi']);
+      expect(AnswerExpressionParser.expand('oggi <> oggi'), ['Oggi oggi']);
       expect(
         () => AnswerExpressionParser.expand('[a|]'),
         throwsA(isA<AnswerExpressionException>()),
@@ -106,6 +124,18 @@ void main() {
         );
       },
     );
+
+    test('graded token similarity prefers Volete for Vorrete', () {
+      const answers = [
+        'Vuoi un cappuccino oggi?',
+        'Volete un cappuccino oggi?',
+      ];
+      expect(
+        engine.bestCorrection('Vorrete un cappuccino oggi?', answers),
+        'Volete un cappuccino oggi?',
+      );
+      expect(engine.accepts('Vorrete un cappuccino oggi?', answers), isFalse);
+    });
 
     test(
       'incompatible extra words are penalized and ties keep author order',

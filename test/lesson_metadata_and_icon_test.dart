@@ -358,10 +358,13 @@ void main() {
       await tester.tap(
         find.descendant(
           of: newRoundCard,
-          matching: find.byTooltip('Delete round'),
+          matching: find.byType(PopupMenuButton<String>),
         ),
       );
       await tester.pumpAndSettle();
+      await tester.tap(find.text('Delete'));
+      await tester.pumpAndSettle();
+      expect(find.text('Delete round?'), findsOneWidget);
       await tester.tap(find.text('Delete').last);
       await tester.pumpAndSettle();
       expect(find.text('New draft round'), findsNothing);

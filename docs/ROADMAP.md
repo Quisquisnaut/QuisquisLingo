@@ -457,8 +457,12 @@ Avoid mandatory servers, artificial purchase economies, lives, or monetization-d
 - [x] Inventory and retain all 17 build-223 exercise types, add three focused presets, and map the final 20 presets to Select, Input, Arrange, Match and Presentation without changing Course Model v5.
 - [x] Add grouped searchable authoring presets, complete registry-backed Exercise Help, Type the translation and contextual comprehension with text/audio modes and structured dialogue.
 - [x] Add deterministic accepted-answer expression expansion, bounded Type-translation typo tolerance and independently scored closest-correction selection.
+- [x] Keep terminal punctuation terminal through reorder expansion, normalize structural capitalization and use graded token spelling similarity for closest-correction display without broadening acceptance.
 - [x] Formalize the normalized import boundary, engineering interoperability matrix, future Speech seam and ordered content-sequence approach for Story-like material without production external importers.
 - [x] Move the Course Editor Lesson list and unchanged authoritative Lock control to one dedicated management page while preserving draft state, operations and stable IDs.
+- [x] Add complete Lesson/Round context menus and Exercise duplication with recursive fresh identities and internal-reference remapping.
+- [x] Add the registry-backed Exercise Creation Wizard with five selection criteria, no-object plan preview, sequential authoritative editing and confirmed partial-save cancellation.
+- [x] Replace fixed GuideBook generation with configurable 6×8-default progressive planning, editable/audited drafts and explicit fresh-ID append approval.
 - [x] Preserve Review, Duel, XP, Round completion, learner identity, progression, IDDQD, Flag Game and all other out-of-scope behavior.
 
 ---

@@ -21,7 +21,11 @@ abstract final class AnswerExpressionParser {
     variants = _expandDelimited(variants, '{', '}', optional: true);
     variants = _expandDelimited(variants, '[', ']', optional: false);
     variants = _expandReorders(variants);
-    return _deduplicate(variants);
+    return _deduplicate(
+      variants,
+      normalizeCapitalization:
+          source.contains('{') || source.contains('[') || source.contains('<>'),
+    );
   }
 
   static List<String> expandAll(Iterable<String> expressions) {
@@ -173,16 +177,31 @@ abstract final class AnswerExpressionParser {
   }
 
   static List<String> _reorder(String body) {
-    final parts = body.split('<>').map((part) => part.trim()).toList();
+    final trimmed = body.trim();
+    final terminal = RegExp(r'([.!?…]+)$').firstMatch(trimmed);
+    final punctuation = terminal?.group(1) ?? '';
+    final reorderBody = punctuation.isEmpty
+        ? trimmed
+        : trimmed.substring(0, terminal!.start).trimRight();
+    final parts = reorderBody.split('<>').map((part) => part.trim()).toList();
     if (parts.length < 2 || parts.any((part) => part.isEmpty)) {
       throw const AnswerExpressionException(
         'Reorder syntax requires non-empty phrase parts on both sides of <>.',
       );
     }
     final output = <String>[];
-    void visit(List<String> prefix, List<String> remaining) {
+    void visit(List<_ReorderPart> prefix, List<_ReorderPart> remaining) {
       if (remaining.isEmpty) {
-        output.add(prefix.join(' '));
+        final text = <String>[];
+        for (var i = 0; i < prefix.length; i++) {
+          final part = prefix[i];
+          text.add(
+            part.originalIndex == 0 && i > 0
+                ? _decapitalizeMovedStart(part.text)
+                : part.text,
+          );
+        }
+        output.add('${text.join(' ')}$punctuation');
         _checkLimit(output.length);
         return;
       }
@@ -194,15 +213,86 @@ abstract final class AnswerExpressionParser {
       }
     }
 
-    visit(const [], parts);
+    visit(const [], [
+      for (var i = 0; i < parts.length; i++)
+        _ReorderPart(text: parts[i], originalIndex: i),
+    ]);
     return output;
   }
 
-  static List<String> _deduplicate(Iterable<String> input) {
+  static String _decapitalizeMovedStart(String value) {
+    final match = RegExp(r'\p{L}+', unicode: true).firstMatch(value);
+    if (match == null) return value;
+    final word = match.group(0)!;
+    if (word.length > 1 && word == word.toUpperCase()) return value;
+    const structuralStarters = {
+      'a',
+      'an',
+      'the',
+      'i',
+      'you',
+      'he',
+      'she',
+      'we',
+      'they',
+      'io',
+      'tu',
+      'voi',
+      'noi',
+      'lui',
+      'lei',
+      'il',
+      'la',
+      'un',
+      'una',
+      'el',
+      'los',
+      'las',
+      'der',
+      'die',
+      'das',
+      'de',
+      'het',
+      'o',
+      'os',
+      'as',
+      'um',
+      'uma',
+    };
+    if (!structuralStarters.contains(word.toLowerCase())) return value;
+    return value.replaceRange(
+      match.start,
+      match.start + 1,
+      word[0].toLowerCase(),
+    );
+  }
+
+  static String _normalizeSentenceCapitalization(String value) {
+    final chars = value.split('');
+    var capitalizeNext = true;
+    for (var i = 0; i < chars.length; i++) {
+      final char = chars[i];
+      if (RegExp(r'\p{L}', unicode: true).hasMatch(char)) {
+        if (capitalizeNext) chars[i] = char.toUpperCase();
+        capitalizeNext = false;
+      } else if (const {'.', '?', '!'}.contains(char)) {
+        capitalizeNext = true;
+      }
+    }
+    return chars.join();
+  }
+
+  static List<String> _deduplicate(
+    Iterable<String> input, {
+    bool normalizeCapitalization = false,
+  }) {
     final out = <String>[];
     final seen = <String>{};
     for (final raw in input) {
-      final value = raw.replaceAll(RegExp(r'\s+'), ' ').trim();
+      final collapsed = raw.replaceAll(RegExp(r'\s+'), ' ').trim();
+      final value = normalizeCapitalization
+          ? _normalizeSentenceCapitalization(collapsed)
+          : collapsed;
       if (value.isNotEmpty && seen.add(value)) out.add(value);
     }
     _checkLimit(out.length);
@@ -363,16 +453,16 @@ class AnswerEngine {
         continue;
       }
       var near = -1;
+      var bestSimilarity = 0.0;
       for (var i = 0; i < remaining.length; i++) {
-        if (word.length >= 4 &&
-            remaining[i].length >= 4 &&
-            _editDistance(word, remaining[i]) == 1) {
+        final similarity = _tokenSimilarity(word, remaining[i]);
+        if (similarity > bestSimilarity) {
+          bestSimilarity = similarity;
           near = i;
-          break;
         }
       }
-      if (near >= 0) {
-        score += 5;
+      if (near >= 0 && bestSimilarity >= .35) {
+        score += (bestSimilarity * 8).round();
         remaining.removeAt(near);
       } else {
         score -= 9;
@@ -381,6 +471,13 @@ class AnswerEngine {
     score -= remaining.length * 2;
     score += _longestCommonSubsequence(typed, candidate) * 3;
     return score;
+  }
+
+  double _tokenSimilarity(String left, String right) {
+    if (left == right) return 1;
+    final longest = left.length > right.length ? left.length : right.length;
+    if (longest == 0) return 1;
+    return 1 - (_editDistance(left, right) / longest);
   }
 
   int _longestCommonSubsequence(List<String> a, List<String> b) {
@@ -453,6 +550,12 @@ class AnswerEngine {
     accents.forEach((from, to) => result = result.replaceAll(from, to));
     return result;
   }
+}
+
+class _ReorderPart {
+  const _ReorderPart({required this.text, required this.originalIndex});
+  final String text;
+  final int originalIndex;
 }
 
 /// Tiny local replacement for package:collection's SetEquality.

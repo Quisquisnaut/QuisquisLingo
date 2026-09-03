@@ -50,6 +50,11 @@ void main() {
         );
         await tester.pumpAndSettle();
         expect(find.byKey(const Key('lesson-management-lock')), findsOneWidget);
+        await tester.tap(
+          find.byKey(const ValueKey('lesson-actions-responsive_lesson')),
+        );
+        await tester.pumpAndSettle();
+        expect(find.text('Duplicate'), findsOneWidget);
         expect(tester.takeException(), isNull);
 
         await tester.pumpWidget(
@@ -66,6 +71,51 @@ void main() {
         await tester.drag(find.byType(ListView), const Offset(0, -420));
         await tester.pumpAndSettle();
         expect(find.text('Accepted translations'), findsOneWidget);
+        await tester.tap(find.byKey(const Key('type-translation-answer-help')));
+        await tester.pumpAndSettle();
+        expect(
+          find.text('Type the translation · answer syntax'),
+          findsOneWidget,
+        );
+        expect(tester.takeException(), isNull);
+
+        final authorLesson = course.lessons.single;
+        final authorRound = authorLesson.rounds.single;
+        await tester.pumpWidget(
+          MaterialApp(
+            key: ValueKey('wizard-$width'),
+            home: ExerciseCreationWizardScreen(
+              course: course,
+              lesson: authorLesson,
+              round: authorRound,
+              roundIndex: 0,
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+        expect(find.byKey(const Key('wizard-setup')), findsOneWidget);
+        expect(tester.takeException(), isNull);
+
+        await tester.pumpWidget(
+          MaterialApp(
+            key: ValueKey('generator-$width'),
+            home: GuidebookRoundGeneratorScreen(
+              course: course,
+              lesson: authorLesson,
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+        expect(
+          find.byKey(const Key('guidebook-generator-configure')),
+          findsOneWidget,
+        );
+        await tester.tap(find.byKey(const Key('generator-review-plan')));
+        await tester.pumpAndSettle();
+        expect(
+          find.byKey(const Key('guidebook-generator-plan')),
+          findsOneWidget,
+        );
         expect(tester.takeException(), isNull);
 
         final exercise = _contextual();
@@ -112,17 +162,33 @@ void main() {
   }
 }
 
-Course _course() => Course(
-  courseId: 'responsive_224',
-  learningLanguage: 'Italian',
-  interfaceLanguage: 'English',
-  sourceLanguage: 'English',
-  targetLanguage: 'Italian',
-  title: 'Responsive Course',
-  ttsLanguage: 'it-IT',
-  version: '1',
-  lessons: const [],
-);
+Course _course() {
+  final round = LearningRound(
+    id: 'responsive_authoring_round',
+    title: 'Round',
+    exercises: [_translation()],
+  );
+  final lesson = Lesson(
+    lessonId: 'responsive_lesson',
+    title: 'Responsive Lesson',
+    rounds: [round],
+    guidebook: Guidebook(
+      vocabulary: const ['casa = house', 'pane = bread', 'acqua = water'],
+      examples: const ['La casa è grande.', 'Il pane è fresco.', 'Bevo acqua.'],
+    ),
+  );
+  return Course(
+    courseId: 'responsive_224',
+    learningLanguage: 'Italian',
+    interfaceLanguage: 'English',
+    sourceLanguage: 'English',
+    targetLanguage: 'Italian',
+    title: 'Responsive Course',
+    ttsLanguage: 'it-IT',
+    version: '1',
+    lessons: [lesson],
+  );
+}
 
 Exercise _translation() => Exercise(
   id: 'translation_stable',

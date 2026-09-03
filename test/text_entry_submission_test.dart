@@ -90,6 +90,8 @@ void main() {
           '{Io} [vorrei|desidero] un cappuccino',
         ],
       );
+      expect(find.text('Translate from English into Italian:'), findsOneWidget);
+      expect(find.text('Translate this source text.'), findsOneWidget);
       await tester.enterText(
         find.byType(TextField).last,
         'vorrei un cappuccino',

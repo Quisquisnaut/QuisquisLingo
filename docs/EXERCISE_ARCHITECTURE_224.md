@@ -1,12 +1,12 @@
 # Exercise architecture and interoperability (2.0.24+224)
 
-This is the engineering reference for the build-224 exercise inventory, canonical models, import-normalization boundary, and deterministic text-answer engine. The Course Editor's in-app Exercise Help and `COURSE_EDITOR.md` are the author-facing references.
+This is the engineering reference for the build-224 exercise inventory, canonical models, import-normalization boundary, deterministic text-answer engine, recursive authoring duplication, Creation Wizard, and GuideBook Round Generator. The Course Editor's in-app Exercise Help and `COURSE_EDITOR.md` are the author-facing references.
 
 ## Final active inventory
 
 Build 223 had 17 active exercise discriminators. Build 224 retains all 17 and adds `type_translation`, `build_translation`, and `contextual_comprehension`, for 20 authoring presets. Existing IDs and JSON remain unchanged. Separately, ordered Round content supports `presentation`, `explanation`, `example`, `vocabulary`, `text`, `image`, `audio`, and `dialogue` blocks.
 
-All exercise rows serialize as Course Model v5 `prompt[] + interaction + evaluation`, use the shared Round renderer, are available to the ordinary mistake-review flow where an evaluated answer applies, and round-trip through native v5 import/export. “Duel” below means the unchanged explicit Duel-eligible set. “Generator” refers to existing Guidebook/source generation, not manual Editor support.
+All exercise rows serialize as Course Model v5 `prompt[] + interaction + evaluation`, use the shared Round renderer, are available to the ordinary mistake-review flow where an evaluated answer applies, and round-trip through native v5 import/export. “Duel” below means the unchanged explicit Duel-eligible set. “Generator” means at least one registry-aware build-224 authoring generator can produce the preset when its required GuideBook/source media exists.
 
 | Discriminator / author preset | Canonical model | Prompt and media | Response, distractors, correctness | Randomization and feedback | Duel | Generator | Bundled build-223 use |
 |---|---|---|---|---|---|---|---:|
@@ -17,14 +17,14 @@ All exercise rows serialize as Course Model v5 `prompt[] + interaction + evaluat
 | `listening_comprehension` / Listen and choose | Select | Audio passage and separate text question | Text items; one correct item ID | Choices shuffle; correct answer shown | No | Yes | 0 |
 | `reading_comprehension` / Reading comprehension | Select | Text passage and question; optional image | Text items; one correct item ID | Choices shuffle; correct answer shown | Yes | Yes | 144 |
 | `dialogue_response` / Dialogue response | Select | Text situation/question | Two response items; one correct item ID | Choices shuffle; best response shown | No | No | 144 |
-| `contextual_comprehension` / Contextual comprehension | Select | Separate question; text, audio, or both; optional structured dialogue/image | Text answer items; one correct item ID | Choices shuffle; correct answer shown | No | No | New |
+| `contextual_comprehension` / Contextual comprehension | Select | Separate question; text, audio, or both; optional structured dialogue/image | Text answer items; one correct item ID | Choices shuffle; correct answer shown | No | Yes | New |
 | `fill_blank` / Type a missing word | Input | Text gap; optional full-phrase audio | One or more accepted text expressions; no distractors | No shuffle; deterministic correction | No | Yes | 96 |
 | `listening_spelling` / Type what you hear | Input | Audio | Accepted transcription expressions | No shuffle; deterministic correction | No | Yes | 64 |
 | `missing_word` / Listen for missing words | Input | Audio and transcript | Ordered missing text entries | No shuffle; expected entries shown | No | No | 8 |
-| `type_translation` / Type the translation | Input | Source text; optional hint | One or more accepted translation expressions | No shuffle; bounded typo acceptance and closest correction | No | No | New |
+| `type_translation` / Type the translation | Input | Source text; optional hint | One or more accepted translation expressions | No shuffle; bounded typo acceptance and closest correction | No | Yes | New |
 | `word_order` / Word order | Arrange | Text | Stable blocks plus at most two distractors; correct item-ID order | Blocks shuffle; expected order shown | No | Yes | 40 |
 | `image_word` / Image-prompt ordering | Arrange | Image and text | Stable letter/syllable blocks; correct item-ID order | Blocks shuffle; expected construction shown | No | No | 48 |
-| `build_translation` / Build the translation | Arrange | Source text | Stable target-language blocks plus at most two distractors; correct item-ID order | Blocks shuffle; expected translation shown | No | No | New |
+| `build_translation` / Build the translation | Arrange | Source text | Stable target-language blocks plus at most two distractors; correct item-ID order | Blocks shuffle; expected translation shown | No | Yes | New |
 | `matching` / Match the pairs | Match | Text | Stable left/right item IDs and pair relations | Both columns shuffle independently; pair result shown | No | No | 0 |
 | `word_match` / Match the words | Match | Text | Three unique stable text pairs | Both columns shuffle independently; pair result shown | No | Yes | 72 |
 | `super_match` / Match related words | Match | Text | Three unique stable related-word pairs | Both columns shuffle independently; pair result shown | No | No | 0 |
@@ -75,13 +75,33 @@ Input presets may provide multiple complete accepted answers as separate lines. 
 
 The parser never generates arbitrary word permutations. It validates balance, empty segments, incomplete separators, parentheses without a reorder separator, and empty alternatives. Expansion order is deterministic, duplicates are removed while preserving first-author order, and the aggregate limit is 128 variants. Exceeding the limit is an error; variants are never silently truncated.
 
+For `<>`, terminal punctuation (`.`, `?`, `!`, `…`, `?!` and equivalent combinations) is detached before moving declared phrase parts and reattached to the final sentence end. Internal punctuation such as commas stays with its authored structure. Structurally generated variants capitalize the first alphabetic character and the first alphabetic character after `.`, `?`, or `!`. When a common sentence starter moves inward, its original initial uppercase is removed; distinguishable names and acronyms such as Jane, Roma and USA retain lexical capitalization.
+
 ## Acceptance and correction selection
 
 Acceptance and correction choice are separate algorithms.
 
 The acceptance engine expands all authored answers, then preserves established normalization: case is ignored unless explicitly preserved, ordinary punctuation is ignored unless preserved, runs of whitespace collapse unless preserved, curly and straight apostrophes normalize to a meaningful apostrophe, and an omitted expected diacritic is tolerated when the learner entered no competing diacritic. Apostrophes are not erased. Type the translation additionally permits one accidentally omitted or duplicated repeated letter in exactly one token when both tokens are at least five characters, token count/order is unchanged, neither token contains a diacritic, and the set of common negation tokens is unchanged. It does not accept substitutions, missing/extra words, wrong lexical items, broad fuzzy matches, person/tense ending changes, or changed negation.
 
-For a wrong answer, correction selection scores each expanded valid answer independently: exact shared words receive the strongest reward, one-edit near words receive a smaller reward, incompatible learner extras and unused candidate words are penalized, and longest common word order is a secondary signal. The highest-scoring valid answer is shown. Exact ties retain author order. This score can never change an incorrect response into a correct one.
+For a wrong answer, correction selection scores each expanded valid answer independently: exact shared words receive the strongest reward; non-exact tokens receive a graduated normalized Levenshtein-similarity reward above a conservative floor; incompatible learner extras and unused candidate words are penalized; and longest common token order is a secondary signal. This makes `Vorrete un cappuccino oggi?` select `Volete un cappuccino oggi?` rather than the author-first `Vuoi…` candidate. The highest-scoring valid answer is shown, exact ties retain author order, and the score can never change an incorrect response into a correct one.
+
+## Authoring navigation, menus and recursive identity
+
+Course Editor navigation is `Course → Lessons → Lesson → Rounds → Round / Exercises`. The main Course page contains only a compact Lessons link. The dedicated Lessons page owns the single existing Lock control and returns one updated Course draft to its parent; child mutations are not independently persisted. Lesson and Round rows expose Edit, Rename, Delete, Duplicate and Preview. Exercise rows expose Edit and Duplicate alongside the retained preview, transfer and delete actions.
+
+Edit preserves identity. Lesson Rename changes only its required title; Round Rename changes only its optional title and allows clearing it. Duplicate is inserted immediately after its source. `AuthoringDuplicationService` recursively allocates fresh Lesson, Duel, GuideBook Content, Round, Exercise, Content and Item IDs, remaps evaluation and internal `sourceRefs`, and retains shared immutable asset paths/external references. Clipboard Copy uses the same deep duplication at paste; Move deliberately preserves identity. Preview uses `RoundScreen(previewMode: true)` and therefore does not write progress, XP, streak, Laurel, Review, Duel or unlock state.
+
+## Exercise Creation Wizard
+
+`ExerciseCreationPlanner` consumes the canonical preset registry and returns only a planned preset-ID sequence—no Exercises. Count is validated from 1 through 30. Balanced mix deterministically rotates across categories and within category registries without avoidable adjacent repeats. Random mix uses injected/seeded Dart randomness. By category, Selected exercise types and Repeat a pattern cycle the exact registry-derived pool or ordered pattern until the plan contains exactly N entries.
+
+After plan confirmation, the Wizard opens the authoritative `ExerciseEditorScreen` for each preselected preset with a fresh Exercise ID. Save marks the validated draft and stays on the current step; Preview renders that same draft without advancing or duplicating it; Next saves and advances exactly one step; Finish saves the last step and returns the complete order. Cancelling after one or more explicit saves requires confirmation and returns only those saved valid Exercises. No future placeholder object is created.
+
+## GuideBook Round Generator
+
+The generator accepts only current-Lesson GuideBook material and requires at least three distinct target/source vocabulary pairs. Counts are configurable at 1–12 Rounds and 1–15 Exercises per Round, with defaults 6×8 = 48. A plan contains only counts, normalized positional difficulty, concise phase/vocabulary titles and registry preset IDs; it has no final Round or Exercise models. For one Round difficulty is `0.5`; otherwise it is `index / (roundCount - 1)`.
+
+Early pools use recognition/comprehension and one distractor where applicable (`choice`, matched-example `gap_choice`, `listening_choice`, `word_match`). Middle pools use construction/context (`build_translation`, example-backed `word_order`, `audio_match`, matched-example contextual comprehension). Late pools emphasize production (`type_translation`, contextual comprehension, construction and example-backed word order) with less hint scaffolding. Unsupported image/audio assets are never fabricated. Generated Rounds remain editable/deletable/regenerable drafts and are audited. Approval deep-copies them to fresh final IDs and appends them after existing Rounds; cancellation or plan review changes nothing.
 
 Optional decisive-word metadata was audited and deferred: a new author syntax would be brittle without broader language-specific semantics. The bounded acceptance guard explicitly protects common negations in 224.
 
@@ -138,4 +158,4 @@ The normalized object carries a source type only for diagnostics plus a QQL pres
 
 ## Compatibility decisions
 
-Course Model remains v5. New prompt `speaker` data is optional; old v5 JSON is unchanged, while new structured dialogue remains valid v5 prompt metadata. Existing authoring-template aliases are accepted at validation through their authoritative runtime type without rewriting stored data. Course, Lesson, Round, Exercise, item, option, pair, and reference IDs are not regenerated. Review, Duel eligibility, XP, Laurel, streak, Round completion, and presentation scoring rules are unchanged.
+Course Model remains v5. New prompt `speaker` data is optional; old v5 JSON is unchanged, while new structured dialogue remains valid v5 prompt metadata. Existing authoring-template aliases are accepted at validation through their authoritative runtime type without rewriting stored data. Existing Course, Lesson, Round, Exercise, item, option, pair, and reference IDs are not regenerated; only genuinely new, duplicated or explicitly approved generated objects receive fresh identity. Review, Duel eligibility, XP, Laurel, streak, Round completion, and presentation scoring rules are unchanged.

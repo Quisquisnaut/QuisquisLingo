@@ -1,4 +1,3 @@
-import 'dart:math';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:audioplayers/audioplayers.dart';
@@ -17,6 +16,9 @@ import 'editor_help_screen.dart';
 import '../services/exercise_image_service.dart';
 import '../services/exercise_transfer_service.dart';
 import '../services/custom_course_transfer_service.dart';
+import '../services/authoring_duplication_service.dart';
+import '../services/exercise_creation_planner.dart';
+import '../services/guidebook_round_generator.dart';
 import '../widgets/flag_art.dart';
 
 /// Full local authoring UI.
@@ -703,11 +705,11 @@ class _CourseEditorScreenState extends State<CourseEditorScreen> {
         ),
       ),
     );
+    if (updated != null) await _persist(updated);
     if (!mounted) return;
     final locked = await _settings.isCourseEditorLocked(_course.courseId);
     if (!mounted) return;
     setState(() {
-      if (updated != null) _course = updated;
       _locked = locked;
       _auditOutdated = true;
     });
@@ -1129,11 +1131,10 @@ class LessonManagementScreen extends StatefulWidget {
 }
 
 class _LessonManagementScreenState extends State<LessonManagementScreen> {
-  final _service = CourseEditorService();
   final _settings = SettingsService();
+  final _ids = TimestampAuthoringIdGenerator();
   late Course _course;
   late bool _locked;
-  bool _saving = false;
 
   @override
   void initState() {
@@ -1141,8 +1142,6 @@ class _LessonManagementScreenState extends State<LessonManagementScreen> {
     _course = widget.course;
     _locked = widget.initiallyLocked;
   }
-
-  String get _code => CourseService.codeForCourse(_course);
 
   Course _withLessons(List<Lesson> lessons) => Course(
     courseId: _course.courseId,
@@ -1178,26 +1177,16 @@ class _LessonManagementScreenState extends State<LessonManagementScreen> {
     supportUrl: _course.supportUrl,
   );
 
-  Future<void> _persist(Course value) async {
-    setState(() => _saving = true);
-    try {
-      if (widget.userCourse) {
-        await _service.saveUserCourse(value);
-      } else {
-        await _service.saveCourse(languageCode: _code, course: value);
-      }
-      if (mounted) setState(() => _course = value);
-    } finally {
-      if (mounted) setState(() => _saving = false);
-    }
-  }
-
-  Future<String?> _askName() async {
-    final controller = TextEditingController();
+  Future<String?> _askName({
+    String title = 'New lesson',
+    String initial = '',
+    String confirmLabel = 'Create',
+  }) async {
+    final controller = TextEditingController(text: initial);
     final result = await showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('New lesson'),
+        title: Text(title),
         content: TextField(
           controller: controller,
           autofocus: true,
@@ -1213,7 +1202,7 @@ class _LessonManagementScreenState extends State<LessonManagementScreen> {
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, controller.text.trim()),
-            child: const Text('Create'),
+            child: Text(confirmLabel),
           ),
         ],
       ),
@@ -1226,12 +1215,11 @@ class _LessonManagementScreenState extends State<LessonManagementScreen> {
     if (_locked) return;
     final title = await _askName();
     if (title == null) return;
-    final stamp = DateTime.now().microsecondsSinceEpoch;
-    await _persist(
-      _withLessons([
+    setState(
+      () => _course = _withLessons([
         ..._course.lessons,
         Lesson(
-          lessonId: 'custom_lesson_$stamp',
+          lessonId: _ids.next('lesson'),
           title: title,
           rounds: const [],
           guidebook: Guidebook.empty(),
@@ -1239,6 +1227,51 @@ class _LessonManagementScreenState extends State<LessonManagementScreen> {
       ]),
     );
   }
+
+  Future<void> _renameLesson(int index) async {
+    if (_locked) return;
+    final source = _course.lessons[index];
+    final title = await _askName(
+      title: 'Rename lesson',
+      initial: source.title,
+      confirmLabel: 'Save',
+    );
+    if (title == null || !mounted) return;
+    final renamed = Lesson(
+      lessonId: source.lessonId,
+      title: title,
+      rounds: source.rounds,
+      section: source.section,
+      sectionName: source.sectionName,
+      themeIconAsset: source.themeIconAsset,
+      guidebook: source.guidebook,
+      duel: source.duel,
+    );
+    setState(() {
+      final lessons = [..._course.lessons]..[index] = renamed;
+      _course = _withLessons(lessons);
+    });
+  }
+
+  void _duplicateLesson(int index) {
+    if (_locked) return;
+    final copy = AuthoringDuplicationService(
+      ids: _ids,
+    ).duplicateLesson(_course.lessons[index]);
+    setState(() {
+      final lessons = [..._course.lessons]..insert(index + 1, copy);
+      _course = _withLessons(lessons);
+    });
+  }
+
+  Future<void> _previewLesson(int index) => Navigator.of(context).push<void>(
+    MaterialPageRoute(
+      builder: (_) => LessonAuthoringPreviewScreen(
+        course: _course,
+        lesson: _course.lessons[index],
+      ),
+    ),
+  );
 
   Future<void> _deleteLesson(int index) async {
     if (_locked) return;
@@ -1263,15 +1296,15 @@ class _LessonManagementScreenState extends State<LessonManagementScreen> {
     );
     if (confirmed != true) return;
     final lessons = [..._course.lessons]..removeAt(index);
-    await _persist(_withLessons(lessons));
+    setState(() => _course = _withLessons(lessons));
   }
 
-  Future<void> _reorder(int oldIndex, int newIndex) async {
+  void _reorder(int oldIndex, int newIndex) {
     if (_locked) return;
     final lessons = [..._course.lessons];
     final lesson = lessons.removeAt(oldIndex);
     lessons.insert(newIndex, lesson);
-    await _persist(_withLessons(lessons));
+    setState(() => _course = _withLessons(lessons));
   }
 
   Future<void> _openLesson(int index) async {
@@ -1284,7 +1317,7 @@ class _LessonManagementScreenState extends State<LessonManagementScreen> {
     );
     if (updated == null || !mounted) return;
     final lessons = [..._course.lessons]..[index] = updated;
-    await _persist(_withLessons(lessons));
+    setState(() => _course = _withLessons(lessons));
   }
 
   @override
@@ -1299,7 +1332,7 @@ class _LessonManagementScreenState extends State<LessonManagementScreen> {
         leading: BackButton(onPressed: () => Navigator.pop(context, _course)),
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: _saving || _locked ? null : _addLesson,
+        onPressed: _locked ? null : _addLesson,
         icon: const Icon(Icons.add),
         label: const Text('New lesson'),
       ),
@@ -1346,14 +1379,40 @@ class _LessonManagementScreenState extends State<LessonManagementScreen> {
                           ),
                           onTap: _locked ? null : () => _openLesson(index),
                           trailing: PopupMenuButton<String>(
-                            enabled: !_locked,
+                            key: ValueKey('lesson-actions-${lesson.lessonId}'),
                             onSelected: (value) {
+                              if (value == 'edit') _openLesson(index);
+                              if (value == 'rename') _renameLesson(index);
                               if (value == 'delete') _deleteLesson(index);
+                              if (value == 'duplicate') {
+                                _duplicateLesson(index);
+                              }
+                              if (value == 'preview') _previewLesson(index);
                             },
-                            itemBuilder: (_) => const [
+                            itemBuilder: (_) => [
+                              PopupMenuItem(
+                                value: 'edit',
+                                enabled: !_locked,
+                                child: const Text('Edit'),
+                              ),
+                              PopupMenuItem(
+                                value: 'rename',
+                                enabled: !_locked,
+                                child: const Text('Rename'),
+                              ),
                               PopupMenuItem(
                                 value: 'delete',
-                                child: Text('Delete lesson'),
+                                enabled: !_locked,
+                                child: const Text('Delete'),
+                              ),
+                              PopupMenuItem(
+                                value: 'duplicate',
+                                enabled: !_locked,
+                                child: const Text('Duplicate'),
+                              ),
+                              const PopupMenuItem(
+                                value: 'preview',
+                                child: Text('Preview'),
                               ),
                             ],
                           ),
@@ -1365,6 +1424,55 @@ class _LessonManagementScreenState extends State<LessonManagementScreen> {
         ],
       ),
     ),
+  );
+}
+
+class LessonAuthoringPreviewScreen extends StatelessWidget {
+  const LessonAuthoringPreviewScreen({
+    super.key,
+    required this.course,
+    required this.lesson,
+  });
+
+  final Course course;
+  final Lesson lesson;
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+    appBar: AppBar(title: Text('PREVIEW · ${lesson.title}')),
+    body: lesson.rounds.isEmpty
+        ? const Center(child: Text('This Lesson has no Rounds to preview.'))
+        : ListView.builder(
+            padding: const EdgeInsets.all(12),
+            itemCount: lesson.rounds.length,
+            itemBuilder: (context, index) {
+              final round = lesson.rounds[index];
+              return Card(
+                child: ListTile(
+                  leading: const Icon(Icons.play_circle_outline),
+                  title: Text(
+                    round.title.trim().isEmpty
+                        ? 'Round ${index + 1}'
+                        : round.title,
+                  ),
+                  subtitle: Text('${round.exercises.length} exercises'),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => Navigator.of(context).push<void>(
+                    MaterialPageRoute(
+                      builder: (_) => RoundScreen(
+                        course: course,
+                        lesson: lesson,
+                        round: round,
+                        ttsLanguage: course.ttsLanguage,
+                        roundIndex: index,
+                        previewMode: true,
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
   );
 }
 
@@ -1791,530 +1899,17 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
     setState(() => _themeIconAsset = selected == none ? null : selected);
   }
 
-  String _generatorNorm(String value) => value
-      .toLowerCase()
-      .replaceAll(RegExp(r'[^\p{L}\p{N}]+', unicode: true), ' ')
-      .replaceAll(RegExp(r'\s+'), ' ')
-      .trim();
-
-  List<MapEntry<String, String>> _lessonVocabularyPairs() {
-    final out = <MapEntry<String, String>>[];
-    final seen = <String>{};
-    for (final raw in _lesson.guidebook.vocabulary) {
-      final line = raw.trim();
-      if (line.isEmpty) continue;
-      var at = line.indexOf(' = ');
-      var width = 3;
-      if (at < 1) {
-        at = line.indexOf(' → ');
-        width = 3;
-      }
-      if (at < 1) {
-        at = line.indexOf(' - ');
-        width = 3;
-      }
-      if (at < 1) {
-        at = line.indexOf(':');
-        width = 1;
-      }
-      if (at < 1) continue;
-      final target = line.substring(0, at).trim();
-      final source = line.substring(at + width).trim();
-      if (target.isEmpty || source.isEmpty) continue;
-      final key = '${_generatorNorm(target)}|${_generatorNorm(source)}';
-      if (seen.add(key)) out.add(MapEntry(target, source));
-    }
-    return out;
-  }
-
-  Exercise _generatedChoice(
-    String id,
-    String question,
-    String correct,
-    List<String> distractors,
-  ) {
-    final options = <String>[
-      correct,
-      ...distractors.where((d) => _generatorNorm(d) != _generatorNorm(correct)),
-    ];
-    final unique = <String>[];
-    final seen = <String>{};
-    for (final value in options) {
-      if (seen.add(_generatorNorm(value))) unique.add(value);
-    }
-    unique.shuffle(Random());
-    return Exercise(
-      id: id,
-      type: 'choice',
-      prompt: question,
-      question: '',
-      answers: unique,
-      correct: unique.indexOf(correct),
-      tts: null,
-      accepted: const [],
-      tokens: const [],
-      orderAnswer: const [],
-      pairs: const [],
-      hint: '',
-      icons: const [],
-    );
-  }
-
-  List<String> _distractors(
-    List<MapEntry<String, String>> pairs,
-    MapEntry<String, String> pair, {
-    required bool targets,
-  }) {
-    final values = [for (final p in pairs) targets ? p.key : p.value]
-      ..shuffle(Random());
-    final answer = targets ? pair.key : pair.value;
-    final out = <String>[];
-    for (final value in values) {
-      if (_generatorNorm(value) == _generatorNorm(answer)) continue;
-      if (out.any((e) => _generatorNorm(e) == _generatorNorm(value))) continue;
-      out.add(value);
-      if (out.length == 2) break;
-    }
-    return out;
-  }
-
-  String? _exampleContaining(List<String> examples, String target) {
-    final needle = _generatorNorm(target);
-    if (needle.isEmpty) return null;
-    for (final example in examples) {
-      if (_generatorNorm(example).contains(needle)) return example;
-    }
-    return null;
-  }
-
-  Exercise? _gapFromExample(
-    String id,
-    List<MapEntry<String, String>> pairs,
-    List<String> examples,
-    MapEntry<String, String> pair,
-  ) {
-    final sentence = _exampleContaining(examples, pair.key);
-    if (sentence == null) return null;
-    final match = RegExp(
-      RegExp.escape(pair.key),
-      caseSensitive: false,
-    ).firstMatch(sentence);
-    if (match == null) return null;
-    final question = sentence.replaceRange(match.start, match.end, '___');
-    final ds = _distractors(pairs, pair, targets: true);
-    if (ds.length < 2) return null;
-    final answers = <String>[pair.key, ...ds]..shuffle(Random());
-    return Exercise(
-      id: id,
-      type: 'gap_choice',
-      prompt: '',
-      question: question,
-      answers: answers,
-      correct: answers.indexOf(pair.key),
-      tts: null,
-      accepted: const [],
-      tokens: const [],
-      orderAnswer: const [],
-      pairs: const [],
-      hint: '',
-      icons: const [],
-    );
-  }
-
-  Exercise? _readingFromExample(
-    String id,
-    List<MapEntry<String, String>> pairs,
-    List<String> examples,
-    MapEntry<String, String> pair,
-  ) {
-    final sentence = _exampleContaining(examples, pair.key);
-    if (sentence == null) return null;
-    final ds = _distractors(pairs, pair, targets: true);
-    if (ds.length < 2) return null;
-    final answers = <String>[pair.key, ...ds]..shuffle(Random());
-    return Exercise(
-      id: id,
-      type: 'reading_comprehension',
-      prompt: sentence,
-      question: 'Which expression in the sentence means “${pair.value}”?',
-      answers: answers,
-      correct: answers.indexOf(pair.key),
-      tts: null,
-      accepted: const [],
-      tokens: const [],
-      orderAnswer: const [],
-      pairs: const [],
-      hint: '',
-      icons: const [],
-    );
-  }
-
-  Exercise _wordOrder(String id, String sentence) {
-    final words = sentence
-        .trim()
-        .split(RegExp(r'\s+'))
-        .where((e) => e.isNotEmpty)
-        .toList();
-    return Exercise(
-      id: id,
-      type: 'word_order',
-      prompt: 'Build the sentence.',
-      question: '',
-      answers: const [],
-      correct: null,
-      tts: null,
-      accepted: const [],
-      tokens: words,
-      orderAnswer: words,
-      pairs: const [],
-      hint: '',
-      icons: const [],
-    );
-  }
-
-  List<LearningRound> _buildThreeGuidebookRounds(
-    List<MapEntry<String, String>> originalPairs,
-    List<String> originalExamples,
-  ) {
-    final pairs = [...originalPairs]..shuffle(Random());
-    final examples = [...originalExamples]..shuffle(Random());
-    final stamp = DateTime.now().microsecondsSinceEpoch;
-    var seq = 0;
-    String id(String label) => 'gb_${stamp}_${label}_${seq++}';
-    MapEntry<String, String> p(int i) => pairs[i % pairs.length];
-    List<List<String>> matchPairs(int start) => [
-      for (var i = 0; i < 3; i++) [p(start + i).key, p(start + i).value],
-    ];
-    Exercise listenChoice(int i) {
-      final pair = p(i);
-      final ds = _distractors(pairs, pair, targets: true);
-      final answers = <String>[pair.key, ...ds]..shuffle(Random());
-      return Exercise(
-        id: id('listen'),
-        type: 'listening_choice',
-        prompt: '',
-        question: 'What do you hear?',
-        answers: answers,
-        correct: answers.indexOf(pair.key),
-        tts: pair.key,
-        accepted: const [],
-        tokens: const [],
-        orderAnswer: const [],
-        pairs: const [],
-        hint: '',
-        icons: const [],
-      );
-    }
-
-    Exercise spell(int i, {String? sentence}) {
-      final text = sentence ?? p(i).key;
-      return Exercise(
-        id: id('spell'),
-        type: 'listening_spelling',
-        prompt: '',
-        question: 'Type what you hear.',
-        answers: const [],
-        correct: null,
-        tts: text,
-        accepted: [text],
-        tokens: const [],
-        orderAnswer: const [],
-        pairs: const [],
-        hint: '',
-        icons: const [],
-      );
-    }
-
-    Exercise wordMatch(int start) => Exercise(
-      id: id('match'),
-      type: 'word_match',
-      prompt: 'Match each expression with its meaning.',
-      question: '',
-      answers: const [],
-      correct: null,
-      tts: null,
-      accepted: const [],
-      tokens: const [],
-      orderAnswer: const [],
-      pairs: matchPairs(start),
-      hint: '',
-      icons: const [],
-    );
-    Exercise audioMatch(int start) => Exercise(
-      id: id('audio_match'),
-      type: 'audio_match',
-      prompt: 'Match each sound to its meaning.',
-      question: '',
-      answers: const [],
-      correct: null,
-      tts: null,
-      accepted: const [],
-      tokens: const [],
-      orderAnswer: const [],
-      pairs: matchPairs(start),
-      hint: '',
-      icons: const [],
-    );
-    Exercise flash(int i) {
-      final pair = p(i);
-      final matchingExamples = examples
-          .where((e) => _exampleContaining([e], pair.key) != null)
-          .toList();
-      final usage = matchingExamples.isEmpty ? '' : matchingExamples.first;
-      return Exercise(
-        id: id('flash'),
-        type: 'flashcard',
-        prompt: pair.key,
-        question: pair.value,
-        answers: [if (usage.isNotEmpty) usage],
-        correct: null,
-        tts: pair.key,
-        accepted: const [],
-        tokens: const [],
-        orderAnswer: const [],
-        pairs: const [],
-        hint: '',
-        icons: const [],
-      );
-    }
-
-    final round1 = <Exercise>[
-      _generatedChoice(
-        id('choice'),
-        'Choose the best meaning of “${p(0).key}”.',
-        p(0).value,
-        _distractors(pairs, p(0), targets: false),
-      ),
-      _generatedChoice(
-        id('choice'),
-        'Choose the best meaning of “${p(1).key}”.',
-        p(1).value,
-        _distractors(pairs, p(1), targets: false),
-      ),
-      listenChoice(2),
-      listenChoice(3),
-      wordMatch(0),
-      flash(0),
-      flash(1),
-      _generatedChoice(
-        id('reverse'),
-        'How would you say “${p(2).value}”?',
-        p(2).key,
-        _distractors(pairs, p(2), targets: true),
-      ),
-    ];
-    final round2 = <Exercise>[
-      _generatedChoice(
-        id('reverse'),
-        'How would you say “${p(3).value}”?',
-        p(3).key,
-        _distractors(pairs, p(3), targets: true),
-      ),
-      _generatedChoice(
-        id('reverse'),
-        'How would you say “${p(1).value}”?',
-        p(1).key,
-        _distractors(pairs, p(1), targets: true),
-      ),
-      spell(1),
-      spell(2),
-      if (examples.isNotEmpty)
-        _wordOrder(id('order'), examples[0])
-      else
-        flash(2),
-      wordMatch(1),
-      audioMatch(0),
-      _gapFromExample(id('gap'), pairs, examples, p(0)) ??
-          _generatedChoice(
-            id('choice'),
-            'Choose the best meaning of “${p(2).key}”.',
-            p(2).value,
-            _distractors(pairs, p(2), targets: false),
-          ),
-    ];
-    final hardReading = _readingFromExample(
-      id('reading'),
-      pairs,
-      examples,
-      p(1),
-    );
-    final hardGap = _gapFromExample(id('gap'), pairs, examples, p(2));
-    final hardSentence = examples.length > 1 ? examples[1] : null;
-    final round3 = <Exercise>[
-      if (hardSentence != null)
-        _wordOrder(id('order'), hardSentence)
-      else
-        _generatedChoice(
-          id('context'),
-          'Which expression would best convey “${p(0).value}” in this Lesson?',
-          p(0).key,
-          _distractors(pairs, p(0), targets: true),
+  Future<void> _openGuidebookRoundGenerator() async {
+    final generated = await Navigator.of(context).push<List<LearningRound>>(
+      MaterialPageRoute(
+        builder: (_) => GuidebookRoundGeneratorScreen(
+          course: widget.course,
+          lesson: _lesson,
         ),
-      if (hardSentence != null) spell(0, sentence: hardSentence) else spell(0),
-      hardGap ??
-          _generatedChoice(
-            id('reverse'),
-            'In context, which expression corresponds to “${p(1).value}”?',
-            p(1).key,
-            _distractors(pairs, p(1), targets: true),
-          ),
-      hardReading ??
-          _generatedChoice(
-            id('choice'),
-            'In context, what is the best meaning of “${p(2).key}”?',
-            p(2).value,
-            _distractors(pairs, p(2), targets: false),
-          ),
-      listenChoice(1),
-      _generatedChoice(
-        id('context'),
-        'Choose the expression that means “${p(0).value}” in natural usage.',
-        p(0).key,
-        _distractors(pairs, p(0), targets: true),
-      ),
-      _generatedChoice(
-        id('reverse'),
-        'In this Lesson, which expression corresponds to “${p(2).value}”?',
-        p(2).key,
-        _distractors(pairs, p(2), targets: true),
-      ),
-      _generatedChoice(
-        id('choice'),
-        'Which meaning best matches “${p(0).key}” in context?',
-        p(0).value,
-        _distractors(pairs, p(0), targets: false),
-      ),
-    ];
-    final refs = _lesson.guidebook.content.take(6).map((c) => c.id).toList();
-    final keyTerms = pairs.take(4).map((e) => e.key).join(', ');
-    final introText =
-        'Before you start: ${_lesson.guidebook.overview.trim().isNotEmpty ? _lesson.guidebook.overview.trim() : _lesson.title}. Key items include $keyTerms. Read this Lesson Guidebook for more explanations, vocabulary and examples.';
-    final intro = LearningContent(
-      id: id('intro'),
-      kind: 'explanation',
-      required: false,
-      role: 'lesson_intro',
-      text: introText,
-      sourceRefs: refs,
-    );
-    LearningRound round(
-      int number,
-      List<Exercise> exercises, {
-      bool introFirst = false,
-    }) => LearningRound(
-      id: id('round'),
-      title: 'Round $number',
-      content: [
-        if (introFirst) intro,
-        ...exercises.map(LearningContent.fromExercise),
-      ],
-    );
-    return [
-      round(1, round1, introFirst: true),
-      round(2, round2),
-      round(3, round3),
-    ];
-  }
-
-  Future<void> _generateThreeRoundsFromGuidebook() async {
-    final pairs = _lessonVocabularyPairs();
-    final examples = [
-      ..._lesson.guidebook.examples,
-      ..._lesson.guidebook.expressions,
-    ].map((e) => e.trim()).where((e) => e.isNotEmpty).toSet().toList();
-    if (pairs.length < 3) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          duration: Duration(seconds: 8),
-          content: Text(
-            'Add at least three target/source vocabulary pairs to this Lesson Guidebook first. Example: casa = house.',
-          ),
-        ),
-      );
-      return;
-    }
-    final proposals = _buildThreeGuidebookRounds(pairs, examples);
-    final audit = CourseAuditService();
-    final issues = <CourseAuditIssue>[];
-    for (final round in proposals) {
-      for (final ex in round.exercises) {
-        issues.addAll(
-          audit.auditExercise(
-            ex,
-            location: '${round.title} · ${ex.type}',
-            roundId: round.id,
-          ),
-        );
-      }
-    }
-    final errors = issues
-        .where((i) => i.severity == AuditSeverity.error)
-        .toList();
-    if (!mounted) return;
-    final approve = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Review 3 generated Rounds'),
-        content: SizedBox(
-          width: 680,
-          child: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text(
-                  'The Lesson Guidebook is the only source. Material and option order are randomized, exact duplicate exercises are avoided, and difficulty increases across the three Rounds. Nothing is created until you approve this preview.',
-                ),
-                const SizedBox(height: 12),
-                for (final round in proposals) ...[
-                  Text(
-                    '${round.title} · ${round.exercises.length} exercises',
-                    style: const TextStyle(fontWeight: FontWeight.w800),
-                  ),
-                  const SizedBox(height: 4),
-                  for (final ex in round.exercises)
-                    Padding(
-                      padding: const EdgeInsets.only(left: 10, bottom: 2),
-                      child: Text(
-                        '• ${ex.type.replaceAll('_', ' ')} · ${ex.prompt.isNotEmpty ? ex.prompt : (ex.question.isNotEmpty ? ex.question : (ex.tts ?? ex.id))}',
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  const SizedBox(height: 10),
-                ],
-                Text(
-                  'Automatic audit: ${errors.length} errors · ${issues.where((i) => i.severity == AuditSeverity.warning).length} warnings · ${issues.where((i) => i.severity == AuditSeverity.suggestion).length} suggestions.',
-                ),
-                if (errors.isNotEmpty)
-                  const Padding(
-                    padding: EdgeInsets.only(top: 6),
-                    child: Text(
-                      'Creation is blocked until generator errors are resolved.',
-                      style: TextStyle(fontWeight: FontWeight.w800),
-                    ),
-                  ),
-              ],
-            ),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: errors.isEmpty ? () => Navigator.pop(ctx, true) : null,
-            child: const Text('Approve and create 3 Rounds'),
-          ),
-        ],
       ),
     );
-    if (approve == true && mounted) {
-      setState(
-        () => _lesson = _copy(rounds: [..._lesson.rounds, ...proposals]),
-      );
-    }
+    if (generated == null || generated.isEmpty || !mounted) return;
+    setState(() => _lesson = _copy(rounds: [..._lesson.rounds, ...generated]));
   }
 
   @override
@@ -2323,8 +1918,8 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
       title: Text(_lesson.title),
       actions: [
         IconButton(
-          tooltip: 'Generate 3 Rounds from Guidebook',
-          onPressed: _generateThreeRoundsFromGuidebook,
+          tooltip: 'Generate Rounds from GuideBook',
+          onPressed: _openGuidebookRoundGenerator,
           icon: const Icon(Icons.auto_awesome_outlined),
         ),
         IconButton(
@@ -2354,19 +1949,20 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
           leading: const Icon(Icons.menu_book_outlined),
           title: const Text('Lesson Guidebook'),
           subtitle: const Text(
-            'Learner reference for this Lesson. Its vocabulary and examples can also generate three progressively harder draft Rounds, which must be reviewed and approved before creation.',
+            'Learner reference for this Lesson. Its vocabulary and examples can propose progressively harder draft Rounds for review.',
           ),
           trailing: const Icon(Icons.chevron_right),
           onTap: _editGuidebook,
         ),
         ListTile(
+          key: const Key('guidebook-round-generator'),
           leading: const Icon(Icons.auto_awesome_outlined),
-          title: const Text('Generate 3 Rounds from Guidebook'),
+          title: const Text('Generate Rounds from GuideBook'),
           subtitle: const Text(
-            'Uses this Lesson Guidebook, randomizes suitable material, avoids exact exercise repetition, previews the drafts, and creates them only after approval.',
+            'Choose Round and Exercise counts, preview the difficulty plan, review every draft, then explicitly approve insertion.',
           ),
           trailing: const Icon(Icons.chevron_right),
-          onTap: _generateThreeRoundsFromGuidebook,
+          onTap: _openGuidebookRoundGenerator,
         ),
         SwitchListTile(
           key: const Key('lesson-section-toggle'),
@@ -2434,6 +2030,402 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
   );
 }
 
+enum _GuidebookGeneratorStage { configure, plan, drafts }
+
+class GuidebookRoundGeneratorScreen extends StatefulWidget {
+  const GuidebookRoundGeneratorScreen({
+    super.key,
+    required this.course,
+    required this.lesson,
+  });
+
+  final Course course;
+  final Lesson lesson;
+
+  @override
+  State<GuidebookRoundGeneratorScreen> createState() =>
+      _GuidebookRoundGeneratorScreenState();
+}
+
+class _GuidebookRoundGeneratorScreenState
+    extends State<GuidebookRoundGeneratorScreen> {
+  final _roundCount = TextEditingController(
+    text: '${GuidebookRoundGenerator.defaultRoundCount}',
+  );
+  final _exerciseCount = TextEditingController(
+    text: '${GuidebookRoundGenerator.defaultExercisesPerRound}',
+  );
+  final _finalIds = TimestampAuthoringIdGenerator();
+  _GuidebookGeneratorStage _stage = _GuidebookGeneratorStage.configure;
+  GuidebookGenerationPlan? _plan;
+  List<LearningRound> _drafts = const [];
+  int _seed = 0;
+
+  @override
+  void dispose() {
+    _roundCount.dispose();
+    _exerciseCount.dispose();
+    super.dispose();
+  }
+
+  void _message(String text) => ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(duration: const Duration(seconds: 8), content: Text(text)),
+  );
+
+  GuidebookRoundGenerator _generator() => GuidebookRoundGenerator(
+    randomSeed: _seed,
+    draftIds: TimestampAuthoringIdGenerator(),
+  );
+
+  void _preparePlan({bool regenerate = false}) {
+    if (regenerate) _seed++;
+    final rounds = int.tryParse(_roundCount.text.trim());
+    final exercises = int.tryParse(_exerciseCount.text.trim());
+    if (rounds == null || exercises == null) {
+      _message('Enter positive whole numbers for both counts.');
+      return;
+    }
+    try {
+      final plan = _generator().plan(
+        widget.lesson.guidebook,
+        roundCount: rounds,
+        exercisesPerRound: exercises,
+      );
+      setState(() {
+        _plan = plan;
+        _stage = _GuidebookGeneratorStage.plan;
+      });
+    } on ArgumentError catch (error) {
+      _message(error.message?.toString() ?? error.toString());
+    } on GuidebookGenerationException catch (error) {
+      _message(error.message);
+    }
+  }
+
+  void _generateDrafts() {
+    try {
+      final drafts = _generator().createDrafts(widget.lesson.guidebook, _plan!);
+      setState(() {
+        _drafts = drafts;
+        _stage = _GuidebookGeneratorStage.drafts;
+      });
+    } on GuidebookGenerationException catch (error) {
+      _message(error.message);
+    }
+  }
+
+  void _regenerateDrafts() {
+    _seed++;
+    try {
+      final plan = _generator().plan(
+        widget.lesson.guidebook,
+        roundCount: _plan!.roundCount,
+        exercisesPerRound: _plan!.exercisesPerRound,
+      );
+      final drafts = _generator().createDrafts(widget.lesson.guidebook, plan);
+      setState(() {
+        _plan = plan;
+        _drafts = drafts;
+      });
+    } on GuidebookGenerationException catch (error) {
+      _message(error.message);
+    }
+  }
+
+  Lesson get _draftLesson => Lesson(
+    lessonId: widget.lesson.lessonId,
+    title: widget.lesson.title,
+    rounds: [...widget.lesson.rounds, ..._drafts],
+    section: widget.lesson.section,
+    sectionName: widget.lesson.sectionName,
+    themeIconAsset: widget.lesson.themeIconAsset,
+    guidebook: widget.lesson.guidebook,
+    duel: widget.lesson.duel,
+  );
+
+  Future<void> _editDraft(int index) async {
+    final updated = await Navigator.of(context).push<LearningRound>(
+      MaterialPageRoute(
+        builder: (_) => RoundEditorScreen(
+          course: widget.course,
+          lesson: _draftLesson,
+          round: _drafts[index],
+          roundIndex: widget.lesson.rounds.length + index,
+        ),
+      ),
+    );
+    if (updated != null && mounted) {
+      setState(() => _drafts = [..._drafts]..[index] = updated);
+    }
+  }
+
+  Future<void> _previewDraft(int index) => Navigator.of(context).push<void>(
+    MaterialPageRoute(
+      builder: (_) => RoundScreen(
+        course: widget.course,
+        lesson: _draftLesson,
+        round: _drafts[index],
+        ttsLanguage: widget.course.ttsLanguage,
+        roundIndex: widget.lesson.rounds.length + index,
+        previewMode: true,
+      ),
+    ),
+  );
+
+  List<CourseAuditIssue> _issues() => [
+    for (final round in _drafts)
+      for (final exercise in round.exercises)
+        ...CourseAuditService().auditExercise(
+          exercise,
+          location: '${round.title} · ${exercise.type}',
+          roundId: round.id,
+        ),
+  ];
+
+  void _approve() {
+    final errors = _issues()
+        .where((issue) => issue.severity == AuditSeverity.error)
+        .toList();
+    if (errors.isNotEmpty) {
+      _message(
+        'Fix ${errors.length} generated Exercise error${errors.length == 1 ? '' : 's'} before approval.',
+      );
+      return;
+    }
+    final duplication = AuthoringDuplicationService(ids: _finalIds);
+    Navigator.pop(context, [
+      for (final draft in _drafts) duplication.duplicateRound(draft),
+    ]);
+  }
+
+  Future<void> _showHelp() => showDialog<void>(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: const Text('GuideBook Round Generator'),
+      content: const SingleChildScrollView(
+        child: Text(
+          'The current Lesson GuideBook is the only source. Choose the number of Rounds and Exercises per Round. The plan increases production demand and reduces scaffolding across the selected Round count. Generated material remains draft: review, edit or delete every Round and Exercise before explicit approval. Generation can assist authoring but cannot guarantee pedagogical correctness.',
+        ),
+      ),
+      actions: [
+        FilledButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Close'),
+        ),
+      ],
+    ),
+  );
+
+  Widget _configure() {
+    final rounds = int.tryParse(_roundCount.text.trim()) ?? 0;
+    final exercises = int.tryParse(_exerciseCount.text.trim()) ?? 0;
+    return ListView(
+      key: const Key('guidebook-generator-configure'),
+      padding: const EdgeInsets.all(16),
+      children: [
+        const Text(
+          'Generation uses only the current Lesson GuideBook. Nothing is created while configuring or previewing the plan.',
+        ),
+        const SizedBox(height: 16),
+        TextField(
+          key: const Key('generator-round-count'),
+          controller: _roundCount,
+          keyboardType: TextInputType.number,
+          onChanged: (_) => setState(() {}),
+          decoration: const InputDecoration(
+            border: OutlineInputBorder(),
+            labelText: 'Number of Rounds',
+            helperText: 'Choose 1–12. Default: 6.',
+          ),
+        ),
+        const SizedBox(height: 12),
+        TextField(
+          key: const Key('generator-exercise-count'),
+          controller: _exerciseCount,
+          keyboardType: TextInputType.number,
+          onChanged: (_) => setState(() {}),
+          decoration: const InputDecoration(
+            border: OutlineInputBorder(),
+            labelText: 'Exercises per Round',
+            helperText: 'Choose 1–15. Default: 8.',
+          ),
+        ),
+        const SizedBox(height: 16),
+        Text(
+          '$rounds Rounds × $exercises exercises = ${rounds * exercises} exercises',
+          key: const Key('generator-total'),
+          style: Theme.of(context).textTheme.titleMedium,
+        ),
+        const SizedBox(height: 20),
+        FilledButton(
+          key: const Key('generator-review-plan'),
+          onPressed: _preparePlan,
+          child: const Text('Review generation plan'),
+        ),
+      ],
+    );
+  }
+
+  Widget _reviewPlan() {
+    final distribution = _plan!.presetDistribution.entries.toList();
+    return ListView(
+      key: const Key('guidebook-generator-plan'),
+      padding: const EdgeInsets.all(16),
+      children: [
+        Text(
+          '${_plan!.roundCount} Rounds × ${_plan!.exercisesPerRound} exercises = ${_plan!.totalExercises} exercises',
+          style: Theme.of(context).textTheme.titleLarge,
+        ),
+        const SizedBox(height: 8),
+        const Text(
+          'Difficulty rises from guided recognition and comprehension through construction and context to freer production. The plan contains no final Round or Exercise objects.',
+        ),
+        const SizedBox(height: 12),
+        for (final round in _plan!.rounds)
+          ListTile(
+            dense: true,
+            leading: CircleAvatar(child: Text('${round.index + 1}')),
+            title: Text(round.title),
+            subtitle: Text(
+              'Difficulty ${(round.difficulty * 100).round()}% · ${round.presetIds.map((id) => ExercisePresetRegistry.byId(id)!.name).join(', ')}',
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        const SizedBox(height: 8),
+        Text(
+          'Planned preset distribution',
+          style: Theme.of(context).textTheme.titleMedium,
+        ),
+        for (final entry in distribution)
+          Text(
+            '• ${ExercisePresetRegistry.byId(entry.key)!.name}: ${entry.value}',
+          ),
+        const SizedBox(height: 16),
+        Wrap(
+          alignment: WrapAlignment.end,
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            TextButton(
+              onPressed: () =>
+                  setState(() => _stage = _GuidebookGeneratorStage.configure),
+              child: const Text('Back'),
+            ),
+            TextButton(
+              key: const Key('generator-cancel'),
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            OutlinedButton(
+              key: const Key('generator-recalculate'),
+              onPressed: () => _preparePlan(regenerate: true),
+              child: const Text('Recalculate'),
+            ),
+            FilledButton(
+              key: const Key('generator-generate'),
+              onPressed: _generateDrafts,
+              child: const Text('Generate'),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _reviewDrafts() {
+    final issues = _issues();
+    final errors = issues
+        .where((issue) => issue.severity == AuditSeverity.error)
+        .length;
+    return ListView(
+      key: const Key('guidebook-generator-drafts'),
+      padding: const EdgeInsets.all(12),
+      children: [
+        const Text(
+          'Generated Rounds are drafts. Review and edit them before approval; existing Rounds will remain untouched and approved drafts will be appended.',
+        ),
+        const SizedBox(height: 8),
+        Text(
+          'Automatic audit: $errors errors · ${issues.length - errors} other findings',
+        ),
+        const SizedBox(height: 8),
+        for (var index = 0; index < _drafts.length; index++)
+          Card(
+            key: ValueKey('generated-draft-${_drafts[index].id}'),
+            child: ListTile(
+              title: Text(_drafts[index].title),
+              subtitle: Text('${_drafts[index].exercises.length} exercises'),
+              onTap: () => _editDraft(index),
+              trailing: PopupMenuButton<String>(
+                key: ValueKey('generated-round-actions-${_drafts[index].id}'),
+                onSelected: (value) {
+                  if (value == 'edit') _editDraft(index);
+                  if (value == 'preview') _previewDraft(index);
+                  if (value == 'delete') {
+                    setState(() => _drafts = [..._drafts]..removeAt(index));
+                  }
+                },
+                itemBuilder: (_) => const [
+                  PopupMenuItem(value: 'edit', child: Text('Edit')),
+                  PopupMenuItem(value: 'preview', child: Text('Preview')),
+                  PopupMenuItem(value: 'delete', child: Text('Delete')),
+                ],
+              ),
+            ),
+          ),
+        const SizedBox(height: 12),
+        Wrap(
+          alignment: WrapAlignment.end,
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            TextButton(
+              onPressed: () =>
+                  setState(() => _stage = _GuidebookGeneratorStage.plan),
+              child: const Text('Back'),
+            ),
+            TextButton(
+              key: const Key('generator-cancel'),
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            OutlinedButton(
+              key: const Key('generator-regenerate'),
+              onPressed: _regenerateDrafts,
+              child: const Text('Regenerate'),
+            ),
+            FilledButton(
+              key: const Key('generator-approve'),
+              onPressed: _drafts.isEmpty || errors > 0 ? null : _approve,
+              child: const Text('Approve and add Rounds'),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+    appBar: AppBar(
+      title: const Text('Generate Rounds from GuideBook'),
+      actions: [
+        IconButton(
+          tooltip: 'Generator Help',
+          onPressed: _showHelp,
+          icon: const Icon(Icons.help_outline),
+        ),
+      ],
+    ),
+    body: switch (_stage) {
+      _GuidebookGeneratorStage.configure => _configure(),
+      _GuidebookGeneratorStage.plan => _reviewPlan(),
+      _GuidebookGeneratorStage.drafts => _reviewDrafts(),
+    },
+  );
+}
+
 class LessonRoundsScreen extends StatefulWidget {
   final Course course;
   final Lesson lesson;
@@ -2449,6 +2441,7 @@ class LessonRoundsScreen extends StatefulWidget {
 }
 
 class _LessonRoundsScreenState extends State<LessonRoundsScreen> {
+  final _ids = TimestampAuthoringIdGenerator();
   late List<LearningRound> _rounds;
 
   @override
@@ -2513,7 +2506,11 @@ class _LessonRoundsScreenState extends State<LessonRoundsScreen> {
     );
   }
 
-  Future<String?> _name(String title, {String initial = ''}) async {
+  Future<String?> _name(
+    String title, {
+    String initial = '',
+    bool allowEmpty = false,
+  }) async {
     var edited = initial;
     final value = await showDialog<String>(
       context: context,
@@ -2540,7 +2537,8 @@ class _LessonRoundsScreenState extends State<LessonRoundsScreen> {
         ],
       ),
     );
-    return value?.trim().isEmpty == true ? null : value;
+    if (value == null) return null;
+    return value.trim().isEmpty && !allowEmpty ? null : value.trim();
   }
 
   Future<void> _add() async {
@@ -2577,6 +2575,46 @@ class _LessonRoundsScreenState extends State<LessonRoundsScreen> {
       setState(() => _rounds = rounds);
     }
   }
+
+  Future<void> _renameRound(int index) async {
+    final source = _rounds[index];
+    final title = await _name(
+      'Rename round',
+      initial: source.title,
+      allowEmpty: true,
+    );
+    if (title == null || !mounted) return;
+    setState(() {
+      final rounds = [..._rounds];
+      rounds[index] = LearningRound(
+        id: source.id,
+        title: title,
+        visualType: source.visualType,
+        content: source.content,
+      );
+      _rounds = rounds;
+    });
+  }
+
+  void _duplicateRound(int index) {
+    final duplicate = AuthoringDuplicationService(
+      ids: _ids,
+    ).duplicateRound(_rounds[index]);
+    setState(() => _rounds = [..._rounds]..insert(index + 1, duplicate));
+  }
+
+  Future<void> _previewRound(int index) => Navigator.of(context).push<void>(
+    MaterialPageRoute(
+      builder: (_) => RoundScreen(
+        course: widget.course,
+        lesson: _draftLesson,
+        round: _rounds[index],
+        ttsLanguage: widget.course.ttsLanguage,
+        roundIndex: index,
+        previewMode: true,
+      ),
+    ),
+  );
 
   Future<void> _remove(int index) async {
     final confirmed =
@@ -2645,10 +2683,22 @@ class _LessonRoundsScreenState extends State<LessonRoundsScreen> {
               ),
               subtitle: Text('${round.exercises.length} exercises'),
               onTap: () => _open(index),
-              trailing: IconButton(
-                tooltip: 'Delete round',
-                onPressed: () => _remove(index),
-                icon: const Icon(Icons.delete_outline),
+              trailing: PopupMenuButton<String>(
+                key: ValueKey('round-actions-${round.id}'),
+                onSelected: (value) {
+                  if (value == 'edit') _open(index);
+                  if (value == 'rename') _renameRound(index);
+                  if (value == 'delete') _remove(index);
+                  if (value == 'duplicate') _duplicateRound(index);
+                  if (value == 'preview') _previewRound(index);
+                },
+                itemBuilder: (_) => const [
+                  PopupMenuItem(value: 'edit', child: Text('Edit')),
+                  PopupMenuItem(value: 'rename', child: Text('Rename')),
+                  PopupMenuItem(value: 'delete', child: Text('Delete')),
+                  PopupMenuItem(value: 'duplicate', child: Text('Duplicate')),
+                  PopupMenuItem(value: 'preview', child: Text('Preview')),
+                ],
               ),
             ),
           );
@@ -2675,6 +2725,7 @@ class RoundEditorScreen extends StatefulWidget {
 }
 
 class _RoundEditorScreenState extends State<RoundEditorScreen> {
+  final _ids = TimestampAuthoringIdGenerator();
   late List<Exercise> _exercises;
   late List<LearningContent> _preservedIntroContent;
   late String _title;
@@ -2716,25 +2767,10 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
   }
 
   Future<void> _insert() async {
-    final stamp = DateTime.now().microsecondsSinceEpoch;
     final e = await Navigator.of(context).push<Exercise>(
       MaterialPageRoute(
         builder: (_) => ExerciseEditorScreen(
-          exercise: Exercise(
-            id: 'custom_$stamp',
-            type: 'choice',
-            prompt: '',
-            question: '',
-            answers: const [],
-            correct: null,
-            tts: null,
-            accepted: const [],
-            tokens: const [],
-            orderAnswer: const [],
-            pairs: const [],
-            hint: '',
-            icons: const [],
-          ),
+          exercise: _blankExerciseForPreset('choice', _ids),
           title: 'New exercise',
           isNew: true,
         ),
@@ -2742,6 +2778,30 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
     );
     if (e == null || !mounted) return;
     setState(() => _exercises.add(e));
+    _warnLength();
+  }
+
+  Future<void> _openCreationWizard() async {
+    final created = await Navigator.of(context).push<List<Exercise>>(
+      MaterialPageRoute(
+        builder: (_) => ExerciseCreationWizardScreen(
+          course: widget.course,
+          lesson: widget.lesson,
+          round: _editedRound(),
+          roundIndex: widget.roundIndex,
+        ),
+      ),
+    );
+    if (created == null || created.isEmpty || !mounted) return;
+    setState(() => _exercises.addAll(created));
+    _warnLength();
+  }
+
+  void _duplicateExercise(int index) {
+    final duplicate = AuthoringDuplicationService(
+      ids: _ids,
+    ).duplicateExercise(_exercises[index]);
+    setState(() => _exercises.insert(index + 1, duplicate));
     _warnLength();
   }
 
@@ -3289,13 +3349,32 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
         ),
       ],
     ),
-    floatingActionButton: FloatingActionButton.extended(
-      onPressed: _insert,
-      icon: const Icon(Icons.add),
-      label: const Text('Insert exercise'),
+    bottomNavigationBar: SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
+        child: Wrap(
+          alignment: WrapAlignment.end,
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            OutlinedButton.icon(
+              key: const Key('new-exercise'),
+              onPressed: _insert,
+              icon: const Icon(Icons.add),
+              label: const Text('New exercise'),
+            ),
+            FilledButton.icon(
+              key: const Key('exercise-creation-wizard'),
+              onPressed: _openCreationWizard,
+              icon: const Icon(Icons.auto_awesome_outlined),
+              label: const Text('Creation Wizard'),
+            ),
+          ],
+        ),
+      ),
     ),
     body: ReorderableListView.builder(
-      padding: const EdgeInsets.fromLTRB(10, 10, 10, 90),
+      padding: const EdgeInsets.fromLTRB(10, 10, 10, 20),
       itemCount: _exercises.length,
       onReorderItem: _reorder,
       itemBuilder: (context, i) {
@@ -3315,7 +3394,10 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
             ),
             onTap: () => _edit(i),
             trailing: PopupMenuButton<String>(
+              key: ValueKey('exercise-actions-${e.id}'),
               onSelected: (v) {
+                if (v == 'edit') _edit(i);
+                if (v == 'duplicate') _duplicateExercise(i);
                 if (v == 'delete') _delete(i);
                 if (v == 'generate') _generateFromReading(i);
                 if (v == 'preview') _previewExercise(i);
@@ -3323,6 +3405,11 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
                 if (v == 'move') _moveExercise(i);
               },
               itemBuilder: (_) => [
+                const PopupMenuItem(value: 'edit', child: Text('Edit')),
+                const PopupMenuItem(
+                  value: 'duplicate',
+                  child: Text('Duplicate'),
+                ),
                 const PopupMenuItem(
                   value: 'preview',
                   child: Text('Preview exercise'),
@@ -3342,6 +3429,427 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
             ),
           ),
         );
+      },
+    ),
+  );
+}
+
+Exercise _blankExerciseForPreset(String presetId, AuthoringIdGenerator ids) =>
+    Exercise(
+      id: ids.next('exercise'),
+      type: presetId,
+      prompt: '',
+      question: '',
+      answers: const [],
+      correct: null,
+      tts: null,
+      accepted: const [],
+      tokens: const [],
+      orderAnswer: const [],
+      pairs: const [],
+      hint: '',
+      icons: const [],
+    );
+
+enum _ExerciseWizardStage { setup, plan, guided }
+
+class ExerciseCreationWizardScreen extends StatefulWidget {
+  const ExerciseCreationWizardScreen({
+    super.key,
+    required this.course,
+    required this.lesson,
+    required this.round,
+    required this.roundIndex,
+  });
+
+  final Course course;
+  final Lesson lesson;
+  final LearningRound round;
+  final int roundIndex;
+
+  @override
+  State<ExerciseCreationWizardScreen> createState() =>
+      _ExerciseCreationWizardScreenState();
+}
+
+class _ExerciseCreationWizardScreenState
+    extends State<ExerciseCreationWizardScreen> {
+  final _count = TextEditingController(text: '3');
+  final _planner = const ExerciseCreationPlanner();
+  final _ids = TimestampAuthoringIdGenerator();
+  final _categories = <ExerciseCategory>{};
+  final _selectedPresets = <String>[];
+  final _drafts = <int, Exercise>{};
+  final _saved = <int>{};
+  ExerciseWizardCriterion _criterion = ExerciseWizardCriterion.balanced;
+  _ExerciseWizardStage _stage = _ExerciseWizardStage.setup;
+  ExerciseCreationPlan? _plan;
+  int _seed = 0;
+  int _current = 0;
+
+  @override
+  void dispose() {
+    _count.dispose();
+    super.dispose();
+  }
+
+  void _message(String text) => ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(duration: const Duration(seconds: 8), content: Text(text)),
+  );
+
+  void _calculatePlan({bool regenerate = false}) {
+    if (regenerate) _seed++;
+    try {
+      final count = int.tryParse(_count.text.trim());
+      if (count == null) throw ArgumentError('Enter a positive whole number.');
+      final plan = _planner.create(
+        count: count,
+        criterion: _criterion,
+        categories: _categories.toList(),
+        presetIds: _selectedPresets,
+        pattern: _selectedPresets,
+        randomSeed: _seed,
+      );
+      setState(() {
+        _plan = plan;
+        _stage = _ExerciseWizardStage.plan;
+      });
+    } on ArgumentError catch (error) {
+      _message(error.message?.toString() ?? error.toString());
+    }
+  }
+
+  void _togglePreset(String id, bool selected) {
+    setState(() {
+      if (selected) {
+        if (!_selectedPresets.contains(id)) _selectedPresets.add(id);
+      } else {
+        _selectedPresets.remove(id);
+      }
+    });
+  }
+
+  Future<void> _editCurrent() async {
+    final plan = _plan!;
+    final existing = _drafts[_current];
+    final exercise = await Navigator.of(context).push<Exercise>(
+      MaterialPageRoute(
+        builder: (_) => ExerciseEditorScreen(
+          exercise:
+              existing ??
+              _blankExerciseForPreset(plan.presetIds[_current], _ids),
+          title: 'Exercise ${_current + 1} of ${plan.presetIds.length}',
+          isNew: existing == null,
+        ),
+      ),
+    );
+    if (exercise != null && mounted) {
+      setState(() => _drafts[_current] = exercise);
+    }
+  }
+
+  bool _saveCurrent() {
+    if (_drafts[_current] == null) {
+      _message('Edit and validate this Exercise before saving it.');
+      return false;
+    }
+    setState(() => _saved.add(_current));
+    return true;
+  }
+
+  Future<void> _previewCurrent() async {
+    final exercise = _drafts[_current];
+    if (exercise == null) {
+      _message('Edit and validate this Exercise before previewing it.');
+      return;
+    }
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute(
+        builder: (_) => RoundScreen(
+          course: widget.course,
+          lesson: widget.lesson,
+          round: LearningRound(
+            id: 'wizard_preview_${widget.round.id}',
+            title: 'Preview exercise',
+            exercises: [exercise],
+          ),
+          ttsLanguage: widget.course.ttsLanguage,
+          roundIndex: widget.roundIndex,
+          previewMode: true,
+        ),
+      ),
+    );
+  }
+
+  void _advance() {
+    if (!_saveCurrent()) return;
+    if (_current == _plan!.presetIds.length - 1) {
+      Navigator.pop(context, [
+        for (var i = 0; i < _plan!.presetIds.length; i++) _drafts[i]!,
+      ]);
+      return;
+    }
+    setState(() => _current++);
+  }
+
+  Future<void> _cancel() async {
+    if (_saved.isEmpty) {
+      Navigator.pop(context);
+      return;
+    }
+    final keep = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Leave Creation Wizard?'),
+        content: Text(
+          '${_saved.length} explicitly saved Exercise${_saved.length == 1 ? '' : 's'} will be kept. The current unsaved step and future planned Exercises will not be created.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Keep editing'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Leave and keep saved'),
+          ),
+        ],
+      ),
+    );
+    if (keep == true && mounted) {
+      final indexes = _saved.toList()..sort();
+      Navigator.pop(context, [for (final index in indexes) _drafts[index]!]);
+    }
+  }
+
+  Widget _setup() => ListView(
+    key: const Key('wizard-setup'),
+    padding: const EdgeInsets.all(16),
+    children: [
+      TextField(
+        key: const Key('wizard-count'),
+        controller: _count,
+        keyboardType: TextInputType.number,
+        decoration: const InputDecoration(
+          border: OutlineInputBorder(),
+          labelText: 'How many exercises?',
+          helperText: 'Choose 1–30.',
+        ),
+      ),
+      const SizedBox(height: 16),
+      DropdownButtonFormField<ExerciseWizardCriterion>(
+        key: const Key('wizard-criterion'),
+        isExpanded: true,
+        initialValue: _criterion,
+        decoration: const InputDecoration(
+          border: OutlineInputBorder(),
+          labelText: 'Type-selection criterion',
+        ),
+        items: [
+          for (final value in ExerciseWizardCriterion.values)
+            DropdownMenuItem(value: value, child: Text(value.label)),
+        ],
+        onChanged: (value) {
+          if (value != null) setState(() => _criterion = value);
+        },
+      ),
+      if (_criterion == ExerciseWizardCriterion.byCategory) ...[
+        const SizedBox(height: 16),
+        Text('Categories', style: Theme.of(context).textTheme.titleMedium),
+        const SizedBox(height: 6),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            for (final category in ExerciseCategory.values)
+              FilterChip(
+                label: Text(category.label),
+                selected: _categories.contains(category),
+                onSelected: (selected) => setState(() {
+                  if (selected) {
+                    _categories.add(category);
+                  } else {
+                    _categories.remove(category);
+                  }
+                }),
+              ),
+          ],
+        ),
+      ],
+      if (_criterion == ExerciseWizardCriterion.selectedTypes ||
+          _criterion == ExerciseWizardCriterion.repeatPattern) ...[
+        const SizedBox(height: 16),
+        Text(
+          _criterion == ExerciseWizardCriterion.repeatPattern
+              ? 'Pattern (selection order is preserved)'
+              : 'Exercise types',
+          style: Theme.of(context).textTheme.titleMedium,
+        ),
+        const SizedBox(height: 6),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            for (final preset in ExercisePresetRegistry.presets)
+              FilterChip(
+                label: Text(
+                  _criterion == ExerciseWizardCriterion.repeatPattern &&
+                          _selectedPresets.contains(preset.id)
+                      ? '${_selectedPresets.indexOf(preset.id) + 1}. ${preset.name}'
+                      : preset.name,
+                ),
+                selected: _selectedPresets.contains(preset.id),
+                onSelected: (selected) => _togglePreset(preset.id, selected),
+              ),
+          ],
+        ),
+      ],
+      const SizedBox(height: 20),
+      FilledButton(
+        key: const Key('wizard-continue'),
+        onPressed: _calculatePlan,
+        child: const Text('Review plan'),
+      ),
+    ],
+  );
+
+  Widget _reviewPlan() => ListView(
+    key: const Key('wizard-plan'),
+    padding: const EdgeInsets.all(16),
+    children: [
+      Text(
+        '${_plan!.presetIds.length} planned Exercises',
+        style: Theme.of(context).textTheme.titleLarge,
+      ),
+      const SizedBox(height: 8),
+      const Text('No Exercise objects have been created yet.'),
+      const SizedBox(height: 12),
+      for (var i = 0; i < _plan!.presets.length; i++)
+        ListTile(
+          dense: true,
+          leading: CircleAvatar(child: Text('${i + 1}')),
+          title: Text(_plan!.presets[i].name),
+          subtitle: Text(_plan!.presets[i].category.label),
+        ),
+      const SizedBox(height: 12),
+      Wrap(
+        spacing: 8,
+        runSpacing: 8,
+        alignment: WrapAlignment.end,
+        children: [
+          TextButton(
+            onPressed: () =>
+                setState(() => _stage = _ExerciseWizardStage.setup),
+            child: const Text('Back'),
+          ),
+          OutlinedButton(
+            key: const Key('wizard-regenerate'),
+            onPressed: () => _calculatePlan(regenerate: true),
+            child: const Text('Regenerate'),
+          ),
+          FilledButton(
+            key: const Key('wizard-confirm'),
+            onPressed: () => setState(() {
+              _stage = _ExerciseWizardStage.guided;
+              _current = 0;
+            }),
+            child: const Text('Confirm'),
+          ),
+        ],
+      ),
+    ],
+  );
+
+  Widget _guided() {
+    final preset = _plan!.presets[_current];
+    final draft = _drafts[_current];
+    final finalStep = _current == _plan!.presetIds.length - 1;
+    return ListView(
+      key: const Key('wizard-guided'),
+      padding: const EdgeInsets.all(16),
+      children: [
+        Text(
+          'Exercise ${_current + 1} of ${_plan!.presetIds.length}',
+          key: const Key('wizard-step'),
+          style: Theme.of(context).textTheme.titleLarge,
+        ),
+        const SizedBox(height: 8),
+        Card(
+          child: ListTile(
+            title: Text(preset.name),
+            subtitle: Text(
+              draft == null
+                  ? 'Not edited yet'
+                  : _ExerciseEditorScreenState.labelForType(draft.type),
+            ),
+            trailing: const Icon(Icons.edit_outlined),
+            onTap: _editCurrent,
+          ),
+        ),
+        const SizedBox(height: 16),
+        FilledButton.icon(
+          key: const Key('wizard-edit'),
+          onPressed: _editCurrent,
+          icon: const Icon(Icons.edit_outlined),
+          label: Text(draft == null ? 'Edit exercise' : 'Continue editing'),
+        ),
+        const SizedBox(height: 16),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            OutlinedButton(
+              key: const Key('wizard-save'),
+              onPressed: _saveCurrent,
+              child: const Text('Save'),
+            ),
+            OutlinedButton(
+              key: const Key('wizard-preview'),
+              onPressed: _previewCurrent,
+              child: const Text('Preview'),
+            ),
+            FilledButton(
+              key: Key(finalStep ? 'wizard-finish' : 'wizard-next'),
+              onPressed: _advance,
+              child: Text(finalStep ? 'Finish' : 'Next'),
+            ),
+          ],
+        ),
+        const SizedBox(height: 10),
+        Wrap(
+          spacing: 8,
+          children: [
+            TextButton(
+              onPressed: _current > 0
+                  ? () => setState(() => _current--)
+                  : _saved.isEmpty
+                  ? () => setState(() => _stage = _ExerciseWizardStage.plan)
+                  : null,
+              child: const Text('Back'),
+            ),
+            TextButton(
+              key: const Key('wizard-cancel'),
+              onPressed: _cancel,
+              child: const Text('Cancel'),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) => PopScope<List<Exercise>>(
+    canPop: false,
+    onPopInvokedWithResult: (didPop, _) {
+      if (!didPop) _cancel();
+    },
+    child: Scaffold(
+      appBar: AppBar(title: const Text('Exercise Creation Wizard')),
+      body: switch (_stage) {
+        _ExerciseWizardStage.setup => _setup(),
+        _ExerciseWizardStage.plan => _reviewPlan(),
+        _ExerciseWizardStage.guided => _guided(),
       },
     ),
   );
@@ -3595,6 +4103,25 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
       ),
     ),
   );
+
+  Future<void> _showTypeTranslationHelp() => showDialog<void>(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: const Text('Type the translation · answer syntax'),
+      content: const SingleChildScrollView(
+        child: Text(
+          'Optional text\n{Io} prendo un cappuccino\nAccepts both “Io prendo un cappuccino” and “Prendo un cappuccino”.\n\nAlternatives\n{Io} [prendo|vorrei] un cappuccino\nAccepts every explicit optional/alternative combination.\n\nReorderable parts\n{[Tu|Voi]} [vuoi|volete] un cappuccino <> oggi?\nWithout parentheses, <> reorders the complete declared phrase parts. Use parentheses, for example (non arrivo <> oggi), to limit the reorder scope. Terminal punctuation stays at the sentence end and generated sentence starts are capitalized.\n\nMultiple full answers\nEnter complete equivalent translations on separate lines. Compact syntax is optional.\n\nMalformed syntax is rejected. Expansions are deterministic, duplicates are removed, and the 128-variant limit is never silently truncated.',
+        ),
+      ),
+      actions: [
+        FilledButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Close'),
+        ),
+      ],
+    ),
+  );
+
   List<Widget> _specificFields() {
     switch (_type) {
       case 'flashcard':
@@ -3648,6 +4175,16 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
             lines: 5,
             helper:
                 'One complete equivalent answer per line. Optional {...}, alternatives [a|b], and scoped reorder (a <> b) syntax are supported.',
+          ),
+          ListTile(
+            key: const Key('type-translation-answer-help'),
+            contentPadding: EdgeInsets.zero,
+            leading: const Icon(Icons.help_outline),
+            title: const Text('Answer syntax help'),
+            subtitle: const Text(
+              'Optional text, alternatives, reorder scopes, punctuation, capitalization and limits.',
+            ),
+            onTap: _showTypeTranslationHelp,
           ),
           _field(_hint, 'Hint (optional)'),
         ];

@@ -11,9 +11,10 @@ Course Editor is an Easter Egg so ordinary learners do not encounter authoring c
 The editor supports the whole authoring tree:
 
 - Course → open the compact **Lessons** row
-- Lessons → use the authoritative Lock control and create/delete/reorder Lessons
-- Lesson → edit its title, Section metadata, preinstalled theme icon and Guidebook; open the linked Rounds page to create/delete/reorder Rounds; a stable Duel identity is retained automatically
-- Round → create/delete/reorder Exercises
+- Lessons → use the authoritative Lock control and create/reorder Lessons; each Lesson menu provides Edit, Rename, Delete, Duplicate and Preview
+- Lesson → edit its title, Section metadata, preinstalled theme icon and GuideBook; open the linked Rounds page; a stable Duel identity is retained automatically
+- Rounds → create/reorder Rounds; each Round menu provides Edit, Rename, Delete, Duplicate and Preview
+- Round → create/reorder Exercises; every Exercise menu includes Edit and Duplicate alongside the established preview, transfer and delete actions
 
 New objects receive generated local IDs. Deleting an object removes its descendants from the local edited course. The bundled JSON asset is never modified. **Reset local edits** restores the bundled course.
 
@@ -21,7 +22,9 @@ Each Lesson can optionally enable **Belongs to a Section** and then requires a t
 
 The controlled **Lesson theme icon** field opens a responsive visual grid containing `None` and every release-owned PNG from the canonical registry, with labels, selection state and an in-editor contained preview. Arbitrary paths, uploads, cropping and per-Lesson image sizing remain unsupported. The former decorative Lesson image field is not part of Course Model v5.
 
-The Lesson form keeps Lesson metadata readily accessible and links to one dedicated **Rounds** page instead of expanding the complete list inline. The page reuses the existing Round create/edit/delete/reorder workflow and returns naturally to the Lesson draft. Unsaved title, Section and icon edits, returned Round edits and every existing stable ID remain intact until the parent Lesson form is saved or cancelled.
+The Lesson form keeps Lesson metadata readily accessible and links to one dedicated **Rounds** page instead of expanding the complete list inline. The page reuses the existing Round workflow and returns naturally to the Lesson draft. Navigation through Course → Lessons → Lesson → Rounds → Round/Exercises keeps one draft boundary: it does not prematurely write each subpage mutation. Unsaved Course and Lesson metadata, returned Round edits and every existing stable ID remain intact until the parent save boundary.
+
+Duplicate inserts the independent copy immediately after its source. Lesson duplication recursively allocates fresh Lesson, Duel, GuideBook Content, Round, Exercise and item IDs; Round and Exercise duplication applies the corresponding subtree rule. Internal ID references are remapped while shared immutable image/audio asset paths remain references. Editing a duplicate cannot mutate its source. Rename changes only the title and preserves identity and descendants. Preview uses learner rendering without writing completion, XP, streak, Laurel, Review, Duel or unlock state.
 
 Rounds normally contain 15 exercises. The editor does not enforce 15 as a hard maximum. Course Audit reports unusually short or long rounds so the author can review them.
 
@@ -69,7 +72,29 @@ Multiple complete equivalent answers can always be entered as separate lines. Co
 - `(non arrivo <> oggi)` allows only those declared phrase parts to swap inside the parentheses.
 - `a casa <> domani` applies reordering to the whole expression when no parentheses are present.
 
-Syntax is validated before save. Expansion is deterministic, duplicate results are removed, and the combined limit is 128 answers; larger combinations must be split or simplified. QQL applies its established case, punctuation, whitespace, apostrophe and accent rules. When an answer is wrong, it displays the valid answer closest to the learner's attempted words and structure; that correction choice is separate from deciding whether the response was correct.
+Syntax is validated before save. Expansion is deterministic, duplicate results are removed, and the combined limit is 128 answers; larger combinations must be split or simplified. During `<>` reordering, final punctuation such as `.`, `?`, `!`, `…` and `?!` is detached and reattached only at the generated sentence end; internal punctuation is not moved. Generated variants capitalize the first alphabetic character of the sentence and after `.`, `?` or `!`, remove merely structural capitalization when a common phrase starter moves inward, and preserve distinguishable proper names/acronyms such as Jane, Roma and USA.
+
+QQL applies its established case, punctuation, whitespace, apostrophe and accent rules for acceptance. If a response remains wrong, correction selection independently scores exact shared words, graded word-level spelling similarity, incompatible extra words, missing candidate words and common word order. The nearest construction is displayed, with author order as the exact-tie fallback. This display choice never turns an incorrect response into a correct one.
+
+## Exercise Creation Wizard
+
+In the Round editor, **Creation Wizard** sits beside the unchanged **New exercise** action. Choose between 1 and 30 Exercises, then select one criterion:
+
+- **Balanced mix:** deterministic distribution across registry categories without unnecessary consecutive identical presets
+- **Random mix:** registry-backed selection using deterministic seedable randomness
+- **By category:** cycle through every preset in the chosen categories
+- **Selected exercise types:** cycle through the exact selected registry presets
+- **Repeat a pattern:** preserve the author's selection order and repeat it to the requested count
+
+Reviewing the exact N-entry plan creates no Exercise objects. Confirming starts `Exercise 1 of N` and reuses the normal preset-specific Exercise editor. **Save** validates and remains on the current step. **Preview** uses the same draft and returns without copying or advancing. **Next** validates/saves and advances exactly once; the final action is **Finish**, which returns the created Exercises in order. Cancelling after explicit saves requires confirmation and keeps only those valid saved Exercises; future and invalid placeholders are never inserted.
+
+## Generate Rounds from GuideBook
+
+The Lesson Editor generator uses only the current Lesson GuideBook. It requires at least three usable `target = source` vocabulary pairs and never fabricates material from another Lesson. Authors choose 1–12 Rounds and 1–15 Exercises per Round; defaults are 6 and 8, displayed as `6 Rounds × 8 exercises = 48 exercises`.
+
+Before generation, the plan shows the counts, total, normalized difficulty per Round and registry-backed preset distribution without creating final objects. Difficulty is `0…1` by Round position (or `0.5` for a single Round). Early plans emphasize guided recognition/comprehension and fewer distractors; middle plans add matching, ordering, construction and context; late plans emphasize Type the translation and less-scaffolded production, using only media and example-dependent presets supported by the GuideBook. Concise draft titles use the phase and a relevant vocabulary target.
+
+Generated Rounds remain review drafts. Authors can edit them in the authoritative Round editor, preview, delete or regenerate them. **Approve and add Rounds** first requires a clean error-level Course Audit, then allocates final fresh IDs and appends the result after every existing Round. Cancelling or merely viewing the plan changes nothing. Automated generation does not guarantee pedagogical correctness; every Round and Exercise needs human review.
 
 ## Word Blocks
 
@@ -158,16 +183,11 @@ Generation is opt-in and previews the drafts before insertion. Automatically
 generated Word Blocks only take a distractor from the same-language passage;
 when no safe distractor exists, that derived Word Block is not generated.
 
-Each learning Lesson has a dedicated **Lesson Guidebook** available from the Lesson page.
-It can store overview text, goals, vocabulary pairs, grammar notes, expressions and
-example sentences. Its contents are also authoring source material. In the Lesson
-Editor, **Generate 3 Rounds from Guidebook** proposes three progressively harder
-Rounds using only the Lesson Guidebook vocabulary and examples. Suitable material
-and choice order are randomized, exact duplicate exercises are avoided, and Round 1
-starts with a short non-exercise `lesson_intro` Content item containing essential
-Guidebook information plus a reminder to read the Lesson Guidebook for more. All
-three Rounds are previewed and audited first. They are created only after explicit
-author approval and remain fully editable afterwards.
+Each learning Lesson has a dedicated **Lesson GuideBook** available from the Lesson
+page. It can store overview text, goals, vocabulary pairs, grammar notes,
+expressions and example sentences. Its contents are also the sole source for the
+configurable draft-Round generator described above. Planning, generation and
+approval remain separate; existing Rounds are never replaced.
 
 Course Audit treats an empty course/Lesson as an authoring warning rather
 than a learner-runtime crash. It continues to report invalid answer indices,

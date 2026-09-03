@@ -2,13 +2,17 @@
 
 - Rationalized the retained exercise implementation behind five canonical internal models—Select, Input, Arrange, Match and Presentation—while exposing 20 concrete authoring presets in six searchable Course Editor categories.
 - Added Type the translation with multiple explicit accepted answers, deterministic optional/alternative/reorder expression syntax, a 128-expansion safety limit and conservative single-typo tolerance.
-- Added deterministic closest-correction selection as a separate algorithm from answer acceptance, preserving the established case, punctuation, whitespace, apostrophe and accent behavior.
+- Added deterministic closest-correction selection as a separate algorithm from answer acceptance, using graded word-level spelling similarity plus exact-token, extra/missing-token and word-order signals while preserving established acceptance behavior.
+- Kept terminal punctuation at the end of `<>` reorder expansions and normalized structural sentence capitalization without lowercasing distinguishable names or acronyms.
 - Added Contextual comprehension with a separate question, text/audio/text-and-audio modes, optional structured speaker dialogue, stable item IDs and ordinary Select evaluation.
 - Generalized the documented Match and Arrange mappings without duplicating runtime engines, retained Presentation as non-scored material, and formalized ordered Round content as the future-proof Story/content-sequence boundary.
 - Added an import-only normalized exercise boundary and complete engineering interoperability matrix without adding production external importers or leaking source taxonomies into learner runtime.
 - Replaced the inline Course Editor Lesson list with a compact Lessons row and dedicated management page, moving the single authoritative Lock control to its top while preserving Lesson operations, drafts and stable IDs.
+- Added Lesson and Round Edit/Rename/Delete/Duplicate/Preview menus and direct Exercise duplication. Copies are inserted after their source, recursively allocate fresh IDs and remap internal references; preview remains learner-state-free.
+- Added a registry-backed Exercise Creation Wizard with exact-count Balanced, seedable Random, category, selected-type and repeating-pattern plans plus sequential Save/Preview/Next/Finish and confirmed partial-save cancellation.
+- Replaced the fixed three-Round GuideBook helper with a configurable 1–12 Round × 1–15 Exercise planner (default 6×8), normalized progressive difficulty, registry-compatible draft generation, review/edit/delete/regenerate, validation and explicit fresh-ID approval that appends without replacing existing Rounds.
 - Added one registry-driven Exercise Help system covering every offered preset plus answer variants and contextual comprehension, with no external product names in author-facing copy.
-- Added canonical/preset, import mapping, parser, acceptance, correction, contextual, editor-navigation, Help, stable-ID and 320/375/430/desktop responsive regression coverage while preserving Course Model v5, Review, Duel, XP, Round completion, learner identity and progression.
+- Added canonical/preset, import mapping, parser, acceptance, correction, contextual, editor-navigation/menu, recursive-ID, Wizard, generator, Help, stable-ID and 320/375/430/desktop responsive regression coverage while preserving Course Model v5, Review, Duel, XP, Round completion, learner identity and progression.
 - Refreshed the mandatory 30-day Alpha lifetime through the end of **2026-10-03**.
 
 # 2.0.23 (build 223) - 2026-09-02

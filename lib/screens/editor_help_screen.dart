@@ -29,7 +29,7 @@ class EditorHelpScreen extends StatelessWidget {
         _HelpSection(
           title: 'Course structure',
           body:
-              'Create, delete and reorder Lessons, Rounds and exercises in the Chapter-free Course > Lesson > Round > Content hierarchy. Exercise type cannot be changed after an exercise is created. Create a replacement exercise instead. Each Lesson has its own learner-facing Guidebook and Lesson-scoped Duel.',
+              'The main Course page links to a dedicated Lessons page with the single authoritative Lock control at its top. From there the draft-preserving hierarchy continues through Lesson, Rounds and Round / Exercises. Lesson and Round menus provide Edit, Rename, Delete, Duplicate and Preview; Exercise menus provide Edit and Duplicate alongside the established actions. A duplicate is inserted after its source with fresh IDs throughout its owned subtree. Exercise type cannot be changed after creation. Each Lesson has its own learner-facing GuideBook and Lesson-scoped Duel.',
         ),
         _HelpSection(
           title: 'Local course edits and backups',
@@ -57,14 +57,19 @@ class EditorHelpScreen extends StatelessWidget {
               '1. Copy the flag image to Documents/QuisquisLingo/Exports. 2. Name it flag.png, flag.jpg or flag.jpeg. 3. Open Create new course and press Import flag. The file must be a valid PNG or JPEG, no larger than 2 MB and at least 64×40 pixels. Large images are resized to at most 256 pixels on the longest side while preserving proportions. The imported flag is stored with the custom course, so the original image file does not need to remain in the transfer folder afterward.',
         ),
         _HelpSection(
-          title: 'Generate 3 Rounds from Lesson Guidebook',
+          title: 'Generate Rounds from Lesson GuideBook',
           body:
-              'Open a learning Lesson and choose Generate 3 Rounds from Guidebook. The generator uses only vocabulary pairs and example sentences already stored in that Lesson Guidebook. It proposes three Rounds of increasing difficulty, randomizes suitable material and option order, and avoids exact duplicate exercises. The first Content item of Round 1 is a short non-exercise introduction based on essential Guidebook material and tells the learner to read the Lesson Guidebook for more. All three proposed Rounds are shown for review and passed through Course Audit. Nothing is created until the author explicitly chooses Approve and create 3 Rounds. Generated exercises remain editable after creation. At least three usable target/source vocabulary pairs are required.',
+              'Open a Lesson and choose Generate Rounds from GuideBook. The generator uses only vocabulary pairs and examples in that Lesson GuideBook; at least three usable target/source pairs are required. Choose 1–12 Rounds and 1–15 Exercises per Round (defaults: 6 and 8). Review the count, total, normalized progressive-difficulty curve and planned registry presets before generation. Early drafts emphasize guided recognition with fewer distractors, middle drafts add construction and context, and later drafts add freer production. Generated Rounds remain drafts: edit, preview, delete or regenerate them, then explicitly approve them to append fresh-ID copies after existing Rounds. Generation cannot guarantee pedagogical correctness, so every Round and Exercise requires human review.',
         ),
         _HelpSection(
-          title: 'Copy and Move exercises',
+          title: 'Exercise Creation Wizard',
           body:
-              'Copy and Move use an explicit in-app transfer buffer. Choose Copy or Move on an exercise, navigate to the destination Round, then use the Paste button in that Round. Copy leaves the source exercise in place; Move removes it from the source Round and pastes it once at the destination. Copy never silently duplicates an exercise immediately underneath the original.',
+              'In a Round, Creation Wizard sits beside New exercise. Choose 1–30 Exercises and select Balanced mix, Random mix, one or more categories, exact exercise types, or an ordered repeating pattern. The reviewed plan creates no Exercise objects. After confirmation, each planned step opens the ordinary preset-specific Exercise editor. Save validates and stays on the step; Preview returns to the same draft without copying or advancing; Next validates and advances one step; Finish returns the created Exercises in plan order. If you cancel after explicitly saving work, confirm whether to keep only those valid saved Exercises. Future and invalid placeholders are never inserted.',
+        ),
+        _HelpSection(
+          title: 'Duplicate, Copy and Move exercises',
+          body:
+              'Duplicate immediately inserts an independent fresh-ID copy after the source Exercise. Copy and Move use an explicit in-app transfer buffer: choose an action, navigate to the destination Round, then press Paste. Copy leaves the source in place and allocates fresh Exercise and item IDs when pasted; Move preserves identity, removes the source from its Round and pastes it once at the destination. Shared immutable asset paths remain references rather than duplicated files.',
         ),
         _HelpSection(
           title: 'Audio Library',
@@ -228,12 +233,12 @@ class ExerciseHelpScreen extends StatelessWidget {
         const _HelpSection(
           title: 'Answer variants',
           body:
-              'Multiple complete equivalent answers may be entered on separate lines. Compact syntax is optional: {Io} makes “Io” optional; [prendo|vorrei] chooses one listed alternative; and (non arrivo <> oggi) allows only the declared phrase parts inside parentheses to swap. Without parentheses, <> applies to the whole expression. QQL expands variants deterministically, removes duplicates and rejects malformed syntax or more than 128 expansions instead of truncating. Avoid very large combinations.',
+              'Multiple complete equivalent answers may be entered on separate lines. Compact syntax is optional: {Io} makes “Io” optional; [prendo|vorrei] chooses one listed alternative; and (non arrivo <> oggi) allows only the declared phrase parts inside parentheses to swap. Without parentheses, <> applies to the whole expression. During reordering, terminal punctuation such as ., ?, !, … or ?! is detached and restored only at the final sentence end; internal punctuation is not moved. Generated variants capitalize sentence starts and starts after . ? !, avoid false capitalization at moved phrase boundaries, and preserve distinguishable names/acronyms. Expansion is deterministic, removes duplicates, and rejects malformed syntax or more than 128 variants instead of truncating.',
         ),
         const _HelpSection(
           title: 'Text evaluation and corrections',
           body:
-              'QQL accepts any configured complete answer or syntax-expanded variant after the established case, punctuation, whitespace, apostrophe and accent rules. Type the translation also permits one omitted or duplicated repeated letter in a word of at least five characters when every word position is otherwise unchanged. Substitutions and missing, extra or decisively different words remain incorrect. After an incorrect response, QQL displays the valid answer closest to the learner’s attempted words and order; this correction choice never changes correctness.',
+              'QQL accepts any configured complete answer or syntax-expanded variant after the established case, punctuation, whitespace, apostrophe and accent rules. Type the translation also permits one omitted or duplicated repeated letter in a word of at least five characters when every word position is otherwise unchanged. Substitutions and missing, extra or decisively different words remain incorrect. For an incorrect response, deterministic correction selection compares exact shared words, graded word-level spelling similarity, incompatible extras, absent candidate words and word order. The closest valid construction is displayed; exact ties retain author order, and correction choice never changes correctness.',
         ),
         const _HelpSection(
           title: 'Contextual comprehension example',
@@ -269,7 +274,7 @@ class CourseModelV4HelpScreen extends StatelessWidget {
       _HelpSection(
         title: 'Guidebook',
         body:
-            'Each Lesson Guidebook is structured Content rather than a single monolithic block. Its vocabulary, examples and explanations are learner reference material and can also act as source material for the three-Round generator and sourceRefs.',
+            'Each Lesson GuideBook is structured Content rather than a single monolithic block. Its vocabulary, examples and explanations are learner reference material and can also act as the sole source for configurable, progressively harder draft Round generation and sourceRefs.',
       ),
       _HelpSection(
         title: 'Completion and progression',

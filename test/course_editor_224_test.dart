@@ -76,15 +76,33 @@ void main() {
   ) async {
     final course = _course();
     await CourseEditorService().saveUserCourse(course);
+    final routeResults = <Course?>[];
     await tester.pumpWidget(
       MaterialApp(
-        home: LessonManagementScreen(
-          course: course,
-          userCourse: true,
-          initiallyLocked: false,
+        home: Builder(
+          builder: (context) => Scaffold(
+            body: FilledButton(
+              onPressed: () async {
+                routeResults.add(
+                  await Navigator.of(context).push<Course>(
+                    MaterialPageRoute(
+                      builder: (_) => LessonManagementScreen(
+                        course: course,
+                        userCourse: true,
+                        initiallyLocked: false,
+                      ),
+                    ),
+                  ),
+                );
+              },
+              child: const Text('Open Lessons'),
+            ),
+          ),
         ),
       ),
     );
+    await tester.tap(find.text('Open Lessons'));
+    await tester.pumpAndSettle();
     await tester.pumpAndSettle();
     await tester.tap(find.widgetWithText(FloatingActionButton, 'New lesson'));
     await tester.pumpAndSettle();
@@ -92,6 +110,7 @@ void main() {
     await tester.tap(find.widgetWithText(FilledButton, 'Create'));
     await tester.pumpAndSettle();
 
+    expect(find.text('Lesson 3: Third Lesson'), findsOneWidget);
     final saved = (await CourseEditorService().listUserCourses()).single;
     expect(saved.title, 'Draft Course Metadata');
     expect(saved.courseDescription, 'Unsaved-looking draft metadata');
@@ -99,7 +118,19 @@ void main() {
       saved.lessons.map((lesson) => lesson.lessonId),
       containsAll(['stable_lesson_one', 'stable_lesson_two']),
     );
-    expect(saved.lessons.last.title, 'Third Lesson');
+    expect(saved.lessons, hasLength(2));
+
+    await tester.tap(find.byType(BackButton));
+    await tester.pumpAndSettle();
+    expect(routeResults, hasLength(1));
+    final draft = routeResults.single!;
+    expect(draft.title, 'Draft Course Metadata');
+    expect(draft.courseDescription, 'Unsaved-looking draft metadata');
+    expect(draft.lessons.last.title, 'Third Lesson');
+    expect(draft.lessons.take(2).map((lesson) => lesson.lessonId), [
+      'stable_lesson_one',
+      'stable_lesson_two',
+    ]);
   });
 
   testWidgets('preset picker is grouped, searchable and links to Help', (
