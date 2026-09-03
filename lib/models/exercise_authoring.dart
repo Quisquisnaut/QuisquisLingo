@@ -213,7 +213,7 @@ abstract final class ExercisePresetRegistry {
     'contextual_comprehension':
         'The learner reads and/or listens to context and answers a separate multiple-choice question. Provide a question, text or audio context (or both), answers and one correct answer. Dialogue is optional: enter one “Speaker: text” turn per line. Text and audio are supported, and an exercise image may supplement the context. Example: ask what a speaker means after a short exchange.',
     'type_translation':
-        'The learner sees source text and freely types a target-language translation. Provide the source, one or more complete accepted translations, and an optional hint. Text is supported. Accepted lines may use the documented answer-variant syntax; one omitted or duplicated repeated letter is tolerated conservatively, but substitutions and missing or extra words are not.',
+        'The learner sees source text and freely types a target-language translation. Provide the source, one or more complete accepted translations, and an optional hint. Accepted lines may use optional {}, independent [a|b], linked [*:a|b] groups with equal counts, and valid <> reorder scopes. Correct feedback shows the nearest canonical answer and only differences actually used. One omitted or duplicated repeated letter is tolerated conservatively, but substitutions and missing or extra words are not.',
     'build_translation':
         'The learner sees source text and constructs its target-language translation from word blocks. Provide source text, available blocks and the correct block order. Text is supported. Use no more than two distinct distractor blocks.',
     'fill_blank':

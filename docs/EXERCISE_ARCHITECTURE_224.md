@@ -70,16 +70,17 @@ Input presets may provide multiple complete accepted answers as separate lines. 
 
 - `{text}` for an optional segment;
 - `[a|b|c]` for two or more alternatives;
+- `[*:a|b]` in two or more equal-length groups for alternatives linked by index without Cartesian cross-combinations;
 - `(part one <> part two)` to permute only the explicitly declared parts within that parenthesized scope;
 - `part one <> part two` to apply the same rule to the whole expression when parentheses are absent.
 
-The parser never generates arbitrary word permutations. It validates balance, empty segments, incomplete separators, parentheses without a reorder separator, and empty alternatives. Expansion order is deterministic, duplicates are removed while preserving first-author order, and the aggregate limit is 128 variants. Exceeding the limit is an error; variants are never silently truncated.
+Linked groups compose with optional, independent-alternative and valid reorder syntax. The parser never generates arbitrary word permutations. It validates balance, empty segments, incomplete separators, linked-group count/cardinality, parentheses without a reorder separator, and empty alternatives. Expansion order is deterministic, duplicates are removed while preserving first-author order, and the aggregate limit is 128 variants. Exceeding the limit is an error; variants are never silently truncated.
 
 For `<>`, terminal punctuation (`.`, `?`, `!`, `…`, `?!` and equivalent combinations) is detached before moving declared phrase parts and reattached to the final sentence end. Internal punctuation such as commas stays with its authored structure. Structurally generated variants capitalize the first alphabetic character and the first alphabetic character after `.`, `?`, or `!`. When a common sentence starter moves inward, its original initial uppercase is removed; distinguishable names and acronyms such as Jane, Roma and USA retain lexical capitalization.
 
 ## Acceptance and correction selection
 
-Acceptance and correction choice are separate algorithms.
+Acceptance and correction choice are separate algorithms. Structured evaluation returns `isCorrect`, the nearest `matchedAcceptedAnswer`, an exact/normalized/missing-diacritic/typo acceptance reason, and the actual accepted differences. Correct typed feedback always shows the canonical answer but names only differences genuinely used; an exact response never receives a false normalization reason.
 
 The acceptance engine expands all authored answers, then preserves established normalization: case is ignored unless explicitly preserved, ordinary punctuation is ignored unless preserved, runs of whitespace collapse unless preserved, curly and straight apostrophes normalize to a meaningful apostrophe, and an omitted expected diacritic is tolerated when the learner entered no competing diacritic. Apostrophes are not erased. Type the translation additionally permits one accidentally omitted or duplicated repeated letter in exactly one token when both tokens are at least five characters, token count/order is unchanged, neither token contains a diacritic, and the set of common negation tokens is unchanged. It does not accept substitutions, missing/extra words, wrong lexical items, broad fuzzy matches, person/tense ending changes, or changed negation.
 
@@ -87,9 +88,13 @@ For a wrong answer, correction selection scores each expanded valid answer indep
 
 ## Authoring navigation, menus and recursive identity
 
-Course Editor navigation is `Course → Lessons → Lesson → Rounds → Round / Exercises`. The main Course page contains only a compact Lessons link. The dedicated Lessons page owns the single existing Lock control and returns one updated Course draft to its parent; child mutations are not independently persisted. Lesson and Round rows expose Edit, Rename, Delete, Duplicate and Preview. Exercise rows expose Edit and Duplicate alongside the retained preview, transfer and delete actions.
+Course Editor navigation is `Course → Lessons → Lesson → Rounds → Round / Exercises`. The main Course page contains only a compact Lessons link. The dedicated Lessons page owns the single existing Lock control and returns one updated Course draft to its parent; child mutations are not independently persisted. Course, Lesson and Round surfaces expose scoped Audit and Draft/Publish actions alongside the appropriate Edit, Rename, Delete, Duplicate and Preview actions. Exercise rows expose Edit, Duplicate and Draft/Publish alongside retained preview, transfer and delete actions. Only error-level Round Audit findings produce the pink management outline.
 
 Edit preserves identity. Lesson Rename changes only its required title; Round Rename changes only its optional title and allows clearing it. Duplicate is inserted immediately after its source. `AuthoringDuplicationService` recursively allocates fresh Lesson, Duel, GuideBook Content, Round, Exercise, Content and Item IDs, remaps evaluation and internal `sourceRefs`, and retains shared immutable asset paths/external references. Clipboard Copy uses the same deep duplication at paste; Move deliberately preserves identity. Preview uses `RoundScreen(previewMode: true)` and therefore does not write progress, XP, streak, Laurel, Review, Duel or unlock state.
+
+Course, Lesson, Round and Exercise authoring shares an explicit Draft/Published concept. Learner projection includes only Published objects with Published ancestors. Draft Course selection, Draft Lesson numbering/Sections/unlocks, Draft Round execution and Draft Exercise completion/Review/Duel/XP are all excluded. Publishing a parent does not rewrite descendants. Unpublishing preserves IDs and learner history. New, duplicated, Wizard-created and generated objects default to Draft. The exact shared unsaved-changes guard protects dirty Course, Lesson, Round and Exercise pages; generator drafts are guarded separately from explicit approval.
+
+Course presentation metadata controls Lesson/Unit/Topic/Module/Skill/Chapter/Stage/Step/Part/custom/number-only/no-prefix display and monochrome versus deterministic colored-number fallback art. Numbering uses Published order and exactly de-duplicates untouched `Lesson N` titles in Lesson mode. An explicit preinstalled or Course-managed custom icon overrides the fallback. Custom imports are contain-normalized to a transparent 256 × 256 PNG, stored in the portable Course-owned registry, referenced without an external path, and rendered in the shared 84 × 84 slot.
 
 ## Exercise Creation Wizard
 

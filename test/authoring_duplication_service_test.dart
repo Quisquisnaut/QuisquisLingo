@@ -114,6 +114,78 @@ void main() {
       expect(source.rounds.single.content.single.sourceRefs, ['guide_source']);
     },
   );
+
+  test('Course duplication remaps every owned ID and preserves metadata', () {
+    final sourceLesson = Lesson(
+      lessonId: 'lesson-source',
+      title: 'Lesson',
+      section: true,
+      sectionName: 'Section',
+      themeIconAsset: 'assets/lesson_icons/home.png',
+      guidebook: Guidebook(
+        content: const [
+          LearningContent(
+            id: 'guide-source',
+            kind: 'vocabulary',
+            role: 'vocabulary',
+            text: 'casa = house',
+          ),
+        ],
+      ),
+      rounds: [
+        LearningRound(
+          id: 'round-source',
+          title: 'Round',
+          content: [
+            LearningContent(
+              id: 'content-source',
+              kind: 'exercise',
+              editorTemplate: 'choice',
+              exercise: _select('exercise-source'),
+              sourceRefs: const ['guide-source'],
+            ),
+          ],
+        ),
+      ],
+      duel: Duel(id: 'duel-source', title: 'Duel'),
+    );
+    final source = Course(
+      courseId: 'course-source',
+      learningLanguage: 'Italian',
+      interfaceLanguage: 'English',
+      sourceLanguage: 'English',
+      targetLanguage: 'Italian',
+      title: 'Original',
+      ttsLanguage: 'it-IT',
+      version: '1',
+      courseDescription: 'Metadata',
+      buyACoffeeUrl: 'https://example.com/coffee',
+      flagCode: 'IT',
+      audioLibrary: const [
+        CourseAudioClip(id: 'audio-source', text: 'ciao', filePath: 'ciao.mp3'),
+      ],
+      lessons: [sourceLesson],
+    );
+    final copy = AuthoringDuplicationService(
+      ids: _SequenceIds(),
+    ).duplicateCourse(source, title: 'Original copy');
+
+    expect(copy.courseId, isNot(source.courseId));
+    expect(copy.parentCourseId, source.courseId);
+    expect(copy.title, 'Original copy');
+    expect(copy.courseDescription, source.courseDescription);
+    expect(copy.buyACoffeeUrl, source.buyACoffeeUrl);
+    expect(copy.flagCode, source.flagCode);
+    expect(copy.audioLibrary.single.id, isNot(source.audioLibrary.single.id));
+    expect(
+      _allIds(copy.lessons.single).intersection(_allIds(sourceLesson)),
+      isEmpty,
+    );
+    expect(
+      copy.lessons.single.rounds.single.content.single.sourceRefs.single,
+      copy.lessons.single.guidebook.content.single.id,
+    );
+  });
 }
 
 Exercise _select(String id) => Exercise.v2(

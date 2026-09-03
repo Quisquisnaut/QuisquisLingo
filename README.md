@@ -7,7 +7,7 @@
 
 Current project version: 2.0.24
 
-Build 224 rationalizes the existing exercise system into five canonical internal models while retaining concrete authoring presets. It adds Type the translation, contextual comprehension, deterministic punctuation-safe answer variants, graded closest-correction feedback, a grouped searchable preset picker and complete Exercise Help. The Course Editor now opens its Lesson list and unchanged Lock behavior on a dedicated draft-preserving management page, provides recursive fresh-ID duplication menus, guides multi-Exercise creation through a registry-backed Wizard, and proposes configurable progressively harder GuideBook-grounded Round drafts that require explicit approval. Course Model v5 and all learner progression, scoring and identity semantics remain unchanged. The official repository is `Quisquisnaut/QuisquisLingo`.
+Build 224 rationalizes exercises behind five canonical models and adds Type the translation, contextual comprehension, linked `*:` answer variants, structured Correct-answer diagnostics, scoped Course Audit with Info guidance, and a dedicated Lesson manager. Course/Lesson/Round/Exercise authoring now has explicit Draft/Published state and consistent unsaved-change protection. Courses also control learner Lesson numbering and fallback icons, support portable managed custom Lesson icons, and expose an optional Buy a Coffee HTTPS action. Stable IDs, progression, XP, Review, Duel, identity and Course Model v5 remain authoritative. The official repository is `Quisquisnaut/QuisquisLingo`.
 
 
 A Flutter prototype for an offline-first language-learning app.

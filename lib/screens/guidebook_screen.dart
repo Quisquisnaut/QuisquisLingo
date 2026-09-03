@@ -1,14 +1,26 @@
 import 'package:flutter/material.dart';
 import '../models/course_models.dart';
+import '../services/lesson_presentation_service.dart';
 
 class GuidebookScreen extends StatelessWidget {
+  final Course course;
   final Lesson lesson;
+  final int lessonIndex;
 
-  const GuidebookScreen({super.key, required this.lesson});
+  const GuidebookScreen({
+    super.key,
+    required this.course,
+    required this.lesson,
+    required this.lessonIndex,
+  });
 
   @override
   Widget build(BuildContext context) {
     final guide = lesson.guidebook;
+    final identity = const LessonPresentationService().identity(
+      course,
+      lessonIndex,
+    );
     return Scaffold(
       appBar: AppBar(
         title: const Text(
@@ -21,7 +33,7 @@ class GuidebookScreen extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(18, 8, 18, 28),
         children: [
           Text(
-            lesson.title,
+            identity.fullText,
             style: Theme.of(
               context,
             ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800),

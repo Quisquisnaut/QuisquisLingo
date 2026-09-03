@@ -463,6 +463,12 @@ Avoid mandatory servers, artificial purchase economies, lives, or monetization-d
 - [x] Add complete Lesson/Round context menus and Exercise duplication with recursive fresh identities and internal-reference remapping.
 - [x] Add the registry-backed Exercise Creation Wizard with five selection criteria, no-object plan preview, sequential authoritative editing and confirmed partial-save cancellation.
 - [x] Replace fixed GuideBook generation with configurable 6×8-default progressive planning, editable/audited drafts and explicit fresh-ID append approval.
+- [x] Add Course/Lesson/Round/Exercise Draft and Published states with strict publication, ancestor-aware learner visibility, badges/actions and unchanged stable IDs/progress.
+- [x] Apply one exact unsaved-change guard through nested authoring and protect generated drafts until approval.
+- [x] Expand Course Audit with Info, scoped Course/Lesson/Round entry points, stable sorting and error-only pink Round outlines.
+- [x] Complete custom Course Edit/Rename/Duplicate/Audit actions and canonical optional Buy a Coffee metadata.
+- [x] Add Course-level Lesson prefix and fallback-icon presentation, exact default-title de-duplication, Published-only numbering and portable managed custom Lesson icons.
+- [x] Add index-linked `*:` answer groups and structured Correct-answer diagnostics without changing nearest incorrect correction behavior.
 - [x] Preserve Review, Duel, XP, Round completion, learner identity, progression, IDDQD, Flag Game and all other out-of-scope behavior.
 
 ---

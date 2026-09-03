@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:math';
 
 /// QuisquisLingo Course Model v5.
@@ -9,6 +10,141 @@ import 'dart:math';
 /// A few read-only convenience getters expose the author-friendly vocabulary
 /// used by the existing learner/editor widgets. They are derived from the v5
 /// primitives and are not a second runtime model.
+
+enum PublicationState {
+  draft,
+  published;
+
+  static PublicationState parseRequired(
+    Map<String, dynamic> json,
+    String location,
+  ) {
+    final value = json['publicationState'];
+    return switch (value) {
+      'draft' => PublicationState.draft,
+      'published' => PublicationState.published,
+      _ => throw FormatException(
+        '$location.publicationState must be draft or published.',
+      ),
+    };
+  }
+
+  bool get isPublished => this == PublicationState.published;
+}
+
+enum LessonNumberingMode {
+  lesson,
+  unit,
+  topic,
+  module,
+  skill,
+  chapter,
+  stage,
+  step,
+  part,
+  other,
+  numberOnly,
+  none;
+
+  static LessonNumberingMode parseRequired(Map<String, dynamic> json) {
+    final value = json['lessonNumberingMode'];
+    return LessonNumberingMode.values.firstWhere(
+      (mode) => mode.name == value,
+      orElse: () => throw const FormatException(
+        'course.lessonNumberingMode is missing or invalid.',
+      ),
+    );
+  }
+}
+
+enum LessonFallbackIconStyle {
+  monochrome,
+  coloredLessonNumbers;
+
+  static LessonFallbackIconStyle parseRequired(Map<String, dynamic> json) {
+    final value = json['defaultLessonIconStyle'];
+    return LessonFallbackIconStyle.values.firstWhere(
+      (style) => style.name == value,
+      orElse: () => throw const FormatException(
+        'course.defaultLessonIconStyle is missing or invalid.',
+      ),
+    );
+  }
+}
+
+class CourseLessonIconAsset {
+  static const referencePrefix = 'course-assets/lesson-icons/';
+
+  final String assetId;
+  final String base64Png;
+
+  const CourseLessonIconAsset({required this.assetId, required this.base64Png});
+
+  String get reference => '$referencePrefix$assetId.png';
+
+  Map<String, dynamic> toJson() => {'assetId': assetId, 'base64Png': base64Png};
+
+  factory CourseLessonIconAsset.fromJson(Map<String, dynamic> json) {
+    final assetId = _requiredString(json, 'assetId', 'lessonIconAsset');
+    if (!RegExp(r'^[A-Za-z0-9_-]+$').hasMatch(assetId)) {
+      throw const FormatException(
+        'lessonIconAsset.assetId may contain letters, numbers, underscores and hyphens only.',
+      );
+    }
+    final base64Png = _requiredString(json, 'base64Png', 'lessonIconAsset');
+    validateCanonicalPng(base64Png);
+    return CourseLessonIconAsset(assetId: assetId, base64Png: base64Png);
+  }
+
+  static bool isManagedReference(String value) => RegExp(
+    r'^course-assets/lesson-icons/[A-Za-z0-9_-]+\.png$',
+  ).hasMatch(value.trim());
+
+  static String? assetIdFromReference(String value) {
+    final trimmed = value.trim();
+    if (!isManagedReference(trimmed)) return null;
+    return trimmed.substring(referencePrefix.length, trimmed.length - 4);
+  }
+
+  static void validateCanonicalPng(String value) {
+    late final List<int> bytes;
+    try {
+      bytes = base64Decode(value);
+    } catch (_) {
+      throw const FormatException(
+        'lessonIconAsset.base64Png must contain valid Base64.',
+      );
+    }
+    const signature = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a];
+    if (bytes.length < 24) {
+      throw const FormatException(
+        'lessonIconAsset.base64Png must contain a valid PNG.',
+      );
+    }
+    for (var index = 0; index < signature.length; index++) {
+      if (bytes[index] != signature[index]) {
+        throw const FormatException(
+          'lessonIconAsset.base64Png must contain a valid PNG.',
+        );
+      }
+    }
+    if (String.fromCharCodes(bytes.sublist(12, 16)) != 'IHDR') {
+      throw const FormatException(
+        'lessonIconAsset.base64Png must contain a valid PNG header.',
+      );
+    }
+    int uint32(int offset) =>
+        (bytes[offset] << 24) |
+        (bytes[offset + 1] << 16) |
+        (bytes[offset + 2] << 8) |
+        bytes[offset + 3];
+    if (uint32(16) != 256 || uint32(20) != 256) {
+      throw const FormatException(
+        'Custom Lesson icons must use a 256x256 PNG canvas.',
+      );
+    }
+  }
+}
 
 class CourseAuthor {
   final String name;
@@ -41,6 +177,10 @@ class Course {
   static const int currentFormatVersion = 5;
   final int formatVersion;
   final String courseId;
+  final PublicationState publicationState;
+  final LessonNumberingMode lessonNumberingMode;
+  final String customLessonLabel;
+  final LessonFallbackIconStyle defaultLessonIconStyle;
   final String? parentCourseId;
   final String? derivedFromVersion;
   final String learningLanguage;
@@ -68,13 +208,18 @@ class Course {
   final String flagCode;
   final String flagImageBase64;
   final bool temporarySample;
-  final String supportUrl;
+  final String buyACoffeeUrl;
+  final List<CourseLessonIconAsset> lessonIconAssets;
   final List<CourseAudioClip> audioLibrary;
   final List<Lesson> lessons;
 
   Course({
     this.formatVersion = currentFormatVersion,
     required this.courseId,
+    this.publicationState = PublicationState.published,
+    this.lessonNumberingMode = LessonNumberingMode.lesson,
+    String customLessonLabel = '',
+    this.defaultLessonIconStyle = LessonFallbackIconStyle.monochrome,
     this.parentCourseId,
     this.derivedFromVersion,
     required this.learningLanguage,
@@ -102,13 +247,42 @@ class Course {
     this.flagCode = '',
     this.flagImageBase64 = '',
     this.temporarySample = false,
-    this.supportUrl = '',
+    String buyACoffeeUrl = '',
+    this.lessonIconAssets = const [],
     this.audioLibrary = const [],
     required this.lessons,
-  });
+  }) : customLessonLabel = customLessonLabel.trim(),
+       buyACoffeeUrl = normalizeBuyACoffeeUrl(buyACoffeeUrl) {
+    if (lessonNumberingMode == LessonNumberingMode.other &&
+        this.customLessonLabel.isEmpty) {
+      throw const FormatException(
+        'A non-empty custom Lesson label is required for Other.',
+      );
+    }
+  }
+
+  static String normalizeBuyACoffeeUrl(String value) {
+    final trimmed = value.trim();
+    if (trimmed.isEmpty) return '';
+    final uri = Uri.tryParse(trimmed);
+    if (uri == null ||
+        uri.scheme.toLowerCase() != 'https' ||
+        !uri.hasAuthority ||
+        uri.host.isEmpty) {
+      throw const FormatException(
+        'Buy a Coffee URL must be a valid HTTPS URL.',
+      );
+    }
+    return trimmed;
+  }
 
   Map<String, dynamic> toJson() => {
     'formatVersion': currentFormatVersion,
+    'publicationState': publicationState.name,
+    'lessonNumberingMode': lessonNumberingMode.name,
+    if (lessonNumberingMode == LessonNumberingMode.other)
+      'customLessonLabel': customLessonLabel,
+    'defaultLessonIconStyle': defaultLessonIconStyle.name,
     'courseId': courseId,
     if (parentCourseId?.isNotEmpty == true) 'parentCourseId': parentCourseId,
     if (derivedFromVersion?.isNotEmpty == true)
@@ -138,7 +312,9 @@ class Course {
     if (flagCode.isNotEmpty) 'flagCode': flagCode,
     if (flagImageBase64.isNotEmpty) 'flagImageBase64': flagImageBase64,
     'temporarySample': temporarySample,
-    if (supportUrl.isNotEmpty) 'supportUrl': supportUrl,
+    if (buyACoffeeUrl.isNotEmpty) 'buyACoffeeUrl': buyACoffeeUrl,
+    if (lessonIconAssets.isNotEmpty)
+      'lessonIconAssets': lessonIconAssets.map((e) => e.toJson()).toList(),
     if (audioLibrary.isNotEmpty)
       'audioLibrary': audioLibrary.map((e) => e.toJson()).toList(),
     'lessons': lessons.map((e) => e.toJson()).toList(),
@@ -161,11 +337,23 @@ class Course {
         'Course Model formatVersion 5 does not support chapters.',
       );
     }
+    if (json.containsKey('supportUrl')) {
+      throw const FormatException(
+        'Course Model formatVersion 5 uses buyACoffeeUrl, not supportUrl.',
+      );
+    }
+    if (json.containsKey('buyACoffeeUrl') && json['buyACoffeeUrl'] is! String) {
+      throw const FormatException('course.buyACoffeeUrl must be a string.');
+    }
     final learning = _requiredString(json, 'learningLanguage', 'course');
     final interface = _requiredString(json, 'interfaceLanguage', 'course');
     return Course(
       formatVersion: currentFormatVersion,
       courseId: _requiredString(json, 'courseId', 'course'),
+      publicationState: PublicationState.parseRequired(json, 'course'),
+      lessonNumberingMode: LessonNumberingMode.parseRequired(json),
+      customLessonLabel: _optionalString(json, 'customLessonLabel', ''),
+      defaultLessonIconStyle: LessonFallbackIconStyle.parseRequired(json),
       parentCourseId: _optionalString(json, 'parentCourseId', '').isEmpty
           ? null
           : _optionalString(json, 'parentCourseId', ''),
@@ -205,7 +393,23 @@ class Course {
       flagCode: _optionalString(json, 'flagCode', ''),
       flagImageBase64: _optionalString(json, 'flagImageBase64', ''),
       temporarySample: json['temporarySample'] == true,
-      supportUrl: _optionalString(json, 'supportUrl', ''),
+      buyACoffeeUrl: _optionalString(json, 'buyACoffeeUrl', ''),
+      lessonIconAssets: (json['lessonIconAssets'] is List)
+          ? (json['lessonIconAssets'] as List).map((entry) {
+              if (entry is! Map) {
+                throw const FormatException(
+                  'course.lessonIconAssets entries must be objects.',
+                );
+              }
+              return CourseLessonIconAsset.fromJson(
+                Map<String, dynamic>.from(entry),
+              );
+            }).toList()
+          : json.containsKey('lessonIconAssets')
+          ? throw const FormatException(
+              'course.lessonIconAssets must be a list.',
+            )
+          : const [],
       audioLibrary: (json['audioLibrary'] is List)
           ? (json['audioLibrary'] as List)
                 .whereType<Map>()
@@ -230,6 +434,10 @@ class Course {
 
   Course fork() => Course(
     courseId: newCourseId(),
+    publicationState: PublicationState.draft,
+    lessonNumberingMode: lessonNumberingMode,
+    customLessonLabel: customLessonLabel,
+    defaultLessonIconStyle: defaultLessonIconStyle,
     parentCourseId: courseId,
     derivedFromVersion: courseVersion.isNotEmpty ? courseVersion : version,
     learningLanguage: learningLanguage,
@@ -257,7 +465,8 @@ class Course {
     flagCode: flagCode,
     flagImageBase64: flagImageBase64,
     temporarySample: temporarySample,
-    supportUrl: supportUrl,
+    buyACoffeeUrl: buyACoffeeUrl,
+    lessonIconAssets: lessonIconAssets,
     audioLibrary: audioLibrary,
     lessons: lessons,
   );
@@ -412,6 +621,7 @@ List<LearningContent> _legacyGuidebookContent(
 
 class Lesson {
   final String lessonId;
+  final PublicationState publicationState;
   final String title;
   final List<LearningRound> rounds;
   final bool section;
@@ -421,6 +631,7 @@ class Lesson {
   final Duel duel;
   Lesson({
     required this.lessonId,
+    this.publicationState = PublicationState.published,
     required this.title,
     required this.rounds,
     this.section = false,
@@ -451,6 +662,7 @@ class Lesson {
   }
   Map<String, dynamic> toJson() => {
     'lessonId': lessonId,
+    'publicationState': publicationState.name,
     'title': title,
     'section': section,
     if (section) 'sectionName': sectionName,
@@ -510,14 +722,16 @@ class Lesson {
       throw const FormatException('lesson.themeIconAsset must be a string.');
     }
     if (themeIconAsset.isNotEmpty &&
+        !CourseLessonIconAsset.isManagedReference(themeIconAsset) &&
         (!themeIconAsset.startsWith('assets/lesson_icons/') ||
             !themeIconAsset.toLowerCase().endsWith('.png'))) {
       throw const FormatException(
-        'lesson.themeIconAsset must reference a PNG under assets/lesson_icons/.',
+        'lesson.themeIconAsset must reference a preinstalled or managed Course-owned Lesson icon.',
       );
     }
     return Lesson(
       lessonId: _requiredString(j, 'lessonId', 'lesson'),
+      publicationState: PublicationState.parseRequired(j, 'lesson'),
       title: _requiredString(j, 'title', 'lesson'),
       rounds: _mapList(j, 'rounds', 'lesson', LearningRound.fromJson),
       section: section,
@@ -532,11 +746,13 @@ class Lesson {
 class LearningRound {
   static const validVisualTypes = {'listening', 'story', 'generic', 'test'};
   final String id;
+  final PublicationState publicationState;
   final String title;
   final String visualType;
   final List<LearningContent> content;
   LearningRound({
     required this.id,
+    this.publicationState = PublicationState.published,
     required this.title,
     this.visualType = 'generic',
     List<LearningContent>? content,
@@ -549,6 +765,7 @@ class LearningRound {
            ];
   Map<String, dynamic> toJson() => {
     'id': id,
+    'publicationState': publicationState.name,
     if (title.trim().isNotEmpty) 'title': title.trim(),
     'visualType': visualType,
     'content': content.map((e) => e.toJson()).toList(),
@@ -562,6 +779,7 @@ class LearningRound {
     }
     return LearningRound(
       id: _requiredString(j, 'id', 'round'),
+      publicationState: PublicationState.parseRequired(j, 'round'),
       title: _optionalString(j, 'title', ''),
       visualType: visualType,
       content: _mapList(j, 'content', 'round', LearningContent.fromJson),
@@ -579,6 +797,7 @@ class LearningRound {
 
 class LearningContent {
   final String id;
+  final PublicationState publicationState;
   final String kind;
   final bool required;
   final String editorTemplate;
@@ -589,6 +808,7 @@ class LearningContent {
   final List<String> sourceRefs;
   const LearningContent({
     required this.id,
+    this.publicationState = PublicationState.published,
     required this.kind,
     this.required = true,
     this.editorTemplate = '',
@@ -602,6 +822,7 @@ class LearningContent {
     if (e.editorTemplate == 'flashcard') {
       return LearningContent(
         id: e.id,
+        publicationState: e.publicationState,
         kind: 'presentation',
         editorTemplate: 'flashcard',
         presentation: Presentation.fromLegacyExercise(e),
@@ -616,6 +837,7 @@ class LearningContent {
     }.contains(e.editorTemplate)) {
       return LearningContent.textual(
         id: e.id,
+        publicationState: e.publicationState,
         kind: e.editorTemplate,
         role: 'round_note',
         text: e.prompt.isNotEmpty ? e.prompt : e.question,
@@ -624,6 +846,7 @@ class LearningContent {
     }
     return LearningContent(
       id: e.id,
+      publicationState: e.publicationState,
       kind: 'exercise',
       editorTemplate: e.editorTemplate,
       exercise: e,
@@ -635,8 +858,10 @@ class LearningContent {
     required String role,
     required String text,
     bool required = false,
+    PublicationState publicationState = PublicationState.published,
   }) => LearningContent(
     id: id,
+    publicationState: publicationState,
     kind: kind,
     role: role,
     text: text,
@@ -644,6 +869,7 @@ class LearningContent {
   );
   Map<String, dynamic> toJson() => {
     'id': id,
+    'publicationState': publicationState.name,
     'kind': kind,
     'required': required,
     if (editorTemplate.isNotEmpty) 'editorTemplate': editorTemplate,
@@ -655,10 +881,12 @@ class LearningContent {
   };
   factory LearningContent.fromJson(Map<String, dynamic> j) {
     final kind = _requiredString(j, 'kind', 'content');
+    final publicationState = PublicationState.parseRequired(j, 'content');
     final ex = j['exercise'];
     final p = j['presentation'];
     return LearningContent(
       id: _requiredString(j, 'id', 'content'),
+      publicationState: publicationState,
       kind: kind,
       required: j['required'] != false,
       editorTemplate: _optionalString(j, 'editorTemplate', ''),
@@ -668,6 +896,7 @@ class LearningContent {
               Map<String, dynamic>.from(ex),
               contentId: _requiredString(j, 'id', 'content'),
               editorTemplate: _optionalString(j, 'editorTemplate', ''),
+              publicationState: publicationState,
             )
           : null,
       presentation: p is Map
@@ -683,6 +912,7 @@ class LearningContent {
       return presentation!.asLegacyExercise(
         id: id,
         template: editorTemplate.isEmpty ? 'flashcard' : editorTemplate,
+        publicationState: publicationState,
       );
     }
     // Non-evaluated textual learning material is displayed through the existing
@@ -700,6 +930,7 @@ class LearningContent {
         editorTemplate: editorTemplate.isEmpty ? kind : editorTemplate,
         term: text,
         meaning: '',
+        publicationState: publicationState,
       );
     }
     return null;
@@ -744,7 +975,11 @@ class Presentation {
         ),
     ],
   );
-  Exercise asLegacyExercise({required String id, required String template}) {
+  Exercise asLegacyExercise({
+    required String id,
+    required String template,
+    PublicationState publicationState = PublicationState.published,
+  }) {
     String first(String role) =>
         content.where((e) => e.role == role).map((e) => e.text).firstOrNull ??
         '';
@@ -752,6 +987,7 @@ class Presentation {
     final usageTr = first('usage_translation');
     return Exercise(
       id: id,
+      publicationState: publicationState,
       type: 'flashcard',
       editorTemplate: template,
       prompt: first('term'),
@@ -917,6 +1153,7 @@ class ExerciseEvaluation {
 
 class Exercise {
   final String id;
+  final PublicationState publicationState;
   final String editorTemplate;
   final List<PromptElement> promptElements;
   final ExerciseInteraction interaction;
@@ -928,6 +1165,7 @@ class Exercise {
   /// Compatibility constructor used by existing friendly Editor templates.
   Exercise({
     required this.id,
+    this.publicationState = PublicationState.published,
     required String type,
     String? editorTemplate,
     required String prompt,
@@ -966,6 +1204,7 @@ class Exercise {
 
   Exercise.v2({
     required this.id,
+    this.publicationState = PublicationState.published,
     required this.editorTemplate,
     required this.promptElements,
     required this.interaction,
@@ -979,8 +1218,10 @@ class Exercise {
     required String editorTemplate,
     required String term,
     required String meaning,
+    PublicationState publicationState = PublicationState.published,
   }) => Exercise(
     id: id,
+    publicationState: publicationState,
     type: 'flashcard',
     editorTemplate: editorTemplate,
     prompt: term,
@@ -1009,6 +1250,7 @@ class Exercise {
     Map<String, dynamic> j, {
     required String contentId,
     required String editorTemplate,
+    required PublicationState publicationState,
   }) {
     final p = j['prompt'];
     final i = j['interaction'];
@@ -1020,6 +1262,7 @@ class Exercise {
     }
     return Exercise.v2(
       id: contentId,
+      publicationState: publicationState,
       editorTemplate: editorTemplate,
       promptElements: _mapList(j, 'prompt', 'exercise', PromptElement.fromJson),
       interaction: ExerciseInteraction.fromJson(Map<String, dynamic>.from(i)),

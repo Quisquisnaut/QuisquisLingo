@@ -4,7 +4,9 @@ import 'answer_engine.dart';
 import 'duel_eligibility_service.dart';
 import 'lesson_icon_catalog.dart';
 
-enum AuditSeverity { error, warning, suggestion }
+enum AuditSeverity { error, warning, info }
+
+enum AuditSortMode { lesson, exerciseType }
 
 class CourseAuditIssue {
   final AuditSeverity severity;
@@ -13,6 +15,7 @@ class CourseAuditIssue {
   final String location;
   final String? roundId;
   final String? exerciseId;
+  final String? exerciseType;
   const CourseAuditIssue({
     required this.severity,
     required this.message,
@@ -20,7 +23,13 @@ class CourseAuditIssue {
     this.code = 'GENERAL',
     this.roundId,
     this.exerciseId,
+    this.exerciseType,
   });
+
+  String get exercisePresetName => exerciseType == null
+      ? 'General'
+      : ExercisePresetRegistry.byId(exerciseType!)?.name ??
+            exerciseType!.replaceAll('_', ' ');
 }
 
 class CourseAuditResult {
@@ -28,6 +37,20 @@ class CourseAuditResult {
   final DateTime runAt;
   CourseAuditResult(this.issues) : runAt = DateTime.now();
   int count(AuditSeverity s) => issues.where((i) => i.severity == s).length;
+
+  List<CourseAuditIssue> sorted(AuditSortMode mode) {
+    final indexed = issues.indexed.toList();
+    indexed.sort((a, b) {
+      final primary = switch (mode) {
+        AuditSortMode.lesson => a.$2.location.compareTo(b.$2.location),
+        AuditSortMode.exerciseType => a.$2.exercisePresetName.compareTo(
+          b.$2.exercisePresetName,
+        ),
+      };
+      return primary != 0 ? primary : a.$1.compareTo(b.$1);
+    });
+    return indexed.map((entry) => entry.$2).toList(growable: false);
+  }
 }
 
 /// Author-facing static audit.
@@ -282,6 +305,32 @@ class CourseAuditService {
         ),
       );
 
+    final lessonIconIds = <String>{};
+    for (final asset in course.lessonIconAssets) {
+      if (!lessonIconIds.add(asset.assetId)) {
+        issues.add(
+          CourseAuditIssue(
+            severity: AuditSeverity.error,
+            code: 'LESSON_ICON_ASSET_ID_DUPLICATE',
+            message: 'Custom Lesson icon asset IDs must be unique.',
+            location: 'Course assets',
+          ),
+        );
+      }
+      try {
+        CourseLessonIconAsset.validateCanonicalPng(asset.base64Png);
+      } on FormatException catch (error) {
+        issues.add(
+          CourseAuditIssue(
+            severity: AuditSeverity.error,
+            code: 'LESSON_ICON_ASSET_INVALID',
+            message: error.message.toString(),
+            location: 'Course assets · ${asset.assetId}',
+          ),
+        );
+      }
+    }
+
     for (var ti = 0; ti < course.lessons.length; ti++) {
       final t = course.lessons[ti];
       final tl = 'Lesson ${ti + 1} · ${t.title}';
@@ -307,17 +356,24 @@ class CourseAuditService {
             location: tl,
           ),
         );
-      if (t.themeIconAsset != null &&
-          !LessonIconCatalog.isApproved(t.themeIconAsset!))
-        issues.add(
-          CourseAuditIssue(
-            severity: AuditSeverity.error,
-            code: 'LESSON_THEME_ICON_INVALID',
-            message:
-                'Lesson theme icon must be one of the approved PNG assets under ${LessonIconCatalog.directory}.',
-            location: tl,
-          ),
-        );
+      if (t.themeIconAsset != null) {
+        final icon = t.themeIconAsset!;
+        final managedId = CourseLessonIconAsset.assetIdFromReference(icon);
+        final valid =
+            LessonIconCatalog.isApproved(icon) ||
+            (managedId != null && lessonIconIds.contains(managedId));
+        if (!valid) {
+          issues.add(
+            CourseAuditIssue(
+              severity: AuditSeverity.error,
+              code: 'LESSON_THEME_ICON_INVALID',
+              message:
+                  'Lesson theme icon must reference the preinstalled library or a valid managed Course-owned icon.',
+              location: tl,
+            ),
+          );
+        }
+      }
       final gb = t.guidebook;
       for (var gi = 0; gi < gb.content.length; gi++) {
         final content = gb.content[gi];
@@ -345,13 +401,13 @@ class CourseAuditService {
             location: tl,
           ),
         );
-      if (t.rounds.length < 6)
+      if (t.rounds.length < 3)
         issues.add(
           CourseAuditIssue(
-            severity: AuditSeverity.suggestion,
+            severity: AuditSeverity.info,
             code: 'LESSON_ROUND_GUIDANCE',
             message:
-                'Lessons should normally contain at least 6 Rounds. This is author guidance and does not determine Duel availability.',
+                'A Lesson normally has at least 3 Rounds. This is friendly author guidance and does not block saving or publishing.',
             location: tl,
           ),
         );
@@ -362,7 +418,7 @@ class CourseAuditService {
         if (intro.isEmpty)
           issues.add(
             CourseAuditIssue(
-              severity: AuditSeverity.suggestion,
+              severity: AuditSeverity.info,
               code: 'LESSON_INTRO_MISSING',
               message:
                   'The first Round has no short Lesson introduction drawn from the Lesson Guidebook.',
@@ -396,7 +452,7 @@ class CourseAuditService {
         if (r.content.length < 8 && r.content.isNotEmpty)
           issues.add(
             CourseAuditIssue(
-              severity: AuditSeverity.suggestion,
+              severity: AuditSeverity.info,
               message:
                   'Round has ${r.content.length} Content items; standard sample length is 10.',
               location: rl,
@@ -439,8 +495,10 @@ class CourseAuditService {
         if (listeningCount == 0)
           issues.add(
             CourseAuditIssue(
-              severity: AuditSeverity.warning,
-              message: 'Round has no Listening comprehension exercise.',
+              severity: AuditSeverity.info,
+              code: 'ROUND_LISTENING_COMPREHENSION_MISSING',
+              message:
+                  'Consider adding a Listening comprehension exercise. This is friendly author guidance and does not block saving or publishing.',
               location: rl,
               roundId: r.id,
             ),
@@ -493,7 +551,7 @@ class CourseAuditService {
               isolated.any((v) => RegExp(r'^[A-ZÀ-ÖØ-Þ]').hasMatch(v)))
             issues.add(
               CourseAuditIssue(
-                severity: AuditSeverity.suggestion,
+                severity: AuditSeverity.info,
                 code: 'SINGLE_WORD_CASE',
                 message:
                     'An isolated word starts with a capital letter. Use lowercase unless capitalization is linguistically required.',
@@ -522,7 +580,7 @@ class CourseAuditService {
       if (!eligibility.isAvailable)
         issues.add(
           CourseAuditIssue(
-            severity: AuditSeverity.suggestion,
+            severity: AuditSeverity.info,
             code: 'DUEL_UNAVAILABLE',
             message:
                 'Duel is unavailable with ${eligibility.eligibleCount} suitable exercises; ${eligibility.requiredCount} are required. This is normal supported behavior.',
@@ -543,6 +601,26 @@ class CourseAuditService {
     }
     return CourseAuditResult(issues);
   }
+
+  CourseAuditResult auditLesson(Course course, String lessonId) {
+    final lessonIndex = course.lessons.indexWhere(
+      (lesson) => lesson.lessonId == lessonId,
+    );
+    if (lessonIndex < 0) return CourseAuditResult(const []);
+    final prefix = 'Lesson ${lessonIndex + 1} ·';
+    return CourseAuditResult(
+      auditCourse(
+        course,
+      ).issues.where((issue) => issue.location.startsWith(prefix)).toList(),
+    );
+  }
+
+  CourseAuditResult auditRound(Course course, String roundId) =>
+      CourseAuditResult(
+        auditCourse(
+          course,
+        ).issues.where((issue) => issue.roundId == roundId).toList(),
+      );
 
   String? _languageHint(String raw) {
     final token = raw.toLowerCase().replaceAll(
@@ -817,6 +895,7 @@ class CourseAuditService {
         location: location,
         roundId: roundId,
         exerciseId: ex.id,
+        exerciseType: ex.editorTemplate,
       ),
     );
     if (!supportedTypes.contains(ex.type))
@@ -945,7 +1024,11 @@ class CourseAuditService {
       'pairs',
     );
     unexpected(
-      !const {'fill_blank', 'type_translation'}.contains(ex.type) &&
+      !const {
+            'gap_choice',
+            'fill_blank',
+            'type_translation',
+          }.contains(ex.type) &&
           ex.hint.isNotEmpty,
       'hint',
     );
@@ -1044,6 +1127,26 @@ class CourseAuditService {
           AuditSeverity.warning,
           'Gap Choice should normally contain exactly one gap.',
         );
+      final correctAnswer =
+          ex.correct != null &&
+              ex.correct! >= 0 &&
+              ex.correct! < ex.answers.length
+          ? ex.answers[ex.correct!]
+          : '';
+      if (correctAnswer.isNotEmpty && ex.question.contains('___')) {
+        final completed = ex.question.replaceFirst('___', correctAnswer);
+        if (_lexicalWordCount(completed) < 2) {
+          add(
+            AuditSeverity.error,
+            'The completed sentence must contain at least 2 words.',
+            code: 'GAP_SENTENCE_TOO_SHORT',
+          );
+        }
+      }
+      _auditRevealingHint(ex.hint, [
+        if (correctAnswer.isNotEmpty) correctAnswer,
+        ...ex.accepted,
+      ], add);
     }
     if (ex.type == 'listening_spelling' && ex.accepted.isEmpty)
       add(
@@ -1146,13 +1249,13 @@ class CourseAuditService {
     if (ex.type == 'reading_comprehension' &&
         ex.prompt.trim().split(RegExp(r'\s+')).length < 5)
       add(
-        AuditSeverity.suggestion,
+        AuditSeverity.info,
         'Reading comprehension passage is very short; make sure it tests comprehension rather than visual matching.',
       );
     if (ex.type == 'listening_comprehension' &&
         (ex.tts ?? '').trim().split(RegExp(r'\s+')).length < 5)
       add(
-        AuditSeverity.suggestion,
+        AuditSeverity.info,
         'Listening comprehension passage is very short; make sure it tests comprehension.',
       );
 
@@ -1162,16 +1265,7 @@ class CourseAuditService {
           AuditSeverity.error,
           'Fill-in exercise needs at least one accepted answer.',
         );
-      final hint = ex.hint.toLowerCase();
-      if (ex.accepted.any((a) {
-        final v = a.trim().toLowerCase();
-        return v.length >= 3 && hint.contains(v);
-      }))
-        add(
-          AuditSeverity.error,
-          'Hint contains an accepted answer. A hint must not reveal the solution.',
-          code: 'HINT_REVEALS_ANSWER',
-        );
+      _auditRevealingHint(ex.hint, ex.accepted, add);
     }
     if (const {
       'word_order',
@@ -1348,5 +1442,39 @@ class CourseAuditService {
     if (ex.type == 'icon_choice' && ex.icons.length != ex.answers.length)
       add(AuditSeverity.error, 'Icon count must match answer count.');
     return out;
+  }
+
+  int _lexicalWordCount(String value) => RegExp(
+    r"\p{L}+(?:['’\-]\p{L}+)*|\p{N}+",
+    unicode: true,
+  ).allMatches(value).length;
+
+  String _hintComparable(String value) => value
+      .trim()
+      .replaceAll(
+        RegExp(r'^[\p{P}\p{S}\s]+|[\p{P}\p{S}\s]+$', unicode: true),
+        '',
+      )
+      .trim()
+      .toLowerCase();
+
+  void _auditRevealingHint(
+    String hint,
+    Iterable<String> correctAlternatives,
+    void Function(AuditSeverity, String, {String code}) add,
+  ) {
+    final normalizedHint = _hintComparable(hint);
+    if (normalizedHint.isEmpty) return;
+    if (correctAlternatives.any(
+      (answer) =>
+          _hintComparable(answer).isNotEmpty &&
+          _hintComparable(answer) == normalizedHint,
+    )) {
+      add(
+        AuditSeverity.error,
+        'The Hint must not be the correct answer.',
+        code: 'HINT_REVEALS_ANSWER',
+      );
+    }
   }
 }

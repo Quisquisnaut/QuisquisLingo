@@ -8,18 +8,27 @@ class RoundPlayabilityService {
   RoundPlayabilityService({CourseAuditService? auditService})
     : _audit = auditService ?? CourseAuditService();
 
-  List<int> playableExerciseIndices(LearningRound round) =>
-      List<int>.generate(round.exercises.length, (index) => index)
-          .where(
-            (index) => !_audit
-                .auditExercise(round.exercises[index])
-                .any((issue) => issue.severity == AuditSeverity.error),
-          )
-          .toList();
+  List<int> playableExerciseIndices(
+    LearningRound round, {
+    bool includeDrafts = false,
+  }) => !includeDrafts && !round.publicationState.isPublished
+      ? const []
+      : List<int>.generate(round.exercises.length, (index) => index)
+            .where(
+              (index) =>
+                  (includeDrafts ||
+                      round.exercises[index].publicationState.isPublished) &&
+                  !_audit
+                      .auditExercise(round.exercises[index])
+                      .any((issue) => issue.severity == AuditSeverity.error),
+            )
+            .toList();
 
   Set<String> laurelEligibleRoundIds(Course course) => {
     for (final lesson in course.lessons)
-      for (final round in lesson.rounds)
-        if (playableExerciseIndices(round).isNotEmpty) round.id,
+      if (course.publicationState.isPublished &&
+          lesson.publicationState.isPublished)
+        for (final round in lesson.rounds)
+          if (playableExerciseIndices(round).isNotEmpty) round.id,
   };
 }

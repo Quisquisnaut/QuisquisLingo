@@ -92,6 +92,7 @@ void main() {
     final stored = await CourseEditorService().listUserCourses();
     expect(stored, hasLength(1));
     final created = stored.single;
+    expect(created.publicationState, PublicationState.draft);
     expect(created.lessons, hasLength(3));
     expect(created.lessons.expand((lesson) => lesson.rounds), isEmpty);
     expect(created.temporarySample, isFalse);
@@ -104,7 +105,56 @@ void main() {
       hasLength(3),
     );
     for (final lesson in created.lessons) {
+      expect(lesson.publicationState, PublicationState.draft);
       expect(lesson.duel.id, '${lesson.lessonId}_duel');
     }
+  });
+
+  testWidgets('custom Course menu exposes the complete 224 author actions', (
+    tester,
+  ) async {
+    SharedPreferences.setMockInitialValues({});
+    final custom = Course(
+      courseId: 'custom_menu',
+      publicationState: PublicationState.draft,
+      learningLanguage: 'Italian',
+      interfaceLanguage: 'English',
+      sourceLanguage: 'English',
+      targetLanguage: 'Italian',
+      title: 'Menu Course',
+      ttsLanguage: 'it-IT',
+      version: '1',
+      lessons: const [],
+    );
+    await CourseEditorService().saveUserCourse(custom);
+    await tester.pumpWidget(
+      MaterialApp(home: CourseProjectsScreen(currentCourse: custom)),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byTooltip('Course actions'));
+    await tester.pumpAndSettle();
+    for (final label in [
+      'Edit',
+      'Rename',
+      'Duplicate',
+      'Audit',
+      'Publish',
+      'Export JSON',
+      'Delete course',
+    ]) {
+      expect(find.text(label), findsOneWidget);
+    }
+    await tester.tap(find.text('Duplicate'));
+    await tester.pumpAndSettle();
+    final stored = await CourseEditorService().listUserCourses();
+    expect(stored.map((course) => course.title), contains('Menu Course copy'));
+    expect(stored.map((course) => course.courseId).toSet(), hasLength(2));
+    expect(
+      stored
+          .singleWhere((course) => course.title.endsWith('copy'))
+          .publicationState,
+      PublicationState.draft,
+    );
   });
 }

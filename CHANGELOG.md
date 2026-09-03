@@ -1,5 +1,11 @@
 # 2.0.24 (build 224) - 2026-09-03
 
+- Added explicit Draft/Published state for Course, Lesson, Round and Exercise authoring with ancestor-aware learner visibility, strict publish validation, author previews, publication actions/badges, stable-ID unpublishing, and no changes to learner progress or XP.
+- Added one exact unsaved-changes guard across Course, Lesson, Round and Exercise editors and protected in-progress Wizard/generator drafts.
+- Expanded Course Audit with Info severity, three-Round and listening-comprehension guidance, Lesson/exercise-type sorting, scoped Course/Lesson/Round views and error-only pink Round outlines.
+- Completed My custom courses actions with Edit, Rename, fresh-ID Duplicate, Audit and Draft/Publish; added canonical optional `buyACoffeeUrl` metadata and its single learner Course Info action.
+- Added Course-level Lesson numbering labels, exact default-title de-duplication, monochrome or deterministic colored-number fallback icons, and portable Course-owned custom Lesson icons normalized to transparent 256 × 256 PNG canvases.
+- Added index-linked `*:` answer groups without cross-products and structured Correct feedback that reports the nearest canonical answer plus only the acceptance differences actually used.
 - Rationalized the retained exercise implementation behind five canonical internal models—Select, Input, Arrange, Match and Presentation—while exposing 20 concrete authoring presets in six searchable Course Editor categories.
 - Added Type the translation with multiple explicit accepted answers, deterministic optional/alternative/reorder expression syntax, a 128-expansion safety limit and conservative single-typo tolerance.
 - Added deterministic closest-correction selection as a separate algorithm from answer acceptance, using graded word-level spelling similarity plus exact-token, extra/missing-token and word-order signals while preserving established acceptance behavior.

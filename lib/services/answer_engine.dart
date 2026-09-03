@@ -19,6 +19,7 @@ abstract final class AnswerExpressionParser {
     _validateBalance(source);
     var variants = <String>[source];
     variants = _expandDelimited(variants, '{', '}', optional: true);
+    variants = _expandLinkedAlternatives(variants);
     variants = _expandDelimited(variants, '[', ']', optional: false);
     variants = _expandReorders(variants);
     return _deduplicate(
@@ -120,6 +121,71 @@ abstract final class AnswerExpressionParser {
       current = next;
     }
     return current;
+  }
+
+  static List<String> _expandLinkedAlternatives(List<String> input) {
+    final output = <String>[];
+    final linkedPattern = RegExp(r'\[\*:(.*?)\]');
+    for (final value in input) {
+      if (RegExp(r'\[g:').hasMatch(value)) {
+        throw const AnswerExpressionException(
+          'Grouped alternatives use *:, not g:.',
+        );
+      }
+      final matches = linkedPattern.allMatches(value).toList();
+      if (matches.isEmpty) {
+        output.add(value);
+        continue;
+      }
+      if (matches.length < 2) {
+        throw const AnswerExpressionException(
+          'Linked *: alternatives require at least two groups.',
+        );
+      }
+      final groups = <List<String>>[];
+      for (final match in matches) {
+        final alternatives = match
+            .group(1)!
+            .split('|')
+            .map((part) => part.trim())
+            .toList();
+        if (alternatives.length < 2 ||
+            alternatives.any((part) => part.isEmpty)) {
+          throw const AnswerExpressionException(
+            'Each linked *: group needs at least two non-empty alternatives.',
+          );
+        }
+        groups.add(alternatives);
+      }
+      final cardinality = groups.first.length;
+      if (groups.any((group) => group.length != cardinality)) {
+        throw const AnswerExpressionException(
+          'Linked *: groups must contain the same number of alternatives.',
+        );
+      }
+      for (
+        var alternativeIndex = 0;
+        alternativeIndex < cardinality;
+        alternativeIndex++
+      ) {
+        var expanded = value;
+        for (
+          var groupIndex = matches.length - 1;
+          groupIndex >= 0;
+          groupIndex--
+        ) {
+          final match = matches[groupIndex];
+          expanded = expanded.replaceRange(
+            match.start,
+            match.end,
+            groups[groupIndex][alternativeIndex],
+          );
+        }
+        output.add(expanded);
+        _checkLimit(output.length);
+      }
+    }
+    return output;
   }
 
   static int _matchingClose(
@@ -313,6 +379,22 @@ abstract final class AnswerExpressionParser {
   }
 }
 
+enum AcceptanceReason { exact, normalized, missingDiacritic, typo }
+
+class AnswerEvaluationResult {
+  const AnswerEvaluationResult({
+    required this.isCorrect,
+    this.matchedAcceptedAnswer = '',
+    this.acceptanceReason,
+    this.acceptedDifferences = const [],
+  });
+
+  final bool isCorrect;
+  final String matchedAcceptedAnswer;
+  final AcceptanceReason? acceptanceReason;
+  final List<String> acceptedDifferences;
+}
+
 class AnswerEngine {
   const AnswerEngine();
 
@@ -324,15 +406,97 @@ class AnswerEngine {
     Iterable<String> expressions, {
     Map<String, dynamic> normalization = const {},
     bool typoTolerance = true,
+  }) => evaluate(
+    response,
+    expressions,
+    normalization: normalization,
+    typoTolerance: typoTolerance,
+  ).isCorrect;
+
+  AnswerEvaluationResult evaluate(
+    String response,
+    Iterable<String> expressions, {
+    Map<String, dynamic> normalization = const {},
+    bool typoTolerance = true,
+  }) {
+    final authored = expressions.toList();
+    if (authored.isEmpty) {
+      return const AnswerEvaluationResult(isCorrect: false);
+    }
+    return _evaluateAgainstAnswers(
+      response,
+      validAnswers(authored),
+      normalization: normalization,
+      typoTolerance: typoTolerance,
+    );
+  }
+
+  AnswerEvaluationResult evaluateLiteral(
+    String response,
+    String answer, {
+    Map<String, dynamic> normalization = const {},
+    bool typoTolerance = false,
+  }) => _evaluateAgainstAnswers(
+    response,
+    [answer],
+    normalization: normalization,
+    typoTolerance: typoTolerance,
+  );
+
+  AnswerEvaluationResult _evaluateAgainstAnswers(
+    String response,
+    List<String> answers, {
+    required Map<String, dynamic> normalization,
+    required bool typoTolerance,
   }) {
     final typed = _normalize(response, normalization);
-    if (typed.isEmpty) return false;
-    for (final answer in validAnswers(expressions)) {
-      final expected = _normalize(answer, normalization);
-      if (_exactOrAccentOmission(response, answer, normalization)) return true;
-      if (typoTolerance && _boundedTypoMatch(typed, expected)) return true;
+    if (typed.isEmpty || answers.isEmpty) {
+      return const AnswerEvaluationResult(isCorrect: false);
     }
-    return false;
+    final accepted = <({String answer, AcceptanceReason reason})>[];
+    for (final answer in answers) {
+      final expected = _normalize(answer, normalization);
+      if (response == answer) {
+        accepted.add((answer: answer, reason: AcceptanceReason.exact));
+      } else if (typed == expected) {
+        accepted.add((answer: answer, reason: AcceptanceReason.normalized));
+      } else if (_exactOrAccentOmission(response, answer, normalization)) {
+        accepted.add((
+          answer: answer,
+          reason: AcceptanceReason.missingDiacritic,
+        ));
+      } else if (typoTolerance && _boundedTypoMatch(typed, expected)) {
+        accepted.add((answer: answer, reason: AcceptanceReason.typo));
+      }
+    }
+    final best = _bestCandidate(
+      response,
+      accepted.isEmpty
+          ? answers
+          : accepted.map((candidate) => candidate.answer).toList(),
+      normalization,
+    );
+    if (accepted.isEmpty) {
+      return AnswerEvaluationResult(
+        isCorrect: false,
+        matchedAcceptedAnswer: best,
+      );
+    }
+    final selected = accepted.firstWhere(
+      (candidate) => candidate.answer == best,
+      orElse: () => accepted.first,
+    );
+    return AnswerEvaluationResult(
+      isCorrect: true,
+      matchedAcceptedAnswer: selected.answer,
+      acceptanceReason: selected.reason,
+      acceptedDifferences: _acceptedDifferences(
+        response,
+        selected.answer,
+        selected.reason,
+        normalization,
+      ),
+    );
   }
 
   String bestCorrection(
@@ -341,6 +505,14 @@ class AnswerEngine {
     Map<String, dynamic> normalization = const {},
   }) {
     final answers = validAnswers(expressions);
+    return _bestCandidate(response, answers, normalization);
+  }
+
+  String _bestCandidate(
+    String response,
+    List<String> answers,
+    Map<String, dynamic> normalization,
+  ) {
     if (answers.isEmpty) return '';
     final typed = _normalize(response, normalization).split(' ');
     var best = answers.first;
@@ -359,6 +531,42 @@ class AnswerEngine {
       }
     }
     return best;
+  }
+
+  List<String> _acceptedDifferences(
+    String typed,
+    String expected,
+    AcceptanceReason reason,
+    Map<String, dynamic> rules,
+  ) {
+    if (reason == AcceptanceReason.exact) return const [];
+    if (reason == AcceptanceReason.missingDiacritic) {
+      return const ['missing diacritic'];
+    }
+    if (reason == AcceptanceReason.typo) {
+      return const ['explicitly allowed typo'];
+    }
+    final differences = <String>[];
+    bool needs(Map<String, dynamic> stricter) =>
+        _normalize(typed, stricter) != _normalize(expected, stricter);
+    final effective = <String, dynamic>{...rules};
+    if (rules['case'] != 'preserve' &&
+        needs({...effective, 'case': 'preserve'})) {
+      differences.add('capitalization');
+    }
+    if (rules['punctuation'] != 'preserve' &&
+        needs({...effective, 'punctuation': 'preserve'})) {
+      differences.add('ignored punctuation');
+    }
+    if (rules['whitespace'] != 'preserve' &&
+        needs({...effective, 'whitespace': 'preserve'})) {
+      differences.add('normalized whitespace');
+    }
+    if (rules['accents'] == 'ignore' &&
+        needs({...effective, 'accents': 'preserve'})) {
+      differences.add('ignored diacritic');
+    }
+    return differences;
   }
 
   bool _exactOrAccentOmission(

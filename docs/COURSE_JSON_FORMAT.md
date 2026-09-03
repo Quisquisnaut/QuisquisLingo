@@ -7,7 +7,10 @@ Status: implemented current format. The in-app Editor Help remains the author-fa
 Every native Course Model v5 course declares:
 
 ```json
-"formatVersion": 5
+"formatVersion": 5,
+"publicationState": "draft | published",
+"lessonNumberingMode": "lesson",
+"defaultLessonIconStyle": "monochrome"
 ```
 
 `courseId` is an immutable globally unique course identity. Course updates retain it so learner course progress follows the update. A fork or separate imported copy receives a new `courseId` and may include `parentCourseId` plus `derivedFromVersion` to preserve its lineage.
@@ -23,6 +26,7 @@ Every Lesson requires `lessonId` and `title`. Optional presentational metadata u
 ```json
 {
   "lessonId": "stable_opaque_id",
+  "publicationState": "published",
   "title": "At the railway station",
   "section": true,
   "sectionName": "Travel",
@@ -32,7 +36,9 @@ Every Lesson requires `lessonId` and `title`. Optional presentational metadata u
 
 `section` defaults to false. When false, `sectionName` is omitted; when true, `sectionName` must be a non-empty trimmed string. Consecutive Lessons with the same name form one visual Section block. Section has no ID, persistence, progress, unlock, XP, Duel or navigation state, and relative Section Lesson numbering is derived from Lesson order.
 
-`themeIconAsset` is optional and, when present, must name an approved 256 × 256 transparent PNG from the canonical Lesson icon registry under `assets/lesson_icons/`. Each registry entry has a stable internal ID, author-facing label and asset path. Course JSON stores only the asset path, never image bytes, Base64, dimensions, scale or padding. Build-time asset validation verifies the exact registry/disk set, path, PNG structure and decoding, dimensions, transparency and four-color maximum.
+`lessonNumberingMode` is required and is one of `lesson`, `unit`, `topic`, `module`, `skill`, `chapter`, `stage`, `step`, `part`, `other`, `numberOnly`, or `none`. `other` also requires a trimmed non-empty `customLessonLabel`. `defaultLessonIconStyle` is required and is `monochrome` or `coloredLessonNumbers`. These fields affect presentation only. Learner numbers come from Published Lesson order, and exact default `Lesson N` titles are de-duplicated only in Lesson mode.
+
+`themeIconAsset` is optional. It names either an approved 256 × 256 transparent preinstalled PNG under `assets/lesson_icons/` or a managed Course reference such as `course-assets/lesson-icons/custom_123.png`. Managed references resolve only through the same Course’s optional `lessonIconAssets[]` registry; arbitrary and unresolved filesystem paths are rejected. Because Course transfer is the established JSON-only portable format, each managed registry entry contains its safe `assetId` and canonical `base64Png`. Import normalizes one author image by contain-scaling it without distortion onto a transparent 256 × 256 PNG canvas. The original path is never serialized or needed after import. Course duplication remaps managed asset IDs and Lesson duplication within one Course may share the immutable reference.
 
 The former decorative Lesson `imageAsset` field is not part of Course Model v5 and is rejected. It is not an alias for `themeIconAsset` and is not migrated into one. Exercise Content may still use its own image field where that exercise type requires it.
 
@@ -46,11 +52,11 @@ The first Content item of Round 1 may be a non-exercise `lesson_intro` derived f
 
 ## Round
 
-A Round contains a stable `id`, optional learner-facing `title`, `visualType` and ordered `content[]`. An empty or omitted title is valid and the learner/editor UI falls back to its derived `Round N` label without changing identity. `visualType` is one of `listening`, `story`, `generic` or `test` and is independent of exercise type.
+A Round contains a stable `id`, required `publicationState`, optional learner-facing `title`, `visualType` and ordered `content[]`. An empty or omitted title is valid and the learner/editor UI falls back to its derived `Round N` label without changing identity. `visualType` is one of `listening`, `story`, `generic` or `test` and is independent of exercise type.
 
 ## Content
 
-Every Content object has a stable `id`, a `kind`, and `required`. `editorTemplate` is optional authoring metadata.
+Every Content object has a stable `id`, canonical `publicationState`, a `kind`, and `required`. For exercise/presentation Content this is the authored Exercise publication state. `editorTemplate` is optional authoring metadata.
 
 Initial kinds include `exercise`, `presentation`, `explanation`, `example`, `vocabulary`, `text`, `image`, `audio`, and `dialogue`.
 
@@ -68,15 +74,15 @@ Options, tokens and match members are stable Items. Evaluation refers to Item ID
 
 Build 224 groups these primitives as the canonical Select, Input, Arrange and Match models, with Presentation for non-response learning material. Concrete `editorTemplate` presets remain authoring metadata and several presets intentionally share one model. Prompt elements can independently carry text, audio or image media plus a semantic `role`; structured dialogue may add an optional `speaker` string to a text element whose role is `dialogue_turn`. Contextual comprehension stores its question and context as separate prompt roles.
 
-Accepted text entries may be separate complete equivalents or use optional `{...}`, alternative `[a|b|c]`, and explicitly scoped reorder `(a <> b)` expressions. Without parentheses, `<>` applies to the whole expression. Reordering detaches terminal `.`, `?`, `!`, `…` and equivalent combinations and reattaches them only at the final sentence end; internal punctuation stays in place. Structurally generated variants capitalize sentence starts and starts after `.`, `?` or `!`, avoid preserving capitalization that existed only because a common phrase began the authored form, and preserve distinguishable lexical capitals such as proper names and acronyms. Expansion is deterministic, de-duplicated and limited to 128 results. Malformed or oversized expressions are invalid course data.
+Accepted text entries may be separate complete equivalents or use optional `{...}`, independent alternative `[a|b|c]`, linked alternative `[*:a|b]`, and explicitly scoped reorder `(a <> b)` expressions. Two or more linked groups align by index, require equal alternative counts and never produce cross-combinations. Linked groups compose with the other syntax. Without parentheses, `<>` applies to the whole expression. Reordering keeps terminal punctuation at the final sentence end. Expansion is deterministic, de-duplicated and limited to 128 results; malformed, unequal or oversized expressions are invalid.
 
-Answer acceptance and wrong-answer correction selection are separate. Acceptance uses the established normalization and narrowly bounded Type-translation typo rule. Correction selection ranks valid expanded answers through exact shared tokens, graded token spelling similarity, incompatible learner extras, absent candidate tokens and common token order; exact ties retain author order and cannot change correctness.
+Answer acceptance and correction selection are separate. Structured evaluation returns correctness, the nearest matched canonical answer, an exact/normalized/missing-diacritic/typo reason and only the differences actually used. Correct typed feedback displays those diagnostics without inventing reasons for exact answers. Wrong answers retain the same nearest-correction ranking through exact shared tokens, graded spelling similarity, incompatible extras, absent words and token order; exact ties retain author order and cannot change correctness.
 
 ## Authoring identity and generated drafts
 
-Editing preserves every existing Course, Lesson, Round, Exercise, Content and Item ID. Duplicating an Exercise, Round or Lesson recursively allocates fresh IDs for that owned subtree and remaps references whose targets are inside it; immutable asset paths and external references remain shared. Generated GuideBook material likewise receives final stable IDs only when the author explicitly approves it.
+Editing and Draft/Published transitions preserve every existing Course, Lesson, Round, Exercise, Content and Item ID. Learner visibility requires the object and all ancestors to be Published. Draft descendants are retained in authoring export but excluded from learner selection, numbering, Sections, execution, completion, Review, Duel and XP. Duplicating a Course or subtree recursively allocates fresh owned IDs and starts the duplicate as Draft. Generated GuideBook material likewise becomes real fresh-ID Draft content only when explicitly approved; approval is not publication.
 
-The Exercise Creation Wizard and GuideBook Round Generator are editor workflows, not serialized Course Model concepts. Wizard plans contain only preset IDs from the canonical registry until the author edits and saves real Exercises. GuideBook plans contain counts, normalized difficulty, draft titles and registry preset IDs; generated Rounds remain outside the Lesson until approval appends them after existing Rounds. Neither workflow adds new JSON fields or changes `formatVersion: 5`.
+The Exercise Creation Wizard and GuideBook Round Generator are editor workflows, not serialized Course Model concepts. Wizard-created Exercises and approved generated Rounds/Exercises are Draft. GuideBook plans remain outside the Lesson until approval appends them after existing Rounds. Neither workflow changes `formatVersion: 5`.
 
 Source-format conversion is isolated behind an import-normalization representation before producing these native structures. No source taxonomy is a runtime exercise discriminator, and build 224 does not include a production converter for third-party course formats.
 
@@ -94,4 +100,4 @@ The standard Duel uses 25 unique questions and 4 lives. There is no score or pas
 
 ## Compatibility
 
-Course Model v5 is the only native runtime, import and export format. Chapter-based formats and any other `formatVersion` are unsupported and rejected; QuisquisLingo does not read, migrate or convert them. Export writes `formatVersion: 5`.
+Course Model v5 is the only native runtime, import and export format. Chapter-based formats and any other `formatVersion` are unsupported and rejected. Build-224 publication, Lesson-numbering and fallback-icon fields are a clean cut: missing or invalid required values are rejected rather than inferred or migrated. Export writes the canonical current fields.

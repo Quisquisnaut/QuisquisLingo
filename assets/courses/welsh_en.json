@@ -1,5 +1,8 @@
 {
   "formatVersion": 5,
+  "publicationState": "published",
+  "lessonNumberingMode": "lesson",
+  "defaultLessonIconStyle": "monochrome",
   "courseId": "sample_cy_en_cy",
   "learningLanguage": "Welsh",
   "interfaceLanguage": "English",
@@ -35,6 +38,7 @@
   "lessons": [
         {
           "lessonId": "chapter_1_topic_1",
+          "publicationState": "published",
           "title": "Hello and thanks",
           "section": true,
           "sectionName": "Foundations",
@@ -44,10 +48,12 @@
               "id": "c1t1_round_1",
               "title": "Round 1",
               "visualType": "generic",
+              "publicationState": "published",
               "content": [
                 {
                   "id": "chapter_1_topic_1_intro",
                   "kind": "explanation",
+                  "publicationState": "published",
                   "required": false,
                   "role": "lesson_intro",
                   "sourceRefs": [
@@ -62,6 +68,7 @@
                 {
                   "id": "c1t1_round_1_e1",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "choice",
                   "exercise": {
@@ -120,6 +127,7 @@
                 {
                   "id": "c1t1_round_1_e2",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "listening_choice",
                   "exercise": {
@@ -183,6 +191,7 @@
                 {
                   "id": "c1t1_round_1_e3",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "reading_comprehension",
                   "exercise": {
@@ -246,6 +255,7 @@
                 {
                   "id": "c1t1_round_1_e4",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "gap_choice",
                   "exercise": {
@@ -304,6 +314,7 @@
                 {
                   "id": "c1t1_round_1_e5",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "dialogue_response",
                   "exercise": {
@@ -367,6 +378,7 @@
                 {
                   "id": "c1t1_round_1_e6",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "fill_blank",
                   "exercise": {
@@ -399,6 +411,7 @@
                 {
                   "id": "c1t1_round_1_e7",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "word_match",
                   "exercise": {
@@ -490,6 +503,7 @@
                 {
                   "id": "c1t1_round_1_e8",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "listening_spelling",
                   "exercise": {
@@ -532,10 +546,12 @@
               "id": "c1t1_round_2",
               "title": "Round 2",
               "visualType": "generic",
+              "publicationState": "published",
               "content": [
                 {
                   "id": "c1t1_round_2_e1",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "choice",
                   "exercise": {
@@ -594,6 +610,7 @@
                 {
                   "id": "c1t1_round_2_e2",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "listening_choice",
                   "exercise": {
@@ -657,6 +674,7 @@
                 {
                   "id": "c1t1_round_2_e3",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "reading_comprehension",
                   "exercise": {
@@ -720,6 +738,7 @@
                 {
                   "id": "c1t1_round_2_e4",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "gap_choice",
                   "exercise": {
@@ -778,6 +797,7 @@
                 {
                   "id": "c1t1_round_2_e5",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "dialogue_response",
                   "exercise": {
@@ -841,6 +861,7 @@
                 {
                   "id": "c1t1_round_2_e6",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "listening_spelling",
                   "exercise": {
@@ -880,6 +901,7 @@
                 {
                   "id": "c1t1_round_2_e7",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "audio_match",
                   "exercise": {
@@ -971,6 +993,7 @@
                 {
                   "id": "c1t1_round_2_e8",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "image_word",
                   "exercise": {
@@ -1041,56 +1064,64 @@
                 "kind": "explanation",
                 "required": false,
                 "role": "overview",
-                "text": "Hello and thanks: practise helo, diolch, ie, na."
+                "text": "Hello and thanks: practise helo, diolch, ie, na.",
+                "publicationState": "published"
               },
               {
                 "id": "chapter_1_topic_1_gb_goal1",
                 "kind": "text",
                 "required": false,
                 "role": "goal",
-                "text": "Recognise and use the main vocabulary in this Lesson."
+                "text": "Recognise and use the main vocabulary in this Lesson.",
+                "publicationState": "published"
               },
               {
                 "id": "g1_v1",
                 "kind": "vocabulary",
                 "required": false,
                 "role": "vocabulary",
-                "text": "helo = hello"
+                "text": "helo = hello",
+                "publicationState": "published"
               },
               {
                 "id": "g1_v2",
                 "kind": "vocabulary",
                 "required": false,
                 "role": "vocabulary",
-                "text": "diolch = thank you"
+                "text": "diolch = thank you",
+                "publicationState": "published"
               },
               {
                 "id": "g1_v3",
                 "kind": "vocabulary",
                 "required": false,
                 "role": "vocabulary",
-                "text": "ie = yes"
+                "text": "ie = yes",
+                "publicationState": "published"
               },
               {
                 "id": "g1_v4",
                 "kind": "vocabulary",
                 "required": false,
                 "role": "vocabulary",
-                "text": "na = no"
+                "text": "na = no",
+                "publicationState": "published"
               },
               {
                 "id": "g1_ex1",
                 "kind": "example",
                 "required": false,
                 "role": "example",
-                "text": "Helo!"
+                "text": "Helo!",
+                "publicationState": "published"
               },
               {
                 "id": "g1_ex2",
                 "kind": "example",
                 "required": false,
                 "role": "example",
-                "text": "Diolch yn fawr."
+                "text": "Diolch yn fawr.",
+                "publicationState": "published"
               }
             ]
           },
@@ -1101,6 +1132,7 @@
         },
         {
           "lessonId": "chapter_1_topic_2",
+          "publicationState": "published",
           "title": "People and animals",
           "section": true,
           "sectionName": "Foundations",
@@ -1110,10 +1142,12 @@
               "id": "c1t2_round_1",
               "title": "Round 1",
               "visualType": "generic",
+              "publicationState": "published",
               "content": [
                 {
                   "id": "chapter_1_topic_2_intro",
                   "kind": "explanation",
+                  "publicationState": "published",
                   "required": false,
                   "role": "lesson_intro",
                   "sourceRefs": [
@@ -1128,6 +1162,7 @@
                 {
                   "id": "c1t2_round_1_e1",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "choice",
                   "exercise": {
@@ -1186,6 +1221,7 @@
                 {
                   "id": "c1t2_round_1_e2",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "listening_choice",
                   "exercise": {
@@ -1249,6 +1285,7 @@
                 {
                   "id": "c1t2_round_1_e3",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "reading_comprehension",
                   "exercise": {
@@ -1312,6 +1349,7 @@
                 {
                   "id": "c1t2_round_1_e4",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "gap_choice",
                   "exercise": {
@@ -1370,6 +1408,7 @@
                 {
                   "id": "c1t2_round_1_e5",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "dialogue_response",
                   "exercise": {
@@ -1433,6 +1472,7 @@
                 {
                   "id": "c1t2_round_1_e6",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "fill_blank",
                   "exercise": {
@@ -1465,6 +1505,7 @@
                 {
                   "id": "c1t2_round_1_e7",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "icon_choice",
                   "exercise": {
@@ -1513,6 +1554,7 @@
                 {
                   "id": "c1t2_round_1_e8",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "listening_spelling",
                   "exercise": {
@@ -1555,10 +1597,12 @@
               "id": "c1t2_round_2",
               "title": "Round 2",
               "visualType": "generic",
+              "publicationState": "published",
               "content": [
                 {
                   "id": "c1t2_round_2_e1",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "choice",
                   "exercise": {
@@ -1617,6 +1661,7 @@
                 {
                   "id": "c1t2_round_2_e2",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "listening_choice",
                   "exercise": {
@@ -1680,6 +1725,7 @@
                 {
                   "id": "c1t2_round_2_e3",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "reading_comprehension",
                   "exercise": {
@@ -1743,6 +1789,7 @@
                 {
                   "id": "c1t2_round_2_e4",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "gap_choice",
                   "exercise": {
@@ -1801,6 +1848,7 @@
                 {
                   "id": "c1t2_round_2_e5",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "dialogue_response",
                   "exercise": {
@@ -1864,6 +1912,7 @@
                 {
                   "id": "c1t2_round_2_e6",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "word_match",
                   "exercise": {
@@ -1955,6 +2004,7 @@
                 {
                   "id": "c1t2_round_2_e7",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "image_word",
                   "exercise": {
@@ -2040,6 +2090,7 @@
                 {
                   "id": "c1t2_round_2_e8",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "listening_spelling",
                   "exercise": {
@@ -2086,56 +2137,64 @@
                 "kind": "explanation",
                 "required": false,
                 "role": "overview",
-                "text": "People and animals: practise dyn, menyw, bachgen, merch."
+                "text": "People and animals: practise dyn, menyw, bachgen, merch.",
+                "publicationState": "published"
               },
               {
                 "id": "chapter_1_topic_2_gb_goal1",
                 "kind": "text",
                 "required": false,
                 "role": "goal",
-                "text": "Recognise and use the main vocabulary in this Lesson."
+                "text": "Recognise and use the main vocabulary in this Lesson.",
+                "publicationState": "published"
               },
               {
                 "id": "g1_v5",
                 "kind": "vocabulary",
                 "required": false,
                 "role": "vocabulary",
-                "text": "dyn = man"
+                "text": "dyn = man",
+                "publicationState": "published"
               },
               {
                 "id": "g1_v6",
                 "kind": "vocabulary",
                 "required": false,
                 "role": "vocabulary",
-                "text": "menyw = woman"
+                "text": "menyw = woman",
+                "publicationState": "published"
               },
               {
                 "id": "g1_v7",
                 "kind": "vocabulary",
                 "required": false,
                 "role": "vocabulary",
-                "text": "bachgen = boy"
+                "text": "bachgen = boy",
+                "publicationState": "published"
               },
               {
                 "id": "g1_v8",
                 "kind": "vocabulary",
                 "required": false,
                 "role": "vocabulary",
-                "text": "merch = girl"
+                "text": "merch = girl",
+                "publicationState": "published"
               },
               {
                 "id": "chapter_1_topic_2_gb_ex1",
                 "kind": "example",
                 "required": false,
                 "role": "example",
-                "text": "Read “bachgen”. What does it mean?"
+                "text": "Read “bachgen”. What does it mean?",
+                "publicationState": "published"
               },
               {
                 "id": "chapter_1_topic_2_gb_ex2",
                 "kind": "example",
                 "required": false,
                 "role": "example",
-                "text": "Choose the picture for “bachgen”."
+                "text": "Choose the picture for “bachgen”.",
+                "publicationState": "published"
               }
             ]
           },
@@ -2146,6 +2205,7 @@
         },
         {
           "lessonId": "c1t3",
+          "publicationState": "published",
           "title": "Useful words",
           "section": true,
           "sectionName": "Foundations",
@@ -2155,10 +2215,12 @@
               "id": "c1t3_round_1",
               "title": "Round 1",
               "visualType": "generic",
+              "publicationState": "published",
               "content": [
                 {
                   "id": "c1t3_intro",
                   "kind": "explanation",
+                  "publicationState": "published",
                   "required": false,
                   "role": "lesson_intro",
                   "sourceRefs": [
@@ -2173,6 +2235,7 @@
                 {
                   "id": "c1t3_round_1_e1",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "choice",
                   "exercise": {
@@ -2231,6 +2294,7 @@
                 {
                   "id": "c1t3_round_1_e2",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "listening_choice",
                   "exercise": {
@@ -2294,6 +2358,7 @@
                 {
                   "id": "c1t3_round_1_e3",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "reading_comprehension",
                   "exercise": {
@@ -2357,6 +2422,7 @@
                 {
                   "id": "c1t3_round_1_e4",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "gap_choice",
                   "exercise": {
@@ -2415,6 +2481,7 @@
                 {
                   "id": "c1t3_round_1_e5",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "dialogue_response",
                   "exercise": {
@@ -2478,6 +2545,7 @@
                 {
                   "id": "c1t3_round_1_e6",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "audio_match",
                   "exercise": {
@@ -2569,6 +2637,7 @@
                 {
                   "id": "c1t3_round_1_e7",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "fill_blank",
                   "exercise": {
@@ -2601,6 +2670,7 @@
                 {
                   "id": "c1t3_round_1_e8",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "word_order",
                   "exercise": {
@@ -2662,10 +2732,12 @@
               "id": "c1t3_round_2",
               "title": "Round 2",
               "visualType": "generic",
+              "publicationState": "published",
               "content": [
                 {
                   "id": "c1t3_round_2_e1",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "choice",
                   "exercise": {
@@ -2724,6 +2796,7 @@
                 {
                   "id": "c1t3_round_2_e2",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "listening_choice",
                   "exercise": {
@@ -2787,6 +2860,7 @@
                 {
                   "id": "c1t3_round_2_e3",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "reading_comprehension",
                   "exercise": {
@@ -2850,6 +2924,7 @@
                 {
                   "id": "c1t3_round_2_e4",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "gap_choice",
                   "exercise": {
@@ -2908,6 +2983,7 @@
                 {
                   "id": "c1t3_round_2_e5",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "dialogue_response",
                   "exercise": {
@@ -2971,6 +3047,7 @@
                 {
                   "id": "c1t3_round_2_e6",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "fill_blank",
                   "exercise": {
@@ -3003,6 +3080,7 @@
                 {
                   "id": "c1t3_round_2_e7",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "word_match",
                   "exercise": {
@@ -3094,6 +3172,7 @@
                 {
                   "id": "c1t3_round_2_e8",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "missing_word",
                   "exercise": {
@@ -3135,56 +3214,64 @@
                 "kind": "explanation",
                 "required": false,
                 "role": "overview",
-                "text": "Useful words: practise cath, ci, llyfr, sach gefn."
+                "text": "Useful words: practise cath, ci, llyfr, sach gefn.",
+                "publicationState": "published"
               },
               {
                 "id": "c1t3_gb_goal1",
                 "kind": "text",
                 "required": false,
                 "role": "goal",
-                "text": "Recognise and use the main vocabulary in this Lesson."
+                "text": "Recognise and use the main vocabulary in this Lesson.",
+                "publicationState": "published"
               },
               {
                 "id": "g1_v9",
                 "kind": "vocabulary",
                 "required": false,
                 "role": "vocabulary",
-                "text": "cath = cat"
+                "text": "cath = cat",
+                "publicationState": "published"
               },
               {
                 "id": "g1_v10",
                 "kind": "vocabulary",
                 "required": false,
                 "role": "vocabulary",
-                "text": "ci = dog"
+                "text": "ci = dog",
+                "publicationState": "published"
               },
               {
                 "id": "g1_v11",
                 "kind": "vocabulary",
                 "required": false,
                 "role": "vocabulary",
-                "text": "llyfr = book"
+                "text": "llyfr = book",
+                "publicationState": "published"
               },
               {
                 "id": "g1_v12",
                 "kind": "vocabulary",
                 "required": false,
                 "role": "vocabulary",
-                "text": "sach gefn = backpack"
+                "text": "sach gefn = backpack",
+                "publicationState": "published"
               },
               {
                 "id": "c1t3_gb_ex1",
                 "kind": "example",
                 "required": false,
                 "role": "example",
-                "text": "Read “llyfr”. What does it mean?"
+                "text": "Read “llyfr”. What does it mean?",
+                "publicationState": "published"
               },
               {
                 "id": "c1t3_gb_ex2",
                 "kind": "example",
                 "required": false,
                 "role": "example",
-                "text": "sach gefn"
+                "text": "sach gefn",
+                "publicationState": "published"
               }
             ]
           },
@@ -3195,6 +3282,7 @@
         },
         {
           "lessonId": "chapter_2_topic_1",
+          "publicationState": "published",
           "title": "Food and drinks",
           "section": true,
           "sectionName": "Everyday Life",
@@ -3204,10 +3292,12 @@
               "id": "c2t1_round_1",
               "title": "Round 1",
               "visualType": "generic",
+              "publicationState": "published",
               "content": [
                 {
                   "id": "chapter_2_topic_1_intro",
                   "kind": "explanation",
+                  "publicationState": "published",
                   "required": false,
                   "role": "lesson_intro",
                   "sourceRefs": [
@@ -3222,6 +3312,7 @@
                 {
                   "id": "c2t1_round_1_e1",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "choice",
                   "exercise": {
@@ -3280,6 +3371,7 @@
                 {
                   "id": "c2t1_round_1_e2",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "listening_choice",
                   "exercise": {
@@ -3343,6 +3435,7 @@
                 {
                   "id": "c2t1_round_1_e3",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "reading_comprehension",
                   "exercise": {
@@ -3406,6 +3499,7 @@
                 {
                   "id": "c2t1_round_1_e4",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "gap_choice",
                   "exercise": {
@@ -3464,6 +3558,7 @@
                 {
                   "id": "c2t1_round_1_e5",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "dialogue_response",
                   "exercise": {
@@ -3527,6 +3622,7 @@
                 {
                   "id": "c2t1_round_1_e6",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "fill_blank",
                   "exercise": {
@@ -3559,6 +3655,7 @@
                 {
                   "id": "c2t1_round_1_e7",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "word_match",
                   "exercise": {
@@ -3650,6 +3747,7 @@
                 {
                   "id": "c2t1_round_1_e8",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "icon_choice",
                   "exercise": {
@@ -3701,10 +3799,12 @@
               "id": "c2t1_round_2",
               "title": "Round 2",
               "visualType": "generic",
+              "publicationState": "published",
               "content": [
                 {
                   "id": "c2t1_round_2_e1",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "choice",
                   "exercise": {
@@ -3763,6 +3863,7 @@
                 {
                   "id": "c2t1_round_2_e2",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "listening_choice",
                   "exercise": {
@@ -3826,6 +3927,7 @@
                 {
                   "id": "c2t1_round_2_e3",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "reading_comprehension",
                   "exercise": {
@@ -3889,6 +3991,7 @@
                 {
                   "id": "c2t1_round_2_e4",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "gap_choice",
                   "exercise": {
@@ -3947,6 +4050,7 @@
                 {
                   "id": "c2t1_round_2_e5",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "dialogue_response",
                   "exercise": {
@@ -4010,6 +4114,7 @@
                 {
                   "id": "c2t1_round_2_e6",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "listening_spelling",
                   "exercise": {
@@ -4049,6 +4154,7 @@
                 {
                   "id": "c2t1_round_2_e7",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "audio_match",
                   "exercise": {
@@ -4140,6 +4246,7 @@
                 {
                   "id": "c2t1_round_2_e8",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "image_word",
                   "exercise": {
@@ -4221,56 +4328,64 @@
                 "kind": "explanation",
                 "required": false,
                 "role": "overview",
-                "text": "Food and drinks: practise dŵr, bara, coffi, te."
+                "text": "Food and drinks: practise dŵr, bara, coffi, te.",
+                "publicationState": "published"
               },
               {
                 "id": "chapter_2_topic_1_gb_goal1",
                 "kind": "text",
                 "required": false,
                 "role": "goal",
-                "text": "Recognise and use the main vocabulary in this Lesson."
+                "text": "Recognise and use the main vocabulary in this Lesson.",
+                "publicationState": "published"
               },
               {
                 "id": "g2_v1",
                 "kind": "vocabulary",
                 "required": false,
                 "role": "vocabulary",
-                "text": "dŵr = water"
+                "text": "dŵr = water",
+                "publicationState": "published"
               },
               {
                 "id": "g2_v2",
                 "kind": "vocabulary",
                 "required": false,
                 "role": "vocabulary",
-                "text": "bara = bread"
+                "text": "bara = bread",
+                "publicationState": "published"
               },
               {
                 "id": "g2_v3",
                 "kind": "vocabulary",
                 "required": false,
                 "role": "vocabulary",
-                "text": "coffi = coffee"
+                "text": "coffi = coffee",
+                "publicationState": "published"
               },
               {
                 "id": "g2_v4",
                 "kind": "vocabulary",
                 "required": false,
                 "role": "vocabulary",
-                "text": "te = tea"
+                "text": "te = tea",
+                "publicationState": "published"
               },
               {
                 "id": "chapter_2_topic_1_gb_ex1",
                 "kind": "example",
                 "required": false,
                 "role": "example",
-                "text": "Choose the correct translation of “water”."
+                "text": "Choose the correct translation of “water”.",
+                "publicationState": "published"
               },
               {
                 "id": "chapter_2_topic_1_gb_ex2",
                 "kind": "example",
                 "required": false,
                 "role": "example",
-                "text": "Read “coffi”. What does it mean?"
+                "text": "Read “coffi”. What does it mean?",
+                "publicationState": "published"
               }
             ]
           },
@@ -4281,6 +4396,7 @@
         },
         {
           "lessonId": "chapter_2_topic_2",
+          "publicationState": "published",
           "title": "At home",
           "section": true,
           "sectionName": "Everyday Life",
@@ -4290,10 +4406,12 @@
               "id": "c2t2_round_1",
               "title": "Round 1",
               "visualType": "generic",
+              "publicationState": "published",
               "content": [
                 {
                   "id": "chapter_2_topic_2_intro",
                   "kind": "explanation",
+                  "publicationState": "published",
                   "required": false,
                   "role": "lesson_intro",
                   "sourceRefs": [
@@ -4308,6 +4426,7 @@
                 {
                   "id": "c2t2_round_1_e1",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "choice",
                   "exercise": {
@@ -4366,6 +4485,7 @@
                 {
                   "id": "c2t2_round_1_e2",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "listening_choice",
                   "exercise": {
@@ -4429,6 +4549,7 @@
                 {
                   "id": "c2t2_round_1_e3",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "reading_comprehension",
                   "exercise": {
@@ -4492,6 +4613,7 @@
                 {
                   "id": "c2t2_round_1_e4",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "gap_choice",
                   "exercise": {
@@ -4550,6 +4672,7 @@
                 {
                   "id": "c2t2_round_1_e5",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "dialogue_response",
                   "exercise": {
@@ -4613,6 +4736,7 @@
                 {
                   "id": "c2t2_round_1_e6",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "fill_blank",
                   "exercise": {
@@ -4645,6 +4769,7 @@
                 {
                   "id": "c2t2_round_1_e7",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "icon_choice",
                   "exercise": {
@@ -4693,6 +4818,7 @@
                 {
                   "id": "c2t2_round_1_e8",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "word_order",
                   "exercise": {
@@ -4754,10 +4880,12 @@
               "id": "c2t2_round_2",
               "title": "Round 2",
               "visualType": "generic",
+              "publicationState": "published",
               "content": [
                 {
                   "id": "c2t2_round_2_e1",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "choice",
                   "exercise": {
@@ -4816,6 +4944,7 @@
                 {
                   "id": "c2t2_round_2_e2",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "listening_choice",
                   "exercise": {
@@ -4879,6 +5008,7 @@
                 {
                   "id": "c2t2_round_2_e3",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "reading_comprehension",
                   "exercise": {
@@ -4942,6 +5072,7 @@
                 {
                   "id": "c2t2_round_2_e4",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "gap_choice",
                   "exercise": {
@@ -5000,6 +5131,7 @@
                 {
                   "id": "c2t2_round_2_e5",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "dialogue_response",
                   "exercise": {
@@ -5063,6 +5195,7 @@
                 {
                   "id": "c2t2_round_2_e6",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "word_match",
                   "exercise": {
@@ -5154,6 +5287,7 @@
                 {
                   "id": "c2t2_round_2_e7",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "image_word",
                   "exercise": {
@@ -5206,6 +5340,7 @@
                 {
                   "id": "c2t2_round_2_e8",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "listening_spelling",
                   "exercise": {
@@ -5252,56 +5387,64 @@
                 "kind": "explanation",
                 "required": false,
                 "role": "overview",
-                "text": "At home: practise afal, banana, caws, tŷ."
+                "text": "At home: practise afal, banana, caws, tŷ.",
+                "publicationState": "published"
               },
               {
                 "id": "chapter_2_topic_2_gb_goal1",
                 "kind": "text",
                 "required": false,
                 "role": "goal",
-                "text": "Recognise and use the main vocabulary in this Lesson."
+                "text": "Recognise and use the main vocabulary in this Lesson.",
+                "publicationState": "published"
               },
               {
                 "id": "g2_v5",
                 "kind": "vocabulary",
                 "required": false,
                 "role": "vocabulary",
-                "text": "afal = apple"
+                "text": "afal = apple",
+                "publicationState": "published"
               },
               {
                 "id": "g2_v6",
                 "kind": "vocabulary",
                 "required": false,
                 "role": "vocabulary",
-                "text": "banana = banana"
+                "text": "banana = banana",
+                "publicationState": "published"
               },
               {
                 "id": "g2_v7",
                 "kind": "vocabulary",
                 "required": false,
                 "role": "vocabulary",
-                "text": "caws = cheese"
+                "text": "caws = cheese",
+                "publicationState": "published"
               },
               {
                 "id": "g2_v8",
                 "kind": "vocabulary",
                 "required": false,
                 "role": "vocabulary",
-                "text": "tŷ = house"
+                "text": "tŷ = house",
+                "publicationState": "published"
               },
               {
                 "id": "chapter_2_topic_2_gb_ex1",
                 "kind": "example",
                 "required": false,
                 "role": "example",
-                "text": "Read “caws”. What does it mean?"
+                "text": "Read “caws”. What does it mean?",
+                "publicationState": "published"
               },
               {
                 "id": "chapter_2_topic_2_gb_ex2",
                 "kind": "example",
                 "required": false,
                 "role": "example",
-                "text": "Type the word for “banana”."
+                "text": "Type the word for “banana”.",
+                "publicationState": "published"
               }
             ]
           },
@@ -5312,6 +5455,7 @@
         },
         {
           "lessonId": "c2t3",
+          "publicationState": "published",
           "title": "More everyday words",
           "section": true,
           "sectionName": "Everyday Life",
@@ -5321,10 +5465,12 @@
               "id": "c2t3_round_1",
               "title": "Round 1",
               "visualType": "generic",
+              "publicationState": "published",
               "content": [
                 {
                   "id": "c2t3_intro",
                   "kind": "explanation",
+                  "publicationState": "published",
                   "required": false,
                   "role": "lesson_intro",
                   "sourceRefs": [
@@ -5339,6 +5485,7 @@
                 {
                   "id": "c2t3_round_1_e1",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "choice",
                   "exercise": {
@@ -5397,6 +5544,7 @@
                 {
                   "id": "c2t3_round_1_e2",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "listening_choice",
                   "exercise": {
@@ -5460,6 +5608,7 @@
                 {
                   "id": "c2t3_round_1_e3",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "reading_comprehension",
                   "exercise": {
@@ -5523,6 +5672,7 @@
                 {
                   "id": "c2t3_round_1_e4",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "gap_choice",
                   "exercise": {
@@ -5581,6 +5731,7 @@
                 {
                   "id": "c2t3_round_1_e5",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "dialogue_response",
                   "exercise": {
@@ -5644,6 +5795,7 @@
                 {
                   "id": "c2t3_round_1_e6",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "audio_match",
                   "exercise": {
@@ -5735,6 +5887,7 @@
                 {
                   "id": "c2t3_round_1_e7",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "fill_blank",
                   "exercise": {
@@ -5767,6 +5920,7 @@
                 {
                   "id": "c2t3_round_1_e8",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "word_order",
                   "exercise": {
@@ -5839,10 +5993,12 @@
               "id": "c2t3_round_2",
               "title": "Round 2",
               "visualType": "generic",
+              "publicationState": "published",
               "content": [
                 {
                   "id": "c2t3_round_2_e1",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "choice",
                   "exercise": {
@@ -5901,6 +6057,7 @@
                 {
                   "id": "c2t3_round_2_e2",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "listening_choice",
                   "exercise": {
@@ -5964,6 +6121,7 @@
                 {
                   "id": "c2t3_round_2_e3",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "reading_comprehension",
                   "exercise": {
@@ -6027,6 +6185,7 @@
                 {
                   "id": "c2t3_round_2_e4",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "gap_choice",
                   "exercise": {
@@ -6085,6 +6244,7 @@
                 {
                   "id": "c2t3_round_2_e5",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "dialogue_response",
                   "exercise": {
@@ -6148,6 +6308,7 @@
                 {
                   "id": "c2t3_round_2_e6",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "fill_blank",
                   "exercise": {
@@ -6180,6 +6341,7 @@
                 {
                   "id": "c2t3_round_2_e7",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "word_match",
                   "exercise": {
@@ -6271,6 +6433,7 @@
                 {
                   "id": "c2t3_round_2_e8",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "icon_choice",
                   "exercise": {
@@ -6326,49 +6489,56 @@
                 "kind": "explanation",
                 "required": false,
                 "role": "overview",
-                "text": "More everyday words: practise bwrdd, cadair, gwely, drws."
+                "text": "More everyday words: practise bwrdd, cadair, gwely, drws.",
+                "publicationState": "published"
               },
               {
                 "id": "c2t3_gb_goal1",
                 "kind": "text",
                 "required": false,
                 "role": "goal",
-                "text": "Recognise and use the main vocabulary in this Lesson."
+                "text": "Recognise and use the main vocabulary in this Lesson.",
+                "publicationState": "published"
               },
               {
                 "id": "g2_v9",
                 "kind": "vocabulary",
                 "required": false,
                 "role": "vocabulary",
-                "text": "bwrdd = table"
+                "text": "bwrdd = table",
+                "publicationState": "published"
               },
               {
                 "id": "g2_v10",
                 "kind": "vocabulary",
                 "required": false,
                 "role": "vocabulary",
-                "text": "cadair = chair"
+                "text": "cadair = chair",
+                "publicationState": "published"
               },
               {
                 "id": "g2_v11",
                 "kind": "vocabulary",
                 "required": false,
                 "role": "vocabulary",
-                "text": "gwely = bed"
+                "text": "gwely = bed",
+                "publicationState": "published"
               },
               {
                 "id": "g2_v12",
                 "kind": "vocabulary",
                 "required": false,
                 "role": "vocabulary",
-                "text": "drws = door"
+                "text": "drws = door",
+                "publicationState": "published"
               },
               {
                 "id": "c2t3_gb_ex1",
                 "kind": "example",
                 "required": false,
                 "role": "example",
-                "text": "Read “gwely”. What does it mean?"
+                "text": "Read “gwely”. What does it mean?",
+                "publicationState": "published"
               }
             ]
           },
@@ -6379,6 +6549,7 @@
         },
         {
           "lessonId": "chapter_3_topic_1",
+          "publicationState": "published",
           "title": "Around town",
           "section": true,
           "sectionName": "Travel",
@@ -6388,10 +6559,12 @@
               "id": "c3t1_round_1",
               "title": "Round 1",
               "visualType": "generic",
+              "publicationState": "published",
               "content": [
                 {
                   "id": "chapter_3_topic_1_intro",
                   "kind": "explanation",
+                  "publicationState": "published",
                   "required": false,
                   "role": "lesson_intro",
                   "sourceRefs": [
@@ -6406,6 +6579,7 @@
                 {
                   "id": "c3t1_round_1_e1",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "choice",
                   "exercise": {
@@ -6464,6 +6638,7 @@
                 {
                   "id": "c3t1_round_1_e2",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "listening_choice",
                   "exercise": {
@@ -6527,6 +6702,7 @@
                 {
                   "id": "c3t1_round_1_e3",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "reading_comprehension",
                   "exercise": {
@@ -6590,6 +6766,7 @@
                 {
                   "id": "c3t1_round_1_e4",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "gap_choice",
                   "exercise": {
@@ -6648,6 +6825,7 @@
                 {
                   "id": "c3t1_round_1_e5",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "dialogue_response",
                   "exercise": {
@@ -6711,6 +6889,7 @@
                 {
                   "id": "c3t1_round_1_e6",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "fill_blank",
                   "exercise": {
@@ -6743,6 +6922,7 @@
                 {
                   "id": "c3t1_round_1_e7",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "word_match",
                   "exercise": {
@@ -6834,6 +7014,7 @@
                 {
                   "id": "c3t1_round_1_e8",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "icon_choice",
                   "exercise": {
@@ -6885,10 +7066,12 @@
               "id": "c3t1_round_2",
               "title": "Round 2",
               "visualType": "generic",
+              "publicationState": "published",
               "content": [
                 {
                   "id": "c3t1_round_2_e1",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "choice",
                   "exercise": {
@@ -6947,6 +7130,7 @@
                 {
                   "id": "c3t1_round_2_e2",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "listening_choice",
                   "exercise": {
@@ -7010,6 +7194,7 @@
                 {
                   "id": "c3t1_round_2_e3",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "reading_comprehension",
                   "exercise": {
@@ -7073,6 +7258,7 @@
                 {
                   "id": "c3t1_round_2_e4",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "gap_choice",
                   "exercise": {
@@ -7131,6 +7317,7 @@
                 {
                   "id": "c3t1_round_2_e5",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "dialogue_response",
                   "exercise": {
@@ -7194,6 +7381,7 @@
                 {
                   "id": "c3t1_round_2_e6",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "listening_spelling",
                   "exercise": {
@@ -7233,6 +7421,7 @@
                 {
                   "id": "c3t1_round_2_e7",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "audio_match",
                   "exercise": {
@@ -7324,6 +7513,7 @@
                 {
                   "id": "c3t1_round_2_e8",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "image_word",
                   "exercise": {
@@ -7427,56 +7617,64 @@
                 "kind": "explanation",
                 "required": false,
                 "role": "overview",
-                "text": "Around town: practise car, bws, trên, beic."
+                "text": "Around town: practise car, bws, trên, beic.",
+                "publicationState": "published"
               },
               {
                 "id": "chapter_3_topic_1_gb_goal1",
                 "kind": "text",
                 "required": false,
                 "role": "goal",
-                "text": "Recognise and use the main vocabulary in this Lesson."
+                "text": "Recognise and use the main vocabulary in this Lesson.",
+                "publicationState": "published"
               },
               {
                 "id": "g3_v1",
                 "kind": "vocabulary",
                 "required": false,
                 "role": "vocabulary",
-                "text": "car = car"
+                "text": "car = car",
+                "publicationState": "published"
               },
               {
                 "id": "g3_v2",
                 "kind": "vocabulary",
                 "required": false,
                 "role": "vocabulary",
-                "text": "bws = bus"
+                "text": "bws = bus",
+                "publicationState": "published"
               },
               {
                 "id": "g3_v3",
                 "kind": "vocabulary",
                 "required": false,
                 "role": "vocabulary",
-                "text": "trên = train"
+                "text": "trên = train",
+                "publicationState": "published"
               },
               {
                 "id": "g3_v4",
                 "kind": "vocabulary",
                 "required": false,
                 "role": "vocabulary",
-                "text": "beic = bicycle"
+                "text": "beic = bicycle",
+                "publicationState": "published"
               },
               {
                 "id": "chapter_3_topic_1_gb_ex1",
                 "kind": "example",
                 "required": false,
                 "role": "example",
-                "text": "Choose the correct translation of “car”."
+                "text": "Choose the correct translation of “car”.",
+                "publicationState": "published"
               },
               {
                 "id": "chapter_3_topic_1_gb_ex2",
                 "kind": "example",
                 "required": false,
                 "role": "example",
-                "text": "Read “trên”. What does it mean?"
+                "text": "Read “trên”. What does it mean?",
+                "publicationState": "published"
               }
             ]
           },
@@ -7487,6 +7685,7 @@
         },
         {
           "lessonId": "chapter_3_topic_2",
+          "publicationState": "published",
           "title": "Transport, directions and buying tickets at the railway station",
           "section": true,
           "sectionName": "Travel",
@@ -7496,10 +7695,12 @@
               "id": "c3t2_round_1",
               "title": "Round 1",
               "visualType": "generic",
+              "publicationState": "published",
               "content": [
                 {
                   "id": "chapter_3_topic_2_intro",
                   "kind": "explanation",
+                  "publicationState": "published",
                   "required": false,
                   "role": "lesson_intro",
                   "sourceRefs": [
@@ -7514,6 +7715,7 @@
                 {
                   "id": "c3t2_round_1_e1",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "choice",
                   "exercise": {
@@ -7572,6 +7774,7 @@
                 {
                   "id": "c3t2_round_1_e2",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "listening_choice",
                   "exercise": {
@@ -7635,6 +7838,7 @@
                 {
                   "id": "c3t2_round_1_e3",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "reading_comprehension",
                   "exercise": {
@@ -7698,6 +7902,7 @@
                 {
                   "id": "c3t2_round_1_e4",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "gap_choice",
                   "exercise": {
@@ -7756,6 +7961,7 @@
                 {
                   "id": "c3t2_round_1_e5",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "dialogue_response",
                   "exercise": {
@@ -7819,6 +8025,7 @@
                 {
                   "id": "c3t2_round_1_e6",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "fill_blank",
                   "exercise": {
@@ -7851,6 +8058,7 @@
                 {
                   "id": "c3t2_round_1_e7",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "icon_choice",
                   "exercise": {
@@ -7899,6 +8107,7 @@
                 {
                   "id": "c3t2_round_1_e8",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "word_order",
                   "exercise": {
@@ -7960,10 +8169,12 @@
               "id": "c3t2_round_2",
               "title": "Round 2",
               "visualType": "generic",
+              "publicationState": "published",
               "content": [
                 {
                   "id": "c3t2_round_2_e1",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "choice",
                   "exercise": {
@@ -8022,6 +8233,7 @@
                 {
                   "id": "c3t2_round_2_e2",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "listening_choice",
                   "exercise": {
@@ -8085,6 +8297,7 @@
                 {
                   "id": "c3t2_round_2_e3",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "reading_comprehension",
                   "exercise": {
@@ -8148,6 +8361,7 @@
                 {
                   "id": "c3t2_round_2_e4",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "gap_choice",
                   "exercise": {
@@ -8206,6 +8420,7 @@
                 {
                   "id": "c3t2_round_2_e5",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "dialogue_response",
                   "exercise": {
@@ -8269,6 +8484,7 @@
                 {
                   "id": "c3t2_round_2_e6",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "word_match",
                   "exercise": {
@@ -8360,6 +8576,7 @@
                 {
                   "id": "c3t2_round_2_e7",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "image_word",
                   "exercise": {
@@ -8456,6 +8673,7 @@
                 {
                   "id": "c3t2_round_2_e8",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "listening_spelling",
                   "exercise": {
@@ -8502,56 +8720,64 @@
                 "kind": "explanation",
                 "required": false,
                 "role": "overview",
-                "text": "Transport and actions: practise awyren, ysbyty, siop, mynydd."
+                "text": "Transport and actions: practise awyren, ysbyty, siop, mynydd.",
+                "publicationState": "published"
               },
               {
                 "id": "chapter_3_topic_2_gb_goal1",
                 "kind": "text",
                 "required": false,
                 "role": "goal",
-                "text": "Recognise and use the main vocabulary in this Lesson."
+                "text": "Recognise and use the main vocabulary in this Lesson.",
+                "publicationState": "published"
               },
               {
                 "id": "g3_v5",
                 "kind": "vocabulary",
                 "required": false,
                 "role": "vocabulary",
-                "text": "awyren = airplane"
+                "text": "awyren = airplane",
+                "publicationState": "published"
               },
               {
                 "id": "g3_v6",
                 "kind": "vocabulary",
                 "required": false,
                 "role": "vocabulary",
-                "text": "ysbyty = hospital"
+                "text": "ysbyty = hospital",
+                "publicationState": "published"
               },
               {
                 "id": "g3_v7",
                 "kind": "vocabulary",
                 "required": false,
                 "role": "vocabulary",
-                "text": "siop = shop"
+                "text": "siop = shop",
+                "publicationState": "published"
               },
               {
                 "id": "g3_v8",
                 "kind": "vocabulary",
                 "required": false,
                 "role": "vocabulary",
-                "text": "mynydd = mountain"
+                "text": "mynydd = mountain",
+                "publicationState": "published"
               },
               {
                 "id": "chapter_3_topic_2_gb_ex1",
                 "kind": "example",
                 "required": false,
                 "role": "example",
-                "text": "Read “siop”. What does it mean?"
+                "text": "Read “siop”. What does it mean?",
+                "publicationState": "published"
               },
               {
                 "id": "chapter_3_topic_2_gb_ex2",
                 "kind": "example",
                 "required": false,
                 "role": "example",
-                "text": "Choose the picture for “siop”."
+                "text": "Choose the picture for “siop”.",
+                "publicationState": "published"
               }
             ]
           },
@@ -8562,6 +8788,7 @@
         },
         {
           "lessonId": "c3t3",
+          "publicationState": "published",
           "title": "Travel phrases",
           "section": true,
           "sectionName": "Travel",
@@ -8571,10 +8798,12 @@
               "id": "c3t3_round_1",
               "title": "Round 1",
               "visualType": "generic",
+              "publicationState": "published",
               "content": [
                 {
                   "id": "c3t3_intro",
                   "kind": "explanation",
+                  "publicationState": "published",
                   "required": false,
                   "role": "lesson_intro",
                   "sourceRefs": [
@@ -8589,6 +8818,7 @@
                 {
                   "id": "c3t3_round_1_e1",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "choice",
                   "exercise": {
@@ -8647,6 +8877,7 @@
                 {
                   "id": "c3t3_round_1_e2",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "listening_choice",
                   "exercise": {
@@ -8710,6 +8941,7 @@
                 {
                   "id": "c3t3_round_1_e3",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "reading_comprehension",
                   "exercise": {
@@ -8773,6 +9005,7 @@
                 {
                   "id": "c3t3_round_1_e4",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "gap_choice",
                   "exercise": {
@@ -8831,6 +9064,7 @@
                 {
                   "id": "c3t3_round_1_e5",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "dialogue_response",
                   "exercise": {
@@ -8894,6 +9128,7 @@
                 {
                   "id": "c3t3_round_1_e6",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "audio_match",
                   "exercise": {
@@ -8985,6 +9220,7 @@
                 {
                   "id": "c3t3_round_1_e7",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "fill_blank",
                   "exercise": {
@@ -9017,6 +9253,7 @@
                 {
                   "id": "c3t3_round_1_e8",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "word_order",
                   "exercise": {
@@ -9078,10 +9315,12 @@
               "id": "c3t3_round_2",
               "title": "Round 2",
               "visualType": "generic",
+              "publicationState": "published",
               "content": [
                 {
                   "id": "c3t3_round_2_e1",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "choice",
                   "exercise": {
@@ -9140,6 +9379,7 @@
                 {
                   "id": "c3t3_round_2_e2",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "listening_choice",
                   "exercise": {
@@ -9203,6 +9443,7 @@
                 {
                   "id": "c3t3_round_2_e3",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "reading_comprehension",
                   "exercise": {
@@ -9266,6 +9507,7 @@
                 {
                   "id": "c3t3_round_2_e4",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "gap_choice",
                   "exercise": {
@@ -9324,6 +9566,7 @@
                 {
                   "id": "c3t3_round_2_e5",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "dialogue_response",
                   "exercise": {
@@ -9387,6 +9630,7 @@
                 {
                   "id": "c3t3_round_2_e6",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "fill_blank",
                   "exercise": {
@@ -9419,6 +9663,7 @@
                 {
                   "id": "c3t3_round_2_e7",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "word_match",
                   "exercise": {
@@ -9510,6 +9755,7 @@
                 {
                   "id": "c3t3_round_2_e8",
                   "kind": "exercise",
+                  "publicationState": "published",
                   "required": true,
                   "editorTemplate": "icon_choice",
                   "exercise": {
@@ -9565,49 +9811,56 @@
                 "kind": "explanation",
                 "required": false,
                 "role": "overview",
-                "text": "Travel phrases: practise coeden, cerdded, rhedeg, cysgu."
+                "text": "Travel phrases: practise coeden, cerdded, rhedeg, cysgu.",
+                "publicationState": "published"
               },
               {
                 "id": "c3t3_gb_goal1",
                 "kind": "text",
                 "required": false,
                 "role": "goal",
-                "text": "Recognise and use the main vocabulary in this Lesson."
+                "text": "Recognise and use the main vocabulary in this Lesson.",
+                "publicationState": "published"
               },
               {
                 "id": "g3_v9",
                 "kind": "vocabulary",
                 "required": false,
                 "role": "vocabulary",
-                "text": "coeden = tree"
+                "text": "coeden = tree",
+                "publicationState": "published"
               },
               {
                 "id": "g3_v10",
                 "kind": "vocabulary",
                 "required": false,
                 "role": "vocabulary",
-                "text": "cerdded = walk"
+                "text": "cerdded = walk",
+                "publicationState": "published"
               },
               {
                 "id": "g3_v11",
                 "kind": "vocabulary",
                 "required": false,
                 "role": "vocabulary",
-                "text": "rhedeg = run"
+                "text": "rhedeg = run",
+                "publicationState": "published"
               },
               {
                 "id": "g3_v12",
                 "kind": "vocabulary",
                 "required": false,
                 "role": "vocabulary",
-                "text": "cysgu = sleep"
+                "text": "cysgu = sleep",
+                "publicationState": "published"
               },
               {
                 "id": "c3t3_gb_ex1",
                 "kind": "example",
                 "required": false,
                 "role": "example",
-                "text": "Read “rhedeg”. What does it mean?"
+                "text": "Read “rhedeg”. What does it mean?",
+                "publicationState": "published"
               }
             ]
           },

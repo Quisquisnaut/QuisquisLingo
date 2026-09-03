@@ -14,7 +14,7 @@ class EditorHelpScreen extends StatelessWidget {
         _HelpSection(
           title: 'Courses in learner mode',
           body:
-              'Change course lists every available course: the bundled courses included with QuisquisLingo and all courses under My custom courses, whether they were created in the editor or imported from JSON. Selecting a course makes it the current course. The Unified Learner page resumes the active Lesson for that learner and course. When a course has real Sections, the fixed Section selector opens its ordered consecutive Section blocks and jumps to each block\'s first Lesson.',
+              'Change course lists every Published course: the bundled courses included with QuisquisLingo and Published courses under My custom courses. Draft Courses stay available for authoring but cannot become the active learner Course. Selecting a Published course makes it current. The learner page resumes the active Published Lesson for that learner and course. When a course has real Sections, the fixed Section selector opens its ordered consecutive Published Section blocks and jumps to each block\'s first Lesson.',
         ),
         _HelpSection(
           title: 'Bundled courses and custom courses',
@@ -29,7 +29,12 @@ class EditorHelpScreen extends StatelessWidget {
         _HelpSection(
           title: 'Course structure',
           body:
-              'The main Course page links to a dedicated Lessons page with the single authoritative Lock control at its top. From there the draft-preserving hierarchy continues through Lesson, Rounds and Round / Exercises. Lesson and Round menus provide Edit, Rename, Delete, Duplicate and Preview; Exercise menus provide Edit and Duplicate alongside the established actions. A duplicate is inserted after its source with fresh IDs throughout its owned subtree. Exercise type cannot be changed after creation. Each Lesson has its own learner-facing GuideBook and Lesson-scoped Duel.',
+              'The main Course page links to a dedicated Lessons page with the single authoritative Lock control at its top. From there the draft-preserving hierarchy continues through Lesson, Rounds and Round / Exercises. Course, Lesson and Round menus provide scoped Audit plus their appropriate Edit, Rename, Duplicate, Preview and Draft/Publish actions; Exercise menus provide Edit, Duplicate, Preview and Draft/Publish. A duplicate is inserted after its source with fresh IDs throughout its owned subtree and starts as Draft. Exercise type cannot be changed after creation. Each Lesson has its own learner-facing GuideBook and Lesson-scoped Duel.',
+        ),
+        _HelpSection(
+          title: 'Drafts, publishing and unsaved work',
+          body:
+              'Course, Lesson, Round and Exercise can be Draft or Published. Save as Draft preserves incomplete but structurally safe author work without showing it to learners. Save / Publish runs strict learner validation. Draft descendants stay Draft when a parent is published, and Published children remain hidden below a Draft parent. Draft Courses are not learner-selectable; Draft Lessons do not affect numbering, Sections or unlock order; Draft Rounds and Exercises do not affect play, completion, Review, Duel or XP. Moving Published content to Draft asks first and preserves stable IDs and existing learner history. Back or close shows Unsaved changes only when the current editor would discard real unsaved work; child saves remain part of the parent draft until the parent is saved.',
         ),
         _HelpSection(
           title: 'Local course edits and backups',
@@ -39,7 +44,7 @@ class EditorHelpScreen extends StatelessWidget {
         _HelpSection(
           title: 'Course info and license',
           body:
-              'Course info stores the human author credit and the content license separately from the MPL-2.0 license of the QuisquisLingo software. Choose a common license from the menu or select Other / Custom license and enter the course-specific terms. Copy edits as JSON applies to the Current bundled course: it copies the local bundled-course override to the clipboard and does not create a file. Export course JSON applies to My custom courses: it writes a complete portable Course Model v5 JSON file to Documents/QuisquisLingo/Exports. Learner Export/Import in Settings is separate and does not contain custom courses, course edits, Image Banks or Audio Packs.',
+              'Course info stores human author credit, the content license and optional Buy a Coffee HTTPS link separately from the MPL-2.0 license of the QuisquisLingo software. It also selects the learner Lesson prefix—Lesson, Unit, Topic, Module, Skill, Chapter, Stage, Step, Part, a custom label, number only or none—and the default Lesson icon style. Choose a common license from the menu or select Other / Custom license and enter the course-specific terms. Copy edits as JSON applies to the Current bundled course. Export course JSON writes a complete portable authoring Course, including Drafts and managed custom Lesson icons, to Documents/QuisquisLingo/Exports.',
         ),
         _HelpSection(
           title: 'Import a custom course',
@@ -49,7 +54,7 @@ class EditorHelpScreen extends StatelessWidget {
         _HelpSection(
           title: 'Export a custom course',
           body:
-              'Open My custom courses and choose Export course JSON for the course you want to export. QuisquisLingo saves the complete portable Course Model v5 JSON directly in Documents/QuisquisLingo/Exports. There is no Save As dialog. If a file with the same name already exists, QuisquisLingo adds _2, _3 and later numeric suffixes instead of silently overwriting it. Optional custom flag data is included in the exported course JSON.',
+              'Open My custom courses and choose Export course JSON for the course you want to export. QuisquisLingo saves the complete portable Course Model v5 authoring JSON directly in Documents/QuisquisLingo/Exports. There is no Save As dialog. Draft/Published state, optional custom flag data, Buy a Coffee metadata, Lesson numbering/icon-style settings and managed custom Lesson icons are included. If a filename exists, _2, _3 and later suffixes avoid overwriting it.',
         ),
         _HelpSection(
           title: 'Import a custom flag',
@@ -84,7 +89,7 @@ class EditorHelpScreen extends StatelessWidget {
         _HelpSection(
           title: 'Lesson theme icons and Preview',
           body:
-              'Each Lesson can select one preinstalled theme icon from the visual grid or choose None for the default GuideBook icon. Theme icons cannot be uploaded or entered as arbitrary paths. Exercise images remain separate Image Bank content. Round Preview and Preview exercise let you test authored content before saving or distributing it.',
+              'Each Lesson can select a Preinstalled icon, a Custom Course icon, or None. Import custom icon reads the single image placed in Documents/QuisquisLingo/Imports/Lesson Icons, validates it, preserves its proportions and transparency, contains it on a 256 × 256 PNG canvas, and stores it as a managed Course-owned asset; no external path is retained. Managed icons survive Course export/import and Course duplication, while Lesson duplication in the same Course safely reuses the immutable asset. None uses the Course default: the established monochrome GuideBook mark or a deterministic colored learner-visible Lesson number. Explicit icons always win, and every option uses the same 84 × 84 learner footprint. Round Preview and Preview exercise remain learner-state-free.',
         ),
         _HelpSection(
           title: 'Exercise image specifications',
@@ -119,12 +124,12 @@ class EditorHelpScreen extends StatelessWidget {
         _HelpSection(
           title: 'Course metadata and authors',
           body:
-              'Course info is always available, even while the course content is locked. It lets you change the visible Course name while keeping the Course ID unchanged. The Lock protects structural/content editing such as Lessons and exercises; it does not block course metadata editing. The Course ID identifies the course internally and remains read-only. Source language and Target language are also read-only for now. Course info can store multiple human authors, and each author can have more than one role. Course Creator means the person created the course or a substantial part of its original structure/content. Editor means the person maintains or substantially revises existing content over time. Contributor means a specific or limited contribution without creating or maintaining the course as a whole. Team Leader coordinates the team and may also hold another role. Reviewer checks content, Native Speaker contributes language-quality review, and Audio Contributor provides course audio. Custom role text is available for other contributions. Roles describe contributions, not hierarchy. Course metadata can also record language variant, starting level, target level, course version, last-updated date, course description and an optional support URL. Course-content licensing is separate from the MPL-2.0 software license.',
+              'Course info is always available, even while content is locked. It can change the visible Course name without changing the read-only Course ID. Source and Target language are also read-only for now. Multiple authors can hold multiple roles, including Illustrator. Roles describe contributions, not hierarchy. Course metadata can also record language variant, levels, Course version, last-updated date, description and an optional Buy a Coffee HTTPS URL. In Course Info, that URL becomes a single Buy a Coffee action and is never payment processing. Lesson presentation settings change labels and fallback art only; they never change lessonId, progression or unlocks. The exact untouched default title Lesson N is shown once when Lesson numbering would otherwise produce Lesson N: Lesson N.',
         ),
         _HelpSection(
           title: 'Audit severity and codes',
           body:
-              'Course Audit reports Errors, Warnings and Suggestions. An Error identifies content that violates an editor rule and should be corrected. A Warning identifies content that may be valid but needs review. A Suggestion recommends an improvement. Each rule can have a stable audit code such as ROUND_DUPLICATE_CONTENT, OPPOSITE_TOO_EARLY or SINGLE_WORD_CASE. The code identifies the rule even if its explanatory text changes or is translated. A Lesson with fewer than 25 actual eligible Duel exercises has an unavailable Duel; this is informational author feedback and does not block saving, importing or exporting. When reporting an Audit problem, include the code and, when possible, the Lesson, Round and Exercise. Preview exercises while authoring and run Course Audit before distributing a course.',
+              'Course Audit reports Errors, Warnings and Info. Error blocks publication or import because content is structurally or functionally invalid. Warning marks a likely authoring problem that needs review. Info is guidance or a neutral fact and never blocks publication by itself. Audit can sort by Lesson or friendly Exercise type and can be opened for a whole Course, one Lesson or one Round. In the Round list, only a Round with an Audit Error receives the pink outline; warnings and Info do not. A Lesson with fewer than 3 Rounds and one without listening comprehension receive Info guidance. Duel availability below 25 actual eligible exercises is also Info. Drafts are included for author review without making unrelated currently Published learner content invalid.',
         ),
         _HelpSection(
           title: 'Course Audit',
@@ -135,7 +140,7 @@ class EditorHelpScreen extends StatelessWidget {
         _HelpSection(
           title: 'Create a new course',
           body:
-              'Course Editor can create an independent Course Model v5 project from scratch. Enter the course title, source language, target language and optional author. QuisquisLingo creates stable technical IDs automatically and starts with 3 placeholder Lessons, each with a stable Lesson-scoped Duel identity. No Rounds are created automatically when a course is created; add them explicitly when you are ready to build the Lesson. Every Round created manually contains three dummy exercises ready to edit. User-created courses are stored separately from the Current bundled course and its local overrides. When creating a course, choose one of QuisquisLingo’s built-in flags or import a PNG/JPG flag. Imported flags are checked for file size and resolution and resized safely while preserving proportions. Custom courses can be imported from and exported to portable QuisquisLingo JSON files. To import, place the file at Documents/QuisquisLingo/Exports/import.json and press Import course JSON; the course is then added under My custom courses.',
+              'Course Editor can create an independent Course Model v5 project from scratch. It starts as Draft with 3 Draft placeholder Lessons and stable IDs; no Rounds are created automatically. A manually created Round starts as Draft with three Draft dummy Exercises. Custom Courses appear under My custom courses, whose menu provides Edit, Rename, Duplicate, Audit, Publish/Move to Draft, Export and the established protected delete flow. Import and export use portable QuisquisLingo JSON. Imported authoring content must state its Draft/Published state explicitly; this release does not infer or migrate the new fields.',
         ),
       ],
     ),
@@ -233,12 +238,12 @@ class ExerciseHelpScreen extends StatelessWidget {
         const _HelpSection(
           title: 'Answer variants',
           body:
-              'Multiple complete equivalent answers may be entered on separate lines. Compact syntax is optional: {Io} makes “Io” optional; [prendo|vorrei] chooses one listed alternative; and (non arrivo <> oggi) allows only the declared phrase parts inside parentheses to swap. Without parentheses, <> applies to the whole expression. During reordering, terminal punctuation such as ., ?, !, … or ?! is detached and restored only at the final sentence end; internal punctuation is not moved. Generated variants capitalize sentence starts and starts after . ? !, avoid false capitalization at moved phrase boundaries, and preserve distinguishable names/acronyms. Expansion is deterministic, removes duplicates, and rejects malformed syntax or more than 128 variants instead of truncating.',
+              'Multiple complete equivalent answers may be entered on separate lines. Compact syntax is optional: {Io} makes “Io” optional; [prendo|vorrei] chooses one independent alternative; and (non arrivo <> oggi) swaps only declared phrase parts. Grouped alternatives use *: to link by position: [*:il|i] [*:tuo|tuoi] [*:denaro|soldi] accepts “il tuo denaro” and “i tuoi soldi”, never “il tuoi soldi” or “i tuo denaro”. Two or more linked groups are required and every linked group must have the same number of alternatives. Linked groups compose with {}, ordinary [] and valid <> scopes. During reordering, terminal punctuation stays at the final sentence end. Expansion is deterministic, removes duplicates, and rejects malformed syntax or more than 128 variants instead of truncating.',
         ),
         const _HelpSection(
           title: 'Text evaluation and corrections',
           body:
-              'QQL accepts any configured complete answer or syntax-expanded variant after the established case, punctuation, whitespace, apostrophe and accent rules. Type the translation also permits one omitted or duplicated repeated letter in a word of at least five characters when every word position is otherwise unchanged. Substitutions and missing, extra or decisively different words remain incorrect. For an incorrect response, deterministic correction selection compares exact shared words, graded word-level spelling similarity, incompatible extras, absent candidate words and word order. The closest valid construction is displayed; exact ties retain author order, and correction choice never changes correctness.',
+              'QQL accepts any configured complete answer or syntax-expanded variant after the established case, punctuation, whitespace, apostrophe and accent rules. Type the translation also permits one omitted or duplicated repeated letter in a word of at least five characters when every word position is otherwise unchanged. After every correct typed response, feedback shows the nearest canonical Correct answer; it names only differences actually used, such as capitalization, ignored punctuation, normalized whitespace, an omitted diacritic or the explicitly allowed typo. Exact answers show no false difference reason. Incorrect responses retain the same deterministic closest-correction selection, and correction choice never changes correctness.',
         ),
         const _HelpSection(
           title: 'Contextual comprehension example',
@@ -363,7 +368,7 @@ class JsonV4HelpScreen extends StatelessWidget {
       _HelpSection(
         title: 'Lesson and Round',
         body:
-            'A Lesson contains lessonId, title, optional Section and themeIconAsset metadata, guidebook, rounds[] and its Duel identity. The obsolete decorative Lesson imageAsset field is rejected. Round contains id, title, visualType and content[]. The first Content of Round 1 may be a non-exercise lesson_intro drawn from the Lesson Guidebook.',
+            'Course, Lesson, Round and authored Exercise content carry explicit draft/published state. A Course also stores Lesson numbering and fallback-icon settings plus optional managed custom Lesson-icon assets. A Lesson contains lessonId, title, optional Section and themeIconAsset metadata, guidebook, rounds[] and its Duel identity. themeIconAsset references either the closed preinstalled registry or that Course’s managed icon set; arbitrary paths are rejected. Round contains id, title, visualType and content[].',
       ),
       _HelpSection(
         title: 'Exercise Content',

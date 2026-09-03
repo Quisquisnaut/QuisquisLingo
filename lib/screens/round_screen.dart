@@ -96,6 +96,7 @@ class _RoundScreenState extends State<RoundScreen> {
   bool _lastAnswerCorrect = false;
   String _feedback = '';
   String _displayedCorrection = '';
+  List<String> _acceptedDifferences = const [];
   int? _selected;
   final TextEditingController _textController = TextEditingController();
   final List<String> _builtOrder = [];
@@ -168,7 +169,10 @@ class _RoundScreenState extends State<RoundScreen> {
       // Locally edited courses may temporarily contain invalid exercises. The
       // Course Editor reports them, while the learner-facing Round screen skips
       // exercises with structural audit errors instead of indexing invalid data.
-      final valid = _roundPlayability.playableExerciseIndices(widget.round);
+      final valid = _roundPlayability.playableExerciseIndices(
+        widget.round,
+        includeDrafts: widget.previewMode,
+      );
       await CrashLogService.instance.recordDebugEvent(
         'Round: audit completed ${widget.round.id}, valid=${valid.length}',
       );
@@ -253,6 +257,7 @@ class _RoundScreenState extends State<RoundScreen> {
     _lastAnswerCorrect = false;
     _feedback = '';
     _displayedCorrection = '';
+    _acceptedDifferences = const [];
     _selected = null;
     _textController.clear();
     _builtOrder.clear();
@@ -594,26 +599,23 @@ class _RoundScreenState extends State<RoundScreen> {
     // TTS is a literal full-phrase compatibility answer, not an authored
     // answer expression. Keep it outside expression parsing so punctuation
     // such as parentheses cannot be interpreted as author syntax.
-    final correct =
-        _answerEngine.accepts(
-          typed,
-          accepted,
-          normalization: _exercise.evaluation.normalization,
-          typoTolerance: _exercise.type == 'type_translation',
-        ) ||
-        (tts != null && tts.isNotEmpty && _typedMatches(typed, tts));
-    if (!correct) {
-      if (accepted.isNotEmpty) {
-        _displayedCorrection = _answerEngine.bestCorrection(
-          typed,
-          accepted,
-          normalization: _exercise.evaluation.normalization,
-        );
-      } else if (tts != null && tts.isNotEmpty) {
-        _displayedCorrection = tts;
-      }
+    var evaluation = _answerEngine.evaluate(
+      typed,
+      accepted,
+      normalization: _exercise.evaluation.normalization,
+      typoTolerance: _exercise.type == 'type_translation',
+    );
+    if (!evaluation.isCorrect && tts != null && tts.isNotEmpty) {
+      final literal = _answerEngine.evaluateLiteral(
+        typed,
+        tts,
+        normalization: _exercise.evaluation.normalization,
+      );
+      if (literal.isCorrect || accepted.isEmpty) evaluation = literal;
     }
-    _mark(correct);
+    _displayedCorrection = evaluation.matchedAcceptedAnswer;
+    _acceptedDifferences = evaluation.acceptedDifferences;
+    _mark(evaluation.isCorrect);
   }
 
   void _submitOrder() => _mark(
@@ -1613,7 +1615,13 @@ class _RoundScreenState extends State<RoundScreen> {
               OutlinedButton.icon(
                 onPressed: () => Navigator.of(context).push(
                   MaterialPageRoute(
-                    builder: (_) => GuidebookScreen(lesson: widget.lesson),
+                    builder: (_) => GuidebookScreen(
+                      course: widget.course,
+                      lesson: widget.lesson,
+                      lessonIndex: widget.course.lessons.indexWhere(
+                        (lesson) => lesson.lessonId == widget.lesson.lessonId,
+                      ),
+                    ),
                   ),
                 ),
                 icon: const Icon(Icons.menu_book_outlined),
@@ -1778,9 +1786,22 @@ class _RoundScreenState extends State<RoundScreen> {
                       _feedback,
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
-                    if (!_lastAnswerCorrect && ex.type != 'flashcard') ...[
+                    if (ex.type != 'flashcard' &&
+                        (!_lastAnswerCorrect ||
+                            const {
+                              'fill_blank',
+                              'type_translation',
+                              'listening_spelling',
+                            }.contains(ex.type))) ...[
                       const SizedBox(height: 5),
                       Text('Correct answer: ${_correctAnswerText(ex)}'),
+                    ],
+                    if (_lastAnswerCorrect &&
+                        _acceptedDifferences.isNotEmpty) ...[
+                      const SizedBox(height: 5),
+                      Text(
+                        '${_acceptedDifferences.length == 1 ? 'Accepted difference' : 'Accepted differences'}: ${_acceptedDifferences.join(', ')}',
+                      ),
                     ],
                   ],
                 ),

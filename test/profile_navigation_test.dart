@@ -709,7 +709,7 @@ void main() {
       MaterialApp(
         home: CourseInfoScreen(
           course: _courseFixture(
-            supportUrl: 'https://example.com/course-support',
+            buyACoffeeUrl: 'https://example.com/course-support',
           ),
           launchExternal: (uri) async {
             openedUri = uri;
@@ -719,7 +719,7 @@ void main() {
       ),
     );
 
-    final supportAction = find.widgetWithText(ListTile, 'Buy a coffee');
+    final supportAction = find.widgetWithText(ListTile, 'Buy a Coffee');
     expect(supportAction, findsOneWidget);
     await tester.tap(supportAction);
     await tester.pump();
@@ -741,7 +741,7 @@ class _ProfileServiceWithoutAvatar extends ProfileService {
   ) async => null;
 }
 
-Course _courseFixture({required String supportUrl}) => Course(
+Course _courseFixture({required String buyACoffeeUrl}) => Course(
   courseId: 'profile-navigation-course',
   learningLanguage: 'Italian',
   interfaceLanguage: 'English',
@@ -750,7 +750,7 @@ Course _courseFixture({required String supportUrl}) => Course(
   title: 'Profile Navigation Course',
   ttsLanguage: 'it-IT',
   version: '1.0.0',
-  supportUrl: supportUrl,
+  buyACoffeeUrl: buyACoffeeUrl,
   lessons: const [],
 );
 

@@ -24,6 +24,87 @@ class AuthoringDuplicationService {
 
   final AuthoringIdGenerator _ids;
 
+  Course duplicateCourse(Course source, {required String title}) {
+    final newCourseId = Course.newCourseId();
+    final remap = <String, String>{source.courseId: newCourseId};
+    final iconRemap = <String, String>{};
+    for (final asset in source.lessonIconAssets) {
+      iconRemap[asset.assetId] = _ids.next('lesson_icon');
+    }
+    for (final clip in source.audioLibrary) {
+      remap[clip.id] = _ids.next('audio');
+    }
+    for (final lesson in source.lessons) {
+      remap[lesson.lessonId] = _ids.next('lesson');
+      remap[lesson.duel.id] = _ids.next('duel');
+      for (final content in lesson.guidebook.content) {
+        _allocateContent(content, remap);
+      }
+      for (final round in lesson.rounds) {
+        remap[round.id] = _ids.next('round');
+        for (final content in round.content) {
+          _allocateContent(content, remap);
+        }
+      }
+    }
+    return Course(
+      courseId: newCourseId,
+      publicationState: PublicationState.draft,
+      lessonNumberingMode: source.lessonNumberingMode,
+      customLessonLabel: source.customLessonLabel,
+      defaultLessonIconStyle: source.defaultLessonIconStyle,
+      parentCourseId: source.courseId,
+      derivedFromVersion: source.courseVersion.isNotEmpty
+          ? source.courseVersion
+          : source.version,
+      learningLanguage: source.learningLanguage,
+      interfaceLanguage: source.interfaceLanguage,
+      sourceLanguage: source.sourceLanguage,
+      targetLanguage: source.targetLanguage,
+      title: title,
+      ttsLanguage: source.ttsLanguage,
+      version: source.version,
+      contentRevision: source.contentRevision,
+      updateSummary: source.updateSummary,
+      audioMode: source.audioMode,
+      author: source.author,
+      authors: [...source.authors],
+      license: source.license,
+      languageVariant: source.languageVariant,
+      startLevel: source.startLevel,
+      targetLevel: source.targetLevel,
+      courseVersion: source.courseVersion,
+      lastUpdated: source.lastUpdated,
+      courseDescription: source.courseDescription,
+      sourceLanguageTag: source.sourceLanguageTag,
+      targetLanguageTag: source.targetLanguageTag,
+      textDirection: source.textDirection,
+      flagCode: source.flagCode,
+      flagImageBase64: source.flagImageBase64,
+      temporarySample: source.temporarySample,
+      buyACoffeeUrl: source.buyACoffeeUrl,
+      lessonIconAssets: [
+        for (final asset in source.lessonIconAssets)
+          CourseLessonIconAsset(
+            assetId: iconRemap[asset.assetId]!,
+            base64Png: asset.base64Png,
+          ),
+      ],
+      audioLibrary: [
+        for (final clip in source.audioLibrary)
+          CourseAudioClip(
+            id: remap[clip.id]!,
+            text: clip.text,
+            filePath: clip.filePath,
+          ),
+      ],
+      lessons: [
+        for (final lesson in source.lessons)
+          _copyLesson(lesson, remap, iconRemap: iconRemap),
+      ],
+    );
+  }
+
   Exercise duplicateExercise(Exercise source) {
     final remap = <String, String>{source.id: _ids.next('exercise')};
     _allocateExerciseItems(source, remap);
@@ -52,13 +133,30 @@ class AuthoringDuplicationService {
         _allocateContent(content, remap);
       }
     }
+    return _copyLesson(source, remap);
+  }
+
+  Lesson _copyLesson(
+    Lesson source,
+    Map<String, String> remap, {
+    Map<String, String> iconRemap = const {},
+  }) {
+    final managedIconId = source.themeIconAsset == null
+        ? null
+        : CourseLessonIconAsset.assetIdFromReference(source.themeIconAsset!);
     return Lesson(
       lessonId: remap[source.lessonId]!,
+      publicationState: PublicationState.draft,
       title: source.title,
       rounds: [for (final round in source.rounds) _copyRound(round, remap)],
       section: source.section,
       sectionName: source.sectionName,
-      themeIconAsset: source.themeIconAsset,
+      themeIconAsset: managedIconId == null
+          ? source.themeIconAsset
+          : CourseLessonIconAsset(
+              assetId: iconRemap[managedIconId] ?? managedIconId,
+              base64Png: '',
+            ).reference,
       guidebook: Guidebook(
         content: [
           for (final content in source.guidebook.content)
@@ -92,6 +190,7 @@ class AuthoringDuplicationService {
   LearningRound _copyRound(LearningRound source, Map<String, String> remap) =>
       LearningRound(
         id: remap[source.id]!,
+        publicationState: PublicationState.draft,
         title: source.title,
         visualType: source.visualType,
         content: [
@@ -104,6 +203,7 @@ class AuthoringDuplicationService {
     Map<String, String> remap,
   ) => LearningContent(
     id: remap[source.id]!,
+    publicationState: PublicationState.draft,
     kind: source.kind,
     required: source.required,
     editorTemplate: source.editorTemplate,
@@ -130,6 +230,7 @@ class AuthoringDuplicationService {
     String mapped(String id) => remap[id] ?? id;
     return Exercise.v2(
       id: mapped(source.id),
+      publicationState: PublicationState.draft,
       editorTemplate: source.editorTemplate,
       promptElements: [
         for (final element in source.promptElements) _copyPrompt(element),

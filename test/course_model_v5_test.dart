@@ -227,6 +227,7 @@ void main() {
   test('Round titles remain optional without changing Round identity', () {
     final round = LearningRound.fromJson({
       'id': 'stable_untitled_round',
+      'publicationState': 'published',
       'visualType': 'generic',
       'content': <Object>[],
     });

@@ -8,6 +8,8 @@ import '../services/course_flag_service.dart';
 import '../services/custom_course_transfer_service.dart';
 import '../services/course_service.dart';
 import '../services/settings_service.dart';
+import '../services/authoring_duplication_service.dart';
+import '../services/publication_service.dart';
 import '../widgets/flag_art.dart';
 import 'course_editor_screen.dart';
 import 'editor_help_screen.dart';
@@ -283,6 +285,7 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
                     for (var lessonIndex = 0; lessonIndex < 3; lessonIndex++)
                       Lesson(
                         lessonId: 'user_lesson_${stamp + lessonIndex}',
+                        publicationState: PublicationState.draft,
                         title: 'Lesson ${lessonIndex + 1}',
                         rounds: const [],
                         guidebook: Guidebook.empty(),
@@ -293,6 +296,7 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
                     ctx,
                     Course(
                       courseId: Course.newCourseId(),
+                      publicationState: PublicationState.draft,
                       learningLanguage: tg,
                       interfaceLanguage: s,
                       sourceLanguage: s,
@@ -363,9 +367,126 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
     await _reload();
   }
 
+  Future<void> _renameCourse(Course course) async {
+    final controller = TextEditingController(text: course.title);
+    final title = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Rename course'),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          maxLength: 120,
+          decoration: const InputDecoration(
+            border: OutlineInputBorder(),
+            labelText: 'Course title',
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, controller.text.trim()),
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
+    controller.dispose();
+    if (title == null || title.isEmpty || title == course.title) return;
+    final renamed = Course.fromJson({...course.toJson(), 'title': title});
+    await _service.saveUserCourse(renamed);
+    await _reload();
+  }
+
+  String _nextCopyTitle(String sourceTitle) {
+    final existing = _user.map((course) => course.title).toSet();
+    final first = '$sourceTitle copy';
+    if (!existing.contains(first)) return first;
+    var suffix = 2;
+    while (existing.contains('$sourceTitle copy $suffix')) {
+      suffix++;
+    }
+    return '$sourceTitle copy $suffix';
+  }
+
+  Future<void> _duplicateCourse(Course course) async {
+    final duplicate = AuthoringDuplicationService().duplicateCourse(
+      course,
+      title: _nextCopyTitle(course.title),
+    );
+    await _service.saveUserCourse(duplicate);
+    await _reload();
+  }
+
+  Future<void> _auditCourse(Course course) => Navigator.of(context).push<void>(
+    MaterialPageRoute(
+      builder: (_) => CourseAuditScreen(
+        course: course,
+        result: CourseAuditService().auditCourse(course),
+      ),
+    ),
+  );
+
+  Future<void> _setCoursePublication(
+    Course course,
+    PublicationState state,
+  ) async {
+    if (!state.isPublished && course.publicationState.isPublished) {
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Move Course to Draft?'),
+          content: const Text(
+            'This Course will disappear from the learner course picker. Existing learner progress and XP will be preserved.',
+          ),
+          actions: [
+            FilledButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Move to Draft'),
+            ),
+          ],
+        ),
+      );
+      if (confirmed != true) return;
+    }
+    final changed = Course.fromJson({
+      ...course.toJson(),
+      'publicationState': state.name,
+    });
+    if (state.isPublished) {
+      final visible = const PublicationService().learnerCourse(changed)!;
+      final errors = CourseAuditService()
+          .auditCourse(visible)
+          .issues
+          .where((issue) => issue.severity == AuditSeverity.error)
+          .length;
+      if (errors > 0) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Course cannot be published: $errors blocking error${errors == 1 ? '' : 's'}.',
+            ),
+          ),
+        );
+        return;
+      }
+    }
+    await _service.saveUserCourse(changed);
+    await _reload();
+  }
+
   Future<void> _importCourse() async {
     try {
-      final course = await _transfer.importCourse();
+      final imported = await _transfer.importCourse();
+      final course = const PublicationService().asDraftAuthoringTree(imported);
       final audit = CourseAuditService().auditCourse(course);
       final errors = audit.issues
           .where((issue) => issue.severity == AuditSeverity.error)
@@ -455,8 +576,8 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
           duration: const Duration(seconds: 8),
           content: Text(
             warnings.isEmpty
-                ? 'Imported “${course.title}”.'
-                : 'Imported “${course.title}” with ${warnings.length} Course Audit warning${warnings.length == 1 ? '' : 's'}. Review Course Audit before publishing.',
+                ? 'Imported “${course.title}” as Draft.'
+                : 'Imported “${course.title}” as Draft with ${warnings.length} Course Audit warning${warnings.length == 1 ? '' : 's'}. Review Course Audit before publishing.',
           ),
         ),
       );
@@ -655,24 +776,75 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
                     ),
                     title: Text(course.title),
                     subtitle: Text(
-                      '${course.sourceLanguage} → ${course.targetLanguage} · formatVersion ${course.formatVersion}',
+                      '${course.publicationState.isPublished ? '' : 'Draft · '}${course.sourceLanguage} → ${course.targetLanguage} · formatVersion ${course.formatVersion}',
                     ),
                     onTap: () => _openUser(course),
                     trailing: PopupMenuButton<String>(
                       tooltip: 'Course actions',
                       onSelected: (value) {
+                        if (value == 'edit') _openUser(course);
+                        if (value == 'rename') _renameCourse(course);
+                        if (value == 'duplicate') _duplicateCourse(course);
+                        if (value == 'audit') _auditCourse(course);
+                        if (value == 'publication') {
+                          _setCoursePublication(
+                            course,
+                            course.publicationState.isPublished
+                                ? PublicationState.draft
+                                : PublicationState.published,
+                          );
+                        }
                         if (value == 'export') _exportCourse(course);
                         if (value == 'delete') _delete(course);
                       },
-                      itemBuilder: (_) => const [
+                      itemBuilder: (_) => [
+                        const PopupMenuItem(
+                          value: 'edit',
+                          child: ListTile(
+                            leading: Icon(Icons.edit_outlined),
+                            title: Text('Edit'),
+                          ),
+                        ),
+                        const PopupMenuItem(
+                          value: 'rename',
+                          child: ListTile(
+                            leading: Icon(Icons.drive_file_rename_outline),
+                            title: Text('Rename'),
+                          ),
+                        ),
+                        const PopupMenuItem(
+                          value: 'duplicate',
+                          child: ListTile(
+                            leading: Icon(Icons.copy_outlined),
+                            title: Text('Duplicate'),
+                          ),
+                        ),
+                        const PopupMenuItem(
+                          value: 'audit',
+                          child: ListTile(
+                            leading: Icon(Icons.fact_check_outlined),
+                            title: Text('Audit'),
+                          ),
+                        ),
                         PopupMenuItem(
+                          value: 'publication',
+                          child: ListTile(
+                            leading: const Icon(Icons.publish_outlined),
+                            title: Text(
+                              course.publicationState.isPublished
+                                  ? 'Move to Draft'
+                                  : 'Publish',
+                            ),
+                          ),
+                        ),
+                        const PopupMenuItem(
                           value: 'export',
                           child: ListTile(
                             leading: Icon(Icons.download_outlined),
                             title: Text('Export JSON'),
                           ),
                         ),
-                        PopupMenuItem(
+                        const PopupMenuItem(
                           value: 'delete',
                           child: ListTile(
                             leading: Icon(Icons.delete_outline),

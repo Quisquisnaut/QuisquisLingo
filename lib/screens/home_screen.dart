@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:math';
 import 'dart:ui' as ui;
 import 'package:package_info_plus/package_info_plus.dart';
@@ -10,6 +11,8 @@ import '../services/settings_service.dart';
 import '../models/course_models.dart';
 import '../services/course_service.dart';
 import '../services/course_editor_service.dart';
+import '../services/publication_service.dart';
+import '../services/lesson_presentation_service.dart';
 import '../services/duel_eligibility_service.dart';
 import '../services/progress_service.dart';
 import '../services/profile_service.dart';
@@ -158,6 +161,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final _courseService = CourseService();
   final _courseEditorService = CourseEditorService();
+  final _publication = const PublicationService();
   final _duelEligibility = const DuelEligibilityService();
   final _progress = ProgressService();
   final _profiles = ProfileService();
@@ -373,18 +377,22 @@ class _HomeScreenState extends State<HomeScreen> {
       late Course course;
       if (selectedRef.startsWith('custom:')) {
         final courseId = selectedRef.substring('custom:'.length);
-        final userCourses = await _courseEditorService.listUserCourses();
+        final userCourses = (await _courseEditorService.listUserCourses())
+            .where((candidate) => candidate.publicationState.isPublished)
+            .toList();
         final matches = userCourses
             .where((candidate) => candidate.courseId == courseId)
             .toList();
         if (matches.isNotEmpty) {
-          course = matches.first;
+          course = _publication.learnerCourse(matches.first)!;
           selectedRef = 'custom:${course.courseId}';
           selectedLanguage = CourseService.codeForCourse(course);
         } else {
           selectedRef = 'IT';
           selectedLanguage = 'IT';
-          course = await _courseService.loadCourse(selectedLanguage);
+          course = _publication.learnerCourse(
+            await _courseService.loadCourse(selectedLanguage),
+          )!;
           await _settings.setLastSelectedCourseCode(selectedRef);
         }
       } else {
@@ -393,7 +401,9 @@ class _HomeScreenState extends State<HomeScreen> {
             : 'IT';
         selectedRef = bundledCode;
         selectedLanguage = bundledCode;
-        course = await _courseService.loadCourse(bundledCode);
+        course = _publication.learnerCourse(
+          await _courseService.loadCourse(bundledCode),
+        )!;
       }
       final savedLessonId = activeId == null
           ? null
@@ -768,7 +778,10 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _showCoursePicker(BuildContext overlayContext) async {
-    final customCourses = await _courseEditorService.listUserCourses();
+    final customCourses = (await _courseEditorService.listUserCourses())
+        .map(_publication.learnerCourse)
+        .whereType<Course>()
+        .toList();
     final recentRefs = (await _settings.getRecentCourseRefs())
         .where(
           (ref) =>
@@ -1173,12 +1186,22 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  Future<void> _openGuidebook(Lesson lesson) async {
+  Future<void> _openGuidebook(
+    Course course,
+    Lesson lesson,
+    int lessonIndex,
+  ) async {
     _resetLockedLessonTapSequence();
     if (!await _canOpenLearnerContent() || !mounted) return;
-    await Navigator.of(
-      context,
-    ).push(MaterialPageRoute(builder: (_) => GuidebookScreen(lesson: lesson)));
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => GuidebookScreen(
+          course: course,
+          lesson: lesson,
+          lessonIndex: lessonIndex,
+        ),
+      ),
+    );
   }
 
   Future<void> _openRound(
@@ -1445,6 +1468,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                       sectionLesson,
                                     ),
                                     lesson: sectionLesson,
+                                    course: course,
                                     courseId: course.courseId,
                                     lessonIndex: lessonIndex,
                                     mascotPositionOffset:
@@ -1470,8 +1494,11 @@ class _HomeScreenState extends State<HomeScreen> {
                                     duelEligibility: _duelEligibility.evaluate(
                                       sectionLesson,
                                     ),
-                                    onOpenGuidebook: () =>
-                                        _openGuidebook(sectionLesson),
+                                    onOpenGuidebook: () => _openGuidebook(
+                                      course,
+                                      sectionLesson,
+                                      lessonIndex,
+                                    ),
                                     onOpenRound: (round) => _openRound(
                                       course,
                                       sectionLesson,
@@ -1615,6 +1642,7 @@ class _SectionNavigation extends StatelessWidget {
 class _LessonSection extends StatelessWidget {
   final GlobalKey visibilityKey;
   final Lesson lesson;
+  final Course course;
   final String courseId;
   final int lessonIndex;
   final int mascotPositionOffset;
@@ -1637,6 +1665,7 @@ class _LessonSection extends StatelessWidget {
     super.key,
     required this.visibilityKey,
     required this.lesson,
+    required this.course,
     required this.courseId,
     required this.lessonIndex,
     required this.mascotPositionOffset,
@@ -1711,6 +1740,7 @@ class _LessonSection extends StatelessWidget {
         ),
       _GuidebookNode(
         lesson: lesson,
+        course: course,
         lessonIndex: lessonIndex,
         unlocked: unlocked,
         onLockedTap: onLockedTap,
@@ -1766,6 +1796,7 @@ class _LessonSection extends StatelessWidget {
 
 class _GuidebookNode extends StatelessWidget {
   final Lesson lesson;
+  final Course course;
   final int lessonIndex;
   final bool unlocked;
   final VoidCallback? onLockedTap;
@@ -1773,6 +1804,7 @@ class _GuidebookNode extends StatelessWidget {
 
   const _GuidebookNode({
     required this.lesson,
+    required this.course,
     required this.lessonIndex,
     required this.unlocked,
     required this.onLockedTap,
@@ -1783,6 +1815,29 @@ class _GuidebookNode extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final colorScheme = Theme.of(context).colorScheme;
+    final identity = const LessonPresentationService().identity(
+      course,
+      lessonIndex,
+    );
+    final managedIconId = lesson.themeIconAsset == null
+        ? null
+        : CourseLessonIconAsset.assetIdFromReference(lesson.themeIconAsset!);
+    CourseLessonIconAsset? managedIcon;
+    if (managedIconId != null) {
+      for (final asset in course.lessonIconAssets) {
+        if (asset.assetId == managedIconId) {
+          managedIcon = asset;
+          break;
+        }
+      }
+    }
+    const numberPalette = [
+      Color(0xFF2F6F8F),
+      Color(0xFF7A5C99),
+      Color(0xFF2F7D68),
+      Color(0xFF9A5D35),
+      Color(0xFF735F27),
+    ];
     return Align(
       alignment: Alignment.center,
       child: ConstrainedBox(
@@ -1824,15 +1879,46 @@ class _GuidebookNode extends StatelessWidget {
                             children: [
                               Positioned.fill(
                                 child: lesson.themeIconAsset == null
-                                    ? CircleAvatar(
-                                        radius: 42,
-                                        backgroundColor: isDark
-                                            ? const Color(0xFF30284B)
-                                            : const Color(0xFFEDE2FF),
-                                        child: const Icon(
-                                          Icons.menu_book_outlined,
-                                          size: 42,
+                                    ? course.defaultLessonIconStyle ==
+                                              LessonFallbackIconStyle.monochrome
+                                          ? CircleAvatar(
+                                              radius: 42,
+                                              backgroundColor: isDark
+                                                  ? const Color(0xFF30284B)
+                                                  : const Color(0xFFEDE2FF),
+                                              child: const Icon(
+                                                Icons.menu_book_outlined,
+                                                size: 42,
+                                              ),
+                                            )
+                                          : DecoratedBox(
+                                              key: const Key(
+                                                'guidebook-colored-number-icon',
+                                              ),
+                                              decoration: BoxDecoration(
+                                                color:
+                                                    numberPalette[lessonIndex %
+                                                        numberPalette.length],
+                                                shape: BoxShape.circle,
+                                              ),
+                                              child: Center(
+                                                child: Text(
+                                                  '${identity.number}',
+                                                  style: const TextStyle(
+                                                    color: Colors.white,
+                                                    fontSize: 30,
+                                                    fontWeight: FontWeight.w900,
+                                                  ),
+                                                ),
+                                              ),
+                                            )
+                                    : managedIcon != null
+                                    ? Image.memory(
+                                        base64Decode(managedIcon.base64Png),
+                                        key: const Key(
+                                          'guidebook-theme-icon-image',
                                         ),
+                                        fit: BoxFit.contain,
                                       )
                                     : Image.asset(
                                         lesson.themeIconAsset!,
@@ -1883,20 +1969,30 @@ class _GuidebookNode extends StatelessWidget {
                             header: true,
                             child: Text.rich(
                               TextSpan(
-                                children: [
-                                  TextSpan(
-                                    text: 'Lesson ${lessonIndex + 1}: ',
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.normal,
-                                    ),
-                                  ),
-                                  TextSpan(
-                                    text: lesson.title,
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.w900,
-                                    ),
-                                  ),
-                                ],
+                                children: identity.deduplicated
+                                    ? [
+                                        TextSpan(
+                                          text: identity.fullText,
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.w900,
+                                          ),
+                                        ),
+                                      ]
+                                    : [
+                                        if (identity.prefix != null)
+                                          TextSpan(
+                                            text: '${identity.prefix}: ',
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.normal,
+                                            ),
+                                          ),
+                                        TextSpan(
+                                          text: identity.title,
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.w900,
+                                          ),
+                                        ),
+                                      ],
                               ),
                               key: ValueKey(
                                 'unified-guidebook-lesson-title-${lesson.lessonId}',
@@ -2407,10 +2503,7 @@ class _RoundNode extends StatelessWidget {
   bool get _hasDescriptiveTitle {
     final title = round.title.trim();
     return title.isNotEmpty &&
-        !RegExp(
-          r'^(round|ronda)\s+\d+$',
-          caseSensitive: false,
-        ).hasMatch(title);
+        !RegExp(r'^(round|ronda)\s+\d+$', caseSensitive: false).hasMatch(title);
   }
 
   String get _status => perfect

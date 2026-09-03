@@ -62,6 +62,47 @@ void main() {
         throwsA(isA<AnswerExpressionException>()),
       );
     });
+
+    test('linked *: groups expand by index without a cross product', () {
+      expect(AnswerExpressionParser.expand('[*:i|il] [*:tuoi|tuo]'), [
+        'I tuoi',
+        'Il tuo',
+      ]);
+      expect(
+        AnswerExpressionParser.expand('[*:il|i] [*:tuo|tuoi] [*:denaro|soldi]'),
+        ['Il tuo denaro', 'I tuoi soldi'],
+      );
+      expect(
+        AnswerExpressionParser.expand(
+          '{oggi} [*:il|i] [*:tuo|tuoi] [denaro|soldi]',
+        ),
+        [
+          'Il tuo denaro',
+          'Il tuo soldi',
+          'I tuoi denaro',
+          'I tuoi soldi',
+          'Oggi il tuo denaro',
+          'Oggi il tuo soldi',
+          'Oggi i tuoi denaro',
+          'Oggi i tuoi soldi',
+        ],
+      );
+    });
+
+    test('linked *: groups validate count and equal cardinality', () {
+      expect(
+        () => AnswerExpressionParser.expand('[*:a|b]'),
+        throwsA(isA<AnswerExpressionException>()),
+      );
+      expect(
+        () => AnswerExpressionParser.expand('[*:a|b] [*:c|d|e]'),
+        throwsA(isA<AnswerExpressionException>()),
+      );
+      expect(
+        () => AnswerExpressionParser.expand('[g:a|b] [g:c|d]'),
+        throwsA(isA<AnswerExpressionException>()),
+      );
+    });
   });
 
   group('answer acceptance', () {
@@ -158,6 +199,55 @@ void main() {
       const answers = ['Io vado', 'Io parto'];
       expect(engine.bestCorrection('Io torno', answers), isNotEmpty);
       expect(engine.accepts('Io torno', answers), isFalse);
+    });
+  });
+
+  group('structured answer diagnostics', () {
+    const engine = AnswerEngine();
+
+    test('exact and accepted differences are reported only when used', () {
+      final exact = engine.evaluate('Voglio un caffè', const [
+        'Voglio un caffè',
+      ]);
+      expect(exact.isCorrect, isTrue);
+      expect(exact.matchedAcceptedAnswer, 'Voglio un caffè');
+      expect(exact.acceptanceReason, AcceptanceReason.exact);
+      expect(exact.acceptedDifferences, isEmpty);
+
+      final accent = engine.evaluate('Voglio un caffe', const [
+        'Voglio un caffè',
+      ]);
+      expect(accent.isCorrect, isTrue);
+      expect(accent.matchedAcceptedAnswer, 'Voglio un caffè');
+      expect(accent.acceptedDifferences, ['missing diacritic']);
+
+      final normalized = engine.evaluate('  VOGLIO   un caffè! ', const [
+        'Voglio un caffè',
+      ]);
+      expect(normalized.isCorrect, isTrue);
+      expect(
+        normalized.acceptedDifferences,
+        containsAll([
+          'capitalization',
+          'ignored punctuation',
+          'normalized whitespace',
+        ]),
+      );
+    });
+
+    test('accepted and incorrect results share nearest-answer selection', () {
+      const answers = ['Io prendo un cappuccino', 'Io vorrei un cappuccino'];
+      final accepted = engine.evaluate('io vorrei un capuccino', answers);
+      expect(accepted.isCorrect, isTrue);
+      expect(accepted.matchedAcceptedAnswer, 'Io vorrei un cappuccino');
+      expect(accepted.acceptedDifferences, ['explicitly allowed typo']);
+
+      final incorrect = engine.evaluate('Io desidero un cappuccino', answers);
+      expect(incorrect.isCorrect, isFalse);
+      expect(
+        incorrect.matchedAcceptedAnswer,
+        engine.bestCorrection('Io desidero un cappuccino', answers),
+      );
     });
   });
 }

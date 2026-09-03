@@ -15,7 +15,7 @@ class CourseInfoScreen extends StatelessWidget {
   });
 
   Future<void> _buyCoffee(BuildContext context) async {
-    final uri = Uri.tryParse(course.supportUrl.trim());
+    final uri = Uri.tryParse(course.buyACoffeeUrl);
     if (uri == null || uri.scheme != 'https') {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -85,21 +85,18 @@ class CourseInfoScreen extends StatelessWidget {
               'Lessons: ${course.lessons.length}',
             ].join('\n'),
           ),
-          if (course.supportUrl.trim().isNotEmpty)
-            _InfoCard(
-              title: 'Support the authors',
-              body: course.supportUrl.trim(),
+          if (course.buyACoffeeUrl.isNotEmpty) ...[
+            const Divider(height: 24),
+            ListTile(
+              key: const Key('course-info-buy-coffee'),
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.coffee_outlined),
+              title: const Text('Buy a Coffee'),
+              subtitle: const Text('Support this course\'s authors.'),
+              trailing: const Icon(Icons.open_in_new),
+              onTap: () => _buyCoffee(context),
             ),
-          const Divider(height: 24),
-          ListTile(
-            key: const Key('course-info-buy-coffee'),
-            contentPadding: EdgeInsets.zero,
-            leading: const Icon(Icons.coffee_outlined),
-            title: const Text('Buy a coffee'),
-            subtitle: const Text('Support this course\'s authors.'),
-            trailing: const Icon(Icons.open_in_new),
-            onTap: () => _buyCoffee(context),
-          ),
+          ],
         ],
       ),
     ),

@@ -37,7 +37,7 @@ void main() {
       await _scrollToKey(tester, 'generator-cancel');
       await tester.tap(find.byKey(const Key('generator-cancel')));
       await tester.pumpAndSettle();
-      await _tapAndSettle(tester, 'Save');
+      await _tapKeyAndSettle(tester, 'save-lesson');
 
       expect(routeResults, hasLength(1));
       expect(routeResults.single?.toJson(), originalLessonJson);
@@ -75,7 +75,7 @@ void main() {
       await _scrollToKey(tester, 'generator-approve');
       await tester.tap(find.byKey(const Key('generator-approve')));
       await tester.pumpAndSettle();
-      await _tapAndSettle(tester, 'Save');
+      await _tapKeyAndSettle(tester, 'save-lesson');
 
       expect(routeResults, hasLength(1));
       final updated = routeResults.single!;
@@ -254,6 +254,14 @@ Future<void> _openLessonEditor(
 
 Future<void> _tapAndSettle(WidgetTester tester, String label) async {
   final finder = find.text(label);
+  expect(finder, findsOneWidget);
+  await tester.ensureVisible(finder);
+  await tester.tap(finder);
+  await tester.pumpAndSettle();
+}
+
+Future<void> _tapKeyAndSettle(WidgetTester tester, String key) async {
+  final finder = find.byKey(Key(key));
   expect(finder, findsOneWidget);
   await tester.ensureVisible(finder);
   await tester.tap(finder);

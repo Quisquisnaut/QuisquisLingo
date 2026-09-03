@@ -144,7 +144,13 @@ Future<void> _editTranslation(
   final fields = find.byType(TextField);
   await tester.enterText(fields.at(0), source);
   await tester.enterText(fields.at(1), answer);
-  await tester.tap(find.widgetWithText(TextButton, 'Save'));
+  final saveDraft = find.byKey(const Key('exercise-save-draft'));
+  await tester.scrollUntilVisible(
+    saveDraft,
+    300,
+    scrollable: find.byType(Scrollable).last,
+  );
+  await tester.tap(saveDraft);
   await tester.pumpAndSettle();
   expect(find.byKey(const Key('wizard-guided')), findsOneWidget);
 }

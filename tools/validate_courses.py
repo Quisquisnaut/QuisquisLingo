@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Offline structural validation for bundled QuisquisLingo Course Model v5 JSON."""
 from __future__ import annotations
-import json, re, sys
+import base64, binascii, json, re, sys
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 COURSES=ROOT/'assets'/'courses'
@@ -9,6 +9,9 @@ INTERACTIONS={'select','input','arrange','match'}
 EVALUATIONS={'selected_items','text_match','ordered_items','matched_items'}
 CONTENT_KINDS={'exercise','presentation','explanation','example','vocabulary','text','image','audio','dialogue'}
 ROUND_VISUAL_TYPES={'listening','story','generic','test'}
+PUBLICATION_STATES={'draft','published'}
+LESSON_NUMBERING_MODES={'lesson','unit','topic','module','skill','chapter','stage','step','part','other','numberOnly','none'}
+LESSON_ICON_STYLES={'monochrome','coloredLessonNumbers'}
 LESSON_ICON_PATHS=set(re.findall(
     r"assets/lesson_icons/[a-z0-9_]+\.png",
     (ROOT/'lib'/'services'/'lesson_icon_catalog.dart').read_text(encoding='utf-8'),
@@ -17,15 +20,37 @@ LESSON_ICON_PATHS=set(re.findall(
 def validate(path:Path)->list[str]:
     data=json.loads(path.read_text(encoding='utf-8')); issues=[]; ids=set(); pending_refs=[]
     if data.get('formatVersion')!=5:issues.append('root: formatVersion must be 5')
+    if data.get('publicationState') not in PUBLICATION_STATES:issues.append('root: publicationState must be draft or published')
+    if data.get('lessonNumberingMode') not in LESSON_NUMBERING_MODES:issues.append('root: lessonNumberingMode is missing or invalid')
+    if data.get('defaultLessonIconStyle') not in LESSON_ICON_STYLES:issues.append('root: defaultLessonIconStyle is missing or invalid')
+    if data.get('lessonNumberingMode')=='other' and (not isinstance(data.get('customLessonLabel'),str) or not data.get('customLessonLabel').strip()):issues.append('root: customLessonLabel is required for Other')
     if 'topics' in data:issues.append('root: legacy topics field is not allowed in Course Model v5')
     if 'chapters' in data:issues.append('root: chapters are not allowed in Course Model v5')
     if not isinstance(data.get('temporarySample'),bool):issues.append('root: temporarySample must be a boolean')
+    lesson_icon_assets=data.get('lessonIconAssets',[])
+    managed_icon_ids=set()
+    if not isinstance(lesson_icon_assets,list):
+        issues.append('root: lessonIconAssets must be a list')
+        lesson_icon_assets=[]
+    for index,asset in enumerate(lesson_icon_assets,1):
+        where=f'lesson icon asset {index}'
+        if not isinstance(asset,dict):issues.append(f'{where}: must be an object');continue
+        asset_id=asset.get('assetId')
+        if not isinstance(asset_id,str) or not re.fullmatch(r'[A-Za-z0-9_-]+',asset_id):issues.append(f'{where}: invalid assetId');continue
+        if asset_id in managed_icon_ids:issues.append(f'{where}: duplicate assetId {asset_id}')
+        managed_icon_ids.add(asset_id)
+        encoded=asset.get('base64Png')
+        try:png=base64.b64decode(encoded,validate=True) if isinstance(encoded,str) else b''
+        except (binascii.Error,ValueError):png=b''
+        if len(png)<24 or png[:8]!=b'\x89PNG\r\n\x1a\n' or png[12:16]!=b'IHDR':issues.append(f'{where}: invalid PNG')
+        elif int.from_bytes(png[16:20],'big')!=256 or int.from_bytes(png[20:24],'big')!=256:issues.append(f'{where}: PNG must be 256x256')
     def add_id(value,where):
         if not isinstance(value,str) or not value.strip():issues.append(f'{where}: missing id');return
         if value in ids:issues.append(f'{where}: duplicate id {value}')
         ids.add(value)
     def validate_content(c,where):
         add_id(c.get('id'),where)
+        if c.get('publicationState') not in PUBLICATION_STATES:issues.append(f'{where}: publicationState must be draft or published')
         kind=c.get('kind')
         if kind not in CONTENT_KINDS:issues.append(f'{where}: unknown Content kind {kind}')
         refs=c.get('sourceRefs',[])
@@ -77,6 +102,7 @@ def validate(path:Path)->list[str]:
         where_lesson=f'lesson {ti}'
         if 'id' in t or 'topicId' in t:issues.append(f'{where_lesson}: legacy identity field is not allowed')
         add_id(t.get('lessonId'),where_lesson)
+        if t.get('publicationState') not in PUBLICATION_STATES:issues.append(f'{where_lesson}: publicationState must be draft or published')
         if 'role' in t:issues.append(f'{where_lesson}: role is not allowed in Course Model v5')
         if 'assessment' in t:issues.append(f'{where_lesson}: assessment is not allowed in Course Model v5')
         if 'imageAsset' in t:issues.append(f'{where_lesson}: obsolete Lesson imageAsset is not allowed in Course Model v5')
@@ -86,7 +112,10 @@ def validate(path:Path)->list[str]:
         elif not section and isinstance(section_name,str) and section_name.strip():issues.append(f'{where_lesson}: sectionName must be absent when section is false')
         icon=t.get('themeIconAsset')
         if icon is not None:
-            if not isinstance(icon,str) or not icon.startswith('assets/lesson_icons/') or not icon.lower().endswith('.png'):issues.append(f'{where_lesson}: invalid themeIconAsset path')
+            managed=re.fullmatch(r'course-assets/lesson-icons/([A-Za-z0-9_-]+)\.png',icon) if isinstance(icon,str) else None
+            if managed:
+                if managed.group(1) not in managed_icon_ids:issues.append(f'{where_lesson}: unresolved managed themeIconAsset: {icon}')
+            elif not isinstance(icon,str) or not icon.startswith('assets/lesson_icons/') or not icon.lower().endswith('.png'):issues.append(f'{where_lesson}: invalid themeIconAsset path')
             elif icon not in LESSON_ICON_PATHS:issues.append(f'{where_lesson}: themeIconAsset is not in the canonical catalog: {icon}')
             elif not (ROOT/icon).is_file():issues.append(f'{where_lesson}: themeIconAsset does not exist: {icon}')
         gb=t.get('guidebook')
@@ -112,6 +141,7 @@ def validate(path:Path)->list[str]:
             if not isinstance(r,dict):issues.append(f'{where_lesson} round {ri}: must be an object');continue
             round_where=f'{where_lesson} round {ri}'
             add_id(r.get('id'),round_where)
+            if r.get('publicationState') not in PUBLICATION_STATES:issues.append(f'{round_where}: publicationState must be draft or published')
             if r.get('visualType') not in ROUND_VISUAL_TYPES:issues.append(f'{round_where}: visualType must be one of {", ".join(sorted(ROUND_VISUAL_TYPES))}')
             content=r.get('content')
             if not isinstance(content,list):issues.append(f'{round_where}: content must be a list');continue

@@ -15,7 +15,7 @@ Course _metadataCourse() => Course(
   ttsLanguage: 'it-IT',
   version: '1.0.0',
   temporarySample: true,
-  supportUrl: 'https://example.com/support',
+  buyACoffeeUrl: 'https://example.com/support',
   lessons: [
     Lesson(
       lessonId: 't1',
@@ -60,10 +60,36 @@ void main() {
     final json = course.toJson();
     final decoded = Course.fromJson(json);
     expect(decoded.temporarySample, isTrue);
-    expect(decoded.supportUrl, 'https://example.com/support');
+    expect(decoded.buyACoffeeUrl, 'https://example.com/support');
     expect(decoded.lessons.single.guidebook.overview, 'Learner text');
     expect(decoded.lessons.single.duel.id, 'd1');
     expect(json.containsKey('chapters'), isFalse);
+  });
+
+  test('Buy a Coffee uses only a trimmed optional HTTPS URL', () {
+    final base = _metadataCourse().toJson();
+    expect(
+      Course.fromJson({
+        ...base,
+        'buyACoffeeUrl': '  https://example.com/coffee  ',
+      }).buyACoffeeUrl,
+      'https://example.com/coffee',
+    );
+    final absent = Course.fromJson({...base}..remove('buyACoffeeUrl'));
+    expect(absent.buyACoffeeUrl, isEmpty);
+    expect(absent.toJson().containsKey('buyACoffeeUrl'), isFalse);
+    expect(
+      () => Course.fromJson({...base, 'buyACoffeeUrl': 'http://example.com'}),
+      throwsFormatException,
+    );
+    expect(
+      () => Course.fromJson({...base, 'buyACoffeeUrl': 4}),
+      throwsFormatException,
+    );
+    expect(
+      () => Course.fromJson({...base, 'supportUrl': 'https://example.com'}),
+      throwsFormatException,
+    );
   });
 
   test('Course Editor uses a clean v5 storage namespace', () async {

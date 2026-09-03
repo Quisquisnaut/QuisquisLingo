@@ -11,6 +11,9 @@ void main() {
 {
   "formatVersion": 5,
   "courseId": "imported",
+  "publicationState": "published",
+  "lessonNumberingMode": "lesson",
+  "defaultLessonIconStyle": "monochrome",
   "learningLanguage": "Italian",
   "interfaceLanguage": "English",
   "sourceLanguage": "English",
@@ -20,14 +23,17 @@ void main() {
   "version": "1",
   "lessons": [{
       "lessonId": "lesson_1",
+      "publicationState": "published",
       "title": "Lesson 1",
-      "guidebook": {"content": [{"id":"g1","kind":"vocabulary","required":false,"role":"vocabulary","text":"ecco = there"}]},
+      "guidebook": {"content": [{"id":"g1","publicationState":"published","kind":"vocabulary","required":false,"role":"vocabulary","text":"ecco = there"}]},
       "rounds": [{
         "id": "r1",
+        "publicationState": "published",
         "title": "Round 1",
         "visualType": "listening",
         "content": [{
           "id": "ls1",
+          "publicationState": "published",
           "kind": "exercise",
           "required": true,
           "editorTemplate": "listening_spelling",

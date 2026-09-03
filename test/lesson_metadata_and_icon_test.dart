@@ -110,6 +110,7 @@ void main() {
       Lesson? saved;
       final lesson = Lesson(
         lessonId: 'lesson',
+        publicationState: PublicationState.draft,
         title: 'Lesson',
         rounds: const [],
       );
@@ -144,7 +145,7 @@ void main() {
       await tester.tap(sectionToggle);
       await _pumpFrames(tester);
       expect(find.byKey(const Key('lesson-section-name')), findsOneWidget);
-      await tester.tap(find.byKey(const Key('save-lesson')));
+      await tester.tap(find.byKey(const Key('save-lesson-draft')));
       await tester.pump();
       expect(find.text('Enter a Section name.'), findsOneWidget);
       expect(find.byType(LessonEditorScreen), findsOneWidget);
@@ -180,7 +181,7 @@ void main() {
       expect(preview, findsOneWidget);
       expect(tester.widget<Image>(preview).fit, BoxFit.contain);
 
-      await tester.tap(find.byKey(const Key('save-lesson')));
+      await tester.tap(find.byKey(const Key('save-lesson-draft')));
       await _pumpFrames(tester);
       expect(saved, isNotNull);
       expect(saved!.section, isTrue);
@@ -201,6 +202,7 @@ void main() {
     Lesson? saved;
     final lesson = Lesson(
       lessonId: 'lesson',
+      publicationState: PublicationState.draft,
       title: 'Lesson',
       rounds: const [],
       section: true,
@@ -253,7 +255,7 @@ void main() {
     await tester.tap(sectionToggle);
     await _pumpFrames(tester);
     expect(find.byKey(const Key('lesson-section-name')), findsNothing);
-    await tester.tap(find.byKey(const Key('save-lesson')));
+    await tester.tap(find.byKey(const Key('save-lesson-draft')));
     await _pumpFrames(tester);
 
     expect(saved!.section, isFalse);
@@ -281,6 +283,7 @@ void main() {
       );
       final lesson = Lesson(
         lessonId: 'lesson',
+        publicationState: PublicationState.draft,
         title: 'Original title',
         rounds: [first, second],
       );
@@ -387,7 +390,7 @@ void main() {
             .text,
         'Draft Section',
       );
-      await tester.tap(find.byKey(const Key('save-lesson')));
+      await tester.tap(find.byKey(const Key('save-lesson-draft')));
       await tester.pumpAndSettle();
       expect(saved!.rounds.map((round) => round.id), ['round-b', 'round-a']);
       expect(saved!.title, 'Draft title');

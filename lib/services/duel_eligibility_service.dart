@@ -38,8 +38,17 @@ class DuelEligibilityService {
     final candidates = <DuelCandidate>[];
     final seen = <String>{};
 
+    if (!lesson.publicationState.isPublished) {
+      return const DuelEligibilityResult(
+        candidates: [],
+        requiredCount: requiredQuestionCount,
+      );
+    }
+
     for (final round in lesson.rounds) {
+      if (!round.publicationState.isPublished) continue;
       for (final exercise in round.exercises) {
+        if (!exercise.publicationState.isPublished) continue;
         final answers = exercise.answers;
         final correct = exercise.correct;
         final validCorrect =

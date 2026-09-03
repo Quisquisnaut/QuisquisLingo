@@ -4,10 +4,11 @@ import 'package:quisquislingo_app/services/course_audit_service.dart';
 import 'package:quisquislingo_app/services/status_service.dart';
 
 Exercise sampleChoice({
+  String id = 'ex1',
   int? correct = 0,
   List<String> answers = const ['a', 'b'],
 }) => Exercise(
-  id: 'ex1',
+  id: id,
   type: 'choice',
   prompt: 'p',
   question: 'q',
@@ -63,11 +64,11 @@ void main() {
         .issues;
     expect(
       issues.where((i) => i.code == 'LESSON_ROUND_GUIDANCE').single.severity,
-      AuditSeverity.suggestion,
+      AuditSeverity.info,
     );
     expect(
       issues.where((i) => i.code == 'DUEL_UNAVAILABLE').single.severity,
-      AuditSeverity.suggestion,
+      AuditSeverity.info,
     );
     expect(
       issues.any(
@@ -78,31 +79,234 @@ void main() {
     );
   });
 
-  test('exercise audit rejects a fill hint that reveals the answer', () {
-    final ex = Exercise(
-      id: 'f1',
-      type: 'fill_blank',
+  test('Lesson Round guidance stops at three Rounds', () {
+    Lesson lessonWithRounds(int count) => Lesson(
+      lessonId: 'lesson-$count',
+      title: 'Lesson $count',
+      duel: Duel(id: 'lesson-$count-duel', title: 'Duel'),
+      rounds: [
+        for (var index = 0; index < count; index++)
+          LearningRound(
+            id: 'round-$count-$index',
+            title: 'Round ${index + 1}',
+            exercises: [sampleChoice(id: 'exercise-$count-$index')],
+          ),
+      ],
+    );
+    final service = CourseAuditService();
+    final two = service.auditCourse(sampleCourse(lessonWithRounds(2))).issues;
+    final three = service.auditCourse(sampleCourse(lessonWithRounds(3))).issues;
+    expect(
+      two
+          .singleWhere((issue) => issue.code == 'LESSON_ROUND_GUIDANCE')
+          .severity,
+      AuditSeverity.info,
+    );
+    expect(
+      three.any((issue) => issue.code == 'LESSON_ROUND_GUIDANCE'),
+      isFalse,
+    );
+  });
+
+  test('missing Listening comprehension is Info', () {
+    final lesson = Lesson(
+      lessonId: 'lesson-listening',
+      title: 'Listening guidance',
+      duel: Duel(id: 'lesson-listening-duel', title: 'Duel'),
+      rounds: [
+        LearningRound(
+          id: 'round-listening',
+          title: 'Round',
+          exercises: [sampleChoice()],
+        ),
+      ],
+    );
+    final issue = CourseAuditService()
+        .auditCourse(sampleCourse(lesson))
+        .issues
+        .singleWhere(
+          (item) => item.code == 'ROUND_LISTENING_COMPREHENSION_MISSING',
+        );
+    expect(issue.severity, AuditSeverity.info);
+  });
+
+  test('audit sorting is stable by Lesson and friendly Exercise type', () {
+    const issues = [
+      CourseAuditIssue(
+        severity: AuditSeverity.info,
+        message: 'second',
+        location: 'Lesson 2',
+        exerciseType: 'type_translation',
+      ),
+      CourseAuditIssue(
+        severity: AuditSeverity.info,
+        message: 'first',
+        location: 'Lesson 1',
+        exerciseType: 'choice',
+      ),
+      CourseAuditIssue(
+        severity: AuditSeverity.info,
+        message: 'same type',
+        location: 'Lesson 3',
+        exerciseType: 'choice',
+      ),
+    ];
+    final result = CourseAuditResult(issues);
+    expect(result.sorted(AuditSortMode.lesson).map((issue) => issue.message), [
+      'first',
+      'second',
+      'same type',
+    ]);
+    expect(
+      result.sorted(AuditSortMode.exerciseType).map((issue) => issue.message),
+      ['first', 'same type', 'second'],
+    );
+  });
+
+  test('Lesson and Round audit scopes reuse the course audit findings', () {
+    Lesson lesson(String id, String exerciseId) => Lesson(
+      lessonId: id,
+      title: id,
+      duel: Duel(id: '$id-duel', title: 'Duel'),
+      rounds: [
+        LearningRound(
+          id: '$id-round',
+          title: 'Round',
+          exercises: [sampleChoice(id: exerciseId, correct: 9)],
+        ),
+      ],
+    );
+    final first = lesson('first', 'first-exercise');
+    final second = lesson('second', 'second-exercise');
+    final course = Course(
+      courseId: 'scoped-audit',
+      learningLanguage: 'Italian',
+      interfaceLanguage: 'English',
+      sourceLanguage: 'English',
+      targetLanguage: 'Italian',
+      title: 'Scoped audit',
+      ttsLanguage: 'it-IT',
+      version: '1',
+      lessons: [first, second],
+    );
+    final service = CourseAuditService();
+    final lessonIssues = service.auditLesson(course, second.lessonId).issues;
+    final roundIssues = service
+        .auditRound(course, first.rounds.single.id)
+        .issues;
+    expect(lessonIssues, isNotEmpty);
+    expect(
+      lessonIssues.every((issue) => issue.location.startsWith('Lesson 2 ·')),
+      isTrue,
+    );
+    expect(roundIssues, isNotEmpty);
+    expect(
+      roundIssues.every((issue) => issue.roundId == first.rounds.single.id),
+      isTrue,
+    );
+  });
+
+  test(
+    'exercise audit rejects a fill hint identical to an accepted answer',
+    () {
+      final ex = Exercise(
+        id: 'f1',
+        type: 'fill_blank',
+        prompt: '',
+        question: 'piazz_',
+        answers: const [],
+        correct: null,
+        tts: null,
+        accepted: const ['piazza'],
+        tokens: const [],
+        orderAnswer: const [],
+        pairs: const [],
+        hint: 'Piazza!',
+        icons: const [],
+      );
+      final issues = CourseAuditService().auditExercise(ex);
+      expect(
+        issues.any(
+          (i) =>
+              i.severity == AuditSeverity.error &&
+              i.code == 'HINT_REVEALS_ANSWER',
+        ),
+        isTrue,
+      );
+    },
+  );
+
+  test('gap choice requires a completed sentence of at least two words', () {
+    Exercise gap(String sentence) => Exercise(
+      id: 'gap-length',
+      type: 'gap_choice',
       prompt: '',
-      question: 'piazz_',
-      answers: const [],
-      correct: null,
+      question: sentence,
+      answers: const ['cappuccino', 'tè'],
+      correct: 0,
       tts: null,
-      accepted: const ['piazza'],
+      accepted: const [],
       tokens: const [],
       orderAnswer: const [],
       pairs: const [],
-      hint: 'The word is piazza',
+      hint: '',
       icons: const [],
     );
-    final issues = CourseAuditService().auditExercise(ex);
+
     expect(
-      issues.any(
-        (i) =>
-            i.severity == AuditSeverity.error &&
-            i.code == 'HINT_REVEALS_ANSWER',
-      ),
+      CourseAuditService()
+          .auditExercise(gap('___'))
+          .any((issue) => issue.code == 'GAP_SENTENCE_TOO_SHORT'),
       isTrue,
     );
+    expect(
+      CourseAuditService()
+          .auditExercise(gap('Un ___'))
+          .any((issue) => issue.code == 'GAP_SENTENCE_TOO_SHORT'),
+      isFalse,
+    );
+  });
+
+  test('gap and typed-fill hints cannot equal any correct alternative', () {
+    final gap = Exercise(
+      id: 'gap-hint',
+      type: 'gap_choice',
+      prompt: '',
+      question: 'Un ___, per favore.',
+      answers: const ['cappuccino', 'tè'],
+      correct: 0,
+      tts: null,
+      accepted: const [],
+      tokens: const [],
+      orderAnswer: const [],
+      pairs: const [],
+      hint: 'Cappuccino.',
+      icons: const [],
+    );
+    final typed = Exercise(
+      id: 'typed-hint',
+      type: 'fill_blank',
+      prompt: '',
+      question: 'Un ___, per favore.',
+      answers: const [],
+      correct: null,
+      tts: null,
+      accepted: const ['caffè', 'cappuccino'],
+      tokens: const [],
+      orderAnswer: const [],
+      pairs: const [],
+      hint: 'CAPPUCCINO!',
+      icons: const [],
+    );
+
+    for (final exercise in [gap, typed]) {
+      expect(
+        CourseAuditService()
+            .auditExercise(exercise)
+            .any((issue) => issue.code == 'HINT_REVEALS_ANSWER'),
+        isTrue,
+      );
+    }
   });
 
   test('Status is monotonic with additional learning activity', () {

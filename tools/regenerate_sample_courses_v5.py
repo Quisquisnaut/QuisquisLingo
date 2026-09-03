@@ -37,10 +37,26 @@ def _render_like_existing_samples(course: dict[str, object]) -> str:
 def regenerate(path: Path, icon_paths: dict[str, str]) -> None:
     course = json.loads(path.read_text(encoding="utf-8"))
     assert isinstance(course, dict)
+
+    def remove_misplaced_course_settings(value: object, *, root: bool = False) -> None:
+        if isinstance(value, dict):
+            if not root:
+                value.pop("lessonNumberingMode", None)
+                value.pop("defaultLessonIconStyle", None)
+            for child in value.values():
+                remove_misplaced_course_settings(child)
+        elif isinstance(value, list):
+            for child in value:
+                remove_misplaced_course_settings(child)
+
+    remove_misplaced_course_settings(course, root=True)
     raw_lessons = course.get("lessons")
     if not isinstance(raw_lessons, list):
         raise ValueError(f"{path.name}: expected a root lessons list")
     course["formatVersion"] = 5
+    course["publicationState"] = "published"
+    course["lessonNumberingMode"] = "lesson"
+    course["defaultLessonIconStyle"] = "monochrome"
     course["version"] = "1.5.7"
     course["courseVersion"] = "1.5.7"
     course["contentRevision"] = "sample-lessons-v223"
@@ -88,6 +104,7 @@ def regenerate(path: Path, icon_paths: dict[str, str]) -> None:
 
         item = {
             "lessonId": lesson_id,
+            "publicationState": "published",
             "title": title,
             "section": True,
             "sectionName": section_name,
@@ -106,6 +123,12 @@ def regenerate(path: Path, icon_paths: dict[str, str]) -> None:
                 }
             }
         )
+        for content in item.get("guidebook", {}).get("content", []):
+            content["publicationState"] = "published"
+        for round_item in item.get("rounds", []):
+            round_item["publicationState"] = "published"
+            for content in round_item.get("content", []):
+                content["publicationState"] = "published"
         if path.name == "italian_en.json" and index in (0, 3, 7):
             meaningful_titles = {
                 0: "Greetings and introductions",

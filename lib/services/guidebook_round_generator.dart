@@ -155,6 +155,7 @@ class GuidebookRoundGenerator {
       if (plan.index == 0)
         LearningContent(
           id: _draftIds.next('intro'),
+          publicationState: PublicationState.draft,
           kind: 'explanation',
           required: false,
           role: 'lesson_intro',
@@ -165,6 +166,7 @@ class GuidebookRoundGenerator {
       for (final exercise in exercises)
         LearningContent(
           id: exercise.id,
+          publicationState: PublicationState.draft,
           kind: exercise.editorTemplate == 'flashcard'
               ? 'presentation'
               : 'exercise',
@@ -178,6 +180,7 @@ class GuidebookRoundGenerator {
     ];
     return LearningRound(
       id: _draftIds.next('round'),
+      publicationState: PublicationState.draft,
       title: plan.title,
       content: content,
     );

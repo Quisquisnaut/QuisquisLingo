@@ -11,16 +11,24 @@ Course Editor is an Easter Egg so ordinary learners do not encounter authoring c
 The editor supports the whole authoring tree:
 
 - Course → open the compact **Lessons** row
-- Lessons → use the authoritative Lock control and create/reorder Lessons; each Lesson menu provides Edit, Rename, Delete, Duplicate and Preview
-- Lesson → edit its title, Section metadata, preinstalled theme icon and GuideBook; open the linked Rounds page; a stable Duel identity is retained automatically
-- Rounds → create/reorder Rounds; each Round menu provides Edit, Rename, Delete, Duplicate and Preview
-- Round → create/reorder Exercises; every Exercise menu includes Edit and Duplicate alongside the established preview, transfer and delete actions
+- Lessons → use the authoritative Lock control and create/reorder Lessons; each Lesson menu provides Edit, Rename, Delete, Duplicate, Preview, Audit and Draft/Publish
+- Lesson → edit its title, Section metadata, preinstalled or custom managed theme icon and GuideBook; open the linked Rounds page; a stable Duel identity is retained automatically
+- Rounds → create/reorder Rounds; each Round menu provides Edit, Rename, Delete, Duplicate, Preview, Audit and Draft/Publish
+- Round → create/reorder Exercises; every Exercise menu includes Edit, Duplicate and Draft/Publish alongside the established preview, transfer and delete actions
 
 New objects receive generated local IDs. Deleting an object removes its descendants from the local edited course. The bundled JSON asset is never modified. **Reset local edits** restores the bundled course.
 
 Each Lesson can optionally enable **Belongs to a Section** and then requires a trimmed, non-empty **Section name**. Section is consecutive-order display metadata only: it is not a hierarchy, has no ID, and owns no progress or navigation. Disabling the switch clears the stored Section name.
 
-The controlled **Lesson theme icon** field opens a responsive visual grid containing `None` and every release-owned PNG from the canonical registry, with labels, selection state and an in-editor contained preview. Arbitrary paths, uploads, cropping and per-Lesson image sizing remain unsupported. The former decorative Lesson image field is not part of Course Model v5.
+The controlled **Lesson theme icon** picker separates **Preinstalled** and **Custom**. **Import custom icon** reads one PNG/JPG/JPEG/WebP from `Documents/QuisquisLingo/Imports/Lesson Icons`, validates it, contains it without cropping or distortion on a transparent 256 × 256 PNG canvas, and stores it in the Course-owned managed asset registry. No external path is serialized or needed later. Managed icons survive Course export/import and Course duplication; Lesson duplication within the Course reuses the immutable asset. `None` uses the Course’s monochrome or deterministic colored-number fallback. Every learner icon uses the established 84 × 84 footprint.
+
+## Draft, Publish and unsaved changes
+
+Course, Lesson, Round and Exercise authoring uses one explicit `Draft` / `Published` state. **Save as Draft** preserves incomplete but structurally safe work; **Save / Publish** runs strict learner validation. A Published child below a Draft parent remains hidden, and publishing a parent never publishes Draft descendants. Draft Courses are not learner-selectable. Draft Lessons create no learner numbering or Section gaps and do not affect unlocks. Draft Rounds and Exercises are excluded from learner execution, completion, Review, Duel and XP. Moving Published content to Draft confirms first and preserves stable IDs, progress and history.
+
+Back/close uses the same **Unsaved changes** confirmation at Course, Lesson, Round and Exercise levels. Saving a child updates only its parent draft; the parent remains dirty until explicitly saved. Preview does not publish, clear dirty state or write learner state.
+
+Course info controls the learner-visible Lesson prefix: Lesson, Unit, Topic, Module, Skill, Chapter, Stage, Step, Part, a trimmed custom label, number only, or none. Numbers use Published Lesson order only. The exact untouched default `Lesson N` is shown once when Lesson mode would otherwise duplicate it. Course info also chooses the monochrome or colored-number fallback style and stores an optional validated **Buy a Coffee** HTTPS URL.
 
 The Lesson form keeps Lesson metadata readily accessible and links to one dedicated **Rounds** page instead of expanding the complete list inline. The page reuses the existing Round workflow and returns naturally to the Lesson draft. Navigation through Course → Lessons → Lesson → Rounds → Round/Exercises keeps one draft boundary: it does not prematurely write each subpage mutation. Unsaved Course and Lesson metadata, returned Round edits and every existing stable ID remain intact until the parent save boundary.
 
@@ -69,12 +77,13 @@ Multiple complete equivalent answers can always be entered as separate lines. Co
 
 - `{Io} prendo un cappuccino` makes `Io` optional.
 - `{Io} [prendo|vorrei] un cappuccino` declares alternatives.
+- `[*:I want|We want] [*:a coffee|two coffees]` links alternatives by index, producing two paired answers rather than four cross-combinations. Use at least two linked groups with equal counts.
 - `(non arrivo <> oggi)` allows only those declared phrase parts to swap inside the parentheses.
 - `a casa <> domani` applies reordering to the whole expression when no parentheses are present.
 
 Syntax is validated before save. Expansion is deterministic, duplicate results are removed, and the combined limit is 128 answers; larger combinations must be split or simplified. During `<>` reordering, final punctuation such as `.`, `?`, `!`, `…` and `?!` is detached and reattached only at the generated sentence end; internal punctuation is not moved. Generated variants capitalize the first alphabetic character of the sentence and after `.`, `?` or `!`, remove merely structural capitalization when a common phrase starter moves inward, and preserve distinguishable proper names/acronyms such as Jane, Roma and USA.
 
-QQL applies its established case, punctuation, whitespace, apostrophe and accent rules for acceptance. If a response remains wrong, correction selection independently scores exact shared words, graded word-level spelling similarity, incompatible extra words, missing candidate words and common word order. The nearest construction is displayed, with author order as the exact-tie fallback. This display choice never turns an incorrect response into a correct one.
+QQL applies its established case, punctuation, whitespace, apostrophe and accent rules for acceptance. Correct typed feedback always shows the nearest canonical Correct answer and names only differences actually used—such as capitalization, ignored punctuation, normalized whitespace, omitted diacritic or the explicitly allowed typo. Exact answers show no false reason. If a response remains wrong, correction selection independently scores exact shared words, graded word-level spelling similarity, incompatible extra words, missing candidate words and common word order. The nearest construction is displayed, with author order as the exact-tie fallback. This display choice never turns an incorrect response into a correct one.
 
 ## Exercise Creation Wizard
 
@@ -119,7 +128,7 @@ Run **Course Audit** from the top of Course Editor. Severity levels:
 
 - Error: structural or functional problem likely to make an exercise invalid
 - Warning: likely authoring problem or non-standard structure
-- Suggestion: quality/review recommendation
+- Info: non-blocking guidance or neutral authoring information
 
 Checks include:
 
@@ -189,11 +198,13 @@ expressions and example sentences. Its contents are also the sole source for the
 configurable draft-Round generator described above. Planning, generation and
 approval remain separate; existing Rounds are never replaced.
 
-Course Audit treats an empty course/Lesson as an authoring warning rather
+Course Audit treats an empty course/Lesson as authoring guidance rather
 than a learner-runtime crash. It continues to report invalid answer indices,
 missing fields, duplicate IDs, duplicate Audio Match words, malformed Word
 Blocks, missing Reading/Listening coverage, oversized text and other structural
 problems. Audit does not certify grammar or translation accuracy.
+
+The Audit can be scoped to a Course, Lesson or Round and sorted by Lesson or friendly Exercise type. Error, Warning and Info are distinct: only Error is structurally blocking. A Lesson with fewer than three Rounds and one without Listening comprehension receive Info guidance. In the Round management page, a pink outline means that Round currently has at least one Audit Error; Warning and Info never add the outline. Audit results refresh after authoring mutations.
 
 ## Temporary sample courses
 Bundled courses carry a course-level `temporarySample` flag. The UI displays a TEMPORARY SAMPLE badge and Course Editor displays the sample-content warning every time a marked course is opened. Creators can remove or restore the flag from the Course Editor menu. Sample material must be replaced and human-reviewed before publication.
@@ -205,7 +216,7 @@ Round and exercise previews launch the learner renderer but suppress all progres
 The first Course Editor opening explains that bundled material is sample content. Settings > Do Not Disturb > Show one-time notices again makes this and future one-time notices eligible to appear again. The learner-level Guidebook availability notice is deliberately separate.
 
 ## Course Audit filters
-Course Audit can show All, Errors, Warnings or Suggestions without changing the underlying audit result.
+Course Audit can show All, Errors, Warnings or Info without changing the underlying audit result.
 
 
 ## Recorded audio
