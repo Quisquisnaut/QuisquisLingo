@@ -1,11 +1,12 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import '../models/course_models.dart';
+import 'app_metadata.dart';
 
 enum ReportKind { bug, courseError }
 
 class ReportService {
-  static const String appVersion = '2.0.24+224';
+  static const String appVersion = AppMetadata.version;
 
   String _platformName() {
     if (kIsWeb) return 'web';

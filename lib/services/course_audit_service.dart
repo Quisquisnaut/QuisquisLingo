@@ -970,29 +970,31 @@ class CourseAuditService {
         'Very long text may be difficult to read on small screens.',
       );
 
-    // Fields not belonging to an exercise type are flagged so the editor does
-    // not accumulate hidden stale data. IDs/type are common and omitted here.
+    // Flag genuinely independent fields that do not belong to the selected
+    // preset. Canonical v5 interaction items are shared by Select, Arrange and
+    // Match; the author-friendly answers/tokens/icons getters are projections
+    // of those same items and therefore cannot be used to detect stale data.
     void unexpected(bool condition, String field) {
       if (condition)
-        add(AuditSeverity.warning, 'Unexpected field for ${ex.type}: $field.');
+        add(
+          AuditSeverity.warning,
+          'Unexpected field for ${ex.type}: $field.',
+          code: 'EXERCISE_FIELD_UNEXPECTED',
+        );
     }
 
-    final usesAnswers =
-        choiceTypes.contains(ex.type) ||
-        ex.type == 'flashcard' ||
-        ex.type == 'audio_match';
-    unexpected(!usesAnswers && ex.answers.isNotEmpty, 'answers');
     unexpected(
-      !choiceTypes.contains(ex.type) && ex.correct != null,
+      !choiceTypes.contains(ex.type) && ex.evaluation.correctItemIds.isNotEmpty,
       'correct answer',
     );
     unexpected(
       !const {
             'fill_blank',
             'listening_spelling',
+            'missing_word',
             'type_translation',
           }.contains(ex.type) &&
-          ex.accepted.isNotEmpty,
+          ex.evaluation.accepted.isNotEmpty,
       'accepted answers',
     );
     unexpected(
@@ -1001,16 +1003,7 @@ class CourseAuditService {
             'image_word',
             'build_translation',
           }.contains(ex.type) &&
-          ex.tokens.isNotEmpty,
-      'word blocks',
-    );
-    unexpected(
-      !const {
-            'word_order',
-            'image_word',
-            'build_translation',
-          }.contains(ex.type) &&
-          ex.orderAnswer.isNotEmpty,
+          ex.evaluation.correctOrder.isNotEmpty,
       'correct sentence/order',
     );
     unexpected(
@@ -1020,7 +1013,7 @@ class CourseAuditService {
             'word_match',
             'super_match',
           }.contains(ex.type) &&
-          ex.pairs.isNotEmpty,
+          ex.evaluation.pairs.isNotEmpty,
       'pairs',
     );
     unexpected(
@@ -1036,7 +1029,11 @@ class CourseAuditService {
       ex.type != 'missing_word' && ex.missingWords.isNotEmpty,
       'missing words',
     );
-    unexpected(ex.type != 'icon_choice' && ex.icons.isNotEmpty, 'icons');
+    unexpected(
+      ex.type != 'icon_choice' &&
+          ex.icons.any((icon) => icon.trim().isNotEmpty),
+      'icons',
+    );
 
     if (choiceTypes.contains(ex.type)) {
       if (ex.answers.length < 2)
@@ -1045,6 +1042,7 @@ class CourseAuditService {
         add(
           AuditSeverity.error,
           'Dialogue Response requires exactly two response options.',
+          code: 'DIALOGUE_RESPONSE_OPTION_COUNT',
         );
       if (ex.type == 'dialogue_response' && ex.prompt.trim().isEmpty)
         add(AuditSeverity.error, 'Dialogue Response needs a context sentence.');
@@ -1110,22 +1108,29 @@ class CourseAuditService {
     }
     if ((ex.type.startsWith('listening') || ex.type == 'missing_word') &&
         (ex.tts == null || ex.tts!.trim().isEmpty))
-      add(AuditSeverity.error, 'Listening exercise has no audio text.');
+      add(
+        AuditSeverity.error,
+        'Listening exercise has no audio text.',
+        code: 'LISTENING_AUDIO_REQUIRED',
+      );
     if (ex.type == 'gap_choice') {
       if (ex.question.trim().isEmpty)
         add(
           AuditSeverity.error,
           'Gap Choice needs a target-language sentence.',
         );
-      if (!ex.question.contains('___'))
+      final gapCount = RegExp(r'___').allMatches(ex.question).length;
+      if (gapCount == 0)
         add(
           AuditSeverity.error,
           'Gap Choice sentence must contain the ___ gap marker.',
+          code: 'GAP_MARKER_MISSING',
         );
-      if (ex.question.split('___').length != 2)
+      if (gapCount > 1)
         add(
           AuditSeverity.warning,
           'Gap Choice should normally contain exactly one gap.',
+          code: 'GAP_MARKER_COUNT',
         );
       final correctAnswer =
           ex.correct != null &&
@@ -1276,6 +1281,7 @@ class CourseAuditService {
         add(
           AuditSeverity.error,
           'Word-block exercise needs available blocks and a correct sentence.',
+          code: 'WORD_BLOCK_DATA_REQUIRED',
         );
       final pool = <String, int>{};
       for (final t in ex.tokens) {

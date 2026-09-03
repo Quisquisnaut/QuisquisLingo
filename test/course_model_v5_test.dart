@@ -32,6 +32,7 @@ void main() {
           course.lessons.map((lesson) => lesson.lessonId).toSet(),
           hasLength(9),
         );
+        final expectedRoundCount = file == 'italian_en.json' ? 4 : 2;
         for (final lesson in course.lessons) {
           expect(lesson.title.trim(), isNotEmpty);
           expect(
@@ -41,7 +42,7 @@ void main() {
             isTrue,
           );
           expect(lesson.guidebook.content, isNotEmpty);
-          expect(lesson.rounds, hasLength(2));
+          expect(lesson.rounds, hasLength(expectedRoundCount));
           expect(lesson.rounds.every((r) => r.content.isNotEmpty), isTrue);
           expect(lesson.rounds.first.content.first.role, 'lesson_intro');
           expect(lesson.duel.id.trim(), isNotEmpty);

@@ -8,6 +8,7 @@ import '../models/exercise_authoring.dart';
 import '../services/course_editor_service.dart';
 import '../services/course_service.dart';
 import '../services/course_audit_service.dart';
+import '../services/course_audit_report_service.dart';
 import '../services/settings_service.dart';
 import '../services/lesson_icon_catalog.dart';
 import '../services/lesson_icon_service.dart';
@@ -92,17 +93,20 @@ Exercise _withExercisePublication(Exercise source, PublicationState state) =>
 class CourseEditorScreen extends StatefulWidget {
   final Course course;
   final bool userCourse;
+  final CourseEditorService? editorService;
   const CourseEditorScreen({
     super.key,
     required this.course,
     this.userCourse = false,
+    this.editorService,
   });
   @override
   State<CourseEditorScreen> createState() => _CourseEditorScreenState();
 }
 
 class _CourseEditorScreenState extends State<CourseEditorScreen> {
-  final _service = CourseEditorService();
+  late final CourseEditorService _service =
+      widget.editorService ?? CourseEditorService();
   final _courseService = CourseService();
   final _settings = SettingsService();
   final _recordedAudio = RecordedAudioService();
@@ -221,7 +225,18 @@ class _CourseEditorScreenState extends State<CourseEditorScreen> {
         return;
       }
     }
-    await _persist(candidate);
+    try {
+      await _persist(candidate);
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Could not save Course: $error'),
+          backgroundColor: Theme.of(context).colorScheme.error,
+        ),
+      );
+      return;
+    }
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -2073,6 +2088,7 @@ class LessonEditorScreen extends StatefulWidget {
 
 class _LessonEditorScreenState extends State<LessonEditorScreen> {
   late Lesson _lesson;
+  late Lesson _savedLesson;
   late bool _belongsToSection;
   late final TextEditingController _sectionName;
   String? _themeIconAsset;
@@ -2104,9 +2120,9 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
       'themeIconAsset': _themeIconAsset,
     },
     {
-      ...widget.lesson.toJson(),
-      'sectionName': widget.lesson.sectionName ?? '',
-      'themeIconAsset': widget.lesson.themeIconAsset,
+      ..._savedLesson.toJson(),
+      'sectionName': _savedLesson.sectionName ?? '',
+      'themeIconAsset': _savedLesson.themeIconAsset,
     },
   );
 
@@ -2114,6 +2130,7 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
   void initState() {
     super.initState();
     _lesson = widget.lesson;
+    _savedLesson = widget.lesson;
     _belongsToSection = _lesson.section;
     _sectionName = TextEditingController(text: _lesson.sectionName ?? '');
     _themeIconAsset = _lesson.themeIconAsset;
@@ -2202,6 +2219,12 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
     widget.onLessonIconAssetsChanged?.call(
       List<CourseLessonIconAsset>.unmodifiable(_lessonIconAssets),
     );
+    if (!mounted) return;
+    setState(() {
+      _lesson = edited;
+      _savedLesson = edited;
+    });
+    await WidgetsBinding.instance.endOfFrame;
     if (mounted) Navigator.pop(context, edited);
   }
 
@@ -3552,6 +3575,8 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
   late List<Exercise> _exercises;
   late List<LearningContent> _preservedIntroContent;
   late String _title;
+  late PublicationState _publicationState;
+  late LearningRound _savedRound;
   @override
   void initState() {
     super.initState();
@@ -3560,12 +3585,14 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
         .where((c) => c.role == 'lesson_intro')
         .toList(growable: false);
     _title = widget.round.title;
+    _publicationState = widget.round.publicationState;
+    _savedRound = widget.round;
   }
 
   LearningRound _editedRound({PublicationState? publicationState}) =>
       LearningRound(
         id: widget.round.id,
-        publicationState: publicationState ?? widget.round.publicationState,
+        publicationState: publicationState ?? _publicationState,
         title: _title,
         visualType: widget.round.visualType,
         content: [
@@ -3575,7 +3602,7 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
       );
 
   bool get _dirty =>
-      !_sameAuthoringJson(_editedRound().toJson(), widget.round.toJson());
+      !_sameAuthoringJson(_editedRound().toJson(), _savedRound.toJson());
 
   Future<void> _saveRound(PublicationState state) async {
     if (!state.isPublished &&
@@ -3620,6 +3647,12 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
         return;
       }
     }
+    if (!mounted) return;
+    setState(() {
+      _publicationState = edited.publicationState;
+      _savedRound = edited;
+    });
+    await WidgetsBinding.instance.endOfFrame;
     if (mounted) Navigator.pop(context, edited);
   }
 
@@ -4826,11 +4859,13 @@ class CourseAuditScreen extends StatefulWidget {
   final Course course;
   final CourseAuditResult result;
   final String title;
+  final CourseAuditReportService? reportService;
   const CourseAuditScreen({
     super.key,
     required this.course,
     required this.result,
     this.title = 'Course Audit',
+    this.reportService,
   });
   @override
   State<CourseAuditScreen> createState() => _CourseAuditScreenState();
@@ -4839,6 +4874,55 @@ class CourseAuditScreen extends StatefulWidget {
 class _CourseAuditScreenState extends State<CourseAuditScreen> {
   AuditSeverity? _filter;
   AuditSortMode _sortMode = AuditSortMode.lesson;
+
+  late final CourseAuditReportService _reportService =
+      widget.reportService ?? CourseAuditReportService();
+
+  Future<void> _copyReport() async {
+    try {
+      await _reportService.copyReport(
+        course: widget.course,
+        result: widget.result,
+        scope: widget.title,
+        sortMode: _sortMode,
+      );
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Complete Audit report copied.')),
+      );
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Could not copy Audit report: $error'),
+          backgroundColor: Theme.of(context).colorScheme.error,
+        ),
+      );
+    }
+  }
+
+  Future<void> _exportReport() async {
+    try {
+      final path = await _reportService.exportReport(
+        course: widget.course,
+        result: widget.result,
+        scope: widget.title,
+        sortMode: _sortMode,
+      );
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Complete Audit report exported to $path')),
+      );
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Could not export Audit report: $error'),
+          backgroundColor: Theme.of(context).colorScheme.error,
+        ),
+      );
+    }
+  }
 
   String _severityLabel(AuditSeverity severity) => switch (severity) {
     AuditSeverity.error => 'Errors',
@@ -4917,6 +5001,18 @@ class _CourseAuditScreenState extends State<CourseAuditScreen> {
                         ),
                       ],
                     ),
+                  ),
+                  OutlinedButton.icon(
+                    key: const Key('copy-audit-report'),
+                    onPressed: _copyReport,
+                    icon: const Icon(Icons.copy_outlined),
+                    label: const Text('Copy report'),
+                  ),
+                  OutlinedButton.icon(
+                    key: const Key('export-audit-report'),
+                    onPressed: _exportReport,
+                    icon: const Icon(Icons.download_outlined),
+                    label: const Text('Export report'),
                   ),
                 ],
               ),
@@ -5243,7 +5339,8 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
             _order,
             'Correct translation',
             lines: 5,
-            helper: 'One block per line in the required order.',
+            helper:
+                'Enter the complete translation, or one block per line in the required order. Terminal sentence punctuation may be included.',
           ),
         ];
       case 'word_order':
@@ -5807,7 +5904,7 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
                 _tts.text.trim().isNotEmpty
             ? _tts.text.trim()
             : null,
-        accepted: _type == 'listening_spelling'
+        accepted: const {'listening_spelling', 'missing_word'}.contains(_type)
             ? _lines(_missingWords)
             : const {'fill_blank', 'type_translation'}.contains(_type)
             ? _lines(_accepted)
@@ -5847,13 +5944,15 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
             : '',
         icons: _type == 'icon_choice' ? _lines(_icons) : const [],
         imageAsset: _imageAsset,
-        missingWords:
-            const {'missing_word', 'listening_spelling'}.contains(_type)
+        missingWords: _type == 'missing_word'
             ? _lines(_missingWords)
             : const [],
       );
     }
     if (!publicationState.isPublished) {
+      if (!mounted) return;
+      setState(() => _dirty = false);
+      await WidgetsBinding.instance.endOfFrame;
       if (mounted) Navigator.pop(context, ex);
       return;
     }
@@ -5929,7 +6028,9 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
       if (use != true) return;
     }
     if (!mounted) return;
-    Navigator.pop(context, ex);
+    setState(() => _dirty = false);
+    await WidgetsBinding.instance.endOfFrame;
+    if (mounted) Navigator.pop(context, ex);
   }
 
   @override

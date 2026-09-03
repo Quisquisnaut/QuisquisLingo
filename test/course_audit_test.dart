@@ -46,6 +46,140 @@ void main() {
     expect(issues.any((i) => i.severity == AuditSeverity.error), isTrue);
   });
 
+  test('canonical interaction items are not reported as stale fields', () {
+    final choiceIssues = CourseAuditService().auditExercise(sampleChoice());
+    final iconChoiceIssues = CourseAuditService().auditExercise(
+      Exercise(
+        id: 'icon-choice',
+        type: 'icon_choice',
+        prompt: '',
+        question: 'Choose the cat.',
+        answers: const ['gatto', 'cane'],
+        correct: 0,
+        tts: null,
+        accepted: const [],
+        tokens: const [],
+        orderAnswer: const [],
+        pairs: const [],
+        hint: '',
+        icons: const ['cat', 'dog'],
+      ),
+    );
+    final arrangeIssues = CourseAuditService().auditExercise(
+      Exercise(
+        id: 'arrange',
+        type: 'word_order',
+        prompt: 'Put the words in order.',
+        question: '',
+        answers: const [],
+        correct: null,
+        tts: null,
+        accepted: const [],
+        tokens: const ['Io', 'sono', 'qui'],
+        orderAnswer: const ['Io', 'sono', 'qui'],
+        pairs: const [],
+        hint: '',
+        icons: const [],
+      ),
+    );
+    final matchIssues = CourseAuditService().auditExercise(
+      Exercise(
+        id: 'match',
+        type: 'matching',
+        prompt: 'Match the translations.',
+        question: '',
+        answers: const [],
+        correct: null,
+        tts: null,
+        accepted: const [],
+        tokens: const [],
+        orderAnswer: const [],
+        pairs: const [
+          ['cat', 'gatto'],
+          ['dog', 'cane'],
+          ['book', 'libro'],
+        ],
+        hint: '',
+        icons: const [],
+      ),
+    );
+
+    for (final issues in [
+      choiceIssues,
+      iconChoiceIssues,
+      arrangeIssues,
+      matchIssues,
+    ]) {
+      expect(
+        issues.where((issue) => issue.message.contains('Unexpected field')),
+        isEmpty,
+      );
+    }
+  });
+
+  test('independent stale evaluation data still produces warnings', () {
+    final choice = Exercise.v2(
+      id: 'choice-stale',
+      editorTemplate: 'choice',
+      promptElements: const [
+        PromptElement(role: 'question', type: 'text', text: 'Choose.'),
+      ],
+      interaction: const ExerciseInteraction(
+        kind: 'select',
+        items: [
+          ExerciseItem(
+            id: 'yes',
+            content: [PromptElement(type: 'text', text: 'Yes')],
+          ),
+          ExerciseItem(
+            id: 'no',
+            content: [PromptElement(type: 'text', text: 'No')],
+          ),
+        ],
+      ),
+      evaluation: const ExerciseEvaluation(
+        kind: 'selected_items',
+        correctItemIds: ['yes'],
+        accepted: ['Yes'],
+      ),
+    );
+    final issues = CourseAuditService().auditExercise(choice);
+
+    expect(
+      issues.any(
+        (issue) =>
+            issue.severity == AuditSeverity.warning &&
+            issue.code == 'EXERCISE_FIELD_UNEXPECTED' &&
+            issue.message == 'Unexpected field for choice: accepted answers.',
+      ),
+      isTrue,
+    );
+  });
+
+  test('Missing Word retains its canonical accepted and missing-word data', () {
+    final missingWord = Exercise.v2(
+      id: 'missing-word-canonical',
+      editorTemplate: 'missing_word',
+      promptElements: const [
+        PromptElement(role: 'passage', type: 'text', text: 'Una casa.'),
+        PromptElement(role: 'primary', type: 'audio', text: 'Una casa.'),
+      ],
+      interaction: const ExerciseInteraction(kind: 'input'),
+      evaluation: const ExerciseEvaluation(
+        kind: 'text_match',
+        accepted: ['casa'],
+      ),
+      missingWords: const ['casa'],
+    );
+
+    expect(
+      CourseAuditService()
+          .auditExercise(missingWord)
+          .where((issue) => issue.message.contains('Unexpected field')),
+      isEmpty,
+    );
+  });
+
   test('short Lesson and insufficient Duel pool are non-blocking guidance', () {
     final lesson = Lesson(
       lessonId: 'lesson-1',
@@ -577,8 +711,14 @@ void main() {
     expect(
       CourseAuditService()
           .auditExercise(invalid)
-          .any((i) => i.message.contains('___')),
+          .any((i) => i.code == 'GAP_MARKER_MISSING'),
       isTrue,
+    );
+    expect(
+      CourseAuditService()
+          .auditExercise(invalid)
+          .any((i) => i.code == 'GAP_MARKER_COUNT'),
+      isFalse,
     );
   });
 

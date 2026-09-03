@@ -1,6 +1,6 @@
 # QuisquisLingo Course Editor
 
-Updated for current Course Model v5 editor (2.0.24+224)
+Updated for the first controlled 2.0.25+225 Course Model v5 editor tranche
 
 ## Unlocking the editor
 
@@ -26,7 +26,7 @@ The controlled **Lesson theme icon** picker separates **Preinstalled** and **Cus
 
 Course, Lesson, Round and Exercise authoring uses one explicit `Draft` / `Published` state. **Save as Draft** preserves incomplete but structurally safe work; **Save / Publish** runs strict learner validation. A Published child below a Draft parent remains hidden, and publishing a parent never publishes Draft descendants. Draft Courses are not learner-selectable. Draft Lessons create no learner numbering or Section gaps and do not affect unlocks. Draft Rounds and Exercises are excluded from learner execution, completion, Review, Duel and XP. Moving Published content to Draft confirms first and preserves stable IDs, progress and history.
 
-Back/close uses the same **Unsaved changes** confirmation at Course, Lesson, Round and Exercise levels. Saving a child updates only its parent draft; the parent remains dirty until explicitly saved. Preview does not publish, clear dirty state or write learner state.
+Back/close uses the same **Unsaved changes** confirmation at Course, Lesson, Round and Exercise levels. A successful **Save as Draft** or **Publish** refreshes that editor's saved baseline, so leaving immediately does not warn; edits made after the save warn again. Validation or persistence failure never clears the dirty state. Saving a child updates only its parent draft; the parent remains dirty until explicitly saved. Preview does not publish, clear dirty state or write learner state.
 
 Course info controls the learner-visible Lesson prefix: Lesson, Unit, Topic, Module, Skill, Chapter, Stage, Step, Part, a trimmed custom label, number only, or none. Numbers use Published Lesson order only. The exact untouched default `Lesson N` is shown once when Lesson mode would otherwise duplicate it. Course info also chooses the monochrome or colored-number fallback style and stores an optional validated **Buy a Coffee** HTTPS URL.
 
@@ -165,6 +165,8 @@ Local edited courses are stored separately from bundled assets. A complete cours
 
 A Word Blocks exercise may contain 0, 1 or at most 2 extra distractor blocks. Every distractor must be in the same language as the other visible blocks. This is determined by the language of the answer blocks, not simply by the course target language, because translation exercises can run in either direction.
 
+For **Build the translation**, the correct translation may be entered as one natural sentence or one block per line. Terminal `.`, `!`, `?` or `…` punctuation is not an artificial block: the editor resolves the authored sentence to the stable canonical Item order, while the runtime's ordered-answer punctuation policy remains explicit and unchanged.
+
 The bundled-course validator builds conservative source/target lexicons from explicitly oriented matching pairs and flashcards and reports high-confidence cross-language distractors. The in-app audit validates the structural invariant of 0 to 2 usable extra blocks. Language identification is intentionally conservative: ambiguous words shared by two languages must not be auto-rejected solely on spelling.
 
 Capitalization should be consistent across paired sentences and expressions while preserving language-specific orthography, especially German noun capitalization.
@@ -215,8 +217,10 @@ Round and exercise previews launch the learner renderer but suppress all progres
 ## One-time notice
 The first Course Editor opening explains that bundled material is sample content. Settings > Do Not Disturb > Show one-time notices again makes this and future one-time notices eligible to appear again. The learner-level Guidebook availability notice is deliberately separate.
 
-## Course Audit filters
+## Course Audit filters and reports
 Course Audit can show All, Errors, Warnings or Info without changing the underlying audit result.
+
+**Copy report** copies the complete current Audit result as deterministic plain text. **Export report** writes that same complete result to `Documents/QuisquisLingo/Exports` with a filesystem-safe Course/timestamp filename. Report filtering affects only the visible list: reports retain every Error, Warning and Info plus their stable codes and Course/Lesson/Round/Exercise context. A failed export displays an error and never claims that a file was created.
 
 
 ## Recorded audio
@@ -249,7 +253,7 @@ An author can have multiple roles. Course Creator means original creation/design
 
 ## Alpha expiry and authoring
 
-The current time-limited alpha expires on 2026-10-03. Expiry blocks learner exercises and Review but deliberately leaves Course Editor available so authoring work can be inspected, recovered and exported. Expiry never deletes local data.
+The current time-limited alpha expires on 2026-10-04. Expiry blocks learner exercises and Review but deliberately leaves Course Editor available so authoring work can be inspected, recovered and exported. Expiry never deletes local data.
 
 
 ## Current bundled course and My custom courses

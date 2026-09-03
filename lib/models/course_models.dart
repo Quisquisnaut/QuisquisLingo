@@ -1565,19 +1565,10 @@ ExerciseEvaluation _legacyEvaluation(
     );
   }
   if (const {'word_order', 'image_word', 'build_translation'}.contains(type)) {
-    final used = <int>{};
-    final ids = <String>[];
-    for (final word in order) {
-      final idx = List<int>.generate(tokens.length, (i) => i).firstWhere(
-        (i) => !used.contains(i) && tokens[i] == word,
-        orElse: () => -1,
-      );
-      if (idx >= 0) {
-        used.add(idx);
-        ids.add('item_$idx');
-      }
-    }
-    return ExerciseEvaluation(kind: 'ordered_items', correctOrder: ids);
+    return ExerciseEvaluation(
+      kind: 'ordered_items',
+      correctOrder: _resolveOrderedItemIds(tokens, order),
+    );
   }
   if (const {
     'matching',
@@ -1592,6 +1583,60 @@ ExerciseEvaluation _legacyEvaluation(
     return ExerciseEvaluation(kind: 'matched_items', pairs: pp);
   }
   return const ExerciseEvaluation(kind: 'selected_items');
+}
+
+List<String> _resolveOrderedItemIds(
+  List<String> tokens,
+  List<String> authoredOrder,
+) {
+  if (tokens.isEmpty || authoredOrder.isEmpty) return const [];
+
+  String comparable(String value) => value
+      .trim()
+      .replaceAll(RegExp(r'[.!?…]+$'), '')
+      .replaceAll(RegExp(r'\s+'), ' ');
+
+  List<int>? matchEntries(List<String> entries) {
+    final used = <int>{};
+    final indexes = <int>[];
+    for (final entry in entries) {
+      final expected = comparable(entry);
+      final index = List<int>.generate(tokens.length, (i) => i).firstWhere(
+        (i) => !used.contains(i) && comparable(tokens[i]) == expected,
+        orElse: () => -1,
+      );
+      if (index < 0) return null;
+      used.add(index);
+      indexes.add(index);
+    }
+    return indexes;
+  }
+
+  var indexes = matchEntries(authoredOrder);
+  if (indexes == null) {
+    final sentence = comparable(authoredOrder.join(' '));
+    List<int>? visit(String remaining, Set<int> used) {
+      if (remaining.isEmpty) return const [];
+      for (var index = 0; index < tokens.length; index++) {
+        if (used.contains(index)) continue;
+        final token = comparable(tokens[index]);
+        if (token.isEmpty ||
+            (remaining != token && !remaining.startsWith('$token '))) {
+          continue;
+        }
+        final rest = remaining == token
+            ? ''
+            : remaining.substring(token.length).trimLeft();
+        final tail = visit(rest, {...used, index});
+        if (tail != null) return [index, ...tail];
+      }
+      return null;
+    }
+
+    indexes = visit(sentence, const <int>{});
+  }
+  if (indexes == null || indexes.isEmpty) return const [];
+  return indexes.map((index) => 'item_$index').toList(growable: false);
 }
 
 String _legacyTypeFromTemplate(String template, String interaction) {

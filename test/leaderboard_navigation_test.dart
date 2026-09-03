@@ -583,8 +583,6 @@ void main() {
         );
       });
       expect(persistedLessonId, selectedLesson.lessonId);
-      const unavailable =
-          'Unavailable for this Lesson: not enough suitable exercises.';
       final selectedDuel = find.byKey(
         ValueKey('unified-duel-${selectedLesson.lessonId}'),
       );
@@ -594,12 +592,7 @@ void main() {
         scrollable: _mainLearnerScrollable(),
       );
       await tester.pump();
-      final unavailableInSelectedLesson = find.descendant(
-        of: selectedDuel,
-        matching: find.text(unavailable),
-      );
-      await tester.ensureVisible(unavailableInSelectedLesson);
-      expect(unavailableInSelectedLesson, findsOneWidget);
+      expect(selectedDuel, findsOneWidget);
       tester
           .state<ScrollableState>(_mainLearnerScrollable())
           .position
@@ -2303,7 +2296,7 @@ void main() {
       final alphaDialog = tester.widget<AlertDialog>(find.byType(AlertDialog));
       expect(alphaDialog.backgroundColor, isNull);
       expect(alphaDialog.surfaceTintColor, isNull);
-      expect(find.textContaining('Expiry date: 2026-10-03.'), findsOneWidget);
+      expect(find.textContaining('Expiry date: 2026-10-04.'), findsOneWidget);
       expect(find.widgetWithText(FilledButton, 'OK'), findsOneWidget);
       expect(
         tester

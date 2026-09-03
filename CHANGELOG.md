@@ -1,3 +1,15 @@
+# 2.0.25 (build 225) - first controlled tranche - 2026-09-03
+
+- Corrected Course Audit to inspect canonical evaluation fields instead of treating author-facing Select/Arrange/Match projections as independent stale data; empty derived icons no longer warn, while genuinely stale independent data remains visible.
+- Removed the duplicate Gap Choice Warning when the same missing marker already produces its blocking Error, without weakening invalid-marker validation.
+- Added complete deterministic plain-text Course Audit copying and export to the established `Documents/QuisquisLingo/Exports` location, including version, timestamp, scope, totals, sort mode, stable codes and Course/Lesson/Round/Exercise context.
+- Fixed Build the translation so an author-entered natural sentence such as `Come stai?` resolves to canonical ordered Item IDs for blocks `Come` and `stai`, survives serialization/reload and remains learner-playable without an artificial punctuation block.
+- Refreshed successful Draft/Publish baselines across Course, Lesson, Round and Exercise editors so route-pop guards warn only about edits made after the latest successful save; validation and persistence failures remain dirty.
+- Regenerated only the bundled Italian sample (`sample_it_en_it`), preserving all existing semantic IDs, repairing the historical Gap Choice, Dialogue Response, listening-audio and revealing-Hint defects, and adding stable-ID canonical practice Rounds so every Lesson meets the actual 25-question Duel threshold.
+- Added focused report, canonical Editor/reload/runtime, dirty-state and real-production Italian Audit/Duel/playability regression gates.
+- Advanced the Alpha expiry through the end of **2026-10-04**.
+- This is not the complete 225 release; world-flag selection, unrelated tooltips, theme-icon importer changes and other deferred work are not included.
+
 # 2.0.24 (build 224) - 2026-09-03
 
 - Added explicit Draft/Published state for Course, Lesson, Round and Exercise authoring with ancestor-aware learner visibility, strict publish validation, author previews, publication actions/badges, stable-ID unpublishing, and no changes to learner progress or XP.
