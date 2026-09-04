@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:quisquislingo_app/screens/info_screen.dart';
+import 'package:quisquislingo_app/services/app_metadata.dart';
 
 void main() {
   testWidgets('App Info starts with the complete QuisquisLingo logo', (
@@ -25,6 +26,8 @@ void main() {
       lessThan(tester.getRect(firstExistingSection).top),
     );
     expect(find.text('Info'), findsOneWidget);
+    expect(find.text('Version and Build'), findsOneWidget);
+    expect(find.text(AppMetadata.displayLabel), findsOneWidget);
 
     await tester.scrollUntilVisible(
       find.text('App and image credits'),

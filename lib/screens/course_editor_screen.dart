@@ -71,22 +71,26 @@ Future<bool> _confirmMoveToDraft(BuildContext context, String entity) async =>
     ) ??
     false;
 
-Exercise _withExercisePublication(Exercise source, PublicationState state) =>
-    Exercise.v2(
-      id: source.id,
-      publicationState: state,
-      editorTemplate: source.editorTemplate,
-      promptElements: source.promptElements,
-      interaction: source.interaction,
-      evaluation: source.evaluation,
-      hint: source.hint,
-      feedback: source.feedback,
-      missingWords: source.missingWords,
-    );
+Exercise _withExercisePublication(
+  Exercise source,
+  PublicationState state, {
+  DateTime? updatedAt,
+}) => Exercise.v2(
+  id: source.id,
+  publicationState: state,
+  updatedAt: updatedAt ?? source.updatedAt,
+  editorTemplate: source.editorTemplate,
+  promptElements: source.promptElements,
+  interaction: source.interaction,
+  evaluation: source.evaluation,
+  hint: source.hint,
+  feedback: source.feedback,
+  missingWords: source.missingWords,
+);
 
 /// Full local authoring UI.
 ///
-/// The hierarchy is editable at every level: Lessons, Rounds and v5
+/// The hierarchy is editable at every level: Lessons, Rounds and v6
 /// Content can be created, deleted and reordered. Friendly Editor template is immutable
 /// after creation because changing type can silently reinterpret incompatible
 /// fields. To use another type, create a new exercise and delete the old one.
@@ -94,11 +98,13 @@ class CourseEditorScreen extends StatefulWidget {
   final Course course;
   final bool userCourse;
   final CourseEditorService? editorService;
+  final DateTime Function()? clock;
   const CourseEditorScreen({
     super.key,
     required this.course,
     this.userCourse = false,
     this.editorService,
+    this.clock,
   });
   @override
   State<CourseEditorScreen> createState() => _CourseEditorScreenState();
@@ -111,6 +117,7 @@ class _CourseEditorScreenState extends State<CourseEditorScreen> {
   final _settings = SettingsService();
   final _recordedAudio = RecordedAudioService();
   final _transfer = CustomCourseTransferService();
+  late final DateTime Function() _clock = widget.clock ?? DateTime.now;
   late Course _course;
   late Course _savedCourse;
   CourseAuditResult? _lastAudit;
@@ -178,6 +185,37 @@ class _CourseEditorScreenState extends State<CourseEditorScreen> {
     _course = value;
     _auditOutdated = true;
   });
+
+  Future<void> _persistChildLesson(Lesson lesson) async {
+    Course replaceLesson(Course source) {
+      final lessons = [...source.lessons];
+      final index = lessons.indexWhere(
+        (candidate) => candidate.lessonId == lesson.lessonId,
+      );
+      if (index < 0) {
+        lessons.add(lesson);
+      } else {
+        lessons[index] = lesson;
+      }
+      return Course.fromJson({
+        ...source.toJson(),
+        'lessons': lessons.map((value) => value.toJson()).toList(),
+      });
+    }
+
+    final persisted = replaceLesson(_savedCourse);
+    if (widget.userCourse) {
+      await _service.saveUserCourse(persisted);
+    } else {
+      await _service.saveCourse(languageCode: _code, course: persisted);
+    }
+    if (!mounted) return;
+    setState(() {
+      _savedCourse = persisted;
+      _course = replaceLesson(_course);
+      _auditOutdated = true;
+    });
+  }
 
   Course _withCoursePublication(PublicationState state) =>
       Course.fromJson({..._course.toJson(), 'publicationState': state.name});
@@ -991,8 +1029,11 @@ class _CourseEditorScreenState extends State<CourseEditorScreen> {
       MaterialPageRoute(
         builder: (_) => LessonManagementScreen(
           course: _course,
+          savedCourse: _savedCourse,
           userCourse: widget.userCourse,
           initiallyLocked: _locked,
+          onPersistLesson: _persistChildLesson,
+          clock: _clock,
         ),
       ),
     );
@@ -1140,6 +1181,7 @@ class _CourseEditorScreenState extends State<CourseEditorScreen> {
               updatedRound = LearningRound(
                 id: round.id,
                 publicationState: round.publicationState,
+                updatedAt: round.updatedAt,
                 title: round.title,
                 visualType: round.visualType,
                 content: content,
@@ -1165,6 +1207,7 @@ class _CourseEditorScreenState extends State<CourseEditorScreen> {
         lessons[ti] = Lesson(
           lessonId: lesson.lessonId,
           publicationState: lesson.publicationState,
+          updatedAt: lesson.updatedAt,
           title: lesson.title,
           rounds: rounds,
           section: lesson.section,
@@ -1453,13 +1496,19 @@ class LessonManagementScreen extends StatefulWidget {
   const LessonManagementScreen({
     super.key,
     required this.course,
+    this.savedCourse,
     required this.userCourse,
     required this.initiallyLocked,
+    this.onPersistLesson,
+    this.clock,
   });
 
   final Course course;
+  final Course? savedCourse;
   final bool userCourse;
   final bool initiallyLocked;
+  final Future<void> Function(Lesson lesson)? onPersistLesson;
+  final DateTime Function()? clock;
 
   @override
   State<LessonManagementScreen> createState() => _LessonManagementScreenState();
@@ -1469,12 +1518,15 @@ class _LessonManagementScreenState extends State<LessonManagementScreen> {
   final _settings = SettingsService();
   final _ids = TimestampAuthoringIdGenerator();
   late Course _course;
+  late Course _savedCourse;
   late bool _locked;
+  late final DateTime Function() _clock = widget.clock ?? DateTime.now;
 
   @override
   void initState() {
     super.initState();
     _course = widget.course;
+    _savedCourse = widget.savedCourse ?? widget.course;
     _locked = widget.initiallyLocked;
   }
 
@@ -1564,6 +1616,7 @@ class _LessonManagementScreenState extends State<LessonManagementScreen> {
         Lesson(
           lessonId: _ids.next('lesson'),
           publicationState: PublicationState.draft,
+          updatedAt: _clock(),
           title: title,
           rounds: const [],
           guidebook: Guidebook.empty(),
@@ -1584,6 +1637,7 @@ class _LessonManagementScreenState extends State<LessonManagementScreen> {
     final renamed = Lesson(
       lessonId: source.lessonId,
       publicationState: source.publicationState,
+      updatedAt: _clock(),
       title: title,
       rounds: source.rounds,
       section: source.section,
@@ -1659,6 +1713,7 @@ class _LessonManagementScreenState extends State<LessonManagementScreen> {
     final changed = Lesson.fromJson({
       ...source.toJson(),
       'publicationState': state.name,
+      'updatedAt': _clock().toUtc().toIso8601String(),
     });
     final lessons = [..._course.lessons]..[index] = changed;
     final candidate = _withLessons(lessons);
@@ -1730,7 +1785,34 @@ class _LessonManagementScreenState extends State<LessonManagementScreen> {
         builder: (_) => LessonEditorScreen(
           course: _course,
           lesson: _course.lessons[index],
+          savedLesson: _savedCourse.lessons
+              .where(
+                (lesson) => lesson.lessonId == _course.lessons[index].lessonId,
+              )
+              .firstOrNull,
           onLessonIconAssetsChanged: (value) => iconAssets = value,
+          onPersistLesson: (lesson) async {
+            await widget.onPersistLesson?.call(lesson);
+            if (!mounted) return;
+            final lessons = [..._course.lessons]..[index] = lesson;
+            final savedLessons = [..._savedCourse.lessons];
+            final savedIndex = savedLessons.indexWhere(
+              (candidate) => candidate.lessonId == lesson.lessonId,
+            );
+            if (savedIndex < 0) {
+              savedLessons.add(lesson);
+            } else {
+              savedLessons[savedIndex] = lesson;
+            }
+            setState(() {
+              _course = _withLessons(lessons, lessonIconAssets: iconAssets);
+              _savedCourse = Course.fromJson({
+                ..._savedCourse.toJson(),
+                'lessons': savedLessons.map((value) => value.toJson()).toList(),
+              });
+            });
+          },
+          clock: _clock,
         ),
       ),
     );
@@ -1893,11 +1975,7 @@ class LessonAuthoringPreviewScreen extends StatelessWidget {
               return Card(
                 child: ListTile(
                   leading: const Icon(Icons.play_circle_outline),
-                  title: Text(
-                    round.title.trim().isEmpty
-                        ? 'Round ${index + 1}'
-                        : round.title,
-                  ),
+                  title: Text(round.displayTitle(index)),
                   subtitle: Text('${round.exercises.length} exercises'),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () => Navigator.of(context).push<void>(
@@ -2075,12 +2153,18 @@ class _GuidebookEditorScreenState extends State<GuidebookEditorScreen> {
 class LessonEditorScreen extends StatefulWidget {
   final Course course;
   final Lesson lesson;
+  final Lesson? savedLesson;
   final ValueChanged<List<CourseLessonIconAsset>>? onLessonIconAssetsChanged;
+  final Future<void> Function(Lesson lesson)? onPersistLesson;
+  final DateTime Function()? clock;
   const LessonEditorScreen({
     super.key,
     required this.course,
     required this.lesson,
+    this.savedLesson,
     this.onLessonIconAssetsChanged,
+    this.onPersistLesson,
+    this.clock,
   });
   @override
   State<LessonEditorScreen> createState() => _LessonEditorScreenState();
@@ -2093,6 +2177,7 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
   late final TextEditingController _sectionName;
   String? _themeIconAsset;
   late List<CourseLessonIconAsset> _lessonIconAssets;
+  late final DateTime Function() _clock = widget.clock ?? DateTime.now;
 
   Course get _courseWithIcons => Course.fromJson({
     ...widget.course.toJson(),
@@ -2130,7 +2215,7 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
   void initState() {
     super.initState();
     _lesson = widget.lesson;
-    _savedLesson = widget.lesson;
+    _savedLesson = widget.savedLesson ?? widget.lesson;
     _belongsToSection = _lesson.section;
     _sectionName = TextEditingController(text: _lesson.sectionName ?? '');
     _themeIconAsset = _lesson.themeIconAsset;
@@ -2150,6 +2235,7 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
   }) => Lesson(
     lessonId: _lesson.lessonId,
     publicationState: _lesson.publicationState,
+    updatedAt: _lesson.updatedAt,
     title: title ?? _lesson.title,
     rounds: rounds ?? _lesson.rounds,
     section: _lesson.section,
@@ -2159,7 +2245,7 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
     duel: _lesson.duel,
   );
 
-  Lesson? _editedLesson(PublicationState state) {
+  Lesson? _editedLesson(PublicationState state, {DateTime? updatedAt}) {
     final sectionName = _sectionName.text.trim();
     if (_belongsToSection && sectionName.isEmpty) {
       ScaffoldMessenger.of(
@@ -2170,6 +2256,7 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
     return Lesson(
       lessonId: _lesson.lessonId,
       publicationState: state,
+      updatedAt: updatedAt ?? _lesson.updatedAt,
       title: _lesson.title,
       rounds: _lesson.rounds,
       section: _belongsToSection,
@@ -2187,8 +2274,11 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
       return;
     }
     if (!mounted) return;
-    final edited = _editedLesson(state);
-    if (edited == null) return;
+    final candidate = _editedLesson(state);
+    if (candidate == null) return;
+    final edited = _sameAuthoringJson(candidate.toJson(), _savedLesson.toJson())
+        ? candidate
+        : _editedLesson(state, updatedAt: _clock())!;
     if (state.isPublished) {
       final courseJson = {
         ..._courseWithIcons.toJson(),
@@ -2219,6 +2309,15 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
     widget.onLessonIconAssetsChanged?.call(
       List<CourseLessonIconAsset>.unmodifiable(_lessonIconAssets),
     );
+    try {
+      await widget.onPersistLesson?.call(edited);
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Lesson was not saved: $error')));
+      return;
+    }
     if (!mounted) return;
     setState(() {
       _lesson = edited;
@@ -2285,6 +2384,7 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
         LearningRound(
           id: round.id,
           publicationState: round.publicationState,
+          updatedAt: round.updatedAt,
           title: round.title,
           visualType: round.visualType,
           content: [
@@ -2318,6 +2418,7 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
     final draftLesson = Lesson(
       lessonId: _lesson.lessonId,
       publicationState: _lesson.publicationState,
+      updatedAt: _lesson.updatedAt,
       title: _lesson.title,
       rounds: _lesson.rounds,
       section: _belongsToSection && sectionName.isNotEmpty,
@@ -2330,13 +2431,42 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
     );
     final rounds = await Navigator.of(context).push<List<LearningRound>>(
       MaterialPageRoute(
-        builder: (_) =>
-            LessonRoundsScreen(course: _courseWithIcons, lesson: draftLesson),
+        builder: (_) => LessonRoundsScreen(
+          course: _courseWithIcons,
+          lesson: draftLesson,
+          savedLesson: _savedLesson,
+          onPersistRound: _persistChildRound,
+          clock: _clock,
+        ),
       ),
     );
     if (rounds != null && mounted) {
       setState(() => _lesson = _copy(rounds: rounds));
     }
+  }
+
+  Future<void> _persistChildRound(LearningRound round) async {
+    Lesson replaceRound(Lesson source) {
+      final rounds = [...source.rounds];
+      final index = rounds.indexWhere((candidate) => candidate.id == round.id);
+      if (index < 0) {
+        rounds.add(round);
+      } else {
+        rounds[index] = round;
+      }
+      return Lesson.fromJson({
+        ...source.toJson(),
+        'rounds': rounds.map((value) => value.toJson()).toList(),
+      });
+    }
+
+    final persisted = replaceRound(_savedLesson);
+    await widget.onPersistLesson?.call(persisted);
+    if (!mounted) return;
+    setState(() {
+      _savedLesson = persisted;
+      _lesson = replaceRound(_lesson);
+    });
   }
 
   Future<void> _chooseThemeIcon() async {
@@ -2549,6 +2679,7 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
         builder: (_) => GuidebookRoundGeneratorScreen(
           course: _courseWithIcons,
           lesson: _lesson,
+          clock: _clock,
         ),
       ),
     );
@@ -2718,10 +2849,12 @@ class GuidebookRoundGeneratorScreen extends StatefulWidget {
     super.key,
     required this.course,
     required this.lesson,
+    this.clock,
   });
 
   final Course course;
   final Lesson lesson;
+  final DateTime Function()? clock;
 
   @override
   State<GuidebookRoundGeneratorScreen> createState() =>
@@ -2737,6 +2870,7 @@ class _GuidebookRoundGeneratorScreenState
     text: '${GuidebookRoundGenerator.defaultExercisesPerRound}',
   );
   final _finalIds = TimestampAuthoringIdGenerator();
+  late final DateTime Function() _clock = widget.clock ?? DateTime.now;
   _GuidebookGeneratorStage _stage = _GuidebookGeneratorStage.configure;
   GuidebookGenerationPlan? _plan;
   List<LearningRound> _drafts = const [];
@@ -2757,6 +2891,7 @@ class _GuidebookRoundGeneratorScreenState
   GuidebookRoundGenerator _generator() => GuidebookRoundGenerator(
     randomSeed: _seed,
     draftIds: TimestampAuthoringIdGenerator(),
+    now: _clock,
   );
 
   void _preparePlan({bool regenerate = false}) {
@@ -2817,6 +2952,7 @@ class _GuidebookRoundGeneratorScreenState
   Lesson get _draftLesson => Lesson(
     lessonId: widget.lesson.lessonId,
     publicationState: widget.lesson.publicationState,
+    updatedAt: widget.lesson.updatedAt,
     title: widget.lesson.title,
     rounds: [...widget.lesson.rounds, ..._drafts],
     section: widget.lesson.section,
@@ -2856,13 +2992,14 @@ class _GuidebookRoundGeneratorScreenState
   );
 
   List<CourseAuditIssue> _issues() => [
-    for (final round in _drafts)
-      for (final exercise in round.exercises)
-        ...CourseAuditService().auditExercise(
-          exercise,
-          location: '${round.title} · ${exercise.type}',
-          roundId: round.id,
-        ),
+    for (var roundIndex = 0; roundIndex < _drafts.length; roundIndex++)
+      for (final round in [_drafts[roundIndex]])
+        for (final exercise in round.exercises)
+          ...CourseAuditService().auditExercise(
+            exercise,
+            location: '${round.displayTitle(roundIndex)} · ${exercise.type}',
+            roundId: round.id,
+          ),
   ];
 
   void _approve() {
@@ -3128,11 +3265,17 @@ class _GuidebookRoundGeneratorScreenState
 class LessonRoundsScreen extends StatefulWidget {
   final Course course;
   final Lesson lesson;
+  final Lesson? savedLesson;
+  final Future<void> Function(LearningRound round)? onPersistRound;
+  final DateTime Function()? clock;
 
   const LessonRoundsScreen({
     super.key,
     required this.course,
     required this.lesson,
+    this.savedLesson,
+    this.onPersistRound,
+    this.clock,
   });
 
   @override
@@ -3142,12 +3285,15 @@ class LessonRoundsScreen extends StatefulWidget {
 class _LessonRoundsScreenState extends State<LessonRoundsScreen> {
   final _ids = TimestampAuthoringIdGenerator();
   late List<LearningRound> _rounds;
+  late List<LearningRound> _savedRounds;
   Set<String> _roundErrorIds = const {};
+  late final DateTime Function() _clock = widget.clock ?? DateTime.now;
 
   @override
   void initState() {
     super.initState();
     _rounds = [...widget.lesson.rounds];
+    _savedRounds = [...(widget.savedLesson ?? widget.lesson).rounds];
     _refreshAuditCache();
   }
 
@@ -3182,10 +3328,12 @@ class _LessonRoundsScreenState extends State<LessonRoundsScreen> {
 
   LearningRound _blankRound(String title) {
     final stamp = DateTime.now().microsecondsSinceEpoch;
+    final updatedAt = _clock();
     final exercises = <Exercise>[
       Exercise(
         id: 'custom_ex_${stamp}_1',
         publicationState: PublicationState.draft,
+        updatedAt: updatedAt,
         type: 'choice',
         prompt: 'Replace this question.',
         question: '',
@@ -3202,6 +3350,7 @@ class _LessonRoundsScreenState extends State<LessonRoundsScreen> {
       Exercise(
         id: 'custom_ex_${stamp}_2',
         publicationState: PublicationState.draft,
+        updatedAt: updatedAt,
         type: 'fill_blank',
         prompt: '',
         question: 'Replace this prompt.',
@@ -3218,6 +3367,7 @@ class _LessonRoundsScreenState extends State<LessonRoundsScreen> {
       Exercise(
         id: 'custom_ex_${stamp}_3',
         publicationState: PublicationState.draft,
+        updatedAt: updatedAt,
         type: 'word_order',
         prompt: 'Build the sentence.',
         question: '',
@@ -3235,6 +3385,7 @@ class _LessonRoundsScreenState extends State<LessonRoundsScreen> {
     return LearningRound(
       id: 'custom_round_$stamp',
       publicationState: PublicationState.draft,
+      updatedAt: updatedAt,
       title: title,
       exercises: exercises,
     );
@@ -3276,7 +3427,7 @@ class _LessonRoundsScreenState extends State<LessonRoundsScreen> {
   }
 
   Future<void> _add() async {
-    final title = await _name('New round');
+    final title = await _name('New round', allowEmpty: true);
     if (title != null && mounted) {
       _updateRounds([..._rounds, _blankRound(title)]);
     }
@@ -3285,6 +3436,7 @@ class _LessonRoundsScreenState extends State<LessonRoundsScreen> {
   Lesson get _draftLesson => Lesson(
     lessonId: widget.lesson.lessonId,
     publicationState: widget.lesson.publicationState,
+    updatedAt: widget.lesson.updatedAt,
     title: widget.lesson.title,
     rounds: _rounds,
     section: widget.lesson.section,
@@ -3295,13 +3447,37 @@ class _LessonRoundsScreenState extends State<LessonRoundsScreen> {
   );
 
   Future<void> _open(int index) async {
+    final savedRound = _savedRounds
+        .where((round) => round.id == _rounds[index].id)
+        .firstOrNull;
     final updated = await Navigator.of(context).push<LearningRound>(
       MaterialPageRoute(
         builder: (_) => RoundEditorScreen(
           course: widget.course,
           lesson: _draftLesson,
           round: _rounds[index],
+          savedRound: savedRound,
           roundIndex: index,
+          onPersistRound: (round) async {
+            await widget.onPersistRound?.call(round);
+            if (!mounted) return;
+            final rounds = [..._rounds]..[index] = round;
+            final savedRounds = [..._savedRounds];
+            final savedIndex = savedRounds.indexWhere(
+              (candidate) => candidate.id == round.id,
+            );
+            if (savedIndex < 0) {
+              savedRounds.add(round);
+            } else {
+              savedRounds[savedIndex] = round;
+            }
+            setState(() {
+              _rounds = rounds;
+              _savedRounds = savedRounds;
+              _refreshAuditCache();
+            });
+          },
+          clock: _clock,
         ),
       ),
     );
@@ -3323,6 +3499,7 @@ class _LessonRoundsScreenState extends State<LessonRoundsScreen> {
     rounds[index] = LearningRound(
       id: source.id,
       publicationState: source.publicationState,
+      updatedAt: _clock(),
       title: title,
       visualType: source.visualType,
       content: source.content,
@@ -3391,6 +3568,7 @@ class _LessonRoundsScreenState extends State<LessonRoundsScreen> {
     final changed = LearningRound.fromJson({
       ...source.toJson(),
       'publicationState': state.name,
+      'updatedAt': _clock().toUtc().toIso8601String(),
     });
     final rounds = [..._rounds]..[index] = changed;
     if (state.isPublished) {
@@ -3501,9 +3679,7 @@ class _LessonRoundsScreenState extends State<LessonRoundsScreen> {
                 index: index,
                 child: const Icon(Icons.drag_handle),
               ),
-              title: Text(
-                round.title.trim().isEmpty ? 'Round ${index + 1}' : round.title,
-              ),
+              title: Text(round.displayTitle(index)),
               subtitle: Text(
                 '${round.publicationState.isPublished ? '' : 'Draft · '}${round.exercises.length} exercises',
               ),
@@ -3558,13 +3734,19 @@ class RoundEditorScreen extends StatefulWidget {
   final Course course;
   final Lesson lesson;
   final LearningRound round;
+  final LearningRound? savedRound;
   final int roundIndex;
+  final Future<void> Function(LearningRound round)? onPersistRound;
+  final DateTime Function()? clock;
   const RoundEditorScreen({
     super.key,
     required this.course,
     required this.lesson,
     required this.round,
+    this.savedRound,
     required this.roundIndex,
+    this.onPersistRound,
+    this.clock,
   });
   @override
   State<RoundEditorScreen> createState() => _RoundEditorScreenState();
@@ -3577,6 +3759,7 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
   late String _title;
   late PublicationState _publicationState;
   late LearningRound _savedRound;
+  late final DateTime Function() _clock = widget.clock ?? DateTime.now;
   @override
   void initState() {
     super.initState();
@@ -3586,20 +3769,23 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
         .toList(growable: false);
     _title = widget.round.title;
     _publicationState = widget.round.publicationState;
-    _savedRound = widget.round;
+    _savedRound = widget.savedRound ?? widget.round;
   }
 
-  LearningRound _editedRound({PublicationState? publicationState}) =>
-      LearningRound(
-        id: widget.round.id,
-        publicationState: publicationState ?? _publicationState,
-        title: _title,
-        visualType: widget.round.visualType,
-        content: [
-          ..._preservedIntroContent,
-          ..._exercises.map(LearningContent.fromExercise),
-        ],
-      );
+  LearningRound _editedRound({
+    PublicationState? publicationState,
+    DateTime? updatedAt,
+  }) => LearningRound(
+    id: widget.round.id,
+    publicationState: publicationState ?? _publicationState,
+    updatedAt: updatedAt ?? _savedRound.updatedAt,
+    title: _title,
+    visualType: widget.round.visualType,
+    content: [
+      ..._preservedIntroContent,
+      ..._exercises.map(LearningContent.fromExercise),
+    ],
+  );
 
   bool get _dirty =>
       !_sameAuthoringJson(_editedRound().toJson(), _savedRound.toJson());
@@ -3610,7 +3796,10 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
         !await _confirmMoveToDraft(context, 'Round')) {
       return;
     }
-    final edited = _editedRound(publicationState: state);
+    final candidate = _editedRound(publicationState: state);
+    final edited = _sameAuthoringJson(candidate.toJson(), _savedRound.toJson())
+        ? candidate
+        : _editedRound(publicationState: state, updatedAt: _clock());
     if (state.isPublished) {
       final lessonJson = widget.lesson.toJson();
       lessonJson['publicationState'] = PublicationState.published.name;
@@ -3646,6 +3835,15 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
         );
         return;
       }
+    }
+    try {
+      await widget.onPersistRound?.call(edited);
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Round was not saved: $error')));
+      return;
     }
     if (!mounted) return;
     setState(() {
@@ -3690,7 +3888,11 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
       if (confirmed != true) return;
       if (!mounted) return;
     }
-    final changed = _withExercisePublication(source, state);
+    final changed = _withExercisePublication(
+      source,
+      state,
+      updatedAt: _clock(),
+    );
     if (state.isPublished &&
         CourseAuditService()
             .auditExercise(changed)
@@ -3712,6 +3914,44 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
       : e.question.trim().isNotEmpty
       ? e.question.trim()
       : (e.tts ?? e.id);
+
+  LearningRound _replaceSavedExercise(Exercise exercise) {
+    var found = false;
+    final content = <LearningContent>[
+      for (final item in _savedRound.content)
+        if (item.id == exercise.id) ...[
+          LearningContent.fromExercise(exercise),
+        ] else ...[
+          item,
+        ],
+    ];
+    found = _savedRound.content.any((item) => item.id == exercise.id);
+    if (!found) content.add(LearningContent.fromExercise(exercise));
+    return LearningRound(
+      id: _savedRound.id,
+      publicationState: _savedRound.publicationState,
+      updatedAt: _savedRound.updatedAt,
+      title: _savedRound.title,
+      visualType: _savedRound.visualType,
+      content: content,
+    );
+  }
+
+  Future<void> _persistChildExercise(Exercise exercise) async {
+    final persisted = _replaceSavedExercise(exercise);
+    await widget.onPersistRound?.call(persisted);
+    if (!mounted) return;
+    setState(() {
+      _savedRound = persisted;
+      final index = _exercises.indexWhere((item) => item.id == exercise.id);
+      if (index < 0) {
+        _exercises.add(exercise);
+      } else {
+        _exercises[index] = exercise;
+      }
+    });
+  }
+
   Future<void> _edit(int i) async {
     final e = await Navigator.of(context).push<Exercise>(
       MaterialPageRoute(
@@ -3719,6 +3959,8 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
           exercise: _exercises[i],
           title: 'Edit exercise ${i + 1}',
           isNew: false,
+          onPersist: _persistChildExercise,
+          clock: _clock,
         ),
       ),
     );
@@ -3732,11 +3974,15 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
           exercise: _blankExerciseForPreset('choice', _ids),
           title: 'New exercise',
           isNew: true,
+          onPersist: _persistChildExercise,
+          clock: _clock,
         ),
       ),
     );
     if (e == null || !mounted) return;
-    setState(() => _exercises.add(e));
+    if (!_exercises.any((item) => item.id == e.id)) {
+      setState(() => _exercises.add(e));
+    }
     _warnLength();
   }
 
@@ -3872,7 +4118,7 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
         ],
       ),
     );
-    c.dispose();
+    WidgetsBinding.instance.addPostFrameCallback((_) => c.dispose());
     if (n != null && mounted) {
       setState(() => _title = n.trim());
     }
@@ -4017,6 +4263,7 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
   }) {
     final out = <Exercise>[];
     final stamp = DateTime.now().microsecondsSinceEpoch;
+    final updatedAt = _clock();
     final passage = reading.prompt.trim();
     final words = RegExp(r"[A-Za-zÀ-ÖØ-öø-ÿ']{2,}")
         .allMatches(passage)
@@ -4045,6 +4292,7 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
           Exercise(
             id: 'gen_listen_$stamp',
             publicationState: PublicationState.draft,
+            updatedAt: updatedAt,
             type: 'listening_comprehension',
             prompt: '',
             question: _sourceLabel(
@@ -4070,6 +4318,7 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
         Exercise(
           id: 'gen_audio_${stamp + 1}',
           publicationState: PublicationState.draft,
+          updatedAt: updatedAt,
           type: 'audio_match',
           prompt: _sourceLabel(
             'Match each sound to the text.',
@@ -4096,6 +4345,7 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
         Exercise(
           id: 'gen_missing_${stamp + 7}',
           publicationState: PublicationState.draft,
+          updatedAt: updatedAt,
           type: 'missing_word',
           prompt: passage,
           question: '',
@@ -4142,6 +4392,7 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
             Exercise(
               id: 'gen_trans_${stamp + seq++}',
               publicationState: PublicationState.draft,
+              updatedAt: updatedAt,
               type: 'choice',
               prompt: '${_sourceLabel('Translate', 'Traduce')}: “$source”',
               question: '',
@@ -4174,6 +4425,7 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
             Exercise(
               id: 'gen_order_${stamp + seq++}',
               publicationState: PublicationState.draft,
+              updatedAt: updatedAt,
               type: 'word_order',
               prompt: '${_sourceLabel('Translate', 'Traduce')}: “$source”',
               question: '',
@@ -4269,6 +4521,7 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
     final preview = LearningRound(
       id: 'preview_${widget.round.id}',
       publicationState: PublicationState.draft,
+      updatedAt: _clock(),
       title: 'Preview exercise',
       visualType: widget.round.visualType,
       exercises: [_exercises[index]],
@@ -4570,6 +4823,7 @@ class _ExerciseCreationWizardScreenState
           round: LearningRound(
             id: 'wizard_preview_${widget.round.id}',
             publicationState: PublicationState.draft,
+            updatedAt: DateTime.now().toUtc(),
             title: 'Preview exercise',
             exercises: [exercise],
           ),
@@ -4930,28 +5184,44 @@ class _CourseAuditScreenState extends State<CourseAuditScreen> {
     AuditSeverity.info => 'Info',
   };
 
-  Widget _issueCard(CourseAuditIssue issue) => Card(
-    child: ListTile(
-      leading: Icon(
-        issue.severity == AuditSeverity.error
-            ? Icons.error_outline
-            : issue.severity == AuditSeverity.warning
-            ? Icons.warning_amber_outlined
-            : Icons.info_outline,
+  Widget _issueCard(NumberedAuditIssue numbered) {
+    final issue = numbered.issue;
+    return Semantics(
+      label:
+          '${numbered.label}. ${issue.message}. Code ${issue.code}. ${issue.location}',
+      child: Card(
+        child: ListTile(
+          leading: Icon(
+            issue.severity == AuditSeverity.error
+                ? Icons.error_outline
+                : issue.severity == AuditSeverity.warning
+                ? Icons.warning_amber_outlined
+                : Icons.info_outline,
+          ),
+          title: Text(issue.message),
+          subtitle: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(numbered.label),
+              Text('Code: ${issue.code}'),
+              Text(issue.location),
+            ],
+          ),
+          isThreeLine: true,
+          trailing: issue.roundId == null
+              ? null
+              : const Icon(Icons.edit_outlined),
+          onTap: issue.roundId == null
+              ? null
+              : () => Navigator.pop(context, issue),
+        ),
       ),
-      title: Text(issue.message),
-      subtitle: Text('${issue.code} · ${issue.location}'),
-      trailing: issue.roundId == null ? null : const Icon(Icons.edit_outlined),
-      onTap: issue.roundId == null ? null : () => Navigator.pop(context, issue),
-    ),
-  );
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
-    final sortedIssues = widget.result.sorted(_sortMode);
-    final issues = _filter == null
-        ? sortedIssues
-        : sortedIssues.where((i) => i.severity == _filter).toList();
+    final issues = widget.result.numbered(_sortMode, severity: _filter);
     Widget chip(String label, AuditSeverity? severity) => ChoiceChip(
       label: Text(label),
       selected: _filter == severity,
@@ -4999,6 +5269,10 @@ class _CourseAuditScreenState extends State<CourseAuditScreen> {
                           value: AuditSortMode.exerciseType,
                           child: Text('By Exercise type'),
                         ),
+                        DropdownMenuItem(
+                          value: AuditSortMode.recentlyModified,
+                          child: Text('Recently modified'),
+                        ),
                       ],
                     ),
                   ),
@@ -5026,7 +5300,7 @@ class _CourseAuditScreenState extends State<CourseAuditScreen> {
               ),
             ),
           for (final severity in AuditSeverity.values)
-            if (issues.any((issue) => issue.severity == severity)) ...[
+            if (issues.any((entry) => entry.issue.severity == severity)) ...[
               Padding(
                 padding: const EdgeInsets.fromLTRB(8, 16, 8, 6),
                 child: Text(
@@ -5035,7 +5309,7 @@ class _CourseAuditScreenState extends State<CourseAuditScreen> {
                 ),
               ),
               ...issues
-                  .where((issue) => issue.severity == severity)
+                  .where((entry) => entry.issue.severity == severity)
                   .map(_issueCard),
             ],
         ],
@@ -5048,11 +5322,15 @@ class ExerciseEditorScreen extends StatefulWidget {
   final Exercise exercise;
   final String title;
   final bool isNew;
+  final Future<void> Function(Exercise exercise)? onPersist;
+  final DateTime Function()? clock;
   const ExerciseEditorScreen({
     super.key,
     required this.exercise,
     required this.title,
     required this.isNew,
+    this.onPersist,
+    this.clock,
   });
   @override
   State<ExerciseEditorScreen> createState() => _ExerciseEditorScreenState();
@@ -5061,6 +5339,10 @@ class ExerciseEditorScreen extends StatefulWidget {
 class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
   final _imageService = ExerciseImageService();
   bool _dirty = false;
+  late final DateTime Function() _clock = widget.clock ?? DateTime.now;
+  final List<TextEditingController> _correctTranslations = [];
+  Set<int> _correctTranslationErrorIndexes = const {};
+  String? _correctTranslationError;
   late String _imageAsset;
   static List<String> get _types =>
       ExercisePresetRegistry.presets.map((preset) => preset.id).toList();
@@ -5098,6 +5380,15 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
     _accepted = TextEditingController(text: e.accepted.join('\n'));
     _tokens = TextEditingController(text: e.tokens.join('\n'));
     _order = TextEditingController(text: e.orderAnswer.join('\n'));
+    final correctTranslations = e.correctTranslationTexts;
+    for (final value
+        in correctTranslations.isEmpty
+            ? const <String>['']
+            : correctTranslations) {
+      final controller = TextEditingController(text: value);
+      controller.addListener(_markDirty);
+      _correctTranslations.add(controller);
+    }
     _pairs = TextEditingController(
       text: e.pairs.map((p) => p.join(' = ')).join('\n'),
     );
@@ -5132,7 +5423,16 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
   }
 
   void _markDirty() {
-    if (!_dirty && mounted) setState(() => _dirty = true);
+    if (mounted &&
+        (!_dirty ||
+            _correctTranslationError != null ||
+            _correctTranslationErrorIndexes.isNotEmpty)) {
+      setState(() {
+        _dirty = true;
+        _correctTranslationError = null;
+        _correctTranslationErrorIndexes = const {};
+      });
+    }
   }
 
   Future<void> _attemptLeaveExercise() async {
@@ -5161,8 +5461,124 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
     ]) {
       c.dispose();
     }
+    for (final controller in _correctTranslations) {
+      controller.dispose();
+    }
     super.dispose();
   }
+
+  List<String> get _literalCorrectTranslations => _correctTranslations
+      .map((controller) => controller.text.trim())
+      .where((value) => value.isNotEmpty)
+      .toList(growable: false);
+
+  String _normalizedLiteralTranslation(String value) => value
+      .trim()
+      .replaceAll(RegExp(r'[.!?…]+$'), '')
+      .replaceAll(RegExp(r'\s+'), ' ')
+      .toLowerCase();
+
+  void _addCorrectTranslation() {
+    final controller = TextEditingController()..addListener(_markDirty);
+    setState(() {
+      _correctTranslations.add(controller);
+      _dirty = true;
+      _correctTranslationError = null;
+      _correctTranslationErrorIndexes = const {};
+    });
+  }
+
+  void _removeCorrectTranslation(int index) {
+    if (_correctTranslations.length == 1) {
+      _correctTranslations.single.clear();
+      return;
+    }
+    setState(() {
+      _correctTranslations.removeAt(index).dispose();
+      _dirty = true;
+      _correctTranslationError = null;
+      _correctTranslationErrorIndexes = const {};
+    });
+  }
+
+  void _reorderCorrectTranslations(int oldIndex, int newIndex) {
+    setState(() {
+      if (newIndex > oldIndex) newIndex -= 1;
+      final controller = _correctTranslations.removeAt(oldIndex);
+      _correctTranslations.insert(newIndex, controller);
+      _dirty = true;
+      _correctTranslationError = null;
+      _correctTranslationErrorIndexes = const {};
+    });
+  }
+
+  Widget _correctTranslationsEditor() => Column(
+    crossAxisAlignment: CrossAxisAlignment.stretch,
+    children: [
+      Text(
+        'Correct translations',
+        style: Theme.of(context).textTheme.titleSmall,
+      ),
+      const SizedBox(height: 4),
+      const Text(
+        'Each entry is one complete literal target-language sentence. Answer syntax and similarity matching are not used.',
+      ),
+      const SizedBox(height: 8),
+      ReorderableListView.builder(
+        key: const Key('build-translation-correct-translations'),
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        itemCount: _correctTranslations.length,
+        onReorderItem: _reorderCorrectTranslations,
+        itemBuilder: (context, index) => Padding(
+          key: ValueKey(_correctTranslations[index]),
+          padding: const EdgeInsets.only(bottom: 8),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: TextField(
+                  key: ValueKey('build-translation-answer-$index'),
+                  controller: _correctTranslations[index],
+                  minLines: 1,
+                  maxLines: 3,
+                  decoration: InputDecoration(
+                    border: const OutlineInputBorder(),
+                    labelText: 'Correct translation ${index + 1}',
+                    errorText: _correctTranslationErrorIndexes.contains(index)
+                        ? _correctTranslationError
+                        : null,
+                  ),
+                ),
+              ),
+              IconButton(
+                tooltip: 'Delete correct translation ${index + 1}',
+                onPressed: () => _removeCorrectTranslation(index),
+                icon: const Icon(Icons.delete_outline),
+              ),
+              ReorderableDragStartListener(
+                index: index,
+                child: const Padding(
+                  padding: EdgeInsets.all(12),
+                  child: Icon(Icons.drag_handle),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+      Align(
+        alignment: Alignment.centerLeft,
+        child: OutlinedButton.icon(
+          key: const Key('add-correct-translation'),
+          onPressed: _addCorrectTranslation,
+          icon: const Icon(Icons.add),
+          label: const Text('Add correct translation'),
+        ),
+      ),
+      const SizedBox(height: 12),
+    ],
+  );
 
   List<String> _lines(TextEditingController c) => c.text
       .split('\n')
@@ -5327,21 +5743,20 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
         ];
       case 'build_translation':
         return [
-          _field(_prompt, 'Source text', lines: 3),
+          _field(
+            _prompt,
+            'Source sentence',
+            lines: 3,
+            helper: 'Enter the complete sentence the learner must translate.',
+          ),
           _field(
             _tokens,
             'Available target-language blocks',
             lines: 5,
             helper:
-                'One block per line. You may include 0, 1 or at most 2 distractors.',
+                'One literal block per line. Include enough occurrences to construct every correct translation; repeated words need separate blocks.',
           ),
-          _field(
-            _order,
-            'Correct translation',
-            lines: 5,
-            helper:
-                'Enter the complete translation, or one block per line in the required order. Terminal sentence punctuation may be included.',
-          ),
+          _correctTranslationsEditor(),
         ];
       case 'word_order':
         return [
@@ -5459,7 +5874,12 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
         ];
       case 'reading_comprehension':
         return [
-          _field(_prompt, 'Reading passage', lines: 5),
+          _field(
+            _prompt,
+            'Reading passage',
+            lines: 5,
+            helper: 'At least three lexical words are recommended.',
+          ),
           _field(_question, 'Comprehension question', lines: 2),
           _field(_answers, 'Answers', lines: 4),
           _field(_correct, 'Correct answer number'),
@@ -5782,6 +6202,41 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
       return;
     }
     if (!mounted) return;
+    if (_type == 'build_translation') {
+      final translations = _literalCorrectTranslations;
+      if (translations.isEmpty) {
+        setState(() {
+          _correctTranslationErrorIndexes = const {0};
+          _correctTranslationError =
+              'Add at least one non-empty correct translation.';
+        });
+        return;
+      }
+      final normalizedByIndex = <int, String>{
+        for (var index = 0; index < _correctTranslations.length; index++)
+          if (_correctTranslations[index].text.trim().isNotEmpty)
+            index: _normalizedLiteralTranslation(
+              _correctTranslations[index].text,
+            ),
+      };
+      if (normalizedByIndex.values.toSet().length != normalizedByIndex.length) {
+        final duplicateIndexes = <int>{};
+        for (final entry in normalizedByIndex.entries) {
+          if (normalizedByIndex.values
+                  .where((value) => value == entry.value)
+                  .length >
+              1) {
+            duplicateIndexes.add(entry.key);
+          }
+        }
+        setState(() {
+          _correctTranslationErrorIndexes = duplicateIndexes;
+          _correctTranslationError =
+              'Duplicate after case, spacing and terminal punctuation normalization.';
+        });
+        return;
+      }
+    }
     final answers = _type == 'flashcard'
         ? _lines(_answers)
         : _type == 'audio_match'
@@ -5808,7 +6263,7 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
         correct = parsed - 1;
       }
     }
-    final Exercise ex;
+    final Exercise candidate;
     if (_type == 'contextual_comprehension') {
       final items = <ExerciseItem>[
         for (var i = 0; i < answers.length; i++)
@@ -5819,9 +6274,10 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
             content: [PromptElement(type: 'text', text: answers[i])],
           ),
       ];
-      ex = Exercise.v2(
+      candidate = Exercise.v2(
         id: widget.exercise.id,
         publicationState: publicationState,
+        updatedAt: widget.exercise.updatedAt,
         editorTemplate: _type,
         promptElements: [
           if (_contextMode != 'audio' && _context.text.trim().isNotEmpty)
@@ -5853,9 +6309,10 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
         hint: '',
       );
     } else {
-      ex = Exercise(
+      candidate = Exercise(
         id: widget.exercise.id,
         publicationState: publicationState,
+        updatedAt: widget.exercise.updatedAt,
         type: _type,
         prompt:
             const {
@@ -5917,13 +6374,11 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
             }.contains(_type)
             ? _lines(_tokens)
             : const [],
-        orderAnswer:
-            const {
-              'word_order',
-              'image_word',
-              'build_translation',
-            }.contains(_type)
+        orderAnswer: const {'word_order', 'image_word'}.contains(_type)
             ? _lines(_order)
+            : const [],
+        correctTranslations: _type == 'build_translation'
+            ? _literalCorrectTranslations
             : const [],
         pairs:
             const {
@@ -5949,11 +6404,17 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
             : const [],
       );
     }
+    final ex =
+        widget.isNew ||
+            !_sameAuthoringJson(candidate.toJson(), widget.exercise.toJson())
+        ? _withExercisePublication(
+            candidate,
+            publicationState,
+            updatedAt: _clock(),
+          )
+        : candidate;
     if (!publicationState.isPublished) {
-      if (!mounted) return;
-      setState(() => _dirty = false);
-      await WidgetsBinding.instance.endOfFrame;
-      if (mounted) Navigator.pop(context, ex);
+      await _persistAndClose(ex);
       return;
     }
     final issues = CourseAuditService().auditExercise(ex);
@@ -6027,10 +6488,26 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
       );
       if (use != true) return;
     }
+    await _persistAndClose(ex);
+  }
+
+  Future<void> _persistAndClose(Exercise exercise) async {
+    try {
+      await widget.onPersist?.call(exercise);
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          duration: const Duration(seconds: 8),
+          content: Text('Exercise was not saved: $error'),
+        ),
+      );
+      return;
+    }
     if (!mounted) return;
     setState(() => _dirty = false);
     await WidgetsBinding.instance.endOfFrame;
-    if (mounted) Navigator.pop(context, ex);
+    if (mounted) Navigator.pop(context, exercise);
   }
 
   @override

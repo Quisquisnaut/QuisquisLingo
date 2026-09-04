@@ -23,6 +23,7 @@ class CourseService {
     'NL': 'assets/courses/dutch_en.json',
     'PT': 'assets/courses/portuguese_en.json',
     'FI': 'assets/courses/finnish_en.json',
+    'KO': 'assets/courses/korean_en.json',
   };
 
   static const Map<String, String> targetLabels = {
@@ -34,6 +35,7 @@ class CourseService {
     'NL': 'Dutch',
     'PT': 'Portuguese',
     'FI': 'Finnish',
+    'KO': 'Korean',
   };
 
   static const Map<String, String> sourceLabels = {
@@ -45,12 +47,14 @@ class CourseService {
     'NL': 'English',
     'PT': 'English',
     'FI': 'English',
+    'KO': 'English',
   };
 
   Future<Course> loadItalianCourse() => loadCourse('IT');
   Future<Course> loadGermanCourse() => loadCourse('DE');
   Future<Course> loadSpanishCourse() => loadCourse('ES');
   Future<Course> loadEnglishCourse() => loadCourse('EN');
+  Future<Course> loadKoreanCourse() => loadCourse('KO');
 
   static bool hasCourse(String languageCode) =>
       courseAssets.containsKey(languageCode.trim().toUpperCase());
@@ -65,6 +69,7 @@ class CourseService {
     if (language == 'dutch') return 'NL';
     if (language == 'portuguese') return 'PT';
     if (language == 'finnish') return 'FI';
+    if (language == 'korean') return 'KO';
     final raw = course.targetLanguage.trim().toUpperCase();
     return raw.length >= 2 ? raw.substring(0, 2) : raw;
   }
@@ -77,8 +82,9 @@ class CourseService {
       final raw = await rootBundle.loadString(asset);
       try {
         final decodedValue = jsonDecode(raw);
-        if (decodedValue is! Map)
+        if (decodedValue is! Map) {
           throw const FormatException('Course root must be an object.');
+        }
         final decoded = Map<String, dynamic>.from(decodedValue);
         final withLocalEdits = await _editor.applyToCourse(
           normalizedCode,

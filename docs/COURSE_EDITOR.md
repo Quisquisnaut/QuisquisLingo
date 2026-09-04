@@ -1,10 +1,10 @@
 # QuisquisLingo Course Editor
 
-Updated for the first controlled 2.0.25+225 Course Model v5 editor tranche
+Updated for Version 2.0.25, Build 225.02 and Course Model v6
 
 ## Unlocking the editor
 
-Course Editor is an Easter Egg so ordinary learners do not encounter authoring controls accidentally. Open **Settings** and tap/click **the displayed QuisquisLingo version** ten times within about five seconds. `Course Editor unlocked` appears and the Course Editor entry becomes visible. The unlock state is stored locally on the device.
+Course Editor is an Easter Egg so ordinary learners do not encounter authoring controls accidentally. Open **Settings** and tap/click anywhere in the complete **Version and Build** row ten times within about five seconds. `Course Editor unlocked` appears and the Course Editor entry becomes visible. The unlock state is stored locally on the device.
 
 ## Editable hierarchy
 
@@ -26,11 +26,11 @@ The controlled **Lesson theme icon** picker separates **Preinstalled** and **Cus
 
 Course, Lesson, Round and Exercise authoring uses one explicit `Draft` / `Published` state. **Save as Draft** preserves incomplete but structurally safe work; **Save / Publish** runs strict learner validation. A Published child below a Draft parent remains hidden, and publishing a parent never publishes Draft descendants. Draft Courses are not learner-selectable. Draft Lessons create no learner numbering or Section gaps and do not affect unlocks. Draft Rounds and Exercises are excluded from learner execution, completion, Review, Duel and XP. Moving Published content to Draft confirms first and preserves stable IDs, progress and history.
 
-Back/close uses the same **Unsaved changes** confirmation at Course, Lesson, Round and Exercise levels. A successful **Save as Draft** or **Publish** refreshes that editor's saved baseline, so leaving immediately does not warn; edits made after the save warn again. Validation or persistence failure never clears the dirty state. Saving a child updates only its parent draft; the parent remains dirty until explicitly saved. Preview does not publish, clear dirty state or write learner state.
+Back/close uses the same **Unsaved changes** confirmation at Course, Lesson, Round and Exercise levels. A successful **Save as Draft** or **Publish** persists that child transactionally through Round, Lesson and Course storage and refreshes the saved child baseline at each open ancestor, so leaving immediately does not repeat warnings for the saved mutation. Independent unsaved parent edits remain dirty until explicitly saved. Validation or persistence failure clears no dirty state. Preview does not publish, clear dirty state or write learner state.
 
 Course info controls the learner-visible Lesson prefix: Lesson, Unit, Topic, Module, Skill, Chapter, Stage, Step, Part, a trimmed custom label, number only, or none. Numbers use Published Lesson order only. The exact untouched default `Lesson N` is shown once when Lesson mode would otherwise duplicate it. Course info also chooses the monochrome or colored-number fallback style and stores an optional validated **Buy a Coffee** HTTPS URL.
 
-The Lesson form keeps Lesson metadata readily accessible and links to one dedicated **Rounds** page instead of expanding the complete list inline. The page reuses the existing Round workflow and returns naturally to the Lesson draft. Navigation through Course → Lessons → Lesson → Rounds → Round/Exercises keeps one draft boundary: it does not prematurely write each subpage mutation. Unsaved Course and Lesson metadata, returned Round edits and every existing stable ID remain intact until the parent save boundary.
+The Lesson form keeps Lesson metadata readily accessible and links to one dedicated **Rounds** page instead of expanding the complete list inline. The page reuses the existing Round workflow and returns naturally to the Lesson draft. Navigation alone writes nothing. An explicit child save persists that child through the ancestor callback chain; unsaved Course/Lesson/Round metadata outside the saved child is retained independently, and every stable ID remains intact.
 
 Duplicate inserts the independent copy immediately after its source. Lesson duplication recursively allocates fresh Lesson, Duel, GuideBook Content, Round, Exercise and item IDs; Round and Exercise duplication applies the corresponding subtree rule. Internal ID references are remapped while shared immutable image/audio asset paths remain references. Editing a duplicate cannot mutate its source. Rename changes only the title and preserves identity and descendants. Preview uses learner rendering without writing completion, XP, streak, Laurel, Review, Duel or unlock state.
 
@@ -66,6 +66,10 @@ The **Exercise Help** action next to the preset control uses the same registry a
 ### Type the translation
 
 Provide source-language text and one or more complete accepted target-language translations, one per line. A hint is optional and must not reveal the solution. The learner types freely. A conservative typo allowance accepts only one accidentally omitted or duplicated repeated letter in a sufficiently long single token while preserving word count, order, diacritics and negation safeguards; substitutions and broader lexical or grammatical changes are not treated as spelling mistakes.
+
+### Build the translation
+
+Provide source-language text, literal target-language blocks and one or more complete correct translations. Add, delete and reorder answers directly; their order is preserved in saved JSON and feedback. Each answer must be non-empty, unique after case/spacing/terminal-punctuation normalization and constructible from distinct block occurrences. Repeated words require repeated block occurrences, internal punctuation is preserved, and no more than two blocks may remain unused. Build the translation uses literal matching only: it does not expand Type-the-translation syntax and does not apply similarity or typo acceptance. After either a correct or incorrect response, every configured correct translation is shown in author order.
 
 ### Contextual comprehension
 
@@ -135,13 +139,13 @@ Checks include:
 - duplicate or missing IDs
 - empty courses/lessons/rounds
 - round length versus the standard 15
-- missing Reading or Listening comprehension in a round
+- missing Reading comprehension in a round
 - unsupported exercise types
 - missing/out-of-range correct answers
 - duplicate/blank options
 - listening exercises without TTS
-- very short comprehension passages
-- hint contains an accepted answer
+- empty Reading passages (Error), or one- and two-word lexical Reading passages (`READING_PASSAGE_TOO_SHORT` Warning); three or more Unicode/apostrophe-aware words do not warn
+- hints that repeat the prompt (`HINT_REPEATS_PROMPT` Warning) or reveal any canonical accepted answer (Error)
 - Word Blocks with more than two distractors or with impossible token counts
 - Flashcards without usage or pronunciation
 - Audio Match repeated sounds, repeated correct matches, repeated visible choices, missing matches, or unusual 3/5 cardinality
@@ -153,11 +157,13 @@ Checks include:
 
 Audit does not certify grammar, translation accuracy, cultural appropriateness or teaching quality. Those remain human editorial responsibilities.
 
-A Lesson with fewer than six Rounds receives author guidance only. Duel availability never depends on Round count: fewer than 25 actual eligible Lesson exercises produces a non-blocking `DUEL_UNAVAILABLE` suggestion and is normal supported behavior.
+A Lesson with fewer than six Rounds receives author guidance only. Missing Listening-comprehension coverage intentionally emits no Info item. Duel availability never depends on Round count: fewer than 25 actual eligible Lesson exercises produces a non-blocking `DUEL_UNAVAILABLE` suggestion and is normal supported behavior.
+
+Audit can sort by Lesson, friendly Exercise type or **Recently modified**. Recent order is `updatedAt` descending with deterministic stable tie-breaks. Displayed and exported findings are numbered progressively inside each severity group after the active scope, filter and sort are applied.
 
 ## Storage and recovery
 
-Local edited courses are stored separately from bundled assets. A complete course override is validated structurally before saving and before learner use. Corrupt local authoring JSON is backed up and ignored instead of crashing course loading. Local authoring data has a 8 MB safety limit.
+Local edited courses are stored separately from bundled assets in the Course Model v6/build-225 namespace. No earlier namespace is read or migrated. A complete course override is validated structurally before saving and before learner use. Malformed current-namespace JSON is preserved and copied aside before loading fails clearly; it is never silently replaced with an empty collection. Local authoring data has an 8 MB safety limit.
 
 **Copy edits as JSON** exports the local authoring override to the clipboard. **Reset local edits** removes it.
 
@@ -165,7 +171,7 @@ Local edited courses are stored separately from bundled assets. A complete cours
 
 A Word Blocks exercise may contain 0, 1 or at most 2 extra distractor blocks. Every distractor must be in the same language as the other visible blocks. This is determined by the language of the answer blocks, not simply by the course target language, because translation exercises can run in either direction.
 
-For **Build the translation**, the correct translation may be entered as one natural sentence or one block per line. Terminal `.`, `!`, `?` or `…` punctuation is not an artificial block: the editor resolves the authored sentence to the stable canonical Item order, while the runtime's ordered-answer punctuation policy remains explicit and unchanged.
+For **Build the translation**, enter every correct translation as a separate complete literal answer. Terminal `.`, `!`, `?` or `…` punctuation is not an artificial block: each answer resolves to stable canonical Item occurrences while retaining its literal display text.
 
 The bundled-course validator builds conservative source/target lexicons from explicitly oriented matching pairs and flashcards and reports high-confidence cross-language distractors. The in-app audit validates the structural invariant of 0 to 2 usable extra blocks. Language identification is intentionally conservative: ambiguous words shared by two languages must not be auto-rejected solely on spelling.
 
@@ -206,7 +212,7 @@ missing fields, duplicate IDs, duplicate Audio Match words, malformed Word
 Blocks, missing Reading/Listening coverage, oversized text and other structural
 problems. Audit does not certify grammar or translation accuracy.
 
-The Audit can be scoped to a Course, Lesson or Round and sorted by Lesson or friendly Exercise type. Error, Warning and Info are distinct: only Error is structurally blocking. A Lesson with fewer than three Rounds and one without Listening comprehension receive Info guidance. In the Round management page, a pink outline means that Round currently has at least one Audit Error; Warning and Info never add the outline. Audit results refresh after authoring mutations.
+The Audit can be scoped to a Course, Lesson or Round and sorted by Lesson, friendly Exercise type or Recently modified. Error, Warning and Info are distinct: only Error is structurally blocking. A Lesson with fewer than three Rounds receives Info guidance; missing Listening comprehension does not. In the Round management page, a pink outline means that Round currently has at least one Audit Error; Warning and Info never add the outline. Audit results refresh after authoring mutations.
 
 ## Temporary sample courses
 Bundled courses carry a course-level `temporarySample` flag. The UI displays a TEMPORARY SAMPLE badge and Course Editor displays the sample-content warning every time a marked course is opened. Creators can remove or restore the flag from the Course Editor menu. Sample material must be replaced and human-reviewed before publication.
@@ -258,11 +264,11 @@ The current time-limited alpha expires on 2026-10-04. Expiry blocks learner exer
 
 ## Current bundled course and My custom courses
 
-The Course Editor entry screen separates the **Current bundled course** from **My custom courses**. A created or imported custom course remains custom even when it is the currently selected course and is never duplicated under Current bundled course. Temporary sample material refers to bundled sample courses supplied with early/current development builds and is progressively replaced by reviewed course content. A newly created custom course starts from a basic Course Model v5 authoring skeleton: 3 placeholder Lessons, each with a stable Lesson-scoped Duel identity. No Rounds are created automatically.
+The Course Editor entry screen separates the **Current bundled course** from **My custom courses**. A created or imported custom course remains custom even when it is the currently selected course and is never duplicated under Current bundled course. Temporary sample material refers to bundled sample courses supplied with early/current development builds and is progressively replaced by reviewed course content. A newly created custom course starts from a basic Course Model v6 authoring skeleton: 3 placeholder Lessons, each with a stable Lesson-scoped Duel identity. No Rounds are created automatically.
 
 When creating a custom course, the author can use one of QuisquisLingo's existing flags or import a PNG/JPG image. Imported flags are checked for file size and resolution. Images that are too small or excessively large are rejected; accepted large images are resized to a maximum 256 px longest side while preserving their aspect ratio. The processed PNG is stored with the course so it remains available if the original file is moved or deleted.
 
-Custom courses can be imported from and exported to `.json` files without a file chooser. For import, copy the course file to `Documents/QuisquisLingo/Exports/import.json`, then press **Import course JSON**. The imported course is added under **My custom courses** and `import.json` is left in place. Course Audit errors block import; warnings are reported for review but do not block it. Imports must be UTF-8 Course Model v5 JSON and are validated through the normal `Course` parser. Older Chapter-based formats are unsupported and are not read, migrated or converted; export writes the canonical v5 structure. Files larger than 10 MB are refused. An imported course with the same stable `courseId` as an existing custom course requires confirmation before replacement. Exports are written to the same `Documents/QuisquisLingo/Exports` directory and contain the canonical human-readable Course Model v5 object, including optional custom flag data. Learner **Export my data** remains separate and does not contain custom courses.
+Custom courses can be imported from and exported to `.json` files without a file chooser. For import, copy the course file to `Documents/QuisquisLingo/Exports/import.json`, then press **Import course JSON**. The imported course is added under **My custom courses** and `import.json` is left in place. Course Audit errors block import; warnings are reported for review but do not block it. Imports must be UTF-8 Course Model v6 JSON and are validated through the normal `Course` parser. v5 and older formats are unsupported and are not read, migrated, converted or deleted; export writes the canonical v6 structure. Files larger than 10 MB are refused. An imported course with the same stable `courseId` as an existing custom course requires confirmation before replacement. Exports are written to the same `Documents/QuisquisLingo/Exports` directory and contain the canonical human-readable Course Model v6 object, including optional custom flag data. Learner **Export my data** remains separate and does not contain custom courses.
 
 
 ### Home course selection and navigation
@@ -271,7 +277,7 @@ The compact flag in the Home Top Bar opens the full-size course selector, which 
 
 ### Copy edits as JSON vs Export course JSON
 
-**Copy edits as JSON** is for the Current bundled course. Bundled assets are not rewritten; the editor stores a local override, and this command copies that override JSON to the clipboard. It does not create a file. **Export course JSON** is for a custom course and writes a complete portable Course Model v5 JSON file to `Documents/QuisquisLingo/Exports`.
+**Copy edits as JSON** is for the Current bundled course. Bundled assets are not rewritten; the editor stores a local override, and this command copies that override JSON to the clipboard. It does not create a file. **Export course JSON** is for a custom course and writes a complete portable Course Model v6 JSON file to `Documents/QuisquisLingo/Exports`.
 
 When `Documents/QuisquisLingo/Exports/import.json` is imported successfully, QuisquisLingo validates it, copies the course into local custom-course storage and lists it under **My custom courses**. The stored course no longer depends on `import.json`; the transfer file is left in place. The stable `courseId` identifies the course internally. Course Info remains available even when the course content is locked. Renaming the visible Course name in Course Info does not change `courseId`; the Lock protects structural/content editing, not course metadata. Importing another JSON with the same `courseId` therefore requires confirmation before replacing the existing custom course.
 

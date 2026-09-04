@@ -24,6 +24,8 @@ class ReportService {
     String? answerState,
   }) async {
     final label = kind == ReportKind.bug ? 'APP BUG' : 'COURSE ERROR';
+    final roundIndex = lesson.rounds.indexWhere((item) => item.id == round.id);
+    final roundTitle = round.displayTitle(roundIndex < 0 ? 0 : roundIndex);
     final buffer = StringBuffer()
       ..writeln('QuisquisLingo report: $label')
       ..writeln('Please describe the problem below:')
@@ -34,7 +36,7 @@ class ReportService {
       ..writeln('Course: ${course.title} (${course.courseId})')
       ..writeln('Course version: ${course.version}')
       ..writeln('Lesson: ${lesson.lessonId} | ${lesson.title}')
-      ..writeln('Round: ${round.id} | ${round.title}')
+      ..writeln('Round: ${round.id} | $roundTitle')
       ..writeln('Exercise: ${exercise.id}')
       ..writeln(
         'Exercise position: ${exerciseIndex + 1}/${round.exercises.length}',

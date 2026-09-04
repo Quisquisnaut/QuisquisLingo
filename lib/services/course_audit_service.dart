@@ -6,7 +6,7 @@ import 'lesson_icon_catalog.dart';
 
 enum AuditSeverity { error, warning, info }
 
-enum AuditSortMode { lesson, exerciseType }
+enum AuditSortMode { lesson, exerciseType, recentlyModified }
 
 class CourseAuditIssue {
   final AuditSeverity severity;
@@ -16,6 +16,7 @@ class CourseAuditIssue {
   final String? roundId;
   final String? exerciseId;
   final String? exerciseType;
+  final DateTime? updatedAt;
   const CourseAuditIssue({
     required this.severity,
     required this.message,
@@ -24,7 +25,19 @@ class CourseAuditIssue {
     this.roundId,
     this.exerciseId,
     this.exerciseType,
+    this.updatedAt,
   });
+
+  CourseAuditIssue withUpdatedAt(DateTime? value) => CourseAuditIssue(
+    severity: severity,
+    code: code,
+    message: message,
+    location: location,
+    roundId: roundId,
+    exerciseId: exerciseId,
+    exerciseType: exerciseType,
+    updatedAt: value,
+  );
 
   String get exercisePresetName => exerciseType == null
       ? 'General'
@@ -46,10 +59,67 @@ class CourseAuditResult {
         AuditSortMode.exerciseType => a.$2.exercisePresetName.compareTo(
           b.$2.exercisePresetName,
         ),
+        AuditSortMode.recentlyModified => _compareRecentlyModified(a.$2, b.$2),
       };
       return primary != 0 ? primary : a.$1.compareTo(b.$1);
     });
     return indexed.map((entry) => entry.$2).toList(growable: false);
+  }
+
+  List<NumberedAuditIssue> numbered(
+    AuditSortMode mode, {
+    AuditSeverity? severity,
+  }) {
+    final ordered = sorted(mode)
+        .where((issue) => severity == null || issue.severity == severity)
+        .toList(growable: false);
+    final totals = {
+      for (final value in AuditSeverity.values)
+        value: ordered.where((issue) => issue.severity == value).length,
+    };
+    final positions = {for (final value in AuditSeverity.values) value: 0};
+    return [
+      for (final issue in ordered)
+        NumberedAuditIssue(
+          issue: issue,
+          position: positions.update(issue.severity, (value) => value + 1),
+          total: totals[issue.severity]!,
+        ),
+    ];
+  }
+
+  static int _compareRecentlyModified(
+    CourseAuditIssue left,
+    CourseAuditIssue right,
+  ) {
+    final leftTime =
+        left.updatedAt ?? DateTime.fromMillisecondsSinceEpoch(0, isUtc: true);
+    final rightTime =
+        right.updatedAt ?? DateTime.fromMillisecondsSinceEpoch(0, isUtc: true);
+    final timestampOrder = rightTime.compareTo(leftTime);
+    if (timestampOrder != 0) return timestampOrder;
+    final locationOrder = left.location.compareTo(right.location);
+    if (locationOrder != 0) return locationOrder;
+    final codeOrder = left.code.compareTo(right.code);
+    if (codeOrder != 0) return codeOrder;
+    return left.message.compareTo(right.message);
+  }
+}
+
+class NumberedAuditIssue {
+  const NumberedAuditIssue({
+    required this.issue,
+    required this.position,
+    required this.total,
+  });
+
+  final CourseAuditIssue issue;
+  final int position;
+  final int total;
+
+  String get label {
+    final name = issue.severity.name;
+    return '${name[0].toUpperCase()}${name.substring(1)} $position of $total';
   }
 }
 
@@ -103,8 +173,25 @@ class CourseAuditService {
       'dutch': 'NL',
       'finnish': 'FI',
       'welsh': 'CY',
+      'korean': 'KO',
     };
     return names[source] ?? course.interfaceLanguage.trim().toUpperCase();
+  }
+
+  String _courseTargetCode(Course course) {
+    final target = course.targetLanguage.trim().toLowerCase();
+    const names = <String, String>{
+      'english': 'EN',
+      'spanish': 'ES',
+      'italian': 'IT',
+      'german': 'DE',
+      'portuguese': 'PT',
+      'dutch': 'NL',
+      'finnish': 'FI',
+      'welsh': 'CY',
+      'korean': 'KO',
+    };
+    return names[target] ?? course.learningLanguage.trim().toUpperCase();
   }
 
   String? _legacyInstructionLanguage(String prompt) {
@@ -428,7 +515,7 @@ class CourseAuditService {
       }
       for (var ri = 0; ri < t.rounds.length; ri++) {
         final r = t.rounds[ri];
-        final rl = '$tl · Round ${ri + 1} · ${r.title}';
+        final rl = '$tl · ${r.displayTitle(ri)}';
         idCheck(r.id, rl, roundId: r.id);
         if (r.content.isEmpty)
           issues.add(
@@ -480,9 +567,6 @@ class CourseAuditService {
         final readingCount = r.exercises
             .where((e) => e.type == 'reading_comprehension')
             .length;
-        final listeningCount = r.exercises
-            .where((e) => e.type == 'listening_comprehension')
-            .length;
         if (readingCount == 0)
           issues.add(
             CourseAuditIssue(
@@ -492,18 +576,6 @@ class CourseAuditService {
               roundId: r.id,
             ),
           );
-        if (listeningCount == 0)
-          issues.add(
-            CourseAuditIssue(
-              severity: AuditSeverity.info,
-              code: 'ROUND_LISTENING_COMPREHENSION_MISSING',
-              message:
-                  'Consider adding a Listening comprehension exercise. This is friendly author guidance and does not block saving or publishing.',
-              location: rl,
-              roundId: r.id,
-            ),
-          );
-
         final duplicatePrompts = <String>{};
         for (var ei = 0; ei < r.exercises.length; ei++) {
           final ex = r.exercises[ei];
@@ -547,8 +619,10 @@ class CourseAuditService {
             ex.question.trim(),
             ...ex.answers,
           ].where((v) => v.isNotEmpty && !v.contains(RegExp(r'\s')));
-          if (_courseSourceCode(course) != 'DE' &&
-              isolated.any((v) => RegExp(r'^[A-ZÀ-ÖØ-Þ]').hasMatch(v)))
+          if (_courseTargetCode(course) != 'DE' &&
+              isolated.any(
+                (v) => RegExp(r'^\p{Lu}\p{L}*$', unicode: true).hasMatch(v),
+              ))
             issues.add(
               CourseAuditIssue(
                 severity: AuditSeverity.info,
@@ -599,7 +673,47 @@ class CourseAuditService {
           ),
         );
     }
-    return CourseAuditResult(issues);
+    return CourseAuditResult(_attachContentTimestamps(course, issues));
+  }
+
+  List<CourseAuditIssue> _attachContentTimestamps(
+    Course course,
+    List<CourseAuditIssue> issues,
+  ) {
+    final lessonByPrefix = <String, Lesson>{};
+    final roundById = <String, LearningRound>{};
+    final exerciseById = <String, Exercise>{};
+    for (
+      var lessonIndex = 0;
+      lessonIndex < course.lessons.length;
+      lessonIndex++
+    ) {
+      final lesson = course.lessons[lessonIndex];
+      lessonByPrefix['Lesson ${lessonIndex + 1} ·'] = lesson;
+      for (final round in lesson.rounds) {
+        roundById[round.id] = round;
+        for (final exercise in round.exercises) {
+          exerciseById[exercise.id] = exercise;
+        }
+      }
+    }
+    DateTime? lessonTimestamp(String location) {
+      for (final entry in lessonByPrefix.entries) {
+        if (location.startsWith(entry.key)) return entry.value.updatedAt;
+      }
+      return null;
+    }
+
+    return [
+      for (final issue in issues)
+        issue.withUpdatedAt(
+          issue.exerciseId == null
+              ? issue.roundId == null
+                    ? lessonTimestamp(issue.location)
+                    : roundById[issue.roundId]?.updatedAt
+              : exerciseById[issue.exerciseId]?.updatedAt,
+        ),
+    ];
   }
 
   CourseAuditResult auditLesson(Course course, String lessonId) {
@@ -896,14 +1010,11 @@ class CourseAuditService {
         roundId: roundId,
         exerciseId: ex.id,
         exerciseType: ex.editorTemplate,
+        updatedAt: ex.updatedAt,
       ),
     );
     if (!supportedTypes.contains(ex.type))
       add(AuditSeverity.error, 'Unknown exercise type: ${ex.type}');
-    // Older v5 courses can retain an authoring-template alias such as
-    // `choose_answer`. The runtime type is authoritative at this boundary, so
-    // validate it against the corresponding current preset without rewriting
-    // stored authoring metadata.
     final preset =
         ExercisePresetRegistry.byId(ex.editorTemplate) ??
         ExercisePresetRegistry.byId(ex.type) ??
@@ -954,7 +1065,7 @@ class CourseAuditService {
     final itemIdSet = itemIds.toSet();
     final referencedIds = <String>{
       ...ex.evaluation.correctItemIds,
-      ...ex.evaluation.correctOrder,
+      for (final answer in ex.evaluation.correctOrders) ...answer.itemIds,
       for (final pair in ex.evaluation.pairs) ...pair,
     };
     if (referencedIds.any((id) => !itemIdSet.contains(id))) {
@@ -971,7 +1082,7 @@ class CourseAuditService {
       );
 
     // Flag genuinely independent fields that do not belong to the selected
-    // preset. Canonical v5 interaction items are shared by Select, Arrange and
+    // preset. Canonical v6 interaction items are shared by Select, Arrange and
     // Match; the author-friendly answers/tokens/icons getters are projections
     // of those same items and therefore cannot be used to detect stale data.
     void unexpected(bool condition, String field) {
@@ -1003,7 +1114,7 @@ class CourseAuditService {
             'image_word',
             'build_translation',
           }.contains(ex.type) &&
-          ex.evaluation.correctOrder.isNotEmpty,
+          ex.evaluation.correctOrders.isNotEmpty,
       'correct sentence/order',
     );
     unexpected(
@@ -1148,10 +1259,6 @@ class CourseAuditService {
           );
         }
       }
-      _auditRevealingHint(ex.hint, [
-        if (correctAnswer.isNotEmpty) correctAnswer,
-        ...ex.accepted,
-      ], add);
     }
     if (ex.type == 'listening_spelling' && ex.accepted.isEmpty)
       add(
@@ -1251,12 +1358,22 @@ class CourseAuditService {
           'Missing Word exercise contains duplicate missing-word entries.',
         );
     }
-    if (ex.type == 'reading_comprehension' &&
-        ex.prompt.trim().split(RegExp(r'\s+')).length < 5)
-      add(
-        AuditSeverity.info,
-        'Reading comprehension passage is very short; make sure it tests comprehension rather than visual matching.',
-      );
+    if (ex.type == 'reading_comprehension') {
+      final lexicalWords = _lexicalWordCount(ex.prompt);
+      if (lexicalWords == 0) {
+        add(
+          AuditSeverity.error,
+          'Reading Comprehension needs a Reading Passage containing words.',
+          code: 'READING_PASSAGE_REQUIRED',
+        );
+      } else if (lexicalWords < 3) {
+        add(
+          AuditSeverity.warning,
+          'Reading Comprehension passages should contain at least three words.',
+          code: 'READING_PASSAGE_TOO_SHORT',
+        );
+      }
+    }
     if (ex.type == 'listening_comprehension' &&
         (ex.tts ?? '').trim().split(RegExp(r'\s+')).length < 5)
       add(
@@ -1270,73 +1387,86 @@ class CourseAuditService {
           AuditSeverity.error,
           'Fill-in exercise needs at least one accepted answer.',
         );
-      _auditRevealingHint(ex.hint, ex.accepted, add);
     }
     if (const {
       'word_order',
       'image_word',
       'build_translation',
     }.contains(ex.type)) {
-      if (ex.tokens.isEmpty || ex.orderAnswer.isEmpty)
+      if (ex.tokens.isEmpty || ex.evaluation.correctOrders.isEmpty)
         add(
           AuditSeverity.error,
-          'Word-block exercise needs available blocks and a correct sentence.',
+          ex.type == 'build_translation'
+              ? 'Build the translation needs usable Language blocks and at least one correct translation.'
+              : 'Word-block exercise needs available blocks and a correct sentence.',
           code: 'WORD_BLOCK_DATA_REQUIRED',
         );
-      final pool = <String, int>{};
-      for (final t in ex.tokens) {
-        pool[t] = (pool[t] ?? 0) + 1;
-      }
-      var impossible = false;
-      for (final t in ex.orderAnswer) {
-        pool[t] = (pool[t] ?? 0) - 1;
-        if ((pool[t] ?? 0) < 0) {
-          impossible = true;
-          break;
+      final normalizedAnswers = <String>{};
+      final usedItemIds = <String>{};
+      final itemValueById = {
+        for (final item in ex.interaction.items) item.id: item.value,
+      };
+      for (final answer in ex.evaluation.correctOrders) {
+        final normalized = _orderedAnswerComparable(answer.text);
+        if (normalized.isEmpty) {
+          add(
+            AuditSeverity.error,
+            'Correct translations must be complete non-empty literal text.',
+            code: 'BUILD_TRANSLATION_ANSWER_REQUIRED',
+          );
+        } else if (!normalizedAnswers.add(normalized)) {
+          add(
+            AuditSeverity.error,
+            'Correct translations contain a normalized duplicate.',
+            code: 'BUILD_TRANSLATION_DUPLICATE_ANSWER',
+          );
+        }
+        if (answer.itemIds.isEmpty ||
+            answer.itemIds.any((id) => !itemIdSet.contains(id))) {
+          add(
+            AuditSeverity.error,
+            'A correct translation contains missing or invalid Language block references.',
+            code: 'BUILD_TRANSLATION_INVALID_SEQUENCE',
+          );
+          continue;
+        }
+        if (answer.itemIds.toSet().length != answer.itemIds.length) {
+          add(
+            AuditSeverity.error,
+            'Repeated words require distinct Language block occurrences.',
+            code: 'BUILD_TRANSLATION_REUSED_BLOCK',
+          );
+        }
+        usedItemIds.addAll(answer.itemIds);
+        final separator = ex.type == 'image_word' ? '' : ' ';
+        final constructed = answer.itemIds
+            .map((id) => itemValueById[id])
+            .whereType<String>()
+            .join(separator);
+        if (_orderedAnswerComparable(constructed) != normalized) {
+          add(
+            AuditSeverity.error,
+            'A correct translation cannot be constructed literally from its Language block sequence.',
+            code: 'BUILD_TRANSLATION_UNCONSTRUCTABLE',
+          );
         }
       }
-      if (impossible)
-        add(
-          AuditSeverity.error,
-          'Correct sentence uses a block not available in the token pool.',
-        );
-      final extraCount = ex.tokens.length - ex.orderAnswer.length;
+      final comparisonOrder = ex.type == 'build_translation'
+          ? usedItemIds
+          : ex.evaluation.correctOrders.isEmpty
+          ? const <String>{}
+          : ex.evaluation.correctOrders.first.itemIds.toSet();
+      final extraCount = itemIdSet.difference(comparisonOrder).length;
       final maxDistractors = ex.type == 'image_word' ? 0 : 2;
       if (extraCount < 0 || extraCount > maxDistractors) {
         add(
           AuditSeverity.error,
           ex.type == 'image_word'
               ? 'Letter/syllable word-building exercises must contain only the blocks needed for the answer; found $extraCount extra blocks.'
+              : ex.type == 'build_translation'
+              ? 'Build the translation may contain 0, 1 or 2 blocks unused by every correct translation; found $extraCount.'
               : 'Word-order exercise may contain 0, 1 or 2 extra distractor blocks; found $extraCount.',
         );
-      }
-      if (extraCount >= 0 && extraCount <= maxDistractors) {
-        final counts = <String, int>{};
-        for (final t in ex.tokens) {
-          counts[t] = (counts[t] ?? 0) + 1;
-        }
-        for (final t in ex.orderAnswer) {
-          counts[t] = (counts[t] ?? 0) - 1;
-        }
-        final extraEntries = counts.entries.where((e) => e.value > 0).toList();
-        final extras = extraEntries.fold<int>(0, (sum, e) => sum + e.value);
-        if (extras != extraCount)
-          add(
-            AuditSeverity.error,
-            'The token multiset does not contain the expected usable distractor blocks. Repeated words must keep their required occurrence counts.',
-          );
-        if (extras > 0) {
-          final answerKeys = ex.orderAnswer
-              .map((e) => e.trim().toLowerCase())
-              .toSet();
-          if (extraEntries.any(
-            (e) => answerKeys.contains(e.key.trim().toLowerCase()),
-          ))
-            add(
-              AuditSeverity.error,
-              'Distractor must be a different visible word/block, not an extra copy of a required block.',
-            );
-        }
       }
       _auditWordBlockLanguage(ex, add);
     }
@@ -1447,6 +1577,20 @@ class CourseAuditService {
     }
     if (ex.type == 'icon_choice' && ex.icons.length != ex.answers.length)
       add(AuditSeverity.error, 'Icon count must match answer count.');
+    _auditRepeatingHint(ex.hint, [
+      ex.prompt,
+      ex.question,
+      ex.contextText,
+      ex.contextAudio,
+    ], add);
+    _auditRevealingHint(ex.hint, [
+      ...ex.evaluation.accepted,
+      ...ex.evaluation.correctOrders.map((answer) => answer.text),
+      for (final correctId in ex.evaluation.correctItemIds)
+        ...ex.interaction.items
+            .where((item) => item.id == correctId)
+            .map((item) => item.value),
+    ], add);
     return out;
   }
 
@@ -1463,6 +1607,32 @@ class CourseAuditService {
       )
       .trim()
       .toLowerCase();
+
+  String _orderedAnswerComparable(String value) => value
+      .trim()
+      .replaceAll(RegExp(r'[.!?…]+$'), '')
+      .replaceAll(RegExp(r'\s+'), ' ')
+      .toLowerCase();
+
+  void _auditRepeatingHint(
+    String hint,
+    Iterable<String> promptParts,
+    void Function(AuditSeverity, String, {String code}) add,
+  ) {
+    final normalizedHint = _hintComparable(hint);
+    if (normalizedHint.isEmpty) return;
+    if (promptParts.any(
+      (part) =>
+          _hintComparable(part).isNotEmpty &&
+          _hintComparable(part) == normalizedHint,
+    )) {
+      add(
+        AuditSeverity.warning,
+        'The Hint repeats the prompt, source text or question instead of providing useful help.',
+        code: 'HINT_REPEATS_PROMPT',
+      );
+    }
+  }
 
   void _auditRevealingHint(
     String hint,

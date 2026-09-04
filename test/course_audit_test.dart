@@ -242,7 +242,7 @@ void main() {
     );
   });
 
-  test('missing Listening comprehension is Info', () {
+  test('missing Listening comprehension is not an Audit issue', () {
     final lesson = Lesson(
       lessonId: 'lesson-listening',
       title: 'Listening guidance',
@@ -255,13 +255,15 @@ void main() {
         ),
       ],
     );
-    final issue = CourseAuditService()
+    final issues = CourseAuditService()
         .auditCourse(sampleCourse(lesson))
-        .issues
-        .singleWhere(
-          (item) => item.code == 'ROUND_LISTENING_COMPREHENSION_MISSING',
-        );
-    expect(issue.severity, AuditSeverity.info);
+        .issues;
+    expect(
+      issues.any(
+        (item) => item.code == 'ROUND_LISTENING_COMPREHENSION_MISSING',
+      ),
+      isFalse,
+    );
   });
 
   test('audit sorting is stable by Lesson and friendly Exercise type', () {

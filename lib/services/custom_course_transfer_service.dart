@@ -7,9 +7,19 @@ import 'package:path_provider/path_provider.dart';
 import '../models/course_models.dart';
 
 class CustomCourseTransferService {
+  CustomCourseTransferService({Future<Directory> Function()? directory})
+    : _directory = directory;
+
   static const int maxJsonBytes = 10 * 1024 * 1024;
+  final Future<Directory> Function()? _directory;
 
   Future<Directory> transferDirectory() async {
+    final testDirectory = _directory;
+    if (testDirectory != null) {
+      final directory = await testDirectory();
+      await directory.create(recursive: true);
+      return directory;
+    }
     final documents = await getApplicationDocumentsDirectory();
     final directory = Directory(
       '${documents.path}${Platform.pathSeparator}QuisquisLingo${Platform.pathSeparator}Exports',

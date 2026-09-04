@@ -262,7 +262,7 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
                     const Align(
                       alignment: Alignment.centerLeft,
                       child: Text(
-                        'A basic Course Model v5 structure will be created with 3 placeholder Lessons. No Rounds are created automatically.',
+                        'A basic Course Model v6 structure will be created with 3 placeholder Lessons. No Rounds are created automatically.',
                       ),
                     ),
                   ],
@@ -281,11 +281,13 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
                   final tg = target.text.trim();
                   if (t.isEmpty || s.isEmpty || tg.isEmpty) return;
                   final stamp = DateTime.now().microsecondsSinceEpoch;
+                  final updatedAt = DateTime.now().toUtc();
                   final lessons = <Lesson>[
                     for (var lessonIndex = 0; lessonIndex < 3; lessonIndex++)
                       Lesson(
                         lessonId: 'user_lesson_${stamp + lessonIndex}',
                         publicationState: PublicationState.draft,
+                        updatedAt: updatedAt,
                         title: 'Lesson ${lessonIndex + 1}',
                         rounds: const [],
                         guidebook: Guidebook.empty(),
@@ -749,7 +751,7 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
                       ),
                     ),
                     title: Text(widget.currentCourse.title),
-                    subtitle: const Text('Bundled course · Course Model v5'),
+                    subtitle: const Text('Bundled course · Course Model v6'),
                     trailing: const Icon(Icons.chevron_right),
                     onTap: _openBundled,
                   ),

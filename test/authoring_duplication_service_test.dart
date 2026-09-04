@@ -186,10 +186,42 @@ void main() {
       copy.lessons.single.guidebook.content.single.id,
     );
   });
+
+  test('duplication preserves source modification timestamps', () {
+    final lessonTime = DateTime.utc(2026, 9, 1, 8);
+    final roundTime = DateTime.utc(2026, 9, 2, 9);
+    final exerciseTime = DateTime.utc(2026, 9, 3, 10);
+    final source = Lesson(
+      lessonId: 'lesson-source',
+      updatedAt: lessonTime,
+      title: 'Lesson',
+      rounds: [
+        LearningRound(
+          id: 'round-source',
+          updatedAt: roundTime,
+          title: 'Round',
+          content: [
+            LearningContent.fromExercise(
+              _select('exercise-source', updatedAt: exerciseTime),
+            ),
+          ],
+        ),
+      ],
+    );
+
+    final copy = AuthoringDuplicationService(
+      ids: _SequenceIds(),
+    ).duplicateLesson(source);
+
+    expect(copy.updatedAt, lessonTime);
+    expect(copy.rounds.single.updatedAt, roundTime);
+    expect(copy.rounds.single.exercises.single.updatedAt, exerciseTime);
+  });
 }
 
-Exercise _select(String id) => Exercise.v2(
+Exercise _select(String id, {DateTime? updatedAt}) => Exercise.v2(
   id: id,
+  updatedAt: updatedAt,
   editorTemplate: 'choice',
   promptElements: const [PromptElement(type: 'text', text: 'Question')],
   interaction: const ExerciseInteraction(

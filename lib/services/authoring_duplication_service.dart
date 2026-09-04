@@ -147,6 +147,7 @@ class AuthoringDuplicationService {
     return Lesson(
       lessonId: remap[source.lessonId]!,
       publicationState: PublicationState.draft,
+      updatedAt: source.updatedAt,
       title: source.title,
       rounds: [for (final round in source.rounds) _copyRound(round, remap)],
       section: source.section,
@@ -191,6 +192,7 @@ class AuthoringDuplicationService {
       LearningRound(
         id: remap[source.id]!,
         publicationState: PublicationState.draft,
+        updatedAt: source.updatedAt,
         title: source.title,
         visualType: source.visualType,
         content: [
@@ -231,6 +233,7 @@ class AuthoringDuplicationService {
     return Exercise.v2(
       id: mapped(source.id),
       publicationState: PublicationState.draft,
+      updatedAt: source.updatedAt,
       editorTemplate: source.editorTemplate,
       promptElements: [
         for (final element in source.promptElements) _copyPrompt(element),
@@ -254,7 +257,13 @@ class AuthoringDuplicationService {
         kind: source.evaluation.kind,
         correctItemIds: source.evaluation.correctItemIds.map(mapped).toList(),
         accepted: [...source.evaluation.accepted],
-        correctOrder: source.evaluation.correctOrder.map(mapped).toList(),
+        correctOrders: [
+          for (final answer in source.evaluation.correctOrders)
+            OrderedAnswer(
+              text: answer.text,
+              itemIds: answer.itemIds.map(mapped).toList(),
+            ),
+        ],
         pairs: [
           for (final pair in source.evaluation.pairs)
             [for (final id in pair) mapped(id)],

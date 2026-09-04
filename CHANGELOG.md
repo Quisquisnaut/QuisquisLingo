@@ -1,4 +1,18 @@
-# 2.0.25 (build 225) - first controlled tranche - 2026-09-03
+# 2.0.25 (Build 225.02) - second controlled tranche - 2026-09-04
+
+- Advanced platform-compatible metadata to `2.0.25+22502` while displaying the release as Version 2.0.25 / Build 225.02 from one authoritative metadata source. The Alpha expiry remains unchanged at the end of **2026-10-04**.
+- Introduced the clean Course Model v6 boundary. Lesson, Round and Exercise objects require canonical UTC `updatedAt` timestamps, obsolete v5 objects are rejected without migration or deletion, and Build-the-translation evaluation uses one or more canonical `correctOrders` objects rather than the legacy single `correctOrder` field.
+- Made nested Exercise and Round saves transactional through their Lesson and Course persistence callbacks. A successful child save refreshes the saved child baseline at every open ancestor, while unrelated unsaved ancestor edits remain dirty and persistence failures retain all dirty state.
+- Made Round titles optional throughout learner, editor, Review and report surfaces, using position-derived `Round N` labels without changing Round identity.
+- Refined Course Audit: missing Listening-comprehension coverage no longer emits Info; empty Reading passages remain Errors, one- or two-word lexical passages emit `READING_PASSAGE_TOO_SHORT`, and three or more Unicode/apostrophe-aware words do not. Hint repetition uses stable code `HINT_REPEATS_PROMPT`; answer-revealing hints remain Errors.
+- Added deterministic **Recently modified** ordering and progressive numbering within each severity group to scoped Audit UI and exported reports.
+- Expanded Build the translation to author, reorder, delete, serialize and accept multiple literal correct translations in author order. Every alternative resolves to stable Item-ID occurrences; runtime acceptance uses literal normalization only and feedback displays all configured translations.
+- Replaced fixed light surfaces in every exercise renderer and feedback state with semantic theme surfaces. Added render coverage for all supported renderer families at 320, 375, 430 and 1100 px in Light and Dark modes.
+- Deterministically regenerated all eight existing bundled courses as Course Model v6 and added the Korean-from-English course (`sample_ko_en_ko`, `ko-KR`, South Korea flag) with nine progressive beginner Lessons and polite-register Hangul content.
+- Added a strict nine-course validator and release tests for schema/timestamps, global IDs and references, playable Rounds, Duel availability, TTS locales, deterministic regeneration, import/export rejection boundaries and zero-Error/zero-Warning Audit totals.
+- Updated current authoring, JSON-format, sample-course and validation documentation. This tranche is intentionally uncommitted until its explicit pre-commit review is approved; no package or push is part of this work.
+
+# 2.0.25 (Build 225.01) - first controlled tranche - 2026-09-03
 
 - Corrected Course Audit to inspect canonical evaluation fields instead of treating author-facing Select/Arrange/Match projections as independent stale data; empty derived icons no longer warn, while genuinely stale independent data remains visible.
 - Removed the duplicate Gap Choice Warning when the same missing marker already produces its blocking Error, without weakening invalid-marker validation.

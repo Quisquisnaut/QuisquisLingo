@@ -37,7 +37,7 @@ These are persistent instructions for Codex when working on QuisquisLingo.
 - `2.0.22+222` makes opaque UUIDv4 learner IDs authoritative through a clean persistence cut and backup-v2 restore/copy workflow; adds a separately licensed 266-entity world-flags manifest; and adds the five-tap Settings Flag Game with four cumulative pools, searchable read-only references and ID-keyed device-local scorecards with best-result dates, without changing course flags or learner progression.
 - `2.0.23+223` makes Lesson canonical through a clean Course Model v5 cut; adds consecutive-order Section navigation and a controlled 14-icon 256 px Lesson theme library; moves Round management to a draft-preserving editor subpage; standardizes the GuideBook icon/action layout; and moves learner/course-scoped IDDQD into the fixed learner controls while preserving progression, scoring, Duel, Review, learner identity and backup-v2 behavior.
 - `2.0.24+224` rationalizes exercises behind Select, Input, Arrange, Match and Presentation models; adds grouped presets, Type the translation, contextual comprehension, linked answer variants and diagnostic Correct feedback; expands scoped Audit with Info guidance; adds explicit Draft/Published authoring, unsaved-change guards, Course-level Lesson numbering/fallback styles and portable managed custom Lesson icons; completes custom-Course duplication/audit and Buy a Coffee metadata; retains Course Model v5, progression, XP, Review, Duel, identity and existing stable IDs.
-- `2.0.25+225` has begun with a controlled first tranche covering canonical Course Audit correctness and report export, the Build the translation save/model/runtime path, post-save Editor dirty-state behavior and regeneration of the bundled Italian sample only. This is not the complete 225 release; unrelated planned features remain deferred.
+- `2.0.25+22502` completes Build 225.02, preserving the first tranche while adding the clean Course Model v6 boundary, canonical UTC modification timestamps, transactional nested saves, optional Round titles, deterministic recent-first Audit ordering and numbering, multiple literal Build-the-translation answers, semantic dark-mode renderer surfaces, regeneration of all eight existing bundled courses and the new Korean bundled course. Unrelated planned features remain deferred.
 
 ## Architecture and service boundaries
 
@@ -142,9 +142,9 @@ Weekly rollover, streaks, activity timestamps, Review timestamps, and other time
 - Use the numeric build number without dots in package names.
 - Keep the previous packaged release as a rollback copy until the new release has been tested successfully.
 
-## Course Model v5 invariants
+## Course Model v6 invariants
 
-- Canonical course format is `formatVersion: 5`.
+- Canonical course format is `formatVersion: 6`.
 - Hierarchy: Course > Lesson > GuideBook + Rounds + Duel > Content/Exercise.
 - Chapter is not part of the production model, learner navigation, editor or persistence. Chapter-based course formats are unsupported and are not read, migrated or converted.
 - Lesson is canonical in the model, JSON, services, persistence, editor and learner UI. Do not add Topic compatibility aliases or v4 parsing fallbacks.
@@ -158,7 +158,9 @@ Weekly rollover, streaks, activity timestamps, Review timestamps, and other time
 - Preserve stable Item IDs and valid references.
 - Optional `section` and `sectionName` are presentational Lesson metadata only. Section has no ID, progress, unlock, XP, Duel, Guidebook, Review or navigation state, and consecutive grouping/relative numbering derive from Lesson order.
 - Optional `themeIconAsset` must reference an approved 256 × 256 transparent PNG under `assets/lesson_icons/`; JSON stores only the asset path.
-- Canonical v5 text-match exports use `acceptedAnswers`; `accepted` remains import-compatible for that exercise field.
+- Canonical v6 text-match exports use `acceptedAnswers`; the legacy `accepted` field is rejected.
+- Lesson, Round and Exercise JSON requires a canonical UTC `updatedAt` timestamp. Bundled timestamps are deterministic; authoring timestamps come from the injected/current authoring clock.
+- Build the translation serializes one or more literal answers as `evaluation.correctOrders`, each with answer text and stable ordered Item IDs. The legacy single `correctOrder` field is rejected without adaptation.
 - Imported/custom courses remain custom even when selected. Do not infer bundled/custom origin from title alone.
 
 ## Course identity and collision handling

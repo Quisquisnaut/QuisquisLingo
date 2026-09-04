@@ -19,8 +19,12 @@ class NormalizedImportExercise {
   final ExerciseEvaluation evaluation;
   final String hint;
 
-  Exercise toExercise({required String stableId}) => Exercise.v2(
+  Exercise toExercise({
+    required String stableId,
+    required DateTime updatedAt,
+  }) => Exercise.v2(
     id: stableId,
+    updatedAt: updatedAt,
     editorTemplate: presetId,
     promptElements: prompt,
     interaction: interaction,

@@ -97,7 +97,7 @@ void main() {
     expect(exercise.imageAsset, 'assets/exercise_images/example.webp');
   });
 
-  test('structured dialogue and stable IDs survive v5 JSON', () {
+  test('structured dialogue and stable IDs survive v6 JSON', () {
     final original = contextExercise(text: false, audio: true, dialogue: true);
     final content = LearningContent.fromExercise(original);
     final decoded = LearningContent.fromJson(content.toJson()).exercise!;

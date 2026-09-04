@@ -128,9 +128,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
                           ? const CircleAvatar(child: Icon(Icons.eco_outlined))
                           : CircleAvatar(child: Text('${entry.errors}')),
                       title: Text(
-                        location.round.title.trim().isEmpty
-                            ? 'Round ${location.roundIndex + 1}'
-                            : location.round.title,
+                        location.round.displayTitle(location.roundIndex),
                       ),
                       subtitle: Text(
                         'Lesson ${location.lessonIndex + 1}: ${location.lesson.title} · ${entry.errors} ${entry.errors == 1 ? 'error' : 'errors'} in latest attempt',

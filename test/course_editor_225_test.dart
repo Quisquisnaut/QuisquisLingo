@@ -28,6 +28,7 @@ void main() {
   testWidgets(
     'Build the translation saves natural punctuation through reload and Audit',
     (tester) async {
+      _useEditorViewport(tester);
       Exercise? saved;
       await tester.pumpWidget(
         MaterialApp(
@@ -52,12 +53,29 @@ void main() {
       await tester.tap(find.text('Open'));
       await tester.pumpAndSettle();
 
-      await tester.enterText(_field('Source text'), 'How are you?');
+      await tester.enterText(_field('Source sentence'), 'How are you?');
       await tester.enterText(
         _field('Available target-language blocks'),
-        'Come\nstai',
+        'Come\nstai\nva\nte\nla\npassi',
       );
-      await tester.enterText(_field('Correct translation'), 'Come stai?');
+      await tester.enterText(
+        find.byKey(const ValueKey('build-translation-answer-0')),
+        'Come stai?',
+      );
+      for (final answer in ['Come va?', 'Come te la passi?']) {
+        await tester.tap(find.byKey(const Key('add-correct-translation')));
+        await tester.pump();
+        await tester.enterText(
+          find.byKey(
+            ValueKey(
+              'build-translation-answer-${answer == 'Come va?' ? 1 : 2}',
+            ),
+          ),
+          answer,
+        );
+      }
+      tester.testTextInput.hide();
+      await tester.pumpAndSettle();
       await tester.scrollUntilVisible(
         find.byKey(const Key('exercise-save-draft')),
         400,
@@ -74,9 +92,14 @@ void main() {
         editorTemplate: saved!.editorTemplate,
         publicationState: saved!.publicationState,
       );
-      expect(reloaded.tokens, ['Come', 'stai']);
+      expect(reloaded.tokens, ['Come', 'stai', 'va', 'te', 'la', 'passi']);
       expect(reloaded.orderAnswer, ['Come', 'stai']);
-      expect(reloaded.evaluation.correctOrder, hasLength(2));
+      expect(reloaded.correctTranslationTexts, [
+        'Come stai?',
+        'Come va?',
+        'Come te la passi?',
+      ]);
+      expect(reloaded.evaluation.correctOrders, hasLength(3));
       expect(
         CourseAuditService()
             .auditExercise(reloaded)
@@ -89,21 +112,8 @@ void main() {
   testWidgets('reloaded Build the translation is playable and evaluates', (
     tester,
   ) async {
-    final exercise = Exercise(
-      id: 'build-translation-runtime',
-      type: 'build_translation',
-      prompt: 'How are you?',
-      question: '',
-      answers: const [],
-      correct: null,
-      tts: null,
-      accepted: const [],
-      tokens: const ['Come', 'stai'],
-      orderAnswer: const ['Come stai?'],
-      pairs: const [],
-      hint: '',
-      icons: const [],
-    );
+    _useEditorViewport(tester);
+    final exercise = _playableBuildTranslation();
     final reloaded = Exercise.fromV2Json(
       exercise.toV2Json(),
       contentId: exercise.id,
@@ -142,11 +152,88 @@ void main() {
     }
     await tester.tap(find.text('Come'));
     await tester.pump();
-    await tester.tap(find.text('stai'));
+    await tester.tap(find.text('va'));
     await tester.pump();
     await tester.tap(find.widgetWithText(FilledButton, 'Check'));
     await tester.pump();
     expect(find.text('Correct'), findsOneWidget);
+    for (final answer in [
+      '• Come stai?',
+      '• Come va?',
+      '• Come te la passi?',
+    ]) {
+      expect(find.text(answer), findsOneWidget);
+    }
+  });
+
+  testWidgets('Build translation editor deletes and reorders literal answers', (
+    tester,
+  ) async {
+    Exercise? saved;
+    await _openExerciseEditor(tester, _playableBuildTranslation(), (value) {
+      saved = value;
+    });
+
+    await tester.scrollUntilVisible(
+      find.byTooltip('Delete correct translation 2'),
+      300,
+      scrollable: _editorScroll(),
+    );
+    await tester.tap(find.byTooltip('Delete correct translation 2'));
+    await tester.pump();
+    final list = tester.widget<ReorderableListView>(
+      find.byKey(const Key('build-translation-correct-translations')),
+    );
+    list.onReorderItem!(1, 0);
+    await tester.pump();
+    tester.testTextInput.hide();
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.byKey(const Key('exercise-publish')),
+      400,
+      scrollable: _editorScroll(),
+    );
+    await tester.tap(find.byKey(const Key('exercise-publish')));
+    await tester.pumpAndSettle();
+
+    expect(saved?.correctTranslationTexts, ['Come te la passi?', 'Come stai?']);
+  });
+
+  testWidgets('normalized duplicate translations show field-level errors', (
+    tester,
+  ) async {
+    await _openExerciseEditor(tester, _buildTranslation(), (_) {});
+    await tester.enterText(
+      _field('Available target-language blocks'),
+      'Come\nstai',
+    );
+    await tester.enterText(
+      find.byKey(const ValueKey('build-translation-answer-0')),
+      'Come stai?',
+    );
+    await tester.tap(find.byKey(const Key('add-correct-translation')));
+    await tester.pump();
+    await tester.enterText(
+      find.byKey(const ValueKey('build-translation-answer-1')),
+      '  come   stai. ',
+    );
+    tester.testTextInput.hide();
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.byKey(const Key('exercise-save-draft')),
+      400,
+      scrollable: _editorScroll(),
+    );
+    await tester.tap(find.byKey(const Key('exercise-save-draft')));
+    await tester.pump();
+
+    expect(
+      find.text(
+        'Duplicate after case, spacing and terminal punctuation normalization.',
+      ),
+      findsNWidgets(2),
+    );
+    expect(find.byType(ExerciseEditorScreen), findsOneWidget);
   });
 
   test('Build the translation retains blocking errors for missing data', () {
@@ -195,6 +282,7 @@ void main() {
   testWidgets('Missing Word Editor keeps both canonical answer views', (
     tester,
   ) async {
+    _useEditorViewport(tester);
     Exercise? saved;
     await tester.pumpWidget(
       MaterialApp(
@@ -244,6 +332,7 @@ void main() {
   testWidgets('Listening Spelling Editor omits incompatible missingWords', (
     tester,
   ) async {
+    _useEditorViewport(tester);
     Exercise? saved;
     await tester.pumpWidget(
       MaterialApp(
@@ -310,6 +399,60 @@ Exercise _buildTranslation() => Exercise(
   hint: '',
   icons: const [],
 );
+
+Exercise _playableBuildTranslation() => Exercise(
+  id: 'build-translation-runtime',
+  type: 'build_translation',
+  prompt: 'How are you?',
+  question: '',
+  answers: const [],
+  correct: null,
+  tts: null,
+  accepted: const [],
+  tokens: const ['Come', 'stai', 'va', 'te', 'la', 'passi'],
+  orderAnswer: const [],
+  correctTranslations: const ['Come stai?', 'Come va?', 'Come te la passi?'],
+  pairs: const [],
+  hint: '',
+  icons: const [],
+);
+
+Future<void> _openExerciseEditor(
+  WidgetTester tester,
+  Exercise exercise,
+  ValueChanged<Exercise?> onClosed,
+) async {
+  _useEditorViewport(tester);
+  await tester.pumpWidget(
+    MaterialApp(
+      home: Builder(
+        builder: (context) => FilledButton(
+          onPressed: () async => onClosed(
+            await Navigator.of(context).push<Exercise>(
+              MaterialPageRoute(
+                builder: (_) => ExerciseEditorScreen(
+                  exercise: exercise,
+                  title: 'Build the translation',
+                  isNew: false,
+                ),
+              ),
+            ),
+          ),
+          child: const Text('Open'),
+        ),
+      ),
+    ),
+  );
+  await tester.tap(find.text('Open'));
+  await tester.pumpAndSettle();
+}
+
+void _useEditorViewport(WidgetTester tester) {
+  tester.view.devicePixelRatio = 1;
+  tester.view.physicalSize = const Size(1200, 1400);
+  addTearDown(tester.view.resetDevicePixelRatio);
+  addTearDown(tester.view.resetPhysicalSize);
+}
 
 Exercise _emptyExercise(String type) => Exercise(
   id: '$type-editor',

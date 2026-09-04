@@ -4,7 +4,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
-import 'package:package_info_plus/package_info_plus.dart';
+import 'services/app_metadata.dart';
 import 'services/window_setup.dart';
 import 'services/crash_log_service.dart';
 import 'screens/home_screen.dart';
@@ -432,7 +432,7 @@ class _StartupFlags extends StatelessWidget {
     required this.height,
   });
 
-  static const _codes = ['IT', 'DE', 'ES', 'PT', 'NL', 'CY', 'EN', 'FI'];
+  static const _codes = ['IT', 'DE', 'ES', 'PT', 'NL', 'CY', 'EN', 'FI', 'KO'];
 
   @override
   Widget build(BuildContext context) {
@@ -577,13 +577,12 @@ class _StartupCrashLogNoticeState extends State<_StartupCrashLogNotice> {
     final updates = UpdateService();
     final diagnostics = DiagnosticLogService();
     try {
-      final info = await PackageInfo.fromPlatform();
       final checkedAt = DateTime.now();
       await settings.setUpdateLastCheckedAt(checkedAt);
-      final result = await updates.check(info.version);
+      final result = await updates.check(AppMetadata.technicalVersion);
       await diagnostics.logInfo(
         'Automatic GitHub update check completed: ${result.status.name}; '
-        'current=${info.version}; latest=${result.release?.version ?? 'none'}.',
+        'current=${AppMetadata.technicalVersion}; latest=${result.release?.version ?? 'none'}.',
       );
       final release = result.release;
       if (!mounted ||

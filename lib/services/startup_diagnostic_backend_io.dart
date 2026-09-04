@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'app_metadata.dart';
 import 'startup_diagnostic_backend.dart';
 
 const _fileName = 'quisquislingo_startup_trace.log';
@@ -8,7 +9,8 @@ const _maximumLogBytes = 1024 * 1024;
 const _rotatedLogCount = 2;
 
 StartupDiagnosticBackend createStartupDiagnosticBackend() {
-  final configuredLevel = Platform.environment['QUISQUISLINGO_STARTUP_DIAGNOSTICS'];
+  final configuredLevel =
+      Platform.environment['QUISQUISLINGO_STARTUP_DIAGNOSTICS'];
   final level = parseStartupDiagnosticLevel(configuredLevel);
   if (!Platform.isWindows) {
     return DisabledStartupDiagnosticBackend(level);
@@ -25,7 +27,8 @@ class _WindowsStartupDiagnosticBackend implements StartupDiagnosticBackend {
   _WindowsStartupDiagnosticBackend(StartupDiagnosticLevel level)
     : _selectedPath = _resolveWritablePath() ?? '',
       session = _createSession(level) {
-    final nativeSession = Platform.environment['QUISQUISLINGO_STARTUP_SESSION_ID'];
+    final nativeSession =
+        Platform.environment['QUISQUISLINGO_STARTUP_SESSION_ID'];
     final nativeHeaderWritten =
         Platform.environment['QUISQUISLINGO_STARTUP_HEADER_WRITTEN'] == '1';
     if (nativeSession == null || nativeSession.isEmpty) {
@@ -90,10 +93,11 @@ StartupDiagnosticSession _createSession(StartupDiagnosticLevel level) {
         environment['QUISQUISLINGO_STARTUP_APP_VERSION'] ??
         const String.fromEnvironment(
           'QUISQUISLINGO_APP_VERSION',
-          defaultValue: 'unknown',
+          defaultValue: AppMetadata.technicalVersion,
         ),
     isAlpha: environment['QUISQUISLINGO_STARTUP_ALPHA'] != 'false',
-    buildMode: environment['QUISQUISLINGO_STARTUP_BUILD_MODE'] ?? _dartBuildMode(),
+    buildMode:
+        environment['QUISQUISLINGO_STARTUP_BUILD_MODE'] ?? _dartBuildMode(),
     platform: Platform.operatingSystem,
     architecture:
         environment['PROCESSOR_ARCHITEW6432'] ??

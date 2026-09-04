@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
 import 'dart:ui' as ui;
-import 'package:package_info_plus/package_info_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
@@ -18,6 +17,7 @@ import '../services/progress_service.dart';
 import '../services/profile_service.dart';
 import '../services/lesson_unlock_service.dart';
 import '../services/alpha_lifecycle_service.dart';
+import '../services/app_metadata.dart';
 import '../services/app_errors.dart';
 import '../services/error_presenter.dart';
 import '../services/diagnostic_log_service.dart';
@@ -236,9 +236,7 @@ class _HomeScreenState extends State<HomeScreen> {
       (_standaloneStatusController ??= LearnerStatusController());
 
   Future<void> _prepareWelcome() async {
-    final info = await PackageInfo.fromPlatform();
-    if (!mounted) return;
-    _appVersion = info.version;
+    _appVersion = AppMetadata.technicalVersion;
     await _showWelcome();
     if (mounted) await _showAlphaLifecycleNotice();
   }

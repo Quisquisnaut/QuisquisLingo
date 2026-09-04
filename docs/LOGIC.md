@@ -56,7 +56,7 @@ A language streak advances only on a new day when that language is studied. A da
 
 ## Course authoring boundary
 
-Bundled JSON files are read-only. Course Editor stores a validated local Course Model v5 override. The Lesson/Round/content hierarchy can be created, deleted and reordered locally. Reset local edits returns to the bundled asset.
+Bundled JSON files are read-only. Course Editor stores a validated local Course Model v6 override. The Lesson/Round/content hierarchy can be created, deleted and reordered locally. A saved child is persisted transactionally through the open ancestor chain, while unrelated unsaved ancestor edits stay dirty. Reset local edits returns to the bundled asset.
 
 ## Storage boundary
 
@@ -66,11 +66,13 @@ DEVICE ONLY
 - language-scoped XP, streaks, study days and Status inputs
 - learner-global Weekly XP and per-course Weekly XP breakdowns
 - course-scoped Round/Lesson/Duel progress, Laurels and Review history
-- local Course Model v5 Course Editor overrides
+- local Course Model v6 Course Editor overrides
 - settings
 - automatic Crash Log plus separate exportable Diagnostic Log
 
 Build 223 makes three clean-cut Lesson-semantic persistence changes: `v4_completed_topics` becomes `v4_completed_lessons`, `last_topic_<encodedCourseId>` becomes `last_lesson_<encodedCourseId>`, and each `v4_recent_rounds` JSON entry uses `lessonId` instead of `topicId`. The other `v4_` prefixes identify the established chapter-free progress namespace rather than Topic semantics and remain unchanged. Course Editor overrides/user-course storage moves from the v4/build-215 keys to the v5/build-223 keys so old-format course objects are not parsed as v5.
+
+Build 225.02 moves Course Editor override/user-course storage to the v6/build-225 namespace. Older namespaces remain untouched and are never migrated into v6. Malformed current-namespace data is preserved and copied to the corrupt-backup key before a clear failure; incompatible course files are rejected without deleting the source.
 
 Learner backup schema v2 remains unchanged. Its only learner-state payload is an opaque `data` map of profile namespace suffixes to primitive/list values; it does not define Topic/Lesson fields of its own. Export/restore therefore carries the current Lesson keys without changing `schemaVersion`, `format`, or `learnerProfileId` semantics.
 

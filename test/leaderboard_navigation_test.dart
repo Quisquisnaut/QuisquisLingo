@@ -14,6 +14,7 @@ import 'package:quisquislingo_app/screens/profile_screen.dart';
 import 'package:quisquislingo_app/screens/review_screen.dart';
 import 'package:quisquislingo_app/screens/round_screen.dart';
 import 'package:quisquislingo_app/screens/settings_screen.dart';
+import 'package:quisquislingo_app/services/app_metadata.dart';
 import 'package:quisquislingo_app/services/course_editor_service.dart';
 import 'package:quisquislingo_app/services/course_service.dart';
 import 'package:quisquislingo_app/services/profile_service.dart';
@@ -68,7 +69,7 @@ void main() {
       buildSignature: '',
     );
     SharedPreferences.setMockInitialValues({
-      'one_time_notice_seen_welcome_2.0.23': true,
+      'one_time_notice_seen_welcome_2.0.25+22502': true,
       'sound_effects_enabled': false,
     });
     await ProfileService().addProfile('Navigation Learner');
@@ -2257,7 +2258,7 @@ void main() {
       final phrase = dialogTexts.singleWhere(
         (text) =>
             text.data != 'Welcome to QuisquisLingo' &&
-            text.data != 'Version 2.0.23' &&
+            text.data != 'Version ${AppMetadata.technicalVersion}' &&
             text.data != 'Continue',
       );
       final welcomeDialog = tester.widget<AlertDialog>(
@@ -2270,7 +2271,10 @@ void main() {
         const Color(0xFF0756DF),
       );
       expect(
-        tester.widget<Text>(find.text('Version 2.0.23')).style?.color,
+        tester
+            .widget<Text>(find.text('Version ${AppMetadata.technicalVersion}'))
+            .style
+            ?.color,
         const Color(0xFF0756DF),
       );
       expect(phrase.style?.color, const Color(0xFF0756DF));
@@ -2288,7 +2292,7 @@ void main() {
       late bool welcomeSeen;
       await tester.runAsync(() async {
         welcomeSeen = await SettingsService().hasSeenOneTimeNotice(
-          'welcome_2.0.23',
+          'welcome_${AppMetadata.technicalVersion}',
         );
       });
       expect(welcomeSeen, isTrue);

@@ -49,9 +49,13 @@ class GuidebookGenerationPlan {
 }
 
 class GuidebookRoundGenerator {
-  GuidebookRoundGenerator({int randomSeed = 0, AuthoringIdGenerator? draftIds})
-    : _randomSeed = randomSeed,
-      _draftIds = draftIds ?? TimestampAuthoringIdGenerator();
+  GuidebookRoundGenerator({
+    int randomSeed = 0,
+    AuthoringIdGenerator? draftIds,
+    DateTime Function()? now,
+  }) : _randomSeed = randomSeed,
+       _draftIds = draftIds ?? TimestampAuthoringIdGenerator(),
+       _now = now ?? (() => DateTime.now().toUtc());
 
   static const int defaultRoundCount = 6;
   static const int defaultExercisesPerRound = 8;
@@ -60,6 +64,7 @@ class GuidebookRoundGenerator {
 
   final int _randomSeed;
   final AuthoringIdGenerator _draftIds;
+  final DateTime Function() _now;
 
   GuidebookGenerationPlan plan(
     Guidebook guidebook, {
@@ -181,6 +186,7 @@ class GuidebookRoundGenerator {
     return LearningRound(
       id: _draftIds.next('round'),
       publicationState: PublicationState.draft,
+      updatedAt: _now(),
       title: plan.title,
       content: content,
     );
@@ -274,7 +280,7 @@ class GuidebookRoundGenerator {
           type: preset,
           prompt: 'Build the translation of “${pair.source}”.',
           tokens: answer,
-          orderAnswer: answer,
+          correctTranslations: [pair.target],
         );
       case 'word_order':
         final example = material.examples[position % material.examples.length];
@@ -323,10 +329,12 @@ class GuidebookRoundGenerator {
     List<String> accepted = const [],
     List<String> tokens = const [],
     List<String> orderAnswer = const [],
+    List<String> correctTranslations = const [],
     List<List<String>> pairs = const [],
     String hint = '',
   }) => Exercise(
     id: 'draft_template',
+    updatedAt: _now(),
     type: type,
     prompt: prompt,
     question: question,
@@ -336,6 +344,7 @@ class GuidebookRoundGenerator {
     accepted: accepted,
     tokens: tokens,
     orderAnswer: orderAnswer,
+    correctTranslations: correctTranslations,
     pairs: pairs,
     hint: hint,
     icons: const [],

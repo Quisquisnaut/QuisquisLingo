@@ -82,7 +82,10 @@ void main() {
         correctItemIds: ['answer_a'],
       ),
     );
-    final exercise = normalized.toExercise(stableId: 'stable_external_id');
+    final exercise = normalized.toExercise(
+      stableId: 'stable_external_id',
+      updatedAt: DateTime.utc(2026, 9, 4),
+    );
     expect(exercise.id, 'stable_external_id');
     expect(exercise.interaction.kind, 'select');
     expect(

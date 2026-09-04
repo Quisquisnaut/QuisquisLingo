@@ -1,13 +1,13 @@
-# QuisquisLingo Course JSON format 5
+# QuisquisLingo Course JSON format 6
 
 Status: implemented current format. The in-app Editor Help remains the author-facing reference.
 
 ## Root
 
-Every native Course Model v5 course declares:
+Every native Course Model v6 course declares:
 
 ```json
-"formatVersion": 5,
+"formatVersion": 6,
 "publicationState": "draft | published",
 "lessonNumberingMode": "lesson",
 "defaultLessonIconStyle": "monochrome"
@@ -19,7 +19,9 @@ The canonical hierarchy is:
 
 `Course > lessons[] > guidebook + rounds[] + duel > content[]`
 
-Course owns an ordered list of Lessons. Every Lesson owns its Guidebook, ordered Rounds and stable Duel identity. Chapter and assessment-Lesson fields are not part of Course Model v5.
+Course owns an ordered list of Lessons. Every Lesson owns its Guidebook, ordered Rounds and stable Duel identity. Chapter and assessment-Lesson fields are not part of Course Model v6.
+
+Every mutable Lesson, Round and Exercise object requires `updatedAt` as a canonical UTC ISO-8601 timestamp ending in `Z`. Authoring writes the clock value only for the object explicitly saved. A child save does not update ancestor timestamps, and duplication preserves the source timestamps. Deterministic bundled generation assigns explicit stable creation timestamps so repeated runs are byte-identical.
 
 Every Lesson requires `lessonId` and `title`. Optional presentational metadata uses this shape:
 
@@ -27,6 +29,7 @@ Every Lesson requires `lessonId` and `title`. Optional presentational metadata u
 {
   "lessonId": "stable_opaque_id",
   "publicationState": "published",
+  "updatedAt": "2026-09-04T12:00:00.000Z",
   "title": "At the railway station",
   "section": true,
   "sectionName": "Travel",
@@ -40,9 +43,9 @@ Every Lesson requires `lessonId` and `title`. Optional presentational metadata u
 
 `themeIconAsset` is optional. It names either an approved 256 × 256 transparent preinstalled PNG under `assets/lesson_icons/` or a managed Course reference such as `course-assets/lesson-icons/custom_123.png`. Managed references resolve only through the same Course’s optional `lessonIconAssets[]` registry; arbitrary and unresolved filesystem paths are rejected. Because Course transfer is the established JSON-only portable format, each managed registry entry contains its safe `assetId` and canonical `base64Png`. Import normalizes one author image by contain-scaling it without distortion onto a transparent 256 × 256 PNG canvas. The original path is never serialized or needed after import. Course duplication remaps managed asset IDs and Lesson duplication within one Course may share the immutable reference.
 
-The former decorative Lesson `imageAsset` field is not part of Course Model v5 and is rejected. It is not an alias for `themeIconAsset` and is not migrated into one. Exercise Content may still use its own image field where that exercise type requires it.
+The former decorative Lesson `imageAsset` field is not part of Course Model v6 and is rejected. It is not an alias for `themeIconAsset` and is not migrated into one. Exercise Content may still use its own image field where that exercise type requires it.
 
-The structural fields `topics`, `topicId` and Lesson `id` are invalid in v5. Opaque stable identifier values from earlier bundled content may retain historical text because changing their values would break references and course-owned progress.
+The structural fields `topics`, `topicId` and Lesson `id` are invalid in v6. Opaque stable identifier values from earlier bundled content may retain historical text because changing their values would break references and course-owned progress.
 
 ## Lesson Guidebook
 
@@ -52,11 +55,11 @@ The first Content item of Round 1 may be a non-exercise `lesson_intro` derived f
 
 ## Round
 
-A Round contains a stable `id`, required `publicationState`, optional learner-facing `title`, `visualType` and ordered `content[]`. An empty or omitted title is valid and the learner/editor UI falls back to its derived `Round N` label without changing identity. `visualType` is one of `listening`, `story`, `generic` or `test` and is independent of exercise type.
+A Round contains a stable `id`, required `publicationState`, required UTC `updatedAt`, optional learner-facing `title`, `visualType` and ordered `content[]`. An empty or omitted title is valid and every learner, editor, Review, Audit and report surface falls back to its current position-derived `Round N` label without changing identity. `visualType` is one of `listening`, `story`, `generic` or `test` and is independent of exercise type.
 
 ## Content
 
-Every Content object has a stable `id`, canonical `publicationState`, a `kind`, and `required`. For exercise/presentation Content this is the authored Exercise publication state. `editorTemplate` is optional authoring metadata.
+Every Content object has a stable `id`, canonical `publicationState`, a `kind`, and `required`. Exercise Content also requires its canonical UTC `updatedAt`. `editorTemplate` is optional authoring metadata.
 
 Initial kinds include `exercise`, `presentation`, `explanation`, `example`, `vocabulary`, `text`, `image`, `audio`, and `dialogue`.
 
@@ -70,11 +73,13 @@ Initial interaction primitives are `select`, `input`, `arrange`, and `match`.
 
 Initial evaluation primitives are `selected_items`, `text_match`, `ordered_items`, and `matched_items`.
 
-Options, tokens and match members are stable Items. Evaluation refers to Item IDs, never display indexes. For `text_match`, v5 writes accepted text as `acceptedAnswers`; the parser also accepts `accepted` for that exercise field.
+Options, tokens and match members are stable Items. Evaluation refers to Item IDs, never display indexes. For `text_match`, v6 writes accepted text as `acceptedAnswers`; legacy `accepted` is rejected rather than adapted.
 
 Build 224 groups these primitives as the canonical Select, Input, Arrange and Match models, with Presentation for non-response learning material. Concrete `editorTemplate` presets remain authoring metadata and several presets intentionally share one model. Prompt elements can independently carry text, audio or image media plus a semantic `role`; structured dialogue may add an optional `speaker` string to a text element whose role is `dialogue_turn`. Contextual comprehension stores its question and context as separate prompt roles.
 
-Build the translation uses canonical `arrange` interaction Items and an `ordered_items.correctOrder` of stable Item IDs. The editor accepts either one natural complete translation or one block per line and resolves terminal sentence punctuation without requiring a separate punctuation Item. Serialization writes the canonical Items/order, and reload reconstructs the author-facing block and order views from those fields.
+Build the translation uses canonical `arrange` interaction Items and one or more `ordered_items.correctOrders` objects. Each object stores the complete literal target-language `text` plus the stable `itemIds` for the exact block occurrences that construct it. The same Item may not be reused within one answer, but repeated words are supported by separate Item occurrences. Terminal sentence punctuation is stored in the literal answer and does not require an artificial punctuation Item. The legacy single `correctOrder` field is rejected without an adapter.
+
+The Build-the-translation editor creates, deletes and reorders complete literal translations. Every answer must be non-empty, unique after the configured literal normalization, constructible from the available block occurrences and leave no more than two blocks unused across the exercise. Runtime accepts any listed answer with ordinary literal normalization and always displays all configured answers in author order after submission. Type-the-translation expression syntax and typo/similarity acceptance do not apply to Build the translation.
 
 Accepted text entries may be separate complete equivalents or use optional `{...}`, independent alternative `[a|b|c]`, linked alternative `[*:a|b]`, and explicitly scoped reorder `(a <> b)` expressions. Two or more linked groups align by index, require equal alternative counts and never produce cross-combinations. Linked groups compose with the other syntax. Without parentheses, `<>` applies to the whole expression. Reordering keeps terminal punctuation at the final sentence end. Expansion is deterministic, de-duplicated and limited to 128 results; malformed, unequal or oversized expressions are invalid.
 
@@ -84,7 +89,7 @@ Answer acceptance and correction selection are separate. Structured evaluation r
 
 Editing and Draft/Published transitions preserve every existing Course, Lesson, Round, Exercise, Content and Item ID. Learner visibility requires the object and all ancestors to be Published. Draft descendants are retained in authoring export but excluded from learner selection, numbering, Sections, execution, completion, Review, Duel and XP. Duplicating a Course or subtree recursively allocates fresh owned IDs and starts the duplicate as Draft. Generated GuideBook material likewise becomes real fresh-ID Draft content only when explicitly approved; approval is not publication.
 
-The Exercise Creation Wizard and GuideBook Round Generator are editor workflows, not serialized Course Model concepts. Wizard-created Exercises and approved generated Rounds/Exercises are Draft. GuideBook plans remain outside the Lesson until approval appends them after existing Rounds. Neither workflow changes `formatVersion: 5`.
+The Exercise Creation Wizard and GuideBook Round Generator are editor workflows, not serialized Course Model concepts. Wizard-created Exercises and approved generated Rounds/Exercises are Draft. GuideBook plans remain outside the Lesson until approval appends them after existing Rounds. Neither workflow changes `formatVersion: 6`.
 
 Source-format conversion is isolated behind an import-normalization representation before producing these native structures. No source taxonomy is a runtime exercise discriminator, and build 224 does not include a production converter for third-party course formats.
 
@@ -102,4 +107,4 @@ The standard Duel uses 25 unique questions and 4 lives. There is no score or pas
 
 ## Compatibility
 
-Course Model v5 is the only native runtime, import and export format. Chapter-based formats and any other `formatVersion` are unsupported and rejected. Build-224 publication, Lesson-numbering and fallback-icon fields are a clean cut: missing or invalid required values are rejected rather than inferred or migrated. Export writes the canonical current fields.
+Course Model v6 is the only native runtime, bundled, editor-storage, import and export format. v5 and every other `formatVersion` are unsupported and rejected with a clear error. No compatibility migration runs, incompatible source files and older local-storage namespaces are not deleted, and export writes only canonical v6 fields. Missing or invalid required publication, numbering, icon-style, timestamp or evaluation fields are rejected rather than inferred.

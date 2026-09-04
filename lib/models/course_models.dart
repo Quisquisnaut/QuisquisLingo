@@ -1,14 +1,14 @@
 import 'dart:convert';
 import 'dart:math';
 
-/// QuisquisLingo Course Model v5.
+/// QuisquisLingo Course Model v6.
 ///
-/// The serialized course format is formatVersion 5. Course content is stored as
+/// The serialized course format is formatVersion 6. Course content is stored as
 /// Course > Lesson > Guidebook + Round > Content. Exercises are one Content kind
 /// and are represented through Prompt + Interaction + Evaluation primitives.
 ///
 /// A few read-only convenience getters expose the author-friendly vocabulary
-/// used by the existing learner/editor widgets. They are derived from the v5
+/// used by the existing learner/editor widgets. They are derived from the v6
 /// primitives and are not a second runtime model.
 
 enum PublicationState {
@@ -174,7 +174,7 @@ class CourseAuthor {
 }
 
 class Course {
-  static const int currentFormatVersion = 5;
+  static const int currentFormatVersion = 6;
   final int formatVersion;
   final String courseId;
   final PublicationState publicationState;
@@ -324,22 +324,22 @@ class Course {
     final fv = json['formatVersion'];
     if (fv != currentFormatVersion) {
       throw FormatException(
-        'Unsupported course formatVersion: $fv. This version of QuisquisLingo supports Course Model formatVersion 5 only.',
+        'Unsupported course formatVersion: $fv. This version of QuisquisLingo supports Course Model formatVersion 6 only. Older course formats are not migrated or partially loaded.',
       );
     }
     if (json.containsKey('topics')) {
       throw const FormatException(
-        'Course Model formatVersion 5 does not support the legacy topics field.',
+        'Course Model formatVersion 6 does not support the legacy topics field.',
       );
     }
     if (json.containsKey('chapters')) {
       throw const FormatException(
-        'Course Model formatVersion 5 does not support chapters.',
+        'Course Model formatVersion 6 does not support chapters.',
       );
     }
     if (json.containsKey('supportUrl')) {
       throw const FormatException(
-        'Course Model formatVersion 5 uses buyACoffeeUrl, not supportUrl.',
+        'Course Model formatVersion 6 uses buyACoffeeUrl, not supportUrl.',
       );
     }
     if (json.containsKey('buyACoffeeUrl') && json['buyACoffeeUrl'] is! String) {
@@ -622,6 +622,7 @@ List<LearningContent> _legacyGuidebookContent(
 class Lesson {
   final String lessonId;
   final PublicationState publicationState;
+  final DateTime updatedAt;
   final String title;
   final List<LearningRound> rounds;
   final bool section;
@@ -632,6 +633,7 @@ class Lesson {
   Lesson({
     required this.lessonId,
     this.publicationState = PublicationState.published,
+    DateTime? updatedAt,
     required this.title,
     required this.rounds,
     this.section = false,
@@ -639,7 +641,8 @@ class Lesson {
     String? themeIconAsset,
     Guidebook? guidebook,
     Duel? duel,
-  }) : sectionName = section ? sectionName?.trim() : null,
+  }) : updatedAt = _canonicalUtcTimestamp(updatedAt),
+       sectionName = section ? sectionName?.trim() : null,
        themeIconAsset = themeIconAsset?.trim().isEmpty == true
            ? null
            : themeIconAsset?.trim(),
@@ -663,6 +666,7 @@ class Lesson {
   Map<String, dynamic> toJson() => {
     'lessonId': lessonId,
     'publicationState': publicationState.name,
+    'updatedAt': _timestampToJson(updatedAt),
     'title': title,
     'section': section,
     if (section) 'sectionName': sectionName,
@@ -674,12 +678,12 @@ class Lesson {
   factory Lesson.fromJson(Map<String, dynamic> j) {
     if (j.containsKey('id') || j.containsKey('topicId')) {
       throw const FormatException(
-        'Course Model formatVersion 5 Lessons require lessonId and reject legacy Lesson identity fields.',
+        'Course Model formatVersion 6 Lessons require lessonId and reject legacy Lesson identity fields.',
       );
     }
     if (j.containsKey('role') || j.containsKey('assessment')) {
       throw const FormatException(
-        'Course Model formatVersion 5 Lessons do not support role or assessment fields.',
+        'Course Model formatVersion 6 Lessons do not support role or assessment fields.',
       );
     }
     final rawGuidebook = j['guidebook'];
@@ -697,7 +701,7 @@ class Lesson {
     }
     if (j.containsKey('imageAsset')) {
       throw const FormatException(
-        'Course Model formatVersion 5 Lessons do not support the obsolete imageAsset field.',
+        'Course Model formatVersion 6 Lessons do not support the obsolete imageAsset field.',
       );
     }
     if (j.containsKey('sectionName') &&
@@ -732,6 +736,7 @@ class Lesson {
     return Lesson(
       lessonId: _requiredString(j, 'lessonId', 'lesson'),
       publicationState: PublicationState.parseRequired(j, 'lesson'),
+      updatedAt: _requiredUtcTimestamp(j, 'updatedAt', 'lesson'),
       title: _requiredString(j, 'title', 'lesson'),
       rounds: _mapList(j, 'rounds', 'lesson', LearningRound.fromJson),
       section: section,
@@ -747,17 +752,20 @@ class LearningRound {
   static const validVisualTypes = {'listening', 'story', 'generic', 'test'};
   final String id;
   final PublicationState publicationState;
+  final DateTime updatedAt;
   final String title;
   final String visualType;
   final List<LearningContent> content;
   LearningRound({
     required this.id,
     this.publicationState = PublicationState.published,
+    DateTime? updatedAt,
     required this.title,
     this.visualType = 'generic',
     List<LearningContent>? content,
     List<Exercise>? exercises,
-  }) : content =
+  }) : updatedAt = _canonicalUtcTimestamp(updatedAt),
+       content =
            content ??
            [
              for (final e in exercises ?? const <Exercise>[])
@@ -766,6 +774,7 @@ class LearningRound {
   Map<String, dynamic> toJson() => {
     'id': id,
     'publicationState': publicationState.name,
+    'updatedAt': _timestampToJson(updatedAt),
     if (title.trim().isNotEmpty) 'title': title.trim(),
     'visualType': visualType,
     'content': content.map((e) => e.toJson()).toList(),
@@ -780,6 +789,7 @@ class LearningRound {
     return LearningRound(
       id: _requiredString(j, 'id', 'round'),
       publicationState: PublicationState.parseRequired(j, 'round'),
+      updatedAt: _requiredUtcTimestamp(j, 'updatedAt', 'round'),
       title: _optionalString(j, 'title', ''),
       visualType: visualType,
       content: _mapList(j, 'content', 'round', LearningContent.fromJson),
@@ -787,12 +797,17 @@ class LearningRound {
   }
 
   /// Current learner/editor widgets consume this derived runnable view. It is
-  /// generated from v5 Content and therefore does not preserve a legacy file model.
+  /// generated from v6 Content and therefore does not preserve a legacy file model.
   List<Exercise> get exercises => content
       .where((c) => c.role != 'lesson_intro')
       .map((c) => c.asRunnableExercise())
       .whereType<Exercise>()
       .toList(growable: false);
+
+  String displayTitle(int position) {
+    final custom = title.trim();
+    return custom.isEmpty ? 'Round ${position + 1}' : custom;
+  }
 }
 
 class LearningContent {
@@ -1094,18 +1109,34 @@ class ExerciseInteraction {
       );
 }
 
+class OrderedAnswer {
+  final String text;
+  final List<String> itemIds;
+
+  const OrderedAnswer({required this.text, required this.itemIds});
+
+  Map<String, dynamic> toJson() => {'text': text, 'itemIds': itemIds};
+
+  factory OrderedAnswer.fromJson(Map<String, dynamic> json) {
+    return OrderedAnswer(
+      text: _requiredString(json, 'text', 'ordered answer'),
+      itemIds: _stringList(json, 'itemIds'),
+    );
+  }
+}
+
 class ExerciseEvaluation {
   final String kind;
   final List<String> correctItemIds;
   final List<String> accepted;
-  final List<String> correctOrder;
+  final List<OrderedAnswer> correctOrders;
   final List<List<String>> pairs;
   final Map<String, dynamic> normalization;
   const ExerciseEvaluation({
     required this.kind,
     this.correctItemIds = const [],
     this.accepted = const [],
-    this.correctOrder = const [],
+    this.correctOrders = const [],
     this.pairs = const [],
     this.normalization = const {},
   });
@@ -1113,38 +1144,39 @@ class ExerciseEvaluation {
     'kind': kind,
     if (correctItemIds.isNotEmpty) 'correctItemIds': correctItemIds,
     if (accepted.isNotEmpty) 'acceptedAnswers': accepted,
-    if (correctOrder.isNotEmpty) 'correctOrder': correctOrder,
+    if (correctOrders.isNotEmpty)
+      'correctOrders': correctOrders.map((answer) => answer.toJson()).toList(),
     if (pairs.isNotEmpty) 'pairs': pairs,
     if (normalization.isNotEmpty) 'normalization': normalization,
   };
   factory ExerciseEvaluation.fromJson(Map<String, dynamic> j) {
-    final accepted = j.containsKey('acceptedAnswers')
-        ? _stringList(j, 'acceptedAnswers')
-        : _stringList(j, 'accepted');
+    if (j.containsKey('accepted')) {
+      throw const FormatException(
+        'Course Model formatVersion 6 uses acceptedAnswers and does not load the legacy accepted field.',
+      );
+    }
+    if (j.containsKey('correctOrder')) {
+      throw const FormatException(
+        'Course Model formatVersion 6 requires correctOrders and does not load the legacy single correctOrder field.',
+      );
+    }
+    if (j.containsKey('caseSensitive') ||
+        j.containsKey('ignorePunctuation') ||
+        j.containsKey('ignoreAccents')) {
+      throw const FormatException(
+        'Course Model formatVersion 6 requires the normalization object and does not load legacy normalization flags.',
+      );
+    }
     final normalization = j['normalization'] is Map
         ? Map<String, dynamic>.from(j['normalization'] as Map)
         : <String, dynamic>{};
-    // Explicit normalization booleans are normalized into the v5 internal map.
-    if (j['caseSensitive'] is bool) {
-      normalization['case'] = j['caseSensitive'] == true
-          ? 'preserve'
-          : 'ignore';
-    }
-    if (j['ignorePunctuation'] is bool) {
-      normalization['punctuation'] = j['ignorePunctuation'] == true
-          ? 'ignore'
-          : 'preserve';
-    }
-    if (j['ignoreAccents'] is bool) {
-      normalization['accents'] = j['ignoreAccents'] == true
-          ? 'ignore'
-          : 'preserve';
-    }
     return ExerciseEvaluation(
       kind: _requiredString(j, 'kind', 'evaluation'),
       correctItemIds: _stringList(j, 'correctItemIds'),
-      accepted: accepted,
-      correctOrder: _stringList(j, 'correctOrder'),
+      accepted: _stringList(j, 'acceptedAnswers'),
+      correctOrders: j['correctOrders'] == null
+          ? const []
+          : _mapList(j, 'correctOrders', 'evaluation', OrderedAnswer.fromJson),
       pairs: _pairList(j, 'pairs'),
       normalization: normalization,
     );
@@ -1154,6 +1186,7 @@ class ExerciseEvaluation {
 class Exercise {
   final String id;
   final PublicationState publicationState;
+  final DateTime updatedAt;
   final String editorTemplate;
   final List<PromptElement> promptElements;
   final ExerciseInteraction interaction;
@@ -1166,6 +1199,7 @@ class Exercise {
   Exercise({
     required this.id,
     this.publicationState = PublicationState.published,
+    DateTime? updatedAt,
     required String type,
     String? editorTemplate,
     required String prompt,
@@ -1176,12 +1210,14 @@ class Exercise {
     required List<String> accepted,
     required List<String> tokens,
     required List<String> orderAnswer,
+    List<String> correctTranslations = const [],
     required List<List<String>> pairs,
     required this.hint,
     required List<String> icons,
     String imageAsset = '',
     this.missingWords = const [],
-  }) : editorTemplate = editorTemplate ?? type,
+  }) : updatedAt = _canonicalUtcTimestamp(updatedAt),
+       editorTemplate = editorTemplate ?? type,
        promptElements = _legacyPrompt(type, prompt, question, tts, imageAsset),
        interaction = _legacyInteraction(
          type,
@@ -1198,6 +1234,7 @@ class Exercise {
          accepted,
          tokens,
          orderAnswer,
+         correctTranslations,
          pairs,
        ),
        feedback = const {};
@@ -1205,6 +1242,7 @@ class Exercise {
   Exercise.v2({
     required this.id,
     this.publicationState = PublicationState.published,
+    DateTime? updatedAt,
     required this.editorTemplate,
     required this.promptElements,
     required this.interaction,
@@ -1212,7 +1250,7 @@ class Exercise {
     this.hint = '',
     this.feedback = const {},
     this.missingWords = const [],
-  });
+  }) : updatedAt = _canonicalUtcTimestamp(updatedAt);
   factory Exercise.presentation({
     required String id,
     required String editorTemplate,
@@ -1238,6 +1276,7 @@ class Exercise {
   );
 
   Map<String, dynamic> toV2Json() => {
+    'updatedAt': _timestampToJson(updatedAt),
     'prompt': promptElements.map((e) => e.toJson()).toList(),
     'interaction': interaction.toJson(),
     'evaluation': evaluation.toJson(),
@@ -1263,6 +1302,7 @@ class Exercise {
     return Exercise.v2(
       id: contentId,
       publicationState: publicationState,
+      updatedAt: _requiredUtcTimestamp(j, 'updatedAt', 'exercise'),
       editorTemplate: editorTemplate,
       promptElements: _mapList(j, 'prompt', 'exercise', PromptElement.fromJson),
       interaction: ExerciseInteraction.fromJson(Map<String, dynamic>.from(i)),
@@ -1331,13 +1371,29 @@ class Exercise {
   List<String> get accepted => evaluation.accepted;
   List<String> get tokens =>
       interaction.items.map((e) => e.value).where((e) => e.isNotEmpty).toList();
-  List<String> get orderAnswer => evaluation.correctOrder
-      .map((id) {
-        final it = interaction.items.where((x) => x.id == id).firstOrNull;
-        return it?.value ?? '';
-      })
-      .where((e) => e.isNotEmpty)
-      .toList();
+  List<String> get orderAnswer =>
+      evaluation.correctOrders.firstOrNull?.itemIds
+          .map((id) {
+            final it = interaction.items.where((x) => x.id == id).firstOrNull;
+            return it?.value ?? '';
+          })
+          .where((e) => e.isNotEmpty)
+          .toList() ??
+      const [];
+  List<List<String>> get orderAnswers => evaluation.correctOrders
+      .map(
+        (answer) => answer.itemIds
+            .map((id) {
+              final it = interaction.items.where((x) => x.id == id).firstOrNull;
+              return it?.value ?? '';
+            })
+            .where((e) => e.isNotEmpty)
+            .toList(growable: false),
+      )
+      .toList(growable: false);
+  List<String> get correctTranslationTexts => evaluation.correctOrders
+      .map((answer) => answer.text)
+      .toList(growable: false);
   List<List<String>> get pairs => evaluation.pairs
       .map((p) {
         if (p.length != 2) return <String>[];
@@ -1527,6 +1583,7 @@ ExerciseEvaluation _legacyEvaluation(
   List<String> accepted,
   List<String> tokens,
   List<String> order,
+  List<String> correctTranslations,
   List<List<String>> pairs,
 ) {
   if (const {
@@ -1564,10 +1621,31 @@ ExerciseEvaluation _legacyEvaluation(
       },
     );
   }
-  if (const {'word_order', 'image_word', 'build_translation'}.contains(type)) {
+  if (const {'word_order', 'image_word'}.contains(type)) {
+    final itemIds = _resolveOrderedItemIds(tokens, order);
     return ExerciseEvaluation(
       kind: 'ordered_items',
-      correctOrder: _resolveOrderedItemIds(tokens, order),
+      correctOrders: [
+        if (itemIds.isNotEmpty)
+          OrderedAnswer(
+            text: (type == 'image_word' ? order.join() : order.join(' '))
+                .trim(),
+            itemIds: itemIds,
+          ),
+      ],
+    );
+  }
+  if (type == 'build_translation') {
+    return ExerciseEvaluation(
+      kind: 'ordered_items',
+      correctOrders: [
+        for (final translation in correctTranslations)
+          if (translation.trim().isNotEmpty)
+            OrderedAnswer(
+              text: translation.trim(),
+              itemIds: _resolveOrderedItemIds(tokens, [translation]),
+            ),
+      ],
     );
   }
   if (const {
@@ -1685,6 +1763,31 @@ class Duel {
       title: _requiredString(j, 'title', 'duel'),
     );
   }
+}
+
+DateTime _canonicalUtcTimestamp(DateTime? value) =>
+    (value ?? DateTime.fromMillisecondsSinceEpoch(0, isUtc: true)).toUtc();
+
+String _timestampToJson(DateTime value) => value.toUtc().toIso8601String();
+
+DateTime _requiredUtcTimestamp(
+  Map<String, dynamic> json,
+  String key,
+  String location,
+) {
+  final raw = json[key];
+  if (raw is! String || !raw.endsWith('Z')) {
+    throw FormatException(
+      '$location.$key must be an ISO 8601 UTC timestamp ending in Z.',
+    );
+  }
+  final parsed = DateTime.tryParse(raw);
+  if (parsed == null || !parsed.isUtc) {
+    throw FormatException(
+      '$location.$key must be an unambiguous ISO 8601 UTC timestamp.',
+    );
+  }
+  return parsed;
 }
 
 String _requiredString(Map<String, dynamic> j, String key, String where) {

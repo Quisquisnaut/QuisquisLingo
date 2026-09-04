@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../services/app_metadata.dart';
 import '../services/alpha_lifecycle_service.dart';
 import 'credits_screen.dart';
 
@@ -31,6 +32,10 @@ class InfoScreen extends StatelessWidget {
               filterQuality: FilterQuality.high,
             ),
           ),
+        ),
+        const _InfoSection(
+          title: 'Version and Build',
+          body: AppMetadata.displayLabel,
         ),
         _InfoSection(
           title: 'Choosing and opening courses',
@@ -111,7 +116,7 @@ class InfoScreen extends StatelessWidget {
         _InfoSection(
           title: 'Updates',
           body:
-              'At the bottom of Settings, Current version is shown immediately before Update. Settings > Update displays the official QuisquisLingo GitHub repository https://github.com/Quisquisnaut/QuisquisLingo, lets you check the latest published GitHub Release manually, and can optionally check automatically at startup. Automatic checks are off by default. Update checks send no learner data or course data and never download or install software. If a newer release exists, the page shows release information and installation guidance in the fixed order Windows, macOS, Linux antiX, Android, iOS and Web, marking platforms that have no matching published release asset as not currently available.',
+              'At the bottom of Settings, Version and Build are shown immediately before Update. Settings > Update displays the official QuisquisLingo GitHub repository https://github.com/Quisquisnaut/QuisquisLingo, lets you check the latest published GitHub Release manually, and can optionally check automatically at startup. Automatic checks are off by default. Update checks send no learner data or course data and never download or install software. If a newer release exists, the page shows release information and installation guidance in the fixed order Windows, macOS, Linux antiX, Android, iOS and Web, marking platforms that have no matching published release asset as not currently available.',
         ),
         _InfoSection(
           title: 'Crash Log and Diagnostic Log',

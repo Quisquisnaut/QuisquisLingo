@@ -34,7 +34,7 @@ class EditorHelpScreen extends StatelessWidget {
         _HelpSection(
           title: 'Drafts, publishing and unsaved work',
           body:
-              'Course, Lesson, Round and Exercise can be Draft or Published. Save as Draft preserves incomplete but structurally safe author work without showing it to learners. Save / Publish runs strict learner validation. Draft descendants stay Draft when a parent is published, and Published children remain hidden below a Draft parent. Draft Courses are not learner-selectable; Draft Lessons do not affect numbering, Sections or unlock order; Draft Rounds and Exercises do not affect play, completion, Review, Duel or XP. Moving Published content to Draft asks first and preserves stable IDs and existing learner history. Back or close shows Unsaved changes only when the current editor would discard real unsaved work; child saves remain part of the parent draft until the parent is saved.',
+              'Course, Lesson, Round and Exercise can be Draft or Published. Save as Draft preserves incomplete but structurally safe author work without showing it to learners. Save / Publish runs strict learner validation. Draft descendants stay Draft when a parent is published, and Published children remain hidden below a Draft parent. Draft Courses are not learner-selectable; Draft Lessons do not affect numbering, Sections or unlock order; Draft Rounds and Exercises do not affect play, completion, Review, Duel or XP. Moving Published content to Draft asks first and preserves stable IDs and existing learner history. A successful child save persists transactionally through its open Round, Lesson and Course ancestors, refreshes only that saved child baseline and does not cause repeat leave warnings; independent unsaved ancestor edits remain dirty. Persistence failure clears no dirty state.',
         ),
         _HelpSection(
           title: 'Local course edits and backups',
@@ -49,12 +49,12 @@ class EditorHelpScreen extends StatelessWidget {
         _HelpSection(
           title: 'Import a custom course',
           body:
-              '1. Copy the Course Model v5 JSON file to Documents/QuisquisLingo/Exports. 2. Rename it exactly import.json. 3. Open Course Editor and press Import course JSON. 4. After parsing and Course Audit validation, the course is copied into QuisquisLingo local custom-course storage and appears under My custom courses. Audit errors block import; warnings are reported for review but do not block it. The imported course no longer depends on import.json, and QuisquisLingo leaves import.json in place. Imports must be valid UTF-8 Course Model v5 JSON and may be no larger than 10 MB. Older Chapter-based formats are not imported or migrated. If the same courseId already exists, QuisquisLingo treats it as the same custom course and asks before replacing the stored copy.',
+              '1. Copy the Course Model v6 JSON file to Documents/QuisquisLingo/Exports. 2. Rename it exactly import.json. 3. Open Course Editor and press Import course JSON. 4. After parsing and Course Audit validation, the course is copied into QuisquisLingo local custom-course storage and appears under My custom courses. Audit errors block import; warnings are reported for review but do not block it. The imported course no longer depends on import.json, and QuisquisLingo leaves import.json in place. Imports must be valid UTF-8 Course Model v6 JSON and may be no larger than 10 MB. v5 and older formats are rejected without migration, conversion or deletion. If the same courseId already exists, QuisquisLingo treats it as the same custom course and asks before replacing the stored copy.',
         ),
         _HelpSection(
           title: 'Export a custom course',
           body:
-              'Open My custom courses and choose Export course JSON for the course you want to export. QuisquisLingo saves the complete portable Course Model v5 authoring JSON directly in Documents/QuisquisLingo/Exports. There is no Save As dialog. Draft/Published state, optional custom flag data, Buy a Coffee metadata, Lesson numbering/icon-style settings and managed custom Lesson icons are included. If a filename exists, _2, _3 and later suffixes avoid overwriting it.',
+              'Open My custom courses and choose Export course JSON for the course you want to export. QuisquisLingo saves the complete portable Course Model v6 authoring JSON directly in Documents/QuisquisLingo/Exports. There is no Save As dialog. Draft/Published state, required UTC modification timestamps, optional custom flag data, Buy a Coffee metadata, Lesson numbering/icon-style settings and managed custom Lesson icons are included. If a filename exists, _2, _3 and later suffixes avoid overwriting it.',
         ),
         _HelpSection(
           title: 'Import a custom flag',
@@ -129,18 +129,18 @@ class EditorHelpScreen extends StatelessWidget {
         _HelpSection(
           title: 'Audit severity and codes',
           body:
-              'Course Audit reports Errors, Warnings and Info. Error blocks publication or import because content is structurally or functionally invalid. Warning marks a likely authoring problem that needs review. Info is guidance or a neutral fact and never blocks publication by itself. Audit can sort by Lesson or friendly Exercise type and can be opened for a whole Course, one Lesson or one Round. In the Round list, only a Round with an Audit Error receives the pink outline; warnings and Info do not. A Lesson with fewer than 3 Rounds and one without listening comprehension receive Info guidance. Duel availability below 25 actual eligible exercises is also Info. Drafts are included for author review without making unrelated currently Published learner content invalid.',
+              'Course Audit reports Errors, Warnings and Info. Error blocks publication or import because content is structurally or functionally invalid. Warning marks a likely authoring problem that needs review. Info is guidance or a neutral fact and never blocks publication by itself. Audit can sort by Lesson, friendly Exercise type or Recently modified and can be opened for a whole Course, one Lesson or one Round. Recent order uses updatedAt descending with deterministic ties; findings are numbered progressively inside each severity group after filtering. In the Round list, only a Round with an Audit Error receives the pink outline. Fewer than 3 Rounds and Duel availability below 25 eligible Exercises are Info; missing listening-comprehension coverage is not. Drafts are included for author review without making unrelated currently Published learner content invalid.',
         ),
         _HelpSection(
           title: 'Course Audit',
           body:
-              'Course Audit checks structural and authoring problems such as invalid exercise fields, duplicate IDs, Word Block problems, missing audio mappings and Missing Word errors. It does not certify grammar, translation accuracy or pedagogical quality.',
+              'Course Audit checks structural and authoring problems such as invalid exercise fields, duplicate IDs, Word Block problems, missing audio mappings and Missing Word errors. An empty Reading passage is an Error; one or two Unicode/apostrophe-aware lexical words produce READING_PASSAGE_TOO_SHORT, while three or more do not. HINT_REPEATS_PROMPT is a Warning and revealing any canonical correct answer remains an Error. It does not certify grammar, translation accuracy or pedagogical quality.',
         ),
 
         _HelpSection(
           title: 'Create a new course',
           body:
-              'Course Editor can create an independent Course Model v5 project from scratch. It starts as Draft with 3 Draft placeholder Lessons and stable IDs; no Rounds are created automatically. A manually created Round starts as Draft with three Draft dummy Exercises. Custom Courses appear under My custom courses, whose menu provides Edit, Rename, Duplicate, Audit, Publish/Move to Draft, Export and the established protected delete flow. Import and export use portable QuisquisLingo JSON. Imported authoring content must state its Draft/Published state explicitly; this release does not infer or migrate the new fields.',
+              'Course Editor can create an independent Course Model v6 project from scratch. It starts as Draft with 3 Draft placeholder Lessons and stable IDs; no Rounds are created automatically. A manually created Round starts as Draft with three Draft dummy Exercises. Custom Courses appear under My custom courses, whose menu provides Edit, Rename, Duplicate, Audit, Publish/Move to Draft, Export and the established protected delete flow. Import and export use portable QuisquisLingo JSON. Imported authoring content must state Draft/Published state and required UTC updatedAt timestamps explicitly; this release does not infer or migrate them.',
         ),
       ],
     ),
@@ -164,7 +164,7 @@ class _TechnicalLinks extends StatelessWidget {
           ),
           const SizedBox(height: 6),
           const Text(
-            'Work in progress. These pages describe the Course Model v5 implementation separately from the practical Editor instructions.',
+            'Work in progress. These pages describe the Course Model v6 implementation separately from the practical Editor instructions.',
           ),
           ListTile(
             contentPadding: EdgeInsets.zero,
@@ -176,7 +176,7 @@ class _TechnicalLinks extends StatelessWidget {
           ),
           ListTile(
             contentPadding: EdgeInsets.zero,
-            title: Text('QuisquisLingo Course Model v5'),
+            title: Text('QuisquisLingo Course Model v6'),
             trailing: Icon(Icons.chevron_right),
             onTap: () => Navigator.of(context).push(
               MaterialPageRoute(
@@ -259,12 +259,12 @@ class CourseModelV4HelpScreen extends StatelessWidget {
   const CourseModelV4HelpScreen({super.key});
   @override
   Widget build(BuildContext context) => _TechnicalPage(
-    title: 'QuisquisLingo Course Model v5',
+    title: 'QuisquisLingo Course Model v6',
     sections: const [
       _HelpSection(
         title: 'Status',
         body:
-            'Work in progress. QuisquisLingo uses formatVersion 5 as its native course model.',
+            'Work in progress. QuisquisLingo uses formatVersion 6 as its only native course model. Earlier formats are rejected without migration or deletion.',
       ),
       _HelpSection(
         title: 'Hierarchy',
@@ -274,7 +274,7 @@ class CourseModelV4HelpScreen extends StatelessWidget {
       _HelpSection(
         title: 'Content',
         body:
-            'Current v4 kinds include exercise, presentation, explanation, example, vocabulary, text and dialogue. Content has a stable ID and can be required for normal completion. Presentation Content can be interactive without producing a correct/incorrect result.',
+            'Current kinds include exercise, presentation, explanation, example, vocabulary, text and dialogue. Content has a stable ID and can be required for normal completion. Lesson, Round and Exercise objects carry required UTC updatedAt timestamps. Presentation Content can be interactive without producing a correct/incorrect result.',
       ),
       _HelpSection(
         title: 'Guidebook',
@@ -309,7 +309,7 @@ class ExercisePrimitivesHelpScreen extends StatelessWidget {
       _HelpSection(
         title: 'Status',
         body:
-            'Work in progress. The current primitive set is the implemented Course Model v5 baseline.',
+            'Work in progress. The current primitive set is the implemented Course Model v6 baseline.',
       ),
       _HelpSection(
         title: 'Exercise anatomy',
@@ -353,12 +353,12 @@ class JsonV4HelpScreen extends StatelessWidget {
     sections: const [
       _HelpSection(
         title: 'Status',
-        body: 'Work in progress. QuisquisLingo writes formatVersion: 5.',
+        body: 'Work in progress. QuisquisLingo writes formatVersion: 6.',
       ),
       _HelpSection(
         title: 'Root',
         body:
-            'The root contains formatVersion, Course metadata and lessons[]. New bundled samples and user-created courses are native v5 files.',
+            'The root contains formatVersion, Course metadata and lessons[]. Bundled samples and user-created courses are native v6 files.',
       ),
       _HelpSection(
         title: 'Guidebook',
@@ -368,12 +368,12 @@ class JsonV4HelpScreen extends StatelessWidget {
       _HelpSection(
         title: 'Lesson and Round',
         body:
-            'Course, Lesson, Round and authored Exercise content carry explicit draft/published state. A Course also stores Lesson numbering and fallback-icon settings plus optional managed custom Lesson-icon assets. A Lesson contains lessonId, title, optional Section and themeIconAsset metadata, guidebook, rounds[] and its Duel identity. themeIconAsset references either the closed preinstalled registry or that Course’s managed icon set; arbitrary paths are rejected. Round contains id, title, visualType and content[].',
+            'Course, Lesson, Round and authored Exercise content carry explicit draft/published state. Lesson, Round and Exercise also require UTC updatedAt timestamps. A Course stores Lesson numbering and fallback-icon settings plus optional managed custom Lesson-icon assets. A Lesson contains lessonId, title, optional Section and themeIconAsset metadata, guidebook, rounds[] and its Duel identity. Round title is optional and falls back everywhere to its current Round N position without changing identity.',
       ),
       _HelpSection(
         title: 'Exercise Content',
         body:
-            'Exercise Content stores editorTemplate plus exercise.prompt[], exercise.interaction and exercise.evaluation. Correctness uses stable Item IDs rather than display indexes.',
+            'Exercise Content stores editorTemplate plus exercise.prompt[], exercise.interaction and exercise.evaluation. Correctness uses stable Item IDs rather than display indexes. Build the translation stores one or more literal correctOrders with answer text and ordered Item IDs; legacy correctOrder is rejected.',
       ),
       _HelpSection(
         title: 'Duel',
@@ -383,7 +383,7 @@ class JsonV4HelpScreen extends StatelessWidget {
       _HelpSection(
         title: 'Compatibility',
         body:
-            'Bundled and custom courses are native Course Model v5. Older Chapter-based formats are unsupported and are not read, migrated or converted automatically.',
+            'Bundled and custom courses are native Course Model v6. v5 and older formats are unsupported and are not read, migrated, converted or deleted.',
       ),
     ],
   );

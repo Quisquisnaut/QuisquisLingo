@@ -19,7 +19,9 @@ void main() {
       sortMode: AuditSortMode.lesson,
     );
 
-    expect(report, contains('Application version: 2.0.25+225'));
+    expect(report, contains('Version: 2.0.25'));
+    expect(report, contains('Build: 225.02'));
+    expect(report, contains('Technical version: 2.0.25+22502'));
     expect(report, contains('Generated: 2026-09-03T20:15:30.000'));
     expect(report, contains('Course name: Italian test'));
     expect(report, contains('Course ID: stable_course_id'));
@@ -29,6 +31,8 @@ void main() {
     expect(report, contains('Warnings: 1'));
     expect(report, contains('Info: 0'));
     expect(report, contains('Code: BLOCKING_TEST'));
+    expect(report, contains('Error 1 of 1'));
+    expect(report, contains('Warning 1 of 1'));
     expect(report, contains('Message: Blocking finding'));
     expect(report, contains('Lesson: Greetings (lesson_1)'));
     expect(report, contains('Round: First round (round_1)'));

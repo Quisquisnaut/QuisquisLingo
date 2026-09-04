@@ -5,7 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:quisquislingo_app/models/course_models.dart';
 
 void main() {
-  test('v5 listening spelling keeps input interaction and acceptedAnswers', () {
+  test('legacy v5 course is rejected instead of partially loaded', () {
     final json =
         jsonDecode(r'''
 {
@@ -50,13 +50,16 @@ void main() {
 ''')
             as Map<String, dynamic>;
 
-    final exercise = Course.fromJson(
-      json,
-    ).lessons.single.rounds.single.exercises.single;
-    expect(exercise.type, 'listening_spelling');
-    expect(exercise.interaction.kind, 'input');
-    expect(exercise.accepted, ['ecco']);
-    expect(exercise.tts, 'ecco');
+    expect(
+      () => Course.fromJson(json),
+      throwsA(
+        isA<FormatException>().having(
+          (error) => error.message,
+          'message',
+          contains('formatVersion 6'),
+        ),
+      ),
+    );
   });
 
   test('selected_items resolves stable correct Item ID to visible answer', () {

@@ -66,9 +66,7 @@ class _MatchPairView {
 }
 
 class _RoundScreenState extends State<RoundScreen> {
-  String get _roundTitle => widget.round.title.trim().isEmpty
-      ? 'Round ${widget.roundIndex + 1}'
-      : widget.round.title;
+  String get _roundTitle => widget.round.displayTitle(widget.roundIndex);
   final _progress = ProgressService();
   late final LearningCompletionService _completion;
   final _ttsCache = TtsCacheService();
@@ -99,6 +97,7 @@ class _RoundScreenState extends State<RoundScreen> {
   List<String> _acceptedDifferences = const [];
   int? _selected;
   final TextEditingController _textController = TextEditingController();
+  final FocusNode _textFocusNode = FocusNode();
   final List<String> _builtOrder = [];
   final List<TextEditingController> _missingWordControllers = [];
   final Map<String, String> _matchingSelections = {};
@@ -115,6 +114,33 @@ class _RoundScreenState extends State<RoundScreen> {
     Color(0xFFE9DFC7), // muted harvest gold
     Color(0xFFE5D9D2), // dusty rose-brown
   ];
+
+  Color get _exercisePanelColor {
+    final scheme = Theme.of(context).colorScheme;
+    return Theme.of(context).brightness == Brightness.dark
+        ? scheme.surfaceContainerHigh
+        : scheme.surfaceContainerLowest;
+  }
+
+  Color _roundBackground(Color lightBackground) {
+    if (Theme.of(context).brightness == Brightness.light) {
+      return lightBackground;
+    }
+    final scheme = Theme.of(context).colorScheme;
+    return Color.alphaBlend(
+      lightBackground.withValues(alpha: 0.08),
+      scheme.surface,
+    );
+  }
+
+  Color get _feedbackPanelColor {
+    final scheme = Theme.of(context).colorScheme;
+    final accent = _lastAnswerCorrect ? scheme.primary : scheme.error;
+    return Color.alphaBlend(
+      accent.withValues(alpha: 0.12),
+      _exercisePanelColor,
+    );
+  }
 
   int get _exerciseIndex => _queue[_position];
   Exercise get _exercise => widget.round.exercises[_exerciseIndex];
@@ -245,6 +271,7 @@ class _RoundScreenState extends State<RoundScreen> {
   @override
   void dispose() {
     _textController.dispose();
+    _textFocusNode.dispose();
     for (final c in _missingWordControllers) {
       c.dispose();
     }
@@ -270,6 +297,16 @@ class _RoundScreenState extends State<RoundScreen> {
         List.generate(ex.missingWords.length, (_) => TextEditingController()),
       );
     _matchingSelections.clear();
+
+    if (const {
+      'fill_blank',
+      'listening_spelling',
+      'type_translation',
+    }.contains(ex.type)) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && !_answered) _textFocusNode.requestFocus();
+      });
+    }
 
     _choiceOptions = List<_ChoiceOption>.generate(
       ex.answers.length,
@@ -441,8 +478,12 @@ class _RoundScreenState extends State<RoundScreen> {
         if (ex.accepted.isNotEmpty) return ex.accepted.first;
         break;
       case 'word_order':
-      case 'build_translation':
         if (ex.orderAnswer.isNotEmpty) return ex.orderAnswer.join(' ');
+        break;
+      case 'build_translation':
+        if (ex.correctTranslationTexts.isNotEmpty) {
+          return ex.correctTranslationTexts.join(' / ');
+        }
         break;
       case 'image_word':
         if (ex.orderAnswer.isNotEmpty) return ex.orderAnswer.join('');
@@ -618,9 +659,24 @@ class _RoundScreenState extends State<RoundScreen> {
     _mark(evaluation.isCorrect);
   }
 
-  void _submitOrder() => _mark(
-    _typedMatches(_builtOrder.join(' '), _exercise.orderAnswer.join(' ')),
-  );
+  void _submitOrder() {
+    final built = _builtOrder.join(' ');
+    if (_exercise.type == 'build_translation') {
+      _mark(
+        _exercise.correctTranslationTexts.any(
+          (answer) => _answerEngine
+              .evaluateLiteral(
+                built,
+                answer,
+                normalization: _exercise.evaluation.normalization,
+              )
+              .isCorrect,
+        ),
+      );
+      return;
+    }
+    _mark(_typedMatches(built, _exercise.orderAnswer.join(' ')));
+  }
 
   void _submitImageWord() =>
       _mark(_typedMatches(_builtOrder.join(), _exercise.orderAnswer.join()));
@@ -821,7 +877,7 @@ class _RoundScreenState extends State<RoundScreen> {
             key: const Key('contextual-comprehension-text'),
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.58),
+              color: _exercisePanelColor,
               borderRadius: BorderRadius.circular(16),
             ),
             child: Text(ex.contextText),
@@ -833,7 +889,7 @@ class _RoundScreenState extends State<RoundScreen> {
             key: const Key('contextual-comprehension-dialogue'),
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.58),
+              color: _exercisePanelColor,
               borderRadius: BorderRadius.circular(16),
             ),
             child: Column(
@@ -882,7 +938,7 @@ class _RoundScreenState extends State<RoundScreen> {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.55),
+              color: _exercisePanelColor,
               borderRadius: BorderRadius.circular(14),
             ),
             child: Text(
@@ -893,6 +949,7 @@ class _RoundScreenState extends State<RoundScreen> {
         const SizedBox(height: 16),
         TextField(
           controller: _textController,
+          focusNode: _textFocusNode,
           enabled: !_answered,
           autofocus: true,
           onChanged: (_) => setState(() {}),
@@ -931,6 +988,7 @@ class _RoundScreenState extends State<RoundScreen> {
         ],
         TextField(
           controller: _textController,
+          focusNode: _textFocusNode,
           enabled: !_answered,
           autofocus: true,
           onChanged: (_) => setState(() {}),
@@ -1016,7 +1074,7 @@ class _RoundScreenState extends State<RoundScreen> {
         Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.55),
+            color: _exercisePanelColor,
             borderRadius: BorderRadius.circular(14),
           ),
           child: Wrap(
@@ -1103,7 +1161,7 @@ class _RoundScreenState extends State<RoundScreen> {
         Container(
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.58),
+            color: _exercisePanelColor,
             borderRadius: BorderRadius.circular(16),
           ),
           child: Text(
@@ -1266,7 +1324,7 @@ class _RoundScreenState extends State<RoundScreen> {
         Container(
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.62),
+            color: _exercisePanelColor,
             borderRadius: BorderRadius.circular(20),
           ),
           child: Column(
@@ -1399,7 +1457,7 @@ class _RoundScreenState extends State<RoundScreen> {
           final soundId = pair.leftId;
           final sound = pair.leftLabel;
           return Card(
-            color: Colors.white.withValues(alpha: 0.55),
+            color: _exercisePanelColor,
             child: Padding(
               padding: const EdgeInsets.all(10),
               child: Column(
@@ -1523,7 +1581,7 @@ class _RoundScreenState extends State<RoundScreen> {
               Container(
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.58),
+                  color: _exercisePanelColor,
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: Text(
@@ -1577,8 +1635,9 @@ class _RoundScreenState extends State<RoundScreen> {
     if (!widget.previewMode && AlphaLifecycleService.isExpired()) {
       return const AlphaExpiredView();
     }
-    final background =
-        _autumnBackgrounds[widget.roundIndex % _autumnBackgrounds.length];
+    final background = _roundBackground(
+      _autumnBackgrounds[widget.roundIndex % _autumnBackgrounds.length],
+    );
     final intro = _lessonIntro;
     if (intro != null && !_introAcknowledged) {
       return Scaffold(
@@ -1603,7 +1662,7 @@ class _RoundScreenState extends State<RoundScreen> {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.62),
+                  color: _exercisePanelColor,
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: Text(
@@ -1770,13 +1829,17 @@ class _RoundScreenState extends State<RoundScreen> {
               const SizedBox(height: 14),
             ] else
               ...[],
-            _exerciseBody(ex),
+            KeyedSubtree(
+              key: Key('exercise-renderer-${ex.type}'),
+              child: _exerciseBody(ex),
+            ),
             if (_answered) ...[
               const SizedBox(height: 18),
               Container(
+                key: const Key('exercise-feedback-surface'),
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.62),
+                  color: _feedbackPanelColor,
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: Column(
@@ -1786,7 +1849,29 @@ class _RoundScreenState extends State<RoundScreen> {
                       _feedback,
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
-                    if (ex.type != 'flashcard' &&
+                    if (ex.type == 'build_translation' &&
+                        ex.correctTranslationTexts.isNotEmpty) ...[
+                      const SizedBox(height: 8),
+                      Semantics(
+                        label:
+                            '${ex.correctTranslationTexts.length} correct translations',
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Correct translations:',
+                              style: TextStyle(fontWeight: FontWeight.w700),
+                            ),
+                            const SizedBox(height: 4),
+                            for (final answer in ex.correctTranslationTexts)
+                              Padding(
+                                padding: const EdgeInsets.only(bottom: 3),
+                                child: Text('• $answer'),
+                              ),
+                          ],
+                        ),
+                      ),
+                    ] else if (ex.type != 'flashcard' &&
                         (!_lastAnswerCorrect ||
                             const {
                               'fill_blank',

@@ -2,8 +2,9 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
+
+import 'app_metadata.dart';
 
 /// Writes uncaught Flutter/Dart errors to a persistent local text file.
 ///
@@ -17,7 +18,6 @@ class CrashLogService {
 
   File? _file;
   File? _visibleLogFile;
-  PackageInfo? _packageInfo;
   bool _initialised = false;
 
   Future<void> initialise() async {
@@ -44,7 +44,6 @@ class CrashLogService {
           );
         }
       }
-      _packageInfo = await PackageInfo.fromPlatform();
       _initialised = true;
       // Start every debug session with a system snapshot so even a native
       // process termination leaves useful environment details in the log.
@@ -68,16 +67,17 @@ class CrashLogService {
     if (file == null) return;
 
     try {
-      final info = _packageInfo;
       final buffer = StringBuffer()
-        ..writeln('============================================================')
+        ..writeln(
+          '============================================================',
+        )
         ..writeln('QuisquisLingo crash report')
         ..writeln('Time: ${DateTime.now().toIso8601String()}')
         ..writeln('Source: $source')
+        ..writeln('Version: ${AppMetadata.technicalVersion}')
         ..writeln(
-          'Version: ${info?.version ?? 'unknown'}+${info?.buildNumber ?? 'unknown'}',
+          'OS: ${Platform.operatingSystem} ${Platform.operatingSystemVersion}',
         )
-        ..writeln('OS: ${Platform.operatingSystem} ${Platform.operatingSystemVersion}')
         ..writeln('Architecture: ${_architecture()}')
         ..writeln('Logical processors: ${Platform.numberOfProcessors}')
         ..writeln('Locale: ${Platform.localeName}')
@@ -92,14 +92,12 @@ class CrashLogService {
     }
   }
 
-
   Future<void> _recordSessionStart() async {
-    final info = _packageInfo;
     final buffer = StringBuffer()
       ..writeln('============================================================')
       ..writeln('QuisquisLingo session started')
       ..writeln('Time: ${DateTime.now().toIso8601String()}')
-      ..writeln('Version: ${info?.version ?? 'unknown'}+${info?.buildNumber ?? 'unknown'}')
+      ..writeln('Version: ${AppMetadata.technicalVersion}')
       ..writeln('OS: ${Platform.operatingSystem}')
       ..writeln('OS version: ${Platform.operatingSystemVersion}')
       ..writeln('Architecture: ${_architecture()}')
@@ -129,12 +127,17 @@ class CrashLogService {
   }
 
   Future<void> _appendToLogs(String text) async {
-    final targets = <File>{if (_file != null) _file!, if (_visibleLogFile != null) _visibleLogFile!};
+    final targets = <File>{
+      if (_file != null) _file!,
+      if (_visibleLogFile != null) _visibleLogFile!,
+    };
     for (final target in targets) {
       try {
         await target.writeAsString(text, mode: FileMode.append, flush: true);
       } catch (error, stackTrace) {
-        debugPrint('Writing crash log failed for ${target.path}: $error\n$stackTrace');
+        debugPrint(
+          'Writing crash log failed for ${target.path}: $error\n$stackTrace',
+        );
       }
     }
   }
@@ -144,12 +147,11 @@ class CrashLogService {
   Future<void> recordDebugEvent(String message) async {
     if (!kDebugMode || kIsWeb) return;
     if (!_initialised) await initialise();
-    final info = _packageInfo;
     final buffer = StringBuffer()
       ..writeln('------------------------------------------------------------')
       ..writeln('QuisquisLingo debug event')
       ..writeln('Time: ${DateTime.now().toIso8601String()}')
-      ..writeln('Version: ${info?.version ?? 'unknown'}+${info?.buildNumber ?? 'unknown'}')
+      ..writeln('Version: ${AppMetadata.technicalVersion}')
       ..writeln('Event: $message')
       ..writeln();
     await _appendToLogs(buffer.toString());

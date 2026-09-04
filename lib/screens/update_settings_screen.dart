@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:package_info_plus/package_info_plus.dart';
-
+import '../services/app_metadata.dart';
 import '../services/diagnostic_log_service.dart';
 import '../services/settings_service.dart';
 import '../services/update_service.dart';
@@ -18,7 +17,7 @@ class _UpdateSettingsScreenState extends State<UpdateSettingsScreen> {
   final _updates = UpdateService();
   final _diagnosticLog = DiagnosticLogService();
 
-  String _currentVersion = '...';
+  String _currentVersion = AppMetadata.technicalVersion;
   bool _automatic = false;
   DateTime? _lastChecked;
   bool _checking = false;
@@ -33,20 +32,18 @@ class _UpdateSettingsScreenState extends State<UpdateSettingsScreen> {
 
   Future<void> _load() async {
     try {
-      final info = await PackageInfo.fromPlatform();
       final automatic = await _settings.isAutomaticUpdateCheckEnabled();
       final lastChecked = await _settings.getUpdateLastCheckedAt();
       if (!mounted) return;
       setState(() {
-        _currentVersion = info.version;
+        _currentVersion = AppMetadata.technicalVersion;
         _automatic = automatic;
         _lastChecked = lastChecked;
       });
     } catch (_) {
       if (!mounted) return;
       setState(() {
-        _currentVersion = 'Unavailable';
-        _error = 'The installed version number could not be read on this platform.';
+        _error = 'Update settings could not be read on this platform.';
       });
     }
   }
@@ -77,13 +74,20 @@ class _UpdateSettingsScreenState extends State<UpdateSettingsScreen> {
         _result = result;
       });
     } on UpdateCheckException catch (error) {
-      await _diagnosticLog.logInfo('Manual GitHub update check failed: ${error.message}');
+      await _diagnosticLog.logInfo(
+        'Manual GitHub update check failed: ${error.message}',
+      );
       if (!mounted) return;
       setState(() => _error = error.message);
     } catch (_) {
-      await _diagnosticLog.logInfo('Manual GitHub update check failed with an unexpected local error.');
+      await _diagnosticLog.logInfo(
+        'Manual GitHub update check failed with an unexpected local error.',
+      );
       if (!mounted) return;
-      setState(() => _error = 'Unable to check for updates. QuisquisLingo remains fully usable offline.');
+      setState(
+        () => _error =
+            'Unable to check for updates. QuisquisLingo remains fully usable offline.',
+      );
     } finally {
       if (mounted) setState(() => _checking = false);
     }
@@ -140,7 +144,9 @@ class _UpdateSettingsScreenState extends State<UpdateSettingsScreen> {
               onPressed: _openRepository,
             ),
             onLongPress: () async {
-              await Clipboard.setData(const ClipboardData(text: UpdateService.repositoryUrl));
+              await Clipboard.setData(
+                const ClipboardData(text: UpdateService.repositoryUrl),
+              );
               if (mounted) _message('GitHub repository address copied.');
             },
           ),
@@ -161,7 +167,7 @@ class _UpdateSettingsScreenState extends State<UpdateSettingsScreen> {
           ),
           const SizedBox(height: 8),
           FilledButton.icon(
-            onPressed: _checking || _currentVersion == '...' || _currentVersion == 'Unavailable' ? null : _check,
+            onPressed: _checking ? null : _check,
             icon: _checking
                 ? const SizedBox(
                     width: 18,
@@ -184,10 +190,12 @@ class _UpdateSettingsScreenState extends State<UpdateSettingsScreen> {
             const _StatusCard(
               icon: Icons.inventory_2_outlined,
               title: 'No published release',
-              body: 'No published QuisquisLingo release is currently available in the GitHub Releases section.',
+              body:
+                  'No published QuisquisLingo release is currently available in the GitHub Releases section.',
             ),
           ],
-          if (result?.status == UpdateCheckStatus.upToDate && release != null) ...[
+          if (result?.status == UpdateCheckStatus.upToDate &&
+              release != null) ...[
             const SizedBox(height: 12),
             _StatusCard(
               icon: Icons.check_circle_outline,
@@ -195,7 +203,8 @@ class _UpdateSettingsScreenState extends State<UpdateSettingsScreen> {
               body: 'Latest published release: ${release.version}',
             ),
           ],
-          if (result?.status == UpdateCheckStatus.updateAvailable && release != null) ...[
+          if (result?.status == UpdateCheckStatus.updateAvailable &&
+              release != null) ...[
             const SizedBox(height: 12),
             Card(
               child: Padding(
@@ -205,7 +214,9 @@ class _UpdateSettingsScreenState extends State<UpdateSettingsScreen> {
                   children: [
                     Text(
                       'New version available: ${release.version}',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w800,
+                      ),
                     ),
                     if (release.title.trim().isNotEmpty) ...[
                       const SizedBox(height: 4),
@@ -232,7 +243,9 @@ class _UpdateSettingsScreenState extends State<UpdateSettingsScreen> {
             const SizedBox(height: 18),
             Text(
               'Download and installation',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
             ),
             const SizedBox(height: 8),
             const Text(
@@ -242,33 +255,57 @@ class _UpdateSettingsScreenState extends State<UpdateSettingsScreen> {
             const SizedBox(height: 12),
             _PlatformInstructions(
               title: '1. Windows',
-              available: _updates.platformAvailable(release, UpdatePlatform.windows),
-              instructions: 'Download the Windows asset from the GitHub release. Close QuisquisLingo, then install the new package or replace the previous standalone application as described in that release. Reopen QuisquisLingo after installation.',
+              available: _updates.platformAvailable(
+                release,
+                UpdatePlatform.windows,
+              ),
+              instructions:
+                  'Download the Windows asset from the GitHub release. Close QuisquisLingo, then install the new package or replace the previous standalone application as described in that release. Reopen QuisquisLingo after installation.',
             ),
             _PlatformInstructions(
               title: '2. macOS',
-              available: _updates.platformAvailable(release, UpdatePlatform.macos),
-              instructions: 'Download the macOS asset from the GitHub release. Close QuisquisLingo, install or replace the application, then reopen it. Follow any signing or Gatekeeper instructions stated in the release.',
+              available: _updates.platformAvailable(
+                release,
+                UpdatePlatform.macos,
+              ),
+              instructions:
+                  'Download the macOS asset from the GitHub release. Close QuisquisLingo, install or replace the application, then reopen it. Follow any signing or Gatekeeper instructions stated in the release.',
             ),
             _PlatformInstructions(
               title: '3. Linux antiX',
-              available: _updates.platformAvailable(release, UpdatePlatform.linuxAntix),
-              instructions: 'Download the antiX package from the GitHub release. Close QuisquisLingo and install the package using the antiX/Debian package tools described in the release. Then start QuisquisLingo again from the menu or the quisquislingo command.',
+              available: _updates.platformAvailable(
+                release,
+                UpdatePlatform.linuxAntix,
+              ),
+              instructions:
+                  'Download the antiX package from the GitHub release. Close QuisquisLingo and install the package using the antiX/Debian package tools described in the release. Then start QuisquisLingo again from the menu or the quisquislingo command.',
             ),
             _PlatformInstructions(
               title: '4. Android',
-              available: _updates.platformAvailable(release, UpdatePlatform.android),
-              instructions: 'Download the Android package from the GitHub release and install it as an update over the existing QuisquisLingo installation. Android may ask you to authorize installation from that source.',
+              available: _updates.platformAvailable(
+                release,
+                UpdatePlatform.android,
+              ),
+              instructions:
+                  'Download the Android package from the GitHub release and install it as an update over the existing QuisquisLingo installation. Android may ask you to authorize installation from that source.',
             ),
             _PlatformInstructions(
               title: '5. iOS',
-              available: _updates.platformAvailable(release, UpdatePlatform.ios),
-              instructions: 'Use the iOS distribution method stated in the GitHub release, such as TestFlight or another explicitly documented installation route. Do not remove the existing app unless the release instructions require it.',
+              available: _updates.platformAvailable(
+                release,
+                UpdatePlatform.ios,
+              ),
+              instructions:
+                  'Use the iOS distribution method stated in the GitHub release, such as TestFlight or another explicitly documented installation route. Do not remove the existing app unless the release instructions require it.',
             ),
             _PlatformInstructions(
               title: '6. Web',
-              available: _updates.platformAvailable(release, UpdatePlatform.web),
-              instructions: 'No local installation is required. Open or reload the web version at the address stated in the GitHub release.',
+              available: _updates.platformAvailable(
+                release,
+                UpdatePlatform.web,
+              ),
+              instructions:
+                  'No local installation is required. Open or reload the web version at the address stated in the GitHub release.',
             ),
           ],
           const SizedBox(height: 12),
@@ -286,16 +323,20 @@ class _StatusCard extends StatelessWidget {
   final IconData icon;
   final String title;
   final String body;
-  const _StatusCard({required this.icon, required this.title, required this.body});
+  const _StatusCard({
+    required this.icon,
+    required this.title,
+    required this.body,
+  });
 
   @override
   Widget build(BuildContext context) => Card(
-        child: ListTile(
-          leading: Icon(icon),
-          title: Text(title),
-          subtitle: Text(body),
-        ),
-      );
+    child: ListTile(
+      leading: Icon(icon),
+      title: Text(title),
+      subtitle: Text(body),
+    ),
+  );
 }
 
 class _PlatformInstructions extends StatelessWidget {
@@ -310,27 +351,26 @@ class _PlatformInstructions extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Card(
-        margin: const EdgeInsets.only(bottom: 8),
-        child: Padding(
-          padding: const EdgeInsets.all(14),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(title, style: const TextStyle(fontWeight: FontWeight.w800)),
-              const SizedBox(height: 4),
-              Text(
-                available ? 'Available in this release.' : 'Not currently available in this release.',
-                style: TextStyle(
-                  fontWeight: FontWeight.w700,
-                  color: available ? Colors.green.shade800 : Colors.black54,
-                ),
-              ),
-              if (available) ...[
-                const SizedBox(height: 6),
-                Text(instructions),
-              ],
-            ],
+    margin: const EdgeInsets.only(bottom: 8),
+    child: Padding(
+      padding: const EdgeInsets.all(14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(title, style: const TextStyle(fontWeight: FontWeight.w800)),
+          const SizedBox(height: 4),
+          Text(
+            available
+                ? 'Available in this release.'
+                : 'Not currently available in this release.',
+            style: TextStyle(
+              fontWeight: FontWeight.w700,
+              color: available ? Colors.green.shade800 : Colors.black54,
+            ),
           ),
-        ),
-      );
+          if (available) ...[const SizedBox(height: 6), Text(instructions)],
+        ],
+      ),
+    ),
+  );
 }

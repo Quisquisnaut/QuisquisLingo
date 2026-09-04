@@ -1,8 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 import '../models/course_models.dart';
+import '../services/app_metadata.dart';
 import '../services/settings_service.dart';
 import '../services/diagnostic_log_service.dart';
 import '../services/sound_effect_service.dart';
@@ -29,11 +29,11 @@ class SettingsScreen extends StatefulWidget {
     this.soundEffectService,
     this.flagGameBuilder,
   });
-  @override State<SettingsScreen> createState() => _SettingsScreenState();
+  @override
+  State<SettingsScreen> createState() => _SettingsScreenState();
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-  String _versionLabel = 'QuisquisLingo';
   final _settings = SettingsService();
   final _logs = DiagnosticLogService();
   late final SoundEffectService _sounds;
@@ -88,14 +88,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
       final diagnosticExportPath = await _logs.exportPath();
       final crashLogPath = CrashLogService.instance.crashLogPath;
       final editorUnlocked = await _settings.isCourseEditorUnlocked();
-      final info = await PackageInfo.fromPlatform();
       if (!mounted) return;
       setState(() {
         _hasDiagnosticLog = hasDiagnosticLog;
         _diagnosticExportPath = diagnosticExportPath;
         _crashLogPath = crashLogPath;
         _editorUnlocked = editorUnlocked;
-        _versionLabel = 'QuisquisLingo v${info.version}';
         _loading = false;
       });
     } catch (error, stackTrace) {
@@ -109,8 +107,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(duration: Duration(seconds: 8), 
-            content: Text('Some settings could not be loaded. Safe defaults are being used.'),
+          const SnackBar(
+            duration: Duration(seconds: 8),
+            content: Text(
+              'Some settings could not be loaded. Safe defaults are being used.',
+            ),
           ),
         );
       });
@@ -122,7 +123,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
     if (!mounted) return;
     setState(() => _hasDiagnosticLog = false);
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(duration: Duration(seconds: 8), content: Text('Diagnostic log cleared.')),
+      const SnackBar(
+        duration: Duration(seconds: 8),
+        content: Text('Diagnostic log cleared.'),
+      ),
     );
   }
 
@@ -133,7 +137,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           duration: Duration(seconds: 8),
-          content: Text('The Diagnostic Log is empty or could not be exported.'),
+          content: Text(
+            'The Diagnostic Log is empty or could not be exported.',
+          ),
         ),
       );
       return;
@@ -160,7 +166,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
       if (!mounted) return;
       setState(() => _editorUnlocked = true);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(duration: Duration(seconds: 8), content: Text('Course Editor unlocked.')),
+        const SnackBar(
+          duration: Duration(seconds: 8),
+          content: Text('Course Editor unlocked.'),
+        ),
       );
     }
   }
@@ -216,11 +225,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ListTile(
                   leading: const Icon(Icons.help_outline),
                   title: const Text('App Info'),
-                  subtitle: const Text('Learning rules, metrics and app behavior.'),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => Navigator.of(context).push(
-                    MaterialPageRoute(builder: (_) => const InfoScreen()),
+                  subtitle: const Text(
+                    'Learning rules, metrics and app behavior.',
                   ),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => Navigator.of(
+                    context,
+                  ).push(MaterialPageRoute(builder: (_) => const InfoScreen())),
                 ),
                 ListTile(
                   leading: const Icon(Icons.record_voice_over_outlined),
@@ -253,10 +264,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ListTile(
                     leading: const Icon(Icons.edit_note_outlined),
                     title: const Text('Course Editor'),
-                    subtitle: const Text('Author courses, generate exercise sets and run Course Audit.'),
+                    subtitle: const Text(
+                      'Author courses, generate exercise sets and run Course Audit.',
+                    ),
                     trailing: const Icon(Icons.chevron_right),
                     onTap: () => Navigator.of(context).push(
-                      MaterialPageRoute(builder: (_) => CourseProjectsScreen(currentCourse: widget.course)),
+                      MaterialPageRoute(
+                        builder: (_) =>
+                            CourseProjectsScreen(currentCourse: widget.course),
+                      ),
                     ),
                   ),
                 ListTile(
@@ -268,7 +284,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () => Navigator.of(context).push(
                     MaterialPageRoute(
-                      builder: (_) => UserDataSettingsScreen(course: widget.course),
+                      builder: (_) =>
+                          UserDataSettingsScreen(course: widget.course),
                     ),
                   ),
                 ),
@@ -293,7 +310,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     children: [
                       IconButton(
                         tooltip: 'Export Diagnostic Log',
-                        onPressed: _hasDiagnosticLog ? _exportDiagnosticLog : null,
+                        onPressed: _hasDiagnosticLog
+                            ? _exportDiagnosticLog
+                            : null,
                         icon: const Icon(Icons.file_download_outlined),
                       ),
                       IconButton(
@@ -306,18 +325,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
                 const Divider(),
                 ListTile(
+                  key: const Key('settings-version-build-area'),
                   leading: const Icon(Icons.info_outline),
-                  title: const Text('Current version'),
-                  subtitle: Text(_versionLabel),
+                  title: const Text('Version and Build'),
+                  subtitle: const Text(AppMetadata.displayLabel),
                   onTap: _tapVersion,
                 ),
                 ListTile(
                   leading: const Icon(Icons.system_update_alt),
                   title: const Text('Update'),
-                  subtitle: const Text('Check GitHub for a newer QuisquisLingo release and manage automatic checks.'),
+                  subtitle: const Text(
+                    'Check GitHub for a newer QuisquisLingo release and manage automatic checks.',
+                  ),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () => Navigator.of(context).push(
-                    MaterialPageRoute(builder: (_) => const UpdateSettingsScreen()),
+                    MaterialPageRoute(
+                      builder: (_) => const UpdateSettingsScreen(),
+                    ),
                   ),
                 ),
               ],

@@ -50,6 +50,21 @@ void main() {
       expect(find.text('Warnings 1'), findsOneWidget);
       expect(find.text('Info 1'), findsOneWidget);
       expect(find.text('By Lesson'), findsOneWidget);
+      expect(find.text('Error 1 of 1'), findsOneWidget);
+      expect(find.text('Warning 1 of 1'), findsOneWidget);
+
+      await tester.tap(find.text('By Lesson'));
+      await tester.pumpAndSettle();
+      expect(find.text('Recently modified'), findsOneWidget);
+      await tester.tap(find.text('Recently modified').last);
+      await tester.pumpAndSettle();
+
+      await tester.scrollUntilVisible(
+        find.text('Info 1 of 1'),
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
+      expect(find.text('Info 1 of 1'), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
   }

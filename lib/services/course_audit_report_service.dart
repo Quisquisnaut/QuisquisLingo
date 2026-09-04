@@ -31,10 +31,12 @@ class CourseAuditReportService {
     DateTime? generatedAt,
   }) {
     final generated = (generatedAt ?? _clock()).toLocal();
-    final ordered = result.sorted(sortMode);
+    final ordered = result.numbered(sortMode);
     final buffer = StringBuffer()
       ..writeln('QuisquisLingo Course Audit report')
-      ..writeln('Application version: ${AppMetadata.version}')
+      ..writeln('Version: ${AppMetadata.releaseVersion}')
+      ..writeln('Build: ${AppMetadata.build}')
+      ..writeln('Technical version: ${AppMetadata.technicalVersion}')
       ..writeln('Generated: ${generated.toIso8601String()}')
       ..writeln('Course name: ${course.title}')
       ..writeln('Course ID: ${course.courseId}')
@@ -52,20 +54,28 @@ class CourseAuditReportService {
     }
 
     for (var index = 0; index < ordered.length; index++) {
-      final issue = ordered[index];
+      final numbered = ordered[index];
+      final issue = numbered.issue;
       final context = _contextFor(course, issue);
       buffer
-        ..writeln('${index + 1}. ${issue.severity.name.toUpperCase()}')
+        ..writeln(numbered.label)
         ..writeln('Code: ${issue.code}')
         ..writeln('Message: ${issue.message}')
         ..writeln('Location: ${issue.location}');
+      if (issue.updatedAt != null) {
+        buffer.writeln(
+          'Updated at: ${issue.updatedAt!.toUtc().toIso8601String()}',
+        );
+      }
       if (context.lesson != null) {
         buffer.writeln(
           'Lesson: ${context.lesson!.title} (${context.lesson!.lessonId})',
         );
       }
       if (context.round != null) {
-        buffer.writeln('Round: ${context.round!.title} (${context.round!.id})');
+        buffer.writeln(
+          'Round: ${context.round!.displayTitle(context.roundIndex ?? 0)} (${context.round!.id})',
+        );
       }
       if (context.exercise != null) {
         buffer
@@ -136,6 +146,7 @@ class CourseAuditReportService {
   String _sortLabel(AuditSortMode mode) => switch (mode) {
     AuditSortMode.lesson => 'By Lesson',
     AuditSortMode.exerciseType => 'By Exercise type',
+    AuditSortMode.recentlyModified => 'Recently modified',
   };
 
   String _safePart(String value, {required String fallback}) {
@@ -152,6 +163,7 @@ class CourseAuditReportService {
     LearningRound? round;
     Exercise? exercise;
     int? exerciseNumber;
+    int? roundIndex;
 
     for (
       var lessonIndex = 0;
@@ -161,16 +173,23 @@ class CourseAuditReportService {
       final candidate = course.lessons[lessonIndex];
       final lessonPrefix = 'Lesson ${lessonIndex + 1} ·';
       if (issue.location.startsWith(lessonPrefix)) lesson = candidate;
-      for (final candidateRound in candidate.rounds) {
+      for (
+        var candidateRoundIndex = 0;
+        candidateRoundIndex < candidate.rounds.length;
+        candidateRoundIndex++
+      ) {
+        final candidateRound = candidate.rounds[candidateRoundIndex];
         if (candidateRound.id == issue.roundId) {
           lesson = candidate;
           round = candidateRound;
+          roundIndex = candidateRoundIndex;
         }
         for (var index = 0; index < candidateRound.exercises.length; index++) {
           final candidateExercise = candidateRound.exercises[index];
           if (candidateExercise.id == issue.exerciseId) {
             lesson = candidate;
             round = candidateRound;
+            roundIndex = candidateRoundIndex;
             exercise = candidateExercise;
             exerciseNumber = index + 1;
           }
@@ -180,6 +199,7 @@ class CourseAuditReportService {
     return _AuditIssueContext(
       lesson: lesson,
       round: round,
+      roundIndex: roundIndex,
       exercise: exercise,
       exerciseNumber: exerciseNumber,
     );
@@ -190,12 +210,14 @@ class _AuditIssueContext {
   const _AuditIssueContext({
     this.lesson,
     this.round,
+    this.roundIndex,
     this.exercise,
     this.exerciseNumber,
   });
 
   final Lesson? lesson;
   final LearningRound? round;
+  final int? roundIndex;
   final Exercise? exercise;
   final int? exerciseNumber;
 }

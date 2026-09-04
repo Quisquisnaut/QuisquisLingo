@@ -1,20 +1,20 @@
 # QuisquisLingo App
 
-**Current source version: 2.0.25+225 · Course Model v5 (`formatVersion: 5`).**
+**Current source version: 2.0.25+22502 · Build 225.02 · Course Model v6 (`formatVersion: 6`).**
 
 
-**QuisquisLingo 2.0.25 Alpha — first controlled development tranche**
+**QuisquisLingo 2.0.25 Alpha — Build 225.02 second tranche**
 
 Current project version: 2.0.25
 
-Build 225 development currently covers its first controlled tranche only: reliable canonical Course Audit checks and complete report export, the Build the translation save/reload path, post-save Editor dirty-state handling, and regeneration of the bundled Italian sample only. Other planned 225 work remains deferred. Stable IDs, progression, XP, Review, Duel, identity and Course Model v5 remain authoritative. The official repository is `Quisquisnaut/QuisquisLingo`.
+Build 225.02 extends the preserved first tranche with the clean Course Model v6 cut, required UTC Lesson/Round/Exercise modification timestamps, transactional nested editor saves, deterministic recent-first Audit ordering and severity numbering, multiple literal Build-the-translation answers, dark-mode renderer corrections, regeneration of all eight existing bundled samples, and a new Korean sample. All nine bundled courses pass the zero-Error/zero-Warning release gate with playable Rounds and available Lesson Duels. Stable IDs, progression, XP, Review, Duel and learner identity remain authoritative. The official repository is `Quisquisnaut/QuisquisLingo`.
 
 
 A Flutter prototype for an offline-first language-learning app.
 
 ## Baseline 200
 
-Version **2.0.0+200** remains the historical Course Model v3 baseline. Current development starts from this Course Model v5 source tree rather than an older archive. Repository-level agent instructions are in `AGENTS.md`.
+Version **2.0.0+200** remains the historical Course Model v3 baseline. Current development starts from this Course Model v6 source tree rather than an older archive. Repository-level agent instructions are in `AGENTS.md`.
 
 ## Project authorship
 
@@ -37,7 +37,7 @@ Course
     - Content / Exercise
   - Duel
 
-Each Lesson has its own GuideBook, ordered Rounds and Lesson-scoped Duel in Course Model v5. The first Content item of a Lesson’s first Round may present a short essential introduction drawn from that GuideBook.
+Each Lesson has its own GuideBook, ordered Rounds and Lesson-scoped Duel in Course Model v6. The first Content item of a Lesson’s first Round may present a short essential introduction drawn from that GuideBook.
 
 The learner page shows a continuous Lesson path, opens the Section picker from the fixed Section selector when real Sections exist, and opens GuideBooks, Rounds and Duels directly.
 
@@ -57,7 +57,7 @@ All learner data remains on-device.
 - Local daily quest
 - XP
 - Local TTS service with generated-file caching
-- Sample Italian course data
+- Nine bundled sample courses, including Korean from English
 - No account
 - Local offline leaderboard for the previous completed week, based on each participating learner’s XP across all courses
 - No server dependency

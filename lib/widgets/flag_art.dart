@@ -14,17 +14,17 @@ class FlagBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-        width: width,
-        height: height,
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(7),
-          border: Border.all(color: Colors.white, width: 2),
-          boxShadow: const [BoxShadow(blurRadius: 3, color: Color(0x22000000))],
-        ),
-        clipBehavior: Clip.antiAlias,
-        child: CustomPaint(painter: FlagPainter(code)),
-      );
+    width: width,
+    height: height,
+    decoration: BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(7),
+      border: Border.all(color: Colors.white, width: 2),
+      boxShadow: const [BoxShadow(blurRadius: 3, color: Color(0x22000000))],
+    ),
+    clipBehavior: Clip.antiAlias,
+    child: CustomPaint(painter: FlagPainter(code)),
+  );
 }
 
 class FlagBackdrop extends StatelessWidget {
@@ -144,7 +144,10 @@ class FlagPainter extends CustomPainter {
         _fill(c, s, Colors.white);
         p.color = const Color(0xFF003580);
         c.drawRect(Rect.fromLTWH(s.width * .27, 0, s.width * .16, s.height), p);
-        c.drawRect(Rect.fromLTWH(0, s.height * .40, s.width, s.height * .20), p);
+        c.drawRect(
+          Rect.fromLTWH(0, s.height * .40, s.width, s.height * .20),
+          p,
+        );
         break;
       case 'CY':
         _paintWelsh(c, s);
@@ -152,6 +155,10 @@ class FlagPainter extends CustomPainter {
       case 'EN':
       case 'UK':
         _paintUnionJack(c, s);
+        break;
+      case 'KO':
+      case 'KR':
+        _paintSouthKorea(c, s);
         break;
       default:
         _fill(c, s, const Color(0xFFE9E2CF));
@@ -185,6 +192,53 @@ class FlagPainter extends CustomPainter {
     c.drawRect(Rect.fromLTWH(0, s.height * .43, s.width, s.height * .14), p);
   }
 
+  void _paintSouthKorea(Canvas c, Size s) {
+    _fill(c, s, Colors.white);
+    final center = Offset(s.width * .5, s.height * .5);
+    final radius = s.height * .22;
+    final red = Paint()..color = const Color(0xFFCD2E3A);
+    final blue = Paint()..color = const Color(0xFF0047A0);
+    c.drawArc(
+      Rect.fromCircle(center: center, radius: radius),
+      3.14159265359,
+      3.14159265359,
+      true,
+      red,
+    );
+    c.drawArc(
+      Rect.fromCircle(center: center, radius: radius),
+      0,
+      3.14159265359,
+      true,
+      blue,
+    );
+    c.drawCircle(Offset(center.dx - radius / 2, center.dy), radius / 2, blue);
+    c.drawCircle(Offset(center.dx + radius / 2, center.dy), radius / 2, red);
+
+    final bar = Paint()
+      ..color = Colors.black
+      ..strokeWidth = (s.height * .035).clamp(1.0, 4.0)
+      ..strokeCap = StrokeCap.square;
+    void trigram(Offset origin, double direction) {
+      c.save();
+      c.translate(origin.dx, origin.dy);
+      c.rotate(direction);
+      for (var line = -1; line <= 1; line++) {
+        c.drawLine(
+          Offset(-s.width * .075, line * s.height * .055),
+          Offset(s.width * .075, line * s.height * .055),
+          bar,
+        );
+      }
+      c.restore();
+    }
+
+    trigram(Offset(s.width * .20, s.height * .24), -.55);
+    trigram(Offset(s.width * .80, s.height * .76), -.55);
+    trigram(Offset(s.width * .80, s.height * .24), .55);
+    trigram(Offset(s.width * .20, s.height * .76), .55);
+  }
+
   void _paintWelsh(Canvas c, Size s) {
     final p = Paint()..style = PaintingStyle.fill;
     p.color = Colors.white;
@@ -197,7 +251,12 @@ class FlagPainter extends CustomPainter {
     p.color = const Color(0xFFD30731);
     final dragon = Path()
       ..moveTo(s.width * .18, s.height * .61)
-      ..quadraticBezierTo(s.width * .30, s.height * .46, s.width * .42, s.height * .58)
+      ..quadraticBezierTo(
+        s.width * .30,
+        s.height * .46,
+        s.width * .42,
+        s.height * .58,
+      )
       ..lineTo(s.width * .48, s.height * .36)
       ..lineTo(s.width * .57, s.height * .51)
       ..lineTo(s.width * .68, s.height * .34)
@@ -211,15 +270,26 @@ class FlagPainter extends CustomPainter {
       ..lineTo(s.width * .38, s.height * .73)
       ..lineTo(s.width * .31, s.height * .88)
       ..lineTo(s.width * .28, s.height * .68)
-      ..quadraticBezierTo(s.width * .18, s.height * .77, s.width * .08, s.height * .67)
-      ..quadraticBezierTo(s.width * .14, s.height * .67, s.width * .18, s.height * .61)
+      ..quadraticBezierTo(
+        s.width * .18,
+        s.height * .77,
+        s.width * .08,
+        s.height * .67,
+      )
+      ..quadraticBezierTo(
+        s.width * .14,
+        s.height * .67,
+        s.width * .18,
+        s.height * .61,
+      )
       ..close();
     c.drawPath(dragon, p);
     c.drawCircle(Offset(s.width * .76, s.height * .48), s.height * .035, p);
   }
 
   @override
-  bool shouldRepaint(covariant FlagPainter oldDelegate) => oldDelegate.code != code;
+  bool shouldRepaint(covariant FlagPainter oldDelegate) =>
+      oldDelegate.code != code;
 }
 
 /// Course-aware flag badge. A custom imported flag takes precedence over the
@@ -252,10 +322,16 @@ class CourseFlagBadge extends StatelessWidget {
             color: Colors.white,
             borderRadius: BorderRadius.circular(7),
             border: Border.all(color: Colors.white, width: 2),
-            boxShadow: const [BoxShadow(blurRadius: 3, color: Color(0x22000000))],
+            boxShadow: const [
+              BoxShadow(blurRadius: 3, color: Color(0x22000000)),
+            ],
           ),
           clipBehavior: Clip.antiAlias,
-          child: Image.memory(bytes, fit: BoxFit.contain, gaplessPlayback: true),
+          child: Image.memory(
+            bytes,
+            fit: BoxFit.contain,
+            gaplessPlayback: true,
+          ),
         );
       } catch (_) {
         // Fall back to the built-in flag if imported data are damaged.
