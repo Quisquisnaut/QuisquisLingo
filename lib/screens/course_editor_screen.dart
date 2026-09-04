@@ -49,6 +49,61 @@ Future<bool> _confirmLeaveUnsaved(BuildContext context) async =>
 
 bool _sameAuthoringJson(Object a, Object b) => jsonEncode(a) == jsonEncode(b);
 
+LearningContent _replaceLearningContentExercise(
+  LearningContent source,
+  Exercise exercise,
+) {
+  if (source.kind == 'exercise') {
+    return LearningContent(
+      id: source.id,
+      publicationState: exercise.publicationState,
+      kind: source.kind,
+      required: source.required,
+      editorTemplate: source.editorTemplate,
+      role: source.role,
+      exercise: exercise,
+      text: source.text,
+      sourceRefs: source.sourceRefs,
+    );
+  }
+  if (source.kind == 'presentation') {
+    final converted = Presentation.fromLegacyExercise(exercise);
+    return LearningContent(
+      id: source.id,
+      publicationState: exercise.publicationState,
+      kind: source.kind,
+      required: source.required,
+      editorTemplate: source.editorTemplate,
+      role: source.role,
+      presentation: Presentation(
+        content: converted.content,
+        actions: source.presentation?.actions ?? converted.actions,
+      ),
+      text: source.text,
+      sourceRefs: source.sourceRefs,
+    );
+  }
+  if (const {
+    'explanation',
+    'example',
+    'vocabulary',
+    'text',
+    'dialogue',
+  }.contains(source.kind)) {
+    return LearningContent(
+      id: source.id,
+      publicationState: exercise.publicationState,
+      kind: source.kind,
+      required: source.required,
+      editorTemplate: source.editorTemplate,
+      role: source.role,
+      text: exercise.prompt.isNotEmpty ? exercise.prompt : exercise.question,
+      sourceRefs: source.sourceRefs,
+    );
+  }
+  return LearningContent.fromExercise(exercise);
+}
+
 Future<bool> _confirmMoveToDraft(BuildContext context, String entity) async =>
     await showDialog<bool>(
       context: context,
@@ -3783,9 +3838,24 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
     visualType: widget.round.visualType,
     content: [
       ..._preservedIntroContent,
-      ..._exercises.map(LearningContent.fromExercise),
+      ..._exercises.map(_contentForEditedExercise),
     ],
   );
+
+  LearningContent _contentForEditedExercise(Exercise exercise) {
+    final source = _savedRound.content
+        .where((item) => item.id == exercise.id)
+        .firstOrNull;
+    if (source != null) {
+      return _replaceLearningContentExercise(source, exercise);
+    }
+    final original = widget.round.content
+        .where((item) => item.id == exercise.id)
+        .firstOrNull;
+    return original == null
+        ? LearningContent.fromExercise(exercise)
+        : _replaceLearningContentExercise(original, exercise);
+  }
 
   bool get _dirty =>
       !_sameAuthoringJson(_editedRound().toJson(), _savedRound.toJson());
@@ -3920,7 +3990,7 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
     final content = <LearningContent>[
       for (final item in _savedRound.content)
         if (item.id == exercise.id) ...[
-          LearningContent.fromExercise(exercise),
+          _replaceLearningContentExercise(item, exercise),
         ] else ...[
           item,
         ],

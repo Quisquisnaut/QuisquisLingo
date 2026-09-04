@@ -206,6 +206,9 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _iddqdMode = false;
   String _selectedLanguage = 'IT';
   String _selectedCourseRef = 'IT';
+  List<String> _bundledCourseCodes = List<String>.unmodifiable(
+    CourseService.courseAssets.keys,
+  );
   int _activeLessonIndex = 0;
   String? _flowCourseId;
   String? _flowLearner;
@@ -364,6 +367,8 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _reload() async {
     _resetLockedLessonTapSequence();
     try {
+      final bundledCourseCodes = await _courseService
+          .reconcileAvailableBundledCourseCodes();
       final learners = await _profiles.getProfileRecords();
       final activeProfile = await _profiles.getActiveProfileRecord();
       final active = activeProfile?.displayName;
@@ -447,6 +452,7 @@ class _HomeScreenState extends State<HomeScreen> {
         _course = course;
         _selectedCourseRef = selectedRef;
         _selectedLanguage = selectedLanguage;
+        _bundledCourseCodes = bundledCourseCodes;
         _learners = learners;
         _activeLearner = active;
         _activeLearnerId = activeId;
@@ -794,7 +800,7 @@ class _HomeScreenState extends State<HomeScreen> {
         .take(3)
         .toList();
     if (!mounted || !overlayContext.mounted) return;
-    const codes = ['IT', 'DE', 'ES', 'EN', 'CY', 'NL', 'PT', 'FI'];
+    final codes = _bundledCourseCodes;
     Course? customCourseFor(String ref) {
       if (!ref.startsWith('custom:')) return null;
       final id = ref.substring('custom:'.length);
@@ -883,6 +889,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               for (final code in codes)
                 ListTile(
+                  key: ValueKey('bundled-course-$code'),
                   leading: FlagBadge(code),
                   title: Text(CourseService.targetLabels[code] ?? code),
                   subtitle: Text(

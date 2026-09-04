@@ -101,6 +101,19 @@ These equal hashes compare two consecutive regenerated outputs. They do not clai
 - `git diff --check`: passed. All untracked proposed files also passed equivalent no-index whitespace checks.
 - Windows release-mode test build: passed in 203.8 seconds. Candidate executable: `build/windows/x64/runner/Release/quisquislingo_app.exe`. No ZIP or distributable package was created.
 
+## Subsequent manual Windows findings
+
+The first real Windows visual inspection after the Build 225.02 commit found two blocking failures:
+
+- **Manual FAIL:** Korean bundled course absent from the real course-selection UI.
+- **Manual FAIL:** Repeated parent save confirmations remain after Exercise Save as draft or Publish.
+
+The Korean automated coverage produced false confidence because it parsed `korean_en.json`, checked the production loader registry and rendered the Korean flag in isolation, but never opened the actual Home course selector. That selector still carried a separate hard-coded eight-course list which omitted `KO`.
+
+The hierarchical-save coverage produced false confidence because its nested tests started at isolated Lesson or Round editor screens with canonical metadata-free fixtures. It did not traverse the complete production Course → Lesson → Round → Exercise route stack and did not include untouched v6 Content wrapper metadata such as `required` and `sourceRefs`. Rebuilding those wrappers from the simplified Exercise view therefore created a structural difference which the tests could not detect.
+
+These two items are not manually passed. Build 225.03 corrects them and still requires user retesting on Windows.
+
 ## Outstanding manual Windows checks
 
 The following runtime/UI checks remain outstanding:
@@ -199,4 +212,4 @@ The following runtime/UI checks remain outstanding:
 70. `tools/regenerate_sample_courses_v5.py` — prevents obsolete v5 generation by delegating to the v6 pipeline.
 71. `tools/validate_courses.py` — validates the exact nine-file v6 registry, timestamps, IDs, references, playability, Duels and locales.
 
-Nothing is staged. No Build 225.02 commit, package or push has been created.
+At this historical pre-commit checkpoint, nothing was staged and no Build 225.02 commit, package or push had been created.

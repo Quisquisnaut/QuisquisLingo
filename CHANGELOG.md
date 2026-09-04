@@ -1,3 +1,10 @@
+# 2.0.25 (Build 225.03) - Windows blocker corrections - 2026-09-04
+
+- Advanced platform-compatible metadata to `2.0.25+22503` while displaying Version 2.0.25 / Build 225.03. The Alpha expiry remains unchanged at `2026-10-04 23:59:59`.
+- Made the Home course selector derive all included courses from the authoritative production registry and reconcile the device-local v6 bundled discovery index at startup, so Korean appears once in existing installations without clearing preferences, custom courses or learner progress.
+- Preserved complete v6 Content wrapper metadata when an Exercise is saved and reconciled the persisted child snapshot through Round, Lesson and Course baselines, eliminating repeated parent save confirmations without suppressing independent parent dirtiness or failed-save warnings.
+- Added production-path regressions for Korean selection/open/restart/duplicate prevention and the full Course → Lesson → Round → Exercise Draft/Publish, independent-parent, discard and failed-persistence workflows.
+
 # 2.0.25 (Build 225.02) - second controlled tranche - 2026-09-04
 
 - Advanced platform-compatible metadata to `2.0.25+22502` while displaying the release as Version 2.0.25 / Build 225.02 from one authoritative metadata source. The Alpha expiry remains unchanged at the end of **2026-10-04**.

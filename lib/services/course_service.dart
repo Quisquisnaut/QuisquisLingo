@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart' show FlutterError;
 import 'package:flutter/services.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/course_models.dart';
 import 'app_errors.dart';
 import 'diagnostic_log_service.dart';
@@ -25,6 +26,9 @@ class CourseService {
     'FI': 'assets/courses/finnish_en.json',
     'KO': 'assets/courses/korean_en.json',
   };
+
+  static const bundledCourseIndexStorageKey =
+      'quisquislingo_bundled_course_codes_v6_225';
 
   static const Map<String, String> targetLabels = {
     'IT': 'Italian',
@@ -55,6 +59,27 @@ class CourseService {
   Future<Course> loadSpanishCourse() => loadCourse('ES');
   Future<Course> loadEnglishCourse() => loadCourse('EN');
   Future<Course> loadKoreanCourse() => loadCourse('KO');
+
+  /// Reconciles the device-local discovery index with the authoritative
+  /// bundled registry. This is normal startup initialization: it does not
+  /// inspect or modify custom courses, learner progress, or earlier schemas.
+  Future<List<String>> reconcileAvailableBundledCourseCodes() async {
+    final current = List<String>.unmodifiable(courseAssets.keys);
+    final preferences = await SharedPreferences.getInstance();
+    final stored = preferences.getStringList(bundledCourseIndexStorageKey);
+    if (stored == null || !_sameCodes(stored, current)) {
+      await preferences.setStringList(bundledCourseIndexStorageKey, current);
+    }
+    return current;
+  }
+
+  static bool _sameCodes(List<String> left, List<String> right) {
+    if (left.length != right.length) return false;
+    for (var index = 0; index < left.length; index++) {
+      if (left[index] != right[index]) return false;
+    }
+    return true;
+  }
 
   static bool hasCourse(String languageCode) =>
       courseAssets.containsKey(languageCode.trim().toUpperCase());

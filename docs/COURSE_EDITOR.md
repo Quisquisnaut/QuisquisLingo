@@ -1,6 +1,6 @@
 # QuisquisLingo Course Editor
 
-Updated for Version 2.0.25, Build 225.02 and Course Model v6
+Updated for Version 2.0.25, Build 225.03 and Course Model v6
 
 ## Unlocking the editor
 
