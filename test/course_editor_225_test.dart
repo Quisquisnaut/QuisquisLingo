@@ -229,7 +229,7 @@ void main() {
 
     expect(
       find.text(
-        'Duplicate after case, spacing and terminal punctuation normalization.',
+        'Correct translations contain duplicates after ignoring case, spacing and final punctuation. Remove or change the repeated entry.',
       ),
       findsNWidgets(2),
     );

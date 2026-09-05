@@ -71,9 +71,10 @@ void main() {
         home: LessonEditorScreen(course: _course(lesson), lesson: lesson),
       ),
     );
-    await tester.drag(
-      find.byKey(const Key('lesson-metadata-controls')),
-      const Offset(0, -420),
+    await tester.scrollUntilVisible(
+      find.byKey(const Key('lesson-theme-icon-field')),
+      200,
+      scrollable: find.byType(Scrollable).first,
     );
     await _pumpFrames(tester);
     await tester.tap(find.byKey(const Key('lesson-theme-icon-field')));

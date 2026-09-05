@@ -22,13 +22,13 @@ New objects receive generated local IDs. Deleting an object removes its descenda
 
 Each Lesson can optionally enable **Belongs to a Section** and then requires a trimmed, non-empty **Section name**. Section is consecutive-order display metadata only: it is not a hierarchy, has no ID, and owns no progress or navigation. Disabling the switch clears the stored Section name.
 
-The controlled **Lesson theme icon** picker separates **Preinstalled** and **Custom**. **Import custom icon** reads one PNG/JPG/JPEG/WebP from `Documents/QuisquisLingo/Imports/Lesson Icons`, validates it, contains it without cropping or distortion on a transparent 256 × 256 PNG canvas, and stores it in the Course-owned managed asset registry. No external path is serialized or needed later. Managed icons survive Course export/import and Course duplication; Lesson duplication within the Course reuses the immutable asset. `None` uses the Course’s monochrome or deterministic colored-number fallback. Every learner icon uses the established 84 × 84 footprint.
+The controlled **Lesson theme icon** picker separates **Preinstalled** and **Custom**. For **Import custom icon**, keep exactly one PNG/JPG/JPEG/WebP in `Documents/QuisquisLingo/Imports/Lesson Icons`. The input must be non-empty, no larger than 2 MB (2,097,152 bytes), and 1–8192 pixels on each side. QQL decodes the first frame, scales it up or down proportionally, and centers it without cropping or distortion on a transparent 256 × 256 PNG canvas. Existing transparency survives; an opaque background is not removed. Missing/multiple files, unsupported or unreadable image data, excessive size/dimensions and failed PNG conversion stop import. The source is left in place. The Course-owned managed asset stores embedded PNG data, so no external source path is serialized or needed later. Managed icons survive Course export/import and Course duplication; Lesson duplication within the Course reuses the immutable asset. `None` uses the Course’s monochrome or deterministic colored-number fallback. Every learner icon uses the established 84 × 84 footprint.
 
 ## One course-level editing transaction
 
 Opening a custom course in Course Editor loads the current persisted course, preserves an immutable original snapshot, and creates a separate editable working copy. Course Info, Lesson, Round, Exercise, GuideBook, generated-content acceptance, deletion, duplication and reordering mutate only that working copy. The live learner course remains unchanged during the editing session.
 
-Nested editors use **Save**, or **Save as draft** when Draft status is supported. Save stores a normal non-Draft item in the working copy; Save as draft stores a Draft item there. Neither action persists the course, creates a backup, increments the internal course version, or represents final publication. Nested pages return normally without a course-level confirmation. Pressing Back before either nested save discards only the currently open page's unstaged form edits and preserves every earlier working-copy change.
+Nested editors use **Save**, or **Save as draft** when Draft status is supported. Save stores a normal non-Draft item in the working copy; Save as draft stores a Draft item there. Neither action persists the course, creates a backup, increments the internal course version, or represents final publication. Nested pages return without a course-level confirmation. Leaving an Exercise with unsaved changes offers **Keep editing**, **Discard changes**, **Save as draft** or **Save**. Discard affects only that Exercise form; earlier working-copy changes remain. Other nested pages retain their established Back behavior.
 
 Course Editor compares canonical course content rather than a one-way dirty flag. Restoring the original semantic values makes the session clean again. Transient focus, selection, controllers and scroll state are not course content. Only an attempt to leave the top-level Course Editor can show the single unapplied-course dialog, with these explicit actions:
 
@@ -45,6 +45,14 @@ The Lesson form keeps Lesson metadata readily accessible and links to one dedica
 
 Duplicate inserts the independent copy immediately after its source. Lesson duplication recursively allocates fresh Lesson, Duel, GuideBook Content, Round, Exercise and item IDs; Round and Exercise duplication applies the corresponding subtree rule. Internal ID references are remapped while shared immutable image/audio asset paths remain references. Editing a duplicate cannot mutate its source. Rename changes only the title and preserves identity and descendants. Preview uses learner rendering without writing completion, XP, streak, Laurel, Review, Duel or unlock state.
 
+**Move Exercise to…** and **Copy Exercise to…** choose an explicit Course → Lesson → Round destination within the current course working copy. **Move Round to…** and **Copy Round to…** choose a Lesson there. Move preserves the moved object's stable identity, content and Draft/Published state while removing it from its original parent. Copy allocates fresh IDs throughout the owned subtree and remaps internal references. Copies use the existing duplication policy: the copied object and owned descendants start as Draft. Neither action confirms the course or changes the persisted learner course.
+
+Exercise **Previous** and **Next** follow the current Round order, stop at its boundaries and use the same unsaved-change protection as Back. Breadcrumbs show readable Course, Lesson, Round and Exercise context; navigating a safe parent level also protects unsaved Exercise values. **Preview** sits beside the Save actions and uses the complete current unsaved form, including a new or Draft Exercise. Insufficient runtime data produces a validation message without losing edits. Returning restores the same form values; Preview does not save content or change publication state, versions, backups or learner data.
+
+An empty Round title is intentionally supported in Create and Edit Round. The form explains how to keep it untitled; learner and editor labels use its current **Round N** position without creating a stored title or changing its ID.
+
+An orange Round outline means it currently contains at least one Draft Exercise. A pink outline continues to mean an Audit Error. Both outlines are visible when both conditions apply. Lesson rows show their Draft Exercise counts and Course Editor shows the course total; these counts and outlines follow the working copy, including saves, publication changes, deletion, Move and Copy.
+
 Rounds normally contain 15 exercises. The editor does not enforce 15 as a hard maximum. Course Audit reports unusually short or long rounds so the author can review them.
 
 ## Exercise type is immutable
@@ -57,7 +65,7 @@ The editor displays only fields used by the current exercise type. Examples:
 - Reading comprehension: Reading passage, Comprehension question, Answers, Correct answer
 - Listening comprehension: Spoken passage, Comprehension question, Answers, Correct answer
 - Word Blocks: Translation prompt, Available word blocks, Correct sentence
-- Audio Match: Three sound matches and five visible choices
+- Audio Match: Three sound matches producing exactly three visible choices, with no distractors
 
 Technical fields such as numeric JSON indices are minimized. Correct choice remains an author-facing answer number for compact editing.
 
@@ -73,6 +81,8 @@ When creating an exercise, the grouped searchable picker offers concrete teachin
 - **Presentation:** Flashcard
 
 The **Exercise Help** action next to the preset control uses the same registry as the picker and validation. It explains what the learner sees and does, the fields and media the author supplies, how correctness is defined, and any restrictions for every available preset.
+
+Field Help is directly accessible beside each non-obvious Exercise field, including Context mode, correct-translation entries and Exercise image. Shared definitions explain the field's purpose, what to enter, one versus multiple values, line rules, formatting, validation and useful examples. The same controller can have different semantics in different presets: Flashcard usage lines are presentation, answer-option lines are choices, Build the translation has separate complete-answer entries, and Word order requires one ordered block per line. Help preserves those distinctions. Typed-answer fields explain the existing accepted-answer syntax below; literal Arrange answers and Listen for missing words gap lists do not expand it.
 
 ### Type the translation
 
@@ -150,7 +160,6 @@ Checks include:
 - duplicate or missing IDs
 - empty courses/lessons/rounds
 - round length versus the standard 15
-- missing Reading comprehension in a round
 - unsupported exercise types
 - missing/out-of-range correct answers
 - duplicate/blank options
@@ -159,7 +168,7 @@ Checks include:
 - hints that repeat the prompt (`HINT_REPEATS_PROMPT` Warning) or reveal any canonical accepted answer (Error)
 - Word Blocks with more than two distractors or with impossible token counts
 - Flashcards without usage or pronunciation
-- Audio Match repeated sounds, repeated correct matches, repeated visible choices, missing matches, or unusual 3/5 cardinality
+- Audio Match repeated sounds, repeated correct matches, repeated visible choices, missing matches, or a count other than three sound/text pairs without distractors
 - icon/answer count mismatch
 - fields that do not belong to the selected exercise type
 - likely source/target capitalization inconsistency
@@ -168,9 +177,11 @@ Checks include:
 
 Audit does not certify grammar, translation accuracy, cultural appropriateness or teaching quality. Those remain human editorial responsibilities.
 
-A Lesson with fewer than six Rounds receives author guidance only. Missing Listening-comprehension coverage intentionally emits no Info item. Duel availability never depends on Round count: fewer than 25 actual eligible Lesson exercises produces a non-blocking `DUEL_UNAVAILABLE` suggestion and is normal supported behavior.
+A Lesson with fewer than six Rounds receives author guidance only. Missing Reading- or Listening-comprehension coverage produces no finding. Existing malformed Reading comprehension still receives its normal validation findings. Duel availability never depends on Round count: fewer than 25 actual eligible Lesson exercises produces a non-blocking `DUEL_UNAVAILABLE` suggestion and is normal supported behavior.
 
 Audit can sort by Lesson, friendly Exercise type or **Recently modified**. Recent order is `updatedAt` descending with deterministic stable tie-breaks. Displayed and exported findings are numbered progressively inside each severity group after the active scope, filter and sort are applied.
+
+Open **Course Editor Help → Technical reference → Audit Codes** to search by code or descriptive text. Every currently emitted rule is defined in the registry shared by Audit and this reference, with its severity, scope, meaning, trigger, creator action and blocking status. Known rules have specific stable codes; `GENERAL` is only a defensive fallback for an unexpected unclassified finding.
 
 ## Storage and recovery
 
@@ -240,10 +251,10 @@ approval remain separate; existing Rounds are never replaced.
 Course Audit treats an empty course/Lesson as authoring guidance rather
 than a learner-runtime crash. It continues to report invalid answer indices,
 missing fields, duplicate IDs, duplicate Audio Match words, malformed Word
-Blocks, missing Reading/Listening coverage, oversized text and other structural
+Blocks, malformed actual Reading/Listening content, oversized text and other structural
 problems. Audit does not certify grammar or translation accuracy.
 
-The Audit can be scoped to a Course, Lesson or Round and sorted by Lesson, friendly Exercise type or Recently modified. Error, Warning and Info are distinct: only Error is structurally blocking. A Lesson with fewer than three Rounds receives Info guidance; missing Listening comprehension does not. In the Round management page, a pink outline means that Round currently has at least one Audit Error; Warning and Info never add the outline. Audit results refresh after authoring mutations.
+The Audit can be scoped to a Course, Lesson or Round and sorted by Lesson, friendly Exercise type or Recently modified. Error, Warning and Info are distinct: only Error is structurally blocking. A Lesson with fewer than three Rounds receives Info guidance; missing Reading or Listening comprehension does not. In the Round management page, a pink outline means that Round currently has at least one Audit Error; Warning and Info never add that outline. Orange separately identifies Draft Exercises, and both remain visible together. Audit results refresh after authoring mutations.
 
 ## Temporary sample courses
 Bundled courses carry a course-level `temporarySample` flag. The UI displays a TEMPORARY SAMPLE badge and Course Editor displays the sample-content warning every time a marked course is opened. Creators can remove or restore the flag from the Course Editor menu. Sample material must be replaced and human-reviewed before publication.
@@ -264,9 +275,15 @@ Course Audit can show All, Errors, Warnings or Info without changing the underly
 
 Course Editor > Audio Library supports System TTS, Recorded MP3 only, and Hybrid playback. See `docs/AUDIO_LIBRARY.md`.
 
+**Import MP3** reads all `.mp3` files in `Documents/QuisquisLingo/Imports/Audio`, up to 50 MB (52,428,800 bytes) per file, and copies their original bytes to local support storage grouped by learning language. The metadata and references belong to the Course even though physical files use that language grouping. It reports a missing source set or oversized file; it does not re-encode audio or impose duration, bitrate or sample-rate rules. Preview each imported recording and map it to its exact spoken word or expression. The source files remain in place, so remove them from the transfer folder after a successful import to avoid repeated imports. Course JSON stores metadata and local file paths, not MP3 bytes. Verified course-version backups copy referenced recordings; JSON alone and learner **Export my data** do not transfer course audio. A distributable Audio Pack exporter is future work, not an available authoring action.
+
 
 ## Flat image library (v0.5.7)
 The editor can assign, change or remove an optional image on any exercise. Choose from the bundled verified flat WebP assets or import a custom PNG/JPG/WebP. Built-in assets are referenced by path and are not duplicated when reused. Sample courses use images only where they support the task without revealing an answer.
+
+For **Import custom image**, keep exactly one PNG, JPG/JPEG or WebP in `Documents/QuisquisLingo/Imports/Images`. Maximum size is 50 KB (51,200 bytes). The suggested 256 × 256 resolution and 15 KB or less are recommendations, not enforced pixel dimensions. Import checks the extension, file count and byte size, then copies the original bytes to local app storage without decoding, resizing, cropping or changing transparency. Missing/multiple sources and oversized files stop import; Preview reports missing or unreadable images. The source stays in place. Course JSON retains the local image path and does not embed custom exercise image bytes, so these images are not portable through course JSON alone. Image-prompt ordering requires an image; other current presets may omit it.
+
+**Import Image Bank ZIP** uses the same folder and requires exactly one ZIP containing `image_bank_manifest.json` as a JSON list and its referenced PNG/JPG/JPEG/WebP assets. Each entry needs a unique `id`, `primary_term` or `label`, and a safe `filename`. Limits are 50 MB ZIP, 2 MB manifest, 5000 archive entries, 2500 image entries, 50 KB per image and 50 MB total decompressed image bytes. Import rejects missing files, duplicate/colliding IDs, duplicate filenames, unsafe paths, unsupported extensions and exceeded limits. It copies unchanged image bytes and a local manifest to app storage. It does not normalize dimensions or transparency, and imported bank image paths in course JSON are still device-local. Keep the original bank package separately; the source ZIP is not deleted by import.
 
 
 ## Missing Word
@@ -314,7 +331,7 @@ When `Documents/QuisquisLingo/Exports/import.json` is imported successfully, Qui
 
 ### Custom course flags
 
-Custom flag import also avoids desktop file choosers. Copy a PNG or JPEG flag image to `Documents/QuisquisLingo/Exports/` and name it `flag.png`, `flag.jpg`, or `flag.jpeg`, then press **Import flag** in **Create new course**. QuisquisLingo accepts up to 2 MB, requires at least 64×40 pixels, checks the actual PNG/JPEG signature, and resizes large images to at most 256 pixels on the longest side while preserving proportions.
+Custom flag import also avoids desktop file choosers. Copy a PNG or JPEG flag image to `Documents/QuisquisLingo/Exports/` and name it `flag.png`, `flag.jpg`, or `flag.jpeg`, then press **Import flag** in **Create new course**. If multiple supported names exist, the first in that order wins. The input must be no larger than 2 MB (2,097,152 bytes), at least 64 × 40 pixels, and at most 8192 pixels on either side. QQL checks the actual PNG/JPEG signature, decodes the first frame and reduces large images to at most 256 pixels on the longest side while preserving proportions; smaller accepted images are not enlarged. There is no square canvas or cropping. Existing PNG transparency is retained, while JPEG keeps its opaque background. The result is embedded base64 PNG in the Course and survives course JSON export/import, backups and duplication without the original source. Import leaves the source in place. Missing, empty, unsupported, unreadable, oversized, too-small or over-resolution images and failed PNG conversion produce errors. Course JSON import separately checks the embedded flag's base64 validity and its 1 MB encoded-data safety limit.
 
 
 ## Fixed authoring import folders (1.1.8)
@@ -323,5 +340,7 @@ To avoid desktop file-picker and portal dependencies, creator media imports use 
 
 - Images and Image Bank ZIPs: `Documents/QuisquisLingo/Imports/Images`
 - Recorded MP3 files: `Documents/QuisquisLingo/Imports/Audio`
+- Custom Lesson icons: `Documents/QuisquisLingo/Imports/Lesson Icons`
+- Custom course flags: `Documents/QuisquisLingo/Exports` with the exact supported flag filename
 
 For a single-image import, keep exactly one supported image file in the Images folder. For an Image Bank package, keep exactly one ZIP in that folder. Audio Library imports every MP3 currently present in the Audio folder. Source files are not deleted automatically.

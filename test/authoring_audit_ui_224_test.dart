@@ -80,8 +80,18 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    final bad = tester.widget<Card>(find.byKey(const ValueKey('bad-round')));
-    final good = tester.widget<Card>(find.byKey(const ValueKey('good-round')));
+    final bad = tester.widget<Card>(
+      find.descendant(
+        of: find.byKey(const ValueKey('bad-round')),
+        matching: find.byType(Card),
+      ),
+    );
+    final good = tester.widget<Card>(
+      find.descendant(
+        of: find.byKey(const ValueKey('good-round')),
+        matching: find.byType(Card),
+      ),
+    );
     expect(
       (bad.shape! as RoundedRectangleBorder).side.color,
       Colors.pinkAccent,

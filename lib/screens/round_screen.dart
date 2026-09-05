@@ -202,7 +202,10 @@ class _RoundScreenState extends State<RoundScreen> {
       await CrashLogService.instance.recordDebugEvent(
         'Round: audit completed ${widget.round.id}, valid=${valid.length}',
       );
-      final skipTts = await _settings.shouldSkipTtsExercises();
+      // Authoring Preview must show the selected Exercise even when the
+      // learner has chosen to skip TTS activities.
+      final skipTts =
+          !widget.previewMode && await _settings.shouldSkipTtsExercises();
       final filtered = skipTts
           ? valid.where((i) => !_usesTts(widget.round.exercises[i])).toList()
           : valid;
@@ -211,9 +214,11 @@ class _RoundScreenState extends State<RoundScreen> {
       _evaluableExerciseCount = valid
           .where((i) => widget.round.exercises[i].type != 'flashcard')
           .length;
-      _wasCompleted = (await _progress.getCompletedRounds(
-        courseId: widget.course.courseId,
-      )).contains(widget.round.id);
+      _wasCompleted =
+          !widget.previewMode &&
+          (await _progress.getCompletedRounds(
+            courseId: widget.course.courseId,
+          )).contains(widget.round.id);
       await CrashLogService.instance.recordDebugEvent(
         'Round: preferences loaded ${widget.round.id}, queue=${_queue.length}',
       );

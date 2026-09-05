@@ -162,12 +162,16 @@ void main() {
   });
 
   testWidgets(
-    'Back from Exercise discards only its unstaged form edit without dialog',
+    'Back from Exercise requires an explicit decision before discarding its form',
     (tester) async {
       await _openEditor(tester, course, service);
       await _openExercise(tester);
       await tester.enterText(_field('Prompt / instruction'), 'Unstaged prompt');
       await tester.tap(find.byType(BackButton).last);
+      await _settle(tester);
+      expect(find.text('Unsaved Exercise changes'), findsOneWidget);
+      expect(find.byType(ExerciseEditorScreen), findsOneWidget);
+      await tester.tap(find.text('Discard changes'));
       await _settle(tester);
       expect(find.byType(RoundEditorScreen), findsOneWidget);
       expect(find.byType(AlertDialog), findsNothing);

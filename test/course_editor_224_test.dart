@@ -34,7 +34,7 @@ void main() {
       find.byKey(const Key('course-editor-lessons-navigation')),
       findsOneWidget,
     );
-    expect(find.text('2 Lessons'), findsOneWidget);
+    expect(find.text('2 Lessons · 0 Draft Exercises'), findsOneWidget);
     expect(find.text('Lesson 1: First Lesson'), findsNothing);
     expect(find.text('Lock'), findsNothing);
   });

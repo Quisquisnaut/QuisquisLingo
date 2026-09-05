@@ -1,3 +1,12 @@
+# 2.0.26 (Build 226.02) - Editor workflow, field help and Audit UX - 2026-09-05
+
+- Advanced tranche metadata to `2.0.26+22602` / Version 2.0.26 / Build 226.02. Alpha expiry remains `2026-10-05 23:59:59`, thirty days from the same September 5 candidate date.
+- Added direct Preview from unsaved Exercise values through the shared candidate builder and existing learner-safe runtime, plus guarded Previous/Next navigation and ID-derived breadcrumbs. Preview preserves Draft/Published state and avoids learner progress, version and backup writes.
+- Added explicit Exercise and Round Move to / Copy to destinations inside the current course transaction. Moves preserve identity/content; copies reuse ID/reference remapping. Removed the editor's pending transfer clipboard paths and preserved untouched v6 text/Presentation metadata while assembling transfers.
+- Added shared contextual field help and clearer validation, verified importer/artwork instructions, intentional untitled Round guidance, orange Draft Exercise outlines alongside pink Audit Errors, and live Lesson/Course Draft counts.
+- Added a searchable Audit Codes technical reference backed by the same 103-rule registry as CourseAuditService. Existing severities are preserved. Removed missing Reading-comprehension guidance entirely; malformed actual Reading and Listening exercises still receive validation.
+- Preserved official read-only/licensed fork boundaries, custom confirmation/backup rules, Course Model v6, learner behavior and XP. No 226.03 or later functionality is included.
+
 # 2.0.26 (Build 226.01) - official read-only courses and licensed custom forks - 2026-09-05
 
 - Advanced candidate metadata to `2.0.26+22601` / Version 2.0.26 / Build 226.01. Alpha expiry is `2026-10-05 23:59:59`, thirty days from the September 5 candidate date under the existing policy.

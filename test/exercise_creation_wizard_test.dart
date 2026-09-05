@@ -138,16 +138,36 @@ Future<void> _editTranslation(
 }) async {
   await tester.tap(find.byKey(const Key('wizard-edit')));
   await tester.pumpAndSettle();
-  expect(find.byKey(const Key('type-translation-answer-help')), findsOneWidget);
-  final fields = find.byType(TextField);
-  await tester.enterText(fields.at(0), source);
-  await tester.enterText(fields.at(1), answer);
-  final saveDraft = find.byKey(const Key('exercise-save-draft'));
-  await tester.scrollUntilVisible(
-    saveDraft,
-    300,
-    scrollable: find.byType(Scrollable).last,
+  final editorScroll = find
+      .descendant(
+        of: find.byType(ExerciseEditorScreen),
+        matching: find.byType(Scrollable),
+      )
+      .first;
+  Finder field(String label) => find.byWidgetPredicate(
+    (widget) => widget is TextField && widget.decoration?.labelText == label,
   );
+  await tester.enterText(field('Source text'), source);
+  await tester.scrollUntilVisible(
+    field('Accepted translations'),
+    200,
+    scrollable: editorScroll,
+  );
+  await tester.enterText(field('Accepted translations'), answer);
+  tester.testTextInput.hide();
+  await tester.pumpAndSettle();
+  await tester.scrollUntilVisible(
+    find.byKey(const Key('type-translation-answer-help')),
+    200,
+    scrollable: editorScroll,
+  );
+  expect(find.byKey(const Key('type-translation-answer-help')), findsOneWidget);
+  final saveDraft = find.byKey(const Key('exercise-save-draft'));
+  await tester.scrollUntilVisible(saveDraft, 300, scrollable: editorScroll);
+  await tester.pumpAndSettle();
+  await tester.ensureVisible(saveDraft);
+  await tester.pumpAndSettle();
+  expect(saveDraft.hitTestable(), findsOneWidget);
   await tester.tap(saveDraft);
   await tester.pumpAndSettle();
   expect(find.byKey(const Key('wizard-guided')), findsOneWidget);

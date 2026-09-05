@@ -154,6 +154,13 @@ class AuthoringDuplicationService {
     return _copyExercise(source, remap);
   }
 
+  /// Duplicates the canonical wrapper as well as its runnable content.
+  LearningContent duplicateContent(LearningContent source) {
+    final remap = <String, String>{};
+    _allocateContent(source, remap);
+    return _copyContent(source, remap);
+  }
+
   LearningRound duplicateRound(LearningRound source) {
     final remap = <String, String>{source.id: _ids.next('round')};
     for (final content in source.content) {
@@ -311,7 +318,9 @@ class AuthoringDuplicationService {
           for (final pair in source.evaluation.pairs)
             [for (final id in pair) mapped(id)],
         ],
-        normalization: {...source.evaluation.normalization},
+        normalization: Map<String, dynamic>.from(
+          jsonDecode(jsonEncode(source.evaluation.normalization)) as Map,
+        ),
       ),
       hint: source.hint,
       feedback: {...source.feedback},

@@ -1,10 +1,11 @@
 import '../models/course_models.dart';
 import '../models/exercise_authoring.dart';
 import 'answer_engine.dart';
+import 'audit_code_registry.dart';
 import 'duel_eligibility_service.dart';
 import 'lesson_icon_catalog.dart';
 
-enum AuditSeverity { error, warning, info }
+export 'audit_code_registry.dart' show AuditSeverity;
 
 enum AuditSortMode { lesson, exerciseType, recentlyModified }
 
@@ -27,6 +28,18 @@ class CourseAuditIssue {
     this.exerciseType,
     this.updatedAt,
   });
+
+  /// Known production findings take their identity and severity from the registry.
+  CourseAuditIssue.fromCode(
+    AuditCode definition, {
+    required this.message,
+    required this.location,
+    this.roundId,
+    this.exerciseId,
+    this.exerciseType,
+    this.updatedAt,
+  }) : severity = definition.severity,
+       code = definition.code;
 
   CourseAuditIssue withUpdatedAt(DateTime? value) => CourseAuditIssue(
     severity: severity,
@@ -225,8 +238,8 @@ class CourseAuditService {
     }) {
       if (id.trim().isEmpty) {
         issues.add(
-          CourseAuditIssue(
-            severity: AuditSeverity.error,
+          CourseAuditIssue.fromCode(
+            AuditCode.idMissing,
             message: 'Missing ID.',
             location: location,
             roundId: roundId,
@@ -235,8 +248,8 @@ class CourseAuditService {
         );
       } else if (!ids.add(id)) {
         issues.add(
-          CourseAuditIssue(
-            severity: AuditSeverity.error,
+          CourseAuditIssue.fromCode(
+            AuditCode.idDuplicate,
             message: 'Duplicate ID: $id',
             location: location,
             roundId: roundId,
@@ -250,8 +263,8 @@ class CourseAuditService {
     if (course.sourceLanguage.trim().isEmpty ||
         course.targetLanguage.trim().isEmpty) {
       issues.add(
-        const CourseAuditIssue(
-          severity: AuditSeverity.error,
+        CourseAuditIssue.fromCode(
+          AuditCode.courseLanguagesRequired,
           message: 'Source and target languages must be defined.',
           location: 'Course',
         ),
@@ -260,8 +273,8 @@ class CourseAuditService {
     if (course.sourceLanguage.toLowerCase() ==
         course.targetLanguage.toLowerCase()) {
       issues.add(
-        const CourseAuditIssue(
-          severity: AuditSeverity.warning,
+        CourseAuditIssue.fromCode(
+          AuditCode.courseLanguagesIdentical,
           message: 'Source and target languages are identical.',
           location: 'Course',
         ),
@@ -269,9 +282,8 @@ class CourseAuditService {
     }
     if (course.authors.length > 50) {
       issues.add(
-        const CourseAuditIssue(
-          severity: AuditSeverity.warning,
-          code: 'COURSE_AUTHORS_MANY',
+        CourseAuditIssue.fromCode(
+          AuditCode.courseAuthorsMany,
           message:
               'Course has more than 50 author entries. Check for accidental duplicates.',
           location: 'Course info',
@@ -281,18 +293,16 @@ class CourseAuditService {
     for (final author in course.authors) {
       if (author.name.trim().isEmpty)
         issues.add(
-          const CourseAuditIssue(
-            severity: AuditSeverity.warning,
-            code: 'COURSE_AUTHOR_EMPTY',
+          CourseAuditIssue.fromCode(
+            AuditCode.courseAuthorEmpty,
             message: 'Course author name is empty.',
             location: 'Course info',
           ),
         );
       if (author.name.length > 120 || author.roles.any((r) => r.length > 120))
         issues.add(
-          const CourseAuditIssue(
-            severity: AuditSeverity.warning,
-            code: 'COURSE_AUTHOR_LONG',
+          CourseAuditIssue.fromCode(
+            AuditCode.courseAuthorLong,
             message:
                 'Course author name or role is unusually long and may not display well.',
             location: 'Course info',
@@ -300,9 +310,8 @@ class CourseAuditService {
         );
       if (author.roles.isEmpty)
         issues.add(
-          const CourseAuditIssue(
-            severity: AuditSeverity.warning,
-            code: 'COURSE_AUTHOR_ROLE_EMPTY',
+          CourseAuditIssue.fromCode(
+            AuditCode.courseAuthorRoleEmpty,
             message:
                 'Course author has no role. Add at least one role or use Contributor.',
             location: 'Course info',
@@ -310,9 +319,8 @@ class CourseAuditService {
         );
       if (author.roles.length > 12)
         issues.add(
-          const CourseAuditIssue(
-            severity: AuditSeverity.warning,
-            code: 'COURSE_AUTHOR_ROLES_MANY',
+          CourseAuditIssue.fromCode(
+            AuditCode.courseAuthorRolesMany,
             message:
                 'Course author has an unusually large number of roles. Check for accidental duplicates.',
             location: 'Course info',
@@ -321,9 +329,8 @@ class CourseAuditService {
     }
     if (course.courseDescription.length > 5000)
       issues.add(
-        const CourseAuditIssue(
-          severity: AuditSeverity.warning,
-          code: 'COURSE_DESCRIPTION_LONG',
+        CourseAuditIssue.fromCode(
+          AuditCode.courseDescriptionLong,
           message:
               'Course description exceeds 5,000 characters and may be difficult to edit or display.',
           location: 'Course info',
@@ -339,9 +346,8 @@ class CourseAuditService {
           parsed.month.toString().padLeft(2, '0') != raw.substring(5, 7) ||
           parsed.day.toString().padLeft(2, '0') != raw.substring(8, 10)) {
         issues.add(
-          const CourseAuditIssue(
-            severity: AuditSeverity.warning,
-            code: 'COURSE_DATE_INVALID',
+          CourseAuditIssue.fromCode(
+            AuditCode.courseDateInvalid,
             message:
                 'Last updated should be a valid date in YYYY-MM-DD format.',
             location: 'Course info',
@@ -351,8 +357,8 @@ class CourseAuditService {
     }
     if (course.lessons.isEmpty) {
       issues.add(
-        const CourseAuditIssue(
-          severity: AuditSeverity.warning,
+        CourseAuditIssue.fromCode(
+          AuditCode.courseLessonsEmpty,
           message:
               'Course has no Lessons yet. This is valid while a course is being authored.',
           location: 'Course',
@@ -364,8 +370,8 @@ class CourseAuditService {
       final key = clip.text.trim().toLowerCase();
       if (key.isEmpty) {
         issues.add(
-          const CourseAuditIssue(
-            severity: AuditSeverity.warning,
+          CourseAuditIssue.fromCode(
+            AuditCode.audioMappingTextEmpty,
             message:
                 'Orphan MP3 is not associated with any word or expression.',
             location: 'Audio Library',
@@ -375,8 +381,8 @@ class CourseAuditService {
       }
       if (!audioKeys.add(key))
         issues.add(
-          CourseAuditIssue(
-            severity: AuditSeverity.error,
+          CourseAuditIssue.fromCode(
+            AuditCode.audioMappingDuplicate,
             message: 'Duplicate recorded-audio mapping for “${clip.text}”.',
             location: 'Audio Library',
           ),
@@ -384,8 +390,8 @@ class CourseAuditService {
     }
     if (course.audioMode == 'recorded' && course.audioLibrary.isEmpty)
       issues.add(
-        const CourseAuditIssue(
-          severity: AuditSeverity.error,
+        CourseAuditIssue.fromCode(
+          AuditCode.recordedAudioLibraryEmpty,
           message:
               'Recorded MP3 mode is enabled but the Audio Library is empty.',
           location: 'Audio Library',
@@ -396,9 +402,8 @@ class CourseAuditService {
     for (final asset in course.lessonIconAssets) {
       if (!lessonIconIds.add(asset.assetId)) {
         issues.add(
-          CourseAuditIssue(
-            severity: AuditSeverity.error,
-            code: 'LESSON_ICON_ASSET_ID_DUPLICATE',
+          CourseAuditIssue.fromCode(
+            AuditCode.lessonIconAssetIdDuplicate,
             message: 'Custom Lesson icon asset IDs must be unique.',
             location: 'Course assets',
           ),
@@ -408,9 +413,8 @@ class CourseAuditService {
         CourseLessonIconAsset.validateCanonicalPng(asset.base64Png);
       } on FormatException catch (error) {
         issues.add(
-          CourseAuditIssue(
-            severity: AuditSeverity.error,
-            code: 'LESSON_ICON_ASSET_INVALID',
+          CourseAuditIssue.fromCode(
+            AuditCode.lessonIconAssetInvalid,
             message: error.message.toString(),
             location: 'Course assets · ${asset.assetId}',
           ),
@@ -425,9 +429,8 @@ class CourseAuditService {
       idCheck(t.duel.id, '$tl · Duel');
       if (t.section && (t.sectionName == null || t.sectionName!.trim().isEmpty))
         issues.add(
-          CourseAuditIssue(
-            severity: AuditSeverity.error,
-            code: 'LESSON_SECTION_NAME_REQUIRED',
+          CourseAuditIssue.fromCode(
+            AuditCode.lessonSectionNameRequired,
             message:
                 'Section name is required when Belongs to a Section is enabled.',
             location: tl,
@@ -435,9 +438,8 @@ class CourseAuditService {
         );
       if (!t.section && t.sectionName?.trim().isNotEmpty == true)
         issues.add(
-          CourseAuditIssue(
-            severity: AuditSeverity.error,
-            code: 'LESSON_SECTION_NAME_WITHOUT_SECTION',
+          CourseAuditIssue.fromCode(
+            AuditCode.lessonSectionNameWithoutSection,
             message:
                 'Section name must be absent when Belongs to a Section is disabled.',
             location: tl,
@@ -451,9 +453,8 @@ class CourseAuditService {
             (managedId != null && lessonIconIds.contains(managedId));
         if (!valid) {
           issues.add(
-            CourseAuditIssue(
-              severity: AuditSeverity.error,
-              code: 'LESSON_THEME_ICON_INVALID',
+            CourseAuditIssue.fromCode(
+              AuditCode.lessonThemeIconInvalid,
               message:
                   'Lesson theme icon must reference the preinstalled library or a valid managed Course-owned icon.',
               location: tl,
@@ -472,9 +473,8 @@ class CourseAuditService {
       }
       if (gb.content.isEmpty)
         issues.add(
-          CourseAuditIssue(
-            severity: AuditSeverity.warning,
-            code: 'LESSON_GUIDEBOOK_EMPTY',
+          CourseAuditIssue.fromCode(
+            AuditCode.lessonGuidebookEmpty,
             message:
                 'Lesson Guidebook is empty. Add learner-facing vocabulary, examples or explanations before generating Rounds.',
             location: '$tl · Guidebook',
@@ -482,17 +482,16 @@ class CourseAuditService {
         );
       if (t.rounds.isEmpty)
         issues.add(
-          CourseAuditIssue(
-            severity: AuditSeverity.warning,
+          CourseAuditIssue.fromCode(
+            AuditCode.lessonRoundsEmpty,
             message: 'Lesson has no rounds yet.',
             location: tl,
           ),
         );
       if (t.rounds.length < 3)
         issues.add(
-          CourseAuditIssue(
-            severity: AuditSeverity.info,
-            code: 'LESSON_ROUND_GUIDANCE',
+          CourseAuditIssue.fromCode(
+            AuditCode.lessonRoundGuidance,
             message:
                 'A Lesson normally has at least 3 Rounds. This is friendly author guidance and does not block saving or publishing.',
             location: tl,
@@ -504,9 +503,8 @@ class CourseAuditService {
             .toList();
         if (intro.isEmpty)
           issues.add(
-            CourseAuditIssue(
-              severity: AuditSeverity.info,
-              code: 'LESSON_INTRO_MISSING',
+            CourseAuditIssue.fromCode(
+              AuditCode.lessonIntroMissing,
               message:
                   'The first Round has no short Lesson introduction drawn from the Lesson Guidebook.',
               location: '$tl · Round 1',
@@ -519,8 +517,8 @@ class CourseAuditService {
         idCheck(r.id, rl, roundId: r.id);
         if (r.content.isEmpty)
           issues.add(
-            CourseAuditIssue(
-              severity: AuditSeverity.error,
+            CourseAuditIssue.fromCode(
+              AuditCode.roundContentEmpty,
               message: 'Round has no Content.',
               location: rl,
               roundId: r.id,
@@ -528,8 +526,8 @@ class CourseAuditService {
           );
         if (r.content.length > 10)
           issues.add(
-            CourseAuditIssue(
-              severity: AuditSeverity.warning,
+            CourseAuditIssue.fromCode(
+              AuditCode.roundContentLong,
               message:
                   'Round has ${r.content.length} Content items; standard sample length is 10.',
               location: rl,
@@ -538,8 +536,8 @@ class CourseAuditService {
           );
         if (r.content.length < 8 && r.content.isNotEmpty)
           issues.add(
-            CourseAuditIssue(
-              severity: AuditSeverity.info,
+            CourseAuditIssue.fromCode(
+              AuditCode.roundContentShort,
               message:
                   'Round has ${r.content.length} Content items; standard sample length is 10.',
               location: rl,
@@ -564,18 +562,6 @@ class CourseAuditService {
           }
         }
 
-        final readingCount = r.exercises
-            .where((e) => e.type == 'reading_comprehension')
-            .length;
-        if (readingCount == 0)
-          issues.add(
-            CourseAuditIssue(
-              severity: AuditSeverity.warning,
-              message: 'Round has no Reading comprehension exercise.',
-              location: rl,
-              roundId: r.id,
-            ),
-          );
         final duplicatePrompts = <String>{};
         for (var ei = 0; ei < r.exercises.length; ei++) {
           final ex = r.exercises[ei];
@@ -584,8 +570,8 @@ class CourseAuditService {
           if (instructionLanguage != null &&
               instructionLanguage != _courseSourceCode(course)) {
             issues.add(
-              CourseAuditIssue(
-                severity: AuditSeverity.warning,
+              CourseAuditIssue.fromCode(
+                AuditCode.instructionLanguageMismatch,
                 message:
                     'Exercise instruction appears to be in the wrong language. Learner instructions must use the course source language.',
                 location: el,
@@ -604,9 +590,8 @@ class CourseAuditService {
               prompt.toLowerCase().contains('opuesto');
           if (ri < 2 && isOpposite)
             issues.add(
-              CourseAuditIssue(
-                severity: AuditSeverity.warning,
-                code: 'OPPOSITE_TOO_EARLY',
+              CourseAuditIssue.fromCode(
+                AuditCode.oppositeTooEarly,
                 message:
                     'Opposite exercises should not be used in the first rounds of a Lesson.',
                 location: el,
@@ -624,9 +609,8 @@ class CourseAuditService {
                 (v) => RegExp(r'^\p{Lu}\p{L}*$', unicode: true).hasMatch(v),
               ))
             issues.add(
-              CourseAuditIssue(
-                severity: AuditSeverity.info,
-                code: 'SINGLE_WORD_CASE',
+              CourseAuditIssue.fromCode(
+                AuditCode.singleWordCase,
                 message:
                     'An isolated word starts with a capital letter. Use lowercase unless capitalization is linguistically required.',
                 location: el,
@@ -638,9 +622,8 @@ class CourseAuditService {
               '${ex.type}|${ex.prompt.trim().toLowerCase()}|${ex.question.trim().toLowerCase()}';
           if (!duplicatePrompts.add(key))
             issues.add(
-              CourseAuditIssue(
-                severity: AuditSeverity.warning,
-                code: 'ROUND_DUPLICATE_CONTENT',
+              CourseAuditIssue.fromCode(
+                AuditCode.roundDuplicateContent,
                 message:
                     'Same exercise prompt/question appears more than once in this round.',
                 location: el,
@@ -653,9 +636,8 @@ class CourseAuditService {
       final eligibility = const DuelEligibilityService().evaluate(t);
       if (!eligibility.isAvailable)
         issues.add(
-          CourseAuditIssue(
-            severity: AuditSeverity.info,
-            code: 'DUEL_UNAVAILABLE',
+          CourseAuditIssue.fromCode(
+            AuditCode.duelUnavailable,
             message:
                 'Duel is unavailable with ${eligibility.eligibleCount} suitable exercises; ${eligibility.requiredCount} are required. This is normal supported behavior.',
             location: '$tl · Duel',
@@ -665,9 +647,8 @@ class CourseAuditService {
     for (final pending in pendingSourceRefs) {
       if (!ids.contains(pending.key))
         issues.add(
-          CourseAuditIssue(
-            severity: AuditSeverity.error,
-            code: 'SOURCE_REF_MISSING',
+          CourseAuditIssue.fromCode(
+            AuditCode.sourceRefMissing,
             message: 'sourceRefs references missing Content ID: ${pending.key}',
             location: pending.value,
           ),
@@ -965,7 +946,7 @@ class CourseAuditService {
   /// human review rather than guessed.
   void _auditWordBlockLanguage(
     Exercise ex,
-    void Function(AuditSeverity, String) add,
+    void Function(AuditCode, String) add,
   ) {
     if (ex.type != 'word_order') return;
     final counts = <String, int>{};
@@ -987,7 +968,7 @@ class CourseAuditService {
       if (distractorLanguage != null &&
           !answerLanguages.contains(distractorLanguage)) {
         add(
-          AuditSeverity.error,
+          AuditCode.wordBlockLanguageMismatch,
           'Word-block distractor appears to be in a different language from the answer blocks.',
         );
         return;
@@ -1001,10 +982,9 @@ class CourseAuditService {
     String? roundId,
   }) {
     final out = <CourseAuditIssue>[];
-    void add(AuditSeverity s, String m, {String code = 'GENERAL'}) => out.add(
-      CourseAuditIssue(
-        severity: s,
-        code: code,
+    void add(AuditCode definition, String m) => out.add(
+      CourseAuditIssue.fromCode(
+        definition,
         message: m,
         location: location,
         roundId: roundId,
@@ -1014,7 +994,7 @@ class CourseAuditService {
       ),
     );
     if (!supportedTypes.contains(ex.type))
-      add(AuditSeverity.error, 'Unknown exercise type: ${ex.type}');
+      add(AuditCode.exerciseTypeUnknown, 'Unknown exercise type: ${ex.type}');
     final preset =
         ExercisePresetRegistry.byId(ex.editorTemplate) ??
         ExercisePresetRegistry.byId(ex.type) ??
@@ -1023,9 +1003,8 @@ class CourseAuditService {
             : null);
     if (preset == null) {
       add(
-        AuditSeverity.error,
+        AuditCode.exercisePresetUnknown,
         'Exercise preset “${ex.editorTemplate}” is not available.',
-        code: 'EXERCISE_PRESET_UNKNOWN',
       );
     } else if (preset.model != CanonicalExerciseModel.presentation) {
       final expectedInteraction = switch (preset.model) {
@@ -1037,9 +1016,8 @@ class CourseAuditService {
       };
       if (ex.interaction.kind != expectedInteraction) {
         add(
-          AuditSeverity.error,
-          '${preset.name} has an incompatible response configuration.',
-          code: 'PRESET_CANONICAL_MISMATCH',
+          AuditCode.presetCanonicalMismatch,
+          '${preset.name} has an incompatible response configuration. Use the response fields for this preset.',
         );
       }
     }
@@ -1048,18 +1026,16 @@ class CourseAuditService {
       (element) => !promptMedia.contains(element.type),
     )) {
       add(
-        AuditSeverity.error,
+        AuditCode.promptMediaUnsupported,
         'Prompt media must be text, audio or image.',
-        code: 'PROMPT_MEDIA_UNSUPPORTED',
       );
     }
     final itemIds = ex.interaction.items.map((item) => item.id).toList();
     if (itemIds.any((id) => id.trim().isEmpty) ||
         itemIds.toSet().length != itemIds.length) {
       add(
-        AuditSeverity.error,
+        AuditCode.exerciseItemIds,
         'Exercise Item IDs must be non-empty and unique.',
-        code: 'EXERCISE_ITEM_IDS',
       );
     }
     final itemIdSet = itemIds.toSet();
@@ -1070,14 +1046,13 @@ class CourseAuditService {
     };
     if (referencedIds.any((id) => !itemIdSet.contains(id))) {
       add(
-        AuditSeverity.error,
+        AuditCode.exerciseItemReference,
         'Exercise evaluation references an unknown Item ID.',
-        code: 'EXERCISE_ITEM_REFERENCE',
       );
     }
     if (ex.prompt.length > 1200 || ex.question.length > 800)
       add(
-        AuditSeverity.warning,
+        AuditCode.exerciseTextLong,
         'Very long text may be difficult to read on small screens.',
       );
 
@@ -1088,9 +1063,8 @@ class CourseAuditService {
     void unexpected(bool condition, String field) {
       if (condition)
         add(
-          AuditSeverity.warning,
+          AuditCode.exerciseFieldUnexpected,
           'Unexpected field for ${ex.type}: $field.',
-          code: 'EXERCISE_FIELD_UNEXPECTED',
         );
     }
 
@@ -1148,29 +1122,40 @@ class CourseAuditService {
 
     if (choiceTypes.contains(ex.type)) {
       if (ex.answers.length < 2)
-        add(AuditSeverity.error, 'Choice exercise needs at least two answers.');
+        add(
+          AuditCode.choiceAnswersRequired,
+          'Choice exercise needs at least two answers.',
+        );
       if (ex.type == 'dialogue_response' && ex.answers.length != 2)
         add(
-          AuditSeverity.error,
+          AuditCode.dialogueResponseOptionCount,
           'Dialogue Response requires exactly two response options.',
-          code: 'DIALOGUE_RESPONSE_OPTION_COUNT',
         );
       if (ex.type == 'dialogue_response' && ex.prompt.trim().isEmpty)
-        add(AuditSeverity.error, 'Dialogue Response needs a context sentence.');
+        add(
+          AuditCode.dialogueContextRequired,
+          'Dialogue Response needs a context sentence.',
+        );
       if (ex.type == 'dialogue_response' && ex.question.trim().isEmpty)
-        add(AuditSeverity.error, 'Dialogue Response needs a question.');
+        add(
+          AuditCode.dialogueQuestionRequired,
+          'Dialogue Response needs a question.',
+        );
       if (ex.correct == null ||
           ex.correct! < 0 ||
           ex.correct! >= ex.answers.length)
         add(
-          AuditSeverity.error,
-          'Correct answer is missing or outside the answer list.',
+          AuditCode.choiceCorrectAnswerInvalid,
+          'Correct answer is missing or outside the answer list. Select a correct answer from the current options.',
         );
       if (ex.answers.any((e) => e.trim().isEmpty))
-        add(AuditSeverity.error, 'Answer options cannot be blank.');
+        add(AuditCode.choiceAnswerEmpty, 'Answer options cannot be blank.');
       if (ex.answers.map((e) => e.trim().toLowerCase()).toSet().length !=
           ex.answers.length)
-        add(AuditSeverity.warning, 'Answer options contain duplicates.');
+        add(
+          AuditCode.choiceAnswerDuplicate,
+          'Answer options contain duplicates.',
+        );
       const placeholderAnswers = {
         'xyz',
         'abc',
@@ -1182,23 +1167,20 @@ class CourseAuditService {
         (e) => placeholderAnswers.contains(e.trim().toLowerCase()),
       ))
         add(
-          AuditSeverity.error,
+          AuditCode.placeholderAnswer,
           'Answer options contain placeholder text. Replace it with a real course-language distractor.',
-          code: 'PLACEHOLDER_ANSWER',
         );
       final normalizedPrompt = ex.prompt.trim().toLowerCase();
       if (normalizedPrompt == 'choose the correct translation.' ||
           normalizedPrompt == 'elige la traducción correcta.')
         add(
-          AuditSeverity.error,
+          AuditCode.translationPromptMissingSource,
           'Translation prompt does not identify the word or expression to translate.',
-          code: 'TRANSLATION_PROMPT_MISSING_SOURCE',
         );
       if (ex.evaluation.correctItemIds.isNotEmpty && ex.correct == null)
         add(
-          AuditSeverity.error,
+          AuditCode.correctItemUnresolved,
           'Correct Item ID does not resolve to a visible answer option.',
-          code: 'CORRECT_ITEM_UNRESOLVED',
         );
       if (ex.type == 'reading_comprehension' &&
           ex.question.toLowerCase().contains(
@@ -1211,37 +1193,33 @@ class CourseAuditService {
         final passage = ex.prompt.trim().toLowerCase();
         if (correctText.isNotEmpty && !passage.contains(correctText))
           add(
-            AuditSeverity.warning,
+            AuditCode.readingOptionNotInPassage,
             'The declared correct option does not occur in the reading passage. Review this generated Reading exercise for a likely vocabulary mismatch.',
-            code: 'READING_OPTION_NOT_IN_PASSAGE',
           );
       }
     }
     if ((ex.type.startsWith('listening') || ex.type == 'missing_word') &&
         (ex.tts == null || ex.tts!.trim().isEmpty))
       add(
-        AuditSeverity.error,
-        'Listening exercise has no audio text.',
-        code: 'LISTENING_AUDIO_REQUIRED',
+        AuditCode.listeningAudioRequired,
+        'Listening exercise has no audio text. Enter the text the learner should hear.',
       );
     if (ex.type == 'gap_choice') {
       if (ex.question.trim().isEmpty)
         add(
-          AuditSeverity.error,
+          AuditCode.gapSentenceRequired,
           'Gap Choice needs a target-language sentence.',
         );
       final gapCount = RegExp(r'___').allMatches(ex.question).length;
       if (gapCount == 0)
         add(
-          AuditSeverity.error,
+          AuditCode.gapMarkerMissing,
           'Gap Choice sentence must contain the ___ gap marker.',
-          code: 'GAP_MARKER_MISSING',
         );
       if (gapCount > 1)
         add(
-          AuditSeverity.warning,
+          AuditCode.gapMarkerCount,
           'Gap Choice should normally contain exactly one gap.',
-          code: 'GAP_MARKER_COUNT',
         );
       final correctAnswer =
           ex.correct != null &&
@@ -1253,18 +1231,16 @@ class CourseAuditService {
         final completed = ex.question.replaceFirst('___', correctAnswer);
         if (_lexicalWordCount(completed) < 2) {
           add(
-            AuditSeverity.error,
+            AuditCode.gapSentenceTooShort,
             'The completed sentence must contain at least 2 words.',
-            code: 'GAP_SENTENCE_TOO_SHORT',
           );
         }
       }
     }
     if (ex.type == 'listening_spelling' && ex.accepted.isEmpty)
       add(
-        AuditSeverity.error,
+        AuditCode.listeningSpellingNoAnswer,
         'Listening Spelling needs at least one accepted text answer.',
-        code: 'LISTENING_SPELLING_NO_ANSWER',
       );
     if (const {
           'fill_blank',
@@ -1276,85 +1252,76 @@ class CourseAuditService {
         try {
           AnswerExpressionParser.expand(expression);
         } on AnswerExpressionException catch (error) {
-          add(
-            AuditSeverity.error,
-            error.message,
-            code: 'ANSWER_EXPRESSION_INVALID',
-          );
+          add(AuditCode.answerExpressionInvalid, error.message);
         }
       }
       try {
         AnswerExpressionParser.expandAll(ex.accepted);
       } on AnswerExpressionException catch (error) {
-        add(AuditSeverity.error, error.message, code: 'ANSWER_EXPANSION_LIMIT');
+        add(AuditCode.answerExpansionLimit, error.message);
       }
     }
     if (ex.type == 'type_translation') {
       if (ex.prompt.trim().isEmpty) {
         add(
-          AuditSeverity.error,
+          AuditCode.translationSourceRequired,
           'Type the translation needs source text.',
-          code: 'TRANSLATION_SOURCE_REQUIRED',
         );
       }
       if (ex.accepted.isEmpty) {
         add(
-          AuditSeverity.error,
+          AuditCode.translationAnswerRequired,
           'Type the translation needs at least one accepted answer.',
-          code: 'TRANSLATION_ANSWER_REQUIRED',
         );
       }
     }
     if (ex.type == 'contextual_comprehension') {
       if (ex.question.trim().isEmpty) {
         add(
-          AuditSeverity.error,
-          'Contextual comprehension needs a separate question.',
-          code: 'CONTEXT_QUESTION_REQUIRED',
+          AuditCode.contextQuestionRequired,
+          'Contextual comprehension needs a separate question. Enter what the learner should answer about the context.',
         );
       }
       if (ex.contextText.trim().isEmpty &&
           ex.contextAudio.trim().isEmpty &&
           ex.dialogueTurns.isEmpty) {
         add(
-          AuditSeverity.error,
-          'Contextual comprehension needs text, audio or dialogue context.',
-          code: 'CONTEXT_REQUIRED',
+          AuditCode.contextRequired,
+          'Contextual comprehension needs text, audio or dialogue context. Add the material the question refers to.',
         );
       }
       if (ex.dialogueTurns.any(
         (turn) => turn.speaker.trim().isEmpty || turn.text.trim().isEmpty,
       )) {
         add(
-          AuditSeverity.error,
+          AuditCode.dialogueTurnInvalid,
           'Every dialogue turn needs a speaker and text.',
-          code: 'DIALOGUE_TURN_INVALID',
         );
       }
     }
     if (ex.type == 'missing_word') {
       if (ex.prompt.trim().isEmpty)
         add(
-          AuditSeverity.error,
+          AuditCode.missingWordTranscriptRequired,
           'Missing Word exercise needs a passage transcript.',
         );
       if (ex.missingWords.isEmpty)
         add(
-          AuditSeverity.error,
+          AuditCode.missingWordAnswerRequired,
           'Missing Word exercise needs at least one missing word.',
         );
       final passage = ex.prompt.toLowerCase();
       for (final word in ex.missingWords) {
         if (!passage.contains(word.toLowerCase()))
           add(
-            AuditSeverity.error,
+            AuditCode.missingWordNotInTranscript,
             'Missing word “$word” does not occur in the passage transcript.',
           );
       }
       if (ex.missingWords.map((e) => e.trim().toLowerCase()).toSet().length !=
           ex.missingWords.length)
         add(
-          AuditSeverity.warning,
+          AuditCode.missingWordDuplicate,
           'Missing Word exercise contains duplicate missing-word entries.',
         );
     }
@@ -1362,29 +1329,27 @@ class CourseAuditService {
       final lexicalWords = _lexicalWordCount(ex.prompt);
       if (lexicalWords == 0) {
         add(
-          AuditSeverity.error,
+          AuditCode.readingPassageRequired,
           'Reading Comprehension needs a Reading Passage containing words.',
-          code: 'READING_PASSAGE_REQUIRED',
         );
       } else if (lexicalWords < 3) {
         add(
-          AuditSeverity.warning,
+          AuditCode.readingPassageTooShort,
           'Reading Comprehension passages should contain at least three words.',
-          code: 'READING_PASSAGE_TOO_SHORT',
         );
       }
     }
     if (ex.type == 'listening_comprehension' &&
         (ex.tts ?? '').trim().split(RegExp(r'\s+')).length < 5)
       add(
-        AuditSeverity.info,
+        AuditCode.listeningPassageShort,
         'Listening comprehension passage is very short; make sure it tests comprehension.',
       );
 
     if (ex.type == 'fill_blank') {
       if (ex.accepted.isEmpty)
         add(
-          AuditSeverity.error,
+          AuditCode.fillBlankAnswerRequired,
           'Fill-in exercise needs at least one accepted answer.',
         );
     }
@@ -1395,11 +1360,10 @@ class CourseAuditService {
     }.contains(ex.type)) {
       if (ex.tokens.isEmpty || ex.evaluation.correctOrders.isEmpty)
         add(
-          AuditSeverity.error,
+          AuditCode.wordBlockDataRequired,
           ex.type == 'build_translation'
               ? 'Build the translation needs usable Language blocks and at least one correct translation.'
-              : 'Word-block exercise needs available blocks and a correct sentence.',
-          code: 'WORD_BLOCK_DATA_REQUIRED',
+              : 'Word-block exercise needs available blocks and a correct answer. Enter the answer and select its blocks in order.',
         );
       final normalizedAnswers = <String>{};
       final usedItemIds = <String>{};
@@ -1410,31 +1374,27 @@ class CourseAuditService {
         final normalized = _orderedAnswerComparable(answer.text);
         if (normalized.isEmpty) {
           add(
-            AuditSeverity.error,
-            'Correct translations must be complete non-empty literal text.',
-            code: 'BUILD_TRANSLATION_ANSWER_REQUIRED',
+            AuditCode.buildTranslationAnswerRequired,
+            'Each correct answer must contain complete, non-empty literal text that its selected blocks can build.',
           );
         } else if (!normalizedAnswers.add(normalized)) {
           add(
-            AuditSeverity.error,
-            'Correct translations contain a normalized duplicate.',
-            code: 'BUILD_TRANSLATION_DUPLICATE_ANSWER',
+            AuditCode.buildTranslationDuplicateAnswer,
+            'Correct answers contain a duplicate after ignoring case, repeated spaces and final sentence punctuation. Keep one copy of that answer.',
           );
         }
         if (answer.itemIds.isEmpty ||
             answer.itemIds.any((id) => !itemIdSet.contains(id))) {
           add(
-            AuditSeverity.error,
-            'A correct translation contains missing or invalid Language block references.',
-            code: 'BUILD_TRANSLATION_INVALID_SEQUENCE',
+            AuditCode.buildTranslationInvalidSequence,
+            'A correct answer has no block order or refers to unavailable blocks. Select its blocks from the current available list.',
           );
           continue;
         }
         if (answer.itemIds.toSet().length != answer.itemIds.length) {
           add(
-            AuditSeverity.error,
-            'Repeated words require distinct Language block occurrences.',
-            code: 'BUILD_TRANSLATION_REUSED_BLOCK',
+            AuditCode.buildTranslationReusedBlock,
+            'Repeated words require separate available block occurrences. Add another copy of the word and select each occurrence once.',
           );
         }
         usedItemIds.addAll(answer.itemIds);
@@ -1445,9 +1405,8 @@ class CourseAuditService {
             .join(separator);
         if (_orderedAnswerComparable(constructed) != normalized) {
           add(
-            AuditSeverity.error,
-            'A correct translation cannot be constructed literally from its Language block sequence.',
-            code: 'BUILD_TRANSLATION_UNCONSTRUCTABLE',
+            AuditCode.buildTranslationUnconstructable,
+            'A correct answer cannot be built from its selected block order. Make the answer text and ordered blocks agree exactly, allowing the existing case, spacing and final-punctuation normalization.',
           );
         }
       }
@@ -1460,7 +1419,7 @@ class CourseAuditService {
       final maxDistractors = ex.type == 'image_word' ? 0 : 2;
       if (extraCount < 0 || extraCount > maxDistractors) {
         add(
-          AuditSeverity.error,
+          AuditCode.wordBlockDistractorCount,
           ex.type == 'image_word'
               ? 'Letter/syllable word-building exercises must contain only the blocks needed for the answer; found $extraCount extra blocks.'
               : ex.type == 'build_translation'
@@ -1472,25 +1431,37 @@ class CourseAuditService {
     }
     if (ex.type == 'flashcard') {
       if (ex.prompt.trim().isEmpty)
-        add(AuditSeverity.error, 'Flashcard needs a target word or phrase.');
+        add(
+          AuditCode.flashcardTextRequired,
+          'Flashcard needs a target word or phrase.',
+        );
       if (ex.question.trim().isEmpty)
-        add(AuditSeverity.warning, 'Flashcard meaning is empty.');
+        add(AuditCode.flashcardMeaningEmpty, 'Flashcard meaning is empty.');
       if (ex.answers.isEmpty || ex.answers.first.trim().isEmpty)
-        add(AuditSeverity.warning, 'Flashcard has no usage sentence.');
+        add(
+          AuditCode.flashcardExampleEmpty,
+          'Flashcard has no usage sentence.',
+        );
       if (ex.tts == null || ex.tts!.trim().isEmpty)
-        add(AuditSeverity.warning, 'Flashcard has no pronunciation TTS text.');
+        add(
+          AuditCode.flashcardAudioEmpty,
+          'Flashcard has no pronunciation TTS text.',
+        );
     }
     if (ex.type == 'matching' && ex.pairs.isEmpty)
-      add(AuditSeverity.error, 'Matching exercise needs at least one pair.');
+      add(
+        AuditCode.matchingPairsRequired,
+        'Matching exercise needs at least one pair.',
+      );
     if (ex.type == 'audio_match') {
       if (ex.pairs.length != 3)
         add(
-          AuditSeverity.error,
+          AuditCode.audioMatchPairCount,
           'Audio Match requires exactly 3 sound/text pairs.',
         );
       if (ex.answers.length != ex.pairs.length)
         add(
-          AuditSeverity.error,
+          AuditCode.audioMatchAnswerCount,
           'Audio Match must have one visible answer for each sound and no distractors.',
         );
       final visibleKeys = ex.answers
@@ -1499,19 +1470,19 @@ class CourseAuditService {
       final visible = visibleKeys.toSet();
       if (visible.length != visibleKeys.length)
         add(
-          AuditSeverity.error,
+          AuditCode.audioMatchAnswerDuplicate,
           'Audio Match visible choices contain duplicates.',
         );
       if (ex.pairs.any(
         (p) => p.length != 2 || p[0].trim().isEmpty || p[1].trim().isEmpty,
       ))
         add(
-          AuditSeverity.error,
+          AuditCode.audioMatchPairEmpty,
           'Audio Match contains an empty sound or match.',
         );
       if (ex.pairs.any((p) => !visible.contains(p[1].trim().toLowerCase())))
         add(
-          AuditSeverity.error,
+          AuditCode.audioMatchAnswerMissing,
           'Every Audio Match value must appear among the visible choices.',
         );
       String normalizedAudioMatchText(String value) => value
@@ -1526,20 +1497,26 @@ class CourseAuditService {
           .map((p) => normalizedAudioMatchText(p[1]))
           .toList();
       if (soundKeys.toSet().length != soundKeys.length)
-        add(AuditSeverity.error, 'Audio Match repeats the same target audio.');
+        add(
+          AuditCode.audioMatchSoundDuplicate,
+          'Audio Match repeats the same target audio.',
+        );
       if (matchKeys.toSet().length != matchKeys.length)
-        add(AuditSeverity.error, 'Audio Match repeats the same matching text.');
+        add(
+          AuditCode.audioMatchTextDuplicate,
+          'Audio Match repeats the same matching text.',
+        );
     }
     if (ex.type == 'word_match' || ex.type == 'super_match') {
       if (ex.pairs.length != 3)
         add(
-          AuditSeverity.error,
+          AuditCode.matchPairCount,
           '${ex.type == 'word_match' ? 'Word Match' : 'Super Match'} requires exactly 3 pairs.',
         );
       if (ex.pairs.any(
         (p) => p.length != 2 || p[0].trim().isEmpty || p[1].trim().isEmpty,
       ))
-        add(AuditSeverity.error, 'Match exercise contains an empty pair.');
+        add(AuditCode.matchPairEmpty, 'Match exercise contains an empty pair.');
       String normalizedMatchText(String value) => value
           .toLowerCase()
           .replaceAll(RegExp(r'[^\p{L}\p{N}\s]', unicode: true), '')
@@ -1555,28 +1532,34 @@ class CourseAuditService {
           .toList();
       if (left.toSet().length != left.length)
         add(
-          AuditSeverity.error,
+          AuditCode.matchLeftDuplicate,
           'Match exercise repeats the same left-side item after ignoring case and punctuation.',
         );
       if (right.toSet().length != right.length)
         add(
-          AuditSeverity.error,
+          AuditCode.matchRightDuplicate,
           'Match exercise repeats the same right-side item after ignoring case and punctuation.',
         );
     }
     if (ex.type == 'image_word') {
       if (ex.imageAsset.trim().isEmpty)
-        add(AuditSeverity.error, 'Image Word exercise requires an image.');
+        add(
+          AuditCode.imageWordImageRequired,
+          'Image Word exercise requires an image.',
+        );
       if (ex.orderAnswer.isEmpty)
         add(
-          AuditSeverity.error,
+          AuditCode.imageWordAnswerRequired,
           'Image Word exercise requires a correct target-language word.',
         );
       if (ex.orderAnswer.join().trim().isEmpty)
-        add(AuditSeverity.error, 'Image Word correct word cannot be blank.');
+        add(
+          AuditCode.imageWordAnswerBlank,
+          'Image Word correct word cannot be blank.',
+        );
     }
     if (ex.type == 'icon_choice' && ex.icons.length != ex.answers.length)
-      add(AuditSeverity.error, 'Icon count must match answer count.');
+      add(AuditCode.iconChoiceCount, 'Icon count must match answer count.');
     _auditRepeatingHint(ex.hint, [
       ex.prompt,
       ex.question,
@@ -1617,7 +1600,7 @@ class CourseAuditService {
   void _auditRepeatingHint(
     String hint,
     Iterable<String> promptParts,
-    void Function(AuditSeverity, String, {String code}) add,
+    void Function(AuditCode, String) add,
   ) {
     final normalizedHint = _hintComparable(hint);
     if (normalizedHint.isEmpty) return;
@@ -1627,9 +1610,8 @@ class CourseAuditService {
           _hintComparable(part) == normalizedHint,
     )) {
       add(
-        AuditSeverity.warning,
+        AuditCode.hintRepeatsPrompt,
         'The Hint repeats the prompt, source text or question instead of providing useful help.',
-        code: 'HINT_REPEATS_PROMPT',
       );
     }
   }
@@ -1637,7 +1619,7 @@ class CourseAuditService {
   void _auditRevealingHint(
     String hint,
     Iterable<String> correctAlternatives,
-    void Function(AuditSeverity, String, {String code}) add,
+    void Function(AuditCode, String) add,
   ) {
     final normalizedHint = _hintComparable(hint);
     if (normalizedHint.isEmpty) return;
@@ -1647,9 +1629,8 @@ class CourseAuditService {
           _hintComparable(answer) == normalizedHint,
     )) {
       add(
-        AuditSeverity.error,
+        AuditCode.hintRevealsAnswer,
         'The Hint must not be the correct answer.',
-        code: 'HINT_REVEALS_ANSWER',
       );
     }
   }

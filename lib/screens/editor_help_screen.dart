@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/exercise_authoring.dart';
+import 'audit_codes_screen.dart';
 
 class EditorHelpScreen extends StatelessWidget {
   const EditorHelpScreen({super.key});
@@ -34,7 +35,7 @@ class EditorHelpScreen extends StatelessWidget {
         _HelpSection(
           title: 'One Course Editor transaction',
           body:
-              'Opening a custom course creates an editable working copy beside an immutable snapshot of the persisted course. Every Course Info, Lesson, Round, Exercise, GuideBook, generator and reorder operation changes only that working copy. Nested Save stores a normal item in the working copy; Save as draft stores a Draft item there. Neither action changes the learner-visible course, creates a backup or increments the course version. Back on a nested page silently discards only that page\'s currently unstaged form edits while preserving everything already saved to the working copy. Navigation among nested pages never shows the final course confirmation.',
+              'Opening a custom course creates an editable working copy beside an immutable snapshot of the persisted course. Every Course Info, Lesson, Round, Exercise, GuideBook, generator and reorder operation changes only that working copy. Nested Save stores a normal item in the working copy; Save as draft stores a Draft item there. Neither action changes the learner-visible course, creates a backup or increments the course version. Leaving an Exercise with unsaved form changes offers Keep editing, Discard changes, Save as draft or Save. Discard affects only that form; earlier working-copy changes remain. Other nested pages retain their established Back behavior. Navigation among nested pages never shows the final course confirmation.',
         ),
         _HelpSection(
           title: 'Confirm or cancel the complete course',
@@ -69,7 +70,7 @@ class EditorHelpScreen extends StatelessWidget {
         _HelpSection(
           title: 'Import a custom flag',
           body:
-              '1. Copy the flag image to Documents/QuisquisLingo/Exports. 2. Name it flag.png, flag.jpg or flag.jpeg. 3. Open Create new course and press Import flag. The file must be a valid PNG or JPEG, no larger than 2 MB and at least 64×40 pixels. Large images are resized to at most 256 pixels on the longest side while preserving proportions. The imported flag is stored with the custom course, so the original image file does not need to remain in the transfer folder afterward.',
+              'Copy a valid PNG or JPEG to Documents/QuisquisLingo/Exports as flag.png, flag.jpg or flag.jpeg, then press Import flag in Create new course. If several names exist, QQL uses the first in that order. Maximum input: 2 MB (2,097,152 bytes). Minimum dimensions: 64 × 40 pixels; maximum: 8192 pixels on either side. QQL checks the actual PNG/JPEG signature and decodes the image. Images larger than 256 pixels on their longest side are reduced proportionally; smaller accepted images are not enlarged. The first image frame becomes PNG without cropping or a square canvas. Existing PNG transparency is retained; JPEG does not acquire a transparent background. PNG data are embedded in the Course and survive course JSON export/import and duplication. The transfer source is left in place and is no longer needed. Missing, unreadable, unsupported, oversized, too-small or over-resolution input produces an error; failed PNG conversion also stops import.',
         ),
         _HelpSection(
           title: 'Generate Rounds from Lesson GuideBook',
@@ -84,32 +85,42 @@ class EditorHelpScreen extends StatelessWidget {
         _HelpSection(
           title: 'Duplicate, Copy and Move exercises',
           body:
-              'Duplicate immediately inserts an independent fresh-ID copy after the source Exercise. Copy and Move use an explicit in-app transfer buffer: choose an action, navigate to the destination Round, then press Paste. Copy leaves the source in place and allocates fresh Exercise and item IDs when pasted; Move preserves identity, removes the source from its Round and pastes it once at the destination. Shared immutable asset paths remain references rather than duplicated files.',
+              'Duplicate inserts an independent fresh-ID copy immediately after the source. Move Exercise to… and Copy Exercise to… choose an explicit Course > Lesson > Round destination within the current course working copy. Move Round to… and Copy Round to… choose a Lesson there. Move preserves stable identity, content and Draft/Published state and removes the source from its previous parent. Copy allocates fresh IDs throughout the owned subtree and remaps internal references. Following the existing duplication policy, copies and their owned descendants start as Draft. Shared immutable image/audio paths remain references. These actions affect only the working copy until Confirm course changes.',
+        ),
+        _HelpSection(
+          title: 'Exercise Preview and navigation',
+          body:
+              'Preview beside Save uses the complete current unsaved Exercise form, including a new or Draft Exercise. It uses learner rendering without saving content, changing Draft/Published state, creating versions/backups or writing learner progress, XP, Weekly XP, streak, Laurel, Review or Duel state. Insufficient runtime data produces a validation message without losing edits. Returning restores the same field values. Previous and Next follow the current Round order and stop at its boundaries. Back, sibling navigation and safe breadcrumb navigation protect unsaved Exercise changes with Keep editing, Discard changes, Save as draft or Save. Saving here affects only the course working copy. Breadcrumbs show readable Course, Lesson, Round and Exercise context.',
+        ),
+        _HelpSection(
+          title: 'Field Help and untitled Rounds',
+          body:
+              'Use the Help control beside an Exercise field for its purpose, entry count, line rules, format, validation and examples. Context mode, each correct-translation entry and Exercise image have their own Help. Broad Exercise Help remains available beside the preset. Typed answers support the existing answer-expression syntax; Arrange answers and listening gap lists are literal. An empty Round title is intentionally supported in Create and Edit Round. Follow the untitled guidance to keep it blank; its displayed Round N label follows its position without creating a stored title.',
         ),
         _HelpSection(
           title: 'Audio Library',
           body:
-              'Choose System TTS, Recorded MP3 or Hybrid. To import recordings, copy the MP3 files to Documents/QuisquisLingo/Imports/Audio and press Import MP3 in Audio Library. All MP3 files in that folder are imported; the source files are left in place, so move or remove them after a successful import to avoid importing them again. Imported MP3 files can be associated with exact words or expressions. Recorded playback uses longest-match segmentation and concatenates compatible clips. The library supports preview playback, ordering and orphan-file checks. Audio assets can also be distributed as a separate course-specific Audio Pack containing audio_manifest.json and MP3 files. Audio Packs belong to one course and are not part of Export my data; export them separately when you need a backup or want to distribute them.',
+              'Choose System TTS, Recorded MP3 or Hybrid. Copy MP3 files to Documents/QuisquisLingo/Imports/Audio and press Import MP3 in Audio Library. Every .mp3 file there is copied to local app storage grouped by learning language, with a maximum of 50 MB (52,428,800 bytes) per file. The metadata and references belong to the Course even though physical files use that language grouping. No MP3 files or an oversized file produces an error. Import does not re-encode recordings or enforce a duration, bitrate or sample-rate rule; preview each recording to check playback. Source files remain in place, so move them out after successful import to avoid importing them again. Associate each recording with the exact word or expression it contains. Recorded playback uses longest-match segmentation and concatenates compatible clips. Hybrid falls back to TTS when a complete recorded sequence cannot be assembled. Course JSON stores clip metadata and local paths, not MP3 bytes; JSON alone does not transfer these recordings to another device. Verified course-version backups copy referenced recordings. Export my data is a separate learner backup and does not include course media; a distributable Audio Pack exporter is not currently available.',
         ),
         _HelpSection(
           title: 'Image Bank',
           body:
-              'The Image Bank can contain built-in images, imported single images and separate Image Bank ZIP packages. Imports use the fixed folder Documents/QuisquisLingo/Imports/Images and do not open a file picker. For Import single image, keep exactly one PNG, JPG, JPEG or WEBP image in that folder. For Import Image Bank ZIP, keep exactly one ZIP there; the ZIP must contain image_bank_manifest.json and its referenced image assets. Source files are left in place after import. Tap an image to open a larger preview before selecting it; the preview also shows file/category metadata and a Use image action when selection is allowed. Importing a bank does not require recompiling QuisquisLingo. Missing image files are reported rather than silently ignored.',
+              'Images and Image Bank ZIPs use Documents/QuisquisLingo/Imports/Images without a file picker. Keep exactly one supported image for a single-image import, or exactly one ZIP for Import Image Bank ZIP. A bank needs image_bank_manifest.json containing a JSON list; every entry needs a unique id, primary_term or label, and a safe filename referring to a PNG, JPG/JPEG or WebP in the archive. Limits: 50 MB ZIP, 2 MB manifest, 5000 archive entries, 2500 image entries, 50 KB per image and 50 MB total decompressed image bytes. Missing assets, duplicate/colliding IDs, duplicate filenames, unsafe paths, unsupported extensions and exceeded limits stop import. Image bytes are copied unchanged to local app storage with a local manifest; they are not resized or made transparent. Source ZIPs remain in place. Preview images before selection. Keep the original bank package separately: course JSON contains image paths and does not embed bank images or make local paths portable.',
         ),
         _HelpSection(
           title: 'Lesson theme icons and Preview',
           body:
-              'Each Lesson can select a Preinstalled icon, a Custom Course icon, or None. Import custom icon reads the single image placed in Documents/QuisquisLingo/Imports/Lesson Icons, validates it, preserves its proportions and transparency, contains it on a 256 × 256 PNG canvas, and stores it as a managed Course-owned asset; no external path is retained. Managed icons survive Course export/import and Course duplication, while Lesson duplication in the same Course safely reuses the immutable asset. None uses the Course default: the established monochrome GuideBook mark or a deterministic colored learner-visible Lesson number. Explicit icons always win, and every option uses the same 84 × 84 learner footprint. Round Preview and Preview exercise remain learner-state-free.',
+              'Each Lesson can select a Preinstalled icon, a Custom Course icon, or None. For Import custom icon, keep exactly one PNG, JPG/JPEG or WebP in Documents/QuisquisLingo/Imports/Lesson Icons. Maximum input: 2 MB (2,097,152 bytes); each dimension must be 1–8192 pixels. QQL decodes the first frame and scales it up or down proportionally, centered on a transparent 256 × 256 PNG canvas without cropping or distortion. Existing transparency is preserved; an opaque source background is not removed. Missing/multiple files, empty or unsupported images, exceeded size/dimensions and failed PNG conversion stop import. The source remains in place. The managed Course-owned asset stores embedded PNG data; its reference survives course JSON export/import and Course duplication, with no external source path required. Lesson duplication within the Course reuses the immutable asset. None uses the Course default monochrome GuideBook mark or deterministic colored number; every option uses the established 84 × 84 learner footprint. Preview writes no learner progress.',
         ),
         _HelpSection(
           title: 'Exercise image specifications',
           body:
-              'Recommended resolution: 256 × 256 px. Recommended file size: 15 KB or less. Maximum accepted size: 50 KB per image. PNG, JPG/JPEG and WebP are supported.',
+              'For Import custom image, keep exactly one PNG, JPG/JPEG or WebP in Documents/QuisquisLingo/Imports/Images. Maximum: 50 KB (51,200 bytes). A 256 × 256 resolution and 15 KB or less are recommendations; this importer imposes no pixel-dimension rule and performs no resizing, cropping or transparency conversion. It checks the filename extension, file count and byte size, then copies the bytes unchanged to local app storage. The source stays in place. Missing/multiple sources or an oversized image stops import; Preview reports missing or unreadable images. Course JSON stores the local image path, not the file bytes, so importing that JSON elsewhere does not transfer custom exercise images. Built-in asset paths refer to images supplied with QQL. An Exercise image is optional except for Image-prompt ordering.',
         ),
         _HelpSection(
           title: 'New exercise types',
           body:
-              'Missing Word plays audio while showing its transcript with one or more words removed. Image Word shows an image and asks the learner to build the corresponding target-language word from letter or syllable blocks. Dialogue Response contains a target-language context sentence, a target-language question and exactly two target-language response options; their display order is randomized. Word Match uses exactly three source-to-target translation pairs. Super Match uses exactly three target-language pairs and an explicit relationship such as synonyms or opposites. Audio Match uses three target-language audio items with exactly three matching texts and no distractors; the matching text may be in the target language or a translation. Listening Spelling plays target-language audio, shows the transcript with a missing word and requires keyboard input; Return/Enter submits. Sentence Word Order exercises may use 0, 1 or at most 2 distractors. Image Word letter/syllable composition never uses distractors: include only the blocks required for the answer. Gap Choice shows a target-language sentence with one missing element and asks the learner to choose the single block that is correct in both meaning and grammar. The standard sample round length is 15 exercises.',
+              'Missing Word plays audio while showing its transcript with one or more words removed. Image Word shows an image and asks the learner to build the corresponding target-language word from letter or syllable blocks. Dialogue Response contains a target-language context sentence, a target-language question and exactly two target-language response options; their display order is randomized. Word Match uses exactly three source-to-target translation pairs. Super Match uses exactly three target-language pairs and an explicit relationship such as synonyms or opposites. Audio Match uses three target-language audio items with exactly three matching texts and no distractors; the matching text may be in the target language or a translation. Listening Spelling / Type what you hear plays target-language audio and requires keyboard input; its prompt is displayed as entered and Return/Enter submits. Sentence Word Order exercises may use 0, 1 or at most 2 distractors. Image Word letter/syllable composition never uses distractors: include only the blocks required for the answer. Gap Choice shows a target-language sentence with one missing element and asks the learner to choose the single block that is correct in both meaning and grammar. The standard sample round length is 15 exercises.',
         ),
         _HelpSection(
           title: 'Language Duel',
@@ -124,7 +135,7 @@ class EditorHelpScreen extends StatelessWidget {
         _HelpSection(
           title: 'Listening Spelling',
           body:
-              'Enter the complete sentence in Passage transcript and Audio text. Put the word that QuisquisLingo should hide in Missing word. Do not type dots or underscore characters into the transcript: the learner screen creates the gap automatically.',
+              'Type what you hear uses Audio text for playback and the Missing word field for accepted typed answers, one complete word or passage per line. Passage transcript is displayed as entered; this preset does not automatically remove the accepted word from it. Preview the visible prompt so it does not reveal the answer. For automatically hidden words in a complete transcript, the existing Listen for missing words preset supplies that workflow.',
         ),
         _HelpSection(
           title: 'Lesson Guidebook',
@@ -139,7 +150,7 @@ class EditorHelpScreen extends StatelessWidget {
         _HelpSection(
           title: 'Audit severity and codes',
           body:
-              'Course Audit reports Errors, Warnings and Info. Error blocks publication or import because content is structurally or functionally invalid. Warning marks a likely authoring problem that needs review. Info is guidance or a neutral fact and never blocks publication by itself. Audit can sort by Lesson, friendly Exercise type or Recently modified and can be opened for a whole Course, one Lesson or one Round. Recent order uses updatedAt descending with deterministic ties; findings are numbered progressively inside each severity group after filtering. In the Round list, only a Round with an Audit Error receives the pink outline. Fewer than 3 Rounds and Duel availability below 25 eligible Exercises are Info; missing listening-comprehension coverage is not. Drafts are included for author review without making unrelated currently Published learner content invalid.',
+              'Course Audit reports Errors, Warnings and Info. Error blocks publication or import because content is structurally or functionally invalid. Warning marks a likely authoring problem that needs review. Info is guidance or a neutral fact and never blocks publication by itself. Audit can sort by Lesson, friendly Exercise type or Recently modified and can be opened for a whole Course, one Lesson or one Round. Recent order uses updatedAt descending with deterministic ties; findings are numbered progressively inside each severity group after filtering. Pink identifies a Round with an Audit Error; orange identifies a Round containing at least one Draft Exercise. Both outlines remain visible together, and Lesson/Course Draft Exercise counts follow the working copy. Fewer than 3 Rounds and Duel availability below 25 eligible Exercises are Info. Missing Reading- or Listening-comprehension coverage produces no finding; malformed existing comprehension content still receives validation. Drafts are included for author review without making unrelated Published learner content invalid. Technical reference > Audit Codes searches the shared rule registry and explains every code, severity, scope, meaning, trigger, creator action and blocking status.',
         ),
         _HelpSection(
           title: 'Course Audit',
@@ -183,6 +194,18 @@ class _TechnicalLinks extends StatelessWidget {
             onTap: () => Navigator.of(context).push(
               MaterialPageRoute(builder: (_) => const ExerciseHelpScreen()),
             ),
+          ),
+          ListTile(
+            key: const Key('editor-help-audit-codes'),
+            contentPadding: EdgeInsets.zero,
+            title: const Text('Audit Codes'),
+            subtitle: const Text(
+              'Search rule meanings, triggers and creator actions.',
+            ),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => Navigator.of(
+              context,
+            ).push(MaterialPageRoute(builder: (_) => const AuditCodesScreen())),
           ),
           ListTile(
             contentPadding: EdgeInsets.zero,
