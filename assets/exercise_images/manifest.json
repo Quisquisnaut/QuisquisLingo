@@ -116,18 +116,6 @@
     "assetPath": "assets/exercise_images/tree.webp"
   },
   {
-    "id": "hello",
-    "label": "Hello",
-    "category": "greetings",
-    "tags": [
-      "hello",
-      "hi",
-      "greet",
-      "greeting"
-    ],
-    "assetPath": "assets/exercise_images/hello.webp"
-  },
-  {
     "id": "people_family_man",
     "label": "Man",
     "category": "people_family",

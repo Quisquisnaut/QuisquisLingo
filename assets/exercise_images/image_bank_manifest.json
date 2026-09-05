@@ -128,19 +128,6 @@
     "asset_path": "assets/exercise_images/tree.webp"
   },
   {
-    "id": "hello",
-    "primary_term": "Hello",
-    "keywords": [
-      "hello",
-      "hi",
-      "greet",
-      "greeting"
-    ],
-    "category": "greetings",
-    "filename": "hello.webp",
-    "asset_path": "assets/exercise_images/hello.webp"
-  },
-  {
     "id": "people_family_man",
     "primary_term": "Man",
     "keywords": [
