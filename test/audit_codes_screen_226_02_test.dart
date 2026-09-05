@@ -1,9 +1,119 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:quisquislingo_app/screens/audit_codes_screen.dart';
+import 'package:quisquislingo_app/screens/editor_help_screen.dart';
 import 'package:quisquislingo_app/services/audit_code_registry.dart';
 
 void main() {
+  testWidgets(
+    'categories default visible and render Errors, Warnings, Info order',
+    (tester) async {
+      await tester.pumpWidget(const MaterialApp(home: AuditCodesScreen()));
+      expect(find.text('103 of 103 Audit codes'), findsOneWidget);
+      for (final severity in AuditSeverity.values) {
+        expect(
+          tester
+              .widget<FilterChip>(
+                find.byKey(ValueKey('audit-code-filter-${severity.name}')),
+              )
+              .selected,
+          isTrue,
+        );
+      }
+
+      final list = tester.widget<ListView>(find.byType(ListView));
+      final children =
+          (list.childrenDelegate as SliverChildListDelegate).children;
+      int headingIndex(AuditSeverity severity) => children.indexWhere(
+        (child) => child.key == ValueKey('audit-code-heading-${severity.name}'),
+      );
+      expect(
+        headingIndex(AuditSeverity.error),
+        lessThan(headingIndex(AuditSeverity.warning)),
+      );
+      expect(
+        headingIndex(AuditSeverity.warning),
+        lessThan(headingIndex(AuditSeverity.info)),
+      );
+      expect(
+        find.text(
+          'Errors block actions that require a valid Audit. Warnings and Info provide review guidance.',
+        ),
+        findsNothing,
+      );
+      expect(
+        find.textContaining('GENERAL is reserved for unexpected'),
+        findsNothing,
+      );
+    },
+  );
+
+  testWidgets('Technical Reference Audit Codes link has no subtitle', (
+    tester,
+  ) async {
+    await tester.pumpWidget(const MaterialApp(home: EditorHelpScreen()));
+    await tester.pumpAndSettle();
+
+    final link = find.byKey(const Key('editor-help-audit-codes'));
+    expect(link, findsOneWidget);
+    expect(
+      find.text('Search rule meanings, triggers and creator actions.'),
+      findsNothing,
+    );
+    expect(tester.widget<ListTile>(link).subtitle, isNull);
+  });
+
+  for (final selected in AuditSeverity.values) {
+    testWidgets('${selected.name} can be selected as the only category', (
+      tester,
+    ) async {
+      await tester.pumpWidget(const MaterialApp(home: AuditCodesScreen()));
+      for (final severity in AuditSeverity.values.where(
+        (severity) => severity != selected,
+      )) {
+        await tester.tap(
+          find.byKey(ValueKey('audit-code-filter-${severity.name}')),
+        );
+        await tester.pump();
+      }
+      final expected = AuditCodeRegistry.definitions
+          .where((definition) => definition.severity == selected)
+          .length;
+      expect(find.text('$expected of 103 Audit codes'), findsOneWidget);
+      for (final severity in AuditSeverity.values) {
+        expect(
+          find.byKey(ValueKey('audit-code-heading-${severity.name}')),
+          severity == selected ? findsOneWidget : findsNothing,
+        );
+      }
+    });
+  }
+
+  testWidgets('multiple categories combine and search stays inside them', (
+    tester,
+  ) async {
+    await tester.pumpWidget(const MaterialApp(home: AuditCodesScreen()));
+    await tester.tap(find.byKey(const ValueKey('audit-code-filter-warning')));
+    await tester.pump();
+    final errorsAndInfo = AuditCodeRegistry.definitions
+        .where((definition) => definition.severity != AuditSeverity.warning)
+        .length;
+    expect(find.text('$errorsAndInfo of 103 Audit codes'), findsOneWidget);
+
+    final warning = AuditCodeRegistry.definitions.firstWhere(
+      (definition) => definition.severity == AuditSeverity.warning,
+    );
+    await tester.enterText(find.byType(TextField), warning.code);
+    await tester.pump();
+    expect(find.text('0 of 103 Audit codes'), findsOneWidget);
+    expect(find.byKey(ValueKey('audit-code-${warning.code}')), findsNothing);
+
+    await tester.tap(find.byKey(const ValueKey('audit-code-filter-warning')));
+    await tester.pump();
+    expect(find.text('1 of 103 Audit codes'), findsOneWidget);
+    expect(find.byKey(ValueKey('audit-code-${warning.code}')), findsOneWidget);
+  });
+
   testWidgets('every production code is searchable and fully documented', (
     tester,
   ) async {

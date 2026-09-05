@@ -392,10 +392,8 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('New round'));
     await tester.pumpAndSettle();
-    expect(
-      find.text('Press Enter to keep this Round untitled.'),
-      findsOneWidget,
-    );
+    expect(find.text('Press Enter to keep this Round untitled.'), findsNothing);
+    expect(field('Title or Enter for no title'), findsOneWidget);
     await tester.testTextInput.receiveAction(TextInputAction.done);
     await tester.pumpAndSettle();
     expect(find.byType(AlertDialog), findsNothing);
@@ -405,6 +403,59 @@ void main() {
     expect(returned, hasLength(3));
     expect(returned!.last.title, isEmpty);
     expect(returned!.map((round) => round.id).toSet(), hasLength(3));
+  });
+
+  testWidgets('Rename Round uses the compact untitled label at 320 px', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(320, 700);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    final course = exampleCourse([exampleExercise()]);
+    LearningRound? returned;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Builder(
+          builder: (context) => TextButton(
+            onPressed: () async {
+              returned = await Navigator.of(context).push<LearningRound>(
+                MaterialPageRoute(
+                  builder: (_) => RoundEditorScreen(
+                    course: course,
+                    lesson: course.lessons.first,
+                    round: course.lessons.first.rounds.first,
+                    roundIndex: 0,
+                  ),
+                ),
+              );
+            },
+            child: const Text('Open Round'),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('Open Round'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Rename round'));
+    await tester.pumpAndSettle();
+    expect(find.text('Rename Round'), findsOneWidget);
+    expect(field('Title or Enter for no title'), findsOneWidget);
+    expect(find.text('Press Enter to keep this Round untitled.'), findsNothing);
+    expect(tester.takeException(), isNull);
+
+    await tester.enterText(field('Title or Enter for no title'), '');
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await tester.pumpAndSettle();
+    expect(find.byType(AlertDialog), findsNothing);
+    expect(
+      find.descendant(of: find.byType(AppBar), matching: find.text('Round 1')),
+      findsOneWidget,
+    );
+    await tester.tap(find.byType(BackButton));
+    await tester.pumpAndSettle();
+    expect(returned?.title, isEmpty);
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets('Round breadcrumb uses the same unsaved guard as Back', (

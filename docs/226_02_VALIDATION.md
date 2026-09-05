@@ -1,8 +1,56 @@
 # QQL 226.02 pre-commit validation report
 
-Status: **PASS — 226.02 implementation, final review corrections and required automated validation are complete and approved for a local commit.** Native/manual checks and inherited analyzer findings remain disclosed below.
+Status: **PASS — 226.02 implementation and the 226.02.1 corrective follow-up are complete, with all required automated validation green apart from the unchanged inherited analyzer findings.** Native/manual checks remain disclosed below.
 
-## Contract and immutable baseline
+## 226.02.1 corrective follow-up closure
+
+The corrective follow-up uses local `main` commit `718bbb3856e88d8780c4b52b91d479ac431f71bb` as its immutable parent. Metadata advances within tranche 226.02 to **Version 2.0.26 / Build 226.02.1 / `2.0.26+226021`**. The correction date is 2026-09-06, so the existing thirty-day Alpha policy expires at **2026-10-06 23:59:59 local time**. Course Model v6 and every persistence format remain unchanged.
+
+The follow-up closes these six requested areas:
+
+- **Audit Codes:** the Technical Reference link has no subtitle. The unchanged shared 103-rule registry is displayed in Errors, Warnings, Info order. Three independent filters start selected, support every one/two/three-category combination, and constrain text search without copying definitions into the UI.
+- **Hierarchy indicators:** one candidate-derived status maps Draft Exercises and Error-severity Audit findings through Exercise items, Round items, Lesson Rounds links, Lesson items and the Course Lessons link. Orange and pink coexist. Warning/Info do not produce pink. Fresh derivation from the current candidate and shared Audit result covers saves, publication transitions, creation/deletion/duplication, Move/Copy and child returns without persisted UI flags.
+- **Round and hierarchy presentation:** Rename Round uses exactly `Title or Enter for no title`, removes the former explanatory sentence, preserves empty-title Enter confirmation, and fits at 320 px. Rounds and Lessons use one shared bold hierarchy-link style.
+- **Course page and export:** the Course-specific three-dot menu and its Audio Library, Image Bank, temporary-sample and export branches are removed. Audio Library and Image Bank remain page entries. Export Course JSON is the final entry for a custom course opened through the existing local-course authoring path, including a licensed custom fork; it is absent for bundled/external official sources and custom courses outside that path. The model has no separate export-permission or team-source field, so the correction does not infer one from licence text: imported team-supplied custom JSON is indistinguishable from other local custom JSON. Export reuses `CustomCourseTransferService.exportCourse`, preserves all v6 provenance/authorship/lineage/licence data, includes course media metadata/references, and does not embed MP3 bytes. Verified backup recording-copy behavior is unchanged.
+- **Field Help:** the existing centralized mechanism now gives Prompt and Question distinct meanings and examples and adds concise field-specific examples for line formats, paired values, accepted answers and relative image paths. Audio fields remain spoken text fields rather than invented file-path inputs. All 20 current presets still resolve their mounted fields through the one registry.
+- **Scope:** unsaved Preview, dirty navigation, Move/Copy transaction semantics, official read-only/fork policy, matching-pair input rejection, learner behavior, Audit severities/codes and removal of missing-Reading guidance are unchanged. No Guidebook goal/further-reading/link scaffold and no 226.03 feature was started.
+
+### Corrective verification
+
+Commands were run from the repository root with the installed Flutter SDK and `--no-pub` for analysis/tests:
+
+```text
+flutter test --no-pub --concurrency=1 --reporter compact --timeout 60s test/audit_codes_screen_226_02_test.dart test/authoring_hierarchy_indicators_226_02_test.dart test/course_editor_export_226_02_test.dart test/exercise_workflow_226_02_test.dart test/course_editor_224_test.dart test/exercise_field_help_226_02_test.dart test/exercise_field_help_ui_226_02_test.dart
+flutter test --no-pub --concurrency=1 --reporter compact --timeout 60s test/audit_code_registry_226_02_test.dart test/audit_codes_screen_226_02_test.dart test/authoring_transfer_ui_226_02_test.dart test/course_authoring_transfer_226_02_test.dart test/exercise_field_help_226_02_test.dart test/exercise_field_help_ui_226_02_test.dart test/exercise_workflow_226_02_test.dart test/exercise_creation_wizard_test.dart test/authoring_hierarchy_indicators_226_02_test.dart test/course_editor_export_226_02_test.dart
+flutter analyze --no-pub
+flutter test --no-pub --concurrency=1 --reporter compact --timeout 60s
+python tools/validate_courses.py
+python tools/validate_lesson_icons.py
+python tools/validate_images.py
+dart format <all changed Dart files>
+git diff --check
+```
+
+Exact results:
+
+- Corrective focused set: **104 passed, exit 0, 1m33s**.
+- Established 226.02 focused set plus the two new suites: **163 passed, exit 0, 1m48s**.
+- Analyzer: **exit 1, 72 findings**. Parent `718bbb3` has **72 findings**; current has **72**; **new 0, resolved 0**. No finding is in a file changed by this corrective follow-up. The result is not described as passing.
+- First full-suite attempt: **768 passed / 5 failed, exit 1, 7m18s**. All failures were test/layout assumptions exposed by the new hierarchy wrappers: three direct `ListTile` casts and two eagerly-built Lesson metadata controls. Stable-key assertions and zero-margin hierarchy-link Cards corrected those assumptions without changing the requested behavior.
+- Final complete Flutter suite: **773 passed, exit 0, 7m25s**.
+- Course validator: **9 bundled Course Model v6 files validated, exit 0**.
+- Lesson icon validator: **14 assets, 0 issues, exit 0**.
+- Image validator: **112 assets, 0 issues, exit 0**.
+- Dart formatting: all changed Dart files formatted; final verification reported no formatting change.
+- `git diff --check`: **exit 0, no whitespace errors**.
+
+Automated narrow-width coverage exercises Audit filters, Rename Round, Course/Lesson hierarchy links, Prompt/Question tooltips and existing responsive authoring screens at 320 px. Manual Windows verification remains required for desktop and narrow layouts, simultaneous orange/pink appearance at every hierarchy level, immediate removal after the final descendant is corrected/moved/deleted, tooltip readability, absence of the three-dot Course menu, export visibility for each real course origin, and an actual Course JSON file-export smoke test. Native TTS/MP3 playback was not executed and remains a manual check. No package or release was created.
+
+## Original 226.02 tranche validation (historical)
+
+The sections below preserve the validation record for the original 226.02 tranche as it stood immediately before commit `718bbb3856e88d8780c4b52b91d479ac431f71bb`. Current corrective-follow-up metadata, results and residual manual checks are authoritative in the closure section above.
+
+### Contract and immutable baseline
 
 Only **226.02: Editor workflow, navigation, field help and Audit UX** is implemented, under the complete controlling `qql_226_prompt.txt` and the user's explicit 226.02 instructions. The clean baseline was checked before editing:
 
@@ -13,11 +61,11 @@ git rev-parse origin/main 45cf258d707c89d512f7663d9f2fa317adbe5ef0
 git diff --check         (no output; exit 0)
 ```
 
-No baseline reset, stash, amend or reconstruction occurred. The current HEAD and origin/main remain that parent; the index contains no staged content. No push, package, Windows release build or release was created. **226.03 remains unstarted.**
+No baseline reset, stash, amend or reconstruction occurred during the original tranche. At that pre-commit point, HEAD and origin/main remained that parent and the index contained no staged content. No push, package, Windows release build or release was created. **226.03 remained unstarted.**
 
-Candidate metadata is **Version 2.0.26 / Build 226.02 / `2.0.26+22602`**. Alpha expiry remains **2026-10-05 at 23:59:59 local time**, following the existing thirty-day policy from the same September 5 candidate date. The Alpha implementation's date is unchanged; its comment and test label identify the current tranche.
+The original candidate metadata was **Version 2.0.26 / Build 226.02 / `2.0.26+22602`**. Alpha expiry was **2026-10-05 at 23:59:59 local time**, following the existing thirty-day policy from the same September 5 candidate date. The Alpha implementation's date was unchanged; its comment and test label identified that tranche.
 
-## Final independent-review corrections
+### Final independent-review corrections
 
 All four low-severity findings from the independent read-only review were corrected before commit:
 

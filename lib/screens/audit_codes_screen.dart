@@ -11,6 +11,7 @@ class AuditCodesScreen extends StatefulWidget {
 
 class _AuditCodesScreenState extends State<AuditCodesScreen> {
   final _searchController = TextEditingController();
+  final _selectedSeverities = AuditSeverity.values.toSet();
 
   @override
   void dispose() {
@@ -20,7 +21,25 @@ class _AuditCodesScreenState extends State<AuditCodesScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final definitions = AuditCodeRegistry.search(_searchController.text);
+    final matches = AuditCodeRegistry.search(_searchController.text);
+    final definitions = [
+      for (final severity in AuditSeverity.values)
+        ...matches.where(
+          (definition) =>
+              definition.severity == severity &&
+              _selectedSeverities.contains(severity),
+        ),
+    ];
+    final groups = [
+      for (final severity in AuditSeverity.values)
+        if (_selectedSeverities.contains(severity))
+          (
+            severity: severity,
+            definitions: definitions
+                .where((definition) => definition.severity == severity)
+                .toList(growable: false),
+          ),
+    ];
     return Scaffold(
       appBar: AppBar(title: const Text('Audit Codes')),
       body: SafeArea(
@@ -51,6 +70,28 @@ class _AuditCodesScreenState extends State<AuditCodesScreen> {
                 ),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Wrap(
+                    spacing: 8,
+                    runSpacing: 4,
+                    children: [
+                      for (final severity in AuditSeverity.values)
+                        FilterChip(
+                          key: ValueKey('audit-code-filter-${severity.name}'),
+                          label: Text(_severityHeading(severity)),
+                          selected: _selectedSeverities.contains(severity),
+                          onSelected: (selected) => setState(() {
+                            if (selected) {
+                              _selectedSeverities.add(severity);
+                            } else {
+                              _selectedSeverities.remove(severity);
+                            }
+                          }),
+                        ),
+                    ],
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: Text(
                     '${definitions.length} of '
                     '${AuditCodeRegistry.definitions.length} Audit codes',
@@ -58,54 +99,61 @@ class _AuditCodesScreenState extends State<AuditCodesScreen> {
                   ),
                 ),
                 Expanded(
-                  child: ListView.builder(
+                  child: ListView(
                     padding: const EdgeInsets.all(16),
-                    itemCount: definitions.length + 1,
-                    itemBuilder: (context, index) {
-                      if (index == 0) {
-                        return const Padding(
-                          padding: EdgeInsets.only(bottom: 12),
-                          child: Text(
-                            'Errors block actions that require a valid Audit. '
-                            'Warnings and Info provide review guidance. '
-                            'Draft workflows retain their existing validation rules. '
-                            'GENERAL is reserved for unexpected, unclassified '
-                            'findings; use the severity and message shown with '
-                            'that finding. Known rules below always use specific codes.',
+                    children: [
+                      for (final group in groups)
+                        if (group.definitions.isNotEmpty) ...[
+                          Padding(
+                            key: ValueKey(
+                              'audit-code-heading-${group.severity.name}',
+                            ),
+                            padding: const EdgeInsets.fromLTRB(4, 4, 4, 8),
+                            child: Text(
+                              _severityHeading(group.severity),
+                              style: Theme.of(context).textTheme.titleLarge,
+                            ),
                           ),
-                        );
-                      }
-                      final definition = definitions[index - 1];
-                      return Card(
-                        key: ValueKey('audit-code-${definition.code}'),
-                        margin: const EdgeInsets.only(bottom: 12),
-                        child: Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              SelectableText(
-                                definition.code,
-                                style: Theme.of(context).textTheme.titleMedium,
+                          for (final definition in group.definitions)
+                            Card(
+                              key: ValueKey('audit-code-${definition.code}'),
+                              margin: const EdgeInsets.only(bottom: 12),
+                              child: Padding(
+                                padding: const EdgeInsets.all(16),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    SelectableText(
+                                      definition.code,
+                                      style: Theme.of(
+                                        context,
+                                      ).textTheme.titleMedium,
+                                    ),
+                                    const SizedBox(height: 8),
+                                    _Detail(
+                                      'Severity',
+                                      definition.severityLabel,
+                                    ),
+                                    _Detail('Scope', definition.scope),
+                                    _Detail('Meaning', definition.meaning),
+                                    _Detail(
+                                      'Trigger condition',
+                                      definition.trigger,
+                                    ),
+                                    _Detail(
+                                      'What to check or do',
+                                      definition.creatorAction,
+                                    ),
+                                    _Detail(
+                                      'Blocking',
+                                      definition.blocking ? 'Yes' : 'No',
+                                    ),
+                                  ],
+                                ),
                               ),
-                              const SizedBox(height: 8),
-                              _Detail('Severity', definition.severityLabel),
-                              _Detail('Scope', definition.scope),
-                              _Detail('Meaning', definition.meaning),
-                              _Detail('Trigger condition', definition.trigger),
-                              _Detail(
-                                'What to check or do',
-                                definition.creatorAction,
-                              ),
-                              _Detail(
-                                'Blocking',
-                                definition.blocking ? 'Yes' : 'No',
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
-                    },
+                            ),
+                        ],
+                    ],
                   ),
                 ),
               ],
@@ -115,6 +163,12 @@ class _AuditCodesScreenState extends State<AuditCodesScreen> {
       ),
     );
   }
+
+  String _severityHeading(AuditSeverity severity) => switch (severity) {
+    AuditSeverity.error => 'Errors',
+    AuditSeverity.warning => 'Warnings',
+    AuditSeverity.info => 'Info',
+  };
 }
 
 class _Detail extends StatelessWidget {

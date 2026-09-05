@@ -40,6 +40,102 @@ int _draftExerciseCount(Iterable<LearningRound> rounds) => rounds
 String _draftExerciseCountLabel(int count) =>
     '$count Draft ${count == 1 ? 'Exercise' : 'Exercises'}';
 
+const _hierarchyLinkStyle = TextStyle(fontWeight: FontWeight.w800);
+
+class _AuthoringHierarchyStatus {
+  _AuthoringHierarchyStatus._(this.course, CourseAuditResult audit)
+    : exerciseErrorIds = {
+        for (final issue in audit.issues)
+          if (issue.severity == AuditSeverity.error && issue.exerciseId != null)
+            issue.exerciseId!,
+      },
+      roundErrorIds = {
+        for (final issue in audit.issues)
+          if (issue.severity == AuditSeverity.error && issue.roundId != null)
+            issue.roundId!,
+      },
+      lessonErrorIds = {
+        for (var index = 0; index < course.lessons.length; index++)
+          if (audit.issues.any(
+            (issue) =>
+                issue.severity == AuditSeverity.error &&
+                (issue.location ==
+                        'Lesson ${index + 1} · ${course.lessons[index].title}' ||
+                    issue.location.startsWith(
+                      'Lesson ${index + 1} · ${course.lessons[index].title} ·',
+                    )),
+          ))
+            course.lessons[index].lessonId,
+      };
+
+  factory _AuthoringHierarchyStatus.fromCourse(Course course) =>
+      _AuthoringHierarchyStatus._(
+        course,
+        CourseAuditService().auditCourse(course),
+      );
+
+  final Course course;
+  final Set<String> exerciseErrorIds;
+  final Set<String> roundErrorIds;
+  final Set<String> lessonErrorIds;
+
+  bool get courseHasDraft => course.lessons.any(lessonHasDraft);
+  bool get courseHasError => lessonErrorIds.isNotEmpty;
+  bool lessonHasDraft(Lesson lesson) =>
+      lesson.rounds.any((round) => round.exercises.any(exerciseIsDraft));
+  bool lessonHasError(Lesson lesson) =>
+      lessonErrorIds.contains(lesson.lessonId);
+  bool lessonHasRoundError(Lesson lesson) => lesson.rounds.any(roundHasError);
+  bool roundHasDraft(LearningRound round) =>
+      round.exercises.any(exerciseIsDraft);
+  bool roundHasError(LearningRound round) => roundErrorIds.contains(round.id);
+  bool exerciseIsDraft(Exercise exercise) =>
+      !exercise.publicationState.isPublished;
+  bool exerciseHasError(Exercise exercise) =>
+      exerciseErrorIds.contains(exercise.id);
+}
+
+class _AuthoringStatusCard extends StatelessWidget {
+  const _AuthoringStatusCard({
+    super.key,
+    required this.indicatorKey,
+    required this.hasDraft,
+    required this.hasAuditError,
+    required this.child,
+    this.cardMargin,
+  });
+
+  final Key indicatorKey;
+  final bool hasDraft;
+  final bool hasAuditError;
+  final Widget child;
+  final EdgeInsetsGeometry? cardMargin;
+
+  @override
+  Widget build(BuildContext context) => Tooltip(
+    message:
+        'Orange: ${hasDraft ? 'contains Draft Exercises' : 'no Draft Exercises'}. '
+        'Pink: ${hasAuditError ? 'contains Audit Errors' : 'no Audit Errors'}.',
+    child: Container(
+      key: indicatorKey,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        border: hasDraft ? Border.all(color: Colors.orange, width: 2) : null,
+      ),
+      child: Card(
+        margin: cardMargin,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: hasAuditError
+              ? const BorderSide(color: Colors.pinkAccent, width: 2)
+              : BorderSide.none,
+        ),
+        child: child,
+      ),
+    ),
+  );
+}
+
 bool _sameAuthoringJson(Object a, Object b) => jsonEncode(a) == jsonEncode(b);
 
 String _localCourseDateTime(BuildContext context, String utc) {
@@ -156,6 +252,7 @@ class CourseEditorScreen extends StatelessWidget {
   final bool isNewCourse;
   final CourseEditorService? editorService;
   final CourseService? courseService;
+  final CustomCourseTransferService? transferService;
   final DateTime Function()? clock;
   const CourseEditorScreen({
     super.key,
@@ -164,6 +261,7 @@ class CourseEditorScreen extends StatelessWidget {
     this.isNewCourse = false,
     this.editorService,
     this.courseService,
+    this.transferService,
     this.clock,
   });
   @override
@@ -179,6 +277,7 @@ class CourseEditorScreen extends StatelessWidget {
           userCourse: userCourse,
           isNewCourse: isNewCourse,
           editorService: editorService,
+          transferService: transferService,
           clock: clock,
         );
 }
@@ -189,6 +288,7 @@ class _CustomCourseEditorScreen extends StatefulWidget {
     required this.userCourse,
     required this.isNewCourse,
     this.editorService,
+    this.transferService,
     this.clock,
   });
 
@@ -196,6 +296,7 @@ class _CustomCourseEditorScreen extends StatefulWidget {
   final bool userCourse;
   final bool isNewCourse;
   final CourseEditorService? editorService;
+  final CustomCourseTransferService? transferService;
   final DateTime Function()? clock;
 
   @override
@@ -207,7 +308,8 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
       widget.editorService ?? CourseEditorService();
   final _settings = SettingsService();
   final _recordedAudio = RecordedAudioService();
-  final _transfer = CustomCourseTransferService();
+  late final CustomCourseTransferService _transfer =
+      widget.transferService ?? CustomCourseTransferService();
   late final DateTime Function() _clock = widget.clock ?? DateTime.now;
   late final CourseEditorTransaction _transaction;
   CourseAuditResult? _lastAudit;
@@ -362,12 +464,10 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
     }
   }
 
-  Course _withLessons(List<Lesson> lessons, {bool? temporarySample}) =>
-      Course.fromJson({
-        ..._course.toJson(),
-        'lessons': lessons.map((lesson) => lesson.toJson()).toList(),
-        'temporarySample': temporarySample ?? _course.temporarySample,
-      });
+  Course _withLessons(List<Lesson> lessons) => Course.fromJson({
+    ..._course.toJson(),
+    'lessons': lessons.map((lesson) => lesson.toJson()).toList(),
+  });
 
   Future<void> _editCourseInfo() async {
     const standardRoles = [
@@ -1335,233 +1435,215 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
   }
 
   @override
-  Widget build(BuildContext context) => PopScope(
-    canPop: _routeMayPop || !_dirty,
-    onPopInvokedWithResult: (didPop, _) {
-      if (!didPop) _attemptLeave();
-    },
-    child: Scaffold(
-      appBar: AppBar(
-        toolbarHeight: 68,
-        title: Row(
-          children: [
-            CourseFlagBadge(
-              course: _course,
-              fallbackCode: _code,
-              width: 38,
-              height: 27,
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text('Course Editor'),
-                  Text(
-                    _course.title,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ],
+  Widget build(BuildContext context) {
+    final hierarchyStatus = _AuthoringHierarchyStatus.fromCourse(_course);
+    final canExportCourse =
+        widget.userCourse && _course.originType == CourseOriginType.custom;
+    return PopScope(
+      canPop: _routeMayPop || !_dirty,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) _attemptLeave();
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          toolbarHeight: 68,
+          title: Row(
+            children: [
+              CourseFlagBadge(
+                course: _course,
+                fallbackCode: _code,
+                width: 38,
+                height: 27,
               ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('Course Editor'),
+                    Text(
+                      _course.title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            IconButton(
+              tooltip: 'Course Editor Help',
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const EditorHelpScreen()),
+              ),
+              icon: const Icon(Icons.help_outline),
+            ),
+            IconButton(
+              tooltip: 'Run Course Audit',
+              onPressed: _runAudit,
+              icon: const Icon(Icons.fact_check_outlined),
             ),
           ],
         ),
-        actions: [
-          IconButton(
-            tooltip: 'Course Editor Help',
-            onPressed: () => Navigator.of(
-              context,
-            ).push(MaterialPageRoute(builder: (_) => const EditorHelpScreen())),
-            icon: const Icon(Icons.help_outline),
-          ),
-          IconButton(
-            tooltip: 'Run Course Audit',
-            onPressed: _runAudit,
-            icon: const Icon(Icons.fact_check_outlined),
-          ),
-          PopupMenuButton<String>(
-            onSelected: (v) async {
-              if (v == 'audio') {
-                await _openAudioLibrary();
-              }
-              if (v == 'export_custom') {
-                await _exportCustomCourse();
-              }
-              if (v == 'images') {
-                if (!context.mounted) return;
-                await Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) =>
-                        const FlatImageLibraryScreen(selectMode: false),
-                  ),
-                );
-              }
-              if (v == 'sample' && !_locked) {
-                _updateDraft(
-                  _withLessons(
-                    _course.lessons,
-                    temporarySample: !_course.temporarySample,
-                  ),
-                );
-              }
-            },
-            itemBuilder: (_) => [
-              const PopupMenuItem(value: 'audio', child: Text('Audio Library')),
-              const PopupMenuItem(value: 'images', child: Text('Image Bank')),
-              PopupMenuItem(
-                value: 'sample',
-                enabled: !_locked,
-                child: Text(
-                  _course.temporarySample
-                      ? 'Remove TEMPORARY SAMPLE'
-                      : 'Mark TEMPORARY SAMPLE',
+        body: ListView(
+          padding: const EdgeInsets.only(bottom: 24),
+          children: [
+            _AuthoringStatusCard(
+              indicatorKey: const Key('course-lessons-status-indicator'),
+              hasDraft: hierarchyStatus.courseHasDraft,
+              hasAuditError: hierarchyStatus.courseHasError,
+              cardMargin: EdgeInsets.zero,
+              child: ListTile(
+                key: const Key('course-editor-lessons-navigation'),
+                leading: const Icon(Icons.school_outlined),
+                title: const Text('Lessons', style: _hierarchyLinkStyle),
+                subtitle: Text(
+                  '${_course.lessons.length} Lessons · ${_draftExerciseCountLabel(_draftExerciseCount(_course.lessons.expand((lesson) => lesson.rounds)))}',
+                ),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: _openLessons,
+              ),
+            ),
+            const Divider(height: 1),
+            if (!_course.publicationState.isPublished)
+              const ListTile(
+                leading: Icon(Icons.edit_note_outlined),
+                title: Text('Draft'),
+                subtitle: Text('This Course is not learner-selectable.'),
+              ),
+            if (_course.temporarySample)
+              const ListTile(
+                leading: Icon(Icons.label_outline),
+                title: Text(
+                  'TEMPORARY SAMPLE',
+                  style: TextStyle(fontWeight: FontWeight.w800),
+                ),
+                subtitle: Text(
+                  'Replace sample material with reviewed content before distribution.',
                 ),
               ),
-              if (widget.userCourse)
-                const PopupMenuItem(
-                  value: 'export_custom',
-                  child: Text('Export course JSON'),
+            ListTile(
+              leading: const Icon(Icons.edit_note_outlined),
+              title: const Text('Course info'),
+              subtitle: Text(
+                'Edit course name, authors, license and metadata · ${_course.authors.isEmpty ? (_course.author.trim().isEmpty ? 'Author not specified' : _course.author) : _course.authors.map((a) => '${a.name} (${a.role})').join(', ')}',
+              ),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: _editCourseInfo,
+            ),
+            const Divider(height: 1),
+            ListTile(
+              key: const Key('course-draft-status'),
+              leading: Icon(
+                _course.publicationState.isPublished
+                    ? Icons.visibility_outlined
+                    : Icons.edit_note_outlined,
+              ),
+              title: const Text('Course delivery status'),
+              subtitle: Text(
+                _course.publicationState.isPublished
+                    ? 'Normal content · included in learner delivery after final confirmation'
+                    : 'Draft · hidden from learner delivery',
+              ),
+              trailing: TextButton(
+                onPressed: _toggleCourseDraftStatus,
+                child: Text(
+                  _course.publicationState.isPublished
+                      ? 'Save as draft'
+                      : 'Save',
                 ),
-            ],
-          ),
-        ],
-      ),
-      body: ListView(
-        padding: const EdgeInsets.only(bottom: 24),
-        children: [
-          ListTile(
-            key: const Key('course-editor-lessons-navigation'),
-            leading: const Icon(Icons.school_outlined),
-            title: const Text(
-              'Lessons',
-              style: TextStyle(fontWeight: FontWeight.w800),
+              ),
             ),
-            subtitle: Text(
-              '${_course.lessons.length} Lessons · ${_draftExerciseCountLabel(_draftExerciseCount(_course.lessons.expand((lesson) => lesson.rounds)))}',
+            const Divider(height: 1),
+            ListTile(
+              key: const Key('course-editor-version-history'),
+              leading: const Icon(Icons.history_outlined),
+              title: const Text('Version history'),
+              subtitle: Text(
+                'Course version ${_course.courseVersion.isEmpty ? 'not confirmed' : _course.courseVersion} · ${_course.lastModifiedByUsername.isEmpty ? 'No version author yet' : _course.lastModifiedByUsername}',
+              ),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: _openVersionHistory,
             ),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: _openLessons,
-          ),
-          const Divider(height: 1),
-          if (!_course.publicationState.isPublished)
-            const ListTile(
-              leading: Icon(Icons.edit_note_outlined),
-              title: Text('Draft'),
-              subtitle: Text('This Course is not learner-selectable.'),
-            ),
-          if (_course.temporarySample)
-            const ListTile(
-              leading: Icon(Icons.label_outline),
+            const Divider(height: 1),
+            ListTile(
+              leading: Icon(
+                _auditOutdated ? Icons.update : Icons.fact_check_outlined,
+              ),
               title: Text(
-                'TEMPORARY SAMPLE',
+                _lastAudit == null
+                    ? 'Course Audit not run yet'
+                    : _auditOutdated
+                    ? 'Course Audit outdated'
+                    : 'Audit: ${_lastAudit!.count(AuditSeverity.error)} errors · ${_lastAudit!.count(AuditSeverity.warning)} warnings',
+              ),
+              subtitle: const Text(
+                'Structural and authoring checks. Grammar and translation still require human review.',
+              ),
+              trailing: TextButton(
+                onPressed: _runAudit,
+                child: const Text('Run audit'),
+              ),
+            ),
+            const Divider(height: 1),
+            ListTile(
+              leading: const Icon(Icons.library_music_outlined),
+              title: const Text(
+                'Audio Library',
                 style: TextStyle(fontWeight: FontWeight.w800),
               ),
               subtitle: Text(
-                'Replace sample material with reviewed content before distribution.',
+                _course.audioMode == 'tts'
+                    ? 'System TTS · import MP3 or choose Hybrid'
+                    : '${_course.audioLibrary.length} MP3 mappings · ${_course.audioMode}',
+              ),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: _openAudioLibrary,
+            ),
+            const Divider(height: 1),
+            ListTile(
+              leading: const Icon(Icons.image_outlined),
+              title: const Text(
+                'Image Bank',
+                style: TextStyle(fontWeight: FontWeight.w800),
+              ),
+              subtitle: const Text(
+                'Browse, import and manage reusable exercise images.',
+              ),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) =>
+                      const FlatImageLibraryScreen(selectMode: false),
+                ),
               ),
             ),
-          ListTile(
-            leading: const Icon(Icons.edit_note_outlined),
-            title: const Text('Course info'),
-            subtitle: Text(
-              'Edit course name, authors, license and metadata · ${_course.authors.isEmpty ? (_course.author.trim().isEmpty ? 'Author not specified' : _course.author) : _course.authors.map((a) => '${a.name} (${a.role})').join(', ')}',
-            ),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: _editCourseInfo,
-          ),
-          const Divider(height: 1),
-          ListTile(
-            key: const Key('course-draft-status'),
-            leading: Icon(
-              _course.publicationState.isPublished
-                  ? Icons.visibility_outlined
-                  : Icons.edit_note_outlined,
-            ),
-            title: const Text('Course delivery status'),
-            subtitle: Text(
-              _course.publicationState.isPublished
-                  ? 'Normal content · included in learner delivery after final confirmation'
-                  : 'Draft · hidden from learner delivery',
-            ),
-            trailing: TextButton(
-              onPressed: _toggleCourseDraftStatus,
-              child: Text(
-                _course.publicationState.isPublished ? 'Save as draft' : 'Save',
+            if (canExportCourse) ...[
+              const Divider(height: 1),
+              ListTile(
+                key: const Key('course-editor-export-json'),
+                leading: const Icon(Icons.file_upload_outlined),
+                title: const Text(
+                  'Export Course JSON',
+                  style: _hierarchyLinkStyle,
+                ),
+                subtitle: const Text(
+                  'Export Course metadata and media references. Audio and image bytes are not embedded.',
+                ),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: _exportCustomCourse,
               ),
-            ),
-          ),
-          const Divider(height: 1),
-          ListTile(
-            key: const Key('course-editor-version-history'),
-            leading: const Icon(Icons.history_outlined),
-            title: const Text('Version history'),
-            subtitle: Text(
-              'Course version ${_course.courseVersion.isEmpty ? 'not confirmed' : _course.courseVersion} · ${_course.lastModifiedByUsername.isEmpty ? 'No version author yet' : _course.lastModifiedByUsername}',
-            ),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: _openVersionHistory,
-          ),
-          const Divider(height: 1),
-          ListTile(
-            leading: Icon(
-              _auditOutdated ? Icons.update : Icons.fact_check_outlined,
-            ),
-            title: Text(
-              _lastAudit == null
-                  ? 'Course Audit not run yet'
-                  : _auditOutdated
-                  ? 'Course Audit outdated'
-                  : 'Audit: ${_lastAudit!.count(AuditSeverity.error)} errors · ${_lastAudit!.count(AuditSeverity.warning)} warnings',
-            ),
-            subtitle: const Text(
-              'Structural and authoring checks. Grammar and translation still require human review.',
-            ),
-            trailing: TextButton(
-              onPressed: _runAudit,
-              child: const Text('Run audit'),
-            ),
-          ),
-          const Divider(height: 1),
-          ListTile(
-            leading: const Icon(Icons.library_music_outlined),
-            title: const Text(
-              'Audio Library',
-              style: TextStyle(fontWeight: FontWeight.w800),
-            ),
-            subtitle: Text(
-              _course.audioMode == 'tts'
-                  ? 'System TTS · import MP3 or choose Hybrid'
-                  : '${_course.audioLibrary.length} MP3 mappings · ${_course.audioMode}',
-            ),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: _openAudioLibrary,
-          ),
-          const Divider(height: 1),
-          ListTile(
-            leading: const Icon(Icons.image_outlined),
-            title: const Text(
-              'Image Bank',
-              style: TextStyle(fontWeight: FontWeight.w800),
-            ),
-            subtitle: const Text(
-              'Browse, import and manage reusable exercise images.',
-            ),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (_) => const FlatImageLibraryScreen(selectMode: false),
-              ),
-            ),
-          ),
-        ],
+            ],
+          ],
+        ),
       ),
-    ),
-  );
+    );
+  }
 }
 
 class LessonManagementScreen extends StatefulWidget {
@@ -1844,133 +1926,143 @@ class _LessonManagementScreenState extends State<LessonManagementScreen> {
   }
 
   @override
-  Widget build(BuildContext context) => PopScope(
-    canPop: _routeMayPop,
-    onPopInvokedWithResult: (didPop, result) {
-      if (!didPop) _returnToCourse();
-    },
-    child: Scaffold(
-      appBar: AppBar(
-        title: const Text('Lessons'),
-        leading: BackButton(onPressed: _returnToCourse),
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _locked ? null : _addLesson,
-        icon: const Icon(Icons.add),
-        label: const Text('New lesson'),
-      ),
-      body: Column(
-        children: [
-          EditorBreadcrumbs(course: _course),
-          SwitchListTile(
-            key: const Key('lesson-management-lock'),
-            title: const Text('Lock'),
-            subtitle: const Text(
-              'Prevents accidental course edits. Stored separately for each course.',
+  Widget build(BuildContext context) {
+    final hierarchyStatus = _AuthoringHierarchyStatus.fromCourse(_course);
+    return PopScope(
+      canPop: _routeMayPop,
+      onPopInvokedWithResult: (didPop, result) {
+        if (!didPop) _returnToCourse();
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('Lessons'),
+          leading: BackButton(onPressed: _returnToCourse),
+        ),
+        floatingActionButton: FloatingActionButton.extended(
+          onPressed: _locked ? null : _addLesson,
+          icon: const Icon(Icons.add),
+          label: const Text('New lesson'),
+        ),
+        body: Column(
+          children: [
+            EditorBreadcrumbs(course: _course),
+            SwitchListTile(
+              key: const Key('lesson-management-lock'),
+              title: const Text('Lock'),
+              subtitle: const Text(
+                'Prevents accidental course edits. Stored separately for each course.',
+              ),
+              value: _locked,
+              onChanged: (value) async {
+                await _settings.setCourseEditorLocked(_course.courseId, value);
+                if (mounted) setState(() => _locked = value);
+              },
             ),
-            value: _locked,
-            onChanged: (value) async {
-              await _settings.setCourseEditorLocked(_course.courseId, value);
-              if (mounted) setState(() => _locked = value);
-            },
-          ),
-          const Divider(height: 1),
-          Expanded(
-            child: _course.lessons.isEmpty
-                ? const Center(child: Text('No Lessons yet.'))
-                : ReorderableListView.builder(
-                    key: const Key('lesson-management-list'),
-                    padding: const EdgeInsets.fromLTRB(10, 10, 10, 90),
-                    itemCount: _course.lessons.length,
-                    onReorderItem: _reorder,
-                    itemBuilder: (context, index) {
-                      final lesson = _course.lessons[index];
-                      final section =
-                          lesson.section && lesson.sectionName != null
-                          ? ' · ${lesson.sectionName}'
-                          : '';
-                      return Card(
-                        key: ValueKey(lesson.lessonId),
-                        child: ListTile(
-                          leading: ReorderableDragStartListener(
-                            index: index,
-                            enabled: !_locked,
-                            child: const Icon(Icons.drag_handle),
+            const Divider(height: 1),
+            Expanded(
+              child: _course.lessons.isEmpty
+                  ? const Center(child: Text('No Lessons yet.'))
+                  : ReorderableListView.builder(
+                      key: const Key('lesson-management-list'),
+                      padding: const EdgeInsets.fromLTRB(10, 10, 10, 90),
+                      itemCount: _course.lessons.length,
+                      onReorderItem: _reorder,
+                      itemBuilder: (context, index) {
+                        final lesson = _course.lessons[index];
+                        final section =
+                            lesson.section && lesson.sectionName != null
+                            ? ' · ${lesson.sectionName}'
+                            : '';
+                        return _AuthoringStatusCard(
+                          key: ValueKey(lesson.lessonId),
+                          indicatorKey: ValueKey(
+                            'lesson-status-indicator-${lesson.lessonId}',
                           ),
-                          title: Text('Lesson ${index + 1}: ${lesson.title}'),
-                          subtitle: Text(
-                            '${lesson.publicationState.isPublished ? '' : 'Draft · '}${lesson.rounds.length} Rounds$section · ${_draftExerciseCountLabel(_draftExerciseCount(lesson.rounds))}',
-                          ),
-                          onTap: _locked ? null : () => _openLesson(index),
-                          trailing: PopupMenuButton<String>(
-                            key: ValueKey('lesson-actions-${lesson.lessonId}'),
-                            onSelected: (value) {
-                              if (value == 'edit') _openLesson(index);
-                              if (value == 'rename') _renameLesson(index);
-                              if (value == 'delete') _deleteLesson(index);
-                              if (value == 'duplicate') {
-                                _duplicateLesson(index);
-                              }
-                              if (value == 'preview') _previewLesson(index);
-                              if (value == 'audit') _auditLesson(index);
-                              if (value == 'publication') {
-                                _setLessonPublication(
-                                  index,
-                                  lesson.publicationState.isPublished
-                                      ? PublicationState.draft
-                                      : PublicationState.published,
-                                );
-                              }
-                            },
-                            itemBuilder: (_) => [
-                              PopupMenuItem(
-                                value: 'edit',
-                                enabled: !_locked,
-                                child: const Text('Edit'),
+                          hasDraft: hierarchyStatus.lessonHasDraft(lesson),
+                          hasAuditError: hierarchyStatus.lessonHasError(lesson),
+                          child: ListTile(
+                            leading: ReorderableDragStartListener(
+                              index: index,
+                              enabled: !_locked,
+                              child: const Icon(Icons.drag_handle),
+                            ),
+                            title: Text('Lesson ${index + 1}: ${lesson.title}'),
+                            subtitle: Text(
+                              '${lesson.publicationState.isPublished ? '' : 'Draft · '}${lesson.rounds.length} Rounds$section · ${_draftExerciseCountLabel(_draftExerciseCount(lesson.rounds))}',
+                            ),
+                            onTap: _locked ? null : () => _openLesson(index),
+                            trailing: PopupMenuButton<String>(
+                              key: ValueKey(
+                                'lesson-actions-${lesson.lessonId}',
                               ),
-                              PopupMenuItem(
-                                value: 'rename',
-                                enabled: !_locked,
-                                child: const Text('Rename'),
-                              ),
-                              PopupMenuItem(
-                                value: 'delete',
-                                enabled: !_locked,
-                                child: const Text('Delete'),
-                              ),
-                              PopupMenuItem(
-                                value: 'duplicate',
-                                enabled: !_locked,
-                                child: const Text('Duplicate'),
-                              ),
-                              const PopupMenuItem(
-                                value: 'preview',
-                                child: Text('Preview'),
-                              ),
-                              const PopupMenuItem(
-                                value: 'audit',
-                                child: Text('Audit'),
-                              ),
-                              PopupMenuItem(
-                                value: 'publication',
-                                enabled: !_locked,
-                                child: Text(
-                                  lesson.publicationState.isPublished
-                                      ? 'Save as draft'
-                                      : 'Save',
+                              onSelected: (value) {
+                                if (value == 'edit') _openLesson(index);
+                                if (value == 'rename') _renameLesson(index);
+                                if (value == 'delete') _deleteLesson(index);
+                                if (value == 'duplicate') {
+                                  _duplicateLesson(index);
+                                }
+                                if (value == 'preview') _previewLesson(index);
+                                if (value == 'audit') _auditLesson(index);
+                                if (value == 'publication') {
+                                  _setLessonPublication(
+                                    index,
+                                    lesson.publicationState.isPublished
+                                        ? PublicationState.draft
+                                        : PublicationState.published,
+                                  );
+                                }
+                              },
+                              itemBuilder: (_) => [
+                                PopupMenuItem(
+                                  value: 'edit',
+                                  enabled: !_locked,
+                                  child: const Text('Edit'),
                                 ),
-                              ),
-                            ],
+                                PopupMenuItem(
+                                  value: 'rename',
+                                  enabled: !_locked,
+                                  child: const Text('Rename'),
+                                ),
+                                PopupMenuItem(
+                                  value: 'delete',
+                                  enabled: !_locked,
+                                  child: const Text('Delete'),
+                                ),
+                                PopupMenuItem(
+                                  value: 'duplicate',
+                                  enabled: !_locked,
+                                  child: const Text('Duplicate'),
+                                ),
+                                const PopupMenuItem(
+                                  value: 'preview',
+                                  child: Text('Preview'),
+                                ),
+                                const PopupMenuItem(
+                                  value: 'audit',
+                                  child: Text('Audit'),
+                                ),
+                                PopupMenuItem(
+                                  value: 'publication',
+                                  enabled: !_locked,
+                                  child: Text(
+                                    lesson.publicationState.isPublished
+                                        ? 'Save as draft'
+                                        : 'Save',
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
-                      );
-                    },
-                  ),
-          ),
-        ],
+                        );
+                      },
+                    ),
+            ),
+          ],
+        ),
       ),
-    ),
-  );
+    );
+  }
 }
 
 class LessonAuthoringPreviewScreen extends StatelessWidget {
@@ -2670,170 +2762,183 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
   }
 
   @override
-  Widget build(BuildContext context) => PopScope(
-    canPop: _routeMayPop,
-    onPopInvokedWithResult: (didPop, _) {
-      if (!didPop) _returnToLessons();
-    },
-    child: Scaffold(
-      appBar: AppBar(
-        leading: BackButton(onPressed: _returnToLessons),
-        title: Text(_lesson.title),
-        actions: [
-          IconButton(
-            tooltip: 'Generate Rounds from GuideBook',
-            onPressed: _openGuidebookRoundGenerator,
-            icon: const Icon(Icons.auto_awesome_outlined),
-          ),
-          IconButton(
-            tooltip: 'Rename lesson',
-            onPressed: _rename,
-            icon: const Icon(Icons.edit_outlined),
-          ),
-        ],
-      ),
-      bottomNavigationBar: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
-          child: Wrap(
-            alignment: WrapAlignment.end,
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              EditorBreadcrumbs(
-                course: _courseWithIcons,
-                lessonId: _lesson.lessonId,
-              ),
-              Padding(
-                padding: const EdgeInsets.all(12),
-                child: Text(
-                  _draftExerciseCountLabel(_draftExerciseCount(_lesson.rounds)),
+  Widget build(BuildContext context) {
+    final hierarchyStatus = _AuthoringHierarchyStatus.fromCourse(
+      _courseWithIcons,
+    );
+    return PopScope(
+      canPop: _routeMayPop,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) _returnToLessons();
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          leading: BackButton(onPressed: _returnToLessons),
+          title: Text(_lesson.title),
+          actions: [
+            IconButton(
+              tooltip: 'Generate Rounds from GuideBook',
+              onPressed: _openGuidebookRoundGenerator,
+              icon: const Icon(Icons.auto_awesome_outlined),
+            ),
+            IconButton(
+              tooltip: 'Rename lesson',
+              onPressed: _rename,
+              icon: const Icon(Icons.edit_outlined),
+            ),
+          ],
+        ),
+        bottomNavigationBar: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
+            child: Wrap(
+              alignment: WrapAlignment.end,
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                EditorBreadcrumbs(
+                  course: _courseWithIcons,
+                  lessonId: _lesson.lessonId,
                 ),
-              ),
-              OutlinedButton(
-                key: const Key('save-lesson-draft'),
-                onPressed: () => _saveLesson(PublicationState.draft),
-                child: const Text('Save as draft'),
-              ),
-              FilledButton(
-                key: const Key('save-lesson'),
-                onPressed: () => _saveLesson(PublicationState.published),
-                child: const Text('Save'),
-              ),
-            ],
+                Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Text(
+                    _draftExerciseCountLabel(
+                      _draftExerciseCount(_lesson.rounds),
+                    ),
+                  ),
+                ),
+                OutlinedButton(
+                  key: const Key('save-lesson-draft'),
+                  onPressed: () => _saveLesson(PublicationState.draft),
+                  child: const Text('Save as draft'),
+                ),
+                FilledButton(
+                  key: const Key('save-lesson'),
+                  onPressed: () => _saveLesson(PublicationState.published),
+                  child: const Text('Save'),
+                ),
+              ],
+            ),
           ),
         ),
-      ),
-      body: ListView(
-        key: const Key('lesson-metadata-controls'),
-        padding: const EdgeInsets.only(bottom: 48),
-        children: [
-          ListTile(
-            key: const Key('lesson-rounds-navigation'),
-            leading: const Icon(Icons.view_list_outlined),
-            title: const Text('Rounds'),
-            subtitle: Text('${_lesson.rounds.length} Rounds'),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: _openRounds,
-          ),
-          const Divider(height: 1),
-          if (!_lesson.publicationState.isPublished)
-            const ListTile(
-              leading: Icon(Icons.edit_note_outlined),
-              title: Text('Draft'),
-              subtitle: Text('This Lesson is hidden from learners.'),
-            ),
-          ListTile(
-            key: const Key('lesson-title-control'),
-            leading: const Icon(Icons.title),
-            title: const Text('Lesson title'),
-            subtitle: Text(_lesson.title),
-            trailing: const Icon(Icons.edit_outlined),
-            onTap: _rename,
-          ),
-          ListTile(
-            leading: const Icon(Icons.menu_book_outlined),
-            title: const Text('Lesson Guidebook'),
-            subtitle: const Text(
-              'Learner reference for this Lesson. Its vocabulary and examples can propose progressively harder draft Rounds for review.',
-            ),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: _editGuidebook,
-          ),
-          ListTile(
-            key: const Key('guidebook-round-generator'),
-            leading: const Icon(Icons.auto_awesome_outlined),
-            title: const Text('Generate Rounds from GuideBook'),
-            subtitle: const Text(
-              'Choose Round and Exercise counts, preview the difficulty plan, review every draft, then explicitly approve insertion.',
-            ),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: _openGuidebookRoundGenerator,
-          ),
-          SwitchListTile(
-            key: const Key('lesson-section-toggle'),
-            value: _belongsToSection,
-            title: const Text('Belongs to a Section'),
-            subtitle: const Text(
-              'Section is display metadata only and does not change progression.',
-            ),
-            onChanged: (value) {
-              setState(() {
-                _belongsToSection = value;
-                if (!value) _sectionName.clear();
-              });
-            },
-          ),
-          if (_belongsToSection)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-              child: TextField(
-                key: const Key('lesson-section-name'),
-                controller: _sectionName,
-                decoration: const InputDecoration(
-                  border: OutlineInputBorder(),
-                  labelText: 'Section name',
-                ),
+        body: ListView(
+          key: const Key('lesson-metadata-controls'),
+          padding: const EdgeInsets.only(bottom: 48),
+          children: [
+            _AuthoringStatusCard(
+              indicatorKey: const Key('lesson-rounds-status-indicator'),
+              hasDraft: hierarchyStatus.lessonHasDraft(_lesson),
+              hasAuditError: hierarchyStatus.lessonHasRoundError(_lesson),
+              cardMargin: EdgeInsets.zero,
+              child: ListTile(
+                key: const Key('lesson-rounds-navigation'),
+                leading: const Icon(Icons.view_list_outlined),
+                title: const Text('Rounds', style: _hierarchyLinkStyle),
+                subtitle: Text('${_lesson.rounds.length} Rounds'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: _openRounds,
               ),
             ),
-          ListTile(
-            key: const Key('lesson-theme-icon-field'),
-            leading: SizedBox(
-              width: 56,
-              height: 56,
-              child: _themeIconAsset == null
-                  ? const Icon(Icons.menu_book_outlined, size: 38)
-                  : _managedIcon(_themeIconAsset) != null
-                  ? Image.memory(
-                      base64Decode(_managedIcon(_themeIconAsset)!.base64Png),
-                      key: const Key('lesson-theme-icon-preview'),
-                      fit: BoxFit.contain,
-                    )
-                  : Image.asset(
-                      _themeIconAsset!,
-                      key: const Key('lesson-theme-icon-preview'),
-                      fit: BoxFit.contain,
-                    ),
+            const Divider(height: 1),
+            if (!_lesson.publicationState.isPublished)
+              const ListTile(
+                leading: Icon(Icons.edit_note_outlined),
+                title: Text('Draft'),
+                subtitle: Text('This Lesson is hidden from learners.'),
+              ),
+            ListTile(
+              key: const Key('lesson-title-control'),
+              leading: const Icon(Icons.title),
+              title: const Text('Lesson title'),
+              subtitle: Text(_lesson.title),
+              trailing: const Icon(Icons.edit_outlined),
+              onTap: _rename,
             ),
-            title: const Text('Lesson theme icon'),
-            subtitle: Text(
-              _themeIconAsset == null
-                  ? 'None'
-                  : _managedIcon(_themeIconAsset) != null
-                  ? 'Custom Course icon'
-                  : LessonIconCatalog.options
-                        .singleWhere(
-                          (option) => option.assetPath == _themeIconAsset,
-                        )
-                        .label,
+            ListTile(
+              leading: const Icon(Icons.menu_book_outlined),
+              title: const Text('Lesson Guidebook'),
+              subtitle: const Text(
+                'Learner reference for this Lesson. Its vocabulary and examples can propose progressively harder draft Rounds for review.',
+              ),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: _editGuidebook,
             ),
-            trailing: const Icon(Icons.grid_view_outlined),
-            onTap: _chooseThemeIcon,
-          ),
-        ],
+            ListTile(
+              key: const Key('guidebook-round-generator'),
+              leading: const Icon(Icons.auto_awesome_outlined),
+              title: const Text('Generate Rounds from GuideBook'),
+              subtitle: const Text(
+                'Choose Round and Exercise counts, preview the difficulty plan, review every draft, then explicitly approve insertion.',
+              ),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: _openGuidebookRoundGenerator,
+            ),
+            SwitchListTile(
+              key: const Key('lesson-section-toggle'),
+              value: _belongsToSection,
+              title: const Text('Belongs to a Section'),
+              subtitle: const Text(
+                'Section is display metadata only and does not change progression.',
+              ),
+              onChanged: (value) {
+                setState(() {
+                  _belongsToSection = value;
+                  if (!value) _sectionName.clear();
+                });
+              },
+            ),
+            if (_belongsToSection)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                child: TextField(
+                  key: const Key('lesson-section-name'),
+                  controller: _sectionName,
+                  decoration: const InputDecoration(
+                    border: OutlineInputBorder(),
+                    labelText: 'Section name',
+                  ),
+                ),
+              ),
+            ListTile(
+              key: const Key('lesson-theme-icon-field'),
+              leading: SizedBox(
+                width: 56,
+                height: 56,
+                child: _themeIconAsset == null
+                    ? const Icon(Icons.menu_book_outlined, size: 38)
+                    : _managedIcon(_themeIconAsset) != null
+                    ? Image.memory(
+                        base64Decode(_managedIcon(_themeIconAsset)!.base64Png),
+                        key: const Key('lesson-theme-icon-preview'),
+                        fit: BoxFit.contain,
+                      )
+                    : Image.asset(
+                        _themeIconAsset!,
+                        key: const Key('lesson-theme-icon-preview'),
+                        fit: BoxFit.contain,
+                      ),
+              ),
+              title: const Text('Lesson theme icon'),
+              subtitle: Text(
+                _themeIconAsset == null
+                    ? 'None'
+                    : _managedIcon(_themeIconAsset) != null
+                    ? 'Custom Course icon'
+                    : LessonIconCatalog.options
+                          .singleWhere(
+                            (option) => option.assetPath == _themeIconAsset,
+                          )
+                          .label,
+              ),
+              trailing: const Icon(Icons.grid_view_outlined),
+              onTap: _chooseThemeIcon,
+            ),
+          ],
+        ),
       ),
-    ),
-  );
+    );
+  }
 }
 
 enum _GuidebookGeneratorStage { configure, plan, drafts }
@@ -3274,7 +3379,6 @@ class _LessonRoundsScreenState extends State<LessonRoundsScreen> {
   late Course _course;
   final _ids = TimestampAuthoringIdGenerator();
   late List<LearningRound> _rounds;
-  Set<String> _roundErrorIds = const {};
   bool _routeMayPop = false;
   late final DateTime Function() _clock = widget.clock ?? DateTime.now;
 
@@ -3283,7 +3387,6 @@ class _LessonRoundsScreenState extends State<LessonRoundsScreen> {
     super.initState();
     _course = widget.course;
     _rounds = [...widget.lesson.rounds];
-    _refreshAuditCache();
   }
 
   Course get _auditableCourse {
@@ -3306,7 +3409,6 @@ class _LessonRoundsScreenState extends State<LessonRoundsScreen> {
             .firstWhere((l) => l.lessonId == widget.lesson.lessonId)
             .rounds,
       ];
-      _refreshAuditCache();
     });
     widget.onCourseChanged?.call(course);
   }
@@ -3346,21 +3448,8 @@ class _LessonRoundsScreenState extends State<LessonRoundsScreen> {
     }
   }
 
-  void _refreshAuditCache() {
-    final course = _auditableCourse;
-    _roundErrorIds = {
-      for (final round in _rounds)
-        if (CourseAuditService()
-            .auditRound(course, round.id)
-            .issues
-            .any((issue) => issue.severity == AuditSeverity.error))
-          round.id,
-    };
-  }
-
   void _updateRounds(List<LearningRound> rounds) => setState(() {
     _rounds = rounds;
-    _refreshAuditCache();
   });
 
   LearningRound _blankRound(String title) {
@@ -3445,10 +3534,7 @@ class _LessonRoundsScreenState extends State<LessonRoundsScreen> {
           onFieldSubmitted: (value) => Navigator.pop(context, value.trim()),
           decoration: InputDecoration(
             border: const OutlineInputBorder(),
-            labelText: 'Title',
-            helperText: allowEmpty
-                ? 'Press Enter to keep this Round untitled.'
-                : null,
+            labelText: allowEmpty ? 'Title or Enter for no title' : 'Title',
           ),
         ),
         actions: [
@@ -3510,7 +3596,7 @@ class _LessonRoundsScreenState extends State<LessonRoundsScreen> {
   Future<void> _renameRound(int index) async {
     final source = _rounds[index];
     final title = await _name(
-      'Rename round',
+      'Rename Round',
       initial: source.title,
       allowEmpty: true,
     );
@@ -3672,132 +3758,116 @@ class _LessonRoundsScreenState extends State<LessonRoundsScreen> {
   }
 
   @override
-  Widget build(BuildContext context) => PopScope<List<LearningRound>>(
-    canPop: _routeMayPop,
-    onPopInvokedWithResult: (didPop, _) {
-      if (!didPop) _returnToLesson();
-    },
-    child: Scaffold(
-      appBar: AppBar(title: Text('Rounds · ${widget.lesson.title}')),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _add,
-        icon: const Icon(Icons.add),
-        label: const Text('New round'),
-      ),
-      body: ReorderableListView.builder(
-        key: const Key('lesson-rounds-list'),
-        header: Column(
-          children: [
-            EditorBreadcrumbs(
-              course: _auditableCourse,
-              lessonId: widget.lesson.lessonId,
-            ),
-            Text(
-              '${_draftExerciseCountLabel(_draftExerciseCount(_rounds))} · Orange: Draft Exercises · Pink: Audit Errors',
-            ),
-          ],
+  Widget build(BuildContext context) {
+    final hierarchyStatus = _AuthoringHierarchyStatus.fromCourse(
+      _auditableCourse,
+    );
+    return PopScope<List<LearningRound>>(
+      canPop: _routeMayPop,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) _returnToLesson();
+      },
+      child: Scaffold(
+        appBar: AppBar(title: Text('Rounds · ${widget.lesson.title}')),
+        floatingActionButton: FloatingActionButton.extended(
+          onPressed: _add,
+          icon: const Icon(Icons.add),
+          label: const Text('New round'),
         ),
-        padding: const EdgeInsets.fromLTRB(10, 10, 10, 90),
-        itemCount: _rounds.length,
-        onReorderItem: _reorder,
-        itemBuilder: (context, index) {
-          final round = _rounds[index];
-          final drafts = _draftExerciseCount([round]);
-          return Tooltip(
-            key: ValueKey(round.id),
-            message: 'Orange: Draft Exercises ($drafts). Pink: Audit Errors.',
-            child: Container(
-              key: ValueKey('round-draft-indicator-${round.id}'),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(16),
-                border: drafts > 0
-                    ? Border.all(color: Colors.orange, width: 2)
-                    : null,
+        body: ReorderableListView.builder(
+          key: const Key('lesson-rounds-list'),
+          header: Column(
+            children: [
+              EditorBreadcrumbs(
+                course: _auditableCourse,
+                lessonId: widget.lesson.lessonId,
               ),
-              child: Card(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  side: _roundErrorIds.contains(round.id)
-                      ? const BorderSide(color: Colors.pinkAccent, width: 2)
-                      : BorderSide.none,
+              Text(
+                '${_draftExerciseCountLabel(_draftExerciseCount(_rounds))} · Orange: Draft Exercises · Pink: Audit Errors',
+              ),
+            ],
+          ),
+          padding: const EdgeInsets.fromLTRB(10, 10, 10, 90),
+          itemCount: _rounds.length,
+          onReorderItem: _reorder,
+          itemBuilder: (context, index) {
+            final round = _rounds[index];
+            final drafts = _draftExerciseCount([round]);
+            return _AuthoringStatusCard(
+              key: ValueKey(round.id),
+              indicatorKey: ValueKey('round-draft-indicator-${round.id}'),
+              hasDraft: hierarchyStatus.roundHasDraft(round),
+              hasAuditError: hierarchyStatus.roundHasError(round),
+              child: ListTile(
+                leading: ReorderableDragStartListener(
+                  index: index,
+                  child: const Icon(Icons.drag_handle),
                 ),
-                child: ListTile(
-                  leading: ReorderableDragStartListener(
-                    index: index,
-                    child: const Icon(Icons.drag_handle),
-                  ),
-                  title: Text(round.displayTitle(index)),
-                  subtitle: Text(
-                    '${round.publicationState.isPublished ? '' : 'Draft · '}${round.exercises.length} exercises · ${_draftExerciseCountLabel(drafts)}',
-                  ),
-                  onTap: () => _open(index),
-                  trailing: PopupMenuButton<String>(
-                    key: ValueKey('round-actions-${round.id}'),
-                    onSelected: (value) {
-                      if (value == 'edit') _open(index);
-                      if (value == 'rename') _renameRound(index);
-                      if (value == 'delete') _remove(index);
-                      if (value == 'duplicate') _duplicateRound(index);
-                      if (value == 'move_to') {
-                        _transferRound(index, copy: false);
-                      }
-                      if (value == 'copy_to') _transferRound(index, copy: true);
-                      if (value == 'preview') _previewRound(index);
-                      if (value == 'audit') _auditRound(index);
-                      if (value == 'publication') {
-                        _setRoundPublication(
-                          index,
-                          round.publicationState.isPublished
-                              ? PublicationState.draft
-                              : PublicationState.published,
-                        );
-                      }
-                    },
-                    itemBuilder: (_) => [
-                      const PopupMenuItem(value: 'edit', child: Text('Edit')),
-                      const PopupMenuItem(
-                        value: 'rename',
-                        child: Text('Rename'),
+                title: Text(round.displayTitle(index)),
+                subtitle: Text(
+                  '${round.publicationState.isPublished ? '' : 'Draft · '}${round.exercises.length} exercises · ${_draftExerciseCountLabel(drafts)}',
+                ),
+                onTap: () => _open(index),
+                trailing: PopupMenuButton<String>(
+                  key: ValueKey('round-actions-${round.id}'),
+                  onSelected: (value) {
+                    if (value == 'edit') _open(index);
+                    if (value == 'rename') _renameRound(index);
+                    if (value == 'delete') _remove(index);
+                    if (value == 'duplicate') _duplicateRound(index);
+                    if (value == 'move_to') {
+                      _transferRound(index, copy: false);
+                    }
+                    if (value == 'copy_to') _transferRound(index, copy: true);
+                    if (value == 'preview') _previewRound(index);
+                    if (value == 'audit') _auditRound(index);
+                    if (value == 'publication') {
+                      _setRoundPublication(
+                        index,
+                        round.publicationState.isPublished
+                            ? PublicationState.draft
+                            : PublicationState.published,
+                      );
+                    }
+                  },
+                  itemBuilder: (_) => [
+                    const PopupMenuItem(value: 'edit', child: Text('Edit')),
+                    const PopupMenuItem(value: 'rename', child: Text('Rename')),
+                    const PopupMenuItem(value: 'delete', child: Text('Delete')),
+                    const PopupMenuItem(
+                      value: 'duplicate',
+                      child: Text('Duplicate'),
+                    ),
+                    const PopupMenuItem(
+                      value: 'move_to',
+                      child: Text('Move to…'),
+                    ),
+                    const PopupMenuItem(
+                      value: 'copy_to',
+                      child: Text('Copy to…'),
+                    ),
+                    const PopupMenuItem(
+                      value: 'preview',
+                      child: Text('Preview'),
+                    ),
+                    const PopupMenuItem(value: 'audit', child: Text('Audit')),
+                    PopupMenuItem(
+                      value: 'publication',
+                      child: Text(
+                        round.publicationState.isPublished
+                            ? 'Save as draft'
+                            : 'Save',
                       ),
-                      const PopupMenuItem(
-                        value: 'delete',
-                        child: Text('Delete'),
-                      ),
-                      const PopupMenuItem(
-                        value: 'duplicate',
-                        child: Text('Duplicate'),
-                      ),
-                      const PopupMenuItem(
-                        value: 'move_to',
-                        child: Text('Move to…'),
-                      ),
-                      const PopupMenuItem(
-                        value: 'copy_to',
-                        child: Text('Copy to…'),
-                      ),
-                      const PopupMenuItem(
-                        value: 'preview',
-                        child: Text('Preview'),
-                      ),
-                      const PopupMenuItem(value: 'audit', child: Text('Audit')),
-                      PopupMenuItem(
-                        value: 'publication',
-                        child: Text(
-                          round.publicationState.isPublished
-                              ? 'Save as draft'
-                              : 'Save',
-                        ),
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
-            ),
-          );
-        },
+            );
+          },
+        ),
       ),
-    ),
-  );
+    );
+  }
 }
 
 class RoundEditorScreen extends StatefulWidget {
@@ -4207,14 +4277,13 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
     final n = await showDialog<String>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Rename round'),
+        title: const Text('Rename Round'),
         content: TextField(
           controller: c,
           onSubmitted: (value) => Navigator.pop(ctx, value.trim()),
           decoration: const InputDecoration(
             border: OutlineInputBorder(),
-            labelText: 'Title',
-            helperText: 'Press Enter to keep this Round untitled.',
+            labelText: 'Title or Enter for no title',
           ),
         ),
         actions: [
@@ -4652,150 +4721,162 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
   }
 
   @override
-  Widget build(BuildContext context) => PopScope(
-    canPop: _routeMayPop,
-    onPopInvokedWithResult: (didPop, _) {
-      if (!didPop) _returnToRounds();
-    },
-    child: Scaffold(
-      appBar: AppBar(
-        leading: BackButton(onPressed: _returnToRounds),
-        title: Text(_title.isEmpty ? 'Round ${widget.roundIndex + 1}' : _title),
-        actions: [
-          IconButton(
-            tooltip: 'Preview round',
-            onPressed: _exercises.isEmpty ? null : _previewRound,
-            icon: const Icon(Icons.play_circle_outline),
+  Widget build(BuildContext context) {
+    final hierarchyStatus = _AuthoringHierarchyStatus.fromCourse(
+      _workingCourse,
+    );
+    return PopScope(
+      canPop: _routeMayPop,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) _returnToRounds();
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          leading: BackButton(onPressed: _returnToRounds),
+          title: Text(
+            _title.isEmpty ? 'Round ${widget.roundIndex + 1}' : _title,
           ),
-          IconButton(
-            tooltip: 'Rename round',
-            onPressed: _rename,
-            icon: const Icon(Icons.edit_outlined),
-          ),
-        ],
-      ),
-      bottomNavigationBar: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
-          child: Wrap(
-            alignment: WrapAlignment.end,
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              OutlinedButton(
-                key: const Key('round-save-draft'),
-                onPressed: () => _saveRound(PublicationState.draft),
-                child: const Text('Save as draft'),
-              ),
-              FilledButton(
-                key: const Key('round-save'),
-                onPressed: () => _saveRound(PublicationState.published),
-                child: const Text('Save'),
-              ),
-              OutlinedButton.icon(
-                key: const Key('new-exercise'),
-                onPressed: _insert,
-                icon: const Icon(Icons.add),
-                label: const Text('New exercise'),
-              ),
-              FilledButton.icon(
-                key: const Key('exercise-creation-wizard'),
-                onPressed: _openCreationWizard,
-                icon: const Icon(Icons.auto_awesome_outlined),
-                label: const Text('Creation Wizard'),
-              ),
-            ],
-          ),
-        ),
-      ),
-      body: ReorderableListView.builder(
-        header: EditorBreadcrumbs(
-          course: _workingCourse,
-          lessonId: _lesson.lessonId,
-          roundId: widget.round.id,
-          onParent: widget.linkParent ? _returnToRounds : null,
-        ),
-        padding: const EdgeInsets.fromLTRB(10, 10, 10, 20),
-        itemCount: _exercises.length,
-        onReorderItem: _reorder,
-        itemBuilder: (context, i) {
-          final e = _exercises[i];
-          return Card(
-            key: ValueKey(e.id),
-            child: ListTile(
-              leading: ReorderableDragStartListener(
-                index: i,
-                child: CircleAvatar(child: Text('${i + 1}')),
-              ),
-              title: Text(_ExerciseEditorScreenState.labelForType(e.type)),
-              subtitle: Text(
-                '${e.publicationState.isPublished ? '' : 'Draft · '}${_summary(e)}',
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-              onTap: () => _edit(i),
-              trailing: PopupMenuButton<String>(
-                key: ValueKey('exercise-actions-${e.id}'),
-                onSelected: (v) {
-                  if (v == 'edit') _edit(i);
-                  if (v == 'duplicate') _duplicateExercise(i);
-                  if (v == 'delete') _delete(i);
-                  if (v == 'generate') _generateFromReading(i);
-                  if (v == 'preview') _previewExercise(i);
-                  if (v == 'copy') _transferExercise(i, copy: true);
-                  if (v == 'move') _transferExercise(i, copy: false);
-                  if (v == 'publication') {
-                    _setExercisePublication(
-                      i,
-                      e.publicationState.isPublished
-                          ? PublicationState.draft
-                          : PublicationState.published,
-                    );
-                  }
-                },
-                itemBuilder: (_) => [
-                  const PopupMenuItem(value: 'edit', child: Text('Edit')),
-                  const PopupMenuItem(
-                    value: 'duplicate',
-                    child: Text('Duplicate'),
-                  ),
-                  const PopupMenuItem(
-                    value: 'preview',
-                    child: Text('Preview exercise'),
-                  ),
-                  PopupMenuItem(
-                    value: 'copy',
-                    enabled: _canTransfer,
-                    child: const Text('Copy to…'),
-                  ),
-                  PopupMenuItem(
-                    value: 'move',
-                    enabled: _canTransfer,
-                    child: const Text('Move to…'),
-                  ),
-                  PopupMenuItem(
-                    value: 'publication',
-                    child: Text(
-                      e.publicationState.isPublished ? 'Save as draft' : 'Save',
-                    ),
-                  ),
-                  if (e.type == 'reading_comprehension')
-                    const PopupMenuItem(
-                      value: 'generate',
-                      child: Text('Generate exercise set'),
-                    ),
-                  const PopupMenuItem(
-                    value: 'delete',
-                    child: Text('Delete exercise'),
-                  ),
-                ],
-              ),
+          actions: [
+            IconButton(
+              tooltip: 'Preview round',
+              onPressed: _exercises.isEmpty ? null : _previewRound,
+              icon: const Icon(Icons.play_circle_outline),
             ),
-          );
-        },
+            IconButton(
+              tooltip: 'Rename round',
+              onPressed: _rename,
+              icon: const Icon(Icons.edit_outlined),
+            ),
+          ],
+        ),
+        bottomNavigationBar: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
+            child: Wrap(
+              alignment: WrapAlignment.end,
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                OutlinedButton(
+                  key: const Key('round-save-draft'),
+                  onPressed: () => _saveRound(PublicationState.draft),
+                  child: const Text('Save as draft'),
+                ),
+                FilledButton(
+                  key: const Key('round-save'),
+                  onPressed: () => _saveRound(PublicationState.published),
+                  child: const Text('Save'),
+                ),
+                OutlinedButton.icon(
+                  key: const Key('new-exercise'),
+                  onPressed: _insert,
+                  icon: const Icon(Icons.add),
+                  label: const Text('New exercise'),
+                ),
+                FilledButton.icon(
+                  key: const Key('exercise-creation-wizard'),
+                  onPressed: _openCreationWizard,
+                  icon: const Icon(Icons.auto_awesome_outlined),
+                  label: const Text('Creation Wizard'),
+                ),
+              ],
+            ),
+          ),
+        ),
+        body: ReorderableListView.builder(
+          header: EditorBreadcrumbs(
+            course: _workingCourse,
+            lessonId: _lesson.lessonId,
+            roundId: widget.round.id,
+            onParent: widget.linkParent ? _returnToRounds : null,
+          ),
+          padding: const EdgeInsets.fromLTRB(10, 10, 10, 20),
+          itemCount: _exercises.length,
+          onReorderItem: _reorder,
+          itemBuilder: (context, i) {
+            final e = _exercises[i];
+            return _AuthoringStatusCard(
+              key: ValueKey(e.id),
+              indicatorKey: ValueKey('exercise-status-indicator-${e.id}'),
+              hasDraft: hierarchyStatus.exerciseIsDraft(e),
+              hasAuditError: hierarchyStatus.exerciseHasError(e),
+              child: ListTile(
+                leading: ReorderableDragStartListener(
+                  index: i,
+                  child: CircleAvatar(child: Text('${i + 1}')),
+                ),
+                title: Text(_ExerciseEditorScreenState.labelForType(e.type)),
+                subtitle: Text(
+                  '${e.publicationState.isPublished ? '' : 'Draft · '}${_summary(e)}',
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                onTap: () => _edit(i),
+                trailing: PopupMenuButton<String>(
+                  key: ValueKey('exercise-actions-${e.id}'),
+                  onSelected: (v) {
+                    if (v == 'edit') _edit(i);
+                    if (v == 'duplicate') _duplicateExercise(i);
+                    if (v == 'delete') _delete(i);
+                    if (v == 'generate') _generateFromReading(i);
+                    if (v == 'preview') _previewExercise(i);
+                    if (v == 'copy') _transferExercise(i, copy: true);
+                    if (v == 'move') _transferExercise(i, copy: false);
+                    if (v == 'publication') {
+                      _setExercisePublication(
+                        i,
+                        e.publicationState.isPublished
+                            ? PublicationState.draft
+                            : PublicationState.published,
+                      );
+                    }
+                  },
+                  itemBuilder: (_) => [
+                    const PopupMenuItem(value: 'edit', child: Text('Edit')),
+                    const PopupMenuItem(
+                      value: 'duplicate',
+                      child: Text('Duplicate'),
+                    ),
+                    const PopupMenuItem(
+                      value: 'preview',
+                      child: Text('Preview exercise'),
+                    ),
+                    PopupMenuItem(
+                      value: 'copy',
+                      enabled: _canTransfer,
+                      child: const Text('Copy to…'),
+                    ),
+                    PopupMenuItem(
+                      value: 'move',
+                      enabled: _canTransfer,
+                      child: const Text('Move to…'),
+                    ),
+                    PopupMenuItem(
+                      value: 'publication',
+                      child: Text(
+                        e.publicationState.isPublished
+                            ? 'Save as draft'
+                            : 'Save',
+                      ),
+                    ),
+                    if (e.type == 'reading_comprehension')
+                      const PopupMenuItem(
+                        value: 'generate',
+                        child: Text('Generate exercise set'),
+                      ),
+                    const PopupMenuItem(
+                      value: 'delete',
+                      child: Text('Delete exercise'),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        ),
       ),
-    ),
-  );
+    );
+  }
 }
 
 Exercise _blankExerciseForPreset(String presetId, AuthoringIdGenerator ids) =>

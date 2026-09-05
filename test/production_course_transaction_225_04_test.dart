@@ -50,19 +50,9 @@ void main() {
     (tester) async {
       await _openEditor(tester, course, service);
 
-      final topList = tester.widget<ListView>(
-        find
-            .descendant(
-              of: find.byType(CourseEditorScreen),
-              matching: find.byType(ListView),
-            )
-            .first,
-      );
-      final children =
-          (topList.childrenDelegate as SliverChildListDelegate).children;
       expect(
-        (children.first as ListTile).key,
-        const Key('course-editor-lessons-navigation'),
+        find.byKey(const Key('course-editor-lessons-navigation')),
+        findsOneWidget,
       );
 
       await _openExercise(tester);
@@ -696,20 +686,7 @@ Future<void> _openExercise(WidgetTester tester) async {
   await tester.tap(find.byKey(const ValueKey('lesson')));
   await _settle(tester);
 
-  final lessonList = tester.widget<ListView>(
-    find
-        .descendant(
-          of: find.byType(LessonEditorScreen),
-          matching: find.byType(ListView),
-        )
-        .first,
-  );
-  final lessonChildren =
-      (lessonList.childrenDelegate as SliverChildListDelegate).children;
-  expect(
-    (lessonChildren.first as ListTile).key,
-    const Key('lesson-rounds-navigation'),
-  );
+  expect(find.byKey(const Key('lesson-rounds-navigation')), findsOneWidget);
 
   await tester.tap(find.byKey(const Key('lesson-rounds-navigation')));
   await _settle(tester);

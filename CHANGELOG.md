@@ -1,3 +1,12 @@
+# 2.0.26 (Build 226.02.1) - Editor hierarchy and Audit reference correction - 2026-09-06
+
+- Advanced correction metadata to `2.0.26+226021` / Version 2.0.26 / Build 226.02.1. The 30-day Alpha expiry is `2026-10-06 23:59:59`, thirty days from the correction date.
+- Grouped the shared 103-rule Audit Codes reference by Error, Warning and Info, with independently selectable category filters that constrain text search and no redundant explanatory subtitle.
+- Propagated live Draft and Error-only Audit indicators from Exercises through Rounds, Lessons and the hierarchy links while keeping simultaneous orange and pink states distinct.
+- Replaced Rename Round helper copy with the compact `Title or Enter for no title` label, matched Rounds-link typography to Lessons, and expanded concise field-specific Help examples.
+- Removed the specific Course page overflow menu. Eligible local custom courses, including licensed custom forks, now expose the established Export Course JSON action as the final page entry; official sources and custom courses outside the local authoring path do not. Export preserves v6 provenance metadata and existing media-reference behavior.
+- Preserved Course Model v6, persistence formats, official read-only/fork behavior, learner behavior and all 226.02 Preview/navigation/Move/Copy transaction guarantees. No Guidebook or 226.03 feature is included.
+
 # 2.0.26 (Build 226.02) - Editor workflow, field help and Audit UX - 2026-09-05
 
 - Advanced tranche metadata to `2.0.26+22602` / Version 2.0.26 / Build 226.02. Alpha expiry remains `2026-10-05 23:59:59`, thirty days from the same September 5 candidate date.

@@ -55,7 +55,7 @@ class EditorHelpScreen extends StatelessWidget {
         _HelpSection(
           title: 'Course info and license',
           body:
-              'Course info stores human author credit, the content license and optional Buy a Coffee HTTPS link separately from the MPL-2.0 license of the QuisquisLingo software. It also selects the learner Lesson prefix—Lesson, Unit, Topic, Module, Skill, Chapter, Stage, Step, Part, a custom label, number only or none—and the default Lesson icon style. Choose a common license from the menu or select Other / Custom license and enter the course-specific terms. Official content and provenance are read-only. In a custom fork, original authorship and provenance remain permanently visible alongside separate local creator and version-author credits. Export course JSON writes a complete portable authoring Course, including Drafts and managed custom Lesson icons, to Documents/QuisquisLingo/Exports.',
+              'Course info stores human author credit, the content license and optional Buy a Coffee HTTPS link separately from the MPL-2.0 license of the QuisquisLingo software. It also selects the learner Lesson prefix—Lesson, Unit, Topic, Module, Skill, Chapter, Stage, Step, Part, a custom label, number only or none—and the default Lesson icon style. Choose a common license from the menu or select Other / Custom license and enter the course-specific terms. Official content and provenance are read-only. In a custom fork, original authorship and provenance remain permanently visible alongside separate local creator and version-author credits. Eligible local custom courses show Export Course JSON as the final Course-page entry.',
         ),
         _HelpSection(
           title: 'Import a custom course',
@@ -65,7 +65,7 @@ class EditorHelpScreen extends StatelessWidget {
         _HelpSection(
           title: 'Export a custom course',
           body:
-              'Open Local courses and choose Export course JSON for the course you want to export. QuisquisLingo saves the complete portable Course Model v6 authoring JSON directly in Documents/QuisquisLingo/Exports. There is no Save As dialog. Draft/Published state, required UTC modification timestamps, origin and version metadata, optional custom flag data, Buy a Coffee metadata, Lesson numbering/icon-style settings and managed custom Lesson icons are included. If a filename exists, _2, _3 and later suffixes avoid overwriting it.',
+              'Open a local custom course and choose Export Course JSON, the final entry on its Course page. The entry is absent for bundled and external official sources and when a custom course is not opened through the local-course authoring path. A licensed fork follows this custom export path while preserving its original publisher, authorship, lineage, licence and fork-creator metadata. QQL has no separate export-permission field and does not distinguish team-supplied custom JSON from other imported custom JSON; eligibility uses the existing local custom-course boundary. QuisquisLingo saves the complete Course Model v6 authoring JSON directly in Documents/QuisquisLingo/Exports. Draft/Published state, required UTC modification timestamps, origin and version metadata, optional custom flag data, Buy a Coffee metadata, Lesson numbering/icon-style settings and managed custom Lesson icons are included. Course audio metadata and references are included, but MP3 bytes are not embedded; verified version backups retain their existing referenced-recording copy behavior. There is no Save As dialog. If a filename exists, _2, _3 and later suffixes avoid overwriting it.',
         ),
         _HelpSection(
           title: 'Import a custom flag',
@@ -150,7 +150,7 @@ class EditorHelpScreen extends StatelessWidget {
         _HelpSection(
           title: 'Audit severity and codes',
           body:
-              'Course Audit reports Errors, Warnings and Info. Error blocks publication or import because content is structurally or functionally invalid. Warning marks a likely authoring problem that needs review. Info is guidance or a neutral fact and never blocks publication by itself. Audit can sort by Lesson, friendly Exercise type or Recently modified and can be opened for a whole Course, one Lesson or one Round. Recent order uses updatedAt descending with deterministic ties; findings are numbered progressively inside each severity group after filtering. Pink identifies a Round with an Audit Error; orange identifies a Round containing at least one Draft Exercise. Both outlines remain visible together, and Lesson/Course Draft Exercise counts follow the working copy. Fewer than 3 Rounds and Duel availability below 25 eligible Exercises are Info. Missing Reading- or Listening-comprehension coverage produces no finding; malformed existing comprehension content still receives validation. Drafts are included for author review without making unrelated Published learner content invalid. Technical reference > Audit Codes searches the shared rule registry and explains every code, severity, scope, meaning, trigger, creator action and blocking status.',
+              'Course Audit reports Errors, Warnings and Info. Error blocks publication or import because content is structurally or functionally invalid. Warning marks a likely authoring problem that needs review. Info is guidance or a neutral fact and never blocks publication by itself. Audit can sort by Lesson, friendly Exercise type or Recently modified and can be opened for a whole Course, one Lesson or one Round. Recent order uses updatedAt descending with deterministic ties; findings are numbered progressively inside each severity group after filtering. Pink identifies an Exercise with an Audit Error and propagates through its Round, Lesson, the Lesson Rounds link and the Course Lessons link. Orange follows Draft Exercises through the same hierarchy. Both outlines remain visible together and follow the current working copy; Warning and Info do not produce pink. Fewer than 3 Rounds and Duel availability below 25 eligible Exercises are Info. Missing Reading- or Listening-comprehension coverage produces no finding; malformed existing comprehension content still receives validation. Drafts are included for author review without making unrelated Published learner content invalid. Technical reference > Audit Codes displays the shared 103-rule registry in Errors, Warnings, Info order. All three independently selectable categories start enabled, and text search applies within the selected categories.',
         ),
         _HelpSection(
           title: 'Course Audit',
@@ -199,9 +199,6 @@ class _TechnicalLinks extends StatelessWidget {
             key: const Key('editor-help-audit-codes'),
             contentPadding: EdgeInsets.zero,
             title: const Text('Audit Codes'),
-            subtitle: const Text(
-              'Search rule meanings, triggers and creator actions.',
-            ),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => Navigator.of(
               context,

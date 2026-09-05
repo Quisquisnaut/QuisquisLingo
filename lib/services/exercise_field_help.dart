@@ -159,12 +159,12 @@ abstract final class ExerciseFieldHelpRegistry {
   ) => switch (field) {
     ExerciseAuthoringField.instruction => const ExerciseFieldHelp(
       title: 'Prompt / instruction',
-      purpose: 'Tells the learner what to do or supplies the prompt.',
+      purpose: 'The instruction or context shown to the learner.',
       entryRules:
           'Enter one instruction or prompt as plain text. Line breaks remain part of that text; they do not create separate answers. Use the course source language for operational instructions.',
       validation:
           'Keep it consistent with the selected exercise and the separately entered question, pairs or blocks. For Match related words, state the relationship in the target language.',
-      example: 'Put the words in the correct order.',
+      example: 'Translate into Italian.',
     ),
     ExerciseAuthoringField.sourceText => const ExerciseFieldHelp(
       title: 'Source text',
@@ -204,12 +204,12 @@ abstract final class ExerciseFieldHelpRegistry {
     ),
     ExerciseAuthoringField.question => const ExerciseFieldHelp(
       title: 'Question',
-      purpose: 'Asks the learner which answer to choose.',
+      purpose: 'The concrete content to which the learner responds.',
       entryRules:
           'Enter one question as plain text, separately from the reading, audio or dialogue context. Line breaks do not create separate questions.',
       validation:
           'Contextual comprehension requires a separate question. For Dialogue response, use the target language. Match the question to the declared correct answer.',
-      example: 'What does the speaker want?',
+      example: 'How are you?',
     ),
     ExerciseAuthoringField.gapSentence => const ExerciseFieldHelp(
       title: 'Target-language sentence with one gap',
@@ -446,7 +446,7 @@ abstract final class ExerciseFieldHelpRegistry {
           'Enter one icon key or existing bundled assets/ image path per line, in the same order as the answer options. Blank lines are ignored. Keys include water, home, coffee, person, hello, sun, moon, thanks, tree, flower, bread, train, bus, bike, shirt, book, food and shop.',
       validation:
           'The number of keys must equal the number of answers. An unknown key shows the generic image icon, so Preview every choice. A custom Exercise image below the form is a separate shared prompt image, not an option image.',
-      example: 'coffee\nwater\nbread',
+      example: 'coffee\nwater\nassets/exercise_images/house.webp',
     ),
     ExerciseAuthoringField.missingWord => const ExerciseFieldHelp(
       title: 'Missing word',
@@ -501,7 +501,8 @@ abstract final class ExerciseFieldHelpRegistry {
           'Choose a flat image, or place exactly one PNG, JPG, JPEG or WebP file in Documents/QuisquisLingo/Imports/Images and press Import custom image. Import copies the original bytes to local app storage; it does not resize, crop or change transparency.',
       validation:
           'Maximum 50 KB (51,200 bytes). 256 × 256 pixels and 15 KB or less are recommendations, not enforced dimensions. Image-prompt ordering requires an image; other current presets may omit it. Missing or multiple source files and oversized files are rejected. Preview checks that the image displays. Course JSON stores the image path, not these image bytes, so custom exercise images are not portable through course JSON alone.',
-      example: 'Use a clear image of a house for blocks ca and sa.',
+      example:
+          'Bundled path: assets/exercise_images/house.webp\nCustom paths are selected and stored by the importer.',
     ),
   };
 }

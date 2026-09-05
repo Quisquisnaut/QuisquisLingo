@@ -60,6 +60,50 @@ void main() {
     expect(covered, ExerciseAuthoringField.values.toSet());
   });
 
+  test('Prompt and Question have distinct concrete examples', () {
+    final prompt = help('choice', 'prompt');
+    final question = help('choice', 'question');
+    expect(prompt.purpose, 'The instruction or context shown to the learner.');
+    expect(prompt.example, 'Translate into Italian.');
+    expect(
+      question.purpose,
+      'The concrete content to which the learner responds.',
+    );
+    expect(question.example, 'How are you?');
+    expect(prompt.text, contains('Example\nTranslate into Italian.'));
+    expect(question.text, contains('Example\nHow are you?'));
+  });
+
+  test('concise examples clarify common field formats', () {
+    expect(help('choice', 'answers').example, 'caffè\nacqua\npane');
+    expect(help('matching', 'pairs').example, 'casa = house\npane = bread');
+    expect(
+      help('reading_comprehension', 'prompt').example,
+      contains('Maria prende il treno.'),
+    );
+    expect(
+      help('type_translation', 'accepted').example,
+      contains('[prendo|vorrei]'),
+    );
+    expect(
+      help('icon_choice', 'icons').example,
+      contains('assets/exercise_images/house.webp'),
+    );
+    expect(
+      help('image_word', 'image').example,
+      contains('Bundled path: assets/exercise_images/house.webp'),
+    );
+    expect(
+      help('listening_choice', 'tts').example,
+      'Vorrei un caffè, per favore.',
+    );
+    expect(
+      help('listening_choice', 'tts').entryRules,
+      contains('not an MP3 filename or path'),
+    );
+    expect(help('fill_blank', 'tts').title, contains('(optional)'));
+  });
+
   test('accepted-answer Help examples run through the production parser', () {
     final definition = help('type_translation', 'accepted');
     expect(AnswerExpressionParser.expand(definition.example!), [

@@ -39,6 +39,41 @@ void main() {
     expect(find.text('Lock'), findsNothing);
   });
 
+  testWidgets('Rounds link reuses the Course Lessons typography', (
+    tester,
+  ) async {
+    final course = _course();
+    await tester.pumpWidget(
+      MaterialApp(home: CourseEditorScreen(course: course, userCourse: true)),
+    );
+    await tester.pumpAndSettle();
+    final lessonsStyle = tester
+        .widget<Text>(
+          find.descendant(
+            of: find.byKey(const Key('course-editor-lessons-navigation')),
+            matching: find.text('Lessons'),
+          ),
+        )
+        .style;
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: LessonEditorScreen(course: course, lesson: course.lessons.first),
+      ),
+    );
+    await tester.pumpAndSettle();
+    final roundsStyle = tester
+        .widget<Text>(
+          find.descendant(
+            of: find.byKey(const Key('lesson-rounds-navigation')),
+            matching: find.text('Rounds'),
+          ),
+        )
+        .style;
+    expect(roundsStyle, lessonsStyle);
+    expect(roundsStyle?.fontWeight, FontWeight.w800);
+  });
+
   testWidgets('Lessons subpage puts Lock first and preserves Lesson IDs', (
     tester,
   ) async {

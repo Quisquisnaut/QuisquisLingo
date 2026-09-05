@@ -49,9 +49,9 @@ Duplicate inserts the independent copy immediately after its source. Lesson dupl
 
 Exercise **Previous** and **Next** follow the current Round order, stop at its boundaries and use the same unsaved-change protection as Back. Breadcrumbs show readable Course, Lesson, Round and Exercise context; navigating a safe parent level also protects unsaved Exercise values. **Preview** sits beside the Save actions and uses the complete current unsaved form, including a new or Draft Exercise. Insufficient runtime data produces a validation message without losing edits. Returning restores the same form values; Preview does not save content or change publication state, versions, backups or learner data.
 
-An empty Round title is intentionally supported in Create and Edit Round. The form explains how to keep it untitled; learner and editor labels use its current **Round N** position without creating a stored title or changing its ID.
+An empty Round title is intentionally supported in Create and Edit Round. Rename Round labels the field **Title or Enter for no title**; submitting an empty field with Enter keeps it intentionally unnamed. Learner and editor labels use its current **Round N** position without creating a stored title or changing its ID.
 
-An orange Round outline means it currently contains at least one Draft Exercise. A pink outline continues to mean an Audit Error. Both outlines are visible when both conditions apply. Lesson rows show their Draft Exercise counts and Course Editor shows the course total; these counts and outlines follow the working copy, including saves, publication changes, deletion, Move and Copy.
+Orange and pink indicators propagate through the current authoring hierarchy. An Exercise item is orange when it is Draft and pink when that Exercise has an Audit Error. The containing Round and Lesson items, the Lesson page's **Rounds** link, and the Course page's **Lessons** link inherit those states from descendants. Only Error findings produce pink; Warning and Info do not. Both colors remain visible when both conditions apply. Lesson rows show their Draft Exercise counts and Course Editor shows the course total; counts and indicators derive from the current working copy and shared Audit result after saves, publication changes, creation, deletion, duplication, Move, Copy and return from child editors.
 
 Rounds normally contain 15 exercises. The editor does not enforce 15 as a hard maximum. Course Audit reports unusually short or long rounds so the author can review them.
 
@@ -181,7 +181,7 @@ A Lesson with fewer than six Rounds receives author guidance only. Missing Readi
 
 Audit can sort by Lesson, friendly Exercise type or **Recently modified**. Recent order is `updatedAt` descending with deterministic stable tie-breaks. Displayed and exported findings are numbered progressively inside each severity group after the active scope, filter and sort are applied.
 
-Open **Course Editor Help → Technical reference → Audit Codes** to search by code or descriptive text. Every currently emitted rule is defined in the registry shared by Audit and this reference, with its severity, scope, meaning, trigger, creator action and blocking status. Known rules have specific stable codes; `GENERAL` is only a defensive fallback for an unexpected unclassified finding.
+Open **Course Editor Help → Technical reference → Audit Codes** to browse the shared registry grouped in Errors, Warnings and Info order. All three independently selectable category filters start enabled; any one, any two or all three may be shown, and code/descriptive-text search applies only within the selected categories. Every currently emitted rule is defined in the registry shared by Audit and this reference, with its severity, scope, meaning, trigger, creator action and blocking status. Known rules have specific stable codes; `GENERAL` is only a defensive fallback for an unexpected unclassified finding.
 
 ## Storage and recovery
 
@@ -254,10 +254,10 @@ missing fields, duplicate IDs, duplicate Audio Match words, malformed Word
 Blocks, malformed actual Reading/Listening content, oversized text and other structural
 problems. Audit does not certify grammar or translation accuracy.
 
-The Audit can be scoped to a Course, Lesson or Round and sorted by Lesson, friendly Exercise type or Recently modified. Error, Warning and Info are distinct: only Error is structurally blocking. A Lesson with fewer than three Rounds receives Info guidance; missing Reading or Listening comprehension does not. In the Round management page, a pink outline means that Round currently has at least one Audit Error; Warning and Info never add that outline. Orange separately identifies Draft Exercises, and both remain visible together. Audit results refresh after authoring mutations.
+The Audit can be scoped to a Course, Lesson or Round and sorted by Lesson, friendly Exercise type or Recently modified. Error, Warning and Info are distinct: only Error is structurally blocking. A Lesson with fewer than three Rounds receives Info guidance; missing Reading or Listening comprehension does not. Pink follows Audit Errors from the affected Exercise through its Round and Lesson hierarchy; Warning and Info never add that outline. Orange separately follows Draft Exercises, and both remain visible together. Results derive from the current authoring candidate after mutations.
 
 ## Temporary sample courses
-Bundled courses carry a course-level `temporarySample` flag. The UI displays a TEMPORARY SAMPLE badge and Course Editor displays the sample-content warning every time a marked course is opened. Creators can remove or restore the flag from the Course Editor menu. Sample material must be replaced and human-reviewed before publication.
+Bundled courses may carry a course-level `temporarySample` flag. The UI displays a TEMPORARY SAMPLE badge and sample-content warning for marked material. The Course page has no temporary-sample menu action; sample identity is maintained by course content metadata and explicit course naming. Sample material must be replaced and human-reviewed before publication.
 
 ## Preview mode
 Round and exercise previews launch the learner renderer but suppress all progress writes, XP, streaks, Review history, unlocks, Status and laurel crowns. A temporary result may be shown and is discarded on exit.
@@ -307,7 +307,7 @@ An author can have multiple roles. Course Creator means original creation/design
 
 ## Alpha expiry and authoring
 
-The current time-limited alpha expires on 2026-10-05. Expiry blocks learner exercises and Review but deliberately leaves Course Editor available so authoring work can be inspected, recovered and exported. Expiry never deletes local data.
+The current time-limited alpha expires on 2026-10-06. Expiry blocks learner exercises and Review but deliberately leaves Course Editor available so authoring work can be inspected, recovered and exported. Expiry never deletes local data.
 
 
 ## Bundled official and local courses
@@ -325,7 +325,7 @@ The compact flag in the Home Top Bar opens the full-size course selector, which 
 
 ### Copy edits as JSON vs Export course JSON
 
-**Copy edits as JSON** copies the current working Course Model v6 object to the clipboard and does not create a file. **Export course JSON** writes a complete portable Course Model v6 JSON file to `Documents/QuisquisLingo/Exports`. Neither action confirms or persists the editing transaction.
+**Copy edits as JSON** copies the current working Course Model v6 object to the clipboard and does not create a file. **Export Course JSON** is the final Course-page entry for an eligible course and invokes the established exporter to write a complete Course Model v6 JSON file to `Documents/QuisquisLingo/Exports`. It is shown for a custom course opened through the local-course authoring path, including an eligible licensed custom fork, and is absent for bundled official, external official and custom courses outside that path. The current model has no separate export-permission field and does not distinguish team-supplied custom JSON from other imported custom JSON; eligibility uses the existing local custom-course boundary rather than inferred licence text. Fork exports preserve original publisher, authorship, lineage, licence and fork-creator metadata. JSON includes course-owned media metadata and references but does not embed MP3 bytes; verified backups keep their existing referenced-recording copy behavior. Export does not confirm or persist the editing transaction.
 
 When `Documents/QuisquisLingo/Exports/import.json` is imported successfully, QuisquisLingo validates it and lists it under **Local courses**. The stored course no longer depends on `import.json`; the transfer file is left in place. The stable `courseId` identifies the course internally. Course Info remains available even when the course content is locked. Renaming the visible Course name in Course Info does not change `courseId`; the Lock protects structural/content editing, not course metadata.
 

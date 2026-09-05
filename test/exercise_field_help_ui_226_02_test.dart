@@ -228,6 +228,41 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('Prompt and Question Help stay distinct and fit at 320 px', (
+    tester,
+  ) async {
+    await _mount(tester, 'choice', size: const Size(320, 700));
+
+    await _reveal(tester, _help('prompt'));
+    await tester.tap(_help('prompt'));
+    await _settle(tester);
+    expect(
+      find.textContaining('The instruction or context shown to the learner.'),
+      findsOneWidget,
+    );
+    expect(find.textContaining('Translate into Italian.'), findsOneWidget);
+    var bounds = tester.getRect(find.byType(AlertDialog));
+    expect(bounds.left, greaterThanOrEqualTo(0));
+    expect(bounds.right, lessThanOrEqualTo(320));
+    await tester.tap(find.widgetWithText(TextButton, 'Close'));
+    await _settle(tester);
+
+    await _reveal(tester, _help('question'));
+    await tester.tap(_help('question'));
+    await _settle(tester);
+    expect(
+      find.textContaining(
+        'The concrete content to which the learner responds.',
+      ),
+      findsOneWidget,
+    );
+    expect(find.textContaining('How are you?'), findsOneWidget);
+    bounds = tester.getRect(find.byType(AlertDialog));
+    expect(bounds.left, greaterThanOrEqualTo(0));
+    expect(bounds.right, lessThanOrEqualTo(320));
+    expect(tester.takeException(), isNull);
+  });
+
   for (final brightness in Brightness.values) {
     for (final width in [320.0, 375.0, 430.0, 1100.0]) {
       testWidgets('Help dialogs fit $width px in ${brightness.name}', (
