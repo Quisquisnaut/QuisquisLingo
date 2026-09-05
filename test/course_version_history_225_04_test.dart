@@ -93,7 +93,6 @@ void main() {
       await tester.tap(find.text('Restore this version').first);
       await tester.pumpAndSettle();
       expect(selection, isNotNull);
-      expect(selection!.separateCustomCopy, isFalse);
       expect(selection!.course.courseVersion, '2');
       expect(selection!.course.title, 'Second');
     },

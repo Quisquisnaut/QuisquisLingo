@@ -25,9 +25,8 @@ class CourseBackupRecord {
     required this.assets,
   });
 
-  int? get displayedVersion => course.originType.isOfficial
-      ? (course.localCourseVersion > 0 ? course.localCourseVersion : null)
-      : int.tryParse(course.courseVersion);
+  int? get displayedVersion =>
+      course.originType.isOfficial ? null : int.tryParse(course.courseVersion);
 }
 
 /// Durable, course-scoped backups for final Course Editor transactions.
@@ -92,23 +91,13 @@ class CourseBackupService {
   static String courseChecksum(Course course) =>
       sha256.convert(utf8.encode(_canonicalJson(course.toJson()))).toString();
 
-  /// Publisher checksum of the immutable official payload. Local variant and
-  /// custom-authoring metadata are deliberately excluded.
+  /// Publisher checksum of the immutable official payload. The digest and
+  /// authenticity metadata are separate from the authenticated content.
   static String officialContentChecksum(Course course) {
     final value = Map<String, dynamic>.from(course.toJson())
       ..remove('officialChecksum')
       ..remove('publisherVerificationStatus')
-      ..remove('publisherSignature')
-      ..remove('baseCourseId')
-      ..remove('basePublisherId')
-      ..remove('baseOfficialCourseVersion')
-      ..remove('baseOfficialChecksum')
-      ..remove('localCourseVersion')
-      ..remove('localAuthorProfileId')
-      ..remove('localAuthorUsername')
-      ..remove('localModifiedAtUtc')
-      ..remove('localVersionNotes')
-      ..remove('restoredFromVersion');
+      ..remove('publisherSignature');
     return sha256.convert(utf8.encode(_canonicalJson(value))).toString();
   }
 
@@ -156,7 +145,7 @@ class CourseBackupService {
       create: true,
     );
     final version = course.originType.isOfficial
-        ? 'local_${course.localCourseVersion}'
+        ? 'official_${sanitizedCourseId(course.officialCourseVersion)}'
         : 'course_${course.courseVersion.trim().isEmpty ? '0' : course.courseVersion.trim()}';
     final base =
         '${sanitizedCourseId(course.courseId)}_${version}_${_filenameStamp(when)}';
@@ -224,20 +213,19 @@ class CourseBackupService {
       'reason': reason,
       'courseChecksumSha256': checksum,
       'courseVersion': course.courseVersion,
-      'localCourseVersion': course.localCourseVersion,
       'officialCourseVersion': course.officialCourseVersion,
       'publisherId': course.publisherId,
       'authorProfileId': course.originType.isOfficial
-          ? course.localAuthorProfileId
+          ? course.publisherId
           : course.lastModifiedByProfileId,
       'authorUsername': course.originType.isOfficial
-          ? course.localAuthorUsername
+          ? course.publisherName
           : course.lastModifiedByUsername,
       'versionCreatedAtUtc': course.originType.isOfficial
-          ? course.localModifiedAtUtc
+          ? course.officialReleaseDateUtc
           : course.lastModifiedAtUtc,
       'versionNotes': course.originType.isOfficial
-          ? course.localVersionNotes
+          ? course.officialReleaseNotes
           : course.versionNotes,
       if (course.restoredFromVersion != null)
         'restoredFromVersion': course.restoredFromVersion,
@@ -321,7 +309,10 @@ class CourseBackupService {
         }
       }
     }
-    final restoredCourse = restoredAssetPaths.isEmpty
+    // Only custom restore remaps paths. Publisher payloads and their official
+    // checksums must remain exact when history is inspected or exported.
+    final restoredCourse =
+        course.originType.isOfficial || restoredAssetPaths.isEmpty
         ? course
         : Course.fromJson({
             ...course.toJson(),
@@ -358,6 +349,56 @@ class CourseBackupService {
       } catch (error) {
         throw FormatException(
           'Course Backup history contains an unreadable entry at ${entity.path}. The file was preserved. $error',
+        );
+      }
+    }
+    records.sort((a, b) => b.backedUpAtUtc.compareTo(a.backedUpAtUtc));
+    return records;
+  }
+
+  /// Official history contains publisher sources only. Build 225 local-variant
+  /// manifests are left on disk, without loading or adapting their content.
+  Future<List<CourseBackupRecord>> listOfficialBackups(String courseId) async {
+    final directory = await courseBackupDirectory(courseId);
+    if (!await directory.exists()) return const [];
+    final records = <CourseBackupRecord>[];
+    await for (final entity in directory.list(followLinks: false)) {
+      if (entity is! File || !entity.path.toLowerCase().endsWith('.json')) {
+        continue;
+      }
+      try {
+        final decoded = jsonDecode(await entity.readAsString());
+        final payload = decoded is Map ? decoded['course'] : null;
+        if (payload is Map &&
+            const {
+              'baseCourseId',
+              'basePublisherId',
+              'baseOfficialCourseVersion',
+              'baseOfficialChecksum',
+              'localCourseVersion',
+              'localAuthorProfileId',
+              'localAuthorUsername',
+              'localModifiedAtUtc',
+              'localVersionNotes',
+            }.any(payload.containsKey)) {
+          continue;
+        }
+        if (payload is! Map) {
+          throw const FormatException(
+            'Official history has no course payload.',
+          );
+        }
+        final source = Course.fromJson(Map<String, dynamic>.from(payload));
+        if (!source.originType.isOfficial ||
+            officialContentChecksum(source) != source.officialChecksum) {
+          throw const FormatException(
+            'Official history source integrity is invalid.',
+          );
+        }
+        records.add(await loadBackup(entity, expectedCourseId: courseId));
+      } catch (error) {
+        throw FormatException(
+          'Official Course history contains an unreadable entry at ${entity.path}. The file was preserved. $error',
         );
       }
     }

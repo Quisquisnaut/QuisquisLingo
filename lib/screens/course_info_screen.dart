@@ -69,15 +69,7 @@ class CourseInfoScreen extends StatelessWidget {
         'Distribution channel: ${course.distributionChannel}',
         'Publisher verification: ${course.publisherVerificationStatus.name}',
         'Official checksum: ${course.officialChecksum}',
-        'Local changes: ${course.localCourseVersion > 0 ? 'Yes' : 'None'}',
-        if (course.localCourseVersion > 0) ...[
-          'Local version: ${course.localCourseVersion}',
-          'Based on official version: ${course.baseOfficialCourseVersion}',
-          'Local author: ${course.localAuthorUsername}',
-          'Local modified: ${_localDateTime(context, course.localModifiedAtUtc)}',
-          if (course.localVersionNotes.isNotEmpty)
-            'Local version notes:\n${course.localVersionNotes}',
-        ],
+        'Official course - read only',
       ];
     }
     return [
@@ -119,6 +111,8 @@ class CourseInfoScreen extends StatelessWidget {
           ],
           const SizedBox(height: 18),
           _InfoCard(title: 'Course authors and credits', body: _authors),
+          if (course.forkProvenance != null)
+            CourseForkProvenanceCard(provenance: course.forkProvenance!),
           _InfoCard(
             title: 'Course details',
             body: [
@@ -127,6 +121,7 @@ class CourseInfoScreen extends StatelessWidget {
               if (course.lastUpdated.trim().isNotEmpty)
                 'Last updated: ${course.lastUpdated}',
               'License: ${course.license.trim().isEmpty ? 'Not specified' : course.license}',
+              'Derivative works: ${course.derivativeWorksPolicy.name}',
               'Lessons: ${course.lessons.length}',
             ].join('\n'),
           ),
@@ -146,6 +141,52 @@ class CourseInfoScreen extends StatelessWidget {
       ),
     ),
   );
+}
+
+/// Original attribution is distinct from the fork's editable contributor list.
+class CourseForkProvenanceCard extends StatelessWidget {
+  const CourseForkProvenanceCard({super.key, required this.provenance});
+
+  final CourseForkProvenance provenance;
+
+  @override
+  Widget build(BuildContext context) {
+    final originalAuthors = provenance.originalAuthors.isNotEmpty
+        ? provenance.originalAuthors
+              .map(
+                (author) => author.roles.isEmpty
+                    ? author.name
+                    : '${author.name} — ${author.roles.join(', ')}',
+              )
+              .join('\n')
+        : provenance.originalAuthor.isEmpty
+        ? 'Not specified'
+        : provenance.originalAuthor;
+    final created = DateTime.tryParse(provenance.forkCreatedAtUtc)?.toLocal();
+    final localizations = MaterialLocalizations.of(context);
+    final createdLabel = created == null
+        ? 'Not recorded'
+        : '${localizations.formatMediumDate(created)} · ${localizations.formatTimeOfDay(TimeOfDay.fromDateTime(created))}';
+    return _InfoCard(
+      title: 'Original course and fork provenance',
+      body: [
+        'Original course: ${provenance.originalCourseTitle}',
+        'Original publisher: ${provenance.originalPublisherName}',
+        'Original publisher ID: ${provenance.originalPublisherId}',
+        'Original course ID: ${provenance.originalCourseId}',
+        'Original authors:\n$originalAuthors',
+        if (provenance.originalAuthors.isNotEmpty &&
+            provenance.originalAuthor.isNotEmpty)
+          'Original author attribution: ${provenance.originalAuthor}',
+        'Based on official version: ${provenance.originalOfficialCourseVersion}',
+        'Original official checksum: ${provenance.originalOfficialChecksum}',
+        'Forked by: ${provenance.forkCreatedByUsername}',
+        'Fork creator profile ID: ${provenance.forkCreatedByProfileId}',
+        'Fork created: $createdLabel',
+        'Original authorship and provenance are permanent. Official updates do not change this custom fork.',
+      ].join('\n'),
+    );
+  }
 }
 
 class _InfoCard extends StatelessWidget {

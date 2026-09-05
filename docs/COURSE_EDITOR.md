@@ -1,6 +1,6 @@
 # QuisquisLingo Course Editor
 
-Updated for Version 2.0.25, Build 225.04 and Course Model v6
+Updated for Version 2.0.26, Build 226.01 and Course Model v6
 
 ## Unlocking the editor
 
@@ -8,7 +8,9 @@ Course Editor is an Easter Egg so ordinary learners do not encounter authoring c
 
 ## Editable hierarchy
 
-The editor supports the whole authoring tree:
+The authoring actions below apply to custom courses. Bundled and external official courses instead open **Official course - read only**, with Course Info, Audit, Preview, publisher Version History and Lesson/Round/Exercise inspection. No official content editing, save, publication, media or authoring transaction is available.
+
+For custom courses the editor supports the whole authoring tree:
 
 - Course → open **Lessons**, the first content section
 - Lessons → use the authoritative Lock control and create/reorder Lessons; each Lesson menu provides Edit, Rename, Delete, Duplicate, Preview and Audit
@@ -16,7 +18,7 @@ The editor supports the whole authoring tree:
 - Rounds → the first section inside a Lesson; create/reorder Rounds, with Edit, Rename, Delete, Duplicate, Preview and Audit actions
 - Round → create/reorder Exercises; every Exercise menu includes Edit, Duplicate, Preview, transfer and delete actions
 
-New objects receive generated local IDs. Deleting an object removes its descendants from the current working copy. The bundled JSON asset is never modified. **Restore official source** loads the immutable bundled source into the working copy; the persisted local course changes only after final confirmation.
+New objects receive generated local IDs. Deleting an object removes its descendants from the current working copy. Official source content is never modified by local authoring.
 
 Each Lesson can optionally enable **Belongs to a Section** and then requires a trimmed, non-empty **Section name**. Section is consecutive-order display metadata only: it is not a hierarchy, has no ID, and owns no progress or navigation. Disabling the switch clears the stored Section name.
 
@@ -24,7 +26,7 @@ The controlled **Lesson theme icon** picker separates **Preinstalled** and **Cus
 
 ## One course-level editing transaction
 
-Opening a course in Course Editor loads the current persisted course, preserves an immutable original snapshot, and creates a separate editable working copy. Course Info, Lesson, Round, Exercise, GuideBook, generated-content acceptance, deletion, duplication and reordering mutate only that working copy. The live learner course remains unchanged during the editing session.
+Opening a custom course in Course Editor loads the current persisted course, preserves an immutable original snapshot, and creates a separate editable working copy. Course Info, Lesson, Round, Exercise, GuideBook, generated-content acceptance, deletion, duplication and reordering mutate only that working copy. The live learner course remains unchanged during the editing session.
 
 Nested editors use **Save**, or **Save as draft** when Draft status is supported. Save stores a normal non-Draft item in the working copy; Save as draft stores a Draft item there. Neither action persists the course, creates a backup, increments the internal course version, or represents final publication. Nested pages return normally without a course-level confirmation. Pressing Back before either nested save discards only the currently open page's unstaged form edits and preserves every earlier working-copy change.
 
@@ -172,23 +174,29 @@ Audit can sort by Lesson, friendly Exercise type or **Recently modified**. Recen
 
 ## Storage and recovery
 
-Local edited courses are stored separately from bundled assets in the Course Model v6/build-225 namespace. No earlier namespace is read or migrated. A complete course override is validated structurally before saving and before learner use. Malformed current-namespace JSON is preserved and copied aside before loading fails clearly; it is never silently replaced with an empty collection. Local authoring data has an 8 MB safety limit.
+Custom courses retain the Course Model v6/build-225 user-course namespace. External official storage loads only its publisher source; bundled loading uses only the bundled asset. Old official overrides remain physically untouched but are not read as content, migrated or converted into forks. A complete custom course is validated structurally before saving and before learner use. Malformed current-namespace JSON is preserved and copied aside before loading fails clearly; it is never silently replaced with an empty collection. Local authoring data has an 8 MB safety limit.
 
-Each successful confirmation of an existing course first writes a verified backup below:
+Each successful confirmation of an existing custom course first writes a verified backup below:
 
 `Documents/QuisquisLingo/Exports/Course Backups/<sanitized courseId>`
 
-The manifest contains the complete Course Model v6 JSON, origin and publisher provenance, custom, official and local versions, author/profile identity, UTC timestamps, reason, optional version notes, SHA-256 integrity data and referenced managed audio. Timestamps are displayed in local date and time. Asset copies are verified before persistence begins. Backups are never pruned or silently deleted.
+The manifest contains the complete Course Model v6 JSON, origin and publisher provenance, custom or official versions, author/profile identity, UTC timestamps, reason, optional version notes, SHA-256 integrity data and referenced managed audio. Timestamps are displayed in local date and time. Asset copies are verified before persistence begins. Backups are never pruned or silently deleted.
 
-**Version History** lists the current course, the immutable official source where applicable, and verified backups newest first. It exposes the exact backup folder and supports restore into the working copy, portable JSON export and a new custom copy. Restore never writes directly to the live course: it becomes another pending working-copy mutation and the next confirmed version remains monotonic. Corrupt or incomplete history is reported and never silently accepted.
+**Version History** lists the current version and verified backups newest first, with the exact backup folder and portable JSON export. Custom history permits restore into the working copy. Official history contains publisher versions only, with no local restore/copy action; the explicit licensed fork workflow is on the official inspection page. Obsolete local-variant history files remain on disk and are not loaded or presented as official versions. Restore never writes directly to the live course: it becomes another pending working-copy mutation and the next confirmed version remains monotonic. Corrupt or incomplete history is reported and never silently accepted.
 
 ## Course origin and official updates
 
 Course Model v6 distinguishes `custom`, `bundledOfficial` and `externalOfficial` origin. Bundled official course assets are immutable source versions. External official files retain publisher identity and a verified or unverified status. Custom courses created or imported locally never acquire official provenance by title or course ID.
 
-An official update requires the same stable course ID and publisher, a newer official version, and a matching content checksum. QuisquisLingo archives the complete active course first, then installs the exact new official source without a content merge. The previous local state remains in Version History. A file whose publisher authenticity cannot be established can only be installed after an explicit warning and is labeled **External official — unverified**. A failed archive or write leaves the previous course unchanged.
+An official update requires the same stable course ID and publisher, a newer official version, and a matching content checksum. QuisquisLingo archives the previous official source first, then installs the new official source without a content merge. Only the official source changes; existing custom forks and their histories remain unchanged. A file whose publisher authenticity cannot be established can only be installed after an explicit warning and is labeled **External official — unverified**. A failed archive or write leaves the previous course unchanged.
 
-For custom courses, the first confirmed creation is internal version 1. Later confirmations increment by exactly one. Official courses keep their publisher's official version unchanged while local confirmed edits increment a separate local version. The active local QQL profile is required and recorded as creator or last modifier; a missing active profile blocks confirmation rather than inventing identity.
+For custom courses, the first confirmed creation is internal version 1. Later confirmations increment by exactly one. Official courses use only their publisher's official version and cannot be confirmed through a local authoring transaction. The active local QQL profile is required and recorded as creator or last modifier; a missing active profile blocks confirmation rather than inventing identity.
+
+## Licensed custom forks
+
+**Fork as custom course** is enabled only for explicit `derivativeWorksPolicy: allowed`. Forbidden and unspecified policies show an explanation and do not enable a fork; a human-readable license is never interpreted as an implicit grant. No bundled course currently grants derivative permission. Ordinary **Duplicate custom course** remains a separate custom authoring action.
+
+A fork receives fresh course/content IDs and opens as a new editable custom working copy, initially retaining the original license text. First confirmation creates version 1; later changes use ordinary custom backups and version history. Course Info permanently distinguishes original publisher, official identity/version/checksum, title and authors from the local fork creator and later custom version authors. Renaming, editing, restore and export/import retain the original provenance. Cancelling a new fork leaves no saved custom course. Official updates never merge, rebase or replace an existing fork.
 
 ## Word Blocks language rule (0.4.25)
 
@@ -282,7 +290,7 @@ An author can have multiple roles. Course Creator means original creation/design
 
 ## Alpha expiry and authoring
 
-The current time-limited alpha expires on 2026-10-04. Expiry blocks learner exercises and Review but deliberately leaves Course Editor available so authoring work can be inspected, recovered and exported. Expiry never deletes local data.
+The current time-limited alpha expires on 2026-10-05. Expiry blocks learner exercises and Review but deliberately leaves Course Editor available so authoring work can be inspected, recovered and exported. Expiry never deletes local data.
 
 
 ## Bundled official and local courses
@@ -291,7 +299,7 @@ The Course Editor entry screen identifies bundled official sources and groups st
 
 When creating a custom course, the author can use one of QuisquisLingo's existing flags or import a PNG/JPG image. Imported flags are checked for file size and resolution. Images that are too small or excessively large are rejected; accepted large images are resized to a maximum 256 px longest side while preserving their aspect ratio. The processed PNG is stored with the course so it remains available if the original file is moved or deleted.
 
-Courses can be imported from and exported to `.json` files without a file chooser. For import, copy the course file to `Documents/QuisquisLingo/Exports/import.json`, then press **Import course JSON**. The imported course is added under **Local courses** and `import.json` is left in place. Course Audit errors block import; warnings are reported for review but do not block it. Imports must be UTF-8 Course Model v6 JSON and are validated through the normal `Course` parser. v5 and older formats are unsupported and are not read, migrated, converted or deleted; export writes the canonical v6 structure. Files larger than 10 MB are refused. Origin collisions are handled explicitly: custom content cannot overwrite an official identity, and external official replacements require the same course ID and declared publisher ID, a newer official version and a valid content checksum. Publisher authenticity remains unverified in Build 225.04 file imports; installation requires the explicit unverified-publisher warning described above. Exports contain the complete canonical v6 object, including origin/version metadata and optional custom flag data. Learner **Export my data** remains separate and does not contain courses.
+Courses can be imported from and exported to `.json` files without a file chooser. For import, copy the course file to `Documents/QuisquisLingo/Exports/import.json`, then press **Import course JSON**. The imported course is added under **Local courses** and `import.json` is left in place. Course Audit errors block import; warnings are reported for review but do not block it. Imports must be UTF-8 Course Model v6 JSON and are validated through the normal `Course` parser. v5 and older formats are unsupported and are not read, migrated, converted or deleted; export writes the canonical v6 structure. Files larger than 10 MB are refused. Origin collisions are handled explicitly: custom content cannot overwrite an official identity, and external official replacements require the same course ID and declared publisher ID, a newer official version and a valid content checksum. Publisher authenticity remains unverified in Build 226.01 file imports; installation requires the explicit unverified-publisher warning described above. Exports contain the complete canonical v6 object, including origin/version metadata and optional custom flag data. Learner **Export my data** remains separate and does not contain courses.
 
 
 ### Home course selection and navigation

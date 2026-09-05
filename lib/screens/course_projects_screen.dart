@@ -378,9 +378,7 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
 
   void _showConfirmationResult(CourseConfirmationResult result) {
     final course = result.course;
-    final version = course.originType.isOfficial
-        ? 'New local version: ${course.localCourseVersion}\nOfficial version remains: ${course.officialCourseVersion}'
-        : 'New course version: ${course.courseVersion}';
+    final version = 'New course version: ${course.courseVersion}';
     final backup = result.backupPath == null
         ? '\nNo previous version existed, so no backup was required.'
         : '\nBackup: ${result.backupPath}';
@@ -490,7 +488,6 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
         final existing = _user
             .where((candidate) => candidate.courseId == course.courseId)
             .firstOrNull;
-        final resetsLocalChanges = (existing?.localCourseVersion ?? 0) > 0;
         final proceed = await showDialog<bool>(
           context: context,
           builder: (context) => AlertDialog(
@@ -501,8 +498,7 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
             ),
             content: Text(
               'QQL can verify the file checksum but cannot authenticate the declared publisher. '
-              'The course will be visibly labelled External official — unverified.'
-              '${!resetsLocalChanges ? '' : '\n\nThis official update will replace the active local version.\nYour local changes and notes will be archived in Course Backups.'}',
+              'The course will be visibly labelled External official — unverified. Official courses are read only. Any existing custom forks remain unchanged.',
             ),
             actions: [
               TextButton(
@@ -534,7 +530,7 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
             duration: const Duration(seconds: 12),
             content: Text(
               'Installed official version ${course.officialCourseVersion} from ${course.publisherName} ($verification).'
-              '${result.backupPath == null ? '' : '\nArchived previous active state: ${result.backupPath}'}',
+              '${result.backupPath == null ? '' : '\nBacked up previous official source: ${result.backupPath}'}',
             ),
           ),
         );
@@ -773,7 +769,9 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
                       ),
                     ),
                     title: Text(widget.currentCourse.title),
-                    subtitle: const Text('Bundled course · Course Model v6'),
+                    subtitle: const Text(
+                      'Bundled official · read only · Course Model v6',
+                    ),
                     trailing: const Icon(Icons.chevron_right),
                     onTap: _openBundled,
                   ),
@@ -800,7 +798,7 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
                     ),
                     title: Text(course.title),
                     subtitle: Text(
-                      '${course.publicationState.isPublished ? '' : 'Draft · '}${course.sourceLanguage} → ${course.targetLanguage} · ${course.originType.isOfficial ? '${course.publisherName} official ${course.officialCourseVersion}${course.localCourseVersion > 0 ? ' · locally modified ${course.localCourseVersion}' : ''}' : 'custom version ${course.courseVersion.isEmpty ? 'unconfirmed' : course.courseVersion}'}',
+                      '${course.publicationState.isPublished ? '' : 'Draft · '}${course.sourceLanguage} → ${course.targetLanguage} · ${course.originType.isOfficial ? '${course.publisherName} official ${course.officialCourseVersion} · read only' : 'custom version ${course.courseVersion.isEmpty ? 'unconfirmed' : course.courseVersion}'}',
                     ),
                     onTap: () => _openUser(course),
                     trailing: PopupMenuButton<String>(
@@ -816,20 +814,29 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
                         }
                       },
                       itemBuilder: (_) => [
-                        const PopupMenuItem(
+                        PopupMenuItem(
                           value: 'edit',
                           child: ListTile(
-                            leading: Icon(Icons.edit_outlined),
-                            title: Text('Edit'),
+                            leading: Icon(
+                              course.originType.isOfficial
+                                  ? Icons.visibility_outlined
+                                  : Icons.edit_outlined,
+                            ),
+                            title: Text(
+                              course.originType.isOfficial
+                                  ? 'Inspect (read only)'
+                                  : 'Edit',
+                            ),
                           ),
                         ),
-                        const PopupMenuItem(
-                          value: 'duplicate',
-                          child: ListTile(
-                            leading: Icon(Icons.copy_outlined),
-                            title: Text('Duplicate'),
+                        if (!course.originType.isOfficial)
+                          const PopupMenuItem(
+                            value: 'duplicate',
+                            child: ListTile(
+                              leading: Icon(Icons.copy_outlined),
+                              title: Text('Duplicate custom course'),
+                            ),
                           ),
-                        ),
                         const PopupMenuItem(
                           value: 'audit',
                           child: ListTile(

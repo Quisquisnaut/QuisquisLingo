@@ -208,6 +208,153 @@ class CourseAuthor {
   }
 }
 
+enum DerivativeWorksPolicy {
+  allowed,
+  forbidden,
+  unspecified;
+
+  static DerivativeWorksPolicy parse(Object? value) {
+    if (value == null) return unspecified;
+    return values.firstWhere(
+      (policy) => policy.name == value,
+      orElse: () => throw const FormatException(
+        'course.derivativeWorksPolicy must be allowed, forbidden or unspecified.',
+      ),
+    );
+  }
+}
+
+/// Permanent source attribution, separate from later custom-course authorship.
+class CourseForkProvenance {
+  final String originalPublisherId;
+  final String originalPublisherName;
+  final String originalCourseId;
+  final String originalOfficialCourseVersion;
+  final String originalOfficialChecksum;
+  final String originalCourseTitle;
+  final String originalAuthor;
+  final List<CourseAuthor> originalAuthors;
+  final String forkCreatedByProfileId;
+  final String forkCreatedByUsername;
+  final String forkCreatedAtUtc;
+
+  CourseForkProvenance({
+    required this.originalPublisherId,
+    required this.originalPublisherName,
+    required this.originalCourseId,
+    required this.originalOfficialCourseVersion,
+    required this.originalOfficialChecksum,
+    required this.originalCourseTitle,
+    required this.originalAuthor,
+    required List<CourseAuthor> originalAuthors,
+    required this.forkCreatedByProfileId,
+    required this.forkCreatedByUsername,
+    required this.forkCreatedAtUtc,
+  }) : originalAuthors = List.unmodifiable([
+         for (final author in originalAuthors)
+           CourseAuthor(
+             name: author.name,
+             roles: List.unmodifiable(author.roles),
+           ),
+       ]) {
+    if ([
+          originalPublisherId,
+          originalPublisherName,
+          originalCourseId,
+          originalOfficialCourseVersion,
+          originalCourseTitle,
+          forkCreatedByProfileId,
+          forkCreatedByUsername,
+        ].any((value) => value.trim().isEmpty) ||
+        !RegExp(r'^[0-9a-f]{64}$').hasMatch(originalOfficialChecksum) ||
+        !forkCreatedAtUtc.endsWith('Z') ||
+        DateTime.tryParse(forkCreatedAtUtc)?.isUtc != true) {
+      throw const FormatException(
+        'Course fork provenance is incomplete or invalid.',
+      );
+    }
+  }
+
+  Map<String, dynamic> toJson() => {
+    'originalPublisherId': originalPublisherId,
+    'originalPublisherName': originalPublisherName,
+    'originalCourseId': originalCourseId,
+    'originalOfficialCourseVersion': originalOfficialCourseVersion,
+    'originalOfficialChecksum': originalOfficialChecksum,
+    'originalCourseTitle': originalCourseTitle,
+    'originalAuthor': originalAuthor,
+    'originalAuthors': originalAuthors
+        .map((author) => author.toJson())
+        .toList(),
+    'forkCreatedByProfileId': forkCreatedByProfileId,
+    'forkCreatedByUsername': forkCreatedByUsername,
+    'forkCreatedAtUtc': forkCreatedAtUtc,
+  };
+
+  factory CourseForkProvenance.fromJson(Map<String, dynamic> json) {
+    final authors = json['originalAuthors'];
+    if (authors is! List || authors.any((author) => author is! Map)) {
+      throw const FormatException(
+        'forkProvenance.originalAuthors must be a list of authors.',
+      );
+    }
+    return CourseForkProvenance(
+      originalPublisherId: _requiredString(
+        json,
+        'originalPublisherId',
+        'forkProvenance',
+      ),
+      originalPublisherName: _requiredString(
+        json,
+        'originalPublisherName',
+        'forkProvenance',
+      ),
+      originalCourseId: _requiredString(
+        json,
+        'originalCourseId',
+        'forkProvenance',
+      ),
+      originalOfficialCourseVersion: _requiredString(
+        json,
+        'originalOfficialCourseVersion',
+        'forkProvenance',
+      ),
+      originalOfficialChecksum: _requiredString(
+        json,
+        'originalOfficialChecksum',
+        'forkProvenance',
+      ),
+      originalCourseTitle: _requiredString(
+        json,
+        'originalCourseTitle',
+        'forkProvenance',
+      ),
+      originalAuthor: _optionalString(json, 'originalAuthor', ''),
+      originalAuthors: authors
+          .map(
+            (author) =>
+                CourseAuthor.fromJson(Map<String, dynamic>.from(author as Map)),
+          )
+          .toList(),
+      forkCreatedByProfileId: _requiredString(
+        json,
+        'forkCreatedByProfileId',
+        'forkProvenance',
+      ),
+      forkCreatedByUsername: _requiredString(
+        json,
+        'forkCreatedByUsername',
+        'forkProvenance',
+      ),
+      forkCreatedAtUtc: _requiredString(
+        json,
+        'forkCreatedAtUtc',
+        'forkProvenance',
+      ),
+    );
+  }
+}
+
 class Course {
   static const int currentFormatVersion = 6;
   final int formatVersion;
@@ -222,15 +369,6 @@ class Course {
   final String distributionChannel;
   final PublisherVerificationStatus publisherVerificationStatus;
   final String publisherSignature;
-  final String baseCourseId;
-  final String basePublisherId;
-  final String baseOfficialCourseVersion;
-  final String baseOfficialChecksum;
-  final int localCourseVersion;
-  final String localAuthorProfileId;
-  final String localAuthorUsername;
-  final String localModifiedAtUtc;
-  final String localVersionNotes;
   final String createdByProfileId;
   final String createdByUsername;
   final String createdAtUtc;
@@ -258,6 +396,8 @@ class Course {
   final String author;
   final List<CourseAuthor> authors;
   final String license;
+  final DerivativeWorksPolicy derivativeWorksPolicy;
+  final CourseForkProvenance? forkProvenance;
   final String languageVariant;
   final String startLevel;
   final String targetLevel;
@@ -288,15 +428,6 @@ class Course {
     this.distributionChannel = '',
     this.publisherVerificationStatus = PublisherVerificationStatus.unverified,
     this.publisherSignature = '',
-    this.baseCourseId = '',
-    this.basePublisherId = '',
-    this.baseOfficialCourseVersion = '',
-    this.baseOfficialChecksum = '',
-    this.localCourseVersion = 0,
-    this.localAuthorProfileId = '',
-    this.localAuthorUsername = '',
-    this.localModifiedAtUtc = '',
-    this.localVersionNotes = '',
     this.createdByProfileId = '',
     this.createdByUsername = '',
     this.createdAtUtc = '',
@@ -324,6 +455,8 @@ class Course {
     this.author = '',
     this.authors = const [],
     this.license = 'All rights reserved',
+    this.derivativeWorksPolicy = DerivativeWorksPolicy.unspecified,
+    this.forkProvenance,
     this.languageVariant = '',
     this.startLevel = '',
     this.targetLevel = '',
@@ -342,6 +475,11 @@ class Course {
     required this.lessons,
   }) : customLessonLabel = customLessonLabel.trim(),
        buyACoffeeUrl = normalizeBuyACoffeeUrl(buyACoffeeUrl) {
+    if (originType.isOfficial && forkProvenance != null) {
+      throw const FormatException(
+        'Only custom courses can have fork provenance.',
+      );
+    }
     if (lessonNumberingMode == LessonNumberingMode.other &&
         this.customLessonLabel.isEmpty) {
       throw const FormatException(
@@ -363,7 +501,6 @@ class Course {
       'officialReleaseDateUtc': officialReleaseDateUtc,
       'createdAtUtc': createdAtUtc,
       'lastModifiedAtUtc': lastModifiedAtUtc,
-      'localModifiedAtUtc': localModifiedAtUtc,
     }.entries) {
       if (timestamp.value.isEmpty) continue;
       final parsed = DateTime.tryParse(timestamp.value);
@@ -377,11 +514,6 @@ class Course {
         !RegExp(r'^[0-9a-f]{64}$').hasMatch(officialChecksum)) {
       throw const FormatException(
         'course.officialChecksum must be a lowercase SHA-256 value.',
-      );
-    }
-    if (localCourseVersion < 0) {
-      throw const FormatException(
-        'course.localCourseVersion cannot be negative.',
       );
     }
   }
@@ -424,19 +556,6 @@ class Course {
     if (originType.isOfficial)
       'publisherVerificationStatus': publisherVerificationStatus.name,
     if (publisherSignature.isNotEmpty) 'publisherSignature': publisherSignature,
-    if (baseCourseId.isNotEmpty) 'baseCourseId': baseCourseId,
-    if (basePublisherId.isNotEmpty) 'basePublisherId': basePublisherId,
-    if (baseOfficialCourseVersion.isNotEmpty)
-      'baseOfficialCourseVersion': baseOfficialCourseVersion,
-    if (baseOfficialChecksum.isNotEmpty)
-      'baseOfficialChecksum': baseOfficialChecksum,
-    if (localCourseVersion > 0) 'localCourseVersion': localCourseVersion,
-    if (localAuthorProfileId.isNotEmpty)
-      'localAuthorProfileId': localAuthorProfileId,
-    if (localAuthorUsername.isNotEmpty)
-      'localAuthorUsername': localAuthorUsername,
-    if (localModifiedAtUtc.isNotEmpty) 'localModifiedAtUtc': localModifiedAtUtc,
-    if (localVersionNotes.isNotEmpty) 'localVersionNotes': localVersionNotes,
     if (createdByProfileId.isNotEmpty) 'createdByProfileId': createdByProfileId,
     if (createdByUsername.isNotEmpty) 'createdByUsername': createdByUsername,
     if (createdAtUtc.isNotEmpty) 'createdAtUtc': createdAtUtc,
@@ -463,6 +582,9 @@ class Course {
     if (author.isNotEmpty) 'author': author,
     if (authors.isNotEmpty) 'authors': authors.map((e) => e.toJson()).toList(),
     'license': license,
+    if (derivativeWorksPolicy != DerivativeWorksPolicy.unspecified)
+      'derivativeWorksPolicy': derivativeWorksPolicy.name,
+    if (forkProvenance != null) 'forkProvenance': forkProvenance!.toJson(),
     if (languageVariant.isNotEmpty) 'languageVariant': languageVariant,
     if (startLevel.isNotEmpty) 'startLevel': startLevel,
     if (targetLevel.isNotEmpty) 'targetLevel': targetLevel,
@@ -527,19 +649,6 @@ class Course {
       distributionChannel: _optionalString(json, 'distributionChannel', ''),
       publisherVerificationStatus: PublisherVerificationStatus.parse(json),
       publisherSignature: _optionalString(json, 'publisherSignature', ''),
-      baseCourseId: _optionalString(json, 'baseCourseId', ''),
-      basePublisherId: _optionalString(json, 'basePublisherId', ''),
-      baseOfficialCourseVersion: _optionalString(
-        json,
-        'baseOfficialCourseVersion',
-        '',
-      ),
-      baseOfficialChecksum: _optionalString(json, 'baseOfficialChecksum', ''),
-      localCourseVersion: _optionalInt(json, 'localCourseVersion', 0),
-      localAuthorProfileId: _optionalString(json, 'localAuthorProfileId', ''),
-      localAuthorUsername: _optionalString(json, 'localAuthorUsername', ''),
-      localModifiedAtUtc: _optionalString(json, 'localModifiedAtUtc', ''),
-      localVersionNotes: _optionalString(json, 'localVersionNotes', ''),
       createdByProfileId: _optionalString(json, 'createdByProfileId', ''),
       createdByUsername: _optionalString(json, 'createdByUsername', ''),
       createdAtUtc: _optionalString(json, 'createdAtUtc', ''),
@@ -589,6 +698,18 @@ class Course {
                 .toList()
           : const [],
       license: _optionalString(json, 'license', 'All rights reserved'),
+      derivativeWorksPolicy: DerivativeWorksPolicy.parse(
+        json['derivativeWorksPolicy'],
+      ),
+      forkProvenance: json.containsKey('forkProvenance')
+          ? json['forkProvenance'] is Map
+                ? CourseForkProvenance.fromJson(
+                    Map<String, dynamic>.from(json['forkProvenance'] as Map),
+                  )
+                : throw const FormatException(
+                    'course.forkProvenance must be an object.',
+                  )
+          : null,
       languageVariant: _optionalString(json, 'languageVariant', ''),
       startLevel: _optionalString(json, 'startLevel', ''),
       targetLevel: _optionalString(json, 'targetLevel', ''),
@@ -641,6 +762,11 @@ class Course {
   }
 
   Course fork() {
+    if (originType.isOfficial) {
+      throw StateError(
+        'Official courses require the licensed Fork as custom course workflow.',
+      );
+    }
     final json = Map<String, dynamic>.from(toJson())
       ..['courseId'] = newCourseId()
       ..['originType'] = CourseOriginType.custom.name
@@ -660,15 +786,6 @@ class Course {
       'distributionChannel',
       'publisherVerificationStatus',
       'publisherSignature',
-      'baseCourseId',
-      'basePublisherId',
-      'baseOfficialCourseVersion',
-      'baseOfficialChecksum',
-      'localCourseVersion',
-      'localAuthorProfileId',
-      'localAuthorUsername',
-      'localModifiedAtUtc',
-      'localVersionNotes',
       'createdByProfileId',
       'createdByUsername',
       'createdAtUtc',

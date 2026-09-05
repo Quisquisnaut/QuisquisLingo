@@ -1,6 +1,8 @@
 # Bundled sample courses
 
-Updated for Version 2.0.25, Build 225.04.
+Updated for Version 2.0.26, Build 226.01.
+
+Bundled courses are locally read-only. Their existing content/license metadata remain unchanged and currently provide no explicit derivative-work permission, so custom forks are unavailable.
 
 QuisquisLingo bundles nine deterministic Course Model v6 samples: Italian, German, Spanish, Welsh, Dutch, Portuguese, Finnish and Korean from English, plus English from Spanish. Every course contains nine ordered Lessons with four playable Rounds per Lesson. Existing course identities and established semantic IDs are preserved where content already existed; new material uses deterministic globally unique IDs. Lesson titles are written in the course source language, and the course-level `temporarySample` flag marks development/demo content that can be progressively replaced by reviewed material.
 

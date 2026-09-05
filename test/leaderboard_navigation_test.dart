@@ -69,7 +69,7 @@ void main() {
       buildSignature: '',
     );
     SharedPreferences.setMockInitialValues({
-      'one_time_notice_seen_welcome_2.0.25+22504': true,
+      'one_time_notice_seen_welcome_2.0.26+22601': true,
       'sound_effects_enabled': false,
     });
     await ProfileService().addProfile('Navigation Learner');
@@ -1315,16 +1315,33 @@ void main() {
   );
 
   testWidgets(
-    'Home reloads the selected course after returning from Settings',
+    'Home reloads the selected custom course after returning from Settings',
     (tester) async {
-      final course = await _loadItalianCourse(tester);
+      final course = Course(
+        courseId: 'settings-reload-custom',
+        originType: CourseOriginType.custom,
+        learningLanguage: 'Italian',
+        interfaceLanguage: 'English',
+        sourceLanguage: 'English',
+        targetLanguage: 'Italian',
+        title: 'Custom course before Settings',
+        ttsLanguage: 'it-IT',
+        version: '1',
+        flagCode: 'IT',
+        lessons: [
+          Lesson(lessonId: 'reload-lesson', title: 'Lesson', rounds: const []),
+        ],
+      );
+      await CourseEditorService().saveUserCourse(course);
+      await SettingsService().setLastSelectedCourseCode(
+        'custom:${course.courseId}',
+      );
       await _openHome(tester, scrollToActions: false);
-      const updatedTitle = 'Italian refreshed in Course Editor';
+      const updatedTitle = 'Custom course refreshed in Course Editor';
       final updatedJson = course.toJson()..['title'] = updatedTitle;
       await tester.runAsync(() async {
-        await CourseEditorService().saveCourse(
-          languageCode: 'IT',
-          course: Course.fromJson(updatedJson),
+        await CourseEditorService().saveUserCourse(
+          Course.fromJson(updatedJson),
         );
       });
 
@@ -2300,7 +2317,7 @@ void main() {
       final alphaDialog = tester.widget<AlertDialog>(find.byType(AlertDialog));
       expect(alphaDialog.backgroundColor, isNull);
       expect(alphaDialog.surfaceTintColor, isNull);
-      expect(find.textContaining('Expiry date: 2026-10-04.'), findsOneWidget);
+      expect(find.textContaining('Expiry date: 2026-10-05.'), findsOneWidget);
       expect(find.widgetWithText(FilledButton, 'OK'), findsOneWidget);
       expect(
         tester

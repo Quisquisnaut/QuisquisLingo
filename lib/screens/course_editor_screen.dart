@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:audioplayers/audioplayers.dart';
 
 import '../models/course_models.dart';
@@ -19,6 +18,8 @@ import 'round_screen.dart';
 import 'flat_image_library_screen.dart';
 import 'editor_help_screen.dart';
 import 'course_version_history_screen.dart';
+import 'course_info_screen.dart';
+import 'official_course_inspection_screen.dart';
 import '../services/exercise_image_service.dart';
 import '../services/exercise_transfer_service.dart';
 import '../services/custom_course_transfer_service.dart';
@@ -132,13 +133,13 @@ Exercise _withExercisePublication(
   missingWords: source.missingWords,
 );
 
-/// Full local authoring UI.
+/// Custom-course authoring and read-only official-course inspection.
 ///
-/// The hierarchy is editable at every level: Lessons, Rounds and v6
+/// For custom courses, the hierarchy is editable at every level: Lessons, Rounds and v6
 /// Content can be created, deleted and reordered. Friendly Editor template is immutable
 /// after creation because changing type can silently reinterpret incompatible
 /// fields. To use another type, create a new exercise and delete the old one.
-class CourseEditorScreen extends StatefulWidget {
+class CourseEditorScreen extends StatelessWidget {
   final Course course;
   final bool userCourse;
   final bool isNewCourse;
@@ -155,14 +156,44 @@ class CourseEditorScreen extends StatefulWidget {
     this.clock,
   });
   @override
-  State<CourseEditorScreen> createState() => _CourseEditorScreenState();
+  Widget build(BuildContext context) => course.originType.isOfficial
+      ? OfficialCourseInspectionScreen(
+          course: course,
+          editorService: editorService,
+          courseService: courseService,
+          clock: clock,
+        )
+      : _CustomCourseEditorScreen(
+          course: course,
+          userCourse: userCourse,
+          isNewCourse: isNewCourse,
+          editorService: editorService,
+          clock: clock,
+        );
 }
 
-class _CourseEditorScreenState extends State<CourseEditorScreen> {
+class _CustomCourseEditorScreen extends StatefulWidget {
+  const _CustomCourseEditorScreen({
+    required this.course,
+    required this.userCourse,
+    required this.isNewCourse,
+    this.editorService,
+    this.clock,
+  });
+
+  final Course course;
+  final bool userCourse;
+  final bool isNewCourse;
+  final CourseEditorService? editorService;
+  final DateTime Function()? clock;
+
+  @override
+  State<_CustomCourseEditorScreen> createState() => _CourseEditorScreenState();
+}
+
+class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
   late final CourseEditorService _service =
       widget.editorService ?? CourseEditorService();
-  late final CourseService _courseService =
-      widget.courseService ?? CourseService();
   final _settings = SettingsService();
   final _recordedAudio = RecordedAudioService();
   final _transfer = CustomCourseTransferService();
@@ -320,28 +351,6 @@ class _CourseEditorScreenState extends State<CourseEditorScreen> {
     }
   }
 
-  Future<bool> _confirmOfficialRestore() async =>
-      await showDialog<bool>(
-        context: context,
-        builder: (ctx) => AlertDialog(
-          title: const Text('Replace working-copy changes?'),
-          content: const Text(
-            'Restoring the official version will replace the unapplied changes currently in the working copy. The persisted course remains unchanged until final confirmation.',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx, false),
-              child: const Text('Keep current working copy'),
-            ),
-            FilledButton(
-              onPressed: () => Navigator.pop(ctx, true),
-              child: const Text('Restore official version'),
-            ),
-          ],
-        ),
-      ) ??
-      false;
-
   Course _withLessons(List<Lesson> lessons, {bool? temporarySample}) =>
       Course.fromJson({
         ..._course.toJson(),
@@ -484,82 +493,11 @@ class _CourseEditorScreenState extends State<CourseEditorScreen> {
                       readOnlyField('Course ID', _course.courseId),
                       const SizedBox(height: 8),
                       readOnlyField('Course origin', _course.originType.name),
-                      if (_course.originType.isOfficial) ...[
-                        const SizedBox(height: 8),
-                        readOnlyField('Publisher', _course.publisherName),
-                        const SizedBox(height: 8),
-                        readOnlyField(
-                          'Official course version',
-                          _course.officialCourseVersion,
+                      if (_course.forkProvenance != null)
+                        CourseForkProvenanceCard(
+                          provenance: _course.forkProvenance!,
                         ),
-                        const SizedBox(height: 8),
-                        readOnlyField(
-                          'Official release date and time',
-                          _localCourseDateTime(
-                            ctx,
-                            _course.officialReleaseDateUtc,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        readOnlyField(
-                          'Distribution channel',
-                          _course.distributionChannel,
-                        ),
-                        const SizedBox(height: 8),
-                        readOnlyField(
-                          'Publisher verification',
-                          _course.publisherVerificationStatus.name,
-                        ),
-                        const SizedBox(height: 8),
-                        readOnlyField(
-                          'Official checksum',
-                          _course.officialChecksum,
-                        ),
-                        if (_course.officialReleaseNotes.isNotEmpty) ...[
-                          const SizedBox(height: 8),
-                          readOnlyField(
-                            'Official release notes',
-                            _course.officialReleaseNotes,
-                          ),
-                        ],
-                        const SizedBox(height: 8),
-                        readOnlyField(
-                          'Local changes',
-                          _course.localCourseVersion > 0 ? 'Yes' : 'None',
-                        ),
-                        if (_course.localCourseVersion > 0) ...[
-                          const SizedBox(height: 8),
-                          readOnlyField(
-                            'Local version',
-                            '${_course.localCourseVersion}',
-                          ),
-                          const SizedBox(height: 8),
-                          readOnlyField(
-                            'Based on official version',
-                            _course.baseOfficialCourseVersion,
-                          ),
-                          const SizedBox(height: 8),
-                          readOnlyField(
-                            'Local author',
-                            _course.localAuthorUsername,
-                          ),
-                          const SizedBox(height: 8),
-                          readOnlyField(
-                            'Local modification date and time',
-                            _localCourseDateTime(
-                              ctx,
-                              _course.localModifiedAtUtc,
-                            ),
-                          ),
-                          if (_course.localVersionNotes.isNotEmpty) ...[
-                            const SizedBox(height: 8),
-                            readOnlyField(
-                              'Local version notes',
-                              _course.localVersionNotes,
-                            ),
-                          ],
-                        ],
-                      ] else ...[
+                      ...[
                         const SizedBox(height: 8),
                         readOnlyField('Created by', _course.createdByUsername),
                         const SizedBox(height: 8),
@@ -802,16 +740,10 @@ class _CourseEditorScreenState extends State<CourseEditorScreen> {
                       const SizedBox(height: 8),
                       if (narrowCourseInfo) ...[
                         readOnlyField(
-                          _course.originType.isOfficial
-                              ? 'Local course version'
-                              : 'Course version',
-                          _course.originType.isOfficial
-                              ? (_course.localCourseVersion == 0
-                                    ? 'No local version'
-                                    : '${_course.localCourseVersion}')
-                              : (_course.courseVersion.isEmpty
-                                    ? 'Not confirmed yet'
-                                    : _course.courseVersion),
+                          'Course version',
+                          _course.courseVersion.isEmpty
+                              ? 'Not confirmed yet'
+                              : _course.courseVersion,
                         ),
                         const SizedBox(height: 8),
                         TextField(
@@ -828,16 +760,10 @@ class _CourseEditorScreenState extends State<CourseEditorScreen> {
                           children: [
                             Expanded(
                               child: readOnlyField(
-                                _course.originType.isOfficial
-                                    ? 'Local course version'
-                                    : 'Course version',
-                                _course.originType.isOfficial
-                                    ? (_course.localCourseVersion == 0
-                                          ? 'No local version'
-                                          : '${_course.localCourseVersion}')
-                                    : (_course.courseVersion.isEmpty
-                                          ? 'Not confirmed yet'
-                                          : _course.courseVersion),
+                                'Course version',
+                                _course.courseVersion.isEmpty
+                                    ? 'Not confirmed yet'
+                                    : _course.courseVersion,
                               ),
                             ),
                             const SizedBox(width: 8),
@@ -1189,31 +1115,6 @@ class _CourseEditorScreenState extends State<CourseEditorScreen> {
       ),
     );
     if (selection == null || !mounted) return;
-    if (selection.separateCustomCopy) {
-      final result = await Navigator.of(context).push<CourseConfirmationResult>(
-        MaterialPageRoute(
-          builder: (_) => CourseEditorScreen(
-            course: selection.course,
-            userCourse: true,
-            isNewCourse: true,
-            editorService: _service,
-            clock: _clock,
-          ),
-        ),
-      );
-      if (result != null && mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            duration: const Duration(seconds: 12),
-            content: Text(
-              'Course changes confirmed.\nNew course version: ${result.course.courseVersion}'
-              '${result.backupPath == null ? '\nNo previous version existed, so no backup was required.' : '\nBackup: ${result.backupPath}'}',
-            ),
-          ),
-        );
-      }
-      return;
-    }
     if (_dirty) {
       final replace = await showDialog<bool>(
         context: context,
@@ -1245,7 +1146,7 @@ class _CourseEditorScreenState extends State<CourseEditorScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            'Historical version ${selection.course.originType.isOfficial ? selection.course.localCourseVersion : selection.course.courseVersion} loaded into the working copy. Confirm course changes to apply it as a new version.',
+            'Historical version ${selection.course.courseVersion} loaded into the working copy. Confirm course changes to apply it as a new version.',
           ),
         ),
       );
@@ -1254,36 +1155,6 @@ class _CourseEditorScreenState extends State<CourseEditorScreen> {
         context,
       ).showSnackBar(SnackBar(content: Text('$error')));
     }
-  }
-
-  Future<void> _restoreOfficialVersion() async {
-    Course? official;
-    if (_course.originType == CourseOriginType.bundledOfficial) {
-      official = await _courseService.loadBundledCourse(_code);
-    } else {
-      official = await _service.officialSourceFor(_course);
-    }
-    if (official == null || !mounted) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('The immutable official source is unavailable.'),
-          ),
-        );
-      }
-      return;
-    }
-    setState(() {
-      _transaction.loadHistoricalCourse(official!);
-      _auditOutdated = true;
-    });
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text(
-          'The official source was loaded into the working copy. Confirm course changes to apply it; no live data changed yet.',
-        ),
-      ),
-    );
   }
 
   Future<void> _checkOrphanAudio({bool prompt = true}) async {
@@ -1513,24 +1384,6 @@ class _CourseEditorScreenState extends State<CourseEditorScreen> {
                   ),
                 );
               }
-              if (v == 'copy' && !widget.userCourse) {
-                await Clipboard.setData(
-                  ClipboardData(text: await _service.exportUserCourse(_course)),
-                );
-                if (!context.mounted) return;
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    duration: Duration(seconds: 8),
-                    content: Text('Course edits copied as JSON.'),
-                  ),
-                );
-              }
-              if (v == 'restore_official' && _course.originType.isOfficial) {
-                if (_dirty && !await _confirmOfficialRestore()) {
-                  return;
-                }
-                await _restoreOfficialVersion();
-              }
             },
             itemBuilder: (_) => [
               const PopupMenuItem(value: 'audio', child: Text('Audio Library')),
@@ -1548,16 +1401,6 @@ class _CourseEditorScreenState extends State<CourseEditorScreen> {
                 const PopupMenuItem(
                   value: 'export_custom',
                   child: Text('Export course JSON'),
-                ),
-              if (_course.originType == CourseOriginType.bundledOfficial)
-                const PopupMenuItem(
-                  value: 'copy',
-                  child: Text('Copy edits as JSON'),
-                ),
-              if (_course.originType.isOfficial)
-                const PopupMenuItem(
-                  value: 'restore_official',
-                  child: Text('Restore official version'),
                 ),
             ],
           ),
@@ -1631,9 +1474,7 @@ class _CourseEditorScreenState extends State<CourseEditorScreen> {
             leading: const Icon(Icons.history_outlined),
             title: const Text('Version history'),
             subtitle: Text(
-              _course.originType.isOfficial
-                  ? 'Publisher: ${_course.publisherName} · Official ${_course.officialCourseVersion} · Local ${_course.localCourseVersion == 0 ? 'none' : _course.localCourseVersion}'
-                  : 'Course version ${_course.courseVersion.isEmpty ? 'not confirmed' : _course.courseVersion} · ${_course.lastModifiedByUsername.isEmpty ? 'No version author yet' : _course.lastModifiedByUsername}',
+              'Course version ${_course.courseVersion.isEmpty ? 'not confirmed' : _course.courseVersion} · ${_course.lastModifiedByUsername.isEmpty ? 'No version author yet' : _course.lastModifiedByUsername}',
             ),
             trailing: const Icon(Icons.chevron_right),
             onTap: _openVersionHistory,
@@ -5215,7 +5056,11 @@ class _CourseAuditScreenState extends State<CourseAuditScreen> {
           isThreeLine: true,
           trailing: issue.roundId == null
               ? null
-              : const Icon(Icons.edit_outlined),
+              : Icon(
+                  widget.course.originType.isOfficial
+                      ? Icons.visibility_outlined
+                      : Icons.edit_outlined,
+                ),
           onTap: issue.roundId == null
               ? null
               : () => Navigator.pop(context, issue),

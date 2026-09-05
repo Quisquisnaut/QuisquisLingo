@@ -32,21 +32,7 @@ BASE_TIME = datetime(2026, 9, 4, 8, 0, tzinfo=timezone.utc)
 
 
 def _official_checksum(course: dict[str, object]) -> str:
-    excluded = {
-        "officialChecksum",
-        "publisherVerificationStatus",
-        "publisherSignature",
-        "baseCourseId",
-        "basePublisherId",
-        "baseOfficialCourseVersion",
-        "baseOfficialChecksum",
-        "localCourseVersion",
-        "localAuthorProfileId",
-        "localAuthorUsername",
-        "localModifiedAtUtc",
-        "localVersionNotes",
-        "restoredFromVersion",
-    }
+    excluded = {"officialChecksum", "publisherVerificationStatus", "publisherSignature"}
     canonical = {
         key: json.loads(json.dumps(value, ensure_ascii=False))
         for key, value in course.items()
@@ -54,6 +40,8 @@ def _official_checksum(course: dict[str, object]) -> str:
     }
     # CourseAuthor canonical serialization retains the compatibility-facing
     # primary role beside the complete roles list.
+    if canonical.get("derivativeWorksPolicy") in (None, "unspecified"):
+        canonical.pop("derivativeWorksPolicy", None)
     for author in canonical.get("authors", []):
         roles = author.get("roles", [])
         if roles:

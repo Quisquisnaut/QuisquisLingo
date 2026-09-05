@@ -39,18 +39,14 @@ UTC_TIMESTAMP = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?Z
 
 
 def _official_checksum(course: dict[str, object]) -> str:
-    excluded = {
-        "officialChecksum", "publisherVerificationStatus", "publisherSignature",
-        "baseCourseId", "basePublisherId", "baseOfficialCourseVersion",
-        "baseOfficialChecksum", "localCourseVersion", "localAuthorProfileId",
-        "localAuthorUsername", "localModifiedAtUtc", "localVersionNotes",
-        "restoredFromVersion",
-    }
+    excluded = {"officialChecksum", "publisherVerificationStatus", "publisherSignature"}
     canonical = {
         key: json.loads(json.dumps(value, ensure_ascii=False))
         for key, value in course.items()
         if key not in excluded
     }
+    if canonical.get("derivativeWorksPolicy") in (None, "unspecified"):
+        canonical.pop("derivativeWorksPolicy", None)
     for author in canonical.get("authors", []):
         roles = author.get("roles", [])
         if roles:
@@ -109,6 +105,10 @@ def validate(path: Path, global_ids: dict[str, str]) -> list[str]:
         issues.append("root: missing or invalid defaultLessonIconStyle")
     if data.get("originType") != "bundledOfficial":
         issues.append("root: bundled course originType must be bundledOfficial")
+    if data.get("derivativeWorksPolicy") not in (None, "allowed", "forbidden", "unspecified"):
+        issues.append("root: derivativeWorksPolicy must be allowed, forbidden or unspecified")
+    if "forkProvenance" in data:
+        issues.append("root: official courses cannot contain custom forkProvenance")
     if data.get("publisherId") != "org.quisquislingo":
         issues.append("root: bundled publisherId must be org.quisquislingo")
     if data.get("publisherName") != "QuisquisLingo":

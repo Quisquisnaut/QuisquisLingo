@@ -356,43 +356,39 @@ void main() {
   );
 
   test(
-    'official local versions remain separate from publisher version',
+    'official courses cannot enter a local confirmation transaction',
     () async {
-      final official = _officialCourse(
-        origin: CourseOriginType.bundledOfficial,
-        officialVersion: '3',
-      );
       final service = CourseEditorService(
         backupService: backups,
         clock: () => _when,
       );
-      final first = await service.confirmCourseTransaction(
-        originalCourse: official,
-        workingCourse: Course.fromJson({
-          ...official.toJson(),
-          'title': 'Local title',
-        }),
-        languageCode: 'IT',
-        versionNotes: 'Local notes',
-      );
-      expect(first.course.officialCourseVersion, '3');
-      expect(first.course.localCourseVersion, 1);
-      expect(first.course.baseOfficialCourseVersion, '3');
-      expect(first.course.baseOfficialChecksum, official.officialChecksum);
-      expect(first.course.localAuthorUsername, 'Author Ω');
-      expect(first.course.localVersionNotes, 'Local notes');
-
-      final second = await service.confirmCourseTransaction(
-        originalCourse: first.course,
-        workingCourse: Course.fromJson({
-          ...first.course.toJson(),
-          'title': 'Local title 2',
-        }),
-        languageCode: 'IT',
-        versionNotes: '',
-      );
-      expect(second.course.officialCourseVersion, '3');
-      expect(second.course.localCourseVersion, 2);
+      for (final origin in [
+        CourseOriginType.bundledOfficial,
+        CourseOriginType.externalOfficial,
+      ]) {
+        final official = _officialCourse(origin: origin, officialVersion: '3');
+        expect(() => CourseEditorTransaction(official), throwsStateError);
+        await expectLater(
+          service.saveUserCourse(official),
+          throwsArgumentError,
+        );
+        await expectLater(
+          service.confirmCourseTransaction(
+            originalCourse: official,
+            workingCourse: Course.fromJson({
+              ...official.toJson(),
+              'title': 'Local title',
+            }),
+            languageCode: 'IT',
+            versionNotes: 'Local notes',
+          ),
+          throwsStateError,
+        );
+        expect(official.title, 'Official course');
+        expect(official.officialCourseVersion, '3');
+        expect(await backups.listBackups(official.courseId), isEmpty);
+      }
+      expect(await service.listUserCourses(), isEmpty);
     },
   );
 
@@ -416,7 +412,7 @@ void main() {
   });
 
   test(
-    'external official update archives local state and refuses publisher collision',
+    'external official update preserves the prior source and refuses publisher collision',
     () async {
       final service = CourseEditorService(
         backupService: backups,
@@ -431,29 +427,19 @@ void main() {
         installed.officialCourse.publisherVerificationStatus,
         PublisherVerificationStatus.unverified,
       );
-      final local = await service.confirmCourseTransaction(
-        originalCourse: installed.officialCourse,
-        workingCourse: Course.fromJson({
-          ...installed.officialCourse.toJson(),
-          'title': 'Local v3',
-        }),
-        languageCode: 'IT',
-        versionNotes: 'Work on v3',
-      );
-      expect(local.course.localCourseVersion, 1);
-
       final v4 = _officialCourse(
         origin: CourseOriginType.externalOfficial,
         officialVersion: '4',
         title: 'Official v4',
       );
       final updated = await service.installExternalOfficialUpdate(v4);
-      expect(updated.archivedLocalChanges, isTrue);
       expect(updated.backupPath, isNotNull);
       final active = (await service.listUserCourses()).single;
       expect(active.title, 'Official v4');
       expect(active.officialCourseVersion, '4');
-      expect(active.localCourseVersion, 0);
+      final history = await backups.listBackups(v3.courseId);
+      expect(history, hasLength(1));
+      expect(history.single.course.toJson(), installed.officialCourse.toJson());
 
       final attacker = _officialCourse(
         origin: CourseOriginType.externalOfficial,
@@ -468,49 +454,6 @@ void main() {
         (await service.listUserCourses()).single.officialCourseVersion,
         '4',
       );
-    },
-  );
-
-  test(
-    'bundled official update archives the exact active course and does not merge',
-    () async {
-      final service = CourseEditorService(
-        backupService: backups,
-        clock: () => _when,
-      );
-      final v3 = _officialCourse(
-        origin: CourseOriginType.bundledOfficial,
-        officialVersion: '3',
-      );
-      final localV3 = Course.fromJson({
-        ...v3.toJson(),
-        'title': 'Local changes on v3',
-        'baseCourseId': v3.courseId,
-        'basePublisherId': v3.publisherId,
-        'baseOfficialCourseVersion': v3.officialCourseVersion,
-        'baseOfficialChecksum': v3.officialChecksum,
-        'localCourseVersion': 4,
-      });
-      await service.saveCourse(languageCode: 'IT', course: localV3);
-      final v4 = _officialCourse(
-        origin: CourseOriginType.bundledOfficial,
-        officialVersion: '4',
-        title: 'Exact official v4',
-      );
-
-      final loaded = Course.fromJson(
-        await service.applyToCourse('IT', v4.toJson()),
-      );
-      expect(loaded.title, 'Exact official v4');
-      expect(loaded.officialCourseVersion, '4');
-      expect(loaded.localCourseVersion, 0);
-      final history = await backups.listBackups(v3.courseId);
-      expect(history, hasLength(1));
-      expect(history.single.course.title, 'Local changes on v3');
-      final notice = await service.consumeOfficialUpdateNotice(v3.courseId);
-      expect(notice?['officialCourseVersion'], '4');
-      expect(notice?['backupPath'], history.single.manifestFile.path);
-      expect(await service.consumeOfficialUpdateNotice(v3.courseId), isNull);
     },
   );
 
@@ -547,7 +490,7 @@ void main() {
   );
 
   test(
-    'restore is monotonic and rejects a historical official base mismatch',
+    'custom restore retains the current version for monotonic confirmation',
     () {
       final current = _customCourse(title: 'Current', version: '6');
       final historical = _customCourse(title: 'Historical', version: '3');
@@ -556,20 +499,6 @@ void main() {
       expect(transaction.workingCourse.title, 'Historical');
       expect(transaction.workingCourse.courseVersion, '6');
       expect(transaction.workingCourse.restoredFromVersion, 3);
-
-      final official3 = _officialCourse(
-        origin: CourseOriginType.bundledOfficial,
-        officialVersion: '3',
-      );
-      final official4 = _officialCourse(
-        origin: CourseOriginType.bundledOfficial,
-        officialVersion: '4',
-      );
-      expect(
-        () =>
-            CourseEditorTransaction(official4).loadHistoricalCourse(official3),
-        throwsFormatException,
-      );
     },
   );
 }

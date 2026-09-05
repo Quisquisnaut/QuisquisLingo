@@ -1,12 +1,12 @@
 import 'dart:convert';
 
-import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/course_models.dart';
 import 'course_backup_service.dart';
 import 'learner_status_events.dart';
 import 'profile_service.dart';
+import 'authoring_duplication_service.dart';
 
 class CourseConfirmationResult {
   final Course course;
@@ -23,28 +23,22 @@ class CourseConfirmationResult {
 class OfficialCourseUpdateResult {
   final Course officialCourse;
   final String? backupPath;
-  final bool archivedLocalChanges;
 
   const OfficialCourseUpdateResult({
     required this.officialCourse,
     required this.backupPath,
-    required this.archivedLocalChanges,
   });
 }
 
 /// Local, offline Course Model v6 authoring storage.
 ///
 /// Bundled assets and imported official packages remain immutable sources.
-/// Confirmed local variants are stored separately. Nested editor pages never
-/// call this service: only the top-level Course Editor confirms a transaction.
+/// Official sources are locally read-only. Only custom courses have authoring
+/// transactions; nested editors never persist them independently.
 class CourseEditorService {
-  static const bundledOverridesStorageKey =
-      'quisquislingo_course_editor_overrides_v6_225';
   static const userCoursesStorageKey = 'quisquislingo_user_courses_v6_225';
   static const externalOfficialStorageKey =
       'quisquislingo_external_official_courses_v6_22504';
-  static const officialUpdateNoticesStorageKey =
-      'quisquislingo_official_update_notices_v6_22504';
   static const _corruptBackupKey =
       'quisquislingo_course_editor_corrupt_backup_v6_225';
   static const _maxBytes = 8 * 1024 * 1024;
@@ -74,22 +68,6 @@ class CourseEditorService {
   final CourseBackupService backupService;
   final ProfileService _profiles;
   final DateTime Function() _clock;
-
-  String _normalizeCode(String value) {
-    final v = value.trim().toUpperCase();
-    return switch (v) {
-      'ITALIAN' || 'IT' => 'IT',
-      'GERMAN' || 'DE' => 'DE',
-      'SPANISH' || 'ES' => 'ES',
-      'ENGLISH' || 'EN' => 'EN',
-      'WELSH' || 'CY' => 'CY',
-      'DUTCH' || 'NL' => 'NL',
-      'PORTUGUESE' || 'PT' => 'PT',
-      'FINNISH' || 'FI' => 'FI',
-      'KOREAN' || 'KO' || 'KR' => 'KO',
-      _ => v,
-    };
-  }
 
   Future<Map<String, dynamic>> _loadKey(String key) async {
     final preferences = await SharedPreferences.getInstance();
@@ -180,108 +158,6 @@ class CourseEditorService {
     'course': course.toJson(),
   };
 
-  /// Applies a local bundled variant without ever modifying the asset source.
-  /// A pre-225.04 v6 override is adopted as a local variant of the current
-  /// official source so existing authoring work is retained.
-  Future<Map<String, dynamic>> applyToCourse(
-    String languageCode,
-    Map<String, dynamic> base,
-  ) async {
-    final official = Course.fromJson(base);
-    final all = await _loadKey(bundledOverridesStorageKey);
-    final code = _normalizeCode(languageCode);
-    final rawEntry = all[code];
-    if (rawEntry == null) return official.toJson();
-    final stored = _courseFromEntry(rawEntry);
-    if (stored.courseId != official.courseId) {
-      throw const FormatException(
-        'The stored bundled-course override has a different course identity.',
-      );
-    }
-
-    if (!stored.originType.isOfficial) {
-      return _asLocalOfficialVariant(stored, official).toJson();
-    }
-    final sameBase =
-        stored.basePublisherId == official.publisherId &&
-        stored.baseOfficialCourseVersion == official.officialCourseVersion &&
-        stored.baseOfficialChecksum == official.officialChecksum;
-    if (sameBase) return stored.toJson();
-
-    final backup = await backupService.createBackup(
-      stored,
-      backedUpAt: _clock(),
-      reason: 'Bundled official update archived active local version',
-    );
-    final next = Map<String, dynamic>.from(all)..remove(code);
-    await _replaceKeyAtomically(bundledOverridesStorageKey, next);
-    await _recordOfficialUpdateNotice(
-      course: official,
-      backupPath: backup.manifestFile.path,
-    );
-    return official.toJson();
-  }
-
-  Future<void> _recordOfficialUpdateNotice({
-    required Course course,
-    required String backupPath,
-  }) async {
-    final all = await _loadKey(officialUpdateNoticesStorageKey);
-    all[course.courseId] = {
-      'publisherName': course.publisherName,
-      'officialCourseVersion': course.officialCourseVersion,
-      'backupPath': backupPath,
-      'recordedAtUtc': _clock().toUtc().toIso8601String(),
-    };
-    await _saveKey(officialUpdateNoticesStorageKey, all);
-  }
-
-  Future<Map<String, dynamic>?> consumeOfficialUpdateNotice(
-    String courseId,
-  ) async {
-    final all = await _loadKey(officialUpdateNoticesStorageKey);
-    final value = all.remove(courseId);
-    if (value == null) return null;
-    await _saveKey(officialUpdateNoticesStorageKey, all);
-    return value is Map ? Map<String, dynamic>.from(value) : null;
-  }
-
-  static Course _asLocalOfficialVariant(Course edited, Course official) =>
-      Course.fromJson({
-        ...edited.toJson(),
-        'originType': official.originType.name,
-        'publisherId': official.publisherId,
-        'publisherName': official.publisherName,
-        'officialCourseVersion': official.officialCourseVersion,
-        'officialReleaseDateUtc': official.officialReleaseDateUtc,
-        'officialChecksum': official.officialChecksum,
-        'officialReleaseNotes': official.officialReleaseNotes,
-        'distributionChannel': official.distributionChannel,
-        'publisherVerificationStatus':
-            official.publisherVerificationStatus.name,
-        if (official.publisherSignature.isNotEmpty)
-          'publisherSignature': official.publisherSignature,
-        'baseCourseId': official.courseId,
-        'basePublisherId': official.publisherId,
-        'baseOfficialCourseVersion': official.officialCourseVersion,
-        'baseOfficialChecksum': official.officialChecksum,
-      });
-
-  /// Direct writes remain for import/project management only. Course Editor
-  /// routes use [confirmCourseTransaction].
-  Future<void> saveCourse({
-    required String languageCode,
-    required Course course,
-  }) async {
-    final all = await _loadKey(bundledOverridesStorageKey);
-    final stored = course.originType == CourseOriginType.bundledOfficial
-        ? _asLocalOfficialVariant(course, course)
-        : course;
-    all[_normalizeCode(languageCode)] = _entry(stored, _clock());
-    await _saveKey(bundledOverridesStorageKey, all);
-    LearnerStatusEvents.publish(LearnerStatusInvalidation.courseMetadata);
-  }
-
   Future<void> saveUserCourse(Course course) async {
     if (course.originType != CourseOriginType.custom) {
       throw ArgumentError('Official courses require official-source storage.');
@@ -296,6 +172,12 @@ class CourseEditorService {
       );
     }
     final all = await _loadKey(userCoursesStorageKey);
+    if (all[course.courseId] != null) {
+      _requirePreservedProvenance(
+        _courseFromEntry(all[course.courseId]),
+        course,
+      );
+    }
     all[course.courseId] = _entry(course, _clock());
     await _saveKey(userCoursesStorageKey, all);
     LearnerStatusEvents.publish(LearnerStatusInvalidation.courseMetadata);
@@ -321,13 +203,17 @@ class CourseEditorService {
         );
       }
       final record = Map<String, dynamic>.from(item.value as Map);
-      out.add(
-        Course.fromJson(
-          Map<String, dynamic>.from(
-            (record['override'] ?? record['source']) as Map,
-          ),
-        ),
+      final source = Course.fromJson(
+        Map<String, dynamic>.from(record['source'] as Map),
       );
+      _validateOfficialSource(source);
+      if (source.courseId != item.key ||
+          source.originType != CourseOriginType.externalOfficial) {
+        throw const FormatException(
+          'Stored official source identity is invalid.',
+        );
+      }
+      out.add(source);
     }
     out.sort((a, b) => a.title.toLowerCase().compareTo(b.title.toLowerCase()));
     return out;
@@ -357,32 +243,85 @@ class CourseEditorService {
     Course course, {
     Course? bundledSource,
   }) async {
+    Course? source;
     if (course.originType == CourseOriginType.bundledOfficial) {
-      return bundledSource;
+      source = bundledSource;
+    } else if (course.originType == CourseOriginType.externalOfficial) {
+      final record = (await _loadKey(
+        externalOfficialStorageKey,
+      ))[course.courseId];
+      if (record is Map && record['source'] is Map) {
+        source = Course.fromJson(
+          Map<String, dynamic>.from(record['source'] as Map),
+        );
+      }
     }
-    if (course.originType != CourseOriginType.externalOfficial) return null;
-    final all = await _loadKey(externalOfficialStorageKey);
-    final record = all[course.courseId];
-    if (record is! Map || record['source'] is! Map) return null;
-    return Course.fromJson(Map<String, dynamic>.from(record['source'] as Map));
+    if (source != null) {
+      _validateOfficialSource(source);
+      if (source.courseId != course.courseId ||
+          source.originType != course.originType ||
+          source.publisherId != course.publisherId) {
+        throw const FormatException(
+          'The official source identity does not match.',
+        );
+      }
+    }
+    return source;
   }
 
-  Future<String> exportCourseEdits(String languageCode) async {
-    final all = await _loadKey(bundledOverridesStorageKey);
-    final code = _normalizeCode(languageCode);
-    return const JsonEncoder.withIndent('  ').convert({
-      'format': 'QuisquisLingo Course Model v6 local override',
-      'language': code,
-      'override': all[code] ?? <String, dynamic>{},
-    });
+  static void _validateOfficialSource(Course course) {
+    if (!course.originType.isOfficial ||
+        CourseBackupService.officialContentChecksum(course) !=
+            course.officialChecksum) {
+      throw const FormatException('The official package checksum is invalid.');
+    }
+  }
+
+  static void _requirePreservedProvenance(Course original, Course candidate) {
+    if (jsonEncode(original.forkProvenance?.toJson()) !=
+        jsonEncode(candidate.forkProvenance?.toJson())) {
+      throw const FormatException(
+        'Original fork authorship and provenance cannot be changed or removed.',
+      );
+    }
+  }
+
+  Future<Course> forkOfficialCourse(Course official) async {
+    _validateOfficialSource(official);
+    if (official.derivativeWorksPolicy != DerivativeWorksPolicy.allowed) {
+      throw StateError(
+        official.derivativeWorksPolicy == DerivativeWorksPolicy.forbidden
+            ? 'The publisher forbids derivative works.'
+            : 'The publisher has not explicitly allowed derivative works.',
+      );
+    }
+    final profile = await _profiles.getActiveProfileRecord();
+    if (profile == null) {
+      throw StateError(
+        'Select or create an active QQL learner profile before creating a custom fork.',
+      );
+    }
+    final provenance = CourseForkProvenance(
+      originalPublisherId: official.publisherId,
+      originalPublisherName: official.publisherName,
+      originalCourseId: official.courseId,
+      originalOfficialCourseVersion: official.officialCourseVersion,
+      originalOfficialChecksum: official.officialChecksum,
+      originalCourseTitle: official.title,
+      originalAuthor: official.author,
+      originalAuthors: official.authors,
+      forkCreatedByProfileId: profile.learnerProfileId,
+      forkCreatedByUsername: profile.displayName,
+      forkCreatedAtUtc: _clock().toUtc().toIso8601String(),
+    );
+    return AuthoringDuplicationService().forkOfficialCourse(
+      official,
+      provenance: provenance,
+    );
   }
 
   Future<String> exportUserCourse(Course course) async =>
       const JsonEncoder.withIndent('  ').convert(course.toJson());
-
-  Future<void> copyCourseEdits(String languageCode) async => Clipboard.setData(
-    ClipboardData(text: await exportCourseEdits(languageCode)),
-  );
 
   Future<CourseConfirmationResult> confirmCourseTransaction({
     required Course originalCourse,
@@ -393,6 +332,13 @@ class CourseEditorService {
     DateTime? committedAt,
   }) async {
     Course.fromJson(workingCourse.toJson());
+    if (originalCourse.originType.isOfficial ||
+        workingCourse.originType.isOfficial) {
+      throw StateError(
+        'Official course - read only. Create a licensed custom fork to edit.',
+      );
+    }
+    _requirePreservedProvenance(originalCourse, workingCourse);
     if (workingCourse.courseId != originalCourse.courseId) {
       throw ArgumentError(
         'The working copy must retain the persisted course identity.',
@@ -407,42 +353,13 @@ class CourseEditorService {
     final when = (committedAt ?? _clock()).toUtc();
     final notes = versionNotes.trim();
 
-    late final String storageKey;
-    late final String storageId;
-    late final Map<String, dynamic> all;
-    Course? current;
-    if (workingCourse.originType == CourseOriginType.bundledOfficial) {
-      storageKey = bundledOverridesStorageKey;
-      storageId = _normalizeCode(languageCode);
-      all = await _loadKey(storageKey);
-      final entry = all[storageId];
-      current = entry == null ? originalCourse : _courseFromEntry(entry);
-      if (!current.originType.isOfficial) {
-        current = _asLocalOfficialVariant(current, originalCourse);
-      }
-    } else if (workingCourse.originType == CourseOriginType.externalOfficial) {
-      storageKey = externalOfficialStorageKey;
-      storageId = workingCourse.courseId;
-      all = await _loadKey(storageKey);
-      final raw = all[storageId];
-      if (raw is! Map || raw['source'] is! Map) {
-        throw StateError('The external official source is unavailable.');
-      }
-      final record = Map<String, dynamic>.from(raw);
-      current = Course.fromJson(
-        Map<String, dynamic>.from(
-          (record['override'] ?? record['source']) as Map,
-        ),
-      );
-    } else {
-      storageKey = userCoursesStorageKey;
-      storageId = workingCourse.courseId;
-      all = await _loadKey(storageKey);
-      final entry = all[storageId];
-      current = entry == null ? null : _courseFromEntry(entry);
-      if (!isNewCourse && current == null) {
-        throw StateError('The persisted custom course is unavailable.');
-      }
+    const storageKey = userCoursesStorageKey;
+    final storageId = workingCourse.courseId;
+    final all = await _loadKey(storageKey);
+    final entry = all[storageId];
+    final current = entry == null ? null : _courseFromEntry(entry);
+    if (!isNewCourse && current == null) {
+      throw StateError('The persisted custom course is unavailable.');
     }
     if (current != null && current.courseId != originalCourse.courseId) {
       throw StateError(
@@ -454,12 +371,10 @@ class CourseEditorService {
         'A course with this identity was created while the Editor was open.',
       );
     }
-    if (isNewCourse &&
-        workingCourse.originType == CourseOriginType.custom &&
-        (_bundledOfficialCourseIds.contains(workingCourse.courseId) ||
-            (await _loadKey(
-              externalOfficialStorageKey,
-            )).containsKey(workingCourse.courseId))) {
+    if ((_bundledOfficialCourseIds.contains(workingCourse.courseId) ||
+        (await _loadKey(
+          externalOfficialStorageKey,
+        )).containsKey(workingCourse.courseId))) {
       throw StateError(
         'An official course already uses this identity. Create a separate custom-course copy.',
       );
@@ -481,35 +396,18 @@ class CourseEditorService {
       );
     }
 
-    final committed = workingCourse.originType.isOfficial
-        ? _confirmedOfficialVariant(
-            workingCourse,
-            current!,
-            profile,
-            when,
-            notes,
-          )
-        : _confirmedCustomCourse(workingCourse, current, profile, when, notes);
+    final committed = _confirmedCustomCourse(
+      workingCourse,
+      current,
+      profile,
+      when,
+      notes,
+    );
     final next = Map<String, dynamic>.from(all);
-    if (workingCourse.originType == CourseOriginType.externalOfficial) {
-      final record = Map<String, dynamic>.from(next[storageId] as Map);
-      record['override'] = committed.toJson();
-      record['savedAt'] = when.toIso8601String();
-      next[storageId] = record;
-    } else {
-      next[storageId] = _entry(committed, when);
-    }
+    next[storageId] = _entry(committed, when);
     await _replaceKeyAtomically(storageKey, next);
 
-    final verifiedRoot = await _loadKey(storageKey);
-    final verified =
-        workingCourse.originType == CourseOriginType.externalOfficial
-        ? Course.fromJson(
-            Map<String, dynamic>.from(
-              (verifiedRoot[storageId] as Map)['override'] as Map,
-            ),
-          )
-        : _courseFromEntry(verifiedRoot[storageId]);
+    final verified = _courseFromEntry((await _loadKey(storageKey))[storageId]);
     if (jsonEncode(verified.toJson()) != jsonEncode(committed.toJson())) {
       throw StateError('Course persistence verification failed.');
     }
@@ -557,35 +455,13 @@ class CourseEditorService {
     return int.tryParse(legacyMajor ?? '') ?? 0;
   }
 
-  static Course _confirmedOfficialVariant(
-    Course working,
-    Course current,
-    LearnerProfile profile,
-    DateTime when,
-    String notes,
-  ) => Course.fromJson({
-    ...working.toJson(),
-    'localCourseVersion': current.localCourseVersion + 1,
-    'baseCourseId': working.courseId,
-    'basePublisherId': working.publisherId,
-    'baseOfficialCourseVersion': working.officialCourseVersion,
-    'baseOfficialChecksum': working.officialChecksum,
-    'localAuthorProfileId': profile.learnerProfileId,
-    'localAuthorUsername': profile.displayName,
-    'localModifiedAtUtc': when.toIso8601String(),
-    'localVersionNotes': notes,
-  });
-
   Future<OfficialCourseUpdateResult> installExternalOfficialUpdate(
     Course update,
   ) async {
     if (update.originType != CourseOriginType.externalOfficial) {
       throw ArgumentError('The package is not an external official course.');
     }
-    if (CourseBackupService.officialContentChecksum(update) !=
-        update.officialChecksum) {
-      throw const FormatException('The official package checksum is invalid.');
-    }
+    _validateOfficialSource(update);
     final normalizedUpdate = Course.fromJson({
       ...update.toJson(),
       'publisherVerificationStatus':
@@ -612,7 +488,6 @@ class CourseEditorService {
       return OfficialCourseUpdateResult(
         officialCourse: normalizedUpdate,
         backupPath: null,
-        archivedLocalChanges: false,
       );
     }
     if (raw is! Map || raw['source'] is! Map) {
@@ -622,7 +497,10 @@ class CourseEditorService {
     final previousSource = Course.fromJson(
       Map<String, dynamic>.from(record['source'] as Map),
     );
-    if (previousSource.publisherId != normalizedUpdate.publisherId) {
+    _validateOfficialSource(previousSource);
+    if (previousSource.courseId != normalizedUpdate.courseId ||
+        previousSource.originType != CourseOriginType.externalOfficial ||
+        previousSource.publisherId != normalizedUpdate.publisherId) {
       throw const FormatException(
         'A different publisher cannot replace this official course identity.',
       );
@@ -637,17 +515,16 @@ class CourseEditorService {
       );
     }
     final active = Course.fromJson(
-      Map<String, dynamic>.from(
-        (record['override'] ?? record['source']) as Map,
-      ),
+      Map<String, dynamic>.from(record['source'] as Map),
     );
     final backup = await backupService.createBackup(
       active,
       backedUpAt: _clock(),
-      reason: 'External official update archived active course state',
+      reason: 'External official update archived previous official source',
     );
     final next = Map<String, dynamic>.from(all);
     next[normalizedUpdate.courseId] = {
+      ...record,
       'source': normalizedUpdate.toJson(),
       'savedAt': _clock().toUtc().toIso8601String(),
     };
@@ -656,7 +533,6 @@ class CourseEditorService {
     return OfficialCourseUpdateResult(
       officialCourse: normalizedUpdate,
       backupPath: backup.manifestFile.path,
-      archivedLocalChanges: record['override'] != null,
     );
   }
 

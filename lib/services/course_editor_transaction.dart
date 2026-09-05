@@ -11,7 +11,13 @@ class CourseEditorTransaction {
   CourseEditorTransaction(Course persistedCourse, {bool isNewCourse = false})
     : _originalCourse = _copy(persistedCourse),
       _workingCourse = _copy(persistedCourse),
-      _newCourseUnconfirmed = isNewCourse;
+      _newCourseUnconfirmed = isNewCourse {
+    if (persistedCourse.originType.isOfficial) {
+      throw StateError(
+        'Official courses do not have content-editing transactions.',
+      );
+    }
+  }
 
   Course _originalCourse;
   Course _workingCourse;
@@ -25,6 +31,15 @@ class CourseEditorTransaction {
       _semanticJson(_workingCourse) != _semanticJson(_originalCourse);
 
   void replaceWorkingCourse(Course course) {
+    if (course.originType.isOfficial) {
+      throw StateError('A custom transaction cannot become official.');
+    }
+    if (jsonEncode(course.forkProvenance?.toJson()) !=
+        jsonEncode(_originalCourse.forkProvenance?.toJson())) {
+      throw const FormatException(
+        'Original fork provenance cannot be changed.',
+      );
+    }
     if (course.courseId != _originalCourse.courseId) {
       throw ArgumentError.value(
         course.courseId,
@@ -46,24 +61,17 @@ class CourseEditorTransaction {
     if (historical.courseId != _originalCourse.courseId) {
       throw const FormatException('The backup belongs to a different course.');
     }
-    if (_originalCourse.originType.isOfficial &&
-        (historical.publisherId != _originalCourse.publisherId ||
-            historical.officialCourseVersion !=
-                _originalCourse.officialCourseVersion ||
-            historical.officialChecksum != _originalCourse.officialChecksum)) {
+    if (historical.originType.isOfficial) {
       throw const FormatException(
-        'This historical local version uses a different official base. Open it as a separate custom-course copy instead.',
+        'Official history cannot replace a custom course.',
       );
     }
-    final restoredVersion = historical.originType.isOfficial
-        ? (historical.localCourseVersion > 0
-              ? historical.localCourseVersion
-              : null)
-        : int.tryParse(historical.courseVersion);
+    final restoredVersion = int.tryParse(historical.courseVersion);
     final json = Map<String, dynamic>.from(historical.toJson());
     final active = _originalCourse.toJson();
     for (final key in const [
       'originType',
+      'forkProvenance',
       'publisherId',
       'publisherName',
       'officialCourseVersion',
@@ -73,15 +81,6 @@ class CourseEditorTransaction {
       'distributionChannel',
       'publisherVerificationStatus',
       'publisherSignature',
-      'baseCourseId',
-      'basePublisherId',
-      'baseOfficialCourseVersion',
-      'baseOfficialChecksum',
-      'localCourseVersion',
-      'localAuthorProfileId',
-      'localAuthorUsername',
-      'localModifiedAtUtc',
-      'localVersionNotes',
       'courseVersion',
       'createdByProfileId',
       'createdByUsername',

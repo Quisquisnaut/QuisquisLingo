@@ -538,61 +538,45 @@ void main() {
   );
 
   testWidgets(
-    'Restore official version changes only the working copy until top-level choice',
+    'official inspection closes without a working-copy confirmation or backup',
     (tester) async {
+      final customBefore = (await service.listUserCourses())
+          .map((course) => course.toJson())
+          .toList();
       final official = (await tester.runAsync(
         () => CourseService().loadBundledCourse('IT'),
       ))!;
-      final localResult = await service.confirmCourseTransaction(
-        originalCourse: official,
-        workingCourse: Course.fromJson({
-          ...official.toJson(),
-          'title': 'Local official title',
-          'temporarySample': false,
-        }),
-        languageCode: 'IT',
-        versionNotes: 'local official work',
-      );
-      expect(localResult.course.localCourseVersion, 1);
-      expect(await backups.listBackups(official.courseId), hasLength(1));
-
       await _openEditor(
         tester,
-        localResult.course,
+        official,
         service,
         courseService: _StubCourseService(official),
       );
-      await tester.tap(find.byType(PopupMenuButton<String>).first);
-      await _settle(tester);
-      await tester.tap(find.text('Restore official version'));
-      await _settle(tester, frames: 24);
-
-      expect(find.text('Local official title'), findsNothing);
       expect(find.text(official.title), findsWidgets);
+      expect(find.text('Official course - read only'), findsWidgets);
+      expect(find.text('Restore official version'), findsNothing);
       expect(
         find.byKey(const Key('course-transaction-confirmation')),
         findsNothing,
       );
-      final stillPersisted = Course.fromJson(
-        await service.applyToCourse('IT', official.toJson()),
-      );
-      expect(stillPersisted.title, 'Local official title');
-      expect(stillPersisted.localCourseVersion, 1);
-
       await tester.tap(find.byType(BackButton).last);
       await _settle(tester);
       expect(
         find.byKey(const Key('course-transaction-confirmation')),
-        findsOneWidget,
+        findsNothing,
       );
-      await tester.tap(find.byKey(const Key('cancel-course-changes')));
-      await _settle(tester);
-      final afterCancel = Course.fromJson(
-        await service.applyToCourse('IT', official.toJson()),
+      expect(find.text('Open Editor'), findsOneWidget);
+      expect(
+        (await service.listUserCourses())
+            .map((course) => course.toJson())
+            .toList(),
+        customBefore,
       );
-      expect(afterCancel.title, 'Local official title');
-      expect(afterCancel.localCourseVersion, 1);
-      expect(await backups.listBackups(official.courseId), hasLength(1));
+      expect(await backups.listBackups(official.courseId), isEmpty);
+      final reloaded = (await tester.runAsync(
+        () => CourseService().loadCourse('IT'),
+      ))!;
+      expect(reloaded.toJson(), official.toJson());
     },
   );
 

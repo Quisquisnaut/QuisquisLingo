@@ -164,14 +164,14 @@ void main() {
     await tester.pumpAndSettle();
     for (final label in [
       'Edit',
-      'Duplicate',
+      'Duplicate custom course',
       'Audit',
       'Export JSON',
       'Delete course',
     ]) {
       expect(find.text(label), findsOneWidget);
     }
-    await tester.tap(find.text('Duplicate'));
+    await tester.tap(find.text('Duplicate custom course'));
     await tester.pumpAndSettle();
     expect(find.text('Course Editor'), findsOneWidget);
     expect(await CourseEditorService().listUserCourses(), hasLength(1));

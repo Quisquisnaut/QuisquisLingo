@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import '../models/course_models.dart';
 
 abstract interface class AuthoringIdGenerator {
@@ -25,6 +27,40 @@ class AuthoringDuplicationService {
   final AuthoringIdGenerator _ids;
 
   Course duplicateCourse(Course source, {required String title}) {
+    if (source.originType.isOfficial) {
+      throw StateError('Official courses require a licensed custom fork.');
+    }
+    return _copyCourse(source, title: title, provenance: source.forkProvenance);
+  }
+
+  Course forkOfficialCourse(
+    Course source, {
+    required CourseForkProvenance provenance,
+  }) {
+    if (!source.originType.isOfficial ||
+        source.derivativeWorksPolicy != DerivativeWorksPolicy.allowed ||
+        provenance.originalCourseId != source.courseId ||
+        provenance.originalOfficialChecksum != source.officialChecksum) {
+      throw StateError(
+        'An official custom fork requires explicit derivative permission and matching provenance.',
+      );
+    }
+    final fork = _copyCourse(
+      source,
+      title: '${source.title} custom copy',
+      provenance: provenance,
+    );
+    // Detach any nested JSON metadata as well as the owned authoring objects.
+    return Course.fromJson(
+      jsonDecode(jsonEncode(fork.toJson())) as Map<String, dynamic>,
+    );
+  }
+
+  Course _copyCourse(
+    Course source, {
+    required String title,
+    CourseForkProvenance? provenance,
+  }) {
     final newCourseId = Course.newCourseId();
     final remap = <String, String>{source.courseId: newCourseId};
     final iconRemap = <String, String>{};
@@ -70,8 +106,13 @@ class AuthoringDuplicationService {
       updateSummary: source.updateSummary,
       audioMode: source.audioMode,
       author: source.author,
-      authors: [...source.authors],
+      authors: [
+        for (final author in source.authors)
+          CourseAuthor(name: author.name, roles: [...author.roles]),
+      ],
       license: source.license,
+      derivativeWorksPolicy: source.derivativeWorksPolicy,
+      forkProvenance: provenance,
       languageVariant: source.languageVariant,
       startLevel: source.startLevel,
       targetLevel: source.targetLevel,

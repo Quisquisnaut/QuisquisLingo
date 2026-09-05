@@ -5,20 +5,14 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/course_models.dart';
 import 'app_errors.dart';
 import 'diagnostic_log_service.dart';
-import 'course_editor_service.dart';
 import 'course_backup_service.dart';
 
-/// Loads bundled courses and overlays local author edits.
+/// Loads immutable bundled official courses.
 ///
 /// There is intentionally no language fallback: asking for an unavailable
 /// course must fail rather than silently opening Italian or another course.
 class CourseService {
   final DiagnosticLogService _log = DiagnosticLogService();
-  final CourseEditorService _editor;
-
-  CourseService({CourseEditorService? editorService})
-    : _editor = editorService ?? CourseEditorService();
-
   static const Map<String, String> courseAssets = {
     'IT': 'assets/courses/italian_en.json',
     'DE': 'assets/courses/german_en.json',
@@ -103,29 +97,8 @@ class CourseService {
     return raw.length >= 2 ? raw.substring(0, 2) : raw;
   }
 
-  Future<Course> loadCourse(String languageCode) async {
-    final normalizedCode = languageCode.trim().toUpperCase();
-    final official = await loadBundledCourse(normalizedCode);
-    try {
-      final withLocalEdits = await _editor.applyToCourse(
-        normalizedCode,
-        official.toJson(),
-      );
-      return Course.fromJson(withLocalEdits);
-    } catch (e, st) {
-      await _log.log(
-        AppErrorCode.invalidCourseData,
-        context: courseAssets[normalizedCode] ?? normalizedCode,
-        exception: e,
-        stackTrace: st,
-      );
-      throw AppException(
-        AppErrorCode.invalidCourseData,
-        cause: e,
-        stackTrace: st,
-      );
-    }
-  }
+  Future<Course> loadCourse(String languageCode) =>
+      loadBundledCourse(languageCode);
 
   /// Loads the immutable bundled source without applying a local override.
   Future<Course> loadBundledCourse(String languageCode) async {

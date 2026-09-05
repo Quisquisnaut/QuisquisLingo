@@ -8,7 +8,7 @@ QuisquisLingo is an offline-first prototype. It does not implement remote accoun
 
 Learner profiles, progress, Status, streaks, Review history and local course edits use SharedPreferences. These values are not encrypted and must not be used for passwords, authentication tokens, private documents or other secrets.
 
-Course Editor stores immutable bundled/external official sources separately from local variants. It opens one isolated working copy and changes live storage only at the top-level confirmation boundary. The editor:
+Bundled/external official courses are locally read-only in both UI and storage. Only custom courses open a working-copy transaction. A licensed fork receives a new custom identity and retains immutable original authorship/provenance; official updates affect only the publisher source. Old local overrides are ignored without conversion or deletion. Custom authoring changes live storage only at the top-level confirmation boundary. The editor:
 
 - validates the complete serialized course before confirmation
 - rejects authoring payloads above 8 MB

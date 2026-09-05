@@ -435,12 +435,6 @@ class _HomeScreenState extends State<HomeScreen> {
       final iddqdMode = activeId == null
           ? false
           : await _settings.isIddqdModeEnabled(course.courseId);
-      final officialUpdateNotice =
-          course.originType == CourseOriginType.bundledOfficial
-          ? await _courseEditorService.consumeOfficialUpdateNotice(
-              course.courseId,
-            )
-          : null;
       if (course.lessons.isNotEmpty &&
           !_lessonUnlocks.isLessonUnlocked(
             lessonIndex: activeLessonIndex,
@@ -475,29 +469,6 @@ class _HomeScreenState extends State<HomeScreen> {
         }
       });
       if (resetFlow) _scrollToLesson(course, activeLessonIndex);
-      if (officialUpdateNotice != null) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (!mounted) return;
-          showDialog<void>(
-            context: context,
-            builder: (context) => AlertDialog(
-              title: const Text('Official course updated'),
-              content: SelectableText(
-                '${officialUpdateNotice['publisherName']} official version '
-                '${officialUpdateNotice['officialCourseVersion']} is now active.\n\n'
-                'Your previous local version and notes were archived at:\n'
-                '${officialUpdateNotice['backupPath']}',
-              ),
-              actions: [
-                FilledButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text('OK'),
-                ),
-              ],
-            ),
-          );
-        });
-      }
     } on AppException catch (e) {
       if (mounted) await ErrorPresenter.show(context, e.error);
     } catch (e, st) {
@@ -844,10 +815,7 @@ class _HomeScreenState extends State<HomeScreen> {
         return 'Bundled official · ${course.publisherName} ${course.officialCourseVersion}';
       }
       if (course.originType == CourseOriginType.externalOfficial) {
-        final local = course.localCourseVersion > 0
-            ? ' · locally modified ${course.localCourseVersion}'
-            : '';
-        return 'External official · ${course.publisherName} ${course.officialCourseVersion}$local · ${course.publisherVerificationStatus.name}';
+        return 'External official · ${course.publisherName} ${course.officialCourseVersion} · ${course.publisherVerificationStatus.name}';
       }
       return 'Custom course · version ${course.courseVersion.isEmpty ? 'unconfirmed' : course.courseVersion}';
     }

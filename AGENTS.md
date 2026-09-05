@@ -40,6 +40,9 @@ These are persistent instructions for Codex when working on QuisquisLingo.
 - `2.0.25+22503` is the Build 225.03 correction candidate. It preserves Build 225.02 while making the authoritative nine-course bundled registry drive and reconcile real UI discovery, and preserving full v6 Content metadata when successful Exercise saves reconcile Round, Lesson and Course baselines. Unrelated planned features remain deferred.
 - `2.0.25+22504` replaces nested Course Editor persistence with one course-level working-copy transaction, verified version backups, explicit origin/provenance and a single top-level confirm-or-cancel boundary. Build 225.03 remains its immutable parent.
 
+- `2.0.26+22601` makes bundled/external official courses locally read-only and introduces explicitly licensed independent custom forks with permanent original authorship/provenance and a separate fork creator. The pushed `ede21f813a235e8455d2691da4cf3bb43162a39a` Build 225.04 plus 226.00 documentation correction is its immutable parent. Later Build 226 tranches remain deferred.
+- Do not read, apply, migrate or automatically convert Build 225 official local overrides. Leave stored remnants untouched. Official history contains publisher sources only. Only custom courses enter authoring transactions; an explicit `derivativeWorksPolicy: allowed` is required to fork an official course. Ordinary custom courses retain Course Model v6 storage and version behavior.
+
 ## Architecture and service boundaries
 
 QuisquisLingo is a single-package Flutter application. Prefer incremental internal modularization rather than package-level fragmentation unless explicitly requested.

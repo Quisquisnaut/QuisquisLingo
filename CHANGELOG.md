@@ -1,3 +1,10 @@
+# 2.0.26 (Build 226.01) - official read-only courses and licensed custom forks - 2026-09-05
+
+- Advanced candidate metadata to `2.0.26+22601` / Version 2.0.26 / Build 226.01. Alpha expiry is `2026-10-05 23:59:59`, thirty days from the September 5 candidate date under the existing policy.
+- Made both official origins locally read-only, with dedicated Course/Lesson/Round/Exercise inspection, Info, Audit, Preview and publisher Version History. Removed local official transactions, active overlays, local-version fields, restoration and reset actions without deleting or converting old data.
+- Added explicit derivative permission and a licensed custom fork workflow with fresh IDs, independent custom versions/backups, immutable original publisher/course/authorship snapshots and separate fork creator identity. Official updates replace only their source and never modify forks.
+- Retained Course Model v6, ordinary custom authoring/restore/import behavior, bundled content and licenses, learner progression, XP, Review, Duel and profile storage. Added storage, licensing, provenance, update-isolation and responsive inspection regressions. Later 226 tranches remain deferred.
+
 # 2.0.25 (Build 225.04) - unified Course Editor transaction - 2026-09-04
 
 - Advanced platform-compatible metadata to `2.0.25+22504` while displaying Version 2.0.25 / Build 225.04. The Alpha expiry remains unchanged at `2026-10-04 23:59:59` and the complete Version/Build area retains ten-tap Editor activation.

@@ -6,13 +6,8 @@ import '../services/custom_course_transfer_service.dart';
 
 class CourseHistorySelection {
   final Course course;
-  final bool separateCustomCopy;
 
-  const CourseHistorySelection.restore(this.course)
-    : separateCustomCopy = false;
-
-  const CourseHistorySelection.customCopy(this.course)
-    : separateCustomCopy = true;
+  const CourseHistorySelection.restore(this.course);
 }
 
 class CourseVersionHistoryScreen extends StatefulWidget {
@@ -41,9 +36,9 @@ class _CourseVersionHistoryScreenState
     final directory = await widget.backupService.courseBackupDirectory(
       widget.course.courseId,
     );
-    final records = await widget.backupService.listBackups(
-      widget.course.courseId,
-    );
+    final records = widget.course.originType.isOfficial
+        ? await widget.backupService.listOfficialBackups(widget.course.courseId)
+        : await widget.backupService.listBackups(widget.course.courseId);
     return (records: records, path: directory.absolute.path);
   }
 
@@ -55,12 +50,8 @@ class _CourseVersionHistoryScreenState
         '${localizations.formatTimeOfDay(TimeOfDay.fromDateTime(parsed))}';
   }
 
-  String _versionTitle(Course course, {bool archived = false}) {
+  String _versionTitle(Course course) {
     if (course.originType.isOfficial) {
-      if (course.localCourseVersion > 0) {
-        return '${archived ? 'Archived local version' : 'Local version'}: '
-            '${course.localCourseVersion}';
-      }
       return 'Official release: ${course.officialCourseVersion}';
     }
     return 'Course version: ${course.courseVersion.trim().isEmpty ? 'Unversioned' : course.courseVersion}';
@@ -68,28 +59,22 @@ class _CourseVersionHistoryScreenState
 
   List<Widget> _details(Course course) {
     final official = course.originType.isOfficial;
-    final author = official
-        ? course.localAuthorUsername
-        : course.lastModifiedByUsername;
+    final author = official ? '' : course.lastModifiedByUsername;
     final timestamp = official
-        ? course.localModifiedAtUtc
+        ? course.officialReleaseDateUtc
         : course.lastModifiedAtUtc;
-    final notes = official ? course.localVersionNotes : course.versionNotes;
+    final notes = official ? course.officialReleaseNotes : course.versionNotes;
     return [
       if (official) ...[
         Text('Publisher: ${course.publisherName}'),
         Text('Official version: ${course.officialCourseVersion}'),
-        Text(
-          'Based on official version: ${course.baseOfficialCourseVersion.isEmpty ? course.officialCourseVersion : course.baseOfficialCourseVersion}',
-        ),
         Text('Distribution channel: ${course.distributionChannel}'),
         Text('Verification: ${course.publisherVerificationStatus.name}'),
         Text(
           'Checksum: ${course.officialChecksum.length > 16 ? '${course.officialChecksum.substring(0, 16)}…' : course.officialChecksum}',
         ),
       ],
-      if (author.isNotEmpty)
-        Text('${official ? 'Modified by' : 'Author'}: $author'),
+      if (author.isNotEmpty) Text('Author: $author'),
       Text('Date and time: ${_dateTime(context, timestamp)}'),
       if (course.restoredFromVersion != null)
         Text('Restored from version: ${course.restoredFromVersion}'),
@@ -160,6 +145,9 @@ class _CourseVersionHistoryScreenState
             ),
             if (widget.course.originType.isOfficial) ...[
               const SizedBox(height: 12),
+              const Text(
+                'Official course - read only. Publisher updates control the official source; historical releases cannot be restored through local authoring.',
+              ),
               Card(
                 child: Padding(
                   padding: const EdgeInsets.all(12),
@@ -213,10 +201,7 @@ class _CourseVersionHistoryScreenState
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        _versionTitle(
-                          record.course,
-                          archived: record.course.originType.isOfficial,
-                        ),
+                        _versionTitle(record.course),
                         style: Theme.of(context).textTheme.titleMedium,
                       ),
                       ..._details(record.course),
@@ -225,27 +210,18 @@ class _CourseVersionHistoryScreenState
                         spacing: 8,
                         runSpacing: 8,
                         children: [
-                          FilledButton(
-                            onPressed: () => Navigator.pop(
-                              context,
-                              CourseHistorySelection.restore(record.course),
+                          if (!widget.course.originType.isOfficial)
+                            FilledButton(
+                              onPressed: () => Navigator.pop(
+                                context,
+                                CourseHistorySelection.restore(record.course),
+                              ),
+                              child: const Text('Restore this version'),
                             ),
-                            child: const Text('Restore this version'),
-                          ),
                           OutlinedButton(
                             onPressed: () => _exportHistorical(record.course),
                             child: const Text('Export historical version'),
                           ),
-                          if (record.course.originType.isOfficial)
-                            OutlinedButton(
-                              onPressed: () => Navigator.pop(
-                                context,
-                                CourseHistorySelection.customCopy(
-                                  record.course.fork(),
-                                ),
-                              ),
-                              child: const Text('Open as custom copy'),
-                            ),
                         ],
                       ),
                     ],
