@@ -189,11 +189,11 @@ void main() {
     tester.testTextInput.hide();
     await tester.pumpAndSettle();
     await tester.scrollUntilVisible(
-      find.byKey(const Key('exercise-publish')),
+      find.byKey(const Key('exercise-save')),
       400,
       scrollable: _editorScroll(),
     );
-    await tester.tap(find.byKey(const Key('exercise-publish')));
+    await tester.tap(find.byKey(const Key('exercise-save')));
     await tester.pumpAndSettle();
 
     expect(saved?.correctTranslationTexts, ['Come te la passi?', 'Come stai?']);

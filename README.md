@@ -1,13 +1,13 @@
 # QuisquisLingo App
 
-**Current source version: 2.0.25+22503 · Build 225.03 · Course Model v6 (`formatVersion: 6`).**
+**Current source version: 2.0.25+22504 · Build 225.04 · Course Model v6 (`formatVersion: 6`).**
 
 
-**QuisquisLingo 2.0.25 Alpha — Build 225.03 correction candidate**
+**QuisquisLingo 2.0.25 Alpha — Build 225.04 Course Editor transaction candidate**
 
 Current project version: 2.0.25
 
-Build 225.03 preserves the complete Build 225.02 feature set while correcting two manual Windows blockers: the user-facing course selector now discovers all nine bundled courses from the authoritative registry and reconciles an existing v6 discovery index idempotently, and Exercise saves preserve complete v6 Content metadata while reconciling the saved child branch through the real Round/Lesson/Course route stack. Stable IDs, custom courses, progression, XP, Review, Duel and learner identity remain authoritative. The official repository is `Quisquisnaut/QuisquisLingo`.
+Build 225.04 replaces per-screen Course Editor persistence with one course-level transaction. Nested Save and Save as draft actions update an isolated working copy only; one top-level confirmation creates and verifies a complete backup, increments the internal course version and atomically applies the whole course, while cancellation leaves the live course unchanged. Course origin, official provenance, local versions and Version History are explicit. Stable IDs, bundled-source immutability, progression, XP, Review, Duel and learner identity remain authoritative. The official repository is `Quisquisnaut/QuisquisLingo`.
 
 
 A Flutter prototype for an offline-first language-learning app.

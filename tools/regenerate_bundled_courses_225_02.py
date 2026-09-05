@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
-"""Deterministically regenerate all Build 225.02 bundled Course Model v6 assets.
+"""Deterministically regenerate the bundled Course Model v6 assets.
 
 Existing assets contribute only reviewed course metadata and Guidebook material.
 Legacy exercises and their IDs are deliberately discarded rather than migrated.
+Build 225.04 adds immutable official provenance without changing the reviewed
+Build 225.02 course content.
 """
 
 from __future__ import annotations
@@ -27,6 +29,85 @@ EXISTING = (
     ("CY", "welsh_en.json"),
 )
 BASE_TIME = datetime(2026, 9, 4, 8, 0, tzinfo=timezone.utc)
+
+
+def _official_checksum(course: dict[str, object]) -> str:
+    excluded = {
+        "officialChecksum",
+        "publisherVerificationStatus",
+        "publisherSignature",
+        "baseCourseId",
+        "basePublisherId",
+        "baseOfficialCourseVersion",
+        "baseOfficialChecksum",
+        "localCourseVersion",
+        "localAuthorProfileId",
+        "localAuthorUsername",
+        "localModifiedAtUtc",
+        "localVersionNotes",
+        "restoredFromVersion",
+    }
+    canonical = {
+        key: json.loads(json.dumps(value, ensure_ascii=False))
+        for key, value in course.items()
+        if key not in excluded
+    }
+    # CourseAuthor canonical serialization retains the compatibility-facing
+    # primary role beside the complete roles list.
+    for author in canonical.get("authors", []):
+        roles = author.get("roles", [])
+        if roles:
+            author["role"] = roles[0]
+    encoded = json.dumps(
+        canonical,
+        ensure_ascii=False,
+        sort_keys=True,
+        separators=(",", ":"),
+    ).encode("utf-8")
+    return hashlib.sha256(encoded).hexdigest()
+
+
+def _with_official_provenance(
+    course: dict[str, object], *, official_version: str, release_notes: str
+) -> dict[str, object]:
+    output: dict[str, object] = {}
+    for key, value in course.items():
+        if key in {
+            "originType",
+            "publisherId",
+            "publisherName",
+            "officialCourseVersion",
+            "officialReleaseDateUtc",
+            "officialChecksum",
+            "officialReleaseNotes",
+            "distributionChannel",
+            "publisherVerificationStatus",
+        }:
+            continue
+        output[key] = value
+        if key == "courseId":
+            output.update(
+                {
+                    "originType": "bundledOfficial",
+                    "publisherId": "org.quisquislingo",
+                    "publisherName": "QuisquisLingo",
+                    "officialCourseVersion": official_version,
+                    "officialReleaseDateUtc": "2026-09-04T00:00:00.000Z",
+                    "officialChecksum": "",
+                    "officialReleaseNotes": release_notes,
+                    "distributionChannel": "bundled",
+                    "publisherVerificationStatus": "verified",
+                }
+            )
+    output["officialChecksum"] = _official_checksum(output)
+    # Keep the checksum beside the other provenance fields in human-readable
+    # JSON rather than at the end of a very large course document.
+    ordered: dict[str, object] = {}
+    for key, value in output.items():
+        ordered[key] = value
+        if key == "officialReleaseDateUtc":
+            ordered["officialChecksum"] = output["officialChecksum"]
+    return ordered
 
 
 TARGET_COPY = {
@@ -460,7 +541,11 @@ def _regenerate_existing(code: str, filename: str, course_index: int) -> dict[st
             "lessons": generated_lessons,
         }
     )
-    return source
+    return _with_official_provenance(
+        source,
+        official_version=str(source["version"]),
+        release_notes="Build 225.02 deterministic bundled course release.",
+    )
 
 
 KOREAN_LESSONS = (
@@ -589,7 +674,7 @@ def _korean_course(course_index: int) -> dict[str, object]:
                 "duel": {"id": f"{lesson_id}_duel", "title": "Duel"},
             }
         )
-    return {
+    course = {
         "formatVersion": 6,
         "publicationState": "published",
         "lessonNumberingMode": "lesson",
@@ -621,6 +706,11 @@ def _korean_course(course_index: int) -> dict[str, object]:
         "temporarySample": True,
         "lessons": lessons,
     }
+    return _with_official_provenance(
+        course,
+        official_version="1.0.0",
+        release_notes="Build 225.02 deterministic Korean bundled course release.",
+    )
 
 
 def _render(data: dict[str, object]) -> str:
@@ -659,7 +749,7 @@ def main() -> int:
     args = parser.parse_args()
     action = "verified" if args.check else "regenerated"
     for path, digest in regenerate(check=args.check):
-        print(f"{path.name}: {action} for Build 225.02; sha256={digest}")
+        print(f"{path.name}: {action} for Build 225.04; sha256={digest}")
     return 0
 
 

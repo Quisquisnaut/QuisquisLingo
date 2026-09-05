@@ -113,7 +113,7 @@ void main() {
     await tester.tap(find.text('Duplicate'));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byKey(const Key('round-publish')));
+    await tester.tap(find.byKey(const Key('round-save')));
     await tester.pumpAndSettle();
     final copy = results.single!.exercises[1];
     expect(results.single!.exercises, hasLength(2));

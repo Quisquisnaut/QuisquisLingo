@@ -306,7 +306,8 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
                       title: t,
                       ttsLanguage: 'und',
                       version: '1.0.0',
-                      courseVersion: '1.0.0',
+                      originType: CourseOriginType.custom,
+                      courseVersion: '',
                       lastUpdated: DateTime.now().toIso8601String().substring(
                         0,
                         10,
@@ -341,66 +342,54 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
   Future<void> _newCourse() async {
     final course = await _createCourse();
     if (course == null) return;
-    await _service.saveUserCourse(course);
     if (!mounted) return;
-    await Navigator.of(context).push(
+    final result = await Navigator.of(context).push<CourseConfirmationResult>(
       MaterialPageRoute(
-        builder: (_) => CourseEditorScreen(course: course, userCourse: true),
+        builder: (_) => CourseEditorScreen(
+          course: course,
+          userCourse: true,
+          isNewCourse: true,
+        ),
       ),
     );
+    if (result != null && mounted) _showConfirmationResult(result);
     await _reload();
   }
 
   Future<void> _openBundled() async {
-    await Navigator.of(context).push(
+    final result = await Navigator.of(context).push<CourseConfirmationResult>(
       MaterialPageRoute(
         builder: (_) => CourseEditorScreen(course: widget.currentCourse),
       ),
     );
+    if (result != null && mounted) _showConfirmationResult(result);
     await _reload();
   }
 
   Future<void> _openUser(Course course) async {
-    await Navigator.of(context).push(
+    final result = await Navigator.of(context).push<CourseConfirmationResult>(
       MaterialPageRoute(
         builder: (_) => CourseEditorScreen(course: course, userCourse: true),
       ),
     );
+    if (result != null && mounted) _showConfirmationResult(result);
     await _reload();
   }
 
-  Future<void> _renameCourse(Course course) async {
-    final controller = TextEditingController(text: course.title);
-    final title = await showDialog<String>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Rename course'),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
-          maxLength: 120,
-          decoration: const InputDecoration(
-            border: OutlineInputBorder(),
-            labelText: 'Course title',
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, controller.text.trim()),
-            child: const Text('Save'),
-          ),
-        ],
+  void _showConfirmationResult(CourseConfirmationResult result) {
+    final course = result.course;
+    final version = course.originType.isOfficial
+        ? 'New local version: ${course.localCourseVersion}\nOfficial version remains: ${course.officialCourseVersion}'
+        : 'New course version: ${course.courseVersion}';
+    final backup = result.backupPath == null
+        ? '\nNo previous version existed, so no backup was required.'
+        : '\nBackup: ${result.backupPath}';
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        duration: const Duration(seconds: 12),
+        content: Text('Course changes confirmed.\n$version$backup'),
       ),
     );
-    controller.dispose();
-    if (title == null || title.isEmpty || title == course.title) return;
-    final renamed = Course.fromJson({...course.toJson(), 'title': title});
-    await _service.saveUserCourse(renamed);
-    await _reload();
   }
 
   String _nextCopyTitle(String sourceTitle) {
@@ -419,7 +408,17 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
       course,
       title: _nextCopyTitle(course.title),
     );
-    await _service.saveUserCourse(duplicate);
+    if (!mounted) return;
+    final result = await Navigator.of(context).push<CourseConfirmationResult>(
+      MaterialPageRoute(
+        builder: (_) => CourseEditorScreen(
+          course: duplicate,
+          userCourse: true,
+          isNewCourse: true,
+        ),
+      ),
+    );
+    if (result != null && mounted) _showConfirmationResult(result);
     await _reload();
   }
 
@@ -432,63 +431,17 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
     ),
   );
 
-  Future<void> _setCoursePublication(
-    Course course,
-    PublicationState state,
-  ) async {
-    if (!state.isPublished && course.publicationState.isPublished) {
-      final confirmed = await showDialog<bool>(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: const Text('Move Course to Draft?'),
-          content: const Text(
-            'This Course will disappear from the learner course picker. Existing learner progress and XP will be preserved.',
-          ),
-          actions: [
-            FilledButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: const Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () => Navigator.pop(context, true),
-              child: const Text('Move to Draft'),
-            ),
-          ],
-        ),
-      );
-      if (confirmed != true) return;
-    }
-    final changed = Course.fromJson({
-      ...course.toJson(),
-      'publicationState': state.name,
-    });
-    if (state.isPublished) {
-      final visible = const PublicationService().learnerCourse(changed)!;
-      final errors = CourseAuditService()
-          .auditCourse(visible)
-          .issues
-          .where((issue) => issue.severity == AuditSeverity.error)
-          .length;
-      if (errors > 0) {
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Course cannot be published: $errors blocking error${errors == 1 ? '' : 's'}.',
-            ),
-          ),
-        );
-        return;
-      }
-    }
-    await _service.saveUserCourse(changed);
-    await _reload();
-  }
-
   Future<void> _importCourse() async {
     try {
       final imported = await _transfer.importCourse();
-      final course = const PublicationService().asDraftAuthoringTree(imported);
+      if (imported.originType == CourseOriginType.bundledOfficial) {
+        throw const FormatException(
+          'Bundled official courses are installed only with QuisquisLingo application builds.',
+        );
+      }
+      final course = imported.originType == CourseOriginType.externalOfficial
+          ? imported
+          : const PublicationService().asDraftAuthoringTree(imported);
       final audit = CourseAuditService().auditCourse(course);
       final errors = audit.issues
           .where((issue) => issue.severity == AuditSeverity.error)
@@ -533,6 +486,60 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
         );
         return;
       }
+      if (course.originType == CourseOriginType.externalOfficial) {
+        final existing = _user
+            .where((candidate) => candidate.courseId == course.courseId)
+            .firstOrNull;
+        final resetsLocalChanges = (existing?.localCourseVersion ?? 0) > 0;
+        final proceed = await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text(
+              existing == null
+                  ? 'Install unverified official course?'
+                  : 'Install unverified official course update?',
+            ),
+            content: Text(
+              'QQL can verify the file checksum but cannot authenticate the declared publisher. '
+              'The course will be visibly labelled External official — unverified.'
+              '${!resetsLocalChanges ? '' : '\n\nThis official update will replace the active local version.\nYour local changes and notes will be archived in Course Backups.'}',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('Cancel'),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: Text(
+                  existing == null
+                      ? 'Install as unverified'
+                      : 'Install unverified update',
+                ),
+              ),
+            ],
+          ),
+        );
+        if (proceed != true) return;
+        final result = await _service.installExternalOfficialUpdate(course);
+        await _reload();
+        if (!mounted) return;
+        final verification =
+            result.officialCourse.publisherVerificationStatus ==
+                PublisherVerificationStatus.verified
+            ? 'verified publisher metadata'
+            : 'UNVERIFIED publisher metadata';
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            duration: const Duration(seconds: 12),
+            content: Text(
+              'Installed official version ${course.officialCourseVersion} from ${course.publisherName} ($verification).'
+              '${result.backupPath == null ? '' : '\nArchived previous active state: ${result.backupPath}'}',
+            ),
+          ),
+        );
+        return;
+      }
       final existingIndex = _user.indexWhere(
         (c) => c.courseId == course.courseId,
       );
@@ -544,7 +551,9 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
               builder: (ctx) => AlertDialog(
                 title: const Text('Matching Course ID'),
                 content: Text(
-                  'A custom course with ID “${course.courseId}” already exists. Replace “${existing.title}” with the imported course?',
+                  existing.originType.isOfficial
+                      ? 'Official course “${existing.title}” already owns ID “${course.courseId}”. It cannot be replaced by custom content; import a separate copy or cancel.'
+                      : 'A custom course with ID “${course.courseId}” already exists. Replace “${existing.title}” with the imported course?',
                 ),
                 actions: [
                   TextButton(
@@ -555,17 +564,30 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
                     onPressed: () => Navigator.pop(ctx, 'copy'),
                     child: const Text('Separate copy'),
                   ),
-                  FilledButton(
-                    onPressed: () => Navigator.pop(ctx, 'replace'),
-                    child: const Text('Replace / update'),
-                  ),
+                  if (!existing.originType.isOfficial)
+                    FilledButton(
+                      onPressed: () => Navigator.pop(ctx, 'replace'),
+                      child: const Text('Replace / update'),
+                    ),
                 ],
               ),
             ) ??
             'cancel';
         if (choice == 'cancel') return;
         if (choice == 'copy') {
-          await _service.saveUserCourse(course.fork());
+          final copy = course.fork();
+          if (!mounted) return;
+          final result = await Navigator.of(context)
+              .push<CourseConfirmationResult>(
+                MaterialPageRoute(
+                  builder: (_) => CourseEditorScreen(
+                    course: copy,
+                    userCourse: true,
+                    isNewCourse: true,
+                  ),
+                ),
+              );
+          if (result != null && mounted) _showConfirmationResult(result);
           await _reload();
           return;
         }
@@ -579,7 +601,7 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
           content: Text(
             warnings.isEmpty
                 ? 'Imported “${course.title}” as Draft.'
-                : 'Imported “${course.title}” as Draft with ${warnings.length} Course Audit warning${warnings.length == 1 ? '' : 's'}. Review Course Audit before publishing.',
+                : 'Imported “${course.title}” as Draft with ${warnings.length} Course Audit warning${warnings.length == 1 ? '' : 's'}. Review Course Audit before making it learner-visible.',
           ),
         ),
       );
@@ -728,7 +750,7 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
                       ),
                       Text('2. Press Import course JSON.'),
                       Text(
-                        '3. The course will appear under My custom courses. import.json is left in place.',
+                        '3. The course will appear under Local courses. import.json is left in place.',
                       ),
                     ],
                   ),
@@ -759,7 +781,7 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
               ],
               const SizedBox(height: 18),
               Text(
-                'My custom courses',
+                'Local courses',
                 style: Theme.of(
                   context,
                 ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
@@ -767,7 +789,7 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
               if (_user.isEmpty)
                 const Padding(
                   padding: EdgeInsets.symmetric(vertical: 16),
-                  child: Text('No custom courses yet.'),
+                  child: Text('No local courses yet.'),
                 ),
               for (final course in _user)
                 Card(
@@ -778,26 +800,20 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
                     ),
                     title: Text(course.title),
                     subtitle: Text(
-                      '${course.publicationState.isPublished ? '' : 'Draft · '}${course.sourceLanguage} → ${course.targetLanguage} · formatVersion ${course.formatVersion}',
+                      '${course.publicationState.isPublished ? '' : 'Draft · '}${course.sourceLanguage} → ${course.targetLanguage} · ${course.originType.isOfficial ? '${course.publisherName} official ${course.officialCourseVersion}${course.localCourseVersion > 0 ? ' · locally modified ${course.localCourseVersion}' : ''}' : 'custom version ${course.courseVersion.isEmpty ? 'unconfirmed' : course.courseVersion}'}',
                     ),
                     onTap: () => _openUser(course),
                     trailing: PopupMenuButton<String>(
                       tooltip: 'Course actions',
                       onSelected: (value) {
                         if (value == 'edit') _openUser(course);
-                        if (value == 'rename') _renameCourse(course);
                         if (value == 'duplicate') _duplicateCourse(course);
                         if (value == 'audit') _auditCourse(course);
-                        if (value == 'publication') {
-                          _setCoursePublication(
-                            course,
-                            course.publicationState.isPublished
-                                ? PublicationState.draft
-                                : PublicationState.published,
-                          );
-                        }
                         if (value == 'export') _exportCourse(course);
-                        if (value == 'delete') _delete(course);
+                        if (value == 'delete' &&
+                            course.originType == CourseOriginType.custom) {
+                          _delete(course);
+                        }
                       },
                       itemBuilder: (_) => [
                         const PopupMenuItem(
@@ -805,13 +821,6 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
                           child: ListTile(
                             leading: Icon(Icons.edit_outlined),
                             title: Text('Edit'),
-                          ),
-                        ),
-                        const PopupMenuItem(
-                          value: 'rename',
-                          child: ListTile(
-                            leading: Icon(Icons.drive_file_rename_outline),
-                            title: Text('Rename'),
                           ),
                         ),
                         const PopupMenuItem(
@@ -828,17 +837,6 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
                             title: Text('Audit'),
                           ),
                         ),
-                        PopupMenuItem(
-                          value: 'publication',
-                          child: ListTile(
-                            leading: const Icon(Icons.publish_outlined),
-                            title: Text(
-                              course.publicationState.isPublished
-                                  ? 'Move to Draft'
-                                  : 'Publish',
-                            ),
-                          ),
-                        ),
                         const PopupMenuItem(
                           value: 'export',
                           child: ListTile(
@@ -846,13 +844,14 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
                             title: Text('Export JSON'),
                           ),
                         ),
-                        const PopupMenuItem(
-                          value: 'delete',
-                          child: ListTile(
-                            leading: Icon(Icons.delete_outline),
-                            title: Text('Delete course'),
+                        if (course.originType == CourseOriginType.custom)
+                          const PopupMenuItem(
+                            value: 'delete',
+                            child: ListTile(
+                              leading: Icon(Icons.delete_outline),
+                              title: Text('Delete course'),
+                            ),
                           ),
-                        ),
                       ],
                     ),
                   ),

@@ -14,12 +14,12 @@ class EditorHelpScreen extends StatelessWidget {
         _HelpSection(
           title: 'Courses in learner mode',
           body:
-              'Change course lists every Published course: the bundled courses included with QuisquisLingo and Published courses under My custom courses. Draft Courses stay available for authoring but cannot become the active learner Course. Selecting a Published course makes it current. The learner page resumes the active Published Lesson for that learner and course. When a course has real Sections, the fixed Section selector opens its ordered consecutive Published Section blocks and jumps to each block\'s first Lesson.',
+              'Change course lists every Published course: the bundled official courses included with QuisquisLingo and Published courses under Local courses. Draft Courses stay available for authoring but cannot become the active learner Course. Selecting a Published course makes it current. The learner page resumes the active Published Lesson for that learner and course. When a course has real Sections, the fixed Section selector opens its ordered consecutive Published Section blocks and jumps to each block\'s first Lesson.',
         ),
         _HelpSection(
-          title: 'Bundled courses and custom courses',
+          title: 'Course origin',
           body:
-              'Current bundled course is the copy supplied with QuisquisLingo. My custom courses contains courses created by the user and courses imported from JSON. Temporary sample material refers to bundled sample courses supplied for development and demonstration; creating a custom course does not automatically add sample lessons. Custom courses remain separate from bundled-course local overrides.',
+              'Bundled official courses are verified immutable source copies supplied with QuisquisLingo. External official courses retain their declared publisher identity but are labelled unverified when QQL cannot authenticate that publisher. Custom courses are created locally or imported without official provenance. Local edits never rewrite a bundled source, and a custom course never silently becomes official. Course Info shows the origin, publisher, official version, verification state, checksum and separate local course version that apply.',
         ),
         _HelpSection(
           title: 'Temporary sample content',
@@ -29,32 +29,42 @@ class EditorHelpScreen extends StatelessWidget {
         _HelpSection(
           title: 'Course structure',
           body:
-              'The main Course page links to a dedicated Lessons page with the single authoritative Lock control at its top. From there the draft-preserving hierarchy continues through Lesson, Rounds and Round / Exercises. Course, Lesson and Round menus provide scoped Audit plus their appropriate Edit, Rename, Duplicate, Preview and Draft/Publish actions; Exercise menus provide Edit, Duplicate, Preview and Draft/Publish. A duplicate is inserted after its source with fresh IDs throughout its owned subtree and starts as Draft. Exercise type cannot be changed after creation. Each Lesson has its own learner-facing GuideBook and Lesson-scoped Duel.',
+              'Lessons is the first content section on the main Course page. The dedicated Lessons page keeps the single authoritative Lock control at its top, and each Lesson page puts Rounds first. From there the hierarchy continues through Round / Exercises. Course, Lesson and Round menus provide scoped Audit plus their appropriate Edit, Rename, Duplicate and Preview actions. A duplicate is inserted after its source with fresh IDs throughout its owned subtree and starts as Draft. Exercise type cannot be changed after creation. Each Lesson has its own learner-facing GuideBook and Lesson-scoped Duel.',
         ),
         _HelpSection(
-          title: 'Drafts, publishing and unsaved work',
+          title: 'One Course Editor transaction',
           body:
-              'Course, Lesson, Round and Exercise can be Draft or Published. Save as Draft preserves incomplete but structurally safe author work without showing it to learners. Save / Publish runs strict learner validation. Draft descendants stay Draft when a parent is published, and Published children remain hidden below a Draft parent. Draft Courses are not learner-selectable; Draft Lessons do not affect numbering, Sections or unlock order; Draft Rounds and Exercises do not affect play, completion, Review, Duel or XP. Moving Published content to Draft asks first and preserves stable IDs and existing learner history. A successful child save persists transactionally through its open Round, Lesson and Course ancestors, refreshes only that saved child baseline and does not cause repeat leave warnings; independent unsaved ancestor edits remain dirty. Persistence failure clears no dirty state.',
+              'Opening a course creates an editable working copy beside an immutable snapshot of the persisted course. Every Course Info, Lesson, Round, Exercise, GuideBook, generator and reorder operation changes only that working copy. Nested Save stores a normal item in the working copy; Save as draft stores a Draft item there. Neither action changes the learner-visible course, creates a backup or increments the course version. Back on a nested page silently discards only that page\'s currently unstaged form edits while preserving everything already saved to the working copy. Navigation among nested pages never shows the final course confirmation.',
+        ),
+        _HelpSection(
+          title: 'Confirm or cancel the complete course',
+          body:
+              'Leaving the top-level Course Editor compares the complete working copy with the original course. If they are semantically identical, the Editor closes directly. Otherwise exactly one dialog offers Confirm course changes or Cancel course changes and an optional multiline version note. Confirm first creates and verifies a complete backup, then increments the separate internal course version by exactly one and atomically applies the whole working copy. Cancel discards the entire working copy without a backup or version increment. A failed backup or persistence keeps the working copy open and leaves the persisted course unchanged.',
         ),
         _HelpSection(
           title: 'Local course edits and backups',
           body:
-              'Changes to built-in courses are stored locally. A future app update that contains a newer version of the same course can overwrite those local edits. Export edited courses separately before updating. Courses and course edits are not included in Export my data; learner-data exports contain progress, streaks and other learner information only.',
+              'Every confirmed change to an existing course first archives the complete currently persisted course under Documents/QuisquisLingo/Exports/Course Backups/<courseId>. Backup manifests include the full v6 course, provenance, versions, author, local timestamp, optional notes, checksum and referenced managed audio assets. Backups are never pruned automatically. Version History lists the current version, immutable official source where applicable and verified backups newest first; Open backup folder, Restore into working copy, Export JSON and Create custom copy are available there. A restore is still only a working-copy change until the top-level confirmation succeeds.',
+        ),
+        _HelpSection(
+          title: 'Official course updates',
+          body:
+              'A newer verified official course update is accepted only for the same courseId and publisher and only when its checksum is valid. Before exact replacement, QuisquisLingo archives the complete current local course. Official updates do not merge files. The new official source becomes the active base and the previous local version remains available in Version History. If publisher authenticity cannot be verified, the course is clearly marked External official — unverified and installation requires an explicit warning confirmation.',
         ),
         _HelpSection(
           title: 'Course info and license',
           body:
-              'Course info stores human author credit, the content license and optional Buy a Coffee HTTPS link separately from the MPL-2.0 license of the QuisquisLingo software. It also selects the learner Lesson prefix—Lesson, Unit, Topic, Module, Skill, Chapter, Stage, Step, Part, a custom label, number only or none—and the default Lesson icon style. Choose a common license from the menu or select Other / Custom license and enter the course-specific terms. Copy edits as JSON applies to the Current bundled course. Export course JSON writes a complete portable authoring Course, including Drafts and managed custom Lesson icons, to Documents/QuisquisLingo/Exports.',
+              'Course info stores human author credit, the content license and optional Buy a Coffee HTTPS link separately from the MPL-2.0 license of the QuisquisLingo software. It also selects the learner Lesson prefix—Lesson, Unit, Topic, Module, Skill, Chapter, Stage, Step, Part, a custom label, number only or none—and the default Lesson icon style. Choose a common license from the menu or select Other / Custom license and enter the course-specific terms. Official provenance fields and the internal local version are read-only. Export course JSON writes a complete portable authoring Course, including Drafts and managed custom Lesson icons, to Documents/QuisquisLingo/Exports.',
         ),
         _HelpSection(
           title: 'Import a custom course',
           body:
-              '1. Copy the Course Model v6 JSON file to Documents/QuisquisLingo/Exports. 2. Rename it exactly import.json. 3. Open Course Editor and press Import course JSON. 4. After parsing and Course Audit validation, the course is copied into QuisquisLingo local custom-course storage and appears under My custom courses. Audit errors block import; warnings are reported for review but do not block it. The imported course no longer depends on import.json, and QuisquisLingo leaves import.json in place. Imports must be valid UTF-8 Course Model v6 JSON and may be no larger than 10 MB. v5 and older formats are rejected without migration, conversion or deletion. If the same courseId already exists, QuisquisLingo treats it as the same custom course and asks before replacing the stored copy.',
+              '1. Copy the Course Model v6 JSON file to Documents/QuisquisLingo/Exports. 2. Rename it exactly import.json. 3. Open Course Editor and press Import course JSON. 4. After parsing and Course Audit validation, the course is copied into QuisquisLingo local storage and appears under Local courses. Audit errors block import; warnings are reported for review but do not block it. An external-official file retains its declared publisher provenance but is marked unverified unless QQL can authenticate it; an ordinary import remains custom. The imported course no longer depends on import.json, and QuisquisLingo leaves import.json in place. Imports must be valid UTF-8 Course Model v6 JSON and may be no larger than 10 MB. v5 and older formats are rejected without migration, conversion or deletion.',
         ),
         _HelpSection(
           title: 'Export a custom course',
           body:
-              'Open My custom courses and choose Export course JSON for the course you want to export. QuisquisLingo saves the complete portable Course Model v6 authoring JSON directly in Documents/QuisquisLingo/Exports. There is no Save As dialog. Draft/Published state, required UTC modification timestamps, optional custom flag data, Buy a Coffee metadata, Lesson numbering/icon-style settings and managed custom Lesson icons are included. If a filename exists, _2, _3 and later suffixes avoid overwriting it.',
+              'Open Local courses and choose Export course JSON for the course you want to export. QuisquisLingo saves the complete portable Course Model v6 authoring JSON directly in Documents/QuisquisLingo/Exports. There is no Save As dialog. Draft/Published state, required UTC modification timestamps, origin and version metadata, optional custom flag data, Buy a Coffee metadata, Lesson numbering/icon-style settings and managed custom Lesson icons are included. If a filename exists, _2, _3 and later suffixes avoid overwriting it.',
         ),
         _HelpSection(
           title: 'Import a custom flag',
@@ -124,7 +134,7 @@ class EditorHelpScreen extends StatelessWidget {
         _HelpSection(
           title: 'Course metadata and authors',
           body:
-              'Course info is always available, even while content is locked. It can change the visible Course name without changing the read-only Course ID. Source and Target language are also read-only for now. Multiple authors can hold multiple roles, including Illustrator. Roles describe contributions, not hierarchy. Course metadata can also record language variant, levels, Course version, last-updated date, description and an optional Buy a Coffee HTTPS URL. In Course Info, that URL becomes a single Buy a Coffee action and is never payment processing. Lesson presentation settings change labels and fallback art only; they never change lessonId, progression or unlocks. The exact untouched default title Lesson N is shown once when Lesson numbering would otherwise produce Lesson N: Lesson N.',
+              'Course info is always available, even while content is locked. It can change the visible Course name without changing the read-only Course ID. Source and Target language are also read-only for now. Multiple authors can hold multiple roles, including Illustrator. Roles describe contributions, not hierarchy. Custom-course metadata records creation and last-modification authors from the active local QQL profile, creation and modification times, internal course version and version notes. Official courses separately retain publisher identity, official version, release notes, channel, checksum and verification. Lesson presentation settings change labels and fallback art only; they never change lessonId, progression or unlocks.',
         ),
         _HelpSection(
           title: 'Audit severity and codes',
@@ -140,7 +150,7 @@ class EditorHelpScreen extends StatelessWidget {
         _HelpSection(
           title: 'Create a new course',
           body:
-              'Course Editor can create an independent Course Model v6 project from scratch. It starts as Draft with 3 Draft placeholder Lessons and stable IDs; no Rounds are created automatically. A manually created Round starts as Draft with three Draft dummy Exercises. Custom Courses appear under My custom courses, whose menu provides Edit, Rename, Duplicate, Audit, Publish/Move to Draft, Export and the established protected delete flow. Import and export use portable QuisquisLingo JSON. Imported authoring content must state Draft/Published state and required UTC updatedAt timestamps explicitly; this release does not infer or migrate them.',
+              'Course Editor can create an independent Course Model v6 project from scratch. It starts as Draft with 3 Draft placeholder Lessons and stable IDs; no Rounds are created automatically. A manually created Round starts as Draft with three Draft dummy Exercises. The new custom course remains only a working copy until Confirm course changes creates version 1; cancelling creates no stored course. Custom courses appear under Local courses, whose menu provides Edit, Duplicate, Audit, Export and the established protected delete flow. Import and export use portable QuisquisLingo JSON. Imported authoring content must state Draft/Published state and required UTC updatedAt timestamps explicitly; this release does not infer or migrate them.',
         ),
       ],
     ),

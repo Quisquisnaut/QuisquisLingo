@@ -51,6 +51,51 @@ class CourseInfoScreen extends StatelessWidget {
         : course.author.trim();
   }
 
+  String _localDateTime(BuildContext context, String utc) {
+    final parsed = DateTime.tryParse(utc)?.toLocal();
+    if (parsed == null) return 'Not recorded';
+    final localizations = MaterialLocalizations.of(context);
+    return '${localizations.formatMediumDate(parsed)} · '
+        '${localizations.formatTimeOfDay(TimeOfDay.fromDateTime(parsed))}';
+  }
+
+  List<String> _originDetails(BuildContext context) {
+    if (course.originType.isOfficial) {
+      return [
+        'Origin: ${course.originType == CourseOriginType.bundledOfficial ? 'Bundled official' : 'External official'}',
+        'Publisher: ${course.publisherName}',
+        'Official course version: ${course.officialCourseVersion}',
+        'Official release: ${_localDateTime(context, course.officialReleaseDateUtc)}',
+        'Distribution channel: ${course.distributionChannel}',
+        'Publisher verification: ${course.publisherVerificationStatus.name}',
+        'Official checksum: ${course.officialChecksum}',
+        'Local changes: ${course.localCourseVersion > 0 ? 'Yes' : 'None'}',
+        if (course.localCourseVersion > 0) ...[
+          'Local version: ${course.localCourseVersion}',
+          'Based on official version: ${course.baseOfficialCourseVersion}',
+          'Local author: ${course.localAuthorUsername}',
+          'Local modified: ${_localDateTime(context, course.localModifiedAtUtc)}',
+          if (course.localVersionNotes.isNotEmpty)
+            'Local version notes:\n${course.localVersionNotes}',
+        ],
+      ];
+    }
+    return [
+      'Origin: Custom course',
+      'Course version: ${course.courseVersion.trim().isEmpty ? 'Unconfirmed' : course.courseVersion}',
+      if (course.createdByUsername.isNotEmpty)
+        'Created by: ${course.createdByUsername}',
+      if (course.createdAtUtc.isNotEmpty)
+        'Created: ${_localDateTime(context, course.createdAtUtc)}',
+      if (course.lastModifiedByUsername.isNotEmpty)
+        'Last modified by: ${course.lastModifiedByUsername}',
+      if (course.lastModifiedAtUtc.isNotEmpty)
+        'Last modified: ${_localDateTime(context, course.lastModifiedAtUtc)}',
+      if (course.versionNotes.isNotEmpty)
+        'Version notes:\n${course.versionNotes}',
+    ];
+  }
+
   @override
   Widget build(BuildContext context) => LearnerStatusPage(
     child: Scaffold(
@@ -77,7 +122,7 @@ class CourseInfoScreen extends StatelessWidget {
           _InfoCard(
             title: 'Course details',
             body: [
-              'Course version: ${course.courseVersion.trim().isEmpty ? course.version : course.courseVersion}',
+              ..._originDetails(context),
               'Content revision: ${course.contentRevision}',
               if (course.lastUpdated.trim().isNotEmpty)
                 'Last updated: ${course.lastUpdated}',

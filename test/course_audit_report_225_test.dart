@@ -20,8 +20,8 @@ void main() {
     );
 
     expect(report, contains('Version: 2.0.25'));
-    expect(report, contains('Build: 225.03'));
-    expect(report, contains('Technical version: 2.0.25+22503'));
+    expect(report, contains('Build: 225.04'));
+    expect(report, contains('Technical version: 2.0.25+22504'));
     expect(report, contains('Generated: 2026-09-03T20:15:30.000'));
     expect(report, contains('Course name: Italian test'));
     expect(report, contains('Course ID: stable_course_id'));

@@ -8,12 +8,16 @@ QuisquisLingo is an offline-first prototype. It does not implement remote accoun
 
 Learner profiles, progress, Status, streaks, Review history and local course edits use SharedPreferences. These values are not encrypted and must not be used for passwords, authentication tokens, private documents or other secrets.
 
-Course Editor stores complete local course overrides separately from bundled assets. The editor:
+Course Editor stores immutable bundled/external official sources separately from local variants. It opens one isolated working copy and changes live storage only at the top-level confirmation boundary. The editor:
 
-- validates the serialized course structure before saving
+- validates the complete serialized course before confirmation
 - rejects authoring payloads above 8 MB
-- backs up and removes corrupt editor JSON rather than crashing startup
+- preserves and copies corrupt editor JSON before failing clearly rather than replacing it
 - leaves bundled course assets unchanged
+- creates and verifies a complete pre-change backup before replacing an existing course
+- verifies atomic SharedPreferences writes and restores the prior value on failure
+- validates course-specific backup paths and SHA-256 integrity before restore
+- refuses custom/official origin collisions and different-publisher replacements
 - runs author-facing Course Audit checks
 
 Learner Round screens independently skip exercises that still contain structural audit Errors, so a temporarily incomplete authoring draft is less likely to crash learner mode.

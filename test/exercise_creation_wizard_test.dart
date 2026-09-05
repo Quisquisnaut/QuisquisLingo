@@ -80,9 +80,7 @@ void main() {
 
       await tester.tap(find.byKey(const Key('wizard-cancel')));
       await tester.pumpAndSettle();
-      expect(find.text('Leave Creation Wizard?'), findsOneWidget);
-      await tester.tap(find.text('Leave and keep saved'));
-      await tester.pumpAndSettle();
+      expect(find.text('Leave Creation Wizard?'), findsNothing);
 
       expect(results, hasLength(1));
       expect(results.single, hasLength(1));

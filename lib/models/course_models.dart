@@ -32,6 +32,41 @@ enum PublicationState {
   bool get isPublished => this == PublicationState.published;
 }
 
+enum CourseOriginType {
+  custom,
+  bundledOfficial,
+  externalOfficial;
+
+  static CourseOriginType parse(Map<String, dynamic> json) {
+    final value = json['originType'];
+    if (value == null) return CourseOriginType.custom;
+    return CourseOriginType.values.firstWhere(
+      (origin) => origin.name == value,
+      orElse: () => throw const FormatException(
+        'course.originType must be custom, bundledOfficial or externalOfficial.',
+      ),
+    );
+  }
+
+  bool get isOfficial => this != CourseOriginType.custom;
+}
+
+enum PublisherVerificationStatus {
+  verified,
+  unverified;
+
+  static PublisherVerificationStatus parse(Map<String, dynamic> json) {
+    final value = json['publisherVerificationStatus'];
+    if (value == null) return PublisherVerificationStatus.unverified;
+    return PublisherVerificationStatus.values.firstWhere(
+      (status) => status.name == value,
+      orElse: () => throw const FormatException(
+        'course.publisherVerificationStatus must be verified or unverified.',
+      ),
+    );
+  }
+}
+
 enum LessonNumberingMode {
   lesson,
   unit,
@@ -177,6 +212,33 @@ class Course {
   static const int currentFormatVersion = 6;
   final int formatVersion;
   final String courseId;
+  final CourseOriginType originType;
+  final String publisherId;
+  final String publisherName;
+  final String officialCourseVersion;
+  final String officialReleaseDateUtc;
+  final String officialChecksum;
+  final String officialReleaseNotes;
+  final String distributionChannel;
+  final PublisherVerificationStatus publisherVerificationStatus;
+  final String publisherSignature;
+  final String baseCourseId;
+  final String basePublisherId;
+  final String baseOfficialCourseVersion;
+  final String baseOfficialChecksum;
+  final int localCourseVersion;
+  final String localAuthorProfileId;
+  final String localAuthorUsername;
+  final String localModifiedAtUtc;
+  final String localVersionNotes;
+  final String createdByProfileId;
+  final String createdByUsername;
+  final String createdAtUtc;
+  final String lastModifiedByProfileId;
+  final String lastModifiedByUsername;
+  final String lastModifiedAtUtc;
+  final String versionNotes;
+  final int? restoredFromVersion;
   final PublicationState publicationState;
   final LessonNumberingMode lessonNumberingMode;
   final String customLessonLabel;
@@ -216,6 +278,33 @@ class Course {
   Course({
     this.formatVersion = currentFormatVersion,
     required this.courseId,
+    this.originType = CourseOriginType.custom,
+    this.publisherId = '',
+    this.publisherName = '',
+    this.officialCourseVersion = '',
+    this.officialReleaseDateUtc = '',
+    this.officialChecksum = '',
+    this.officialReleaseNotes = '',
+    this.distributionChannel = '',
+    this.publisherVerificationStatus = PublisherVerificationStatus.unverified,
+    this.publisherSignature = '',
+    this.baseCourseId = '',
+    this.basePublisherId = '',
+    this.baseOfficialCourseVersion = '',
+    this.baseOfficialChecksum = '',
+    this.localCourseVersion = 0,
+    this.localAuthorProfileId = '',
+    this.localAuthorUsername = '',
+    this.localModifiedAtUtc = '',
+    this.localVersionNotes = '',
+    this.createdByProfileId = '',
+    this.createdByUsername = '',
+    this.createdAtUtc = '',
+    this.lastModifiedByProfileId = '',
+    this.lastModifiedByUsername = '',
+    this.lastModifiedAtUtc = '',
+    this.versionNotes = '',
+    this.restoredFromVersion,
     this.publicationState = PublicationState.published,
     this.lessonNumberingMode = LessonNumberingMode.lesson,
     String customLessonLabel = '',
@@ -259,6 +348,42 @@ class Course {
         'A non-empty custom Lesson label is required for Other.',
       );
     }
+    if (originType.isOfficial &&
+        (publisherId.trim().isEmpty ||
+            publisherName.trim().isEmpty ||
+            officialCourseVersion.trim().isEmpty ||
+            officialReleaseDateUtc.trim().isEmpty ||
+            officialChecksum.trim().isEmpty ||
+            distributionChannel.trim().isEmpty)) {
+      throw const FormatException(
+        'Official courses require publisher, official version, release date, checksum and distribution channel provenance.',
+      );
+    }
+    for (final timestamp in {
+      'officialReleaseDateUtc': officialReleaseDateUtc,
+      'createdAtUtc': createdAtUtc,
+      'lastModifiedAtUtc': lastModifiedAtUtc,
+      'localModifiedAtUtc': localModifiedAtUtc,
+    }.entries) {
+      if (timestamp.value.isEmpty) continue;
+      final parsed = DateTime.tryParse(timestamp.value);
+      if (!timestamp.value.endsWith('Z') || parsed == null || !parsed.isUtc) {
+        throw FormatException(
+          'course.${timestamp.key} must be an ISO 8601 UTC timestamp ending in Z.',
+        );
+      }
+    }
+    if (originType.isOfficial &&
+        !RegExp(r'^[0-9a-f]{64}$').hasMatch(officialChecksum)) {
+      throw const FormatException(
+        'course.officialChecksum must be a lowercase SHA-256 value.',
+      );
+    }
+    if (localCourseVersion < 0) {
+      throw const FormatException(
+        'course.localCourseVersion cannot be negative.',
+      );
+    }
   }
 
   static String normalizeBuyACoffeeUrl(String value) {
@@ -284,6 +409,44 @@ class Course {
       'customLessonLabel': customLessonLabel,
     'defaultLessonIconStyle': defaultLessonIconStyle.name,
     'courseId': courseId,
+    'originType': originType.name,
+    if (publisherId.isNotEmpty) 'publisherId': publisherId,
+    if (publisherName.isNotEmpty) 'publisherName': publisherName,
+    if (officialCourseVersion.isNotEmpty)
+      'officialCourseVersion': officialCourseVersion,
+    if (officialReleaseDateUtc.isNotEmpty)
+      'officialReleaseDateUtc': officialReleaseDateUtc,
+    if (officialChecksum.isNotEmpty) 'officialChecksum': officialChecksum,
+    if (officialReleaseNotes.isNotEmpty)
+      'officialReleaseNotes': officialReleaseNotes,
+    if (distributionChannel.isNotEmpty)
+      'distributionChannel': distributionChannel,
+    if (originType.isOfficial)
+      'publisherVerificationStatus': publisherVerificationStatus.name,
+    if (publisherSignature.isNotEmpty) 'publisherSignature': publisherSignature,
+    if (baseCourseId.isNotEmpty) 'baseCourseId': baseCourseId,
+    if (basePublisherId.isNotEmpty) 'basePublisherId': basePublisherId,
+    if (baseOfficialCourseVersion.isNotEmpty)
+      'baseOfficialCourseVersion': baseOfficialCourseVersion,
+    if (baseOfficialChecksum.isNotEmpty)
+      'baseOfficialChecksum': baseOfficialChecksum,
+    if (localCourseVersion > 0) 'localCourseVersion': localCourseVersion,
+    if (localAuthorProfileId.isNotEmpty)
+      'localAuthorProfileId': localAuthorProfileId,
+    if (localAuthorUsername.isNotEmpty)
+      'localAuthorUsername': localAuthorUsername,
+    if (localModifiedAtUtc.isNotEmpty) 'localModifiedAtUtc': localModifiedAtUtc,
+    if (localVersionNotes.isNotEmpty) 'localVersionNotes': localVersionNotes,
+    if (createdByProfileId.isNotEmpty) 'createdByProfileId': createdByProfileId,
+    if (createdByUsername.isNotEmpty) 'createdByUsername': createdByUsername,
+    if (createdAtUtc.isNotEmpty) 'createdAtUtc': createdAtUtc,
+    if (lastModifiedByProfileId.isNotEmpty)
+      'lastModifiedByProfileId': lastModifiedByProfileId,
+    if (lastModifiedByUsername.isNotEmpty)
+      'lastModifiedByUsername': lastModifiedByUsername,
+    if (lastModifiedAtUtc.isNotEmpty) 'lastModifiedAtUtc': lastModifiedAtUtc,
+    if (versionNotes.isNotEmpty) 'versionNotes': versionNotes,
+    if (restoredFromVersion != null) 'restoredFromVersion': restoredFromVersion,
     if (parentCourseId?.isNotEmpty == true) 'parentCourseId': parentCourseId,
     if (derivedFromVersion?.isNotEmpty == true)
       'derivedFromVersion': derivedFromVersion,
@@ -350,6 +513,51 @@ class Course {
     return Course(
       formatVersion: currentFormatVersion,
       courseId: _requiredString(json, 'courseId', 'course'),
+      originType: CourseOriginType.parse(json),
+      publisherId: _optionalString(json, 'publisherId', ''),
+      publisherName: _optionalString(json, 'publisherName', ''),
+      officialCourseVersion: _optionalString(json, 'officialCourseVersion', ''),
+      officialReleaseDateUtc: _optionalString(
+        json,
+        'officialReleaseDateUtc',
+        '',
+      ),
+      officialChecksum: _optionalString(json, 'officialChecksum', ''),
+      officialReleaseNotes: _optionalString(json, 'officialReleaseNotes', ''),
+      distributionChannel: _optionalString(json, 'distributionChannel', ''),
+      publisherVerificationStatus: PublisherVerificationStatus.parse(json),
+      publisherSignature: _optionalString(json, 'publisherSignature', ''),
+      baseCourseId: _optionalString(json, 'baseCourseId', ''),
+      basePublisherId: _optionalString(json, 'basePublisherId', ''),
+      baseOfficialCourseVersion: _optionalString(
+        json,
+        'baseOfficialCourseVersion',
+        '',
+      ),
+      baseOfficialChecksum: _optionalString(json, 'baseOfficialChecksum', ''),
+      localCourseVersion: _optionalInt(json, 'localCourseVersion', 0),
+      localAuthorProfileId: _optionalString(json, 'localAuthorProfileId', ''),
+      localAuthorUsername: _optionalString(json, 'localAuthorUsername', ''),
+      localModifiedAtUtc: _optionalString(json, 'localModifiedAtUtc', ''),
+      localVersionNotes: _optionalString(json, 'localVersionNotes', ''),
+      createdByProfileId: _optionalString(json, 'createdByProfileId', ''),
+      createdByUsername: _optionalString(json, 'createdByUsername', ''),
+      createdAtUtc: _optionalString(json, 'createdAtUtc', ''),
+      lastModifiedByProfileId: _optionalString(
+        json,
+        'lastModifiedByProfileId',
+        '',
+      ),
+      lastModifiedByUsername: _optionalString(
+        json,
+        'lastModifiedByUsername',
+        '',
+      ),
+      lastModifiedAtUtc: _optionalString(json, 'lastModifiedAtUtc', ''),
+      versionNotes: _optionalString(json, 'versionNotes', ''),
+      restoredFromVersion: json['restoredFromVersion'] is int
+          ? json['restoredFromVersion'] as int
+          : null,
       publicationState: PublicationState.parseRequired(json, 'course'),
       lessonNumberingMode: LessonNumberingMode.parseRequired(json),
       customLessonLabel: _optionalString(json, 'customLessonLabel', ''),
@@ -432,44 +640,48 @@ class Course {
     return 'course_${hex(8)}-${hex(4)}-4${hex(3)}-${(8 + random.nextInt(4)).toRadixString(16)}${hex(3)}-${hex(12)}';
   }
 
-  Course fork() => Course(
-    courseId: newCourseId(),
-    publicationState: PublicationState.draft,
-    lessonNumberingMode: lessonNumberingMode,
-    customLessonLabel: customLessonLabel,
-    defaultLessonIconStyle: defaultLessonIconStyle,
-    parentCourseId: courseId,
-    derivedFromVersion: courseVersion.isNotEmpty ? courseVersion : version,
-    learningLanguage: learningLanguage,
-    interfaceLanguage: interfaceLanguage,
-    sourceLanguage: sourceLanguage,
-    targetLanguage: targetLanguage,
-    title: title,
-    ttsLanguage: ttsLanguage,
-    version: version,
-    contentRevision: contentRevision,
-    updateSummary: updateSummary,
-    audioMode: audioMode,
-    author: author,
-    authors: authors,
-    license: license,
-    languageVariant: languageVariant,
-    startLevel: startLevel,
-    targetLevel: targetLevel,
-    courseVersion: courseVersion,
-    lastUpdated: lastUpdated,
-    courseDescription: courseDescription,
-    sourceLanguageTag: sourceLanguageTag,
-    targetLanguageTag: targetLanguageTag,
-    textDirection: textDirection,
-    flagCode: flagCode,
-    flagImageBase64: flagImageBase64,
-    temporarySample: temporarySample,
-    buyACoffeeUrl: buyACoffeeUrl,
-    lessonIconAssets: lessonIconAssets,
-    audioLibrary: audioLibrary,
-    lessons: lessons,
-  );
+  Course fork() {
+    final json = Map<String, dynamic>.from(toJson())
+      ..['courseId'] = newCourseId()
+      ..['originType'] = CourseOriginType.custom.name
+      ..['publicationState'] = PublicationState.draft.name
+      ..['parentCourseId'] = courseId
+      ..['derivedFromVersion'] = originType.isOfficial
+          ? officialCourseVersion
+          : courseVersion
+      ..['courseVersion'] = '';
+    for (final key in const [
+      'publisherId',
+      'publisherName',
+      'officialCourseVersion',
+      'officialReleaseDateUtc',
+      'officialChecksum',
+      'officialReleaseNotes',
+      'distributionChannel',
+      'publisherVerificationStatus',
+      'publisherSignature',
+      'baseCourseId',
+      'basePublisherId',
+      'baseOfficialCourseVersion',
+      'baseOfficialChecksum',
+      'localCourseVersion',
+      'localAuthorProfileId',
+      'localAuthorUsername',
+      'localModifiedAtUtc',
+      'localVersionNotes',
+      'createdByProfileId',
+      'createdByUsername',
+      'createdAtUtc',
+      'lastModifiedByProfileId',
+      'lastModifiedByUsername',
+      'lastModifiedAtUtc',
+      'versionNotes',
+      'restoredFromVersion',
+    ]) {
+      json.remove(key);
+    }
+    return Course.fromJson(json);
+  }
 }
 
 class CourseAudioClip {

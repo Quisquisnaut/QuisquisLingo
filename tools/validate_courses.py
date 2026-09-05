@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import base64
 import binascii
+import hashlib
 import json
 import re
 import sys
@@ -35,6 +36,29 @@ LESSON_ICON_PATHS = set(re.findall(
     (ROOT / "lib" / "services" / "lesson_icon_catalog.dart").read_text(encoding="utf-8"),
 ))
 UTC_TIMESTAMP = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?Z$")
+
+
+def _official_checksum(course: dict[str, object]) -> str:
+    excluded = {
+        "officialChecksum", "publisherVerificationStatus", "publisherSignature",
+        "baseCourseId", "basePublisherId", "baseOfficialCourseVersion",
+        "baseOfficialChecksum", "localCourseVersion", "localAuthorProfileId",
+        "localAuthorUsername", "localModifiedAtUtc", "localVersionNotes",
+        "restoredFromVersion",
+    }
+    canonical = {
+        key: json.loads(json.dumps(value, ensure_ascii=False))
+        for key, value in course.items()
+        if key not in excluded
+    }
+    for author in canonical.get("authors", []):
+        roles = author.get("roles", [])
+        if roles:
+            author["role"] = roles[0]
+    encoded = json.dumps(
+        canonical, ensure_ascii=False, sort_keys=True, separators=(",", ":")
+    ).encode("utf-8")
+    return hashlib.sha256(encoded).hexdigest()
 
 
 def _ordered_text(value: str) -> str:
@@ -83,6 +107,21 @@ def validate(path: Path, global_ids: dict[str, str]) -> list[str]:
         issues.append("root: missing or invalid lessonNumberingMode")
     if data.get("defaultLessonIconStyle") not in LESSON_ICON_STYLES:
         issues.append("root: missing or invalid defaultLessonIconStyle")
+    if data.get("originType") != "bundledOfficial":
+        issues.append("root: bundled course originType must be bundledOfficial")
+    if data.get("publisherId") != "org.quisquislingo":
+        issues.append("root: bundled publisherId must be org.quisquislingo")
+    if data.get("publisherName") != "QuisquisLingo":
+        issues.append("root: bundled publisherName must be QuisquisLingo")
+    if data.get("publisherVerificationStatus") != "verified":
+        issues.append("root: bundled publisher verification must be verified")
+    if data.get("distributionChannel") != "bundled":
+        issues.append("root: bundled distributionChannel must be bundled")
+    if data.get("officialCourseVersion") != data.get("version"):
+        issues.append("root: officialCourseVersion must match bundled content version")
+    if data.get("officialChecksum") != _official_checksum(data):
+        issues.append("root: officialChecksum does not match canonical course content")
+    _timestamp(data.get("officialReleaseDateUtc"), "root official release", issues)
     if data.get("lessonNumberingMode") == "other" and not str(data.get("customLessonLabel", "")).strip():
         issues.append("root: customLessonLabel is required for Other")
     for old in ("topics", "chapters", "supportUrl"):

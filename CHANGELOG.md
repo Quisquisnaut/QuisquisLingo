@@ -1,3 +1,12 @@
+# 2.0.25 (Build 225.04) - unified Course Editor transaction - 2026-09-04
+
+- Advanced platform-compatible metadata to `2.0.25+22504` while displaying Version 2.0.25 / Build 225.04. The Alpha expiry remains unchanged at `2026-10-04 23:59:59` and the complete Version/Build area retains ten-tap Editor activation.
+- Replaced independent Course, Lesson, Round and Exercise persistence with one original-snapshot/working-copy transaction. Nested **Save** and **Save as draft** actions stage only in memory; nested Back discards only the current form's unstaged edits; one top-level **Confirm course changes** or **Cancel course changes** decision owns final persistence.
+- Added verified pre-change course backups, atomic write verification, monotonic internal versions, active-profile authorship, optional version notes, Version History restore/export/custom-copy actions, and failure handling that leaves the persisted course unchanged while preserving the working copy.
+- Added explicit custom, bundled-official and external-official origin/provenance fields, immutable bundled sources, independent official and local versions, checksum validation, publisher-collision controls and exact archive-before-replace official updates without content merging.
+- Updated the Editor hierarchy to show Lessons first at Course level and Rounds first inside a Lesson; replaced nested Publish wording with Save; preserved Draft learner projection, Course Model v6 strictness, all nine bundled courses and learner progress/scoring behavior.
+- Added production navigation, transaction, backup/integrity, origin/version, official-update and bundled-provenance regressions. A Windows Build 225.04 manual retest remains required before release packaging.
+
 # 2.0.25 (Build 225.03) - Windows blocker corrections - 2026-09-04
 
 - Advanced platform-compatible metadata to `2.0.25+22503` while displaying Version 2.0.25 / Build 225.03. The Alpha expiry remains unchanged at `2026-10-04 23:59:59`.

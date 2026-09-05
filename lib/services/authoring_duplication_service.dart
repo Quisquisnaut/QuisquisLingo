@@ -54,7 +54,9 @@ class AuthoringDuplicationService {
       customLessonLabel: source.customLessonLabel,
       defaultLessonIconStyle: source.defaultLessonIconStyle,
       parentCourseId: source.courseId,
-      derivedFromVersion: source.courseVersion.isNotEmpty
+      derivedFromVersion: source.originType.isOfficial
+          ? source.officialCourseVersion
+          : source.courseVersion.isNotEmpty
           ? source.courseVersion
           : source.version,
       learningLanguage: source.learningLanguage,
@@ -73,7 +75,7 @@ class AuthoringDuplicationService {
       languageVariant: source.languageVariant,
       startLevel: source.startLevel,
       targetLevel: source.targetLevel,
-      courseVersion: source.courseVersion,
+      courseVersion: '',
       lastUpdated: source.lastUpdated,
       courseDescription: source.courseDescription,
       sourceLanguageTag: source.sourceLanguageTag,

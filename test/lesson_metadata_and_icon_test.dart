@@ -154,11 +154,12 @@ void main() {
         find.byKey(const Key('lesson-section-name')),
         '  Travel  ',
       );
-      await tester.drag(
+      await tester.fling(
         find.byKey(const Key('lesson-metadata-controls')),
-        const Offset(0, -420),
+        const Offset(0, -500),
+        2000,
       );
-      await _pumpFrames(tester);
+      await tester.pumpAndSettle();
       await tester.tap(find.byKey(const Key('lesson-theme-icon-field')));
       await _pumpFrames(tester);
       expect(find.byKey(const Key('lesson-theme-icon-grid')), findsOneWidget);
@@ -312,23 +313,29 @@ void main() {
       expect(find.byType(ReorderableListView), findsNothing);
       expect(find.byKey(const ValueKey('round-a')), findsNothing);
 
-      await tester.tap(find.byKey(const Key('lesson-title-control')));
+      final titleControl = find.byKey(const Key('lesson-title-control'));
+      await tester.ensureVisible(titleControl);
+      await tester.pumpAndSettle();
+      await tester.tap(titleControl);
       await tester.pumpAndSettle();
       await tester.enterText(find.byType(TextFormField), 'Draft title');
       await tester.tap(find.text('Save').last);
       await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const Key('lesson-section-toggle')));
+      final sectionToggle = find.byKey(const Key('lesson-section-toggle'));
+      await tester.ensureVisible(sectionToggle);
       await tester.pumpAndSettle();
-      await tester.enterText(
-        find.byKey(const Key('lesson-section-name')),
-        'Draft Section',
-      );
+      await tester.tap(sectionToggle);
+      await tester.pumpAndSettle();
+      final sectionName = find.byKey(const Key('lesson-section-name'));
+      await tester.ensureVisible(sectionName);
+      await tester.enterText(sectionName, 'Draft Section');
 
-      await tester.drag(
+      await tester.fling(
         find.byKey(const Key('lesson-metadata-controls')),
-        const Offset(0, -600),
+        const Offset(0, 1000),
+        2000,
       );
-      await _pumpFrames(tester);
+      await tester.pumpAndSettle();
       await tester.tap(find.byKey(const Key('lesson-rounds-navigation')));
       await tester.pumpAndSettle();
       expect(find.byType(LessonRoundsScreen), findsOneWidget);

@@ -15,13 +15,23 @@ Every native Course Model v6 course declares:
 
 `courseId` is an immutable globally unique course identity. Course updates retain it so learner course progress follows the update. A fork or separate imported copy receives a new `courseId` and may include `parentCourseId` plus `derivedFromVersion` to preserve its lineage.
 
+## Origin, provenance and versions
+
+Every course serializes `originType` as `custom`, `bundledOfficial`, or `externalOfficial`. Existing v6 custom files that predate Build 225.04 remain custom when the optional field is absent. Official courses also require publisher identity, a publisher-owned official version and release timestamp, a lowercase SHA-256 `officialChecksum`, release notes, distribution channel, and `publisherVerificationStatus` (`verified` or `unverified`). Optional publisher signatures can support future distribution verification.
+
+The official source version is distinct from local authoring history. A bundled or external official course retains `officialCourseVersion`; each confirmed local edit increments the separate integer `localCourseVersion`. Base fields (`baseCourseId`, `basePublisherId`, `baseOfficialCourseVersion`, and `baseOfficialChecksum`) identify the exact official source underlying local work. A custom course begins at `localCourseVersion: 1` on its first confirmed creation and increments by one per later confirmed course-level transaction.
+
+Custom provenance can record `createdByProfileId`, `createdByUsername`, `createdAtUtc`, `lastModifiedByProfileId`, `lastModifiedByUsername`, `lastModifiedAtUtc`, `versionNotes`, and `restoredFromVersion`. Official local edits use the corresponding `localAuthorProfileId`, `localAuthorUsername`, `localModifiedAtUtc`, and `localVersionNotes`. These fields are course metadata, not learner identity or progress. A separate copy clears official provenance, receives a new course ID and becomes custom.
+
+`officialChecksum` is calculated over canonical course JSON with the checksum field omitted. It protects content integrity; it is not by itself proof of publisher authenticity. QuisquisLingo labels official input unverified when publisher authentication is unavailable.
+
 The canonical hierarchy is:
 
 `Course > lessons[] > guidebook + rounds[] + duel > content[]`
 
 Course owns an ordered list of Lessons. Every Lesson owns its Guidebook, ordered Rounds and stable Duel identity. Chapter and assessment-Lesson fields are not part of Course Model v6.
 
-Every mutable Lesson, Round and Exercise object requires `updatedAt` as a canonical UTC ISO-8601 timestamp ending in `Z`. Authoring writes the clock value only for the object explicitly saved. A child save does not update ancestor timestamps, and duplication preserves the source timestamps. Deterministic bundled generation assigns explicit stable creation timestamps so repeated runs are byte-identical.
+Every mutable Lesson, Round and Exercise object requires `updatedAt` as a canonical UTC ISO-8601 timestamp ending in `Z`. Nested authoring Save writes only to the current Course Editor working copy. No child save updates live persistence or the course version. Deterministic bundled generation assigns explicit stable creation timestamps so repeated runs are byte-identical.
 
 Every Lesson requires `lessonId` and `title`. Optional presentational metadata uses this shape:
 
@@ -88,6 +98,8 @@ Answer acceptance and correction selection are separate. Structured evaluation r
 ## Authoring identity and generated drafts
 
 Editing and Draft/Published transitions preserve every existing Course, Lesson, Round, Exercise, Content and Item ID. Learner visibility requires the object and all ancestors to be Published. Draft descendants are retained in authoring export but excluded from learner selection, numbering, Sections, execution, completion, Review, Duel and XP. Duplicating a Course or subtree recursively allocates fresh owned IDs and starts the duplicate as Draft. Generated GuideBook material likewise becomes real fresh-ID Draft content only when explicitly approved; approval is not publication.
+
+Course Editor authoring uses one in-memory transaction: immutable original snapshot plus editable working copy. Nested **Save** and **Save as draft** update that working copy only. The entire working copy is persisted only after the top-level **Confirm course changes** action has created and verified a complete backup and assigned the next internal course version. **Cancel course changes** serializes nothing.
 
 The Exercise Creation Wizard and GuideBook Round Generator are editor workflows, not serialized Course Model concepts. Wizard-created Exercises and approved generated Rounds/Exercises are Draft. GuideBook plans remain outside the Lesson until approval appends them after existing Rounds. Neither workflow changes `formatVersion: 6`.
 

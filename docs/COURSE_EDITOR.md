@@ -1,6 +1,6 @@
 # QuisquisLingo Course Editor
 
-Updated for Version 2.0.25, Build 225.03 and Course Model v6
+Updated for Version 2.0.25, Build 225.04 and Course Model v6
 
 ## Unlocking the editor
 
@@ -10,27 +10,36 @@ Course Editor is an Easter Egg so ordinary learners do not encounter authoring c
 
 The editor supports the whole authoring tree:
 
-- Course → open the compact **Lessons** row
-- Lessons → use the authoritative Lock control and create/reorder Lessons; each Lesson menu provides Edit, Rename, Delete, Duplicate, Preview, Audit and Draft/Publish
+- Course → open **Lessons**, the first content section
+- Lessons → use the authoritative Lock control and create/reorder Lessons; each Lesson menu provides Edit, Rename, Delete, Duplicate, Preview and Audit
 - Lesson → edit its title, Section metadata, preinstalled or custom managed theme icon and GuideBook; open the linked Rounds page; a stable Duel identity is retained automatically
-- Rounds → create/reorder Rounds; each Round menu provides Edit, Rename, Delete, Duplicate, Preview, Audit and Draft/Publish
-- Round → create/reorder Exercises; every Exercise menu includes Edit, Duplicate and Draft/Publish alongside the established preview, transfer and delete actions
+- Rounds → the first section inside a Lesson; create/reorder Rounds, with Edit, Rename, Delete, Duplicate, Preview and Audit actions
+- Round → create/reorder Exercises; every Exercise menu includes Edit, Duplicate, Preview, transfer and delete actions
 
-New objects receive generated local IDs. Deleting an object removes its descendants from the local edited course. The bundled JSON asset is never modified. **Reset local edits** restores the bundled course.
+New objects receive generated local IDs. Deleting an object removes its descendants from the current working copy. The bundled JSON asset is never modified. **Restore official source** loads the immutable bundled source into the working copy; the persisted local course changes only after final confirmation.
 
 Each Lesson can optionally enable **Belongs to a Section** and then requires a trimmed, non-empty **Section name**. Section is consecutive-order display metadata only: it is not a hierarchy, has no ID, and owns no progress or navigation. Disabling the switch clears the stored Section name.
 
 The controlled **Lesson theme icon** picker separates **Preinstalled** and **Custom**. **Import custom icon** reads one PNG/JPG/JPEG/WebP from `Documents/QuisquisLingo/Imports/Lesson Icons`, validates it, contains it without cropping or distortion on a transparent 256 × 256 PNG canvas, and stores it in the Course-owned managed asset registry. No external path is serialized or needed later. Managed icons survive Course export/import and Course duplication; Lesson duplication within the Course reuses the immutable asset. `None` uses the Course’s monochrome or deterministic colored-number fallback. Every learner icon uses the established 84 × 84 footprint.
 
-## Draft, Publish and unsaved changes
+## One course-level editing transaction
 
-Course, Lesson, Round and Exercise authoring uses one explicit `Draft` / `Published` state. **Save as Draft** preserves incomplete but structurally safe work; **Save / Publish** runs strict learner validation. A Published child below a Draft parent remains hidden, and publishing a parent never publishes Draft descendants. Draft Courses are not learner-selectable. Draft Lessons create no learner numbering or Section gaps and do not affect unlocks. Draft Rounds and Exercises are excluded from learner execution, completion, Review, Duel and XP. Moving Published content to Draft confirms first and preserves stable IDs, progress and history.
+Opening a course in Course Editor loads the current persisted course, preserves an immutable original snapshot, and creates a separate editable working copy. Course Info, Lesson, Round, Exercise, GuideBook, generated-content acceptance, deletion, duplication and reordering mutate only that working copy. The live learner course remains unchanged during the editing session.
 
-Back/close uses the same **Unsaved changes** confirmation at Course, Lesson, Round and Exercise levels. A successful **Save as Draft** or **Publish** persists that child transactionally through Round, Lesson and Course storage and refreshes the saved child baseline at each open ancestor, so leaving immediately does not repeat warnings for the saved mutation. Independent unsaved parent edits remain dirty until explicitly saved. Validation or persistence failure clears no dirty state. Preview does not publish, clear dirty state or write learner state.
+Nested editors use **Save**, or **Save as draft** when Draft status is supported. Save stores a normal non-Draft item in the working copy; Save as draft stores a Draft item there. Neither action persists the course, creates a backup, increments the internal course version, or represents final publication. Nested pages return normally without a course-level confirmation. Pressing Back before either nested save discards only the currently open page's unstaged form edits and preserves every earlier working-copy change.
+
+Course Editor compares canonical course content rather than a one-way dirty flag. Restoring the original semantic values makes the session clean again. Transient focus, selection, controllers and scroll state are not course content. Only an attempt to leave the top-level Course Editor can show the single unapplied-course dialog, with these explicit actions:
+
+- **Confirm course changes** — optionally records a multiline version note, creates and verifies a complete backup of the currently persisted course, increments its separate internal course version by exactly one, atomically applies and verifies the whole working copy, shows the resulting version and backup path, and exits only after success.
+- **Cancel course changes** — discards the complete working copy, creates no backup, performs no version increment, leaves the persisted course untouched, and exits.
+
+If the working copy equals the original, the Editor exits directly. A backup or persistence failure leaves the original unchanged, preserves the working copy and version note, and keeps the Editor open with a clear error.
+
+Course, Lesson, Round and Exercise content retains explicit `Draft` / `Published` state for learner projection. A Published child below a Draft parent remains hidden. Draft Courses are not learner-selectable; Draft Lessons do not affect numbering, Sections or unlock order; Draft Rounds and Exercises do not affect play, completion, Review, Duel or XP. Nested Save is the replacement for the former nested Publish label; final application of the complete course happens only through Confirm course changes.
 
 Course info controls the learner-visible Lesson prefix: Lesson, Unit, Topic, Module, Skill, Chapter, Stage, Step, Part, a trimmed custom label, number only, or none. Numbers use Published Lesson order only. The exact untouched default `Lesson N` is shown once when Lesson mode would otherwise duplicate it. Course info also chooses the monochrome or colored-number fallback style and stores an optional validated **Buy a Coffee** HTTPS URL.
 
-The Lesson form keeps Lesson metadata readily accessible and links to one dedicated **Rounds** page instead of expanding the complete list inline. The page reuses the existing Round workflow and returns naturally to the Lesson draft. Navigation alone writes nothing. An explicit child save persists that child through the ancestor callback chain; unsaved Course/Lesson/Round metadata outside the saved child is retained independently, and every stable ID remains intact.
+The Lesson form keeps Lesson metadata readily accessible and links to one dedicated **Rounds** page instead of expanding the complete list inline. The page reuses the existing Round workflow and returns naturally to the Lesson working copy. Navigation alone writes nothing. Every stable ID remains intact unless an explicit duplication creates a new identity.
 
 Duplicate inserts the independent copy immediately after its source. Lesson duplication recursively allocates fresh Lesson, Duel, GuideBook Content, Round, Exercise and item IDs; Round and Exercise duplication applies the corresponding subtree rule. Internal ID references are remapped while shared immutable image/audio asset paths remain references. Editing a duplicate cannot mutate its source. Rename changes only the title and preserves identity and descendants. Preview uses learner rendering without writing completion, XP, streak, Laurel, Review, Duel or unlock state.
 
@@ -165,7 +174,21 @@ Audit can sort by Lesson, friendly Exercise type or **Recently modified**. Recen
 
 Local edited courses are stored separately from bundled assets in the Course Model v6/build-225 namespace. No earlier namespace is read or migrated. A complete course override is validated structurally before saving and before learner use. Malformed current-namespace JSON is preserved and copied aside before loading fails clearly; it is never silently replaced with an empty collection. Local authoring data has an 8 MB safety limit.
 
-**Copy edits as JSON** exports the local authoring override to the clipboard. **Reset local edits** removes it.
+Each successful confirmation of an existing course first writes a verified backup below:
+
+`Documents/QuisquisLingo/Exports/Course Backups/<sanitized courseId>`
+
+The manifest contains the complete Course Model v6 JSON, origin and publisher provenance, official and local versions, author/profile identity, local timestamp, reason, optional version notes, SHA-256 integrity data and referenced managed audio. Asset copies are verified before persistence begins. Backups are never pruned or silently deleted.
+
+**Version History** lists the current course, the immutable official source where applicable, and verified backups newest first. It exposes the exact backup folder and supports restore into the working copy, portable JSON export and a new custom copy. Restore never writes directly to the live course: it becomes another pending working-copy mutation and the next confirmed version remains monotonic. Corrupt or incomplete history is reported and never silently accepted.
+
+## Course origin and official updates
+
+Course Model v6 distinguishes `custom`, `bundledOfficial` and `externalOfficial` origin. Bundled official course assets are immutable source versions. External official files retain publisher identity and a verified or unverified status. Custom courses created or imported locally never acquire official provenance by title or course ID.
+
+An official update requires the same stable course ID and publisher, a newer official version, and a matching content checksum. QuisquisLingo archives the complete active course first, then installs the exact new official source without a content merge. The previous local state remains in Version History. A file whose publisher authenticity cannot be established can only be installed after an explicit warning and is labeled **External official — unverified**. A failed archive or write leaves the previous course unchanged.
+
+For custom courses, the first confirmed creation is internal version 1. Later confirmations increment by exactly one. Official courses keep their publisher's official version unchanged while local confirmed edits increment a separate local version. The active local QQL profile is required and recorded as creator or last modifier; a missing active profile blocks confirmation rather than inventing identity.
 
 ## Word Blocks language rule (0.4.25)
 
@@ -262,13 +285,13 @@ An author can have multiple roles. Course Creator means original creation/design
 The current time-limited alpha expires on 2026-10-04. Expiry blocks learner exercises and Review but deliberately leaves Course Editor available so authoring work can be inspected, recovered and exported. Expiry never deletes local data.
 
 
-## Current bundled course and My custom courses
+## Bundled official and local courses
 
-The Course Editor entry screen separates the **Current bundled course** from **My custom courses**. A created or imported custom course remains custom even when it is the currently selected course and is never duplicated under Current bundled course. Temporary sample material refers to bundled sample courses supplied with early/current development builds and is progressively replaced by reviewed course content. A newly created custom course starts from a basic Course Model v6 authoring skeleton: 3 placeholder Lessons, each with a stable Lesson-scoped Duel identity. No Rounds are created automatically.
+The Course Editor entry screen identifies bundled official sources and groups stored custom or external-official installations under **Local courses**. A created or ordinarily imported course remains custom even when it is currently selected. Temporary sample material refers to bundled sample courses supplied with early/current development builds and is progressively replaced by reviewed course content. A newly created custom course starts as an unpersisted working copy with 3 placeholder Lessons, each with a stable Lesson-scoped Duel identity, and no automatic Rounds. Its first **Confirm course changes** creates internal version 1; cancellation leaves no stored course.
 
 When creating a custom course, the author can use one of QuisquisLingo's existing flags or import a PNG/JPG image. Imported flags are checked for file size and resolution. Images that are too small or excessively large are rejected; accepted large images are resized to a maximum 256 px longest side while preserving their aspect ratio. The processed PNG is stored with the course so it remains available if the original file is moved or deleted.
 
-Custom courses can be imported from and exported to `.json` files without a file chooser. For import, copy the course file to `Documents/QuisquisLingo/Exports/import.json`, then press **Import course JSON**. The imported course is added under **My custom courses** and `import.json` is left in place. Course Audit errors block import; warnings are reported for review but do not block it. Imports must be UTF-8 Course Model v6 JSON and are validated through the normal `Course` parser. v5 and older formats are unsupported and are not read, migrated, converted or deleted; export writes the canonical v6 structure. Files larger than 10 MB are refused. An imported course with the same stable `courseId` as an existing custom course requires confirmation before replacement. Exports are written to the same `Documents/QuisquisLingo/Exports` directory and contain the canonical human-readable Course Model v6 object, including optional custom flag data. Learner **Export my data** remains separate and does not contain custom courses.
+Courses can be imported from and exported to `.json` files without a file chooser. For import, copy the course file to `Documents/QuisquisLingo/Exports/import.json`, then press **Import course JSON**. The imported course is added under **Local courses** and `import.json` is left in place. Course Audit errors block import; warnings are reported for review but do not block it. Imports must be UTF-8 Course Model v6 JSON and are validated through the normal `Course` parser. v5 and older formats are unsupported and are not read, migrated, converted or deleted; export writes the canonical v6 structure. Files larger than 10 MB are refused. Origin collisions are handled explicitly: custom content cannot overwrite an official identity, and official replacements require matching publisher provenance and a newer verified version. Exports contain the complete canonical v6 object, including origin/version metadata and optional custom flag data. Learner **Export my data** remains separate and does not contain courses.
 
 
 ### Home course selection and navigation
@@ -277,9 +300,9 @@ The compact flag in the Home Top Bar opens the full-size course selector, which 
 
 ### Copy edits as JSON vs Export course JSON
 
-**Copy edits as JSON** is for the Current bundled course. Bundled assets are not rewritten; the editor stores a local override, and this command copies that override JSON to the clipboard. It does not create a file. **Export course JSON** is for a custom course and writes a complete portable Course Model v6 JSON file to `Documents/QuisquisLingo/Exports`.
+**Copy edits as JSON** copies the current working Course Model v6 object to the clipboard and does not create a file. **Export course JSON** writes a complete portable Course Model v6 JSON file to `Documents/QuisquisLingo/Exports`. Neither action confirms or persists the editing transaction.
 
-When `Documents/QuisquisLingo/Exports/import.json` is imported successfully, QuisquisLingo validates it, copies the course into local custom-course storage and lists it under **My custom courses**. The stored course no longer depends on `import.json`; the transfer file is left in place. The stable `courseId` identifies the course internally. Course Info remains available even when the course content is locked. Renaming the visible Course name in Course Info does not change `courseId`; the Lock protects structural/content editing, not course metadata. Importing another JSON with the same `courseId` therefore requires confirmation before replacing the existing custom course.
+When `Documents/QuisquisLingo/Exports/import.json` is imported successfully, QuisquisLingo validates it and lists it under **Local courses**. The stored course no longer depends on `import.json`; the transfer file is left in place. The stable `courseId` identifies the course internally. Course Info remains available even when the course content is locked. Renaming the visible Course name in Course Info does not change `courseId`; the Lock protects structural/content editing, not course metadata.
 
 ### Custom course flags
 

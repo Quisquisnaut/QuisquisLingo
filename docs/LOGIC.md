@@ -56,7 +56,9 @@ A language streak advances only on a new day when that language is studied. A da
 
 ## Course authoring boundary
 
-Bundled JSON files are read-only. Course Editor stores a validated local Course Model v6 override. The Lesson/Round/content hierarchy can be created, deleted and reordered locally. A saved child is persisted transactionally through the open ancestor chain, while unrelated unsaved ancestor edits stay dirty. Reset local edits returns to the bundled asset.
+Bundled JSON files are immutable official sources. Opening Course Editor creates an immutable snapshot of the persisted course and a separate editable working copy. Every nested authoring operation changes only the working copy. Nested Save/Save as draft never touches the learner-visible course, creates a backup, or increments a version. Canonical semantic comparison decides whether the complete working copy differs from the snapshot.
+
+Only the top-level Confirm course changes action may persist authoring work. For an existing course it first creates and verifies a complete versioned backup, then increments the separate internal course version and atomically writes and verifies the entire working copy. Cancel course changes discards the working copy without backup or version change. Failed backup or persistence preserves the original and keeps the working copy open. Official sources keep their publisher-owned version separately from local course versions.
 
 ## Storage boundary
 
@@ -75,6 +77,8 @@ Build 223 makes three clean-cut Lesson-semantic persistence changes: `v4_complet
 Build 225.02 moves Course Editor override/user-course storage to the v6/build-225 namespace. Older namespaces remain untouched and are never migrated into v6. Malformed current-namespace data is preserved and copied to the corrupt-backup key before a clear failure; incompatible course files are rejected without deleting the source.
 
 Build 225.03 keeps that clean v6 storage boundary. At startup, the device-local bundled-course discovery index is reconciled idempotently with the current authoritative registry so newly bundled courses become visible without clearing application data. This initialization does not inspect or modify custom-course storage, learner progress or any older course schema.
+
+Build 225.04 retains that namespace and introduces a course-level transaction without a schema migration. Confirmed existing-course changes are backed up below `Documents/QuisquisLingo/Exports/Course Backups/<courseId>` with canonical SHA-256 integrity and referenced managed audio. `custom`, `bundledOfficial`, and `externalOfficial` origins are explicit. Bundled official sources remain immutable; local variants and official update archives remain separate. No v5 compatibility or migration is reintroduced.
 
 Learner backup schema v2 remains unchanged. Its only learner-state payload is an opaque `data` map of profile namespace suffixes to primitive/list values; it does not define Topic/Lesson fields of its own. Export/restore therefore carries the current Lesson keys without changing `schemaVersion`, `format`, or `learnerProfileId` semantics.
 

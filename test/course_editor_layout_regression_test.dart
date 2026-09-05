@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:quisquislingo_app/models/course_models.dart';
 import 'package:quisquislingo_app/screens/course_projects_screen.dart';
 import 'package:quisquislingo_app/services/course_editor_service.dart';
+import 'package:quisquislingo_app/services/profile_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
@@ -55,7 +56,16 @@ void main() {
   testWidgets('new course starts with 3 direct placeholder Lessons', (
     tester,
   ) async {
-    SharedPreferences.setMockInitialValues({});
+    const profileId = '12345678-1234-4234-9234-123456789abc';
+    SharedPreferences.setMockInitialValues({
+      ProfileService.profilesKey: [
+        const LearnerProfile(
+          learnerProfileId: profileId,
+          displayName: 'Layout Author',
+        ).encode(),
+      ],
+      ProfileService.activeProfileIdKey: profileId,
+    });
     final currentCourse = Course(
       courseId: 'bundled_test',
       learningLanguage: 'Italian',
@@ -89,9 +99,27 @@ void main() {
     await tester.tap(find.widgetWithText(FilledButton, 'Create'));
     await tester.pumpAndSettle();
 
+    expect(await CourseEditorService().listUserCourses(), isEmpty);
+    await tester.tap(find.byKey(const Key('course-editor-lessons-navigation')));
+    await tester.pumpAndSettle();
+    for (final title in [
+      'Lesson 1: Lesson 1',
+      'Lesson 2: Lesson 2',
+      'Lesson 3: Lesson 3',
+    ]) {
+      expect(find.text(title), findsOneWidget);
+    }
+    await tester.tap(find.byType(BackButton).last);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byType(BackButton).last);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('confirm-course-changes')));
+    await tester.pumpAndSettle();
+
     final stored = await CourseEditorService().listUserCourses();
     expect(stored, hasLength(1));
     final created = stored.single;
+    expect(created.courseVersion, '1');
     expect(created.publicationState, PublicationState.draft);
     expect(created.lessons, hasLength(3));
     expect(created.lessons.expand((lesson) => lesson.rounds), isEmpty);
@@ -110,7 +138,7 @@ void main() {
     }
   });
 
-  testWidgets('custom Course menu exposes the complete 224 author actions', (
+  testWidgets('custom Course menu enters the 225.04 transaction for edits', (
     tester,
   ) async {
     SharedPreferences.setMockInitialValues({});
@@ -136,10 +164,8 @@ void main() {
     await tester.pumpAndSettle();
     for (final label in [
       'Edit',
-      'Rename',
       'Duplicate',
       'Audit',
-      'Publish',
       'Export JSON',
       'Delete course',
     ]) {
@@ -147,14 +173,12 @@ void main() {
     }
     await tester.tap(find.text('Duplicate'));
     await tester.pumpAndSettle();
-    final stored = await CourseEditorService().listUserCourses();
-    expect(stored.map((course) => course.title), contains('Menu Course copy'));
-    expect(stored.map((course) => course.courseId).toSet(), hasLength(2));
-    expect(
-      stored
-          .singleWhere((course) => course.title.endsWith('copy'))
-          .publicationState,
-      PublicationState.draft,
-    );
+    expect(find.text('Course Editor'), findsOneWidget);
+    expect(await CourseEditorService().listUserCourses(), hasLength(1));
+    await tester.tap(find.byType(BackButton).last);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('cancel-course-changes')));
+    await tester.pumpAndSettle();
+    expect(await CourseEditorService().listUserCourses(), hasLength(1));
   });
 }

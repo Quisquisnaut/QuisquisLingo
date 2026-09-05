@@ -435,6 +435,12 @@ class _HomeScreenState extends State<HomeScreen> {
       final iddqdMode = activeId == null
           ? false
           : await _settings.isIddqdModeEnabled(course.courseId);
+      final officialUpdateNotice =
+          course.originType == CourseOriginType.bundledOfficial
+          ? await _courseEditorService.consumeOfficialUpdateNotice(
+              course.courseId,
+            )
+          : null;
       if (course.lessons.isNotEmpty &&
           !_lessonUnlocks.isLessonUnlocked(
             lessonIndex: activeLessonIndex,
@@ -469,6 +475,29 @@ class _HomeScreenState extends State<HomeScreen> {
         }
       });
       if (resetFlow) _scrollToLesson(course, activeLessonIndex);
+      if (officialUpdateNotice != null) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
+          showDialog<void>(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: const Text('Official course updated'),
+              content: SelectableText(
+                '${officialUpdateNotice['publisherName']} official version '
+                '${officialUpdateNotice['officialCourseVersion']} is now active.\n\n'
+                'Your previous local version and notes were archived at:\n'
+                '${officialUpdateNotice['backupPath']}',
+              ),
+              actions: [
+                FilledButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('OK'),
+                ),
+              ],
+            ),
+          );
+        });
+      }
     } on AppException catch (e) {
       if (mounted) await ErrorPresenter.show(context, e.error);
     } catch (e, st) {
@@ -782,7 +811,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _showCoursePicker(BuildContext overlayContext) async {
-    final customCourses = (await _courseEditorService.listUserCourses())
+    final localCourses = (await _courseEditorService.listUserCourses())
         .map(_publication.learnerCourse)
         .whereType<Course>()
         .toList();
@@ -792,7 +821,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ref != _selectedCourseRef &&
               (CourseService.hasCourse(ref.trim().toUpperCase()) ||
                   (ref.startsWith('custom:') &&
-                      customCourses.any(
+                      localCourses.any(
                         (course) =>
                             course.courseId == ref.substring('custom:'.length),
                       ))),
@@ -804,10 +833,23 @@ class _HomeScreenState extends State<HomeScreen> {
     Course? customCourseFor(String ref) {
       if (!ref.startsWith('custom:')) return null;
       final id = ref.substring('custom:'.length);
-      for (final course in customCourses) {
+      for (final course in localCourses) {
         if (course.courseId == id) return course;
       }
       return null;
+    }
+
+    String originLabel(Course course) {
+      if (course.originType == CourseOriginType.bundledOfficial) {
+        return 'Bundled official · ${course.publisherName} ${course.officialCourseVersion}';
+      }
+      if (course.originType == CourseOriginType.externalOfficial) {
+        final local = course.localCourseVersion > 0
+            ? ' · locally modified ${course.localCourseVersion}'
+            : '';
+        return 'External official · ${course.publisherName} ${course.officialCourseVersion}$local · ${course.publisherVerificationStatus.name}';
+      }
+      return 'Custom course · version ${course.courseVersion.isEmpty ? 'unconfirmed' : course.courseVersion}';
     }
 
     Widget recentCourseTile(BuildContext ctx, String ref) {
@@ -819,7 +861,7 @@ class _HomeScreenState extends State<HomeScreen> {
             fallbackCode: CourseService.codeForCourse(custom),
           ),
           title: Text(custom.title),
-          subtitle: const Text('Custom course'),
+          subtitle: Text(originLabel(custom)),
           onTap: () {
             Navigator.pop(ctx);
             _switchCustomCourse(custom);
@@ -892,8 +934,18 @@ class _HomeScreenState extends State<HomeScreen> {
                   key: ValueKey('bundled-course-$code'),
                   leading: FlagBadge(code),
                   title: Text(CourseService.targetLabels[code] ?? code),
-                  subtitle: Text(
-                    '${CourseService.sourceLabels[code] ?? 'English'} → ${CourseService.targetLabels[code] ?? code}${CourseService.hasCourse(code) ? '' : ' · Coming soon'}',
+                  subtitle: Row(
+                    children: [
+                      Text(
+                        '${CourseService.sourceLabels[code] ?? 'English'} → ${CourseService.targetLabels[code] ?? code}',
+                      ),
+                      Flexible(
+                        child: Text(
+                          ' · Bundled official${CourseService.hasCourse(code) ? '' : ' · Coming soon'}',
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
                   ),
                   trailing: _selectedCourseRef == code
                       ? const Icon(Icons.check)
@@ -903,24 +955,34 @@ class _HomeScreenState extends State<HomeScreen> {
                     _switchCourse(code);
                   },
                 ),
-              if (customCourses.isNotEmpty) ...[
+              if (localCourses.isNotEmpty) ...[
                 const Divider(),
                 const Padding(
                   padding: EdgeInsets.fromLTRB(16, 8, 16, 6),
                   child: Text(
-                    'My custom courses',
+                    'Local courses',
                     style: TextStyle(fontWeight: FontWeight.w800),
                   ),
                 ),
-                for (final course in customCourses)
+                for (final course in localCourses)
                   ListTile(
                     leading: CourseFlagBadge(
                       course: course,
                       fallbackCode: CourseService.codeForCourse(course),
                     ),
                     title: Text(course.title),
-                    subtitle: Text(
-                      '${course.sourceLanguage} → ${course.targetLanguage} · Custom course',
+                    subtitle: Row(
+                      children: [
+                        Text(
+                          '${course.sourceLanguage} → ${course.targetLanguage}',
+                        ),
+                        Flexible(
+                          child: Text(
+                            ' · ${originLabel(course)}',
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
                     ),
                     trailing: _selectedCourseRef == 'custom:${course.courseId}'
                         ? const Icon(Icons.check)
