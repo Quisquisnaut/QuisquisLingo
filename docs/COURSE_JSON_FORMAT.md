@@ -19,11 +19,31 @@ Every native Course Model v6 course declares:
 
 Every course serializes `originType` as `custom`, `bundledOfficial`, or `externalOfficial`. Existing v6 custom files that predate Build 225.04 remain custom when the optional field is absent. Official courses also require publisher identity, a publisher-owned official version and release timestamp, a lowercase SHA-256 `officialChecksum`, release notes, distribution channel, and `publisherVerificationStatus` (`verified` or `unverified`). Optional publisher signatures can support future distribution verification.
 
-The official source version is distinct from local authoring history. A bundled or external official course retains `officialCourseVersion`; each confirmed local edit increments the separate integer `localCourseVersion`. Base fields (`baseCourseId`, `basePublisherId`, `baseOfficialCourseVersion`, and `baseOfficialChecksum`) identify the exact official source underlying local work. A custom course begins at `localCourseVersion: 1` on its first confirmed creation and increments by one per later confirmed course-level transaction.
+The official source version is distinct from local authoring history. A bundled or external official course retains `officialCourseVersion`; its first confirmed local edit creates `localCourseVersion: 1`, and each later confirmed local edit increments that separate integer by one. Base fields (`baseCourseId`, `basePublisherId`, `baseOfficialCourseVersion`, and `baseOfficialChecksum`) identify the exact official source underlying local work. A custom course instead begins at `courseVersion: "1"` on its first confirmed creation; this field stores its integer version as a JSON string and increments by one per later confirmed course-level transaction. Nested Save/Save as draft, cancellation and failed confirmation do not advance either version counter.
 
 Custom provenance can record `createdByProfileId`, `createdByUsername`, `createdAtUtc`, `lastModifiedByProfileId`, `lastModifiedByUsername`, `lastModifiedAtUtc`, `versionNotes`, and `restoredFromVersion`. Official local edits use the corresponding `localAuthorProfileId`, `localAuthorUsername`, `localModifiedAtUtc`, and `localVersionNotes`. These fields are course metadata, not learner identity or progress. A separate copy clears official provenance, receives a new course ID and becomes custom.
 
-`officialChecksum` is calculated over canonical course JSON with the checksum field omitted. It protects content integrity; it is not by itself proof of publisher authenticity. QuisquisLingo labels official input unverified when publisher authentication is unavailable.
+The Build 225.04 official checksum algorithm is `CourseBackupService.officialContentChecksum`:
+
+1. Start with the complete Course Model v6 object serialized by `Course.toJson()` after normal model parsing. Hash the model's serialized values and optional-field rules, not the original file bytes or a partial content projection.
+2. Remove exactly these 13 root fields; identically named nested fields are not removed:
+
+   | Excluded fields | Reason |
+   | --- | --- |
+   | `officialChecksum` | The digest cannot include itself. |
+   | `publisherVerificationStatus`, `publisherSignature` | Verification status and signature metadata are separate from the content digest. Local authenticity classification must not change it, and signature data must not become part of the payload it may authenticate. |
+   | `baseCourseId`, `basePublisherId`, `baseOfficialCourseVersion`, `baseOfficialChecksum` | These describe a local variant's reference to its official source. |
+   | `localCourseVersion`, `localAuthorProfileId`, `localAuthorUsername`, `localModifiedAtUtc`, `localVersionNotes` | These describe local authoring history rather than the official source. |
+   | `restoredFromVersion` | This records a local restore operation. |
+
+3. Recursively sort every remaining object's string keys using Dart's default string ordering; preserve list order and serialized scalar values. Encode the result with Dart `jsonEncode` (compact JSON without indentation), then UTF-8, with no added BOM or trailing newline.
+4. Compute SHA-256 and store the 64-character lowercase hexadecimal digest in `officialChecksum`.
+
+No other fields are excluded by the checksum algorithm. In particular, publisher identity, `originType`, `officialCourseVersion`, release date and notes, `distributionChannel`, content, and any serialized custom-authoring fields such as `courseVersion` remain covered. The bundled generator and validator use the same exclusion set and compact, recursively key-sorted UTF-8 JSON for the bundled model values. They also reproduce the model's serialized author `role` field alongside `roles` before hashing.
+
+In a Build 225.04 local official variant, `officialChecksum` remains the source digest and `baseOfficialChecksum` records that same digest; neither is recomputed from locally edited content. Changing content can therefore make a recomputed official-content checksum differ from the retained source checksum. The local variant is protected in a backup by the separate `courseChecksumSha256`: `CourseBackupService.courseChecksum` hashes the complete `Course.toJson()` with the same sorting/encoding and **no field exclusions**. Referenced course-owned audio copies have separate SHA-256 checksums over their bytes, verified before restore remaps their paths.
+
+Official source loading and external official installation validate content integrity separately from publisher authenticity. External file installation records `publisherVerificationStatus: unverified` even if the file declares `verified`; Build 225.04 does not authenticate publisher signatures. A checksum alone is not proof of publisher authenticity.
 
 The canonical hierarchy is:
 
