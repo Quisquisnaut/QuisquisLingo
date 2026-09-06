@@ -17,16 +17,77 @@ abstract final class AnswerExpressionParser {
       );
     }
     _validateBalance(source);
-    var variants = <String>[source];
-    variants = _expandDelimited(variants, '{', '}', optional: true);
-    variants = _expandLinkedAlternatives(variants);
+    _validateReorderOperands(source);
+    // Validate linkage while every syntactically present member still exists.
+    // Optional expansion may later omit a member or leave an empty alternative.
+    _expandLinkedAlternatives([source]);
+    final linkedOptionalReorder =
+        source.contains('<>') && _hasOptionalLinkedMember(source);
+    final terminal = RegExp(r'([.!?…]+)$').firstMatch(source);
+    final punctuation = terminal?.group(1) ?? '';
+    var variants = <String>[
+      punctuation.isEmpty ? source : source.substring(0, terminal!.start),
+    ];
+    variants = _expandDelimited(
+      variants,
+      '{',
+      '}',
+      optional: true,
+      retainedFirst: linkedOptionalReorder,
+    );
+    variants = _expandLinkedAlternatives(variants, nullableBranches: true);
     variants = _expandDelimited(variants, '[', ']', optional: false);
-    variants = _expandReorders(variants);
-    return _deduplicate(
+    variants = _expandReorders(
+      variants,
+      permutationMajor: linkedOptionalReorder,
+    );
+    final answers = _deduplicate(
       variants,
       normalizeCapitalization:
           source.contains('{') || source.contains('[') || source.contains('<>'),
     );
+    // Sentence punctuation belongs to the final non-empty answer, never an
+    // optional operand. It cannot create an answer or interfere with linkage.
+    return [for (final answer in answers) '$answer$punctuation'];
+  }
+
+  static bool _hasOptionalLinkedMember(String source) {
+    var optionalDepth = 0;
+    for (var i = 0; i < source.length; i++) {
+      if (source[i] == '{') optionalDepth++;
+      if (source[i] == '}') optionalDepth--;
+      if (optionalDepth > 0 && source.startsWith('[*:', i)) return true;
+    }
+    return false;
+  }
+
+  static void _validateReorderOperands(String source) {
+    const pairs = {'{': '}', '[': ']', '(': ')'};
+    final scopes = <StringBuffer>[StringBuffer()];
+    for (var i = 0; i < source.length; i++) {
+      final char = source[i];
+      if (pairs.containsKey(char)) {
+        scopes.add(StringBuffer());
+      } else if (pairs.containsValue(char)) {
+        _validateScopeOperands(scopes.removeLast().toString());
+        scopes.last.write(' expression ');
+      } else {
+        scopes.last.write(char);
+      }
+    }
+    _validateScopeOperands(scopes.single.toString());
+  }
+
+  static void _validateScopeOperands(String scope) {
+    for (final alternative in scope.split('|')) {
+      if (!alternative.contains('<>')) continue;
+      final body = alternative.replaceFirst(RegExp(r'[.!?…]+\s*$'), '');
+      if (body.split('<>').any((part) => part.trim().isEmpty)) {
+        throw const AnswerExpressionException(
+          '<> requires an expression on both sides.',
+        );
+      }
+    }
   }
 
   static List<String> expandAll(Iterable<String> expressions) {
@@ -83,6 +144,7 @@ abstract final class AnswerExpressionParser {
     String open,
     String close, {
     required bool optional,
+    bool retainedFirst = false,
   }) {
     var current = input;
     while (current.any((value) => value.contains(open))) {
@@ -105,9 +167,11 @@ abstract final class AnswerExpressionParser {
           );
         }
         if (optional) {
-          next
-            ..add('$before$after')
-            ..add('$before$body$after');
+          next.addAll(
+            retainedFirst
+                ? ['$before$body$after', '$before$after']
+                : ['$before$after', '$before$body$after'],
+          );
         } else {
           final alternatives = body
               .split('|')
@@ -130,7 +194,10 @@ abstract final class AnswerExpressionParser {
     return current;
   }
 
-  static List<String> _expandLinkedAlternatives(List<String> input) {
+  static List<String> _expandLinkedAlternatives(
+    List<String> input, {
+    bool nullableBranches = false,
+  }) {
     final output = <String>[];
     final linkedPattern = RegExp(r'\[\*:(.*?)\]');
     for (final value in input) {
@@ -144,7 +211,7 @@ abstract final class AnswerExpressionParser {
         output.add(value);
         continue;
       }
-      if (matches.length < 2) {
+      if (!nullableBranches && matches.length < 2) {
         throw const AnswerExpressionException(
           'Linked *: alternatives require at least two groups.',
         );
@@ -157,7 +224,7 @@ abstract final class AnswerExpressionParser {
             .map((part) => part.trim())
             .toList();
         if (alternatives.length < 2 ||
-            alternatives.any((part) => part.isEmpty)) {
+            (!nullableBranches && alternatives.any((part) => part.isEmpty))) {
           throw const AnswerExpressionException(
             'Each linked *: group needs at least two non-empty alternatives.',
           );
@@ -212,7 +279,25 @@ abstract final class AnswerExpressionParser {
     throw AnswerExpressionException('Unclosed “$open” in answer expression.');
   }
 
-  static List<String> _expandReorders(List<String> input) {
+  static List<String> _expandReorders(
+    List<String> input, {
+    bool permutationMajor = false,
+  }) {
+    if (permutationMajor) {
+      // Keep corresponding linked alternatives together in each ordering.
+      // Retained normal forms precede omitted forms, then inverted forms.
+      final paths = [
+        for (final value in input) _expandReorders([value]),
+      ];
+      final result = <String>[];
+      for (var index = 0; paths.any((path) => index < path.length); index++) {
+        for (final path in paths) {
+          if (index < path.length) result.add(path[index]);
+          _checkLimit(result.length);
+        }
+      }
+      return result;
+    }
     var current = input;
     while (current.any((value) => value.contains('('))) {
       final next = <String>[];
@@ -263,9 +348,9 @@ abstract final class AnswerExpressionParser {
         ? trimmed
         : trimmed.substring(0, terminal!.start).trimRight();
     final parts = reorderBody.split('<>').map((part) => part.trim()).toList();
-    if (parts.length < 2 || parts.any((part) => part.isEmpty)) {
+    if (parts.length < 2) {
       throw const AnswerExpressionException(
-        'Reorder syntax requires non-empty phrase parts on both sides of <>.',
+        '<> requires an expression on both sides.',
       );
     }
     final output = <String>[];

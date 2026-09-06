@@ -49,11 +49,20 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.byKey(const Key('exercise-help-list')), findsOneWidget);
       expect(find.text('How do you say'), findsOneWidget);
-      await tester.scrollUntilVisible(find.text('Answer variants'), 500);
+      final helpScrollable = find.descendant(
+        of: find.byKey(const Key('exercise-help-list')),
+        matching: find.byType(Scrollable),
+      );
+      await tester.scrollUntilVisible(
+        find.text('Answer variants'),
+        500,
+        scrollable: helpScrollable,
+      );
       expect(find.text('Answer variants'), findsOneWidget);
       await tester.scrollUntilVisible(
         find.text('Contextual comprehension example'),
         500,
+        scrollable: helpScrollable,
       );
       expect(find.text('Contextual comprehension example'), findsOneWidget);
       expect(tester.takeException(), isNull);

@@ -1,13 +1,13 @@
 # QuisquisLingo App
 
-**Current source version: 2.0.26+226030 · Phase 226.03, revision 0 · Course Model v6 (`formatVersion: 6`).**
+**Current source version: 2.0.26+226031 · Phase 226.03, revision 1 · Course Model v6 (`formatVersion: 6`).**
 
 
 **QuisquisLingo 2.0.26 Alpha — Phase 226.03 Writing and character recognition**
 
 Current project version: 2.0.26
 
-Phase 226.03 adds selectable answer expansion and independent materialization for Type the translation, deterministic similarity-ranked feedback (up to three corrections or two other correct translations), Type the missing word with an automatically derived first Unicode grapheme, and Recognize characters with Image to text and Text to image modes. Existing Input/Select models, correctness rules, Course Model v6, official read-only boundaries and no-write Preview are preserved. See [226.03 validation](docs/226_03_VALIDATION.md). Tranches 226.04 and later remain deferred.
+Phase 226.03 adds selectable answer expansion and independent materialization for Type the translation, deterministic similarity-ranked feedback (up to three corrections or two other correct translations), Type the missing word with an automatically derived first Unicode grapheme, and Recognize characters with Image to text and Text to image modes. Existing Input/Select models, correctness rules, Course Model v6, official read-only boundaries and no-write Preview are preserved. See [226.03 validation](docs/226_03_VALIDATION.md). Revision 1 corrects nullable/linked answer generation and terminal punctuation, requires the complete Missing Word, adds searchable Exercise Help and concrete field/audio guidance, resolves custom-course native TTS from canonical language metadata, and imports JSON from `QuisquisLingo/Imports/import.json` while preserving exports in `Exports`. Tranches 226.04 and later remain deferred.
 
 Phase 226.02 revision 4 uses actual Course titles in every learner selector entry, including selected, recent and unselected bundled/custom courses. The Lessons page has a Lesson appearance area with **Fallback lesson number icons** and the literal choices **Theme-colored circle** and **Four-color circle**, preserving existing stored values and explicit Lesson icons. Authoring mutations refresh current canonical Audit findings through the visible hierarchy; Info alone stays green, unavailable or stale Audit stays neutral, and the blue Draft badge remains independent. Lesson, Round and Exercise entries place passive Internal IDs below their actionable lines. GuideBook status now exposes its own Audit border and Draft state, inherited by Lesson and Lessons indicators without affecting an otherwise clean Rounds branch; an empty Draft GuideBook is both red and blue. Shared Editor Help, the global ID toggle, Preview, guarded navigation, transactional Move/Copy and custom-course export remain available. These completed revision-4 behaviors remain preserved in 226.03.
 

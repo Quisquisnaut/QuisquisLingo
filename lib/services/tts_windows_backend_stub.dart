@@ -3,4 +3,5 @@ Future<bool> speakWithWindowsTts({
   required String language,
   required String voicePreference,
   double rate = 0.5,
+  Future<void> Function(String)? onDiagnostic,
 }) async => false;

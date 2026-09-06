@@ -131,13 +131,19 @@ class _DuelScreenState extends State<DuelScreen> {
 
   Future<void> _speak(Exercise ex) async {
     if (ex.tts == null || ex.tts!.isEmpty) return;
-    final ok = await _tts.speak(text: ex.tts!, language: widget.ttsLanguage);
+    final ok = await _tts.speak(
+      text: ex.tts!,
+      language: widget.ttsLanguage,
+      learningLanguage: widget.course.learningLanguage,
+      targetLanguage: widget.course.targetLanguage,
+    );
     if (!ok && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
+        SnackBar(
           duration: Duration(seconds: 8),
           content: Text(
-            'Audio unavailable. Enable Text-to-speech in Settings and make sure a system voice is installed. On Linux, install eSpeak NG or eSpeak.',
+            _tts.lastFailureDescription ??
+                'Audio unavailable. Enable Text-to-speech in Settings and make sure a system voice is installed. On Linux, install eSpeak NG or eSpeak.',
           ),
         ),
       );

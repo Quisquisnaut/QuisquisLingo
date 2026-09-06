@@ -28,7 +28,7 @@ const _formFields = <String, Map<String, String>>{
     'Icons / image keys': 'icons',
   },
   'listening_choice': {
-    'Audio text': 'tts',
+    'Spoken text': 'tts',
     'Question': 'question',
     'Answers': 'answers',
     'Correct answer number': 'correct',
@@ -244,10 +244,13 @@ void main() {
     await tester.tap(_help('prompt'));
     await _settle(tester);
     expect(
-      find.textContaining('The instruction or context shown to the learner.'),
+      find.textContaining('The instruction shown to the learner.'),
       findsOneWidget,
     );
-    expect(find.textContaining('Translate into Italian.'), findsOneWidget);
+    expect(
+      find.textContaining('How do you say this in Italian?'),
+      findsOneWidget,
+    );
     var bounds = tester.getRect(find.byType(AlertDialog));
     expect(bounds.left, greaterThanOrEqualTo(0));
     expect(bounds.right, lessThanOrEqualTo(320));
@@ -258,12 +261,10 @@ void main() {
     await tester.tap(_help('question'));
     await _settle(tester);
     expect(
-      find.textContaining(
-        'The concrete content to which the learner responds.',
-      ),
+      find.textContaining('The word or phrase the learner must translate.'),
       findsOneWidget,
     );
-    expect(find.textContaining('How are you?'), findsOneWidget);
+    expect(find.textContaining('Good morning'), findsOneWidget);
     bounds = tester.getRect(find.byType(AlertDialog));
     expect(bounds.left, greaterThanOrEqualTo(0));
     expect(bounds.right, lessThanOrEqualTo(320));

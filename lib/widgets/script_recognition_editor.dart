@@ -384,6 +384,13 @@ class ScriptRecognitionEditor extends StatelessWidget {
     builder: (context, _) => Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        const Text(
+          'Each item pairs a character image with its corresponding text.\n\n'
+          'Image to text: learners see a character image and choose the matching text.\n\n'
+          'Text to image: learners see the text and choose the matching character image.\n\n'
+          'The text can be the character’s name, sound, pronunciation, transliteration or another identifying label.',
+        ),
+        const SizedBox(height: 12),
         DropdownButtonFormField<ScriptRecognitionMode>(
           key: const ValueKey('script-mode'),
           initialValue: controller.mode,
@@ -407,6 +414,12 @@ class ScriptRecognitionEditor extends StatelessWidget {
           },
         ),
         const SizedBox(height: 8),
+        Text(
+          key: const ValueKey('script-mode-explanation'),
+          controller.mode == ScriptRecognitionMode.imageToText
+              ? 'Learners see an image and choose the matching text.'
+              : 'Learners see text and choose the matching image.',
+        ),
         Text(
           controller.mode == ScriptRecognitionMode.imageToText
               ? 'Show one or more images of the same character or syllable, '

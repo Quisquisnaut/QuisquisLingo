@@ -7,11 +7,15 @@ import 'package:path_provider/path_provider.dart';
 import '../models/course_models.dart';
 
 class CustomCourseTransferService {
-  CustomCourseTransferService({Future<Directory> Function()? directory})
-    : _directory = directory;
+  CustomCourseTransferService({
+    Future<Directory> Function()? directory,
+    Future<Directory> Function()? importDirectory,
+  }) : _directory = directory,
+       _importDirectory = importDirectory ?? directory;
 
   static const int maxJsonBytes = 10 * 1024 * 1024;
   final Future<Directory> Function()? _directory;
+  final Future<Directory> Function()? _importDirectory;
 
   Future<Directory> transferDirectory() async {
     final testDirectory = _directory;
@@ -29,8 +33,19 @@ class CustomCourseTransferService {
   }
 
   Future<String> importFilePath() async {
-    final directory = await transferDirectory();
+    final directory = await importDirectory();
     return '${directory.path}${Platform.pathSeparator}import.json';
+  }
+
+  Future<Directory> importDirectory() async {
+    final injected = _importDirectory;
+    final directory = injected != null
+        ? await injected()
+        : Directory(
+            '${(await getApplicationDocumentsDirectory()).path}${Platform.pathSeparator}QuisquisLingo${Platform.pathSeparator}Imports',
+          );
+    await directory.create(recursive: true);
+    return directory;
   }
 
   Future<Course> importCourse() async {

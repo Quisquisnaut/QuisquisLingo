@@ -1,3 +1,12 @@
+# 2.0.26 (Phase 226.03, revision 1) - Generation, guidance and native speech corrections - 2026-09-06
+
+- Advanced to `2.0.26+226031`; the show-once notice displays revision 1. Alpha expiry remains `2026-10-06 23:59:59` local time.
+- Allowed nullable generated reorder operands and optional linked members while preserving positional association, deterministic output, terminal punctuation, empty-answer removal and atomic 128-variant rejection. Added lowercase author guidance without transforming saved content.
+- Corrected Type the missing word to require the full word, with the first grapheme as a hint, preserving normal normalization, Preview and publication behavior.
+- Added searchable Exercise Help, concrete field examples, immediate character-direction explanations and accurate course-level TTS/MP3 guidance.
+- Unified speech-language resolution for bundled/custom courses, including legacy `und` with unambiguous Italian metadata, exact/base locale matching and separate metadata/installed-voice diagnostics.
+- Corrected JSON import to `QuisquisLingo/Imports/import.json`; exports remain in `Exports`. No model migration or later-phase work.
+
 # 2.0.26 (Phase 226.03, revision 0) - Writing and character recognition - 2026-09-06
 
 - Advanced metadata to `2.0.26+226030`, retaining the Version/Phase/revision show-once notice. Alpha expiry remains `2026-10-06 23:59:59` local time: this September 6 tranche retains the existing 30-day convention.

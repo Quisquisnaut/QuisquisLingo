@@ -92,6 +92,8 @@ class _TtsSettingsScreenState extends State<TtsSettingsScreen> {
     final ok = await _tts.speak(
       text: sample,
       language: widget.course.ttsLanguage,
+      learningLanguage: widget.course.learningLanguage,
+      targetLanguage: widget.course.targetLanguage,
     );
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
@@ -100,7 +102,8 @@ class _TtsSettingsScreenState extends State<TtsSettingsScreen> {
         content: Text(
           ok
               ? 'TTS test started.'
-              : 'No compatible voice could be played for ${widget.course.targetLanguage}.',
+              : _tts.lastFailureDescription ??
+                    'No compatible voice could be played for ${widget.course.targetLanguage}.',
         ),
       ),
     );
@@ -151,10 +154,7 @@ class _TtsSettingsScreenState extends State<TtsSettingsScreen> {
                         value: 'system',
                         child: Text('System default'),
                       ),
-                      DropdownMenuItem(
-                        value: 'female',
-                        child: Text('Female'),
-                      ),
+                      DropdownMenuItem(value: 'female', child: Text('Female')),
                       DropdownMenuItem(value: 'male', child: Text('Male')),
                     ],
                     onChanged: _ttsEnabled

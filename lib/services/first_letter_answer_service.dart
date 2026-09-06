@@ -2,7 +2,7 @@ import 'package:flutter/widgets.dart' show StringCharacters;
 import 'answer_engine.dart';
 
 /// The revealed grapheme is derived from complete canonical answers; this
-/// service assembles a response and delegates all correctness decisions.
+/// service displays that hint and delegates full-word correctness decisions.
 abstract final class FirstLetterAnswerService {
   static String initial(Iterable<String> expressions) {
     final answers = AnswerExpressionParser.expandAll(expressions);
@@ -32,6 +32,9 @@ abstract final class FirstLetterAnswerService {
     );
   }
 
-  static String response(String remainder, Iterable<String> expressions) =>
-      '${initial(expressions)}${remainder.trim()}';
+  static String response(String completeWord, Iterable<String> expressions) =>
+      completeWord.trim();
+
+  static String completedSentence(String sentence, String completeWord) =>
+      sentence.replaceFirst(RegExp(r'_{3,}'), completeWord);
 }

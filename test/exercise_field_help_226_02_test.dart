@@ -75,15 +75,18 @@ void main() {
   test('Prompt and Question have distinct concrete examples', () {
     final prompt = help('choice', 'prompt');
     final question = help('choice', 'question');
-    expect(prompt.purpose, 'The instruction or context shown to the learner.');
-    expect(prompt.example, 'Translate into Italian.');
+    expect(
+      prompt.purpose,
+      'The instruction shown to the learner. Example: How do you say this in Italian?',
+    );
+    expect(prompt.example, 'How do you say this in Italian?');
     expect(
       question.purpose,
-      'The concrete content to which the learner responds.',
+      'The word or phrase the learner must translate. Example: Good morning',
     );
-    expect(question.example, 'How are you?');
-    expect(prompt.text, contains('Example\nTranslate into Italian.'));
-    expect(question.text, contains('Example\nHow are you?'));
+    expect(question.example, 'Good morning');
+    expect(prompt.text, contains('Example\nHow do you say this in Italian?'));
+    expect(question.text, contains('Example\nGood morning'));
   });
 
   test('concise examples clarify common field formats', () {
@@ -105,10 +108,7 @@ void main() {
       help('image_word', 'image').example,
       contains('Bundled path: assets/exercise_images/house.webp'),
     );
-    expect(
-      help('listening_choice', 'tts').example,
-      'Vorrei un caffè, per favore.',
-    );
+    expect(help('listening_choice', 'tts').example, 'Buongiorno, come stai?');
     expect(
       help('listening_choice', 'tts').entryRules,
       contains('not an MP3 filename or path'),
@@ -261,6 +261,18 @@ void main() {
       expect(
         help('contextual_comprehension', 'contextMode').validation,
         contains('An image alone is not sufficient context'),
+      );
+      expect(
+        help('contextual_comprehension', 'contextMode').purpose,
+        contains('Text is a presentation mode'),
+      );
+      expect(
+        help('contextual_comprehension', 'context').purpose,
+        contains('passage or background'),
+      );
+      expect(
+        help('contextual_comprehension', 'context').example,
+        contains('Marta is describing her daily routine.'),
       );
       expect(
         help('contextual_comprehension', 'context').entryRules,

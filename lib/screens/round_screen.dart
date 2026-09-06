@@ -191,7 +191,12 @@ class _RoundScreenState extends State<RoundScreen> {
       if (recorded) return true;
       if (widget.course.audioMode == 'recorded') return false;
     }
-    return _ttsCache.speak(text: text, language: widget.ttsLanguage);
+    return _ttsCache.speak(
+      text: text,
+      language: widget.ttsLanguage,
+      learningLanguage: widget.course.learningLanguage,
+      targetLanguage: widget.course.targetLanguage,
+    );
   }
 
   Future<void> _initializeRound() async {
@@ -438,11 +443,9 @@ class _RoundScreenState extends State<RoundScreen> {
     final ok = await _playCourseAudio(text);
     if (!ok && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          duration: Duration(seconds: 8),
-          content: Text(
-            'Audio unavailable. Enable Text-to-speech in Settings and make sure a voice for this course language is installed.',
-          ),
+        SnackBar(
+          duration: const Duration(seconds: 8),
+          content: Text(_audioFailureDescription),
         ),
       );
     }
@@ -454,15 +457,18 @@ class _RoundScreenState extends State<RoundScreen> {
     final ok = await _playCourseAudio(text);
     if (!ok && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          duration: Duration(seconds: 8),
-          content: Text(
-            'Audio unavailable. Enable Text-to-speech in Settings and make sure a system voice is installed. On Linux, install eSpeak NG or eSpeak.',
-          ),
+        SnackBar(
+          duration: const Duration(seconds: 8),
+          content: Text(_audioFailureDescription),
         ),
       );
     }
   }
+
+  String get _audioFailureDescription => widget.course.audioMode == 'recorded'
+      ? 'Recorded audio unavailable. Check this Course’s Audio Library mappings and referenced MP3 files.'
+      : _ttsCache.lastFailureDescription ??
+            'Audio unavailable. Enable Text-to-speech in Settings and check the system voice for this course language. On Linux, install eSpeak NG or eSpeak.';
 
   String _correctAnswerText(Exercise ex) {
     switch (ex.type) {
@@ -648,11 +654,11 @@ class _RoundScreenState extends State<RoundScreen> {
 
   void _submitFill() {
     if (_answered) return;
-    final remainder = _textController.text.trim();
-    if (remainder.isEmpty && _exercise.type != 'type_missing_word') return;
+    final enteredWord = _textController.text.trim();
+    if (enteredWord.isEmpty) return;
     final typed = _exercise.type == 'type_missing_word'
-        ? FirstLetterAnswerService.response(remainder, _exercise.accepted)
-        : remainder;
+        ? FirstLetterAnswerService.response(enteredWord, _exercise.accepted)
+        : enteredWord;
     final accepted = <String>{..._exercise.accepted};
 
     // Fill-in exercises accept both the missing fragment and the complete
@@ -994,7 +1000,12 @@ class _RoundScreenState extends State<RoundScreen> {
           ),
         ] else if (ex.type == 'type_missing_word')
           Text(
-            FirstLetterAnswerService.display(ex.prompt, ex.accepted),
+            _answered
+                ? FirstLetterAnswerService.completedSentence(
+                    ex.prompt,
+                    _displayedCorrection,
+                  )
+                : FirstLetterAnswerService.display(ex.prompt, ex.accepted),
             key: const Key('first-letter-sentence'),
             style: Theme.of(context).textTheme.headlineSmall,
           )
@@ -1028,10 +1039,7 @@ class _RoundScreenState extends State<RoundScreen> {
         ),
         const SizedBox(height: 12),
         FilledButton(
-          onPressed:
-              _answered ||
-                  (_textController.text.trim().isEmpty &&
-                      ex.type != 'type_missing_word')
+          onPressed: _answered || _textController.text.trim().isEmpty
               ? null
               : _submitFill,
           child: const Text('Check'),

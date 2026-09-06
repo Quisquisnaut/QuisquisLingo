@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../models/exercise_authoring.dart';
+import '../services/exercise_field_help.dart';
 import 'audit_codes_screen.dart';
 
 class EditorHelpScreen extends StatelessWidget {
@@ -238,51 +240,205 @@ class _TechnicalLinks extends StatelessWidget {
   );
 }
 
-class ExerciseHelpScreen extends StatelessWidget {
+class ExerciseHelpScreen extends StatefulWidget {
   const ExerciseHelpScreen({super.key});
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('Exercise Help')),
-    body: ListView(
-      key: const Key('exercise-help-list'),
-      padding: const EdgeInsets.all(16),
-      children: [
-        for (final category in ExerciseCategory.values)
-          if (ExercisePresetRegistry.inCategory(category).isNotEmpty) ...[
-            Padding(
-              padding: const EdgeInsets.fromLTRB(4, 12, 4, 8),
-              child: Text(
-                category.label,
-                style: Theme.of(
-                  context,
-                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
-              ),
+  State<ExerciseHelpScreen> createState() => _ExerciseHelpScreenState();
+}
+
+class _ExerciseHelpScreenState extends State<ExerciseHelpScreen> {
+  final _search = TextEditingController();
+  final _scroll = ScrollController();
+  final _searchFocus = FocusNode();
+  final _resultsFocus = FocusNode();
+  String _query = '';
+  double _unfilteredOffset = 0;
+
+  @override
+  void dispose() {
+    _search.dispose();
+    _scroll.dispose();
+    _searchFocus.dispose();
+    _resultsFocus.dispose();
+    super.dispose();
+  }
+
+  void _filter(String value) {
+    final query = value.trim().toLowerCase();
+    if (_query.isEmpty && query.isNotEmpty && _scroll.hasClients) {
+      _unfilteredOffset = _scroll.offset;
+    }
+    setState(() => _query = query);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !_scroll.hasClients) return;
+      _scroll.jumpTo(
+        (_query.isEmpty ? _unfilteredOffset : 0)
+            .clamp(0.0, _scroll.position.maxScrollExtent)
+            .toDouble(),
+      );
+    });
+  }
+
+  void _clear() {
+    _search.clear();
+    _filter('');
+    _searchFocus.requestFocus();
+  }
+
+  KeyEventResult _scrollWithKeyboard(FocusNode node, KeyEvent event) {
+    if (event is! KeyDownEvent && event is! KeyRepeatEvent) {
+      return KeyEventResult.ignored;
+    }
+    if (!_scroll.hasClients) return KeyEventResult.ignored;
+    final position = _scroll.position;
+    final destination = switch (event.logicalKey) {
+      LogicalKeyboardKey.arrowDown => _scroll.offset + 60,
+      LogicalKeyboardKey.arrowUp => _scroll.offset - 60,
+      LogicalKeyboardKey.pageDown =>
+        _scroll.offset + position.viewportDimension * .8,
+      LogicalKeyboardKey.pageUp =>
+        _scroll.offset - position.viewportDimension * .8,
+      LogicalKeyboardKey.home => 0.0,
+      LogicalKeyboardKey.end => position.maxScrollExtent,
+      _ => null,
+    };
+    if (destination == null) return KeyEventResult.ignored;
+    _scroll.jumpTo(destination.clamp(0.0, position.maxScrollExtent).toDouble());
+    return KeyEventResult.handled;
+  }
+
+  List<Widget> _searchResults() {
+    bool matches(String text) => text.toLowerCase().contains(_query);
+    final results = <Widget>[];
+    for (final preset in ExercisePresetRegistry.presets) {
+      final body = ExercisePresetRegistry.helpByPreset[preset.id]!;
+      if (matches('${preset.name}\n${preset.description}\n$body')) {
+        results.add(
+          _HelpSection(
+            key: ValueKey('exercise-help-result-${preset.id}'),
+            title: preset.name,
+            body: '${preset.description}\n\n$body',
+          ),
+        );
+      }
+      for (final field in ExerciseFieldHelpRegistry.editorFieldKeys(
+        preset.id,
+      )) {
+        final help = ExerciseFieldHelpRegistry.forEditorField(preset.id, field);
+        if (matches('${help.title}\n${help.text}')) {
+          results.add(
+            _HelpSection(
+              key: ValueKey('exercise-help-result-${preset.id}-$field'),
+              title: '${preset.name}: ${help.title}',
+              body: help.text,
             ),
-            for (final preset in ExercisePresetRegistry.inCategory(category))
-              _HelpSection(
-                title: preset.name,
-                body: ExercisePresetRegistry.helpByPreset[preset.id]!,
+          );
+        }
+      }
+    }
+    for (final supplement in _supplements) {
+      if (matches('${supplement.title}\n${supplement.body}')) {
+        results.add(supplement);
+      }
+    }
+    return results;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final sections = _query.isEmpty ? _allSections(context) : _searchResults();
+    return Scaffold(
+      appBar: AppBar(title: const Text('Exercise Help')),
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+            child: TextField(
+              key: const ValueKey('exercise-help-search'),
+              controller: _search,
+              focusNode: _searchFocus,
+              textInputAction: TextInputAction.search,
+              decoration: InputDecoration(
+                labelText: 'Search Exercise Help',
+                prefixIcon: const Icon(Icons.search),
+                suffixIcon: _search.text.isEmpty
+                    ? null
+                    : IconButton(
+                        key: const ValueKey('exercise-help-search-clear'),
+                        tooltip: 'Clear search',
+                        onPressed: _clear,
+                        icon: const Icon(Icons.clear),
+                      ),
               ),
-          ],
-        const _HelpSection(
-          title: 'Answer variants',
-          body:
-              'Multiple complete equivalent answers may be entered on separate lines. Compact syntax is optional: {Io} makes “Io” optional; [prendo|vorrei] chooses one independent alternative; and (non arrivo <> oggi) swaps only declared phrase parts. Grouped alternatives use *: to link by position: [*:il|i] [*:tuo|tuoi] [*:denaro|soldi] accepts “il tuo denaro” and “i tuoi soldi”, never “il tuoi soldi” or “i tuo denaro”. Two or more linked groups are required and every linked group must have the same number of alternatives. Linked groups compose with {}, ordinary [] and valid <> scopes. During reordering, terminal punctuation stays at the final sentence end. Expansion is deterministic, removes duplicates, and rejects malformed syntax or more than 128 variants instead of truncating.',
+              onChanged: _filter,
+              onSubmitted: (_) => _resultsFocus.requestFocus(),
+            ),
+          ),
+          Expanded(
+            child: Focus(
+              focusNode: _resultsFocus,
+              onKeyEvent: _scrollWithKeyboard,
+              child: sections.isEmpty
+                  ? const Center(
+                      child: Padding(
+                        padding: EdgeInsets.all(16),
+                        child: Text(
+                          'No Exercise Help results match your search.',
+                        ),
+                      ),
+                    )
+                  : ListView(
+                      key: const Key('exercise-help-list'),
+                      controller: _scroll,
+                      padding: const EdgeInsets.all(16),
+                      children: sections,
+                    ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  List<Widget> _allSections(BuildContext context) => [
+    for (final category in ExerciseCategory.values)
+      if (ExercisePresetRegistry.inCategory(category).isNotEmpty) ...[
+        Padding(
+          padding: const EdgeInsets.fromLTRB(4, 12, 4, 8),
+          child: Text(
+            category.label,
+            style: Theme.of(
+              context,
+            ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
+          ),
         ),
-        const _HelpSection(
-          title: 'Text evaluation and corrections',
-          body:
-              'QQL accepts any configured complete answer or syntax-expanded variant after the established case, punctuation, whitespace, apostrophe and accent rules. Type the translation also permits one omitted or duplicated repeated letter in a word of at least five characters when every word position is otherwise unchanged. Its incorrect feedback shows up to three similarity-ranked valid answers and says Some possible translations when more exist. Its correct feedback shows up to two alternatives, excluding the matched canonical answer even after typo tolerance. No alternatives means no empty section. Ties keep author order and ranking never changes correctness. Other typed presets retain their canonical Correct answer. Feedback names only differences actually used; exact answers show no false difference reason.',
-        ),
-        const _HelpSection(
-          title: 'Contextual comprehension example',
-          body:
-              'Question: What does Jane mean?\n\nContext:\nJane: I thought Jim was coming with us.\nJim: I changed my mind.\nJane: That’s just great.\n\nQuestion and Context are separate. Context can be text, audio, or both. Dialogue turns are optional; an announcement, short passage or situation is equally valid. Configure answer choices separately.',
-        ),
+        for (final preset in ExercisePresetRegistry.inCategory(category))
+          _HelpSection(
+            title: preset.name,
+            body: ExercisePresetRegistry.helpByPreset[preset.id]!,
+          ),
       ],
+    ..._supplements,
+  ];
+
+  static const _supplements = [
+    _HelpSection(
+      title: 'Answer variants',
+      body:
+          'Multiple complete equivalent answers may be entered on separate lines. Compact syntax is optional: {Io} makes “Io” optional; [prendo|vorrei] chooses one independent alternative; and (non arrivo <> oggi) swaps only declared phrase parts. Grouped alternatives use *: to link by position: [*:il|i] [*:tuo|tuoi] [*:denaro|soldi] accepts “il tuo denaro” and “i tuoi soldi”, never “il tuoi soldi” or “i tuo denaro”. Two or more linked groups are required and every linked group must have the same number of alternatives. Linked groups compose with {}, ordinary [] and valid <> scopes. During reordering, terminal punctuation stays at the final sentence end. Expansion is deterministic, removes duplicates, and rejects malformed syntax or more than 128 variants instead of truncating.',
     ),
-  );
+    _HelpSection(
+      title: 'Text evaluation and corrections',
+      body:
+          'QQL accepts any configured complete answer or syntax-expanded variant after the established case, punctuation, whitespace, apostrophe and accent rules. Type the translation also permits one omitted or duplicated repeated letter in a word of at least five characters when every word position is otherwise unchanged. Its incorrect feedback shows up to three similarity-ranked valid answers and says Some possible translations when more exist. Its correct feedback shows up to two alternatives, excluding the matched canonical answer even after typo tolerance. No alternatives means no empty section. Ties keep author order and ranking never changes correctness. Other typed presets retain their canonical Correct answer. Feedback names only differences actually used; exact answers show no false difference reason.',
+    ),
+    _HelpSection(
+      title: 'Contextual comprehension example',
+      body:
+          'Question: What does Jane mean?\n\nContext:\nJane: I thought Jim was coming with us.\nJim: I changed my mind.\nJane: That’s just great.\n\nQuestion and Context are separate. Context can be text, audio, or both. Dialogue turns are optional; an announcement, short passage or situation is equally valid. Configure answer choices separately.',
+    ),
+  ];
 }
 
 class CourseModelV4HelpScreen extends StatelessWidget {
@@ -433,7 +589,7 @@ class _TechnicalPage extends StatelessWidget {
 class _HelpSection extends StatelessWidget {
   final String title;
   final String body;
-  const _HelpSection({required this.title, required this.body});
+  const _HelpSection({super.key, required this.title, required this.body});
   @override
   Widget build(BuildContext context) => Card(
     margin: const EdgeInsets.only(bottom: 12),

@@ -612,7 +612,24 @@ void main() {
         await tester.pumpAndSettle();
         final beforePrefs = await workflow.preferences();
         final beforeCourse = jsonEncode(course.toJson());
-        await workflow.tapKey(tester, action);
+        final button = find.byKey(Key(action));
+        // The longer inline guidance changes the lazily measured scroll extent.
+        // Finish layout after revealing the action before hit-testing its center.
+        for (var attempt = 0; attempt < 3; attempt++) {
+          if (button.evaluate().isEmpty) {
+            await tester.scrollUntilVisible(
+              button,
+              300,
+              scrollable: find.byType(Scrollable).first,
+            );
+          }
+          await tester.ensureVisible(button);
+          await tester.pumpAndSettle();
+          if (button.hitTestable().evaluate().isNotEmpty) break;
+        }
+        expect(button.hitTestable(), findsOneWidget);
+        await tester.tap(button);
+        await workflow.settle(tester);
         expect(find.text('Check character images'), findsOneWidget);
         expect(find.byType(RoundScreen), findsNothing);
         expect(saves, 0);

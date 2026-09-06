@@ -39,33 +39,36 @@ void main() {
           (_) async => throw PlatformException(code: 'unavailable'),
         );
   });
-  test('canonical word and exact grapheme reconstruction reuse acceptance', () {
-    expect(
-      FirstLetterAnswerService.display('I would like a ___.', [
+  test(
+    'complete word stays intact and authoritative typo tolerance survives',
+    () {
+      expect(
+        FirstLetterAnswerService.display('I would like a ___.', [
+          'cappuccino',
+          'coffee',
+        ]),
+        'I would like a c______.',
+      );
+      expect(
+        FirstLetterAnswerService.response(' cappuccino ', ['cappuccino']),
         'cappuccino',
-        'coffee',
-      ]),
-      'I would like a c______.',
-    );
-    expect(
-      FirstLetterAnswerService.response('appuccino', ['cappuccino']),
-      'cappuccino',
-    );
-    expect(
-      const AnswerEngine().accepts(
-        FirstLetterAnswerService.response('apuccino', ['cappuccino']),
-        ['cappuccino'],
-      ),
-      isTrue,
-    );
-    expect(
-      const AnswerEngine().accepts(
-        FirstLetterAnswerService.response('at', ['cappuccino']),
-        ['cappuccino'],
-      ),
-      isFalse,
-    );
-  });
+      );
+      expect(
+        const AnswerEngine().accepts(
+          FirstLetterAnswerService.response('capuccino', ['cappuccino']),
+          ['cappuccino'],
+        ),
+        isTrue,
+      );
+      expect(
+        const AnswerEngine().accepts(
+          FirstLetterAnswerService.response('appuccino', ['cappuccino']),
+          ['cappuccino'],
+        ),
+        isFalse,
+      );
+    },
+  );
   test(
     'combined Unicode first grapheme stays whole, including a one-grapheme word',
     () {
@@ -80,7 +83,11 @@ void main() {
               : '👩🏽‍💻',
         );
       }
-      expect(FirstLetterAnswerService.response('', ['a']), 'a');
+      expect(FirstLetterAnswerService.response('', ['a']), '');
+      for (final word in ['e\u0301cole', '👩🏽‍💻code', '가나다', 'a']) {
+        expect(FirstLetterAnswerService.response(word, [word]), word);
+        expect(const AnswerEngine().accepts(word, [word]), isTrue);
+      }
     },
   );
   test(
@@ -186,18 +193,91 @@ void main() {
         }
         expect(find.text('I would like a c______.'), findsOneWidget);
         expect(find.text('I would like a ___.'), findsNothing);
-        await tester.enterText(find.byType(TextField), 'appuccino');
+        expect(
+          find.text(
+            'Enter the complete missing word. The first letter shown is a hint.',
+          ),
+          findsOneWidget,
+        );
+        await tester.enterText(
+          find.byType(TextField),
+          dark ? 'capuccino' : 'cappuccino',
+        );
+        await tester.pump();
+        expect(
+          tester
+              .widget<FilledButton>(find.widgetWithText(FilledButton, 'Check'))
+              .onPressed,
+          isNotNull,
+        );
         await tester.ensureVisible(find.text('Check'));
         await tester.tap(find.text('Check'));
         await tester.pumpAndSettle();
         expect(find.text('Correct'), findsOneWidget);
         expect(find.text('Correct answer: cappuccino'), findsOneWidget);
+        expect(find.text('I would like a cappuccino.'), findsOneWidget);
+        expect(find.text('I would like a c______.'), findsNothing);
         expect(jsonEncode(course.toJson()), before);
         expect(prefs.getKeys(), keys);
         expect(tester.takeException(), isNull);
       },
     );
   }
+
+  for (final entry in [
+    ('école', 'école', true),
+    ('école', 'cole', false),
+    ('e\u0301cole', 'e\u0301cole', true),
+  ]) {
+    testWidgets(
+      'complete-word Preview ${entry.$1} response ${entry.$2} is ${entry.$3}',
+      (tester) async {
+        final ex = exercise(answers: [entry.$1], sentence: 'Une ___.');
+        final before = jsonEncode(ex.toJson());
+        await _showWordPreview(tester, ex);
+        await tester.enterText(find.byType(TextField), entry.$2);
+        await tester.pump();
+        expect(
+          tester
+              .widget<FilledButton>(find.widgetWithText(FilledButton, 'Check'))
+              .onPressed,
+          isNotNull,
+        );
+        await tester.ensureVisible(find.text('Check'));
+        await tester.tap(find.text('Check'));
+        await tester.pumpAndSettle();
+        expect(find.text('Correct'), entry.$3 ? findsOneWidget : findsNothing);
+        expect(find.text('Correct answer: ${entry.$1}'), findsOneWidget);
+        expect(find.text('Une ${entry.$1}.'), findsOneWidget);
+        expect(jsonEncode(ex.toJson()), before);
+        expect(tester.takeException(), isNull);
+      },
+    );
+  }
+
+  testWidgets(
+    'one-letter answer requires nonblank input despite its visible hint',
+    (tester) async {
+      await _showWordPreview(
+        tester,
+        exercise(answers: ['a'], sentence: 'Choose ___.'),
+      );
+      final check = find.widgetWithText(FilledButton, 'Check');
+      expect(tester.widget<FilledButton>(check).onPressed, isNull);
+      expect(find.text('Correct'), findsNothing);
+      await tester.enterText(find.byType(TextField), '   ');
+      await tester.pump();
+      expect(tester.widget<FilledButton>(check).onPressed, isNull);
+      await tester.enterText(find.byType(TextField), 'a');
+      await tester.pump();
+      expect(tester.widget<FilledButton>(check).onPressed, isNotNull);
+      await tester.ensureVisible(check);
+      await tester.tap(check);
+      await tester.pumpAndSettle();
+      expect(find.text('Correct'), findsOneWidget);
+      expect(find.text('Choose a.'), findsOneWidget);
+    },
+  );
   for (final draft in [true, false]) {
     testWidgets(
       'real Editor preserves full answer on ${draft ? 'Draft' : 'Published'} Save',
@@ -249,4 +329,41 @@ void main() {
       },
     );
   }
+}
+
+Future<void> _showWordPreview(WidgetTester tester, Exercise ex) async {
+  final round = LearningRound(id: 'round', title: '', exercises: [ex]);
+  final lesson = Lesson(lessonId: 'lesson', title: 'Words', rounds: [round]);
+  final course = Course(
+    courseId: 'course',
+    learningLanguage: 'French',
+    interfaceLanguage: 'English',
+    sourceLanguage: 'English',
+    targetLanguage: 'French',
+    title: 'Words',
+    ttsLanguage: 'fr-FR',
+    version: '1',
+    lessons: [lesson],
+  );
+  await tester.pumpWidget(
+    MaterialApp(
+      home: RoundScreen(
+        course: course,
+        lesson: lesson,
+        round: round,
+        ttsLanguage: course.ttsLanguage,
+        roundIndex: 0,
+        previewMode: true,
+      ),
+    ),
+  );
+  for (
+    var i = 0;
+    i < 100 &&
+        find.byKey(const Key('first-letter-sentence')).evaluate().isEmpty;
+    i++
+  ) {
+    await tester.pump(const Duration(milliseconds: 50));
+  }
+  expect(find.byKey(const Key('first-letter-sentence')), findsOneWidget);
 }

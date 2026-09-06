@@ -80,7 +80,7 @@ abstract final class ExerciseFieldHelpRegistry {
       'use at least two linked groups with equal alternative counts. '
       'Scoped reordering: (non arrivo <> oggi). Without parentheses, a casa <> domani '
       'reorders the whole expression. Terminal punctuation stays at the sentence end; '
-      'generated sentence starts are capitalized.';
+      'generated sentence starts are capitalized. Use lowercase except for proper names.';
 
   static const expressionChecks =
       'At least one accepted answer is required. Malformed expressions are rejected. '
@@ -88,18 +88,108 @@ abstract final class ExerciseFieldHelpRegistry {
       'limit is 128 answers; simplify an expression that exceeds it. '
       'Declare equivalent answers explicitly: syntax does not invent translations.';
 
+  /// Field keys from the displayed Editor forms, including conditional modes.
+  /// Shared Help search uses this inventory rather than indexing unrelated fields.
+  static List<String> editorFieldKeys(String presetId) {
+    const fields = <String, List<String>>{
+      'choice': ['prompt', 'question', 'answers', 'correct'],
+      'gap_choice': ['question', 'answers', 'correct', 'hint'],
+      'icon_choice': ['question', 'answers', 'correct', 'icons'],
+      'listening_choice': ['tts', 'question', 'answers', 'correct'],
+      'listening_comprehension': ['tts', 'question', 'answers', 'correct'],
+      'reading_comprehension': ['prompt', 'question', 'answers', 'correct'],
+      'dialogue_response': ['prompt', 'question', 'answers', 'correct'],
+      'contextual_comprehension': [
+        'contextMode',
+        'context',
+        'tts',
+        'dialogue',
+        'question',
+        'answers',
+        'correct',
+      ],
+      'type_translation': ['prompt', 'accepted', 'hint'],
+      'type_missing_word': ['prompt', 'accepted', 'hint'],
+      'script_recognition': [
+        'scriptMode',
+        'scriptPrompt',
+        'scriptPromptImages',
+        'scriptTextOptions',
+        'scriptImageOptions',
+        'scriptCorrect',
+      ],
+      'build_translation': ['prompt', 'tokens', 'correctTranslation'],
+      'fill_blank': ['question', 'accepted', 'hint', 'tts'],
+      'listening_spelling': ['prompt', 'tts', 'missingWords'],
+      'missing_word': ['prompt', 'tts', 'missingWords'],
+      'matching': ['prompt', 'pairs'],
+      'word_match': ['prompt', 'pairs'],
+      'super_match': ['prompt', 'pairs'],
+      'audio_match': ['prompt', 'pairs'],
+      'word_order': ['prompt', 'tokens', 'order'],
+      'image_word': ['prompt', 'tokens', 'order'],
+      'flashcard': ['prompt', 'question', 'tts', 'answers'],
+    };
+    final selected = fields[presetId];
+    if (selected == null) {
+      throw ArgumentError.value(
+        presetId,
+        'presetId',
+        'Unknown Exercise preset',
+      );
+    }
+    return [...selected, if (presetId != 'script_recognition') 'image'];
+  }
+
   static ExerciseFieldHelp forEditorField(String presetId, String fieldKey) {
+    if (presetId == 'choice' && fieldKey == 'prompt') {
+      return const ExerciseFieldHelp(
+        title: 'Prompt',
+        purpose:
+            'The instruction shown to the learner. Example: How do you say this in Italian?',
+        entryRules:
+            'Enter the instruction here; put the word or phrase to translate in Question.',
+        validation:
+            'Keep the instruction consistent with the question and answer choices.',
+        example: 'How do you say this in Italian?',
+      );
+    }
+    if (presetId == 'choice' && fieldKey == 'question') {
+      return const ExerciseFieldHelp(
+        title: 'Question',
+        purpose:
+            'The word or phrase the learner must translate. Example: Good morning',
+        entryRules:
+            'Enter the source-language word or phrase separately from the instruction in Prompt.',
+        validation:
+            'Provide matching target-language answer choices and mark exactly one correct.',
+        example: 'Good morning',
+      );
+    }
+    if (presetId == 'listening_choice' && fieldKey == 'tts') {
+      return const ExerciseFieldHelp(
+        title: 'Spoken text',
+        purpose:
+            'Enter exactly what the learner should hear. System TTS sends this text to the device’s native text-to-speech engine; no audio file is required in that mode. Example: Buongiorno, come stai?',
+        entryRules:
+            'Playback follows the Course Audio Library mode. Recorded MP3 resolves this text against Course recordings; Hybrid tries a complete recording sequence before native TTS. Enter spoken words, not an MP3 filename or path. For MP3, open Course Editor > Audio Library, place files in Documents/QuisquisLingo/Imports/Audio, press Import MP3, then Associate recording and enter its Word or expression. Select Recorded MP3 only or Hybrid. Exercises use these text mappings; there is no per-exercise file attachment.',
+        validation:
+            'Recordings are stored physically by learning language; metadata and references belong to the Course. Verified Course backups copy referenced recordings. Course JSON does not contain MP3 bytes and JSON alone does not transfer recordings.',
+        example: 'Buongiorno, come stai?',
+      );
+    }
     if (presetId == 'type_missing_word' &&
         const {'prompt', 'accepted'}.contains(fieldKey)) {
       return const ExerciseFieldHelp(
         title: 'Type the missing word',
-        purpose: 'Complete a missing word after its first letter is provided.',
+        purpose:
+            'Enter the complete missing word. The first letter shown is a hint.',
         entryRules:
-            'Enter a sentence with exactly one ___ gap and complete accepted words, one per line. The first Unicode grapheme is derived automatically; the learner types only the remainder.',
+            'Enter a sentence with exactly one ___ gap and complete accepted words, one per line. The first Unicode grapheme is derived automatically; the learner enters the complete word, including that first grapheme.',
         validation:
-            'All complete accepted words must share exactly the same first grapheme. The reconstructed response uses normal Input normalization and supported typo tolerance.',
+            'All complete accepted words must share exactly the same first grapheme. The complete word entered uses normal Input normalization and supported typo tolerance; the hint is not prepended to the response.',
         example:
-            'I would like a ___. Answer: cappuccino. Learner sees c______ and types appuccino.',
+            'Je vais à l’___. Answer: école. Learner sees é______ and enters école, not cole.',
       );
     }
     return forField(fieldForEditor(presetId, fieldKey));
@@ -552,21 +642,25 @@ abstract final class ExerciseFieldHelpRegistry {
     ),
     ExerciseAuthoringField.contextMode => const ExerciseFieldHelp(
       title: 'Context mode',
-      purpose: 'Chooses how the comprehension context is presented.',
+      purpose:
+          'Text is a presentation mode: learners read the main passage entered in Context text. Example: Marta takes the train to work every morning.',
       entryRules:
           'Select one mode: Text, Audio, or Text and audio. Text modes expose Context text and optional structured dialogue; audio modes expose Context audio text.',
       validation:
           'Supply usable text, audio or dialogue context plus a separate question and answer options. An image alone is not sufficient context. Preview the selected mode.',
+      example:
+          'Choose Text, then enter: Marta takes the train to work every morning.',
     ),
     ExerciseAuthoringField.contextText => const ExerciseFieldHelp(
       title: 'Context text',
       purpose:
-          'Provides the passage, announcement or situation needed to answer the question.',
+          'The passage or background the learner reads to answer the question. Example: Marta is describing her daily routine. Marta takes the train to work every morning.',
       entryRules:
           'Enter one plain-text context, with paragraphs if useful. Use Structured dialogue for speaker-labelled turns. The question belongs in its own field.',
       validation:
           'At least one usable text, audio or dialogue context is required. When choosing Text and audio, check both representations convey the intended context.',
-      example: 'The café closes at six. Maria arrives at five.',
+      example:
+          'Marta is describing her daily routine. Marta takes the train to work every morning. Question: How does Marta travel to work?',
     ),
     ExerciseAuthoringField.dialogue => const ExerciseFieldHelp(
       title: 'Structured dialogue (optional)',

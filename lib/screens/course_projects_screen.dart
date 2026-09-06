@@ -736,7 +736,7 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
                       ),
                       SizedBox(height: 6),
                       Text(
-                        '1. Copy the course JSON to Documents/QuisquisLingo/Exports/import.json.',
+                        '1. Copy the course JSON to Documents/QuisquisLingo/Imports/import.json.',
                       ),
                       Text('2. Press Import course JSON.'),
                       Text(

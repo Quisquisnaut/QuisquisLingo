@@ -6490,6 +6490,8 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
             helper:
                 'One complete equivalent answer per line. Optional {...}, alternatives [a|b], and scoped reorder (a <> b) syntax are supported.',
           ),
+          const Text('Use lowercase except for proper names.'),
+          const SizedBox(height: 8),
           Align(
             alignment: Alignment.centerLeft,
             child: OutlinedButton.icon(
@@ -6532,7 +6534,7 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
           ),
           _field(_hint, 'Hint (optional)'),
           const Text(
-            'Example: I would like a ___; cappuccino → c______. The learner types appuccino.',
+            'Enter the complete missing word. The first letter shown is a hint. Example: é______ → école, not cole.',
           ),
         ];
       case 'build_translation':
@@ -6654,7 +6656,22 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
         ];
       case 'listening_choice':
         return [
-          _field(_tts, 'Audio text', lines: 2),
+          _field(
+            _tts,
+            'Spoken text',
+            lines: 2,
+            helper: switch (widget.course?.audioMode) {
+              'recorded' =>
+                'Recorded MP3: QQL matches this text to this Course’s Audio Library recordings.',
+              'hybrid' =>
+                'Hybrid: QQL tries this Course’s MP3 recordings, then native TTS if a complete sequence is unavailable.',
+              _ => 'QQL reads this text aloud using the device’s native TTS.',
+            },
+          ),
+          const Text(
+            'MP3: open Course Editor > Audio Library. Copy MP3 files to Documents/QuisquisLingo/Imports/Audio, press Import MP3, then Associate recording with its Word or expression. Choose Recorded MP3 only or Hybrid. This exercise uses those text mappings.',
+          ),
+          const SizedBox(height: 12),
           _field(_question, 'Question', lines: 2),
           _field(_answers, 'Answers', lines: 4),
           _field(_correct, 'Correct answer number'),
