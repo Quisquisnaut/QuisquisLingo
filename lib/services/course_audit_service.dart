@@ -226,10 +226,28 @@ class CourseAuditService {
     return languages[prompt.trim()];
   }
 
-  CourseAuditResult auditCourse(Course course) {
+  CourseAuditResult auditCourse(
+    Course course, {
+    Course? sourceReferenceCourse,
+  }) {
     final issues = <CourseAuditIssue>[];
     final ids = <String>{};
-    final pendingSourceRefs = <MapEntry<String, String>>[];
+    // Publication gates audit the learner projection so Draft descendants do
+    // not block a Published ancestor. Guidebook sourceRefs are authoring
+    // provenance, however, and remain valid while that Guidebook is Draft and
+    // therefore absent from the learner projection.
+    final authoredSourceIds = <String>{};
+    if (sourceReferenceCourse != null) {
+      for (final lesson in sourceReferenceCourse.lessons) {
+        for (final content in lesson.guidebook.content) {
+          if (content.id.trim().isNotEmpty) authoredSourceIds.add(content.id);
+        }
+      }
+    }
+    final pendingSourceRefs =
+        <
+          ({String ref, String location, String? roundId, String? exerciseId})
+        >[];
     void idCheck(
       String id,
       String location, {
@@ -468,7 +486,12 @@ class CourseAuditService {
         final location = '$tl · Guidebook Content ${gi + 1}';
         idCheck(content.id, location);
         for (final ref in content.sourceRefs) {
-          pendingSourceRefs.add(MapEntry(ref, location));
+          pendingSourceRefs.add((
+            ref: ref,
+            location: location,
+            roundId: null,
+            exerciseId: null,
+          ));
         }
       }
       if (gb.content.isEmpty)
@@ -558,7 +581,14 @@ class CourseAuditService {
             exerciseId: content.kind == 'exercise' ? content.id : null,
           );
           for (final ref in content.sourceRefs) {
-            pendingSourceRefs.add(MapEntry(ref, location));
+            pendingSourceRefs.add((
+              ref: ref,
+              location: location,
+              roundId: r.id,
+              exerciseId: content.role == 'lesson_intro'
+                  ? null
+                  : content.asRunnableExercise()?.id,
+            ));
           }
         }
 
@@ -645,12 +675,15 @@ class CourseAuditService {
         );
     }
     for (final pending in pendingSourceRefs) {
-      if (!ids.contains(pending.key))
+      if (!ids.contains(pending.ref) &&
+          !authoredSourceIds.contains(pending.ref))
         issues.add(
           CourseAuditIssue.fromCode(
             AuditCode.sourceRefMissing,
-            message: 'sourceRefs references missing Content ID: ${pending.key}',
-            location: pending.value,
+            message: 'sourceRefs references missing Content ID: ${pending.ref}',
+            location: pending.location,
+            roundId: pending.roundId,
+            exerciseId: pending.exerciseId,
           ),
         );
     }
@@ -697,7 +730,11 @@ class CourseAuditService {
     ];
   }
 
-  CourseAuditResult auditLesson(Course course, String lessonId) {
+  CourseAuditResult auditLesson(
+    Course course,
+    String lessonId, {
+    Course? sourceReferenceCourse,
+  }) {
     final lessonIndex = course.lessons.indexWhere(
       (lesson) => lesson.lessonId == lessonId,
     );
@@ -706,16 +743,21 @@ class CourseAuditService {
     return CourseAuditResult(
       auditCourse(
         course,
+        sourceReferenceCourse: sourceReferenceCourse,
       ).issues.where((issue) => issue.location.startsWith(prefix)).toList(),
     );
   }
 
-  CourseAuditResult auditRound(Course course, String roundId) =>
-      CourseAuditResult(
-        auditCourse(
-          course,
-        ).issues.where((issue) => issue.roundId == roundId).toList(),
-      );
+  CourseAuditResult auditRound(
+    Course course,
+    String roundId, {
+    Course? sourceReferenceCourse,
+  }) => CourseAuditResult(
+    auditCourse(
+      course,
+      sourceReferenceCourse: sourceReferenceCourse,
+    ).issues.where((issue) => issue.roundId == roundId).toList(),
+  );
 
   String? _languageHint(String raw) {
     final token = raw.toLowerCase().replaceAll(

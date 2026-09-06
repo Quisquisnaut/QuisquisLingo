@@ -76,7 +76,7 @@ The structural fields `topics`, `topicId` and Lesson `id` are invalid in v6. Opa
 
 ## Lesson Guidebook
 
-A Lesson contains `guidebook.content[]`. Guidebook Content can include explanations, vocabulary, examples and text. It is learner-facing reference material and may also be used as authoring source material. `sourceRefs` can connect generated or derived Content to stable Guidebook Content IDs.
+A Lesson contains a Guidebook with `content[]`. Its optional `publicationState` is `draft` or `published`; absence retains the compatible Published default, and canonical serialization adds the field only for Draft. A Draft Guidebook and its content stay out of learner delivery while the Lesson and its Rounds can remain Published. Guidebook Content can include explanations, vocabulary, examples and text. It is learner-facing reference material and may also be used as authoring source material. `sourceRefs` can connect generated or derived Content to stable Guidebook Content IDs.
 
 The first Content item of Round 1 may be a non-exercise `lesson_intro` derived from essential Lesson Guidebook information. Bundled sample courses use this convention and tell the learner to read the Lesson Guidebook for more.
 

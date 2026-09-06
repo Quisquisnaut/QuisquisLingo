@@ -5,7 +5,7 @@
 /// a future stable build by setting [isAlphaBuild] to false.
 class AlphaLifecycleService {
   static const bool isAlphaBuild = true;
-  // Revision 3 keeps the existing Build 226.02 revision 2 expiry unchanged.
+  // Corrective revisions 3 and 4 keep the Build 226.02 revision 2 expiry.
   static final DateTime expiryDate = DateTime(2026, 10, 6, 23, 59, 59);
 
   static DateTime _day(DateTime value) =>

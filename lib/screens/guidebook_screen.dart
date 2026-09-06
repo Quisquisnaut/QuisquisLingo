@@ -1,22 +1,27 @@
 import 'package:flutter/material.dart';
 import '../models/course_models.dart';
 import '../services/lesson_presentation_service.dart';
+import '../services/publication_service.dart';
 
 class GuidebookScreen extends StatelessWidget {
   final Course course;
   final Lesson lesson;
   final int lessonIndex;
+  final bool includeDraftContent;
 
   const GuidebookScreen({
     super.key,
     required this.course,
     required this.lesson,
     required this.lessonIndex,
+    this.includeDraftContent = false,
   });
 
   @override
   Widget build(BuildContext context) {
-    final guide = lesson.guidebook;
+    final guide = includeDraftContent
+        ? lesson.guidebook
+        : const PublicationService().learnerGuidebook(lesson.guidebook);
     final identity = const LessonPresentationService().identity(
       course,
       lessonIndex,
@@ -49,10 +54,14 @@ class GuidebookScreen extends StatelessWidget {
           _GuideSection(title: 'Useful expressions', items: guide.expressions),
           _GuideSection(title: 'Examples', items: guide.examples),
           if (guide.content.isEmpty)
-            const Card(
+            Card(
               child: Padding(
-                padding: EdgeInsets.all(16),
-                child: Text('This Lesson Guidebook is empty.'),
+                padding: const EdgeInsets.all(16),
+                child: Text(
+                  !includeDraftContent && !guide.publicationState.isPublished
+                      ? 'This Lesson Guidebook is not available.'
+                      : 'This Lesson Guidebook is empty.',
+                ),
               ),
             ),
           const SizedBox(height: 8),

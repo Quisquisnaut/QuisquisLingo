@@ -203,27 +203,24 @@ class _OfficialCourseInspectionScreenState
             const Divider(height: 24),
             Text('Lessons', style: Theme.of(context).textTheme.titleMedium),
             for (var index = 0; index < course.lessons.length; index++)
-              ListTile(
-                key: ValueKey(
-                  'official-lesson-${course.lessons[index].lessonId}',
-                ),
-                title: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(course.lessons[index].title),
-                    EditorInternalIdText(
-                      label: 'Lesson',
-                      id: course.lessons[index].lessonId,
-                    ),
-                  ],
-                ),
-                subtitle: Text('${course.lessons[index].rounds.length} Rounds'),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () => Navigator.of(context).push<void>(
-                  MaterialPageRoute(
-                    builder: (_) => _OfficialLessonInspectionScreen(
-                      course: course,
-                      lessonIndex: index,
+              _OfficialHierarchyEntry(
+                label: 'Lesson',
+                id: course.lessons[index].lessonId,
+                tile: ListTile(
+                  key: ValueKey(
+                    'official-lesson-${course.lessons[index].lessonId}',
+                  ),
+                  title: Text(course.lessons[index].title),
+                  subtitle: Text(
+                    '${course.lessons[index].rounds.length} Rounds',
+                  ),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => Navigator.of(context).push<void>(
+                    MaterialPageRoute(
+                      builder: (_) => _OfficialLessonInspectionScreen(
+                        course: course,
+                        lessonIndex: index,
+                      ),
                     ),
                   ),
                 ),
@@ -232,6 +229,30 @@ class _OfficialCourseInspectionScreenState
         );
       },
     ),
+  );
+}
+
+class _OfficialHierarchyEntry extends StatelessWidget {
+  const _OfficialHierarchyEntry({
+    required this.label,
+    required this.id,
+    required this.tile,
+  });
+
+  final String label;
+  final String id;
+  final ListTile tile;
+
+  @override
+  Widget build(BuildContext context) => Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      tile,
+      Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: EditorInternalIdText(label: label, id: id),
+      ),
+    ],
   );
 }
 
@@ -279,6 +300,7 @@ class _OfficialLessonInspectionScreen extends StatelessWidget {
                   course: course,
                   lesson: lesson,
                   lessonIndex: lessonIndex,
+                  includeDraftContent: true,
                 ),
               ),
             ),
@@ -296,28 +318,23 @@ class _OfficialLessonInspectionScreen extends StatelessWidget {
             ),
           ),
           for (var index = 0; index < lesson.rounds.length; index++)
-            ListTile(
-              key: ValueKey('official-round-${lesson.rounds[index].id}'),
-              title: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(lesson.rounds[index].displayTitle(index)),
-                  EditorInternalIdText(
-                    label: 'Round',
-                    id: lesson.rounds[index].id,
-                  ),
-                ],
-              ),
-              subtitle: Text(
-                '${lesson.rounds[index].exercises.length} exercises',
-              ),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () => Navigator.of(context).push<void>(
-                MaterialPageRoute(
-                  builder: (_) => _OfficialRoundInspectionScreen(
-                    course: course,
-                    lesson: lesson,
-                    roundIndex: index,
+            _OfficialHierarchyEntry(
+              label: 'Round',
+              id: lesson.rounds[index].id,
+              tile: ListTile(
+                key: ValueKey('official-round-${lesson.rounds[index].id}'),
+                title: Text(lesson.rounds[index].displayTitle(index)),
+                subtitle: Text(
+                  '${lesson.rounds[index].exercises.length} exercises',
+                ),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => Navigator.of(context).push<void>(
+                  MaterialPageRoute(
+                    builder: (_) => _OfficialRoundInspectionScreen(
+                      course: course,
+                      lesson: lesson,
+                      roundIndex: index,
+                    ),
                   ),
                 ),
               ),
@@ -369,27 +386,22 @@ class _OfficialRoundInspectionScreen extends StatelessWidget {
             ),
           ),
           for (var index = 0; index < round.exercises.length; index++)
-            ListTile(
-              key: ValueKey('official-exercise-${round.exercises[index].id}'),
-              title: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Exercise ${index + 1}'),
-                  EditorInternalIdText(
-                    label: 'Exercise',
-                    id: round.exercises[index].id,
-                  ),
-                ],
-              ),
-              subtitle: Text(round.exercises[index].prompt),
-              trailing: const Icon(Icons.visibility_outlined),
-              onTap: () => Navigator.of(context).push<void>(
-                MaterialPageRoute(
-                  builder: (_) => _OfficialExerciseInspectionScreen(
-                    course: course,
-                    lesson: lesson,
-                    roundIndex: roundIndex,
-                    exercise: round.exercises[index],
+            _OfficialHierarchyEntry(
+              label: 'Exercise',
+              id: round.exercises[index].id,
+              tile: ListTile(
+                key: ValueKey('official-exercise-${round.exercises[index].id}'),
+                title: Text('Exercise ${index + 1}'),
+                subtitle: Text(round.exercises[index].prompt),
+                trailing: const Icon(Icons.visibility_outlined),
+                onTap: () => Navigator.of(context).push<void>(
+                  MaterialPageRoute(
+                    builder: (_) => _OfficialExerciseInspectionScreen(
+                      course: course,
+                      lesson: lesson,
+                      roundIndex: roundIndex,
+                      exercise: round.exercises[index],
+                    ),
                   ),
                 ),
               ),

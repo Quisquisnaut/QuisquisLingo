@@ -505,8 +505,10 @@ class _HomeScreenState extends State<HomeScreen> {
       return;
     }
     try {
-      final course = await _courseService.loadCourse(normalized);
-      if (!mounted) return;
+      final course = _publication.learnerCourse(
+        await _courseService.loadCourse(normalized),
+      );
+      if (course == null || !mounted) return;
       setState(() {
         _selectedCourseRef = normalized;
         _selectedLanguage = normalized;
@@ -520,13 +522,14 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _switchCustomCourse(Course course) async {
+    final learnerCourse = _publication.learnerCourse(course);
+    if (learnerCourse == null || !mounted) return;
     final ref = 'custom:${course.courseId}';
     final code = CourseService.codeForCourse(course);
-    if (!mounted) return;
     setState(() {
       _selectedCourseRef = ref;
       _selectedLanguage = code;
-      _course = course;
+      _course = learnerCourse;
     });
     await _settings.setLastSelectedCourseCode(ref);
     await _reload();
@@ -789,6 +792,14 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _showCoursePicker(BuildContext overlayContext) async {
+    final codes = _bundledCourseCodes;
+    final bundledCourses = Map<String, Course>.fromEntries(
+      await Future.wait(
+        codes.map(
+          (code) async => MapEntry(code, await _courseService.loadCourse(code)),
+        ),
+      ),
+    );
     final localCourses = (await _courseEditorService.listUserCourses())
         .map(_publication.learnerCourse)
         .whereType<Course>()
@@ -807,7 +818,6 @@ class _HomeScreenState extends State<HomeScreen> {
         .take(3)
         .toList();
     if (!mounted || !overlayContext.mounted) return;
-    final codes = _bundledCourseCodes;
     Course? customCourseFor(String ref) {
       if (!ref.startsWith('custom:')) return null;
       final id = ref.substring('custom:'.length);
@@ -827,15 +837,32 @@ class _HomeScreenState extends State<HomeScreen> {
       return 'Custom course · version ${course.courseVersion.isEmpty ? 'unconfirmed' : course.courseVersion}';
     }
 
+    Widget courseTile({
+      Key? key,
+      required Course course,
+      required Widget leading,
+      Widget? subtitle,
+      bool selected = false,
+      VoidCallback? onTap,
+    }) => ListTile(
+      key: key,
+      leading: leading,
+      title: Text(course.title),
+      subtitle: subtitle,
+      trailing: selected ? const Icon(Icons.check) : null,
+      onTap: onTap,
+    );
+
     Widget recentCourseTile(BuildContext ctx, String ref) {
       final custom = customCourseFor(ref);
       if (custom != null) {
-        return ListTile(
+        return courseTile(
+          key: ValueKey('recent-course-$ref'),
+          course: custom,
           leading: CourseFlagBadge(
             course: custom,
             fallbackCode: CourseService.codeForCourse(custom),
           ),
-          title: Text(custom.title),
           subtitle: Text(originLabel(custom)),
           onTap: () {
             Navigator.pop(ctx);
@@ -844,9 +871,10 @@ class _HomeScreenState extends State<HomeScreen> {
         );
       }
       final code = ref.trim().toUpperCase();
-      return ListTile(
+      return courseTile(
+        key: ValueKey('recent-course-$ref'),
+        course: bundledCourses[code]!,
         leading: FlagBadge(code),
-        title: Text(CourseService.targetLabels[code] ?? code),
         subtitle: Text(
           '${CourseService.sourceLabels[code] ?? 'English'} → ${CourseService.targetLabels[code] ?? code}',
         ),
@@ -878,13 +906,14 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
               if (_course != null)
-                ListTile(
+                courseTile(
+                  key: const Key('current-course'),
+                  course: _course!,
                   leading: CourseFlagBadge(
                     course: _course!,
                     fallbackCode: _selectedLanguage,
                   ),
-                  title: Text(_course!.title),
-                  trailing: const Icon(Icons.check),
+                  selected: true,
                 ),
               if (recentRefs.isNotEmpty) ...[
                 const Padding(
@@ -905,26 +934,17 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
               for (final code in codes)
-                ListTile(
+                courseTile(
                   key: ValueKey('bundled-course-$code'),
+                  course: bundledCourses[code]!,
                   leading: FlagBadge(code),
-                  title: Text(CourseService.targetLabels[code] ?? code),
-                  subtitle: Row(
-                    children: [
-                      Text(
-                        '${CourseService.sourceLabels[code] ?? 'English'} → ${CourseService.targetLabels[code] ?? code}',
-                      ),
-                      Flexible(
-                        child: Text(
-                          ' · Bundled official${CourseService.hasCourse(code) ? '' : ' · Coming soon'}',
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
+                  subtitle: Text(
+                    '${CourseService.sourceLabels[code] ?? 'English'} → ${CourseService.targetLabels[code] ?? code}'
+                    ' · Bundled official${CourseService.hasCourse(code) ? '' : ' · Coming soon'}',
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  trailing: _selectedCourseRef == code
-                      ? const Icon(Icons.check)
-                      : null,
+                  selected: _selectedCourseRef == code,
                   onTap: () {
                     Navigator.pop(ctx);
                     _switchCourse(code);
@@ -940,28 +960,20 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
                 for (final course in localCourses)
-                  ListTile(
+                  courseTile(
+                    key: ValueKey('local-course-${course.courseId}'),
+                    course: course,
                     leading: CourseFlagBadge(
                       course: course,
                       fallbackCode: CourseService.codeForCourse(course),
                     ),
-                    title: Text(course.title),
-                    subtitle: Row(
-                      children: [
-                        Text(
-                          '${course.sourceLanguage} → ${course.targetLanguage}',
-                        ),
-                        Flexible(
-                          child: Text(
-                            ' · ${originLabel(course)}',
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ],
+                    subtitle: Text(
+                      '${course.sourceLanguage} → ${course.targetLanguage}'
+                      ' · ${originLabel(course)}',
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    trailing: _selectedCourseRef == 'custom:${course.courseId}'
-                        ? const Icon(Icons.check)
-                        : null,
+                    selected: _selectedCourseRef == 'custom:${course.courseId}',
                     onTap: () {
                       Navigator.pop(ctx);
                       _switchCustomCourse(course);
@@ -1234,6 +1246,7 @@ class _HomeScreenState extends State<HomeScreen> {
     int lessonIndex,
   ) async {
     _resetLockedLessonTapSequence();
+    if (!lesson.guidebook.publicationState.isPublished) return;
     if (!await _canOpenLearnerContent() || !mounted) return;
     await Navigator.of(context).push(
       MaterialPageRoute(
@@ -1786,7 +1799,12 @@ class _LessonSection extends StatelessWidget {
         lessonIndex: lessonIndex,
         unlocked: unlocked,
         onLockedTap: onLockedTap,
-        onTap: hasAccess && !previewOnly ? onOpenGuidebook : null,
+        onTap:
+            hasAccess &&
+                !previewOnly &&
+                lesson.guidebook.publicationState.isPublished
+            ? onOpenGuidebook
+            : null,
       ),
       if (!hasAccess)
         Padding(

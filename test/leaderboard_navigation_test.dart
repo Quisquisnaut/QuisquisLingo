@@ -33,6 +33,9 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   setUp(() async {
+    for (final asset in CourseService.courseAssets.values) {
+      rootBundle.evict(asset);
+    }
     resetLockedLessonPreviewSessionForTesting();
     resetLearnerStatusRouteObserver();
     final messenger =
@@ -70,7 +73,7 @@ void main() {
       buildSignature: '',
     );
     SharedPreferences.setMockInitialValues({
-      'one_time_notice_seen_welcome_2.0.26+226023': true,
+      'one_time_notice_seen_welcome_2.0.26+226024': true,
       'sound_effects_enabled': false,
     });
     await ProfileService().addProfile('Navigation Learner');
@@ -1418,7 +1421,11 @@ void main() {
         find.byKey(const Key('unified-topbar-course-selector')),
       );
       await tester.tap(find.byKey(const Key('unified-topbar-course-selector')));
-      await tester.pumpAndSettle();
+      await _pumpUntilWithIo(
+        tester,
+        find.text('Choose course'),
+        failureMessage: 'Timed out loading the refreshed course picker.',
+      );
       expect(find.text(updatedTitle), findsWidgets);
     },
   );
@@ -2233,7 +2240,11 @@ void main() {
     expect(background.fallbackCode, 'IT');
 
     await tester.tap(find.byKey(const Key('unified-topbar-course-selector')));
-    await tester.pumpAndSettle();
+    await _pumpUntilWithIo(
+      tester,
+      find.text('Choose course'),
+      failureMessage: 'Timed out loading the course picker.',
+    );
     final fullPicker = tester.widget<FractionallySizedBox>(
       find.descendant(
         of: find.byType(BottomSheet),
@@ -2245,7 +2256,7 @@ void main() {
     expect(find.text('Current course'), findsOneWidget);
     expect(find.text('All included courses'), findsOneWidget);
     expect(find.text(italianCourse.title), findsWidgets);
-    await tester.tap(find.widgetWithText(ListTile, 'German').last);
+    await tester.tap(find.byKey(const ValueKey('bundled-course-DE')));
     await tester.runAsync(
       () => Future<void>.delayed(const Duration(milliseconds: 300)),
     );
@@ -2270,6 +2281,10 @@ void main() {
   testWidgets(
     'course picker places three other recent courses before the complete list',
     (tester) async {
+      tester.view.devicePixelRatio = 1;
+      tester.view.physicalSize = const Size(1200, 1400);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      addTearDown(tester.view.resetPhysicalSize);
       final settings = SettingsService();
       for (final ref in ['DE', 'ES', 'FI', 'PT', 'IT']) {
         await settings.setLastSelectedCourseCode(ref);
@@ -2277,7 +2292,11 @@ void main() {
       await _openHome(tester, scrollToActions: false);
 
       await tester.tap(find.byKey(const Key('unified-topbar-course-selector')));
-      await tester.pumpAndSettle();
+      await _pumpUntilWithIo(
+        tester,
+        find.text('Choose course'),
+        failureMessage: 'Timed out loading recent courses.',
+      );
 
       final currentTop = tester.getRect(find.text('Current course')).top;
       final recentTop = tester.getRect(find.text('Recently opened')).top;
@@ -2298,7 +2317,11 @@ void main() {
       }).toList();
       expect(recentTiles, hasLength(3));
 
-      final recentTitles = ['Portuguese', 'Finnish', 'Spanish'];
+      final recentTitles = [
+        'AI-Slop Demo: Portuguese for English Speakers',
+        'AI-Slop Demo: Finnish for English Speakers',
+        'AI-Slop Demo: Spanish for English Speakers',
+      ];
       final recentPositions = recentTitles
           .map((title) => tester.getRect(find.text(title).first).center.dy)
           .toList();
@@ -2336,7 +2359,7 @@ void main() {
         (text) =>
             text.data != 'Welcome to QuisquisLingo' &&
             text.data != 'Version 2.0.26' &&
-            text.data != 'Phase 226.02, revision 3' &&
+            text.data != 'Phase 226.02, revision 4' &&
             text.data != 'Continue',
       );
       final welcomeDialog = tester.widget<AlertDialog>(
@@ -2353,11 +2376,11 @@ void main() {
         const Color(0xFF0756DF),
       );
       expect(
-        tester.widget<Text>(find.text('Phase 226.02, revision 3')).style?.color,
+        tester.widget<Text>(find.text('Phase 226.02, revision 4')).style?.color,
         const Color(0xFF0756DF),
       );
       expect(find.textContaining('22621'), findsNothing);
-      expect(find.textContaining('226023'), findsNothing);
+      expect(find.textContaining('226024'), findsNothing);
       expect(phrase.style?.color, const Color(0xFF0756DF));
       expect(find.widgetWithText(FilledButton, 'Continue'), findsOneWidget);
       expect(

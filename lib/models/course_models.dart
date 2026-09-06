@@ -839,8 +839,10 @@ List<Lesson> _parseLessons(Map<String, dynamic> j) {
 }
 
 class Guidebook {
+  final PublicationState publicationState;
   final List<LearningContent> content;
   Guidebook({
+    this.publicationState = PublicationState.published,
     List<LearningContent>? content,
     String overview = '',
     List<String> goals = const [],
@@ -860,9 +862,14 @@ class Guidebook {
            );
   factory Guidebook.empty() => Guidebook(content: const []);
   Map<String, dynamic> toJson() => {
+    if (!publicationState.isPublished)
+      'publicationState': publicationState.name,
     'content': content.map((e) => e.toJson()).toList(),
   };
   factory Guidebook.fromJson(Map<String, dynamic> j) => Guidebook(
+    publicationState: j.containsKey('publicationState')
+        ? PublicationState.parseRequired(j, 'guidebook')
+        : PublicationState.published,
     content: _mapList(j, 'content', 'guidebook', LearningContent.fromJson),
   );
 

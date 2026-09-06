@@ -10,6 +10,7 @@ import 'package:quisquislingo_app/services/course_editor_service.dart';
 import 'package:quisquislingo_app/services/course_service.dart';
 import 'package:quisquislingo_app/services/profile_service.dart';
 import 'package:quisquislingo_app/services/progress_service.dart';
+import 'package:quisquislingo_app/services/settings_service.dart';
 import 'package:quisquislingo_app/widgets/flag_art.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -17,6 +18,9 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   setUp(() async {
+    for (final asset in CourseService.courseAssets.values) {
+      rootBundle.evict(asset);
+    }
     final messenger =
         TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
     messenger.setMockMethodCallHandler(
@@ -77,13 +81,16 @@ void main() {
       final koreanTile = find.byKey(const ValueKey('bundled-course-KO'));
       expect(koreanTile, findsOneWidget);
       expect(
-        find.descendant(of: koreanTile, matching: find.text('Korean')),
+        find.descendant(
+          of: koreanTile,
+          matching: find.text('AI-Slop Demo: Korean for English Speakers'),
+        ),
         findsOneWidget,
       );
       expect(
         find.descendant(
           of: koreanTile,
-          matching: find.text('English → Korean'),
+          matching: find.text('English → Korean · Bundled official'),
         ),
         findsOneWidget,
       );
@@ -166,6 +173,88 @@ void main() {
       );
     },
   );
+
+  for (final width in [320.0, 800.0]) {
+    for (final selectCustom in [false, true]) {
+      testWidgets(
+        'course selector uses actual titles for every entry at width $width with ${selectCustom ? 'custom' : 'bundled'} selected',
+        (tester) async {
+          final custom = _customCourse();
+          final otherCustom = Course.fromJson({
+            ...custom.toJson(),
+            'courseId': 'other_selector_custom_course',
+            'title': 'A custom course title that is longer than Esperanto',
+          });
+          final editor = CourseEditorService();
+          await editor.saveUserCourse(custom);
+          await editor.saveUserCourse(otherCustom);
+          final settings = SettingsService();
+          for (final ref in [
+            'custom:${otherCustom.courseId}',
+            'EN',
+            'DE',
+            selectCustom ? 'custom:${custom.courseId}' : 'IT',
+          ]) {
+            await settings.setLastSelectedCourseCode(ref);
+          }
+
+          await _openHome(tester, width: width);
+          await _openCoursePicker(tester);
+          await _expectCourseTile(
+            tester,
+            const Key('current-course'),
+            selectCustom
+                ? custom.title
+                : 'AI-Slop Demo: Italian for English Speakers',
+            selected: true,
+          );
+          for (final entry in {
+            'DE': 'AI-Slop Demo: German for English Speakers',
+            'EN': 'AI-Slop Demo: Inglés para hispanohablantes',
+            'custom:${otherCustom.courseId}': otherCustom.title,
+          }.entries) {
+            await _expectCourseTile(
+              tester,
+              ValueKey('recent-course-${entry.key}'),
+              entry.value,
+              selected: false,
+            );
+          }
+          await _expectCourseTile(
+            tester,
+            const ValueKey('bundled-course-IT'),
+            'AI-Slop Demo: Italian for English Speakers',
+            selected: !selectCustom,
+          );
+          await _expectCourseTile(
+            tester,
+            const ValueKey('bundled-course-DE'),
+            'AI-Slop Demo: German for English Speakers',
+            selected: false,
+          );
+          await _expectCourseTile(
+            tester,
+            const ValueKey('bundled-course-EN'),
+            'AI-Slop Demo: Inglés para hispanohablantes',
+            selected: false,
+          );
+          await _expectCourseTile(
+            tester,
+            ValueKey('local-course-${otherCustom.courseId}'),
+            otherCustom.title,
+            selected: false,
+          );
+          await _expectCourseTile(
+            tester,
+            ValueKey('local-course-${custom.courseId}'),
+            custom.title,
+            selected: selectCustom,
+          );
+          expect(tester.takeException(), isNull);
+        },
+      );
+    }
+  }
 }
 
 void _installEventChannelMock(
@@ -177,28 +266,65 @@ void _installEventChannelMock(
   });
 }
 
-Future<void> _openHome(WidgetTester tester) async {
+Future<void> _openHome(WidgetTester tester, {double width = 1200}) async {
   tester.view.devicePixelRatio = 1;
-  tester.view.physicalSize = const Size(1200, 1400);
+  tester.view.physicalSize = Size(width, 1400);
   addTearDown(tester.view.resetDevicePixelRatio);
   addTearDown(tester.view.resetPhysicalSize);
   await tester.pumpWidget(const MaterialApp(home: HomeScreen()));
-  await _pumpIo(tester, frames: 30);
   final alphaNotice = find.text('Alpha expiry');
-  if (alphaNotice.evaluate().isNotEmpty) {
-    await tester.tap(find.widgetWithText(FilledButton, 'OK'));
-    await _pumpIo(tester, frames: 12);
-  }
-  expect(
+  await _pumpUntilWithIo(tester, alphaNotice);
+  await tester.tap(find.widgetWithText(FilledButton, 'OK'));
+  await _pumpUntilWithIo(
+    tester,
     find.byKey(const Key('unified-learner-flag-background')),
+  );
+}
+
+Future<void> _expectCourseTile(
+  WidgetTester tester,
+  Key key,
+  String title, {
+  required bool selected,
+}) async {
+  final tileFinder = find.byKey(key);
+  await tester.scrollUntilVisible(
+    tileFinder,
+    180,
+    scrollable: find.descendant(
+      of: find.byType(BottomSheet),
+      matching: find.byType(Scrollable),
+    ),
+  );
+  final tile = tester.widget<ListTile>(tileFinder);
+  expect((tile.title! as Text).data, title);
+  expect(tile.trailing != null, selected);
+  expect(
+    find.descendant(of: tileFinder, matching: find.text(title)),
     findsOneWidget,
   );
+  expect(
+    tester.getSize(tileFinder).width,
+    lessThanOrEqualTo(tester.view.physicalSize.width),
+  );
+  expect(tester.takeException(), isNull);
 }
 
 Future<void> _openCoursePicker(WidgetTester tester) async {
   await tester.tap(find.byKey(const Key('unified-topbar-course-selector')));
-  await _pumpIo(tester, frames: 12);
-  expect(find.text('Choose course'), findsOneWidget);
+  await _pumpUntilWithIo(tester, find.text('Choose course'));
+  await tester.pumpAndSettle();
+}
+
+Future<void> _pumpUntilWithIo(WidgetTester tester, Finder finder) async {
+  for (var frame = 0; frame < 160; frame++) {
+    await _pumpIo(tester, frames: 1);
+    if (finder.evaluate().isNotEmpty) return;
+  }
+  final visibleText = tester
+      .widgetList<Text>(find.byType(Text))
+      .map((text) => text.data);
+  fail('Timed out waiting for $finder. Visible text: $visibleText');
 }
 
 void _expectNineBundledTiles() {

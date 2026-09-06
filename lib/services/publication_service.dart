@@ -17,6 +17,25 @@ class PublicationService {
     return Course.fromJson(courseJson);
   }
 
+  /// Returns the learner-safe embedded Guidebook branch.
+  ///
+  /// A Draft Guidebook remains identifiable as Draft so learner surfaces can
+  /// disable its action, but none of its authored content is delivered.
+  Guidebook learnerGuidebook(Guidebook source) {
+    if (!source.publicationState.isPublished) {
+      return Guidebook(
+        publicationState: PublicationState.draft,
+        content: const [],
+      );
+    }
+    return Guidebook(
+      content: [
+        for (final content in source.content)
+          if (content.publicationState.isPublished) content,
+      ],
+    );
+  }
+
   /// Imports enter ordinary untrusted authoring as Draft without changing IDs.
   Course asDraftAuthoringTree(Course source) {
     final json = source.toJson();
@@ -26,6 +45,7 @@ class PublicationService {
       lesson['publicationState'] = PublicationState.draft.name;
       final guidebook = lesson['guidebook'];
       if (guidebook is Map) {
+        guidebook['publicationState'] = PublicationState.draft.name;
         for (final rawContent
             in (guidebook['content'] as List? ?? const []).whereType<Map>()) {
           rawContent['publicationState'] = PublicationState.draft.name;
@@ -45,12 +65,7 @@ class PublicationService {
 
   Map<String, dynamic> _publishedLessonJson(Lesson lesson) {
     final lessonJson = lesson.toJson();
-    lessonJson['guidebook'] = {
-      'content': [
-        for (final content in lesson.guidebook.content)
-          if (content.publicationState.isPublished) content.toJson(),
-      ],
-    };
+    lessonJson['guidebook'] = learnerGuidebook(lesson.guidebook).toJson();
     lessonJson['rounds'] = [
       for (final round in lesson.rounds)
         if (round.publicationState.isPublished) _publishedRoundJson(round),

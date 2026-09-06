@@ -209,6 +209,7 @@ class AuthoringDuplicationService {
               base64Png: '',
             ).reference,
       guidebook: Guidebook(
+        publicationState: PublicationState.draft,
         content: [
           for (final content in source.guidebook.content)
             _copyContent(content, remap),

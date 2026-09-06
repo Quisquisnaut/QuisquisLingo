@@ -1,9 +1,9 @@
 abstract final class AppMetadata {
   static const String releaseVersion = '2.0.26';
   static const String developmentPhase = '226.02';
-  static const int correctiveRevision = 3;
-  static const String build = '226.02.3';
-  static const String platformBuildNumber = '226023';
+  static const int correctiveRevision = 4;
+  static const String build = '226.02.4';
+  static const String platformBuildNumber = '226024';
   static const String technicalVersion = '$releaseVersion+$platformBuildNumber';
 
   /// Compatibility name for technical diagnostics and existing report callers.

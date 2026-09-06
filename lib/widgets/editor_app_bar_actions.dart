@@ -53,10 +53,12 @@ class EditorInternalIdText extends StatefulWidget {
     super.key,
     required this.label,
     required this.id,
+    this.padding = EdgeInsets.zero,
   });
 
   final String label;
   final String id;
+  final EdgeInsetsGeometry padding;
 
   @override
   State<EditorInternalIdText> createState() => _EditorInternalIdTextState();
@@ -75,15 +77,18 @@ class _EditorInternalIdTextState extends State<EditorInternalIdText> {
     builder: (context, visible, _) {
       if (!visible) return const SizedBox.shrink();
       final text = '${widget.label} ID: ${widget.id}';
-      return Tooltip(
-        message: widget.id,
-        child: SelectableText(
-          text,
-          key: ValueKey('editor-internal-id-${widget.id}'),
-          maxLines: 1,
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
-            fontFamily: 'monospace',
+      return Padding(
+        padding: widget.padding,
+        child: Tooltip(
+          message: widget.id,
+          child: SelectableText(
+            text,
+            key: ValueKey('editor-internal-id-${widget.id}'),
+            maxLines: 1,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+              fontFamily: 'monospace',
+            ),
           ),
         ),
       );

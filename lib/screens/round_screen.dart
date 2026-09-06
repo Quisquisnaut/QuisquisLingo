@@ -146,7 +146,9 @@ class _RoundScreenState extends State<RoundScreen> {
   Exercise get _exercise => widget.round.exercises[_exerciseIndex];
   LearningContent? get _lessonIntro {
     for (final content in widget.round.content) {
-      if (content.role == 'lesson_intro' && content.text.trim().isNotEmpty) {
+      if (content.role == 'lesson_intro' &&
+          content.text.trim().isNotEmpty &&
+          (widget.previewMode || content.publicationState.isPublished)) {
         return content;
       }
     }
@@ -1675,22 +1677,26 @@ class _RoundScreenState extends State<RoundScreen> {
                   style: Theme.of(context).textTheme.bodyLarge,
                 ),
               ),
-              const SizedBox(height: 16),
-              OutlinedButton.icon(
-                onPressed: () => Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) => GuidebookScreen(
-                      course: widget.course,
-                      lesson: widget.lesson,
-                      lessonIndex: widget.course.lessons.indexWhere(
-                        (lesson) => lesson.lessonId == widget.lesson.lessonId,
+              if (widget.previewMode ||
+                  widget.lesson.guidebook.publicationState.isPublished) ...[
+                const SizedBox(height: 16),
+                OutlinedButton.icon(
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => GuidebookScreen(
+                        course: widget.course,
+                        lesson: widget.lesson,
+                        lessonIndex: widget.course.lessons.indexWhere(
+                          (lesson) => lesson.lessonId == widget.lesson.lessonId,
+                        ),
+                        includeDraftContent: widget.previewMode,
                       ),
                     ),
                   ),
+                  icon: const Icon(Icons.menu_book_outlined),
+                  label: const Text('Open Guidebook'),
                 ),
-                icon: const Icon(Icons.menu_book_outlined),
-                label: const Text('Open Guidebook'),
-              ),
+              ],
               const SizedBox(height: 8),
               FilledButton(
                 onPressed: () => setState(() => _introAcknowledged = true),

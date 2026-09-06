@@ -1,13 +1,13 @@
 # QuisquisLingo App
 
-**Current source version: 2.0.26+226023 · Phase 226.02, revision 3 · Course Model v6 (`formatVersion: 6`).**
+**Current source version: 2.0.26+226024 · Phase 226.02, revision 4 · Course Model v6 (`formatVersion: 6`).**
 
 
-**QuisquisLingo 2.0.26 Alpha — Phase 226.02, revision 3 Editor diagnostics and hierarchy UX**
+**QuisquisLingo 2.0.26 Alpha — Phase 226.02, revision 4 Course titles and live hierarchy status**
 
 Current project version: 2.0.26
 
-Phase 226.02 revision 3 completes the workflow with shared Editor Help and persistent internal-ID inspection throughout Course Manager and its editor hierarchy, explicit AI-generated sample labels, precise empty-Lesson status, and an observable Lesson fallback-icon preview. It retains severity-filtered Audit Codes, red Error-or-Warning and luminous green clear-branch borders, one independent blue Draft badge, unsaved Preview, guarded navigation, transactional Move/Copy and eligible custom-course export. Tranches 226.03 and later remain deferred.
+Phase 226.02 revision 4 uses actual Course titles in every learner selector entry, including selected, recent and unselected bundled/custom courses. The Lessons page has a Lesson appearance area with **Fallback lesson number icons** and the literal choices **Theme-colored circle** and **Four-color circle**, preserving existing stored values and explicit Lesson icons. Authoring mutations refresh current canonical Audit findings through the visible hierarchy; Info alone stays green, unavailable or stale Audit stays neutral, and the blue Draft badge remains independent. Lesson, Round and Exercise entries place passive Internal IDs below their actionable lines. GuideBook status now exposes its own Audit border and Draft state, inherited by Lesson and Lessons indicators without affecting an otherwise clean Rounds branch; an empty Draft GuideBook is both red and blue. Shared Editor Help, the global ID toggle, Preview, guarded navigation, transactional Move/Copy and custom-course export remain available. Tranches 226.03 and later remain deferred.
 
 Build 226.01 makes bundled and external official courses locally read-only, with Info, Audit, Preview and publisher Version History inspection. An explicit publisher policy may allow a custom fork with fresh IDs, permanent original authorship/provenance and a separately recorded fork creator. Forks use the existing custom working-copy transaction, backups and version rules, and remain unchanged by later official updates. Build 225 official local overrides are ignored without migration or deletion. Ordinary custom courses, Course Model v6, progression, XP, Review, Duel and learner identity remain compatible. The official repository is `Quisquisnaut/QuisquisLingo`.
 
@@ -28,7 +28,7 @@ The MPL-2.0 covers the QuisquisLingo software source. Courses, the Image Bank an
 
 ## Alpha lifecycle
 
-Version 2.0.26 is a time-limited alpha and keeps the existing expiry of **2026-10-06**. Near expiry it displays reminders. After expiry, learner exercises and Review are blocked until a newer alpha is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when an alpha expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM. Future stable builds can disable alpha expiry.
+Version 2.0.26 is a time-limited alpha and keeps the existing expiry of **2026-10-06 23:59:59 local time**. Near expiry it displays reminders. After expiry, learner exercises and Review are blocked until a newer alpha is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when an alpha expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM. Future stable builds can disable alpha expiry.
 
 ## Core logic
 

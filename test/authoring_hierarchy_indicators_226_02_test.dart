@@ -824,6 +824,212 @@ void main() {
       expect(tester.takeException(), isNull);
     },
   );
+
+  testWidgets(
+    'accepted Exercise saves refresh the canonical Audit through every open ancestor',
+    (tester) async {
+      _viewport(tester);
+      final course = _liveAuditCourse();
+      final lesson = course.lessons.single;
+      final round = lesson.rounds.single;
+      final lessonAudit = CourseAuditService().auditLesson(
+        course,
+        lesson.lessonId,
+      );
+      expect(
+        lessonAudit.issues.where(
+          (issue) =>
+              issue.severity == AuditSeverity.error ||
+              issue.severity == AuditSeverity.warning,
+        ),
+        isEmpty,
+      );
+      expect(
+        lessonAudit.issues.any(
+          (issue) => issue.code == 'LESSON_ROUND_GUIDANCE',
+        ),
+        isTrue,
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(home: CourseEditorScreen(course: course, userCourse: true)),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(
+        find.byKey(const Key('course-editor-lessons-navigation')),
+      );
+      await tester.pumpAndSettle();
+      final lock = tester.widget<SwitchListTile>(
+        find.byKey(const Key('lesson-management-lock')),
+      );
+      if (lock.value) {
+        await tester.tap(find.byKey(const Key('lesson-management-lock')));
+        await tester.pumpAndSettle();
+      }
+      await tester.tap(find.text('Lesson 1: Live Audit Lesson'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('lesson-rounds-navigation')));
+      await tester.pumpAndSettle();
+      await tester.tap(_hierarchyTile(round.id));
+      await tester.pumpAndSettle();
+
+      for (final exercise in round.exercises) {
+        await tester.tap(_hierarchyTile(exercise.id));
+        await tester.pumpAndSettle();
+        await _savePublishedExercise(tester);
+      }
+
+      for (final exercise in round.exercises) {
+        _expectIndicator(
+          tester,
+          ValueKey('exercise-status-indicator-${exercise.id}'),
+          draft: false,
+          auditConcern: false,
+        );
+      }
+      _expectIndicator(
+        tester,
+        const ValueKey('round-status-indicator-live-audit-round'),
+        draft: false,
+        auditConcern: false,
+        skipOffstage: false,
+      );
+      _expectIndicator(
+        tester,
+        const Key('lesson-rounds-status-indicator'),
+        draft: false,
+        auditConcern: false,
+        skipOffstage: false,
+      );
+      _expectIndicator(
+        tester,
+        const ValueKey('lesson-status-indicator-live-audit-lesson'),
+        draft: false,
+        auditConcern: false,
+        skipOffstage: false,
+      );
+      _expectIndicator(
+        tester,
+        const Key('course-lessons-status-indicator'),
+        draft: false,
+        auditConcern: false,
+        skipOffstage: false,
+      );
+
+      await tester.tap(_hierarchyTile('live-audit-exercise-1'));
+      await tester.pumpAndSettle();
+      await tester.enterText(_field('Hint (optional)'), 'La ___ casa è qui 1.');
+      await _savePublishedExercise(tester, warningCode: 'HINT_REPEATS_PROMPT');
+
+      _expectIndicator(
+        tester,
+        const ValueKey('exercise-status-indicator-live-audit-exercise-1'),
+        draft: false,
+        auditConcern: true,
+      );
+      _expectIndicator(
+        tester,
+        const ValueKey('round-status-indicator-live-audit-round'),
+        draft: false,
+        auditConcern: true,
+        skipOffstage: false,
+      );
+      _expectIndicator(
+        tester,
+        const Key('lesson-rounds-status-indicator'),
+        draft: false,
+        auditConcern: true,
+        skipOffstage: false,
+      );
+      _expectIndicator(
+        tester,
+        const ValueKey('lesson-status-indicator-live-audit-lesson'),
+        draft: false,
+        auditConcern: true,
+        skipOffstage: false,
+      );
+      _expectIndicator(
+        tester,
+        const Key('course-lessons-status-indicator'),
+        draft: false,
+        auditConcern: true,
+        skipOffstage: false,
+      );
+
+      await tester.tap(_hierarchyTile('live-audit-exercise-1'));
+      await tester.pumpAndSettle();
+      await tester.enterText(
+        _field('Hint (optional)'),
+        'Think about the possessive adjective.',
+      );
+      await _savePublishedExercise(tester);
+
+      _expectIndicator(
+        tester,
+        const ValueKey('exercise-status-indicator-live-audit-exercise-1'),
+        draft: false,
+        auditConcern: false,
+      );
+      _expectIndicator(
+        tester,
+        const ValueKey('round-status-indicator-live-audit-round'),
+        draft: false,
+        auditConcern: false,
+        skipOffstage: false,
+      );
+      _expectIndicator(
+        tester,
+        const Key('lesson-rounds-status-indicator'),
+        draft: false,
+        auditConcern: false,
+        skipOffstage: false,
+      );
+      _expectIndicator(
+        tester,
+        const ValueKey('lesson-status-indicator-live-audit-lesson'),
+        draft: false,
+        auditConcern: false,
+        skipOffstage: false,
+      );
+      _expectIndicator(
+        tester,
+        const Key('course-lessons-status-indicator'),
+        draft: false,
+        auditConcern: false,
+        skipOffstage: false,
+      );
+      expect(tester.takeException(), isNull);
+    },
+  );
+}
+
+Finder _hierarchyTile(String id) => find.descendant(
+  of: find.byKey(ValueKey(id)),
+  matching: find.byType(ListTile),
+);
+
+Finder _field(String label) => find.byWidgetPredicate(
+  (widget) => widget is TextField && widget.decoration?.labelText == label,
+);
+
+Future<void> _savePublishedExercise(
+  WidgetTester tester, {
+  String? warningCode,
+}) async {
+  final save = find.byKey(const Key('exercise-save'));
+  await tester.scrollUntilVisible(
+    save,
+    350,
+    scrollable: find.byType(Scrollable).last,
+  );
+  await tester.tap(save);
+  await tester.pumpAndSettle();
+  if (warningCode != null) {
+    expect(find.textContaining(warningCode), findsOneWidget);
+    await tester.tap(find.widgetWithText(FilledButton, 'Use anyway'));
+    await tester.pumpAndSettle();
+  }
+  expect(find.byType(RoundEditorScreen), findsOneWidget);
 }
 
 void _expectIndicator(
@@ -831,20 +1037,30 @@ void _expectIndicator(
   Key key, {
   required bool draft,
   required bool auditConcern,
+  bool skipOffstage = true,
 }) {
-  final finder = find.byKey(key);
-  expect(finder, findsOneWidget);
-  final card = tester.widget<Card>(
-    find.descendant(of: finder, matching: find.byType(Card)).first,
+  final status = find.byWidgetPredicate(
+    (widget) => widget is AuthoringStatusCard && widget.indicatorKey == key,
+    skipOffstage: skipOffstage,
   );
-  final side = (card.shape! as RoundedRectangleBorder).side;
+  expect(status, findsOneWidget);
+  final statusWidget = tester.widget<AuthoringStatusCard>(status);
+  expect(statusWidget.hasAuditConcern, auditConcern);
+  expect(statusWidget.hasDraft, draft);
+  if (skipOffstage) {
+    final finder = find.byKey(key);
+    final card = tester.widget<Card>(
+      find.descendant(of: finder, matching: find.byType(Card)).first,
+    );
+    final side = (card.shape! as RoundedRectangleBorder).side;
+    expect(
+      side.color,
+      auditConcern ? const Color(0xFFC90000) : const Color(0xFF00A83B),
+      reason: '$key Audit border',
+    );
+  }
   expect(
-    side.color,
-    auditConcern ? const Color(0xFFC90000) : const Color(0xFF00A83B),
-    reason: '$key Audit border',
-  );
-  expect(
-    find.byKey(_draftIndicatorKey(key)),
+    find.byKey(_draftIndicatorKey(key), skipOffstage: skipOffstage),
     draft ? findsOneWidget : findsNothing,
     reason: '$key Draft indicator',
   );
@@ -1021,3 +1237,57 @@ Exercise _choice(String id, {bool draft = false, required int correct}) =>
       hint: '',
       icons: const [],
     );
+
+Course _liveAuditCourse() => Course(
+  courseId: 'live-audit-course',
+  publicationState: PublicationState.draft,
+  learningLanguage: 'Italian',
+  interfaceLanguage: 'English',
+  sourceLanguage: 'English',
+  targetLanguage: 'Italian',
+  title: 'Live Audit Course',
+  ttsLanguage: 'it-IT',
+  version: '1',
+  courseVersion: '1',
+  lessons: [
+    Lesson(
+      lessonId: 'live-audit-lesson',
+      title: 'Live Audit Lesson',
+      guidebook: _guidebook('live-audit-guidebook'),
+      rounds: [
+        LearningRound(
+          id: 'live-audit-round',
+          title: 'Live Audit Round',
+          content: [
+            LearningContent.textual(
+              id: 'live-audit-intro',
+              kind: 'text',
+              role: 'lesson_intro',
+              text: 'A short introduction.',
+            ),
+            for (var index = 1; index <= 3; index++)
+              LearningContent.fromExercise(_gapChoice(index)),
+          ],
+        ),
+      ],
+    ),
+  ],
+);
+
+Exercise _gapChoice(int index) => Exercise(
+  id: 'live-audit-exercise-$index',
+  publicationState: PublicationState.published,
+  updatedAt: DateTime.utc(2026, 9, 6),
+  type: 'gap_choice',
+  prompt: 'Complete sentence $index.',
+  question: 'La ___ casa è qui $index.',
+  answers: const ['mia', 'tua'],
+  correct: 0,
+  tts: null,
+  accepted: const [],
+  tokens: const [],
+  orderAnswer: const [],
+  pairs: const [],
+  hint: 'Choose the matching possessive adjective.',
+  icons: const [],
+);

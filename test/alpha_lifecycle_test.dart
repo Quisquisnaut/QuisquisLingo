@@ -3,7 +3,7 @@ import 'package:quisquislingo_app/services/alpha_lifecycle_service.dart';
 
 void main() {
   test(
-    'build 226.02 revision 3 expiry is inclusive through the expiry day',
+    'build 226.02 revision 4 keeps the existing expiry inclusive through the expiry day',
     () {
       expect(AlphaLifecycleService.expiryIsoDate, '2026-10-06');
       expect(AlphaLifecycleService.daysRemaining(DateTime(2026, 9, 6)), 30);

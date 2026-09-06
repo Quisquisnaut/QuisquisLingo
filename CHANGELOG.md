@@ -1,3 +1,13 @@
+# 2.0.26 (Phase 226.02, revision 4) - Course titles and live hierarchy status - 2026-09-06
+
+- Advanced technical metadata to `2.0.26+226024`; the existing show-once first-run notice displays `Version 2.0.26` and `Phase 226.02, revision 4`. Alpha expiry remains `2026-10-06 23:59:59` local time.
+- Made every learner course-selector entry use the actual Course title, including bundled/custom, selected/unselected and recent entries, with responsive title wrapping and separate language metadata.
+- Moved **Fallback lesson number icons** into **Lesson appearance** on the Lessons page. Corrected revision-3 terminology to **Theme-colored circle** and **Four-color circle** because the actual persisted renderings use theme colors or four colored sectors, rather than stable blue/black circles. Stored preferences and explicit Lesson icons retain their behavior.
+- Corrected canonical Audit ownership and shared authoring propagation so descendant mutations immediately update affected branch and ancestor indicators. Genuine Lesson findings remain visible; Info alone stays green, stale/unavailable Audit stays neutral, and the registry remains at 103 rules.
+- Placed passive Internal IDs below actionable content consistently in Lesson, Round and Exercise entries while retaining the existing direct global ID toggle and exact tooltips.
+- Added the requested GuideBook Audit/Draft status and inheritance: GuideBook concerns reach Lesson and Lessons indicators independently of Rounds; Draft saves retain an explicit state, normal saves clear it, and an empty Draft GuideBook shows both red Audit and blue Draft indicators. Final persistence remains at the existing Course confirmation boundary.
+- Preserved bundled course content, IDs, licensing and provenance, official read-only/fork boundaries and prior 226.02 editor behavior. No 226.03, GuideBook roadmap, Custom Exercise Templates or Napoletano work is included.
+
 # 2.0.26 (Phase 226.02, revision 3) - Editor diagnostics and hierarchy UX - 2026-09-06
 
 - Advanced technical metadata to `2.0.26+226023`, with the first-run notice displaying `Version 2.0.26` and `Phase 226.02, revision 3`; the existing Alpha expiry remains `2026-10-06 23:59:59` local time.

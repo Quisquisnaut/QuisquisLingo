@@ -1,6 +1,119 @@
 # QQL 226.02 pre-commit validation report
 
-Status: **PASS — 226.02 corrective revision 3 is complete, with all required automated validation green apart from inherited analyzer findings.** The Windows visual checks listed below remain manual.
+Status: **226.02 corrective revision 4 implementation is complete. All affected focused tests and validators pass; the one complete-suite run passed 851 tests and had one non-reproduced failure whose full 28-test file then passed in isolation.** The analyzer retains only the 72 revision-3 findings. The Windows visual checks listed below remain manual.
+
+## 226.02 corrective revision 4 closure
+
+Revision 4 continues directly from committed revision 3, `2bff7e88cbd3f0099e8333d2838eb3371baae8d7`, in the existing checkout. No worktree, reset, revert, clean, discard or unrelated roadmap work was used. The final metadata is **Version 2.0.26 / Phase 226.02 / revision 4 / technical build 226024 / `2.0.26+226024`**. The first-run popup renders `Version 2.0.26` and `Phase 226.02, revision 4` on separate lines and retains the technical-version show-once key. Alpha expiry remains **2026-10-06 23:59:59 local time**.
+
+### Implemented behavior and Audit root cause
+
+- Every selected, recent and unselected learner course-selector row now receives the loaded `Course` and renders its actual `Course.title`. Bundled and custom courses use the same tile path; language and origin remain separate metadata. Narrow layouts may wrap or ellipsize the real title, but never substitute a target-language-only label. Coverage includes selected/unselected bundled and custom Courses, the exact `AI-Slop Demo: Inglés para hispanohablantes` title, and a narrow long-title row.
+- Inspection proved that the persisted fallback values do not mean stable blue and black circles. The existing `monochrome` value uses the active theme's container/foreground colors in light and dark themes, while `coloredLessonNumbers` renders the existing fixed four-color circle. The user-facing control is therefore **Fallback lesson number icons**, with **Theme-colored circle** and **Four-color circle**, in **Lesson appearance** on the Lessons page. It is absent from Course Info. Stored enum values and Course JSON remain compatible, the preview updates immediately, confirmation/reload preserves the choice, Editor and learner fallbacks render the selected behavior, and explicit custom Lesson icons remain unchanged.
+- The canonical Audit service was recomputing correctly when invoked, but each nested authoring route owned a separate Course snapshot. Exercise saves first changed only the Round editor's local list; Round and Lesson routes returned their copies only while unwinding navigation. Open ancestors therefore continued painting an older canonical result until a later pop, reopen or unrelated refresh. Revision 4 adds one immutable `onCourseChanged` propagation chain through Course Editor, Lessons, Lesson, Rounds and Round/Exercises and applies accepted Exercise saves immediately to that chain. Create, delete, reorder, Move, Copy and publication mutations use the same course-level adoption path rather than widget-specific border overrides.
+- Canonical branch ownership is now carried by structured Lesson/Round/Exercise IDs, with Guidebook findings matched to the Guidebook location. Guidebook findings reach the Lesson, Lessons link and Course ancestors without contaminating an otherwise clean Rounds branch. Course-only metadata findings likewise do not color the Lessons link. Stale or unavailable results remain neutral; Info alone remains green; any current Error or Warning in the represented branch is red.
+- The reported visual combination can be canonical rather than stale: an empty Guidebook emits genuine Warning **`LESSON_GUIDEBOOK_EMPTY`**. A regression fixture with one Round and three valid, Published Exercises proves that every Exercise and the Round are green while the empty Guidebook, Lesson and Lessons link are red. The exact historical manual Course snapshot was not retained, so its red Lesson cannot be assigned conclusively; if that Guidebook was empty, the red state was correct. The independent stale-snapshot defect above was also real and is covered in both directions by saving an Exercise that introduces the last Warning and then correcting it without leaving the route.
+- A Guidebook can now be saved normally or as Draft. Its own Error/Warning state gives its navigation card a red Audit border, and its Draft state gives the same card the independent blue Draft badge. Both states inherit through Lesson, Lessons and Course; they do not color or mark the separate Rounds branch. An empty Draft Guidebook is therefore red and blue. Normal Save publishes the Guidebook and its content; Save as Draft marks both container and content Draft. Draft Guidebook content is excluded from learner delivery while remaining visible in authoring/inspection preview. Missing serialized state defaults to Published, and Published Guidebooks keep the previous JSON shape; only Draft writes the optional `publicationState`, so Course Model v6 remains the format.
+- Publication Audit resolves a Published Round's valid provenance against authored Guidebook IDs even when that Guidebook is Draft and absent from the learner projection. Deleting the referenced authored content still produces the canonical missing-reference finding.
+- Passive selectable Internal IDs now follow both existing actionable lines in Lesson, Round and Exercise entries on custom and official screens. They remain non-clickable, monospaced, complete through tooltip/copy, and responsive at 320 and 430 px. Revision-3 direct toggle behavior and exact tooltips remain unchanged: **`Internal IDs shown. Tap to hide`** and **`Internal IDs hidden. Tap to show`**.
+- Revision-3 Help coverage, one blue Draft indicator, empty-Round `ROUND_CONTENT_EMPTY`, empty-Lesson `LESSON_ROUNDS_EMPTY`, Course Manager naming, all nine AI-Slop Demo titles, ID identity rules and red/green/neutral semantics remain covered. The canonical Audit Registry remains **103 rules**; no rule or severity was added, removed or changed to manipulate a border.
+
+The nine sample titles remain exactly:
+
+- `AI-Slop Demo: Dutch for English Speakers`
+- `AI-Slop Demo: Inglés para hispanohablantes`
+- `AI-Slop Demo: Finnish for English Speakers`
+- `AI-Slop Demo: German for English Speakers`
+- `AI-Slop Demo: Italian for English Speakers`
+- `AI-Slop Demo: Korean for English Speakers`
+- `AI-Slop Demo: Portuguese for English Speakers`
+- `AI-Slop Demo: Spanish for English Speakers`
+- `AI-Slop Demo: Welsh for English Speakers`
+
+The user's revision-3 classification remains authoritative: these nine are AI-generated, unreviewed demonstrations, not reliable learning courses. Their files, IDs, language metadata, content, attribution, licensing and provenance are unchanged in revision 4.
+
+### Revision 4 fresh validation
+
+Commands were run from the repository root with bounded yields, one Flutter process at a time, and `--no-pub`:
+
+```text
+dart format <all changed Dart files>
+flutter test --no-pub --concurrency=1 --reporter compact --timeout 60s <33-file implementation-focused set>
+flutter test --no-pub --concurrency=1 --reporter compact --timeout 60s test/alpha_lifecycle_test.dart test/app_metadata_225_04_test.dart test/authoring_audit_ui_224_test.dart test/authoring_hierarchy_indicators_226_02_test.dart test/authoring_transfer_ui_226_02_test.dart test/audit_branch_ownership_226_02_revision4_test.dart test/audit_issue_save_propagation_226_02_revision4_test.dart test/course_audit_report_225_test.dart test/custom_hierarchy_id_order_226_02_revision4_test.dart test/editor_diagnostics_226_02_revision3_test.dart test/guidebook_learner_delivery_226_02_test.dart test/guidebook_publication_226_02_revision4_test.dart test/guidebook_status_workflow_226_02_test.dart test/korean_production_discovery_225_03_test.dart test/leaderboard_navigation_test.dart test/learner_round_path_test.dart test/lesson_fallback_number_icon_226_02_test.dart test/lesson_metadata_and_icon_test.dart test/official_hierarchy_id_order_226_02_test.dart
+flutter test --no-pub --reporter expanded --timeout 60s --plain-name "Lessons owns the live fallback number preview and preserves its selection" test/lesson_metadata_and_icon_test.dart
+flutter test --no-pub --reporter expanded --timeout 60s test/course_editor_224_test.dart
+flutter test --no-pub --reporter expanded --timeout 60s --plain-name "Copy Round to lesson-one survives every parent return" test/authoring_transfer_ui_226_02_test.dart
+flutter analyze --no-pub
+flutter test --no-pub --concurrency=1 --reporter compact --timeout 60s
+flutter test --no-pub --reporter expanded --timeout 60s test/exercise_workflow_226_02_test.dart
+python tools/validate_courses.py
+python tools/regenerate_bundled_courses_225_02.py --check
+python tools/validate_lesson_icons.py
+python tools/validate_images.py
+git diff --check
+```
+
+Exact fresh results:
+
+- Formatting completed before final source/test validation. The initial implementation-focused run was **356 passed / 2 failed**: one real 320 px Lessons-panel overflow and one selector fixture that did not wait for asynchronously loaded Course records. The panel help was made concise and the fixture now waits for the loaded picker; the two exact reruns each passed.
+- Final 19-file affected set: **185 passed / 1 failed**. The sole failure was a stale wording expectation after the concise narrow-layout Help correction. Updating only that fixture produced **1 passed, exit 0**, so all **186 distinct affected tests** are green. After removing two analyzer-reported brace-style findings, `course_editor_224_test.dart` passed **6/6** and the affected Round-copy UI test passed **1/1**.
+- Analyzer first reported the 72 revision-3 findings plus two new `curly_braces_in_flow_control_structures` infos in changed Course Editor callbacks. Those two statements were braced and retested. Final analyzer: **exit 1, 72 findings**; revision-3 baseline **72**, final revision 4 **72**; **inherited 72, new 0, resolved 0**. The inherited set is 71 brace-style infos and one `unused_element` warning at `test/guidebook_sentence_generator_test.dart:255`. No analyzer suppression or policy change is included.
+- Complete Flutter suite, executed once after the last production/test change: **851 passed / 1 failed, exit 1, 10m29s**. The failed parameter was `unsaved listening_spelling Preview preserves PublicationState.published, timestamps, JSON and preferences` in `exercise_workflow_226_02_test.dart`. It had passed in the affected run; the entire file immediately passed **28/28, exit 0** in isolation, including that parameter. No reproducible product failure or repository change followed. This non-reproduced full-run result is reported as a remaining validation risk rather than rewritten as a passing suite.
+- Bundled-course validator: **9 bundled Course Model v6 files validated, exit 0**.
+- Deterministic generator/checksum validation: **all 9 generated files and hashes verified, exit 0**. The generator correctly retains revision-3 release metadata because no bundled JSON changed in revision 4.
+- Lesson-icon validator: **14 assets, 0 issues, exit 0**.
+- Image Bank validator: **112 assets, 0 issues, exit 0**.
+- `git diff --check`: **exit 0, no whitespace errors**; output contained only working-copy LF/CRLF notices.
+
+### Revision 4 changed files
+
+```text
+AGENTS.md
+CHANGELOG.md
+README.md
+docs/226_02_VALIDATION.md
+docs/COURSE_EDITOR.md
+docs/COURSE_JSON_FORMAT.md
+docs/SAMPLE_COURSE.md
+lib/models/course_models.dart
+lib/screens/course_editor_screen.dart
+lib/screens/editor_help_screen.dart
+lib/screens/guidebook_screen.dart
+lib/screens/home_screen.dart
+lib/screens/official_course_inspection_screen.dart
+lib/screens/round_screen.dart
+lib/services/alpha_lifecycle_service.dart
+lib/services/app_metadata.dart
+lib/services/authoring_duplication_service.dart
+lib/services/course_audit_service.dart
+lib/services/publication_service.dart
+lib/widgets/editor_app_bar_actions.dart
+pubspec.yaml
+test/alpha_lifecycle_test.dart
+test/app_metadata_225_04_test.dart
+test/authoring_hierarchy_indicators_226_02_test.dart
+test/course_audit_report_225_test.dart
+test/korean_production_discovery_225_03_test.dart
+test/leaderboard_navigation_test.dart
+test/learner_round_path_test.dart
+test/lesson_metadata_and_icon_test.dart
+test/audit_branch_ownership_226_02_revision4_test.dart
+test/audit_issue_save_propagation_226_02_revision4_test.dart
+test/custom_hierarchy_id_order_226_02_revision4_test.dart
+test/guidebook_learner_delivery_226_02_test.dart
+test/guidebook_publication_226_02_revision4_test.dart
+test/guidebook_status_workflow_226_02_test.dart
+test/lesson_fallback_number_icon_226_02_test.dart
+test/official_hierarchy_id_order_226_02_test.dart
+```
+
+`analysis_options.yaml`, `pubspec.lock` and `test/course_editor_224_test.dart` appeared modified by timestamp/line-ending normalization during tooling, but their working-tree blob hashes match revision 3 and they have no textual diff. They are not revision-4 changes and are excluded from the commit.
+
+### Revision 4 remaining manual Windows checks and risks
+
+No manual Windows visual check was claimed. Still check: selected and unselected bundled/custom selector entries; long AI-Slop titles at narrow widths; **Fallback lesson number icons** on Lessons; Theme-colored and Four-color circles in both themes; preference confirmation/reload; explicit custom Lesson icons; Lesson and Lessons-link red → green after correcting the last real Error/Warning and green → red after introducing one; an empty/Error/Warning Guidebook's red border; Guidebook Draft blue-badge inheritance and simultaneous red plus blue; isolation from a clean Rounds branch; Draft badge independence; Info-only Lesson green; empty Lesson and first-valid-Round transition; passive ID ordering/copying at narrow widths; and the revision-4 first-run popup/show-once behavior.
+
+The remaining automated risk is the one non-reproduced full-suite failure documented above plus the inherited 72 analyzer findings. No 226.03, future Guidebook roadmap, Custom Exercise Template or Napoletano work was started, and nothing was pushed.
 
 ## 226.02 corrective revision 3 closure
 
