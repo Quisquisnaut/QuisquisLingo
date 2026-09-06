@@ -58,7 +58,12 @@ class FlatImageAsset {
 
 class FlatImageLibraryScreen extends StatefulWidget {
   final bool selectMode;
-  const FlatImageLibraryScreen({super.key, this.selectMode = true});
+  final bool readOnly;
+  const FlatImageLibraryScreen({
+    super.key,
+    this.selectMode = true,
+    this.readOnly = false,
+  });
   @override
   State<FlatImageLibraryScreen> createState() => _FlatImageLibraryScreenState();
 }
@@ -440,37 +445,42 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
       appBar: AppBar(
         title: Text('Image Bank · ${_all.length} assets'),
         actions: [
-          PopupMenuButton<String>(
-            tooltip: 'Import',
-            onSelected: (v) {
-              if (v == 'bank') _importBank();
-              if (v == 'image') _importSingle();
-            },
-            itemBuilder: (_) => const [
-              PopupMenuItem(
-                value: 'bank',
-                child: Text('Import Image Bank ZIP'),
-              ),
-              PopupMenuItem(value: 'image', child: Text('Import single image')),
-            ],
-          ),
+          if (!widget.readOnly)
+            PopupMenuButton<String>(
+              tooltip: 'Import',
+              onSelected: (v) {
+                if (v == 'bank') _importBank();
+                if (v == 'image') _importSingle();
+              },
+              itemBuilder: (_) => const [
+                PopupMenuItem(
+                  value: 'bank',
+                  child: Text('Import Image Bank ZIP'),
+                ),
+                PopupMenuItem(
+                  value: 'image',
+                  child: Text('Import single image'),
+                ),
+              ],
+            ),
         ],
       ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : Column(
               children: [
-                const Padding(
-                  padding: EdgeInsets.fromLTRB(12, 12, 12, 4),
-                  child: Card(
-                    child: Padding(
-                      padding: EdgeInsets.all(12),
-                      child: Text(
-                        'Import files from Documents/QuisquisLingo/Imports/Images. For Import single image, keep exactly one PNG, JPG, JPEG or WEBP image in the folder. For Import Image Bank ZIP, keep exactly one ZIP in the folder. Imported source files are left in place.',
+                if (!widget.readOnly)
+                  const Padding(
+                    padding: EdgeInsets.fromLTRB(12, 12, 12, 4),
+                    child: Card(
+                      child: Padding(
+                        padding: EdgeInsets.all(12),
+                        child: Text(
+                          'Import files from Documents/QuisquisLingo/Imports/Images. For Import single image, keep exactly one PNG, JPG, JPEG or WEBP image in the folder. For Import Image Bank ZIP, keep exactly one ZIP in the folder. Imported source files are left in place.',
+                        ),
                       ),
                     ),
                   ),
-                ),
                 Padding(
                   padding: const EdgeInsets.fromLTRB(12, 4, 12, 6),
                   child: TextField(
@@ -587,7 +597,7 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
                                           overflow: TextOverflow.ellipsis,
                                           style: const TextStyle(fontSize: 9),
                                         ),
-                                      if (item.custom)
+                                      if (item.custom && !widget.readOnly)
                                         IconButton(
                                           tooltip: 'Delete imported image',
                                           onPressed: () => _delete(item),
@@ -596,7 +606,9 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
                                             size: 18,
                                           ),
                                         ),
-                                      if (!item.custom && item.bankId != null)
+                                      if (!item.custom &&
+                                          item.bankId != null &&
+                                          !widget.readOnly)
                                         IconButton(
                                           tooltip: 'Remove this imported bank',
                                           onPressed: () => _removeBank(item),
@@ -615,11 +627,13 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
                 ),
               ],
             ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _importBank,
-        icon: const Icon(Icons.archive_outlined),
-        label: const Text('Import bank'),
-      ),
+      floatingActionButton: widget.readOnly
+          ? null
+          : FloatingActionButton.extended(
+              onPressed: _importBank,
+              icon: const Icon(Icons.archive_outlined),
+              label: const Text('Import bank'),
+            ),
     );
   }
 }

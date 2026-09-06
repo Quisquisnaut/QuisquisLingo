@@ -108,25 +108,32 @@ void main() {
     },
   );
 
-  testWidgets('wrong translation displays the nearest valid answer', (
-    tester,
-  ) async {
-    await _openTextRound(
-      tester,
-      'type_translation',
-      accepted: const ['Io prendo un cappuccino', 'Io vorrei un cappuccino'],
-    );
-    await tester.enterText(find.byType(TextField).last, 'Io vorrei un tè');
-    await tester.pump();
-    final check = find.widgetWithText(FilledButton, 'Check');
-    await tester.ensureVisible(check);
-    await tester.tap(check);
-    await tester.pump();
-    expect(
-      find.text('Correct answer: Io vorrei un cappuccino'),
-      findsOneWidget,
-    );
-  });
+  testWidgets(
+    'wrong translation displays valid answers with the nearest first',
+    (tester) async {
+      await _openTextRound(
+        tester,
+        'type_translation',
+        accepted: const ['Io prendo un cappuccino', 'Io vorrei un cappuccino'],
+      );
+      await tester.enterText(find.byType(TextField).last, 'Io vorrei un tè');
+      await tester.pump();
+      final check = find.widgetWithText(FilledButton, 'Check');
+      await tester.ensureVisible(check);
+      await tester.tap(check);
+      await tester.pump();
+      expect(find.text('Correct translations:'), findsOneWidget);
+      expect(
+        tester
+            .widget<Text>(
+              find.byKey(const ValueKey('translation-feedback-answer-0')),
+            )
+            .data,
+        '• Io vorrei un cappuccino',
+      );
+      expect(find.text('• Io prendo un cappuccino'), findsOneWidget);
+    },
+  );
 }
 
 Future<void> _openTextRound(

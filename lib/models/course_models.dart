@@ -1835,6 +1835,7 @@ ExerciseInteraction _legacyInteraction(
 ) {
   if (const {
     'choice',
+    'script_recognition',
     'gap_choice',
     'icon_choice',
     'listening_choice',
@@ -1860,6 +1861,7 @@ ExerciseInteraction _legacyInteraction(
   }
   if (const {
     'fill_blank',
+    'type_missing_word',
     'listening_spelling',
     'missing_word',
     'type_translation',
@@ -1924,6 +1926,7 @@ ExerciseEvaluation _legacyEvaluation(
 ) {
   if (const {
     'choice',
+    'script_recognition',
     'gap_choice',
     'icon_choice',
     'listening_choice',
@@ -1942,6 +1945,7 @@ ExerciseEvaluation _legacyEvaluation(
   }
   if (const {
     'fill_blank',
+    'type_missing_word',
     'listening_spelling',
     'missing_word',
     'type_translation',

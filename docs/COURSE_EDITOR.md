@@ -1,6 +1,6 @@
 # QuisquisLingo Course Manager and Course Editor
 
-Updated for Version 2.0.26, Build 226.01 and Course Model v6
+Updated for Version 2.0.26, Phase 226.03 (technical build 226030) and Course Model v6
 
 ## Unlocking the editor
 
@@ -59,6 +59,20 @@ Rounds normally contain 15 exercises. The editor does not enforce 15 as a hard m
 
 ## Exercise type is immutable
 
+### Phase 226.03 writing and character presets
+
+**Type the translation** accepts complete equivalent answers, one per line. The authoritative parser supports `{optional}`, `[a|b]`, linked `[*:a|b]` groups paired by index (at least two groups with equal alternative counts), scoped `(part <> part)` and whole-expression `<>` reordering. For example, `{Io} [prendo|vorrei] un cappuccino` expands in order to `Prendo un cappuccino`, `Vorrei un cappuccino`, `Io prendo un cappuccino`, `Io vorrei un cappuccino`. Existing capitalization and punctuation rules remain authoritative.
+
+**Expand answers** opens a read-only, selectable preview with **Copy all**. **Use expanded answers** appends independent explicit lines and reports generated, added and already-present counts using established normalization. Editing or deleting the original expression does not change these lines. Expansion and candidate materialization are validated atomically against the existing 128-answer hard limit; overflow shows a clear error, never a truncated list or partial save.
+
+Incorrect translation feedback shows the closest three valid answers, or fewer when fewer exist; **Some possible translations:** identifies a non-exhaustive list. Correct feedback shows at most two other correct translations and no empty section. A typo-tolerated response excludes the canonical answer matched by evaluation. Ranking reuses the existing similarity score with stable author-order ties; it never changes correctness, normalization or typo tolerance.
+
+**Type the missing word** is a separate canonical Input preset from the existing audio/transcript Missing Word. Enter a sentence with one `___` gap and complete accepted words, such as `I would like a ___.` and `cappuccino`. The learner sees `I would like a c______.` and types `appuccino`. QQL derives the first Unicode grapheme automatically and evaluates the reconstructed full word with the normal Input engine. All accepted words must share one exact initial grapheme; incompatible initials and phrases produce clear validation errors.
+
+**Recognize characters** uses canonical Select. **Image to text** has one or more prompt images, two or more text options and exactly one correct option. **Text to image** has a nonempty text prompt, two or more image options and exactly one correct option. Prompt images can show alternate fonts or handwriting. Use the bundled image picker or import PNG/JPEG/WEBP files through the displayed transfer folder. Imported images must be at most 50 KB and 4096 pixels per dimension; their original bytes are embedded in existing Course JSON media fields. Absolute local paths are rejected. Imports are read-only and need no original file after transfer. Each field has Help; both modes support unsaved Preview, Draft and normal Save. Official courses remain read-only.
+
+### Existing type and navigation rules
+
 Choose the exercise type only when creating an exercise. Once created, the type is locked. This prevents stale fields from one type being reinterpreted as another. To replace a type, create a new exercise, copy/adapt the content, then delete the old exercise.
 
 The editor displays only fields used by the current exercise type. Examples:
@@ -110,7 +124,7 @@ Multiple complete equivalent answers can always be entered as separate lines. Co
 
 Syntax is validated before save. Expansion is deterministic, duplicate results are removed, and the combined limit is 128 answers; larger combinations must be split or simplified. During `<>` reordering, final punctuation such as `.`, `?`, `!`, `…` and `?!` is detached and reattached only at the generated sentence end; internal punctuation is not moved. Generated variants capitalize the first alphabetic character of the sentence and after `.`, `?` or `!`, remove merely structural capitalization when a common phrase starter moves inward, and preserve distinguishable proper names/acronyms such as Jane, Roma and USA.
 
-QQL applies its established case, punctuation, whitespace, apostrophe and accent rules for acceptance. Correct typed feedback always shows the nearest canonical Correct answer and names only differences actually used—such as capitalization, ignored punctuation, normalized whitespace, omitted diacritic or the explicitly allowed typo. Exact answers show no false reason. If a response remains wrong, correction selection independently scores exact shared words, graded word-level spelling similarity, incompatible extra words, missing candidate words and common word order. The nearest construction is displayed, with author order as the exact-tie fallback. This display choice never turns an incorrect response into a correct one.
+QQL applies its established case, punctuation, whitespace, apostrophe and accent rules for acceptance. Typed feedback names only differences actually used—such as capitalization, ignored punctuation, normalized whitespace, omitted diacritic or the explicitly allowed typo. Exact answers show no false reason. Translation feedback uses the three-correction/two-alternative limits described above; other typed presets retain their canonical Correct answer. Display ranking independently scores exact shared words, graded word-level spelling similarity, incompatible extra words, missing candidate words and common word order, with author order as the exact-tie fallback. This display choice never turns an incorrect response into a correct one.
 
 ## Exercise Creation Wizard
 

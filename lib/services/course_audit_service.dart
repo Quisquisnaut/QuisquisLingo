@@ -1,6 +1,8 @@
 import '../models/course_models.dart';
 import '../models/exercise_authoring.dart';
 import 'answer_engine.dart';
+import 'first_letter_answer_service.dart';
+import 'portable_exercise_image.dart';
 import 'audit_code_registry.dart';
 import 'duel_eligibility_service.dart';
 import 'lesson_icon_catalog.dart';
@@ -143,6 +145,8 @@ class NumberedAuditIssue {
 /// certify grammar, translation quality or pedagogy.
 class CourseAuditService {
   static const supportedTypes = {
+    'type_missing_word',
+    'script_recognition',
     'choice',
     'gap_choice',
     'flashcard',
@@ -165,6 +169,7 @@ class CourseAuditService {
     'contextual_comprehension',
   };
   static const choiceTypes = {
+    'script_recognition',
     'choice',
     'gap_choice',
     'icon_choice',
@@ -1120,6 +1125,7 @@ class CourseAuditService {
             'listening_spelling',
             'missing_word',
             'type_translation',
+            'type_missing_word',
           }.contains(ex.type) &&
           ex.evaluation.accepted.isNotEmpty,
       'accepted answers',
@@ -1148,6 +1154,7 @@ class CourseAuditService {
             'gap_choice',
             'fill_blank',
             'type_translation',
+            'type_missing_word',
           }.contains(ex.type) &&
           ex.hint.isNotEmpty,
       'hint',
@@ -1158,10 +1165,88 @@ class CourseAuditService {
     );
     unexpected(
       ex.type != 'icon_choice' &&
+          ex.type != 'script_recognition' &&
           ex.icons.any((icon) => icon.trim().isNotEmpty),
       'icons',
     );
 
+    if (ex.type == 'script_recognition') {
+      final imageOptions = ex.interaction.items.any(
+        (item) => item.content.any((element) => element.type == 'image'),
+      );
+      final images = ex.promptElements
+          .where((element) => element.type == 'image')
+          .toList();
+      if (ex.evaluation.kind != 'selected_items' ||
+          ex.interaction.minSelections != 1 ||
+          ex.interaction.maxSelections != 1 ||
+          ex.evaluation.correctItemIds.length != 1) {
+        add(
+          AuditCode.choiceCorrectAnswerInvalid,
+          'Recognize characters requires exactly one correct option and one selection.',
+        );
+      }
+      if (imageOptions) {
+        if (ex.prompt.trim().isEmpty ||
+            images.isNotEmpty ||
+            ex.interaction.items.any(
+              (item) =>
+                  item.image.isEmpty ||
+                  item.content.any((element) => element.type != 'image'),
+            )) {
+          add(
+            AuditCode.presetCanonicalMismatch,
+            'Text to image requires a nonempty text prompt and at least two image-only options.',
+          );
+        }
+      } else if (images.isEmpty ||
+          ex.interaction.items.any(
+            (item) =>
+                item.text.trim().isEmpty ||
+                item.content.any((element) => element.type != 'text'),
+          )) {
+        add(
+          AuditCode.presetCanonicalMismatch,
+          'Image to text requires one or more prompt images and at least two text-only options.',
+        );
+      }
+      final assets = [
+        ...images.map((element) => element.asset),
+        for (final item in ex.interaction.items)
+          ...item.content
+              .where((element) => element.type == 'image')
+              .map((element) => element.asset),
+      ];
+      if (assets.any(
+        (asset) => !PortableExerciseImageService.isPortable(asset),
+      )) {
+        add(
+          AuditCode.promptMediaUnsupported,
+          'Recognize characters images must be portable bundled assets or valid embedded PNG, JPEG or WebP images of at most 50 KB. Absolute local paths are not supported.',
+        );
+      }
+    }
+    if (ex.type == 'type_missing_word') {
+      if (ex.accepted.isEmpty) {
+        add(
+          AuditCode.fillBlankAnswerRequired,
+          'Type the missing word needs a complete accepted word.',
+        );
+      } else {
+        try {
+          FirstLetterAnswerService.display(ex.prompt, ex.accepted);
+        } on AnswerExpressionException catch (error) {
+          add(AuditCode.answerExpressionInvalid, error.message);
+        }
+      }
+      if (ex.evaluation.kind != 'text_match' ||
+          ex.interaction.inputType != 'text') {
+        add(
+          AuditCode.presetCanonicalMismatch,
+          'Type the missing word requires normal text Input evaluation.',
+        );
+      }
+    }
     if (choiceTypes.contains(ex.type)) {
       if (ex.answers.length < 2)
         add(

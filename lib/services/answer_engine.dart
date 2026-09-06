@@ -31,8 +31,15 @@ abstract final class AnswerExpressionParser {
 
   static List<String> expandAll(Iterable<String> expressions) {
     final result = <String>[];
+    final seen = <String>{};
     for (final expression in expressions) {
-      result.addAll(expand(expression));
+      // Materialized answers may coexist with their source expression. Count
+      // distinct variants, while each expression retains its own safety cap.
+      for (final answer in expand(expression)) {
+        if (seen.add(answer)) {
+          result.add(answer);
+        }
+      }
       _checkLimit(result.length);
     }
     return _deduplicate(result);
@@ -210,6 +217,12 @@ abstract final class AnswerExpressionParser {
     while (current.any((value) => value.contains('('))) {
       final next = <String>[];
       for (final value in current) {
+        // Optional branches can omit a scope retained by another variant.
+        if (!value.contains('(')) {
+          next.add(value);
+          _checkLimit(next.length);
+          continue;
+        }
         final end = value.indexOf(')');
         if (end < 0) {
           throw const AnswerExpressionException('Unclosed reorder scope.');
@@ -397,6 +410,54 @@ class AnswerEvaluationResult {
 
 class AnswerEngine {
   const AnswerEngine();
+
+  /// The existing acceptance normalization, without typo/accent-omission
+  /// tolerance: equivalence for display must not erase distinct valid words.
+  String normalizedAnswer(
+    String value, {
+    Map<String, dynamic> normalization = const {},
+  }) => _normalize(value, normalization);
+
+  List<String> distinctAnswers(
+    Iterable<String> answers, {
+    Map<String, dynamic> normalization = const {},
+  }) {
+    final seen = <String>{};
+    return [
+      for (final answer in answers)
+        if (seen.add(_normalize(answer, normalization))) answer,
+    ];
+  }
+
+  /// Display ranking uses exactly the correction score used by evaluation.
+  /// The original position makes ties stable independently of sort behavior.
+  List<String> rankedAnswers(
+    String response,
+    Iterable<String> expressions, {
+    Map<String, dynamic> normalization = const {},
+  }) {
+    final answers = distinctAnswers(
+      validAnswers(expressions),
+      normalization: normalization,
+    );
+    final typed = _normalize(response, normalization).split(' ');
+    final ranked = [
+      for (var i = 0; i < answers.length; i++)
+        (
+          answer: answers[i],
+          index: i,
+          score: _correctionScore(
+            typed,
+            _normalize(answers[i], normalization).split(' '),
+          ),
+        ),
+    ];
+    ranked.sort((a, b) {
+      final score = b.score.compareTo(a.score);
+      return score != 0 ? score : a.index.compareTo(b.index);
+    });
+    return ranked.map((candidate) => candidate.answer).toList();
+  }
 
   List<String> validAnswers(Iterable<String> expressions) =>
       AnswerExpressionParser.expandAll(expressions);

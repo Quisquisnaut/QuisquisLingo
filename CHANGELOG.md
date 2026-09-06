@@ -1,3 +1,11 @@
+# 2.0.26 (Phase 226.03, revision 0) - Writing and character recognition - 2026-09-06
+
+- Advanced metadata to `2.0.26+226030`, retaining the Version/Phase/revision show-once notice. Alpha expiry remains `2026-10-06 23:59:59` local time: this September 6 tranche retains the existing 30-day convention.
+- Added non-destructive answer expansion, Copy all and independent explicit-answer materialization using the authoritative parser and 128-answer limit. Optional branches can omit reorder scopes; materialization no longer double-counts identical generated answers against the combined cap.
+- Ranked valid Type the translation feedback using the existing similarity score and deterministic author-order ties: at most three corrections, or two alternatives excluding the matched canonical answer after success. Acceptance rules remain independent and unchanged.
+- Added Type the missing word using canonical Input, full accepted words and a derived Unicode first grapheme, and Recognize characters using canonical Select with Image to text/Text to image modes and portable image bytes.
+- Preserved Course Model v6, stable canonical objects, existing presets, official read-only/licensed-fork rules, Preview, publication and authoring transactions. No 226.04, Templates, future GuideBook or Napoletano work is included; known revision-4 Lock/GuideBook-ID omissions remain outside scope.
+
 # 2.0.26 (Phase 226.02, revision 4) - Course titles and live hierarchy status - 2026-09-06
 
 - Advanced technical metadata to `2.0.26+226024`; the existing show-once first-run notice displays `Version 2.0.26` and `Phase 226.02, revision 4`. Alpha expiry remains `2026-10-06 23:59:59` local time.

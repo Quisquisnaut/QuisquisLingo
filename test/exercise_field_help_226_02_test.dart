@@ -30,6 +30,15 @@ void main() {
         'correct',
       ],
       'type_translation': ['prompt', 'accepted', 'hint'],
+      'type_missing_word': ['prompt', 'accepted', 'hint'],
+      'script_recognition': [
+        'scriptMode',
+        'scriptPrompt',
+        'scriptPromptImages',
+        'scriptTextOptions',
+        'scriptImageOptions',
+        'scriptCorrect',
+      ],
       'build_translation': ['prompt', 'tokens', 'correctTranslation'],
       'fill_blank': ['question', 'accepted', 'hint', 'tts'],
       'listening_spelling': ['prompt', 'tts', 'missingWords'],
@@ -48,7 +57,10 @@ void main() {
     );
     final covered = <ExerciseAuthoringField>{};
     for (final preset in fieldsByPreset.entries) {
-      for (final key in [...preset.value, 'image']) {
+      for (final key in [
+        ...preset.value,
+        if (preset.key != 'script_recognition') 'image',
+      ]) {
         final definition = help(preset.key, key);
         expect(definition.title, isNotEmpty, reason: '${preset.key}/$key');
         expect(definition.purpose, isNotEmpty, reason: '${preset.key}/$key');

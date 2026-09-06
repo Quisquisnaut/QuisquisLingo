@@ -39,6 +39,12 @@ enum ExerciseAuthoringField {
   contextText,
   dialogue,
   image,
+  scriptMode,
+  scriptPrompt,
+  scriptPromptImages,
+  scriptTextOptions,
+  scriptImageOptions,
+  scriptCorrect,
 }
 
 class ExerciseFieldHelp {
@@ -82,8 +88,22 @@ abstract final class ExerciseFieldHelpRegistry {
       'limit is 128 answers; simplify an expression that exceeds it. '
       'Declare equivalent answers explicitly: syntax does not invent translations.';
 
-  static ExerciseFieldHelp forEditorField(String presetId, String fieldKey) =>
-      forField(fieldForEditor(presetId, fieldKey));
+  static ExerciseFieldHelp forEditorField(String presetId, String fieldKey) {
+    if (presetId == 'type_missing_word' &&
+        const {'prompt', 'accepted'}.contains(fieldKey)) {
+      return const ExerciseFieldHelp(
+        title: 'Type the missing word',
+        purpose: 'Complete a missing word after its first letter is provided.',
+        entryRules:
+            'Enter a sentence with exactly one ___ gap and complete accepted words, one per line. The first Unicode grapheme is derived automatically; the learner types only the remainder.',
+        validation:
+            'All complete accepted words must share exactly the same first grapheme. The reconstructed response uses normal Input normalization and supported typo tolerance.',
+        example:
+            'I would like a ___. Answer: cappuccino. Learner sees c______ and types appuccino.',
+      );
+    }
+    return forField(fieldForEditor(presetId, fieldKey));
+  }
 
   /// Keys correspond to existing form values, never user-visible field labels.
   static ExerciseAuthoringField fieldForEditor(
@@ -147,6 +167,12 @@ abstract final class ExerciseFieldHelpRegistry {
     'context' => ExerciseAuthoringField.contextText,
     'dialogue' => ExerciseAuthoringField.dialogue,
     'image' => ExerciseAuthoringField.image,
+    'scriptMode' => ExerciseAuthoringField.scriptMode,
+    'scriptPrompt' => ExerciseAuthoringField.scriptPrompt,
+    'scriptPromptImages' => ExerciseAuthoringField.scriptPromptImages,
+    'scriptTextOptions' => ExerciseAuthoringField.scriptTextOptions,
+    'scriptImageOptions' => ExerciseAuthoringField.scriptImageOptions,
+    'scriptCorrect' => ExerciseAuthoringField.scriptCorrect,
     _ => throw ArgumentError.value(
       fieldKey,
       'fieldKey',
@@ -157,6 +183,63 @@ abstract final class ExerciseFieldHelpRegistry {
   static ExerciseFieldHelp forField(
     ExerciseAuthoringField field,
   ) => switch (field) {
+    ExerciseAuthoringField.scriptMode => const ExerciseFieldHelp(
+      title: 'Recognition mode',
+      purpose: 'Choose how the learner recognizes a character or syllable.',
+      entryRules:
+          'Image to text shows one or more prompt images with text answer options. Text to image shows a text prompt with image answer options. Switching modes retains both sets of fields during this editing session; saving uses the selected mode.',
+      validation:
+          'Both modes use normal Select with at least two options and exactly one correct option. Mode changes do not create a different learner engine.',
+      example:
+          'Show several handwritten forms of 가 and ask the learner to choose ga.',
+    ),
+    ExerciseAuthoringField.scriptPrompt => const ExerciseFieldHelp(
+      title: 'Character text prompt',
+      purpose: 'Supplies the text that the learner matches to an image.',
+      entryRules:
+          'Enter the character, syllable, sound transcription or instruction as plain text. Keep the image answers in their separate option fields.',
+      validation:
+          'Text to image requires a nonempty text prompt, at least two image-only options and exactly one correct option.',
+      example: 'Choose the character pronounced ga.',
+    ),
+    ExerciseAuthoringField.scriptPromptImages => const ExerciseFieldHelp(
+      title: 'Character prompt images',
+      purpose:
+          'Shows one or more representations of the same character or syllable.',
+      entryRules:
+          'Add printed forms, different fonts, handwriting or stylistic variants. Choose an Image Bank image or import a PNG, JPEG or WEBP from Documents/QuisquisLingo/Imports/Images. Imported bytes belong to the course and are retained in Course JSON; no absolute local path is saved.',
+      validation:
+          'Image to text requires at least one readable prompt image and at least two text options. Each imported image must be at most 50 KB (51,200 bytes) and no more than 4096 pixels in either dimension. Invalid image data blocks Save and Preview.',
+      example:
+          'Show a printed 가 and a handwritten 가 above the options ga and na.',
+    ),
+    ExerciseAuthoringField.scriptTextOptions => const ExerciseFieldHelp(
+      title: 'Character text options',
+      purpose: 'Provides the possible readings of the prompt images.',
+      entryRules:
+          'Enter one literal reading or label in each option field. Add or remove options with the adjacent controls. Reordering keeps the same option identity and correct-answer selection.',
+      validation:
+          'Image to text requires at least two nonempty text-only options and exactly one correct option. Answer-expression syntax is not expanded for Select options.',
+      example: 'Option 1: ga\nOption 2: na',
+    ),
+    ExerciseAuthoringField.scriptImageOptions => const ExerciseFieldHelp(
+      title: 'Character image options',
+      purpose: 'Provides the images from which the learner selects an answer.',
+      entryRules:
+          'Choose one portable Image Bank or imported PNG, JPEG or WEBP image for each option. Imported bytes are stored with the course. Reordering keeps the image option identity and correct-answer selection.',
+      validation:
+          'Text to image requires at least two readable image-only options and exactly one correct option. Imported images must be at most 50 KB (51,200 bytes) and 4096 pixels in either dimension. Absolute local paths and invalid image data are rejected.',
+      example: 'For the prompt ga, offer an image of 가 and an image of 나.',
+    ),
+    ExerciseAuthoringField.scriptCorrect => const ExerciseFieldHelp(
+      title: 'Correct character option',
+      purpose: 'Identifies the single option that answers the prompt.',
+      entryRules:
+          'Select the circle beside the correct option. Selecting a different circle replaces the previous correct choice. Reordering an option keeps its correct-answer status; deleting it requires choosing another correct option.',
+      validation:
+          'Exactly one existing option must be correct. A Draft may remain incomplete; Preview and Published Save require a valid correct choice.',
+      example: 'Mark ga correct for an image of 가.',
+    ),
     ExerciseAuthoringField.instruction => const ExerciseFieldHelp(
       title: 'Prompt / instruction',
       purpose: 'The instruction or context shown to the learner.',

@@ -56,6 +56,14 @@ abstract final class ExercisePresetRegistry {
       model: CanonicalExerciseModel.select,
     ),
     ExercisePreset(
+      id: 'script_recognition',
+      name: 'Recognize characters',
+      description:
+          'Recognize printed or handwritten characters: Image to text or Text to image.',
+      category: ExerciseCategory.multipleChoice,
+      model: CanonicalExerciseModel.select,
+    ),
+    ExercisePreset(
       id: 'listening_choice',
       name: 'What do you hear',
       description: 'Learner listens and chooses the matching written answer.',
@@ -111,6 +119,14 @@ abstract final class ExercisePresetRegistry {
       id: 'fill_blank',
       name: 'Type a missing word',
       description: 'Learner types the text missing from a word or phrase.',
+      category: ExerciseCategory.textInput,
+      model: CanonicalExerciseModel.input,
+    ),
+    ExercisePreset(
+      id: 'type_missing_word',
+      name: 'Type the missing word',
+      description:
+          'Complete a missing word after its first letter is provided.',
       category: ExerciseCategory.textInput,
       model: CanonicalExerciseModel.input,
     ),
@@ -196,6 +212,10 @@ abstract final class ExercisePresetRegistry {
   /// Practical author-facing guidance. Keeping keys beside the preset registry
   /// makes missing and stale Help entries mechanically testable.
   static const helpByPreset = <String, String>{
+    'type_missing_word':
+        'Enter a sentence with one ___ gap and complete accepted words. QQL reveals the first Unicode grapheme automatically; the learner types the remainder. All accepted words must share exactly the same first grapheme. The complete reconstructed word uses normal Input normalization and feedback. Example: I would like a ___; accepted word cappuccino; the learner sees c______ and types appuccino.',
+    'script_recognition':
+        'Use Image to text for one or more images of a character and at least two text options, or Text to image for a text prompt and at least two image options. Exactly one option is correct. Multiple prompt images may show print, handwriting or different fonts. Use bundled images or portable imported images, never absolute local paths. Preview uses the normal Select learner behavior.',
     'choice':
         'The learner sees a source-language prompt and text alternatives, then chooses the correct target-language translation. Provide a clear prompt, at least two text answers and one correct answer. Text is supported; optional prompt audio or an image can supplement it. Keep distractors plausible but unambiguously wrong. Example: “How do you say good morning?”',
     'gap_choice':
@@ -213,7 +233,7 @@ abstract final class ExercisePresetRegistry {
     'contextual_comprehension':
         'The learner reads and/or listens to context and answers a separate multiple-choice question. Provide a question, text or audio context (or both), answers and one correct answer. Dialogue is optional: enter one “Speaker: text” turn per line. Text and audio are supported, and an exercise image may supplement the context. Example: ask what a speaker means after a short exchange.',
     'type_translation':
-        'The learner sees source text and freely types a target-language translation. Provide the source, one or more complete accepted translations, and an optional hint. Accepted lines may use optional {}, independent [a|b], linked [*:a|b] groups with equal counts, and valid <> reorder scopes. Correct feedback shows the nearest canonical answer and only differences actually used. One omitted or duplicated repeated letter is tolerated conservatively, but substitutions and missing or extra words are not.',
+        'The learner sees source text and freely types a target-language translation. Provide the source, one or more complete accepted translations, and an optional hint. Accepted lines may use optional {}, independent [a|b], linked [*:a|b] groups with equal counts, and valid <> reorder scopes. Expand answers opens a selectable, copyable preview without changing content. Use expanded answers adds independent explicit lines; editing or deleting the source expression never changes them. Equivalent explicit answers are not added twice, and overflow beyond 128 answers is rejected without partial changes. Wrong feedback shows up to three valid translations ranked by existing similarity; correct feedback shows up to two other translations, excluding the matched canonical answer. Ties keep author order. Ranking never changes acceptance. One omitted or duplicated repeated letter is tolerated conservatively, but substitutions and missing or extra words are not.',
     'build_translation':
         'The learner sees source text and constructs its target-language translation from word blocks. Provide source text, available literal blocks and one or more complete literal correct translations. Answers can be added, removed and reordered; each must be constructible from distinct block occurrences. Repeated words require repeated blocks, and no more than two blocks may remain unused. Type-the-translation syntax, typo tolerance and similarity matching do not apply.',
     'fill_blank':

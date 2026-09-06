@@ -1,6 +1,12 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import '../services/answer_engine.dart';
+import '../services/answer_materialization_service.dart';
+import '../services/first_letter_answer_service.dart';
+import '../services/portable_exercise_image.dart';
+import '../widgets/script_recognition_editor.dart';
 import 'package:audioplayers/audioplayers.dart';
 
 import '../models/course_models.dart';
@@ -5967,6 +5973,7 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
   bool _navigationBusy = false;
   Exercise? _savedDuringSession;
   late Exercise _exercise;
+  ScriptRecognitionController? _scriptController;
   late final List<Exercise> _navigationExercises;
   late final DateTime Function() _clock = widget.clock ?? DateTime.now;
   final List<TextEditingController> _correctTranslations = [];
@@ -5997,6 +6004,7 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
   void initState() {
     super.initState();
     _exercise = widget.exercise;
+    _loadScriptController();
     _navigationExercises = [...?widget.round?.exercises];
     final e = _exercise;
     _type = _types.contains(e.type) ? e.type : 'choice';
@@ -6057,6 +6065,12 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
     }
   }
 
+  void _loadScriptController() {
+    _scriptController?.dispose();
+    _scriptController = ScriptRecognitionController(_exercise)
+      ..addListener(_markDirty);
+  }
+
   void _watchText(TextEditingController controller) {
     var previousText = controller.text;
     controller.addListener(() {
@@ -6108,6 +6122,8 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
     for (final controller in _correctTranslations) {
       controller.dispose();
     }
+    // Script fields keep their own stable option identities and controllers.
+    _scriptController?.dispose();
     super.dispose();
   }
 
@@ -6341,8 +6357,81 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
   Future<void> _showTypeTranslationHelp() =>
       _showFieldHelp('accepted', title: 'Type the translation · answer syntax');
 
+  Future<void> _expandTranslationAnswers() async {
+    try {
+      final expressions = _lines(_accepted);
+      final normalization = _exercise.evaluation.normalization;
+      final expanded = AnswerMaterializationService.expand(
+        expressions,
+        normalization: normalization,
+      );
+      final use = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: Text('${expanded.length} answers generated'),
+          content: SizedBox(
+            width: 520,
+            child: SingleChildScrollView(
+              child: SelectableText(expanded.join('\n')),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () =>
+                  Clipboard.setData(ClipboardData(text: expanded.join('\n'))),
+              child: const Text('Copy all'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Close'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              child: const Text('Use expanded answers'),
+            ),
+          ],
+        ),
+      );
+      if (use != true || !mounted) return;
+      final result = AnswerMaterializationService.materialize(
+        expressions: expressions,
+        existing: _lines(_accepted),
+        normalization: normalization,
+      );
+      _accepted.text = result.answers.join('\n');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            '${result.generated} answers generated; ${result.added} added; ${result.alreadyPresent} already present.',
+          ),
+        ),
+      );
+    } on AnswerExpressionException catch (error) {
+      if (!mounted) return;
+      await showDialog<void>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('Cannot expand answers'),
+          content: Text(
+            error.message.contains('128')
+                ? 'This expression generates more than 128 answers. Simplify it before expanding.'
+                : error.message,
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Close'),
+            ),
+          ],
+        ),
+      );
+    }
+  }
+
   List<Widget> _specificFields() {
     switch (_type) {
+      case 'script_recognition':
+        return [ScriptRecognitionEditor(controller: _scriptController!)];
       case 'flashcard':
         return [
           _field(_prompt, 'Word / expression'),
@@ -6401,6 +6490,18 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
             helper:
                 'One complete equivalent answer per line. Optional {...}, alternatives [a|b], and scoped reorder (a <> b) syntax are supported.',
           ),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: OutlinedButton.icon(
+              key: const Key('expand-translation-answers'),
+              onPressed: _expandTranslationAnswers,
+              icon: const Icon(Icons.unfold_more),
+              label: const Text('Expand answers'),
+            ),
+          ),
+          const Text(
+            'Expansion is read-only until you choose Use expanded answers. Added lines are independent: editing or deleting the expression does not change them.',
+          ),
           ListTile(
             key: const Key('type-translation-answer-help'),
             contentPadding: EdgeInsets.zero,
@@ -6412,6 +6513,27 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
             onTap: _showTypeTranslationHelp,
           ),
           _field(_hint, 'Hint (optional)'),
+        ];
+      case 'type_missing_word':
+        return [
+          _field(
+            _prompt,
+            'Sentence with one ___ gap',
+            lines: 3,
+            helper:
+                'The first letter is derived automatically from the complete accepted word.',
+          ),
+          _field(
+            _accepted,
+            'Complete accepted words',
+            lines: 3,
+            helper:
+                'One complete word per line. All answers must have the same first Unicode grapheme.',
+          ),
+          _field(_hint, 'Hint (optional)'),
+          const Text(
+            'Example: I would like a ___; cappuccino → c______. The learner types appuccino.',
+          ),
         ];
       case 'build_translation':
         return [
@@ -6880,6 +7002,93 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
     PublicationState publicationState, {
     bool requireValidAnswer = false,
   }) {
+    if (_type == 'script_recognition') {
+      return _scriptController!.build(publicationState);
+    }
+    if (_type == 'type_translation' || _type == 'type_missing_word') {
+      final accepted = _lines(_accepted);
+      try {
+        if (accepted.isNotEmpty) {
+          AnswerExpressionParser.expandAll(accepted);
+        }
+        if (_type == 'type_missing_word' && accepted.isNotEmpty) {
+          FirstLetterAnswerService.display(_prompt.text.trim(), accepted);
+        }
+      } on AnswerExpressionException catch (error) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(error.message)));
+        return null;
+      }
+      var replaced = false;
+      var imageReplaced = false;
+      final imageChanged = _imageAsset != _exercise.imageAsset;
+      final prompt = <PromptElement>[];
+      for (final element in _exercise.promptElements) {
+        if (imageChanged && !imageReplaced && element.type == 'image') {
+          imageReplaced = true;
+          if (_imageAsset.isNotEmpty) {
+            prompt.add(
+              PromptElement(
+                role: element.role,
+                type: element.type,
+                text: element.text,
+                asset: _imageAsset,
+                speaker: element.speaker,
+              ),
+            );
+          }
+        } else if (!replaced &&
+            element.role == 'primary' &&
+            element.type == 'text') {
+          prompt.add(
+            PromptElement(
+              role: element.role,
+              type: element.type,
+              text: _prompt.text.trim(),
+              asset: element.asset,
+              speaker: element.speaker,
+            ),
+          );
+          replaced = true;
+        } else {
+          prompt.add(element);
+        }
+      }
+      if (!replaced) {
+        prompt.add(PromptElement(type: 'text', text: _prompt.text.trim()));
+      }
+      if (imageChanged && !imageReplaced && _imageAsset.isNotEmpty) {
+        prompt.add(PromptElement(type: 'image', asset: _imageAsset));
+      }
+      return Exercise.v2(
+        id: _exercise.id,
+        publicationState: publicationState,
+        updatedAt: _exercise.updatedAt,
+        editorTemplate: _type,
+        promptElements: prompt,
+        interaction: _exercise.type == _type
+            ? _exercise.interaction
+            : const ExerciseInteraction(kind: 'input'),
+        evaluation: ExerciseEvaluation(
+          kind: 'text_match',
+          accepted: accepted,
+          correctItemIds: _exercise.type == _type
+              ? _exercise.evaluation.correctItemIds
+              : const [],
+          correctOrders: _exercise.type == _type
+              ? _exercise.evaluation.correctOrders
+              : const [],
+          pairs: _exercise.type == _type
+              ? _exercise.evaluation.pairs
+              : const [],
+          normalization: _exercise.evaluation.normalization,
+        ),
+        hint: _hint.text.trim(),
+        feedback: _exercise.feedback,
+        missingWords: _exercise.missingWords,
+      );
+    }
     if (_type == 'build_translation') {
       final translations = _literalCorrectTranslations;
       if (translations.isEmpty) {
@@ -7110,6 +7319,40 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
     return candidate;
   }
 
+  Future<bool> _validateScriptImages(Exercise candidate) async {
+    if (candidate.type != 'script_recognition') return true;
+    final assets = {
+      for (final element in candidate.promptElements)
+        if (element.type == 'image' && element.asset.isNotEmpty) element.asset,
+      for (final item in candidate.interaction.items)
+        for (final element in item.content)
+          if (element.type == 'image' && element.asset.isNotEmpty)
+            element.asset,
+    };
+    try {
+      for (final asset in assets) {
+        await PortableExerciseImageService.validate(asset);
+      }
+      return mounted;
+    } on FormatException catch (error) {
+      if (!mounted) return false;
+      await showDialog<void>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Check character images'),
+          content: Text(error.message),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Keep editing'),
+            ),
+          ],
+        ),
+      );
+      return false;
+    }
+  }
+
   Future<bool> _save(
     PublicationState publicationState, {
     bool close = true,
@@ -7122,6 +7365,8 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
     if (!mounted) return false;
     final candidate = _buildCandidate(publicationState);
     if (candidate == null) return false;
+    if (!await _validateScriptImages(candidate)) return false;
+    if (!mounted) return false;
     final ex =
         widget.isNew ||
             !_sameAuthoringJson(candidate.toJson(), _exercise.toJson())
@@ -7247,6 +7492,8 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
       requireValidAnswer: true,
     );
     if (candidate == null) return;
+    if (!await _validateScriptImages(candidate)) return;
+    if (!mounted) return;
     final errors = CourseAuditService()
         .auditExercise(candidate)
         .where((issue) => issue.severity == AuditSeverity.error)
@@ -7371,6 +7618,7 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
       final e = _navigationExercises[target];
       setState(() {
         _exercise = e;
+        _loadScriptController();
         _type = e.type;
         _prompt.text = e.prompt;
         _question.text = e.question;
@@ -7495,7 +7743,7 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
           const SizedBox(height: 12),
           ..._specificFields(),
           const SizedBox(height: 12),
-          _imageEditor(),
+          if (_type != 'script_recognition') _imageEditor(),
           const SizedBox(height: 12),
           Wrap(
             alignment: WrapAlignment.end,

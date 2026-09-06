@@ -1,6 +1,8 @@
 import 'dart:math';
 import 'dart:io';
 import 'package:flutter/material.dart';
+import '../services/first_letter_answer_service.dart';
+import '../widgets/portable_exercise_image.dart';
 import '../services/alpha_lifecycle_service.dart';
 import '../widgets/alpha_expired_view.dart';
 import '../models/course_models.dart';
@@ -45,7 +47,8 @@ class RoundScreen extends StatefulWidget {
 class _ChoiceOption {
   final String text;
   final bool correct;
-  const _ChoiceOption(this.text, this.correct);
+  final ExerciseItem? item;
+  const _ChoiceOption(this.text, this.correct, {this.item});
 }
 
 class _MatchOption {
@@ -94,6 +97,8 @@ class _RoundScreenState extends State<RoundScreen> {
   bool _lastAnswerCorrect = false;
   String _feedback = '';
   String _displayedCorrection = '';
+  List<String> _translationFeedback = const [];
+  bool _translationFeedbackPartial = false;
   List<String> _acceptedDifferences = const [];
   int? _selected;
   final TextEditingController _textController = TextEditingController();
@@ -291,6 +296,8 @@ class _RoundScreenState extends State<RoundScreen> {
     _lastAnswerCorrect = false;
     _feedback = '';
     _displayedCorrection = '';
+    _translationFeedback = const [];
+    _translationFeedbackPartial = false;
     _acceptedDifferences = const [];
     _selected = null;
     _textController.clear();
@@ -307,6 +314,7 @@ class _RoundScreenState extends State<RoundScreen> {
 
     if (const {
       'fill_blank',
+      'type_missing_word',
       'listening_spelling',
       'type_translation',
     }.contains(ex.type)) {
@@ -317,7 +325,11 @@ class _RoundScreenState extends State<RoundScreen> {
 
     _choiceOptions = List<_ChoiceOption>.generate(
       ex.answers.length,
-      (i) => _ChoiceOption(ex.answers[i], i == ex.correct),
+      (i) => _ChoiceOption(
+        ex.answers[i],
+        i == ex.correct,
+        item: ex.type == 'script_recognition' ? ex.interaction.items[i] : null,
+      ),
     );
     _shuffleDifferentChoices(_choiceOptions);
 
@@ -479,6 +491,7 @@ class _RoundScreenState extends State<RoundScreen> {
         if ((ex.tts ?? '').trim().isNotEmpty) return ex.tts!.trim();
         break;
       case 'fill_blank':
+      case 'type_missing_word':
       case 'type_translation':
         if (_displayedCorrection.isNotEmpty) return _displayedCorrection;
         if (ex.tts != null && ex.tts!.trim().isNotEmpty) return ex.tts!;
@@ -635,14 +648,19 @@ class _RoundScreenState extends State<RoundScreen> {
 
   void _submitFill() {
     if (_answered) return;
-    final typed = _textController.text.trim();
-    if (typed.isEmpty) return;
+    final remainder = _textController.text.trim();
+    if (remainder.isEmpty && _exercise.type != 'type_missing_word') return;
+    final typed = _exercise.type == 'type_missing_word'
+        ? FirstLetterAnswerService.response(remainder, _exercise.accepted)
+        : remainder;
     final accepted = <String>{..._exercise.accepted};
 
     // Fill-in exercises accept both the missing fragment and the complete
     // displayed phrase when the course provides it through TTS. This makes
     // answers such as "buonasera" valid for "Buona____" as well as "sera".
-    final tts = _exercise.tts?.trim();
+    final tts = _exercise.type == 'type_missing_word'
+        ? null
+        : _exercise.tts?.trim();
 
     // TTS is a literal full-phrase compatibility answer, not an authored
     // answer expression. Keep it outside expression parsing so punctuation
@@ -651,7 +669,10 @@ class _RoundScreenState extends State<RoundScreen> {
       typed,
       accepted,
       normalization: _exercise.evaluation.normalization,
-      typoTolerance: _exercise.type == 'type_translation',
+      typoTolerance: const {
+        'type_translation',
+        'type_missing_word',
+      }.contains(_exercise.type),
     );
     if (!evaluation.isCorrect && tts != null && tts.isNotEmpty) {
       final literal = _answerEngine.evaluateLiteral(
@@ -663,6 +684,33 @@ class _RoundScreenState extends State<RoundScreen> {
     }
     _displayedCorrection = evaluation.matchedAcceptedAnswer;
     _acceptedDifferences = evaluation.acceptedDifferences;
+    if (_exercise.type == 'type_translation') {
+      final normalization = _exercise.evaluation.normalization;
+      final ranked = _answerEngine.rankedAnswers(
+        typed,
+        accepted,
+        normalization: normalization,
+      );
+      final matched = _answerEngine.normalizedAnswer(
+        evaluation.matchedAcceptedAnswer,
+        normalization: normalization,
+      );
+      final remaining = evaluation.isCorrect
+          ? ranked
+                .where(
+                  (answer) =>
+                      _answerEngine.normalizedAnswer(
+                        answer,
+                        normalization: normalization,
+                      ) !=
+                      matched,
+                )
+                .toList()
+          : ranked;
+      final limit = evaluation.isCorrect ? 2 : 3;
+      _translationFeedback = remaining.take(limit).toList();
+      _translationFeedbackPartial = remaining.length > limit;
+    }
     _mark(evaluation.isCorrect);
   }
 
@@ -859,7 +907,13 @@ class _RoundScreenState extends State<RoundScreen> {
           padding: const EdgeInsets.only(bottom: 10),
           child: FilledButton.tonal(
             onPressed: _answered ? null : () => _answerChoice(i),
-            child: Text(_choiceOptions[i].text),
+            child: _choiceOptions[i].item?.image.isNotEmpty == true
+                ? PortableExerciseImage(
+                    asset: _choiceOptions[i].item!.image,
+                    width: 128,
+                    height: 128,
+                  )
+                : Text(_choiceOptions[i].text),
           ),
         );
       }),
@@ -938,7 +992,13 @@ class _RoundScreenState extends State<RoundScreen> {
             'Translate from ${widget.course.sourceLanguage} into ${widget.course.targetLanguage}:',
             style: Theme.of(context).textTheme.titleMedium,
           ),
-        ] else
+        ] else if (ex.type == 'type_missing_word')
+          Text(
+            FirstLetterAnswerService.display(ex.prompt, ex.accepted),
+            key: const Key('first-letter-sentence'),
+            style: Theme.of(context).textTheme.headlineSmall,
+          )
+        else
           Text(ex.question, style: Theme.of(context).textTheme.headlineSmall),
         const SizedBox(height: 10),
         if (ex.hint.isNotEmpty)
@@ -968,7 +1028,10 @@ class _RoundScreenState extends State<RoundScreen> {
         ),
         const SizedBox(height: 12),
         FilledButton(
-          onPressed: _answered || _textController.text.trim().isEmpty
+          onPressed:
+              _answered ||
+                  (_textController.text.trim().isEmpty &&
+                      ex.type != 'type_missing_word')
               ? null
               : _submitFill,
           child: const Text('Check'),
@@ -1610,11 +1673,34 @@ class _RoundScreenState extends State<RoundScreen> {
         );
       case 'contextual_comprehension':
         return _contextualComprehensionExercise(ex);
+      case 'script_recognition':
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Wrap(
+              spacing: 12,
+              runSpacing: 12,
+              children: [
+                for (final image in ex.promptElements.where(
+                  (element) => element.type == 'image',
+                ))
+                  PortableExerciseImage(
+                    asset: image.asset,
+                    width: 128,
+                    height: 128,
+                  ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            _choiceExercise(ex),
+          ],
+        );
       case 'icon_choice':
         return _iconChoiceExercise(ex);
       case 'flashcard':
         return _flashcardExercise(ex);
       case 'fill_blank':
+      case 'type_missing_word':
       case 'type_translation':
         return _fillBlankExercise(ex);
       case 'word_order':
@@ -1822,6 +1908,7 @@ class _RoundScreenState extends State<RoundScreen> {
                 ex.type != 'contextual_comprehension' &&
                 ex.type != 'flashcard' &&
                 ex.type != 'missing_word' &&
+                ex.type != 'type_missing_word' &&
                 ex.type != 'image_word' &&
                 ex.prompt.isNotEmpty &&
                 !ExerciseCopyService.isLegacyInstruction(ex.prompt)) ...[
@@ -1835,7 +1922,8 @@ class _RoundScreenState extends State<RoundScreen> {
             // Keep the whole exercise screen scrollable. On short desktop
             // windows or larger system text sizes this prevents a RenderFlex
             // overflow at the bottom while preserving normal phone behavior.
-            if (ex.imageAsset.isNotEmpty) ...[
+            if (ex.imageAsset.isNotEmpty &&
+                ex.type != 'script_recognition') ...[
               _exerciseImage(ex),
               const SizedBox(height: 14),
             ] else
@@ -1882,10 +1970,43 @@ class _RoundScreenState extends State<RoundScreen> {
                           ],
                         ),
                       ),
+                    ] else if (ex.type == 'script_recognition' &&
+                        !_lastAnswerCorrect) ...[
+                      const Text('Correct answer:'),
+                      for (final item in ex.interaction.items.where(
+                        (item) =>
+                            ex.evaluation.correctItemIds.contains(item.id),
+                      ))
+                        if (item.image.isNotEmpty)
+                          PortableExerciseImage(
+                            asset: item.image,
+                            width: 128,
+                            height: 128,
+                          )
+                        else
+                          Text(item.text),
+                    ] else if (ex.type == 'type_translation') ...[
+                      if (_translationFeedback.isNotEmpty) ...[
+                        const SizedBox(height: 8),
+                        Text(
+                          _lastAnswerCorrect
+                              ? 'Other correct translations:'
+                              : _translationFeedbackPartial
+                              ? 'Some possible translations:'
+                              : 'Correct translations:',
+                          key: const Key('translation-feedback-heading'),
+                        ),
+                        for (var i = 0; i < _translationFeedback.length; i++)
+                          Text(
+                            '• ${_translationFeedback[i]}',
+                            key: ValueKey('translation-feedback-answer-$i'),
+                          ),
+                      ],
                     ] else if (ex.type != 'flashcard' &&
                         (!_lastAnswerCorrect ||
                             const {
                               'fill_blank',
+                              'type_missing_word',
                               'type_translation',
                               'listening_spelling',
                             }.contains(ex.type))) ...[

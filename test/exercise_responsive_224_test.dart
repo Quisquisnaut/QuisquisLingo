@@ -50,6 +50,10 @@ void main() {
         );
         await tester.pumpAndSettle();
         expect(find.byKey(const Key('lesson-management-lock')), findsOneWidget);
+        await tester.ensureVisible(
+          find.byKey(const ValueKey('lesson-actions-responsive_lesson')),
+        );
+        await tester.pumpAndSettle();
         await tester.tap(
           find.byKey(const ValueKey('lesson-actions-responsive_lesson')),
         );

@@ -64,6 +64,11 @@ const _formFields = <String, Map<String, String>>{
     'Accepted translations': 'accepted',
     'Hint (optional)': 'hint',
   },
+  'type_missing_word': {
+    'Sentence with one ___ gap': 'prompt',
+    'Complete accepted words': 'accepted',
+    'Hint (optional)': 'hint',
+  },
   'build_translation': {
     'Source sentence': 'prompt',
     'Available target-language blocks': 'tokens',
@@ -113,7 +118,9 @@ const _formFields = <String, Map<String, String>>{
 void main() {
   test('field-control inventory covers every currently offered preset', () {
     expect(
-      _formFields.keys.toSet(),
+      // Script has dynamic per-option fields and two image/text modes. Its
+      // complete field-control coverage lives in script_recognition_226_03_test.
+      {..._formFields.keys, 'script_recognition'},
       ExercisePresetRegistry.presets.map((preset) => preset.id).toSet(),
     );
   });
