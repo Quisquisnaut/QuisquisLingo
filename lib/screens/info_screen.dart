@@ -124,14 +124,14 @@ class InfoScreen extends StatelessWidget {
               'The Crash Log and Diagnostic Log are separate. The Crash Log is an automatic file created at app startup and updated after uncaught errors; Settings shows its actual path. The Diagnostic Log stores technical troubleshooting events internally and is not created as a file automatically. In Settings, use Export Diagnostic Log to write a snapshot to Documents/QuisquisLingo/Logs/quisquislingo_diagnostic_log.txt. Clearing the Diagnostic Log does not delete or reset the Crash Log.',
         ),
         _InfoSection(
-          title: 'Course Editor',
+          title: 'Course Manager and Course Editor',
           body:
-              'For instructions on creating, editing, importing or exporting courses and using authoring tools, open Course Editor Help from inside the Course Editor.',
+              'For instructions on managing courses and using authoring tools, open Editor Help from Course Manager or any Course Editor hierarchy page.',
         ),
         _InfoSection(
           title: 'Course content and AI',
           body:
-              'AI assistance is used only for software development. Official language courses and their educational content are created by human authors.',
+              'The nine bundled courses titled AI-Slop Demo are AI-generated, unreviewed demonstrations and are not reliable learning courses. Real QuisquisLingo course content is intended to be authored and reviewed by humans. This classification does not apply to other official or custom courses.',
         ),
         OutlinedButton.icon(
           onPressed: () => Navigator.of(

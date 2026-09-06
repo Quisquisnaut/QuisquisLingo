@@ -1,13 +1,13 @@
 # QuisquisLingo App
 
-**Current source version: 2.0.26+226022 · Phase 226.02, revision 2 · Course Model v6 (`formatVersion: 6`).**
+**Current source version: 2.0.26+226023 · Phase 226.02, revision 3 · Course Model v6 (`formatVersion: 6`).**
 
 
-**QuisquisLingo 2.0.26 Alpha — Phase 226.02, revision 2 Editor workflow and Audit UX correction**
+**QuisquisLingo 2.0.26 Alpha — Phase 226.02, revision 3 Editor diagnostics and hierarchy UX**
 
 Current project version: 2.0.26
 
-Phase 226.02 revision 2 completes the workflow with severity filters for the shared Audit Code reference; red Error-or-Warning and luminous green clear-branch borders; an independent blue Draft indicator throughout the editor hierarchy; compact intentional-untitled Round wording; a bold Rounds hierarchy link; contextual field examples; and a final-page JSON export entry for eligible local custom courses. Build 226.02 retains unsaved Preview, guarded navigation and transactional Move/Copy. Tranches 226.03 and later remain deferred.
+Phase 226.02 revision 3 completes the workflow with shared Editor Help and persistent internal-ID inspection throughout Course Manager and its editor hierarchy, explicit AI-generated sample labels, precise empty-Lesson status, and an observable Lesson fallback-icon preview. It retains severity-filtered Audit Codes, red Error-or-Warning and luminous green clear-branch borders, one independent blue Draft badge, unsaved Preview, guarded navigation, transactional Move/Copy and eligible custom-course export. Tranches 226.03 and later remain deferred.
 
 Build 226.01 makes bundled and external official courses locally read-only, with Info, Audit, Preview and publisher Version History inspection. An explicit publisher policy may allow a custom fork with fresh IDs, permanent original authorship/provenance and a separately recorded fork creator. Forks use the existing custom working-copy transaction, backups and version rules, and remain unchanged by later official updates. Build 225 official local overrides are ignored without migration or deletion. Ordinary custom courses, Course Model v6, progression, XP, Review, Duel and learner identity remain compatible. The official repository is `Quisquisnaut/QuisquisLingo`.
 
@@ -28,7 +28,7 @@ The MPL-2.0 covers the QuisquisLingo software source. Courses, the Image Bank an
 
 ## Alpha lifecycle
 
-Version 2.0.26 is a time-limited alpha and expires on **2026-10-06**. Near expiry it displays reminders. After expiry, learner exercises and Review are blocked until a newer alpha is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when an alpha expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM. Future stable builds can disable alpha expiry.
+Version 2.0.26 is a time-limited alpha and keeps the existing expiry of **2026-10-06**. Near expiry it displays reminders. After expiry, learner exercises and Review are blocked until a newer alpha is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when an alpha expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM. Future stable builds can disable alpha expiry.
 
 ## Core logic
 
@@ -210,7 +210,7 @@ See `docs/COURSE_EDITOR.md`, `docs/TTS_ALL_PLATFORMS.md`, `docs/AUDIO_PACKS.md`,
 
 Large vocabulary image collections can be distributed separately from the app. Place exactly one Image Bank ZIP in `Documents/QuisquisLingo/Imports/Images`, then open **Settings > Image Bank** or **Course Editor > Image Bank** and choose **Import Image Bank ZIP**. The package must contain `image_bank_manifest.json` plus its referenced image assets. This allows new banks to be installed without recompiling QuisquisLingo.
 
-The editor now has a dedicated **Course Editor Help** button. General Info no longer carries the editor-specific operational instructions.
+Course Manager and every Course Editor hierarchy page provide the same direct **Editor Help** button. General Info keeps only a link to those authoring instructions.
 
 The **Image Word** exercise displays an image and asks the learner to build the corresponding target-language word from letter or syllable blocks.
 

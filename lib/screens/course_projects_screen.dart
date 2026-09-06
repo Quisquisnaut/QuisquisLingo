@@ -11,8 +11,8 @@ import '../services/settings_service.dart';
 import '../services/authoring_duplication_service.dart';
 import '../services/publication_service.dart';
 import '../widgets/flag_art.dart';
+import '../widgets/editor_app_bar_actions.dart';
 import 'course_editor_screen.dart';
-import 'editor_help_screen.dart';
 
 class _DisposeOnUnmount extends StatefulWidget {
   final Widget child;
@@ -687,15 +687,8 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(
-      title: const Text('Course Editor'),
+      title: const Text('Course Manager'),
       actions: [
-        IconButton(
-          tooltip: 'Course Editor Help',
-          onPressed: () => Navigator.of(
-            context,
-          ).push(MaterialPageRoute(builder: (_) => const EditorHelpScreen())),
-          icon: const Icon(Icons.help_outline),
-        ),
         IconButton(
           tooltip: 'Import custom course JSON',
           onPressed: _importCourse,
@@ -706,6 +699,7 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
           onPressed: _newCourse,
           icon: const Icon(Icons.add),
         ),
+        const EditorAppBarActions(),
       ],
     ),
     body: _loading
@@ -760,8 +754,9 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                Card(
-                  child: ListTile(
+                _courseStatusCard(
+                  widget.currentCourse,
+                  ListTile(
                     leading: CourseFlagBadge(
                       course: widget.currentCourse,
                       fallbackCode: CourseService.codeForCourse(
@@ -790,15 +785,16 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
                   child: Text('No local courses yet.'),
                 ),
               for (final course in _user)
-                Card(
-                  child: ListTile(
+                _courseStatusCard(
+                  course,
+                  ListTile(
                     leading: CourseFlagBadge(
                       course: course,
                       fallbackCode: CourseService.codeForCourse(course),
                     ),
                     title: Text(course.title),
                     subtitle: Text(
-                      '${course.publicationState.isPublished ? '' : 'Draft · '}${course.sourceLanguage} → ${course.targetLanguage} · ${course.originType.isOfficial ? '${course.publisherName} official ${course.officialCourseVersion} · read only' : 'custom version ${course.courseVersion.isEmpty ? 'unconfirmed' : course.courseVersion}'}',
+                      '${course.sourceLanguage} → ${course.targetLanguage} · ${course.originType.isOfficial ? '${course.publisherName} official ${course.officialCourseVersion} · read only' : 'custom version ${course.courseVersion.isEmpty ? 'unconfirmed' : course.courseVersion}'}',
                     ),
                     onTap: () => _openUser(course),
                     trailing: PopupMenuButton<String>(
@@ -865,5 +861,16 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
                 ),
             ],
           ),
+  );
+}
+
+Widget _courseStatusCard(Course course, Widget child) {
+  final status = AuthoringHierarchyStatus.fromCourse(course);
+  return AuthoringStatusCard(
+    indicatorKey: ValueKey('course-manager-status-${course.courseId}'),
+    draftIndicatorKey: ValueKey('course-manager-draft-${course.courseId}'),
+    hasDraft: status.courseHasDraft,
+    hasAuditConcern: status.hasCourseAuditConcern,
+    child: child,
   );
 }

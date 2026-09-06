@@ -4,7 +4,9 @@
 Existing assets contribute only reviewed course metadata and Guidebook material.
 Legacy exercises and their IDs are deliberately discarded rather than migrated.
 Build 225.04 adds immutable official provenance without changing the reviewed
-Build 225.02 course content.
+Build 225.02 course content. Build 226.02 revision 3 labels the confirmed
+AI-generated sample releases explicitly without changing their course IDs or
+learning content.
 """
 
 from __future__ import annotations
@@ -29,6 +31,7 @@ EXISTING = (
     ("CY", "welsh_en.json"),
 )
 BASE_TIME = datetime(2026, 9, 4, 8, 0, tzinfo=timezone.utc)
+RELEASE_DATE = "2026-09-06T00:00:00.000Z"
 
 
 def _official_checksum(course: dict[str, object]) -> str:
@@ -80,7 +83,7 @@ def _with_official_provenance(
                     "publisherId": "org.quisquislingo",
                     "publisherName": "QuisquisLingo",
                     "officialCourseVersion": official_version,
-                    "officialReleaseDateUtc": "2026-09-04T00:00:00.000Z",
+                    "officialReleaseDateUtc": RELEASE_DATE,
                     "officialChecksum": "",
                     "officialReleaseNotes": release_notes,
                     "distributionChannel": "bundled",
@@ -515,13 +518,20 @@ def _regenerate_existing(code: str, filename: str, course_index: int) -> dict[st
     source.update(
         {
             "formatVersion": 6,
-            "version": "1.6.0",
-            "courseVersion": "1.6.0",
-            "contentRevision": "bundled-v22502-model-v6",
-            "lastUpdated": "2026-09-04",
+            "title": (
+                "AI-Slop Demo: Inglés para hispanohablantes"
+                if source["sourceLanguage"] == "Spanish"
+                and source["targetLanguage"] == "English"
+                else f"AI-Slop Demo: {source['targetLanguage']} for "
+                f"{source['sourceLanguage']} Speakers"
+            ),
+            "version": "1.6.1",
+            "courseVersion": "1.6.1",
+            "contentRevision": "bundled-v22602-r3-sample-label",
+            "lastUpdated": "2026-09-06",
             "updateSummary": (
-                "Deterministically regenerated for Build 225.02 with Course Model v6, "
-                "stable timestamps, globally unique content IDs and Duel-ready practice."
+                "Explicitly labelled as an AI-generated demonstration course for "
+                "Build 226.02 revision 3; learning content and stable IDs are unchanged."
             ),
             "courseDescription": (
                 "TEMPORARY SAMPLE course regenerated for Course Model v6."
@@ -532,7 +542,7 @@ def _regenerate_existing(code: str, filename: str, course_index: int) -> dict[st
     return _with_official_provenance(
         source,
         official_version=str(source["version"]),
-        release_notes="Build 225.02 deterministic bundled course release.",
+        release_notes="Build 226.02 revision 3 AI-generated sample label update.",
     )
 
 
@@ -672,11 +682,11 @@ def _korean_course(course_index: int) -> dict[str, object]:
         "interfaceLanguage": "English",
         "sourceLanguage": "English",
         "targetLanguage": "Korean",
-        "title": "Korean",
+        "title": "AI-Slop Demo: Korean for English Speakers",
         "ttsLanguage": "ko-KR",
-        "version": "1.0.0",
-        "contentRevision": "bundled-v22502-model-v6",
-        "updateSummary": "Added the deterministic beginner Korean bundled course for Build 225.02.",
+        "version": "1.0.1",
+        "contentRevision": "bundled-v22602-r3-sample-label",
+        "updateSummary": "Explicitly labelled as an AI-generated demonstration course for Build 226.02 revision 3; learning content and stable IDs are unchanged.",
         "audioMode": "tts",
         "author": "QuisquisLingo course team",
         "authors": [{"name": "QuisquisLingo course team", "roles": ["Course Creator"]}],
@@ -684,8 +694,8 @@ def _korean_course(course_index: int) -> dict[str, object]:
         "languageVariant": "Contemporary polite Korean",
         "startLevel": "Beginner",
         "targetLevel": "Beginner",
-        "courseVersion": "1.0.0",
-        "lastUpdated": "2026-09-04",
+        "courseVersion": "1.0.1",
+        "lastUpdated": "2026-09-06",
         "courseDescription": "TEMPORARY SAMPLE beginner Korean course using Hangul and a consistent polite register.",
         "sourceLanguageTag": "en-GB",
         "targetLanguageTag": "ko-KR",
@@ -696,8 +706,8 @@ def _korean_course(course_index: int) -> dict[str, object]:
     }
     return _with_official_provenance(
         course,
-        official_version="1.0.0",
-        release_notes="Build 225.02 deterministic Korean bundled course release.",
+        official_version="1.0.1",
+        release_notes="Build 226.02 revision 3 AI-generated sample label update.",
     )
 
 
@@ -737,7 +747,7 @@ def main() -> int:
     args = parser.parse_args()
     action = "verified" if args.check else "regenerated"
     for path, digest in regenerate(check=args.check):
-        print(f"{path.name}: {action} for Build 225.04; sha256={digest}")
+        print(f"{path.name}: {action} for Build 226.02 revision 3; sha256={digest}")
     return 0
 
 

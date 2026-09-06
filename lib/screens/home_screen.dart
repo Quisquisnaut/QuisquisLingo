@@ -31,6 +31,7 @@ import 'info_screen.dart';
 import 'profile_screen.dart';
 import 'round_screen.dart';
 import '../widgets/flag_art.dart';
+import '../widgets/lesson_fallback_icon.dart';
 import '../widgets/learner_avatar.dart';
 import '../widgets/learner_bottom_actions.dart';
 import '../widgets/learner_shell.dart';
@@ -1872,13 +1873,6 @@ class _GuidebookNode extends StatelessWidget {
         }
       }
     }
-    const numberPalette = [
-      Color(0xFF2F6F8F),
-      Color(0xFF7A5C99),
-      Color(0xFF2F7D68),
-      Color(0xFF9A5D35),
-      Color(0xFF735F27),
-    ];
     return Align(
       alignment: Alignment.center,
       child: ConstrainedBox(
@@ -1920,39 +1914,16 @@ class _GuidebookNode extends StatelessWidget {
                             children: [
                               Positioned.fill(
                                 child: lesson.themeIconAsset == null
-                                    ? course.defaultLessonIconStyle ==
-                                              LessonFallbackIconStyle.monochrome
-                                          ? CircleAvatar(
-                                              radius: 42,
-                                              backgroundColor: isDark
-                                                  ? const Color(0xFF30284B)
-                                                  : const Color(0xFFEDE2FF),
-                                              child: const Icon(
-                                                Icons.menu_book_outlined,
-                                                size: 42,
-                                              ),
-                                            )
-                                          : DecoratedBox(
-                                              key: const Key(
-                                                'guidebook-colored-number-icon',
-                                              ),
-                                              decoration: BoxDecoration(
-                                                color:
-                                                    numberPalette[lessonIndex %
-                                                        numberPalette.length],
-                                                shape: BoxShape.circle,
-                                              ),
-                                              child: Center(
-                                                child: Text(
-                                                  '${identity.number}',
-                                                  style: const TextStyle(
-                                                    color: Colors.white,
-                                                    fontSize: 30,
-                                                    fontWeight: FontWeight.w900,
-                                                  ),
-                                                ),
-                                              ),
-                                            )
+                                    ? LessonFallbackIcon(
+                                        style: course.defaultLessonIconStyle,
+                                        number: identity.number,
+                                        monochromeKey: const Key(
+                                          'guidebook-monochrome-fallback-icon',
+                                        ),
+                                        coloredKey: const Key(
+                                          'guidebook-colored-fallback-icon',
+                                        ),
+                                      )
                                     : managedIcon != null
                                     ? Image.memory(
                                         base64Decode(managedIcon.base64Png),

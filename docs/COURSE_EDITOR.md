@@ -1,10 +1,10 @@
-# QuisquisLingo Course Editor
+# QuisquisLingo Course Manager and Course Editor
 
 Updated for Version 2.0.26, Build 226.01 and Course Model v6
 
 ## Unlocking the editor
 
-Course Editor is an Easter Egg so ordinary learners do not encounter authoring controls accidentally. Open **Settings** and tap/click anywhere in the complete **Version and Build** row ten times within about five seconds. `Course Editor unlocked` appears and the Course Editor entry becomes visible. The unlock state is stored locally on the device.
+Course Manager is an Easter Egg so ordinary learners do not encounter authoring controls accidentally. Open **Settings** and tap/click anywhere in the complete **Version and Build** row ten times within about five seconds. `Course Manager unlocked` appears and the Course Manager entry becomes visible. The unlock state is stored locally on the device. Course Manager lists and manages courses; Course Editor edits one selected course.
 
 ## Editable hierarchy
 
@@ -39,7 +39,7 @@ If the working copy equals the original, the Editor exits directly. A backup or 
 
 Course, Lesson, Round and Exercise content retains explicit `Draft` / `Published` state for learner projection. A Published child below a Draft parent remains hidden. Draft Courses are not learner-selectable; Draft Lessons do not affect numbering, Sections or unlock order; Draft Rounds and Exercises do not affect play, completion, Review, Duel or XP. Nested Save is the replacement for the former nested Publish label; final application of the complete course happens only through Confirm course changes.
 
-Course info controls the learner-visible Lesson prefix: Lesson, Unit, Topic, Module, Skill, Chapter, Stage, Step, Part, a trimmed custom label, number only, or none. Numbers use Published Lesson order only. The exact untouched default `Lesson N` is shown once when Lesson mode would otherwise duplicate it. Course info also chooses the monochrome or colored-number fallback style and stores an optional validated **Buy a Coffee** HTTPS URL.
+Course info controls the learner-visible Lesson prefix: Lesson, Unit, Topic, Module, Skill, Chapter, Stage, Step, Part, a trimmed custom label, number only, or none. Numbers use Published Lesson order only. The exact untouched default `Lesson N` is shown once when Lesson mode would otherwise duplicate it. Course info also chooses and previews the fallback used only when a Lesson theme icon is `None`: **Monochrome** applies the current theme tint and **Colored** preserves the fallback icon's original colors. Preinstalled and managed custom Lesson icons override the fallback and keep their original artwork and colors. Course info also stores an optional validated **Buy a Coffee** HTTPS URL.
 
 The Lesson form keeps Lesson metadata readily accessible and links to one dedicated **Rounds** page instead of expanding the complete list inline. The page reuses the existing Round workflow and returns naturally to the Lesson working copy. Navigation alone writes nothing. Every stable ID remains intact unless an explicit duplication creates a new identity.
 
@@ -51,7 +51,9 @@ Exercise **Previous** and **Next** follow the current Round order, stop at its b
 
 An empty Round title is intentionally supported in Create and Edit Round. Rename Round labels the field **Title, or Enter to skip**. Enter skips title entry for a new untitled Round, leaves an existing untitled Round unchanged, and preserves an existing title when no replacement is supplied. Learner and editor labels use its current **Round N** position without creating a stored title or changing its ID.
 
-Audit and Draft status propagate through the current authoring hierarchy. A red border means the represented element or one of its descendants has an Audit Error or Warning. A luminous green border means the current shared Audit result contains neither Error nor Warning for that branch; Info guidance alone remains green. A separate blue **Draft** badge means at least one represented Exercise is Draft. Exercise and Round items, Lesson and Course items, the Lesson page's **Rounds** link and the Course page's **Lessons** link use the same presentation, so red/green Audit status and the blue Draft badge remain independently visible. Lesson rows show their Draft Exercise counts and Course Editor shows the course total; status derives from the current working copy and shared Audit result after saves, publication changes, creation, deletion, duplication, Move, Copy and return from child editors. An empty Round shows exactly **0 Exercises**, no zero-Draft count or Draft badge, and remains red through the canonical `ROUND_CONTENT_EMPTY` Error until valid Content is added.
+Audit and Draft status propagate through the current authoring hierarchy. A red border means the represented element or one of its descendants has an Audit Error or Warning. A luminous green border means the current shared Audit result contains neither Error nor Warning for that branch; Info guidance alone remains green. A separate blue **Draft** badge means at least one represented Exercise is Draft. Exercise and Round items, Lesson and Course items, the Lesson page's **Rounds** link, the Course page's **Lessons** link and Course Manager use the same presentation, so red/green Audit status and the blue Draft badge remain independently visible. The badge is the only Draft-state label; Round rows show total Exercise counts with correct singular/plural wording. Status derives from the current working copy and shared Audit result after saves, publication changes, creation, deletion, duplication, Move, Copy and return from child editors. An empty Round shows exactly **0 Exercises**, no Draft badge, and remains red through the canonical `ROUND_CONTENT_EMPTY` Error until valid Content is added. An empty Lesson shows exactly **0 Rounds**, keeps its Rounds link usable, has no Draft badge and remains red through the canonical `LESSON_ROUNDS_EMPTY` Warning until a valid Round is added.
+
+Every Course Manager and Course Editor hierarchy AppBar provides the same **Editor Help** action and direct internal-ID toggle. Its current-state tooltip is **Internal IDs hidden. Tap to show** or **Internal IDs shown. Tap to hide**. The device-local preference defaults off, persists globally outside Course JSON, and immediately reveals read-only selectable Lesson, Round and Exercise IDs as secondary text. IDs remain absent from breadcrumbs; Rename and Move preserve them, while Copy creates fresh IDs.
 
 Rounds normally contain 15 exercises. The editor does not enforce 15 as a hard maximum. Course Audit reports unusually short or long rounds so the author can review them.
 
@@ -181,7 +183,7 @@ A Lesson with fewer than six Rounds receives author guidance only. Missing Readi
 
 Audit can sort by Lesson, friendly Exercise type or **Recently modified**. Recent order is `updatedAt` descending with deterministic stable tie-breaks. Displayed and exported findings are numbered progressively inside each severity group after the active scope, filter and sort are applied.
 
-Open **Course Editor Help → Technical reference → Audit Codes** to browse the shared registry grouped in Errors, Warnings and Info order. All three independently selectable category filters start enabled; any one, any two or all three may be shown, and code/descriptive-text search applies only within the selected categories. Every currently emitted rule is defined in the registry shared by Audit and this reference, with its severity, scope, meaning, trigger, creator action and blocking status. Known rules have specific stable codes; `GENERAL` is only a defensive fallback for an unexpected unclassified finding.
+Open **Editor Help → Technical reference → Audit Codes** to browse the shared registry grouped in Errors, Warnings and Info order. All three independently selectable category filters start enabled; any one, any two or all three may be shown, and code/descriptive-text search applies only within the selected categories. Every currently emitted rule is defined in the registry shared by Audit and this reference, with its severity, scope, meaning, trigger, creator action and blocking status. Known rules have specific stable codes; `GENERAL` is only a defensive fallback for an unexpected unclassified finding.
 
 ## Storage and recovery
 
@@ -221,7 +223,7 @@ Capitalization should be consistent across paired sentences and expressions whil
 
 ## 0.5 authoring behavior
 
-Course Editor is an unlockable Creator mode inside the same QuisquisLingo app. Tap
+Course Manager is an unlockable Creator mode inside the same QuisquisLingo app. Tap
 or click the version label 10 times within about five seconds to unlock it. The
 Duel victory sound confirms the unlock when sound effects are enabled.
 
@@ -307,12 +309,12 @@ An author can have multiple roles. Course Creator means original creation/design
 
 ## Alpha expiry and authoring
 
-The current time-limited alpha expires on 2026-10-06. Expiry blocks learner exercises and Review but deliberately leaves Course Editor available so authoring work can be inspected, recovered and exported. Expiry never deletes local data.
+The current time-limited alpha keeps the existing expiry of 2026-10-06. Expiry blocks learner exercises and Review but deliberately leaves Course Manager and Course Editor available so authoring work can be inspected, recovered and exported. Expiry never deletes local data.
 
 
 ## Bundled official and local courses
 
-The Course Editor entry screen identifies bundled official sources and groups stored custom or external-official installations under **Local courses**. A created or ordinarily imported course remains custom even when it is currently selected. Temporary sample material refers to bundled sample courses supplied with early/current development builds and is progressively replaced by reviewed course content. A newly created custom course starts as an unpersisted working copy with 3 placeholder Lessons, each with a stable Lesson-scoped Duel identity, and no automatic Rounds. Its first **Confirm course changes** creates internal version 1; cancellation leaves no stored course.
+The Course Manager entry screen identifies bundled official sources and groups stored custom or external-official installations under **Local courses**. A created or ordinarily imported course remains custom even when it is currently selected. Temporary sample material refers to bundled sample courses supplied with early/current development builds and is progressively replaced by reviewed course content. A newly created custom course starts as an unpersisted working copy with 3 placeholder Lessons, each with a stable Lesson-scoped Duel identity, and no automatic Rounds. Its first **Confirm course changes** creates internal version 1; cancellation leaves no stored course.
 
 When creating a custom course, the author can use one of QuisquisLingo's existing flags or import a PNG/JPG image. Imported flags are checked for file size and resolution. Images that are too small or excessively large are rejected; accepted large images are resized to a maximum 256 px longest side while preserving their aspect ratio. The processed PNG is stored with the course so it remains available if the original file is moved or deleted.
 

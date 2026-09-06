@@ -81,6 +81,8 @@ void main() {
       MaterialApp(home: CourseProjectsScreen(currentCourse: currentCourse)),
     );
     await tester.pumpAndSettle();
+    expect(find.text('Course Manager'), findsOneWidget);
+    expect(find.text('Course Editor'), findsNothing);
 
     await tester.tap(find.widgetWithText(FilledButton, 'Create new course'));
     await tester.pumpAndSettle();

@@ -17,7 +17,7 @@ class CreditsScreen extends StatelessWidget {
           const _CreditCard(
             title: 'QuisquisLingo',
             text:
-                'Project and code design: Quisquisnaut (Quisquis on Discord)\nCode generation and software development assistance: ChatGPT\n\nAI assistance is used only for software development. Language courses and their educational content are created by human authors.',
+                'Project and code design: Quisquisnaut (Quisquis on Discord)\nCode generation and software development assistance: ChatGPT\n\nThe nine bundled courses titled AI-Slop Demo are AI-generated, unreviewed demonstrations and are not reliable learning courses. Real QuisquisLingo course content is intended to be authored and reviewed by humans. This classification does not apply to other official or custom courses.',
           ),
           const SizedBox(height: 22),
           Text(
@@ -70,7 +70,7 @@ class CreditsScreen extends StatelessWidget {
           const _CreditCard(
             title: 'Result / achievement sounds',
             text:
-                'Original synthesized tones created specifically for QuisquisLingo; no third-party recordings are used. The win sound is used for Duel victories, Course Editor unlock and a newly earned laurel crown.',
+                'Original synthesized tones created specifically for QuisquisLingo; no third-party recordings are used. The win sound is used for Duel victories, Course Manager unlock and a newly earned laurel crown.',
           ),
           const SizedBox(height: 22),
           if (course != null) ...[

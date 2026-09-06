@@ -42,8 +42,7 @@ These are persistent instructions for Codex when working on QuisquisLingo.
 
 - `2.0.26+22601` makes bundled/external official courses locally read-only and introduces explicitly licensed independent custom forks with permanent original authorship/provenance and a separate fork creator. The pushed `ede21f813a235e8455d2691da4cf3bb43162a39a` Build 225.04 plus 226.00 documentation correction is its immutable parent. Later Build 226 tranches remain deferred.
 - `2.0.26+22602` adds unsaved Exercise Preview, guarded Previous/Next navigation, breadcrumbs, working-copy Move/Copy destinations, shared field help, Draft indicators/counts and the shared Audit Code Registry. Missing Reading-comprehension guidance is removed without changing remaining severities. The pushed `45cf258d707c89d512f7663d9f2fa317adbe5ef0` is its immutable parent; 226.03 and later remain deferred.
-- `2.0.26+226021` completes the narrowly scoped 226.02 correction: severity-filtered Audit Codes, hierarchy-wide Draft/Audit Error indicators, revised untitled-Round wording, shared link typography, eligible custom-course page export and clearer contextual examples. Commit `718bbb3856e88d8780c4b52b91d479ac431f71bb` is its immutable parent; Course Model v6, persistence and 226.01 boundaries remain unchanged, and 226.03 remains deferred.
-- `2.0.26+226022` refines the 226.02 status UX: red means a current Error or Warning, luminous green means neither, and one independent blue Draft badge propagates through the authoring branch. It also corrects empty-Round counts, Round rename skip wording and explicit Version/Phase/revision display. Commit `eb74144c1897f34912449cef86938816c87e21e8` is its immutable parent; Course Model v6, persistence and 226.03 remain unchanged.
+- `2.0.26+226023` completes the 226.02 workflow and diagnostics corrections: shared Help and device-local internal-ID controls throughout Course Manager and its editor hierarchy, hierarchy-wide red/green Audit status with one independent blue Draft badge, explicit AI-generated sample labels, observable Lesson fallback-icon selection and explicit Version/Phase/revision display. Course Model v6, persistence and 226.01 boundaries remain unchanged, and 226.03 remains deferred.
 - Do not read, apply, migrate or automatically convert Build 225 official local overrides. Leave stored remnants untouched. Official history contains publisher sources only. Only custom courses enter authoring transactions; an explicit `derivativeWorksPolicy: allowed` is required to fork an official course. Ordinary custom courses retain Course Model v6 storage and version behavior.
 
 ## Architecture and service boundaries
@@ -316,6 +315,72 @@ When a new XP system is explicitly introduced, update this section to describe t
 - Verify that every changed line is necessary for the requested task. If a changed line cannot be justified by the task, revert that change before reporting completion.
 
 Do not modify Codex's global approval policy, sandbox policy, or user-level command rules as part of normal repository work unless the user explicitly requests that configuration change.
+
+## Test execution efficiency
+
+- During implementation, run the smallest relevant focused tests for rapid feedback.
+- Once the implementation is final, run the analyzer and the complete Flutter test suite exactly once on the final working tree.
+- Do not rerun focused test groups solely for reporting when they have already passed and are included in the complete suite.
+- Continue running validators or checks not included in the Flutter suite.
+- If source or test files change after the complete suite, rerun the affected focused tests and then rerun the complete suite before committing.
+- A failed full-suite test may be rerun in isolation for diagnosis.
+
+## Workflow efficiency
+
+### Repository text inspection on Windows
+
+- Use `rg` as the primary tool for locating files, searching text and reading relevant sections of repository text files.
+- Do not use PowerShell `Get-Content` in this repository. It has repeatedly hung even on small regular Markdown files.
+- Do not use `Get-Content -Wait`.
+- Use targeted `rg -n` searches instead of dumping entire large files.
+- When comparison with Git is sufficient, prefer `git diff`, `git show`, `git status` and `git ls-files`.
+- If `rg` is unexpectedly unavailable, open a fresh shell once to refresh `PATH`. If it remains unavailable, use `Select-String` or `[System.IO.File]::ReadLines(...)`. Do not fall back to `Get-Content`.
+- Do not install or reinstall command-line tools during a task unless the user explicitly requests it.
+
+### Bounded command waiting
+
+- Match the waiting period to the command type.
+- Repository metadata and text-inspection commands such as `git status`, `git diff`, `rg`, `Select-String` and file metadata reads should normally respond quickly.
+- If a read-only inspection command produces no output or completion for 15 seconds, interrupt it and use a different inspection method.
+- Do not retry the identical command after it hangs.
+- Do not wait silently for several minutes on a normally immediate command.
+- Long-running analyzers, builds, validators and test suites may continue while they are producing progress or consuming resources normally.
+- Run long commands with bounded output-yield intervals so control returns at least every 30 to 60 seconds.
+- When a long command remains active, poll the existing process instead of starting duplicate commands.
+- Provide a concise progress update at least once per minute during a long-running command.
+- If a long command produces no progress, inspect its process state and distinguish a normal quiet phase from a real hang before terminating it.
+- Never classify a generic terminal read failure as a Flutter SDK lock, repository deadlock or test deadlock without direct evidence.
+- After interrupting a hung command, report the exact command, elapsed time and replacement method, then continue the task.
+
+### Worktree policy
+
+- For ordinary QQL work, continue in the user's existing local checkout.
+- Do not create, switch to or spend time evaluating a Git worktree unless the user explicitly requests one or the task demonstrably requires isolation that cannot be achieved safely in the current checkout.
+- If isolation would materially change the workflow, ask the user before creating a worktree.
+- Do not create a worktree solely to inspect a parent commit, compare documentation or calculate analyzer deltas.
+- Use `git diff`, `git show` and recorded validated baselines for those comparisons.
+- Never allow worktree evaluation to block the task or prevent queued user messages from being processed.
+
+### Efficient Flutter validation
+
+- During implementation, run the smallest relevant focused tests for rapid feedback.
+- After a failure, rerun only the affected focused tests until the correction is stable.
+- Once implementation is final, run `flutter analyze` and the complete Flutter test suite exactly once on the final working tree.
+- Do not rerun overlapping focused groups solely to produce separate final-report totals when those tests have already passed and are included in the complete suite.
+- Continue to run validators and checks that are not included in the Flutter suite.
+- If any production or test file changes after the complete suite, rerun the affected focused tests and then rerun the complete suite before committing.
+- A failing test from the complete suite may be rerun in isolation for diagnosis.
+- Do not start the complete suite while known focused failures or newly introduced analyzer findings remain.
+- Do not run multiple Flutter commands concurrently when they share the same SDK lock, build directory or cache.
+
+### Recovery and user control
+
+- Keep tool calls bounded so the agent can receive queued user instructions between operations.
+- Do not remain inside an unresponsive tool call indefinitely.
+- If the user asks to stop or redirect work, yield control at the next safe command boundary.
+- Preserve all already-written working-tree changes after an interruption.
+- Resume by inspecting the existing status and diff. Do not restart the implementation from scratch.
+- Never run destructive Git recovery commands unless the user explicitly authorizes them.
 
 ## Validation before delivery
 

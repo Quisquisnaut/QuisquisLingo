@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:quisquislingo_app/models/course_models.dart';
 import 'package:quisquislingo_app/screens/course_editor_screen.dart';
+import 'package:quisquislingo_app/screens/course_projects_screen.dart';
 import 'package:quisquislingo_app/services/course_audit_service.dart';
 import 'package:quisquislingo_app/services/course_authoring_transfer_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -605,6 +606,224 @@ void main() {
     );
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets(
+    'empty Lesson uses canonical Warning, remains navigable, then turns green',
+    (tester) async {
+      _viewport(tester);
+      var course = _statusCourse(const []);
+      final emptyLesson = course.lessons.single;
+      final emptyAudit = CourseAuditService().auditLesson(
+        course,
+        emptyLesson.lessonId,
+      );
+      expect(
+        emptyAudit.issues
+            .singleWhere((issue) => issue.code == 'LESSON_ROUNDS_EMPTY')
+            .severity,
+        AuditSeverity.warning,
+      );
+      expect(
+        emptyAudit.issues
+            .singleWhere((issue) => issue.code == 'LESSON_ROUND_GUIDANCE')
+            .severity,
+        AuditSeverity.info,
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(home: CourseProjectsScreen(currentCourse: course)),
+      );
+      await tester.pumpAndSettle();
+      _expectIndicator(
+        tester,
+        const ValueKey('course-manager-status-status-course'),
+        draft: false,
+        auditConcern: true,
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(home: CourseEditorScreen(course: course, userCourse: true)),
+      );
+      await tester.pumpAndSettle();
+      _expectIndicator(
+        tester,
+        const Key('course-lessons-status-indicator'),
+        draft: false,
+        auditConcern: true,
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: LessonManagementScreen(course: course, initiallyLocked: false),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('0 Rounds'), findsOneWidget);
+      _expectIndicator(
+        tester,
+        const ValueKey('lesson-status-indicator-status-lesson'),
+        draft: false,
+        auditConcern: true,
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: LessonEditorScreen(course: course, lesson: emptyLesson),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('0 Rounds'), findsOneWidget);
+      _expectIndicator(
+        tester,
+        const Key('lesson-rounds-status-indicator'),
+        draft: false,
+        auditConcern: true,
+      );
+      await tester.tap(find.byKey(const Key('lesson-rounds-navigation')));
+      await tester.pumpAndSettle();
+      expect(find.byType(LessonRoundsScreen), findsOneWidget);
+
+      course = _statusCourse([_cleanRound('first-round')]);
+      expect(
+        CourseAuditService()
+            .auditLesson(course, course.lessons.single.lessonId)
+            .issues
+            .where(
+              (issue) =>
+                  issue.severity == AuditSeverity.error ||
+                  issue.severity == AuditSeverity.warning,
+            ),
+        isEmpty,
+      );
+      await tester.pumpWidget(
+        MaterialApp(
+          key: UniqueKey(),
+          home: LessonEditorScreen(
+            course: course,
+            lesson: course.lessons.single,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('1 Round'), findsOneWidget);
+      _expectIndicator(
+        tester,
+        const Key('lesson-rounds-status-indicator'),
+        draft: false,
+        auditConcern: false,
+      );
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets(
+    'creating the first Round through the UI refreshes every open ancestor',
+    (tester) async {
+      _viewport(tester);
+      final course = _statusCourse(const []);
+      await tester.pumpWidget(
+        MaterialApp(home: CourseEditorScreen(course: course, userCourse: true)),
+      );
+      await tester.pumpAndSettle();
+      _expectIndicator(
+        tester,
+        const Key('course-lessons-status-indicator'),
+        draft: false,
+        auditConcern: true,
+      );
+
+      await tester.tap(
+        find.byKey(const Key('course-editor-lessons-navigation')),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byType(LessonManagementScreen), findsOneWidget);
+      expect(find.text('0 Rounds'), findsOneWidget);
+      _expectIndicator(
+        tester,
+        const ValueKey('lesson-status-indicator-status-lesson'),
+        draft: false,
+        auditConcern: true,
+      );
+      await tester.tap(find.byKey(const Key('lesson-management-lock')));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Lesson 1: Status lesson'));
+      await tester.pumpAndSettle();
+      expect(find.byType(LessonEditorScreen), findsOneWidget);
+      expect(find.text('0 Rounds'), findsOneWidget);
+      expect(find.text('Draft · hidden from learner delivery'), findsNothing);
+      _expectIndicator(
+        tester,
+        const Key('lesson-rounds-status-indicator'),
+        draft: false,
+        auditConcern: true,
+      );
+
+      await tester.tap(find.byKey(const Key('lesson-rounds-navigation')));
+      await tester.pumpAndSettle();
+      expect(find.byType(LessonRoundsScreen), findsOneWidget);
+      expect(find.text('New round'), findsOneWidget);
+      expect(find.byKey(const Key('round-draft-indicator')), findsNothing);
+      await tester.tap(find.text('New round'));
+      await tester.pumpAndSettle();
+      final titleField = find.descendant(
+        of: find.byType(AlertDialog),
+        matching: find.byType(TextFormField),
+      );
+      await tester.enterText(titleField, 'First valid Round');
+      await tester.tap(find.widgetWithText(FilledButton, 'Save'));
+      await tester.pumpAndSettle();
+      expect(find.text('3 Exercises'), findsOneWidget);
+      final createdRoundIndicator = find.byWidgetPredicate(
+        (widget) =>
+            widget.key is ValueKey<String> &&
+            (widget.key! as ValueKey<String>).value.startsWith(
+              'round-status-indicator-custom_round_',
+            ),
+      );
+      expect(createdRoundIndicator, findsOneWidget);
+      final createdCard = tester.widget<Card>(
+        find.descendant(of: createdRoundIndicator, matching: find.byType(Card)),
+      );
+      expect(
+        (createdCard.shape! as RoundedRectangleBorder).side.color,
+        const Color(0xFF00A83B),
+      );
+
+      await tester.pageBack();
+      await tester.pumpAndSettle();
+      expect(find.byType(LessonEditorScreen), findsOneWidget);
+      expect(find.text('1 Round'), findsOneWidget);
+      _expectIndicator(
+        tester,
+        const Key('lesson-rounds-status-indicator'),
+        draft: true,
+        auditConcern: false,
+      );
+
+      await tester.pageBack();
+      await tester.pumpAndSettle();
+      expect(find.byType(LessonManagementScreen), findsOneWidget);
+      expect(find.text('1 Round'), findsOneWidget);
+      _expectIndicator(
+        tester,
+        const ValueKey('lesson-status-indicator-status-lesson'),
+        draft: true,
+        auditConcern: false,
+      );
+
+      await tester.pageBack();
+      await tester.pumpAndSettle();
+      expect(find.byType(CourseEditorScreen), findsOneWidget);
+      _expectIndicator(
+        tester,
+        const Key('course-lessons-status-indicator'),
+        draft: true,
+        auditConcern: false,
+      );
+      expect(tester.takeException(), isNull);
+    },
+  );
 }
 
 void _expectIndicator(
@@ -633,6 +852,11 @@ void _expectIndicator(
 
 Key _draftIndicatorKey(Key statusKey) {
   final value = (statusKey as ValueKey).value as String;
+  if (value.startsWith('course-manager-status-')) {
+    return ValueKey(
+      value.replaceFirst('course-manager-status-', 'course-manager-draft-'),
+    );
+  }
   if (value == 'course-lessons-status-indicator') {
     return const ValueKey('course-lessons-draft-indicator');
   }

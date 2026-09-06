@@ -1,6 +1,121 @@
 # QQL 226.02 pre-commit validation report
 
-Status: **PASS — 226.02 and corrective revision 2 are complete, with all required automated validation green apart from inherited analyzer findings.** The Windows visual checks listed below remain manual.
+Status: **PASS — 226.02 corrective revision 3 is complete, with all required automated validation green apart from inherited analyzer findings.** The Windows visual checks listed below remain manual.
+
+## 226.02 corrective revision 3 closure
+
+Revision 3 was recovered from an interrupted working tree rooted at immutable parent `e2479d9600e407227e68a020fe920f21a9137280`. Recovery retained 38 modified tracked files and four intentional untracked implementation files, inspected the complete parent diff, and found no concurrent writer. The interrupted run's 109 focused, 197 combined and 785 full-suite results are historical context only; none is counted as fresh final-tree evidence below. A later ordinary `flutter test` launcher invocation also produced no output for 76 seconds and was interrupted; subsequent Flutter validation used the same SDK through its direct `flutter_tools.snapshot` entry point, with bounded output polling.
+
+The final metadata is **Version 2.0.26 / Phase 226.02 / revision 3 / technical build 226023 / `2.0.26+226023`**. The first-run popup renders `Version 2.0.26` and `Phase 226.02, revision 3` on separate lines and retains its existing show-once persistence. The technical integer is not used as a human-readable phase label. Revision 3 does not extend the Alpha period: expiry remains **2026-10-06 23:59:59 local time**, the revision-2 value.
+
+The completed revision-3 behavior is:
+
+- The shared upper-right question-mark action, with tooltip exactly **`Editor Help`**, is present at Course Manager, Course Editor, Lessons, Lesson, the shared Round/Exercises screen, and Exercise Editor. All routes use the same Help destination. Opening and returning from Help does not save, draft, discard, weaken dirty-state decisions or lose an unsaved Exercise edit.
+- The adjacent two-state internal-ID icon changes the shared device-local Editor preference immediately. Exact tooltips are **`Internal IDs shown. Tap to hide`** and **`Internal IDs hidden. Tap to show`**. The preference defaults off, persists outside Course JSON, and propagates across navigation and a reconstructed application service. Existing Lesson, Round and Exercise IDs are displayed read-only as secondary selectable monospaced text, with complete-ID tooltip/copy support and narrow-width protection; breadcrumbs do not gain IDs.
+- A newly created Exercise displays its already-assigned ID before it has a nonnegative list index. Rename and Move retain the ID, Copy displays a fresh ID, and duplicate-title Exercises remain distinguishable by their different IDs.
+- The reusable blue **Draft** badge is the sole visible Draft-state indicator. The prior `Draft · hidden from learner delivery` line is removed; the delivery explanation is in the badge semantics/tooltip. Zero Draft descendants produce no badge and no visible Draft wording. Audit border state remains independent, including simultaneous red plus blue.
+- Error or Warning in an element or descendant produces a red border; absence of either produces luminous green; Info alone stays green; unavailable or stale Audit stays neutral. Sibling results remain isolated, and current candidate changes refresh ancestors live. The shared Audit Registry remains exactly **103 rules** with existing codes and severities.
+- An empty Round shows exactly **`0 Exercises`**, no Draft state, and canonical Error `ROUND_CONTENT_EMPTY`, which propagates through its ancestors. Adding the first valid Exercise removes that empty state when no other Error or Warning remains. Round count text uses `0 Exercises`, `1 Exercise`, and plural counts.
+- A zero-Round Lesson shows exactly **`0 Rounds`**, has no Draft state, and receives a red Audit border from canonical Warning `LESSON_ROUNDS_EMPTY`. Its red-bordered Rounds link remains usable. A behavioral UI test creates the first valid Round through that link, returns through the real route stack, and verifies live Lesson, Lessons-link and Course ancestor refresh. Existing one/two-Round Info guidance and severities remain unchanged.
+- The top-level management page is consistently named **Course Manager**; the page for one course remains **Course Editor**. User-facing Settings, unlock, Credits, Help, Info, breadcrumb, button, tooltip, accessibility and documentation references were reconciled without renaming internal classes or routes.
+- The deterministic temporary sample titles are exactly:
+  - `AI-Slop Demo: Dutch for English Speakers`
+  - `AI-Slop Demo: Inglés para hispanohablantes`
+  - `AI-Slop Demo: Finnish for English Speakers`
+  - `AI-Slop Demo: German for English Speakers`
+  - `AI-Slop Demo: Italian for English Speakers`
+  - `AI-Slop Demo: Korean for English Speakers`
+  - `AI-Slop Demo: Portuguese for English Speakers`
+  - `AI-Slop Demo: Spanish for English Speakers`
+  - `AI-Slop Demo: Welsh for English Speakers`
+- Per the user's authoritative classification, only these nine are described as AI-generated, unreviewed demonstrations rather than reliable learning courses. Info, Credits and sample documentation state that real QQL course content is intended to be authored and reviewed by humans; other bundled, official and custom courses are not generalized into this classification. Course IDs, filenames, language metadata, hierarchy, exercises, attribution, licensing and provenance remain intact.
+- **Fallback lesson icon style** affects only the automatic fallback used when a Lesson has no explicit icon. Monochrome applies the current theme tint; Colored preserves the fallback's original multicolored presentation. The preview updates immediately, the saved choice reloads, actual Editor and learner fallback rendering follows the setting, and explicitly selected custom icons remain unchanged. No model field, JSON format or imported image byte changed.
+- Rename Round retains **`Title, or Enter to skip`** and Enter without replacement text preserves an existing title. Intentional untitled Rounds remain supported.
+
+Course Model v6, importer and persistence formats, course identity/provenance, official read-only/licensed-fork behavior, unsaved Preview, dirty navigation, Move/Copy transactions, publication rules, learner state and learner behavior remain unchanged. No Guidebook change, 226.03 feature, Custom Exercise Template or Napoletano sample was started.
+
+### Revision 3 fresh verification
+
+Commands were run from the repository root. Flutter commands used `--no-pub`, one process at a time, through the installed SDK's direct `flutter_tools.snapshot` entry point after the wrapper stall:
+
+```text
+dart format <27 changed Dart files>
+flutter test --no-pub --concurrency=1 --reporter compact --timeout 60s test/alpha_lifecycle_test.dart test/app_metadata_225_04_test.dart test/authoring_hierarchy_indicators_226_02_test.dart test/authoring_transfer_ui_226_02_test.dart test/course_audit_report_225_test.dart test/course_editor_224_test.dart test/course_editor_layout_regression_test.dart test/course_official_provenance_225_04_test.dart test/editor_diagnostics_226_02_revision3_test.dart test/exercise_workflow_226_02_test.dart test/korean_production_discovery_225_03_test.dart test/leaderboard_navigation_test.dart test/learner_round_path_test.dart test/lesson_metadata_and_icon_test.dart
+flutter test --no-pub --reporter expanded --timeout 60s --plain-name "all nine bundled sources have verified immutable provenance" test/course_official_provenance_225_04_test.dart
+flutter analyze --no-pub
+flutter test --no-pub --concurrency=1 --reporter compact --timeout 60s
+python tools/validate_courses.py
+python tools/regenerate_bundled_courses_225_02.py --check
+python tools/validate_lesson_icons.py
+python tools/validate_images.py
+git diff --check
+```
+
+Exact fresh results:
+
+- Dart formatting completed successfully for all 27 changed Dart files before final validation.
+- Combined affected focused run: **157 passed / 1 failed**. The sole failure was the stale pre-rename nine-title fixture, not application behavior. After correcting only that expected title set, the exact failed test rerun was **1 passed, exit 0**. All **158 distinct affected focused tests** are therefore green on the final code/test tree.
+- Analyzer: **exit 1, 72 findings**. Baseline `e2479d9600e407227e68a020fe920f21a9137280` has **72 findings**; final revision 3 has **72**; **inherited 72, new 0, resolved 0**. The current findings are 71 inherited `curly_braces_in_flow_control_structures` infos in unchanged files and one inherited `unused_element` warning at `test/guidebook_sentence_generator_test.dart:255`. No finding is in a revision-3 changed file, and the analyzer is not described as passing.
+- Complete Flutter suite, executed exactly once after the final production/test edit: **789 passed, exit 0, 8m43s**.
+- Bundled-course validator: **9 bundled Course Model v6 files validated, exit 0**, including official checksum verification.
+- Deterministic generator/checksum validation: **all 9 generated files and hashes verified, exit 0**.
+- Lesson-icon validator: **14 assets, 0 issues, exit 0**.
+- Image Bank validator: **112 assets, 0 issues, exit 0**.
+- `git diff --check`: **exit 0, no whitespace errors**; Git emitted only working-copy LF/CRLF notices.
+
+### Revision 3 changed files
+
+```text
+AGENTS.md
+CHANGELOG.md
+README.md
+assets/courses/dutch_en.json
+assets/courses/english_es.json
+assets/courses/finnish_en.json
+assets/courses/german_en.json
+assets/courses/italian_en.json
+assets/courses/korean_en.json
+assets/courses/portuguese_en.json
+assets/courses/spanish_en.json
+assets/courses/welsh_en.json
+docs/226_02_VALIDATION.md
+docs/COURSE_EDITOR.md
+docs/LICENSING.md
+docs/SAMPLE_COURSE.md
+lib/screens/course_editor_screen.dart
+lib/screens/course_projects_screen.dart
+lib/screens/credits_screen.dart
+lib/screens/editor_help_screen.dart
+lib/screens/home_screen.dart
+lib/screens/info_screen.dart
+lib/screens/official_course_inspection_screen.dart
+lib/screens/settings_screen.dart
+lib/services/alpha_lifecycle_service.dart
+lib/services/app_metadata.dart
+lib/services/editor_display_preferences.dart
+lib/widgets/editor_app_bar_actions.dart
+lib/widgets/lesson_fallback_icon.dart
+pubspec.yaml
+test/alpha_lifecycle_test.dart
+test/app_metadata_225_04_test.dart
+test/authoring_hierarchy_indicators_226_02_test.dart
+test/authoring_transfer_ui_226_02_test.dart
+test/course_audit_report_225_test.dart
+test/course_editor_224_test.dart
+test/course_editor_layout_regression_test.dart
+test/course_official_provenance_225_04_test.dart
+test/editor_diagnostics_226_02_revision3_test.dart
+test/exercise_workflow_226_02_test.dart
+test/korean_production_discovery_225_03_test.dart
+test/leaderboard_navigation_test.dart
+test/learner_round_path_test.dart
+test/lesson_metadata_and_icon_test.dart
+tools/regenerate_bundled_courses_225_02.py
+```
+
+### Remaining manual Windows checks
+
+No manual visual verification is claimed. Check the Help icon at every Editor level; returning from Help with unsaved edits preserved; immediate ID toggling at every level; exact tooltips `Internal IDs shown. Tap to hide` and `Internal IDs hidden. Tap to show`; ID readability/copying; duplicate-title identification; narrow layouts; Course Manager versus Course Editor wording; all nine exact AI-Slop Demo titles; absence of zero-Draft wording; red and green border visibility; blue Draft-badge readability; simultaneous red border and blue badge; last-descendant propagation removal; empty-Round presentation; empty-Lesson Rounds-link use and live transition; Monochrome versus Colored fallback icons; light and dark themes; and first-run popup appearance/show-once behavior.
 
 ## 226.02 corrective revision 2 closure
 

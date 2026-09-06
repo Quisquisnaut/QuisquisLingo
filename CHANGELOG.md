@@ -1,3 +1,12 @@
+# 2.0.26 (Phase 226.02, revision 3) - Editor diagnostics and hierarchy UX - 2026-09-06
+
+- Advanced technical metadata to `2.0.26+226023`, with the first-run notice displaying `Version 2.0.26` and `Phase 226.02, revision 3`; the existing Alpha expiry remains `2026-10-06 23:59:59` local time.
+- Added one shared `Editor Help` action and one direct, device-local internal-ID display toggle throughout Course Manager, Course Editor, Lessons, Lesson, Rounds, Round/Exercises and Exercise Editor. Lesson, Round and Exercise IDs are selectable secondary text and never enter breadcrumbs or Course JSON.
+- Renamed the course-list screen to Course Manager while retaining Course Editor for one course, removed redundant Draft count/status text in favor of the shared blue badge, and propagated the existing canonical `LESSON_ROUNDS_EMPTY` Warning through empty-Lesson hierarchy status.
+- Explicitly prefixed all nine confirmed deterministic temporary samples with `AI-Slop Demo`, including the exact title `AI-Slop Demo: Inglés para hispanohablantes`, issuing checksum-valid official patch releases without changing course IDs, authorship, licensing, hierarchy or exercise content. These nine courses are AI-generated, unreviewed demonstrations and are not reliable learning courses; real QuisquisLingo course content remains intended for human authorship and review.
+- Made the existing fallback-only Lesson icon mode observable in Course Info. Monochrome applies the current theme tint and Colored preserves the fallback icon's multicolored artwork; explicit preinstalled and managed custom icons continue to override the fallback and retain original artwork.
+- Preserved Course Model v6, persistence formats, publishing and learner behavior, official read-only/fork rules, and all earlier 226.02 Preview/navigation/Move/Copy guarantees. No Guidebook, 226.03 or Custom Exercise Template work is included.
+
 # 2.0.26 (Phase 226.02, revision 2) - Audit, Draft and version status refinement - 2026-09-06
 
 - Advanced technical metadata to `2.0.26+226022` while representing application version, development phase, corrective revision and monotonic platform build explicitly. The 30-day Alpha expiry remains `2026-10-06 23:59:59` because this revision was prepared on the same correction date.
@@ -1011,7 +1020,7 @@
 - Added creator-recorded MP3 Audio Library with TTS/recorded/hybrid modes and longest-match concatenation.
 - Added periodic orphan MP3 detection and confirmed cleanup.
 - Round header now includes course language and Chapter number.
-- Reconfirmed 10-tap Course Editor unlock and release checks.
+- Reconfirmed 10-tap Course Manager unlock and release checks.
 - Bundled sample courses remain capped at three TEMPORARY SAMPLE Chapters.
 
 # 0.5.1

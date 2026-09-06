@@ -542,7 +542,7 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Draft · Original prompt'));
+    await tester.tap(find.text('Original prompt'));
     await tester.pumpAndSettle();
     await tester.enterText(
       field('Prompt / instruction'),
@@ -562,7 +562,7 @@ void main() {
     await tester.tap(find.text('Discard changes'));
     await tester.pumpAndSettle();
     expect(find.byType(ExerciseEditorScreen), findsNothing);
-    expect(find.text('Draft · Original prompt'), findsOneWidget);
+    expect(find.text('Original prompt'), findsOneWidget);
   });
 
   testWidgets('new unsaved Exercises have no Previous/Next destination', (

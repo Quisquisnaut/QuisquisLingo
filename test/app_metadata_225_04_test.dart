@@ -24,15 +24,15 @@ void main() {
 
       expect(AppMetadata.releaseVersion, '2.0.26');
       expect(AppMetadata.developmentPhase, '226.02');
-      expect(AppMetadata.correctiveRevision, 2);
-      expect(AppMetadata.build, '226.02.2');
-      expect(AppMetadata.platformBuildNumber, '226022');
-      expect(AppMetadata.technicalVersion, '2.0.26+226022');
+      expect(AppMetadata.correctiveRevision, 3);
+      expect(AppMetadata.build, '226.02.3');
+      expect(AppMetadata.platformBuildNumber, '226023');
+      expect(AppMetadata.technicalVersion, '2.0.26+226023');
       expect(AppMetadata.version, AppMetadata.technicalVersion);
       expect(version, AppMetadata.technicalVersion);
       expect(
         AppMetadata.displayLabel,
-        'Version 2.0.26\nPhase 226.02, revision 2',
+        'Version 2.0.26\nPhase 226.02, revision 3',
       );
     },
   );
@@ -69,14 +69,14 @@ void main() {
         await tester.tap(target);
         await tester.pump();
       }
-      expect(find.text('Course Editor unlocked.'), findsNothing);
+      expect(find.text('Course Manager unlocked.'), findsNothing);
       expect(await SettingsService().isCourseEditorUnlocked(), isFalse);
 
       await tester.tap(target);
       await tester.pumpAndSettle();
-      expect(find.text('Course Editor unlocked.'), findsOneWidget);
+      expect(find.text('Course Manager unlocked.'), findsOneWidget);
       expect(await SettingsService().isCourseEditorUnlocked(), isTrue);
-      expect(find.text('Course Editor'), findsOneWidget);
+      expect(find.text('Course Manager'), findsOneWidget);
     },
   );
 }

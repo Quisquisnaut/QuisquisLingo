@@ -9,9 +9,9 @@ import '../services/course_service.dart';
 import 'course_editor_screen.dart';
 import 'course_info_screen.dart';
 import 'course_version_history_screen.dart';
-import 'editor_help_screen.dart';
 import 'guidebook_screen.dart';
 import 'round_screen.dart';
+import '../widgets/editor_app_bar_actions.dart';
 
 /// Official inspection resolves the publisher-owned source and never creates
 /// an authoring transaction. Only an explicitly licensed fork opens authoring.
@@ -126,15 +126,7 @@ class _OfficialCourseInspectionScreenState
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(
       title: const Text('Course Editor'),
-      actions: [
-        IconButton(
-          tooltip: 'Course Editor Help',
-          onPressed: () => Navigator.of(context).push<void>(
-            MaterialPageRoute(builder: (_) => const EditorHelpScreen()),
-          ),
-          icon: const Icon(Icons.help_outline),
-        ),
-      ],
+      actions: const [EditorAppBarActions()],
     ),
     body: FutureBuilder<Course>(
       future: _source,
@@ -215,7 +207,16 @@ class _OfficialCourseInspectionScreenState
                 key: ValueKey(
                   'official-lesson-${course.lessons[index].lessonId}',
                 ),
-                title: Text(course.lessons[index].title),
+                title: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(course.lessons[index].title),
+                    EditorInternalIdText(
+                      label: 'Lesson',
+                      id: course.lessons[index].lessonId,
+                    ),
+                  ],
+                ),
                 subtitle: Text('${course.lessons[index].rounds.length} Rounds'),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () => Navigator.of(context).push<void>(
@@ -260,11 +261,15 @@ class _OfficialLessonInspectionScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final lesson = course.lessons[lessonIndex];
     return Scaffold(
-      appBar: AppBar(title: Text(lesson.title)),
+      appBar: AppBar(
+        title: Text(lesson.title),
+        actions: const [EditorAppBarActions()],
+      ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
           const _ReadOnlyNotice(),
+          EditorInternalIdText(label: 'Lesson', id: lesson.lessonId),
           ListTile(
             title: const Text('Guidebook'),
             leading: const Icon(Icons.menu_book_outlined),
@@ -293,7 +298,16 @@ class _OfficialLessonInspectionScreen extends StatelessWidget {
           for (var index = 0; index < lesson.rounds.length; index++)
             ListTile(
               key: ValueKey('official-round-${lesson.rounds[index].id}'),
-              title: Text(lesson.rounds[index].displayTitle(index)),
+              title: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(lesson.rounds[index].displayTitle(index)),
+                  EditorInternalIdText(
+                    label: 'Round',
+                    id: lesson.rounds[index].id,
+                  ),
+                ],
+              ),
               subtitle: Text(
                 '${lesson.rounds[index].exercises.length} exercises',
               ),
@@ -329,11 +343,15 @@ class _OfficialRoundInspectionScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final round = lesson.rounds[roundIndex];
     return Scaffold(
-      appBar: AppBar(title: Text(round.displayTitle(roundIndex))),
+      appBar: AppBar(
+        title: Text(round.displayTitle(roundIndex)),
+        actions: const [EditorAppBarActions()],
+      ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
           const _ReadOnlyNotice(),
+          EditorInternalIdText(label: 'Round', id: round.id),
           ListTile(
             title: const Text('Preview Round'),
             leading: const Icon(Icons.play_circle_outline),
@@ -353,7 +371,16 @@ class _OfficialRoundInspectionScreen extends StatelessWidget {
           for (var index = 0; index < round.exercises.length; index++)
             ListTile(
               key: ValueKey('official-exercise-${round.exercises[index].id}'),
-              title: Text('Exercise ${index + 1}'),
+              title: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Exercise ${index + 1}'),
+                  EditorInternalIdText(
+                    label: 'Exercise',
+                    id: round.exercises[index].id,
+                  ),
+                ],
+              ),
               subtitle: Text(round.exercises[index].prompt),
               trailing: const Icon(Icons.visibility_outlined),
               onTap: () => Navigator.of(context).push<void>(
@@ -388,11 +415,15 @@ class _OfficialExerciseInspectionScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('Exercise inspection')),
+    appBar: AppBar(
+      title: const Text('Exercise inspection'),
+      actions: const [EditorAppBarActions()],
+    ),
     body: ListView(
       padding: const EdgeInsets.all(16),
       children: [
         const _ReadOnlyNotice(),
+        EditorInternalIdText(label: 'Exercise', id: exercise.id),
         OutlinedButton.icon(
           onPressed: () => Navigator.of(context).push<void>(
             MaterialPageRoute(

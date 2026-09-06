@@ -24,6 +24,7 @@ import 'package:quisquislingo_app/services/xp_service.dart';
 import 'package:quisquislingo_app/widgets/flag_art.dart';
 import 'package:quisquislingo_app/widgets/learner_bottom_actions.dart';
 import 'package:quisquislingo_app/widgets/learner_navigation.dart';
+import 'package:quisquislingo_app/widgets/lesson_fallback_icon.dart';
 import 'package:quisquislingo_app/widgets/learner_shell.dart';
 import 'package:quisquislingo_app/widgets/learner_theme_mode_scope.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -69,7 +70,7 @@ void main() {
       buildSignature: '',
     );
     SharedPreferences.setMockInitialValues({
-      'one_time_notice_seen_welcome_2.0.26+226022': true,
+      'one_time_notice_seen_welcome_2.0.26+226023': true,
       'sound_effects_enabled': false,
     });
     await ProfileService().addProfile('Navigation Learner');
@@ -244,7 +245,7 @@ void main() {
   testWidgets('Guidebook uses one 84 px icon slot for theme and fallback', (
     tester,
   ) async {
-    final course = Course(
+    var course = Course(
       courseId: 'icon_slot_course',
       learningLanguage: 'Italian',
       interfaceLanguage: 'English',
@@ -333,6 +334,65 @@ void main() {
     );
     expect(find.text('Start Here'), findsNothing);
 
+    course = Course.fromJson({
+      ...course.toJson(),
+      'defaultLessonIconStyle': 'coloredLessonNumbers',
+    });
+    await CourseEditorService().saveUserCourse(course);
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pumpAndSettle();
+    await _openHome(tester, scrollToActions: false);
+    await tester.scrollUntilVisible(
+      withoutIconTitle,
+      260,
+      scrollable: _mainLearnerScrollable(),
+    );
+    await tester.pumpAndSettle();
+    expect(
+      find.descendant(
+        of: withoutIconCard,
+        matching: find.byKey(const Key('guidebook-colored-fallback-icon')),
+      ),
+      findsOneWidget,
+    );
+    final learnerFallbackColors = tester
+        .widgetList<ColoredBox>(
+          find.descendant(
+            of: withoutIconCard,
+            matching: find.byType(ColoredBox),
+          ),
+        )
+        .map((box) => box.color)
+        .toSet();
+    expect(
+      learnerFallbackColors,
+      containsAll(LessonFallbackIcon.originalColors),
+    );
+    await tester.scrollUntilVisible(
+      find.byKey(
+        ValueKey('unified-guidebook-lesson-title-${withIcon.lessonId}'),
+      ),
+      -260,
+      scrollable: _mainLearnerScrollable(),
+    );
+    await tester.pumpAndSettle();
+    final reloadedExplicitIcon = find.descendant(
+      of: withIconCard,
+      matching: find.byKey(const Key('guidebook-theme-icon-image')),
+    );
+    expect(reloadedExplicitIcon, findsOneWidget);
+    expect(
+      (tester.widget<Image>(reloadedExplicitIcon).image as AssetImage)
+          .assetName,
+      withIcon.themeIconAsset,
+    );
+
+    await tester.scrollUntilVisible(
+      withoutIconTitle,
+      260,
+      scrollable: _mainLearnerScrollable(),
+    );
+    await tester.pumpAndSettle();
     await tester.tap(withoutIconCard);
     await tester.pumpAndSettle();
     expect(find.byType(GuidebookScreen), findsOneWidget);
@@ -2276,7 +2336,7 @@ void main() {
         (text) =>
             text.data != 'Welcome to QuisquisLingo' &&
             text.data != 'Version 2.0.26' &&
-            text.data != 'Phase 226.02, revision 2' &&
+            text.data != 'Phase 226.02, revision 3' &&
             text.data != 'Continue',
       );
       final welcomeDialog = tester.widget<AlertDialog>(
@@ -2293,11 +2353,11 @@ void main() {
         const Color(0xFF0756DF),
       );
       expect(
-        tester.widget<Text>(find.text('Phase 226.02, revision 2')).style?.color,
+        tester.widget<Text>(find.text('Phase 226.02, revision 3')).style?.color,
         const Color(0xFF0756DF),
       );
       expect(find.textContaining('22621'), findsNothing);
-      expect(find.textContaining('226022'), findsNothing);
+      expect(find.textContaining('226023'), findsNothing);
       expect(phrase.style?.color, const Color(0xFF0756DF));
       expect(find.widgetWithText(FilledButton, 'Continue'), findsOneWidget);
       expect(

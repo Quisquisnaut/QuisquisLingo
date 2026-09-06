@@ -9,6 +9,7 @@ import '../services/course_editor_service.dart';
 import '../services/course_editor_transaction.dart';
 import '../services/course_service.dart';
 import '../services/course_audit_service.dart';
+import '../services/audit_code_registry.dart' show AuditCode;
 import '../services/course_audit_report_service.dart';
 import '../services/settings_service.dart';
 import '../services/lesson_icon_catalog.dart';
@@ -25,28 +26,24 @@ import '../services/course_authoring_transfer_service.dart';
 import '../services/exercise_field_help.dart';
 import '../widgets/editor_breadcrumbs.dart';
 import '../widgets/authoring_destination_dialog.dart';
+import '../widgets/editor_app_bar_actions.dart';
 import '../services/custom_course_transfer_service.dart';
 import '../services/authoring_duplication_service.dart';
 import '../services/exercise_creation_planner.dart';
 import '../services/guidebook_round_generator.dart';
 import '../services/publication_service.dart';
 import '../widgets/flag_art.dart';
-
-int _draftExerciseCount(Iterable<LearningRound> rounds) => rounds
-    .expand((round) => round.exercises)
-    .where((exercise) => !exercise.publicationState.isPublished)
-    .length;
-
-String _draftExerciseCountLabel(int count) =>
-    '$count Draft ${count == 1 ? 'Exercise' : 'Exercises'}';
+import '../widgets/lesson_fallback_icon.dart';
 
 String _exerciseCountLabel(int count) =>
     '$count ${count == 1 ? 'Exercise' : 'Exercises'}';
+String _roundCountLabel(int count) =>
+    '$count ${count == 1 ? 'Round' : 'Rounds'}';
 
 const _hierarchyLinkStyle = TextStyle(fontWeight: FontWeight.w800);
 
-class _AuthoringHierarchyStatus {
-  _AuthoringHierarchyStatus._(this.course, CourseAuditResult audit)
+class AuthoringHierarchyStatus {
+  AuthoringHierarchyStatus._(this.course, CourseAuditResult audit)
     : hasCourseAuditConcern = audit.issues.any(_isAuditConcern),
       exerciseAuditConcernIds = {
         for (final issue in audit.issues)
@@ -69,14 +66,24 @@ class _AuthoringHierarchyStatus {
                     )),
           ))
             course.lessons[index].lessonId,
+      },
+      lessonEmptyRoundsIds = {
+        for (var index = 0; index < course.lessons.length; index++)
+          if (audit.issues.any(
+            (issue) =>
+                issue.code == AuditCode.lessonRoundsEmpty.code &&
+                issue.location ==
+                    'Lesson ${index + 1} · ${course.lessons[index].title}',
+          ))
+            course.lessons[index].lessonId,
       };
 
   static bool _isAuditConcern(CourseAuditIssue issue) =>
       issue.severity == AuditSeverity.error ||
       issue.severity == AuditSeverity.warning;
 
-  factory _AuthoringHierarchyStatus.fromCourse(Course course) =>
-      _AuthoringHierarchyStatus._(
+  factory AuthoringHierarchyStatus.fromCourse(Course course) =>
+      AuthoringHierarchyStatus._(
         course,
         CourseAuditService().auditCourse(course),
       );
@@ -86,6 +93,7 @@ class _AuthoringHierarchyStatus {
   final Set<String> exerciseAuditConcernIds;
   final Set<String> roundAuditConcernIds;
   final Set<String> lessonAuditConcernIds;
+  final Set<String> lessonEmptyRoundsIds;
 
   bool get courseHasDraft => course.lessons.any(lessonHasDraft);
   bool lessonHasDraft(Lesson lesson) =>
@@ -93,6 +101,7 @@ class _AuthoringHierarchyStatus {
   bool lessonHasAuditConcern(Lesson lesson) =>
       lessonAuditConcernIds.contains(lesson.lessonId);
   bool lessonHasRoundAuditConcern(Lesson lesson) =>
+      lessonEmptyRoundsIds.contains(lesson.lessonId) ||
       lesson.rounds.any(roundHasAuditConcern);
   bool roundHasDraft(LearningRound round) =>
       round.exercises.any(exerciseIsDraft);
@@ -104,8 +113,8 @@ class _AuthoringHierarchyStatus {
       exerciseAuditConcernIds.contains(exercise.id);
 }
 
-class _AuthoringStatusCard extends StatelessWidget {
-  const _AuthoringStatusCard({
+class AuthoringStatusCard extends StatelessWidget {
+  const AuthoringStatusCard({
     super.key,
     required this.indicatorKey,
     required this.draftIndicatorKey,
@@ -138,7 +147,7 @@ class _AuthoringStatusCard extends StatelessWidget {
     };
     return Tooltip(
       message:
-          '$auditMessage ${hasDraft ? 'Blue Draft indicator: this branch contains a Draft Exercise.' : 'This branch contains no Draft Exercise.'}',
+          '$auditMessage${hasDraft ? ' Blue Draft indicator: this branch contains a Draft Exercise hidden from learner delivery.' : ''}',
       child: Container(
         key: indicatorKey,
         child: Column(
@@ -1056,10 +1065,12 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
                       ],
                       const SizedBox(height: 8),
                       DropdownButtonFormField<LessonFallbackIconStyle>(
+                        key: const Key('course-info-lesson-fallback-style'),
                         initialValue: defaultLessonIconStyle,
+                        isExpanded: true,
                         decoration: const InputDecoration(
                           border: OutlineInputBorder(),
-                          labelText: 'Default Lesson icon style',
+                          labelText: 'Fallback lesson icon style',
                         ),
                         items: const [
                           DropdownMenuItem(
@@ -1068,13 +1079,37 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
                           ),
                           DropdownMenuItem(
                             value: LessonFallbackIconStyle.coloredLessonNumbers,
-                            child: Text('Colored lesson numbers'),
+                            child: Text('Colored'),
                           ),
                         ],
                         onChanged: (value) => setLocalState(
                           () => defaultLessonIconStyle =
                               value ?? defaultLessonIconStyle,
                         ),
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        key: const Key('course-info-lesson-fallback-preview'),
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          LessonFallbackIcon(
+                            style: defaultLessonIconStyle,
+                            number: 1,
+                            size: 52,
+                            monochromeKey: const Key(
+                              'course-info-fallback-monochrome',
+                            ),
+                            coloredKey: const Key(
+                              'course-info-fallback-colored',
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          const Expanded(
+                            child: Text(
+                              'Used only when a Lesson has no explicitly selected icon. Monochrome applies the current theme tint; Colored preserves the fallback icon’s original colors. Explicitly selected custom icons remain unchanged.',
+                            ),
+                          ),
+                        ],
                       ),
                       const SizedBox(height: 12),
                       DropdownButtonFormField<String>(
@@ -1503,7 +1538,7 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final hierarchyStatus = _AuthoringHierarchyStatus.fromCourse(_course);
+    final hierarchyStatus = AuthoringHierarchyStatus.fromCourse(_course);
     final canExportCourse =
         widget.userCourse && _course.originType == CourseOriginType.custom;
     return PopScope(
@@ -1544,23 +1579,17 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
           ),
           actions: [
             IconButton(
-              tooltip: 'Course Editor Help',
-              onPressed: () => Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const EditorHelpScreen()),
-              ),
-              icon: const Icon(Icons.help_outline),
-            ),
-            IconButton(
               tooltip: 'Run Course Audit',
               onPressed: _runAudit,
               icon: const Icon(Icons.fact_check_outlined),
             ),
+            const EditorAppBarActions(),
           ],
         ),
         body: ListView(
           padding: const EdgeInsets.only(bottom: 24),
           children: [
-            _AuthoringStatusCard(
+            AuthoringStatusCard(
               indicatorKey: const Key('course-lessons-status-indicator'),
               draftIndicatorKey: const Key('course-lessons-draft-indicator'),
               hasDraft: hierarchyStatus.courseHasDraft,
@@ -1570,20 +1599,12 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
                 key: const Key('course-editor-lessons-navigation'),
                 leading: const Icon(Icons.school_outlined),
                 title: const Text('Lessons', style: _hierarchyLinkStyle),
-                subtitle: Text(
-                  '${_course.lessons.length} Lessons · ${_draftExerciseCountLabel(_draftExerciseCount(_course.lessons.expand((lesson) => lesson.rounds)))}',
-                ),
+                subtitle: Text('${_course.lessons.length} Lessons'),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: _openLessons,
               ),
             ),
             const Divider(height: 1),
-            if (!_course.publicationState.isPublished)
-              const ListTile(
-                leading: Icon(Icons.edit_note_outlined),
-                title: Text('Draft'),
-                subtitle: Text('This Course is not learner-selectable.'),
-              ),
             if (_course.temporarySample)
               const ListTile(
                 leading: Icon(Icons.label_outline),
@@ -1616,7 +1637,7 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
               subtitle: Text(
                 _course.publicationState.isPublished
                     ? 'Normal content · included in learner delivery after final confirmation'
-                    : 'Draft · hidden from learner delivery',
+                    : 'Hidden from learner delivery until saved as normal content',
               ),
               trailing: TextButton(
                 onPressed: _toggleCourseDraftStatus,
@@ -1995,7 +2016,7 @@ class _LessonManagementScreenState extends State<LessonManagementScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final hierarchyStatus = _AuthoringHierarchyStatus.fromCourse(_course);
+    final hierarchyStatus = AuthoringHierarchyStatus.fromCourse(_course);
     return PopScope(
       canPop: _routeMayPop,
       onPopInvokedWithResult: (didPop, result) {
@@ -2005,6 +2026,7 @@ class _LessonManagementScreenState extends State<LessonManagementScreen> {
         appBar: AppBar(
           title: const Text('Lessons'),
           leading: BackButton(onPressed: _returnToCourse),
+          actions: const [EditorAppBarActions()],
         ),
         floatingActionButton: FloatingActionButton.extended(
           onPressed: _locked ? null : _addLesson,
@@ -2041,7 +2063,7 @@ class _LessonManagementScreenState extends State<LessonManagementScreen> {
                             lesson.section && lesson.sectionName != null
                             ? ' · ${lesson.sectionName}'
                             : '';
-                        return _AuthoringStatusCard(
+                        return AuthoringStatusCard(
                           key: ValueKey(lesson.lessonId),
                           indicatorKey: ValueKey(
                             'lesson-status-indicator-${lesson.lessonId}',
@@ -2058,9 +2080,18 @@ class _LessonManagementScreenState extends State<LessonManagementScreen> {
                               enabled: !_locked,
                               child: const Icon(Icons.drag_handle),
                             ),
-                            title: Text('Lesson ${index + 1}: ${lesson.title}'),
+                            title: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('Lesson ${index + 1}: ${lesson.title}'),
+                                EditorInternalIdText(
+                                  label: 'Lesson',
+                                  id: lesson.lessonId,
+                                ),
+                              ],
+                            ),
                             subtitle: Text(
-                              '${lesson.publicationState.isPublished ? '' : 'Draft · '}${lesson.rounds.length} Rounds$section · ${_draftExerciseCountLabel(_draftExerciseCount(lesson.rounds))}',
+                              '${_roundCountLabel(lesson.rounds.length)}$section',
                             ),
                             onTap: _locked ? null : () => _openLesson(index),
                             trailing: PopupMenuButton<String>(
@@ -2835,7 +2866,7 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final hierarchyStatus = _AuthoringHierarchyStatus.fromCourse(
+    final hierarchyStatus = AuthoringHierarchyStatus.fromCourse(
       _courseWithIcons,
     );
     return PopScope(
@@ -2858,6 +2889,7 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
               onPressed: _rename,
               icon: const Icon(Icons.edit_outlined),
             ),
+            const EditorAppBarActions(),
           ],
         ),
         bottomNavigationBar: SafeArea(
@@ -2871,14 +2903,6 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
                 EditorBreadcrumbs(
                   course: _courseWithIcons,
                   lessonId: _lesson.lessonId,
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: Text(
-                    _draftExerciseCountLabel(
-                      _draftExerciseCount(_lesson.rounds),
-                    ),
-                  ),
                 ),
                 OutlinedButton(
                   key: const Key('save-lesson-draft'),
@@ -2898,7 +2922,8 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
           key: const Key('lesson-metadata-controls'),
           padding: const EdgeInsets.only(bottom: 48),
           children: [
-            _AuthoringStatusCard(
+            EditorInternalIdText(label: 'Lesson', id: _lesson.lessonId),
+            AuthoringStatusCard(
               indicatorKey: const Key('lesson-rounds-status-indicator'),
               draftIndicatorKey: const Key('lesson-rounds-draft-indicator'),
               hasDraft: hierarchyStatus.lessonHasDraft(_lesson),
@@ -2910,18 +2935,12 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
                 key: const Key('lesson-rounds-navigation'),
                 leading: const Icon(Icons.view_list_outlined),
                 title: const Text('Rounds', style: _hierarchyLinkStyle),
-                subtitle: Text('${_lesson.rounds.length} Rounds'),
+                subtitle: Text(_roundCountLabel(_lesson.rounds.length)),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: _openRounds,
               ),
             ),
             const Divider(height: 1),
-            if (!_lesson.publicationState.isPublished)
-              const ListTile(
-                leading: Icon(Icons.edit_note_outlined),
-                title: Text('Draft'),
-                subtitle: Text('This Lesson is hidden from learners.'),
-              ),
             ListTile(
               key: const Key('lesson-title-control'),
               leading: const Icon(Icons.title),
@@ -3839,7 +3858,7 @@ class _LessonRoundsScreenState extends State<LessonRoundsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final hierarchyStatus = _AuthoringHierarchyStatus.fromCourse(
+    final hierarchyStatus = AuthoringHierarchyStatus.fromCourse(
       _auditableCourse,
     );
     return PopScope<List<LearningRound>>(
@@ -3848,7 +3867,10 @@ class _LessonRoundsScreenState extends State<LessonRoundsScreen> {
         if (!didPop) _returnToLesson();
       },
       child: Scaffold(
-        appBar: AppBar(title: Text('Rounds · ${widget.lesson.title}')),
+        appBar: AppBar(
+          title: Text('Rounds · ${widget.lesson.title}'),
+          actions: const [EditorAppBarActions()],
+        ),
         floatingActionButton: FloatingActionButton.extended(
           onPressed: _add,
           icon: const Icon(Icons.add),
@@ -3862,9 +3884,7 @@ class _LessonRoundsScreenState extends State<LessonRoundsScreen> {
                 course: _auditableCourse,
                 lessonId: widget.lesson.lessonId,
               ),
-              Text(
-                '${_draftExerciseCountLabel(_draftExerciseCount(_rounds))} · Red: Audit Error or Warning · Green: no Error or Warning · Blue: Draft Exercises',
-              ),
+              EditorInternalIdText(label: 'Lesson', id: widget.lesson.lessonId),
             ],
           ),
           padding: const EdgeInsets.fromLTRB(10, 10, 10, 90),
@@ -3872,8 +3892,7 @@ class _LessonRoundsScreenState extends State<LessonRoundsScreen> {
           onReorderItem: _reorder,
           itemBuilder: (context, index) {
             final round = _rounds[index];
-            final drafts = _draftExerciseCount([round]);
-            return _AuthoringStatusCard(
+            return AuthoringStatusCard(
               key: ValueKey(round.id),
               indicatorKey: ValueKey('round-status-indicator-${round.id}'),
               draftIndicatorKey: ValueKey('round-draft-indicator-${round.id}'),
@@ -3884,12 +3903,14 @@ class _LessonRoundsScreenState extends State<LessonRoundsScreen> {
                   index: index,
                   child: const Icon(Icons.drag_handle),
                 ),
-                title: Text(round.displayTitle(index)),
-                subtitle: Text(
-                  round.exercises.isEmpty
-                      ? '0 Exercises'
-                      : '${round.publicationState.isPublished ? '' : 'Draft · '}${_exerciseCountLabel(round.exercises.length)} · ${_draftExerciseCountLabel(drafts)}',
+                title: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(round.displayTitle(index)),
+                    EditorInternalIdText(label: 'Round', id: round.id),
+                  ],
                 ),
+                subtitle: Text(_exerciseCountLabel(round.exercises.length)),
                 onTap: () => _open(index),
                 trailing: PopupMenuButton<String>(
                   key: ValueKey('round-actions-${round.id}'),
@@ -4810,9 +4831,7 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final hierarchyStatus = _AuthoringHierarchyStatus.fromCourse(
-      _workingCourse,
-    );
+    final hierarchyStatus = AuthoringHierarchyStatus.fromCourse(_workingCourse);
     return PopScope(
       canPop: _routeMayPop,
       onPopInvokedWithResult: (didPop, _) {
@@ -4835,6 +4854,7 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
               onPressed: _rename,
               icon: const Icon(Icons.edit_outlined),
             ),
+            const EditorAppBarActions(),
           ],
         ),
         bottomNavigationBar: SafeArea(
@@ -4872,18 +4892,30 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
           ),
         ),
         body: ReorderableListView.builder(
-          header: EditorBreadcrumbs(
-            course: _workingCourse,
-            lessonId: _lesson.lessonId,
-            roundId: widget.round.id,
-            onParent: widget.linkParent ? _returnToRounds : null,
+          header: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              EditorBreadcrumbs(
+                course: _workingCourse,
+                lessonId: _lesson.lessonId,
+                roundId: widget.round.id,
+                onParent: widget.linkParent ? _returnToRounds : null,
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                child: EditorInternalIdText(
+                  label: 'Round',
+                  id: widget.round.id,
+                ),
+              ),
+            ],
           ),
           padding: const EdgeInsets.fromLTRB(10, 10, 10, 20),
           itemCount: _exercises.length,
           onReorderItem: _reorder,
           itemBuilder: (context, i) {
             final e = _exercises[i];
-            return _AuthoringStatusCard(
+            return AuthoringStatusCard(
               key: ValueKey(e.id),
               indicatorKey: ValueKey('exercise-status-indicator-${e.id}'),
               draftIndicatorKey: ValueKey('exercise-draft-indicator-${e.id}'),
@@ -4894,9 +4926,15 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
                   index: i,
                   child: CircleAvatar(child: Text('${i + 1}')),
                 ),
-                title: Text(_ExerciseEditorScreenState.labelForType(e.type)),
+                title: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(_ExerciseEditorScreenState.labelForType(e.type)),
+                    EditorInternalIdText(label: 'Exercise', id: e.id),
+                  ],
+                ),
                 subtitle: Text(
-                  '${e.publicationState.isPublished ? '' : 'Draft · '}${_summary(e)}',
+                  _summary(e),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -7094,7 +7132,7 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
               ? widget.title
               : 'Edit Exercise ${_exerciseIndex + 1}',
         ),
-        actions: const [],
+        actions: const [EditorAppBarActions()],
       ),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 28),
@@ -7107,6 +7145,8 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
               exercise: true,
               onParent: widget.linkParent ? _leave : null,
             ),
+          if (_exercise.id.trim().isNotEmpty)
+            EditorInternalIdText(label: 'Exercise', id: _exercise.id),
           Wrap(
             spacing: 8,
             runSpacing: 8,

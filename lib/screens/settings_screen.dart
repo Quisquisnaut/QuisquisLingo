@@ -168,7 +168,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           duration: Duration(seconds: 8),
-          content: Text('Course Editor unlocked.'),
+          content: Text('Course Manager unlocked.'),
         ),
       );
     }
@@ -263,7 +263,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 if (_editorUnlocked)
                   ListTile(
                     leading: const Icon(Icons.edit_note_outlined),
-                    title: const Text('Course Editor'),
+                    title: const Text('Course Manager'),
                     subtitle: const Text(
                       'Author courses, generate exercise sets and run Course Audit.',
                     ),

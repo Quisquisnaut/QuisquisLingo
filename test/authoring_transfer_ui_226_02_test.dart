@@ -412,12 +412,7 @@ void main() {
         (sourceCard.shape! as RoundedRectangleBorder).side.color,
         const Color(0xFFC90000),
       );
-      expect(
-        find.text(
-          '1 Draft Exercise · Red: Audit Error or Warning · Green: no Error or Warning · Blue: Draft Exercises',
-        ),
-        findsOneWidget,
-      );
+      expect(find.textContaining('Draft Exercise'), findsNothing);
       final destinationCard = tester.widget<Card>(
         find.descendant(
           of: find.byKey(
@@ -442,12 +437,7 @@ void main() {
       expect(changes, hasLength(1));
       final copy = changes.single.lessons.first.rounds.last;
       expect(copy.exercises, hasLength(4));
-      expect(
-        find.text(
-          '5 Draft Exercises · Red: Audit Error or Warning · Green: no Error or Warning · Blue: Draft Exercises',
-        ),
-        findsOneWidget,
-      );
+      expect(find.textContaining('Draft Exercises'), findsNothing);
       final copiedDraftIndicator = find.byKey(
         ValueKey('round-draft-indicator-${copy.id}'),
       );

@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'dart:io';
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
@@ -7,6 +9,7 @@ import 'package:quisquislingo_app/models/course_models.dart';
 import 'package:quisquislingo_app/screens/course_editor_screen.dart';
 import 'package:quisquislingo_app/services/course_audit_service.dart';
 import 'package:quisquislingo_app/services/lesson_icon_catalog.dart';
+import 'package:quisquislingo_app/widgets/lesson_fallback_icon.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -405,6 +408,132 @@ void main() {
       expect(saved!.sectionName, 'Draft Section');
     },
   );
+
+  testWidgets(
+    'Course Info visibly previews and persists the existing fallback mode',
+    (tester) async {
+      await tester.binding.setSurfaceSize(const Size(480, 900));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      final course = _course(
+        Lesson(
+          lessonId: 'fallback-lesson',
+          title: 'No explicit icon',
+          rounds: const [],
+        ),
+      );
+      await tester.pumpWidget(
+        MaterialApp(home: CourseEditorScreen(course: course, userCourse: true)),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Course info'));
+      await tester.pumpAndSettle();
+      expect(
+        find.byKey(const Key('course-info-fallback-monochrome')),
+        findsOneWidget,
+      );
+      expect(find.text('Fallback lesson icon style'), findsOneWidget);
+      final monochromeAvatar = tester.widget<CircleAvatar>(
+        find.descendant(
+          of: find.byKey(const Key('course-info-fallback-monochrome')),
+          matching: find.byType(CircleAvatar),
+        ),
+      );
+      expect(
+        monochromeAvatar.backgroundColor,
+        Theme.of(
+          tester.element(find.byType(AlertDialog)),
+        ).colorScheme.primaryContainer,
+      );
+      expect(
+        find.byKey(const Key('course-info-fallback-colored')),
+        findsNothing,
+      );
+      await tester.ensureVisible(
+        find.byKey(const Key('course-info-lesson-fallback-style')),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(
+        find.byKey(const Key('course-info-lesson-fallback-style')),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Colored').last);
+      await tester.pumpAndSettle();
+      expect(
+        find.byKey(const Key('course-info-fallback-colored')),
+        findsOneWidget,
+      );
+      final coloredBoxes = tester
+          .widgetList<ColoredBox>(
+            find.descendant(
+              of: find.byKey(const Key('course-info-fallback-colored')),
+              matching: find.byType(ColoredBox),
+            ),
+          )
+          .map((box) => box.color)
+          .toSet();
+      expect(coloredBoxes, containsAll(LessonFallbackIcon.originalColors));
+      await tester.ensureVisible(find.widgetWithText(FilledButton, 'Save'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(FilledButton, 'Save'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Course info'));
+      await tester.pumpAndSettle();
+      expect(
+        find.byKey(const Key('course-info-fallback-colored')),
+        findsOneWidget,
+      );
+      expect(
+        find.textContaining(
+          'Explicitly selected custom icons remain unchanged',
+        ),
+        findsOneWidget,
+      );
+      final saved = Course.fromJson({
+        ...course.toJson(),
+        'defaultLessonIconStyle': 'coloredLessonNumbers',
+      });
+      final reloaded = Course.fromJson(saved.toJson());
+      expect(
+        reloaded.defaultLessonIconStyle,
+        LessonFallbackIconStyle.coloredLessonNumbers,
+      );
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  test('fallback mode does not alter an explicit multicolored custom icon', () {
+    final png = base64Encode(
+      File('assets/lesson_icons/home.png').readAsBytesSync(),
+    );
+    final asset = CourseLessonIconAsset(
+      assetId: 'multicolored-fixture',
+      base64Png: png,
+    );
+    final base = _course(
+      Lesson(
+        lessonId: 'custom-icon-lesson',
+        title: 'Custom icon',
+        themeIconAsset: asset.reference,
+        rounds: const [],
+      ),
+    );
+    final source = Course.fromJson({
+      ...base.toJson(),
+      'lessonIconAssets': [asset.toJson()],
+      'defaultLessonIconStyle': 'monochrome',
+    });
+    final colored = Course.fromJson({
+      ...source.toJson(),
+      'defaultLessonIconStyle': 'coloredLessonNumbers',
+    });
+    expect(colored.lessons.single.themeIconAsset, asset.reference);
+    expect(colored.lessonIconAssets.single.base64Png, png);
+    expect(source.lessonIconAssets.single.base64Png, png);
+    expect(
+      colored.defaultLessonIconStyle,
+      LessonFallbackIconStyle.coloredLessonNumbers,
+    );
+  });
 }
 
 Course _course(Lesson lesson) => Course(

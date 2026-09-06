@@ -99,7 +99,10 @@ void main() {
         find.byKey(const Key('unified-learner-flag-background')),
       );
       expect(backdrop.course.courseId, 'sample_ko_en_ko');
-      expect(backdrop.course.title, 'Korean');
+      expect(
+        backdrop.course.title,
+        'AI-Slop Demo: Korean for English Speakers',
+      );
       expect(backdrop.course.sourceLanguage, 'English');
       expect(backdrop.course.targetLanguage, 'Korean');
       expect(backdrop.course.flagCode, 'KR');
