@@ -1771,8 +1771,13 @@ class _RoundScreenState extends State<RoundScreen> {
                   style: Theme.of(context).textTheme.bodyLarge,
                 ),
               ),
-              if (widget.previewMode ||
-                  widget.lesson.guidebook.publicationState.isPublished) ...[
+              if (widget.course.useGuidebook &&
+                  (widget.previewMode ||
+                      widget
+                          .lesson
+                          .guidebook
+                          .publicationState
+                          .isPublished)) ...[
                 const SizedBox(height: 16),
                 OutlinedButton.icon(
                   onPressed: () => Navigator.of(context).push(

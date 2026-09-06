@@ -317,6 +317,7 @@ class _OfficialLessonInspectionScreen extends StatelessWidget {
               ),
             ),
           ),
+          EditorInternalIdText(label: 'GuideBook', id: lesson.guidebookId),
           for (var index = 0; index < lesson.rounds.length; index++)
             _OfficialHierarchyEntry(
               label: 'Round',

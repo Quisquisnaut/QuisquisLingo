@@ -73,7 +73,7 @@ void main() {
       buildSignature: '',
     );
     SharedPreferences.setMockInitialValues({
-      'one_time_notice_seen_welcome_2.0.26+226031': true,
+      'one_time_notice_seen_welcome_2.0.26+226040': true,
       'sound_effects_enabled': false,
     });
     await ProfileService().addProfile('Navigation Learner');
@@ -2359,7 +2359,7 @@ void main() {
         (text) =>
             text.data != 'Welcome to QuisquisLingo' &&
             text.data != 'Version 2.0.26' &&
-            text.data != 'Phase 226.03, revision 1' &&
+            text.data != 'Phase 226.04, revision 0' &&
             text.data != 'Continue',
       );
       final welcomeDialog = tester.widget<AlertDialog>(
@@ -2376,11 +2376,11 @@ void main() {
         const Color(0xFF0756DF),
       );
       expect(
-        tester.widget<Text>(find.text('Phase 226.03, revision 1')).style?.color,
+        tester.widget<Text>(find.text('Phase 226.04, revision 0')).style?.color,
         const Color(0xFF0756DF),
       );
       expect(find.textContaining('22621'), findsNothing);
-      expect(find.textContaining('226031'), findsNothing);
+      expect(find.textContaining('226040'), findsNothing);
       expect(phrase.style?.color, const Color(0xFF0756DF));
       expect(find.widgetWithText(FilledButton, 'Continue'), findsOneWidget);
       expect(

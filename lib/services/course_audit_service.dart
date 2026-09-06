@@ -499,7 +499,7 @@ class CourseAuditService {
           ));
         }
       }
-      if (gb.content.isEmpty)
+      if (course.useGuidebook && gb.content.isEmpty)
         issues.add(
           CourseAuditIssue.fromCode(
             AuditCode.lessonGuidebookEmpty,
@@ -669,7 +669,7 @@ class CourseAuditService {
         }
       }
       final eligibility = const DuelEligibilityService().evaluate(t);
-      if (!eligibility.isAvailable)
+      if (course.createDuels && !eligibility.isAvailable)
         issues.add(
           CourseAuditIssue.fromCode(
             AuditCode.duelUnavailable,

@@ -1,6 +1,11 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import '../models/course_models.dart';
+import '../models/world_flag_entity.dart';
+import '../services/world_flag_repository.dart';
+import 'world_flag_art.dart';
+
+final WorldFlagRepository _sharedWorldFlagRepository = WorldFlagRepository();
 
 /// Shared flag artwork used by selectors, course/Lesson backdrops and short
 /// transition animations. Keeping one painter avoids visual drift between the
@@ -292,14 +297,16 @@ class FlagPainter extends CustomPainter {
       oldDelegate.code != code;
 }
 
-/// Course-aware flag badge. A custom imported flag takes precedence over the
-/// built-in flag code. The JSON stores only the resized PNG so exported custom
-/// courses remain portable and do not depend on the original image path.
+/// Course-aware flag badge. A selected World Flag identity resolves through
+/// the authoritative manifest. Otherwise a custom imported flag takes
+/// precedence over the built-in flag code. The JSON stores only the resized
+/// custom PNG so exported custom courses do not depend on its original path.
 class CourseFlagBadge extends StatelessWidget {
   final Course course;
   final String fallbackCode;
   final double width;
   final double height;
+  final WorldFlagRepository? worldFlagRepository;
 
   const CourseFlagBadge({
     super.key,
@@ -307,10 +314,75 @@ class CourseFlagBadge extends StatelessWidget {
     required this.fallbackCode,
     this.width = 44,
     this.height = 31,
+    this.worldFlagRepository,
   });
 
   @override
   Widget build(BuildContext context) {
+    final worldFlagId = course.worldFlagId.trim();
+    if (worldFlagId.isNotEmpty) {
+      return _WorldFlagResolver(
+        id: worldFlagId,
+        repository: worldFlagRepository ?? _sharedWorldFlagRepository,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState != ConnectionState.done) {
+            return SizedBox(
+              key: ValueKey('course-world-flag-loading-$worldFlagId'),
+              width: width,
+              height: height,
+              child: const Center(
+                child: SizedBox.square(
+                  dimension: 14,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+              ),
+            );
+          }
+          final entity = snapshot.data;
+          if (entity == null) {
+            return Tooltip(
+              message: 'World Flag unavailable: $worldFlagId',
+              child: Container(
+                key: ValueKey('course-world-flag-unavailable-$worldFlagId'),
+                width: width,
+                height: height,
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                  borderRadius: BorderRadius.circular(7),
+                  border: Border.all(
+                    color: Theme.of(context).colorScheme.outlineVariant,
+                  ),
+                ),
+                child: Icon(
+                  Icons.flag_outlined,
+                  size: height * .58,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
+            );
+          }
+          return Container(
+            key: ValueKey('course-world-flag-${entity.id}'),
+            width: width,
+            height: height,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(7),
+              border: Border.all(color: Colors.white, width: 2),
+              boxShadow: const [
+                BoxShadow(blurRadius: 3, color: Color(0x22000000)),
+              ],
+            ),
+            clipBehavior: Clip.antiAlias,
+            child: WorldFlagArt(
+              entity: entity,
+              semanticsLabel: '${entity.displayNameEn} course flag',
+              showFrame: false,
+            ),
+          );
+        },
+      );
+    }
     final encoded = course.flagImageBase64.trim();
     if (encoded.isNotEmpty) {
       try {
@@ -349,6 +421,7 @@ class CourseFlagBackdrop extends StatelessWidget {
   final String fallbackCode;
   final double opacity;
   final BoxFit fit;
+  final WorldFlagRepository? worldFlagRepository;
 
   const CourseFlagBackdrop({
     super.key,
@@ -356,10 +429,50 @@ class CourseFlagBackdrop extends StatelessWidget {
     required this.fallbackCode,
     this.opacity = .82,
     this.fit = BoxFit.contain,
+    this.worldFlagRepository,
   });
 
   @override
   Widget build(BuildContext context) {
+    final worldFlagId = course.worldFlagId.trim();
+    if (worldFlagId.isNotEmpty) {
+      return _WorldFlagResolver(
+        id: worldFlagId,
+        repository: worldFlagRepository ?? _sharedWorldFlagRepository,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState != ConnectionState.done) {
+            return SizedBox.expand(
+              key: ValueKey('course-world-flag-backdrop-loading-$worldFlagId'),
+            );
+          }
+          final entity = snapshot.data;
+          if (entity == null) {
+            return Semantics(
+              label: 'World Flag unavailable: $worldFlagId',
+              child: SizedBox.expand(
+                key: ValueKey(
+                  'course-world-flag-backdrop-unavailable-$worldFlagId',
+                ),
+              ),
+            );
+          }
+          return IgnorePointer(
+            child: Opacity(
+              opacity: opacity,
+              child: SizedBox.expand(
+                key: ValueKey('course-world-flag-backdrop-${entity.id}'),
+                child: WorldFlagArt(
+                  entity: entity,
+                  fit: fit,
+                  semanticsLabel: '${entity.displayNameEn} course background',
+                  showFrame: false,
+                ),
+              ),
+            ),
+          );
+        },
+      );
+    }
     final encoded = course.flagImageBase64.trim();
     if (encoded.isNotEmpty) {
       try {
@@ -381,4 +494,42 @@ class CourseFlagBackdrop extends StatelessWidget {
         : course.flagCode;
     return FlagBackdrop(code: code, opacity: opacity, fit: fit);
   }
+}
+
+class _WorldFlagResolver extends StatefulWidget {
+  final String id;
+  final WorldFlagRepository repository;
+  final AsyncWidgetBuilder<WorldFlagEntity?> builder;
+
+  const _WorldFlagResolver({
+    required this.id,
+    required this.repository,
+    required this.builder,
+  });
+
+  @override
+  State<_WorldFlagResolver> createState() => _WorldFlagResolverState();
+}
+
+class _WorldFlagResolverState extends State<_WorldFlagResolver> {
+  late Future<WorldFlagEntity?> _entity;
+
+  @override
+  void initState() {
+    super.initState();
+    _entity = widget.repository.findById(widget.id);
+  }
+
+  @override
+  void didUpdateWidget(covariant _WorldFlagResolver oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.id != widget.id ||
+        !identical(oldWidget.repository, widget.repository)) {
+      _entity = widget.repository.findById(widget.id);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) =>
+      FutureBuilder<WorldFlagEntity?>(future: _entity, builder: widget.builder);
 }

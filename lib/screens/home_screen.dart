@@ -874,7 +874,10 @@ class _HomeScreenState extends State<HomeScreen> {
       return courseTile(
         key: ValueKey('recent-course-$ref'),
         course: bundledCourses[code]!,
-        leading: FlagBadge(code),
+        leading: CourseFlagBadge(
+          course: bundledCourses[code]!,
+          fallbackCode: code,
+        ),
         subtitle: Text(
           '${CourseService.sourceLabels[code] ?? 'English'} → ${CourseService.targetLabels[code] ?? code}',
         ),
@@ -937,7 +940,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 courseTile(
                   key: ValueKey('bundled-course-$code'),
                   course: bundledCourses[code]!,
-                  leading: FlagBadge(code),
+                  leading: CourseFlagBadge(
+                    course: bundledCourses[code]!,
+                    fallbackCode: code,
+                  ),
                   subtitle: Text(
                     '${CourseService.sourceLabels[code] ?? 'English'} → ${CourseService.targetLabels[code] ?? code}'
                     ' · Bundled official${CourseService.hasCourse(code) ? '' : ' · Coming soon'}',
@@ -1246,7 +1252,10 @@ class _HomeScreenState extends State<HomeScreen> {
     int lessonIndex,
   ) async {
     _resetLockedLessonTapSequence();
-    if (!lesson.guidebook.publicationState.isPublished) return;
+    if (!course.useGuidebook ||
+        !lesson.guidebook.publicationState.isPublished) {
+      return;
+    }
     if (!await _canOpenLearnerContent() || !mounted) return;
     await Navigator.of(context).push(
       MaterialPageRoute(
@@ -1286,6 +1295,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _openDuel(Course course, Lesson lesson) async {
+    if (!course.createDuels) return;
     final eligibility = _duelEligibility.evaluate(lesson);
     if (!eligibility.isAvailable) return;
     _resetLockedLessonTapSequence();
@@ -1817,7 +1827,9 @@ class _LessonSection extends StatelessWidget {
               const SizedBox(width: 12),
               Flexible(
                 child: _FlagBackdropText(
-                  'Complete the previous Lesson or win its Duel to unlock this Lesson.',
+                  course.createDuels
+                      ? 'Complete the previous Lesson or win its Duel to unlock this Lesson.'
+                      : 'Complete the previous Lesson to unlock this Lesson.',
                   key: ValueKey(
                     'flag-backdrop-locked-message-${lesson.lessonId}',
                   ),
@@ -1842,12 +1854,14 @@ class _LessonSection extends StatelessWidget {
           interactive: !previewOnly,
           onOpenRound: onOpenRound,
         ),
-        const _VerticalConnector(),
-        _DuelCard(
-          key: ValueKey('unified-duel-${lesson.lessonId}'),
-          eligibility: duelEligibility,
-          onTap: previewOnly ? null : onOpenDuel,
-        ),
+        if (course.createDuels && duelEligibility.isAvailable) ...[
+          const _VerticalConnector(),
+          _DuelCard(
+            key: ValueKey('unified-duel-${lesson.lessonId}'),
+            eligibility: duelEligibility,
+            onTap: previewOnly ? null : onOpenDuel,
+          ),
+        ],
       ],
       const SizedBox(height: 16),
     ],
@@ -1875,6 +1889,13 @@ class _GuidebookNode extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final colorScheme = Theme.of(context).colorScheme;
+    final bookAction = IconButton(
+      key: ValueKey('unified-guidebook-action-${lesson.lessonId}'),
+      tooltip: course.useGuidebook ? 'GuideBook' : null,
+      onPressed: onTap,
+      color: isDark ? Colors.white : Colors.black87,
+      icon: const Icon(Icons.menu_book_outlined, size: 24),
+    );
     final identity = const LessonPresentationService().identity(
       course,
       lessonIndex,
@@ -1915,7 +1936,8 @@ class _GuidebookNode extends StatelessWidget {
             ),
             child: InkWell(
               borderRadius: BorderRadius.circular(18),
-              onTap: onTap,
+              excludeFromSemantics: !course.useGuidebook,
+              onTap: course.useGuidebook ? onTap : null,
               child: Padding(
                 padding: const EdgeInsets.all(12),
                 child: Column(
@@ -2033,15 +2055,16 @@ class _GuidebookNode extends StatelessWidget {
                             ),
                           ),
                         ),
-                        IconButton(
-                          key: ValueKey(
-                            'unified-guidebook-action-${lesson.lessonId}',
+                        if (course.useGuidebook)
+                          bookAction
+                        else
+                          ExcludeSemantics(
+                            // Reuse the original enabled/disabled rendering,
+                            // including theme tint, without an input surface.
+                            child: ExcludeFocus(
+                              child: IgnorePointer(child: bookAction),
+                            ),
                           ),
-                          tooltip: 'GuideBook',
-                          onPressed: onTap,
-                          color: isDark ? Colors.white : Colors.black87,
-                          icon: const Icon(Icons.menu_book_outlined, size: 24),
-                        ),
                       ],
                     ),
                   ],

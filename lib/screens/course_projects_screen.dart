@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 
 import '../models/course_models.dart';
+import '../models/world_flag_entity.dart';
 import '../services/course_editor_service.dart';
 import '../services/course_audit_service.dart';
 import '../services/course_flag_service.dart';
@@ -10,7 +11,10 @@ import '../services/course_service.dart';
 import '../services/settings_service.dart';
 import '../services/authoring_duplication_service.dart';
 import '../services/publication_service.dart';
+import '../services/new_course_structure.dart';
 import '../widgets/flag_art.dart';
+import '../widgets/world_flag_art.dart';
+import '../widgets/world_flag_picker.dart';
 import '../widgets/editor_app_bar_actions.dart';
 import 'course_editor_screen.dart';
 
@@ -77,7 +81,15 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
     final source = TextEditingController(text: 'English');
     final target = TextEditingController();
     final author = TextEditingController();
+    final lessonCount = TextEditingController(
+      text: '${NewCourseStructure.defaultLessons}',
+    );
+    final roundsPerLesson = TextEditingController(
+      text: '${NewCourseStructure.defaultRoundsPerLesson}',
+    );
     String selectedFlag = 'AUTO';
+    String flagSource = 'Automatic';
+    WorldFlagEntity? worldFlag;
     String customFlagBase64 = '';
     String customFlagLabel = '';
     String? flagError;
@@ -90,6 +102,8 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
           source.dispose();
           target.dispose();
           author.dispose();
+          lessonCount.dispose();
+          roundsPerLesson.dispose();
         },
         child: StatefulBuilder(
           builder: (ctx, setDialogState) => AlertDialog(
@@ -137,32 +151,120 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
                       ),
                     ),
                     const SizedBox(height: 8),
+                    TextField(
+                      key: const Key('new-course-lesson-count'),
+                      controller: lessonCount,
+                      keyboardType: TextInputType.number,
+                      onChanged: (_) => setDialogState(() {}),
+                      decoration: InputDecoration(
+                        border: const OutlineInputBorder(),
+                        labelText: 'Number of Lessons',
+                        helperText: '1–100. Default: 3.',
+                        errorText: NewCourseStructure.validateCount(
+                          lessonCount.text,
+                          maximum: 100,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      key: const Key('new-course-round-count'),
+                      controller: roundsPerLesson,
+                      keyboardType: TextInputType.number,
+                      onChanged: (_) => setDialogState(() {}),
+                      decoration: InputDecoration(
+                        border: const OutlineInputBorder(),
+                        labelText: 'Rounds per Lesson',
+                        helperText: '1–20. Default: 1.',
+                        errorText: NewCourseStructure.validateCount(
+                          roundsPerLesson.text,
+                          maximum: 20,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'You can add or delete Lessons and Rounds later. '
+                      'Rounds start empty; no Exercises are created.',
+                    ),
+                    const SizedBox(height: 12),
                     DropdownButtonFormField<String>(
-                      initialValue: selectedFlag,
+                      key: ValueKey('course-flag-source-$flagSource'),
+                      initialValue: flagSource,
                       isExpanded: true,
                       decoration: const InputDecoration(
                         border: OutlineInputBorder(),
-                        labelText: 'Course flag',
+                        labelText: 'Flag source',
                       ),
-                      items: [
-                        const DropdownMenuItem(
-                          value: 'AUTO',
-                          child: Text('Automatic from target language'),
+                      items: const [
+                        DropdownMenuItem(
+                          value: 'Automatic',
+                          child: Text('Automatic'),
                         ),
-                        for (final entry
-                            in CourseFlagService.builtInFlags.entries)
-                          DropdownMenuItem(
-                            value: entry.key,
-                            child: Text('${entry.value} (${entry.key})'),
-                          ),
+                        DropdownMenuItem(
+                          value: 'Existing QQL course flags',
+                          child: Text('Existing QQL course flags'),
+                        ),
+                        DropdownMenuItem(
+                          value: 'World Flags',
+                          child: Text('World Flags'),
+                        ),
+                        DropdownMenuItem(
+                          value: 'Custom uploaded flag',
+                          child: Text('Custom uploaded flag'),
+                        ),
                       ],
                       onChanged: (value) => setDialogState(() {
-                        selectedFlag = value ?? 'AUTO';
-                        customFlagBase64 = '';
-                        customFlagLabel = '';
+                        flagSource = value ?? 'Automatic';
+                        if (flagSource == 'Existing QQL course flags' &&
+                            selectedFlag == 'AUTO') {
+                          selectedFlag = 'EN';
+                        }
                         flagError = null;
                       }),
                     ),
+                    if (flagSource == 'Existing QQL course flags') ...[
+                      const SizedBox(height: 8),
+                      DropdownButtonFormField<String>(
+                        initialValue: selectedFlag,
+                        isExpanded: true,
+                        decoration: const InputDecoration(
+                          border: OutlineInputBorder(),
+                          labelText: 'Course flag',
+                        ),
+                        items: [
+                          for (final entry
+                              in CourseFlagService.builtInFlags.entries)
+                            DropdownMenuItem(
+                              value: entry.key,
+                              child: Text('${entry.value} (${entry.key})'),
+                            ),
+                        ],
+                        onChanged: (value) => setDialogState(() {
+                          selectedFlag = value ?? 'AUTO';
+                          customFlagBase64 = '';
+                          customFlagLabel = '';
+                          flagError = null;
+                        }),
+                      ),
+                    ],
+                    if (flagSource == 'World Flags')
+                      OutlinedButton.icon(
+                        key: const Key('choose-world-flag'),
+                        icon: const Icon(Icons.public),
+                        label: Text(
+                          worldFlag?.displayNameEn ?? 'Choose World Flag',
+                        ),
+                        onPressed: () async {
+                          final selected = await showWorldFlagPicker(
+                            context: ctx,
+                            initialWorldFlagId: worldFlag?.id ?? '',
+                          );
+                          if (selected != null && ctx.mounted) {
+                            setDialogState(() => worldFlag = selected);
+                          }
+                        },
+                      ),
                     const SizedBox(height: 8),
                     Align(
                       alignment: Alignment.centerLeft,
@@ -179,13 +281,21 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
                               borderRadius: BorderRadius.circular(8),
                             ),
                             clipBehavior: Clip.antiAlias,
-                            child: customFlagBase64.isNotEmpty
+                            child: flagSource == 'World Flags'
+                                ? worldFlag == null
+                                      ? const Icon(Icons.outlined_flag)
+                                      : WorldFlagArt(entity: worldFlag!)
+                                : flagSource == 'Custom uploaded flag' &&
+                                      customFlagBase64.isEmpty
+                                ? const Icon(Icons.outlined_flag)
+                                : flagSource == 'Custom uploaded flag' &&
+                                      customFlagBase64.isNotEmpty
                                 ? Image.memory(
                                     base64Decode(customFlagBase64),
                                     fit: BoxFit.contain,
                                   )
                                 : FlagBadge(
-                                    selectedFlag == 'AUTO'
+                                    flagSource == 'Automatic'
                                         ? (_flags
                                                   .codeForLanguage(target.text)
                                                   .isEmpty
@@ -221,6 +331,7 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
                                 if (!ctx.mounted) return;
                                 setDialogState(() {
                                   customFlagBase64 = imported.base64Png;
+                                  flagSource = 'Custom uploaded flag';
                                   customFlagLabel =
                                       '${imported.sourceWidth}×${imported.sourceHeight} → ${imported.outputWidth}×${imported.outputHeight} PNG';
                                   flagError = null;
@@ -258,13 +369,6 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
                         'Custom flag: copy flag.png, flag.jpg, or flag.jpeg to Documents/QuisquisLingo/Exports, then press Import flag. Maximum 2 MB, minimum 64×40 px. Large images are resized to at most 256 px on the longest side while preserving proportions.',
                       ),
                     ),
-                    const SizedBox(height: 8),
-                    const Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        'A basic Course Model v6 structure will be created with 3 placeholder Lessons. No Rounds are created automatically.',
-                      ),
-                    ),
                   ],
                 ),
               ),
@@ -275,60 +379,85 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
                 child: const Text('Cancel'),
               ),
               FilledButton(
-                onPressed: () {
-                  final t = title.text.trim();
-                  final s = source.text.trim();
-                  final tg = target.text.trim();
-                  if (t.isEmpty || s.isEmpty || tg.isEmpty) return;
-                  final stamp = DateTime.now().microsecondsSinceEpoch;
-                  final updatedAt = DateTime.now().toUtc();
-                  final lessons = <Lesson>[
-                    for (var lessonIndex = 0; lessonIndex < 3; lessonIndex++)
-                      Lesson(
-                        lessonId: 'user_lesson_${stamp + lessonIndex}',
-                        publicationState: PublicationState.draft,
-                        updatedAt: updatedAt,
-                        title: 'Lesson ${lessonIndex + 1}',
-                        rounds: const [],
-                        guidebook: Guidebook.empty(),
-                      ),
-                  ];
-                  final automaticCode = _flags.codeForLanguage(tg);
-                  Navigator.pop(
-                    ctx,
-                    Course(
-                      courseId: Course.newCourseId(),
-                      publicationState: PublicationState.draft,
-                      learningLanguage: tg,
-                      interfaceLanguage: s,
-                      sourceLanguage: s,
-                      targetLanguage: tg,
-                      title: t,
-                      ttsLanguage: 'und',
-                      version: '1.0.0',
-                      originType: CourseOriginType.custom,
-                      courseVersion: '',
-                      lastUpdated: DateTime.now().toIso8601String().substring(
-                        0,
-                        10,
-                      ),
-                      authors: author.text.trim().isEmpty
-                          ? const []
-                          : [
-                              CourseAuthor(
-                                name: author.text.trim(),
-                                roles: const ['Course Creator'],
-                              ),
-                            ],
-                      flagCode: selectedFlag == 'AUTO'
-                          ? automaticCode
-                          : selectedFlag,
-                      flagImageBase64: customFlagBase64,
-                      temporarySample: false,
-                      lessons: lessons,
-                    ),
-                  );
-                },
+                onPressed:
+                    NewCourseStructure.validateCount(
+                              lessonCount.text,
+                              maximum: 100,
+                            ) !=
+                            null ||
+                        NewCourseStructure.validateCount(
+                              roundsPerLesson.text,
+                              maximum: 20,
+                            ) !=
+                            null
+                    ? null
+                    : () {
+                        final t = title.text.trim();
+                        final s = source.text.trim();
+                        final tg = target.text.trim();
+                        if (t.isEmpty || s.isEmpty || tg.isEmpty) return;
+                        if ((flagSource == 'World Flags' &&
+                                worldFlag == null) ||
+                            (flagSource == 'Custom uploaded flag' &&
+                                customFlagBase64.isEmpty)) {
+                          setDialogState(
+                            () => flagError = flagSource == 'World Flags'
+                                ? 'Choose a World Flag.'
+                                : 'Import a custom flag first.',
+                          );
+                          return;
+                        }
+                        final updatedAt = DateTime.now().toUtc();
+                        final lessons = NewCourseStructure.create(
+                          lessonCount: int.parse(lessonCount.text.trim()),
+                          roundsPerLesson: int.parse(
+                            roundsPerLesson.text.trim(),
+                          ),
+                          updatedAt: updatedAt,
+                        );
+                        final automaticCode = _flags.codeForLanguage(tg);
+                        Navigator.pop(
+                          ctx,
+                          Course(
+                            courseId: Course.newCourseId(),
+                            publicationState: PublicationState.draft,
+                            learningLanguage: tg,
+                            interfaceLanguage: s,
+                            sourceLanguage: s,
+                            targetLanguage: tg,
+                            title: t,
+                            ttsLanguage: 'und',
+                            version: '1.0.0',
+                            originType: CourseOriginType.custom,
+                            courseVersion: '',
+                            lastUpdated: DateTime.now()
+                                .toIso8601String()
+                                .substring(0, 10),
+                            authors: author.text.trim().isEmpty
+                                ? const []
+                                : [
+                                    CourseAuthor(
+                                      name: author.text.trim(),
+                                      roles: const ['Course Creator'],
+                                    ),
+                                  ],
+                            flagCode: flagSource == 'Automatic'
+                                ? automaticCode
+                                : flagSource == 'Existing QQL course flags'
+                                ? selectedFlag
+                                : '',
+                            flagImageBase64:
+                                flagSource == 'Custom uploaded flag'
+                                ? customFlagBase64
+                                : '',
+                            worldFlagId: flagSource == 'World Flags'
+                                ? worldFlag!.id
+                                : '',
+                            temporarySample: false,
+                            lessons: lessons,
+                          ),
+                        );
+                      },
                 child: const Text('Create'),
               ),
             ],
@@ -420,14 +549,25 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
     await _reload();
   }
 
-  Future<void> _auditCourse(Course course) => Navigator.of(context).push<void>(
-    MaterialPageRoute(
-      builder: (_) => CourseAuditScreen(
-        course: course,
-        result: CourseAuditService().auditCourse(course),
+  Future<void> _auditCourse(Course course) async {
+    try {
+      await _flags.validateWorldFlag(course);
+    } on FormatException catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(error.message)));
+    }
+    if (!mounted) return;
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute(
+        builder: (_) => CourseAuditScreen(
+          course: course,
+          result: CourseAuditService().auditCourse(course),
+        ),
       ),
-    ),
-  );
+    );
+  }
 
   Future<void> _importCourse() async {
     try {

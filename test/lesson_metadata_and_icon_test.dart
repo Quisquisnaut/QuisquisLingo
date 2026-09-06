@@ -12,6 +12,34 @@ import 'package:quisquislingo_app/services/lesson_icon_catalog.dart';
 import 'package:quisquislingo_app/widgets/lesson_fallback_icon.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+Finder _sectionPicker() => find.byWidgetPredicate(
+  (widget) =>
+      widget is DropdownButtonFormField<String> &&
+      widget.decoration.labelText == 'Section',
+);
+
+Future<void> _openSectionChoice(WidgetTester tester, String choice) async {
+  if (_sectionPicker().evaluate().isEmpty) {
+    await tester.scrollUntilVisible(
+      _sectionPicker(),
+      250,
+      scrollable: find
+          .descendant(
+            of: find.byKey(const Key('lesson-metadata-controls')),
+            matching: find.byType(Scrollable),
+          )
+          .first,
+      maxScrolls: 20,
+    );
+  }
+  await tester.ensureVisible(_sectionPicker());
+  await tester.pumpAndSettle();
+  await tester.tap(_sectionPicker());
+  await tester.pumpAndSettle();
+  await tester.tap(find.text(choice).last);
+  await tester.pumpAndSettle();
+}
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -144,21 +172,20 @@ void main() {
       expect(find.textContaining('Topic'), findsNothing);
       expect(find.byKey(const Key('lesson-section-name')), findsNothing);
 
-      final sectionToggle = find.byKey(const Key('lesson-section-toggle'));
-      await tester.ensureVisible(sectionToggle);
-      await _pumpFrames(tester);
-      await tester.tap(sectionToggle);
-      await _pumpFrames(tester);
-      expect(find.byKey(const Key('lesson-section-name')), findsOneWidget);
-      await tester.tap(find.byKey(const Key('save-lesson-draft')));
-      await tester.pump();
-      expect(find.text('Enter a Section name.'), findsOneWidget);
+      await _openSectionChoice(tester, 'Add new section...');
+      await tester.tap(find.widgetWithText(FilledButton, 'Add'));
+      await tester.pumpAndSettle();
+      expect(find.text('Add new section'), findsOneWidget);
       expect(find.byType(LessonEditorScreen), findsOneWidget);
-
       await tester.enterText(
-        find.byKey(const Key('lesson-section-name')),
+        find.descendant(
+          of: find.byType(AlertDialog),
+          matching: find.byType(TextField),
+        ),
         '  Travel  ',
       );
+      await tester.tap(find.widgetWithText(FilledButton, 'Add'));
+      await tester.pumpAndSettle();
       await tester.fling(
         find.byKey(const Key('lesson-metadata-controls')),
         const Offset(0, -500),
@@ -259,11 +286,7 @@ void main() {
       const Offset(0, 500),
     );
     await _pumpFrames(tester);
-    final sectionToggle = find.byKey(const Key('lesson-section-toggle'));
-    await tester.ensureVisible(sectionToggle);
-    await _pumpFrames(tester);
-    await tester.tap(sectionToggle);
-    await _pumpFrames(tester);
+    await _openSectionChoice(tester, 'No section');
     expect(find.byKey(const Key('lesson-section-name')), findsNothing);
     await tester.tap(find.byKey(const Key('save-lesson-draft')));
     await _pumpFrames(tester);
@@ -276,6 +299,142 @@ void main() {
     expect(json.containsKey('sectionName'), isFalse);
     expect(json.containsKey('themeIconAsset'), isFalse);
   });
+
+  for (final catalogAction in ['Add', 'Manage']) {
+    testWidgets(
+      'Imported Lesson icon survives $catalogAction Section catalog and Draft Save',
+      (tester) async {
+        await tester.binding.setSurfaceSize(const Size(900, 1100));
+        addTearDown(() => tester.binding.setSurfaceSize(null));
+        final documents = Directory.systemTemp.createTempSync(
+          'qql_section_icon_',
+        );
+        addTearDown(() => documents.deleteSync(recursive: true));
+        final imports = Directory(
+          '${documents.path}/QuisquisLingo/Imports/Lesson Icons',
+        )..createSync(recursive: true);
+        File(
+          'assets/lesson_icons/home.png',
+        ).copySync('${imports.path}/home.png');
+        const pathChannel = MethodChannel('plugins.flutter.io/path_provider');
+        final messenger =
+            TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+        messenger.setMockMethodCallHandler(
+          pathChannel,
+          (_) async => documents.path,
+        );
+        addTearDown(
+          () => messenger.setMockMethodCallHandler(pathChannel, null),
+        );
+        final lesson = Lesson(
+          lessonId: 'imported-icon-lesson',
+          publicationState: PublicationState.draft,
+          title: 'Imported icon',
+          rounds: const [],
+        );
+        final source = Course.fromJson({
+          ..._course(lesson).toJson(),
+          'sectionNames': ['Unused'],
+        });
+        final sourceJson = jsonEncode(source.toJson());
+        Course? changed;
+        Lesson? saved;
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Builder(
+              builder: (context) => FilledButton(
+                onPressed: () async {
+                  saved = await Navigator.of(context).push<Lesson>(
+                    MaterialPageRoute(
+                      builder: (_) => LessonEditorScreen(
+                        course: source,
+                        lesson: lesson,
+                        onCourseChanged: (course) => changed = course,
+                      ),
+                    ),
+                  );
+                },
+                child: const Text('Open editor'),
+              ),
+            ),
+          ),
+        );
+        await tester.tap(find.text('Open editor'));
+        await tester.pumpAndSettle();
+        final iconField = find.byKey(const Key('lesson-theme-icon-field'));
+        await tester.scrollUntilVisible(
+          iconField,
+          200,
+          scrollable: find.byType(Scrollable).first,
+          maxScrolls: 20,
+        );
+        await tester.tap(iconField);
+        await tester.pumpAndSettle();
+        await tester.runAsync(() async {
+          await tester.tap(find.byKey(const Key('import-custom-lesson-icon')));
+          for (var attempt = 0; attempt < 100; attempt++) {
+            await Future<void>.delayed(const Duration(milliseconds: 20));
+            await tester.pump();
+            if (find
+                .text('Custom icon imported and normalized to a 256x256 PNG.')
+                .evaluate()
+                .isNotEmpty) {
+              return;
+            }
+          }
+          fail('The actual Lesson icon import did not complete.');
+        });
+        await tester.pump(const Duration(seconds: 5));
+        await tester.pumpAndSettle();
+        expect(changed, isNull, reason: 'The imported asset is still pending.');
+        if (catalogAction == 'Add') {
+          await _openSectionChoice(tester, 'Add new section...');
+          await tester.enterText(
+            find.descendant(
+              of: find.byType(AlertDialog),
+              matching: find.byType(TextField),
+            ),
+            ' Travel ',
+          );
+          await tester.tap(find.widgetWithText(FilledButton, 'Add'));
+        } else {
+          await _openSectionChoice(tester, 'Manage sections...');
+          await tester.tap(find.byTooltip('Remove Unused'));
+          await tester.pumpAndSettle();
+          await tester.tap(find.widgetWithText(TextButton, 'Close'));
+        }
+        await tester.pumpAndSettle();
+        expect(changed, isNotNull);
+        final imported = changed!.lessonIconAssets.single;
+        CourseLessonIconAsset.validateCanonicalPng(imported.base64Png);
+        await tester.tap(find.byKey(const Key('save-lesson-draft')));
+        await tester.pumpAndSettle();
+        expect(saved, isNotNull);
+        expect(saved!.themeIconAsset, imported.reference);
+        expect(saved!.publicationState, PublicationState.draft);
+        expect(changed!.lessonIconAssets.single.toJson(), imported.toJson());
+        expect(changed!.lessons.single.themeIconAsset, imported.reference);
+        expect(
+          changed!.sectionNames,
+          catalogAction == 'Add' ? ['Unused', 'Travel'] : isEmpty,
+        );
+        final reloaded = Course.fromJson(
+          jsonDecode(jsonEncode(changed!.toJson())) as Map<String, dynamic>,
+        );
+        expect(reloaded.lessonIconAssets.single.base64Png, imported.base64Png);
+        expect(reloaded.lessons.single.themeIconAsset, imported.reference);
+        expect(
+          CourseAuditService()
+              .auditCourse(reloaded)
+              .issues
+              .where((issue) => issue.code == 'LESSON_THEME_ICON_INVALID'),
+          isEmpty,
+        );
+        expect(jsonEncode(source.toJson()), sourceJson);
+        expect(tester.takeException(), isNull);
+      },
+    );
+  }
 
   testWidgets(
     'Lesson editor links to one draft-preserving Round management subpage',
@@ -330,14 +489,16 @@ void main() {
       await tester.enterText(find.byType(TextFormField), 'Draft title');
       await tester.tap(find.text('Save').last);
       await tester.pumpAndSettle();
-      final sectionToggle = find.byKey(const Key('lesson-section-toggle'));
-      await tester.ensureVisible(sectionToggle);
+      await _openSectionChoice(tester, 'Add new section...');
+      await tester.enterText(
+        find.descendant(
+          of: find.byType(AlertDialog),
+          matching: find.byType(TextField),
+        ),
+        'Draft Section',
+      );
+      await tester.tap(find.widgetWithText(FilledButton, 'Add'));
       await tester.pumpAndSettle();
-      await tester.tap(sectionToggle);
-      await tester.pumpAndSettle();
-      final sectionName = find.byKey(const Key('lesson-section-name'));
-      await tester.ensureVisible(sectionName);
-      await tester.enterText(sectionName, 'Draft Section');
 
       await tester.fling(
         find.byKey(const Key('lesson-metadata-controls')),
@@ -401,10 +562,9 @@ void main() {
       expect(find.text('Draft title'), findsWidgets);
       expect(
         tester
-            .widget<TextField>(find.byKey(const Key('lesson-section-name')))
-            .controller!
-            .text,
-        'Draft Section',
+            .widget<DropdownButtonFormField<String>>(_sectionPicker())
+            .initialValue,
+        'name:Draft Section',
       );
       await tester.tap(find.byKey(const Key('save-lesson-draft')));
       await tester.pumpAndSettle();
@@ -451,10 +611,8 @@ void main() {
       await tester.pumpAndSettle();
       expect(
         tester
-            .widget<SwitchListTile>(
-              find.byKey(const Key('lesson-management-lock')),
-            )
-            .value,
+            .widget<IconButton>(find.byKey(const Key('lesson-management-lock')))
+            .isSelected,
         isFalse,
       );
       expect(

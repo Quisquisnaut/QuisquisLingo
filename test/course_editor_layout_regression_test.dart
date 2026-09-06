@@ -53,7 +53,7 @@ void main() {
     },
   );
 
-  testWidgets('new course starts with 3 direct placeholder Lessons', (
+  testWidgets('new course defaults to 3 Lessons with one empty Round each', (
     tester,
   ) async {
     const profileId = '12345678-1234-4234-9234-123456789abc';
@@ -124,7 +124,12 @@ void main() {
     expect(created.courseVersion, '1');
     expect(created.publicationState, PublicationState.draft);
     expect(created.lessons, hasLength(3));
-    expect(created.lessons.expand((lesson) => lesson.rounds), isEmpty);
+    expect(created.lessons.expand((lesson) => lesson.rounds), hasLength(3));
+    for (final lesson in created.lessons) {
+      expect(lesson.rounds, hasLength(1));
+      expect(lesson.rounds.single.content, isEmpty);
+      expect(lesson.rounds.single.title, isEmpty);
+    }
     expect(created.temporarySample, isFalse);
     expect(
       created.lessons.map((lesson) => lesson.lessonId).toSet(),

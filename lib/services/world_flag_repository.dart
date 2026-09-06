@@ -9,11 +9,44 @@ class WorldFlagRepository {
 
   final AssetBundle _bundle;
   List<WorldFlagEntity>? _cache;
+  Map<String, WorldFlagEntity>? _byId;
 
   WorldFlagRepository({AssetBundle? bundle}) : _bundle = bundle ?? rootBundle;
 
   Future<List<WorldFlagEntity>> load() async =>
       _cache ??= parseManifest(await _bundle.loadString(manifestAsset));
+
+  Future<WorldFlagEntity?> findById(String id) async {
+    final normalized = id.trim();
+    if (normalized.isEmpty) return null;
+    final entities = await load();
+    final byId = _byId ??= Map.unmodifiable({
+      for (final entity in entities) entity.id: entity,
+    });
+    return byId[normalized];
+  }
+
+  static bool matchesSearch(WorldFlagEntity entity, String query) {
+    final normalized = query.trim().toLowerCase();
+    if (normalized.isEmpty) return true;
+    return <String?>[
+      entity.id,
+      entity.displayNameEn,
+      entity.isoAlpha2,
+      entity.isoAlpha3,
+      entity.subdivisionCode,
+      ...entity.aliases,
+    ].whereType<String>().any(
+      (value) => value.toLowerCase().contains(normalized),
+    );
+  }
+
+  static List<WorldFlagEntity> search(
+    Iterable<WorldFlagEntity> entities,
+    String query,
+  ) => List.unmodifiable(
+    entities.where((entity) => matchesSearch(entity, query)),
+  );
 
   static List<WorldFlagEntity> parseManifest(String raw) {
     final decoded = jsonDecode(raw);

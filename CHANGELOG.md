@@ -1,3 +1,13 @@
+# 2.0.26 (Phase 226.04, revision 0) - Course structure and optional learning paths - 2026-09-06
+
+- Advanced to `2.0.26+226040`; the show-once notice displays `Version 2.0.26` and `Phase 226.04, revision 0`. Alpha expiry remains `2026-10-06 23:59:59` local time.
+- Added one-time **Number of Lessons** and **Rounds per Lesson** creation fields, defaulting to 3 and 1, with whole-number ranges 1–100 and 1–20. Valid creation builds the complete ordered hierarchy with fresh stable IDs, empty untitled Rounds and no Exercises. These are creation-only safeguards, not model, import or later-editing limits.
+- Added reusable Section selection and unused-name management, previous-Lesson Section inheritance for newly added Lessons, and consistent **Lesson + number**, **Number only** and **Title only** presentation while preserving stored titles and existing prefix modes.
+- Added default-ON **Use GuideBook** and **Create Duels** options on Lessons. Disabled GuideBooks retain content and book artwork but lose learner interaction and only the empty-GuideBook Warning; disabled or ineligible Duels occupy no learner card space. Existing Duel identities and learner history remain intact, with canonical Audit and live ancestor updates.
+- Reused the authoritative 266-entity Flag Game registry for course flag selection alongside existing course flags and portable custom PNG/JPEG flags. Flag Game behavior and existing media folders remain unchanged.
+- Replaced the Lessons Lock row with its upper action icon and unchanged tooltip/authorization behavior. GuideBook IDs appear as passive, selectable metadata after GuideBook actions, using a stable identity derived from the owning Lesson ID without another JSON field.
+- Kept Course Model v6, 103 Audit rules, backward-compatible defaults, official read-only/fork protections and completed 226.03 behavior. No Templates, Napoletano, future GuideBook content or release 227 work is included.
+
 # 2.0.26 (Phase 226.03, revision 1) - Generation, guidance and native speech corrections - 2026-09-06
 
 - Advanced to `2.0.26+226031`; the show-once notice displays revision 1. Alpha expiry remains `2026-10-06 23:59:59` local time.

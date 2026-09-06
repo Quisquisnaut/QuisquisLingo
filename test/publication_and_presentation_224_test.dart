@@ -170,7 +170,7 @@ void main() {
     );
     expect(
       service.identity(withMode(LessonNumberingMode.numberOnly), 0).fullText,
-      '1: Lesson 1',
+      '1',
     );
     expect(
       service.identity(withMode(LessonNumberingMode.none), 0).fullText,

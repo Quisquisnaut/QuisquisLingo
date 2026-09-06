@@ -381,6 +381,11 @@ class Course {
   final LessonNumberingMode lessonNumberingMode;
   final String customLessonLabel;
   final LessonFallbackIconStyle defaultLessonIconStyle;
+  final bool createDuels;
+  final bool useGuidebook;
+
+  /// Explicit reusable names; legacy Lesson assignments remain available too.
+  final List<String> sectionNames;
   final String? parentCourseId;
   final String? derivedFromVersion;
   final String learningLanguage;
@@ -409,6 +414,9 @@ class Course {
   final String textDirection;
   final String flagCode;
   final String flagImageBase64;
+
+  /// Stable World Flags entity identity, independent from legacy flagCode.
+  final String worldFlagId;
   final bool temporarySample;
   final String buyACoffeeUrl;
   final List<CourseLessonIconAsset> lessonIconAssets;
@@ -440,6 +448,9 @@ class Course {
     this.lessonNumberingMode = LessonNumberingMode.lesson,
     String customLessonLabel = '',
     this.defaultLessonIconStyle = LessonFallbackIconStyle.monochrome,
+    this.createDuels = true,
+    this.useGuidebook = true,
+    List<String> sectionNames = const [],
     this.parentCourseId,
     this.derivedFromVersion,
     required this.learningLanguage,
@@ -468,12 +479,15 @@ class Course {
     this.textDirection = 'ltr',
     this.flagCode = '',
     this.flagImageBase64 = '',
+    String worldFlagId = '',
     this.temporarySample = false,
     String buyACoffeeUrl = '',
     this.lessonIconAssets = const [],
     this.audioLibrary = const [],
     required this.lessons,
-  }) : customLessonLabel = customLessonLabel.trim(),
+  }) : sectionNames = _normalizeSectionNames(sectionNames),
+       worldFlagId = worldFlagId.trim(),
+       customLessonLabel = customLessonLabel.trim(),
        buyACoffeeUrl = normalizeBuyACoffeeUrl(buyACoffeeUrl) {
     if (originType.isOfficial && forkProvenance != null) {
       throw const FormatException(
@@ -518,6 +532,27 @@ class Course {
     }
   }
 
+  /// Exposes legacy assignments without silently adding fields to old v6 JSON.
+  List<String> get availableSectionNames => _normalizeSectionNames([
+    ...sectionNames,
+    for (final lesson in lessons)
+      if (lesson.section && lesson.sectionName != null) lesson.sectionName!,
+  ]);
+
+  static List<String> _normalizeSectionNames(Iterable<String> names) {
+    final normalized = <String>{};
+    for (final name in names) {
+      final trimmed = name.trim();
+      if (trimmed.isEmpty) {
+        throw const FormatException(
+          'course.sectionNames must contain non-empty names.',
+        );
+      }
+      normalized.add(trimmed);
+    }
+    return List.unmodifiable(normalized);
+  }
+
   static String normalizeBuyACoffeeUrl(String value) {
     final trimmed = value.trim();
     if (trimmed.isEmpty) return '';
@@ -540,6 +575,9 @@ class Course {
     if (lessonNumberingMode == LessonNumberingMode.other)
       'customLessonLabel': customLessonLabel,
     'defaultLessonIconStyle': defaultLessonIconStyle.name,
+    if (!createDuels) 'createDuels': false,
+    if (!useGuidebook) 'useGuidebook': false,
+    if (sectionNames.isNotEmpty) 'sectionNames': sectionNames,
     'courseId': courseId,
     'originType': originType.name,
     if (publisherId.isNotEmpty) 'publisherId': publisherId,
@@ -596,6 +634,7 @@ class Course {
     'textDirection': textDirection,
     if (flagCode.isNotEmpty) 'flagCode': flagCode,
     if (flagImageBase64.isNotEmpty) 'flagImageBase64': flagImageBase64,
+    if (worldFlagId.isNotEmpty) 'worldFlagId': worldFlagId,
     'temporarySample': temporarySample,
     if (buyACoffeeUrl.isNotEmpty) 'buyACoffeeUrl': buyACoffeeUrl,
     if (lessonIconAssets.isNotEmpty)
@@ -606,6 +645,19 @@ class Course {
   };
 
   factory Course.fromJson(Map<String, dynamic> json) {
+    for (final key in ['createDuels', 'useGuidebook']) {
+      if (json.containsKey(key) && json[key] is! bool) {
+        throw FormatException('course.$key must be a boolean.');
+      }
+    }
+    if (json.containsKey('worldFlagId') && json['worldFlagId'] is! String) {
+      throw const FormatException('course.worldFlagId must be a string.');
+    }
+    if (json.containsKey('sectionNames') && json['sectionNames'] is! List) {
+      throw const FormatException(
+        'course.sectionNames must be a list of strings.',
+      );
+    }
     final fv = json['formatVersion'];
     if (fv != currentFormatVersion) {
       throw FormatException(
@@ -671,6 +723,9 @@ class Course {
       lessonNumberingMode: LessonNumberingMode.parseRequired(json),
       customLessonLabel: _optionalString(json, 'customLessonLabel', ''),
       defaultLessonIconStyle: LessonFallbackIconStyle.parseRequired(json),
+      createDuels: json['createDuels'] as bool? ?? true,
+      useGuidebook: json['useGuidebook'] as bool? ?? true,
+      sectionNames: _stringList(json, 'sectionNames'),
       parentCourseId: _optionalString(json, 'parentCourseId', '').isEmpty
           ? null
           : _optionalString(json, 'parentCourseId', ''),
@@ -721,6 +776,7 @@ class Course {
       textDirection: _optionalString(json, 'textDirection', 'ltr'),
       flagCode: _optionalString(json, 'flagCode', ''),
       flagImageBase64: _optionalString(json, 'flagImageBase64', ''),
+      worldFlagId: _optionalString(json, 'worldFlagId', ''),
       temporarySample: json['temporarySample'] == true,
       buyACoffeeUrl: _optionalString(json, 'buyACoffeeUrl', ''),
       lessonIconAssets: (json['lessonIconAssets'] is List)
@@ -966,6 +1022,11 @@ class Lesson {
   final String? themeIconAsset;
   final Guidebook guidebook;
   final Duel duel;
+
+  /// A Lesson owns exactly one GuideBook. This newly defined internal identity
+  /// derives from that immutable ownership; it is not a stored Content ID.
+  /// Rename/reorder/Move preserve it, while a copied Lesson receives a new one.
+  String get guidebookId => '${lessonId}_guidebook';
   Lesson({
     required this.lessonId,
     this.publicationState = PublicationState.published,

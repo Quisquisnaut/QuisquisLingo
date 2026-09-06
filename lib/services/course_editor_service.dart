@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'course_flag_service.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -339,6 +340,7 @@ class CourseEditorService {
       );
     }
     _requirePreservedProvenance(originalCourse, workingCourse);
+    await CourseFlagService().validateWorldFlag(workingCourse);
     if (workingCourse.courseId != originalCourse.courseId) {
       throw ArgumentError(
         'The working copy must retain the persisted course identity.',

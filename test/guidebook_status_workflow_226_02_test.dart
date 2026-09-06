@@ -293,7 +293,7 @@ Future<void> _openLesson(
   await tester.tap(find.byKey(const Key('course-editor-lessons-navigation')));
   await tester.pumpAndSettle();
   final lock = find.byKey(const Key('lesson-management-lock'));
-  if (tester.widget<SwitchListTile>(lock).value) {
+  if (tester.widget<IconButton>(lock).isSelected == true) {
     await tester.tap(lock);
     await tester.pumpAndSettle();
   }

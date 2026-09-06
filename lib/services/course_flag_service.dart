@@ -5,6 +5,10 @@ import 'dart:ui' as ui;
 
 import 'package:path_provider/path_provider.dart';
 
+import '../models/course_models.dart';
+import '../models/world_flag_entity.dart';
+import 'world_flag_repository.dart';
+
 class ImportedCourseFlag {
   final String base64Png;
   final int sourceWidth;
@@ -41,15 +45,48 @@ class CourseFlagService {
 
   String codeForLanguage(String language) {
     switch (language.trim().toLowerCase()) {
-      case 'italian': return 'IT';
-      case 'german': return 'DE';
-      case 'spanish': return 'ES';
-      case 'english': return 'EN';
-      case 'welsh': return 'CY';
-      case 'dutch': return 'NL';
-      case 'portuguese': return 'PT';
-      case 'finnish': return 'FI';
-      default: return '';
+      case 'italian':
+        return 'IT';
+      case 'german':
+        return 'DE';
+      case 'spanish':
+        return 'ES';
+      case 'english':
+        return 'EN';
+      case 'welsh':
+        return 'CY';
+      case 'dutch':
+        return 'NL';
+      case 'portuguese':
+        return 'PT';
+      case 'finnish':
+        return 'FI';
+      default:
+        return '';
+    }
+  }
+
+  Future<WorldFlagEntity?> resolveWorldFlag(
+    Course course, {
+    WorldFlagRepository? repository,
+  }) async {
+    final id = course.worldFlagId.trim();
+    if (id.isEmpty) return null;
+    return (repository ?? WorldFlagRepository()).findById(id);
+  }
+
+  Future<void> validateWorldFlag(
+    Course course, {
+    WorldFlagRepository? repository,
+  }) async {
+    final id = course.worldFlagId.trim();
+    if (id.isEmpty) return;
+    final entity = await resolveWorldFlag(course, repository: repository);
+    if (entity == null) {
+      throw FormatException(
+        'World Flag "$id" is unavailable in this QuisquisLingo installation. '
+        'Choose an available World Flag or another course flag source.',
+      );
     }
   }
 
@@ -92,17 +129,34 @@ class CourseFlagService {
     if (bytes.length > maxInputBytes) {
       throw const FormatException('Flag image exceeds the 2 MB safety limit.');
     }
-    final isPng=bytes.length>=8&&bytes[0]==0x89&&bytes[1]==0x50&&bytes[2]==0x4E&&bytes[3]==0x47&&bytes[4]==0x0D&&bytes[5]==0x0A&&bytes[6]==0x1A&&bytes[7]==0x0A;
-    final isJpeg=bytes.length>=3&&bytes[0]==0xFF&&bytes[1]==0xD8&&bytes[2]==0xFF;
-    if(!isPng&&!isJpeg){
-      throw const FormatException('Flag file must contain a PNG or JPEG image.');
+    final isPng =
+        bytes.length >= 8 &&
+        bytes[0] == 0x89 &&
+        bytes[1] == 0x50 &&
+        bytes[2] == 0x4E &&
+        bytes[3] == 0x47 &&
+        bytes[4] == 0x0D &&
+        bytes[5] == 0x0A &&
+        bytes[6] == 0x1A &&
+        bytes[7] == 0x0A;
+    final isJpeg =
+        bytes.length >= 3 &&
+        bytes[0] == 0xFF &&
+        bytes[1] == 0xD8 &&
+        bytes[2] == 0xFF;
+    if (!isPng && !isJpeg) {
+      throw const FormatException(
+        'Flag file must contain a PNG or JPEG image.',
+      );
     }
 
     ui.Codec sourceCodec;
     try {
       sourceCodec = await ui.instantiateImageCodec(bytes);
     } catch (_) {
-      throw const FormatException('The selected file is not a supported PNG or JPEG image.');
+      throw const FormatException(
+        'The selected file is not a supported PNG or JPEG image.',
+      );
     }
     final sourceFrame = await sourceCodec.getNextFrame();
     final source = sourceFrame.image;
@@ -112,15 +166,23 @@ class CourseFlagService {
     sourceCodec.dispose();
 
     if (width < minWidth || height < minHeight) {
-      throw FormatException('Flag resolution is too small. Minimum: ${minWidth}x$minHeight pixels.');
+      throw FormatException(
+        'Flag resolution is too small. Minimum: ${minWidth}x$minHeight pixels.',
+      );
     }
     if (width > maxSourceDimension || height > maxSourceDimension) {
-      throw const FormatException('Flag resolution is too large. Maximum source dimension: 8192 pixels.');
+      throw const FormatException(
+        'Flag resolution is too large. Maximum source dimension: 8192 pixels.',
+      );
     }
 
     final scale = maxOutputDimension / (width > height ? width : height);
-    final targetWidth = scale < 1 ? (width * scale).round().clamp(1, maxOutputDimension).toInt() : width;
-    final targetHeight = scale < 1 ? (height * scale).round().clamp(1, maxOutputDimension).toInt() : height;
+    final targetWidth = scale < 1
+        ? (width * scale).round().clamp(1, maxOutputDimension).toInt()
+        : width;
+    final targetHeight = scale < 1
+        ? (height * scale).round().clamp(1, maxOutputDimension).toInt()
+        : height;
 
     final codec = await ui.instantiateImageCodec(
       bytes,
@@ -132,7 +194,11 @@ class CourseFlagService {
     final data = await image.toByteData(format: ui.ImageByteFormat.png);
     image.dispose();
     codec.dispose();
-    if (data == null) throw const FormatException('The flag image could not be converted to PNG.');
+    if (data == null) {
+      throw const FormatException(
+        'The flag image could not be converted to PNG.',
+      );
+    }
     final png = data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);
 
     return ImportedCourseFlag(

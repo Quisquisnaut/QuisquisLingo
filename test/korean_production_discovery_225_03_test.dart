@@ -97,7 +97,9 @@ void main() {
       final flag = tester.widget<FlagBadge>(
         find.descendant(of: koreanTile, matching: find.byType(FlagBadge)),
       );
-      expect(flag.code, 'KO');
+      // The selector keeps the KO registry route, while its course-aware
+      // badge uses the unchanged persisted KR flag (the same Korean artwork).
+      expect(flag.code, 'KR');
 
       await tester.tap(koreanTile);
       await _pumpIo(tester, frames: 30);

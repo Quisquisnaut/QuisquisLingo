@@ -38,14 +38,17 @@ class LessonPresentationService {
     };
     final canonicalDefault = 'Lesson $number';
     final deduplicated =
-        course.lessonNumberingMode == LessonNumberingMode.lesson &&
-        lesson.title == canonicalDefault;
+        prefix != null &&
+        (lesson.title == prefix ||
+            (course.lessonNumberingMode == LessonNumberingMode.numberOnly &&
+                lesson.title == canonicalDefault));
+    final displayTitle = deduplicated ? prefix : lesson.title;
     return LessonIdentityPresentation(
       fullText: deduplicated || prefix == null
-          ? lesson.title
+          ? displayTitle
           : '$prefix: ${lesson.title}',
       prefix: deduplicated ? null : prefix,
-      title: lesson.title,
+      title: displayTitle,
       number: number,
       deduplicated: deduplicated,
     );

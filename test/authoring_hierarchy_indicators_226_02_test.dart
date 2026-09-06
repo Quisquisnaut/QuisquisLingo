@@ -859,10 +859,10 @@ void main() {
         find.byKey(const Key('course-editor-lessons-navigation')),
       );
       await tester.pumpAndSettle();
-      final lock = tester.widget<SwitchListTile>(
+      final lock = tester.widget<IconButton>(
         find.byKey(const Key('lesson-management-lock')),
       );
-      if (lock.value) {
+      if (lock.isSelected == true) {
         await tester.tap(find.byKey(const Key('lesson-management-lock')));
         await tester.pumpAndSettle();
       }

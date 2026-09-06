@@ -89,6 +89,9 @@ class AuthoringDuplicationService {
       lessonNumberingMode: source.lessonNumberingMode,
       customLessonLabel: source.customLessonLabel,
       defaultLessonIconStyle: source.defaultLessonIconStyle,
+      createDuels: source.createDuels,
+      useGuidebook: source.useGuidebook,
+      sectionNames: source.sectionNames,
       parentCourseId: source.courseId,
       derivedFromVersion: source.originType.isOfficial
           ? source.officialCourseVersion
@@ -124,6 +127,7 @@ class AuthoringDuplicationService {
       textDirection: source.textDirection,
       flagCode: source.flagCode,
       flagImageBase64: source.flagImageBase64,
+      worldFlagId: source.worldFlagId,
       temporarySample: source.temporarySample,
       buyACoffeeUrl: source.buyACoffeeUrl,
       lessonIconAssets: [

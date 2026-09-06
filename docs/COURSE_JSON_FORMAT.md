@@ -15,6 +15,16 @@ Every native Course Model v6 course declares:
 
 `courseId` is an immutable globally unique course identity. Course updates retain it so learner course progress follows the update. A fork or separate imported copy receives a new `courseId` and may include `parentCourseId` plus `derivedFromVersion` to preserve its lineage.
 
+Phase 226.04 adds optional, backward-compatible Course Model v6 presentation and availability fields:
+
+- `createDuels` and `useGuidebook`: booleans, each defaulting to `true` when absent. Canonical JSON writes only `false`; explicit non-boolean values, including null, are rejected.
+- `sectionNames`: an optional ordered catalog of reusable, non-empty trimmed Section names. Duplicate names are removed while retaining first occurrence order. An empty catalog is omitted. Existing Lesson assignments remain discoverable without automatically adding a catalog to older JSON.
+- `worldFlagId`: an optional trimmed stable ID from the authoritative World Flags SVG library. An empty value is omitted. A present value must be a string. It references bundled artwork; SVG bytes and external file paths are not copied into the Course.
+
+These defaults preserve older v6 exports and bundled checksum payloads. No format-version migration or rewrite of existing course files is required. Current copy, transfer, editor transactions and exports retain explicitly stored choices and the complete canonical model.
+
+New Course's **Number of Lessons** (default 3, range 1–100) and **Rounds per Lesson** (default 1, range 1–20) are one-time scaffolding inputs, not JSON fields. The generated canonical Lessons and empty Rounds persist normally, including their stable IDs and order. Neither these creation ranges nor the defaults constrain supported course imports, the Course Model or later editing; a course with more Lessons or Rounds remains supported.
+
 ## Origin, provenance and versions
 
 Every course serializes `originType` as `custom`, `bundledOfficial`, or `externalOfficial`. Existing v6 custom files that predate Build 225.04 remain custom when the optional field is absent. Official courses also require publisher identity, a publisher-owned official version and release timestamp, a lowercase SHA-256 `officialChecksum`, and distribution channel. They serialize `publisherVerificationStatus` (`verified` or `unverified`); release notes and publisher signatures are optional. Signatures can support future distribution verification.
@@ -64,9 +74,9 @@ Every Lesson requires `lessonId` and `title`. Optional presentational metadata u
 }
 ```
 
-`section` defaults to false. When false, `sectionName` is omitted; when true, `sectionName` must be a non-empty trimmed string. Consecutive Lessons with the same name form one visual Section block. Section has no ID, persistence, progress, unlock, XP, Duel or navigation state, and relative Section Lesson numbering is derived from Lesson order.
+`section` defaults to false. When false, `sectionName` is omitted; when true, `sectionName` must be a non-empty trimmed string. Consecutive Lessons with the same name form one visual Section block. An unsectioned Lesson does not inherit its predecessor's assignment. Section has no ID or independently owned progress, unlock, XP or Duel state; only its catalog and Lesson assignment metadata persist. Relative Section Lesson numbering is derived from Lesson order.
 
-`lessonNumberingMode` is required and is one of `lesson`, `unit`, `topic`, `module`, `skill`, `chapter`, `stage`, `step`, `part`, `other`, `numberOnly`, or `none`. `other` also requires a trimmed non-empty `customLessonLabel`. `defaultLessonIconStyle` is required and is `monochrome` or `coloredLessonNumbers`. These fields affect presentation only. Learner numbers come from Published Lesson order, and exact default `Lesson N` titles are de-duplicated only in Lesson mode.
+`lessonNumberingMode` is required and is one of `lesson`, `unit`, `topic`, `module`, `skill`, `chapter`, `stage`, `step`, `part`, `other`, `numberOnly`, or `none`. The UI labels `lesson`, `numberOnly` and `none` as **Lesson + number**, **Number only** and **Title only** without changing stored values. `other` also requires a trimmed non-empty `customLessonLabel`; all existing alternative prefixes remain supported. `defaultLessonIconStyle` is required and is `monochrome` or `coloredLessonNumbers`, displayed as **Theme-colored circle** or **Four-color circle** on Lessons. These fields affect presentation only. Learner numbers come from Published Lesson order. A title identical to its generated prefix is displayed once; the default `Lesson N` is also displayed as `N` in Number only mode. Stored titles remain unchanged, including when Unit or custom prefixes are selected.
 
 `themeIconAsset` is optional. It names either an approved 256 × 256 transparent preinstalled PNG under `assets/lesson_icons/` or a managed Course reference such as `course-assets/lesson-icons/custom_123.png`. Managed references resolve only through the same Course’s optional `lessonIconAssets[]` registry; arbitrary and unresolved filesystem paths are rejected. Because Course transfer is the established JSON-only portable format, each managed registry entry contains its safe `assetId` and canonical `base64Png`. Import normalizes one author image by contain-scaling it without distortion onto a transparent 256 × 256 PNG canvas. The original path is never serialized or needed after import. Course duplication remaps managed asset IDs and Lesson duplication within one Course may share the immutable reference.
 
@@ -77,6 +87,10 @@ The structural fields `topics`, `topicId` and Lesson `id` are invalid in v6. Opa
 ## Lesson Guidebook
 
 A Lesson contains a Guidebook with `content[]`. Its optional `publicationState` is `draft` or `published`; absence retains the compatible Published default, and canonical serialization adds the field only for Draft. A Draft Guidebook and its content stay out of learner delivery while the Lesson and its Rounds can remain Published. Guidebook Content can include explanations, vocabulary, examples and text. It is learner-facing reference material and may also be used as authoring source material. `sourceRefs` can connect generated or derived Content to stable Guidebook Content IDs.
+
+The displayed GuideBook Internal ID is derived as `${lessonId}_guidebook` from the immutable owning Lesson ID. It is not a new persisted Guidebook field and does not replace stable Guidebook Content IDs. Renaming or moving the Lesson preserves it; a duplicated Lesson receives its own derived GuideBook identity.
+
+Course `useGuidebook: false` preserves the complete Guidebook, its publication state and source references. It disables learner GuideBook interactions while retaining the Home Lesson/book presentation, and suppresses only the canonical `LESSON_GUIDEBOOK_EMPTY` Warning. Malformed-content findings remain active. Reenabling the preference restores current canonical Audit and learner access subject to the existing publication and access rules.
 
 The first Content item of Round 1 may be a non-exercise `lesson_intro` derived from essential Lesson Guidebook information. Bundled sample courses use this convention and tell the learner to read the Lesson Guidebook for more.
 
@@ -137,6 +151,8 @@ Round `content[]` is also the structured content container for future Story-like
 ## Lesson Duel
 
 Every Lesson serializes a Duel object with a stable `id` and `title`. Availability is not serialized. At runtime QuisquisLingo collects exercises from that Lesson only, applies the established eligibility and deduplication rules, and requires 25 eligible exercises.
+
+Course `createDuels` defaults to true. When false, the learner renders no Duel or reserved Duel spacing and Audit emits no `DUEL_UNAVAILABLE` finding. When true, the same shared eligible pool drives learner availability and the non-blocking `DUEL_UNAVAILABLE` Info finding. An insufficient pool also renders no learner Duel placeholder. The preference never deletes Duel identity, course-owned victory history, Lesson completion or earned XP.
 
 The standard Duel uses 25 unique questions and 4 lives. There is no score or pass threshold: the learner wins by completing all 25 questions before losing all four lives. If the actual eligible pool has fewer than 25 exercises, that Lesson's Duel is normally unavailable; questions are not duplicated and gameplay rules are not changed. Six Rounds, often roughly 48 exercises, is author guidance only and never determines availability.
 

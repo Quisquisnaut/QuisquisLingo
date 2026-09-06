@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'course_flag_service.dart';
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -81,6 +82,7 @@ class CustomCourseTransferService {
     }
 
     final course = Course.fromJson(Map<String, dynamic>.from(decoded));
+    await CourseFlagService().validateWorldFlag(course);
 
     if (course.flagImageBase64.length > 1024 * 1024) {
       throw const FormatException(

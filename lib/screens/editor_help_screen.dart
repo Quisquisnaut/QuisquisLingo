@@ -32,7 +32,22 @@ class EditorHelpScreen extends StatelessWidget {
         _HelpSection(
           title: 'Course structure',
           body:
-              'For custom courses, Lessons is the first content section on the main Course page. The dedicated Lessons page keeps the single authoritative Lock control at its top, and each Lesson page puts Rounds first. From there the hierarchy continues through Round / Exercises. Course, Lesson and Round menus provide scoped Audit plus their appropriate Edit, Rename, Duplicate and Preview actions. A duplicate is inserted after its source with fresh IDs throughout its owned subtree and starts as Draft. Exercise type cannot be changed after creation. Each Lesson has its own learner-facing GuideBook and Lesson-scoped Duel.',
+              'For custom courses, Lessons is the first content section on the main Course page. The Lessons AppBar has the single authoritative Lock icon with tooltip: Prevents accidental course edits. Stored separately for each course. Each Lesson page puts Rounds first, followed by Round / Exercises. Course, Lesson and Round menus provide scoped Audit plus their appropriate Edit, Rename, Duplicate and Preview actions. A duplicate is inserted after its source with fresh IDs throughout its owned subtree and starts as Draft. Exercise type cannot be changed after creation. Each Lesson retains its GuideBook and stable Lesson-scoped Duel identity.',
+        ),
+        _HelpSection(
+          title: 'Optional Lesson learning paths',
+          body:
+              'Use GuideBook and Create Duels are on the Lessons page and both default ON. Use GuideBook OFF preserves all GuideBook content, Draft state and source references. The learner still sees the Lesson identity and book artwork, but no GuideBook tooltip, click or action semantics; the Round introduction also omits its GuideBook action, including in Preview. Only LESSON_GUIDEBOOK_EMPTY is suppressed; malformed existing content still receives canonical findings. Reenabling updates the current canonical Audit and ancestor borders. Create Duels ON uses the shared pool of 25 actual eligible, deduplicated Exercises. Disabled or insufficient Duels have no learner card or reserved Duel spacing. DUEL_UNAVAILABLE is Info only while Create Duels is ON. Neither switch erases content, existing Duel victories, completion or XP.',
+        ),
+        _HelpSection(
+          title: 'Section assignments and names',
+          body:
+              'The Lesson Section selector offers No section, existing names, Add new section... and Manage sections.... New names are trimmed and must not be blank. The reusable course catalog also discovers existing Lesson assignments. Removing an assigned name is blocked with its Lesson usage count; change those assignments first. A name selected in the unsaved Lesson is protected too. New Lessons default to the immediately preceding Lesson\'s Section, or No section if none applies. Selecting No section explicitly clears this Lesson assignment. Consecutive assignments still determine visual Section blocks; Sections own no IDs, progress or unlocks.',
+        ),
+        _HelpSection(
+          title: 'Course flag sources',
+          body:
+              'Create new course offers Automatic, Existing QQL course flags, World Flags and Custom uploaded flag. World Flags selects the authoritative bundled SVG artwork by its stable worldFlagId; it does not invent a country from the target language. Existing QQL flags retain their existing behavior. Custom uploaded flag uses the established validated PNG/JPEG transfer workflow in Documents/QuisquisLingo/Exports. The processed PNG is embedded, while World Flags stores only its library ID. Both survive course persistence, export and reload.',
         ),
         _HelpSection(
           title: 'One Course Editor transaction',
@@ -57,7 +72,7 @@ class EditorHelpScreen extends StatelessWidget {
         _HelpSection(
           title: 'Course info and license',
           body:
-              'Course info stores human author credit, the content license and optional Buy a Coffee HTTPS link separately from the MPL-2.0 license of the QuisquisLingo software. It also selects the learner Lesson prefix—Lesson, Unit, Topic, Module, Skill, Chapter, Stage, Step, Part, a custom label, number only or none. Choose a common license from the menu or select Other / Custom license and enter the course-specific terms. Official content and provenance are read-only. In a custom fork, original authorship and provenance remain permanently visible alongside separate local creator and version-author credits. Eligible local custom courses show Export Course JSON as the final Course-page entry.',
+              'Course info stores human author credit, the content license and optional Buy a Coffee HTTPS link separately from the MPL-2.0 license of the QuisquisLingo software. Lesson + number, Number only and Title only name the existing numbering choices; Unit, Topic, Module, Skill, Chapter, Stage, Step, Part and a custom label remain available. An automatic Lesson N title appears once in Lesson + number mode and as N in Number only mode; the saved title remains unchanged. Choose a common license from the menu or select Other / Custom license and enter the course-specific terms. Official content and provenance are read-only. In a custom fork, original authorship and provenance remain permanently visible alongside separate local creator and version-author credits. Eligible local custom courses show Export Course JSON as the final Course-page entry.',
         ),
         _HelpSection(
           title: 'Import a custom course',
@@ -142,7 +157,7 @@ class EditorHelpScreen extends StatelessWidget {
         _HelpSection(
           title: 'Lesson Guidebook',
           body:
-              'Each Lesson has its own Guidebook, available to learners from the Lesson page when published. It can contain vocabulary, example sentences, explanations and other learning material. Save Guidebook as draft keeps it out of learner delivery and shows one blue Draft badge on the Guidebook and its visible ancestors. The badge is independent from Audit: an empty Guidebook or a Guidebook with any canonical Error or Warning has a red border, while a clean Draft Guidebook remains green with its blue badge. The editor can use its vocabulary and examples to propose new exercises.',
+              'Each Lesson has its own Guidebook, available to learners when published and Use GuideBook is ON. It can contain vocabulary, example sentences, explanations and other learning material. Save Guidebook as draft keeps it out of learner delivery and shows one blue Draft badge on the Guidebook and its visible ancestors. The badge is independent from Audit: an empty Guidebook has a red border while Use GuideBook is ON; any other canonical Guidebook Error or Warning stays red regardless of that preference. A clean Draft Guidebook remains green with its blue badge. The editor can use its vocabulary and examples to propose new exercises.',
         ),
         _HelpSection(
           title: 'Course metadata and authors',
@@ -152,7 +167,7 @@ class EditorHelpScreen extends StatelessWidget {
         _HelpSection(
           title: 'Audit severity and codes',
           body:
-              'Course Audit reports Errors, Warnings and Info. Error blocks publication or import because content is structurally or functionally invalid. Warning marks a likely authoring problem that needs review. Info is guidance or a neutral fact and never blocks publication by itself. Audit can sort by Lesson, friendly Exercise type or Recently modified and can be opened for a whole Course, one Lesson or one Round. Recent order uses updatedAt descending with deterministic ties; findings are numbered progressively inside each severity group after filtering. A red border marks an Audit Error or Warning and propagates through its represented branch. A luminous green border means the current branch has no Error or Warning; Info guidance may remain. One blue Draft indicator independently follows Draft Guidebooks and Draft Exercises through their visible ancestors. A Guidebook concern affects its Lesson and Lessons hierarchy, but not the separate Rounds branch. Fewer than 3 Rounds and Duel availability below 25 eligible Exercises are Info. Missing Reading- or Listening-comprehension coverage produces no finding; malformed existing comprehension content still receives validation. Drafts are included for author review without making unrelated Published learner content invalid. Technical reference > Audit Codes displays the shared 103-rule registry in Errors, Warnings, Info order. All three independently selectable categories start enabled, and text search applies within the selected categories.',
+              'Course Audit reports Errors, Warnings and Info. Error blocks publication or import because content is structurally or functionally invalid. Warning marks a likely authoring problem that needs review. Info is guidance or a neutral fact and never blocks publication by itself. Audit can sort by Lesson, friendly Exercise type or Recently modified and can be opened for a whole Course, one Lesson or one Round. Recent order uses updatedAt descending with deterministic ties; findings are numbered progressively inside each severity group after filtering. A red border marks an Audit Error or Warning and propagates through its represented branch. A luminous green border means the current branch has no Error or Warning; Info guidance may remain. One blue Draft indicator independently follows Draft Guidebooks and Draft Exercises through their visible ancestors. A Guidebook concern affects its Lesson and Lessons hierarchy, but not the separate Rounds branch. Fewer than 3 Rounds is Info; fewer than 25 eligible Duel Exercises is Info only when Create Duels is ON. Missing Reading- or Listening-comprehension coverage produces no finding; malformed existing comprehension content still receives validation. Drafts are included for author review without making unrelated Published learner content invalid. Technical reference > Audit Codes displays the shared 103-rule registry in Errors, Warnings, Info order. All three independently selectable categories start enabled, and text search applies within the selected categories.',
         ),
         _HelpSection(
           title: 'Course Audit',
@@ -163,7 +178,7 @@ class EditorHelpScreen extends StatelessWidget {
         _HelpSection(
           title: 'Create a new course',
           body:
-              'Course Manager can create an independent Course Model v6 project from scratch and opens it in Course Editor. It starts as Draft with 3 Draft placeholder Lessons and stable IDs; no Rounds are created automatically. A manually created Round starts as Draft with three Draft dummy Exercises. The new custom course remains only a working copy until Confirm course changes creates version 1; cancelling creates no stored course. Custom courses appear under Local courses, whose menu provides Edit, Duplicate, Audit, Export and the established protected delete flow. Import and export use portable QuisquisLingo JSON. Imported authoring content must state Draft/Published state and required UTC updatedAt timestamps explicitly; this release does not infer or migrate them.',
+              'Course Manager creates an independent Course Model v6 project and opens it in Course Editor. Number of Lessons defaults to 3 (whole numbers 1–100), and Rounds per Lesson defaults to 1 (whole numbers 1–20). Invalid or missing values show inline errors and disable Create. The complete initial hierarchy is created atomically with fresh stable IDs, empty untitled Rounds and no Exercises. These are one-time creation choices, not saved settings or import/model/editing limits. You can add or delete Lessons and Rounds later. The new Draft course remains only a working copy until Confirm course changes creates version 1; cancelling creates no stored course. Custom courses appear under Local courses, whose menu provides Edit, Duplicate, Audit, Export and the established protected delete flow. Import and export use portable QuisquisLingo JSON. Imported authoring content must state Draft/Published state and required UTC updatedAt timestamps explicitly; this release does not infer or migrate them.',
         ),
       ],
     ),
@@ -549,7 +564,7 @@ class JsonV4HelpScreen extends StatelessWidget {
       _HelpSection(
         title: 'Guidebook',
         body:
-            'Each Lesson contains a guidebook with optional publicationState and guidebook.content[] structured Content such as explanation, vocabulary and example entries. An omitted Guidebook publicationState means published; an explicit draft state keeps the Guidebook out of learner delivery.',
+            'Each Lesson contains a guidebook with optional publicationState and guidebook.content[] structured Content such as explanation, vocabulary and example entries. An omitted Guidebook publicationState means published; an explicit draft state keeps the Guidebook out of learner delivery. Its displayed Internal ID is derived from the immutable Lesson ID with the suffix _guidebook; no additional ID field is persisted. Guidebook Content retains its own stable IDs. The optional course useGuidebook switch changes learner access and the empty-Guidebook Warning, never the stored content.',
       ),
       _HelpSection(
         title: 'Lesson and Round',
@@ -564,7 +579,7 @@ class JsonV4HelpScreen extends StatelessWidget {
       _HelpSection(
         title: 'Duel',
         body:
-            'A Lesson serializes a stable Duel ID and title. Availability is derived at runtime from the actual Lesson exercise pool under the standard eligibility and deduplication rules; it is not serialized and does not depend on Round count.',
+            'A Lesson serializes a stable Duel ID and title. Availability is derived at runtime from the actual Lesson exercise pool under the standard eligibility and deduplication rules; it is not serialized and does not depend on Round count. Course createDuels and useGuidebook default true and serialize only when false. Optional sectionNames retains non-empty trimmed reusable names; an empty catalog is omitted. Optional worldFlagId references authoritative bundled SVG artwork and is omitted when empty. Existing v6 courses need no migration and retain their default behavior and checksum payloads.',
       ),
       _HelpSection(
         title: 'Compatibility',

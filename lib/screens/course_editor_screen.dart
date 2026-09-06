@@ -12,6 +12,7 @@ import 'package:audioplayers/audioplayers.dart';
 import '../models/course_models.dart';
 import '../models/exercise_authoring.dart';
 import '../services/course_editor_service.dart';
+import '../services/course_flag_service.dart';
 import '../services/course_editor_transaction.dart';
 import '../services/course_service.dart';
 import '../services/course_audit_service.dart';
@@ -20,6 +21,7 @@ import '../services/course_audit_report_service.dart';
 import '../services/settings_service.dart';
 import '../services/lesson_icon_catalog.dart';
 import '../services/lesson_icon_service.dart';
+import '../services/lesson_presentation_service.dart';
 import '../services/recorded_audio_service.dart';
 import 'round_screen.dart';
 import 'flat_image_library_screen.dart';
@@ -1035,7 +1037,7 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
                         items: const [
                           DropdownMenuItem(
                             value: LessonNumberingMode.lesson,
-                            child: Text('Lesson'),
+                            child: Text('Lesson + number'),
                           ),
                           DropdownMenuItem(
                             value: LessonNumberingMode.unit,
@@ -1079,7 +1081,7 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
                           ),
                           DropdownMenuItem(
                             value: LessonNumberingMode.none,
-                            child: Text('None'),
+                            child: Text('Title only'),
                           ),
                         ],
                         onChanged: (value) => setLocalState(
@@ -1396,6 +1398,14 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
   }
 
   Future<void> _runAudit() async {
+    try {
+      await CourseFlagService().validateWorldFlag(_course);
+    } on FormatException catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(error.message)));
+    }
     await _checkOrphanAudio();
     final fresh = _course;
     final result = CourseAuditService().auditCourse(fresh);
@@ -1872,6 +1882,8 @@ class _LessonManagementScreenState extends State<LessonManagementScreen> {
         updatedAt: _clock(),
         title: title,
         rounds: const [],
+        section: _course.lessons.lastOrNull?.section ?? false,
+        sectionName: _course.lessons.lastOrNull?.sectionName,
         guidebook: Guidebook.empty(),
       ),
     ]);
@@ -2067,7 +2079,22 @@ class _LessonManagementScreenState extends State<LessonManagementScreen> {
         appBar: AppBar(
           title: const Text('Lessons'),
           leading: BackButton(onPressed: _returnToCourse),
-          actions: const [EditorAppBarActions()],
+          actions: [
+            IconButton(
+              key: const Key('lesson-management-lock'),
+              tooltip:
+                  'Prevents accidental course edits. Stored separately for each course.',
+              isSelected: _locked,
+              icon: const Icon(Icons.lock_open_outlined),
+              selectedIcon: const Icon(Icons.lock_outline),
+              onPressed: () async {
+                final value = !_locked;
+                await _settings.setCourseEditorLocked(_course.courseId, value);
+                if (mounted) setState(() => _locked = value);
+              },
+            ),
+            const EditorAppBarActions(),
+          ],
         ),
         floatingActionButton: FloatingActionButton.extended(
           onPressed: _locked ? null : _addLesson,
@@ -2077,86 +2104,115 @@ class _LessonManagementScreenState extends State<LessonManagementScreen> {
         body: Column(
           children: [
             EditorBreadcrumbs(course: _course),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
-              child: Card(
-                key: const Key('lesson-appearance-settings'),
-                child: Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Text(
-                        'Lesson appearance',
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
-                      const SizedBox(height: 8),
-                      DropdownButtonFormField<LessonFallbackIconStyle>(
-                        key: const Key('lesson-fallback-number-style'),
-                        initialValue: _course.defaultLessonIconStyle,
-                        isExpanded: true,
-                        decoration: const InputDecoration(
-                          border: OutlineInputBorder(),
-                          labelText: 'Fallback lesson number icons',
+            Flexible(
+              child: SingleChildScrollView(
+                key: const Key('lesson-course-settings-scroll'),
+                child: Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
+                      child: Card(
+                        key: const Key('lesson-appearance-settings'),
+                        child: Padding(
+                          padding: const EdgeInsets.all(12),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              Text(
+                                'Lesson appearance',
+                                style: Theme.of(context).textTheme.titleMedium,
+                              ),
+                              const SizedBox(height: 8),
+                              DropdownButtonFormField<LessonFallbackIconStyle>(
+                                key: const Key('lesson-fallback-number-style'),
+                                initialValue: _course.defaultLessonIconStyle,
+                                isExpanded: true,
+                                decoration: const InputDecoration(
+                                  border: OutlineInputBorder(),
+                                  labelText: 'Fallback lesson number icons',
+                                ),
+                                items: const [
+                                  DropdownMenuItem(
+                                    value: LessonFallbackIconStyle.monochrome,
+                                    child: Text('Theme-colored circle'),
+                                  ),
+                                  DropdownMenuItem(
+                                    value: LessonFallbackIconStyle
+                                        .coloredLessonNumbers,
+                                    child: Text('Four-color circle'),
+                                  ),
+                                ],
+                                onChanged: _locked
+                                    ? null
+                                    : (style) {
+                                        if (style != null) {
+                                          _setFallbackLessonIconStyle(style);
+                                        }
+                                      },
+                              ),
+                              const SizedBox(height: 10),
+                              Row(
+                                key: const Key(
+                                  'lesson-fallback-number-preview',
+                                ),
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  LessonFallbackIcon(
+                                    style: _course.defaultLessonIconStyle,
+                                    number: 1,
+                                    size: 52,
+                                    monochromeKey: const Key(
+                                      'lesson-fallback-theme-colored-preview',
+                                    ),
+                                    coloredKey: const Key(
+                                      'lesson-fallback-four-color-preview',
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  const Expanded(
+                                    child: Text(
+                                      'For Lessons without an explicit icon. Theme-colored uses the theme tint; Four-color keeps fixed colors. Explicit custom icons do not change.',
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
                         ),
-                        items: const [
-                          DropdownMenuItem(
-                            value: LessonFallbackIconStyle.monochrome,
-                            child: Text('Theme-colored circle'),
-                          ),
-                          DropdownMenuItem(
-                            value: LessonFallbackIconStyle.coloredLessonNumbers,
-                            child: Text('Four-color circle'),
-                          ),
-                        ],
-                        onChanged: _locked
-                            ? null
-                            : (style) {
-                                if (style != null) {
-                                  _setFallbackLessonIconStyle(style);
-                                }
-                              },
                       ),
-                      const SizedBox(height: 10),
-                      Row(
-                        key: const Key('lesson-fallback-number-preview'),
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          LessonFallbackIcon(
-                            style: _course.defaultLessonIconStyle,
-                            number: 1,
-                            size: 52,
-                            monochromeKey: const Key(
-                              'lesson-fallback-theme-colored-preview',
+                    ),
+                    SwitchListTile(
+                      key: const Key('course-use-guidebook'),
+                      title: const Text('Use GuideBook'),
+                      value: _course.useGuidebook,
+                      onChanged: _locked
+                          ? null
+                          : (value) => _adoptCourse(
+                              Course.fromJson({
+                                ..._course.toJson(),
+                                'useGuidebook': value,
+                              }),
                             ),
-                            coloredKey: const Key(
-                              'lesson-fallback-four-color-preview',
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          const Expanded(
-                            child: Text(
-                              'For Lessons without an explicit icon. Theme-colored uses the theme tint; Four-color keeps fixed colors. Explicit custom icons do not change.',
-                            ),
-                          ),
-                        ],
+                    ),
+                    SwitchListTile(
+                      key: const Key('course-create-duels'),
+                      title: const Text('Create Duels'),
+                      subtitle: const Text(
+                        'When enough eligible Exercises are available, winning a Duel unlocks the next Lesson without normally completing the preceding Lesson.',
                       ),
-                    ],
-                  ),
+                      value: _course.createDuels,
+                      onChanged: _locked
+                          ? null
+                          : (value) => _adoptCourse(
+                              Course.fromJson({
+                                ..._course.toJson(),
+                                'createDuels': value,
+                              }),
+                            ),
+                    ),
+                  ],
                 ),
               ),
-            ),
-            SwitchListTile(
-              key: const Key('lesson-management-lock'),
-              title: const Text('Lock'),
-              subtitle: const Text(
-                'Prevents accidental course edits. Stored separately for each course.',
-              ),
-              value: _locked,
-              onChanged: (value) async {
-                await _settings.setCourseEditorLocked(_course.courseId, value);
-                if (mounted) setState(() => _locked = value);
-              },
             ),
             const Divider(height: 1),
             Expanded(
@@ -2302,7 +2358,11 @@ class LessonAuthoringPreviewScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: Text('PREVIEW · ${lesson.title}')),
+    appBar: AppBar(
+      title: Text(
+        'PREVIEW · ${course.lessons.any((candidate) => candidate.lessonId == lesson.lessonId) ? const LessonPresentationService().identity(course, course.lessons.indexWhere((candidate) => candidate.lessonId == lesson.lessonId)).fullText : lesson.title}',
+      ),
+    ),
     body: lesson.rounds.isEmpty
         ? const Center(child: Text('This Lesson has no Rounds to preview.'))
         : ListView.builder(
@@ -2337,7 +2397,12 @@ class LessonAuthoringPreviewScreen extends StatelessWidget {
 
 class GuidebookEditorScreen extends StatefulWidget {
   final Guidebook guidebook;
-  const GuidebookEditorScreen({super.key, required this.guidebook});
+  final String guidebookId;
+  const GuidebookEditorScreen({
+    super.key,
+    required this.guidebook,
+    this.guidebookId = '',
+  });
   @override
   State<GuidebookEditorScreen> createState() => _GuidebookEditorScreenState();
 }
@@ -2542,6 +2607,8 @@ class _GuidebookEditorScreenState extends State<GuidebookEditorScreen> {
             ),
           ],
         ),
+        if (widget.guidebookId.isNotEmpty)
+          EditorInternalIdText(label: 'GuideBook', id: widget.guidebookId),
       ],
     ),
   );
@@ -2570,6 +2637,7 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
   late Lesson _lesson;
   late bool _belongsToSection;
   late final TextEditingController _sectionName;
+  int _sectionPickerVersion = 0;
   String? _themeIconAsset;
   late List<CourseLessonIconAsset> _lessonIconAssets;
   late final DateTime Function() _clock = widget.clock ?? DateTime.now;
@@ -2641,6 +2709,139 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
       if (asset.assetId == id) return asset;
     }
     return null;
+  }
+
+  Future<void> _chooseSection(String? choice) async {
+    if (choice == null) return;
+    if (choice == 'manage') {
+      await _manageSections();
+      if (mounted) setState(() => _sectionPickerVersion++);
+      return;
+    }
+    String name = choice.startsWith('name:') ? choice.substring(5) : '';
+    if (choice == 'add') {
+      final controller = TextEditingController();
+      final added = await showDialog<String>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Add new section'),
+          content: TextField(
+            controller: controller,
+            autofocus: true,
+            decoration: const InputDecoration(labelText: 'Section name'),
+            onSubmitted: (value) {
+              if (value.trim().isNotEmpty) Navigator.pop(context, value.trim());
+            },
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () {
+                if (controller.text.trim().isNotEmpty) {
+                  Navigator.pop(context, controller.text.trim());
+                }
+              },
+              child: const Text('Add'),
+            ),
+          ],
+        ),
+      );
+      WidgetsBinding.instance.addPostFrameCallback((_) => controller.dispose());
+      if (!mounted) return;
+      if (added == null) {
+        setState(() => _sectionPickerVersion++);
+        return;
+      }
+      name = added;
+      _adoptCourse(
+        Course.fromJson({
+          ..._courseWithIcons.toJson(),
+          'sectionNames': {..._course.availableSectionNames, name}.toList(),
+        }),
+      );
+    }
+    if (!mounted) return;
+    setState(() {
+      _belongsToSection = name.isNotEmpty;
+      _sectionName.text = name;
+      _sectionPickerVersion++;
+    });
+  }
+
+  Future<void> _manageSections() async {
+    await showDialog<void>(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, refresh) => AlertDialog(
+          title: const Text('Manage sections'),
+          content: SizedBox(
+            width: 420,
+            child: ListView(
+              shrinkWrap: true,
+              children: [
+                if (_course.availableSectionNames.isEmpty)
+                  const Text('No section names yet.'),
+                for (final name in _course.availableSectionNames)
+                  ListTile(
+                    title: Text(name),
+                    trailing: IconButton(
+                      tooltip: 'Remove $name',
+                      icon: const Icon(Icons.delete_outline),
+                      onPressed: () async {
+                        final count = _course.lessons
+                            .where(
+                              (lesson) =>
+                                  lesson.section && lesson.sectionName == name,
+                            )
+                            .length;
+                        if (count > 0 ||
+                            (_belongsToSection && _sectionName.text == name)) {
+                          await showDialog<void>(
+                            context: context,
+                            builder: (context) => AlertDialog(
+                              title: const Text('Section is in use'),
+                              content: Text(
+                                count > 0
+                                    ? 'This section is used by $count ${count == 1 ? 'Lesson' : 'Lessons'}.\nRemove or change those assignments first.'
+                                    : 'This section is selected in the current Lesson. Change that assignment first.',
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.pop(context),
+                                  child: const Text('OK'),
+                                ),
+                              ],
+                            ),
+                          );
+                          return;
+                        }
+                        _adoptCourse(
+                          Course.fromJson({
+                            ..._courseWithIcons.toJson(),
+                            'sectionNames': _course.availableSectionNames
+                                .where((value) => value != name)
+                                .toList(),
+                          }),
+                        );
+                        if (context.mounted) refresh(() {});
+                      },
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Close'),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
@@ -2792,7 +2993,10 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
         .toSet();
     final g = await Navigator.of(context).push<Guidebook>(
       MaterialPageRoute(
-        builder: (_) => GuidebookEditorScreen(guidebook: _lesson.guidebook),
+        builder: (_) => GuidebookEditorScreen(
+          guidebook: _lesson.guidebook,
+          guidebookId: _lesson.guidebookId,
+        ),
       ),
     );
     if (g == null || !mounted) return;
@@ -3195,32 +3399,43 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
               trailing: const Icon(Icons.chevron_right),
               onTap: _openGuidebookRoundGenerator,
             ),
-            SwitchListTile(
-              key: const Key('lesson-section-toggle'),
-              value: _belongsToSection,
-              title: const Text('Belongs to a Section'),
-              subtitle: const Text(
-                'Section is display metadata only and does not change progression.',
-              ),
-              onChanged: (value) {
-                setState(() {
-                  _belongsToSection = value;
-                  if (!value) _sectionName.clear();
-                });
-              },
-            ),
-            if (_belongsToSection)
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-                child: TextField(
-                  key: const Key('lesson-section-name'),
-                  controller: _sectionName,
-                  decoration: const InputDecoration(
-                    border: OutlineInputBorder(),
-                    labelText: 'Section name',
-                  ),
+            EditorInternalIdText(label: 'GuideBook', id: _lesson.guidebookId),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+              child: DropdownButtonFormField<String>(
+                key: ValueKey(
+                  'lesson-section-picker-$_sectionPickerVersion-${_sectionName.text}',
                 ),
+                initialValue: _belongsToSection
+                    ? 'name:${_sectionName.text}'
+                    : 'none',
+                isExpanded: true,
+                decoration: const InputDecoration(
+                  border: OutlineInputBorder(),
+                  labelText: 'Section',
+                ),
+                items: [
+                  const DropdownMenuItem(
+                    value: 'none',
+                    child: Text('No section'),
+                  ),
+                  for (final name in {
+                    ..._course.availableSectionNames,
+                    if (_belongsToSection) _sectionName.text,
+                  })
+                    DropdownMenuItem(value: 'name:$name', child: Text(name)),
+                  const DropdownMenuItem(
+                    value: 'add',
+                    child: Text('Add new section...'),
+                  ),
+                  const DropdownMenuItem(
+                    value: 'manage',
+                    child: Text('Manage sections...'),
+                  ),
+                ],
+                onChanged: _chooseSection,
               ),
+            ),
             ListTile(
               key: const Key('lesson-theme-icon-field'),
               leading: SizedBox(
