@@ -69,38 +69,42 @@ void main() {
     });
   }
 
-  testWidgets('only a Round with Audit Errors receives the pink outline', (
-    tester,
-  ) async {
-    final course = _course();
-    await tester.pumpWidget(
-      MaterialApp(
-        home: LessonRoundsScreen(course: course, lesson: course.lessons.single),
-      ),
-    );
-    await tester.pumpAndSettle();
+  testWidgets(
+    'Round Audit concern uses red while an Info-only Round is green',
+    (tester) async {
+      final course = _course();
+      await tester.pumpWidget(
+        MaterialApp(
+          home: LessonRoundsScreen(
+            course: course,
+            lesson: course.lessons.single,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
 
-    final bad = tester.widget<Card>(
-      find.descendant(
-        of: find.byKey(const ValueKey('bad-round')),
-        matching: find.byType(Card),
-      ),
-    );
-    final good = tester.widget<Card>(
-      find.descendant(
-        of: find.byKey(const ValueKey('good-round')),
-        matching: find.byType(Card),
-      ),
-    );
-    expect(
-      (bad.shape! as RoundedRectangleBorder).side.color,
-      Colors.pinkAccent,
-    );
-    expect(
-      (good.shape! as RoundedRectangleBorder).side.color,
-      isNot(Colors.pinkAccent),
-    );
-  });
+      final bad = tester.widget<Card>(
+        find.descendant(
+          of: find.byKey(const ValueKey('bad-round')),
+          matching: find.byType(Card),
+        ),
+      );
+      final good = tester.widget<Card>(
+        find.descendant(
+          of: find.byKey(const ValueKey('good-round')),
+          matching: find.byType(Card),
+        ),
+      );
+      expect(
+        (bad.shape! as RoundedRectangleBorder).side.color,
+        const Color(0xFFC90000),
+      );
+      expect(
+        (good.shape! as RoundedRectangleBorder).side.color,
+        const Color(0xFF00A83B),
+      );
+    },
+  );
 }
 
 Course _course() {

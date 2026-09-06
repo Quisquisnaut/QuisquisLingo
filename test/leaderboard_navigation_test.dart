@@ -69,7 +69,7 @@ void main() {
       buildSignature: '',
     );
     SharedPreferences.setMockInitialValues({
-      'one_time_notice_seen_welcome_2.0.26+226021': true,
+      'one_time_notice_seen_welcome_2.0.26+226022': true,
       'sound_effects_enabled': false,
     });
     await ProfileService().addProfile('Navigation Learner');
@@ -2275,7 +2275,8 @@ void main() {
       final phrase = dialogTexts.singleWhere(
         (text) =>
             text.data != 'Welcome to QuisquisLingo' &&
-            text.data != 'Version ${AppMetadata.technicalVersion}' &&
+            text.data != 'Version 2.0.26' &&
+            text.data != 'Phase 226.02, revision 2' &&
             text.data != 'Continue',
       );
       final welcomeDialog = tester.widget<AlertDialog>(
@@ -2288,12 +2289,15 @@ void main() {
         const Color(0xFF0756DF),
       );
       expect(
-        tester
-            .widget<Text>(find.text('Version ${AppMetadata.technicalVersion}'))
-            .style
-            ?.color,
+        tester.widget<Text>(find.text('Version 2.0.26')).style?.color,
         const Color(0xFF0756DF),
       );
+      expect(
+        tester.widget<Text>(find.text('Phase 226.02, revision 2')).style?.color,
+        const Color(0xFF0756DF),
+      );
+      expect(find.textContaining('22621'), findsNothing);
+      expect(find.textContaining('226022'), findsNothing);
       expect(phrase.style?.color, const Color(0xFF0756DF));
       expect(find.widgetWithText(FilledButton, 'Continue'), findsOneWidget);
       expect(
@@ -2325,6 +2329,15 @@ void main() {
             .any((barrier) => !barrier.dismissible),
         isTrue,
       );
+
+      await tester.tap(find.widgetWithText(FilledButton, 'OK'));
+      await tester.pumpAndSettle();
+      await tester.pumpWidget(const MaterialApp(home: HomeScreen()));
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 300)),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('Welcome to QuisquisLingo'), findsNothing);
     },
   );
 

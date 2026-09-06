@@ -382,7 +382,7 @@ void main() {
   );
 
   testWidgets(
-    'Draft count and orange plus pink outlines update after a working-copy copy',
+    'Draft count and red plus blue status update after a working-copy copy',
     (tester) async {
       _viewport(tester);
       final course = _course(invalidAnswer: true);
@@ -398,36 +398,42 @@ void main() {
         ),
       );
       await _settle(tester);
-      final sourceIndicator = find.byKey(
-        const ValueKey('round-draft-indicator-source-round'),
+      final sourceStatus = find.byKey(
+        const ValueKey('round-status-indicator-source-round'),
       );
-      final sourceDecoration =
-          tester.widget<Container>(sourceIndicator).decoration!
-              as BoxDecoration;
-      expect((sourceDecoration.border! as Border).top.color, Colors.orange);
+      expect(
+        find.byKey(const ValueKey('round-draft-indicator-source-round')),
+        findsOneWidget,
+      );
       final sourceCard = tester.widget<Card>(
-        find.descendant(of: sourceIndicator, matching: find.byType(Card)),
+        find.descendant(of: sourceStatus, matching: find.byType(Card)),
       );
       expect(
         (sourceCard.shape! as RoundedRectangleBorder).side.color,
-        Colors.pinkAccent,
+        const Color(0xFFC90000),
       );
       expect(
         find.text(
-          '1 Draft Exercise · Orange: Draft Exercises · Pink: Audit Errors',
+          '1 Draft Exercise · Red: Audit Error or Warning · Green: no Error or Warning · Blue: Draft Exercises',
         ),
         findsOneWidget,
       );
-      final destinationDecoration =
-          tester
-                  .widget<Container>(
-                    find.byKey(
-                      const ValueKey('round-draft-indicator-same-lesson-round'),
-                    ),
-                  )
-                  .decoration!
-              as BoxDecoration;
-      expect(destinationDecoration.border, isNull);
+      final destinationCard = tester.widget<Card>(
+        find.descendant(
+          of: find.byKey(
+            const ValueKey('round-status-indicator-same-lesson-round'),
+          ),
+          matching: find.byType(Card),
+        ),
+      );
+      expect(
+        (destinationCard.shape! as RoundedRectangleBorder).side.color,
+        const Color(0xFFC90000),
+      );
+      expect(
+        find.byKey(const ValueKey('round-draft-indicator-same-lesson-round')),
+        findsNothing,
+      );
 
       await _openTransfer(tester, 'round', 'source-round', copy: true);
       await _chooseDestination(tester, course, 'lesson-one');
@@ -438,18 +444,15 @@ void main() {
       expect(copy.exercises, hasLength(4));
       expect(
         find.text(
-          '5 Draft Exercises · Orange: Draft Exercises · Pink: Audit Errors',
+          '5 Draft Exercises · Red: Audit Error or Warning · Green: no Error or Warning · Blue: Draft Exercises',
         ),
         findsOneWidget,
       );
-      final copiedIndicator = find.byKey(
+      final copiedDraftIndicator = find.byKey(
         ValueKey('round-draft-indicator-${copy.id}'),
       );
-      await tester.ensureVisible(copiedIndicator);
-      final copiedDecoration =
-          tester.widget<Container>(copiedIndicator).decoration!
-              as BoxDecoration;
-      expect((copiedDecoration.border! as Border).top.color, Colors.orange);
+      await tester.ensureVisible(copiedDraftIndicator);
+      expect(copiedDraftIndicator, findsOneWidget);
       expect(tester.takeException(), isNull);
     },
   );

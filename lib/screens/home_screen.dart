@@ -264,7 +264,13 @@ class _HomeScreenState extends State<HomeScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                'Version $_appVersion',
+                'Version ${AppMetadata.releaseVersion}',
+                style: Theme.of(ctx).textTheme.labelLarge?.copyWith(
+                  color: _welcomeDialogForeground,
+                ),
+              ),
+              Text(
+                'Phase ${AppMetadata.developmentPhase}, revision ${AppMetadata.correctiveRevision}',
                 style: Theme.of(ctx).textTheme.labelLarge?.copyWith(
                   color: _welcomeDialogForeground,
                 ),

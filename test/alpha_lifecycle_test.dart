@@ -2,12 +2,18 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:quisquislingo_app/services/alpha_lifecycle_service.dart';
 
 void main() {
-  test('build 226.02.1 alpha expiry is inclusive through the expiry day', () {
-    expect(AlphaLifecycleService.expiryIsoDate, '2026-10-06');
-    expect(AlphaLifecycleService.daysRemaining(DateTime(2026, 9, 6)), 30);
-    expect(AlphaLifecycleService.isExpired(DateTime(2026, 10, 6, 12)), isFalse);
-    expect(AlphaLifecycleService.isExpired(DateTime(2026, 10, 7)), isTrue);
-  });
+  test(
+    'build 226.02 revision 2 expiry is inclusive through the expiry day',
+    () {
+      expect(AlphaLifecycleService.expiryIsoDate, '2026-10-06');
+      expect(AlphaLifecycleService.daysRemaining(DateTime(2026, 9, 6)), 30);
+      expect(
+        AlphaLifecycleService.isExpired(DateTime(2026, 10, 6, 12)),
+        isFalse,
+      );
+      expect(AlphaLifecycleService.isExpired(DateTime(2026, 10, 7)), isTrue);
+    },
+  );
 
   test('warning milestones are stable', () {
     expect(AlphaLifecycleService.warningStage(DateTime(2026, 9, 29)), 7);

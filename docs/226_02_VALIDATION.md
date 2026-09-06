@@ -1,16 +1,65 @@
 # QQL 226.02 pre-commit validation report
 
-Status: **PASS — 226.02 implementation and the 226.02.1 corrective follow-up are complete, with all required automated validation green apart from the unchanged inherited analyzer findings.** Native/manual checks remain disclosed below.
+Status: **PASS — 226.02 and corrective revision 2 are complete, with all required automated validation green apart from inherited analyzer findings.** The Windows visual checks listed below remain manual.
 
-## 226.02.1 corrective follow-up closure
+## 226.02 corrective revision 2 closure
+
+This revision uses commit `eb74144c1897f34912449cef86938816c87e21e8` as its immutable parent and advances only the technical platform build from `2.0.26+226021` to **`2.0.26+226022`**. User-facing metadata is represented explicitly as **Version 2.0.26 / Phase 226.02 / revision 2**; the integer `226022` remains a monotonic platform build number. The correction date is still 2026-09-06, so the checked thirty-day Alpha policy expires at **2026-10-06 23:59:59 local time**. Course Model v6, persistence formats, course identity, importer formats, learner progress and publishing rules remain unchanged.
+
+The final 226.02 status behavior is:
+
+- A current authoring branch receives a **red border** when its shared Audit result contains an Error or Warning at that element or any descendant. Error and Warning severities remain unchanged; only Error remains blocking for publication.
+- A current branch receives a **luminous green border** when it contains neither Error nor Warning. Info alone permits green. A missing or unavailable Audit result uses the existing neutral presentation rather than claiming green.
+- One reusable blue **Draft** badge marks a Draft Exercise and propagates independently through its Round, Lesson, Course and hierarchy links. Red or green Audit borders and the Draft badge remain simultaneously visible.
+- An empty Round uses the canonical Error-level `ROUND_CONTENT_EMPTY` Audit finding, shows exactly `0 Exercises`, and has no zero-Draft label or Draft badge. Adding valid Content removes that state after the shared candidate Audit refresh when no other Error or Warning remains.
+- Rename Round uses exactly **`Title, or Enter to skip`**. Enter retains a titled Round's current title when no replacement is supplied, and leaves a new or existing untitled Round untitled.
+- The first-run popup displays **`Version 2.0.26`** and **`Phase 226.02, revision 2`** on separate lines. Its existing `technicalVersion`-keyed one-time persistence remains intact; `226022` is not shown as a human-readable phase label.
+
+The hierarchy derives both Audit and Draft state from the current candidate and the shared `CourseAuditService` result. No persistent UI flags, duplicate Audit rules or element-specific status calculation were introduced. The canonical 103-rule registry and all existing rule severities remain unchanged.
+
+### Revision 2 verification
+
+Commands were run from the repository root with the installed Flutter SDK and `--no-pub` for tests and analysis:
+
+```text
+flutter test --no-pub --concurrency=1 --reporter compact --timeout 60s test/authoring_hierarchy_indicators_226_02_test.dart test/authoring_audit_ui_224_test.dart test/authoring_transfer_ui_226_02_test.dart test/exercise_workflow_226_02_test.dart test/app_metadata_225_04_test.dart test/alpha_lifecycle_test.dart
+flutter test --no-pub --reporter expanded --timeout 60s --plain-name "Welcome popup keeps its yellow and blue palette in dark mode" test/leaderboard_navigation_test.dart
+flutter test --no-pub --concurrency=1 --reporter compact --timeout 60s test/audit_code_registry_226_02_test.dart test/audit_codes_screen_226_02_test.dart test/authoring_transfer_ui_226_02_test.dart test/course_authoring_transfer_226_02_test.dart test/exercise_field_help_226_02_test.dart test/exercise_field_help_ui_226_02_test.dart test/exercise_workflow_226_02_test.dart test/exercise_creation_wizard_test.dart test/authoring_hierarchy_indicators_226_02_test.dart test/course_editor_export_226_02_test.dart
+flutter analyze --no-pub
+flutter test --no-pub --concurrency=1 --reporter compact --timeout 60s
+python tools/validate_courses.py
+python tools/validate_lesson_icons.py
+python tools/validate_images.py
+dart format <all changed Dart files>
+git diff --check
+```
+
+Exact final results:
+
+- Revision-2 correction set: **66 passed, exit 0, 1m50s**. This includes the full red/green/blue status matrix, Warning inheritance, sibling isolation, empty-Round Error/transition, Rename Round Enter behavior, explicit metadata and Alpha-expiry policy.
+- Focused first-run popup: **1 passed, exit 0, 4s**. It verifies the two human-readable lines, excludes malformed `22621` and the platform integer `226022`, and confirms the Welcome notice does not reappear after rebuilding Home with its seen key set.
+- Complete established 226.02 focused set: **168 passed, exit 0, 3m49s**.
+- Analyzer: **exit 1, 72 findings**. Parent `eb74144c1897f34912449cef86938816c87e21e8` has **72 findings**; current has **72**; **new 0, resolved 0, inherited 72**. None is in a file changed by revision 2. The result is not described as passing.
+- Complete Flutter suite: **778 passed, exit 0, 8m39s**.
+- Course validator: **9 bundled Course Model v6 files validated, exit 0**.
+- Lesson icon validator: **14 assets, 0 issues, exit 0**.
+- Image validator: **112 assets, 0 issues, exit 0**.
+- Dart formatting: **14 files formatted, 0 changed, exit 0** on the final formatting run.
+- `git diff --check`: **exit 0, no whitespace errors**.
+
+Manual Windows checks remain: red and luminous-green visibility in both light and dark themes; blue Draft-badge readability; simultaneous red border plus blue Draft badge at every hierarchy level; ancestor propagation and removal after the last descendant issue or Draft is resolved, moved or deleted; empty-Round presentation and transition after adding the first valid Exercise; and first-run popup appearance and show-once behavior. These visual/device checks were not represented as passed by widget tests. Audio behavior was outside this correction and no new audio risk is introduced.
+
+No Guidebook work or 226.03 feature was started.
+
+## 226.02.1 corrective follow-up closure (historical; superseded by revision 2 status presentation)
 
 The corrective follow-up uses local `main` commit `718bbb3856e88d8780c4b52b91d479ac431f71bb` as its immutable parent. Metadata advances within tranche 226.02 to **Version 2.0.26 / Build 226.02.1 / `2.0.26+226021`**. The correction date is 2026-09-06, so the existing thirty-day Alpha policy expires at **2026-10-06 23:59:59 local time**. Course Model v6 and every persistence format remain unchanged.
 
 The follow-up closes these six requested areas:
 
 - **Audit Codes:** the Technical Reference link has no subtitle. The unchanged shared 103-rule registry is displayed in Errors, Warnings, Info order. Three independent filters start selected, support every one/two/three-category combination, and constrain text search without copying definitions into the UI.
-- **Hierarchy indicators:** one candidate-derived status maps Draft Exercises and Error-severity Audit findings through Exercise items, Round items, Lesson Rounds links, Lesson items and the Course Lessons link. Orange and pink coexist. Warning/Info do not produce pink. Fresh derivation from the current candidate and shared Audit result covers saves, publication transitions, creation/deletion/duplication, Move/Copy and child returns without persisted UI flags.
-- **Round and hierarchy presentation:** Rename Round uses exactly `Title or Enter for no title`, removes the former explanatory sentence, preserves empty-title Enter confirmation, and fits at 320 px. Rounds and Lessons use one shared bold hierarchy-link style.
+- **Hierarchy indicators:** this follow-up introduced candidate-derived hierarchy propagation. Revision 2 above replaces its original color mapping with the final red/green Audit border and independent blue Draft badge.
+- **Round and hierarchy presentation:** this follow-up introduced compact Rename Round field guidance and shared Rounds/Lessons link typography. Revision 2 above supplies the final field text and Enter behavior.
 - **Course page and export:** the Course-specific three-dot menu and its Audio Library, Image Bank, temporary-sample and export branches are removed. Audio Library and Image Bank remain page entries. Export Course JSON is the final entry for a custom course opened through the existing local-course authoring path, including a licensed custom fork; it is absent for bundled/external official sources and custom courses outside that path. The model has no separate export-permission or team-source field, so the correction does not infer one from licence text: imported team-supplied custom JSON is indistinguishable from other local custom JSON. Export reuses `CustomCourseTransferService.exportCourse`, preserves all v6 provenance/authorship/lineage/licence data, includes course media metadata/references, and does not embed MP3 bytes. Verified backup recording-copy behavior is unchanged.
 - **Field Help:** the existing centralized mechanism now gives Prompt and Question distinct meanings and examples and adds concise field-specific examples for line formats, paired values, accepted answers and relative image paths. Audio fields remain spoken text fields rather than invented file-path inputs. All 20 current presets still resolve their mounted fields through the one registry.
 - **Scope:** unsaved Preview, dirty navigation, Move/Copy transaction semantics, official read-only/fork policy, matching-pair input rejection, learner behavior, Audit severities/codes and removal of missing-Reading guidance are unchanged. No Guidebook goal/further-reading/link scaffold and no 226.03 feature was started.
@@ -44,7 +93,7 @@ Exact results:
 - Dart formatting: all changed Dart files formatted; final verification reported no formatting change.
 - `git diff --check`: **exit 0, no whitespace errors**.
 
-Automated narrow-width coverage exercises Audit filters, Rename Round, Course/Lesson hierarchy links, Prompt/Question tooltips and existing responsive authoring screens at 320 px. Manual Windows verification remains required for desktop and narrow layouts, simultaneous orange/pink appearance at every hierarchy level, immediate removal after the final descendant is corrected/moved/deleted, tooltip readability, absence of the three-dot Course menu, export visibility for each real course origin, and an actual Course JSON file-export smoke test. Native TTS/MP3 playback was not executed and remains a manual check. No package or release was created.
+Automated narrow-width coverage exercises Audit filters, Rename Round, Course/Lesson hierarchy links, Prompt/Question tooltips and existing responsive authoring screens at 320 px. The authoritative revision-2 manual list is above. The prior export and layout smoke checks remain recommended before release. No package or release was created.
 
 ## Original 226.02 tranche validation (historical)
 
@@ -86,7 +135,7 @@ All four low-severity findings from the independent read-only review were correc
 | Validation clarity | Known Audit messages identify the field and action without changing their existing conditions or severities. Correct-answer indices and duplicate literal translations have actionable messages. A malformed matching-pair line is identified and retained in the form, rather than silently omitted from Preview/Save. |
 | Importer instructions | Documentation was checked against LessonIconService, FlagService, ExerciseImageService, ImageBankService, RecordedAudioService, CourseEditorService and course backups. It distinguishes portable embedded flags/Lesson icons from local exercise image/audio paths and explains actual formats, limits, transformation and errors. Physical MP3 storage is correctly described as grouped by learning language, while Course metadata/references and verified backup copying remain Course-specific. No import behavior changed. |
 | Untitled Rounds | Create and Rename accept an empty title, show “Press Enter to keep this Round untitled.”, and submit that empty value on Enter. Round N remains a display fallback; no fake stored title is introduced. |
-| Draft indicators | Orange is derived from current Draft Exercise content, independently of the existing pink Audit Error Card border. Concentric borders, a tooltip and legend distinguish both conditions. |
+| Draft indicators | This original implementation was superseded by revision 2's shared blue Draft badge and independent red/green Audit border. |
 | Draft counts | Course total and Lesson counts are calculated from the same working-copy content; they are not persisted or independently cached. A shared formatter renders `1 Draft Exercise` and pluralizes zero and all other values across all five presentations. Add, delete, Save/Draft, publish, duplicate, Move and Copy flow through the existing state updates. |
 | Audit Codes | Searchable Course Help technical reference uses the same immutable 103-rule registry as CourseAuditService. Each definition includes code, severity, scope, meaning, trigger, creator action and blocking status. Known findings cannot routinely use GENERAL. |
 | Missing Reading guidance | The entire `readingCount == 0` finding block is deleted. There is no downgraded Info equivalent. Actual malformed Reading and Listening findings remain, and missing Listening guidance remains absent. |
@@ -113,7 +162,7 @@ No 226.03 answer-expansion UI/feedback, new presets, optional Duels, Section man
 |---|---|
 | `exercise_workflow_226_02_test.dart` | New unsaved Preview; Draft/Published and every canonical model; contextual/Build translation/listening; unsaved values and publication; exact Course JSON and all preferences unchanged; no authoring clock/save callback; completion with zero learner writes; no-active-profile audio Preview despite TTS skipping; navigation order/boundaries/save/discard; breadcrumb guard; immediate renamed-Lesson refresh with duplicate-title stable-ID resolution; malformed pair diagnostics; empty Round Enter. |
 | `course_authoring_transfer_226_02_test.dart` | Move/copy for canonical models and Presentation/text; IDs, references, metadata, nested copy independence, custom-only guard, collisions, source immutability; real transaction Cancel and one final Confirm with version/backup. |
-| `authoring_transfer_ui_226_02_test.dart` | Actual destination menus within/across Lessons; cancelled chooser; destination reset; multiple transfers through nested return stack; text/intro/Presentation metadata/order; returned timestamp; Round Move/Copy; live singular/plural counts and simultaneous orange/pink. |
+| `authoring_transfer_ui_226_02_test.dart` | Actual destination menus within/across Lessons; cancelled chooser; destination reset; multiple transfers through nested return stack; text/intro/Presentation metadata/order; returned timestamp; Round Move/Copy; live singular/plural counts and simultaneous independent Audit/Draft status. |
 | `exercise_field_help_226_02_test.dart` | All semantic definitions, shared canonical meanings, accepted-answer parser examples and distinctions from literal Arrange/missing-word lists; importer documentation contract for language-grouped MP3 files, Course-owned references, verified backup copying and non-embedded bytes. |
 | `exercise_field_help_ui_226_02_test.dart` | All 20 actual preset forms and every mounted field; context conditional fields; dynamic translation rows; syntax Help; Light/Dark at 320/375/430/1100 px. |
 | `audit_code_registry_226_02_test.dart` | Complete known rule inventory, specific identities/severities, no routine GENERAL, exact matching-pair trigger descriptions, search, missing Reading/Listening absence and malformed existing comprehension validation. |
@@ -206,7 +255,7 @@ Ignored `build/22602/` retains the earlier implementation-run logs: initial and 
 | M | `test/app_metadata_225_04_test.dart` | Checks release/build/technical labels for 226.02. |
 | ?? | `test/audit_code_registry_226_02_test.dart` | 9 new registry, exact pair-trigger, known emission, search and comprehension presence/malformed-content regressions. |
 | ?? | `test/audit_codes_screen_226_02_test.dart` | 10 new full reference, search and responsive Light/Dark regressions. |
-| M | `test/authoring_audit_ui_224_test.dart` | Retains the pink Error-only assertion while locating its Card inside the new independent Draft indicator. |
+| M | `test/authoring_audit_ui_224_test.dart` | Preserves scoped Audit presentation coverage; revision 2 updates the assertion to the final Error-or-Warning red / clear green semantics. |
 | ?? | `test/authoring_transfer_ui_226_02_test.dart` | 20 new real destination, cancellation, nested propagation, v6 preservation and Draft visual/count regressions. |
 | M | `test/course_audit_report_225_test.dart` | Checks current build labels in Audit reports. |
 | ?? | `test/course_authoring_transfer_226_02_test.dart` | 33 new pure transfer, all-model IDs/metadata, deep copy, guards and real transaction/version/backup regressions. |

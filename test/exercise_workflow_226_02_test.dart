@@ -393,7 +393,7 @@ void main() {
     await tester.tap(find.text('New round'));
     await tester.pumpAndSettle();
     expect(find.text('Press Enter to keep this Round untitled.'), findsNothing);
-    expect(field('Title or Enter for no title'), findsOneWidget);
+    expect(field('Title, or Enter to skip'), findsOneWidget);
     await tester.testTextInput.receiveAction(TextInputAction.done);
     await tester.pumpAndSettle();
     expect(find.byType(AlertDialog), findsNothing);
@@ -440,11 +440,11 @@ void main() {
     await tester.tap(find.byTooltip('Rename round'));
     await tester.pumpAndSettle();
     expect(find.text('Rename Round'), findsOneWidget);
-    expect(field('Title or Enter for no title'), findsOneWidget);
+    expect(field('Title, or Enter to skip'), findsOneWidget);
     expect(find.text('Press Enter to keep this Round untitled.'), findsNothing);
     expect(tester.takeException(), isNull);
 
-    await tester.enterText(field('Title or Enter for no title'), '');
+    await tester.enterText(field('Title, or Enter to skip'), '');
     await tester.testTextInput.receiveAction(TextInputAction.done);
     await tester.pumpAndSettle();
     expect(find.byType(AlertDialog), findsNothing);
@@ -455,6 +455,74 @@ void main() {
     await tester.tap(find.byType(BackButton));
     await tester.pumpAndSettle();
     expect(returned?.title, isEmpty);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('Enter without a replacement preserves a titled Round', (
+    tester,
+  ) async {
+    await useViewport(tester);
+    final base = exampleCourse([exampleExercise()]);
+    final originalRound = base.lessons.first.rounds.first;
+    final titledRound = LearningRound(
+      id: originalRound.id,
+      publicationState: originalRound.publicationState,
+      updatedAt: originalRound.updatedAt,
+      title: 'Keep this title',
+      visualType: originalRound.visualType,
+      content: originalRound.content,
+    );
+    final lesson = Lesson(
+      lessonId: base.lessons.first.lessonId,
+      publicationState: base.lessons.first.publicationState,
+      updatedAt: base.lessons.first.updatedAt,
+      title: base.lessons.first.title,
+      rounds: [titledRound],
+      section: base.lessons.first.section,
+      sectionName: base.lessons.first.sectionName,
+      themeIconAsset: base.lessons.first.themeIconAsset,
+      guidebook: base.lessons.first.guidebook,
+      duel: base.lessons.first.duel,
+    );
+    final course = Course.fromJson({
+      ...base.toJson(),
+      'lessons': [lesson.toJson()],
+    });
+    LearningRound? returned;
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Builder(
+          builder: (context) => TextButton(
+            onPressed: () async {
+              returned = await Navigator.of(context).push<LearningRound>(
+                MaterialPageRoute(
+                  builder: (_) => RoundEditorScreen(
+                    course: course,
+                    lesson: lesson,
+                    round: titledRound,
+                    roundIndex: 0,
+                  ),
+                ),
+              );
+            },
+            child: const Text('Open titled Round'),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('Open titled Round'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Rename round'));
+    await tester.pumpAndSettle();
+    expect(field('Title, or Enter to skip'), findsOneWidget);
+    await tester.enterText(field('Title, or Enter to skip'), '');
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await tester.pumpAndSettle();
+    expect(find.text('Keep this title'), findsOneWidget);
+    await tester.tap(find.byType(BackButton));
+    await tester.pumpAndSettle();
+    expect(returned?.title, 'Keep this title');
     expect(tester.takeException(), isNull);
   });
 

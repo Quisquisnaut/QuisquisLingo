@@ -1,13 +1,13 @@
 # QuisquisLingo App
 
-**Current source version: 2.0.26+226021 · Build 226.02.1 · Course Model v6 (`formatVersion: 6`).**
+**Current source version: 2.0.26+226022 · Phase 226.02, revision 2 · Course Model v6 (`formatVersion: 6`).**
 
 
-**QuisquisLingo 2.0.26 Alpha — Build 226.02.1 Editor workflow and Audit UX correction**
+**QuisquisLingo 2.0.26 Alpha — Phase 226.02, revision 2 Editor workflow and Audit UX correction**
 
 Current project version: 2.0.26
 
-Build 226.02.1 completes the 226.02 workflow with severity filters for the shared Audit Code reference, live Draft/Audit Error indicators throughout the editor hierarchy, compact intentional-untitled Round wording, a bold Rounds hierarchy link, contextual field examples, and a final-page JSON export entry for eligible local custom courses. Build 226.02 retains unsaved Preview, guarded navigation and transactional Move/Copy. Tranches 226.03 and later remain deferred.
+Phase 226.02 revision 2 completes the workflow with severity filters for the shared Audit Code reference; red Error-or-Warning and luminous green clear-branch borders; an independent blue Draft indicator throughout the editor hierarchy; compact intentional-untitled Round wording; a bold Rounds hierarchy link; contextual field examples; and a final-page JSON export entry for eligible local custom courses. Build 226.02 retains unsaved Preview, guarded navigation and transactional Move/Copy. Tranches 226.03 and later remain deferred.
 
 Build 226.01 makes bundled and external official courses locally read-only, with Info, Audit, Preview and publisher Version History inspection. An explicit publisher policy may allow a custom fork with fresh IDs, permanent original authorship/provenance and a separately recorded fork creator. Forks use the existing custom working-copy transaction, backups and version rules, and remain unchanged by later official updates. Build 225 official local overrides are ignored without migration or deletion. Ordinary custom courses, Course Model v6, progression, XP, Review, Duel and learner identity remain compatible. The official repository is `Quisquisnaut/QuisquisLingo`.
 

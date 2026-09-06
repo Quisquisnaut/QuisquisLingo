@@ -11,145 +11,148 @@ void main() {
 
   setUp(() => SharedPreferences.setMockInitialValues({}));
 
-  testWidgets('Draft and Error coexist from Exercise through Course links', (
-    tester,
-  ) async {
-    _viewport(tester);
-    final course = _course();
-    final badLesson = course.lessons.first;
-    final goodLesson = course.lessons.last;
-    final badRound = badLesson.rounds.first;
-    final goodRound = goodLesson.rounds.first;
-    final badExercise = badRound.exercises.first;
-    final goodExercise = goodRound.exercises.first;
+  testWidgets(
+    'Draft and Audit status propagate from Exercise through Course links',
+    (tester) async {
+      _viewport(tester);
+      final course = _course();
+      final badLesson = course.lessons.first;
+      final goodLesson = course.lessons.last;
+      final badRound = badLesson.rounds.first;
+      final goodRound = goodLesson.rounds.first;
+      final badExercise = badRound.exercises.first;
+      final goodExercise = goodRound.exercises.first;
 
-    await tester.pumpWidget(
-      MaterialApp(
-        key: UniqueKey(),
-        home: CourseEditorScreen(course: course, userCourse: true),
-      ),
-    );
-    await tester.pumpAndSettle();
-    _expectIndicator(
-      tester,
-      const Key('course-lessons-status-indicator'),
-      orange: true,
-      pink: true,
-    );
-
-    await tester.pumpWidget(
-      MaterialApp(
-        key: UniqueKey(),
-        home: LessonManagementScreen(course: course, initiallyLocked: false),
-      ),
-    );
-    await tester.pumpAndSettle();
-    _expectIndicator(
-      tester,
-      ValueKey('lesson-status-indicator-${badLesson.lessonId}'),
-      orange: true,
-      pink: true,
-    );
-    _expectIndicator(
-      tester,
-      ValueKey('lesson-status-indicator-${goodLesson.lessonId}'),
-      orange: false,
-      pink: false,
-    );
-    final cleanAudit = CourseAuditService().auditLesson(
-      course,
-      goodLesson.lessonId,
-    );
-    expect(
-      cleanAudit.issues.any((issue) => issue.severity == AuditSeverity.warning),
-      isTrue,
-    );
-    expect(
-      cleanAudit.issues.any((issue) => issue.severity == AuditSeverity.error),
-      isFalse,
-    );
-
-    await tester.pumpWidget(
-      MaterialApp(
-        key: UniqueKey(),
-        home: LessonEditorScreen(course: course, lesson: badLesson),
-      ),
-    );
-    await tester.pumpAndSettle();
-    _expectIndicator(
-      tester,
-      const Key('lesson-rounds-status-indicator'),
-      orange: true,
-      pink: true,
-    );
-
-    await tester.pumpWidget(
-      MaterialApp(
-        key: UniqueKey(),
-        home: LessonRoundsScreen(course: course, lesson: badLesson),
-      ),
-    );
-    await tester.pumpAndSettle();
-    _expectIndicator(
-      tester,
-      ValueKey('round-draft-indicator-${badRound.id}'),
-      orange: true,
-      pink: true,
-    );
-
-    await tester.pumpWidget(
-      MaterialApp(
-        key: UniqueKey(),
-        home: LessonRoundsScreen(course: course, lesson: goodLesson),
-      ),
-    );
-    await tester.pumpAndSettle();
-    _expectIndicator(
-      tester,
-      ValueKey('round-draft-indicator-${goodRound.id}'),
-      orange: false,
-      pink: false,
-    );
-
-    await tester.pumpWidget(
-      MaterialApp(
-        key: UniqueKey(),
-        home: RoundEditorScreen(
-          course: course,
-          lesson: badLesson,
-          round: badRound,
-          roundIndex: 0,
+      await tester.pumpWidget(
+        MaterialApp(
+          key: UniqueKey(),
+          home: CourseEditorScreen(course: course, userCourse: true),
         ),
-      ),
-    );
-    await tester.pumpAndSettle();
-    _expectIndicator(
-      tester,
-      ValueKey('exercise-status-indicator-${badExercise.id}'),
-      orange: true,
-      pink: true,
-    );
+      );
+      await tester.pumpAndSettle();
+      _expectIndicator(
+        tester,
+        const Key('course-lessons-status-indicator'),
+        draft: true,
+        auditConcern: true,
+      );
 
-    await tester.pumpWidget(
-      MaterialApp(
-        key: UniqueKey(),
-        home: RoundEditorScreen(
-          course: course,
-          lesson: goodLesson,
-          round: goodRound,
-          roundIndex: 0,
+      await tester.pumpWidget(
+        MaterialApp(
+          key: UniqueKey(),
+          home: LessonManagementScreen(course: course, initiallyLocked: false),
         ),
-      ),
-    );
-    await tester.pumpAndSettle();
-    _expectIndicator(
-      tester,
-      ValueKey('exercise-status-indicator-${goodExercise.id}'),
-      orange: false,
-      pink: false,
-    );
-    expect(tester.takeException(), isNull);
-  });
+      );
+      await tester.pumpAndSettle();
+      _expectIndicator(
+        tester,
+        ValueKey('lesson-status-indicator-${badLesson.lessonId}'),
+        draft: true,
+        auditConcern: true,
+      );
+      _expectIndicator(
+        tester,
+        ValueKey('lesson-status-indicator-${goodLesson.lessonId}'),
+        draft: false,
+        auditConcern: false,
+      );
+      final cleanAudit = CourseAuditService().auditLesson(
+        course,
+        goodLesson.lessonId,
+      );
+      expect(
+        cleanAudit.issues.any(
+          (issue) => issue.severity == AuditSeverity.warning,
+        ),
+        isFalse,
+      );
+      expect(
+        cleanAudit.issues.any((issue) => issue.severity == AuditSeverity.error),
+        isFalse,
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          key: UniqueKey(),
+          home: LessonEditorScreen(course: course, lesson: badLesson),
+        ),
+      );
+      await tester.pumpAndSettle();
+      _expectIndicator(
+        tester,
+        const Key('lesson-rounds-status-indicator'),
+        draft: true,
+        auditConcern: true,
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          key: UniqueKey(),
+          home: LessonRoundsScreen(course: course, lesson: badLesson),
+        ),
+      );
+      await tester.pumpAndSettle();
+      _expectIndicator(
+        tester,
+        ValueKey('round-status-indicator-${badRound.id}'),
+        draft: true,
+        auditConcern: true,
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          key: UniqueKey(),
+          home: LessonRoundsScreen(course: course, lesson: goodLesson),
+        ),
+      );
+      await tester.pumpAndSettle();
+      _expectIndicator(
+        tester,
+        ValueKey('round-status-indicator-${goodRound.id}'),
+        draft: false,
+        auditConcern: false,
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          key: UniqueKey(),
+          home: RoundEditorScreen(
+            course: course,
+            lesson: badLesson,
+            round: badRound,
+            roundIndex: 0,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      _expectIndicator(
+        tester,
+        ValueKey('exercise-status-indicator-${badExercise.id}'),
+        draft: true,
+        auditConcern: true,
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          key: UniqueKey(),
+          home: RoundEditorScreen(
+            course: course,
+            lesson: goodLesson,
+            round: goodRound,
+            roundIndex: 0,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      _expectIndicator(
+        tester,
+        ValueKey('exercise-status-indicator-${goodExercise.id}'),
+        draft: false,
+        auditConcern: false,
+      );
+      expect(tester.takeException(), isNull);
+    },
+  );
 
   testWidgets('deleting the last Draft Error clears the live Round indicator', (
     tester,
@@ -165,8 +168,8 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    final roundIndicator = ValueKey('round-draft-indicator-${round.id}');
-    _expectIndicator(tester, roundIndicator, orange: true, pink: true);
+    final roundIndicator = ValueKey('round-status-indicator-${round.id}');
+    _expectIndicator(tester, roundIndicator, draft: true, auditConcern: true);
 
     await tester.tap(
       find.descendant(
@@ -192,7 +195,7 @@ void main() {
 
     await tester.tap(find.byType(BackButton));
     await tester.pumpAndSettle();
-    _expectIndicator(tester, roundIndicator, orange: false, pink: false);
+    _expectIndicator(tester, roundIndicator, draft: false, auditConcern: false);
     expect(tester.takeException(), isNull);
   });
 
@@ -214,8 +217,8 @@ void main() {
       _expectIndicator(
         tester,
         const Key('course-lessons-status-indicator'),
-        orange: false,
-        pink: false,
+        draft: false,
+        auditConcern: false,
       );
 
       await tester.pumpWidget(
@@ -231,8 +234,8 @@ void main() {
       _expectIndicator(
         tester,
         ValueKey('lesson-status-indicator-${lesson.lessonId}'),
-        orange: false,
-        pink: false,
+        draft: false,
+        auditConcern: false,
       );
 
       await tester.pumpWidget(
@@ -245,8 +248,8 @@ void main() {
       _expectIndicator(
         tester,
         const Key('lesson-rounds-status-indicator'),
-        orange: false,
-        pink: false,
+        draft: false,
+        auditConcern: false,
       );
 
       await tester.pumpWidget(
@@ -258,9 +261,9 @@ void main() {
       await tester.pumpAndSettle();
       _expectIndicator(
         tester,
-        ValueKey('round-draft-indicator-${round.id}'),
-        orange: false,
-        pink: false,
+        ValueKey('round-status-indicator-${round.id}'),
+        draft: false,
+        auditConcern: false,
       );
       expect(tester.takeException(), isNull);
     },
@@ -295,14 +298,310 @@ void main() {
     _expectIndicator(
       tester,
       ValueKey('lesson-status-indicator-${sourceLesson.lessonId}'),
-      orange: false,
-      pink: false,
+      draft: false,
+      auditConcern: false,
     );
     _expectIndicator(
       tester,
       ValueKey('lesson-status-indicator-${destinationLesson.lessonId}'),
-      orange: true,
-      pink: true,
+      draft: true,
+      auditConcern: true,
+    );
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('red, green, and blue Draft states follow Audit severity', (
+    tester,
+  ) async {
+    _viewport(tester);
+
+    Future<void> check(
+      LearningRound round, {
+      required bool auditConcern,
+      required bool draft,
+    }) async {
+      final course = _statusCourse([round]);
+      await tester.pumpWidget(
+        MaterialApp(
+          key: UniqueKey(),
+          home: LessonRoundsScreen(
+            course: course,
+            lesson: course.lessons.single,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      _expectIndicator(
+        tester,
+        ValueKey('round-status-indicator-${round.id}'),
+        draft: draft,
+        auditConcern: auditConcern,
+      );
+    }
+
+    await check(
+      LearningRound(
+        id: 'error-only',
+        title: 'Error only',
+        exercises: [_choice('error', correct: 9)],
+      ),
+      auditConcern: true,
+      draft: false,
+    );
+    await check(
+      _exerciseRound('warning-only', count: 11),
+      auditConcern: true,
+      draft: false,
+    );
+    await check(
+      LearningRound(
+        id: 'info-only',
+        title: 'Info only',
+        exercises: [_choice('info', correct: 0)],
+      ),
+      auditConcern: false,
+      draft: false,
+    );
+    await check(_cleanRound('no-findings'), auditConcern: false, draft: false);
+    await check(
+      _cleanRound('draft-only', draftFirst: true),
+      auditConcern: false,
+      draft: true,
+    );
+    await check(
+      LearningRound(
+        id: 'draft-error',
+        title: 'Draft Error',
+        exercises: [_choice('draft-error-exercise', draft: true, correct: 9)],
+      ),
+      auditConcern: true,
+      draft: true,
+    );
+    await check(
+      _exerciseRound('draft-warning', count: 11, draftFirst: true),
+      auditConcern: true,
+      draft: true,
+    );
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('clean sibling stays green while its Lesson ancestor is red', (
+    tester,
+  ) async {
+    _viewport(tester);
+    final bad = LearningRound(
+      id: 'bad-sibling',
+      title: 'Bad sibling',
+      exercises: [_choice('bad-sibling-exercise', correct: 9)],
+    );
+    final clean = _cleanRound('clean-sibling');
+    final course = _statusCourse([bad, clean]);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: LessonRoundsScreen(course: course, lesson: course.lessons.single),
+      ),
+    );
+    await tester.pumpAndSettle();
+    _expectIndicator(
+      tester,
+      const ValueKey('round-status-indicator-bad-sibling'),
+      draft: false,
+      auditConcern: true,
+    );
+    _expectIndicator(
+      tester,
+      const ValueKey('round-status-indicator-clean-sibling'),
+      draft: false,
+      auditConcern: false,
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: LessonManagementScreen(course: course, initiallyLocked: false),
+      ),
+    );
+    await tester.pumpAndSettle();
+    _expectIndicator(
+      tester,
+      const ValueKey('lesson-status-indicator-status-lesson'),
+      draft: false,
+      auditConcern: true,
+    );
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('Warning-only status is red through every ancestor', (
+    tester,
+  ) async {
+    _viewport(tester);
+    final warningRound = _exerciseRound('warning-branch', count: 11);
+    final course = _statusCourse([warningRound]);
+    final lesson = course.lessons.single;
+    final audit = CourseAuditService().auditRound(course, warningRound.id);
+    expect(
+      audit.issues.where((issue) => issue.severity == AuditSeverity.error),
+      isEmpty,
+    );
+    expect(
+      audit.issues.any((issue) => issue.severity == AuditSeverity.warning),
+      isTrue,
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(home: CourseEditorScreen(course: course, userCourse: true)),
+    );
+    await tester.pumpAndSettle();
+    _expectIndicator(
+      tester,
+      const Key('course-lessons-status-indicator'),
+      draft: false,
+      auditConcern: true,
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: LessonManagementScreen(course: course, initiallyLocked: false),
+      ),
+    );
+    await tester.pumpAndSettle();
+    _expectIndicator(
+      tester,
+      const ValueKey('lesson-status-indicator-status-lesson'),
+      draft: false,
+      auditConcern: true,
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: LessonEditorScreen(course: course, lesson: lesson),
+      ),
+    );
+    await tester.pumpAndSettle();
+    _expectIndicator(
+      tester,
+      const Key('lesson-rounds-status-indicator'),
+      draft: false,
+      auditConcern: true,
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: LessonRoundsScreen(course: course, lesson: lesson),
+      ),
+    );
+    await tester.pumpAndSettle();
+    _expectIndicator(
+      tester,
+      const ValueKey('round-status-indicator-warning-branch'),
+      draft: false,
+      auditConcern: true,
+    );
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('empty Round uses canonical Error then turns green when filled', (
+    tester,
+  ) async {
+    _viewport(tester);
+    final empty = LearningRound(id: 'empty-round', title: 'Empty');
+    var course = _statusCourse([empty]);
+    expect(
+      CourseAuditService()
+          .auditRound(course, empty.id)
+          .issues
+          .singleWhere((issue) => issue.code == 'ROUND_CONTENT_EMPTY')
+          .severity,
+      AuditSeverity.error,
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        key: UniqueKey(),
+        home: CourseEditorScreen(course: course, userCourse: true),
+      ),
+    );
+    await tester.pumpAndSettle();
+    _expectIndicator(
+      tester,
+      const Key('course-lessons-status-indicator'),
+      draft: false,
+      auditConcern: true,
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        key: UniqueKey(),
+        home: LessonManagementScreen(course: course, initiallyLocked: false),
+      ),
+    );
+    await tester.pumpAndSettle();
+    _expectIndicator(
+      tester,
+      const ValueKey('lesson-status-indicator-status-lesson'),
+      draft: false,
+      auditConcern: true,
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        key: UniqueKey(),
+        home: LessonEditorScreen(course: course, lesson: course.lessons.single),
+      ),
+    );
+    await tester.pumpAndSettle();
+    _expectIndicator(
+      tester,
+      const Key('lesson-rounds-status-indicator'),
+      draft: false,
+      auditConcern: true,
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        key: UniqueKey(),
+        home: LessonRoundsScreen(course: course, lesson: course.lessons.single),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('0 Exercises'), findsOneWidget);
+    expect(find.text('0 Draft Exercises'), findsNothing);
+    _expectIndicator(
+      tester,
+      const ValueKey('round-status-indicator-empty-round'),
+      draft: false,
+      auditConcern: true,
+    );
+
+    final filled = _cleanRound('empty-round');
+    course = _statusCourse([filled]);
+    expect(CourseAuditService().auditRound(course, filled.id).issues, isEmpty);
+    await tester.pumpWidget(
+      MaterialApp(
+        key: UniqueKey(),
+        home: LessonRoundsScreen(course: course, lesson: course.lessons.single),
+      ),
+    );
+    await tester.pumpAndSettle();
+    _expectIndicator(
+      tester,
+      const ValueKey('round-status-indicator-empty-round'),
+      draft: false,
+      auditConcern: false,
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        key: UniqueKey(),
+        home: CourseEditorScreen(course: course, userCourse: true),
+      ),
+    );
+    await tester.pumpAndSettle();
+    _expectIndicator(
+      tester,
+      const Key('course-lessons-status-indicator'),
+      draft: false,
+      auditConcern: false,
     );
     expect(tester.takeException(), isNull);
   });
@@ -311,23 +610,50 @@ void main() {
 void _expectIndicator(
   WidgetTester tester,
   Key key, {
-  required bool orange,
-  required bool pink,
+  required bool draft,
+  required bool auditConcern,
 }) {
   final finder = find.byKey(key);
   expect(finder, findsOneWidget);
-  final decoration =
-      tester.widget<Container>(finder).decoration! as BoxDecoration;
-  final border = decoration.border as Border?;
-  expect(border?.top.color == Colors.orange, orange, reason: '$key orange');
   final card = tester.widget<Card>(
     find.descendant(of: finder, matching: find.byType(Card)).first,
   );
   final side = (card.shape! as RoundedRectangleBorder).side;
   expect(
-    side.style != BorderStyle.none && side.color == Colors.pinkAccent,
-    pink,
-    reason: '$key pink',
+    side.color,
+    auditConcern ? const Color(0xFFC90000) : const Color(0xFF00A83B),
+    reason: '$key Audit border',
+  );
+  expect(
+    find.byKey(_draftIndicatorKey(key)),
+    draft ? findsOneWidget : findsNothing,
+    reason: '$key Draft indicator',
+  );
+}
+
+Key _draftIndicatorKey(Key statusKey) {
+  final value = (statusKey as ValueKey).value as String;
+  if (value == 'course-lessons-status-indicator') {
+    return const ValueKey('course-lessons-draft-indicator');
+  }
+  if (value == 'lesson-rounds-status-indicator') {
+    return const ValueKey('lesson-rounds-draft-indicator');
+  }
+  if (value.startsWith('lesson-status-indicator-')) {
+    return ValueKey(
+      value.replaceFirst('lesson-status-indicator-', 'lesson-draft-indicator-'),
+    );
+  }
+  if (value.startsWith('round-status-indicator-')) {
+    return ValueKey(
+      value.replaceFirst('round-status-indicator-', 'round-draft-indicator-'),
+    );
+  }
+  return ValueKey(
+    value.replaceFirst(
+      'exercise-status-indicator-',
+      'exercise-draft-indicator-',
+    ),
   );
 }
 
@@ -353,6 +679,7 @@ Course _course({bool badDraft = true, int badCorrect = 9}) => Course(
     Lesson(
       lessonId: 'bad-lesson',
       title: 'Needs work',
+      guidebook: _guidebook('bad-guidebook'),
       rounds: [
         LearningRound(
           id: 'bad-round',
@@ -367,6 +694,7 @@ Course _course({bool badDraft = true, int badCorrect = 9}) => Course(
     Lesson(
       lessonId: 'good-lesson',
       title: 'Review guidance only',
+      guidebook: _guidebook('good-guidebook'),
       rounds: [
         LearningRound(
           id: 'good-round',
@@ -374,6 +702,77 @@ Course _course({bool badDraft = true, int badCorrect = 9}) => Course(
           exercises: [_choice('good-exercise', correct: 0)],
         ),
       ],
+    ),
+  ],
+);
+
+Course _statusCourse(List<LearningRound> rounds) => Course(
+  courseId: 'status-course',
+  publicationState: PublicationState.draft,
+  learningLanguage: 'Italian',
+  interfaceLanguage: 'English',
+  sourceLanguage: 'English',
+  targetLanguage: 'Italian',
+  title: 'Status course',
+  ttsLanguage: 'it-IT',
+  version: '1',
+  courseVersion: '3',
+  lessons: [
+    Lesson(
+      lessonId: 'status-lesson',
+      title: 'Status lesson',
+      guidebook: _guidebook('status-guidebook'),
+      rounds: rounds,
+    ),
+  ],
+);
+
+LearningRound _exerciseRound(
+  String id, {
+  required int count,
+  bool draftFirst = false,
+}) => LearningRound(
+  id: id,
+  title: id,
+  exercises: [
+    for (var index = 0; index < count; index++)
+      _choice(
+        '$id-exercise-$index',
+        draft: draftFirst && index == 0,
+        correct: 0,
+      ),
+  ],
+);
+
+LearningRound _cleanRound(String id, {bool draftFirst = false}) =>
+    LearningRound(
+      id: id,
+      title: id,
+      content: [
+        LearningContent.textual(
+          id: '$id-intro',
+          kind: 'text',
+          role: 'lesson_intro',
+          text: 'A short introduction.',
+        ),
+        for (var index = 0; index < 8; index++)
+          LearningContent.fromExercise(
+            _choice(
+              '$id-exercise-$index',
+              draft: draftFirst && index == 0,
+              correct: 0,
+            ),
+          ),
+      ],
+    );
+
+Guidebook _guidebook(String id) => Guidebook(
+  content: [
+    LearningContent.textual(
+      id: id,
+      kind: 'explanation',
+      role: 'overview',
+      text: 'Reviewed overview.',
     ),
   ],
 );
@@ -387,8 +786,8 @@ Exercise _choice(String id, {bool draft = false, required int correct}) =>
       updatedAt: DateTime.utc(2026, 9, 5),
       type: 'choice',
       prompt: 'Choose the greeting.',
-      question: 'How are you?',
-      answers: const ['Bene', 'Male'],
+      question: 'How are you in exercise $id?',
+      answers: const ['well', 'badly'],
       correct: correct,
       tts: null,
       accepted: const [],

@@ -40,25 +40,28 @@ int _draftExerciseCount(Iterable<LearningRound> rounds) => rounds
 String _draftExerciseCountLabel(int count) =>
     '$count Draft ${count == 1 ? 'Exercise' : 'Exercises'}';
 
+String _exerciseCountLabel(int count) =>
+    '$count ${count == 1 ? 'Exercise' : 'Exercises'}';
+
 const _hierarchyLinkStyle = TextStyle(fontWeight: FontWeight.w800);
 
 class _AuthoringHierarchyStatus {
   _AuthoringHierarchyStatus._(this.course, CourseAuditResult audit)
-    : exerciseErrorIds = {
+    : hasCourseAuditConcern = audit.issues.any(_isAuditConcern),
+      exerciseAuditConcernIds = {
         for (final issue in audit.issues)
-          if (issue.severity == AuditSeverity.error && issue.exerciseId != null)
+          if (_isAuditConcern(issue) && issue.exerciseId != null)
             issue.exerciseId!,
       },
-      roundErrorIds = {
+      roundAuditConcernIds = {
         for (final issue in audit.issues)
-          if (issue.severity == AuditSeverity.error && issue.roundId != null)
-            issue.roundId!,
+          if (_isAuditConcern(issue) && issue.roundId != null) issue.roundId!,
       },
-      lessonErrorIds = {
+      lessonAuditConcernIds = {
         for (var index = 0; index < course.lessons.length; index++)
           if (audit.issues.any(
             (issue) =>
-                issue.severity == AuditSeverity.error &&
+                _isAuditConcern(issue) &&
                 (issue.location ==
                         'Lesson ${index + 1} · ${course.lessons[index].title}' ||
                     issue.location.startsWith(
@@ -68,6 +71,10 @@ class _AuthoringHierarchyStatus {
             course.lessons[index].lessonId,
       };
 
+  static bool _isAuditConcern(CourseAuditIssue issue) =>
+      issue.severity == AuditSeverity.error ||
+      issue.severity == AuditSeverity.warning;
+
   factory _AuthoringHierarchyStatus.fromCourse(Course course) =>
       _AuthoringHierarchyStatus._(
         course,
@@ -75,65 +82,125 @@ class _AuthoringHierarchyStatus {
       );
 
   final Course course;
-  final Set<String> exerciseErrorIds;
-  final Set<String> roundErrorIds;
-  final Set<String> lessonErrorIds;
+  final bool hasCourseAuditConcern;
+  final Set<String> exerciseAuditConcernIds;
+  final Set<String> roundAuditConcernIds;
+  final Set<String> lessonAuditConcernIds;
 
   bool get courseHasDraft => course.lessons.any(lessonHasDraft);
-  bool get courseHasError => lessonErrorIds.isNotEmpty;
   bool lessonHasDraft(Lesson lesson) =>
       lesson.rounds.any((round) => round.exercises.any(exerciseIsDraft));
-  bool lessonHasError(Lesson lesson) =>
-      lessonErrorIds.contains(lesson.lessonId);
-  bool lessonHasRoundError(Lesson lesson) => lesson.rounds.any(roundHasError);
+  bool lessonHasAuditConcern(Lesson lesson) =>
+      lessonAuditConcernIds.contains(lesson.lessonId);
+  bool lessonHasRoundAuditConcern(Lesson lesson) =>
+      lesson.rounds.any(roundHasAuditConcern);
   bool roundHasDraft(LearningRound round) =>
       round.exercises.any(exerciseIsDraft);
-  bool roundHasError(LearningRound round) => roundErrorIds.contains(round.id);
+  bool roundHasAuditConcern(LearningRound round) =>
+      roundAuditConcernIds.contains(round.id);
   bool exerciseIsDraft(Exercise exercise) =>
       !exercise.publicationState.isPublished;
-  bool exerciseHasError(Exercise exercise) =>
-      exerciseErrorIds.contains(exercise.id);
+  bool exerciseHasAuditConcern(Exercise exercise) =>
+      exerciseAuditConcernIds.contains(exercise.id);
 }
 
 class _AuthoringStatusCard extends StatelessWidget {
   const _AuthoringStatusCard({
     super.key,
     required this.indicatorKey,
+    required this.draftIndicatorKey,
     required this.hasDraft,
-    required this.hasAuditError,
+    required this.hasAuditConcern,
     required this.child,
     this.cardMargin,
   });
 
   final Key indicatorKey;
+  final Key draftIndicatorKey;
   final bool hasDraft;
-  final bool hasAuditError;
+  final bool? hasAuditConcern;
   final Widget child;
   final EdgeInsetsGeometry? cardMargin;
 
   @override
-  Widget build(BuildContext context) => Tooltip(
-    message:
-        'Orange: ${hasDraft ? 'contains Draft Exercises' : 'no Draft Exercises'}. '
-        'Pink: ${hasAuditError ? 'contains Audit Errors' : 'no Audit Errors'}.',
-    child: Container(
-      key: indicatorKey,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
-        border: hasDraft ? Border.all(color: Colors.orange, width: 2) : null,
-      ),
-      child: Card(
-        margin: cardMargin,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-          side: hasAuditError
-              ? const BorderSide(color: Colors.pinkAccent, width: 2)
-              : BorderSide.none,
+  Widget build(BuildContext context) {
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    final auditColor = switch (hasAuditConcern) {
+      true => dark ? const Color(0xFFFF5A5F) : const Color(0xFFC90000),
+      false => dark ? const Color(0xFF5CFF85) : const Color(0xFF00A83B),
+      null => null,
+    };
+    final auditMessage = switch (hasAuditConcern) {
+      true => 'Red border: this branch has an Audit Error or Warning.',
+      false =>
+        'Green border: this branch has no Audit Error or Warning. Info guidance may remain.',
+      null => 'Audit status is not current; no red or green border is shown.',
+    };
+    return Tooltip(
+      message:
+          '$auditMessage ${hasDraft ? 'Blue Draft indicator: this branch contains a Draft Exercise.' : 'This branch contains no Draft Exercise.'}',
+      child: Container(
+        key: indicatorKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            if (hasDraft)
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(12, 2, 12, 0),
+                  child: _DraftBranchIndicator(key: draftIndicatorKey),
+                ),
+              ),
+            Card(
+              margin: cardMargin,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+                side: auditColor == null
+                    ? BorderSide.none
+                    : BorderSide(color: auditColor, width: 2.5),
+              ),
+              child: child,
+            ),
+          ],
         ),
-        child: child,
       ),
-    ),
-  );
+    );
+  }
+}
+
+class _DraftBranchIndicator extends StatelessWidget {
+  const _DraftBranchIndicator({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    final background = dark ? const Color(0xFF64B5F6) : const Color(0xFF1565C0);
+    final foreground = dark ? const Color(0xFF001D35) : Colors.white;
+    return Tooltip(
+      message: 'At least one Exercise in this branch is Draft.',
+      child: Semantics(
+        label: 'Draft',
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            color: background,
+            borderRadius: BorderRadius.circular(999),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+            child: Text(
+              'Draft',
+              style: TextStyle(
+                color: foreground,
+                fontSize: 12,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 bool _sameAuthoringJson(Object a, Object b) => jsonEncode(a) == jsonEncode(b);
@@ -1495,8 +1562,9 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
           children: [
             _AuthoringStatusCard(
               indicatorKey: const Key('course-lessons-status-indicator'),
+              draftIndicatorKey: const Key('course-lessons-draft-indicator'),
               hasDraft: hierarchyStatus.courseHasDraft,
-              hasAuditError: hierarchyStatus.courseHasError,
+              hasAuditConcern: hierarchyStatus.hasCourseAuditConcern,
               cardMargin: EdgeInsets.zero,
               child: ListTile(
                 key: const Key('course-editor-lessons-navigation'),
@@ -1978,8 +2046,12 @@ class _LessonManagementScreenState extends State<LessonManagementScreen> {
                           indicatorKey: ValueKey(
                             'lesson-status-indicator-${lesson.lessonId}',
                           ),
+                          draftIndicatorKey: ValueKey(
+                            'lesson-draft-indicator-${lesson.lessonId}',
+                          ),
                           hasDraft: hierarchyStatus.lessonHasDraft(lesson),
-                          hasAuditError: hierarchyStatus.lessonHasError(lesson),
+                          hasAuditConcern: hierarchyStatus
+                              .lessonHasAuditConcern(lesson),
                           child: ListTile(
                             leading: ReorderableDragStartListener(
                               index: index,
@@ -2828,8 +2900,11 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
           children: [
             _AuthoringStatusCard(
               indicatorKey: const Key('lesson-rounds-status-indicator'),
+              draftIndicatorKey: const Key('lesson-rounds-draft-indicator'),
               hasDraft: hierarchyStatus.lessonHasDraft(_lesson),
-              hasAuditError: hierarchyStatus.lessonHasRoundError(_lesson),
+              hasAuditConcern: hierarchyStatus.lessonHasRoundAuditConcern(
+                _lesson,
+              ),
               cardMargin: EdgeInsets.zero,
               child: ListTile(
                 key: const Key('lesson-rounds-navigation'),
@@ -3531,10 +3606,15 @@ class _LessonRoundsScreenState extends State<LessonRoundsScreen> {
           initialValue: initial,
           onChanged: (value) => edited = value,
           autofocus: true,
-          onFieldSubmitted: (value) => Navigator.pop(context, value.trim()),
+          onFieldSubmitted: (value) => Navigator.pop(
+            context,
+            value.trim().isEmpty && initial.trim().isNotEmpty
+                ? initial.trim()
+                : value.trim(),
+          ),
           decoration: InputDecoration(
             border: const OutlineInputBorder(),
-            labelText: allowEmpty ? 'Title or Enter for no title' : 'Title',
+            labelText: allowEmpty ? 'Title, or Enter to skip' : 'Title',
           ),
         ),
         actions: [
@@ -3783,7 +3863,7 @@ class _LessonRoundsScreenState extends State<LessonRoundsScreen> {
                 lessonId: widget.lesson.lessonId,
               ),
               Text(
-                '${_draftExerciseCountLabel(_draftExerciseCount(_rounds))} · Orange: Draft Exercises · Pink: Audit Errors',
+                '${_draftExerciseCountLabel(_draftExerciseCount(_rounds))} · Red: Audit Error or Warning · Green: no Error or Warning · Blue: Draft Exercises',
               ),
             ],
           ),
@@ -3795,9 +3875,10 @@ class _LessonRoundsScreenState extends State<LessonRoundsScreen> {
             final drafts = _draftExerciseCount([round]);
             return _AuthoringStatusCard(
               key: ValueKey(round.id),
-              indicatorKey: ValueKey('round-draft-indicator-${round.id}'),
+              indicatorKey: ValueKey('round-status-indicator-${round.id}'),
+              draftIndicatorKey: ValueKey('round-draft-indicator-${round.id}'),
               hasDraft: hierarchyStatus.roundHasDraft(round),
-              hasAuditError: hierarchyStatus.roundHasError(round),
+              hasAuditConcern: hierarchyStatus.roundHasAuditConcern(round),
               child: ListTile(
                 leading: ReorderableDragStartListener(
                   index: index,
@@ -3805,7 +3886,9 @@ class _LessonRoundsScreenState extends State<LessonRoundsScreen> {
                 ),
                 title: Text(round.displayTitle(index)),
                 subtitle: Text(
-                  '${round.publicationState.isPublished ? '' : 'Draft · '}${round.exercises.length} exercises · ${_draftExerciseCountLabel(drafts)}',
+                  round.exercises.isEmpty
+                      ? '0 Exercises'
+                      : '${round.publicationState.isPublished ? '' : 'Draft · '}${_exerciseCountLabel(round.exercises.length)} · ${_draftExerciseCountLabel(drafts)}',
                 ),
                 onTap: () => _open(index),
                 trailing: PopupMenuButton<String>(
@@ -4280,10 +4363,15 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
         title: const Text('Rename Round'),
         content: TextField(
           controller: c,
-          onSubmitted: (value) => Navigator.pop(ctx, value.trim()),
+          onSubmitted: (value) => Navigator.pop(
+            ctx,
+            value.trim().isEmpty && _title.trim().isNotEmpty
+                ? _title.trim()
+                : value.trim(),
+          ),
           decoration: const InputDecoration(
             border: OutlineInputBorder(),
-            labelText: 'Title or Enter for no title',
+            labelText: 'Title, or Enter to skip',
           ),
         ),
         actions: [
@@ -4798,8 +4886,9 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
             return _AuthoringStatusCard(
               key: ValueKey(e.id),
               indicatorKey: ValueKey('exercise-status-indicator-${e.id}'),
+              draftIndicatorKey: ValueKey('exercise-draft-indicator-${e.id}'),
               hasDraft: hierarchyStatus.exerciseIsDraft(e),
-              hasAuditError: hierarchyStatus.exerciseHasError(e),
+              hasAuditConcern: hierarchyStatus.exerciseHasAuditConcern(e),
               child: ListTile(
                 leading: ReorderableDragStartListener(
                   index: i,

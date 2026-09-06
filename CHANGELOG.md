@@ -1,3 +1,13 @@
+# 2.0.26 (Phase 226.02, revision 2) - Audit, Draft and version status refinement - 2026-09-06
+
+- Advanced technical metadata to `2.0.26+226022` while representing application version, development phase, corrective revision and monotonic platform build explicitly. The 30-day Alpha expiry remains `2026-10-06 23:59:59` because this revision was prepared on the same correction date.
+- Replaced Error-only pink borders with red Error-or-Warning borders and luminous green current-branch-clear borders at Exercise, Round, Lesson, Course and hierarchy-link levels. Info alone remains green.
+- Replaced orange Draft outlines with one independent blue Draft badge shared across every hierarchy level; Draft and Audit status update from the same current candidate tree and coexist without masking each other.
+- Empty Rounds now show `0 Exercises`, no zero-Draft label or Draft badge, and inherit the existing Error-level `ROUND_CONTENT_EMPTY` Audit state until valid Content is added.
+- Changed Rename Round guidance to `Title, or Enter to skip`; Enter preserves an existing title when no replacement is supplied and still permits intentionally untitled new or existing Rounds.
+- Corrected first-run and general display metadata to show `Version 2.0.26` and `Phase 226.02, revision 2` instead of exposing the technical platform build as a human phase label. Existing one-time persistence semantics remain unchanged.
+- Preserved Course Model v6, persistence, publishing, official read-only/fork behavior, Preview, navigation, Move/Copy, export, Audit codes/severities and all learner behavior. No 226.03 or Guidebook feature is included.
+
 # 2.0.26 (Build 226.02.1) - Editor hierarchy and Audit reference correction - 2026-09-06
 
 - Advanced correction metadata to `2.0.26+226021` / Version 2.0.26 / Build 226.02.1. The 30-day Alpha expiry is `2026-10-06 23:59:59`, thirty days from the correction date.
