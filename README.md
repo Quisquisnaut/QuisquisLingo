@@ -1,13 +1,13 @@
 # QuisquisLingo App
 
-**Current source version: 2.0.27+227020 · Phase 227.02, revision 0 · Course Model v6 (`formatVersion: 6`).**
+**Current source version: 2.0.27+227021 · Phase 227.02, revision 1 · Course Model v6 (`formatVersion: 6`).**
 
 
 **QuisquisLingo 2.0.27 Alpha — Phase 227.02 Flag-inspired learner backgrounds**
 
 Current project version: 2.0.27
 
-Phase 227.02 adds `Tinted` and `Soft Inspired` to the existing Small / Off / Extended Flag Background selector. Both use deterministic, automatically restrained colors derived from the selected Course flag and adapt separately for Light and Dark appearance; neither renders a translucent, blurred or enlarged flag. Flag Background remains isolated per learner and Course and defaults to Off through the 227.01 clean cut, while the obsolete shared value stays untouched and unread. IDDQD remains Off / On per learner and Course. Theme remains Default / Light / Dark per learner, with Default following live system brightness. See [227.01 baseline](docs/227_01_VALIDATION.md) and [227.02 validation](docs/227_02_VALIDATION.md). Later IDDQD, Theme, Settings, Stats and Course Editor work remains deferred.
+Phase 227.02 adds `Tinted` and `Inspired` to the existing Small / Off / Extended Flag Background selector. Tinted is a restrained uniform course-flag tint. Inspired uses up to three broader and stronger flag-derived color zones while remaining static, theme-adaptive and readable; neither mode renders a translucent, blurred or enlarged flag. The rename preserves the revision-0 `soft_inspired` persisted value. Flag Background remains isolated per learner and Course and defaults to Off through the 227.01 clean cut, while the obsolete shared value stays untouched and unread. IDDQD remains Off / On per learner and Course. Theme remains Default / Light / Dark per learner, with Default following live system brightness. See [227.01 baseline](docs/227_01_VALIDATION.md) and [227.02 validation](docs/227_02_VALIDATION.md). Later IDDQD, Theme, Settings, Stats and Course Editor work remains deferred.
 
 Phase 226.04 adds one-time Course scaffolding (default 3 Lessons with 1 Round and 1 Draft sample Exercise per Round), reusable Sections, clear Lesson naming modes, optional GuideBook and Duel paths, World Flag selection, the upper Lessons Lock icon and passive GuideBook IDs. Revision 2 gives newly added Rounds the same single sample, removes fallback-icon style selection in favor of one theme-colored circle, adds Course Import navigation and learner-selector Editor actions, presents the last Lesson's Duel as Final Duel, and adds ordered GuideBook Insights. Creation counts do not restrict existing/imported courses or later editing. Course Model remains v6, with backward-compatible defaults and 102 Audit rules. See [226.04 validation](docs/226_04_VALIDATION.md). Templates, Napoletano and future exercise links remain deferred.
 

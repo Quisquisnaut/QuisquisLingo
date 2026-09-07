@@ -5,6 +5,7 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:crypto/crypto.dart';
 import 'package:quisquislingo_app/models/course_models.dart';
 import 'package:quisquislingo_app/services/flag_background_palette_service.dart';
 import 'package:quisquislingo_app/services/profile_service.dart';
@@ -31,7 +32,7 @@ void main() {
           ('off', 'Off'),
           ('extended', 'Extended'),
           ('tinted', 'Tinted'),
-          ('soft_inspired', 'Soft Inspired'),
+          ('soft_inspired', 'Inspired'),
         ],
       );
       expect(
@@ -53,109 +54,154 @@ void main() {
         LearnerFlagBackgroundMode.softInspired,
       );
       expect(
+        LearnerFlagBackgroundMode.fromStorage('soft_inspired').label,
+        'Inspired',
+      );
+      expect(
+        LearnerFlagBackgroundMode.values.map((mode) => mode.label),
+        isNot(contains('Soft Inspired')),
+      );
+      expect(
         LearnerFlagBackgroundMode.fromStorage('legacy-unknown'),
         LearnerFlagBackgroundMode.off,
       );
     },
   );
 
-  test(
-    'derived palettes are deterministic, restrained, and theme-adaptive',
-    () {
-      const service = FlagBackgroundPaletteService();
-      final difficultFlags = <String, List<FlagColorSample>>{
-        'very light': const [
-          FlagColorSample(Color(0xFFFFFFFF), 100),
-          FlagColorSample(Color(0xFFD00028), 1),
-        ],
-        'very dark': const [
-          FlagColorSample(Color(0xFF000000), 100),
-          FlagColorSample(Color(0xFF0038A8), 1),
-        ],
-        'saturated bicolor': const [
-          FlagColorSample(Color(0xFFFF0000)),
-          FlagColorSample(Color(0xFF00FF00)),
-        ],
-        'tricolor': const [
-          FlagColorSample(Color(0xFF009246)),
-          FlagColorSample(Color(0xFFFFFFFF)),
-          FlagColorSample(Color(0xFFCE2B37)),
-        ],
-        'multicolor': const [
-          FlagColorSample(Color(0xFF002395)),
-          FlagColorSample(Color(0xFFFFB612)),
-          FlagColorSample(Color(0xFF007A3D)),
-          FlagColorSample(Color(0xFFDE3831)),
-        ],
-        'neutral heavy': const [
-          FlagColorSample(Color(0xFFFAFAFA), 20),
-          FlagColorSample(Color(0xFF777777), 15),
-          FlagColorSample(Color(0xFF111111), 10),
-        ],
-        'near monochrome': const [
-          FlagColorSample(Color(0xFF656565)),
-          FlagColorSample(Color(0xFF6A6A6A)),
-        ],
-      };
+  test('derived palettes are deterministic, restrained, and theme-adaptive', () {
+    const service = FlagBackgroundPaletteService();
+    final difficultFlags = <String, List<FlagColorSample>>{
+      'very light': const [
+        FlagColorSample(Color(0xFFFFFFFF), 100),
+        FlagColorSample(Color(0xFFD00028), 1),
+      ],
+      'very dark': const [
+        FlagColorSample(Color(0xFF000000), 100),
+        FlagColorSample(Color(0xFF0038A8), 1),
+      ],
+      'saturated bicolor': const [
+        FlagColorSample(Color(0xFFFF0000)),
+        FlagColorSample(Color(0xFF00FF00)),
+      ],
+      'tricolor': const [
+        FlagColorSample(Color(0xFF009246)),
+        FlagColorSample(Color(0xFFFFFFFF)),
+        FlagColorSample(Color(0xFFCE2B37)),
+      ],
+      'multicolor': const [
+        FlagColorSample(Color(0xFF002395)),
+        FlagColorSample(Color(0xFFFFB612)),
+        FlagColorSample(Color(0xFF007A3D)),
+        FlagColorSample(Color(0xFFDE3831)),
+      ],
+      'neutral heavy': const [
+        FlagColorSample(Color(0xFFFAFAFA), 20),
+        FlagColorSample(Color(0xFF777777), 15),
+        FlagColorSample(Color(0xFF111111), 10),
+      ],
+      'near monochrome': const [
+        FlagColorSample(Color(0xFF656565)),
+        FlagColorSample(Color(0xFF6A6A6A)),
+      ],
+    };
 
-      for (final entry in difficultFlags.entries) {
-        final light = service.derive(entry.value, brightness: Brightness.light);
-        final repeated = service.derive(
-          entry.value.reversed,
-          brightness: Brightness.light,
-        );
-        final dark = service.derive(entry.value, brightness: Brightness.dark);
+    for (final entry in difficultFlags.entries) {
+      final light = service.derive(entry.value, brightness: Brightness.light);
+      final repeated = service.derive(
+        entry.value.reversed,
+        brightness: Brightness.light,
+      );
+      final dark = service.derive(entry.value, brightness: Brightness.dark);
 
-        expect(
-          _paletteArgb(repeated),
-          _paletteArgb(light),
-          reason: '${entry.key} must be stable regardless of sample order',
-        );
-        expect(
-          light.tinted.computeLuminance(),
-          greaterThanOrEqualTo(.62),
-          reason: '${entry.key} light tint must stay subordinate to dark text',
-        );
-        expect(
-          dark.tinted.computeLuminance(),
-          lessThanOrEqualTo(.10),
-          reason: '${entry.key} dark tint must stay subordinate to light text',
-        );
-        for (final color in [light.tinted, light.softStart, light.softEnd]) {
-          expect(_contrast(color, const Color(0xFF1A1C1A)), greaterThan(4.5));
-          expect(HSLColor.fromColor(color).saturation, lessThan(.40));
-        }
-        for (final color in [dark.tinted, dark.softStart, dark.softEnd]) {
-          expect(_contrast(color, const Color(0xFFE1E3DF)), greaterThan(4.5));
-          expect(HSLColor.fromColor(color).saturation, lessThan(.40));
-        }
-        expect(light.tinted, isNot(dark.tinted));
+      expect(
+        _paletteArgb(repeated),
+        _paletteArgb(light),
+        reason: '${entry.key} must be stable regardless of sample order',
+      );
+      expect(
+        light.tinted.computeLuminance(),
+        greaterThanOrEqualTo(.62),
+        reason: '${entry.key} light tint must stay subordinate to dark text',
+      );
+      expect(
+        dark.tinted.computeLuminance(),
+        lessThanOrEqualTo(.10),
+        reason: '${entry.key} dark tint must stay subordinate to light text',
+      );
+      expect(HSLColor.fromColor(light.tinted).saturation, lessThan(.40));
+      expect(HSLColor.fromColor(dark.tinted).saturation, lessThan(.40));
+      for (final color in light.inspiredColors) {
+        expect(_contrast(color, const Color(0xFF1A1C1A)), greaterThan(4.5));
+        expect(HSLColor.fromColor(color).saturation, lessThan(.60));
       }
+      for (final color in dark.inspiredColors) {
+        expect(_contrast(color, const Color(0xFFE1E3DF)), greaterThan(4.5));
+        expect(HSLColor.fromColor(color).saturation, lessThan(.55));
+      }
+      expect(light.tinted, isNot(dark.tinted));
+    }
 
-      final whiteHeavy = service.derive(
-        difficultFlags['very light']!,
-        brightness: Brightness.light,
-      );
-      final whiteHeavyHsl = HSLColor.fromColor(whiteHeavy.tinted);
-      expect(whiteHeavyHsl.saturation, greaterThan(.08));
+    final whiteHeavy = service.derive(
+      difficultFlags['very light']!,
+      brightness: Brightness.light,
+    );
+    final whiteHeavyHsl = HSLColor.fromColor(whiteHeavy.tinted);
+    expect(whiteHeavyHsl.saturation, greaterThan(.08));
+    expect(
+      whiteHeavyHsl.hue < 45 || whiteHeavyHsl.hue > 325,
+      isTrue,
+      reason: 'A small chromatic field must not be erased by a white majority.',
+    );
+
+    final multicolor = service.derive(
+      difficultFlags['multicolor']!,
+      brightness: Brightness.light,
+    );
+    expect(multicolor.inspiredColors.toSet(), hasLength(3));
+    expect(
+      _maximumColorDistance(multicolor.inspiredColors),
+      greaterThan(.16),
+      reason: 'Inspired must expose visibly separated flag-derived colors.',
+    );
+    expect(
+      multicolor.inspiredColors
+          .map((color) => HSLColor.fromColor(color).saturation)
+          .reduce(math.max),
+      greaterThan(HSLColor.fromColor(multicolor.tinted).saturation + .08),
+      reason: 'Inspired must have stronger color presence than Tinted.',
+    );
+    final sourceHues = difficultFlags['multicolor']!
+        .map((sample) => HSLColor.fromColor(sample.color).hue)
+        .toList(growable: false);
+    for (final color in multicolor.inspiredColors) {
+      final hue = HSLColor.fromColor(color).hue;
       expect(
-        whiteHeavyHsl.hue < 45 || whiteHeavyHsl.hue > 325,
+        sourceHues.any((sourceHue) => _hueDistance(hue, sourceHue) < 8),
         isTrue,
-        reason:
-            'A small chromatic field must not be erased by a white majority.',
+        reason: 'Inspired colors must retain a representative source hue.',
       );
+    }
 
-      final multicolor = service.derive(
-        difficultFlags['multicolor']!,
+    for (final entry in {
+      'saturated bicolor': .12,
+      'tricolor': .12,
+      'very light': .07,
+      'very dark': .04,
+      'multicolor': .16,
+      'near monochrome': .015,
+    }.entries) {
+      final palette = service.derive(
+        difficultFlags[entry.key]!,
         brightness: Brightness.light,
       );
-      expect(multicolor.softStart, isNot(multicolor.softEnd));
       expect(
-        _colorDistance(multicolor.softStart, multicolor.softEnd),
-        lessThan(.30),
+        _maximumColorDistance(palette.inspiredColors),
+        greaterThan(entry.value),
+        reason:
+            '${entry.key} Inspired composition must remain distinguishable from a uniform tint.',
       );
-    },
-  );
+    }
+  });
 
   test('SVG extraction supports the current flag asset color forms', () {
     final colors = FlagBackgroundPaletteService.colorsFromSvg('''
@@ -248,7 +294,7 @@ void main() {
   );
 
   testWidgets(
-    'Tinted is uniform and Soft Inspired is static without flag artwork',
+    'Tinted is uniform and Inspired is a distinct static color composition',
     (tester) async {
       final course = _course(flagCode: 'IT');
       Widget app(LearnerFlagBackgroundMode mode) => MaterialApp(
@@ -280,13 +326,16 @@ void main() {
       );
 
       await tester.pumpWidget(app(LearnerFlagBackgroundMode.softInspired));
-      final soft = find.byKey(
-        const ValueKey('unified-learner-flag-background-soft-inspired'),
+      final inspired = find.byKey(
+        const ValueKey('unified-learner-flag-background-inspired'),
       );
       decoration =
-          tester.widget<DecoratedBox>(soft).decoration as BoxDecoration;
+          tester.widget<DecoratedBox>(inspired).decoration as BoxDecoration;
       expect(decoration.color, isNull);
-      expect(decoration.gradient, isA<LinearGradient>());
+      final gradient = decoration.gradient! as LinearGradient;
+      expect(gradient.colors, hasLength(3));
+      expect(gradient.stops, const [0, .48, 1]);
+      expect(_maximumColorDistance(gradient.colors), greaterThan(.10));
       expect(find.byType(AnimatedContainer), findsNothing);
       expect(find.byType(AnimatedOpacity), findsNothing);
       expect(tester.takeException(), isNull);
@@ -341,6 +390,19 @@ void main() {
         'flag_background_mode',
       );
       await prefs.setString(oldSharedKey, 'extended');
+      final existingR0Key = profiles.keyForProfileId(
+        aliceId,
+        'flag_background_mode_course_${sha256.convert(utf8.encode('course-r0'))}',
+      );
+      await prefs.setString(existingR0Key, 'soft_inspired');
+      expect(
+        await profiles.getFlagBackgroundMode('course-r0'),
+        LearnerFlagBackgroundMode.softInspired,
+      );
+      expect(
+        (await profiles.getFlagBackgroundMode('course-r0')).label,
+        'Inspired',
+      );
 
       await profiles.setFlagBackgroundMode(
         'course-a',
@@ -398,8 +460,7 @@ void main() {
 
 List<int> _paletteArgb(FlagBackgroundPalette palette) => [
   palette.tinted.toARGB32(),
-  palette.softStart.toARGB32(),
-  palette.softEnd.toARGB32(),
+  ...palette.inspiredColors.map((color) => color.toARGB32()),
 ];
 
 double _contrast(Color first, Color second) {
@@ -413,6 +474,24 @@ double _colorDistance(Color first, Color second) {
   final green = first.g - second.g;
   final blue = first.b - second.b;
   return math.sqrt(red * red + green * green + blue * blue) / math.sqrt(3);
+}
+
+double _maximumColorDistance(List<Color> colors) {
+  var maximum = 0.0;
+  for (var first = 0; first < colors.length; first++) {
+    for (var second = first + 1; second < colors.length; second++) {
+      maximum = math.max(
+        maximum,
+        _colorDistance(colors[first], colors[second]),
+      );
+    }
+  }
+  return maximum;
+}
+
+double _hueDistance(double first, double second) {
+  final difference = (first - second).abs();
+  return math.min(difference, 360 - difference);
 }
 
 Course _course({

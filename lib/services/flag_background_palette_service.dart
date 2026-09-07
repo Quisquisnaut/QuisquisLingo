@@ -19,14 +19,22 @@ class FlagColorSample {
 @immutable
 class FlagBackgroundPalette {
   final Color tinted;
-  final Color softStart;
-  final Color softEnd;
+  final Color inspiredStart;
+  final Color inspiredMiddle;
+  final Color inspiredEnd;
 
   const FlagBackgroundPalette({
     required this.tinted,
-    required this.softStart,
-    required this.softEnd,
+    required this.inspiredStart,
+    required this.inspiredMiddle,
+    required this.inspiredEnd,
   });
+
+  List<Color> get inspiredColors => [
+    inspiredStart,
+    inspiredMiddle,
+    inspiredEnd,
+  ];
 }
 
 enum CourseFlagPaletteSource { worldFlag, customImage, builtIn, safeFallback }
@@ -44,8 +52,8 @@ class CourseFlagPaletteResult {
   });
 }
 
-/// Deterministically turns representative flag colors into quiet learner-page
-/// surfaces. Both inspired modes use this one adaptation path.
+/// Deterministically turns representative flag colors into readable learner-page
+/// surfaces. Both derived modes use this one adaptation path.
 class FlagBackgroundPaletteService {
   static const _lightBase = Color(0xFFF7F3E8);
   static const _darkBase = Color(0xFF080B09);
@@ -65,28 +73,74 @@ class FlagBackgroundPaletteService {
         .where((entry) => HSLColor.fromColor(entry.color).saturation >= .12)
         .toList(growable: false);
     final primary = _ranked(chromatic.isEmpty ? buckets : chromatic).first;
-    final alternatives = buckets
-        .where((entry) => !identical(entry, primary))
-        .toList(growable: false);
-    final secondary = alternatives.isEmpty
-        ? primary
-        : (_ranked(alternatives, distanceFrom: primary.color).first);
-
     final tinted = _adapt(primary.color, brightness, strength: .20);
-    final softStart = _adapt(primary.color, brightness, strength: .28);
-    var softEnd = _adapt(secondary.color, brightness, strength: .24);
-    if (_distance(softStart, softEnd) < .035) {
-      softEnd = Color.lerp(
-        softStart,
-        brightness == Brightness.light ? _lightBase : _darkBase,
-        .22,
-      )!;
-    }
+    final inspiredSources = _selectInspiredSources(buckets, primary);
+    final inspired = inspiredSources
+        .map(
+          (source) =>
+              _adapt(source.color, brightness, strength: .78, expressive: true),
+        )
+        .toList(growable: false);
+    final inspiredColors = _completeInspiredColors(inspired, brightness);
     return FlagBackgroundPalette(
       tinted: tinted,
-      softStart: softStart,
-      softEnd: softEnd,
+      inspiredStart: inspiredColors[0],
+      inspiredMiddle: inspiredColors[1],
+      inspiredEnd: inspiredColors[2],
     );
+  }
+
+  List<_ColorBucket> _selectInspiredSources(
+    List<_ColorBucket> buckets,
+    _ColorBucket primary,
+  ) {
+    final selected = <_ColorBucket>[primary];
+    while (selected.length < 3) {
+      final remaining = buckets
+          .where((candidate) => !selected.contains(candidate))
+          .toList(growable: false);
+      if (remaining.isEmpty) break;
+      final ranked = _ranked(remaining, distanceFrom: selected.last.color);
+      _ColorBucket? next;
+      for (final candidate in ranked) {
+        final distinct = selected.every(
+          (chosen) => _distance(candidate.color, chosen.color) >= .06,
+        );
+        if (distinct) {
+          next = candidate;
+          break;
+        }
+      }
+      if (next == null) break;
+      selected.add(next);
+    }
+    return selected;
+  }
+
+  List<Color> _completeInspiredColors(
+    List<Color> colors,
+    Brightness brightness,
+  ) {
+    if (colors.length >= 3) return colors.take(3).toList(growable: false);
+    if (colors.length == 2) {
+      return [colors[0], Color.lerp(colors[0], colors[1], .5)!, colors[1]];
+    }
+
+    final center = colors.single;
+    return [
+      _tonalVariation(center, brightness, -1),
+      center,
+      _tonalVariation(center, brightness, 1),
+    ];
+  }
+
+  Color _tonalVariation(Color source, Brightness brightness, double direction) {
+    final hsl = HSLColor.fromColor(source);
+    final shift = brightness == Brightness.light ? .055 : .035;
+    final varied = hsl
+        .withLightness((hsl.lightness + shift * direction).clamp(0, 1))
+        .toColor();
+    return _protectReadability(varied, brightness);
   }
 
   static List<FlagColorSample> builtInColors(String code) =>
@@ -255,26 +309,43 @@ class FlagBackgroundPaletteService {
   }
 
   FlagBackgroundPalette _neutralPalette(Brightness brightness) {
-    final base = brightness == Brightness.light
-        ? const Color(0xFFE4E1DA)
-        : const Color(0xFF1B211E);
-    final end = brightness == Brightness.light
-        ? const Color(0xFFECE8DE)
-        : const Color(0xFF202522);
-    return FlagBackgroundPalette(tinted: base, softStart: base, softEnd: end);
+    if (brightness == Brightness.light) {
+      return const FlagBackgroundPalette(
+        tinted: Color(0xFFE4E1DA),
+        inspiredStart: Color(0xFFDAD7D0),
+        inspiredMiddle: Color(0xFFF0EBDD),
+        inspiredEnd: Color(0xFFE0DCD3),
+      );
+    }
+    return const FlagBackgroundPalette(
+      tinted: Color(0xFF1B211E),
+      inspiredStart: Color(0xFF141A17),
+      inspiredMiddle: Color(0xFF252924),
+      inspiredEnd: Color(0xFF1A211D),
+    );
   }
 
   Color _adapt(
     Color source,
     Brightness brightness, {
     required double strength,
+    bool expressive = false,
   }) {
     final hsl = HSLColor.fromColor(source);
     final isNeutral = hsl.saturation < .10;
     final saturation = isNeutral
-        ? .035
-        : hsl.saturation.clamp(.14, brightness == Brightness.light ? .34 : .30);
-    final targetLightness = brightness == Brightness.light ? .84 : .18;
+        ? (expressive ? .05 : .035)
+        : hsl.saturation.clamp(
+            expressive ? .28 : .14,
+            expressive
+                ? (brightness == Brightness.light ? .58 : .52)
+                : (brightness == Brightness.light ? .34 : .30),
+          );
+    final targetLightness = expressive
+        ? (brightness == Brightness.light
+              ? (isNeutral ? .90 : .74)
+              : (isNeutral ? .10 : .23))
+        : (brightness == Brightness.light ? .84 : .18);
     var adapted = hsl
         .withSaturation(saturation)
         .withLightness(targetLightness)
@@ -283,8 +354,9 @@ class FlagBackgroundPaletteService {
     adapted = Color.lerp(base, adapted, strength)!;
     final blendedHsl = HSLColor.fromColor(adapted);
     if (isNeutral) {
-      if (blendedHsl.saturation > .36) {
-        adapted = blendedHsl.withSaturation(.36).toColor();
+      final cap = expressive ? .18 : .36;
+      if (blendedHsl.saturation > cap) {
+        adapted = blendedHsl.withSaturation(cap).toColor();
       }
     } else {
       // RGB blending against the warm learner-page base can shift a quiet blue
@@ -293,11 +365,19 @@ class FlagBackgroundPaletteService {
       adapted = HSLColor.fromAHSL(
         1,
         hsl.hue,
-        blendedHsl.saturation.clamp(.08, .36),
+        blendedHsl.saturation.clamp(
+          expressive ? .20 : .08,
+          expressive ? (brightness == Brightness.light ? .58 : .52) : .36,
+        ),
         blendedHsl.lightness,
       ).toColor();
     }
 
+    return _protectReadability(adapted, brightness);
+  }
+
+  Color _protectReadability(Color source, Brightness brightness) {
+    var adapted = source;
     if (brightness == Brightness.light) {
       while (adapted.computeLuminance() < .62) {
         adapted = Color.lerp(adapted, const Color(0xFFFFFFFF), .08)!;

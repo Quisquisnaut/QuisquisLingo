@@ -55,7 +55,7 @@ void main() {
         ('off', 'off', 'Off'),
         ('extended', 'extended', 'Extended'),
         ('tinted', 'tinted', 'Tinted'),
-        ('softInspired', 'soft_inspired', 'Soft Inspired'),
+        ('softInspired', 'soft_inspired', 'Inspired'),
       ],
     );
     expect(

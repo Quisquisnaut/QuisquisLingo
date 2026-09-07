@@ -1,3 +1,10 @@
+# 2.0.27 (Phase 227.02, revision 1) - Inspired background differentiation - 2026-09-07
+
+- Renamed the learner-facing `Soft Inspired` option to `Inspired` while retaining its internal enum case and persisted `soft_inspired` value, so revision-0 learner × Course selections restore without migration or reset.
+- Strengthened Inspired into a broad static three-stop color field using up to three deterministic representative flag colors. It is visibly more varied and saturated than the unchanged uniform Tinted mode while retaining automatic Light/Dark readability protection and safe fallbacks.
+- Added explicit differentiation coverage for bicolor, tricolor, saturated, white-heavy, dark, multicolor and near-monochrome sources, plus source-hue fidelity, existing-value recovery, real Home replacement and responsive rendering coverage.
+- Advanced technical metadata to `2.0.27+227021`, displayed as Version 2.0.27 / Phase 227.02, revision 1. The QQL 227 Alpha expiry remains `2026-10-07 23:59:59` local time. Course Model v6, Course JSON, checksums, learner progress and XP remain unchanged.
+
 # 2.0.27 (Phase 227.02, revision 0) - Flag-inspired learner backgrounds - 2026-09-07
 
 - Added `Tinted` and `Soft Inspired` after the existing Small / Off / Extended Flag Background choices. Tinted uses one restrained course-flag hue; Soft Inspired uses a quiet static two-color treatment. Both adapt automatically for Light and Dark appearance without displaying, blurring or animating the flag artwork.

@@ -74,7 +74,7 @@ void main() {
       buildSignature: '',
     );
     SharedPreferences.setMockInitialValues({
-      'one_time_notice_seen_welcome_2.0.27+227020': true,
+      'one_time_notice_seen_welcome_2.0.27+227021': true,
       'sound_effects_enabled': false,
     });
     await ProfileService().addProfile('Navigation Learner');
@@ -2220,7 +2220,7 @@ void main() {
               ValueKey(
                 mode == LearnerFlagBackgroundMode.tinted
                     ? 'unified-learner-flag-background-tinted'
-                    : 'unified-learner-flag-background-soft-inspired',
+                    : 'unified-learner-flag-background-inspired',
               ),
             );
             expect(inspired, findsOneWidget);
@@ -2276,11 +2276,10 @@ void main() {
       await tester.tap(find.byKey(const Key('learner-bottom-flag-background')));
       await _pumpUntilWithIo(
         tester,
-        find.byKey(const Key('unified-learner-flag-background-soft-inspired')),
-        failureMessage:
-            'Timed out applying Soft Inspired to the learner surface.',
+        find.byKey(const Key('unified-learner-flag-background-inspired')),
+        failureMessage: 'Timed out applying Inspired to the learner surface.',
       );
-      expect(find.byTooltip('Flag background: Soft Inspired'), findsOneWidget);
+      expect(find.byTooltip('Flag background: Inspired'), findsOneWidget);
       expect(find.byType(AnimatedContainer), findsNothing);
       expect(find.byType(AnimatedOpacity), findsNothing);
       expect(tester.takeException(), isNull);
@@ -2533,7 +2532,7 @@ void main() {
         (text) =>
             text.data != 'Welcome to QuisquisLingo' &&
             text.data != 'Version 2.0.27' &&
-            text.data != 'Phase 227.02, revision 0' &&
+            text.data != 'Phase 227.02, revision 1' &&
             text.data != 'Continue',
       );
       final welcomeDialog = tester.widget<AlertDialog>(
@@ -2550,11 +2549,11 @@ void main() {
         const Color(0xFF0756DF),
       );
       expect(
-        tester.widget<Text>(find.text('Phase 227.02, revision 0')).style?.color,
+        tester.widget<Text>(find.text('Phase 227.02, revision 1')).style?.color,
         const Color(0xFF0756DF),
       );
       expect(find.textContaining('22621'), findsNothing);
-      expect(find.textContaining('227020'), findsNothing);
+      expect(find.textContaining('227021'), findsNothing);
       expect(phrase.style?.color, const Color(0xFF0756DF));
       expect(find.widgetWithText(FilledButton, 'Continue'), findsOneWidget);
       expect(

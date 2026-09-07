@@ -7,7 +7,7 @@ import '../services/profile_service.dart';
 final CourseFlagPaletteResolver _sharedCourseFlagPaletteResolver =
     CourseFlagPaletteResolver();
 
-/// A static, adapted color surface for Tinted and Soft Inspired modes.
+/// A static, adapted color surface for Tinted and Inspired modes.
 ///
 /// The real flag artwork remains exclusive to Small and Extended. A safe
 /// built-in/neutral palette is shown while an image-backed palette resolves.
@@ -102,7 +102,7 @@ class _CourseFlagInspiredBackgroundState
           key: ValueKey(
             tinted
                 ? 'unified-learner-flag-background-tinted'
-                : 'unified-learner-flag-background-soft-inspired',
+                : 'unified-learner-flag-background-inspired',
           ),
           decoration: BoxDecoration(
             color: tinted ? _palette.tinted : null,
@@ -111,7 +111,8 @@ class _CourseFlagInspiredBackgroundState
                 : LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
-                    colors: [_palette.softStart, _palette.softEnd],
+                    colors: _palette.inspiredColors,
+                    stops: const [0, .48, 1],
                   ),
           ),
         ),

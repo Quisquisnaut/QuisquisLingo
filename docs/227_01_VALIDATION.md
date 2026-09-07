@@ -17,7 +17,7 @@ The prompt allows an Alpha change when the established release process requires 
 | Flag Background may have Default/per-Course semantics | Three modes Small / Off / Extended; missing/unknown string means Small; one preference per learner shared across Courses | Explicit user correction: same three modes, per learner × Course, Off initialization, clean cut |
 | Theme offers Auto / Light / Dark | Exact labels are **Default / Light / Dark**; `defaultMode` stores `default` and maps to `ThemeMode.system` | Preserve labels, storage, per-learner scope and live system behavior; do not introduce Auto or System labels |
 | IDDQD might have Default or dormant View Only values | Boolean false/true, displayed Off/On; no IDDQD enum or View Only value | Preserve; document the separate existing three-tap preview |
-| Flag-derived palette/contrast behavior may exist | Literal flag artwork plus theme-dependent veils/surfaces; no palette extraction or image-dependent contrast classifier | Characterize existing behavior; no Tinted or Soft Inspired implementation |
+| Flag-derived palette/contrast behavior may exist | Literal flag artwork plus theme-dependent veils/surfaces; no palette extraction or image-dependent contrast classifier | Characterize existing behavior; no Tinted or Inspired implementation |
 
 These are repository findings, not permission to pre-build later roadmap features. The repository roadmap had no detailed 227 controls contract before this phase; its new 227.01 entry points to this baseline rather than inventing 227.02–227.04 designs.
 
@@ -234,4 +234,4 @@ Closure: **227.01 is verified within the stated automated-test and platform limi
 - Current flags have no color classifier or image-adaptive contrast guarantee; corrupt decoded images and unavailable SVG assets have different failure paths from malformed Base64 and unavailable World Flag IDs. No speculative repair is part of this phase.
 - Backup-v2 accepts only a bounded safe suffix alphabet. New Flag Background keys respect it; existing IDDQD keys containing percent-encoded unusual Course IDs can be omitted during backup decode. That inherited behavior needs a separately authorized compatibility decision.
 - SharedPreferences mocks and mounted-widget reloads are deterministic automated evidence, not a physical device process-restart certification. Native Windows/Android appearance events, arbitrary-image visual QA, and release packaging remain unclaimed unless separately executed.
-- Do not activate Tinted, Soft Inspired, new IDDQD communication, Day/Night, Settings reorganization, Study Day/Stats, Crash Log relocation, Audio Settings or 228+ work from this document.
+- Do not activate Tinted, Inspired, new IDDQD communication, Day/Night, Settings reorganization, Study Day/Stats, Crash Log relocation, Audio Settings or 228+ work from this document.
