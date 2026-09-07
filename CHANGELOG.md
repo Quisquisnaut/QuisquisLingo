@@ -1,3 +1,10 @@
+# 2.0.27 (Phase 227.03, revision 0) - IDDQD state clarity - 2026-09-07
+
+- Added concise selected-mode guidance beneath the existing learner IDDQD control: Off says `Normal progression locks apply.` and On says `Locked content can be opened. Normal progression status is preserved.` The same meaning is available through the control tooltip and accessibility semantics.
+- Genuinely locked Lesson sections that become accessible through IDDQD now retain their lock marker and show the subordinate `Accessible with IDDQD` indicator. The existing Lesson access gate continues to expose only its published GuideBook, Rounds and eligible Duel; their own availability rules remain authoritative.
+- Preserved the existing Off / On behavior, learner × Course storage key, Off default, immediate update, genuine progression, normal study rewards and all completed 227.02 Flag Background behavior. Toggling IDDQD alone still changes no progress or XP.
+- Advanced technical metadata to `2.0.27+227030`, displayed as Version 2.0.27 / Phase 227.03, revision 0. The QQL 227 Alpha expiry remains `2026-10-07 23:59:59` local time. Course Model v6, Course JSON and checksums remain unchanged; see `docs/227_03_VALIDATION.md`.
+
 # 2.0.27 (Phase 227.02, revision 1) - Inspired background differentiation - 2026-09-07
 
 - Renamed the learner-facing `Soft Inspired` option to `Inspired` while retaining its internal enum case and persisted `soft_inspired` value, so revision-0 learner × Course selections restore without migration or reset.

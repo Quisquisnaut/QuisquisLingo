@@ -203,7 +203,15 @@ void main() {
       expect(find.byIcon(Icons.coffee_outlined), findsNothing);
       expect(find.byKey(const Key('learner-bottom-theme')), findsOneWidget);
       expect(find.byKey(const Key('learner-bottom-iddqd')), findsOneWidget);
-      expect(find.byTooltip('IDDQD: Off'), findsOneWidget);
+      expect(
+        find.byTooltip('IDDQD: Off\nNormal progression locks apply.'),
+        findsOneWidget,
+      );
+      expect(find.text('Normal progression locks apply.'), findsOneWidget);
+      expect(
+        find.bySemanticsLabel('IDDQD: Off. Normal progression locks apply.'),
+        findsOneWidget,
+      );
       expect(find.byTooltip('Theme: Default'), findsOneWidget);
       expect(find.bySemanticsLabel('Theme: Default'), findsOneWidget);
       expect(
@@ -229,6 +237,53 @@ void main() {
       );
     },
   );
+
+  testWidgets('IDDQD explanation updates immediately with the selected mode', (
+    tester,
+  ) async {
+    var enabled = false;
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: StatefulBuilder(
+          builder: (context, setState) => Scaffold(
+            body: LearnerBottomActions(
+              onProfile: () {},
+              onReview: () {},
+              onCourseInfo: () {},
+              iddqdEnabled: enabled,
+              onIddqdChanged: (value) => setState(() => enabled = value),
+            ),
+          ),
+        ),
+      ),
+    );
+    await _pumpFrames(tester);
+
+    expect(find.text('Normal progression locks apply.'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('learner-bottom-iddqd')));
+    await tester.pump();
+    expect(
+      find.text(
+        'Locked content can be opened. Normal progression status is preserved.',
+      ),
+      findsOneWidget,
+    );
+    expect(
+      find.byTooltip(
+        'IDDQD: On\nLocked content can be opened. '
+        'Normal progression status is preserved.',
+      ),
+      findsOneWidget,
+    );
+    expect(
+      find.bySemanticsLabel(
+        'IDDQD: On. Locked content can be opened. '
+        'Normal progression status is preserved.',
+      ),
+      findsOneWidget,
+    );
+  });
 
   testWidgets(
     'flag background utility cycles through the five modes from Off',
@@ -516,7 +571,7 @@ void main() {
     },
   );
 
-  testWidgets('bottom actions and theme utility fit required phone widths', (
+  testWidgets('bottom actions and explanation fit required responsive widths', (
     tester,
   ) async {
     await ProfileService().addProfile('Responsive Learner');
@@ -525,60 +580,67 @@ void main() {
     addTearDown(tester.view.resetDevicePixelRatio);
 
     for (final brightness in Brightness.values) {
-      for (final width in const [320.0, 375.0, 430.0]) {
-        tester.view.physicalSize = Size(width, 720);
-        tester.view.devicePixelRatio = 1;
-        await tester.pumpWidget(
-          MaterialApp(
-            theme: ThemeData(brightness: brightness, useMaterial3: true),
-            home: Scaffold(
-              body: Align(
-                alignment: Alignment.bottomCenter,
-                child: LearnerBottomActions(
-                  onProfile: () {},
-                  onReview: () {},
-                  onCourseInfo: () {},
+      for (final iddqdEnabled in const [false, true]) {
+        for (final width in const [320.0, 375.0, 430.0, 1100.0]) {
+          tester.view.physicalSize = Size(width, 720);
+          tester.view.devicePixelRatio = 1;
+          await tester.pumpWidget(
+            MaterialApp(
+              theme: ThemeData(brightness: brightness, useMaterial3: true),
+              home: Scaffold(
+                body: Align(
+                  alignment: Alignment.bottomCenter,
+                  child: LearnerBottomActions(
+                    onProfile: () {},
+                    onReview: () {},
+                    onCourseInfo: () {},
+                    iddqdEnabled: iddqdEnabled,
+                  ),
                 ),
               ),
             ),
-          ),
-        );
-        await _pumpFrames(tester);
+          );
+          await _pumpFrames(tester);
 
-        final actions = tester.getRect(
-          find.byKey(const Key('learner-bottom-actions')),
-        );
-        final themeControl = tester.getRect(
-          find.byKey(const Key('learner-bottom-theme')),
-        );
-        final flagControl = tester.getRect(
-          find.byKey(const Key('learner-bottom-flag-background')),
-        );
-        final profile = tester.getRect(
-          find.byKey(const Key('learner-bottom-profile')),
-        );
-        final review = tester.getRect(
-          find.byKey(const Key('learner-bottom-review')),
-        );
-        final courseInfo = tester.getRect(
-          find.byKey(const Key('learner-bottom-course-info')),
-        );
-        final iddqd = tester.getRect(
-          find.byKey(const Key('learner-bottom-iddqd')),
-        );
-        expect(actions.left, greaterThanOrEqualTo(0));
-        expect(actions.right, lessThanOrEqualTo(width));
-        expect(flagControl.right, lessThanOrEqualTo(actions.right));
-        expect(themeControl.left, greaterThan(courseInfo.right));
-        expect(flagControl.left, greaterThan(themeControl.right));
-        expect(themeControl.size, const Size(40, 40));
-        expect(flagControl.size, const Size(40, 40));
-        expect(profile.width, greaterThan(themeControl.width));
-        expect(review.size, const Size(40, 40));
-        expect(courseInfo.size, const Size(40, 40));
-        expect(iddqd.size, const Size(40, 40));
-        heights.add(actions.height);
-        expect(tester.takeException(), isNull);
+          final actions = tester.getRect(
+            find.byKey(const Key('learner-bottom-actions')),
+          );
+          final themeControl = tester.getRect(
+            find.byKey(const Key('learner-bottom-theme')),
+          );
+          final flagControl = tester.getRect(
+            find.byKey(const Key('learner-bottom-flag-background')),
+          );
+          final profile = tester.getRect(
+            find.byKey(const Key('learner-bottom-profile')),
+          );
+          final review = tester.getRect(
+            find.byKey(const Key('learner-bottom-review')),
+          );
+          final courseInfo = tester.getRect(
+            find.byKey(const Key('learner-bottom-course-info')),
+          );
+          final iddqd = tester.getRect(
+            find.byKey(const Key('learner-bottom-iddqd')),
+          );
+          expect(actions.left, greaterThanOrEqualTo(0));
+          expect(actions.right, lessThanOrEqualTo(width));
+          expect(flagControl.right, lessThanOrEqualTo(actions.right));
+          expect(themeControl.left, greaterThan(courseInfo.right));
+          expect(flagControl.left, greaterThan(themeControl.right));
+          expect(themeControl.size, const Size(40, 40));
+          expect(flagControl.size, const Size(40, 40));
+          expect(profile.width, greaterThan(themeControl.width));
+          expect(review.size, const Size(40, 40));
+          expect(courseInfo.size, const Size(40, 40));
+          expect(iddqd.size, const Size(40, 40));
+          expect(
+            find.text(learnerIddqdExplanation(iddqdEnabled)),
+            findsOneWidget,
+          );
+          heights.add(actions.height);
+          expect(tester.takeException(), isNull);
+        }
       }
     }
     expect(heights.toSet(), {learnerBottomActionsHeight});

@@ -263,6 +263,25 @@ void main() {
       );
       await settings.setIddqdModeEnabled(course.courseId, true);
       expect(await settings.isIddqdModeEnabled(course.courseId), isTrue);
+      expect(
+        await progress.getCompletedRounds(courseId: course.courseId),
+        isEmpty,
+      );
+      expect(
+        await progress.getCompletedLessons(courseId: course.courseId),
+        isEmpty,
+      );
+      expect(await progress.getXp(courseCode: 'IT'), 0);
+      expect(await progress.getWeeklyXp(), 0);
+      expect(
+        unlocks.isLessonUnlocked(
+          lessonIndex: 1,
+          course: course,
+          completedLessons: const <String>{},
+          wonDuels: const <String>{},
+        ),
+        isFalse,
+      );
 
       final result = await LearningCompletionService(progressService: progress)
           .completeRound(

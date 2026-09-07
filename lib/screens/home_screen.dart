@@ -1651,6 +1651,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                     unlocked: unlocked,
                                     hasAccess:
                                         unlocked || _iddqdMode || previewOnly,
+                                    iddqdAccessOverride:
+                                        !unlocked && _iddqdMode,
                                     previewOnly: previewOnly,
                                     completedRounds: _completedRounds,
                                     perfectRounds: _perfectRounds,
@@ -1817,6 +1819,7 @@ class _LessonSection extends StatelessWidget {
   final bool showSectionHeader;
   final bool unlocked;
   final bool hasAccess;
+  final bool iddqdAccessOverride;
   final bool previewOnly;
   final Set<String> completedRounds;
   final Set<String> perfectRounds;
@@ -1840,6 +1843,7 @@ class _LessonSection extends StatelessWidget {
     required this.showSectionHeader,
     required this.unlocked,
     required this.hasAccess,
+    required this.iddqdAccessOverride,
     required this.previewOnly,
     required this.completedRounds,
     required this.perfectRounds,
@@ -1909,6 +1913,7 @@ class _LessonSection extends StatelessWidget {
         course: course,
         lessonIndex: lessonIndex,
         unlocked: unlocked,
+        iddqdAccessOverride: iddqdAccessOverride,
         onLockedTap: onLockedTap,
         onTap:
             hasAccess &&
@@ -1917,6 +1922,7 @@ class _LessonSection extends StatelessWidget {
             ? onOpenGuidebook
             : null,
       ),
+      if (iddqdAccessOverride) _IddqdAccessIndicator(lessonId: lesson.lessonId),
       if (!hasAccess)
         Padding(
           key: ValueKey('unified-lesson-locked-${lesson.lessonId}'),
@@ -1970,11 +1976,58 @@ class _LessonSection extends StatelessWidget {
   );
 }
 
+class _IddqdAccessIndicator extends StatelessWidget {
+  final String lessonId;
+
+  const _IddqdAccessIndicator({required this.lessonId});
+
+  @override
+  Widget build(BuildContext context) => Align(
+    alignment: Alignment.center,
+    child: Semantics(
+      container: true,
+      label: 'Lesson is locked in normal progression. Accessible with IDDQD.',
+      child: ExcludeSemantics(
+        child: Container(
+          key: ValueKey('unified-lesson-iddqd-access-$lessonId'),
+          margin: const EdgeInsets.only(top: 10),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surface.withValues(alpha: .88),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: Theme.of(context).colorScheme.outlineVariant,
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.lock_open_outlined, size: 16),
+              const SizedBox(width: 6),
+              Flexible(
+                child: Text(
+                  'Accessible with IDDQD',
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    ),
+  );
+}
+
 class _GuidebookNode extends StatelessWidget {
   final Lesson lesson;
   final Course course;
   final int lessonIndex;
   final bool unlocked;
+  final bool iddqdAccessOverride;
   final VoidCallback? onLockedTap;
   final VoidCallback? onTap;
 
@@ -1983,6 +2036,7 @@ class _GuidebookNode extends StatelessWidget {
     required this.course,
     required this.lessonIndex,
     required this.unlocked,
+    required this.iddqdAccessOverride,
     required this.onLockedTap,
     required this.onTap,
   });
@@ -2087,8 +2141,9 @@ class _GuidebookNode extends StatelessWidget {
                                   bottom: -3,
                                   child: Semantics(
                                     button: onLockedTap != null,
-                                    label:
-                                        'Locked ${identity.prefix ?? identity.title}',
+                                    label: iddqdAccessOverride
+                                        ? 'Locked ${identity.prefix ?? identity.title}. Accessible with IDDQD.'
+                                        : 'Locked ${identity.prefix ?? identity.title}',
                                     child: GestureDetector(
                                       key: ValueKey(
                                         'unified-lesson-preview-lock-${lesson.lessonId}',

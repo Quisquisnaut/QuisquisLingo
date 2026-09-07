@@ -4,13 +4,15 @@ This roadmap describes planned work after build 204.
 
 Version numbers are provisional. If a task requires more than one build, later items may move forward rather than being compressed into an unsafe release.
 
-## Current 227 boundary: Phase 227.02
+## Current 227 boundary: Phase 227.03
 
-`2.0.27+227021` (revision 1) corrects the visual separation between the two Flag Background modes added in revision 0. Its immutable implementation parent is `384b9b65bfe9d39ae14465e22b3963f604cc4007`; the 227.01 baseline evidence remains in [227.01 validation](227_01_VALIDATION.md), and both 227.02 revisions are recorded in [227.02 validation](227_02_VALIDATION.md).
+`2.0.27+227030` (revision 0) makes the existing learner IDDQD control and its effect on genuinely locked content immediately understandable. Its immutable implementation parent is `8343d7f3ba88af9fe5a5081fdfb98e4c49ce1e90`, the completed `2.0.27+227021` Phase 227.02 revision-1 baseline. Prior evidence remains in [227.01 validation](227_01_VALIDATION.md) and [227.02 validation](227_02_VALIDATION.md); current evidence is in [227.03 validation](227_03_VALIDATION.md).
 
-Flag Background is now **Small / Off / Extended / Tinted / Inspired**, stored per learner × Course and initialized Off through the existing clean cut with no old shared-value fallback or migration. Small retains contain rendering; Extended retains cover rendering; Off retains the unadorned learner page. Tinted remains a restrained uniform derived color. Inspired uses up to three broad, stronger representative flag-color zones with separate Light/Dark adaptation, source-hue fidelity and safe existing-source fallback. The visible rename preserves the `soft_inspired` storage value. Theme remains **Default / Light / Dark** per learner, with Default following system brightness live. IDDQD remains **Off / On** per learner × Course. The existing three-tap session preview remains separate.
+IDDQD remains **Off / On** per learner × Course and initialized Off. Off is explained as `Normal progression locks apply.` On is explained as `Locked content can be opened. Normal progression status is preserved.` A genuinely locked Lesson made accessible by IDDQD keeps its lock marker and shows `Accessible with IDDQD`. The established Lesson gate exposes that Lesson's published GuideBook, Rounds and eligible Duel without changing progression, XP or child availability rules. The existing three-tap session preview remains separate.
 
-227.03 and later feature work has not begun. New IDDQD behavior or communication, Theme renaming, Day/Night, Settings reorganization, Study Day/Stats, later audio/log work and Course Editor changes remain outside this phase. Current implementation and persistence evidence take precedence over assumptions about future options.
+Flag Background remains **Small / Off / Extended / Tinted / Inspired**, stored per learner × Course and initialized Off through the existing clean cut. Small retains contain rendering; Extended retains cover rendering; Off retains the unadorned learner page. Tinted remains a restrained uniform derived color. Inspired retains up to three broad, stronger representative flag-color zones and the compatible `soft_inspired` storage value. Theme remains **Default / Light / Dark** per learner, with Default following system brightness live.
+
+227.04 and later feature work has not begun. New IDDQD modes, Theme renaming, Day/Night, Settings reorganization, Study Day/Stats, later audio/log work and Course Editor changes remain outside this phase. Current implementation and persistence evidence take precedence over assumptions about future options.
 
 ## General principles
 
