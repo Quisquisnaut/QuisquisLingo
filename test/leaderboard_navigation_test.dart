@@ -74,7 +74,7 @@ void main() {
       buildSignature: '',
     );
     SharedPreferences.setMockInitialValues({
-      'one_time_notice_seen_welcome_2.0.27+227010': true,
+      'one_time_notice_seen_welcome_2.0.27+227020': true,
       'sound_effects_enabled': false,
     });
     await ProfileService().addProfile('Navigation Learner');
@@ -2152,7 +2152,7 @@ void main() {
   });
 
   testWidgets(
-    'learner flag background modes render Small, Off, and Extended exactly',
+    'learner flag background modes retain artwork and add static inspired surfaces',
     (tester) async {
       final dispatcher = tester.binding.platformDispatcher;
       addTearDown(dispatcher.clearPlatformBrightnessTestValue);
@@ -2199,7 +2199,8 @@ void main() {
                   ? const Color(0xFF080B09)
                   : const Color(0xFFF7F3E8),
             );
-          } else {
+          } else if (mode == LearnerFlagBackgroundMode.small ||
+              mode == LearnerFlagBackgroundMode.extended) {
             expect(backdrop, findsOneWidget);
             expect(expectedVeil, findsOneWidget);
             expect(
@@ -2212,10 +2213,77 @@ void main() {
               tester.widget<ColoredBox>(expectedVeil).color.a,
               closeTo(brightness == Brightness.dark ? .25 : .10, .01),
             );
+          } else {
+            expect(backdrop, findsNothing);
+            expect(expectedVeil, findsNothing);
+            final inspired = find.byKey(
+              ValueKey(
+                mode == LearnerFlagBackgroundMode.tinted
+                    ? 'unified-learner-flag-background-tinted'
+                    : 'unified-learner-flag-background-soft-inspired',
+              ),
+            );
+            expect(inspired, findsOneWidget);
+            final decoration =
+                tester.widget<DecoratedBox>(inspired).decoration
+                    as BoxDecoration;
+            expect(
+              decoration.color,
+              mode == LearnerFlagBackgroundMode.tinted ? isNotNull : isNull,
+            );
+            expect(
+              decoration.gradient,
+              mode == LearnerFlagBackgroundMode.softInspired
+                  ? isA<LinearGradient>()
+                  : isNull,
+            );
           }
           expect(tester.takeException(), isNull);
         }
       }
+    },
+  );
+
+  testWidgets(
+    'new flag background modes replace the learner surface immediately',
+    (tester) async {
+      final course = await _loadItalianCourse(tester);
+      await _openHome(
+        tester,
+        scrollToActions: false,
+        flagBackgroundMode: LearnerFlagBackgroundMode.extended,
+        flagBackgroundCourseId: course.courseId,
+      );
+
+      expect(find.byTooltip('Flag background: Extended'), findsOneWidget);
+      expect(
+        find.byKey(const Key('unified-learner-flag-background')),
+        findsOneWidget,
+      );
+
+      await tester.tap(find.byKey(const Key('learner-bottom-flag-background')));
+      await _pumpUntilWithIo(
+        tester,
+        find.byKey(const Key('unified-learner-flag-background-tinted')),
+        failureMessage: 'Timed out applying Tinted to the learner surface.',
+      );
+      expect(find.byTooltip('Flag background: Tinted'), findsOneWidget);
+      expect(
+        find.byKey(const Key('unified-learner-flag-background')),
+        findsNothing,
+      );
+
+      await tester.tap(find.byKey(const Key('learner-bottom-flag-background')));
+      await _pumpUntilWithIo(
+        tester,
+        find.byKey(const Key('unified-learner-flag-background-soft-inspired')),
+        failureMessage:
+            'Timed out applying Soft Inspired to the learner surface.',
+      );
+      expect(find.byTooltip('Flag background: Soft Inspired'), findsOneWidget);
+      expect(find.byType(AnimatedContainer), findsNothing);
+      expect(find.byType(AnimatedOpacity), findsNothing);
+      expect(tester.takeException(), isNull);
     },
   );
 
@@ -2465,7 +2533,7 @@ void main() {
         (text) =>
             text.data != 'Welcome to QuisquisLingo' &&
             text.data != 'Version 2.0.27' &&
-            text.data != 'Phase 227.01, revision 0' &&
+            text.data != 'Phase 227.02, revision 0' &&
             text.data != 'Continue',
       );
       final welcomeDialog = tester.widget<AlertDialog>(
@@ -2482,11 +2550,11 @@ void main() {
         const Color(0xFF0756DF),
       );
       expect(
-        tester.widget<Text>(find.text('Phase 227.01, revision 0')).style?.color,
+        tester.widget<Text>(find.text('Phase 227.02, revision 0')).style?.color,
         const Color(0xFF0756DF),
       );
       expect(find.textContaining('22621'), findsNothing);
-      expect(find.textContaining('227010'), findsNothing);
+      expect(find.textContaining('227020'), findsNothing);
       expect(phrase.style?.color, const Color(0xFF0756DF));
       expect(find.widgetWithText(FilledButton, 'Continue'), findsOneWidget);
       expect(

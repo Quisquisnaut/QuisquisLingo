@@ -54,6 +54,8 @@ void main() {
         ('small', 'small', 'Small'),
         ('off', 'off', 'Off'),
         ('extended', 'extended', 'Extended'),
+        ('tinted', 'tinted', 'Tinted'),
+        ('softInspired', 'soft_inspired', 'Soft Inspired'),
       ],
     );
     expect(
@@ -61,6 +63,8 @@ void main() {
       const [
         LearnerFlagBackgroundMode.off,
         LearnerFlagBackgroundMode.extended,
+        LearnerFlagBackgroundMode.tinted,
+        LearnerFlagBackgroundMode.softInspired,
         LearnerFlagBackgroundMode.small,
       ],
     );

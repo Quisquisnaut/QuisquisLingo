@@ -41,7 +41,9 @@ COURSE
 
 The first Lesson is genuinely unlocked. Learners may open its Rounds freely. IDDQD Mode grants temporary access to genuinely locked Lessons without changing their lock state or the progress recorded while they are open.
 
-Phase 227.01 establishes the [Learner Panel controls baseline](227_01_VALIDATION.md). Flag Background uses a clean cut to opaque learner ID × immutable Course ID storage, initialized Off; old shared values are left untouched and unread. Small / Off / Extended rendering is preserved. Theme remains learner-scoped with Default following live system brightness. Changing these visual controls or toggling IDDQD does not award XP, complete content or alter genuine unlock state; actual study while IDDQD is On still records normal progress and rewards.
+Phase 227.01 establishes the [Learner Panel controls baseline](227_01_VALIDATION.md). Phase 227.02 adds [Tinted and Soft Inspired](227_02_VALIDATION.md) through one deterministic flag-color pipeline. Tinted is a uniform adapted hue; Soft Inspired is a restrained static two-color surface. World Flag SVG colors, portable custom raster pixels and existing built-in flag colors share the same neutral, extreme-lightness, saturation and theme adaptation. An unreadable preferred source falls back to the existing built-in source, then to a safe neutral learner-page palette. Small / Off / Extended rendering remains unchanged.
+
+Flag Background keeps the clean-cut opaque learner ID × immutable Course ID storage established by 227.01 and remains initialized Off; old shared values are left untouched and unread. Theme remains learner-scoped with Default following live system brightness. Changing these visual controls or toggling IDDQD does not award XP, complete content or alter genuine unlock state; actual study while IDDQD is On still records normal progress and rewards. No Flag Background value enters Course JSON or course checksums.
 
 ## Review priority
 

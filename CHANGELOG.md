@@ -1,3 +1,10 @@
+# 2.0.27 (Phase 227.02, revision 0) - Flag-inspired learner backgrounds - 2026-09-07
+
+- Added `Tinted` and `Soft Inspired` after the existing Small / Off / Extended Flag Background choices. Tinted uses one restrained course-flag hue; Soft Inspired uses a quiet static two-color treatment. Both adapt automatically for Light and Dark appearance without displaying, blurring or animating the flag artwork.
+- Centralized deterministic representative-color selection and adaptation for World Flag SVGs, portable custom raster flags and existing built-in flags. White, black, gray, saturated, near-monochrome and complex multicolor inputs receive automatic chroma/lightness handling; unreadable sources use the existing built-in flag source and then a neutral learner-page fallback.
+- Preserved the 227.01 learner × Course storage key and Off default without reading, migrating or deleting the obsolete shared value. Theme, IDDQD, progress, XP, Course Model v6, course JSON and checksums remain unchanged.
+- Advanced technical metadata to `2.0.27+227020`, displayed as Version 2.0.27 / Phase 227.02, revision 0. The established QQL 227 Alpha expiry remains `2026-10-07 23:59:59` local time. See `docs/227_02_VALIDATION.md`.
+
 # 2.0.27 (Phase 227.01, revision 0) - Learner Panel controls baseline - 2026-09-07
 
 - Audited the actual Flag Background, IDDQD and Theme option sets, defaults, persistence, rendering, live theme propagation and progression boundaries; recorded the parent baseline and regression evidence in `docs/227_01_VALIDATION.md`.

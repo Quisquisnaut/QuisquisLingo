@@ -33,6 +33,7 @@ import 'info_screen.dart';
 import 'profile_screen.dart';
 import 'round_screen.dart';
 import '../widgets/flag_art.dart';
+import '../widgets/flag_inspired_background.dart';
 import '../widgets/lesson_fallback_icon.dart';
 import '../widgets/learner_avatar.dart';
 import '../widgets/learner_bottom_actions.dart';
@@ -1436,8 +1437,12 @@ class _HomeScreenState extends State<HomeScreen> {
         ? _learnerDarkPageBackground
         : _learnerLightPageBackground;
     final flagBackgroundMode = _flagBackgroundMode;
-    final showsFlagBackground =
-        flagBackgroundMode != LearnerFlagBackgroundMode.off;
+    final showsFlagArtwork =
+        flagBackgroundMode == LearnerFlagBackgroundMode.small ||
+        flagBackgroundMode == LearnerFlagBackgroundMode.extended;
+    final showsInspiredBackground =
+        flagBackgroundMode == LearnerFlagBackgroundMode.tinted ||
+        flagBackgroundMode == LearnerFlagBackgroundMode.softInspired;
     final learnerTheme = _unifiedLearnerTheme(context);
     return Theme(
       data: learnerTheme,
@@ -1462,7 +1467,7 @@ class _HomeScreenState extends State<HomeScreen> {
               body: Stack(
                 fit: StackFit.expand,
                 children: [
-                  if (showsFlagBackground) ...[
+                  if (showsFlagArtwork) ...[
                     CourseFlagBackdrop(
                       key: const Key('unified-learner-flag-background'),
                       course: course,
@@ -1485,6 +1490,15 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                   ],
+                  if (showsInspiredBackground)
+                    CourseFlagInspiredBackground(
+                      course: course,
+                      fallbackCode: _selectedLanguage,
+                      brightness: followsDarkAppearance
+                          ? Brightness.dark
+                          : Brightness.light,
+                      mode: flagBackgroundMode,
+                    ),
                   SafeArea(
                     child: Column(
                       children: [

@@ -31,7 +31,9 @@ enum LearnerThemeMode {
 enum LearnerFlagBackgroundMode {
   small('small', 'Small'),
   off('off', 'Off'),
-  extended('extended', 'Extended');
+  extended('extended', 'Extended'),
+  tinted('tinted', 'Tinted'),
+  softInspired('soft_inspired', 'Soft Inspired');
 
   final String storageValue;
   final String label;
@@ -41,7 +43,9 @@ enum LearnerFlagBackgroundMode {
   LearnerFlagBackgroundMode get next => switch (this) {
     LearnerFlagBackgroundMode.small => LearnerFlagBackgroundMode.off,
     LearnerFlagBackgroundMode.off => LearnerFlagBackgroundMode.extended,
-    LearnerFlagBackgroundMode.extended => LearnerFlagBackgroundMode.small,
+    LearnerFlagBackgroundMode.extended => LearnerFlagBackgroundMode.tinted,
+    LearnerFlagBackgroundMode.tinted => LearnerFlagBackgroundMode.softInspired,
+    LearnerFlagBackgroundMode.softInspired => LearnerFlagBackgroundMode.small,
   };
 
   static LearnerFlagBackgroundMode fromStorage(String? value) =>

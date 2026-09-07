@@ -4,13 +4,13 @@ This roadmap describes planned work after build 204.
 
 Version numbers are provisional. If a task requires more than one build, later items may move forward rather than being compressed into an unsafe release.
 
-## Current 227 boundary: Phase 227.01
+## Current 227 boundary: Phase 227.02
 
-`2.0.27+227010` (revision 0) establishes the Learner Panel controls implementation and characterization baseline. The parent is `259160354b2d3d20da664551969697358127d93e`; the detailed contract and validation live in [227.01 baseline](227_01_VALIDATION.md).
+`2.0.27+227020` (revision 0) preserves the completed 227.01 Learner Panel controls baseline and adds exactly two Flag Background modes. Its immutable implementation parent is `91c1254efe96bdc1fdba4120ef1be322221eb1a1`; the baseline evidence remains in [227.01 validation](227_01_VALIDATION.md), and this tranche is recorded in [227.02 validation](227_02_VALIDATION.md).
 
-The user's explicit addition permits one behavior correction: Flag Background is per learner × Course, initialized Off through a clean cut with no old shared-value fallback or migration. Small / Off / Extended rendering stays intact. Theme is currently **Default / Light / Dark**, not Auto / Light / Dark; Default follows system brightness live. IDDQD is currently **Off / On**, with no View Only enum. The existing three-tap session preview is separate.
+Flag Background is now **Small / Off / Extended / Tinted / Soft Inspired**, stored per learner × Course and initialized Off through the existing clean cut with no old shared-value fallback or migration. Small retains contain rendering; Extended retains cover rendering; Off retains the unadorned learner page. Tinted and Soft Inspired derive restrained static color surfaces from the selected flag with separate Light/Dark adaptation and safe existing-source fallback. Theme remains **Default / Light / Dark** per learner, with Default following system brightness live. IDDQD remains **Off / On** per learner × Course. The existing three-tap session preview remains separate.
 
-227.02–227.04 feature work has not begun: Tinted, Soft Inspired, new IDDQD behavior or communication, Theme renaming, Day/Night, Settings reorganization, Study Day/Stats and later audio/log work remain outside this phase. Current implementation and persistence evidence take precedence over assumptions about future options.
+227.03 and later feature work has not begun. New IDDQD behavior or communication, Theme renaming, Day/Night, Settings reorganization, Study Day/Stats, later audio/log work and Course Editor changes remain outside this phase. Current implementation and persistence evidence take precedence over assumptions about future options.
 
 ## General principles
 

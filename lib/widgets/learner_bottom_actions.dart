@@ -202,6 +202,8 @@ class _FlagBackgroundModeAction extends StatelessWidget {
     LearnerFlagBackgroundMode.small => Icons.flag_outlined,
     LearnerFlagBackgroundMode.off => Icons.hide_image_outlined,
     LearnerFlagBackgroundMode.extended => Icons.flag,
+    LearnerFlagBackgroundMode.tinted => Icons.format_color_fill_outlined,
+    LearnerFlagBackgroundMode.softInspired => Icons.gradient_outlined,
   };
 
   @override

@@ -230,46 +230,52 @@ void main() {
     },
   );
 
-  testWidgets('flag background utility cycles Off, Extended, Small, then Off', (
-    tester,
-  ) async {
-    final profiles = ProfileService();
-    await profiles.addProfile('Flag Learner');
+  testWidgets(
+    'flag background utility cycles through the five modes from Off',
+    (tester) async {
+      final profiles = ProfileService();
+      await profiles.addProfile('Flag Learner');
 
-    await tester.pumpWidget(
-      MaterialApp(
-        home: Scaffold(
-          body: LearnerBottomActions(
-            profileService: profiles,
-            courseId: 'course-a',
-            onProfile: () {},
-            onReview: () {},
-            onCourseInfo: () {},
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: LearnerBottomActions(
+              profileService: profiles,
+              courseId: 'course-a',
+              onProfile: () {},
+              onReview: () {},
+              onCourseInfo: () {},
+            ),
           ),
         ),
-      ),
-    );
-    await _pumpFrames(tester);
-
-    final control = find.byKey(const Key('learner-bottom-flag-background'));
-
-    expect(find.byTooltip('Flag background: Off'), findsOneWidget);
-
-    Future<void> tapAndExpect(LearnerFlagBackgroundMode mode) async {
-      await tester.tap(control);
-      await _pumpFrames(tester);
-      expect(await profiles.getFlagBackgroundMode('course-a'), mode);
-      expect(find.byTooltip('Flag background: ${mode.label}'), findsOneWidget);
-      expect(
-        find.bySemanticsLabel('Flag background: ${mode.label}'),
-        findsOneWidget,
       );
-    }
+      await _pumpFrames(tester);
 
-    await tapAndExpect(LearnerFlagBackgroundMode.extended);
-    await tapAndExpect(LearnerFlagBackgroundMode.small);
-    await tapAndExpect(LearnerFlagBackgroundMode.off);
-  });
+      final control = find.byKey(const Key('learner-bottom-flag-background'));
+
+      expect(find.byTooltip('Flag background: Off'), findsOneWidget);
+
+      Future<void> tapAndExpect(LearnerFlagBackgroundMode mode) async {
+        await tester.tap(control);
+        await _pumpFrames(tester);
+        expect(await profiles.getFlagBackgroundMode('course-a'), mode);
+        expect(
+          find.byTooltip('Flag background: ${mode.label}'),
+          findsOneWidget,
+        );
+        expect(
+          find.bySemanticsLabel('Flag background: ${mode.label}'),
+          findsOneWidget,
+        );
+      }
+
+      await tapAndExpect(LearnerFlagBackgroundMode.extended);
+      await tapAndExpect(LearnerFlagBackgroundMode.tinted);
+      await tapAndExpect(LearnerFlagBackgroundMode.softInspired);
+      await tapAndExpect(LearnerFlagBackgroundMode.small);
+      await tapAndExpect(LearnerFlagBackgroundMode.off);
+    },
+  );
 
   testWidgets(
     'theme utility cycles Default, Light, Dark and immediately applies each mode',
