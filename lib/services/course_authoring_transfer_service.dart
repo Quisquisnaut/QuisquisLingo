@@ -300,6 +300,7 @@ class CourseAuthoringTransferService {
   ) => LearningRound(
     id: source.id,
     publicationState: source.publicationState,
+    provisionalDraft: source.provisionalDraft,
     updatedAt: now,
     title: source.title,
     visualType: source.visualType,
@@ -310,6 +311,7 @@ class CourseAuthoringTransferService {
       Lesson(
         lessonId: source.lessonId,
         publicationState: source.publicationState,
+        provisionalDraft: source.provisionalDraft,
         updatedAt: now,
         title: source.title,
         rounds: rounds,

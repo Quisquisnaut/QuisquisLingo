@@ -1,5 +1,63 @@
 # QQL 226.04 validation
 
+## Revision-1 corrective completion — first-Save publication reconciliation
+
+This follow-up starts from `782bc26ed52b0afe5a66f42e194abb64e1092320`, whose parent is `50a52988872e8d6bb3b7be5e3e261eb2741a60c7`. The user's later product clarification supersedes the independent-parent-Save policy in the historical closure below. The confirmed MyTest workflow **edits and saves the existing scaffolded sample Exercise**, without adding a second Exercise. Prior results of 1,136 passing tests and 71 inherited analyzer findings belong to that committed baseline; they are not fresh evidence for this follow-up.
+
+### Separate causes and corrections
+
+1. **Missing own-state Draft indicator:** the committed revision-1 fix already includes a Lesson's/Round's own state and canonical descendants in the independent blue Draft badge. A green Audit does not prove non-Draft status. That fix is retained; badge tooltips now distinguish provisional parents from explicit Drafts.
+2. **First Save and canonical snapshots:** Exercise Save constructs a Published candidate and invokes `onExerciseSaved` before returning. Round acceptance replaces the Exercise by stable ID, rebuilds complete canonical Content and calls `onCourseChanged`. GuideBook Save similarly replaces the current Lesson's GuideBook before propagating the Course. No separate lost first Exercise Save was found. However, the Rounds page rebuilt its returning Lesson from the original `widget.lesson`; that stale source could restore a former parent publication state after a descendant callback. It now uses the latest stable-ID-resolved Lesson. Returned Round replacements also resolve by ID, and Save returns the latest reconciled entity. The current Round state controls Published-to-Draft confirmation, including after automatic reconciliation in the same route.
+3. **Provisional parent readiness:** the prior model could not distinguish scaffolding from deliberate Draft. New Lessons and manually created Rounds now carry optional `provisionalDraft: true`. One shared service, used by the immutable authoring adoption path, reconciles ready marked Draft parents bottom-up after saves and other readiness-changing authoring mutations. A Round needs valid nonempty learner content, non-Draft Exercises and non-Draft required Content. A Lesson needs nonempty, ready, non-Draft Rounds, valid required metadata, and a non-Draft usable GuideBook with non-Draft required Content when GuideBooks are enabled. Disabling GuideBooks bypasses that required-GuideBook readiness condition. The service follows canonical normal-Save Error checks and the existing empty-GuideBook rule; it does not substitute border colors for validation or make Info guidance blocking.
+4. **Explicit Save Draft:** explicit Lesson/Round Save Draft clears automatic eligibility and remains Draft until its own non-Draft Save. Exercise Save Draft stays Draft and blocks provisional parent readiness. Legacy unmarked Draft parents remain Draft because their original intent cannot be recovered safely. Imports converted to Draft, duplicates and licensed forks also retain their intentional review boundary. The Course's Published/Not published choice is never changed automatically.
+
+### Persistence and first-Save trace
+
+Course Model remains **v6**. Only Lesson and Round gain the optional boolean `provisionalDraft`; missing values default to false, false is omitted from canonical output, and malformed present values are rejected. There is no destructive migration, title/ID heuristic, user-record rewrite or new publication-state token. Moves and ordinary edits preserve the marker; explicit parent Save choices clear it. Complete canonical JSON snapshots preserve IDs, Content metadata, Section, GuideBook, Duel, provenance and unrelated supported fields. No bundled JSON is rewritten.
+
+The reconciliation service audits one temporary complete-parent-Published learner projection against the original source-reference Course. This validation view is never adopted or persisted. Actual replacements use the original complete source objects; only promoted parents change state, marker and `updatedAt`. Optional Draft content stays stored while ordinary learner filtering omits it. Required Draft content prevents provisional readiness.
+
+The tested path is candidate → current Exercise → stable-ID Round replacement → `onCourseChanged` → canonical Lesson/Course → one top-level Course confirmation → raw SharedPreferences envelope → decoded same-ID Course → persisted selection → learner projection → Home/restart. Nested saves remain working-copy operations and do not write user storage. New Course still creates 3 Lessons × 1 Round by default, with exactly one Draft sample per Round. Scaffolded Rounds retain their established non-Draft state; incomplete sibling Lessons remain provisional Drafts.
+
+### Fresh verification
+
+Commands use the installed Flutter SDK invocation recorded below, with `test --no-pub --concurrency=1 --reporter expanded --timeout 60s`; logs are ignored local `build/` evidence. Flutter commands run serially. The requested corrective metadata stays **2.0.26+226041 / Phase 226.04 / revision 1**, including `Version 2.0.26` and `Phase 226.04, revision 1` in the show-once popup.
+
+| Fresh command / arguments | Result |
+| --- | --- |
+| `dart format --output=none --set-exit-if-changed` on all 11 changed/new Dart files | **11 files, 0 changes**, exit 0. |
+| `test/provisional_draft_model_test.dart` | **9 passed / 0 failed**, 00:02, exit 0; missing/false/true/malformed marker compatibility and round trips. `provisional-model.log`. |
+| `test/provisional_publication_service_test.dart test/provisional_parent_save_ui_test.dart test/provisional_mytest_workflow_test.dart` | **31 passed / 2 failed**, 01:10, exit 1. Both failures were new official-course fixtures missing required provenance, before the service could run. The six parent navigation tests and exact MyTest test passed. `provisional-behavior.log`. |
+| `test/provisional_publication_service_test.dart --name 'official Courses are returned\|licensed official fork'` | **2 passed / 0 failed**, 00:00, exit 0 after supplying complete required official provenance in the two fixtures. Production protections were unchanged. `provisional-official-fixtures.log`. |
+| `test/provisional_publication_service_test.dart` after the test-helper analyzer correction | **26 passed / 0 failed**, 00:00, exit 0; all reconciliation and transfer/import/copy/fork cases on the final source. `provisional-service-final.log`. |
+| Affected existing set listed below | **202 passed / 0 failed**, 04:59, exit 0. `provisional-affected.log`. |
+| First `flutter analyze --no-pub` | **72 findings**, exit 1, 58.1s: 71 inherited plus one new brace-style Info in a new test helper. The helper was corrected without production changes or lint suppression. `provisional-analyze.log`, `provisional-analyzer-initial-delta.json`. |
+| Final `flutter analyze --no-pub` | **71 inherited / 0 new / 0 resolved**, exit 1 solely for inherited findings, 9.5s. Compared with committed baseline `782bc26` using severity, message, normalized file path and code, ignoring shifted line/column positions. Against original revision-0's 72 findings, the earlier committed resolution remains historical: 71 inherited / 0 new / 1 resolved overall. `provisional-analyze-final.log`, `provisional-analyzer-final-delta.json`. |
+| Complete Flutter suite on the final tree | **1,178 passed / 0 failed**, exit 0, **17:40**. One complete run; no flaky failure appeared. `provisional-full-suite.log`. All 250 source/test/config SHA-256 values matched after completion. No source or test file changed after this run. |
+| `python -X utf8 tools/validate_courses.py` | **9 bundled v6 Courses valid**, exit 0. |
+| `python -X utf8 tools/regenerate_bundled_courses_225_02.py --check` | **All 9 generated Courses/checksums match**, exit 0. |
+| `python -X utf8 tools/validate_lesson_icons.py` | **14 assets / 0 issues**, exit 0. |
+| `python -X utf8 tools/validate_images.py` | **112 assets / 0 issues**, exit 0. |
+| `git diff --check` | Passed, exit 0; final status contains only the 17 intended follow-up files. |
+
+The 202-test command used these exact file arguments: `test/new_course_structure_226_04_test.dart test/course_model_v6_test.dart test/publication_and_presentation_224_test.dart test/course_authoring_transfer_226_02_test.dart test/authoring_transfer_ui_226_02_test.dart test/guidebook_publication_226_02_revision4_test.dart test/optional_learning_paths_226_04_test.dart test/draft_container_visibility_226_04_r1_test.dart test/authoring_hierarchy_indicators_226_02_test.dart test/course_editor_transaction_225_04_test.dart test/production_course_transaction_225_04_test.dart test/official_course_ui_226_01_test.dart test/persisted_learner_delivery_226_04_r1_test.dart test/app_metadata_225_04_test.dart test/alpha_lifecycle_test.dart`.
+
+The four new test files contain **42 distinct regressions**, all included in the completed final suite: 9 model contracts, 26 reconciliation/compatibility cases, 6 actual parent-navigation cases and 1 full MyTest creation/apply/restart workflow. This inventory is not an additional test run or a sum of overlapping final-report groups. The previous baseline's 1,136 tests plus these 42 cases account for the final 1,178.
+
+### Follow-up file inventory
+
+Seventeen intended files: `AGENTS.md`, `CHANGELOG.md`, `README.md`, `docs/226_04_VALIDATION.md`, `docs/COURSE_EDITOR.md`, `docs/COURSE_JSON_FORMAT.md`, `lib/models/course_models.dart`, `lib/screens/course_editor_screen.dart`, `lib/screens/editor_help_screen.dart`, `lib/services/course_authoring_transfer_service.dart`, `lib/services/new_course_structure.dart`, `lib/services/publication_service.dart`, new `lib/services/provisional_publication_service.dart`, and the four new `test/provisional_*_test.dart` files listed above. Version, Alpha lifecycle, Audit Registry, bundled Courses, flags, audio and learner scoring code are unchanged in this follow-up. The registry remains **102 rules**.
+
+### Remaining native checks and exclusions
+
+Repeat MyTest on Windows using the existing sample, one Exercise Save, one GuideBook Save, no Round/Lesson Save, and one final Course apply; select it and restart. Verify only the completed first Lesson is available, deliberate Save Draft remains unavailable, blue badges refresh independently from Audit, and conversion back to Draft still asks for confirmation. Check GuideBook ON/OFF, narrow layouts and the revision popup. Check responsiveness on a maximum-size scaffold: ancestor adoption callbacks may repeat a complete canonical Audit while other provisional siblings remain incomplete. Existing Exercise callback-plus-route-result acceptance is idempotent by stable ID; tests prove no duplication, but do not measure callback count. Automated widget tests do not constitute native visual verification.
+
+The requested scope remains corrective completion of 226.04 revision 1. Revision-2 flag/language work, Templates, Napoletano, future GuideBook content, release 227, release-228 Audio Settings/log diagnostics and release-230 generated/saved TTS audio are excluded. Alpha expiry remains exactly **2026-10-06 23:59:59 local time**. Nothing is pushed.
+
+### Corrective-completion commit boundary
+
+One new commit, **`Reconcile QQL 226.04 publication after one Save`**, follows immutable parent `782bc26ed52b0afe5a66f42e194abb64e1092320`; it does not amend either earlier revision-1 work or revision 0. It contains only the 17 files above. Final analyzer findings are entirely inherited; all required automated behavior and asset checks passed. The resulting commit hash and post-commit short status are reported after creation. No push, worktree, destructive recovery or actual user-Course migration/publication was performed.
+
 ## Phase 226.04 revision 1 — closure evidence
 
 This section records fresh revision-1 work against `50a52988872e8d6bb3b7be5e3e261eb2741a60c7` (`Complete QQL 226.04 course structure and optional learning paths`). The revision-0 records below remain historical evidence. Correction 1 has a reproduced Editor-state root cause, and all affected focused tests and the final analyzer comparison are complete. The complete-suite result and commit boundary are recorded below; revision-0 evidence is not reused as revision-1 validation.

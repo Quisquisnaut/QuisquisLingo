@@ -40,6 +40,7 @@ import '../services/authoring_duplication_service.dart';
 import '../services/exercise_creation_planner.dart';
 import '../services/guidebook_round_generator.dart';
 import '../services/publication_service.dart';
+import '../services/provisional_publication_service.dart';
 import '../widgets/flag_art.dart';
 import '../widgets/lesson_fallback_icon.dart';
 
@@ -488,7 +489,12 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
   bool get _dirty => _transaction.hasChanges;
 
   void _updateDraft(Course value) => setState(() {
-    _transaction.replaceWorkingCourse(value);
+    _transaction.replaceWorkingCourse(
+      const ProvisionalPublicationService().reconcile(
+        value,
+        updatedAt: _clock(),
+      ),
+    );
     _auditOutdated = true;
   });
 
@@ -1427,6 +1433,7 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
               updatedRound = LearningRound(
                 id: round.id,
                 publicationState: round.publicationState,
+                provisionalDraft: round.provisionalDraft,
                 updatedAt: round.updatedAt,
                 title: round.title,
                 visualType: round.visualType,
@@ -1455,6 +1462,7 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
         lessons[ti] = Lesson(
           lessonId: lesson.lessonId,
           publicationState: lesson.publicationState,
+          provisionalDraft: lesson.provisionalDraft,
           updatedAt: lesson.updatedAt,
           title: lesson.title,
           rounds: rounds,
@@ -1739,6 +1747,10 @@ class _LessonManagementScreenState extends State<LessonManagementScreen> {
 
   void _adoptCourse(Course course) {
     if (!mounted) return;
+    course = const ProvisionalPublicationService().reconcile(
+      course,
+      updatedAt: _clock(),
+    );
     setState(() => _course = course);
     widget.onCourseChanged?.call(course);
   }
@@ -1837,6 +1849,7 @@ class _LessonManagementScreenState extends State<LessonManagementScreen> {
       Lesson(
         lessonId: _ids.next('lesson'),
         publicationState: PublicationState.draft,
+        provisionalDraft: true,
         updatedAt: _clock(),
         title: title,
         rounds: const [],
@@ -1859,6 +1872,7 @@ class _LessonManagementScreenState extends State<LessonManagementScreen> {
     final renamed = Lesson(
       lessonId: source.lessonId,
       publicationState: source.publicationState,
+      provisionalDraft: source.provisionalDraft,
       updatedAt: _clock(),
       title: title,
       rounds: source.rounds,
@@ -1931,6 +1945,7 @@ class _LessonManagementScreenState extends State<LessonManagementScreen> {
     final changed = Lesson.fromJson({
       ...source.toJson(),
       'publicationState': state.name,
+      'provisionalDraft': false,
       'updatedAt': _clock().toUtc().toIso8601String(),
     });
     final lessons = [..._course.lessons]..[index] = changed;
@@ -2708,6 +2723,10 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
 
   void _adoptCourse(Course course) {
     if (!mounted) return;
+    course = const ProvisionalPublicationService().reconcile(
+      course,
+      updatedAt: _clock(),
+    );
     final lesson = course.lessons.firstWhere(
       (candidate) => candidate.lessonId == _lesson.lessonId,
     );
@@ -2731,11 +2750,7 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
           .map((asset) => asset.toJson())
           .toList(),
     });
-    setState(() {
-      _course = course;
-      _lesson = lesson;
-    });
-    widget.onCourseChanged?.call(course);
+    _adoptCourse(course);
   }
 
   Future<void> _returnToLessons() async {
@@ -2913,6 +2928,7 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
   }) => Lesson(
     lessonId: _lesson.lessonId,
     publicationState: _lesson.publicationState,
+    provisionalDraft: _lesson.provisionalDraft,
     updatedAt: _lesson.updatedAt,
     title: title ?? _lesson.title,
     rounds: rounds ?? _lesson.rounds,
@@ -2934,6 +2950,7 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
     return Lesson(
       lessonId: _lesson.lessonId,
       publicationState: state,
+      provisionalDraft: false,
       updatedAt: updatedAt ?? _lesson.updatedAt,
       title: _lesson.title,
       rounds: _lesson.rounds,
@@ -2994,7 +3011,7 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
     if (!mounted) return;
     _publishLesson(edited);
     await WidgetsBinding.instance.endOfFrame;
-    if (mounted) Navigator.pop(context, edited);
+    if (mounted) Navigator.pop(context, _lesson);
   }
 
   Future<String?> _name(String title, {String initial = ''}) async {
@@ -3051,6 +3068,7 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
         LearningRound(
           id: round.id,
           publicationState: round.publicationState,
+          provisionalDraft: round.provisionalDraft,
           updatedAt: round.updatedAt,
           title: round.title,
           visualType: round.visualType,
@@ -3085,6 +3103,7 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
     final draftLesson = Lesson(
       lessonId: _lesson.lessonId,
       publicationState: _lesson.publicationState,
+      provisionalDraft: _lesson.provisionalDraft,
       updatedAt: _lesson.updatedAt,
       title: _lesson.title,
       rounds: _lesson.rounds,
@@ -3371,10 +3390,11 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
                   lessonId: _lesson.lessonId,
                 ),
                 if (!_lesson.publicationState.isPublished)
-                  const _DraftBranchIndicator(
-                    key: Key('lesson-own-draft-indicator'),
-                    message:
-                        'This Lesson is Draft and hidden from learner delivery, even when its Rounds and Exercises are Published. Use Save to publish the Lesson.',
+                  _DraftBranchIndicator(
+                    key: const Key('lesson-own-draft-indicator'),
+                    message: _lesson.provisionalDraft
+                        ? 'This new Lesson is Draft until its required branch is complete and saved. It then becomes non-Draft automatically. Save as draft keeps the Lesson Draft until you explicitly Save it.'
+                        : 'This Lesson is Draft and hidden from learner delivery, even when its Rounds and Exercises are Published. Use Save to publish the Lesson.',
                   ),
                 OutlinedButton(
                   key: const Key('save-lesson-draft'),
@@ -3642,6 +3662,7 @@ class _GuidebookRoundGeneratorScreenState
   Lesson get _draftLesson => Lesson(
     lessonId: widget.lesson.lessonId,
     publicationState: widget.lesson.publicationState,
+    provisionalDraft: widget.lesson.provisionalDraft,
     updatedAt: widget.lesson.updatedAt,
     title: widget.lesson.title,
     rounds: [...widget.lesson.rounds, ..._drafts],
@@ -3979,7 +4000,22 @@ class _LessonRoundsScreenState extends State<LessonRoundsScreen> {
     super.initState();
     _course = widget.course;
     _rounds = [...widget.lesson.rounds];
+    // Adopt pending Lesson metadata once. Child callbacks thereafter own the
+    // current canonical state, including first-Save publication reconciliation.
+    _course = Course.fromJson({
+      ..._course.toJson(),
+      'lessons': [
+        for (final lesson in _course.lessons)
+          (lesson.lessonId == widget.lesson.lessonId ? widget.lesson : lesson)
+              .toJson(),
+      ],
+    });
   }
+
+  Lesson get _currentLesson => _course.lessons.firstWhere(
+    (lesson) => lesson.lessonId == widget.lesson.lessonId,
+    orElse: () => widget.lesson,
+  );
 
   Course get _auditableCourse {
     final lessons = [..._course.lessons];
@@ -3995,6 +4031,10 @@ class _LessonRoundsScreenState extends State<LessonRoundsScreen> {
 
   void _adoptCourse(Course course) {
     if (!mounted) return;
+    course = const ProvisionalPublicationService().reconcile(
+      course,
+      updatedAt: _clock(),
+    );
     setState(() {
       _course = course;
       _rounds = [
@@ -4012,18 +4052,10 @@ class _LessonRoundsScreenState extends State<LessonRoundsScreen> {
       (lesson) => lesson.lessonId == widget.lesson.lessonId,
     );
     if (index < 0) return _course;
-    lessons[index] = Lesson(
-      lessonId: widget.lesson.lessonId,
-      publicationState: widget.lesson.publicationState,
-      updatedAt: widget.lesson.updatedAt,
-      title: widget.lesson.title,
-      rounds: rounds,
-      section: widget.lesson.section,
-      sectionName: widget.lesson.sectionName,
-      themeIconAsset: widget.lesson.themeIconAsset,
-      guidebook: widget.lesson.guidebook,
-      duel: widget.lesson.duel,
-    );
+    lessons[index] = Lesson.fromJson({
+      ...lessons[index].toJson(),
+      'rounds': rounds.map((round) => round.toJson()).toList(),
+    });
     return Course.fromJson({
       ..._course.toJson(),
       'lessons': lessons.map((lesson) => lesson.toJson()).toList(),
@@ -4066,12 +4098,7 @@ class _LessonRoundsScreenState extends State<LessonRoundsScreen> {
   }
 
   void _updateRounds(List<LearningRound> rounds) {
-    final course = _courseWithRounds(rounds);
-    setState(() {
-      _course = course;
-      _rounds = rounds;
-    });
-    widget.onCourseChanged?.call(course);
+    _adoptCourse(_courseWithRounds(rounds));
   }
 
   LearningRound _blankRound(String title) {
@@ -4133,6 +4160,7 @@ class _LessonRoundsScreenState extends State<LessonRoundsScreen> {
     return LearningRound(
       id: 'custom_round_$stamp',
       publicationState: PublicationState.draft,
+      provisionalDraft: true,
       updatedAt: updatedAt,
       title: title,
       exercises: exercises,
@@ -4187,18 +4215,10 @@ class _LessonRoundsScreenState extends State<LessonRoundsScreen> {
     }
   }
 
-  Lesson get _draftLesson => Lesson(
-    lessonId: widget.lesson.lessonId,
-    publicationState: widget.lesson.publicationState,
-    updatedAt: widget.lesson.updatedAt,
-    title: widget.lesson.title,
-    rounds: _rounds,
-    section: widget.lesson.section,
-    sectionName: widget.lesson.sectionName,
-    themeIconAsset: widget.lesson.themeIconAsset,
-    guidebook: widget.lesson.guidebook,
-    duel: widget.lesson.duel,
-  );
+  Lesson get _draftLesson => Lesson.fromJson({
+    ..._currentLesson.toJson(),
+    'rounds': _rounds.map((round) => round.toJson()).toList(),
+  });
 
   Future<void> _open(int index) async {
     final updated = await Navigator.of(context).push<LearningRound>(
@@ -4215,7 +4235,11 @@ class _LessonRoundsScreenState extends State<LessonRoundsScreen> {
       ),
     );
     if (updated != null && mounted) {
-      final rounds = [..._rounds]..[index] = updated;
+      final currentIndex = _rounds.indexWhere(
+        (round) => round.id == updated.id,
+      );
+      if (currentIndex < 0) return;
+      final rounds = [..._rounds]..[currentIndex] = updated;
       _updateRounds(rounds);
     }
   }
@@ -4232,6 +4256,7 @@ class _LessonRoundsScreenState extends State<LessonRoundsScreen> {
     rounds[index] = LearningRound(
       id: source.id,
       publicationState: source.publicationState,
+      provisionalDraft: source.provisionalDraft,
       updatedAt: _clock(),
       title: title,
       visualType: source.visualType,
@@ -4301,6 +4326,7 @@ class _LessonRoundsScreenState extends State<LessonRoundsScreen> {
     final changed = LearningRound.fromJson({
       ...source.toJson(),
       'publicationState': state.name,
+      'provisionalDraft': false,
       'updatedAt': _clock().toUtc().toIso8601String(),
     });
     final rounds = [..._rounds]..[index] = changed;
@@ -4555,6 +4581,7 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
   late String _title;
   late DateTime _updatedAt;
   late PublicationState _publicationState;
+  late bool _provisionalDraft;
   bool _routeMayPop = false;
   late final DateTime Function() _clock = widget.clock ?? DateTime.now;
   @override
@@ -4567,6 +4594,7 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
     _title = widget.round.title;
     _updatedAt = widget.round.updatedAt;
     _publicationState = widget.round.publicationState;
+    _provisionalDraft = widget.round.provisionalDraft;
   }
 
   LearningRound _editedRound({
@@ -4575,6 +4603,7 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
   }) => LearningRound(
     id: widget.round.id,
     publicationState: publicationState ?? _publicationState,
+    provisionalDraft: publicationState == null ? _provisionalDraft : false,
     updatedAt: updatedAt ?? _updatedAt,
     title: _title,
     visualType: widget.round.visualType,
@@ -4623,7 +4652,7 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
 
   Future<void> _saveRound(PublicationState state) async {
     if (!state.isPublished &&
-        widget.round.publicationState.isPublished &&
+        _publicationState.isPublished &&
         !await _confirmMoveToDraft(context, 'Round')) {
       return;
     }
@@ -4669,10 +4698,11 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
     if (!mounted) return;
     _mutateRound(() {
       _publicationState = edited.publicationState;
+      _provisionalDraft = edited.provisionalDraft;
       _updatedAt = edited.updatedAt;
     });
     await WidgetsBinding.instance.endOfFrame;
-    if (mounted) Navigator.pop(context, edited);
+    if (mounted) Navigator.pop(context, _editedRound());
   }
 
   Future<void> _setExercisePublication(
@@ -4752,11 +4782,21 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
     late Course course;
     setState(() {
       mutation();
-      course = _workingCourse;
+      course = const ProvisionalPublicationService().reconcile(
+        _workingCourse,
+        updatedAt: _clock(),
+      );
       _course = course;
       _lesson = course.lessons.firstWhere(
         (lesson) => lesson.lessonId == _lesson.lessonId,
       );
+      final round = _lesson.rounds.firstWhere(
+        (round) => round.id == widget.round.id,
+        orElse: _editedRound,
+      );
+      _publicationState = round.publicationState;
+      _provisionalDraft = round.provisionalDraft;
+      _updatedAt = round.updatedAt;
     });
     widget.onCourseChanged?.call(course);
   }
@@ -4874,7 +4914,7 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
     if (destination == null || !mounted) return;
     final service = CourseAuthoringTransferService(clock: _clock);
     try {
-      final updated = copy
+      final transferred = copy
           ? service.copyExercise(
               course,
               sourceLessonId: _lesson.lessonId,
@@ -4891,6 +4931,10 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
               destinationLessonId: destination.lessonId,
               destinationRoundId: destination.roundId!,
             );
+      final updated = const ProvisionalPublicationService().reconcile(
+        transferred,
+        updatedAt: _clock(),
+      );
       setState(() {
         _course = updated;
         _lesson = updated.lessons.firstWhere(
@@ -4902,6 +4946,8 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
         _exercises = [...round.exercises];
         _originalContent = [...round.content];
         _updatedAt = round.updatedAt;
+        _publicationState = round.publicationState;
+        _provisionalDraft = round.provisionalDraft;
       });
       widget.onCourseChanged?.call(updated);
     } on StateError catch (error) {
@@ -5434,10 +5480,11 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
               runSpacing: 8,
               children: [
                 if (!_publicationState.isPublished)
-                  const _DraftBranchIndicator(
-                    key: Key('round-own-draft-indicator'),
-                    message:
-                        'This Round is Draft and hidden from learner delivery, even when its Exercises are Published. Use Save to publish the Round.',
+                  _DraftBranchIndicator(
+                    key: const Key('round-own-draft-indicator'),
+                    message: _provisionalDraft
+                        ? 'This new Round is Draft until its required content is complete and saved. It then becomes non-Draft automatically. Save as draft keeps the Round Draft until you explicitly Save it.'
+                        : 'This Round is Draft and hidden from learner delivery, even when its Exercises are Published. Use Save to publish the Round.',
                   ),
                 OutlinedButton(
                   key: const Key('round-save-draft'),

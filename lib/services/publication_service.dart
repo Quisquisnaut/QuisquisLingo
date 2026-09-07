@@ -43,6 +43,7 @@ class PublicationService {
     for (final rawLesson in (json['lessons'] as List).whereType<Map>()) {
       final lesson = rawLesson;
       lesson['publicationState'] = PublicationState.draft.name;
+      lesson.remove('provisionalDraft');
       final guidebook = lesson['guidebook'];
       if (guidebook is Map) {
         guidebook['publicationState'] = PublicationState.draft.name;
@@ -54,6 +55,7 @@ class PublicationService {
       for (final rawRound
           in (lesson['rounds'] as List? ?? const []).whereType<Map>()) {
         rawRound['publicationState'] = PublicationState.draft.name;
+        rawRound.remove('provisionalDraft');
         for (final rawContent
             in (rawRound['content'] as List? ?? const []).whereType<Map>()) {
           rawContent['publicationState'] = PublicationState.draft.name;

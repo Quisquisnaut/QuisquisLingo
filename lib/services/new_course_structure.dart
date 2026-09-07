@@ -45,6 +45,7 @@ class NewCourseStructure {
         Lesson(
           lessonId: generator.next('lesson'),
           publicationState: PublicationState.draft,
+          provisionalDraft: true,
           updatedAt: updatedAt,
           title: 'Lesson ${index + 1}',
           guidebook: Guidebook.empty(),

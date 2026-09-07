@@ -1,5 +1,6 @@
 # 2.0.26 (Phase 226.04, revision 1) - Learner delivery and Editor corrections - 2026-09-07
 
+- Corrective completion: one non-Draft Exercise/GuideBook Save now reconciles ready provisional Lesson/Round parents through the current canonical Course. Returning from Rounds preserves the latest Lesson state; deliberate Save Draft and legacy unmarked Drafts remain protected. Optional `provisionalDraft` metadata is backward compatible within Course Model v6; Course delivery and final confirmation remain explicit. The MyTest workflow saves the existing sample once, without redundant parent saves. This remains build `226041`, with unchanged Alpha expiry and no revision-2 flag/language work.
 - Advanced corrective metadata to `2.0.26+226041`; Alpha expiry remains `2026-10-06 23:59:59` local time.
 - New Course now creates exactly one Draft How do you say? sample per scaffolded Round, with source/learning-language-labelled placeholders, the literal `Wrong Answer` distractor, fresh IDs and atomic creation.
 - Removed sample-comparison `ROUND_CONTENT_SHORT` Info and obsolete sample-length Help. The canonical Audit Registry now has 102 rules; genuine structural checks and Error/Warning predicates remain.

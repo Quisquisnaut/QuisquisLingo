@@ -1014,6 +1014,11 @@ List<LearningContent> _legacyGuidebookContent(
 class Lesson {
   final String lessonId;
   final PublicationState publicationState;
+
+  /// Marks an automatically created Draft eligible for explicit-save
+  /// reconciliation. Missing legacy values are false; this never changes
+  /// learner visibility without a publication-state transition.
+  final bool provisionalDraft;
   final DateTime updatedAt;
   final String title;
   final List<LearningRound> rounds;
@@ -1030,6 +1035,7 @@ class Lesson {
   Lesson({
     required this.lessonId,
     this.publicationState = PublicationState.published,
+    this.provisionalDraft = false,
     DateTime? updatedAt,
     required this.title,
     required this.rounds,
@@ -1063,6 +1069,7 @@ class Lesson {
   Map<String, dynamic> toJson() => {
     'lessonId': lessonId,
     'publicationState': publicationState.name,
+    if (provisionalDraft) 'provisionalDraft': true,
     'updatedAt': _timestampToJson(updatedAt),
     'title': title,
     'section': section,
@@ -1073,6 +1080,9 @@ class Lesson {
     'duel': duel.toJson(),
   };
   factory Lesson.fromJson(Map<String, dynamic> j) {
+    if (j.containsKey('provisionalDraft') && j['provisionalDraft'] is! bool) {
+      throw const FormatException('lesson.provisionalDraft must be a boolean.');
+    }
     if (j.containsKey('id') || j.containsKey('topicId')) {
       throw const FormatException(
         'Course Model formatVersion 6 Lessons require lessonId and reject legacy Lesson identity fields.',
@@ -1133,6 +1143,7 @@ class Lesson {
     return Lesson(
       lessonId: _requiredString(j, 'lessonId', 'lesson'),
       publicationState: PublicationState.parseRequired(j, 'lesson'),
+      provisionalDraft: j['provisionalDraft'] as bool? ?? false,
       updatedAt: _requiredUtcTimestamp(j, 'updatedAt', 'lesson'),
       title: _requiredString(j, 'title', 'lesson'),
       rounds: _mapList(j, 'rounds', 'lesson', LearningRound.fromJson),
@@ -1149,6 +1160,10 @@ class LearningRound {
   static const validVisualTypes = {'listening', 'story', 'generic', 'test'};
   final String id;
   final PublicationState publicationState;
+
+  /// Automatic-publication eligibility, independent from the current state.
+  /// Explicit Draft saves clear this marker; legacy missing values stay false.
+  final bool provisionalDraft;
   final DateTime updatedAt;
   final String title;
   final String visualType;
@@ -1156,6 +1171,7 @@ class LearningRound {
   LearningRound({
     required this.id,
     this.publicationState = PublicationState.published,
+    this.provisionalDraft = false,
     DateTime? updatedAt,
     required this.title,
     this.visualType = 'generic',
@@ -1171,12 +1187,16 @@ class LearningRound {
   Map<String, dynamic> toJson() => {
     'id': id,
     'publicationState': publicationState.name,
+    if (provisionalDraft) 'provisionalDraft': true,
     'updatedAt': _timestampToJson(updatedAt),
     if (title.trim().isNotEmpty) 'title': title.trim(),
     'visualType': visualType,
     'content': content.map((e) => e.toJson()).toList(),
   };
   factory LearningRound.fromJson(Map<String, dynamic> j) {
+    if (j.containsKey('provisionalDraft') && j['provisionalDraft'] is! bool) {
+      throw const FormatException('round.provisionalDraft must be a boolean.');
+    }
     final visualType = j['visualType'];
     if (visualType is! String || !validVisualTypes.contains(visualType)) {
       throw FormatException(
@@ -1186,6 +1206,7 @@ class LearningRound {
     return LearningRound(
       id: _requiredString(j, 'id', 'round'),
       publicationState: PublicationState.parseRequired(j, 'round'),
+      provisionalDraft: j['provisionalDraft'] as bool? ?? false,
       updatedAt: _requiredUtcTimestamp(j, 'updatedAt', 'round'),
       title: _optionalString(j, 'title', ''),
       visualType: visualType,
