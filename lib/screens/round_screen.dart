@@ -1676,6 +1676,14 @@ class _RoundScreenState extends State<RoundScreen> {
               ),
               const SizedBox(height: 16),
             ],
+            if (ex.type == 'gap_choice' && ex.hint.trim().isNotEmpty) ...[
+              Text(
+                'Hint: ${ex.hint}',
+                key: const Key('gap-choice-hint'),
+                style: Theme.of(context).textTheme.bodyLarge,
+              ),
+              const SizedBox(height: 16),
+            ],
             _choiceExercise(ex),
           ],
         );

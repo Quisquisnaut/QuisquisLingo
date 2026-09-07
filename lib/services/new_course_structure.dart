@@ -23,6 +23,8 @@ class NewCourseStructure {
   static List<Lesson> create({
     required int lessonCount,
     required int roundsPerLesson,
+    required String sourceLanguage,
+    required String learningLanguage,
     required DateTime updatedAt,
     AuthoringIdGenerator? ids,
   }) {
@@ -31,6 +33,11 @@ class NewCourseStructure {
     }
     if (roundsPerLesson < 1 || roundsPerLesson > 20) {
       throw RangeError.range(roundsPerLesson, 1, 20, 'Rounds per Lesson');
+    }
+    final source = sourceLanguage.trim();
+    final learning = learningLanguage.trim();
+    if (source.isEmpty || learning.isEmpty) {
+      throw ArgumentError('Source and learning languages are required.');
     }
     final generator = ids ?? TimestampAuthoringIdGenerator();
     return [
@@ -47,10 +54,69 @@ class NewCourseStructure {
                 id: generator.next('round'),
                 updatedAt: updatedAt,
                 title: '',
-                content: const [],
+                content: [
+                  _sampleExercise(generator, source, learning, updatedAt),
+                ],
               ),
           ],
         ),
     ];
+  }
+
+  static LearningContent _sampleExercise(
+    AuthoringIdGenerator ids,
+    String sourceLanguage,
+    String learningLanguage,
+    DateTime updatedAt,
+  ) {
+    final exerciseId = ids.next('exercise');
+    final correctId = ids.next('item');
+    final distractorId = ids.next('item');
+    // These are editable, language-labelled authoring placeholders, not
+    // translated teaching material. Never silently publish generated examples.
+    return LearningContent.fromExercise(
+      Exercise.v2(
+        id: exerciseId,
+        publicationState: PublicationState.draft,
+        updatedAt: updatedAt,
+        editorTemplate: 'choice',
+        promptElements: [
+          PromptElement(
+            type: 'text',
+            text:
+                'Write a $sourceLanguage instruction to translate into $learningLanguage.',
+          ),
+          PromptElement(
+            role: 'question',
+            type: 'text',
+            text: 'Text in $sourceLanguage',
+          ),
+        ],
+        interaction: ExerciseInteraction(
+          kind: 'select',
+          items: [
+            ExerciseItem(
+              id: correctId,
+              content: [
+                PromptElement(
+                  type: 'text',
+                  text: 'Translation in $learningLanguage',
+                ),
+              ],
+            ),
+            ExerciseItem(
+              id: distractorId,
+              content: const [
+                PromptElement(type: 'text', text: 'Wrong Answer'),
+              ],
+            ),
+          ],
+        ),
+        evaluation: ExerciseEvaluation(
+          kind: 'selected_items',
+          correctItemIds: [correctId],
+        ),
+      ),
+    );
   }
 }

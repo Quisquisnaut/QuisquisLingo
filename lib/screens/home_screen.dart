@@ -1986,7 +1986,8 @@ class _GuidebookNode extends StatelessWidget {
                                   bottom: -3,
                                   child: Semantics(
                                     button: onLockedTap != null,
-                                    label: 'Locked Lesson ${lessonIndex + 1}',
+                                    label:
+                                        'Locked ${identity.prefix ?? identity.title}',
                                     child: GestureDetector(
                                       key: ValueKey(
                                         'unified-lesson-preview-lock-${lesson.lessonId}',

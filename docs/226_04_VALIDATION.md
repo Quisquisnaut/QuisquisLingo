@@ -1,5 +1,133 @@
 # QQL 226.04 validation
 
+## Phase 226.04 revision 1 — closure evidence
+
+This section records fresh revision-1 work against `50a52988872e8d6bb3b7be5e3e261eb2741a60c7` (`Complete QQL 226.04 course structure and optional learning paths`). The revision-0 records below remain historical evidence. Correction 1 has a reproduced Editor-state root cause, and all affected focused tests and the final analyzer comparison are complete. The complete-suite result and commit boundary are recorded below; revision-0 evidence is not reused as revision-1 validation.
+
+### Reported defects, diagnosis and current correction
+
+1. **Persisted custom Course shows no learner Lessons.** The user's report was correct: the Editor could display no Draft badge anywhere even though the selected Course's only Lesson was persisted as Draft. A read-only real-record widget diagnostic proved that raw JSON, `CourseEditorService` decoding, the actual Lessons Editor object and learner projection all used the same stable Course ID. Raw/decoded/Editor Lesson state was `draft`, but `AuthoringStatusCard.hasDraft` was **false**, canonical Audit was **0 Errors / 0 Warnings**, and learner projection correctly removed the Draft Lesson. The shared `AuthoringHierarchyStatus` omitted each Lesson's and Round's own publication state; it considered only descendant Exercises/GuideBook. This is an **Editor state-presentation defect**, not empty-state wording, a decoder conversion, lost JSON, title/topic selection, or a required change to Draft filtering. The correction includes own Lesson/Round states and canonical Content in shared Draft propagation, plus an own-container blue badge beside Save with an explanatory tooltip. Published child branches remain independently clean. Course delivery remains separate. Explicit Lesson Save and final Course confirmation publish through the existing complete-object transaction; no automatic publication is introduced. Raw-persistence → decode → Editor → stable-ID selector → Home/restart coverage uses a synthetic raw v6 fixture and a same-title/different-ID Course, independently of scaffolding.
+
+   **Metadata-only live evidence:** storage category is the Windows Roaming Application Support SharedPreferences custom-course envelope (`flutter.quisquislingo_user_courses_v6_225`, entry `{course,savedAt}`); the exact per-profile selection was `custom:course_bc07f6a0-da55-46c8-b4ce-d2380fba2979`. Course `course_bc07f6a0-da55-46c8-b4ce-d2380fba2979` was custom, format 6, version 5, explicitly `published`; Lesson `custom_lesson_1788754105106466_0` explicitly `draft`; Round `custom_round_1788754105106466_1` explicitly `published`; Content/Exercise IDs `custom_exercise_1788754144123883_0` and `custom_exercise_1788755463132143_0` explicitly `published`. Nested Exercise objects inherit the canonical Content state. GuideBook's missing state uses the established Published compatibility default, and its Content was Published. All seven custom records had matching map/internal Course IDs and zero duplicated Course IDs; the affected title had one record. `Normal` was old presentation wording for Published, not a persisted enum value. Course/Lesson/Round/Content parsing requires explicit `draft`/`published`; no default changed this Lesson. The inactive legacy global selection was not the active profile's selection.
+
+   The first actual-record run (`226041-actual-editor-before.log`) passed **2/2** and captured the concealed state. During a subsequent read-only probe, the external live record changed: the same Lesson was now Published and projection returned one Lesson. No task code wrote the user's preferences or published any content; UI checks use mocked storage, and byte comparisons guard the live read. The later state change is not attributed to an actor or claimed as the implementation fix. The first probe remains the pre-correction evidence; stable synthetic regression fixtures avoid depending on mutable live application data. No Lesson content is reproduced in this report.
+2. **Initial sample Exercise.** `NewCourseStructure` now builds exactly one canonical `How do you say?`/`choice` Exercise per generated Round, including fresh Exercise and answer-item IDs. It validates counts and nonempty languages before generation and returns the entire hierarchy atomically. The source and learning languages supply explicit editable placeholders: instruction `Write a <source> instruction to translate into <learning>.`, question `Text in <source>`, correct answer `Translation in <learning>`, and literal distractor `Wrong Answer`. These are language-labelled authoring placeholders, not claims of translated teaching content. Every sample Exercise is Draft; the existing Course/Lesson starting states remain intact. Defaults remain 3 Lessons × 1 Round. Generation is confined to New Course; later opening/editing does not add samples. New Course displays exactly **`Each Round starts with a sample exercise.`** Counts remain one-time scaffolding inputs, not persisted settings or model/import/edit limits.
+3. **Sample-comparison Audit Info.** Removed **`ROUND_CONTENT_SHORT`**, its 1–7-item producer and its registry/Help entry. It was the sole Info rule whose purpose was comparison with standard sample structure. The canonical registry is now **102 rules: 70 Error / 27 Warning / 5 Info**. `ROUND_CONTENT_LONG` remains the existing **Warning** for more than 10 Content items; its predicate/severity are unchanged and its message/Help now describe pacing without a sample comparison. Genuine `ROUND_CONTENT_EMPTY`, `LESSON_ROUNDS_EMPTY`, `LESSON_ROUND_GUIDANCE`, integrity checks and other Error/Warning behavior remain. Registry search, Help counts and filters all consume the same definitions. The unrelated obsolete sample-length assertion in general Editor Help is removed.
+4. **Delivery wording.** Course delivery status displays exactly **Published** or **Not published**, with Publish/Unpublish actions. Unpublishing asks **`Set Course to Not published?`** and explains that individual authoring Draft states and content are preserved. Course delivery changes retain the existing underlying `publicationState` contract; they do not publish or unpublish descendants. The existing top-level confirmation remains the persistence boundary.
+5. **Authoring metadata naming.** The editable navigation entry and metadata dialog use **Course Info Editor**. Authoring Help/documentation use that name. The learner-facing **Course Info** page and official read-only information retain their existing names and navigation.
+6. **Lesson numbering.** The existing control and all stored choices move from Course Info Editor to **Lessons → Lesson appearance**. Editor list labels, individual Lesson AppBars, breadcrumbs and learner/Preview identities share the existing presentation service. Module produces **Module 1**, **Module 2**, etc.; automatic `Lesson N` titles are deduplicated for the selected term without changing stored titles or IDs. Lesson + number, Number only and Title only retain their stored values and semantics. Custom-label cancellation restores the unchanged canonical selection. Selection persists through the existing Course working-copy/save/reload path; no new field or migration is introduced. Equivalent Rounds-title and learner lock-accessibility labels also use the selected presentation.
+7. **Fill in the Blank Hint.** The friendly Fill in the Blank preset is canonical `gap_choice`. Inspection showed that Hint already survived field mapping, unsaved candidate construction and v6 persistence; the shared choice renderer omitted it. The shared RoundScreen now renders a nonempty configured Hint before the answer choices, for both ordinary learner delivery and unsaved Preview. Whitespace-only Hint remains absent. The renderer does not derive or reveal an answer, and existing Hint validation/correctness rules remain. Editor guidance says exactly **`Use ___ (3 underscores)`**; contextual Help uses the same instruction. Tests cover Preview before Save and after Draft/Published Save plus Course round trip and reopen.
+
+### Metadata, persistence and preserved boundaries
+
+Target metadata is **Version 2.0.26 / Phase 226.04 / revision 1 / technical build 226041**, pubspec **`2.0.26+226041`**. The first-run popup uses `Version 2.0.26` and `Phase 226.04, revision 1`, preserving the existing show-once mechanism. Alpha expiry remains exactly **2026-10-06 23:59:59 local time**, as explicitly required; no expiry policy or lifecycle change is introduced.
+
+Course Model remains **v6**, using the existing fields and backward-compatible defaults. There is no migration, destructive rewrite, bundled JSON/default-field insertion or new publication state. Stable identities, complete canonical objects, Sections, optional Duel/GuideBook behavior, upper Lock icon, GuideBook IDs, official/fork protections, independent Draft/Audit hierarchy and unsaved Preview's no-write boundary remain in scope for regression protection. Imports and Exports retain their established directories.
+
+### Fresh commands and results
+
+Commands use the installed Flutter SDK invocation recorded in the revision-0 command convention below, with `test --no-pub --concurrency=1 --reporter expanded --timeout 60s` and the file arguments listed here. Flutter commands run serially. Logs are ignored local `build/` evidence; totals from overlapping development groups are not added together or presented as final-suite totals.
+
+| File arguments / command | Exact current evidence |
+| --- | --- |
+| `test/fill_blank_hint_226_04_r1_test.dart test/new_course_structure_226_04_test.dart test/audit_code_registry_226_02_test.dart` | **23 passed; 1 test-file compilation failure**, 00:21. New Course's language argument referred to undefined `sr` instead of the existing source variable; production typo corrected. Hint and registry tests passed. `build/226041-initial-focused.log`. |
+| `test/new_course_structure_226_04_test.dart test/lesson_naming_226_04_test.dart test/course_metadata_wording_226_04_r1_test.dart test/course_editor_layout_regression_test.dart` | **23 passed / 7 failed**, 00:50. One check expected the new creation guidance as a separate exact Text; the guidance now renders as that standalone sentence. Six naming fixtures attempted to locate lazily built list targets before scrolling; their traversal was corrected. Metadata wording tests passed. `build/226041-editor-focused.log`. |
+| `test/new_course_structure_226_04_test.dart test/lesson_naming_226_04_test.dart test/persisted_learner_delivery_226_04_r1_test.dart` | **23 passed / 1 failed before interruption**, not a completed passing run. One Number-only naming finder was corrected. The subsequent real-backup delivery fixture awaited filesystem work inside fake async and stopped making progress; interrupted after approximately four minutes, including approximately three quiet minutes. The harness was corrected to use `tester.runAsync` for the real filesystem operation. `build/226041-delivery-naming-focused.log`. |
+| `test/lesson_naming_226_04_test.dart build/226041_actual_delivery_diagnostic_test.dart` | **7 passed / 0 failed**, 00:32: six naming scenarios plus the read-only actual selected-Course publication diagnosis. This diagnostic is not a substitute for the still-required final persisted-delivery regression. `build/226041-naming-diagnostic-focused.log`. |
+| `test/persisted_learner_delivery_226_04_r1_test.dart test/audit_codes_screen_226_02_test.dart test/audit_branch_ownership_226_02_revision4_test.dart test/publication_and_presentation_224_test.dart test/lesson_controls_226_04_test.dart test/lesson_metadata_and_icon_test.dart test/optional_learning_paths_226_04_test.dart test/course_options_226_04_test.dart test/production_course_transaction_225_04_test.dart test/official_course_ui_226_01_test.dart test/exercise_workflow_226_02_test.dart test/course_creation_flags_226_04_test.dart test/app_metadata_225_04_test.dart test/course_audit_report_225_test.dart test/alpha_lifecycle_test.dart` | **173 passed / 1 failed**, 02:49, exit 1. Both persisted-delivery regressions passed. The sole failure expected the old Rounds heading without its Lesson numbering prefix; the stale fixture was corrected. `build/226041-affected-focused.log`. |
+| `test/lesson_metadata_and_icon_test.dart test/leaderboard_navigation_test.dart --name 'draft-preserving Round management\|Welcome'` | **3 passed / 0 failed**, 00:24, exit 0: corrected Rounds heading and both welcome palette/metadata/show-once checks. `build/226041-heading-welcome-focused.log`. |
+| `test/lesson_naming_226_04_test.dart --name Module` | **1 passed / 0 failed**, 00:09, exit 0 after preserving standalone Lesson-editor labels when no matching Course index exists. `build/226041-module-final-focused.log`. |
+| `test/exercise_help_224_test.dart test/exercise_help_search_226_03_r1_test.dart test/exercise_field_help_ui_226_02_test.dart test/course_editor_224_test.dart` | **53 passed / 0 failed**, 01:00, exit 0; Help content/search, contextual fields, existing Editor navigation/Lock/IDs and 320px layout. `build/226041-help-editor-focused.log`. |
+| `python -X utf8 tools/validate_courses.py` | **9 bundled Courses valid, 0 failures**. |
+| `python -X utf8 tools/regenerate_bundled_courses_225_02.py --check` | **All 9 bundled checksums unchanged**. |
+| `python -X utf8 tools/validate_lesson_icons.py` | **14 assets, 0 issues**. |
+| `python -X utf8 tools/validate_images.py` | **112 assets, 0 issues**. |
+| `build/226041_actual_delivery_diagnostic_test.dart` | **2 passed / 0 failed**, 00:04, exit 0 before production correction. Same selected/raw/decoded/Editor/projected ID; Draft Lesson, absent Editor badge, green Audit, zero learner Lessons. Live file bytes unchanged during the probe. `build/226041-actual-editor-before.log`. |
+| `test/draft_container_visibility_226_04_r1_test.dart build/226041_actual_delivery_diagnostic_test.dart` | **7 passed / 3 failed**, 00:10, exit 1. Two new Manager assertions incorrectly assumed a stable-ID card rendered only once (current/local groups may both render it); fixed to inspect every matching card independently. The live probe's old Draft assertion failed because the external Course had since been saved as version 6 with its same Lesson Published (savedAt `2026-09-07T07:04:50.1384640Z`); this is mutable live evidence, not a production regression. `build/226041-container-draft-focused.log`. |
+| `test/draft_container_visibility_226_04_r1_test.dart test/persisted_learner_delivery_226_04_r1_test.dart` | **9 passed / 1 failed**, 00:13, exit 1. All eight container-state cases and Published restart case passed. The new raw-storage workflow tapped the selector before the sheet's opening animation completed; added a bounded settle before scrolling/tapping. `build/226041-delivery-correction-focused.log`. |
+| `test/persisted_learner_delivery_226_04_r1_test.dart --plain-name 'raw all-green Course'` | **1 passed / 0 failed**, 00:08, exit 0. Raw v6 envelope → decoded same-ID Editor → real Lesson Save → confirmed persistence → selector/Home/restart, with duplicate-title identity isolation and nested no-write assertion. `build/226041-raw-delivery-focused.log`. |
+| `test/authoring_hierarchy_indicators_226_02_test.dart test/audit_branch_ownership_226_02_revision4_test.dart test/publication_and_presentation_224_test.dart test/optional_learning_paths_226_04_test.dart test/official_course_ui_226_01_test.dart` | **65 passed / 0 failed**, 00:52, exit 0. Existing live hierarchy, Draft/Audit independence, empty-state, optional-path and official read-only regressions after the shared container-state correction. `build/226041-final-hierarchy-focused.log`. |
+| First `flutter analyze --no-pub` | **75 findings**, exit 1, 95.2s: **71 inherited**, one inherited brace-style Info resolved with removal of `ROUND_CONTENT_SHORT`, plus four findings solely in the ignored temporary live-record diagnostic under `build/`. Its source was preserved as `build/226041_actual_delivery_diagnostic_test.dart.txt` after use so it is evidence rather than application analyzer input. No application/test edits, lint suppression or configuration change followed. `226041-analyze.log`, `226041-analyzer-initial-comparison.json`. |
+| Verified `flutter analyze --no-pub` | **71 findings**, exit 1 solely for inherited findings: **71 inherited / 0 new / 1 resolved** against parent 72. Counter comparison uses severity, message, normalized path and diagnostic code rather than shifted line positions. The resolved finding is the brace-style Info in the removed short-Round producer. `226041-analyze-final.log` (12.2s) and, after the final Help correction, `226041-analyze-handoff.log` (10.9s), with their comparison JSON files. No suppression or unrelated cleanup. |
+| `test/exercise_help_224_test.dart test/exercise_help_search_226_03_r1_test.dart` | **14 passed / 0 failed**, 00:09, exit 0 after final Help wording correction. `226041-final-help-focused.log`. |
+| Initial complete-suite launch | Interrupted deliberately after **38 passed, 0 failures**, 00:06 test elapsed, exit 1, when independent review reported stale in-app Help wording. The concrete correction makes Help include own-container Draft states and consistently calls Course delivery Not published. This was not a completed suite and is not passing closure evidence. `226041-full-suite.log`. A fresh full run follows the affected Help check and final analyzer. |
+| Final complete Flutter suite | **1,136 passed / 0 failed**, exit 0, **16:51**, with `test --no-pub --concurrency=1 --reporter expanded --timeout 60s`. `build/226041-full-suite-final.log`. No flaky failure appeared. This is the completed final-tree run; the earlier 38-test interrupted launch is recorded separately above. All **245 source/test/config SHA-256 values** matched the snapshot after completion. No production or test file changed after this run. |
+| `git diff --check` | Final **exit 0**. The complete intended diff was reviewed for unchanged Course Model v6, persistence, official protections and excluded scope; no revision-2 flag/language or unrelated implementation changes were found. |
+
+Final installed `dart format` covered all **30 changed Dart files**, **0 further changes**, exit 0, after the targeted implementation/test formatting. No dependency or SDK changes were made.
+
+New tests include `course_metadata_wording_226_04_r1_test.dart`, `draft_container_visibility_226_04_r1_test.dart`, `fill_blank_hint_226_04_r1_test.dart` and `persisted_learner_delivery_226_04_r1_test.dart`. Updated tests cover sample counts/languages/IDs/Draft policy/atomic failure, canonical Audit registry and Help search, naming/Preview/restart, publication and affected metadata/UI fixtures. Initial failures above distinguish the corrected production compilation typo from stale fixture assumptions and the real/fake async test-harness boundary.
+
+### Final regression coverage
+
+These are cases from the completed final suite, not additional test commands or summed overlapping development runs. The four new files add 20 cases; affected existing files add 14 cases, giving **34 additional tests** over revision 0's 1,102.
+
+| Test file | Final cases passed |
+| --- | ---: |
+| `persisted_learner_delivery_226_04_r1_test.dart` | **2** |
+| `draft_container_visibility_226_04_r1_test.dart` | **8** |
+| `new_course_structure_226_04_test.dart` | **17** |
+| `course_metadata_wording_226_04_r1_test.dart` | **3** |
+| `lesson_naming_226_04_test.dart` | **6** |
+| `fill_blank_hint_226_04_r1_test.dart` | **7** |
+| `audit_code_registry_226_02_test.dart` | **16** |
+| `audit_codes_screen_226_02_test.dart` | **17** |
+
+### Intended final file inventory
+
+The revision contains **37 intended files: 33 modified tracked files and 4 new test files**. No unrelated/generated files are included. HEAD remains `50a52988872e8d6bb3b7be5e3e261eb2741a60c7`, parent `ef668dd8c0fab070613c5c0dc925619da7d79443`. The final status is reconciled against this inventory before staging. Local `build/` logs and the actual-user diagnostic are excluded.
+
+```text
+AGENTS.md
+CHANGELOG.md
+README.md
+docs/226_04_VALIDATION.md
+docs/COURSE_EDITOR.md
+docs/COURSE_JSON_FORMAT.md
+lib/screens/course_editor_screen.dart
+lib/screens/course_projects_screen.dart
+lib/screens/editor_help_screen.dart
+lib/screens/home_screen.dart
+lib/screens/round_screen.dart
+lib/services/app_metadata.dart
+lib/services/audit_code_registry.dart
+lib/services/course_audit_service.dart
+lib/services/exercise_field_help.dart
+lib/services/lesson_presentation_service.dart
+lib/services/new_course_structure.dart
+lib/widgets/editor_breadcrumbs.dart
+pubspec.yaml
+test/app_metadata_225_04_test.dart
+test/audit_branch_ownership_226_02_revision4_test.dart
+test/audit_code_registry_226_02_test.dart
+test/audit_codes_screen_226_02_test.dart
+test/course_audit_report_225_test.dart
+test/course_editor_layout_regression_test.dart
+test/course_metadata_wording_226_04_r1_test.dart
+test/draft_container_visibility_226_04_r1_test.dart
+test/fill_blank_hint_226_04_r1_test.dart
+test/leaderboard_navigation_test.dart
+test/learner_round_path_test.dart
+test/lesson_metadata_and_icon_test.dart
+test/lesson_naming_226_04_test.dart
+test/new_course_structure_226_04_test.dart
+test/official_course_ui_226_01_test.dart
+test/persisted_learner_delivery_226_04_r1_test.dart
+test/production_course_transaction_225_04_test.dart
+test/publication_and_presentation_224_test.dart
+```
+
+### Remaining Windows checks and exclusions
+
+- Verify on Windows that an explicitly Draft Lesson/Round is visibly marked even when all children are Published and Audit is green; explicitly Save and confirm a Course, then verify learner delivery after restart. The reported Course is never automatically modified by this correction.
+- Native Windows manual checks remain for new-course defaults/custom counts and sample placeholders across language pairs; sample Draft visibility; Course Info Editor versus learner Course Info; Published/Not published confirmation; Module/other numbering in narrow Editor, breadcrumbs and learner layouts after restart; and unsaved/saved Fill in the Blank Hint readability without an answer-revealing Hint.
+- Recheck first-run revision-1 popup/show-once behavior and unchanged Alpha expiry, plus the affected official read-only and Draft/Audit presentation on Windows. No native visual verification is claimed.
+- **226.04 revision-2 flag/language work has not started.** No Learning language code/BCP 47 UI, flag suggestions/reuse/deduplication or 266-flag registry changes are part of this revision. No Templates, Napoletano, future GuideBook content, release 227, release-228 App Audio Settings/log diagnostics or release-230 generated/saved TTS audio has started. Nothing has been pushed.
+
+### Revision-1 commit boundary
+
+One commit uses **`Correct QQL 226.04 learner delivery and editor behavior`**, with immutable parent **`50a52988872e8d6bb3b7be5e3e261eb2741a60c7`**. It includes only the 37 reviewed files above. The commit hash and final `git status --short` are reported after creation; this document cannot include its own resulting commit hash. No amend, worktree, reset, revert, clean, destructive migration or push was performed. Final automation passed with the explicitly inherited analyzer findings above. Native Windows visual checks remain deferred; no manual visual verification is claimed.
+
 ## Phase 226.04 revision 0 — closure evidence
 
 The user's subsequent clarification supersedes the section-51 question wording and supplies the missing creation contract. **Number of Lessons** defaults to **3**, with whole numbers **1–100**; **Rounds per Lesson** defaults to **1**, with whole numbers **1–20**. The old checkpoint below is historical development evidence, not the final state.

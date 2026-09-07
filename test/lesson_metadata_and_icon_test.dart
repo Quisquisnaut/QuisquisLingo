@@ -509,7 +509,7 @@ void main() {
       await tester.tap(find.byKey(const Key('lesson-rounds-navigation')));
       await tester.pumpAndSettle();
       expect(find.byType(LessonRoundsScreen), findsOneWidget);
-      expect(find.text('Rounds · Draft title'), findsOneWidget);
+      expect(find.text('Rounds · Lesson 1: Draft title'), findsOneWidget);
       expect(find.byKey(const ValueKey('round-a')), findsOneWidget);
       expect(find.byKey(const ValueKey('round-b')), findsOneWidget);
 
@@ -593,7 +593,7 @@ void main() {
         MaterialApp(home: CourseEditorScreen(course: course, userCourse: true)),
       );
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Course info'));
+      await tester.tap(find.text('Course Info Editor'));
       await tester.pumpAndSettle();
       expect(find.text('Fallback lesson number icons'), findsNothing);
       expect(find.text('Theme-colored circle'), findsNothing);

@@ -123,7 +123,7 @@ void main() {
     tester,
   ) async {
     await _openEditor(tester, course, service);
-    await tester.tap(find.text('Course info'));
+    await tester.tap(find.text('Course Info Editor'));
     await _settle(tester);
     await tester.enterText(_field('Course name'), 'Cancelled title');
     await tester.tap(find.widgetWithText(FilledButton, 'Save'));
@@ -225,12 +225,12 @@ void main() {
     tester,
   ) async {
     await _openEditor(tester, course, service);
-    await tester.tap(find.text('Course info'));
+    await tester.tap(find.text('Course Info Editor'));
     await _settle(tester);
     await tester.enterText(_field('Course name'), 'Temporary title');
     await tester.tap(find.widgetWithText(FilledButton, 'Save'));
     await _settle(tester);
-    await tester.tap(find.text('Course info'));
+    await tester.tap(find.text('Course Info Editor'));
     await _settle(tester);
     await tester.enterText(_field('Course name'), course.title);
     await tester.tap(find.widgetWithText(FilledButton, 'Save'));
@@ -252,7 +252,7 @@ void main() {
   ) async {
     final failing = _FailingCourseEditorService(backups);
     await _openEditor(tester, course, failing);
-    await tester.tap(find.text('Course info'));
+    await tester.tap(find.text('Course Info Editor'));
     await _settle(tester);
     await tester.enterText(_field('Course name'), 'Still editable');
     await tester.tap(find.widgetWithText(FilledButton, 'Save'));
@@ -304,7 +304,7 @@ void main() {
       await service.saveUserCourse(mixed);
       await _openEditor(tester, mixed, service);
 
-      await tester.tap(find.text('Course info'));
+      await tester.tap(find.text('Course Info Editor'));
       await _settle(tester);
       await tester.enterText(_field('Course name'), 'Mixed transaction');
       await tester.tap(find.widgetWithText(FilledButton, 'Save'));
@@ -581,7 +581,7 @@ void main() {
     await service.saveUserCourse(mixed);
     await _openEditor(tester, mixed, service);
 
-    await tester.tap(find.text('Course info'));
+    await tester.tap(find.text('Course Info Editor'));
     await _settle(tester);
     await tester.enterText(_field('Course name'), 'Cancel mixed title');
     await tester.tap(find.widgetWithText(FilledButton, 'Save'));

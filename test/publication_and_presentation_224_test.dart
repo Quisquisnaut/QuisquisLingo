@@ -166,7 +166,7 @@ void main() {
     );
     expect(
       service.identity(withMode(LessonNumberingMode.unit), 0).fullText,
-      'Unit 1: Lesson 1',
+      'Unit 1',
     );
     expect(
       service.identity(withMode(LessonNumberingMode.numberOnly), 0).fullText,
@@ -180,7 +180,7 @@ void main() {
       service
           .identity(withMode(LessonNumberingMode.other, custom: 'Level'), 0)
           .fullText,
-      'Level 1: Lesson 1',
+      'Level 1',
     );
     expect(
       service

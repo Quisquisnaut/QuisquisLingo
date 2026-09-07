@@ -12,6 +12,7 @@ import 'package:quisquislingo_app/services/course_editor_service.dart';
 import 'package:quisquislingo_app/services/custom_course_transfer_service.dart';
 import 'package:quisquislingo_app/services/new_course_structure.dart';
 import 'package:quisquislingo_app/services/profile_service.dart';
+import 'package:quisquislingo_app/services/publication_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
@@ -23,6 +24,8 @@ void main() {
       final lessons = NewCourseStructure.create(
         lessonCount: counts.$1,
         roundsPerLesson: counts.$2,
+        sourceLanguage: 'English',
+        learningLanguage: 'Italian',
         updatedAt: now,
       );
       _expectStructure(lessons, counts.$1, counts.$2);
@@ -34,7 +37,7 @@ void main() {
       final audit = CourseAuditService().auditCourse(course);
       expect(
         audit.issues.where((issue) => issue.code == 'ROUND_CONTENT_EMPTY'),
-        hasLength(counts.$1 * counts.$2),
+        isEmpty,
       );
       expect(
         audit.issues.where((issue) => issue.code == 'LESSON_ROUNDS_EMPTY'),
@@ -42,6 +45,7 @@ void main() {
       );
       final hierarchy = AuthoringHierarchyStatus.fromCourse(course);
       expect(hierarchy.hasLessonsAuditConcern, isTrue);
+      expect(hierarchy.courseHasDraft, isTrue);
     });
   }
 
@@ -54,6 +58,8 @@ void main() {
           () => NewCourseStructure.create(
             lessonCount: counts.$1,
             roundsPerLesson: counts.$2,
+            sourceLanguage: 'English',
+            learningLanguage: 'Italian',
             updatedAt: now,
             ids: ids,
           ),
@@ -66,11 +72,108 @@ void main() {
         adopted = NewCourseStructure.create(
           lessonCount: 3,
           roundsPerLesson: 2,
+          sourceLanguage: 'English',
+          learningLanguage: 'Italian',
           updatedAt: now,
           ids: ids,
         );
       }, throwsStateError);
       expect(adopted, isNull);
+    },
+  );
+
+  for (final languages in [
+    ('Spanish', 'German'),
+    ('日本語', 'العربية'),
+    ('cy-GB', 'fi-FI'),
+  ]) {
+    test('sample placeholders adapt ${languages.$1} → ${languages.$2}', () {
+      final lessons = NewCourseStructure.create(
+        lessonCount: 1,
+        roundsPerLesson: 1,
+        sourceLanguage: languages.$1,
+        learningLanguage: languages.$2,
+        updatedAt: now,
+      );
+      final course = Course.fromJson({
+        ..._course(lessons).toJson(),
+        'sourceLanguage': languages.$1,
+        'interfaceLanguage': languages.$1,
+        'learningLanguage': languages.$2,
+        'targetLanguage': languages.$2,
+      });
+      final reloaded = Course.fromJson(jsonDecode(jsonEncode(course.toJson())));
+      final sample = reloaded.lessons.single.rounds.single.exercises.single;
+      expect(sample.editorTemplate, 'choice');
+      expect(sample.interaction.kind, 'select');
+      expect(
+        sample.prompt,
+        'Write a ${languages.$1} instruction to translate into ${languages.$2}.',
+      );
+      expect(sample.question, 'Text in ${languages.$1}');
+      expect(sample.answers, [
+        'Translation in ${languages.$2}',
+        'Wrong Answer',
+      ]);
+      expect(sample.correct, 0);
+      expect(sample.publicationState, PublicationState.draft);
+      expect(sample.updatedAt, now);
+      expect(reloaded.toJson(), course.toJson());
+
+      // Publishing an ancestor must not silently publish placeholder material.
+      final publishedParents = Course.fromJson({
+        ...reloaded.toJson(),
+        'publicationState': 'published',
+        'lessons': [
+          {
+            ...reloaded.lessons.single.toJson(),
+            'publicationState': 'published',
+          },
+        ],
+      });
+      final visible = PublicationService().learnerCourse(publishedParents)!;
+      expect(
+        visible.lessons
+            .expand((lesson) => lesson.rounds)
+            .expand((round) => round.exercises),
+        isEmpty,
+      );
+      expect(reloaded.lessons.single.rounds.single.exercises, hasLength(1));
+    });
+  }
+
+  test(
+    'invalid languages fail before IDs and later failures adopt nothing',
+    () {
+      final unusedIds = _FailingIds();
+      for (final languages in [('', 'German'), ('Spanish', '  ')]) {
+        expect(
+          () => NewCourseStructure.create(
+            lessonCount: 1,
+            roundsPerLesson: 1,
+            sourceLanguage: languages.$1,
+            learningLanguage: languages.$2,
+            updatedAt: now,
+            ids: unusedIds,
+          ),
+          throwsArgumentError,
+        );
+      }
+      expect(unusedIds.calls, 0);
+      for (final failAt in [3, 4, 5, 7, 10]) {
+        List<Lesson>? adopted;
+        expect(() {
+          adopted = NewCourseStructure.create(
+            lessonCount: 3,
+            roundsPerLesson: 1,
+            sourceLanguage: 'Spanish',
+            learningLanguage: 'German',
+            updatedAt: now,
+            ids: _FailingIds(failAt: failAt),
+          );
+        }, throwsStateError);
+        expect(adopted, isNull);
+      }
     },
   );
 
@@ -80,6 +183,10 @@ void main() {
       await _open(tester);
       expect(tester.widget<TextField>(_lessons).controller!.text, '3');
       expect(tester.widget<TextField>(_rounds).controller!.text, '1');
+      expect(
+        find.text('Each Round starts with a sample exercise.'),
+        findsOneWidget,
+      );
       await _create(tester);
       final course = tester
           .widget<CourseEditorScreen>(find.byType(CourseEditorScreen))
@@ -109,6 +216,46 @@ void main() {
       },
     );
   }
+
+  testWidgets('dialog uses both chosen languages in every Draft sample', (
+    tester,
+  ) async {
+    await _open(tester);
+    await _enter(
+      tester,
+      find.byWidgetPredicate(
+        (w) => w is TextField && w.decoration?.labelText == 'Source language *',
+      ),
+      'Spanish',
+    );
+    await _enter(
+      tester,
+      find.byWidgetPredicate(
+        (w) => w is TextField && w.decoration?.labelText == 'Target language *',
+      ),
+      'German',
+    );
+    await _create(tester);
+    final course = tester
+        .widget<CourseEditorScreen>(find.byType(CourseEditorScreen))
+        .course;
+    final samples = course.lessons
+        .expand((lesson) => lesson.rounds)
+        .expand((round) => round.exercises)
+        .toList();
+    expect(samples, hasLength(3));
+    for (final sample in samples) {
+      expect(
+        sample.prompt,
+        'Write a Spanish instruction to translate into German.',
+      );
+      expect(sample.question, 'Text in Spanish');
+      expect(sample.answers, ['Translation in German', 'Wrong Answer']);
+      expect(sample.publicationState, PublicationState.draft);
+    }
+    expect(samples.map((sample) => sample.id).toSet(), hasLength(3));
+    expect(await CourseEditorService().listUserCourses(), isEmpty);
+  });
 
   testWidgets(
     'missing, nonnumeric, fractional and out-of-range values disable Create inline',
@@ -210,6 +357,8 @@ void main() {
     await tester.tap(find.widgetWithText(FilledButton, 'Save'));
     await tester.pumpAndSettle();
     expect(course.lessons.first.rounds, hasLength(22));
+    expect(course.lessons.first.rounds.last.exercises, hasLength(3));
+    expect(course.lessons.first.rounds.first.exercises, isEmpty);
     expect(Course.fromJson(course.toJson()).lessons, hasLength(102));
   });
 }
@@ -276,10 +425,18 @@ void _expectStructure(List<Lesson> lessons, int lessonCount, int roundCount) {
       final value = lesson.rounds[round];
       expect(value.title, isEmpty);
       expect(value.displayTitle(round), 'Round ${round + 1}');
-      expect(value.content, isEmpty);
-      expect(value.exercises, isEmpty);
+      expect(value.content, hasLength(1));
+      expect(value.exercises, hasLength(1));
+      final sample = value.exercises.single;
+      expect(sample.editorTemplate, 'choice');
+      expect(sample.answers, ['Translation in Italian', 'Wrong Answer']);
+      expect(sample.publicationState, PublicationState.draft);
+      expect(value.content.single.publicationState, PublicationState.draft);
+      expect(value.content.single.id, sample.id);
       expect(value.publicationState, PublicationState.published);
       identities.add(value.id);
+      identities.add(sample.id);
+      identities.addAll(sample.interaction.items.map((item) => item.id));
     }
   }
   expect(identities.every((id) => id.isNotEmpty), isTrue);
@@ -312,10 +469,12 @@ Course _largeCourse() => _course([
 ]);
 
 class _FailingIds implements AuthoringIdGenerator {
+  _FailingIds({this.failAt = 4});
+  final int failAt;
   int calls = 0;
   @override
   String next(String kind) {
-    if (++calls == 4) throw StateError('Injected generation failure');
+    if (++calls == failAt) throw StateError('Injected generation failure');
     return '${kind}_$calls';
   }
 }

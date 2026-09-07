@@ -1,3 +1,13 @@
+# 2.0.26 (Phase 226.04, revision 1) - Learner delivery and Editor corrections - 2026-09-07
+
+- Advanced corrective metadata to `2.0.26+226041`; Alpha expiry remains `2026-10-06 23:59:59` local time.
+- New Course now creates exactly one Draft How do you say? sample per scaffolded Round, with source/learning-language-labelled placeholders, the literal `Wrong Answer` distractor, fresh IDs and atomic creation.
+- Removed sample-comparison `ROUND_CONTENT_SHORT` Info and obsolete sample-length Help. The canonical Audit Registry now has 102 rules; genuine structural checks and Error/Warning predicates remain.
+- Authoring metadata navigation is **Course Info Editor**; learner Course Info remains unchanged. Course delivery status says **Published** / **Not published**, independently of descendant Draft states.
+- Moved Lesson numbering to Lessons and shared its selected term across Editor entries, breadcrumbs, individual Lesson/Rounds headings and learner labels. Automatic titles deduplicate under Module and other prefixes without rewriting stored titles.
+- Fill in the blank says **Use ___ (3 underscores)** and displays its configured Hint through the shared unsaved/saved Preview and learner path.
+- Fixed concealed Lesson/Round Draft state: shared blue indicators now include the container's own state, and nested Save controls expose it without weakening learner filtering or automatically publishing content. The same persisted Course ID is verified through raw JSON, Editor, selection and learner restart. No revision-2 flag/language work or excluded later work is included.
+
 # 2.0.26 (Phase 226.04, revision 0) - Course structure and optional learning paths - 2026-09-06
 
 - Advanced to `2.0.26+226040`; the show-once notice displays `Version 2.0.26` and `Phase 226.04, revision 0`. Alpha expiry remains `2026-10-06 23:59:59` local time.

@@ -12,7 +12,7 @@ void main() {
     'all known rules have unique, complete definitions and fixed severity',
     () {
       final definitions = AuditCodeRegistry.definitions;
-      expect(definitions.length, 103);
+      expect(definitions.length, 102);
       expect(
         definitions.map((rule) => rule.code).toSet().length,
         definitions.length,
@@ -31,7 +31,7 @@ void main() {
       );
       expect(
         definitions.where((rule) => rule.severity == AuditSeverity.info).length,
-        6,
+        5,
       );
       for (final rule in definitions) {
         expect(rule.code, matches(RegExp(r'^[A-Z][A-Z0-9_]+$')));
@@ -162,6 +162,51 @@ void main() {
     }
   });
 
+  test(
+    'sample comparison is absent from the canonical registry and search',
+    () {
+      expect(AuditCodeRegistry.byCode('ROUND_CONTENT_SHORT'), isNull);
+      expect(AuditCodeRegistry.search('ROUND_CONTENT_SHORT'), isEmpty);
+      expect(AuditCodeRegistry.search('standard sample'), isEmpty);
+      for (final rule in AuditCodeRegistry.definitions.where(
+        (rule) => rule.severity == AuditSeverity.info,
+      )) {
+        expect(
+          '${rule.meaning} ${rule.trigger} ${rule.creatorAction}'.toLowerCase(),
+          isNot(contains('sample')),
+          reason: rule.code,
+        );
+      }
+    },
+  );
+
+  for (final count in [0, 1, 7, 8, 10, 11]) {
+    test('Round with $count items keeps real checks without sample Info', () {
+      final course = _course([
+        for (var index = 0; index < count; index++)
+          _exercise(id: 'exercise-$index', question: 'response $index?'),
+      ]);
+      final issues = service.auditRound(course, 'round').issues;
+      expect(
+        issues.where((issue) => issue.severity == AuditSeverity.info),
+        isEmpty,
+      );
+      expect(
+        issues.map((issue) => issue.code),
+        count == 0
+            ? ['ROUND_CONTENT_EMPTY']
+            : count > 10
+            ? ['ROUND_CONTENT_LONG']
+            : isEmpty,
+      );
+      if (count == 0) {
+        expect(issues.single.severity, AuditSeverity.error);
+      } else if (count > 10) {
+        expect(issues.single.severity, AuditSeverity.warning);
+      }
+    });
+  }
+
   test('absence of Reading and Listening never creates a Round finding', () {
     final course = _course([_exercise()]);
     final issues = service.auditCourse(course).issues;
@@ -169,12 +214,10 @@ void main() {
       'LESSON_GUIDEBOOK_EMPTY',
       'LESSON_ROUND_GUIDANCE',
       'LESSON_INTRO_MISSING',
-      'ROUND_CONTENT_SHORT',
       'DUEL_UNAVAILABLE',
     ]);
     expect(issues.map((issue) => issue.severity), [
       AuditSeverity.warning,
-      AuditSeverity.info,
       AuditSeverity.info,
       AuditSeverity.info,
       AuditSeverity.info,
@@ -189,7 +232,7 @@ void main() {
     );
     expect(
       service.auditRound(course, 'round').issues.map((issue) => issue.code),
-      ['ROUND_CONTENT_SHORT'],
+      isEmpty,
     );
   });
 
@@ -315,6 +358,7 @@ void main() {
 }
 
 Exercise _exercise({
+  String? id,
   String type = 'choice',
   String prompt = 'choose a response',
   String question = 'which response fits?',
@@ -322,7 +366,7 @@ Exercise _exercise({
   int? correct = 0,
   String? tts,
 }) => Exercise(
-  id: 'exercise-$type',
+  id: id ?? 'exercise-$type',
   type: type,
   prompt: prompt,
   question: question,

@@ -162,7 +162,7 @@ void main() {
         'Fork Creator',
       );
       expect(await service.listUserCourses(), isEmpty);
-      await tester.tap(find.text('Course info'));
+      await tester.tap(find.text('Course Info Editor'));
       await _settle(tester);
       expect(find.byType(CourseForkProvenanceCard), findsOneWidget);
       expect(

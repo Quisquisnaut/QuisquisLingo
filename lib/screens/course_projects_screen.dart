@@ -184,9 +184,9 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
                     ),
                     const SizedBox(height: 8),
                     const Text(
-                      'You can add or delete Lessons and Rounds later. '
-                      'Rounds start empty; no Exercises are created.',
+                      'You can add or delete Lessons and Rounds later.',
                     ),
+                    const Text('Each Round starts with a sample exercise.'),
                     const SizedBox(height: 12),
                     DropdownButtonFormField<String>(
                       key: ValueKey('course-flag-source-$flagSource'),
@@ -409,6 +409,8 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
                         }
                         final updatedAt = DateTime.now().toUtc();
                         final lessons = NewCourseStructure.create(
+                          sourceLanguage: s,
+                          learningLanguage: tg,
                           lessonCount: int.parse(lessonCount.text.trim()),
                           roundsPerLesson: int.parse(
                             roundsPerLesson.text.trim(),

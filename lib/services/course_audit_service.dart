@@ -557,17 +557,7 @@ class CourseAuditService {
             CourseAuditIssue.fromCode(
               AuditCode.roundContentLong,
               message:
-                  'Round has ${r.content.length} Content items; standard sample length is 10.',
-              location: rl,
-              roundId: r.id,
-            ),
-          );
-        if (r.content.length < 8 && r.content.isNotEmpty)
-          issues.add(
-            CourseAuditIssue.fromCode(
-              AuditCode.roundContentShort,
-              message:
-                  'Round has ${r.content.length} Content items; standard sample length is 10.',
+                  'Round has ${r.content.length} Content items; review pacing for more than 10 items.',
               location: rl,
               roundId: r.id,
             ),

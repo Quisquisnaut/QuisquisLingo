@@ -23,7 +23,7 @@ Phase 226.04 adds optional, backward-compatible Course Model v6 presentation and
 
 These defaults preserve older v6 exports and bundled checksum payloads. No format-version migration or rewrite of existing course files is required. Current copy, transfer, editor transactions and exports retain explicitly stored choices and the complete canonical model.
 
-New Course's **Number of Lessons** (default 3, range 1–100) and **Rounds per Lesson** (default 1, range 1–20) are one-time scaffolding inputs, not JSON fields. The generated canonical Lessons and empty Rounds persist normally, including their stable IDs and order. Neither these creation ranges nor the defaults constrain supported course imports, the Course Model or later editing; a course with more Lessons or Rounds remains supported.
+New Course's **Number of Lessons** (default 3, range 1–100) and **Rounds per Lesson** (default 1, range 1–20) are one-time scaffolding inputs, not JSON fields. The generated canonical Lessons, Rounds and their single Draft sample Exercises persist normally, including their stable IDs and order. Neither these creation ranges nor the defaults constrain supported course imports, the Course Model or later editing; a course with more Lessons or Rounds remains supported.
 
 ## Origin, provenance and versions
 

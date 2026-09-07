@@ -159,7 +159,7 @@ Weekly rollover, streaks, activity timestamps, Review timestamps, and other time
 - Lesson is canonical in the model, JSON, services, persistence, editor and learner UI. Do not add Topic compatibility aliases or v4 parsing fallbacks.
 - GuideBooks and Duels belong to Lessons.
 - Lesson Guidebook content may be used to propose or generate exercises or Rounds, but generated content requires preview/review and explicit approval before creation.
-- New Course asks for `Number of Lessons` (default 3, whole numbers 1–100) and `Rounds per Lesson` (default 1, whole numbers 1–20). It atomically creates the requested Lessons and empty Rounds with fresh stable IDs and no Exercises. These limits apply only to initial scaffolding; the counts are not settings, and they impose no Course Model, import or later-editing limits.
+- New Course asks for `Number of Lessons` (default 3, whole numbers 1–100) and `Rounds per Lesson` (default 1, whole numbers 1–20). It atomically creates the requested Lessons and Rounds with fresh stable IDs and exactly one Draft How do you say? sample Exercise in each scaffolded Round. Samples use source/learning-language-labelled placeholders and the literal Wrong Answer distractor. These limits apply only to initial scaffolding; the counts are not settings, and they impose no Course Model, import or later-editing limits.
 - A manually created Round starts with 3 editable dummy exercises.
 - Round `visualType` is one of `listening`, `story`, `generic` or `test` and is independent of exercise type.
 - A Lesson should normally contain at least 6 Rounds, often roughly 48 exercises, but this is guidance only and never a validity or Duel-availability rule.

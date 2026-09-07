@@ -39,9 +39,7 @@ class LessonPresentationService {
     final canonicalDefault = 'Lesson $number';
     final deduplicated =
         prefix != null &&
-        (lesson.title == prefix ||
-            (course.lessonNumberingMode == LessonNumberingMode.numberOnly &&
-                lesson.title == canonicalDefault));
+        (lesson.title == prefix || lesson.title == canonicalDefault);
     final displayTitle = deduplicated ? prefix : lesson.title;
     return LessonIdentityPresentation(
       fullText: deduplicated || prefix == null

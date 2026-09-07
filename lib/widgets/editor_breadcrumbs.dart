@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../models/course_models.dart';
+import '../services/lesson_presentation_service.dart';
 
 /// Labels come from the current working copy; IDs, never labels, locate nodes.
 class EditorBreadcrumbs extends StatelessWidget {
@@ -31,7 +32,9 @@ class EditorBreadcrumbs extends StatelessWidget {
       if (lessonId != null)
         lesson == null
             ? 'Lesson'
-            : 'Lesson ${lessonIndex + 1}${lesson.title.isEmpty ? '' : ': ${lesson.title}'}',
+            : const LessonPresentationService()
+                  .identity(course, lessonIndex)
+                  .fullText,
       if (roundId != null)
         roundIndex < 0
             ? 'New Round'

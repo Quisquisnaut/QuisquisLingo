@@ -24,15 +24,15 @@ void main() {
 
       expect(AppMetadata.releaseVersion, '2.0.26');
       expect(AppMetadata.developmentPhase, '226.04');
-      expect(AppMetadata.correctiveRevision, 0);
+      expect(AppMetadata.correctiveRevision, 1);
       expect(AppMetadata.build, '226.04');
-      expect(AppMetadata.platformBuildNumber, '226040');
-      expect(AppMetadata.technicalVersion, '2.0.26+226040');
+      expect(AppMetadata.platformBuildNumber, '226041');
+      expect(AppMetadata.technicalVersion, '2.0.26+226041');
       expect(AppMetadata.version, AppMetadata.technicalVersion);
       expect(version, AppMetadata.technicalVersion);
       expect(
         AppMetadata.displayLabel,
-        'Version 2.0.26\nPhase 226.04, revision 0',
+        'Version 2.0.26\nPhase 226.04, revision 1',
       );
     },
   );

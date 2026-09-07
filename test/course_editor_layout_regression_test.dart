@@ -53,97 +53,100 @@ void main() {
     },
   );
 
-  testWidgets('new course defaults to 3 Lessons with one empty Round each', (
-    tester,
-  ) async {
-    const profileId = '12345678-1234-4234-9234-123456789abc';
-    SharedPreferences.setMockInitialValues({
-      ProfileService.profilesKey: [
-        const LearnerProfile(
-          learnerProfileId: profileId,
-          displayName: 'Layout Author',
-        ).encode(),
-      ],
-      ProfileService.activeProfileIdKey: profileId,
-    });
-    final currentCourse = Course(
-      courseId: 'bundled_test',
-      learningLanguage: 'Italian',
-      interfaceLanguage: 'English',
-      sourceLanguage: 'English',
-      targetLanguage: 'Italian',
-      title: 'Bundled test',
-      ttsLanguage: 'it-IT',
-      version: '1.0.0',
-      lessons: const [],
-    );
-    await tester.pumpWidget(
-      MaterialApp(home: CourseProjectsScreen(currentCourse: currentCourse)),
-    );
-    await tester.pumpAndSettle();
-    expect(find.text('Course Manager'), findsOneWidget);
-    expect(find.text('Course Editor'), findsNothing);
+  testWidgets(
+    'new course defaults to 3 Lessons with one sample Exercise per Round',
+    (tester) async {
+      const profileId = '12345678-1234-4234-9234-123456789abc';
+      SharedPreferences.setMockInitialValues({
+        ProfileService.profilesKey: [
+          const LearnerProfile(
+            learnerProfileId: profileId,
+            displayName: 'Layout Author',
+          ).encode(),
+        ],
+        ProfileService.activeProfileIdKey: profileId,
+      });
+      final currentCourse = Course(
+        courseId: 'bundled_test',
+        learningLanguage: 'Italian',
+        interfaceLanguage: 'English',
+        sourceLanguage: 'English',
+        targetLanguage: 'Italian',
+        title: 'Bundled test',
+        ttsLanguage: 'it-IT',
+        version: '1.0.0',
+        lessons: const [],
+      );
+      await tester.pumpWidget(
+        MaterialApp(home: CourseProjectsScreen(currentCourse: currentCourse)),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('Course Manager'), findsOneWidget);
+      expect(find.text('Course Editor'), findsNothing);
 
-    await tester.tap(find.widgetWithText(FilledButton, 'Create new course'));
-    await tester.pumpAndSettle();
-    final titleField = find.byWidgetPredicate(
-      (widget) =>
-          widget is TextField &&
-          widget.decoration?.labelText == 'Course title *',
-    );
-    final targetField = find.byWidgetPredicate(
-      (widget) =>
-          widget is TextField &&
-          widget.decoration?.labelText == 'Target language *',
-    );
-    await tester.enterText(titleField, 'Direct Lessons');
-    await tester.enterText(targetField, 'Italian');
-    await tester.tap(find.widgetWithText(FilledButton, 'Create'));
-    await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(FilledButton, 'Create new course'));
+      await tester.pumpAndSettle();
+      final titleField = find.byWidgetPredicate(
+        (widget) =>
+            widget is TextField &&
+            widget.decoration?.labelText == 'Course title *',
+      );
+      final targetField = find.byWidgetPredicate(
+        (widget) =>
+            widget is TextField &&
+            widget.decoration?.labelText == 'Target language *',
+      );
+      await tester.enterText(titleField, 'Direct Lessons');
+      await tester.enterText(targetField, 'Italian');
+      await tester.tap(find.widgetWithText(FilledButton, 'Create'));
+      await tester.pumpAndSettle();
 
-    expect(await CourseEditorService().listUserCourses(), isEmpty);
-    await tester.tap(find.byKey(const Key('course-editor-lessons-navigation')));
-    await tester.pumpAndSettle();
-    for (final title in [
-      'Lesson 1: Lesson 1',
-      'Lesson 2: Lesson 2',
-      'Lesson 3: Lesson 3',
-    ]) {
-      expect(find.text(title), findsOneWidget);
-    }
-    await tester.tap(find.byType(BackButton).last);
-    await tester.pumpAndSettle();
-    await tester.tap(find.byType(BackButton).last);
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('confirm-course-changes')));
-    await tester.pumpAndSettle();
+      expect(await CourseEditorService().listUserCourses(), isEmpty);
+      await tester.tap(
+        find.byKey(const Key('course-editor-lessons-navigation')),
+      );
+      await tester.pumpAndSettle();
+      for (final title in ['Lesson 1', 'Lesson 2', 'Lesson 3']) {
+        expect(find.text(title), findsOneWidget);
+      }
+      await tester.tap(find.byType(BackButton).last);
+      await tester.pumpAndSettle();
+      await tester.tap(find.byType(BackButton).last);
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('confirm-course-changes')));
+      await tester.pumpAndSettle();
 
-    final stored = await CourseEditorService().listUserCourses();
-    expect(stored, hasLength(1));
-    final created = stored.single;
-    expect(created.courseVersion, '1');
-    expect(created.publicationState, PublicationState.draft);
-    expect(created.lessons, hasLength(3));
-    expect(created.lessons.expand((lesson) => lesson.rounds), hasLength(3));
-    for (final lesson in created.lessons) {
-      expect(lesson.rounds, hasLength(1));
-      expect(lesson.rounds.single.content, isEmpty);
-      expect(lesson.rounds.single.title, isEmpty);
-    }
-    expect(created.temporarySample, isFalse);
-    expect(
-      created.lessons.map((lesson) => lesson.lessonId).toSet(),
-      hasLength(3),
-    );
-    expect(
-      created.lessons.map((lesson) => lesson.duel.id).toSet(),
-      hasLength(3),
-    );
-    for (final lesson in created.lessons) {
-      expect(lesson.publicationState, PublicationState.draft);
-      expect(lesson.duel.id, '${lesson.lessonId}_duel');
-    }
-  });
+      final stored = await CourseEditorService().listUserCourses();
+      expect(stored, hasLength(1));
+      final created = stored.single;
+      expect(created.courseVersion, '1');
+      expect(created.publicationState, PublicationState.draft);
+      expect(created.lessons, hasLength(3));
+      expect(created.lessons.expand((lesson) => lesson.rounds), hasLength(3));
+      for (final lesson in created.lessons) {
+        expect(lesson.rounds, hasLength(1));
+        expect(lesson.rounds.single.content, hasLength(1));
+        expect(
+          lesson.rounds.single.exercises.single.publicationState,
+          PublicationState.draft,
+        );
+        expect(lesson.rounds.single.title, isEmpty);
+      }
+      expect(created.temporarySample, isFalse);
+      expect(
+        created.lessons.map((lesson) => lesson.lessonId).toSet(),
+        hasLength(3),
+      );
+      expect(
+        created.lessons.map((lesson) => lesson.duel.id).toSet(),
+        hasLength(3),
+      );
+      for (final lesson in created.lessons) {
+        expect(lesson.publicationState, PublicationState.draft);
+        expect(lesson.duel.id, '${lesson.lessonId}_duel');
+      }
+    },
+  );
 
   testWidgets('custom Course menu enters the 225.04 transaction for edits', (
     tester,

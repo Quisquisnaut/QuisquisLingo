@@ -1,13 +1,13 @@
 # QuisquisLingo App
 
-**Current source version: 2.0.26+226040 · Phase 226.04, revision 0 · Course Model v6 (`formatVersion: 6`).**
+**Current source version: 2.0.26+226041 · Phase 226.04, revision 1 · Course Model v6 (`formatVersion: 6`).**
 
 
 **QuisquisLingo 2.0.26 Alpha — Phase 226.04 Course structure and optional learning paths**
 
 Current project version: 2.0.26
 
-Phase 226.04 adds one-time Course scaffolding (default 3 Lessons with 1 empty Round each), reusable Sections, clear Lesson naming modes, optional GuideBook and Duel paths, World Flag selection, the upper Lessons Lock icon and passive GuideBook IDs. Creation counts do not restrict existing/imported courses or later editing. Course Model remains v6, with backward-compatible defaults and 103 Audit rules. See [226.04 validation](docs/226_04_VALIDATION.md). Templates, Napoletano, future GuideBook content and release 227 remain deferred.
+Phase 226.04 adds one-time Course scaffolding (default 3 Lessons with 1 Round and 1 Draft sample Exercise per Round), reusable Sections, clear Lesson naming modes, optional GuideBook and Duel paths, World Flag selection, the upper Lessons Lock icon and passive GuideBook IDs. Creation counts do not restrict existing/imported courses or later editing. Course Model remains v6, with backward-compatible defaults and 102 Audit rules. See [226.04 validation](docs/226_04_VALIDATION.md). Templates, Napoletano, future GuideBook content and release 227 remain deferred.
 
 Phase 226.03 adds selectable answer expansion and independent materialization for Type the translation, deterministic similarity-ranked feedback (up to three corrections or two other correct translations), Type the missing word with an automatically derived first Unicode grapheme, and Recognize characters with Image to text and Text to image modes. Existing Input/Select models, correctness rules, Course Model v6, official read-only boundaries and no-write Preview are preserved. See [226.03 validation](docs/226_03_VALIDATION.md). Revision 1 corrects nullable/linked answer generation and terminal punctuation, requires the complete Missing Word, adds searchable Exercise Help and concrete field/audio guidance, resolves custom-course native TTS from canonical language metadata, and imports JSON from `QuisquisLingo/Imports/import.json` while preserving exports in `Exports`. These behaviors remain preserved in 226.04.
 

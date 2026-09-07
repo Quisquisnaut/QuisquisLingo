@@ -9,7 +9,7 @@ void main() {
     'categories default visible and render Errors, Warnings, Info order',
     (tester) async {
       await tester.pumpWidget(const MaterialApp(home: AuditCodesScreen()));
-      expect(find.text('103 of 103 Audit codes'), findsOneWidget);
+      expect(find.text('102 of 102 Audit codes'), findsOneWidget);
       for (final severity in AuditSeverity.values) {
         expect(
           tester
@@ -79,7 +79,7 @@ void main() {
       final expected = AuditCodeRegistry.definitions
           .where((definition) => definition.severity == selected)
           .length;
-      expect(find.text('$expected of 103 Audit codes'), findsOneWidget);
+      expect(find.text('$expected of 102 Audit codes'), findsOneWidget);
       for (final severity in AuditSeverity.values) {
         expect(
           find.byKey(ValueKey('audit-code-heading-${severity.name}')),
@@ -98,19 +98,19 @@ void main() {
     final errorsAndInfo = AuditCodeRegistry.definitions
         .where((definition) => definition.severity != AuditSeverity.warning)
         .length;
-    expect(find.text('$errorsAndInfo of 103 Audit codes'), findsOneWidget);
+    expect(find.text('$errorsAndInfo of 102 Audit codes'), findsOneWidget);
 
     final warning = AuditCodeRegistry.definitions.firstWhere(
       (definition) => definition.severity == AuditSeverity.warning,
     );
     await tester.enterText(find.byType(TextField), warning.code);
     await tester.pump();
-    expect(find.text('0 of 103 Audit codes'), findsOneWidget);
+    expect(find.text('0 of 102 Audit codes'), findsOneWidget);
     expect(find.byKey(ValueKey('audit-code-${warning.code}')), findsNothing);
 
     await tester.tap(find.byKey(const ValueKey('audit-code-filter-warning')));
     await tester.pump();
-    expect(find.text('1 of 103 Audit codes'), findsOneWidget);
+    expect(find.text('1 of 102 Audit codes'), findsOneWidget);
     expect(find.byKey(ValueKey('audit-code-${warning.code}')), findsOneWidget);
   });
 
@@ -162,11 +162,30 @@ void main() {
     );
     await tester.enterText(search, 'no-such-audit-rule');
     await tester.pump();
-    expect(find.text('0 of 103 Audit codes'), findsOneWidget);
+    expect(find.text('0 of 102 Audit codes'), findsOneWidget);
     await tester.tap(find.byTooltip('Clear search'));
     await tester.pump();
-    expect(find.text('103 of 103 Audit codes'), findsOneWidget);
+    expect(find.text('102 of 102 Audit codes'), findsOneWidget);
     expect(tester.widget<TextField>(search).controller!.text, isEmpty);
+  });
+
+  testWidgets('removed sample comparison has no searchable Help entry', (
+    tester,
+  ) async {
+    await tester.pumpWidget(const MaterialApp(home: AuditCodesScreen()));
+    await tester.enterText(find.byType(TextField), 'ROUND_CONTENT_SHORT');
+    await tester.pump();
+    expect(find.text('0 of 102 Audit codes'), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('audit-code-ROUND_CONTENT_SHORT')),
+      findsNothing,
+    );
+    await tester.enterText(find.byType(TextField), 'standard sample');
+    await tester.pump();
+    expect(find.text('0 of 102 Audit codes'), findsOneWidget);
+    await tester.tap(find.byTooltip('Clear search'));
+    await tester.pump();
+    expect(find.text('102 of 102 Audit codes'), findsOneWidget);
   });
 
   for (final width in [320.0, 375.0, 430.0, 1280.0]) {

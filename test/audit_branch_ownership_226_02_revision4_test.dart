@@ -201,7 +201,6 @@ void main() {
       unorderedEquals([
         'LESSON_ROUND_GUIDANCE',
         'LESSON_INTRO_MISSING',
-        'ROUND_CONTENT_SHORT',
         'DUEL_UNAVAILABLE',
       ]),
     );
@@ -210,7 +209,7 @@ void main() {
     expect(status.lessonHasRoundAuditConcern(lesson), isFalse);
     expect(status.hasLessonsAuditConcern, isFalse);
     expect(status.hasCourseAuditConcern, isFalse);
-    expect(AuditCode.values, hasLength(103));
+    expect(AuditCode.values, hasLength(102));
   });
 
   test(

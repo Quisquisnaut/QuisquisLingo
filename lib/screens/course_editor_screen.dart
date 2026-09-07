@@ -128,14 +128,15 @@ class AuthoringHierarchyStatus {
 
   bool get courseHasDraft => course.lessons.any(lessonHasDraft);
   bool lessonHasDraft(Lesson lesson) =>
-      lessonGuidebookHasDraft(lesson) || lessonHasRoundDraft(lesson);
+      !lesson.publicationState.isPublished ||
+      lessonGuidebookHasDraft(lesson) ||
+      lessonHasRoundDraft(lesson);
   bool lessonGuidebookHasDraft(Lesson lesson) =>
       !lesson.guidebook.publicationState.isPublished ||
       lesson.guidebook.content.any(
         (content) => !content.publicationState.isPublished,
       );
-  bool lessonHasRoundDraft(Lesson lesson) =>
-      lesson.rounds.any((round) => round.exercises.any(exerciseIsDraft));
+  bool lessonHasRoundDraft(Lesson lesson) => lesson.rounds.any(roundHasDraft);
   bool lessonHasAuditConcern(Lesson lesson) =>
       lessonAuditConcernIds.contains(lesson.lessonId);
   bool lessonGuidebookHasAuditConcern(Lesson lesson) =>
@@ -144,7 +145,8 @@ class AuthoringHierarchyStatus {
       lessonEmptyRoundsIds.contains(lesson.lessonId) ||
       lesson.rounds.any(roundHasAuditConcern);
   bool roundHasDraft(LearningRound round) =>
-      round.exercises.any(exerciseIsDraft);
+      !round.publicationState.isPublished ||
+      round.content.any((content) => !content.publicationState.isPublished);
   bool roundHasAuditConcern(LearningRound round) =>
       roundAuditConcernIds.contains(round.id);
   bool exerciseIsDraft(Exercise exercise) =>
@@ -219,7 +221,12 @@ class AuthoringStatusCard extends StatelessWidget {
 }
 
 class _DraftBranchIndicator extends StatelessWidget {
-  const _DraftBranchIndicator({super.key});
+  const _DraftBranchIndicator({
+    super.key,
+    this.message = 'At least one authored item in this branch is Draft.',
+  });
+
+  final String message;
 
   @override
   Widget build(BuildContext context) {
@@ -227,7 +234,7 @@ class _DraftBranchIndicator extends StatelessWidget {
     final background = dark ? const Color(0xFF64B5F6) : const Color(0xFF1565C0);
     final foreground = dark ? const Color(0xFF001D35) : Colors.white;
     return Tooltip(
-      message: 'At least one authored item in this branch is Draft.',
+      message: message,
       child: Semantics(
         label: 'Draft',
         child: DecoratedBox(
@@ -646,10 +653,6 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
     final lastUpdated = TextEditingController(text: _course.lastUpdated);
     final description = TextEditingController(text: _course.courseDescription);
     final buyACoffeeUrl = TextEditingController(text: _course.buyACoffeeUrl);
-    final customLessonLabel = TextEditingController(
-      text: _course.customLessonLabel,
-    );
-    var lessonNumberingMode = _course.lessonNumberingMode;
     final customLicense = TextEditingController(text: _course.license);
     const standardLicenses = <String>[
       'All rights reserved',
@@ -684,14 +687,12 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
             String lastUpdated,
             String description,
             String buyACoffeeUrl,
-            LessonNumberingMode lessonNumberingMode,
-            String customLessonLabel,
           })
         >(
           context: context,
           builder: (ctx) => StatefulBuilder(
             builder: (ctx, setLocalState) => AlertDialog(
-              title: const Text('Course info'),
+              title: const Text('Course Info Editor'),
               content: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 620),
                 child: SingleChildScrollView(
@@ -1027,80 +1028,6 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
                         ),
                       ),
                       const SizedBox(height: 8),
-                      DropdownButtonFormField<LessonNumberingMode>(
-                        initialValue: lessonNumberingMode,
-                        isExpanded: true,
-                        decoration: const InputDecoration(
-                          border: OutlineInputBorder(),
-                          labelText: 'Lesson numbering',
-                        ),
-                        items: const [
-                          DropdownMenuItem(
-                            value: LessonNumberingMode.lesson,
-                            child: Text('Lesson + number'),
-                          ),
-                          DropdownMenuItem(
-                            value: LessonNumberingMode.unit,
-                            child: Text('Unit'),
-                          ),
-                          DropdownMenuItem(
-                            value: LessonNumberingMode.topic,
-                            child: Text('Topic'),
-                          ),
-                          DropdownMenuItem(
-                            value: LessonNumberingMode.module,
-                            child: Text('Module'),
-                          ),
-                          DropdownMenuItem(
-                            value: LessonNumberingMode.skill,
-                            child: Text('Skill'),
-                          ),
-                          DropdownMenuItem(
-                            value: LessonNumberingMode.chapter,
-                            child: Text('Chapter'),
-                          ),
-                          DropdownMenuItem(
-                            value: LessonNumberingMode.stage,
-                            child: Text('Stage'),
-                          ),
-                          DropdownMenuItem(
-                            value: LessonNumberingMode.step,
-                            child: Text('Step'),
-                          ),
-                          DropdownMenuItem(
-                            value: LessonNumberingMode.part,
-                            child: Text('Part'),
-                          ),
-                          DropdownMenuItem(
-                            value: LessonNumberingMode.other,
-                            child: Text('Other...'),
-                          ),
-                          DropdownMenuItem(
-                            value: LessonNumberingMode.numberOnly,
-                            child: Text('Number only'),
-                          ),
-                          DropdownMenuItem(
-                            value: LessonNumberingMode.none,
-                            child: Text('Title only'),
-                          ),
-                        ],
-                        onChanged: (value) => setLocalState(
-                          () => lessonNumberingMode =
-                              value ?? lessonNumberingMode,
-                        ),
-                      ),
-                      if (lessonNumberingMode == LessonNumberingMode.other) ...[
-                        const SizedBox(height: 8),
-                        TextField(
-                          controller: customLessonLabel,
-                          maxLength: 40,
-                          decoration: const InputDecoration(
-                            border: OutlineInputBorder(),
-                            labelText: 'Custom Lesson label',
-                            helperText: 'For example: Level',
-                          ),
-                        ),
-                      ],
                       DropdownButtonFormField<String>(
                         initialValue: selected,
                         isExpanded: true,
@@ -1148,16 +1075,6 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
                         ? customLicense.text.trim()
                         : selected;
                     if (license.isEmpty) return;
-                    final normalizedLessonLabel = customLessonLabel.text.trim();
-                    if (lessonNumberingMode == LessonNumberingMode.other &&
-                        normalizedLessonLabel.isEmpty) {
-                      ScaffoldMessenger.of(ctx).showSnackBar(
-                        const SnackBar(
-                          content: Text('Enter a custom Lesson label.'),
-                        ),
-                      );
-                      return;
-                    }
                     String normalizedBuyACoffeeUrl;
                     try {
                       normalizedBuyACoffeeUrl = Course.normalizeBuyACoffeeUrl(
@@ -1195,8 +1112,6 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
                       lastUpdated: lastUpdated.text.trim(),
                       description: description.text.trim(),
                       buyACoffeeUrl: normalizedBuyACoffeeUrl,
-                      lessonNumberingMode: lessonNumberingMode,
-                      customLessonLabel: normalizedLessonLabel,
                     ));
                   },
                   child: const Text('Save'),
@@ -1219,18 +1134,12 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
       lastUpdated.dispose();
       description.dispose();
       buyACoffeeUrl.dispose();
-      customLessonLabel.dispose();
       customLicense.dispose();
     });
     if (result == null || !mounted) return;
     _updateDraft(
       Course.fromJson({
         ..._course.toJson(),
-        'lessonNumberingMode': result.lessonNumberingMode.name,
-        if (result.lessonNumberingMode == LessonNumberingMode.other)
-          'customLessonLabel': result.customLessonLabel,
-        if (result.lessonNumberingMode != LessonNumberingMode.other)
-          'customLessonLabel': '',
         'title': result.title,
         'author': result.authors.map((author) => author.name).join(', '),
         'authors': result.authors.map((author) => author.toJson()).toList(),
@@ -1270,8 +1179,27 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
     final state = _course.publicationState.isPublished
         ? PublicationState.draft
         : PublicationState.published;
-    if (!state.isPublished && !await _confirmMoveToDraft(context, 'Course')) {
-      return;
+    if (!state.isPublished) {
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Set Course to Not published?'),
+          content: const Text(
+            'After final confirmation this Course will be excluded from learner delivery. Its content and individual authoring Draft states are preserved.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Not published'),
+            ),
+          ],
+        ),
+      );
+      if (confirmed != true || !mounted) return;
     }
     final candidate = Course.fromJson({
       ..._course.toJson(),
@@ -1646,7 +1574,7 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
               ),
             ListTile(
               leading: const Icon(Icons.edit_note_outlined),
-              title: const Text('Course info'),
+              title: const Text('Course Info Editor'),
               subtitle: Text(
                 'Edit course name, authors, license and metadata · ${_course.authors.isEmpty ? (_course.author.trim().isEmpty ? 'Author not specified' : _course.author) : _course.authors.map((a) => '${a.name} (${a.role})').join(', ')}',
               ),
@@ -1664,15 +1592,15 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
               title: const Text('Course delivery status'),
               subtitle: Text(
                 _course.publicationState.isPublished
-                    ? 'Normal content · included in learner delivery after final confirmation'
-                    : 'Hidden from learner delivery until saved as normal content',
+                    ? 'Published'
+                    : 'Not published',
               ),
               trailing: TextButton(
                 onPressed: _toggleCourseDraftStatus,
                 child: Text(
                   _course.publicationState.isPublished
-                      ? 'Save as draft'
-                      : 'Save',
+                      ? 'Unpublish'
+                      : 'Publish',
                 ),
               ),
             ),
@@ -1783,6 +1711,7 @@ class LessonManagementScreen extends StatefulWidget {
 }
 
 class _LessonManagementScreenState extends State<LessonManagementScreen> {
+  int _numberingFieldVersion = 0;
   final _settings = SettingsService();
   final _ids = TimestampAuthoringIdGenerator();
   late Course _course;
@@ -1819,6 +1748,33 @@ class _LessonManagementScreenState extends State<LessonManagementScreen> {
     List<CourseLessonIconAsset>? lessonIconAssets,
   }) => _adoptCourse(_withLessons(lessons, lessonIconAssets: lessonIconAssets));
 
+  Future<void> _setLessonNumbering(LessonNumberingMode? mode) async {
+    if (_locked || mode == null) return;
+    var label = _course.customLessonLabel;
+    if (mode == LessonNumberingMode.other) {
+      final entered = await _askName(
+        title: 'Custom Lesson label',
+        initial: label,
+        confirmLabel: 'Save',
+        maxLength: 40,
+      );
+      if (!mounted) return;
+      if (entered == null) {
+        // Rebuild the field from the unchanged canonical selection on Cancel.
+        setState(() => _numberingFieldVersion++);
+        return;
+      }
+      label = entered;
+    }
+    _adoptCourse(
+      Course.fromJson({
+        ..._course.toJson(),
+        'lessonNumberingMode': mode.name,
+        'customLessonLabel': mode == LessonNumberingMode.other ? label : '',
+      }),
+    );
+  }
+
   void _setFallbackLessonIconStyle(LessonFallbackIconStyle style) {
     if (_locked || style == _course.defaultLessonIconStyle) return;
     _adoptCourse(
@@ -1840,6 +1796,7 @@ class _LessonManagementScreenState extends State<LessonManagementScreen> {
     String title = 'New lesson',
     String initial = '',
     String confirmLabel = 'Create',
+    int? maxLength,
   }) async {
     final controller = TextEditingController(text: initial);
     final result = await showDialog<String>(
@@ -1848,6 +1805,7 @@ class _LessonManagementScreenState extends State<LessonManagementScreen> {
         title: Text(title),
         content: TextField(
           controller: controller,
+          maxLength: maxLength,
           autofocus: true,
           decoration: const InputDecoration(
             border: OutlineInputBorder(),
@@ -2123,6 +2081,81 @@ class _LessonManagementScreenState extends State<LessonManagementScreen> {
                                 style: Theme.of(context).textTheme.titleMedium,
                               ),
                               const SizedBox(height: 8),
+                              DropdownButtonFormField<LessonNumberingMode>(
+                                key: ValueKey(
+                                  'lesson-numbering-${_course.lessonNumberingMode.name}-$_numberingFieldVersion',
+                                ),
+                                initialValue: _course.lessonNumberingMode,
+                                isExpanded: true,
+                                decoration: const InputDecoration(
+                                  border: OutlineInputBorder(),
+                                  labelText: 'Lesson numbering',
+                                ),
+                                items: const [
+                                  DropdownMenuItem(
+                                    value: LessonNumberingMode.lesson,
+                                    child: Text('Lesson + number'),
+                                  ),
+                                  DropdownMenuItem(
+                                    value: LessonNumberingMode.unit,
+                                    child: Text('Unit'),
+                                  ),
+                                  DropdownMenuItem(
+                                    value: LessonNumberingMode.topic,
+                                    child: Text('Topic'),
+                                  ),
+                                  DropdownMenuItem(
+                                    value: LessonNumberingMode.module,
+                                    child: Text('Module'),
+                                  ),
+                                  DropdownMenuItem(
+                                    value: LessonNumberingMode.skill,
+                                    child: Text('Skill'),
+                                  ),
+                                  DropdownMenuItem(
+                                    value: LessonNumberingMode.chapter,
+                                    child: Text('Chapter'),
+                                  ),
+                                  DropdownMenuItem(
+                                    value: LessonNumberingMode.stage,
+                                    child: Text('Stage'),
+                                  ),
+                                  DropdownMenuItem(
+                                    value: LessonNumberingMode.step,
+                                    child: Text('Step'),
+                                  ),
+                                  DropdownMenuItem(
+                                    value: LessonNumberingMode.part,
+                                    child: Text('Part'),
+                                  ),
+                                  DropdownMenuItem(
+                                    value: LessonNumberingMode.other,
+                                    child: Text('Other...'),
+                                  ),
+                                  DropdownMenuItem(
+                                    value: LessonNumberingMode.numberOnly,
+                                    child: Text('Number only'),
+                                  ),
+                                  DropdownMenuItem(
+                                    value: LessonNumberingMode.none,
+                                    child: Text('Title only'),
+                                  ),
+                                ],
+                                onChanged: _locked ? null : _setLessonNumbering,
+                              ),
+                              if (_course.lessonNumberingMode ==
+                                  LessonNumberingMode.other)
+                                TextButton(
+                                  onPressed: _locked
+                                      ? null
+                                      : () => _setLessonNumbering(
+                                          LessonNumberingMode.other,
+                                        ),
+                                  child: Text(
+                                    'Custom Lesson label: ${_course.customLessonLabel}',
+                                  ),
+                                ),
+                              const SizedBox(height: 12),
                               DropdownButtonFormField<LessonFallbackIconStyle>(
                                 key: const Key('lesson-fallback-number-style'),
                                 initialValue: _course.defaultLessonIconStyle,
@@ -2250,7 +2283,9 @@ class _LessonManagementScreenState extends State<LessonManagementScreen> {
                                   child: const Icon(Icons.drag_handle),
                                 ),
                                 title: Text(
-                                  'Lesson ${index + 1}: ${lesson.title}',
+                                  const LessonPresentationService()
+                                      .identity(_course, index)
+                                      .fullText,
                                 ),
                                 subtitle: Text(
                                   '${_roundCountLabel(lesson.rounds.length)}$section',
@@ -2659,6 +2694,16 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
       (lesson) => lesson.lessonId == _lesson.lessonId,
     );
     return index < 0 ? 1 : index + 1;
+  }
+
+  String get _lessonLabel {
+    final course = _courseWithIcons;
+    final index = course.lessons.indexWhere(
+      (lesson) => lesson.lessonId == _lesson.lessonId,
+    );
+    return index < 0
+        ? _lesson.title
+        : const LessonPresentationService().identity(course, index).fullText;
   }
 
   void _adoptCourse(Course course) {
@@ -3298,7 +3343,7 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
       child: Scaffold(
         appBar: AppBar(
           leading: BackButton(onPressed: _returnToLessons),
-          title: Text(_lesson.title),
+          title: Text(_lessonLabel),
           actions: [
             IconButton(
               tooltip: 'Generate Rounds from GuideBook',
@@ -3325,6 +3370,12 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
                   course: _courseWithIcons,
                   lessonId: _lesson.lessonId,
                 ),
+                if (!_lesson.publicationState.isPublished)
+                  const _DraftBranchIndicator(
+                    key: Key('lesson-own-draft-indicator'),
+                    message:
+                        'This Lesson is Draft and hidden from learner delivery, even when its Rounds and Exercises are Published. Use Save to publish the Lesson.',
+                  ),
                 OutlinedButton(
                   key: const Key('save-lesson-draft'),
                   onPressed: () => _saveLesson(PublicationState.draft),
@@ -4337,6 +4388,14 @@ class _LessonRoundsScreenState extends State<LessonRoundsScreen> {
     final hierarchyStatus = AuthoringHierarchyStatus.fromCourse(
       _auditableCourse,
     );
+    final lessonIndex = _course.lessons.indexWhere(
+      (lesson) => lesson.lessonId == widget.lesson.lessonId,
+    );
+    final lessonLabel = lessonIndex < 0
+        ? widget.lesson.title
+        : const LessonPresentationService()
+              .identity(_course, lessonIndex)
+              .fullText;
     return PopScope<List<LearningRound>>(
       canPop: _routeMayPop,
       onPopInvokedWithResult: (didPop, _) {
@@ -4344,7 +4403,7 @@ class _LessonRoundsScreenState extends State<LessonRoundsScreen> {
       },
       child: Scaffold(
         appBar: AppBar(
-          title: Text('Rounds · ${widget.lesson.title}'),
+          title: Text('Rounds · $lessonLabel'),
           actions: const [EditorAppBarActions()],
         ),
         floatingActionButton: FloatingActionButton.extended(
@@ -5374,6 +5433,12 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
               spacing: 8,
               runSpacing: 8,
               children: [
+                if (!_publicationState.isPublished)
+                  const _DraftBranchIndicator(
+                    key: Key('round-own-draft-indicator'),
+                    message:
+                        'This Round is Draft and hidden from learner delivery, even when its Exercises are Published. Use Save to publish the Round.',
+                  ),
                 OutlinedButton(
                   key: const Key('round-save-draft'),
                   onPressed: () => _saveRound(PublicationState.draft),
@@ -6666,7 +6731,7 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
             _question,
             'Target-language sentence with one gap',
             lines: 3,
-            helper: 'Use ___ to mark the missing word or expression.',
+            helper: 'Use ___ (3 underscores)',
           ),
           _field(
             _answers,
