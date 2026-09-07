@@ -46,10 +46,14 @@ void main() {
     final fixture = _duelFixture(lessonIsFinal: true);
     await _pumpLauncher(tester, fixture);
 
-    await _openAndWinDuel(tester);
+    await tester.tap(find.text('Open Duel'));
+    await tester.pump();
+    await _pumpFrames(tester);
+    expect(find.text('Final Duel'), findsWidgets);
+    await _winOpenDuel(tester);
 
-    expect(find.text('Duel Won!'), findsOneWidget);
-    expect(find.text('Duel won: +50 XP'), findsOneWidget);
+    expect(find.text('Final Duel completed!'), findsOneWidget);
+    expect(find.text('+50 XP'), findsOneWidget);
     expect(find.textContaining('next Lesson'), findsNothing);
     final progress = ProgressService();
     expect(await progress.getXp(courseCode: 'IT'), 50);
@@ -172,6 +176,10 @@ Future<void> _openAndWinDuel(WidgetTester tester) async {
   await tester.pump();
   await _pumpFrames(tester);
 
+  await _winOpenDuel(tester);
+}
+
+Future<void> _winOpenDuel(WidgetTester tester) async {
   for (var index = 0; index < 25; index++) {
     final correct = find.byWidgetPredicate(
       (widget) => widget is Text && (widget.data ?? '').startsWith('Correct '),

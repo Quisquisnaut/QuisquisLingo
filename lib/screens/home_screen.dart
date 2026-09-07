@@ -25,6 +25,7 @@ import '../services/crash_log_service.dart';
 import 'settings_screen.dart';
 import 'review_screen.dart';
 import 'course_info_screen.dart';
+import 'course_projects_screen.dart';
 import 'duel_screen.dart';
 import 'guidebook_screen.dart';
 import 'info_screen.dart';
@@ -890,6 +891,24 @@ class _HomeScreenState extends State<HomeScreen> {
       );
     }
 
+    Future<void> openCourseManager(
+      BuildContext sheetContext, {
+      required bool editCurrent,
+    }) async {
+      final selectedCourse = _course;
+      Navigator.pop(sheetContext);
+      if (selectedCourse == null || !overlayContext.mounted) return;
+      await Navigator.of(overlayContext).push<void>(
+        MaterialPageRoute(
+          builder: (_) => CourseProjectsScreen(
+            currentCourse: selectedCourse,
+            initialCourseIdToOpen: editCurrent ? selectedCourse.courseId : null,
+          ),
+        ),
+      );
+      if (mounted) await _reload();
+    }
+
     await showModalBottomSheet<void>(
       context: overlayContext,
       showDragHandle: true,
@@ -986,6 +1005,28 @@ class _HomeScreenState extends State<HomeScreen> {
                     },
                   ),
               ],
+              const Divider(height: 28),
+              const Padding(
+                padding: EdgeInsets.fromLTRB(16, 0, 16, 6),
+                child: Text(
+                  'Editor',
+                  style: TextStyle(fontWeight: FontWeight.w800),
+                ),
+              ),
+              ListTile(
+                key: const Key('course-selector-edit-current'),
+                leading: const Icon(Icons.edit_outlined),
+                title: const Text('Edit current course'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => openCourseManager(ctx, editCurrent: true),
+              ),
+              ListTile(
+                key: const Key('course-selector-course-manager'),
+                leading: const Icon(Icons.library_books_outlined),
+                title: const Text('Course Manager'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => openCourseManager(ctx, editCurrent: false),
+              ),
             ],
           ),
         ),
@@ -1859,6 +1900,7 @@ class _LessonSection extends StatelessWidget {
           _DuelCard(
             key: ValueKey('unified-duel-${lesson.lessonId}'),
             eligibility: duelEligibility,
+            isFinalLesson: lessonIndex == course.lessons.length - 1,
             onTap: previewOnly ? null : onOpenDuel,
           ),
         ],
@@ -1955,7 +1997,6 @@ class _GuidebookNode extends StatelessWidget {
                               Positioned.fill(
                                 child: lesson.themeIconAsset == null
                                     ? LessonFallbackIcon(
-                                        style: course.defaultLessonIconStyle,
                                         number: identity.number,
                                         monochromeKey: const Key(
                                           'guidebook-monochrome-fallback-icon',
@@ -2829,14 +2870,20 @@ class _RoundPathPainter extends CustomPainter {
 
 class _DuelCard extends StatelessWidget {
   final DuelEligibilityResult eligibility;
+  final bool isFinalLesson;
   final VoidCallback? onTap;
 
-  const _DuelCard({super.key, required this.eligibility, required this.onTap});
+  const _DuelCard({
+    super.key,
+    required this.eligibility,
+    required this.isFinalLesson,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    return Align(
+    final card = Align(
       alignment: Alignment.center,
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 400),
@@ -2874,7 +2921,7 @@ class _DuelCard extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Duel',
+                            isFinalLesson ? 'Final Duel' : 'Duel',
                             style: Theme.of(context).textTheme.titleLarge
                                 ?.copyWith(
                                   color: eligibility.isAvailable
@@ -2885,7 +2932,9 @@ class _DuelCard extends StatelessWidget {
                           ),
                           Text(
                             eligibility.isAvailable
-                                ? 'Win to skip ahead'
+                                ? isFinalLesson
+                                      ? 'Final challenge'
+                                      : 'Win to skip ahead'
                                 : 'Unavailable for this Lesson: not enough suitable exercises.',
                             style: TextStyle(
                               color: eligibility.isAvailable
@@ -2907,6 +2956,9 @@ class _DuelCard extends StatelessWidget {
         ),
       ),
     );
+    return isFinalLesson
+        ? Tooltip(message: 'Final challenge for the last Lesson.', child: card)
+        : card;
   }
 }
 

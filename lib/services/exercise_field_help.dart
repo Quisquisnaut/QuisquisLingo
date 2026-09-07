@@ -388,7 +388,7 @@ abstract final class ExerciseFieldHelpRegistry {
       title: 'Target-language sentence with one gap',
       purpose: 'Shows the sentence the learner completes by choosing a block.',
       entryRules:
-          'Use ___ (3 underscores). Enter one target-language sentence with the missing word or expression replaced by that gap. Enter possible replacements as separate answer lines.',
+          'Use ___ (3 underscores) for the missing word. Example: The cat ___ black. Enter one target-language sentence with the missing word or expression replaced by that gap. Enter possible replacements as separate answer lines.',
       validation:
           'At least one ___ marker is required; more than one produces a warning. The sentence with the correct answer inserted must contain at least two words.',
       example: 'Vorrei un ___, per favore.',

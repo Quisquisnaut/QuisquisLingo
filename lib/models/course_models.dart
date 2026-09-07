@@ -894,19 +894,36 @@ List<Lesson> _parseLessons(Map<String, dynamic> j) {
   ];
 }
 
+class GuidebookInsight {
+  final String title;
+  final String text;
+
+  const GuidebookInsight({required this.title, required this.text});
+
+  Map<String, dynamic> toJson() => {'title': title, 'text': text};
+
+  factory GuidebookInsight.fromJson(Map<String, dynamic> j) => GuidebookInsight(
+    title: _requiredString(j, 'title', 'guidebook insight'),
+    text: _requiredString(j, 'text', 'guidebook insight'),
+  );
+}
+
 class Guidebook {
   final PublicationState publicationState;
   final List<LearningContent> content;
+  final List<GuidebookInsight> insights;
   Guidebook({
     this.publicationState = PublicationState.published,
     List<LearningContent>? content,
+    List<GuidebookInsight> insights = const [],
     String overview = '',
     List<String> goals = const [],
     List<String> vocabulary = const [],
     List<String> grammar = const [],
     List<String> expressions = const [],
     List<String> examples = const [],
-  }) : content =
+  }) : insights = List.unmodifiable(insights),
+       content =
            content ??
            _legacyGuidebookContent(
              overview,
@@ -921,12 +938,17 @@ class Guidebook {
     if (!publicationState.isPublished)
       'publicationState': publicationState.name,
     'content': content.map((e) => e.toJson()).toList(),
+    if (insights.isNotEmpty)
+      'insights': insights.map((section) => section.toJson()).toList(),
   };
   factory Guidebook.fromJson(Map<String, dynamic> j) => Guidebook(
     publicationState: j.containsKey('publicationState')
         ? PublicationState.parseRequired(j, 'guidebook')
         : PublicationState.published,
     content: _mapList(j, 'content', 'guidebook', LearningContent.fromJson),
+    insights: j.containsKey('insights')
+        ? _mapList(j, 'insights', 'guidebook', GuidebookInsight.fromJson)
+        : const [],
   );
 
   // Friendly compatibility views used by the existing authoring generator.

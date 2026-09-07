@@ -773,7 +773,7 @@ void main() {
       await tester.enterText(titleField, 'First valid Round');
       await tester.tap(find.widgetWithText(FilledButton, 'Save'));
       await tester.pumpAndSettle();
-      expect(find.text('3 Exercises'), findsOneWidget);
+      expect(find.text('1 Exercise'), findsOneWidget);
       final createdRoundIndicator = find.byWidgetPredicate(
         (widget) =>
             widget.key is ValueKey<String> &&

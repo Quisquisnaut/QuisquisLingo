@@ -38,9 +38,50 @@ class _DisposeOnUnmountState extends State<_DisposeOnUnmount> {
   Widget build(BuildContext context) => widget.child;
 }
 
+class CourseImportScreen extends StatelessWidget {
+  final Future<void> Function() onImport;
+
+  const CourseImportScreen({super.key, required this.onImport});
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+    appBar: AppBar(title: const Text('Course Import')),
+    body: ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        FilledButton.icon(
+          key: const Key('import-course-json-primary'),
+          onPressed: onImport,
+          icon: const Icon(Icons.file_open_outlined),
+          label: const Text('Import Course JSON'),
+        ),
+        const SizedBox(height: 20),
+        Text(
+          'Import instructions',
+          style: Theme.of(
+            context,
+          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 8),
+        const Text(
+          '1. Copy the course JSON to Documents/QuisquisLingo/Imports/import.json.\n'
+          '2. Select Import Course JSON. QQL validates the complete file before changing local storage.\n'
+          '3. If the Course ID already exists, choose Replace/update, Separate copy or Cancel.\n'
+          '4. A successful import appears under Local courses. import.json remains in Imports.',
+        ),
+      ],
+    ),
+  );
+}
+
 class CourseProjectsScreen extends StatefulWidget {
   final Course currentCourse;
-  const CourseProjectsScreen({super.key, required this.currentCourse});
+  final String? initialCourseIdToOpen;
+  const CourseProjectsScreen({
+    super.key,
+    required this.currentCourse,
+    this.initialCourseIdToOpen,
+  });
 
   @override
   State<CourseProjectsScreen> createState() => _CourseProjectsScreenState();
@@ -54,6 +95,7 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
   List<Course> _user = [];
   bool _loading = true;
   bool _currentCourseIsCustom = false;
+  bool _openedInitialCourse = false;
 
   @override
   void initState() {
@@ -74,7 +116,30 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
           selectedRef == 'custom:${widget.currentCourse.courseId}';
       _loading = false;
     });
+    if (!_openedInitialCourse && widget.initialCourseIdToOpen != null) {
+      _openedInitialCourse = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) => _openInitialCourse());
+    }
   }
+
+  Future<void> _openInitialCourse() async {
+    if (!mounted) return;
+    final courseId = widget.initialCourseIdToOpen;
+    if (courseId == null) return;
+    for (final course in _user) {
+      if (course.courseId == courseId) {
+        await _openUser(course);
+        return;
+      }
+    }
+    if (widget.currentCourse.courseId == courseId) await _openBundled();
+  }
+
+  Future<void> _openCourseImport() => Navigator.of(context).push<void>(
+    MaterialPageRoute(
+      builder: (_) => CourseImportScreen(onImport: _importCourse),
+    ),
+  );
 
   Future<Course?> _createCourse() async {
     final title = TextEditingController();
@@ -832,8 +897,8 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
       title: const Text('Course Manager'),
       actions: [
         IconButton(
-          tooltip: 'Import custom course JSON',
-          onPressed: _importCourse,
+          tooltip: 'Course Import',
+          onPressed: _openCourseImport,
           icon: const Icon(Icons.file_open_outlined),
         ),
         IconButton(
@@ -859,34 +924,12 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
                     label: const Text('Create new course'),
                   ),
                   OutlinedButton.icon(
-                    onPressed: _importCourse,
+                    key: const Key('course-import-entry'),
+                    onPressed: _openCourseImport,
                     icon: const Icon(Icons.file_open_outlined),
-                    label: const Text('Import course JSON'),
+                    label: const Text('Course Import'),
                   ),
                 ],
-              ),
-              const SizedBox(height: 10),
-              const Card(
-                child: Padding(
-                  padding: EdgeInsets.all(12),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Import instructions',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      SizedBox(height: 6),
-                      Text(
-                        '1. Copy the course JSON to Documents/QuisquisLingo/Imports/import.json.',
-                      ),
-                      Text('2. Press Import course JSON.'),
-                      Text(
-                        '3. The course will appear under Local courses. import.json is left in place.',
-                      ),
-                    ],
-                  ),
-                ),
               ),
               if (!_currentCourseIsCustom) ...[
                 const SizedBox(height: 18),

@@ -79,8 +79,23 @@ void main() {
     ]);
     await _openEditor(tester, course);
     _expectDelivery(tester, 'Not published', 'Publish');
+    final publish = _deliveryButton(tester, 'Publish');
+    expect(
+      publish.style?.backgroundColor?.resolve(const <WidgetState>{}),
+      const Color(0xFF0756DF),
+    );
+    expect(
+      publish.style?.foregroundColor?.resolve(const <WidgetState>{}),
+      Colors.white,
+    );
+    final publishIcon = find.descendant(
+      of: find.byKey(const Key('course-draft-status')),
+      matching: find.byIcon(Icons.publish_outlined),
+    );
+    expect(IconTheme.of(tester.element(publishIcon)).color, Colors.white);
     await _tapDeliveryAction(tester, 'Publish');
     _expectDelivery(tester, 'Published', 'Unpublish');
+    expect(_deliveryButton(tester, 'Unpublish').style, isNull);
 
     final published = await _workingCourse(tester);
     expect(published.publicationState, PublicationState.published);
@@ -118,6 +133,14 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 }
+
+TextButton _deliveryButton(WidgetTester tester, String label) =>
+    tester.widget<TextButton>(
+      find.descendant(
+        of: find.byKey(const Key('course-draft-status')),
+        matching: find.widgetWithText(TextButton, label),
+      ),
+    );
 
 Future<void> _openEditor(WidgetTester tester, Course course) async {
   await workflow.useViewport(tester);

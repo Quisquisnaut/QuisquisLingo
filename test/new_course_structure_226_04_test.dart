@@ -342,6 +342,11 @@ void main() {
     await tester.tap(find.widgetWithText(FilledButton, 'Create'));
     await tester.pumpAndSettle();
     expect(course.lessons, hasLength(102));
+    final existingExerciseIds = course.lessons
+        .expand((lesson) => lesson.rounds)
+        .expand((round) => round.exercises)
+        .map((exercise) => exercise.id)
+        .toSet();
     await tester.pumpWidget(
       MaterialApp(
         home: LessonRoundsScreen(
@@ -357,7 +362,14 @@ void main() {
     await tester.tap(find.widgetWithText(FilledButton, 'Save'));
     await tester.pumpAndSettle();
     expect(course.lessons.first.rounds, hasLength(22));
-    expect(course.lessons.first.rounds.last.exercises, hasLength(3));
+    expect(course.lessons.first.rounds.last.exercises, hasLength(1));
+    final sample = course.lessons.first.rounds.last.exercises.single;
+    expect(sample.type, 'choice');
+    expect(sample.publicationState, PublicationState.draft);
+    expect(sample.answers, contains('Wrong Answer'));
+    expect(existingExerciseIds, isNot(contains(sample.id)));
+    expect(sample.prompt, contains(course.sourceLanguage));
+    expect(sample.prompt, contains(course.learningLanguage));
     expect(course.lessons.first.rounds.first.exercises, isEmpty);
     expect(Course.fromJson(course.toJson()).lessons, hasLength(102));
   });

@@ -1,5 +1,98 @@
 # QQL 226.04 validation
 
+## Revision 2 — Editor navigation and GuideBook UX
+
+Revision 2 starts from clean commit `0e9708f59583a2a5223e15c967d8ebd246dde249` on `main`, with parent `782bc26ed52b0afe5a66f42e194abb64e1092320`. The target is Version `2.0.26`, Phase `226.04`, revision `2`, technical build `226042`, and pubspec `2.0.26+226042`. The Alpha expiry remains exactly `2026-10-06 23:59:59` local time because this corrective revision does not introduce a new expiry policy. The revision-1 first-Save publication correction and its end-to-end MyTest regression remain authoritative.
+
+### Implementation decisions
+
+1. **One fallback Lesson-number icon.** `LessonFallbackIcon` now has one active implementation: a circle using the current theme's `primaryContainer` and `onPrimaryContainer`. The Lessons-page selector, preview and setter are removed. Both existing v6 values, `monochrome` and `coloredLessonNumbers`, remain accepted and round-trip without migration or JSON rewriting, but no longer select different artwork. Explicit preinstalled and Course-owned custom Lesson icons retain their existing path.
+2. **Fill in the Blank wording.** The authoring helper and searchable field Help say exactly **`Use ___ (3 underscores) for the missing word. Example: The cat ___ black.`** Existing validation, Hint Preview and learner behavior are unchanged.
+3. **Course Import page.** The Course Manager entry remains in its former position but is now the single-line **Course Import** action. It opens a page titled **Course Import**, with a primary **Import Course JSON** button and visible **Import instructions**. The page delegates to the existing importer and preserves `Documents/QuisquisLingo/Imports/import.json`, audit gates, collisions, provenance and transaction behavior.
+4. **Learner selector Editor actions.** A separated action group follows every actual Course entry, in the order **Edit current course**, **Course Manager**. Neither row is a Course selection. The first passes the current stable `courseId` into the existing manager/editor resolution path, including official inspection and fork protections; the second opens Course Manager. Returning reloads data without changing the selected learner Course.
+5. **New Round sample.** The New Course sample builder is now the one public factory used by both initial scaffolding and manually added Rounds. A new Round contains exactly one fresh-ID Draft **How do you say?** Exercise with source/learning-language-labelled placeholders and the literal `Wrong Answer` distractor. Copy, Move, import and all existing Rounds are untouched.
+6. **Final Duel presentation.** The Duel belonging to the last Lesson in current stable Course order is labelled **Final Duel**, has tooltip **Final challenge for the last Lesson.**, and reports **Final Duel completed!**. Its completion dialog omits next-Lesson language. Non-final Duels and all eligibility, question, life, XP and persistence mechanics are unchanged.
+7. **GuideBook primary fields and Insights.** The primary editor order is exactly **Overview**, **Usage examples**, **Vocabulary**, **Grammar**, followed by **Insights**. Existing overview, all example-kind content, vocabulary and grammar map to these fields while goals, expressions and unknown content remain preserved as unmanaged canonical Content. The Insights page edits an ordered list of required non-empty **Title** and **Text** sections, with add, edit, confirmed removal and drag reordering; its callback retains unsaved sections when returning to the primary page. Existing GuideBook Save/Save Draft owns persistence. The optional `guidebook.insights` v6 array is omitted when empty, defaults empty when absent, rejects malformed sections, survives duplication and Published learner projection, and stays out of Draft learner projection. Course Model remains v6; Lock and derived Internal ID code were not moved or redesigned.
+8. **Publish emphasis.** The actionable **Publish** state uses one blue `TextButton` style with white text and icon. The same control immediately returns to its neutral **Unpublish** style after the state change. Passive publication status and publication logic are unchanged.
+9. **Locked Lesson feedback.** Both pointer and keyboard activation use the existing `ListTile` action and show exactly **`This Lesson is locked. To edit it, tap the lock icon at the top of the Lessons page.`** after clearing any prior snackbar. The Lesson editor remains closed and the Lock control remains unchanged.
+
+The canonical Audit Registry remains at **102 rules**. Course Model remains `formatVersion: 6`; Insights is the only new optional persistence field. No bundled Course JSON, generated checksums, course IDs, learner/profile state or Alpha lifecycle value is changed.
+
+### Test coverage and intermediate corrections
+
+Focused coverage includes both legacy fallback values in light and dark themes plus explicit icons; exact Fill wording; Course Import navigation and Imports-path copy; selector action order, stable-ID official inspection and selection preservation; shared one-sample scaffolding; final and non-final Duel presentation; Insights parsing, duplication, publication projection and complete widget editing lifecycle; Publish/Unpublish styling; pointer/keyboard locked activation; metadata; and the revision-1 first-Save learner-delivery workflow.
+
+During incremental work, stale revision-1 fixtures initially expected the removed four-color renderer and three manually scaffolded Exercises; those expectations were corrected to the requested behavior. The first Insights widget test also exposed two real testability defects: controllers were disposed before the closing dialog completed and the fixed dialog column overflowed at narrow test height. Production now defers controller disposal until the route frame completes and scrolls the dialog body. Later Insights reorder assertions were made against the actual ordered cards rather than transient drag geometry. A locked-Lesson test originally targeted an ambiguous descendant `InkWell`; it now drives the real keyed Lesson `ListTile` and its focused keyboard action.
+
+### Fresh revision-2 validation
+
+Flutter commands used the installed SDK with `--no-pub`; complete-suite runs were serial and used the compact reporter with a 60-second per-test timeout. Historical revision-1 and revision-0 totals elsewhere in this file are not revision-2 evidence.
+
+| Command / scope | Fresh result |
+| --- | --- |
+| Final `dart format` over every changed Dart file | **29 files, 0 changes**, exit 0. |
+| Eighteen-file 226.04 focused set | **182 passed / 1 failed**, 02:45. The failure was a stale MyTest fixture still looking for removed GuideBook fields; the fixture was updated to the new four-field organization. |
+| Corrected `test/provisional_mytest_workflow_test.dart` | **1 passed / 0 failed**, 00:08; the one-Save Course-to-learner/restart path remained intact. |
+| Model, transfer, export, duplication, GuideBook publication/delivery, provisional publication, metadata and Audit-report set | **137 passed / 0 failed**, 00:26. |
+| Final `test/guidebook_insights_226_04_r2_test.dart` | **2 passed / 0 failed**, 00:03. |
+| First complete Flutter suite | **1,180 passed / 1 failed**, 13:26. The sole failure was `creating the first Round through the UI refreshes every open ancestor`: the revision-1 assertion still expected `3 Exercises` after New Round, while the requested revision-2 scaffold correctly rendered `1 Exercise`. Production behavior was unchanged; the stale expectation was corrected. |
+| Corrected hierarchy regression | **1 passed / 0 failed**, 00:09 through the real New Round and ancestor-refresh UI path. |
+| Final complete Flutter suite after that test correction | **1,181 passed / 0 failed**, exit 0, **23:09**. The retained log is `build/226042-full-suite-final.log`. |
+| Post-suite Help wording check | After the suite, one Help sentence was corrected to stop describing the removed fallback choice as an icon-style setting. The first `flutter test --no-pub --reporter compact --timeout 60s test/course_editor_export_226_02_test.dart` wrapper produced no output and was interrupted after about 02:30; Windows denied process-state inspection. The direct SDK command first failed before testing because the sandbox denied its lockfile, then passed with the existing approved Flutter-test permission: **5 passed / 0 failed**, 00:18. At the user's explicit direction, this wording-only correction received the focused rerun and did not trigger another complete suite. |
+| Final `flutter analyze --no-pub` | **71 inherited / 0 new / 0 resolved** against the immediate parent report's 71 findings, exit 1 solely for those inherited findings. Against the user-supplied 72-finding reference, this is **71 inherited / 0 new / 1 fewer**. An earlier pass found three revision-2 findings (deprecated reorder callback plus two unused test imports); all three were corrected without suppression. |
+| `python -X utf8 tools/validate_courses.py` | **9 bundled Course Model v6 files valid**, exit 0. |
+| `python -X utf8 tools/regenerate_bundled_courses_225_02.py --check` | **All 9 generated Courses and SHA-256 checksums match**, exit 0. |
+| `python -X utf8 tools/validate_lesson_icons.py` | **14 assets / 0 issues**, exit 0. |
+| `python -X utf8 tools/validate_images.py` | **112 assets / 0 issues**, exit 0. |
+| `git diff --check` | Passed on the final documented tree. |
+
+The exact revision-2 file inventory is:
+
+```text
+AGENTS.md
+CHANGELOG.md
+README.md
+docs/226_04_VALIDATION.md
+docs/COURSE_EDITOR.md
+docs/COURSE_JSON_FORMAT.md
+lib/models/course_models.dart
+lib/screens/course_editor_screen.dart
+lib/screens/course_projects_screen.dart
+lib/screens/duel_screen.dart
+lib/screens/editor_help_screen.dart
+lib/screens/home_screen.dart
+lib/services/app_metadata.dart
+lib/services/authoring_duplication_service.dart
+lib/services/custom_course_transfer_service.dart
+lib/services/exercise_field_help.dart
+lib/services/new_course_structure.dart
+lib/services/publication_service.dart
+lib/widgets/lesson_fallback_icon.dart
+pubspec.yaml
+test/app_metadata_225_04_test.dart
+test/authoring_hierarchy_indicators_226_02_test.dart
+test/course_audit_report_225_test.dart
+test/course_editor_layout_regression_test.dart
+test/course_metadata_wording_226_04_r1_test.dart
+test/duel_xp_regression_test.dart
+test/fill_blank_hint_226_04_r1_test.dart
+test/guidebook_insights_226_04_r2_test.dart
+test/leaderboard_navigation_test.dart
+test/learner_round_path_test.dart
+test/lesson_controls_226_04_test.dart
+test/lesson_fallback_number_icon_226_02_test.dart
+test/lesson_metadata_and_icon_test.dart
+test/new_course_structure_226_04_test.dart
+test/optional_learning_paths_226_04_test.dart
+test/provisional_mytest_workflow_test.dart
+```
+
+### Remaining native Windows checks
+
+Check both fallback legacy preferences in light/dark themes and an explicit custom icon; Course Import page layout and native import from `Imports/import.json`; selector actions by pointer and keyboard at narrow width; official read-only inspection; single-sample Round creation; Final Duel tooltip and win dialog; all four GuideBook fields and Insights add/edit/remove/reorder/Save Draft/Save/restart; unchanged GuideBook Lock and Internal ID placement; Publish/Unpublish colors and contrast; locked-Lesson pointer/keyboard snackbar; and the complete revision-1 first-Save/restart workflow. Automated widget tests do not constitute native visual verification.
+
+Trello was not updated. No push is part of this revision. Language-code selection, reusable/custom flag changes, Custom Exercise Templates, exercise-level Insights links, generated/saved TTS, Audio Settings, crash-log work, Napoletano, release 227 and release 228 were not started.
+
 ## Revision-1 corrective completion — first-Save publication reconciliation
 
 This follow-up starts from `782bc26ed52b0afe5a66f42e194abb64e1092320`, whose parent is `50a52988872e8d6bb3b7be5e3e261eb2741a60c7`. The user's later product clarification supersedes the independent-parent-Save policy in the historical closure below. The confirmed MyTest workflow **edits and saves the existing scaffolded sample Exercise**, without adding a second Exercise. Prior results of 1,136 passing tests and 71 inherited analyzer findings belong to that committed baseline; they are not fresh evidence for this follow-up.

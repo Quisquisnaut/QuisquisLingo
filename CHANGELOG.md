@@ -1,3 +1,12 @@
+# 2.0.26 (Phase 226.04, revision 2) - Editor navigation and GuideBook UX - 2026-09-07
+
+- Advanced metadata to `2.0.26+226042`; the show-once notice displays `Version 2.0.26` and `Phase 226.04, revision 2`. Alpha expiry remains `2026-10-06 23:59:59` local time.
+- Removed fallback Lesson-number style selection. Both accepted legacy values continue to round-trip in Course Model v6 and now render the single theme-colored circle; explicit Lesson icons remain unchanged.
+- Added the dedicated **Course Import** page and learner course-selector actions for the stable-ID current Course Editor and Course Manager while retaining `QuisquisLingo/Imports/import.json` and the existing importer transaction.
+- Made manually created Rounds reuse the New Course factory for exactly one fresh-ID Draft **How do you say?** sample, and corrected Fill in the Blank guidance to include the exact three-underscore example.
+- Presented the final Lesson's existing Duel as **Final Duel**, added ordered optional GuideBook **Insights** sections, emphasized actual **Publish** actions, and added explicit locked-Lesson activation guidance without changing the Lock control.
+- Preserved the revision-1 first-Save publication reconciliation, Course Model v6, the 102-rule Audit Registry, official protections and all excluded later work. No Trello update or push is included.
+
 # 2.0.26 (Phase 226.04, revision 1) - Learner delivery and Editor corrections - 2026-09-07
 
 - Corrective completion: one non-Draft Exercise/GuideBook Save now reconciles ready provisional Lesson/Round parents through the current canonical Course. Returning from Rounds preserves the latest Lesson state; deliberate Save Draft and legacy unmarked Drafts remain protected. Optional `provisionalDraft` metadata is backward compatible within Course Model v6; Course delivery and final confirmation remain explicit. The MyTest workflow saves the existing sample once, without redundant parent saves. This remains build `226041`, with unchanged Alpha expiry and no revision-2 flag/language work.

@@ -7,9 +7,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:quisquislingo_app/models/course_models.dart';
 import 'package:quisquislingo_app/screens/course_info_screen.dart';
+import 'package:quisquislingo_app/screens/course_projects_screen.dart';
 import 'package:quisquislingo_app/screens/guidebook_screen.dart';
 import 'package:quisquislingo_app/screens/home_screen.dart';
 import 'package:quisquislingo_app/screens/info_screen.dart';
+import 'package:quisquislingo_app/screens/official_course_inspection_screen.dart';
 import 'package:quisquislingo_app/screens/profile_screen.dart';
 import 'package:quisquislingo_app/screens/review_screen.dart';
 import 'package:quisquislingo_app/screens/round_screen.dart';
@@ -24,7 +26,6 @@ import 'package:quisquislingo_app/services/xp_service.dart';
 import 'package:quisquislingo_app/widgets/flag_art.dart';
 import 'package:quisquislingo_app/widgets/learner_bottom_actions.dart';
 import 'package:quisquislingo_app/widgets/learner_navigation.dart';
-import 'package:quisquislingo_app/widgets/lesson_fallback_icon.dart';
 import 'package:quisquislingo_app/widgets/learner_shell.dart';
 import 'package:quisquislingo_app/widgets/learner_theme_mode_scope.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -73,7 +74,7 @@ void main() {
       buildSignature: '',
     );
     SharedPreferences.setMockInitialValues({
-      'one_time_notice_seen_welcome_2.0.26+226041': true,
+      'one_time_notice_seen_welcome_2.0.26+226042': true,
       'sound_effects_enabled': false,
     });
     await ProfileService().addProfile('Navigation Learner');
@@ -354,22 +355,13 @@ void main() {
     expect(
       find.descendant(
         of: withoutIconCard,
-        matching: find.byKey(const Key('guidebook-colored-fallback-icon')),
+        matching: find.byKey(const Key('guidebook-monochrome-fallback-icon')),
       ),
       findsOneWidget,
     );
-    final learnerFallbackColors = tester
-        .widgetList<ColoredBox>(
-          find.descendant(
-            of: withoutIconCard,
-            matching: find.byType(ColoredBox),
-          ),
-        )
-        .map((box) => box.color)
-        .toSet();
     expect(
-      learnerFallbackColors,
-      containsAll(LessonFallbackIcon.originalColors),
+      find.descendant(of: withoutIconCard, matching: find.byType(CircleAvatar)),
+      findsOneWidget,
     );
     await tester.scrollUntilVisible(
       find.byKey(
@@ -2279,6 +2271,64 @@ void main() {
   });
 
   testWidgets(
+    'course selector ends with stable Editor actions without changing selection',
+    (tester) async {
+      await _openHome(tester, scrollToActions: false);
+      final settings = SettingsService();
+      final selectedBefore = await settings.getLastSelectedCourseCode();
+      final selectedCourseId = _activeBackdrop(tester).course.courseId;
+
+      Future<void> openSelectorAndRevealActions() async {
+        await tester.tap(
+          find.byKey(const Key('unified-topbar-course-selector')),
+        );
+        await _pumpUntilWithIo(
+          tester,
+          find.text('Choose course'),
+          failureMessage: 'Timed out loading the course picker.',
+        );
+        final list = find.descendant(
+          of: find.byType(BottomSheet),
+          matching: find.byType(Scrollable),
+        );
+        await tester.scrollUntilVisible(
+          find.byKey(const Key('course-selector-edit-current')),
+          350,
+          scrollable: list,
+        );
+        await tester.pumpAndSettle();
+      }
+
+      await openSelectorAndRevealActions();
+      final edit = find.byKey(const Key('course-selector-edit-current'));
+      final manager = find.byKey(const Key('course-selector-course-manager'));
+      expect(edit, findsOneWidget);
+      expect(manager, findsOneWidget);
+      expect(tester.getRect(edit).top, lessThan(tester.getRect(manager).top));
+
+      await tester.tap(manager);
+      await tester.pumpAndSettle();
+      expect(find.byType(CourseProjectsScreen), findsOneWidget);
+      expect(await settings.getLastSelectedCourseCode(), selectedBefore);
+      await tester.tap(find.byType(BackButton).last);
+      await tester.pumpAndSettle();
+
+      await openSelectorAndRevealActions();
+      await tester.tap(find.byKey(const Key('course-selector-edit-current')));
+      await _pumpUntilWithIo(
+        tester,
+        find.byType(OfficialCourseInspectionScreen),
+        failureMessage: 'Timed out opening the current Course by stable ID.',
+      );
+      final inspection = tester.widget<OfficialCourseInspectionScreen>(
+        find.byType(OfficialCourseInspectionScreen),
+      );
+      expect(inspection.course.courseId, selectedCourseId);
+      expect(await settings.getLastSelectedCourseCode(), selectedBefore);
+    },
+  );
+
+  testWidgets(
     'course picker places three other recent courses before the complete list',
     (tester) async {
       tester.view.devicePixelRatio = 1;
@@ -2359,7 +2409,7 @@ void main() {
         (text) =>
             text.data != 'Welcome to QuisquisLingo' &&
             text.data != 'Version 2.0.26' &&
-            text.data != 'Phase 226.04, revision 1' &&
+            text.data != 'Phase 226.04, revision 2' &&
             text.data != 'Continue',
       );
       final welcomeDialog = tester.widget<AlertDialog>(
@@ -2376,11 +2426,11 @@ void main() {
         const Color(0xFF0756DF),
       );
       expect(
-        tester.widget<Text>(find.text('Phase 226.04, revision 1')).style?.color,
+        tester.widget<Text>(find.text('Phase 226.04, revision 2')).style?.color,
         const Color(0xFF0756DF),
       );
       expect(find.textContaining('22621'), findsNothing);
-      expect(find.textContaining('226041'), findsNothing);
+      expect(find.textContaining('226042'), findsNothing);
       expect(phrase.style?.color, const Color(0xFF0756DF));
       expect(find.widgetWithText(FilledButton, 'Continue'), findsOneWidget);
       expect(

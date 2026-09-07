@@ -64,6 +64,13 @@ class _DuelScreenState extends State<DuelScreen> {
     Color(0xFFE9DFC7),
   ];
 
+  bool get _isFinalLesson =>
+      widget.course.lessons.isNotEmpty &&
+      widget.course.lessons.last.lessonId == widget.lesson.lessonId;
+
+  String get _duelTitle =>
+      _isFinalLesson ? 'Final Duel' : widget.lesson.duel.title;
+
   List<_DuelItem> get _duelItems {
     // Availability and selection share one Lesson-scoped candidate pool.
     final candidates = _eligibility
@@ -238,9 +245,7 @@ class _DuelScreenState extends State<DuelScreen> {
 
   Future<void> _finishDuel() async {
     final won = _lives > 0 && _index + 1 >= _items.length;
-    final isFinalLesson =
-        widget.course.lessons.isNotEmpty &&
-        widget.course.lessons.last.lessonId == widget.lesson.lessonId;
+    final isFinalLesson = _isFinalLesson;
     int? awardedXp;
     if (won) {
       awardedXp = await _progress.winDuel(
@@ -259,7 +264,7 @@ class _DuelScreenState extends State<DuelScreen> {
       builder: (_) => AlertDialog(
         title: Text(
           won && isFinalLesson
-              ? 'Duel Won!'
+              ? 'Final Duel completed!'
               : won
               ? 'Duel won'
               : 'Duel lost',
@@ -267,7 +272,7 @@ class _DuelScreenState extends State<DuelScreen> {
         content: Text(
           won
               ? isFinalLesson
-                    ? 'Duel won: +$awardedXp XP'
+                    ? '+$awardedXp XP'
                     : 'Duel won: +$awardedXp XP\n\nYou proved your knowledge. The next Lesson can now unlock.'
               : (_lives <= 0
                     ? 'Duel lost. You have lost all four lives.'
@@ -317,7 +322,7 @@ class _DuelScreenState extends State<DuelScreen> {
     final items = _items;
     if (items.length < DuelEligibilityService.requiredQuestionCount) {
       return Scaffold(
-        appBar: AppBar(title: Text(widget.lesson.duel.title)),
+        appBar: AppBar(title: Text(_duelTitle)),
         body: const Center(
           child: Padding(
             padding: EdgeInsets.all(24),
@@ -338,7 +343,7 @@ class _DuelScreenState extends State<DuelScreen> {
       backgroundColor: background,
       appBar: AppBar(
         backgroundColor: background,
-        title: Text(widget.lesson.duel.title),
+        title: Text(_duelTitle),
         actions: [
           IconButton(
             tooltip: 'Report a problem',
@@ -359,7 +364,7 @@ class _DuelScreenState extends State<DuelScreen> {
               padding: const EdgeInsets.all(20),
               children: [
                 Text(
-                  'Language Duel',
+                  _isFinalLesson ? 'Final Duel' : 'Language Duel',
                   style: Theme.of(context).textTheme.headlineSmall,
                 ),
                 const SizedBox(height: 6),

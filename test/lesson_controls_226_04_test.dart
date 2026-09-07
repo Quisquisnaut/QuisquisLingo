@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:quisquislingo_app/models/course_models.dart';
 import 'package:quisquislingo_app/screens/course_editor_screen.dart';
@@ -85,6 +86,8 @@ void main() {
         findsOneWidget,
       );
       expect(find.byTooltip('Editor Help'), findsOneWidget);
+      expect(find.text('Fallback lesson number icons'), findsNothing);
+      expect(find.text('Four-color circle'), findsNothing);
       expect(
         find.byTooltip('Internal IDs hidden. Tap to show'),
         findsOneWidget,
@@ -98,6 +101,24 @@ void main() {
             .onPressed,
         isNull,
       );
+      final lessonEntry = find.byKey(
+        const ValueKey('lesson-entry-stable-lesson'),
+      );
+      await tester.tap(lessonEntry);
+      await tester.pump();
+      const lockedMessage =
+          'This Lesson is locked. To edit it, tap the lock icon at the top of the Lessons page.';
+      expect(find.text(lockedMessage), findsOneWidget);
+      final entryText = find.descendant(
+        of: lessonEntry,
+        matching: find.byType(Text),
+      );
+      Focus.of(tester.element(entryText.first)).requestFocus();
+      await tester.pump();
+      await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+      await tester.pump();
+      expect(find.text(lockedMessage), findsOneWidget);
+      expect(find.byType(LessonEditorScreen), findsNothing);
       await tester.tap(lock);
       await tester.pumpAndSettle();
       expect(await SettingsService().isCourseEditorLocked('controls'), isFalse);

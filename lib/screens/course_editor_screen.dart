@@ -41,6 +41,7 @@ import '../services/exercise_creation_planner.dart';
 import '../services/guidebook_round_generator.dart';
 import '../services/publication_service.dart';
 import '../services/provisional_publication_service.dart';
+import '../services/new_course_structure.dart';
 import '../widgets/flag_art.dart';
 import '../widgets/lesson_fallback_icon.dart';
 
@@ -1603,9 +1604,20 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
                     ? 'Published'
                     : 'Not published',
               ),
-              trailing: TextButton(
+              trailing: TextButton.icon(
                 onPressed: _toggleCourseDraftStatus,
-                child: Text(
+                style: _course.publicationState.isPublished
+                    ? null
+                    : TextButton.styleFrom(
+                        foregroundColor: Colors.white,
+                        backgroundColor: const Color(0xFF0756DF),
+                      ),
+                icon: Icon(
+                  _course.publicationState.isPublished
+                      ? Icons.visibility_off_outlined
+                      : Icons.publish_outlined,
+                ),
+                label: Text(
                   _course.publicationState.isPublished
                       ? 'Unpublish'
                       : 'Publish',
@@ -1783,16 +1795,6 @@ class _LessonManagementScreenState extends State<LessonManagementScreen> {
         ..._course.toJson(),
         'lessonNumberingMode': mode.name,
         'customLessonLabel': mode == LessonNumberingMode.other ? label : '',
-      }),
-    );
-  }
-
-  void _setFallbackLessonIconStyle(LessonFallbackIconStyle style) {
-    if (_locked || style == _course.defaultLessonIconStyle) return;
-    _adoptCourse(
-      Course.fromJson({
-        ..._course.toJson(),
-        'defaultLessonIconStyle': style.name,
       }),
     );
   }
@@ -2015,7 +2017,18 @@ class _LessonManagementScreenState extends State<LessonManagementScreen> {
   }
 
   Future<void> _openLesson(int index) async {
-    if (_locked) return;
+    if (_locked) {
+      final messenger = ScaffoldMessenger.of(context);
+      messenger.clearSnackBars();
+      messenger.showSnackBar(
+        const SnackBar(
+          content: Text(
+            'This Lesson is locked. To edit it, tap the lock icon at the top of the Lessons page.',
+          ),
+        ),
+      );
+      return;
+    }
     var iconAssets = _course.lessonIconAssets;
     final updated = await Navigator.of(context).push<Lesson>(
       MaterialPageRoute(
@@ -2170,60 +2183,6 @@ class _LessonManagementScreenState extends State<LessonManagementScreen> {
                                     'Custom Lesson label: ${_course.customLessonLabel}',
                                   ),
                                 ),
-                              const SizedBox(height: 12),
-                              DropdownButtonFormField<LessonFallbackIconStyle>(
-                                key: const Key('lesson-fallback-number-style'),
-                                initialValue: _course.defaultLessonIconStyle,
-                                isExpanded: true,
-                                decoration: const InputDecoration(
-                                  border: OutlineInputBorder(),
-                                  labelText: 'Fallback lesson number icons',
-                                ),
-                                items: const [
-                                  DropdownMenuItem(
-                                    value: LessonFallbackIconStyle.monochrome,
-                                    child: Text('Theme-colored circle'),
-                                  ),
-                                  DropdownMenuItem(
-                                    value: LessonFallbackIconStyle
-                                        .coloredLessonNumbers,
-                                    child: Text('Four-color circle'),
-                                  ),
-                                ],
-                                onChanged: _locked
-                                    ? null
-                                    : (style) {
-                                        if (style != null) {
-                                          _setFallbackLessonIconStyle(style);
-                                        }
-                                      },
-                              ),
-                              const SizedBox(height: 10),
-                              Row(
-                                key: const Key(
-                                  'lesson-fallback-number-preview',
-                                ),
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: [
-                                  LessonFallbackIcon(
-                                    style: _course.defaultLessonIconStyle,
-                                    number: 1,
-                                    size: 52,
-                                    monochromeKey: const Key(
-                                      'lesson-fallback-theme-colored-preview',
-                                    ),
-                                    coloredKey: const Key(
-                                      'lesson-fallback-four-color-preview',
-                                    ),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  const Expanded(
-                                    child: Text(
-                                      'For Lessons without an explicit icon. Theme-colored uses the theme tint; Four-color keeps fixed colors. Explicit custom icons do not change.',
-                                    ),
-                                  ),
-                                ],
-                              ),
                             ],
                           ),
                         ),
@@ -2292,6 +2251,9 @@ class _LessonManagementScreenState extends State<LessonManagementScreen> {
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
                               ListTile(
+                                key: ValueKey(
+                                  'lesson-entry-${lesson.lessonId}',
+                                ),
                                 leading: ReorderableDragStartListener(
                                   index: index,
                                   enabled: !_locked,
@@ -2305,9 +2267,7 @@ class _LessonManagementScreenState extends State<LessonManagementScreen> {
                                 subtitle: Text(
                                   '${_roundCountLabel(lesson.rounds.length)}$section',
                                 ),
-                                onTap: _locked
-                                    ? null
-                                    : () => _openLesson(index),
+                                onTap: () => _openLesson(index),
                                 trailing: PopupMenuButton<String>(
                                   key: ValueKey(
                                     'lesson-actions-${lesson.lessonId}',
@@ -2459,33 +2419,29 @@ class GuidebookEditorScreen extends StatefulWidget {
 
 class _GuidebookEditorScreenState extends State<GuidebookEditorScreen> {
   late final TextEditingController _overview,
-      _goals,
+      _usageExamples,
       _vocabulary,
-      _grammar,
-      _expressions,
-      _examples;
+      _grammar;
+  late List<GuidebookInsight> _insights;
   @override
   void initState() {
     super.initState();
     final g = widget.guidebook;
     _overview = TextEditingController(text: g.overview);
-    _goals = TextEditingController(text: g.goals.join('\n'));
+    _usageExamples = TextEditingController(
+      text: g.content
+          .where((content) => content.kind == 'example')
+          .map((content) => content.text)
+          .join('\n'),
+    );
     _vocabulary = TextEditingController(text: g.vocabulary.join('\n'));
     _grammar = TextEditingController(text: g.grammar.join('\n'));
-    _expressions = TextEditingController(text: g.expressions.join('\n'));
-    _examples = TextEditingController(text: g.examples.join('\n'));
+    _insights = [...g.insights];
   }
 
   @override
   void dispose() {
-    for (final c in [
-      _overview,
-      _goals,
-      _vocabulary,
-      _grammar,
-      _expressions,
-      _examples,
-    ]) {
+    for (final c in [_overview, _usageExamples, _vocabulary, _grammar]) {
       c.dispose();
     }
     super.dispose();
@@ -2521,11 +2477,15 @@ class _GuidebookEditorScreenState extends State<GuidebookEditorScreen> {
     String role,
     List<String> texts,
     String Function() newId,
-    PublicationState publicationState,
-  ) {
-    final existing = widget.guidebook.content
-        .where((content) => content.kind == kind && content.role == role)
-        .toList();
+    PublicationState publicationState, {
+    Iterable<LearningContent>? existingItems,
+  }) {
+    final existing =
+        (existingItems ??
+                widget.guidebook.content.where(
+                  (content) => content.kind == kind && content.role == role,
+                ))
+            .toList();
     final usedIds = <String>{};
     LearningContent? matchFor(String text) {
       for (final content in existing) {
@@ -2545,15 +2505,41 @@ class _GuidebookEditorScreenState extends State<GuidebookEditorScreen> {
           return LearningContent(
             id: matched?.id ?? newId(),
             publicationState: publicationState,
-            kind: kind,
+            kind: matched?.kind ?? kind,
             required: matched?.required ?? false,
             editorTemplate: matched?.editorTemplate ?? '',
-            role: role,
+            role: matched?.role ?? role,
             text: text,
             sourceRefs: matched?.sourceRefs ?? const [],
           );
         })(),
     ];
+  }
+
+  LearningContent _withPublicationState(
+    LearningContent content,
+    PublicationState publicationState,
+  ) => LearningContent.fromJson({
+    ...content.toJson(),
+    'publicationState': publicationState.name,
+  });
+
+  bool _isPrimaryFieldContent(LearningContent content) =>
+      (content.kind == 'explanation' && content.role == 'overview') ||
+      content.kind == 'vocabulary' ||
+      (content.kind == 'explanation' && content.role == 'grammar') ||
+      content.kind == 'example';
+
+  Future<void> _openInsights() async {
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute(
+        builder: (_) => GuidebookInsightsEditorScreen(
+          initialSections: _insights,
+          onChanged: (sections) => _insights = [...sections],
+        ),
+      ),
+    );
+    if (mounted) setState(() {});
   }
 
   void _save(PublicationState publicationState) {
@@ -2569,7 +2555,16 @@ class _GuidebookEditorScreenState extends State<GuidebookEditorScreen> {
         newId,
         publicationState,
       ),
-      ..._editedItems('text', 'goal', _lines(_goals), newId, publicationState),
+      ..._editedItems(
+        'example',
+        'example',
+        _lines(_usageExamples),
+        newId,
+        publicationState,
+        existingItems: widget.guidebook.content.where(
+          (content) => content.kind == 'example',
+        ),
+      ),
       ..._editedItems(
         'vocabulary',
         'vocabulary',
@@ -2584,24 +2579,17 @@ class _GuidebookEditorScreenState extends State<GuidebookEditorScreen> {
         newId,
         publicationState,
       ),
-      ..._editedItems(
-        'example',
-        'expression',
-        _lines(_expressions),
-        newId,
-        publicationState,
-      ),
-      ..._editedItems(
-        'example',
-        'example',
-        _lines(_examples),
-        newId,
-        publicationState,
-      ),
+      for (final existing in widget.guidebook.content)
+        if (!_isPrimaryFieldContent(existing))
+          _withPublicationState(existing, publicationState),
     ];
     Navigator.pop(
       context,
-      Guidebook(publicationState: publicationState, content: content),
+      Guidebook(
+        publicationState: publicationState,
+        content: content,
+        insights: _insights,
+      ),
     );
   }
 
@@ -2621,7 +2609,12 @@ class _GuidebookEditorScreenState extends State<GuidebookEditorScreen> {
       padding: const EdgeInsets.all(16),
       children: [
         _field(_overview, 'Overview', lines: 5),
-        _field(_goals, 'Goals'),
+        _field(
+          _usageExamples,
+          'Usage examples',
+          helper:
+              'One learner-facing example per line. These examples can support draft Round generation and must be reviewed before use.',
+        ),
         _field(
           _vocabulary,
           'Vocabulary',
@@ -2630,13 +2623,15 @@ class _GuidebookEditorScreenState extends State<GuidebookEditorScreen> {
               'One target/source pair per line. Example: casa = house. This learner-facing Lesson Guidebook can also be used to automatically generate new exercises, which must be reviewed and approved before creation.',
         ),
         _field(_grammar, 'Grammar'),
-        _field(_expressions, 'Useful expressions'),
-        _field(
-          _examples,
-          'Examples',
-          lines: 4,
-          helper:
-              'One target-language example sentence per line. Vocabulary and examples can be used to generate three progressively harder draft Rounds from this Lesson. Drafts must be reviewed and approved before creation.',
+        ListTile(
+          key: const Key('guidebook-insights-link'),
+          leading: const Icon(Icons.lightbulb_outline),
+          title: const Text('Insights'),
+          subtitle: Text(
+            '${_insights.length} ${_insights.length == 1 ? 'section' : 'sections'}',
+          ),
+          trailing: const Icon(Icons.chevron_right),
+          onTap: _openInsights,
         ),
         Wrap(
           alignment: WrapAlignment.end,
@@ -2660,6 +2655,186 @@ class _GuidebookEditorScreenState extends State<GuidebookEditorScreen> {
         if (widget.guidebookId.isNotEmpty)
           EditorInternalIdText(label: 'GuideBook', id: widget.guidebookId),
       ],
+    ),
+  );
+}
+
+class GuidebookInsightsEditorScreen extends StatefulWidget {
+  final List<GuidebookInsight> initialSections;
+  final ValueChanged<List<GuidebookInsight>> onChanged;
+
+  const GuidebookInsightsEditorScreen({
+    super.key,
+    required this.initialSections,
+    required this.onChanged,
+  });
+
+  @override
+  State<GuidebookInsightsEditorScreen> createState() =>
+      _GuidebookInsightsEditorScreenState();
+}
+
+class _GuidebookInsightsEditorScreenState
+    extends State<GuidebookInsightsEditorScreen> {
+  late final List<GuidebookInsight> _sections = [...widget.initialSections];
+
+  void _notify() => widget.onChanged(List.unmodifiable(_sections));
+
+  Future<void> _edit({int? index}) async {
+    final existing = index == null ? null : _sections[index];
+    final title = TextEditingController(text: existing?.title ?? '');
+    final text = TextEditingController(text: existing?.text ?? '');
+    final formKey = GlobalKey<FormState>();
+    final result = await showDialog<GuidebookInsight>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(
+          index == null ? 'Add Insight section' : 'Edit Insight section',
+        ),
+        content: SingleChildScrollView(
+          child: Form(
+            key: formKey,
+            child: SizedBox(
+              width: 520,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextFormField(
+                    key: const Key('guidebook-insight-title'),
+                    controller: title,
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                      labelText: 'Title',
+                    ),
+                    validator: (value) => value == null || value.trim().isEmpty
+                        ? 'Enter a Title.'
+                        : null,
+                  ),
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    key: const Key('guidebook-insight-text'),
+                    controller: text,
+                    minLines: 4,
+                    maxLines: 10,
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                      labelText: 'Text',
+                    ),
+                    validator: (value) => value == null || value.trim().isEmpty
+                        ? 'Enter Text.'
+                        : null,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            key: const Key('guidebook-insight-confirm'),
+            onPressed: () {
+              if (!formKey.currentState!.validate()) return;
+              Navigator.pop(
+                context,
+                GuidebookInsight(
+                  title: title.text.trim(),
+                  text: text.text.trim(),
+                ),
+              );
+            },
+            child: Text(index == null ? 'Add' : 'Apply'),
+          ),
+        ],
+      ),
+    );
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      title.dispose();
+      text.dispose();
+    });
+    if (result == null || !mounted) return;
+    setState(() {
+      if (index == null) {
+        _sections.add(result);
+      } else {
+        _sections[index] = result;
+      }
+    });
+    _notify();
+  }
+
+  Future<void> _remove(int index) async {
+    final remove =
+        await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Remove Insight section?'),
+            content: Text(
+              'Remove “${_sections[index].title}”? This takes effect when the Guidebook is saved.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('Keep'),
+              ),
+              FilledButton(
+                key: const Key('guidebook-insight-remove-confirm'),
+                onPressed: () => Navigator.pop(context, true),
+                child: const Text('Remove'),
+              ),
+            ],
+          ),
+        ) ??
+        false;
+    if (!remove || !mounted) return;
+    setState(() => _sections.removeAt(index));
+    _notify();
+  }
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+    appBar: AppBar(title: const Text('Insights')),
+    body: _sections.isEmpty
+        ? const Center(child: Text('No Insight sections yet.'))
+        : ReorderableListView.builder(
+            padding: const EdgeInsets.all(16),
+            itemCount: _sections.length,
+            onReorderItem: (oldIndex, newIndex) {
+              setState(() {
+                final section = _sections.removeAt(oldIndex);
+                _sections.insert(newIndex, section);
+              });
+              _notify();
+            },
+            itemBuilder: (context, index) {
+              final section = _sections[index];
+              return Card(
+                key: ValueKey('guidebook-insight-section-$index'),
+                child: ListTile(
+                  title: Text(section.title),
+                  subtitle: Text(
+                    section.text,
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  onTap: () => _edit(index: index),
+                  trailing: IconButton(
+                    tooltip: 'Remove Insight section',
+                    onPressed: () => _remove(index),
+                    icon: const Icon(Icons.delete_outline),
+                  ),
+                ),
+              );
+            },
+          ),
+    floatingActionButton: FloatingActionButton.extended(
+      key: const Key('guidebook-add-insight'),
+      onPressed: _edit,
+      icon: const Icon(Icons.add),
+      label: const Text('Add section'),
     ),
   );
 }
@@ -3213,7 +3388,6 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
                                   height: 64,
                                   child: option == null
                                       ? LessonFallbackIcon(
-                                          style: _course.defaultLessonIconStyle,
                                           number: _lessonNumber,
                                           size: 54,
                                         )
@@ -3515,7 +3689,6 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
                 child: _themeIconAsset == null
                     ? LessonFallbackIcon(
                         key: const Key('lesson-theme-icon-fallback-preview'),
-                        style: _course.defaultLessonIconStyle,
                         number: _lessonNumber,
                         size: 52,
                       )
@@ -4102,68 +4275,21 @@ class _LessonRoundsScreenState extends State<LessonRoundsScreen> {
   }
 
   LearningRound _blankRound(String title) {
-    final stamp = DateTime.now().microsecondsSinceEpoch;
     final updatedAt = _clock();
-    final exercises = <Exercise>[
-      Exercise(
-        id: 'custom_ex_${stamp}_1',
-        publicationState: PublicationState.draft,
-        updatedAt: updatedAt,
-        type: 'choice',
-        prompt: 'Replace this question.',
-        question: '',
-        answers: const ['Correct answer', 'Distractor A', 'Distractor B'],
-        correct: 0,
-        tts: null,
-        accepted: const [],
-        tokens: const [],
-        orderAnswer: const [],
-        pairs: const [],
-        hint: '',
-        icons: const [],
-      ),
-      Exercise(
-        id: 'custom_ex_${stamp}_2',
-        publicationState: PublicationState.draft,
-        updatedAt: updatedAt,
-        type: 'fill_blank',
-        prompt: '',
-        question: 'Replace this prompt.',
-        answers: const [],
-        correct: null,
-        tts: null,
-        accepted: const ['answer'],
-        tokens: const [],
-        orderAnswer: const [],
-        pairs: const [],
-        hint: '',
-        icons: const [],
-      ),
-      Exercise(
-        id: 'custom_ex_${stamp}_3',
-        publicationState: PublicationState.draft,
-        updatedAt: updatedAt,
-        type: 'word_order',
-        prompt: 'Build the sentence.',
-        question: '',
-        answers: const [],
-        correct: null,
-        tts: null,
-        accepted: const [],
-        tokens: const ['Edit', 'this', 'exercise'],
-        orderAnswer: const ['Edit', 'this', 'exercise'],
-        pairs: const [],
-        hint: '',
-        icons: const [],
-      ),
-    ];
     return LearningRound(
-      id: 'custom_round_$stamp',
+      id: _ids.next('round'),
       publicationState: PublicationState.draft,
       provisionalDraft: true,
       updatedAt: updatedAt,
       title: title,
-      exercises: exercises,
+      content: [
+        NewCourseStructure.sampleExercise(
+          _ids,
+          sourceLanguage: _course.sourceLanguage,
+          learningLanguage: _course.learningLanguage,
+          updatedAt: updatedAt,
+        ),
+      ],
     );
   }
 
@@ -6778,7 +6904,8 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
             _question,
             'Target-language sentence with one gap',
             lines: 3,
-            helper: 'Use ___ (3 underscores)',
+            helper:
+                'Use ___ (3 underscores) for the missing word. Example: The cat ___ black.',
           ),
           _field(
             _answers,

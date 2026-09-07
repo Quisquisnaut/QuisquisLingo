@@ -254,11 +254,9 @@ void main() {
       await tester.tap(find.byKey(const Key('lesson-guidebook-navigation')));
       await tester.pumpAndSettle();
       await tester.enterText(_field('Overview'), 'Learn a first greeting.');
-      await tester.enterText(_field('Goals'), 'Recognize and translate hello.');
+      await tester.enterText(_field('Usage examples'), 'Ciao, Anna!');
       await tester.enterText(_field('Vocabulary'), 'ciao = hello');
       await tester.enterText(_field('Grammar'), 'Ciao is a greeting.');
-      await tester.enterText(_field('Useful expressions'), 'Ciao!');
-      await tester.enterText(_field('Examples'), 'Ciao, Anna!');
       final guidebookSave = find.byKey(const Key('guidebook-save'));
       await tester.scrollUntilVisible(
         guidebookSave,

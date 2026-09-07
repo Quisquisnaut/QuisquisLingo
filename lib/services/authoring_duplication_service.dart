@@ -214,6 +214,7 @@ class AuthoringDuplicationService {
             ).reference,
       guidebook: Guidebook(
         publicationState: PublicationState.draft,
+        insights: source.guidebook.insights,
         content: [
           for (final content in source.guidebook.content)
             _copyContent(content, remap),

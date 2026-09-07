@@ -54,7 +54,7 @@ class CustomCourseTransferService {
     final file = File(path);
     if (!await file.exists()) {
       throw FormatException(
-        'No import.json found. Copy the course file to $path, then press Import course JSON again.',
+        'No import.json found. Copy the course file to $path, then press Import Course JSON again.',
       );
     }
     if (await file.length() > maxJsonBytes) {

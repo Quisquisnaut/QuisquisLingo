@@ -29,6 +29,7 @@ class PublicationService {
       );
     }
     return Guidebook(
+      insights: source.insights,
       content: [
         for (final content in source.content)
           if (content.publicationState.isPublished) content,

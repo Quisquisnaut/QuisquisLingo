@@ -34,7 +34,12 @@ void main() {
     final before = await workflow.preferences();
     final saves = <Exercise>[];
     await _open(tester, course, saves: saves, previewOnly: true);
-    expect(find.text('Use ___ (3 underscores)'), findsOneWidget);
+    expect(
+      find.text(
+        'Use ___ (3 underscores) for the missing word. Example: The cat ___ black.',
+      ),
+      findsOneWidget,
+    );
     await _enterHint(tester, _hint);
     await workflow.tapKey(tester, 'exercise-preview');
     final runtime = tester.widget<RoundScreen>(find.byType(RoundScreen));

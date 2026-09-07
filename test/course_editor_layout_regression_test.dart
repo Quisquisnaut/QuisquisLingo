@@ -83,6 +83,26 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('Course Manager'), findsOneWidget);
       expect(find.text('Course Editor'), findsNothing);
+      expect(find.text('Course Import'), findsOneWidget);
+      expect(find.text('Import instructions'), findsNothing);
+      expect(find.text('Import course JSON'), findsNothing);
+
+      await tester.tap(find.byKey(const Key('course-import-entry')));
+      await tester.pumpAndSettle();
+      expect(find.byType(CourseImportScreen), findsOneWidget);
+      expect(find.text('Course Import'), findsOneWidget);
+      expect(
+        find.widgetWithText(FilledButton, 'Import Course JSON'),
+        findsOneWidget,
+      );
+      expect(find.text('Import instructions'), findsOneWidget);
+      expect(
+        find.textContaining('Documents/QuisquisLingo/Imports/import.json'),
+        findsOneWidget,
+      );
+      expect(find.textContaining('/Exports/'), findsNothing);
+      await tester.tap(find.byType(BackButton));
+      await tester.pumpAndSettle();
 
       await tester.tap(find.widgetWithText(FilledButton, 'Create new course'));
       await tester.pumpAndSettle();

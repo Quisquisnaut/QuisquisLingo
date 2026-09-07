@@ -56,7 +56,12 @@ class NewCourseStructure {
                 updatedAt: updatedAt,
                 title: '',
                 content: [
-                  _sampleExercise(generator, source, learning, updatedAt),
+                  sampleExercise(
+                    generator,
+                    sourceLanguage: source,
+                    learningLanguage: learning,
+                    updatedAt: updatedAt,
+                  ),
                 ],
               ),
           ],
@@ -64,12 +69,14 @@ class NewCourseStructure {
     ];
   }
 
-  static LearningContent _sampleExercise(
-    AuthoringIdGenerator ids,
-    String sourceLanguage,
-    String learningLanguage,
-    DateTime updatedAt,
-  ) {
+  /// Creates the shared Draft authoring example used by new Courses and by
+  /// manually created Rounds.
+  static LearningContent sampleExercise(
+    AuthoringIdGenerator ids, {
+    required String sourceLanguage,
+    required String learningLanguage,
+    required DateTime updatedAt,
+  }) {
     final exerciseId = ids.next('exercise');
     final correctId = ids.next('item');
     final distractorId = ids.next('item');

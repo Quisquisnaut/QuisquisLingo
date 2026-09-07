@@ -22,7 +22,7 @@ void main() {
 
     for (final persisted in ['monochrome', 'coloredLessonNumbers']) {
       testWidgets(
-        '$persisted preserves its number-circle rendering in ${mode.name}',
+        '$persisted loads as the one theme-colored circle in ${mode.name}',
         (tester) async {
           final course = _reload(_course(persisted));
           expect(course.toJson()['defaultLessonIconStyle'], persisted);
@@ -51,42 +51,17 @@ void main() {
             find.descendant(of: fallback, matching: find.text('1')),
           );
 
-          if (persisted == 'monochrome') {
-            expect(
-              tester
-                  .widget<CircleAvatar>(find.byType(CircleAvatar))
-                  .backgroundColor,
-              theme.colorScheme.primaryContainer,
-            );
-            expect(number.style!.color, theme.colorScheme.onPrimaryContainer);
-            expect(
-              find.descendant(of: fallback, matching: find.byType(ClipOval)),
-              findsNothing,
-            );
-          } else {
-            expect(find.byType(CircleAvatar), findsNothing);
-            expect(
-              find.descendant(of: fallback, matching: find.byType(ClipOval)),
-              findsOneWidget,
-            );
-            expect(number.style!.color, Colors.white);
-            expect(
-              tester
-                  .widgetList<ColoredBox>(
-                    find.descendant(
-                      of: fallback,
-                      matching: find.byType(ColoredBox),
-                    ),
-                  )
-                  .map((box) => box.color),
-              const [
-                Color(0xFF2F6F8F),
-                Color(0xFF7A5C99),
-                Color(0xFF2F7D68),
-                Color(0xFF9A5D35),
-              ],
-            );
-          }
+          expect(
+            tester
+                .widget<CircleAvatar>(find.byType(CircleAvatar))
+                .backgroundColor,
+            theme.colorScheme.primaryContainer,
+          );
+          expect(number.style!.color, theme.colorScheme.onPrimaryContainer);
+          expect(
+            find.descendant(of: fallback, matching: find.byType(ClipOval)),
+            findsNothing,
+          );
           expect(tester.takeException(), isNull);
         },
       );

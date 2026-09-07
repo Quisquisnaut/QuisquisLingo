@@ -66,6 +66,14 @@ void main() {
             reason: 'The unavailable Duel must not leave its 24px connector.',
           );
           expect(find.textContaining('suitable exercises'), findsNothing);
+          if (visible) {
+            expect(find.text('Final Duel'), findsOneWidget);
+            expect(
+              find.byTooltip('Final challenge for the last Lesson.'),
+              findsOneWidget,
+            );
+            expect(find.textContaining('skip ahead'), findsNothing);
+          }
           expect(tester.takeException(), isNull);
         },
       );

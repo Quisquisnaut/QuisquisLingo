@@ -9,7 +9,6 @@ import 'package:quisquislingo_app/models/course_models.dart';
 import 'package:quisquislingo_app/screens/course_editor_screen.dart';
 import 'package:quisquislingo_app/services/course_audit_service.dart';
 import 'package:quisquislingo_app/services/lesson_icon_catalog.dart';
-import 'package:quisquislingo_app/widgets/lesson_fallback_icon.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 Finder _sectionPicker() => find.byWidgetPredicate(
@@ -575,7 +574,7 @@ void main() {
   );
 
   testWidgets(
-    'Lessons owns the live fallback number preview and preserves its selection',
+    'Lessons removes fallback choice while legacy values still round trip',
     (tester) async {
       await tester.binding.setSurfaceSize(const Size(480, 900));
       addTearDown(() => tester.binding.setSurfaceSize(null));
@@ -615,60 +614,13 @@ void main() {
             .isSelected,
         isFalse,
       );
+      expect(find.text('Fallback lesson number icons'), findsNothing);
+      expect(find.text('Theme-colored circle'), findsNothing);
+      expect(find.text('Four-color circle'), findsNothing);
       expect(
-        find.byKey(const Key('lesson-fallback-theme-colored-preview')),
-        findsOneWidget,
-      );
-      expect(find.text('Fallback lesson number icons'), findsOneWidget);
-      expect(find.text('Theme-colored circle'), findsOneWidget);
-      final monochromeAvatar = tester.widget<CircleAvatar>(
-        find.descendant(
-          of: find.byKey(const Key('lesson-fallback-theme-colored-preview')),
-          matching: find.byType(CircleAvatar),
-        ),
-      );
-      expect(
-        monochromeAvatar.backgroundColor,
-        Theme.of(
-          tester.element(find.byKey(const Key('lesson-appearance-settings'))),
-        ).colorScheme.primaryContainer,
-      );
-      expect(
-        find.byKey(const Key('lesson-fallback-four-color-preview')),
+        find.byKey(const Key('lesson-fallback-number-style')),
         findsNothing,
       );
-      await tester.ensureVisible(
-        find.byKey(const Key('lesson-fallback-number-style')),
-      );
-      await tester.pumpAndSettle();
-      final styleDropdown = find.descendant(
-        of: find.byKey(const Key('lesson-fallback-number-style')),
-        matching: find.byType(DropdownButton<LessonFallbackIconStyle>),
-      );
-      expect(
-        tester
-            .widget<DropdownButton<LessonFallbackIconStyle>>(styleDropdown)
-            .onChanged,
-        isNotNull,
-      );
-      await tester.tap(styleDropdown);
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Four-color circle').hitTestable());
-      await tester.pumpAndSettle();
-      expect(
-        find.byKey(const Key('lesson-fallback-four-color-preview')),
-        findsOneWidget,
-      );
-      final coloredBoxes = tester
-          .widgetList<ColoredBox>(
-            find.descendant(
-              of: find.byKey(const Key('lesson-fallback-four-color-preview')),
-              matching: find.byType(ColoredBox),
-            ),
-          )
-          .map((box) => box.color)
-          .toSet();
-      expect(coloredBoxes, containsAll(LessonFallbackIcon.originalColors));
       await tester.pageBack();
       await tester.pumpAndSettle();
       expect(find.byType(CourseEditorScreen), findsOneWidget);
@@ -676,14 +628,8 @@ void main() {
         find.byKey(const Key('course-editor-lessons-navigation')),
       );
       await tester.pumpAndSettle();
-      expect(
-        find.byKey(const Key('lesson-fallback-four-color-preview')),
-        findsOneWidget,
-      );
-      expect(
-        find.textContaining('Explicit custom icons do not change'),
-        findsOneWidget,
-      );
+      expect(find.text('Fallback lesson number icons'), findsNothing);
+      expect(find.text('Four-color circle'), findsNothing);
       final saved = Course.fromJson({
         ...course.toJson(),
         'defaultLessonIconStyle': 'coloredLessonNumbers',
