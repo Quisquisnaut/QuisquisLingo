@@ -1,3 +1,10 @@
+# 2.0.27 (Phase 227.01, revision 0) - Learner Panel controls baseline - 2026-09-07
+
+- Audited the actual Flag Background, IDDQD and Theme option sets, defaults, persistence, rendering, live theme propagation and progression boundaries; recorded the parent baseline and regression evidence in `docs/227_01_VALIDATION.md`.
+- Applied the user's explicit Flag Background correction: each learner × Course starts Off and stores Small / Off / Extended independently. This is a clean cut; the previous per-learner shared key is not read, migrated or deleted. Existing rendering and cycle order remain unchanged.
+- Added focused characterization and isolation coverage while preserving Default / Light / Dark Theme, Off / On IDDQD, genuine locks, completion, XP, streaks, Laurels and Course Model v6. Later 227 features remain deferred.
+- Advanced metadata to `2.0.27+227010`, displayed as Version 2.0.27 / Phase 227.01, revision 0. Applied the mandatory new-version 30-day Alpha refresh to `2026-10-07 23:59:59` local time. No staging, commit, push or packaging is part of this phase.
+
 # 2.0.26 (Phase 226.04, revision 2) - Editor navigation and GuideBook UX - 2026-09-07
 
 - Advanced metadata to `2.0.26+226042`; the show-once notice displays `Version 2.0.26` and `Phase 226.04, revision 2`. Alpha expiry remains `2026-10-06 23:59:59` local time.

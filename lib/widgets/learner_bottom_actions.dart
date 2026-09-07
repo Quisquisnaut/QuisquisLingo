@@ -15,6 +15,7 @@ class LearnerBottomActions extends StatefulWidget {
   final bool iddqdEnabled;
   final ValueChanged<bool>? onIddqdChanged;
   final ProfileService? profileService;
+  final String? courseId;
 
   const LearnerBottomActions({
     super.key,
@@ -24,6 +25,7 @@ class LearnerBottomActions extends StatefulWidget {
     this.iddqdEnabled = false,
     this.onIddqdChanged,
     this.profileService,
+    this.courseId,
   });
 
   @override
@@ -36,8 +38,7 @@ class _LearnerBottomActionsState extends State<LearnerBottomActions> {
   String? _learnerName;
   ProfileAvatarAppearance? _appearance;
   LearnerThemeMode _themeMode = LearnerThemeMode.defaultMode;
-  LearnerFlagBackgroundMode _flagBackgroundMode =
-      LearnerFlagBackgroundMode.small;
+  LearnerFlagBackgroundMode _flagBackgroundMode = LearnerFlagBackgroundMode.off;
   int _loadGeneration = 0;
 
   @override
@@ -55,12 +56,20 @@ class _LearnerBottomActionsState extends State<LearnerBottomActions> {
     _load();
   }
 
+  @override
+  void didUpdateWidget(covariant LearnerBottomActions oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.courseId != widget.courseId) {
+      _load();
+    }
+  }
+
   Future<void> _load() async {
     final generation = ++_loadGeneration;
     String? learnerName;
     ProfileAvatarAppearance? appearance;
     var themeMode = LearnerThemeMode.defaultMode;
-    var flagBackgroundMode = LearnerFlagBackgroundMode.small;
+    var flagBackgroundMode = LearnerFlagBackgroundMode.off;
     try {
       final active = await _profiles.getActiveProfileRecord();
       final fallbackName = active == null
@@ -73,7 +82,10 @@ class _LearnerBottomActionsState extends State<LearnerBottomActions> {
           active?.learnerProfileId ?? cleanName,
         );
         themeMode = await _profiles.getThemeMode();
-        flagBackgroundMode = await _profiles.getFlagBackgroundMode();
+        final courseId = widget.courseId?.trim() ?? '';
+        if (courseId.isNotEmpty) {
+          flagBackgroundMode = await _profiles.getFlagBackgroundMode(courseId);
+        }
       }
     } catch (_) {
       // Presentation falls through to the best information that was readable.
@@ -104,16 +116,17 @@ class _LearnerBottomActionsState extends State<LearnerBottomActions> {
   }
 
   Future<void> _cycleFlagBackgroundMode() async {
-    if (_learnerName == null) {
-      if (_flagBackgroundMode != LearnerFlagBackgroundMode.small) {
-        setState(() => _flagBackgroundMode = LearnerFlagBackgroundMode.small);
+    final courseId = widget.courseId?.trim() ?? '';
+    if (_learnerName == null || courseId.isEmpty) {
+      if (_flagBackgroundMode != LearnerFlagBackgroundMode.off) {
+        setState(() => _flagBackgroundMode = LearnerFlagBackgroundMode.off);
       }
       return;
     }
     final nextMode = _flagBackgroundMode.next;
     setState(() => _flagBackgroundMode = nextMode);
     try {
-      await _profiles.setFlagBackgroundMode(nextMode);
+      await _profiles.setFlagBackgroundMode(courseId, nextMode);
     } catch (_) {
       await _load();
     }

@@ -3,48 +3,48 @@ import 'package:quisquislingo_app/services/alpha_lifecycle_service.dart';
 
 void main() {
   test(
-    'build 226.04 keeps the existing expiry inclusive through the expiry day',
+    'build 227.01 refreshes the 30-day expiry and includes the expiry day',
     () {
-      expect(AlphaLifecycleService.expiryIsoDate, '2026-10-06');
-      expect(AlphaLifecycleService.daysRemaining(DateTime(2026, 9, 6)), 30);
+      expect(AlphaLifecycleService.expiryIsoDate, '2026-10-07');
+      expect(AlphaLifecycleService.daysRemaining(DateTime(2026, 9, 7)), 30);
       expect(
-        AlphaLifecycleService.isExpired(DateTime(2026, 10, 6, 12)),
+        AlphaLifecycleService.isExpired(DateTime(2026, 10, 7, 12)),
         isFalse,
       );
-      expect(AlphaLifecycleService.isExpired(DateTime(2026, 10, 7)), isTrue);
+      expect(AlphaLifecycleService.isExpired(DateTime(2026, 10, 8)), isTrue);
     },
   );
 
   test('warning milestones are stable', () {
-    expect(AlphaLifecycleService.warningStage(DateTime(2026, 9, 29)), 7);
-    expect(AlphaLifecycleService.warningStage(DateTime(2026, 10, 3)), 3);
-    expect(AlphaLifecycleService.warningStage(DateTime(2026, 10, 5)), 1);
-    expect(AlphaLifecycleService.warningStage(DateTime(2026, 10, 6)), 0);
+    expect(AlphaLifecycleService.warningStage(DateTime(2026, 9, 30)), 7);
+    expect(AlphaLifecycleService.warningStage(DateTime(2026, 10, 4)), 3);
+    expect(AlphaLifecycleService.warningStage(DateTime(2026, 10, 6)), 1);
+    expect(AlphaLifecycleService.warningStage(DateTime(2026, 10, 7)), 0);
   });
 
   test('warning stages use next stricter milestone after skipped days', () {
     expect(
-      AlphaLifecycleService.warningStage(DateTime(2026, 9, 28)),
+      AlphaLifecycleService.warningStage(DateTime(2026, 9, 29)),
       null,
     ); // 8 days
     expect(
-      AlphaLifecycleService.warningStage(DateTime(2026, 9, 30)),
+      AlphaLifecycleService.warningStage(DateTime(2026, 10, 1)),
       7,
     ); // 6 days
     expect(
-      AlphaLifecycleService.warningStage(DateTime(2026, 10, 1)),
+      AlphaLifecycleService.warningStage(DateTime(2026, 10, 2)),
       7,
     ); // 5 days
     expect(
-      AlphaLifecycleService.warningStage(DateTime(2026, 10, 2)),
+      AlphaLifecycleService.warningStage(DateTime(2026, 10, 3)),
       7,
     ); // 4 days
     expect(
-      AlphaLifecycleService.warningStage(DateTime(2026, 10, 4)),
+      AlphaLifecycleService.warningStage(DateTime(2026, 10, 5)),
       3,
     ); // 2 days
     expect(
-      AlphaLifecycleService.warningStage(DateTime(2026, 10, 7)),
+      AlphaLifecycleService.warningStage(DateTime(2026, 10, 8)),
       null,
     ); // expired
   });

@@ -347,7 +347,7 @@ An author can have multiple roles. Course Creator means original creation/design
 
 ## Alpha expiry and authoring
 
-The current time-limited alpha keeps the existing expiry of 2026-10-06. Expiry blocks learner exercises and Review but deliberately leaves Course Manager and Course Editor available so authoring work can be inspected, recovered and exported. Expiry never deletes local data.
+The current time-limited alpha expires on 2026-10-07 under the established 30-day release policy. Expiry blocks learner exercises and Review but deliberately leaves Course Manager and Course Editor available so authoring work can be inspected, recovered and exported. Expiry never deletes local data.
 
 
 ## Bundled official and local courses

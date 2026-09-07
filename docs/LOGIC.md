@@ -10,10 +10,12 @@ LEARNER PROFILE
 |    +-- completed Rounds / Lessons / Duel wins
 |    +-- permanent Laurel crowns
 |    +-- up to 50 distinct Review Round results
+|    +-- Flag Background (initially Off) / IDDQD (initially Off)
 |
 +-- learner-global Weekly XP and weekly-goal celebration state
 |
 +-- avatar appearance (shared across languages)
++-- Theme (Default / Light / Dark, initially Default; shared across Courses)
 ```
 
 ```text
@@ -38,6 +40,8 @@ COURSE
 ```
 
 The first Lesson is genuinely unlocked. Learners may open its Rounds freely. IDDQD Mode grants temporary access to genuinely locked Lessons without changing their lock state or the progress recorded while they are open.
+
+Phase 227.01 establishes the [Learner Panel controls baseline](227_01_VALIDATION.md). Flag Background uses a clean cut to opaque learner ID × immutable Course ID storage, initialized Off; old shared values are left untouched and unread. Small / Off / Extended rendering is preserved. Theme remains learner-scoped with Default following live system brightness. Changing these visual controls or toggling IDDQD does not award XP, complete content or alter genuine unlock state; actual study while IDDQD is On still records normal progress and rewards.
 
 ## Review priority
 

@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:math';
 
+import 'package:crypto/crypto.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'learner_status_events.dart';
@@ -46,7 +47,7 @@ enum LearnerFlagBackgroundMode {
   static LearnerFlagBackgroundMode fromStorage(String? value) =>
       values.firstWhere(
         (mode) => mode.storageValue == value,
-        orElse: () => LearnerFlagBackgroundMode.small,
+        orElse: () => LearnerFlagBackgroundMode.off,
       );
 }
 
@@ -402,33 +403,47 @@ class ProfileService {
     LearnerStatusEvents.publish(LearnerStatusInvalidation.theme);
   }
 
-  Future<LearnerFlagBackgroundMode> getFlagBackgroundMode() async {
+  Future<LearnerFlagBackgroundMode> getFlagBackgroundMode(
+    String courseId,
+  ) async {
     final activeId = await getActiveProfileId();
-    if (activeId == null) return LearnerFlagBackgroundMode.small;
-    return getFlagBackgroundModeForProfile(activeId);
+    if (activeId == null) return LearnerFlagBackgroundMode.off;
+    return getFlagBackgroundModeForProfile(activeId, courseId);
   }
 
   Future<LearnerFlagBackgroundMode> getFlagBackgroundModeForProfile(
     String idOrDisplayName,
+    String courseId,
   ) async {
     final profile = await _resolveProfile(idOrDisplayName);
-    if (profile == null) return LearnerFlagBackgroundMode.small;
+    if (profile == null) return LearnerFlagBackgroundMode.off;
     final prefs = await SharedPreferences.getInstance();
     return LearnerFlagBackgroundMode.fromStorage(
       prefs.getString(
-        keyForProfileId(profile.learnerProfileId, 'flag_background_mode'),
+        keyForProfileId(
+          profile.learnerProfileId,
+          _flagBackgroundKeyBase(courseId),
+        ),
       ),
     );
   }
 
-  Future<void> setFlagBackgroundMode(LearnerFlagBackgroundMode mode) async {
+  Future<void> setFlagBackgroundMode(
+    String courseId,
+    LearnerFlagBackgroundMode mode,
+  ) async {
     final activeId = await getActiveProfileId();
     if (activeId == null) return;
     await (await SharedPreferences.getInstance()).setString(
-      keyForProfileId(activeId, 'flag_background_mode'),
+      keyForProfileId(activeId, _flagBackgroundKeyBase(courseId)),
       mode.storageValue,
     );
     LearnerStatusEvents.publish(LearnerStatusInvalidation.flagBackground);
+  }
+
+  static String _flagBackgroundKeyBase(String courseId) {
+    final digest = sha256.convert(utf8.encode(courseId.trim()));
+    return 'flag_background_mode_course_$digest';
   }
 
   Future<String> getSkinTone() async {

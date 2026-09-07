@@ -12,6 +12,7 @@ import 'package:quisquislingo_app/services/profile_service.dart';
 import 'package:quisquislingo_app/services/progress_service.dart';
 import 'package:quisquislingo_app/services/settings_service.dart';
 import 'package:quisquislingo_app/widgets/flag_art.dart';
+import 'package:quisquislingo_app/widgets/unified_learner_top_bar.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
@@ -104,21 +105,18 @@ void main() {
       await tester.tap(koreanTile);
       await _pumpIo(tester, frames: 30);
       expect(find.byType(BottomSheet), findsNothing);
-      final backdrop = tester.widget<CourseFlagBackdrop>(
-        find.byKey(const Key('unified-learner-flag-background')),
+      final topBar = tester.widget<UnifiedLearnerTopBar>(
+        find.byType(UnifiedLearnerTopBar),
       );
-      expect(backdrop.course.courseId, 'sample_ko_en_ko');
-      expect(
-        backdrop.course.title,
-        'AI-Slop Demo: Korean for English Speakers',
-      );
-      expect(backdrop.course.sourceLanguage, 'English');
-      expect(backdrop.course.targetLanguage, 'Korean');
-      expect(backdrop.course.flagCode, 'KR');
-      expect(backdrop.course.ttsLanguage, 'ko-KR');
-      expect(backdrop.course.lessons, hasLength(9));
+      expect(topBar.course.courseId, 'sample_ko_en_ko');
+      expect(topBar.course.title, 'AI-Slop Demo: Korean for English Speakers');
+      expect(topBar.course.sourceLanguage, 'English');
+      expect(topBar.course.targetLanguage, 'Korean');
+      expect(topBar.course.flagCode, 'KR');
+      expect(topBar.course.ttsLanguage, 'ko-KR');
+      expect(topBar.course.lessons, hasLength(9));
 
-      final firstLesson = backdrop.course.lessons.first;
+      final firstLesson = topBar.course.lessons.first;
       final firstRound = firstLesson.rounds.first;
       final roundCard = find.byKey(ValueKey('unified-round-${firstRound.id}'));
       await tester.ensureVisible(roundCard);
@@ -148,10 +146,10 @@ void main() {
       await tester.pumpWidget(const SizedBox.shrink());
       await _pumpIo(tester, frames: 4);
       await _openHome(tester);
-      final restartedBackdrop = tester.widget<CourseFlagBackdrop>(
-        find.byKey(const Key('unified-learner-flag-background')),
+      final restartedTopBar = tester.widget<UnifiedLearnerTopBar>(
+        find.byType(UnifiedLearnerTopBar),
       );
-      expect(restartedBackdrop.course.courseId, 'sample_ko_en_ko');
+      expect(restartedTopBar.course.courseId, 'sample_ko_en_ko');
       await _openCoursePicker(tester);
       _expectNineBundledTiles();
       expect(find.byKey(const ValueKey('bundled-course-KO')), findsOneWidget);
@@ -277,10 +275,7 @@ Future<void> _openHome(WidgetTester tester, {double width = 1200}) async {
   final alphaNotice = find.text('Alpha expiry');
   await _pumpUntilWithIo(tester, alphaNotice);
   await tester.tap(find.widgetWithText(FilledButton, 'OK'));
-  await _pumpUntilWithIo(
-    tester,
-    find.byKey(const Key('unified-learner-flag-background')),
-  );
+  await _pumpUntilWithIo(tester, find.byType(UnifiedLearnerTopBar));
 }
 
 Future<void> _expectCourseTile(

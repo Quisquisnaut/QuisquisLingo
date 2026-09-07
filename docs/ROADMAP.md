@@ -4,6 +4,14 @@ This roadmap describes planned work after build 204.
 
 Version numbers are provisional. If a task requires more than one build, later items may move forward rather than being compressed into an unsafe release.
 
+## Current 227 boundary: Phase 227.01
+
+`2.0.27+227010` (revision 0) establishes the Learner Panel controls implementation and characterization baseline. The parent is `259160354b2d3d20da664551969697358127d93e`; the detailed contract and validation live in [227.01 baseline](227_01_VALIDATION.md).
+
+The user's explicit addition permits one behavior correction: Flag Background is per learner × Course, initialized Off through a clean cut with no old shared-value fallback or migration. Small / Off / Extended rendering stays intact. Theme is currently **Default / Light / Dark**, not Auto / Light / Dark; Default follows system brightness live. IDDQD is currently **Off / On**, with no View Only enum. The existing three-tap session preview is separate.
+
+227.02–227.04 feature work has not begun: Tinted, Soft Inspired, new IDDQD behavior or communication, Theme renaming, Day/Night, Settings reorganization, Study Day/Stats and later audio/log work remain outside this phase. Current implementation and persistence evidence take precedence over assumptions about future options.
+
 ## General principles
 
 For every planned version:

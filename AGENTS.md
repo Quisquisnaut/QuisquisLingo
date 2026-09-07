@@ -47,6 +47,7 @@ These are persistent instructions for Codex when working on QuisquisLingo.
 - `2.0.26+226030` is Phase 226.03 revision 0: authoritative 128-variant answer expansion and independent materialization, deterministic similarity-ranked translation feedback, Unicode-first-grapheme Type the missing word, and portable Image to text/Text to image Recognize characters on the existing Input/Select models. Course Model v6 and existing normalization/correctness remain unchanged. Alpha expiry remains `2026-10-06 23:59:59` local time. The known revision-4 Lock-row and GuideBook-ID omissions remain outside this tranche; 226.04, Custom Exercise Templates, future GuideBook work and Napoletano remain deferred.
 - `2.0.26+226040` is Phase 226.04 revision 0: one-time new-course Lesson/Round scaffolding, reusable Section names, consistent Lesson naming, optional Duel and GuideBook paths, authoritative World Flags selection, the upper Lessons Lock icon and passive GuideBook Internal IDs. Course Model remains v6 with explicit backward-compatible defaults; the Audit registry remains at 103 rules. Alpha expiry remains `2026-10-06 23:59:59` local time. Custom Exercise Templates, Napoletano, future GuideBook content and release 227 remain deferred.
 - `2.0.26+226042` is Phase 226.04 revision 2: one theme-colored fallback Lesson-number icon, dedicated Course Import navigation and learner-selector Editor actions, shared single-sample Round scaffolding, Final Duel presentation, ordered optional GuideBook Insights, emphasized Publish actions and explicit locked-Lesson guidance. Course Model remains v6 and the Audit Registry remains at 102 rules.
+- `2.0.27+227010` is Phase 227.01 revision 0: Learner Panel controls audit and characterization, plus the explicitly requested clean cut to per-learner × Course Flag Background initialized Off. Old shared Flag Background values remain untouched and unread. Small / Off / Extended rendering, Default / Light / Dark Theme, Off / On IDDQD, progression and Course Model v6 remain preserved. The new-version 30-day Alpha expiry is `2026-10-07 23:59:59` local time. Later 227 features remain deferred; see `docs/227_01_VALIDATION.md`.
 - Do not read, apply, migrate or automatically convert Build 225 official local overrides. Leave stored remnants untouched. Official history contains publisher sources only. Only custom courses enter authoring transactions; an explicit `derivativeWorksPolicy: allowed` is required to fork an official course. Ordinary custom courses retain Course Model v6 storage and version behavior.
 
 ## Architecture and service boundaries
@@ -272,6 +273,8 @@ When a new XP system is explicitly introduced, update this section to describe t
 - Do not change content-generation rules unless explicitly requested.
 
 ## Settings invariants
+
+- Learner Flag Background is per opaque learner ID × immutable Course ID, initialized Off. Preserve the clean cut: do not read, migrate or convert the old shared per-learner value. IDDQD remains per learner × Course, initialized Off. Theme remains per learner across Courses, initialized Default.
 
 - Keep the switch label exactly:
   `IDDQD Mode (you can walk through locks)`

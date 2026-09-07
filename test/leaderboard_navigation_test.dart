@@ -27,7 +27,7 @@ import 'package:quisquislingo_app/widgets/flag_art.dart';
 import 'package:quisquislingo_app/widgets/learner_bottom_actions.dart';
 import 'package:quisquislingo_app/widgets/learner_navigation.dart';
 import 'package:quisquislingo_app/widgets/learner_shell.dart';
-import 'package:quisquislingo_app/widgets/learner_theme_mode_scope.dart';
+import 'package:quisquislingo_app/widgets/unified_learner_top_bar.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
@@ -74,7 +74,7 @@ void main() {
       buildSignature: '',
     );
     SharedPreferences.setMockInitialValues({
-      'one_time_notice_seen_welcome_2.0.26+226042': true,
+      'one_time_notice_seen_welcome_2.0.27+227010': true,
       'sound_effects_enabled': false,
     });
     await ProfileService().addProfile('Navigation Learner');
@@ -2156,7 +2156,7 @@ void main() {
     (tester) async {
       final dispatcher = tester.binding.platformDispatcher;
       addTearDown(dispatcher.clearPlatformBrightnessTestValue);
-      await _loadItalianCourse(tester);
+      final course = await _loadItalianCourse(tester);
 
       var firstLaunch = true;
       for (final brightness in Brightness.values) {
@@ -2167,6 +2167,7 @@ void main() {
             scrollToActions: false,
             expectAlphaNotice: firstLaunch,
             flagBackgroundMode: mode,
+            flagBackgroundCourseId: course.courseId,
           );
           firstLaunch = false;
 
@@ -2218,11 +2219,20 @@ void main() {
     },
   );
 
-  testWidgets('selected course changes the learner flag background', (
+  testWidgets('selected course restores its learner-scoped flag background', (
     tester,
   ) async {
     final italianCourse = await _loadItalianCourse(tester);
     final germanCourse = await _loadCourse(tester, 'DE');
+    final profiles = ProfileService();
+    await profiles.setFlagBackgroundMode(
+      italianCourse.courseId,
+      LearnerFlagBackgroundMode.small,
+    );
+    await profiles.setFlagBackgroundMode(
+      germanCourse.courseId,
+      LearnerFlagBackgroundMode.off,
+    );
     await _openHome(tester, scrollToActions: false);
 
     var background = tester.widget<CourseFlagBackdrop>(
@@ -2230,6 +2240,26 @@ void main() {
     );
     expect(background.course.courseId, italianCourse.courseId);
     expect(background.fallbackCode, 'IT');
+    expect(find.byTooltip('Flag background: Small'), findsOneWidget);
+
+    Future<void> chooseCourse(String code) async {
+      await tester.tap(find.byKey(const Key('unified-topbar-course-selector')));
+      await _pumpUntilWithIo(
+        tester,
+        find.text('Choose course'),
+        failureMessage: 'Timed out loading the course picker.',
+      );
+      await tester.tap(find.byKey(ValueKey('bundled-course-$code')));
+      final expectedCourseId = code == 'IT'
+          ? italianCourse.courseId
+          : germanCourse.courseId;
+      await _pumpUntilWithIo(
+        tester,
+        _courseInTopBar(expectedCourseId),
+        failureMessage: 'Timed out switching the learner course to $code.',
+      );
+      expect(find.byType(BottomSheet), findsNothing);
+    }
 
     await tester.tap(find.byKey(const Key('unified-topbar-course-selector')));
     await _pumpUntilWithIo(
@@ -2249,17 +2279,18 @@ void main() {
     expect(find.text('All included courses'), findsOneWidget);
     expect(find.text(italianCourse.title), findsWidgets);
     await tester.tap(find.byKey(const ValueKey('bundled-course-DE')));
-    await tester.runAsync(
-      () => Future<void>.delayed(const Duration(milliseconds: 300)),
+    await _pumpUntilWithIo(
+      tester,
+      find.byTooltip('Flag background: Off'),
+      failureMessage: 'Timed out restoring the German flag preference.',
     );
-    await _pumpFrames(tester, count: 20);
     expect(find.byType(BottomSheet), findsNothing);
-
-    background = tester.widget<CourseFlagBackdrop>(
+    expect(_activeCourse(tester).courseId, germanCourse.courseId);
+    expect(
       find.byKey(const Key('unified-learner-flag-background')),
+      findsNothing,
     );
-    expect(background.course.courseId, germanCourse.courseId);
-    expect(background.fallbackCode, 'DE');
+    expect(find.byTooltip('Flag background: Off'), findsOneWidget);
     final compactFlag = tester.widget<CourseFlagBadge>(
       find.descendant(
         of: find.byKey(const Key('unified-topbar-course-selector')),
@@ -2268,15 +2299,40 @@ void main() {
     );
     expect(compactFlag.course.courseId, germanCourse.courseId);
     expect(compactFlag.fallbackCode, 'DE');
+
+    await chooseCourse('IT');
+    await _pumpUntilWithIo(
+      tester,
+      find.byTooltip('Flag background: Small'),
+      failureMessage: 'Timed out restoring the Italian flag preference.',
+    );
+    background = tester.widget<CourseFlagBackdrop>(
+      find.byKey(const Key('unified-learner-flag-background')),
+    );
+    expect(background.course.courseId, italianCourse.courseId);
+    expect(find.byTooltip('Flag background: Small'), findsOneWidget);
+    expect(
+      await profiles.getFlagBackgroundMode(italianCourse.courseId),
+      LearnerFlagBackgroundMode.small,
+    );
+    expect(
+      await profiles.getFlagBackgroundMode(germanCourse.courseId),
+      LearnerFlagBackgroundMode.off,
+    );
   });
 
   testWidgets(
     'course selector ends with stable Editor actions without changing selection',
     (tester) async {
       await _openHome(tester, scrollToActions: false);
+      await _pumpUntilWithIo(
+        tester,
+        find.byType(UnifiedLearnerTopBar),
+        failureMessage: 'Timed out loading the current Course in the top bar.',
+      );
       final settings = SettingsService();
       final selectedBefore = await settings.getLastSelectedCourseCode();
-      final selectedCourseId = _activeBackdrop(tester).course.courseId;
+      final selectedCourseId = _activeCourse(tester).courseId;
 
       Future<void> openSelectorAndRevealActions() async {
         await tester.tap(
@@ -2408,8 +2464,8 @@ void main() {
       final phrase = dialogTexts.singleWhere(
         (text) =>
             text.data != 'Welcome to QuisquisLingo' &&
-            text.data != 'Version 2.0.26' &&
-            text.data != 'Phase 226.04, revision 2' &&
+            text.data != 'Version 2.0.27' &&
+            text.data != 'Phase 227.01, revision 0' &&
             text.data != 'Continue',
       );
       final welcomeDialog = tester.widget<AlertDialog>(
@@ -2422,15 +2478,15 @@ void main() {
         const Color(0xFF0756DF),
       );
       expect(
-        tester.widget<Text>(find.text('Version 2.0.26')).style?.color,
+        tester.widget<Text>(find.text('Version 2.0.27')).style?.color,
         const Color(0xFF0756DF),
       );
       expect(
-        tester.widget<Text>(find.text('Phase 226.04, revision 2')).style?.color,
+        tester.widget<Text>(find.text('Phase 227.01, revision 0')).style?.color,
         const Color(0xFF0756DF),
       );
       expect(find.textContaining('22621'), findsNothing);
-      expect(find.textContaining('226042'), findsNothing);
+      expect(find.textContaining('227010'), findsNothing);
       expect(phrase.style?.color, const Color(0xFF0756DF));
       expect(find.widgetWithText(FilledButton, 'Continue'), findsOneWidget);
       expect(
@@ -2454,7 +2510,7 @@ void main() {
       final alphaDialog = tester.widget<AlertDialog>(find.byType(AlertDialog));
       expect(alphaDialog.backgroundColor, isNull);
       expect(alphaDialog.surfaceTintColor, isNull);
-      expect(find.textContaining('Expiry date: 2026-10-06.'), findsOneWidget);
+      expect(find.textContaining('Expiry date: 2026-10-07.'), findsOneWidget);
       expect(find.widgetWithText(FilledButton, 'OK'), findsOneWidget);
       expect(
         tester
@@ -2516,8 +2572,8 @@ void main() {
   testWidgets(
     'direct switching and logout chooser restore learner-scoped courses',
     (tester) async {
-      await _loadItalianCourse(tester);
-      await _loadCourse(tester, 'DE');
+      final italianCourse = await _loadItalianCourse(tester);
+      final germanCourse = await _loadCourse(tester, 'DE');
       final profiles = ProfileService();
       final prefs = await SharedPreferences.getInstance();
       final navigationLearnerId = (await profiles.getActiveProfileId())!;
@@ -2539,51 +2595,51 @@ void main() {
       await profiles.setActiveProfile('Navigation Learner');
 
       await _openHome(tester);
-      expect(_activeBackdrop(tester).fallbackCode, 'IT');
+      expect(_activeCourse(tester).courseId, italianCourse.courseId);
 
       await _openLearnerChooserFromHome(tester);
       await _chooseLearner(tester, 'German Learner');
       Navigator.of(tester.element(find.byType(ProfileScreen))).pop();
       await _pumpUntilWithIo(
         tester,
-        find.byKey(const Key('unified-learner-flag-background')),
+        _courseInTopBar(germanCourse.courseId),
         failureMessage: 'Timed out restoring German Learner Home.',
       );
       expect(await profiles.getActiveProfile(), 'German Learner');
-      expect(_activeBackdrop(tester).fallbackCode, 'DE');
+      expect(_activeCourse(tester).courseId, germanCourse.courseId);
 
       await _openLearnerChooserFromHome(tester);
       await _chooseLearner(tester, 'Navigation Learner');
       Navigator.of(tester.element(find.byType(ProfileScreen))).pop();
       await _pumpUntilWithIo(
         tester,
-        find.byKey(const Key('unified-learner-flag-background')),
+        _courseInTopBar(italianCourse.courseId),
         failureMessage: 'Timed out restoring Navigation Learner Home.',
       );
       expect(await profiles.getActiveProfile(), 'Navigation Learner');
-      expect(_activeBackdrop(tester).fallbackCode, 'IT');
+      expect(_activeCourse(tester).courseId, italianCourse.courseId);
 
       await _logoutToLearnerChooser(tester);
       expect(await profiles.getActiveProfile(), isNull);
       await _chooseLearner(tester, 'German Learner');
       await _pumpUntilWithIo(
         tester,
-        find.byKey(const Key('unified-learner-flag-background')),
+        _courseInTopBar(germanCourse.courseId),
         failureMessage: 'Timed out restoring German Learner after logout.',
       );
       expect(await profiles.getActiveProfile(), 'German Learner');
-      expect(_activeBackdrop(tester).fallbackCode, 'DE');
+      expect(_activeCourse(tester).courseId, germanCourse.courseId);
 
       await _logoutToLearnerChooser(tester);
       expect(await profiles.getActiveProfile(), isNull);
       await _chooseLearner(tester, 'Navigation Learner');
       await _pumpUntilWithIo(
         tester,
-        find.byKey(const Key('unified-learner-flag-background')),
+        _courseInTopBar(italianCourse.courseId),
         failureMessage: 'Timed out restoring Navigation Learner after logout.',
       );
       expect(await profiles.getActiveProfile(), 'Navigation Learner');
-      expect(_activeBackdrop(tester).fallbackCode, 'IT');
+      expect(_activeCourse(tester).courseId, italianCourse.courseId);
     },
   );
 }
@@ -2625,6 +2681,10 @@ Future<Course> _loadCourse(
   await tester.runAsync(() async {
     course = await CourseService().loadCourse(code);
     await SettingsService().setIddqdModeEnabled(course.courseId, enableIddqd);
+    await ProfileService().setFlagBackgroundMode(
+      course.courseId,
+      LearnerFlagBackgroundMode.small,
+    );
   });
   return course;
 }
@@ -2634,9 +2694,17 @@ Future<void> _openHome(
   bool scrollToActions = true,
   bool includeLearnerShell = false,
   bool expectAlphaNotice = true,
-  LearnerFlagBackgroundMode flagBackgroundMode =
-      LearnerFlagBackgroundMode.small,
+  LearnerFlagBackgroundMode? flagBackgroundMode,
+  String? flagBackgroundCourseId,
 }) async {
+  if (flagBackgroundMode != null && flagBackgroundCourseId != null) {
+    await tester.runAsync(
+      () => ProfileService().setFlagBackgroundMode(
+        flagBackgroundCourseId,
+        flagBackgroundMode,
+      ),
+    );
+  }
   await tester.pumpWidget(
     MaterialApp(
       navigatorKey: includeLearnerShell ? learnerNavigatorKey : null,
@@ -2646,10 +2714,7 @@ Future<void> _openHome(
       builder: includeLearnerShell
           ? (context, child) => LearnerShell(child: child!)
           : null,
-      home: LearnerFlagBackgroundModeScope(
-        mode: flagBackgroundMode,
-        child: const HomeScreen(),
-      ),
+      home: const HomeScreen(),
     ),
   );
   await tester.runAsync(
@@ -2669,10 +2734,14 @@ Future<void> _openHome(
   }
 }
 
-CourseFlagBackdrop _activeBackdrop(WidgetTester tester) =>
-    tester.widget<CourseFlagBackdrop>(
-      find.byKey(const Key('unified-learner-flag-background')),
-    );
+Course _activeCourse(WidgetTester tester) => tester
+    .widget<UnifiedLearnerTopBar>(find.byType(UnifiedLearnerTopBar))
+    .course;
+
+Finder _courseInTopBar(String courseId) => find.byWidgetPredicate(
+  (widget) =>
+      widget is UnifiedLearnerTopBar && widget.course.courseId == courseId,
+);
 
 Future<void> _openLearnerChooserFromHome(WidgetTester tester) async {
   await tester.tap(find.byKey(const Key('learner-bottom-profile')));

@@ -14,7 +14,7 @@ import 'package:quisquislingo_app/services/course_editor_service.dart';
 import 'package:quisquislingo_app/services/course_service.dart';
 import 'package:quisquislingo_app/services/profile_service.dart';
 import 'package:quisquislingo_app/services/settings_service.dart';
-import 'package:quisquislingo_app/widgets/flag_art.dart';
+import 'package:quisquislingo_app/widgets/unified_learner_top_bar.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 const _courseId = 'course_31b11b63-e6d2-4f2a-a731-a71ba236960c';
@@ -202,11 +202,11 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(selectedTile);
       await _pumpIo(tester, frames: 12);
-      final draftBackdrop = tester.widget<CourseFlagBackdrop>(
-        find.byKey(const Key('unified-learner-flag-background')),
+      final draftTopBar = tester.widget<UnifiedLearnerTopBar>(
+        find.byType(UnifiedLearnerTopBar),
       );
-      expect(draftBackdrop.course.courseId, _courseId);
-      expect(draftBackdrop.course.lessons, isEmpty);
+      expect(draftTopBar.course.courseId, _courseId);
+      expect(draftTopBar.course.lessons, isEmpty);
       expect(await settings.getLastSelectedCourseCode(), 'custom:$_courseId');
       expect(
         find.byKey(const ValueKey('unified-lesson-section-$_lessonId')),
@@ -498,11 +498,11 @@ Future<void> _expectRawPublishedTree() async {
 }
 
 void _expectPublishedTreeOnHome(WidgetTester tester) {
-  final backdrop = tester.widget<CourseFlagBackdrop>(
-    find.byKey(const Key('unified-learner-flag-background')),
+  final topBar = tester.widget<UnifiedLearnerTopBar>(
+    find.byType(UnifiedLearnerTopBar),
   );
-  expect(backdrop.course.courseId, _courseId);
-  expect(backdrop.course.lessons.single.lessonId, _lessonId);
+  expect(topBar.course.courseId, _courseId);
+  expect(topBar.course.lessons.single.lessonId, _lessonId);
   expect(
     find.byKey(const ValueKey('unified-lesson-section-$_lessonId')),
     findsOneWidget,
@@ -528,10 +528,7 @@ Future<void> _openHome(WidgetTester tester) async {
   final alphaNotice = find.text('Alpha expiry');
   await _pumpUntilWithIo(tester, alphaNotice);
   await tester.tap(find.widgetWithText(FilledButton, 'OK'));
-  await _pumpUntilWithIo(
-    tester,
-    find.byKey(const Key('unified-learner-flag-background')),
-  );
+  await _pumpUntilWithIo(tester, find.byType(UnifiedLearnerTopBar));
 }
 
 Future<void> _pumpUntilWithIo(WidgetTester tester, Finder finder) async {

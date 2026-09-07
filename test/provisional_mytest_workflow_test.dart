@@ -13,7 +13,7 @@ import 'package:quisquislingo_app/services/course_editor_service.dart';
 import 'package:quisquislingo_app/services/course_service.dart';
 import 'package:quisquislingo_app/services/profile_service.dart';
 import 'package:quisquislingo_app/services/settings_service.dart';
-import 'package:quisquislingo_app/widgets/flag_art.dart';
+import 'package:quisquislingo_app/widgets/unified_learner_top_bar.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 const _profileName = 'My test author';
@@ -479,14 +479,14 @@ void _expectHome(
   required String roundId,
   required String sampleId,
 }) {
-  final backdrop = tester.widget<CourseFlagBackdrop>(
-    find.byKey(const Key('unified-learner-flag-background')),
+  final topBar = tester.widget<UnifiedLearnerTopBar>(
+    find.byType(UnifiedLearnerTopBar),
   );
-  expect(backdrop.course.courseId, courseId);
-  expect(backdrop.course.lessons, hasLength(1));
-  expect(backdrop.course.lessons.single.lessonId, lessonIds.first);
+  expect(topBar.course.courseId, courseId);
+  expect(topBar.course.lessons, hasLength(1));
+  expect(topBar.course.lessons.single.lessonId, lessonIds.first);
   expect(
-    backdrop.course.lessons.single.rounds.single.exercises.single.id,
+    topBar.course.lessons.single.rounds.single.exercises.single.id,
     sampleId,
   );
   expect(
@@ -507,10 +507,7 @@ Future<void> _openHome(WidgetTester tester) async {
   final alphaNotice = find.text('Alpha expiry');
   await _pumpUntilWithIo(tester, alphaNotice);
   await tester.tap(find.widgetWithText(FilledButton, 'OK'));
-  await _pumpUntilWithIo(
-    tester,
-    find.byKey(const Key('unified-learner-flag-background')),
-  );
+  await _pumpUntilWithIo(tester, find.byType(UnifiedLearnerTopBar));
 }
 
 Future<void> _pumpUntilWithIo(WidgetTester tester, Finder finder) async {

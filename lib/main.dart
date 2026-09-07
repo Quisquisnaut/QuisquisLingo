@@ -102,8 +102,6 @@ class _QuisquisLingoAppState extends State<QuisquisLingoApp> {
   late final ProfileService _profiles;
   StreamSubscription<LearnerStatusInvalidation>? _appearanceSubscription;
   LearnerThemeMode _themeMode = LearnerThemeMode.defaultMode;
-  LearnerFlagBackgroundMode _flagBackgroundMode =
-      LearnerFlagBackgroundMode.small;
   int _loadGeneration = 0;
 
   @override
@@ -112,8 +110,7 @@ class _QuisquisLingoAppState extends State<QuisquisLingoApp> {
     _profiles = widget.profileService ?? ProfileService();
     _appearanceSubscription = LearnerStatusEvents.stream.listen((event) {
       if (event == LearnerStatusInvalidation.activeProfile ||
-          event == LearnerStatusInvalidation.theme ||
-          event == LearnerStatusInvalidation.flagBackground) {
+          event == LearnerStatusInvalidation.theme) {
         _loadAppearance();
       }
     });
@@ -123,21 +120,14 @@ class _QuisquisLingoAppState extends State<QuisquisLingoApp> {
   Future<void> _loadAppearance() async {
     final generation = ++_loadGeneration;
     var themeMode = LearnerThemeMode.defaultMode;
-    var flagBackgroundMode = LearnerFlagBackgroundMode.small;
     try {
       themeMode = await _profiles.getThemeMode();
-      flagBackgroundMode = await _profiles.getFlagBackgroundMode();
     } catch (_) {
       // Appearance loading falls back to the application's normal defaults.
     }
     if (!mounted || generation != _loadGeneration) return;
-    if (themeMode == _themeMode && flagBackgroundMode == _flagBackgroundMode) {
-      return;
-    }
-    setState(() {
-      _themeMode = themeMode;
-      _flagBackgroundMode = flagBackgroundMode;
-    });
+    if (themeMode == _themeMode) return;
+    setState(() => _themeMode = themeMode);
   }
 
   @override
@@ -174,9 +164,9 @@ class _QuisquisLingoAppState extends State<QuisquisLingoApp> {
         final content = child == null
             ? const SizedBox.shrink()
             : LearnerShell(child: child);
-        final scopedContent = LearnerFlagBackgroundModeScope(
-          mode: _flagBackgroundMode,
-          child: LearnerThemeModeScope(mode: _themeMode, child: content),
+        final scopedContent = LearnerThemeModeScope(
+          mode: _themeMode,
+          child: content,
         );
         final portraitDesktop =
             !kIsWeb &&

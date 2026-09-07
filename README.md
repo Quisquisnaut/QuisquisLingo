@@ -1,13 +1,15 @@
 # QuisquisLingo App
 
-**Current source version: 2.0.26+226042 · Phase 226.04, revision 2 · Course Model v6 (`formatVersion: 6`).**
+**Current source version: 2.0.27+227010 · Phase 227.01, revision 0 · Course Model v6 (`formatVersion: 6`).**
 
 
-**QuisquisLingo 2.0.26 Alpha — Phase 226.04 Course structure and optional learning paths**
+**QuisquisLingo 2.0.27 Alpha — Phase 227.01 Learner Panel controls baseline**
 
-Current project version: 2.0.26
+Current project version: 2.0.27
 
-Phase 226.04 adds one-time Course scaffolding (default 3 Lessons with 1 Round and 1 Draft sample Exercise per Round), reusable Sections, clear Lesson naming modes, optional GuideBook and Duel paths, World Flag selection, the upper Lessons Lock icon and passive GuideBook IDs. Revision 2 gives newly added Rounds the same single sample, removes fallback-icon style selection in favor of one theme-colored circle, adds Course Import navigation and learner-selector Editor actions, presents the last Lesson's Duel as Final Duel, and adds ordered GuideBook Insights. Creation counts do not restrict existing/imported courses or later editing. Course Model remains v6, with backward-compatible defaults and 102 Audit rules. See [226.04 validation](docs/226_04_VALIDATION.md). Templates, Napoletano, future exercise links and release 227 remain deferred.
+Phase 227.01 audits and characterizes Flag Background, IDDQD and Theme. The explicitly requested Flag Background correction makes Small / Off / Extended independent for each learner and Course, initialized to Off through a clean persistence cut; old shared values are left untouched and unused. IDDQD remains Off / On per learner and Course. Theme remains Default / Light / Dark per learner, with Default following live system brightness. See [227.01 baseline and validation](docs/227_01_VALIDATION.md). Tinted, Soft Inspired, new IDDQD modes/communication, Theme renaming and Day/Night remain deferred.
+
+Phase 226.04 adds one-time Course scaffolding (default 3 Lessons with 1 Round and 1 Draft sample Exercise per Round), reusable Sections, clear Lesson naming modes, optional GuideBook and Duel paths, World Flag selection, the upper Lessons Lock icon and passive GuideBook IDs. Revision 2 gives newly added Rounds the same single sample, removes fallback-icon style selection in favor of one theme-colored circle, adds Course Import navigation and learner-selector Editor actions, presents the last Lesson's Duel as Final Duel, and adds ordered GuideBook Insights. Creation counts do not restrict existing/imported courses or later editing. Course Model remains v6, with backward-compatible defaults and 102 Audit rules. See [226.04 validation](docs/226_04_VALIDATION.md). Templates, Napoletano and future exercise links remain deferred.
 
 Revision-1 completion lets ready provisional Lesson/Round parents become non-Draft after their required content is saved, without a second parent-save pass. Explicit Save Draft and legacy unmarked Drafts remain protected; Course delivery and the final Course confirmation stay explicit. The optional parent eligibility marker is backward compatible within Course Model v6.
 
@@ -34,7 +36,7 @@ The MPL-2.0 covers the QuisquisLingo software source. Courses, the Image Bank an
 
 ## Alpha lifecycle
 
-Version 2.0.26 is a time-limited alpha and keeps the existing expiry of **2026-10-06 23:59:59 local time**. Near expiry it displays reminders. After expiry, learner exercises and Review are blocked until a newer alpha is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when an alpha expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM. Future stable builds can disable alpha expiry.
+Version 2.0.27 is a time-limited alpha with the established 30-day lifetime from September 7: expiry is **2026-10-07 23:59:59 local time**. Near expiry it displays reminders. After expiry, learner exercises and Review are blocked until a newer alpha is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when an alpha expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM. Future stable builds can disable alpha expiry.
 
 ## Core logic
 

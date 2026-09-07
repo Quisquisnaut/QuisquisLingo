@@ -16,6 +16,7 @@ import '../services/duel_eligibility_service.dart';
 import '../services/progress_service.dart';
 import '../services/profile_service.dart';
 import '../services/lesson_unlock_service.dart';
+import '../services/learner_status_events.dart';
 import '../services/alpha_lifecycle_service.dart';
 import '../services/app_metadata.dart';
 import '../services/app_errors.dart';
@@ -206,6 +207,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Set<String> _ttsSkippedPerfectRounds = {};
   Set<String> _wonDuels = {};
   bool _iddqdMode = false;
+  LearnerFlagBackgroundMode _flagBackgroundMode = LearnerFlagBackgroundMode.off;
   String _selectedLanguage = 'IT';
   String _selectedCourseRef = 'IT';
   List<String> _bundledCourseCodes = List<String>.unmodifiable(
@@ -220,10 +222,17 @@ class _HomeScreenState extends State<HomeScreen> {
   String? _lockedLessonTapLessonId;
   int _lockedLessonTapCount = 0;
   Timer? _lockedLessonTapResetTimer;
+  StreamSubscription<LearnerStatusInvalidation>? _appearanceSubscription;
+  int _flagBackgroundLoadGeneration = 0;
 
   @override
   void initState() {
     super.initState();
+    _appearanceSubscription = LearnerStatusEvents.stream.listen((event) {
+      if (event == LearnerStatusInvalidation.flagBackground) {
+        _reloadFlagBackgroundMode();
+      }
+    });
     _reload();
     WidgetsBinding.instance.addPostFrameCallback((_) => _prepareWelcome());
   }
@@ -231,6 +240,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void dispose() {
     _resetLockedLessonTapSequence();
+    _appearanceSubscription?.cancel();
     _learnerScrollController.dispose();
     _standaloneStatusController?.dispose();
     super.dispose();
@@ -244,6 +254,31 @@ class _HomeScreenState extends State<HomeScreen> {
     _appVersion = AppMetadata.technicalVersion;
     await _showWelcome();
     if (mounted) await _showAlphaLifecycleNotice();
+  }
+
+  Future<void> _reloadFlagBackgroundMode() async {
+    final generation = ++_flagBackgroundLoadGeneration;
+    final courseId = _course?.courseId;
+    final learnerId = _activeLearnerId;
+    var mode = LearnerFlagBackgroundMode.off;
+    if (courseId != null && learnerId != null) {
+      try {
+        mode = await _profiles.getFlagBackgroundModeForProfile(
+          learnerId,
+          courseId,
+        );
+      } catch (_) {
+        // Appearance loading keeps the learner page available on bad storage.
+      }
+    }
+    if (!mounted ||
+        generation != _flagBackgroundLoadGeneration ||
+        _course?.courseId != courseId ||
+        _activeLearnerId != learnerId ||
+        _flagBackgroundMode == mode) {
+      return;
+    }
+    setState(() => _flagBackgroundMode = mode);
   }
 
   Future<void> _showWelcome() async {
@@ -443,6 +478,17 @@ class _HomeScreenState extends State<HomeScreen> {
       final iddqdMode = activeId == null
           ? false
           : await _settings.isIddqdModeEnabled(course.courseId);
+      var flagBackgroundMode = LearnerFlagBackgroundMode.off;
+      if (activeId != null) {
+        try {
+          flagBackgroundMode = await _profiles.getFlagBackgroundModeForProfile(
+            activeId,
+            course.courseId,
+          );
+        } catch (_) {
+          // Appearance loading keeps the learner page available on bad storage.
+        }
+      }
       if (course.lessons.isNotEmpty &&
           !_lessonUnlocks.isLessonUnlocked(
             lessonIndex: activeLessonIndex,
@@ -470,6 +516,7 @@ class _HomeScreenState extends State<HomeScreen> {
         _ttsSkippedPerfectRounds = skipped;
         _wonDuels = wonDuels;
         _iddqdMode = iddqdMode;
+        _flagBackgroundMode = flagBackgroundMode;
         _activeLessonIndex = activeLessonIndex;
         if (resetFlow) {
           _flowCourseId = course.courseId;
@@ -1388,9 +1435,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final pageBackground = followsDarkAppearance
         ? _learnerDarkPageBackground
         : _learnerLightPageBackground;
-    final flagBackgroundMode =
-        LearnerFlagBackgroundModeScope.maybeModeOf(context) ??
-        LearnerFlagBackgroundMode.small;
+    final flagBackgroundMode = _flagBackgroundMode;
     final showsFlagBackground =
         flagBackgroundMode != LearnerFlagBackgroundMode.off;
     final learnerTheme = _unifiedLearnerTheme(context);
@@ -1663,6 +1708,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ),
                               );
                             },
+                            courseId: course.courseId,
                           ),
                         ),
                       ],
