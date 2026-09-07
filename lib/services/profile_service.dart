@@ -7,9 +7,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'learner_status_events.dart';
 
 enum LearnerThemeMode {
-  defaultMode('default', 'Default'),
   light('light', 'Light'),
-  dark('dark', 'Dark');
+  dark('dark', 'Dark'),
+  defaultMode('default', 'System'),
+  dayNight('day_night', 'Day/Night');
 
   final String storageValue;
   final String label;
@@ -17,9 +18,10 @@ enum LearnerThemeMode {
   const LearnerThemeMode(this.storageValue, this.label);
 
   LearnerThemeMode get next => switch (this) {
-    LearnerThemeMode.defaultMode => LearnerThemeMode.light,
     LearnerThemeMode.light => LearnerThemeMode.dark,
     LearnerThemeMode.dark => LearnerThemeMode.defaultMode,
+    LearnerThemeMode.defaultMode => LearnerThemeMode.dayNight,
+    LearnerThemeMode.dayNight => LearnerThemeMode.light,
   };
 
   static LearnerThemeMode fromStorage(String? value) => values.firstWhere(

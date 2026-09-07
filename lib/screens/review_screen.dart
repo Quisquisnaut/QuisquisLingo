@@ -9,11 +9,13 @@ import '../widgets/learner_shell.dart';
 class ReviewScreen extends StatefulWidget {
   final Course course;
   final String courseCode;
+  final bool viewOnlyMode;
 
   const ReviewScreen({
     super.key,
     required this.course,
     required this.courseCode,
+    this.viewOnlyMode = false,
   });
 
   @override
@@ -81,6 +83,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
           round: location.round,
           roundIndex: location.roundIndex,
           ttsLanguage: widget.course.ttsLanguage,
+          viewOnlyMode: widget.viewOnlyMode,
         ),
       ),
     );

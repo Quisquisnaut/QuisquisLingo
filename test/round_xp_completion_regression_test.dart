@@ -172,6 +172,79 @@ void main() {
     expect(await progress.getDaysStudied(courseCode: courseCode), 0);
   });
 
+  testWidgets(
+    'View Only permits exercise completion without persistent learner state',
+    (tester) async {
+      final fixture = _roundFixture(exerciseCount: 1);
+      final routeResults = <bool?>[];
+      await _openRound(
+        tester,
+        fixture,
+        routeResults: routeResults,
+        viewOnlyMode: true,
+        completeLessonOnFinish: true,
+      );
+
+      expect(
+        tester.widget<RoundScreen>(find.byType(RoundScreen)).viewOnlyMode,
+        isTrue,
+      );
+      await _answerChoice(tester, correctly: true);
+      expect(find.text('Finish round'), findsOneWidget);
+      await _tapAndPump(tester, 'Finish round');
+      expect(find.text('View Only result'), findsOneWidget);
+      expect(
+        find.textContaining('No learning progress or rewards were recorded.'),
+        findsOneWidget,
+      );
+      expect(find.textContaining('XP'), findsNothing);
+      await _tapAndPump(tester, 'Close');
+
+      final restartedProgress = ProgressService();
+      expect(routeResults, [null]);
+      expect(
+        await restartedProgress.getCompletedRounds(courseId: courseId),
+        isEmpty,
+      );
+      expect(
+        await restartedProgress.getCompletedLessons(courseId: courseId),
+        isEmpty,
+      );
+      expect(
+        await restartedProgress.getPerfectRounds(courseId: courseId),
+        isEmpty,
+      );
+      expect(
+        await restartedProgress.getTtsSkippedPerfectRounds(courseId: courseId),
+        isEmpty,
+      );
+      expect(
+        await restartedProgress.getRecentRounds(courseId: courseId),
+        isEmpty,
+      );
+      expect(await restartedProgress.getXp(courseCode: courseCode), 0);
+      expect(await restartedProgress.getWeeklyXp(), 0);
+      expect(await restartedProgress.getStreak(courseCode: courseCode), 0);
+      expect(await restartedProgress.getDaysStudied(courseCode: courseCode), 0);
+
+      await _openRound(
+        tester,
+        fixture,
+        routeResults: routeResults,
+        completeLessonOnFinish: true,
+      );
+      await _completePerfectRound(tester, exerciseCount: 1);
+      expect(routeResults, [null, true]);
+      expect(await restartedProgress.getCompletedRounds(courseId: courseId), {
+        fixture.round.id,
+      });
+      expect(await restartedProgress.getCompletedLessons(courseId: courseId), {
+        fixture.lesson.lessonId,
+      });
+      expect(await restartedProgress.getXp(courseCode: courseCode), 60);
+    },
+  );
+
   testWidgets('abandoning a Round before completion awards no XP', (
     tester,
   ) async {
@@ -591,6 +664,8 @@ Future<void> _openRound(
   _RoundFixture fixture, {
   required List<bool?> routeResults,
   bool previewMode = false,
+  bool viewOnlyMode = false,
+  bool completeLessonOnFinish = false,
   bool waitForChoice = true,
 }) async {
   await tester.pumpWidget(
@@ -610,6 +685,8 @@ Future<void> _openRound(
                         ttsLanguage: fixture.course.ttsLanguage,
                         roundIndex: 0,
                         previewMode: previewMode,
+                        viewOnlyMode: viewOnlyMode,
+                        completeLessonOnFinish: completeLessonOnFinish,
                       ),
                     ),
                   ),

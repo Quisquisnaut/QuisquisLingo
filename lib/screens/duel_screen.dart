@@ -14,12 +14,14 @@ class DuelScreen extends StatefulWidget {
   final Course course;
   final Lesson lesson;
   final String ttsLanguage;
+  final bool viewOnlyMode;
 
   const DuelScreen({
     super.key,
     required this.course,
     required this.lesson,
     required this.ttsLanguage,
+    this.viewOnlyMode = false,
   });
 
   @override
@@ -70,6 +72,8 @@ class _DuelScreenState extends State<DuelScreen> {
 
   String get _duelTitle =>
       _isFinalLesson ? 'Final Duel' : widget.lesson.duel.title;
+  String get _screenTitle =>
+      widget.viewOnlyMode ? 'VIEW ONLY · $_duelTitle' : _duelTitle;
 
   List<_DuelItem> get _duelItems {
     // Availability and selection share one Lesson-scoped candidate pool.
@@ -247,12 +251,14 @@ class _DuelScreenState extends State<DuelScreen> {
     final won = _lives > 0 && _index + 1 >= _items.length;
     final isFinalLesson = _isFinalLesson;
     int? awardedXp;
-    if (won) {
+    if (won && !widget.viewOnlyMode) {
       awardedXp = await _progress.winDuel(
         widget.lesson.duel.id,
         courseId: widget.course.courseId,
         courseCode: CourseService.codeForCourse(widget.course),
       );
+    }
+    if (won) {
       await _sounds.playDuelWin();
     } else {
       await _sounds.playDuelLost();
@@ -263,14 +269,18 @@ class _DuelScreenState extends State<DuelScreen> {
       barrierDismissible: false,
       builder: (_) => AlertDialog(
         title: Text(
-          won && isFinalLesson
+          widget.viewOnlyMode
+              ? 'View Only duel result'
+              : won && isFinalLesson
               ? 'Final Duel completed!'
               : won
               ? 'Duel won'
               : 'Duel lost',
         ),
         content: Text(
-          won
+          widget.viewOnlyMode
+              ? 'Preview result: ${won ? 'Duel won' : 'Duel lost'}. No learning progress or rewards were recorded.'
+              : won
               ? isFinalLesson
                     ? '+$awardedXp XP'
                     : 'Duel won: +$awardedXp XP\n\nYou proved your knowledge. The next Lesson can now unlock.'
@@ -322,7 +332,7 @@ class _DuelScreenState extends State<DuelScreen> {
     final items = _items;
     if (items.length < DuelEligibilityService.requiredQuestionCount) {
       return Scaffold(
-        appBar: AppBar(title: Text(_duelTitle)),
+        appBar: AppBar(title: Text(_screenTitle)),
         body: const Center(
           child: Padding(
             padding: EdgeInsets.all(24),
@@ -343,7 +353,7 @@ class _DuelScreenState extends State<DuelScreen> {
       backgroundColor: background,
       appBar: AppBar(
         backgroundColor: background,
-        title: Text(_duelTitle),
+        title: Text(_screenTitle),
         actions: [
           IconButton(
             tooltip: 'Report a problem',

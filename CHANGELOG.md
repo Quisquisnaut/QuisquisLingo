@@ -1,3 +1,10 @@
+# 2.0.27 (Phase 227.04, revision 0) - QQL 227 closure - 2026-09-07
+
+- Added the third IDDQD mode, `View Only`, after unchanged Off and On modes. Its selected preference persists per learner × Course on the existing key; legacy boolean Off/On values remain readable, while View Only stores `view_only`. View Only passes through the existing genuine Lesson lock gate but exits Round/Review completion and Duel victory before learner-state writes, preserving answer feedback without completion, XP, Weekly XP, activity, streak, Laurel, Review, unlock or Duel persistence.
+- Kept the IDDQD bottom control compact. Its exact Off/On/View Only explanations update immediately in the tooltip and accessibility label without permanent text under the buttons. Genuinely locked Lessons keep their lock marker and show `Accessible with IDDQD` for On or `Preview with IDDQD` for View Only.
+- Finalized the learner-scoped Theme control as Light / Dark / System / Day/Night. System retains the existing `default` storage identity and live operating-system behavior. Day/Night stores the selected mode, uses local device time with Light from 07:00 inclusive to 19:00 exclusive, switches at the next boundary, re-evaluates on resume and cancels its timer after another mode is selected. Theme changes have zero transition duration.
+- Preserved Small / Off / Extended / Tinted / Inspired Flag Background behavior and `soft_inspired` compatibility. Advanced metadata to `2.0.27+227040`; the Alpha expiry remains `2026-10-07 23:59:59` local time and Course Model v6, Course JSON and checksums remain unchanged. See `docs/227_04_VALIDATION.md`.
+
 # 2.0.27 (Phase 227.03, revision 0) - IDDQD state clarity - 2026-09-07
 
 - Added concise selected-mode guidance beneath the existing learner IDDQD control: Off says `Normal progression locks apply.` and On says `Locked content can be opened. Normal progression status is preserved.` The same meaning is available through the control tooltip and accessibility semantics.

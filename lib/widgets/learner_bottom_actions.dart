@@ -4,22 +4,28 @@ import 'package:flutter/material.dart';
 
 import '../services/learner_status_events.dart';
 import '../services/profile_service.dart';
+import '../services/settings_service.dart';
 import 'learner_avatar.dart';
 
-const double learnerBottomActionsHeight = 92;
+const double learnerBottomActionsHeight = 68;
 const String iddqdOffExplanation = 'Normal progression locks apply.';
 const String iddqdOnExplanation =
-    'Locked content can be opened. Normal progression status is preserved.';
+    'Locked content can be opened. Study progress is recorded normally.';
+const String iddqdViewOnlyExplanation =
+    'Locked content can be previewed. No learning progress is recorded.';
 
-String learnerIddqdExplanation(bool enabled) =>
-    enabled ? iddqdOnExplanation : iddqdOffExplanation;
+String learnerIddqdExplanation(LearnerIddqdMode mode) => switch (mode) {
+  LearnerIddqdMode.off => iddqdOffExplanation,
+  LearnerIddqdMode.on => iddqdOnExplanation,
+  LearnerIddqdMode.viewOnly => iddqdViewOnlyExplanation,
+};
 
 class LearnerBottomActions extends StatefulWidget {
   final VoidCallback onProfile;
   final VoidCallback onReview;
   final VoidCallback onCourseInfo;
-  final bool iddqdEnabled;
-  final ValueChanged<bool>? onIddqdChanged;
+  final LearnerIddqdMode iddqdMode;
+  final ValueChanged<LearnerIddqdMode>? onIddqdChanged;
   final ProfileService? profileService;
   final String? courseId;
 
@@ -28,7 +34,7 @@ class LearnerBottomActions extends StatefulWidget {
     required this.onProfile,
     required this.onReview,
     required this.onCourseInfo,
-    this.iddqdEnabled = false,
+    this.iddqdMode = LearnerIddqdMode.off,
     this.onIddqdChanged,
     this.profileService,
     this.courseId,
@@ -152,70 +158,43 @@ class _LearnerBottomActionsState extends State<LearnerBottomActions> {
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 360),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          child: Column(
+          padding: const EdgeInsets.all(12),
+          child: Row(
             children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: _ProfileAction(
-                      learnerName: _learnerName,
-                      appearance: _appearance,
-                      onTap: widget.onProfile,
-                    ),
-                  ),
-                  const SizedBox(width: 4),
-                  _BottomAction(
-                    key: const Key('learner-bottom-review'),
-                    icon: Icons.history_edu_outlined,
-                    label: 'Review',
-                    onTap: widget.onReview,
-                  ),
-                  const SizedBox(width: 4),
-                  _BottomAction(
-                    key: const Key('learner-bottom-course-info'),
-                    icon: Icons.info_outline,
-                    label: 'Course Info',
-                    onTap: widget.onCourseInfo,
-                  ),
-                  const SizedBox(width: 4),
-                  _IddqdAction(
-                    enabled: widget.iddqdEnabled,
-                    onTap: widget.onIddqdChanged == null
-                        ? null
-                        : () => widget.onIddqdChanged!(!widget.iddqdEnabled),
-                  ),
-                  const SizedBox(width: 4),
-                  _ThemeModeAction(mode: _themeMode, onTap: _cycleThemeMode),
-                  const SizedBox(width: 4),
-                  _FlagBackgroundModeAction(
-                    mode: _flagBackgroundMode,
-                    onTap: _cycleFlagBackgroundMode,
-                  ),
-                ],
-              ),
-              const SizedBox(height: 4),
               Expanded(
-                child: Semantics(
-                  liveRegion: true,
-                  label: learnerIddqdExplanation(widget.iddqdEnabled),
-                  child: ExcludeSemantics(
-                    child: Center(
-                      child: Text(
-                        learnerIddqdExplanation(widget.iddqdEnabled),
-                        key: const Key('learner-bottom-iddqd-explanation'),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        textAlign: TextAlign.center,
-                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                          height: 1.1,
-                          fontWeight: FontWeight.w600,
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ),
-                  ),
+                child: _ProfileAction(
+                  learnerName: _learnerName,
+                  appearance: _appearance,
+                  onTap: widget.onProfile,
                 ),
+              ),
+              const SizedBox(width: 4),
+              _BottomAction(
+                key: const Key('learner-bottom-review'),
+                icon: Icons.history_edu_outlined,
+                label: 'Review',
+                onTap: widget.onReview,
+              ),
+              const SizedBox(width: 4),
+              _BottomAction(
+                key: const Key('learner-bottom-course-info'),
+                icon: Icons.info_outline,
+                label: 'Course Info',
+                onTap: widget.onCourseInfo,
+              ),
+              const SizedBox(width: 4),
+              _IddqdAction(
+                mode: widget.iddqdMode,
+                onTap: widget.onIddqdChanged == null
+                    ? null
+                    : () => widget.onIddqdChanged!(widget.iddqdMode.next),
+              ),
+              const SizedBox(width: 4),
+              _ThemeModeAction(mode: _themeMode, onTap: _cycleThemeMode),
+              const SizedBox(width: 4),
+              _FlagBackgroundModeAction(
+                mode: _flagBackgroundMode,
+                onTap: _cycleFlagBackgroundMode,
               ),
             ],
           ),
@@ -285,6 +264,7 @@ class _ThemeModeAction extends StatelessWidget {
     LearnerThemeMode.defaultMode => Icons.brightness_auto_outlined,
     LearnerThemeMode.light => Icons.light_mode_outlined,
     LearnerThemeMode.dark => Icons.dark_mode_outlined,
+    LearnerThemeMode.dayNight => Icons.bedtime_outlined,
   };
 
   @override
@@ -403,15 +383,15 @@ class _BottomAction extends StatelessWidget {
 }
 
 class _IddqdAction extends StatelessWidget {
-  final bool enabled;
+  final LearnerIddqdMode mode;
   final VoidCallback? onTap;
 
-  const _IddqdAction({required this.enabled, required this.onTap});
+  const _IddqdAction({required this.mode, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
-    final label = 'IDDQD: ${enabled ? 'On' : 'Off'}';
-    final explanation = learnerIddqdExplanation(enabled);
+    final label = 'IDDQD: ${mode.label}';
+    final explanation = learnerIddqdExplanation(mode);
     return SizedBox(
       key: const Key('learner-bottom-iddqd'),
       width: 40,
@@ -419,17 +399,23 @@ class _IddqdAction extends StatelessWidget {
       child: Tooltip(
         message: '$label\n$explanation',
         child: Material(
-          color: enabled
-              ? Theme.of(context).colorScheme.secondaryContainer
-              : Theme.of(context).brightness == Brightness.dark
-              ? Theme.of(
-                  context,
-                ).colorScheme.surfaceContainerHighest.withValues(alpha: .36)
-              : Colors.white.withValues(alpha: .16),
+          color: switch (mode) {
+            LearnerIddqdMode.on => Theme.of(
+              context,
+            ).colorScheme.secondaryContainer,
+            LearnerIddqdMode.viewOnly => Theme.of(
+              context,
+            ).colorScheme.tertiaryContainer,
+            LearnerIddqdMode.off =>
+              Theme.of(context).brightness == Brightness.dark
+                  ? Theme.of(
+                      context,
+                    ).colorScheme.surfaceContainerHighest.withValues(alpha: .36)
+                  : Colors.white.withValues(alpha: .16),
+          },
           borderRadius: BorderRadius.circular(20),
           child: Semantics(
             button: true,
-            toggled: enabled,
             label: '$label. $explanation',
             onTap: onTap,
             excludeSemantics: true,
@@ -438,7 +424,11 @@ class _IddqdAction extends StatelessWidget {
               onTap: onTap,
               child: Center(
                 child: Icon(
-                  enabled ? Icons.lock_open : Icons.lock_outline,
+                  switch (mode) {
+                    LearnerIddqdMode.off => Icons.lock_outline,
+                    LearnerIddqdMode.on => Icons.lock_open,
+                    LearnerIddqdMode.viewOnly => Icons.visibility_outlined,
+                  },
                   size: 20,
                   color: _actionColor(context),
                 ),

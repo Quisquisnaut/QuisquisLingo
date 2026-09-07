@@ -10,12 +10,12 @@ LEARNER PROFILE
 |    +-- completed Rounds / Lessons / Duel wins
 |    +-- permanent Laurel crowns
 |    +-- up to 50 distinct Review Round results
-|    +-- Flag Background (initially Off) / IDDQD (initially Off)
+|    +-- Flag Background (initially Off) / IDDQD (Off / On / View Only; initially Off)
 |
 +-- learner-global Weekly XP and weekly-goal celebration state
 |
 +-- avatar appearance (shared across languages)
-+-- Theme (Default / Light / Dark, initially Default; shared across Courses)
++-- Theme (Light / Dark / System / Day/Night, initially System; shared across Courses)
 ```
 
 ```text
@@ -39,11 +39,11 @@ COURSE
     OR when the immediately previous Lesson Duel is won
 ```
 
-The first Lesson is genuinely unlocked. Learners may open its Rounds freely. IDDQD Mode grants access to genuinely locked Lessons without changing their lock state or the progress recorded while they are open. The learner control explains Off as `Normal progression locks apply.` and On as `Locked content can be opened. Normal progression status is preserved.` A locked Lesson accessed this way keeps its lock marker and shows `Accessible with IDDQD`; through the existing Lesson gate, its published GuideBook, Rounds and eligible Duel become actionable while unpublished GuideBooks and ineligible Duels keep their own availability rules.
+The first Lesson is genuinely unlocked. Learners may open its Rounds freely. IDDQD Off applies normal locks. On grants access to genuinely locked Lessons and records actual study normally. View Only grants the same access and immediate answer feedback but exits Round completion before `LearningCompletionService` and suppresses the Duel victory write, so no learner progress, XP, Weekly XP, activity, streak, Laurel, Review, unlock or Duel state is recorded. The selected mode itself persists per learner × Course. Locked Lessons keep their real lock marker and show `Accessible with IDDQD` for On or `Preview with IDDQD` for View Only; the shared Lesson gate exposes published GuideBooks, Rounds and eligible Duels without overriding their own availability rules. The compact IDDQD control exposes the exact selected-mode explanation through its tooltip and accessibility label rather than permanent text beneath the buttons.
 
-Phase 227.01 establishes the [Learner Panel controls baseline](227_01_VALIDATION.md). Phase 227.02 adds [Tinted and Inspired](227_02_VALIDATION.md) through one deterministic flag-color pipeline. Tinted is a restrained uniform adapted hue. Inspired is a stronger static three-stop field that uses up to three meaningfully separated representative colors; single-useful-color inputs receive related tonal variation without unrelated hues. World Flag SVG colors, portable custom raster pixels and existing built-in flag colors share neutral, extreme-lightness, saturation and theme adaptation. Inspired retains the revision-0 `soft_inspired` persisted value. An unreadable preferred source falls back to the existing built-in source, then to a safe neutral learner-page palette. Small / Off / Extended rendering remains unchanged. Phase 227.03 adds [IDDQD state communication](227_03_VALIDATION.md) at the existing control and genuine Lesson gate without changing access, persistence or progression logic.
+Phase 227.01 establishes the [Learner Panel controls baseline](227_01_VALIDATION.md). Phase 227.02 adds [Tinted and Inspired](227_02_VALIDATION.md) through one deterministic flag-color pipeline. Tinted is a restrained uniform adapted hue. Inspired is a stronger static three-stop field that uses up to three meaningfully separated representative colors; single-useful-color inputs receive related tonal variation without unrelated hues. World Flag SVG colors, portable custom raster pixels and existing built-in flag colors share neutral, extreme-lightness, saturation and theme adaptation. Inspired retains the revision-0 `soft_inspired` persisted value. An unreadable preferred source falls back to the existing built-in source, then to a safe neutral learner-page palette. Small / Off / Extended rendering remains unchanged. Phase 227.03 adds [IDDQD state communication](227_03_VALIDATION.md) for the pre-existing Off/On modes. Phase 227.04 adds functional [View Only and final Theme behavior](227_04_VALIDATION.md) and closes QQL 227.
 
-Flag Background keeps the clean-cut opaque learner ID × immutable Course ID storage established by 227.01 and remains initialized Off; old shared values are left untouched and unread. Theme remains learner-scoped with Default following live system brightness. Changing these visual controls or toggling IDDQD does not award XP, complete content or alter genuine unlock state; actual study while IDDQD is On still records normal progress and rewards. No Flag Background value enters Course JSON or course checksums.
+Flag Background keeps the clean-cut opaque learner ID × immutable Course ID storage established by 227.01 and remains initialized Off; old shared values are left untouched and unread. Theme remains learner-scoped: Light and Dark are fixed, System preserves the former `default` storage and follows live platform brightness, and Day/Night stores `day_night` while resolving local wall-clock time as Light from 07:00 inclusive to 19:00 exclusive and Dark otherwise. A single timer targets the next boundary and is cancelled outside Day/Night; resume re-evaluates local time. Changing these controls or the selected IDDQD preference does not itself award XP, complete content or alter genuine unlock state. No learner control enters Course JSON or course checksums.
 
 ## Review priority
 

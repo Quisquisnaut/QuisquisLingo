@@ -8,6 +8,7 @@ import 'package:quisquislingo_app/screens/course_info_screen.dart';
 import 'package:quisquislingo_app/screens/gamification_settings_screen.dart';
 import 'package:quisquislingo_app/screens/profile_screen.dart';
 import 'package:quisquislingo_app/services/profile_service.dart';
+import 'package:quisquislingo_app/services/settings_service.dart';
 import 'package:quisquislingo_app/widgets/learner_avatar.dart';
 import 'package:quisquislingo_app/widgets/learner_bottom_actions.dart';
 import 'package:quisquislingo_app/widgets/learner_theme_mode_scope.dart';
@@ -174,7 +175,7 @@ void main() {
       var reviewTaps = 0;
       var courseInfoTaps = 0;
       var profileTaps = 0;
-      bool? iddqdValue;
+      LearnerIddqdMode? iddqdValue;
 
       await tester.pumpWidget(
         MaterialApp(
@@ -183,7 +184,7 @@ void main() {
               onProfile: () => profileTaps++,
               onReview: () => reviewTaps++,
               onCourseInfo: () => courseInfoTaps++,
-              iddqdEnabled: false,
+              iddqdMode: LearnerIddqdMode.off,
               onIddqdChanged: (value) => iddqdValue = value,
             ),
           ),
@@ -207,13 +208,17 @@ void main() {
         find.byTooltip('IDDQD: Off\nNormal progression locks apply.'),
         findsOneWidget,
       );
-      expect(find.text('Normal progression locks apply.'), findsOneWidget);
+      expect(find.text('Normal progression locks apply.'), findsNothing);
+      expect(
+        find.byKey(const Key('learner-bottom-iddqd-explanation')),
+        findsNothing,
+      );
       expect(
         find.bySemanticsLabel('IDDQD: Off. Normal progression locks apply.'),
         findsOneWidget,
       );
-      expect(find.byTooltip('Theme: Default'), findsOneWidget);
-      expect(find.bySemanticsLabel('Theme: Default'), findsOneWidget);
+      expect(find.byTooltip('Theme: System'), findsOneWidget);
+      expect(find.bySemanticsLabel('Theme: System'), findsOneWidget);
       expect(
         find.byKey(const Key('learner-bottom-flag-background')),
         findsOneWidget,
@@ -226,7 +231,7 @@ void main() {
       await tester.tap(find.byKey(const Key('learner-bottom-course-info')));
       await tester.tap(find.byKey(const Key('learner-bottom-iddqd')));
       expect((profileTaps, reviewTaps, courseInfoTaps), (1, 1, 1));
-      expect(iddqdValue, isTrue);
+      expect(iddqdValue, LearnerIddqdMode.on);
       expect(
         tester.getSize(find.byKey(const Key('learner-bottom-review'))),
         const Size(40, 40),
@@ -238,10 +243,10 @@ void main() {
     },
   );
 
-  testWidgets('IDDQD explanation updates immediately with the selected mode', (
+  testWidgets('IDDQD tooltip updates immediately with the selected mode', (
     tester,
   ) async {
-    var enabled = false;
+    var mode = LearnerIddqdMode.off;
 
     await tester.pumpWidget(
       MaterialApp(
@@ -251,8 +256,8 @@ void main() {
               onProfile: () {},
               onReview: () {},
               onCourseInfo: () {},
-              iddqdEnabled: enabled,
-              onIddqdChanged: (value) => setState(() => enabled = value),
+              iddqdMode: mode,
+              onIddqdChanged: (value) => setState(() => mode = value),
             ),
           ),
         ),
@@ -260,27 +265,28 @@ void main() {
     );
     await _pumpFrames(tester);
 
-    expect(find.text('Normal progression locks apply.'), findsOneWidget);
+    expect(find.text('Normal progression locks apply.'), findsNothing);
     await tester.tap(find.byKey(const Key('learner-bottom-iddqd')));
     await tester.pump();
     expect(
-      find.text(
-        'Locked content can be opened. Normal progression status is preserved.',
-      ),
-      findsOneWidget,
-    );
-    expect(
       find.byTooltip(
         'IDDQD: On\nLocked content can be opened. '
-        'Normal progression status is preserved.',
+        'Study progress is recorded normally.',
       ),
       findsOneWidget,
     );
     expect(
       find.bySemanticsLabel(
         'IDDQD: On. Locked content can be opened. '
-        'Normal progression status is preserved.',
+        'Study progress is recorded normally.',
       ),
+      findsOneWidget,
+    );
+    await tester.tap(find.byKey(const Key('learner-bottom-iddqd')));
+    await tester.pump();
+    expect(find.text(iddqdViewOnlyExplanation), findsNothing);
+    expect(
+      find.byTooltip('IDDQD: View Only\n$iddqdViewOnlyExplanation'),
       findsOneWidget,
     );
   });
@@ -333,7 +339,7 @@ void main() {
   );
 
   testWidgets(
-    'theme utility cycles Default, Light, Dark and immediately applies each mode',
+    'theme utility cycles Light, Dark, System, Day/Night and applies each mode',
     (tester) async {
       final dispatcher = tester.binding.platformDispatcher;
       dispatcher.platformBrightnessTestValue = Brightness.light;
@@ -344,6 +350,7 @@ void main() {
       await tester.pumpWidget(
         QuisquisLingoApp(
           profileService: profiles,
+          now: () => DateTime(2026, 9, 7, 12),
           home: Scaffold(
             body: LearnerBottomActions(
               profileService: profiles,
@@ -382,6 +389,11 @@ void main() {
       }
 
       await tapAndExpect(
+        mode: LearnerThemeMode.dayNight,
+        materialMode: ThemeMode.light,
+        icon: Icons.bedtime_outlined,
+      );
+      await tapAndExpect(
         mode: LearnerThemeMode.light,
         materialMode: ThemeMode.light,
         icon: Icons.light_mode_outlined,
@@ -398,15 +410,15 @@ void main() {
         icon: Icons.brightness_auto_outlined,
       );
       await tapAndExpect(
-        mode: LearnerThemeMode.light,
+        mode: LearnerThemeMode.dayNight,
         materialMode: ThemeMode.light,
-        icon: Icons.light_mode_outlined,
+        icon: Icons.bedtime_outlined,
       );
     },
   );
 
   testWidgets(
-    'active learner immediately restores theme and no learner falls back to Default',
+    'active learner immediately restores theme and no learner falls back to System',
     (tester) async {
       final profiles = ProfileService();
       await profiles.addProfile('Dark Learner');
@@ -454,14 +466,14 @@ void main() {
             .mode,
         LearnerThemeMode.defaultMode,
       );
-      expect(find.byTooltip('Theme: Default'), findsOneWidget);
+      expect(find.byTooltip('Theme: System'), findsOneWidget);
       await tester.tap(find.byKey(const Key('learner-bottom-theme')));
       await _pumpFrames(tester);
       expect(
         tester.widget<MaterialApp>(find.byType(MaterialApp)).themeMode,
         ThemeMode.system,
       );
-      expect(find.byTooltip('Theme: Default'), findsOneWidget);
+      expect(find.byTooltip('Theme: System'), findsOneWidget);
 
       await profiles.setActiveProfile('Dark Learner');
       await tester.pumpWidget(const SizedBox.shrink());
@@ -571,7 +583,7 @@ void main() {
     },
   );
 
-  testWidgets('bottom actions and explanation fit required responsive widths', (
+  testWidgets('compact bottom actions fit required responsive widths', (
     tester,
   ) async {
     await ProfileService().addProfile('Responsive Learner');
@@ -580,7 +592,7 @@ void main() {
     addTearDown(tester.view.resetDevicePixelRatio);
 
     for (final brightness in Brightness.values) {
-      for (final iddqdEnabled in const [false, true]) {
+      for (final iddqdMode in LearnerIddqdMode.values) {
         for (final width in const [320.0, 375.0, 430.0, 1100.0]) {
           tester.view.physicalSize = Size(width, 720);
           tester.view.devicePixelRatio = 1;
@@ -594,7 +606,7 @@ void main() {
                     onProfile: () {},
                     onReview: () {},
                     onCourseInfo: () {},
-                    iddqdEnabled: iddqdEnabled,
+                    iddqdMode: iddqdMode,
                   ),
                 ),
               ),
@@ -634,10 +646,7 @@ void main() {
           expect(review.size, const Size(40, 40));
           expect(courseInfo.size, const Size(40, 40));
           expect(iddqd.size, const Size(40, 40));
-          expect(
-            find.text(learnerIddqdExplanation(iddqdEnabled)),
-            findsOneWidget,
-          );
+          expect(find.text(learnerIddqdExplanation(iddqdMode)), findsNothing);
           heights.add(actions.height);
           expect(tester.takeException(), isNull);
         }

@@ -216,6 +216,61 @@ void main() {
       expect(await progress.getWeeklyXp(), 32);
     },
   );
+
+  testWidgets('View Only Review leaves the existing review record unchanged', (
+    tester,
+  ) async {
+    final fixture = _lessonFixture();
+    final progress = ProgressService();
+    await _completeForSetup(progress, fixture.firstRound);
+    await progress.recordRecentRound(
+      courseId,
+      fixture.lesson.lessonId,
+      fixture.firstRound.id,
+      errors: 1,
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: ReviewScreen(
+          course: fixture.course,
+          courseCode: courseCode,
+          viewOnlyMode: true,
+        ),
+      ),
+    );
+    await _pumpUntilText(tester, fixture.firstRound.title);
+    await tester.tap(find.text(fixture.firstRound.title));
+    await tester.pump();
+    await _pumpUntilText(tester, 'Correct ${fixture.firstRound.id}');
+    expect(
+      tester.widget<RoundScreen>(find.byType(RoundScreen)).viewOnlyMode,
+      isTrue,
+    );
+    await _answerPerfectChoice(tester, fixture.firstRound);
+    await _tapAndPump(tester, 'Finish round');
+    expect(find.text('View Only result'), findsOneWidget);
+    await _tapAndPump(tester, 'Close');
+    await _pumpUntilText(tester, fixture.firstRound.title);
+
+    final restartedProgress = ProgressService();
+    expect(
+      await restartedProgress.getPerfectRounds(courseId: courseId),
+      isEmpty,
+    );
+    final recent = await restartedProgress.getRecentRounds(courseId: courseId);
+    expect(recent, hasLength(1));
+    expect(recent.single.errors, 1);
+    expect(await restartedProgress.getCompletedRounds(courseId: courseId), {
+      fixture.firstRound.id,
+    });
+    expect(
+      await restartedProgress.getCompletedLessons(courseId: courseId),
+      isEmpty,
+    );
+    expect(await restartedProgress.getXp(courseCode: courseCode), 0);
+    expect(await restartedProgress.getWeeklyXp(), 0);
+  });
 }
 
 void _installDesktopPluginMocks() {

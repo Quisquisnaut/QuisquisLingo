@@ -2,6 +2,24 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'profile_service.dart';
 import 'learner_status_events.dart';
 
+enum LearnerIddqdMode {
+  off('Off'),
+  on('On'),
+  viewOnly('View Only');
+
+  final String label;
+
+  const LearnerIddqdMode(this.label);
+
+  LearnerIddqdMode get next => switch (this) {
+    LearnerIddqdMode.off => LearnerIddqdMode.on,
+    LearnerIddqdMode.on => LearnerIddqdMode.viewOnly,
+    LearnerIddqdMode.viewOnly => LearnerIddqdMode.off,
+  };
+
+  bool get bypassesLocks => this != LearnerIddqdMode.off;
+}
+
 /// Persistent device and learner-scoped settings.
 ///
 /// Learner-specific appearance lives in ProfileService. TTS skipping is a
@@ -86,18 +104,42 @@ class SettingsService {
         const <String>[],
   );
 
-  Future<bool> isIddqdModeEnabled(String courseId) async {
-    final key = await ProfileService().key(
-      'iddqd_${Uri.encodeComponent(courseId.trim())}',
+  Future<String> _iddqdKey(String courseId) =>
+      ProfileService().key('iddqd_${Uri.encodeComponent(courseId.trim())}');
+
+  Future<LearnerIddqdMode> getIddqdMode(String courseId) async {
+    final value = (await SharedPreferences.getInstance()).get(
+      await _iddqdKey(courseId),
     );
-    return (await SharedPreferences.getInstance()).getBool(key) ?? false;
+    return switch (value) {
+      true => LearnerIddqdMode.on,
+      'view_only' => LearnerIddqdMode.viewOnly,
+      _ => LearnerIddqdMode.off,
+    };
+  }
+
+  Future<void> setIddqdMode(String courseId, LearnerIddqdMode mode) async {
+    final preferences = await SharedPreferences.getInstance();
+    final key = await _iddqdKey(courseId);
+    switch (mode) {
+      case LearnerIddqdMode.off:
+        await preferences.setBool(key, false);
+      case LearnerIddqdMode.on:
+        await preferences.setBool(key, true);
+      case LearnerIddqdMode.viewOnly:
+        await preferences.setString(key, 'view_only');
+    }
+  }
+
+  Future<bool> isIddqdModeEnabled(String courseId) async {
+    return (await getIddqdMode(courseId)).bypassesLocks;
   }
 
   Future<void> setIddqdModeEnabled(String courseId, bool enabled) async {
-    final key = await ProfileService().key(
-      'iddqd_${Uri.encodeComponent(courseId.trim())}',
+    await setIddqdMode(
+      courseId,
+      enabled ? LearnerIddqdMode.on : LearnerIddqdMode.off,
     );
-    await (await SharedPreferences.getInstance()).setBool(key, enabled);
   }
 
   Future<String?> getLastVisitedLessonId(String courseId) async {

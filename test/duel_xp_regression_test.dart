@@ -92,6 +92,47 @@ void main() {
       isEmpty,
     );
   });
+
+  testWidgets('View Only Duel records no result, XP, or study activity', (
+    tester,
+  ) async {
+    final fixture = _duelFixture();
+    await _pumpLauncher(tester, fixture, viewOnlyMode: true);
+
+    await _openAndWinDuel(tester);
+    expect(find.text('View Only duel result'), findsOneWidget);
+    expect(
+      find.textContaining('No learning progress or rewards were recorded.'),
+      findsOneWidget,
+    );
+    expect(find.textContaining('+50 XP'), findsNothing);
+
+    final restartedProgress = ProgressService();
+    expect(
+      await restartedProgress.getWonDuels(courseId: fixture.course.courseId),
+      isEmpty,
+    );
+    expect(await restartedProgress.getXp(courseCode: 'IT'), 0);
+    expect(await restartedProgress.getWeeklyXp(), 0);
+    expect(await restartedProgress.getStreak(courseCode: 'IT'), 0);
+    expect(await restartedProgress.getDaysStudied(courseCode: 'IT'), 0);
+    expect(
+      await restartedProgress.getCompletedLessons(
+        courseId: fixture.course.courseId,
+      ),
+      isEmpty,
+    );
+    await _closeDuelResult(tester);
+
+    await _pumpLauncher(tester, fixture);
+    await _openAndWinDuel(tester);
+    expect(find.textContaining('Duel won: +50 XP'), findsOneWidget);
+    expect(
+      await restartedProgress.getWonDuels(courseId: fixture.course.courseId),
+      {fixture.lesson.duel.id},
+    );
+    expect(await restartedProgress.getXp(courseCode: 'IT'), 50);
+  });
 }
 
 class _DuelFixture {
@@ -148,7 +189,11 @@ _DuelFixture _duelFixture({bool lessonIsFinal = false}) {
   return _DuelFixture(course: course, lesson: lesson);
 }
 
-Future<void> _pumpLauncher(WidgetTester tester, _DuelFixture fixture) async {
+Future<void> _pumpLauncher(
+  WidgetTester tester,
+  _DuelFixture fixture, {
+  bool viewOnlyMode = false,
+}) async {
   await tester.pumpWidget(
     MaterialApp(
       home: Builder(
@@ -160,6 +205,7 @@ Future<void> _pumpLauncher(WidgetTester tester, _DuelFixture fixture) async {
                   course: fixture.course,
                   lesson: fixture.lesson,
                   ttsLanguage: fixture.course.ttsLanguage,
+                  viewOnlyMode: viewOnlyMode,
                 ),
               ),
             ),

@@ -148,6 +148,8 @@ bool _usesDarkLearnerAppearance(BuildContext context) {
     LearnerThemeMode.dark => true,
     LearnerThemeMode.defaultMode ||
     null => MediaQuery.platformBrightnessOf(context) == Brightness.dark,
+    LearnerThemeMode.dayNight =>
+      Theme.of(context).brightness == Brightness.dark,
   };
 }
 
@@ -207,7 +209,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Set<String> _perfectRounds = {};
   Set<String> _ttsSkippedPerfectRounds = {};
   Set<String> _wonDuels = {};
-  bool _iddqdMode = false;
+  LearnerIddqdMode _iddqdMode = LearnerIddqdMode.off;
   LearnerFlagBackgroundMode _flagBackgroundMode = LearnerFlagBackgroundMode.off;
   String _selectedLanguage = 'IT';
   String _selectedCourseRef = 'IT';
@@ -477,8 +479,8 @@ class _HomeScreenState extends State<HomeScreen> {
           ? <String>{}
           : await _progress.getWonDuels(courseId: course.courseId);
       final iddqdMode = activeId == null
-          ? false
-          : await _settings.isIddqdModeEnabled(course.courseId);
+          ? LearnerIddqdMode.off
+          : await _settings.getIddqdMode(course.courseId);
       var flagBackgroundMode = LearnerFlagBackgroundMode.off;
       if (activeId != null) {
         try {
@@ -497,7 +499,7 @@ class _HomeScreenState extends State<HomeScreen> {
             completedLessons: lessons,
             wonDuels: wonDuels,
           ) &&
-          !iddqdMode) {
+          !iddqdMode.bypassesLocks) {
         activeLessonIndex = 0;
       }
       if (!mounted) return;
@@ -1377,6 +1379,7 @@ class _HomeScreenState extends State<HomeScreen> {
           roundIndex: lesson.rounds.indexOf(round),
           ttsLanguage: course.ttsLanguage,
           completeLessonOnFinish: true,
+          viewOnlyMode: _iddqdMode == LearnerIddqdMode.viewOnly,
         ),
       ),
     );
@@ -1395,6 +1398,7 @@ class _HomeScreenState extends State<HomeScreen> {
           course: course,
           lesson: lesson,
           ttsLanguage: course.ttsLanguage,
+          viewOnlyMode: _iddqdMode == LearnerIddqdMode.viewOnly,
         ),
       ),
     );
@@ -1409,8 +1413,11 @@ class _HomeScreenState extends State<HomeScreen> {
     }
     await Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) =>
-            ReviewScreen(course: course, courseCode: _selectedLanguage),
+        builder: (_) => ReviewScreen(
+          course: course,
+          courseCode: _selectedLanguage,
+          viewOnlyMode: _iddqdMode == LearnerIddqdMode.viewOnly,
+        ),
       ),
     );
     await _reload();
@@ -1619,7 +1626,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   );
                                   final previewOnly =
                                       !unlocked &&
-                                      !_iddqdMode &&
+                                      !_iddqdMode.bypassesLocks &&
                                       _sessionPreviewedLockedLessons.contains((
                                         courseId: course.courseId,
                                         lessonId: sectionLesson.lessonId,
@@ -1650,9 +1657,13 @@ class _HomeScreenState extends State<HomeScreen> {
                                     showSectionHeader: showSectionHeader,
                                     unlocked: unlocked,
                                     hasAccess:
-                                        unlocked || _iddqdMode || previewOnly,
-                                    iddqdAccessOverride:
-                                        !unlocked && _iddqdMode,
+                                        unlocked ||
+                                        _iddqdMode.bypassesLocks ||
+                                        previewOnly,
+                                    iddqdAccessMode:
+                                        !unlocked && _iddqdMode.bypassesLocks
+                                        ? _iddqdMode
+                                        : null,
                                     previewOnly: previewOnly,
                                     completedRounds: _completedRounds,
                                     perfectRounds: _perfectRounds,
@@ -1673,7 +1684,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                     ),
                                     onOpenDuel: () =>
                                         _openDuel(course, sectionLesson),
-                                    onLockedTap: unlocked || _iddqdMode
+                                    onLockedTap:
+                                        unlocked || _iddqdMode.bypassesLocks
                                         ? null
                                         : () => _recordLockedLessonTap(
                                             course.courseId,
@@ -1701,17 +1713,18 @@ class _HomeScreenState extends State<HomeScreen> {
                               await _reload();
                             },
                             onReview: () => _openReview(course),
-                            iddqdEnabled: _iddqdMode,
+                            iddqdMode: _iddqdMode,
                             onIddqdChanged: (value) async {
+                              final previous = _iddqdMode;
                               setState(() => _iddqdMode = value);
                               try {
-                                await _settings.setIddqdModeEnabled(
+                                await _settings.setIddqdMode(
                                   course.courseId,
                                   value,
                                 );
                               } catch (_) {
                                 if (mounted) {
-                                  setState(() => _iddqdMode = !value);
+                                  setState(() => _iddqdMode = previous);
                                 }
                               }
                             },
@@ -1819,7 +1832,7 @@ class _LessonSection extends StatelessWidget {
   final bool showSectionHeader;
   final bool unlocked;
   final bool hasAccess;
-  final bool iddqdAccessOverride;
+  final LearnerIddqdMode? iddqdAccessMode;
   final bool previewOnly;
   final Set<String> completedRounds;
   final Set<String> perfectRounds;
@@ -1843,7 +1856,7 @@ class _LessonSection extends StatelessWidget {
     required this.showSectionHeader,
     required this.unlocked,
     required this.hasAccess,
-    required this.iddqdAccessOverride,
+    required this.iddqdAccessMode,
     required this.previewOnly,
     required this.completedRounds,
     required this.perfectRounds,
@@ -1913,7 +1926,7 @@ class _LessonSection extends StatelessWidget {
         course: course,
         lessonIndex: lessonIndex,
         unlocked: unlocked,
-        iddqdAccessOverride: iddqdAccessOverride,
+        iddqdAccessMode: iddqdAccessMode,
         onLockedTap: onLockedTap,
         onTap:
             hasAccess &&
@@ -1922,7 +1935,11 @@ class _LessonSection extends StatelessWidget {
             ? onOpenGuidebook
             : null,
       ),
-      if (iddqdAccessOverride) _IddqdAccessIndicator(lessonId: lesson.lessonId),
+      if (iddqdAccessMode != null)
+        _IddqdAccessIndicator(
+          lessonId: lesson.lessonId,
+          mode: iddqdAccessMode!,
+        ),
       if (!hasAccess)
         Padding(
           key: ValueKey('unified-lesson-locked-${lesson.lessonId}'),
@@ -1978,15 +1995,20 @@ class _LessonSection extends StatelessWidget {
 
 class _IddqdAccessIndicator extends StatelessWidget {
   final String lessonId;
+  final LearnerIddqdMode mode;
 
-  const _IddqdAccessIndicator({required this.lessonId});
+  const _IddqdAccessIndicator({required this.lessonId, required this.mode});
+
+  String get _accessLabel => mode == LearnerIddqdMode.viewOnly
+      ? 'Preview with IDDQD'
+      : 'Accessible with IDDQD';
 
   @override
   Widget build(BuildContext context) => Align(
     alignment: Alignment.center,
     child: Semantics(
       container: true,
-      label: 'Lesson is locked in normal progression. Accessible with IDDQD.',
+      label: 'Lesson is locked in normal progression. $_accessLabel.',
       child: ExcludeSemantics(
         child: Container(
           key: ValueKey('unified-lesson-iddqd-access-$lessonId'),
@@ -2006,7 +2028,7 @@ class _IddqdAccessIndicator extends StatelessWidget {
               const SizedBox(width: 6),
               Flexible(
                 child: Text(
-                  'Accessible with IDDQD',
+                  _accessLabel,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: Theme.of(context).textTheme.labelMedium?.copyWith(
@@ -2027,7 +2049,7 @@ class _GuidebookNode extends StatelessWidget {
   final Course course;
   final int lessonIndex;
   final bool unlocked;
-  final bool iddqdAccessOverride;
+  final LearnerIddqdMode? iddqdAccessMode;
   final VoidCallback? onLockedTap;
   final VoidCallback? onTap;
 
@@ -2036,7 +2058,7 @@ class _GuidebookNode extends StatelessWidget {
     required this.course,
     required this.lessonIndex,
     required this.unlocked,
-    required this.iddqdAccessOverride,
+    required this.iddqdAccessMode,
     required this.onLockedTap,
     required this.onTap,
   });
@@ -2141,8 +2163,8 @@ class _GuidebookNode extends StatelessWidget {
                                   bottom: -3,
                                   child: Semantics(
                                     button: onLockedTap != null,
-                                    label: iddqdAccessOverride
-                                        ? 'Locked ${identity.prefix ?? identity.title}. Accessible with IDDQD.'
+                                    label: iddqdAccessMode != null
+                                        ? 'Locked ${identity.prefix ?? identity.title}. ${iddqdAccessMode == LearnerIddqdMode.viewOnly ? 'Preview with IDDQD.' : 'Accessible with IDDQD.'}'
                                         : 'Locked ${identity.prefix ?? identity.title}',
                                     child: GestureDetector(
                                       key: ValueKey(

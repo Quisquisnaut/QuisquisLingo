@@ -27,6 +27,7 @@ class RoundScreen extends StatefulWidget {
   final String ttsLanguage;
   final int roundIndex;
   final bool previewMode;
+  final bool viewOnlyMode;
   final bool completeLessonOnFinish;
 
   const RoundScreen({
@@ -37,6 +38,7 @@ class RoundScreen extends StatefulWidget {
     required this.ttsLanguage,
     required this.roundIndex,
     this.previewMode = false,
+    this.viewOnlyMode = false,
     this.completeLessonOnFinish = false,
   });
 
@@ -70,6 +72,11 @@ class _MatchPairView {
 
 class _RoundScreenState extends State<RoundScreen> {
   String get _roundTitle => widget.round.displayTitle(widget.roundIndex);
+  String get _screenTitle => widget.previewMode
+      ? 'PREVIEW · $_roundTitle'
+      : widget.viewOnlyMode
+      ? 'VIEW ONLY · $_roundTitle'
+      : _roundTitle;
   final _progress = ProgressService();
   late final LearningCompletionService _completion;
   final _ttsCache = TtsCacheService();
@@ -228,6 +235,7 @@ class _RoundScreenState extends State<RoundScreen> {
           .length;
       _wasCompleted =
           !widget.previewMode &&
+          !widget.viewOnlyMode &&
           (await _progress.getCompletedRounds(
             courseId: widget.course.courseId,
           )).contains(widget.round.id);
@@ -789,14 +797,15 @@ class _RoundScreenState extends State<RoundScreen> {
       return;
     }
 
-    if (widget.previewMode) {
+    if (widget.previewMode || widget.viewOnlyMode) {
       if (!mounted) return;
+      final viewOnly = widget.viewOnlyMode;
       await showDialog<void>(
         context: context,
         builder: (ctx) => AlertDialog(
-          title: const Text('Preview complete'),
+          title: Text(viewOnly ? 'View Only result' : 'Preview complete'),
           content: Text(
-            'Temporary result: ${_errorsThisAttempt == 0 ? 'perfect' : '$_errorsThisAttempt error${_errorsThisAttempt == 1 ? '' : 's'}'}. No learner progress was recorded.',
+            '${viewOnly ? 'Preview' : 'Temporary'} result: ${_errorsThisAttempt == 0 ? 'perfect' : '$_errorsThisAttempt error${_errorsThisAttempt == 1 ? '' : 's'}'}. ${viewOnly ? 'No learning progress or rewards were recorded.' : 'No learner progress was recorded.'}',
           ),
           actions: [
             FilledButton(
@@ -1751,12 +1760,7 @@ class _RoundScreenState extends State<RoundScreen> {
     if (intro != null && !_introAcknowledged) {
       return Scaffold(
         backgroundColor: background,
-        appBar: AppBar(
-          backgroundColor: background,
-          title: Text(
-            widget.previewMode ? 'PREVIEW · $_roundTitle' : _roundTitle,
-          ),
-        ),
+        appBar: AppBar(backgroundColor: background, title: Text(_screenTitle)),
         body: SafeArea(
           child: ListView(
             padding: const EdgeInsets.fromLTRB(20, 20, 20, 28),
@@ -1817,24 +1821,14 @@ class _RoundScreenState extends State<RoundScreen> {
     if (!_ready) {
       return Scaffold(
         backgroundColor: background,
-        appBar: AppBar(
-          backgroundColor: background,
-          title: Text(
-            widget.previewMode ? 'PREVIEW · $_roundTitle' : _roundTitle,
-          ),
-        ),
+        appBar: AppBar(backgroundColor: background, title: Text(_screenTitle)),
         body: const Center(child: CircularProgressIndicator()),
       );
     }
     if (_queue.isEmpty) {
       return Scaffold(
         backgroundColor: background,
-        appBar: AppBar(
-          backgroundColor: background,
-          title: Text(
-            widget.previewMode ? 'PREVIEW · $_roundTitle' : _roundTitle,
-          ),
-        ),
+        appBar: AppBar(backgroundColor: background, title: Text(_screenTitle)),
         body: SafeArea(
           child: ListView(
             padding: const EdgeInsets.all(20),

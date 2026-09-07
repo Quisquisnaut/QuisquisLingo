@@ -51,6 +51,7 @@ These are persistent instructions for Codex when working on QuisquisLingo.
 - `2.0.27+227020` is Phase 227.02 revision 0: Flag Background adds Tinted and Soft Inspired after Small / Off / Extended through one deterministic, theme-adaptive color derivation path for World Flag SVGs, portable custom raster flags and built-in flag colors. Persistence remains per learner × Course, defaults Off and ignores the untouched obsolete shared value. Theme, IDDQD, progression, XP, Course Model v6, course JSON and checksums remain unchanged. Alpha expiry remains `2026-10-07 23:59:59` local time; see `docs/227_02_VALIDATION.md`.
 - `2.0.27+227021` is Phase 227.02 revision 1: the learner-facing Soft Inspired name becomes Inspired while its `soft_inspired` persisted value remains compatible, and its static surface now exposes up to three broader, stronger flag-derived color zones. Tinted retains its restrained single-color treatment. Persistence, Theme, IDDQD, progression, XP, Course Model v6, course JSON, checksums and the `2026-10-07 23:59:59` Alpha expiry remain unchanged; see `docs/227_02_VALIDATION.md`.
 - `2.0.27+227030` is Phase 227.03 revision 0: the existing learner IDDQD control explains Off as normal progression locks and On as access through locks with genuine progression preserved. Genuinely locked Lesson sections keep their lock state and show `Accessible with IDDQD` while the established Lesson gate exposes only the published GuideBook, Rounds and eligible Duel. IDDQD remains Off / On per learner × Course and initialized Off; toggling alone changes no progression or XP, while actual study records normal results. Flag Background, Theme, Course Model v6, course JSON, checksums and the `2026-10-07 23:59:59` Alpha expiry remain unchanged; see `docs/227_03_VALIDATION.md`.
+- `2.0.27+227040` is Phase 227.04 revision 0 and closes QQL 227. IDDQD adds View Only after the unchanged Off/On modes: it bypasses the established Lesson lock gate while Round, Review and Duel interaction writes no learner progress, XP, activity, Laurel, Review or Duel state; the selected mode persists per learner × Course. Theme is Light / Dark / System / Day/Night per learner, with compatible `default` System storage and local 07:00/19:00 live Day/Night boundaries. The bottom controls remain compact without permanent IDDQD helper text. Flag Background, Course Model v6, Course JSON, checksums and the `2026-10-07 23:59:59` Alpha expiry remain unchanged; see `docs/227_04_VALIDATION.md`.
 - Do not read, apply, migrate or automatically convert Build 225 official local overrides. Leave stored remnants untouched. Official history contains publisher sources only. Only custom courses enter authoring transactions; an explicit `derivativeWorksPolicy: allowed` is required to fork an official course. Ordinary custom courses retain Course Model v6 storage and version behavior.
 
 ## Architecture and service boundaries
@@ -232,8 +233,8 @@ Lesson access rules:
 
 - The first Lesson is unlocked. Each later Lesson unlocks when the immediately preceding Lesson is completed or its Lesson-scoped Duel is won.
 - `IDDQD Mode (you can walk through locks)` is stored per user and per course.
-- IDDQD grants temporary access without changing genuine unlock state.
-- While IDDQD is active, genuine progress and genuine unlocks must continue to be recorded.
+- IDDQD On and View Only grant temporary access without changing genuine unlock state.
+- IDDQD On records genuine study progress and unlocks normally. View Only records no learner progress, rewards, activity, Review or Duel state.
 - Lock icons always show genuine lock state.
 - Never reset learner progress, XP, streaks, laurels, course selection, or user data as a side effect of an unrelated feature.
 
@@ -277,7 +278,7 @@ When a new XP system is explicitly introduced, update this section to describe t
 
 ## Settings invariants
 
-- Learner Flag Background is Small / Off / Extended / Tinted / Inspired, per opaque learner ID × immutable Course ID, initialized Off. Inspired retains the `soft_inspired` storage value introduced in 227.02 revision 0. Preserve the clean cut: do not read, migrate or convert the old shared per-learner value. IDDQD remains per learner × Course, initialized Off. Its learner control explains Off as `Normal progression locks apply.` and On as `Locked content can be opened. Normal progression status is preserved.` A genuinely locked Lesson accessible through IDDQD keeps its lock and shows `Accessible with IDDQD`. Theme remains per learner across Courses, initialized Default.
+- Learner Flag Background is Small / Off / Extended / Tinted / Inspired, per opaque learner ID × immutable Course ID, initialized Off. Inspired retains the `soft_inspired` storage value introduced in 227.02 revision 0. Preserve the clean cut: do not read, migrate or convert the old shared per-learner value. IDDQD is Off / On / View Only per learner × Course, initialized Off. Its compact control uses tooltip and accessibility explanations without permanent helper text. A genuinely locked Lesson keeps its lock and shows `Accessible with IDDQD` for On or `Preview with IDDQD` for View Only. Theme is Light / Dark / System / Day/Night per learner across Courses; compatible `default` storage displays as System, and Day/Night uses local 07:00/19:00 boundaries.
 
 - Keep the switch label exactly:
   `IDDQD Mode (you can walk through locks)`

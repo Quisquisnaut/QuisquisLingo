@@ -74,7 +74,7 @@ void main() {
       buildSignature: '',
     );
     SharedPreferences.setMockInitialValues({
-      'one_time_notice_seen_welcome_2.0.27+227030': true,
+      'one_time_notice_seen_welcome_2.0.27+227040': true,
       'sound_effects_enabled': false,
     });
     await ProfileService().addProfile('Navigation Learner');
@@ -788,23 +788,17 @@ void main() {
         find.byTooltip('IDDQD: Off\nNormal progression locks apply.'),
         findsOneWidget,
       );
-      expect(find.text('Normal progression locks apply.'), findsOneWidget);
+      expect(find.text('Normal progression locks apply.'), findsNothing);
       await tester.tap(control);
       await tester.pumpAndSettle();
       expect(
         find.byTooltip(
           'IDDQD: On\nLocked content can be opened. '
-          'Normal progression status is preserved.',
+          'Study progress is recorded normally.',
         ),
         findsOneWidget,
       );
-      expect(
-        find.text(
-          'Locked content can be opened. '
-          'Normal progression status is preserved.',
-        ),
-        findsOneWidget,
-      );
+      expect(find.text(iddqdOnExplanation), findsNothing);
 
       final lockedSection = find.byKey(
         ValueKey('unified-lesson-section-${lockedLesson.lessonId}'),
@@ -868,10 +862,40 @@ void main() {
       await tester.tap(control);
       await tester.pumpAndSettle();
       expect(
+        find.byTooltip(
+          'IDDQD: View Only\nLocked content can be previewed. '
+          'No learning progress is recorded.',
+        ),
+        findsOneWidget,
+      );
+      expect(find.text('Preview with IDDQD'), findsOneWidget);
+      expect(
+        find.bySemanticsLabel(
+          'Lesson is locked in normal progression. Preview with IDDQD.',
+        ),
+        findsOneWidget,
+      );
+      expect(lockedRound, findsOneWidget);
+
+      await tester.tap(
+        find.descendant(of: lockedRound, matching: find.byType(InkWell)),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byType(RoundScreen), findsOneWidget);
+      expect(
+        tester.widget<RoundScreen>(find.byType(RoundScreen)).viewOnlyMode,
+        isTrue,
+      );
+      await tester.pageBack();
+      await tester.pumpAndSettle();
+
+      await tester.tap(control);
+      await tester.pumpAndSettle();
+      expect(
         find.byTooltip('IDDQD: Off\nNormal progression locks apply.'),
         findsOneWidget,
       );
-      expect(find.text('Normal progression locks apply.'), findsOneWidget);
+      expect(find.text('Normal progression locks apply.'), findsNothing);
       expect(lockedRound, findsNothing);
       expect(iddqdAccess, findsNothing);
       expect(
@@ -2609,7 +2633,7 @@ void main() {
         (text) =>
             text.data != 'Welcome to QuisquisLingo' &&
             text.data != 'Version 2.0.27' &&
-            text.data != 'Phase 227.03, revision 0' &&
+            text.data != 'Phase 227.04, revision 0' &&
             text.data != 'Continue',
       );
       final welcomeDialog = tester.widget<AlertDialog>(
@@ -2626,11 +2650,11 @@ void main() {
         const Color(0xFF0756DF),
       );
       expect(
-        tester.widget<Text>(find.text('Phase 227.03, revision 0')).style?.color,
+        tester.widget<Text>(find.text('Phase 227.04, revision 0')).style?.color,
         const Color(0xFF0756DF),
       );
       expect(find.textContaining('22621'), findsNothing);
-      expect(find.textContaining('227030'), findsNothing);
+      expect(find.textContaining('227040'), findsNothing);
       expect(phrase.style?.color, const Color(0xFF0756DF));
       expect(find.widgetWithText(FilledButton, 'Continue'), findsOneWidget);
       expect(

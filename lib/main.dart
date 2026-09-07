@@ -10,6 +10,7 @@ import 'services/crash_log_service.dart';
 import 'screens/home_screen.dart';
 import 'services/settings_service.dart';
 import 'services/profile_service.dart';
+import 'services/learner_theme_schedule.dart';
 import 'services/learner_status_events.dart';
 import 'services/startup_diagnostic_service.dart';
 import 'services/diagnostic_log_service.dart';
@@ -92,22 +93,32 @@ class QuisquisLingoApp extends StatefulWidget {
   @visibleForTesting
   final Widget? home;
 
-  const QuisquisLingoApp({super.key, this.profileService, this.home});
+  @visibleForTesting
+  final DateTime Function()? now;
+
+  const QuisquisLingoApp({super.key, this.profileService, this.home, this.now});
 
   @override
   State<QuisquisLingoApp> createState() => _QuisquisLingoAppState();
 }
 
-class _QuisquisLingoAppState extends State<QuisquisLingoApp> {
+class _QuisquisLingoAppState extends State<QuisquisLingoApp>
+    with WidgetsBindingObserver {
   late final ProfileService _profiles;
+  late final DateTime Function() _now;
   StreamSubscription<LearnerStatusInvalidation>? _appearanceSubscription;
+  Timer? _dayNightTimer;
   LearnerThemeMode _themeMode = LearnerThemeMode.defaultMode;
+  Brightness _dayNightBrightness = Brightness.light;
   int _loadGeneration = 0;
 
   @override
   void initState() {
     super.initState();
     _profiles = widget.profileService ?? ProfileService();
+    _now = widget.now ?? DateTime.now;
+    _dayNightBrightness = LearnerThemeSchedule.brightnessAt(_now());
+    WidgetsBinding.instance.addObserver(this);
     _appearanceSubscription = LearnerStatusEvents.stream.listen((event) {
       if (event == LearnerStatusInvalidation.activeProfile ||
           event == LearnerStatusInvalidation.theme) {
@@ -126,12 +137,51 @@ class _QuisquisLingoAppState extends State<QuisquisLingoApp> {
       // Appearance loading falls back to the application's normal defaults.
     }
     if (!mounted || generation != _loadGeneration) return;
-    if (themeMode == _themeMode) return;
-    setState(() => _themeMode = themeMode);
+    _applyThemeMode(themeMode);
+  }
+
+  void _applyThemeMode(LearnerThemeMode themeMode) {
+    final brightness = themeMode == LearnerThemeMode.dayNight
+        ? LearnerThemeSchedule.brightnessAt(_now())
+        : _dayNightBrightness;
+    if (themeMode != _themeMode || brightness != _dayNightBrightness) {
+      setState(() {
+        _themeMode = themeMode;
+        _dayNightBrightness = brightness;
+      });
+    }
+    _scheduleDayNightBoundary();
+  }
+
+  void _refreshDayNightTheme() {
+    if (!mounted || _themeMode != LearnerThemeMode.dayNight) return;
+    final brightness = LearnerThemeSchedule.brightnessAt(_now());
+    if (brightness != _dayNightBrightness) {
+      setState(() => _dayNightBrightness = brightness);
+    }
+    _scheduleDayNightBoundary();
+  }
+
+  void _scheduleDayNightBoundary() {
+    _dayNightTimer?.cancel();
+    _dayNightTimer = null;
+    if (_themeMode != LearnerThemeMode.dayNight) return;
+    final currentTime = _now();
+    final delay = LearnerThemeSchedule.nextBoundaryAfter(
+      currentTime,
+    ).difference(currentTime);
+    _dayNightTimer = Timer(delay, _refreshDayNightTheme);
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) _refreshDayNightTheme();
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _dayNightTimer?.cancel();
     _appearanceSubscription?.cancel();
     super.dispose();
   }
@@ -140,6 +190,10 @@ class _QuisquisLingoAppState extends State<QuisquisLingoApp> {
     LearnerThemeMode.defaultMode => ThemeMode.system,
     LearnerThemeMode.light => ThemeMode.light,
     LearnerThemeMode.dark => ThemeMode.dark,
+    LearnerThemeMode.dayNight =>
+      _dayNightBrightness == Brightness.light
+          ? ThemeMode.light
+          : ThemeMode.dark,
   };
 
   @override
@@ -301,6 +355,7 @@ class _QuisquisLingoAppState extends State<QuisquisLingoApp> {
           surfaceTintColor: Colors.transparent,
         ),
       ),
+      themeAnimationDuration: Duration.zero,
       themeMode: _materialThemeMode,
       home: widget.home ?? const _StartupGate(),
     );

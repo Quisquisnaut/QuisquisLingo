@@ -24,21 +24,23 @@ void main() {
     SharedPreferences.setMockInitialValues({});
   });
 
-  test('227.01 control enums preserve exact labels, values, and cycles', () {
+  test('227.04 control enums preserve exact labels, values, and cycles', () {
     expect(
       LearnerThemeMode.values
           .map((mode) => (mode.name, mode.storageValue, mode.label))
           .toList(),
       const [
-        ('defaultMode', 'default', 'Default'),
         ('light', 'light', 'Light'),
         ('dark', 'dark', 'Dark'),
+        ('defaultMode', 'default', 'System'),
+        ('dayNight', 'day_night', 'Day/Night'),
       ],
     );
     expect(LearnerThemeMode.values.map((mode) => mode.next).toList(), const [
-      LearnerThemeMode.light,
       LearnerThemeMode.dark,
       LearnerThemeMode.defaultMode,
+      LearnerThemeMode.dayNight,
+      LearnerThemeMode.light,
     ]);
     expect(LearnerThemeMode.fromStorage(null), LearnerThemeMode.defaultMode);
     expect(
@@ -76,10 +78,21 @@ void main() {
       LearnerFlagBackgroundMode.fromStorage('legacy-or-unknown'),
       LearnerFlagBackgroundMode.off,
     );
+
+    expect(LearnerIddqdMode.values.map((mode) => mode.label).toList(), const [
+      'Off',
+      'On',
+      'View Only',
+    ]);
+    expect(LearnerIddqdMode.values.map((mode) => mode.next).toList(), const [
+      LearnerIddqdMode.on,
+      LearnerIddqdMode.viewOnly,
+      LearnerIddqdMode.off,
+    ]);
   });
 
   test(
-    '227.01 Theme is per learner, course-independent, persistent, and defaults to Default',
+    '227.04 Theme is per learner, course-independent, persistent, and defaults to System',
     () async {
       final profiles = ProfileService();
       final settings = SettingsService();
@@ -94,17 +107,21 @@ void main() {
 
       await profiles.addProfile('Bob');
       expect(await profiles.getThemeMode(), LearnerThemeMode.defaultMode);
-      await profiles.setThemeMode(LearnerThemeMode.light);
+      await profiles.setThemeMode(LearnerThemeMode.dayNight);
 
       final restarted = ProfileService();
       await restarted.setActiveProfileById(aliceId);
       expect(await restarted.getThemeMode(), LearnerThemeMode.dark);
+
+      await restarted.setActiveProfile('Bob');
+      expect(await restarted.getThemeMode(), LearnerThemeMode.dayNight);
 
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString(
         profiles.keyForProfileId(aliceId, 'theme_mode'),
         'unknown',
       );
+      await restarted.setActiveProfileById(aliceId);
       expect(await restarted.getThemeMode(), LearnerThemeMode.defaultMode);
     },
   );
@@ -219,26 +236,52 @@ void main() {
   );
 
   test(
-    '227.01 IDDQD is Off by default and persists independently per learner and course',
+    '227.04 IDDQD keeps legacy On and persists View Only per learner and course',
     () async {
       final profiles = ProfileService();
       final settings = SettingsService();
       await profiles.addProfile('Alice');
       final aliceId = (await profiles.getActiveProfileId())!;
       expect(await settings.isIddqdModeEnabled('Course/A'), isFalse);
+      expect(await settings.getIddqdMode('Course/A'), LearnerIddqdMode.off);
       await settings.setIddqdModeEnabled(' Course/A ', true);
       expect(await settings.isIddqdModeEnabled('Course/A'), isTrue);
+      expect(await settings.getIddqdMode('Course/A'), LearnerIddqdMode.on);
       expect(await settings.isIddqdModeEnabled('course/a'), isFalse);
       expect(await settings.isIddqdModeEnabled('course-b'), isFalse);
 
       await profiles.addProfile('Bob');
+      final bobId = (await profiles.getActiveProfileId())!;
       expect(await settings.isIddqdModeEnabled('Course/A'), isFalse);
-      await settings.setIddqdModeEnabled('Course/A', true);
+      await settings.setIddqdMode('Course/A', LearnerIddqdMode.viewOnly);
+      expect(
+        await settings.getIddqdMode('Course/A'),
+        LearnerIddqdMode.viewOnly,
+      );
+      expect(await settings.isIddqdModeEnabled('Course/A'), isTrue);
 
       final restarted = SettingsService();
       await profiles.setActiveProfileById(aliceId);
       expect(await restarted.isIddqdModeEnabled('Course/A'), isTrue);
+      expect(await restarted.getIddqdMode('Course/A'), LearnerIddqdMode.on);
       expect(await restarted.isIddqdModeEnabled('course-b'), isFalse);
+
+      await profiles.setActiveProfile('Bob');
+      expect(
+        await restarted.getIddqdMode('Course/A'),
+        LearnerIddqdMode.viewOnly,
+      );
+      expect(await restarted.getIddqdMode('course-b'), LearnerIddqdMode.off);
+      final preferences = await SharedPreferences.getInstance();
+      expect(
+        preferences.get(
+          profiles.keyForProfileId(
+            bobId,
+            'iddqd_${Uri.encodeComponent('Course/A')}',
+          ),
+        ),
+        'view_only',
+      );
     },
   );
 
