@@ -40,7 +40,7 @@ class InfoScreen extends StatelessWidget {
         _InfoSection(
           title: 'Choosing and opening courses',
           body:
-              'The learner page course selector lists the current course, recently opened courses, bundled courses and My custom courses. When Animations are enabled, switching to a different course with a valid flag explicitly configured in its Course JSON briefly shows that exact flag before revealing the new Learner Panel. Selecting the current course again, normal startup, disabled Animations, and courses without a valid configured flag enter immediately. Each learner resumes the last Lesson selected in that course, or the first Lesson when no saved selection is valid. Use the Lesson selector to see the complete course.',
+              'The learner page course selector lists the current course, recently opened courses, bundled courses and My custom courses. When Animations are enabled, switching to a different course briefly shows its valid Course JSON flag before revealing the new Learner Panel. If no flag is declared, the same established course-code flag fallback used elsewhere is shown; invalid declared flag data does not receive that fallback. Selecting the current course again, normal startup and disabled Animations enter immediately. Each learner resumes the last Lesson selected in that course, or the first Lesson when no saved selection is valid. Use the Lesson selector to see the complete course.',
         ),
         _InfoSection(
           title: 'Course identity and progress',
@@ -116,7 +116,7 @@ class InfoScreen extends StatelessWidget {
         _InfoSection(
           title: 'Updates',
           body:
-              'At the bottom of Settings, Version and Build are shown immediately before Update. Settings > Update displays the official QuisquisLingo GitHub repository https://github.com/Quisquisnaut/QuisquisLingo, lets you check the latest published GitHub Release manually, and can optionally check automatically at startup. Automatic checks are off by default. Update checks send no learner data or course data and never download or install software. If a newer release exists, the page shows release information and installation guidance in the fixed order Windows, macOS, Linux antiX, Android, iOS and Web, marking platforms that have no matching published release asset as not currently available.',
+              'At the bottom of Settings, Version and Build are shown immediately before Update. Settings > Update displays the published QuisquisLingo source repository https://github.com/Quisquisnaut/QuisquisLingo, lets you check the latest packaged GitHub Release manually, and can optionally check automatically at startup. If no packaged GitHub Release exists, the page distinguishes that from the published source repository. Automatic checks are off by default. Update checks send no learner data or course data and never download or install software. If a newer release exists, the page shows release information and installation guidance in the fixed order Windows, macOS, Linux antiX, Android, iOS and Web, marking platforms that have no matching published release asset as not currently available.',
         ),
         _InfoSection(
           title: 'Crash Log and Diagnostic Log',

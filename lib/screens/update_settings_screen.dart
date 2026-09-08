@@ -6,7 +6,9 @@ import '../services/settings_service.dart';
 import '../services/update_service.dart';
 
 class UpdateSettingsScreen extends StatefulWidget {
-  const UpdateSettingsScreen({super.key});
+  final UpdateService? updateService;
+
+  const UpdateSettingsScreen({super.key, this.updateService});
 
   @override
   State<UpdateSettingsScreen> createState() => _UpdateSettingsScreenState();
@@ -14,7 +16,7 @@ class UpdateSettingsScreen extends StatefulWidget {
 
 class _UpdateSettingsScreenState extends State<UpdateSettingsScreen> {
   final _settings = SettingsService();
-  final _updates = UpdateService();
+  late final UpdateService _updates;
   final _diagnosticLog = DiagnosticLogService();
 
   String _currentVersion = AppMetadata.technicalVersion;
@@ -27,6 +29,7 @@ class _UpdateSettingsScreenState extends State<UpdateSettingsScreen> {
   @override
   void initState() {
     super.initState();
+    _updates = widget.updateService ?? UpdateService();
     _load();
   }
 
@@ -189,9 +192,9 @@ class _UpdateSettingsScreenState extends State<UpdateSettingsScreen> {
             const SizedBox(height: 12),
             const _StatusCard(
               icon: Icons.inventory_2_outlined,
-              title: 'No published release',
+              title: 'No packaged GitHub release',
               body:
-                  'No published QuisquisLingo release is currently available in the GitHub Releases section.',
+                  'The QuisquisLingo source repository is published, but no packaged application release is currently available in GitHub Releases.',
             ),
           ],
           if (result?.status == UpdateCheckStatus.upToDate &&

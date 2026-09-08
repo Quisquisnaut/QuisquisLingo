@@ -12,7 +12,7 @@ Latest-release API:
 
 `https://api.github.com/repos/Quisquisnaut/QuisquisLingo/releases/latest`
 
-Only a published GitHub Release is treated as an available application version. Repository commits and ordinary tags are not used as update notifications.
+Only a published GitHub Release is treated as an available packaged application version. Repository commits and ordinary tags are not used as update notifications. When the source repository is public but GitHub Releases has no packaged application release, the Update page states that distinction instead of claiming that nothing is published.
 
 ## User controls
 

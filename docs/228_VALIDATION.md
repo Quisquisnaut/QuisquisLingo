@@ -2,7 +2,7 @@
 
 ## Release boundary
 
-QQL 228 is released as Version `2.0.28`, Phase/build `228`, revision `0`, and pubspec `2.0.28+228`. The 30-day Alpha lifetime ends at exactly `2026-10-08 23:59:59` local time. Course Model remains v6 (`formatVersion: 6`), the Course Audit Registry remains at 102 rules, and bundled Course JSON and checksums are unchanged.
+QQL 228 revision 1 is Version `2.0.28`, Phase `228`, revision `1`, technical build `2281`, and pubspec `2.0.28+2281`. The QQL 228 Alpha lifetime still ends at exactly `2026-10-08 23:59:59` local time. Course Model remains v6 (`formatVersion: 6`), the Course Audit Registry remains at 102 rules, and bundled Course JSON and checksums are unchanged.
 
 The implementation starts from the completed QQL 227 checkout and contains only the requested Settings, Profile, Statistics, Debug/logging, and learner runtime Audio Settings work. QQL 227 remains closed.
 
@@ -42,7 +42,9 @@ TTS and recorded playback emit bounded, correlated lifecycles to the existing Di
 
 Test Voice no longer chooses a built-in language sample. Its dialog owns an initially empty editable field with the UI-only hint `Enter text to test`; the Play action remains disabled for empty or whitespace-only input. Nonblank input is passed unchanged to the existing TTS service together with the selected Course's `ttsLanguage`, `learningLanguage`, and `targetLanguage`. The UI locale and text contents do not participate in voice resolution, and the existing missing-compatible-voice result remains specific.
 
-The restored Course Entry Animation is a current-architecture overlay rather than the former pre-215 navigation screen. Only the explicit bundled/custom Course selection handlers request it, after resolving a different destination Course. The decision reads the existing Animations preference and Flutter reduced-motion flag, then resolves only the destination's explicit Course JSON flag in the established `worldFlagId`, portable `flagImageBase64`, and supported `flagCode` order. It never derives a flag from language, locale, title, or `CourseService.codeForCourse`. A valid source covers the newly selected Learner Panel and holds/fades out over 680 ms. A missing or invalid source, disabled Animations, reduced motion, normal startup, and same-Course navigation install no overlay and switch immediately. Course selection persistence, Flag Background, Course Model v6, and Course JSON schema remain unchanged.
+The restored Course Entry Animation is a current-architecture overlay rather than the former pre-215 navigation screen. Only the explicit bundled/custom Course selection handlers request it, after resolving a different destination Course. The decision reads the existing Animations preference and Flutter reduced-motion flag, then gives the destination's explicit Course JSON flag precedence in the established `worldFlagId`, portable `flagImageBase64`, and supported `flagCode` order. Revision 1 uses `CourseService.codeForCourse` only when none of those flag fields is declared; invalid declared data does not fall back. A valid source covers the newly selected Learner Panel and holds/fades out over two seconds. Its controller starts only after the Course Selector has closed and the destination learner state, selection persistence and course reload have completed, so none of the visible interval is consumed behind the picker or during learner refresh. Disabled Animations, reduced motion, normal startup, same-Course navigation and unsupported fallback codes install no overlay and switch immediately. Course selection persistence, Flag Background, Course Model v6, and Course JSON schema remain unchanged.
+
+Revision 1 also makes Show one-time notices again a one-shot ListTile action rather than a permanently false switch. Its existing reset behavior and confirmation remain unchanged. Update checking still uses the fixed GitHub Releases API for packaged application releases; the empty-Releases status now accurately says that the source repository is published while no packaged GitHub Release is available.
 
 ## Persistence and compatibility
 
@@ -64,7 +66,8 @@ New release tests cover:
 - canonical per-language statistics, distinct total days, current/max streak derivation, profile isolation, and rendered page fields;
 - the shared Logs directory, Debug destinations, Crash/Diagnostic reporting guidance, optional-clear warning, and audio privacy explanation;
 - exact Audio Settings controls and Test Voice retention; its empty user-text dialog, blank suppression, exact-text forwarding, course-language metadata, UI-locale independence and missing-voice result; new learner defaults; per-learner persistence/isolation; old-key non-use; pre-controller TTS/recorded filtering; enabled eligibility; missing-source handling; Preview bypass; `Before you start` TTS/recorded suppression and post-Continue activation; ordinary Round timing; bounded/redacted diagnostic ordering/content; and TTS failure privacy;
-- Course Entry Animation decision and rendering for exact destination JSON flags, preference/reduced-motion suppression, invalid/missing flags, same-Course selection, normal persisted startup, 680 ms fade completion, Home switch wiring, selected-Course persistence, Flag Background isolation, and unchanged Course Model serialization.
+- Course Entry Animation decision and rendering for authoritative destination JSON flags, course-code fallback only when flag fields are absent, invalid-data non-fallback, preference/reduced-motion suppression, same-Course selection, normal persisted startup, post-picker/post-reload activation, two-second fade completion, Home switch wiring, selected-Course persistence, Flag Background isolation, and unchanged Course Model serialization;
+- one-shot notice-reset action semantics and accurate published-source/no-packaged-GitHub-Release status wording.
 
 Existing metadata, Alpha lifecycle, Course Audit, Home/Course Selector, Round XP, Duel eligibility, Duel XP, startup logging, TTS language, recorded-audio, authoring Preview, and production-course regressions were updated or rerun where their established boundary changed.
 
@@ -77,9 +80,15 @@ Existing metadata, Alpha lifecycle, Course Audit, Home/Course Selector, Round XP
 | Complete Flutter suite before the clean-machine corrections | 1,233 passed, 0 failed in 10:32 |
 | Clean-machine correction focus | 12 passed, 0 failed |
 | Corrections plus neighboring Audio Settings and TTS-language regressions | 37 passed, 0 failed |
+| Revision 1 flag fallback, notice action, Update wording, metadata and neighboring Settings regressions | 29 passed, 0 failed |
+| Revision 1 Welcome/version display regression | 1 passed, 0 failed |
+| Revision 1 Course Entry visibility correction | 15 passed, 0 failed |
+| Revision 1 correction neighboring Home and Welcome checks | 2 passed, 0 failed |
 | Full Flutter analyzer before the clean-machine corrections | 0 errors; 71 inherited diagnostics (70 info, 1 warning) |
 | Diagnostics in changed files | 1 inherited info-level brace lint on an unchanged `SettingsService` line; 0 new findings |
 | Focused static analysis for the two corrections | 6 modified production/test files, no issues |
+| Revision 1 focused static analysis | Course Entry policy, Home, Do Not Disturb and Update screens: no issues |
+| Revision 1 Course Entry correction focused static analysis | Home switch path, animation policy/widget and regression test: no issues |
 | Bundled Course validation | 9 Course Model v6 Courses valid |
 | Image asset validation | 112 assets, 0 issues |
 | `git diff --check` | Passed |
@@ -88,4 +97,4 @@ The analyzer warning is the pre-existing unused `_tapAndSettle` helper in `test/
 
 ## Remaining validation boundary
 
-Automated tests use injected/fake playback seams. The earlier standalone 228 package launched on a clean Azure Windows VM and established installed/missing voice behavior, leading to these two corrections. A rebuilt package still needs the updated Test Voice field and Course Entry Animation checked on the target machine alongside the bundled/portable recorded-audio and Debug log actions documented in `WINDOWS_RELEASE_TEST.md`. No package, commit, or push is part of this implementation.
+Automated tests use injected/fake playback seams. The earlier standalone 228 package launched on a clean Azure Windows VM and established installed/missing voice behavior, leading to the Test Voice and initial Course Entry corrections. A rebuilt revision-1 package still needs the updated Test Voice field, Course Entry JSON/fallback behavior, one-time-notice action and no-packaged-release wording checked on the target machine alongside the bundled/portable recorded-audio and Debug log actions documented in `WINDOWS_RELEASE_TEST.md`. No package, commit, or push is part of this implementation.

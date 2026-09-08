@@ -67,8 +67,7 @@ class _DoNotDisturbSettingsScreenState
     if (mounted) setState(() => _animationsEnabled = value);
   }
 
-  Future<void> _showOneTimeNoticesAgain(bool value) async {
-    if (!value) return;
+  Future<void> _showOneTimeNoticesAgain() async {
     await _settings.resetOneTimeNotices();
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
@@ -104,14 +103,14 @@ class _DoNotDisturbSettingsScreenState
                   value: _animationsEnabled,
                   onChanged: _setAnimations,
                 ),
-                SwitchListTile(
-                  secondary: const Icon(Icons.notifications_active_outlined),
+                ListTile(
+                  leading: const Icon(Icons.notifications_active_outlined),
                   title: const Text('Show one-time notices again'),
                   subtitle: const Text(
                     'Reset notices that normally appear only once, including the version Welcome. This does not reset Guidebooks or learning progress.',
                   ),
-                  value: false,
-                  onChanged: _showOneTimeNoticesAgain,
+                  trailing: const Icon(Icons.replay),
+                  onTap: _showOneTimeNoticesAgain,
                 ),
               ],
             ),

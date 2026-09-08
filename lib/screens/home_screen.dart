@@ -572,10 +572,15 @@ class _HomeScreenState extends State<HomeScreen> {
         _selectedCourseRef = normalized;
         _selectedLanguage = normalized;
         _course = course;
-        _courseEntryTransition = transition;
+        _courseEntryTransition = null;
       });
       await _settings.setLastSelectedCourseCode(normalized);
       await _reload();
+      if (transition != null &&
+          mounted &&
+          _course?.courseId == course.courseId) {
+        setState(() => _courseEntryTransition = transition);
+      }
     } on AppException catch (e) {
       if (mounted) await ErrorPresenter.show(context, e.error);
     }
@@ -595,10 +600,15 @@ class _HomeScreenState extends State<HomeScreen> {
       _selectedCourseRef = ref;
       _selectedLanguage = code;
       _course = learnerCourse;
-      _courseEntryTransition = transition;
+      _courseEntryTransition = null;
     });
     await _settings.setLastSelectedCourseCode(ref);
     await _reload();
+    if (transition != null &&
+        mounted &&
+        _course?.courseId == learnerCourse.courseId) {
+      setState(() => _courseEntryTransition = transition);
+    }
   }
 
   Future<CourseEntryFlagSource?> _courseEntryFlagForSwitch(
@@ -611,6 +621,7 @@ class _HomeScreenState extends State<HomeScreen> {
       return await CourseEntryAnimationPolicy.requestForSwitch(
         currentCourseId: currentCourseId,
         destination: destination,
+        fallbackCode: CourseService.codeForCourse(destination),
         animationsEnabled: animationsEnabled,
         reducedMotion: MediaQuery.maybeOf(context)?.disableAnimations == true,
       );
@@ -883,6 +894,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _showCoursePicker(BuildContext overlayContext) async {
+    Future<void> Function()? selectedCourseSwitch;
     final codes = _bundledCourseCodes;
     final bundledCourses = Map<String, Course>.fromEntries(
       await Future.wait(
@@ -956,8 +968,8 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           subtitle: Text(originLabel(custom)),
           onTap: () {
+            selectedCourseSwitch = () => _switchCustomCourse(custom);
             Navigator.pop(ctx);
-            _switchCustomCourse(custom);
           },
         );
       }
@@ -974,8 +986,8 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         onTap: CourseService.hasCourse(code)
             ? () {
+                selectedCourseSwitch = () => _switchCourse(code);
                 Navigator.pop(ctx);
-                _switchCourse(code);
               }
             : null,
       );
@@ -1061,8 +1073,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   selected: _selectedCourseRef == code,
                   onTap: () {
+                    selectedCourseSwitch = () => _switchCourse(code);
                     Navigator.pop(ctx);
-                    _switchCourse(code);
                   },
                 ),
               if (localCourses.isNotEmpty) ...[
@@ -1090,8 +1102,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     selected: _selectedCourseRef == 'custom:${course.courseId}',
                     onTap: () {
+                      selectedCourseSwitch = () => _switchCustomCourse(course);
                       Navigator.pop(ctx);
-                      _switchCustomCourse(course);
                     },
                   ),
               ],
@@ -1122,6 +1134,8 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
     );
+    if (!mounted || !overlayContext.mounted) return;
+    await selectedCourseSwitch?.call();
   }
 
   Future<bool> _canOpenLearnerContent() async {

@@ -51,7 +51,7 @@ class CourseEntryFlagSource {
 /// Language, locale and title are intentionally absent from this policy. They
 /// must never supply or replace the course's configured flag.
 abstract final class CourseEntryAnimationPolicy {
-  static const duration = Duration(milliseconds: 680);
+  static const duration = Duration(seconds: 2);
 
   static const _builtInFlagCodes = <String>{
     'DE',
@@ -70,6 +70,7 @@ abstract final class CourseEntryAnimationPolicy {
   static Future<CourseEntryFlagSource?> requestForSwitch({
     required String? currentCourseId,
     required Course destination,
+    required String fallbackCode,
     required bool animationsEnabled,
     required bool reducedMotion,
     WorldFlagLookup? worldFlagLookup,
@@ -103,10 +104,17 @@ abstract final class CourseEntryAnimationPolicy {
     }
 
     final flagCode = destination.flagCode.trim().toUpperCase();
-    if (_builtInFlagCodes.contains(flagCode)) {
-      return CourseEntryFlagSource.builtIn(flagCode);
+    if (flagCode.isNotEmpty) {
+      return _builtInFlagCodes.contains(flagCode)
+          ? CourseEntryFlagSource.builtIn(flagCode)
+          : null;
     }
-    return null;
+    if (encodedImage.isNotEmpty) return null;
+
+    final fallback = fallbackCode.trim().toUpperCase();
+    return _builtInFlagCodes.contains(fallback)
+        ? CourseEntryFlagSource.builtIn(fallback)
+        : null;
   }
 
   static Future<bool> _isDecodableImage(Uint8List bytes) async {
