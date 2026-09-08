@@ -664,6 +664,7 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         home: ProfileScreen(
+          course: _courseFixture(buyACoffeeUrl: ''),
           onManageLearners: (context) => Navigator.of(context).push<void>(
             MaterialPageRoute(
               builder: (_) => Scaffold(
@@ -723,8 +724,10 @@ void main() {
                 child: FilledButton(
                   onPressed: () => Navigator.of(context).push<void>(
                     MaterialPageRoute(
-                      builder: (_) =>
-                          ProfileScreen(onManageLearners: (_) async {}),
+                      builder: (_) => ProfileScreen(
+                        course: _courseFixture(buyACoffeeUrl: ''),
+                        onManageLearners: (_) async {},
+                      ),
                     ),
                   ),
                   child: const Text('Open Profile'),
@@ -737,6 +740,9 @@ void main() {
       await tester.tap(find.text('Open Profile'));
       await _pumpUntil(tester, find.byType(ProfileScreen));
 
+      await tester.drag(find.byType(ListView), const Offset(0, -260));
+      await tester.pumpAndSettle();
+
       expect(find.text('This is a local profile only.'), findsOneWidget);
       expect(
         find.text('Logging out does not contact any remote server.'),
@@ -748,9 +754,6 @@ void main() {
         ),
         findsOneWidget,
       );
-
-      await tester.drag(find.byType(ListView), const Offset(0, -260));
-      await tester.pumpAndSettle();
       final logout = find.byKey(const Key('profile-logout'));
       await tester.ensureVisible(logout);
       await tester.tap(logout);

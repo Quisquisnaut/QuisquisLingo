@@ -1,16 +1,14 @@
 import 'dart:async';
 
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import '../models/course_models.dart';
 import '../services/app_metadata.dart';
 import '../services/settings_service.dart';
-import '../services/diagnostic_log_service.dart';
 import '../services/sound_effect_service.dart';
-import '../services/crash_log_service.dart';
-import 'course_projects_screen.dart';
 import 'tts_settings_screen.dart';
 import 'do_not_disturb_settings_screen.dart';
-import 'user_data_settings_screen.dart';
+import 'debug_screen.dart';
 import 'info_screen.dart';
 import 'profile_screen.dart';
 import 'update_settings_screen.dart';
@@ -35,14 +33,10 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> {
   final _settings = SettingsService();
-  final _logs = DiagnosticLogService();
   late final SoundEffectService _sounds;
   late final bool _ownsSounds;
   bool _loading = true;
   bool _editorUnlocked = false;
-  bool _hasDiagnosticLog = false;
-  String? _diagnosticExportPath;
-  String? _crashLogPath;
   int _versionTapCount = 0;
   int _flagGameTapCount = 0;
   Timer? _flagGameTapResetTimer;
@@ -82,26 +76,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _load() async {
-    await CrashLogService.instance.recordDebugEvent('Settings: _load started');
     try {
-      final hasDiagnosticLog = await _logs.hasEntries();
-      final diagnosticExportPath = await _logs.exportPath();
-      final crashLogPath = CrashLogService.instance.crashLogPath;
       final editorUnlocked = await _settings.isCourseEditorUnlocked();
       if (!mounted) return;
       setState(() {
-        _hasDiagnosticLog = hasDiagnosticLog;
-        _diagnosticExportPath = diagnosticExportPath;
-        _crashLogPath = crashLogPath;
         _editorUnlocked = editorUnlocked;
         _loading = false;
       });
-    } catch (error, stackTrace) {
-      await CrashLogService.instance.record(
-        error,
-        stackTrace,
-        source: 'SettingsScreen._load',
-      );
+    } catch (_) {
       if (!mounted) return;
       setState(() => _loading = false);
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -116,44 +98,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
         );
       });
     }
-  }
-
-  Future<void> _clearLog() async {
-    await _logs.clear();
-    if (!mounted) return;
-    setState(() => _hasDiagnosticLog = false);
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        duration: Duration(seconds: 8),
-        content: Text('Diagnostic log cleared.'),
-      ),
-    );
-  }
-
-  Future<void> _exportDiagnosticLog() async {
-    final path = await _logs.exportToFile();
-    if (!mounted) return;
-    if (path == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          duration: Duration(seconds: 8),
-          content: Text(
-            'The Diagnostic Log is empty or could not be exported.',
-          ),
-        ),
-      );
-      return;
-    }
-    setState(() {
-      _hasDiagnosticLog = true;
-      _diagnosticExportPath = path;
-    });
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        duration: const Duration(seconds: 8),
-        content: Text('Diagnostic Log exported to $path'),
-      ),
-    );
   }
 
   Future<void> _tapVersion() async {
@@ -182,17 +126,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
           key: const Key('settings-flag-game-trigger'),
           behavior: HitTestBehavior.opaque,
           onTap: _tapFlagGameTrigger,
-          child: const Padding(
-            padding: EdgeInsets.symmetric(vertical: 8),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
             child: Row(
               mainAxisSize: MainAxisSize.min,
-              children: [
+              children: const [
                 Text('Settings'),
                 SizedBox(width: 7),
-                Tooltip(
-                  message: 'Flag Game',
-                  child: Icon(Icons.outlined_flag, size: 18),
-                ),
+                _WavingFlagIcon(),
               ],
             ),
           ),
@@ -214,6 +155,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     await Navigator.of(context).push(
                       MaterialPageRoute(
                         builder: (_) => ProfileScreen(
+                          course: widget.course,
                           onManageLearners: widget.onManageLearners,
                         ),
                       ),
@@ -235,9 +177,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
                 ListTile(
                   leading: const Icon(Icons.record_voice_over_outlined),
-                  title: const Text('TTS Settings'),
+                  title: const Text('Audio Settings'),
                   subtitle: const Text(
-                    'Text-to-speech, skip TTS exercises, voice preference and Test Voice.',
+                    'Learner audio exercises, text-to-speech and voice preference.',
                   ),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () => Navigator.of(context).push(
@@ -260,67 +202,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                 ),
                 const Divider(),
-                if (_editorUnlocked)
-                  ListTile(
-                    leading: const Icon(Icons.edit_note_outlined),
-                    title: const Text('Course Manager'),
-                    subtitle: const Text(
-                      'Author courses, generate exercise sets and run Course Audit.',
-                    ),
-                    trailing: const Icon(Icons.chevron_right),
-                    onTap: () => Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) =>
-                            CourseProjectsScreen(currentCourse: widget.course),
-                      ),
-                    ),
-                  ),
                 ListTile(
-                  leading: const Icon(Icons.folder_shared_outlined),
-                  title: const Text('User Data'),
+                  leading: const Icon(Icons.bug_report_outlined),
+                  title: const Text('Debug'),
                   subtitle: const Text(
-                    'Export or import learner data, or reset the current course progress.',
+                    'Crash Log and Diagnostic Log troubleshooting tools.',
                   ),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () => Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) =>
-                          UserDataSettingsScreen(course: widget.course),
-                    ),
-                  ),
-                ),
-                const Divider(),
-                ListTile(
-                  leading: const Icon(Icons.warning_amber_rounded),
-                  title: const Text('Crash Log'),
-                  subtitle: Text(
-                    'Automatic log created at app startup and updated after uncaught errors.\n'
-                    'Saved at: ${_crashLogPath ?? 'Path unavailable on this platform.'}',
-                  ),
-                ),
-                ListTile(
-                  leading: const Icon(Icons.bug_report_outlined),
-                  title: const Text('Diagnostic Log'),
-                  subtitle: Text(
-                    'Internal technical-event log for troubleshooting. It is not a crash file.\n'
-                    'Export location: ${_diagnosticExportPath ?? 'Unavailable on this platform.'}',
-                  ),
-                  trailing: Wrap(
-                    spacing: 2,
-                    children: [
-                      IconButton(
-                        tooltip: 'Export Diagnostic Log',
-                        onPressed: _hasDiagnosticLog
-                            ? _exportDiagnosticLog
-                            : null,
-                        icon: const Icon(Icons.file_download_outlined),
-                      ),
-                      IconButton(
-                        tooltip: 'Clear Diagnostic Log',
-                        onPressed: _hasDiagnosticLog ? _clearLog : null,
-                        icon: const Icon(Icons.delete_outline),
-                      ),
-                    ],
+                    MaterialPageRoute(builder: (_) => const DebugScreen()),
                   ),
                 ),
                 const Divider(),
@@ -346,6 +236,65 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
               ],
             ),
+    );
+  }
+}
+
+class _WavingFlagIcon extends StatefulWidget {
+  const _WavingFlagIcon();
+
+  @override
+  State<_WavingFlagIcon> createState() => _WavingFlagIconState();
+}
+
+class _WavingFlagIconState extends State<_WavingFlagIcon>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  late final Animation<double> _turns;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 700),
+      value: 0.5,
+    );
+    _turns = Tween<double>(
+      begin: -0.018,
+      end: 0.018,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _startWaving(PointerEnterEvent _) {
+    _controller.repeat(reverse: true);
+  }
+
+  void _stopWaving(PointerExitEvent _) {
+    _controller.stop();
+    _controller.animateTo(0.5, duration: const Duration(milliseconds: 180));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: 'Tap tap... Flag Game',
+      child: MouseRegion(
+        onEnter: _startWaving,
+        onExit: _stopWaving,
+        child: RotationTransition(
+          key: const Key('settings-flag-wave'),
+          turns: _turns,
+          alignment: Alignment.bottomLeft,
+          child: const Icon(Icons.outlined_flag, size: 18),
+        ),
+      ),
     );
   }
 }

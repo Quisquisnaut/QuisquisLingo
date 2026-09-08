@@ -24,7 +24,11 @@ The active trace rotates at approximately 1 MiB and keeps at most two previous f
 
 ## Crash Log
 
-The Crash Log is an automatic text file. It is created or recreated when the app starts and is appended when QuisquisLingo catches an uncaught Flutter/Dart error. Settings shows the actual path used on the current platform. On Windows Alpha builds, the easy-to-find visible copy is `Documents\QuisquisLingo Logs\quisquislingo_crash.log`.
+The Crash Log is intended for cases where QuisquisLingo crashes or closes unexpectedly, especially startup and runtime crashes. It is an automatic text file created or recreated when the app starts and appended when QuisquisLingo catches an uncaught Flutter/Dart error. **Settings > Debug** shows the actual path. If the file is available after a crash, copy or export it and provide it with the problem report. The file is:
+
+`Documents/QuisquisLingo/Logs/quisquislingo_crash.log`
+
+QQL 228 does not read, migrate or delete files left in the former crash-log location.
 
 Each launch appends a session header with the app version, operating system, architecture, locale, Dart runtime and build mode. If a crash-log file is deleted, append mode recreates it at the next launch or diagnostic write. Uncaught Flutter/Dart errors are recorded in all non-web build modes, while detailed action breadcrumbs remain debug-only. Logs remain local and are never uploaded automatically.
 
@@ -32,10 +36,18 @@ The startup Alpha testing popup refers to this Crash Log.
 
 ## Diagnostic Log
 
-The Diagnostic Log is a separate internal event log stored by QuisquisLingo. It records application troubleshooting events such as coded application errors and relevant platform decisions. It is not automatically created as a user-visible file.
+The Diagnostic Log is a separate internal event log for problems that do not necessarily crash QuisquisLingo, including audio, TTS, recorded MP3, unexpected playback, source-resolution problems and other runtime anomalies. It records application troubleshooting events such as coded application errors and relevant platform decisions. It is not automatically created as a user-visible file.
 
-Settings shows the fixed export destination and provides **Export Diagnostic Log**. Export writes the current snapshot to:
+**Settings > Debug** shows the fixed export destination and provides **Export Diagnostic Log**. Export writes the current snapshot to:
 
 `Documents/QuisquisLingo/Logs/quisquislingo_diagnostic_log.txt`
 
+When possible, reproduce a problem and export the Diagnostic Log shortly afterward so the relevant events are easier to identify. To isolate one specific reproducible problem, clearing the Diagnostic Log before reproduction can make the export easier to read, but clearing is optional and is not routine maintenance. For intermittent or difficult-to-reproduce problems, existing evidence may be more valuable; export the current Diagnostic Log before clearing it.
+
 Clearing the Diagnostic Log clears only the internal diagnostic-event store. It does not clear the Crash Log or Startup Trace.
+
+## Learner audio diagnostics
+
+Normal learner TTS and recorded-audio requests write short correlated lifecycles to both existing logs: preparation, learner UI state, stable target exercise ID/type, prepared/active status, playback trigger, not-active suppression, source resolution, backend initialization, playback, failure where applicable, and disposal. Each lifecycle writes at most eight events. Events contain only bounded technical tokens, generated correlation IDs and small counts. Learner audio diagnostics are designed to avoid spoken text, answers, course content and full personal file paths. Authoring Preview preserves its established no-write boundary and does not persist these events.
+
+When a listening exercise follows `Before you start`, source eligibility and exercise preparation may occur while the introduction remains visible. The activation lifecycle records that preparation and the suppressed not-active playback attempt. After Continue makes the exercise active, the log records the activation trigger and normal playback request; the existing TTS or recorded lifecycle then records its source, backend, initialization, playback, failure and disposal result.

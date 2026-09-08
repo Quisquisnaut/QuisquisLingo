@@ -16,6 +16,10 @@ LEARNER PROFILE
 |
 +-- avatar appearance (shared across languages)
 +-- Theme (Light / Dark / System / Day/Night, initially System; shared across Courses)
++-- Audio Settings (shared across Courses)
+     +-- Enable Audio Exercises (initially Off)
+     +-- Text-to-speech (initially Off)
+     +-- TTS voice (initially System)
 ```
 
 ```text
@@ -60,6 +64,12 @@ A Review attempt can earn a permanent Laurel crown exactly like a normal course 
 
 A language streak advances only on a new day when that language is studied. A day spent studying another language freezes it. A completed day with no learning activity in any language breaks active language streaks.
 
+Profile > Statistics is a read-only projection of this same learner activity. Total Study Days counts distinct local calendar dates across all languages. Per-language Study Days, Current Streak and Max Streak use the existing study-day sets and freeze rule. Locale/name variants are canonicalized for display and aggregation (for example `en-US`, `en_GB` and English become `en`) without creating a second activity history.
+
+## Learner audio availability
+
+Learner Round and Duel queues first read the active profile's positive `audio_exercises_enabled` value. When it is Off, every recorded, TTS and hybrid exercise is excluded without initializing learner playback infrastructure. When it is On, the queues resolve actual source availability; the separate per-learner Text-to-speech setting controls only the TTS branch and also initializes Off. A valid recorded source remains usable while TTS is Off. A Round may prepare its first eligible listening exercise behind `Before you start`, but automatic playback is suppressed until Continue makes that exercise the active learner UI state; an ordinary Round without an introduction keeps its established post-frame playback. Authoring Preview bypasses learner Audio Settings and persistent audio diagnostics and preserves its established no-write boundary. Normal learner playback writes bounded privacy-safe correlated lifecycles to the existing Diagnostic and Crash Logs, including preparation/activation timing and explicit not-active suppression.
+
 ## Course authoring boundary
 
 Bundled and external official courses open read-only inspection. Opening a custom Course Editor creates an immutable snapshot of the persisted course and a separate editable working copy. Every nested authoring operation changes only the working copy. Nested Save/Save as draft never touches the learner-visible course, creates a backup, or increments a version. Canonical semantic comparison decides whether the complete working copy differs from the snapshot.
@@ -75,8 +85,8 @@ DEVICE ONLY
 - learner-global Weekly XP and per-course Weekly XP breakdowns
 - course-scoped Round/Lesson/Duel progress, Laurels and Review history
 - local Course Model v6 custom courses and external official sources
-- settings
-- automatic Crash Log plus separate exportable Diagnostic Log
+- settings, including per-profile Enable Audio Exercises, Text-to-speech and TTS voice
+- automatic Crash Log plus separate exportable Diagnostic Log under `Documents/QuisquisLingo/Logs`
 
 Build 223 makes three clean-cut Lesson-semantic persistence changes: `v4_completed_topics` becomes `v4_completed_lessons`, `last_topic_<encodedCourseId>` becomes `last_lesson_<encodedCourseId>`, and each `v4_recent_rounds` JSON entry uses `lessonId` instead of `topicId`. The other `v4_` prefixes identify the established chapter-free progress namespace rather than Topic semantics and remain unchanged. Course Editor overrides/user-course storage moves from the v4/build-215 keys to the v5/build-223 keys so old-format course objects are not parsed as v5.
 
@@ -90,6 +100,8 @@ Build 226.01 removes active official local overrides without deleting or convert
 
 Learner backup schema v2 remains unchanged. Its only learner-state payload is an opaque `data` map of profile namespace suffixes to primitive/list values; it does not define Topic/Lesson fields of its own. Export/restore therefore carries the current Lesson keys without changing `schemaVersion`, `format`, or `learnerProfileId` semantics.
 
+Build 228 makes a clean per-profile Audio Settings cut. Below the active opaque learner prefix, `audio_exercises_enabled` and `tts_enabled` default Off and `tts_voice_preference` defaults System. Previous device-level `tts_enabled` / `tts_voice_preference`, device-level `skip_tts_exercises`, and per-profile `skip_all_audio_exercises` values are left untouched and unread; none are migrated or converted. Statistics uses only existing profile-prefixed `study_days_<language>` and `study_days_all` records. Learner backup schema v2 already carries opaque profile-prefixed values, so no backup or Course Model schema change is required.
+
 SERVER
 - none required by the current prototype
 ```
@@ -97,3 +109,7 @@ SERVER
 ## TTS
 
 Android, iOS and macOS use the platform TTS engine through `flutter_tts`. Windows uses the System.Speech backend with same-language locale fallback. Linux uses an installed eSpeak NG/eSpeak executable and does not invoke a shell parser. Web TTS remains experimental and must be smoke-tested separately.
+
+Test Voice keeps the two inputs separate: its initially empty dialog supplies only the exact user-entered text, while the selected Course's existing TTS metadata supplies the voice language. Empty and whitespace-only input never reaches the backend; UI locale and text contents do not alter voice resolution.
+
+The Course Entry Animation is requested only by the two explicit bundled/custom Course switch paths after a destination learner Course is resolved. It uses only a valid `worldFlagId`, `flagImageBase64`, or supported `flagCode` explicitly stored on that destination Course, in the existing resolution order, and never calls `CourseService.codeForCourse` or another language/locale fallback. With animations enabled and reduced motion absent, the resolved flag covers the newly selected Learner Panel during a 680 ms restrained fade. Normal startup, same-Course navigation, disabled animations, reduced motion, and absent/invalid JSON flag data install no transition overlay. Course-selection persistence and Flag Background remain independent.

@@ -290,10 +290,10 @@ void main() {
   );
 
   testWidgets(
-    'audio Preview ignores learner skipping and requires no active learner',
+    'audio Preview ignores learner Audio Settings and requires no active learner',
     (tester) async {
       SharedPreferences.setMockInitialValues({'sound_effects_enabled': false});
-      await SettingsService().setSkipTtsExercises(true);
+      await SettingsService().setAudioExercisesEnabled(false);
       final exercise = modelExercise(
         'listening_spelling',
         PublicationState.draft,

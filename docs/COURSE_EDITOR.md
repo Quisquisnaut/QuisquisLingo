@@ -4,7 +4,7 @@ Updated for Version 2.0.26, Phase 226.04, revision 0 (technical build 226040) an
 
 ## Unlocking the editor
 
-Course Manager is an Easter Egg so ordinary learners do not encounter authoring controls accidentally. Open **Settings** and tap/click anywhere in the complete **Version and Build** row ten times within about five seconds. `Course Manager unlocked` appears and the Course Manager entry becomes visible. The unlock state is stored locally on the device. Course Manager lists and manages courses; Course Editor edits one selected course.
+Course Manager is an Easter Egg so ordinary learners do not encounter authoring controls accidentally. Open **Settings** and tap/click anywhere in the complete **Version and Build** row ten times within about five seconds. `Course Manager unlocked` appears and the Editor action becomes available from the learner **Course Selector**. The unlock state is stored locally on the device. Course Manager is no longer listed in Settings. Course Manager lists and manages courses; Course Editor edits one selected course.
 
 ## Editable hierarchy
 
@@ -347,7 +347,7 @@ An author can have multiple roles. Course Creator means original creation/design
 
 ## Alpha expiry and authoring
 
-The current time-limited alpha expires on 2026-10-07 under the established 30-day release policy. Expiry blocks learner exercises and Review but deliberately leaves Course Manager and Course Editor available so authoring work can be inspected, recovered and exported. Expiry never deletes local data.
+The current time-limited alpha expires on 2026-10-08 under the established 30-day release policy. Expiry blocks learner exercises and Review but deliberately leaves Course Manager and Course Editor available so authoring work can be inspected, recovered and exported. Expiry never deletes local data.
 
 
 ## Bundled official and local courses

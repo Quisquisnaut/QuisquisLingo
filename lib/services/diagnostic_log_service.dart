@@ -9,6 +9,17 @@ import 'app_errors.dart';
 class DiagnosticLogService {
   static const _logKey = 'quisquislingo_diagnostic_log';
 
+  static Future<Directory?> logsDirectory({bool create = false}) async {
+    if (kIsWeb) return null;
+    final documents = await getApplicationDocumentsDirectory();
+    final directory = Directory(
+      '${documents.path}${Platform.pathSeparator}QuisquisLingo'
+      '${Platform.pathSeparator}Logs',
+    );
+    if (create) await directory.create(recursive: true);
+    return directory;
+  }
+
   Future<void> log(
     AppErrorCode error, {
     String? context,
@@ -21,7 +32,9 @@ class DiagnosticLogService {
       final entry = StringBuffer()
         ..writeln('[$timestamp] ${error.code}')
         ..writeln('User message: ${error.userMessage}');
-      if (context != null && context.isNotEmpty) entry.writeln('Context: $context');
+      if (context != null && context.isNotEmpty) {
+        entry.writeln('Context: $context');
+      }
       if (exception != null) entry.writeln('Exception: $exception');
       if (stackTrace != null) entry.writeln('Stack trace: $stackTrace');
       entry.writeln('---');
@@ -40,7 +53,10 @@ class DiagnosticLogService {
       final prefs = await SharedPreferences.getInstance();
       final timestamp = DateTime.now().toIso8601String();
       final previous = prefs.getString(_logKey) ?? '';
-      await prefs.setString(_logKey, '$previous[$timestamp] INFO\n$message\n---\n');
+      await prefs.setString(
+        _logKey,
+        '$previous[$timestamp] INFO\n$message\n---\n',
+      );
     } catch (_) {}
   }
 
@@ -54,13 +70,10 @@ class DiagnosticLogService {
   }
 
   Future<String?> exportPath() async {
-    if (kIsWeb) return null;
     try {
-      final documents = await getApplicationDocumentsDirectory();
-      final dir = Directory(
-        '${documents.path}${Platform.pathSeparator}QuisquisLingo${Platform.pathSeparator}Logs',
-      );
-      return '${dir.path}${Platform.pathSeparator}quisquislingo_diagnostic_log.txt';
+      final directory = await logsDirectory();
+      if (directory == null) return null;
+      return '${directory.path}${Platform.pathSeparator}quisquislingo_diagnostic_log.txt';
     } catch (_) {
       return null;
     }

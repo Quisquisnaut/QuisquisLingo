@@ -58,7 +58,6 @@ void main() {
     SharedPreferences.setMockInitialValues({
       'one_time_notice_seen_welcome_${AppMetadata.technicalVersion}': true,
       'sound_effects_enabled': false,
-      'skip_tts_exercises': true,
       CourseService.bundledCourseIndexStorageKey: const [
         'IT',
         'DE',
@@ -72,6 +71,7 @@ void main() {
       'audio_orphan_check_last_IT': DateTime.now().toIso8601String(),
     });
     await ProfileService().addProfile(_profileName);
+    await SettingsService().setAudioExercisesEnabled(false);
   });
 
   tearDown(() async {

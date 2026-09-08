@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 import 'dart:io';
 import 'package:flutter/material.dart';
@@ -18,6 +19,8 @@ import '../services/recorded_audio_service.dart';
 import '../services/exercise_copy_service.dart';
 import '../services/crash_log_service.dart';
 import '../services/answer_engine.dart';
+import '../services/audio_exercise_availability_service.dart';
+import '../services/audio_diagnostic_service.dart';
 import 'guidebook_screen.dart';
 
 class RoundScreen extends StatefulWidget {
@@ -29,6 +32,9 @@ class RoundScreen extends StatefulWidget {
   final bool previewMode;
   final bool viewOnlyMode;
   final bool completeLessonOnFinish;
+  final SettingsService? settingsService;
+  final TtsCacheService? ttsCacheService;
+  final RecordedAudioService? recordedAudioService;
 
   const RoundScreen({
     super.key,
@@ -40,6 +46,9 @@ class RoundScreen extends StatefulWidget {
     this.previewMode = false,
     this.viewOnlyMode = false,
     this.completeLessonOnFinish = false,
+    this.settingsService,
+    this.ttsCacheService,
+    this.recordedAudioService,
   });
 
   @override
@@ -79,11 +88,12 @@ class _RoundScreenState extends State<RoundScreen> {
       : _roundTitle;
   final _progress = ProgressService();
   late final LearningCompletionService _completion;
-  final _ttsCache = TtsCacheService();
+  late final TtsCacheService _ttsCache;
   final _reports = ReportService();
-  final _settings = SettingsService();
+  late final SettingsService _settings;
   final _sounds = SoundEffectService();
-  final _recordedAudio = RecordedAudioService();
+  late final RecordedAudioService _recordedAudio;
+  late final AudioExerciseAvailabilityService _audioAvailability;
   final _roundPlayability = RoundPlayabilityService();
   final _answerEngine = const AnswerEngine();
   final _random = Random();
@@ -93,7 +103,13 @@ class _RoundScreenState extends State<RoundScreen> {
   bool _introAcknowledged = false;
   bool _initializationFailed = false;
   bool _ttsWasSkipped = false;
+  bool _audioExercisesEnabled = false;
   bool _wasCompleted = false;
+  AudioDiagnosticLifecycle? _preparedAudioDiagnostic;
+  Future<void> _preparedAudioPreparation = Future<void>.value();
+  int _preparedExerciseGeneration = 0;
+  int? _suppressedAudioGeneration;
+  int? _startedAudioGeneration;
   final Set<int> _wrongFirstPass = {};
   int _position = 0;
   int _firstPassCorrect = 0;
@@ -170,23 +186,14 @@ class _RoundScreenState extends State<RoundScreen> {
   @override
   void initState() {
     super.initState();
+    _settings = widget.settingsService ?? SettingsService();
+    _ttsCache = widget.ttsCacheService ?? TtsCacheService();
+    _recordedAudio = widget.recordedAudioService ?? RecordedAudioService();
+    _audioAvailability = AudioExerciseAvailabilityService(
+      recordedAudio: _recordedAudio,
+    );
     _completion = LearningCompletionService(progressService: _progress);
     _initializeRound();
-  }
-
-  bool _usesTts(Exercise ex) {
-    final text = ex.tts?.trim() ?? '';
-    if (widget.course.audioMode == 'recorded') return false;
-    if (widget.course.audioMode == 'hybrid' &&
-        text.isNotEmpty &&
-        _recordedAudio.segment(text, widget.course.audioLibrary) != null) {
-      return false;
-    }
-    return ex.type == 'audio_match' ||
-        ex.type == 'listening_choice' ||
-        ex.type == 'listening_comprehension' ||
-        (ex.type == 'contextual_comprehension' && ex.contextAudio.isNotEmpty) ||
-        text.isNotEmpty;
   }
 
   Future<bool> _playCourseAudio(String text) async {
@@ -194,6 +201,7 @@ class _RoundScreenState extends State<RoundScreen> {
       final recorded = await _recordedAudio.playConcatenated(
         text,
         widget.course.audioLibrary,
+        enableDiagnostics: !widget.previewMode,
       );
       if (recorded) return true;
       if (widget.course.audioMode == 'recorded') return false;
@@ -203,6 +211,7 @@ class _RoundScreenState extends State<RoundScreen> {
       language: widget.ttsLanguage,
       learningLanguage: widget.course.learningLanguage,
       targetLanguage: widget.course.targetLanguage,
+      applyLearnerSettings: !widget.previewMode,
     );
   }
 
@@ -221,13 +230,34 @@ class _RoundScreenState extends State<RoundScreen> {
       await CrashLogService.instance.recordDebugEvent(
         'Round: audit completed ${widget.round.id}, valid=${valid.length}',
       );
-      // Authoring Preview must show the selected Exercise even when the
-      // learner has chosen to skip TTS activities.
-      final skipTts =
-          !widget.previewMode && await _settings.shouldSkipTtsExercises();
-      final filtered = skipTts
-          ? valid.where((i) => !_usesTts(widget.round.exercises[i])).toList()
-          : valid;
+      // Resolve availability before preparing an exercise. Authoring Preview
+      // bypasses learner Audio Settings and never filters its selected content.
+      final audioExercisesEnabled =
+          widget.previewMode || await _settings.areAudioExercisesEnabled();
+      final ttsEnabled =
+          widget.previewMode ||
+          (audioExercisesEnabled && await _settings.isTtsEnabled());
+      final filtered = <int>[];
+      if (widget.previewMode) {
+        filtered.addAll(valid);
+      } else {
+        for (final index in valid) {
+          final exercise = widget.round.exercises[index];
+          if (!_audioAvailability.isAudioExercise(exercise)) {
+            filtered.add(index);
+            continue;
+          }
+          if (!audioExercisesEnabled) continue;
+          if (await _audioAvailability.isAvailable(
+            widget.course,
+            exercise,
+            ttsEnabled: ttsEnabled,
+          )) {
+            filtered.add(index);
+          }
+        }
+      }
+      _audioExercisesEnabled = audioExercisesEnabled;
       _ttsWasSkipped = filtered.length != valid.length;
       _queue = filtered;
       _evaluableExerciseCount = valid
@@ -248,7 +278,7 @@ class _RoundScreenState extends State<RoundScreen> {
         await CrashLogService.instance.recordDebugEvent(
           'Round: preparing first exercise ${widget.round.id}',
         );
-        _prepareExercise();
+        _prepareExercise(trigger: 'round_initialized');
         // Choice-based exercises must be fully prepared before the learner UI
         // becomes ready. This prevents a transient screen with no answer buttons.
         final first = _exercise;
@@ -278,6 +308,13 @@ class _RoundScreenState extends State<RoundScreen> {
       }
       if (!mounted) return;
       setState(() => _ready = true);
+      if (_queue.isNotEmpty) {
+        final exercise = _exercise;
+        final generation = _preparedExerciseGeneration;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _activatePreparedAudio(exercise, generation, trigger: 'round_ready');
+        });
+      }
     } catch (error, stackTrace) {
       await CrashLogService.instance.record(
         error,
@@ -295,6 +332,10 @@ class _RoundScreenState extends State<RoundScreen> {
 
   @override
   void dispose() {
+    final diagnostic = _preparedAudioDiagnostic;
+    if (diagnostic != null) {
+      unawaited(diagnostic.dispose(outcome: 'round_disposed'));
+    }
     _textController.dispose();
     _textFocusNode.dispose();
     for (final c in _missingWordControllers) {
@@ -303,7 +344,16 @@ class _RoundScreenState extends State<RoundScreen> {
     super.dispose();
   }
 
-  void _prepareExercise() {
+  void _prepareExercise({required String trigger}) {
+    final previousDiagnostic = _preparedAudioDiagnostic;
+    if (previousDiagnostic != null) {
+      unawaited(previousDiagnostic.dispose(outcome: 'target_changed'));
+    }
+    _preparedAudioDiagnostic = null;
+    _preparedAudioPreparation = Future<void>.value();
+    _suppressedAudioGeneration = null;
+    _startedAudioGeneration = null;
+    final generation = ++_preparedExerciseGeneration;
     final ex = _exercise;
     _answered = false;
     _lastAnswerCorrect = false;
@@ -375,40 +425,145 @@ class _RoundScreenState extends State<RoundScreen> {
     }
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      if (!mounted) return;
-      final isListening =
-          ex.type == 'listening_choice' ||
-          ex.type == 'listening_comprehension' ||
-          ex.type == 'contextual_comprehension' ||
-          ex.type == 'audio_match' ||
-          ex.type == 'missing_word' ||
-          ex.type == 'listening_spelling';
+      if (!mounted || generation != _preparedExerciseGeneration) return;
+      final isListening = _isListeningExercise(ex);
       if (isListening) {
-        // Recorded-only audio must remain available even when system TTS is
-        // disabled. Skip only when this exercise actually requires TTS.
-        final needsSystemTts = _usesTts(ex);
-        final enabled = await _settings.isTtsEnabled();
-        if (!mounted) return;
-        if (needsSystemTts && !enabled) {
-          _ttsWasSkipped = true;
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              duration: Duration(seconds: 8),
-              content: Text(
-                'Audio exercise skipped because Text-to-speech is disabled.',
-              ),
-            ),
-          );
-          await _next();
-          return;
-        }
         if (ex.tts != null && ex.tts!.isNotEmpty) {
-          await _speak();
+          final diagnostic = AudioDiagnosticLifecycle.start(
+            kind: 'round_activation',
+            enabled: !widget.previewMode,
+          );
+          _preparedAudioDiagnostic = diagnostic;
+          final active = _isPreparedExerciseActive(ex, generation);
+          final uiState = _learnerAudioUiState;
+          _preparedAudioPreparation = () async {
+            await _recordRoundAudioEvent(
+              diagnostic,
+              'preparation',
+              outcome: 'prepared',
+              exercise: ex,
+              active: active,
+              trigger: trigger,
+              uiState: uiState,
+            );
+            await _recordRoundAudioEvent(
+              diagnostic,
+              'source_resolution',
+              outcome: 'eligibility_confirmed',
+              exercise: ex,
+              active: active,
+              trigger: trigger,
+              backend: widget.course.audioMode,
+              uiState: uiState,
+            );
+          }();
+          await _preparedAudioPreparation;
+          await _activatePreparedAudio(
+            ex,
+            generation,
+            trigger: 'exercise_prepared',
+          );
         }
       } else {
         await _prepareTts();
       }
     });
+  }
+
+  bool _isListeningExercise(Exercise exercise) =>
+      exercise.type == 'listening_choice' ||
+      exercise.type == 'listening_comprehension' ||
+      exercise.type == 'contextual_comprehension' ||
+      exercise.type == 'audio_match' ||
+      exercise.type == 'missing_word' ||
+      exercise.type == 'listening_spelling';
+
+  String get _learnerAudioUiState => _lessonIntro != null && !_introAcknowledged
+      ? 'before_you_start'
+      : 'exercise_active';
+
+  bool _isPreparedExerciseActive(Exercise exercise, int generation) {
+    if (!mounted || generation != _preparedExerciseGeneration) return false;
+    if (_exercise.id != exercise.id) return false;
+    if (widget.previewMode) return true;
+    return _ready && _learnerAudioUiState == 'exercise_active';
+  }
+
+  Future<void> _recordRoundAudioEvent(
+    AudioDiagnosticLifecycle diagnostic,
+    String phase, {
+    required String outcome,
+    required Exercise exercise,
+    required bool active,
+    required String trigger,
+    String? backend,
+    String? uiState,
+  }) => diagnostic.event(
+    phase,
+    outcome: outcome,
+    backend: backend,
+    uiState: uiState ?? _learnerAudioUiState,
+    targetExerciseId: exercise.id,
+    exerciseType: exercise.type,
+    prepared: true,
+    active: active,
+    trigger: trigger,
+  );
+
+  Future<void> _activatePreparedAudio(
+    Exercise exercise,
+    int generation, {
+    required String trigger,
+  }) async {
+    final diagnostic = _preparedAudioDiagnostic;
+    if (diagnostic == null || generation != _preparedExerciseGeneration) return;
+    await _preparedAudioPreparation;
+    if (diagnostic != _preparedAudioDiagnostic ||
+        generation != _preparedExerciseGeneration) {
+      return;
+    }
+    final active = _isPreparedExerciseActive(exercise, generation);
+    if (!active) {
+      if (_suppressedAudioGeneration == generation) return;
+      _suppressedAudioGeneration = generation;
+      await _recordRoundAudioEvent(
+        diagnostic,
+        'playback',
+        outcome: 'suppressed_not_active',
+        exercise: exercise,
+        active: false,
+        trigger: trigger,
+      );
+      return;
+    }
+    if (_startedAudioGeneration == generation) return;
+    _startedAudioGeneration = generation;
+    await _recordRoundAudioEvent(
+      diagnostic,
+      'activation',
+      outcome: 'active',
+      exercise: exercise,
+      active: true,
+      trigger: trigger,
+    );
+    await _recordRoundAudioEvent(
+      diagnostic,
+      'playback',
+      outcome: 'requested',
+      exercise: exercise,
+      active: true,
+      trigger: trigger,
+    );
+    final played = await _speak();
+    await _recordRoundAudioEvent(
+      diagnostic,
+      'playback',
+      outcome: played ? 'completed' : 'failed',
+      exercise: exercise,
+      active: true,
+      trigger: trigger,
+    );
+    await diagnostic.dispose(outcome: played ? 'completed' : 'failed');
   }
 
   void _shuffleDifferentInts(List<int> values) {
@@ -442,6 +597,7 @@ class _RoundScreenState extends State<RoundScreen> {
       await _ttsCache.synthesizeCached(
         text: text,
         language: widget.ttsLanguage,
+        applyLearnerSettings: !widget.previewMode,
       );
     }
   }
@@ -459,9 +615,9 @@ class _RoundScreenState extends State<RoundScreen> {
     }
   }
 
-  Future<void> _speak() async {
+  Future<bool> _speak() async {
     final text = _exercise.tts;
-    if (text == null || text.isEmpty) return;
+    if (text == null || text.isEmpty) return false;
     final ok = await _playCourseAudio(text);
     if (!ok && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -471,6 +627,7 @@ class _RoundScreenState extends State<RoundScreen> {
         ),
       );
     }
+    return ok;
   }
 
   String get _audioFailureDescription => widget.course.audioMode == 'recorded'
@@ -767,7 +924,7 @@ class _RoundScreenState extends State<RoundScreen> {
   Future<void> _next() async {
     if (_position + 1 < _queue.length) {
       setState(() => _position++);
-      _prepareExercise();
+      _prepareExercise(trigger: 'exercise_advanced');
       return;
     }
 
@@ -793,7 +950,7 @@ class _RoundScreenState extends State<RoundScreen> {
         _shuffleDifferentInts(_queue);
         _position = 0;
       });
-      _prepareExercise();
+      _prepareExercise(trigger: 'review_started');
       return;
     }
 
@@ -1810,7 +1967,18 @@ class _RoundScreenState extends State<RoundScreen> {
               ],
               const SizedBox(height: 8),
               FilledButton(
-                onPressed: () => setState(() => _introAcknowledged = true),
+                onPressed: () {
+                  setState(() => _introAcknowledged = true);
+                  final exercise = _exercise;
+                  final generation = _preparedExerciseGeneration;
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    _activatePreparedAudio(
+                      exercise,
+                      generation,
+                      trigger: 'before_you_start_continue',
+                    );
+                  });
+                },
                 child: const Text('Continue to Round'),
               ),
             ],
@@ -1837,7 +2005,9 @@ class _RoundScreenState extends State<RoundScreen> {
                 _initializationFailed
                     ? 'This round could not be opened safely.'
                     : (_ttsWasSkipped
-                          ? 'All exercises in this round use TTS and are currently skipped.'
+                          ? !_audioExercisesEnabled
+                                ? 'All exercises in this round use audio and Audio Exercises are disabled.'
+                                : 'All audio exercises in this round are currently unavailable.'
                           : 'This round has no usable exercises.'),
               ),
               const SizedBox(height: 8),
@@ -1845,7 +2015,9 @@ class _RoundScreenState extends State<RoundScreen> {
                 _initializationFailed
                     ? 'QuisquisLingo kept the app running and wrote the error to the crash log.'
                     : (_ttsWasSkipped
-                          ? 'Disable “Skip all TTS exercises” in Settings to play this round.'
+                          ? !_audioExercisesEnabled
+                                ? 'Turn on “Enable Audio Exercises” in Audio Settings to play this round.'
+                                : 'Check Text-to-speech and available Recorded MP3 sources in Audio Settings.'
                           : 'Open Course Editor > Run course audit to see the problems that need to be corrected.'),
               ),
             ],

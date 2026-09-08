@@ -22,13 +22,13 @@ enum LearnerIddqdMode {
 
 /// Persistent device and learner-scoped settings.
 ///
-/// Learner-specific appearance lives in ProfileService. TTS skipping is a
-/// device preference because it changes which exercise types the app presents.
-/// The last active course is learner-scoped; recent courses remain device-wide.
+/// Learner-specific appearance lives in ProfileService. Learner audio exercise
+/// enablement and the last active course are learner-scoped; recent courses
+/// remain device-wide.
 class SettingsService {
   static const _ttsEnabledKey = 'tts_enabled';
   static const _ttsVoicePreferenceKey = 'tts_voice_preference';
-  static const _skipTtsExercisesKey = 'skip_tts_exercises';
+  static const _audioExercisesEnabledKey = 'audio_exercises_enabled';
   static const _soundEffectsKey = 'sound_effects_enabled';
   static const _startupAnimationKey =
       'startup_animation_enabled'; // Legacy key retained for compatibility.
@@ -162,17 +162,35 @@ class SettingsService {
     );
   }
 
-  Future<bool> isTtsEnabled() async =>
-      (await SharedPreferences.getInstance()).getBool(_ttsEnabledKey) ?? true;
-  Future<void> setTtsEnabled(bool enabled) async =>
-      (await SharedPreferences.getInstance()).setBool(_ttsEnabledKey, enabled);
+  Future<bool> isTtsEnabled() async {
+    final profiles = ProfileService();
+    final activeId = await profiles.getActiveProfileId();
+    if (activeId == null) return false;
+    return (await SharedPreferences.getInstance()).getBool(
+          profiles.keyForProfileId(activeId, _ttsEnabledKey),
+        ) ??
+        false;
+  }
+
+  Future<void> setTtsEnabled(bool enabled) async {
+    final profiles = ProfileService();
+    final activeId = await profiles.getActiveProfileId();
+    if (activeId == null) return;
+    await (await SharedPreferences.getInstance()).setBool(
+      profiles.keyForProfileId(activeId, _ttsEnabledKey),
+      enabled,
+    );
+  }
 
   /// Voice gender is a preference rather than a hard requirement. If a
   /// platform exposes no matching voice, TTS falls back to another compatible
   /// voice in the requested language family.
   Future<String> getTtsVoicePreference() async {
+    final profiles = ProfileService();
+    final activeId = await profiles.getActiveProfileId();
+    if (activeId == null) return 'system';
     final value = (await SharedPreferences.getInstance()).getString(
-      _ttsVoicePreferenceKey,
+      profiles.keyForProfileId(activeId, _ttsVoicePreferenceKey),
     );
     return const {'system', 'female', 'male'}.contains(value)
         ? value!
@@ -183,20 +201,34 @@ class SettingsService {
     if (!const {'system', 'female', 'male'}.contains(value)) {
       throw ArgumentError.value(value, 'value', 'Invalid TTS voice preference');
     }
+    final profiles = ProfileService();
+    final activeId = await profiles.getActiveProfileId();
+    if (activeId == null) return;
     await (await SharedPreferences.getInstance()).setString(
-      _ttsVoicePreferenceKey,
+      profiles.keyForProfileId(activeId, _ttsVoicePreferenceKey),
       value,
     );
   }
 
-  Future<bool> shouldSkipTtsExercises() async =>
-      (await SharedPreferences.getInstance()).getBool(_skipTtsExercisesKey) ??
-      false;
-  Future<void> setSkipTtsExercises(bool value) async =>
-      (await SharedPreferences.getInstance()).setBool(
-        _skipTtsExercisesKey,
-        value,
-      );
+  Future<bool> areAudioExercisesEnabled() async {
+    final profiles = ProfileService();
+    final activeId = await profiles.getActiveProfileId();
+    if (activeId == null) return false;
+    return (await SharedPreferences.getInstance()).getBool(
+          profiles.keyForProfileId(activeId, _audioExercisesEnabledKey),
+        ) ??
+        false;
+  }
+
+  Future<void> setAudioExercisesEnabled(bool value) async {
+    final profiles = ProfileService();
+    final activeId = await profiles.getActiveProfileId();
+    if (activeId == null) return;
+    await (await SharedPreferences.getInstance()).setBool(
+      profiles.keyForProfileId(activeId, _audioExercisesEnabledKey),
+      value,
+    );
+  }
 
   Future<bool> areSoundEffectsEnabled() async =>
       (await SharedPreferences.getInstance()).getBool(_soundEffectsKey) ?? true;

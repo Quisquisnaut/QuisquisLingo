@@ -2,18 +2,23 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../models/course_models.dart';
 import '../services/learner_status_events.dart';
 import '../services/profile_service.dart';
 import '../widgets/learner_avatar.dart';
 import 'avatar_settings_screen.dart';
 import 'gamification_settings_screen.dart';
+import 'statistics_screen.dart';
+import 'user_data_settings_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
+  final Course course;
   final Future<void> Function(BuildContext context) onManageLearners;
   final ProfileService? profileService;
 
   const ProfileScreen({
     super.key,
+    required this.course,
     required this.onManageLearners,
     this.profileService,
   });
@@ -77,6 +82,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
     await Navigator.of(context).push(
       MaterialPageRoute(builder: (_) => const GamificationSettingsScreen()),
     );
+    if (mounted) await _load();
+  }
+
+  Future<void> _openUserData() async {
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => UserDataSettingsScreen(course: widget.course),
+      ),
+    );
+    if (mounted) await _load();
+  }
+
+  Future<void> _openStatistics() async {
+    await Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (_) => const StatisticsScreen()));
     if (mounted) await _load();
   }
 
@@ -173,6 +194,26 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: _openGamification,
+                ),
+                ListTile(
+                  key: const Key('profile-statistics-link'),
+                  leading: const Icon(Icons.query_stats_outlined),
+                  title: const Text('Statistics'),
+                  subtitle: const Text(
+                    'Study days and language streak history.',
+                  ),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: _openStatistics,
+                ),
+                ListTile(
+                  key: const Key('profile-user-data-link'),
+                  leading: const Icon(Icons.folder_shared_outlined),
+                  title: const Text('User Data'),
+                  subtitle: const Text(
+                    'Export or import learner data, or reset the current course progress.',
+                  ),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: _openUserData,
                 ),
                 const Divider(height: 32),
                 const Text('This is a local profile only.'),

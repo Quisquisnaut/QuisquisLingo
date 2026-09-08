@@ -35,16 +35,18 @@ void main() {
   });
 
   test(
-    'crash log records every session start and Windows visible log is not debug-only',
+    'crash log records every session start in the shared Logs directory',
     () {
       final source = File(
         'lib/services/crash_log_service.dart',
       ).readAsStringSync();
       expect(source.contains('await _recordSessionStart();'), isTrue);
-      expect(source.contains("if (Platform.isWindows)"), isTrue);
-      expect(source.contains('QuisquisLingo Logs'), isTrue);
+      expect(
+        source.contains('DiagnosticLogService.logsDirectory(create: true)'),
+        isTrue,
+      );
+      expect(source.contains('QuisquisLingo Logs'), isFalse);
       expect(source.contains('quisquislingo_crash.log'), isTrue);
-      expect(source.contains("if (Platform.isWindows && kDebugMode)"), isFalse);
       expect(source.contains(r"Build mode: ${_buildMode()}"), isTrue);
     },
   );

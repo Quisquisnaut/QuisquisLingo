@@ -40,7 +40,7 @@ class InfoScreen extends StatelessWidget {
         _InfoSection(
           title: 'Choosing and opening courses',
           body:
-              'The learner page course selector lists the current course, recently opened courses, bundled courses and My custom courses. Each learner resumes the last Lesson selected in that course, or the first Lesson when no saved selection is valid. Use the Lesson selector to see the complete course.',
+              'The learner page course selector lists the current course, recently opened courses, bundled courses and My custom courses. When Animations are enabled, switching to a different course with a valid flag explicitly configured in its Course JSON briefly shows that exact flag before revealing the new Learner Panel. Selecting the current course again, normal startup, disabled Animations, and courses without a valid configured flag enter immediately. Each learner resumes the last Lesson selected in that course, or the first Lesson when no saved selection is valid. Use the Lesson selector to see the complete course.',
         ),
         _InfoSection(
           title: 'Course identity and progress',
@@ -50,7 +50,7 @@ class InfoScreen extends StatelessWidget {
         _InfoSection(
           title: 'Progress, Week XP and Gamification',
           body:
-              'Language XP, streak, total study days and Status are stored separately for each learner and target language. Completed Rounds and laurel crowns are stored separately for each learner and Course ID. Week XP is different: it is the total XP earned by that learner across all courses during the current week. Profile > Gamification contains Weekly XP Target · All courses, Last Week XP · All courses and the Local leaderboard · All courses. Last Week XP refers to the previous completed week; tap your own Last Week XP to see the XP breakdown for each course. The local leaderboard ranks participating learner profiles on this device by their total XP across all courses during that same completed week. Participation can be turned off without deleting the learner’s XP history.',
+              'Language XP, streak, study days and Status are stored separately for each learner and target language. Profile > Statistics shows Total Study Days across languages and, for every studied language, its flag, name, canonical language ID, Study Days, Current Streak and Max Streak. Completed Rounds and laurel crowns are stored separately for each learner and Course ID. Week XP is different: it is the total XP earned by that learner across all courses during the current week. Profile > Gamification contains Weekly XP Target · All courses, Last Week XP · All courses and the Local leaderboard · All courses. Last Week XP refers to the previous completed week; tap your own Last Week XP to see the XP breakdown for each course. The local leaderboard ranks participating learner profiles on this device by their total XP across all courses during that same completed week. Participation can be turned off without deleting the learner’s XP history.',
         ),
         _InfoSection(
           title: 'Streak and the freeze rule',
@@ -60,7 +60,7 @@ class InfoScreen extends StatelessWidget {
         _InfoSection(
           title: 'Days studied',
           body:
-              'This is the total number of distinct calendar days on which you studied the selected language. Several rounds on the same day still count as one study day.',
+              'A Study Day is one distinct local calendar day on which the learner completes study. Several Rounds on the same day still count as one Study Day. Total Study Days counts distinct study dates across all languages, so studying two languages on the same day still adds one total day.',
         ),
         _InfoSection(
           title: 'Laurel crowns',
@@ -68,9 +68,9 @@ class InfoScreen extends StatelessWidget {
               'A round earns a laurel crown when you complete one full attempt with zero errors. This can happen from the normal course path or from Review. Once earned, the crown is permanent even if a later attempt contains errors. A newly earned crown also plays the victory sound when sound effects are enabled.',
         ),
         _InfoSection(
-          title: 'Skipping TTS exercises',
+          title: 'Audio Settings',
           body:
-              'Settings > TTS Settings can skip every exercise that uses text-to-speech. If you complete the remaining exercises with zero errors, the round gets a separate leaf-style completion mark rather than a laurel crown. If you later complete the full round with TTS enabled and zero errors, the normal permanent laurel crown is awarded.',
+              'Settings > Audio Settings contains Enable Audio Exercises, Text-to-speech and the existing TTS voice selector with Test Voice, in that order. Enable Audio Exercises and Text-to-speech are stored per learner and initialize Off; TTS voice is also per learner and initializes System. Test Voice opens with an empty field and speaks only the text you enter, using the selected course language for voice resolution. While audio exercises are Off, recorded-MP3, TTS and hybrid exercises are excluded before their source or playback controller is initialized. When On, the Text-to-speech switch controls TTS availability without disabling valid recorded audio. Previous shared and negative audio-setting values remain untouched and unread. Authoring Preview ignores learner Audio Settings and remains no-write. Completing only the available non-audio part of a Round preserves the established leaf-style partial-audio completion behavior rather than awarding a full laurel crown.',
         ),
         _InfoSection(
           title: 'Alpha expiry',
@@ -111,7 +111,7 @@ class InfoScreen extends StatelessWidget {
         _InfoSection(
           title: 'Export and import learner data',
           body:
-              'Settings > User Data > Export my data creates a backup of the active learner profile, including learner-specific progress and preferences. It is saved directly in Documents/QuisquisLingo/Exports with an automatic filename; there is no Save As dialog. If that filename already exists, QuisquisLingo adds _2, _3 and later numeric suffixes. To import learner data, copy a supported backup to Documents/QuisquisLingo/Imports/learner_import.json and then choose Settings > User Data > Import my data. Course Editor projects, Image Bank packages and Audio Packs are separate authoring resources and are not part of this learner backup.',
+              'Profile > User Data > Export my data creates a backup of the active learner profile, including learner-specific progress and preferences. It is saved directly in Documents/QuisquisLingo/Exports with an automatic filename; there is no Save As dialog. If that filename already exists, QuisquisLingo adds _2, _3 and later numeric suffixes. To import learner data, copy a supported backup to Documents/QuisquisLingo/Imports/learner_import.json and then choose Profile > User Data > Import my data. Course Editor projects, Image Bank packages and Audio Packs are separate authoring resources and are not part of this learner backup.',
         ),
         _InfoSection(
           title: 'Updates',
@@ -121,12 +121,12 @@ class InfoScreen extends StatelessWidget {
         _InfoSection(
           title: 'Crash Log and Diagnostic Log',
           body:
-              'The Crash Log and Diagnostic Log are separate. The Crash Log is an automatic file created at app startup and updated after uncaught errors; Settings shows its actual path. The Diagnostic Log stores technical troubleshooting events internally and is not created as a file automatically. In Settings, use Export Diagnostic Log to write a snapshot to Documents/QuisquisLingo/Logs/quisquislingo_diagnostic_log.txt. Clearing the Diagnostic Log does not delete or reset the Crash Log.',
+              'Settings > Debug contains both logging tools and concise reporting guidance. Use the Crash Log for startup/runtime crashes or unexpected closes. For non-crashing runtime problems, reproduce the issue when possible and export the Diagnostic Log shortly afterward; clearing it first is optional and is useful only to isolate a specific reproducible problem, while intermittent evidence should be exported before clearing. Both files use Documents/QuisquisLingo/Logs. Learner audio diagnostics use short correlation IDs and bounded lifecycles with preparation, learner UI state, stable exercise ID/type, activation trigger, suppression, source, backend, playback, failure and disposal status. They are designed to avoid spoken text, answers, course content and full personal file paths.',
         ),
         _InfoSection(
           title: 'Course Manager and Course Editor',
           body:
-              'For instructions on managing courses and using authoring tools, open Editor Help from Course Manager or any Course Editor hierarchy page.',
+              'Course Manager is opened from the learner Course Selector rather than Settings. For instructions on managing courses and using authoring tools, open Editor Help from Course Manager or any Course Editor hierarchy page.',
         ),
         _InfoSection(
           title: 'Course content and AI',

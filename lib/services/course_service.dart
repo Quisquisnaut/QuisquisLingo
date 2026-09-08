@@ -6,6 +6,7 @@ import '../models/course_models.dart';
 import 'app_errors.dart';
 import 'diagnostic_log_service.dart';
 import 'course_backup_service.dart';
+import 'learning_language_identity.dart';
 
 /// Loads immutable bundled official courses.
 ///
@@ -83,16 +84,14 @@ class CourseService {
       courseAssets.containsKey(languageCode.trim().toUpperCase());
 
   static String codeForCourse(Course course) {
-    final language = course.targetLanguage.trim().toLowerCase();
-    if (language == 'italian') return 'IT';
-    if (language == 'german') return 'DE';
-    if (language == 'spanish') return 'ES';
-    if (language == 'english') return 'EN';
-    if (language == 'welsh') return 'CY';
-    if (language == 'dutch') return 'NL';
-    if (language == 'portuguese') return 'PT';
-    if (language == 'finnish') return 'FI';
-    if (language == 'korean') return 'KO';
+    for (final candidate in [
+      course.learningLanguage,
+      course.targetLanguageTag,
+      course.targetLanguage,
+    ]) {
+      final canonical = LearningLanguageIdentity.storageId(candidate);
+      if (canonical.length == 2) return canonical;
+    }
     final raw = course.targetLanguage.trim().toUpperCase();
     return raw.length >= 2 ? raw.substring(0, 2) : raw;
   }

@@ -153,6 +153,11 @@ class ProgressService {
   Future<int> getDaysStudied({required String courseCode}) =>
       _learningActivity.getDaysStudied(courseCode: courseCode);
 
+  Future<int> getTotalStudyDays() => _learningActivity.getTotalStudyDays();
+
+  Future<LearnerStatistics> getStatistics() =>
+      _learningActivity.getStatistics();
+
   Future<int> getStreak({required String courseCode}) =>
       _learningActivity.getStreak(courseCode: courseCode);
 

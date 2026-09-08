@@ -1,13 +1,15 @@
 # QuisquisLingo App
 
-**Current source version: 2.0.27+227040 · Phase 227.04, revision 0 · Course Model v6 (`formatVersion: 6`).**
+**Current source version: 2.0.28+228 · Phase 228, revision 0 · Course Model v6 (`formatVersion: 6`).**
 
 
-**QuisquisLingo 2.0.27 Alpha — Phase 227.04 QQL 227 closure**
+**QuisquisLingo 2.0.28 Alpha — QQL 228 Settings, Statistics, Debug and Audio**
 
-Current project version: 2.0.27
+Current project version: 2.0.28
 
-Phase 227.04 closes QQL 227. Flag Background remains **Small / Off / Extended / Tinted / Inspired** per learner and Course, initialized Off, with the compatible `soft_inspired` identity. IDDQD is now **Off / On / View Only** per learner and Course: On bypasses genuine locks and records normal study, while View Only bypasses the same locks and permits exercise feedback without writing progress, XP, activity, Laurels, Review or Duel state. The compact bottom control carries its explanation in its tooltip and accessibility label; genuinely locked Lessons show `Accessible with IDDQD` for On or `Preview with IDDQD` for View Only while retaining the real lock marker. Theme is **Light / Dark / System / Day/Night** per learner. System preserves the former stored `default` value and follows operating-system brightness live; Day/Night uses local time, Light from 07:00 inclusive to 19:00 exclusive and Dark otherwise, and re-evaluates at each boundary and on resume. See [227.01 baseline](docs/227_01_VALIDATION.md), [227.02 validation](docs/227_02_VALIDATION.md), [227.03 validation](docs/227_03_VALIDATION.md) and [227.04 validation](docs/227_04_VALIDATION.md).
+QQL 228 reorganizes Settings and Profile without redesigning them: Settings now shows Profile, App Info, Audio Settings, Do Not Disturb, Debug, Version and Build, Update; User Data is under Profile, and Course Manager remains in the learner Course Selector. Profile > Statistics derives Total Study Days and per-language Study Days, Current Streak and Max Streak from the established learner activity records. Crash and Diagnostic tools share Settings > Debug and `Documents/QuisquisLingo/Logs`. Audio Settings applies per-learner Enable Audio Exercises, Text-to-speech and the TTS voice selector with Test Voice before learner Round/Duel playback initialization while authoring Preview remains setting-independent and no-write. Test Voice speaks only user-entered text using the selected course's voice language. Actual course switches briefly reveal the new Learner Panel through the destination's explicitly configured Course JSON flag when animations are enabled; missing flags, startup, and same-course navigation remain immediate. A listening exercise prepared behind `Before you start` remains silent until Continue makes it active, with privacy-safe activation timing recorded in the existing audio diagnostics. See [QQL 228 validation](docs/228_VALIDATION.md).
+
+Phase 227.04 remains the closed QQL 227 baseline. Flag Background remains **Small / Off / Extended / Tinted / Inspired** per learner and Course, initialized Off, with the compatible `soft_inspired` identity. IDDQD remains **Off / On / View Only** per learner and Course, and Theme remains **Light / Dark / System / Day/Night** per learner. See [227.01 baseline](docs/227_01_VALIDATION.md), [227.02 validation](docs/227_02_VALIDATION.md), [227.03 validation](docs/227_03_VALIDATION.md) and [227.04 validation](docs/227_04_VALIDATION.md).
 
 Phase 226.04 adds one-time Course scaffolding (default 3 Lessons with 1 Round and 1 Draft sample Exercise per Round), reusable Sections, clear Lesson naming modes, optional GuideBook and Duel paths, World Flag selection, the upper Lessons Lock icon and passive GuideBook IDs. Revision 2 gives newly added Rounds the same single sample, removes fallback-icon style selection in favor of one theme-colored circle, adds Course Import navigation and learner-selector Editor actions, presents the last Lesson's Duel as Final Duel, and adds ordered GuideBook Insights. Creation counts do not restrict existing/imported courses or later editing. Course Model remains v6, with backward-compatible defaults and 102 Audit rules. See [226.04 validation](docs/226_04_VALIDATION.md). Templates, Napoletano and future exercise links remain deferred.
 
@@ -36,7 +38,7 @@ The MPL-2.0 covers the QuisquisLingo software source. Courses, the Image Bank an
 
 ## Alpha lifecycle
 
-Version 2.0.27 is a time-limited alpha with the established 30-day lifetime from September 7: expiry is **2026-10-07 23:59:59 local time**. Near expiry it displays reminders. After expiry, learner exercises and Review are blocked until a newer alpha is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when an alpha expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM. Future stable builds can disable alpha expiry.
+Version 2.0.28 is a time-limited alpha with the established 30-day lifetime from September 8: expiry is **2026-10-08 23:59:59 local time**. Near expiry it displays reminders. After expiry, learner exercises and Review are blocked until a newer alpha is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when an alpha expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM. Future stable builds can disable alpha expiry.
 
 ## Core logic
 
@@ -171,7 +173,7 @@ During any exercise, tap the flag in the top-right corner and choose **Course er
 
 ## Cross-platform text-to-speech
 
-TTS can be enabled or disabled at any time in **Settings > TTS Settings > Text-to-speech**.
+TTS can be enabled or disabled at any time in **Settings > Audio Settings > Text-to-speech**. Enable Audio Exercises and Text-to-speech are stored per learner and initialize Off; TTS voice is also per learner and initializes System. Enable Audio Exercises excludes recorded-MP3, TTS and hybrid audio exercises before learner playback initialization when Off. When On, the Text-to-speech setting, course audio configuration and actual source availability determine eligibility. Test Voice opens an empty field and speaks only the text the user enters; voice resolution still follows the selected course language, not the UI locale or typed text. Authoring Preview ignores these learner settings. QQL 228 makes a clean persistence cut and does not read or migrate previous shared or negative audio-setting values.
 
 - Windows: native `System.Speech` through a dedicated backend, avoiding the current `flutter_tts` Windows platform-thread issue.
 - Android, iOS/iPadOS, macOS and Web: platform/browser TTS through `flutter_tts`.
@@ -181,7 +183,7 @@ See `docs/TTS_ALL_PLATFORMS.md` for platform-specific setup and run instructions
 
 ## Listening comprehension
 
-Rounds can include `listening_comprehension` exercises. The learner hears a short sentence or mini-dialogue, may replay it, and answers a comprehension question with randomized choices. If TTS is disabled or unavailable, audio exercises should be skipped or replaced by course logic in a production course.
+Rounds can include `listening_comprehension` exercises. The learner hears a short sentence or mini-dialogue, may replay it, and answers a comprehension question with randomized choices. Learner runtime filters audio exercises whose configured recorded or TTS source is unavailable before playback initialization.
 
 
 ## Authoring safety
@@ -257,6 +259,6 @@ The update check is metadata-only and sends no learner or course data. Offline u
 
 ## Windows Alpha diagnostic logging (0.8.1)
 
-Both debug and standalone release Alpha builds display tester instructions at startup. QuisquisLingo creates or re-creates the **Crash Log** on every launch, appends a session snapshot, and keeps an easy-to-find Windows copy at `Documents\QuisquisLingo Logs\quisquislingo_crash.log`. Uncaught errors are recorded in all non-web build modes; detailed navigation breadcrumbs remain debug-only. The separate **Diagnostic Log** stores application troubleshooting events internally and can be exported from Settings to `Documents/QuisquisLingo/Logs/quisquislingo_diagnostic_log.txt`.
+Both debug and standalone release Alpha builds display tester instructions at startup. QuisquisLingo creates or re-creates the **Crash Log** at `Documents/QuisquisLingo/Logs/quisquislingo_crash.log`, appends a session snapshot, and records uncaught errors in all non-web build modes; detailed navigation breadcrumbs remain debug-only. The separate **Diagnostic Log** stores application troubleshooting events internally and can be exported from **Settings > Debug** to `Documents/QuisquisLingo/Logs/quisquislingo_diagnostic_log.txt`. Bounded learner-audio lifecycle events use correlation IDs and omit spoken text, answers, course content and full personal file paths.
 
 Alpha builds also keep a privacy-safe **Startup Trace** at `%LOCALAPPDATA%\QuisquisLingo\Logs\quisquislingo_startup_trace.log`, with `%TEMP%\quisquislingo_startup_trace.log` as fallback. Normal lifecycle tracing is enabled by default. Set `QUISQUISLINGO_STARTUP_DIAGNOSTICS=verbose` before launch only when low-level Windows startup detail is needed. The active trace rotates at approximately 1 MiB and retains two previous generations. See [docs/LOGGING.md](docs/LOGGING.md).

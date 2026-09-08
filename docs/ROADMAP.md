@@ -4,6 +4,12 @@ This roadmap describes planned work after build 204.
 
 Version numbers are provisional. If a task requires more than one build, later items may move forward rather than being compressed into an unsafe release.
 
+## QQL 228 complete: Settings, Statistics, Debug and Audio
+
+`2.0.28+228` delivers the four requested QQL 228 phases on the closed QQL 227 baseline. Settings and Profile retain their existing presentation while their destinations are reordered; Profile gains Statistics and owns User Data; Course Manager stays in the learner Course Selector; and the Flag Game hint gains its exact tooltip and hover wave. Statistics derives its totals and canonical per-language records from the established learner activity history. Debug now owns both existing log tools and both exported files share `Documents/QuisquisLingo/Logs`. Learner Audio Settings are applied before Round/Duel source and player initialization, while authoring Preview remains independent and no-write. Release evidence is recorded in [228 validation](228_VALIDATION.md).
+
+Audio Settings uses a clean per-profile namespace: `audio_exercises_enabled` and `tts_enabled` initialize Off, while `tts_voice_preference` initializes System. Previous device-level TTS/voice values and negative skip values remain untouched and unread; there is no migration or conversion. No Course Model, course JSON, checksum, XP or progression migration is introduced.
+
 ## QQL 227 closed: Phase 227.04
 
 `2.0.27+227040` (revision 0) closes QQL 227. Its implementation parent is `8badf79dda864cc40098f4df262628029bf68df1`, the completed `2.0.27+227030` Phase 227.03 revision-0 baseline. Release evidence is recorded in [227.01 validation](227_01_VALIDATION.md), [227.02 validation](227_02_VALIDATION.md), [227.03 validation](227_03_VALIDATION.md) and [227.04 validation](227_04_VALIDATION.md).
@@ -12,7 +18,7 @@ IDDQD is **Off / On / View Only** per learner × Course and initialized Off. Off
 
 Flag Background remains **Small / Off / Extended / Tinted / Inspired**, stored per learner × Course and initialized Off through the existing clean cut. Small retains contain rendering; Extended retains cover rendering; Off retains the unadorned learner page. Tinted remains a restrained uniform derived color. Inspired retains up to three broad, stronger representative flag-color zones and the compatible `soft_inspired` storage value. Theme is **Light / Dark / System / Day/Night** per learner. System retains the former `default` storage value and live platform behavior. Day/Night resolves device-local time as Light during 07:00–19:00 and Dark during 19:00–07:00, updates at boundaries and re-evaluates on resume.
 
-No 227.05 tranche is planned. QQL 228 work has not begun. Settings reorganization, configurable schedules, geolocation, Stats, Study Days, later audio/log work, Course Editor changes and further learner-control modes remain outside QQL 227.
+No 227.05 tranche is planned. QQL 227 remains closed; the separate QQL 228 release above does not reopen or alter its delivered learner-control behavior.
 
 ## General principles
 

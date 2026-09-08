@@ -47,7 +47,7 @@ Existing course flags are frozen and separate. Legacy course `CY` continues to m
 
 ## Flag Game
 
-Five taps or mouse clicks within three seconds on the Settings title and subtle generic outlined-flag hint play the existing suspense sound and open Flag Game. The flag icon has the compact `Flag Game` tooltip; one to four taps still do nothing, stale sequences reset, and Close/Back naturally returns to Settings.
+Five taps or mouse clicks within three seconds on the Settings title and subtle generic outlined-flag hint play the existing suspense sound and open Flag Game. The flag icon has the exact `Tap tap... Flag Game` tooltip and waves gently while the mouse hovers over it; one to four taps still do nothing, stale sequences reset, and Close/Back naturally returns to Settings.
 
 A game uses one of the four cumulative pools, selects 12 unique targets and gives five distinct English answers per question. Seedable/injectable randomness makes target and correct-answer positions testable. A fresh game avoids intentionally repeating the immediately previous exact target order when the pool allows it.
 

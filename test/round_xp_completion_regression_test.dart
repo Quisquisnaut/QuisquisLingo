@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -7,6 +5,7 @@ import 'package:quisquislingo_app/models/course_models.dart';
 import 'package:quisquislingo_app/screens/round_screen.dart';
 import 'package:quisquislingo_app/services/profile_service.dart';
 import 'package:quisquislingo_app/services/progress_service.dart';
+import 'package:quisquislingo_app/services/settings_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
@@ -125,8 +124,7 @@ void main() {
   testWidgets(
     'a perfect presented subset records the TTS-skipped mark without a laurel',
     (tester) async {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setBool('skip_tts_exercises', true);
+      await SettingsService().setAudioExercisesEnabled(false);
       final fixture = _roundFixture(exerciseCount: 1, includeTtsExercise: true);
       final routeResults = <bool?>[];
       await _openRound(tester, fixture, routeResults: routeResults);
@@ -310,54 +308,38 @@ void main() {
     },
   );
 
-  testWidgets(
-    'a dynamically skipped TTS-only round receives only the perfect bonus',
-    (tester) async {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setBool('tts_enabled', false);
-      final fixture = _roundFixture(exerciseCount: 0, includeTtsExercise: true);
-      final routeResults = <bool?>[];
-      await _openRound(
-        tester,
-        fixture,
-        routeResults: routeResults,
-        waitForChoice: false,
-      );
-      await _pumpUntilText(tester, 'Round completed');
-      expect(find.text('Perfect bonus: +5 XP'), findsOneWidget);
-      expect(find.text('Total: 5 XP'), findsOneWidget);
-      await _tapAndPump(tester, 'Continue');
-      await _pumpUntil(tester, () => routeResults.isNotEmpty);
+  testWidgets('an unavailable TTS-only round is excluded before completion', (
+    tester,
+  ) async {
+    await SettingsService().setAudioExercisesEnabled(true);
+    await SettingsService().setTtsEnabled(false);
+    final fixture = _roundFixture(exerciseCount: 0, includeTtsExercise: true);
+    final routeResults = <bool?>[];
+    await _openRound(
+      tester,
+      fixture,
+      routeResults: routeResults,
+      waitForChoice: false,
+    );
+    await _pumpUntilText(
+      tester,
+      'All audio exercises in this round are currently unavailable.',
+    );
 
-      final progress = ProgressService();
-      expect(routeResults, [true]);
-      expect(await progress.getCompletedRounds(courseId: courseId), {
-        fixture.round.id,
-      });
-      expect(await progress.getPerfectRounds(courseId: courseId), isEmpty);
-      expect(await progress.getTtsSkippedPerfectRounds(courseId: courseId), {
-        fixture.round.id,
-      });
-      expect(await progress.getXp(courseCode: courseCode), 5);
-      expect(await progress.getWeeklyXp(), 5);
-      expect(await progress.getStreak(courseCode: courseCode), 1);
-      expect(await progress.getDaysStudied(courseCode: courseCode), 1);
-
-      final recent = await progress.getRecentRounds(courseId: courseId);
-      expect(recent, hasLength(1));
-      expect(recent.single.roundId, fixture.round.id);
-      expect(recent.single.errors, 0);
-
-      final prefix = ProfileService.prefixForProfileId(
-        (await ProfileService().getActiveProfileId())!,
-      );
-      expect(prefs.getInt('${prefix}xp_IT'), 5);
-      expect(prefs.getInt('${prefix}week_xp'), 5);
-      expect(jsonDecode(prefs.getString('${prefix}week_xp_by_course')!), {
-        courseId: 5,
-      });
-    },
-  );
+    final progress = ProgressService();
+    expect(routeResults, isEmpty);
+    expect(await progress.getCompletedRounds(courseId: courseId), isEmpty);
+    expect(await progress.getPerfectRounds(courseId: courseId), isEmpty);
+    expect(
+      await progress.getTtsSkippedPerfectRounds(courseId: courseId),
+      isEmpty,
+    );
+    expect(await progress.getXp(courseCode: courseCode), 0);
+    expect(await progress.getWeeklyXp(), 0);
+    expect(await progress.getStreak(courseCode: courseCode), 0);
+    expect(await progress.getDaysStudied(courseCode: courseCode), 0);
+    expect(await progress.getRecentRounds(courseId: courseId), isEmpty);
+  });
 
   testWidgets(
     'weekly goal state and completion persist before dialog and celebrate once',

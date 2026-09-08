@@ -6,6 +6,7 @@ import 'diagnostic_log_service.dart';
 import 'tts_linux_backend.dart';
 import 'tts_windows_backend.dart';
 import 'tts_language_resolver.dart';
+import 'audio_diagnostic_service.dart';
 
 class TtsCacheService {
   // Create the flutter_tts object only on platforms that actually use the
@@ -58,160 +59,272 @@ class TtsCacheService {
     String? learningLanguage,
     String? targetLanguage,
     double rate = 0.5,
+    bool applyLearnerSettings = true,
   }) async {
+    final lifecycle = AudioDiagnosticLifecycle.start(
+      kind: 'tts',
+      enabled: applyLearnerSettings,
+    );
+    var disposalOutcome = 'completed';
     lastFailureDescription = null;
-    final enabled = await _settings.isTtsEnabled();
-    if (!enabled || text.trim().isEmpty) return false;
-
-    final requestedLanguage = language;
     try {
-      language = TtsLanguageResolver.resolve(
-        requestedLanguage: requestedLanguage,
-        learningLanguage: learningLanguage,
-        targetLanguage: targetLanguage,
-      );
-    } on FormatException catch (error) {
-      lastFailureDescription =
-          '${error.message} Check the course language metadata.';
-      await _log.log(
-        AppErrorCode.ttsUnavailable,
-        context:
-            '${error.message} requested=$requestedLanguage '
-            'learning=$learningLanguage target=$targetLanguage',
-      );
-      return false;
-    }
-
-    if (!kIsWeb && defaultTargetPlatform == TargetPlatform.linux) {
-      try {
-        final ok = await speakWithLinuxTts(
-          text: text,
-          language: language,
-          rate: rate,
+      final enabled = !applyLearnerSettings || await _settings.isTtsEnabled();
+      if (!enabled || text.trim().isEmpty) {
+        disposalOutcome = 'excluded';
+        await lifecycle.event(
+          'source_resolution',
+          outcome: !enabled ? 'disabled' : 'empty',
+          backend: 'tts',
         );
-        if (ok) return true;
+        return false;
+      }
+
+      final requestedLanguage = language;
+      try {
+        language = TtsLanguageResolver.resolve(
+          requestedLanguage: requestedLanguage,
+          learningLanguage: learningLanguage,
+          targetLanguage: targetLanguage,
+        );
+      } on FormatException catch (error) {
+        disposalOutcome = 'failed';
+        lastFailureDescription =
+            '${error.message} Check the course language metadata.';
+        await lifecycle.event(
+          'source_resolution',
+          outcome: 'failed',
+          backend: 'tts',
+          failureType: error.runtimeType.toString(),
+        );
         await _log.log(
           AppErrorCode.ttsUnavailable,
-          context: 'Linux TTS requires eSpeak NG or eSpeak.',
+          context: 'Invalid requested TTS language metadata.',
         );
-      } catch (e, st) {
-        await _log.log(
-          AppErrorCode.ttsSynthesisFailed,
-          context: 'Linux speech language=$language text=$text',
-          exception: e,
-          stackTrace: st,
-        );
+        return false;
       }
-      return false;
-    }
-
-    if (!isTtsSupported) {
-      await _log.log(
-        AppErrorCode.ttsUnavailable,
-        context: 'Unsupported Flutter platform.',
+      await lifecycle.event(
+        'source_resolution',
+        outcome: 'resolved',
+        backend: 'tts',
+        language: language,
       );
-      return false;
-    }
 
-    try {
-      final wanted = language.toLowerCase().replaceAll('_', '-');
-      final wantedBase = wanted.split('-').first;
-      final preference = await _settings.getTtsVoicePreference();
+      if (!kIsWeb && defaultTargetPlatform == TargetPlatform.linux) {
+        try {
+          await lifecycle.event(
+            'initialization',
+            outcome: 'started',
+            backend: 'linux_espeak',
+            language: language,
+          );
+          await lifecycle.event(
+            'playback',
+            outcome: 'started',
+            backend: 'linux_espeak',
+            language: language,
+          );
+          final ok = await speakWithLinuxTts(
+            text: text,
+            language: language,
+            rate: rate,
+          );
+          await lifecycle.event(
+            'playback',
+            outcome: ok ? 'completed' : 'failed',
+            backend: 'linux_espeak',
+            language: language,
+          );
+          if (ok) return true;
+          disposalOutcome = 'failed';
+          await _log.log(
+            AppErrorCode.ttsUnavailable,
+            context: 'Linux TTS requires eSpeak NG or eSpeak.',
+          );
+        } catch (e) {
+          disposalOutcome = 'failed';
+          await lifecycle.event(
+            'failure',
+            outcome: 'failed',
+            backend: 'linux_espeak',
+            failureType: e.runtimeType.toString(),
+          );
+          await _log.log(
+            AppErrorCode.ttsSynthesisFailed,
+            context: 'Linux speech failed for language=$language.',
+          );
+        }
+        return false;
+      }
 
-      if (!kIsWeb && defaultTargetPlatform == TargetPlatform.windows) {
-        // Windows uses System.Speech directly. This avoids the flutter_tts
-        // platform-thread warning observed with current Flutter/plugin builds.
-        final ok = await speakWithWindowsTts(
-          text: text,
-          language: language,
-          voicePreference: preference,
-          rate: rate,
-          onDiagnostic: (details) => _log.logInfo(
-            'Windows TTS requested=$requestedLanguage '
-            'learning=$learningLanguage target=$targetLanguage '
-            'resolved=$language $details',
-          ),
+      if (!isTtsSupported) {
+        disposalOutcome = 'unsupported';
+        await lifecycle.event(
+          'initialization',
+          outcome: 'unsupported',
+          backend: 'tts',
         );
-        if (!ok) {
-          await _log.log(
-            AppErrorCode.ttsUnavailable,
-            context:
-                'Windows System.Speech could not complete speech for requested=$requestedLanguage resolved=$language. See installed-voice diagnostics.',
+        await _log.log(
+          AppErrorCode.ttsUnavailable,
+          context: 'Unsupported Flutter platform.',
+        );
+        return false;
+      }
+
+      try {
+        final wanted = language.toLowerCase().replaceAll('_', '-');
+        final wantedBase = wanted.split('-').first;
+        final preference = applyLearnerSettings
+            ? await _settings.getTtsVoicePreference()
+            : 'system';
+
+        if (!kIsWeb && defaultTargetPlatform == TargetPlatform.windows) {
+          // Windows uses System.Speech directly. This avoids the flutter_tts
+          // platform-thread warning observed with current Flutter/plugin builds.
+          await lifecycle.event(
+            'initialization',
+            outcome: 'started',
+            backend: 'windows_system_speech',
+            language: language,
           );
-        } else {
-          await _log.logInfo(
-            'Windows System.Speech TTS requested=$language preference=$preference',
+          await lifecycle.event(
+            'playback',
+            outcome: 'started',
+            backend: 'windows_system_speech',
+            language: language,
           );
-        }
-        return ok;
-      } else {
-        var selectedLanguage = language;
-        var languageSet = await _tts.setLanguage(selectedLanguage);
-        if (languageSet != 1) {
-          // Enumerate anew after failure: an earlier missing voice must not
-          // remain cached after the user installs a compatible system voice.
-          final available = await _tts.getLanguages;
-          if (available is List) {
-            selectedLanguage =
-                TtsLanguageResolver.selectInstalledLocale(
-                  language,
-                  available.map((candidate) => candidate.toString()),
-                ) ??
-                language;
+          final ok = await speakWithWindowsTts(
+            text: text,
+            language: language,
+            voicePreference: preference,
+            rate: rate,
+          );
+          await lifecycle.event(
+            'playback',
+            outcome: ok ? 'completed' : 'failed',
+            backend: 'windows_system_speech',
+            language: language,
+          );
+          if (!ok) {
+            disposalOutcome = 'failed';
+            await _log.log(
+              AppErrorCode.ttsUnavailable,
+              context:
+                  'Windows System.Speech could not complete speech for resolved language=$language.',
+            );
+          } else {
+            await _log.logInfo(
+              'Windows System.Speech TTS requested=$language preference=$preference',
+            );
           }
-          languageSet = await _tts.setLanguage(selectedLanguage);
-        }
-        if (languageSet != 1) {
-          await _log.log(
-            AppErrorCode.ttsUnavailable,
-            context: 'Requested TTS language is not installed: $language',
+          return ok;
+        } else {
+          await lifecycle.event(
+            'initialization',
+            outcome: 'started',
+            backend: 'flutter_tts',
+            language: language,
           );
-          return false;
-        }
-        if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
-          // Waiting for completion makes emulator/device playback state more
-          // predictable when exercises advance quickly.
-          await _tts.awaitSpeakCompletion(true);
-        }
-        // Platforms that expose voice metadata can still honor the gender
-        // preference, but inability to match it never blocks speech.
-        if (preference != 'system') {
-          final voices = await _tts.getVoices;
-          if (voices is List) {
-            final sameLanguage = voices.where((v) {
-              final locale = _locale(v);
-              return locale.split('-').first == wantedBase;
-            }).toList();
-            final exact = sameLanguage
-                .where((v) => _locale(v) == wanted)
-                .toList();
-            final compatible = (exact.isNotEmpty ? exact : sameLanguage)
-                .where((v) => _gender(v) == preference)
-                .toList();
-            if (compatible.isNotEmpty && compatible.first is Map) {
-              final raw = compatible.first as Map;
-              await _tts.setVoice({
-                'name': (raw['name'] ?? '').toString(),
-                'locale': (raw['locale'] ?? language).toString(),
-              });
+          var selectedLanguage = language;
+          var languageSet = await _tts.setLanguage(selectedLanguage);
+          if (languageSet != 1) {
+            // Enumerate anew after failure: an earlier missing voice must not
+            // remain cached after the user installs a compatible system voice.
+            final available = await _tts.getLanguages;
+            if (available is List) {
+              selectedLanguage =
+                  TtsLanguageResolver.selectInstalledLocale(
+                    language,
+                    available.map((candidate) => candidate.toString()),
+                  ) ??
+                  language;
+            }
+            languageSet = await _tts.setLanguage(selectedLanguage);
+          }
+          if (languageSet != 1) {
+            disposalOutcome = 'failed';
+            await lifecycle.event(
+              'initialization',
+              outcome: 'failed',
+              backend: 'flutter_tts',
+              language: language,
+            );
+            await _log.log(
+              AppErrorCode.ttsUnavailable,
+              context: 'Requested TTS language is not installed: $language',
+            );
+            return false;
+          }
+          if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
+            // Waiting for completion makes emulator/device playback state more
+            // predictable when exercises advance quickly.
+            await _tts.awaitSpeakCompletion(true);
+          }
+          // Platforms that expose voice metadata can still honor the gender
+          // preference, but inability to match it never blocks speech.
+          if (preference != 'system') {
+            final voices = await _tts.getVoices;
+            if (voices is List) {
+              final sameLanguage = voices.where((v) {
+                final locale = _locale(v);
+                return locale.split('-').first == wantedBase;
+              }).toList();
+              final exact = sameLanguage
+                  .where((v) => _locale(v) == wanted)
+                  .toList();
+              final compatible = (exact.isNotEmpty ? exact : sameLanguage)
+                  .where((v) => _gender(v) == preference)
+                  .toList();
+              if (compatible.isNotEmpty && compatible.first is Map) {
+                final raw = compatible.first as Map;
+                await _tts.setVoice({
+                  'name': (raw['name'] ?? '').toString(),
+                  'locale': (raw['locale'] ?? language).toString(),
+                });
+              }
             }
           }
+          await lifecycle.event(
+            'initialization',
+            outcome: 'completed',
+            backend: 'flutter_tts',
+            language: selectedLanguage,
+          );
         }
-      }
 
-      await _tts.setSpeechRate(rate);
-      await _tts.setVolume(1.0);
-      await _tts.setPitch(1.0);
-      final result = await _tts.speak(text);
-      return result == 1;
-    } catch (e, st) {
-      await _log.log(
-        AppErrorCode.ttsSynthesisFailed,
-        context: 'Speak language=$language rate=$rate text=$text',
-        exception: e,
-        stackTrace: st,
-      );
-      return false;
+        await _tts.setSpeechRate(rate);
+        await _tts.setVolume(1.0);
+        await _tts.setPitch(1.0);
+        await lifecycle.event(
+          'playback',
+          outcome: 'started',
+          backend: 'flutter_tts',
+          language: language,
+        );
+        final result = await _tts.speak(text);
+        await lifecycle.event(
+          'playback',
+          outcome: result == 1 ? 'completed' : 'failed',
+          backend: 'flutter_tts',
+          language: language,
+        );
+        if (result != 1) disposalOutcome = 'failed';
+        return result == 1;
+      } catch (e) {
+        disposalOutcome = 'failed';
+        await lifecycle.event(
+          'failure',
+          outcome: 'failed',
+          backend: 'tts',
+          failureType: e.runtimeType.toString(),
+        );
+        await _log.log(
+          AppErrorCode.ttsSynthesisFailed,
+          context: 'Speech failed for language=$language.',
+        );
+        return false;
+      }
+    } finally {
+      await lifecycle.dispose(outcome: disposalOutcome);
     }
   }
 
@@ -220,9 +333,10 @@ class TtsCacheService {
     required String language,
     String voice = '',
     double rate = 0.5,
+    bool applyLearnerSettings = true,
   }) async {
     if (text.trim().isEmpty) return;
-    final enabled = await _settings.isTtsEnabled();
+    final enabled = !applyLearnerSettings || await _settings.isTtsEnabled();
     if (!enabled) return;
   }
 
@@ -233,7 +347,9 @@ class TtsCacheService {
       return;
     }
     try {
-      await _tts.stop();
+      final tts = _ttsInstance;
+      if (tts == null) return;
+      await tts.stop();
     } catch (_) {}
   }
 }

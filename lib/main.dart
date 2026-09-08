@@ -555,7 +555,6 @@ class _StartupCrashLogNoticeState extends State<_StartupCrashLogNotice> {
 
   Future<void> _showInstructions() async {
     // Show the diagnostic path actually used on the current platform.
-    // Windows still points testers to the easy-to-find Documents copy.
     final logPath =
         CrashLogService.instance.crashLogPath ??
         'QuisquisLingo crash log (path unavailable)';

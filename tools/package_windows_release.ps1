@@ -156,7 +156,7 @@ if ($null -eq $versionMatch) {
     throw "Could not read the numeric Flutter build number from pubspec.yaml."
 }
 $buildNumber = $versionMatch.Matches[0].Groups[1].Value
-$packageName = "quisquislingo_alpha_${buildNumber}_dev_windows_x64"
+$packageName = "quisquislingo_alpha_${buildNumber}"
 
 Push-Location $projectRoot
 try {
@@ -216,7 +216,7 @@ finally {
     }
 }
 
-Write-Host "QuisquisLingo Windows development package prepared."
+Write-Host "QuisquisLingo Windows standalone release package prepared."
 Write-Host "VC runtime source: $runtimeSource"
 Write-Host "Staging directory: $stagingDirectory"
 Write-Host "ZIP package: $zipPath"

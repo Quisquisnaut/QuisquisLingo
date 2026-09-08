@@ -50,19 +50,22 @@ and voices depend on what is installed in Windows. If a requested language has
 no compatible installed voice, speech may be unavailable until the relevant
 Windows language/voice component is installed.
 
-DIAGNOSTIC LOG
---------------
+Audio Settings > Test Voice opens with an empty field. It speaks only the text
+you enter, using the voice language configured by the selected course.
 
-QuisquisLingo Alpha creates a local diagnostic log at startup.
+CRASH AND DIAGNOSTIC LOGS
+-------------------------
 
-On Windows, an easy-to-find copy is stored at:
+QuisquisLingo stores its Crash Log at:
 
-    Documents\QuisquisLingo Logs\quisquislingo_crash.log
+    Documents\QuisquisLingo\Logs\quisquislingo_crash.log
 
 If this file is deleted, QuisquisLingo recreates it automatically at the next
-application start or diagnostic write.
+application start or diagnostic write. Settings > Debug shows the Crash Log
+location and lets you export or clear the separate Diagnostic Log. Diagnostic
+Log exports use the same Documents\QuisquisLingo\Logs directory.
 
-The log remains on the local computer and is not uploaded automatically.
+The logs remain on the local computer and are not uploaded automatically.
 
 STARTUP TRACE
 -------------

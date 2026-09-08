@@ -49,7 +49,6 @@ void main() {
     SharedPreferences.setMockInitialValues({
       'one_time_notice_seen_welcome_${AppMetadata.technicalVersion}': true,
       'sound_effects_enabled': false,
-      'skip_tts_exercises': true,
       CourseService.bundledCourseIndexStorageKey: const [
         'IT',
         'DE',
@@ -62,6 +61,7 @@ void main() {
       ],
     });
     await ProfileService().addProfile('Existing Korean tester');
+    await SettingsService().setAudioExercisesEnabled(false);
   });
 
   testWidgets(

@@ -33,6 +33,7 @@ import 'info_screen.dart';
 import 'profile_screen.dart';
 import 'round_screen.dart';
 import '../widgets/flag_art.dart';
+import '../widgets/course_entry_animation.dart';
 import '../widgets/flag_inspired_background.dart';
 import '../widgets/lesson_fallback_icon.dart';
 import '../widgets/learner_avatar.dart';
@@ -227,6 +228,8 @@ class _HomeScreenState extends State<HomeScreen> {
   Timer? _lockedLessonTapResetTimer;
   StreamSubscription<LearnerStatusInvalidation>? _appearanceSubscription;
   int _flagBackgroundLoadGeneration = 0;
+  ({int generation, CourseEntryFlagSource flag})? _courseEntryTransition;
+  int _courseEntryTransitionGeneration = 0;
 
   @override
   void initState() {
@@ -560,10 +563,16 @@ class _HomeScreenState extends State<HomeScreen> {
         await _courseService.loadCourse(normalized),
       );
       if (course == null || !mounted) return;
+      final entryFlag = await _courseEntryFlagForSwitch(course);
+      if (!mounted) return;
+      final transition = entryFlag == null
+          ? null
+          : (generation: ++_courseEntryTransitionGeneration, flag: entryFlag);
       setState(() {
         _selectedCourseRef = normalized;
         _selectedLanguage = normalized;
         _course = course;
+        _courseEntryTransition = transition;
       });
       await _settings.setLastSelectedCourseCode(normalized);
       await _reload();
@@ -577,13 +586,44 @@ class _HomeScreenState extends State<HomeScreen> {
     if (learnerCourse == null || !mounted) return;
     final ref = 'custom:${course.courseId}';
     final code = CourseService.codeForCourse(course);
+    final entryFlag = await _courseEntryFlagForSwitch(learnerCourse);
+    if (!mounted) return;
+    final transition = entryFlag == null
+        ? null
+        : (generation: ++_courseEntryTransitionGeneration, flag: entryFlag);
     setState(() {
       _selectedCourseRef = ref;
       _selectedLanguage = code;
       _course = learnerCourse;
+      _courseEntryTransition = transition;
     });
     await _settings.setLastSelectedCourseCode(ref);
     await _reload();
+  }
+
+  Future<CourseEntryFlagSource?> _courseEntryFlagForSwitch(
+    Course destination,
+  ) async {
+    final currentCourseId = _course?.courseId;
+    try {
+      final animationsEnabled = await _settings.areAnimationsEnabled();
+      if (!mounted) return null;
+      return await CourseEntryAnimationPolicy.requestForSwitch(
+        currentCourseId: currentCourseId,
+        destination: destination,
+        animationsEnabled: animationsEnabled,
+        reducedMotion: MediaQuery.maybeOf(context)?.disableAnimations == true,
+      );
+    } catch (_) {
+      // Course selection must remain successful if a configured flag cannot
+      // be resolved or rendered for this optional transition.
+      return null;
+    }
+  }
+
+  void _finishCourseEntryTransition(int generation) {
+    if (!mounted || _courseEntryTransition?.generation != generation) return;
+    setState(() => _courseEntryTransition = null);
   }
 
   Future<void> _addLearner(BuildContext overlayContext) async {
@@ -1706,6 +1746,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               await Navigator.of(context).push(
                                 MaterialPageRoute(
                                   builder: (_) => ProfileScreen(
+                                    course: course,
                                     onManageLearners: _showLearners,
                                   ),
                                 ),
@@ -1743,6 +1784,15 @@ class _HomeScreenState extends State<HomeScreen> {
                       ],
                     ),
                   ),
+                  if (_courseEntryTransition case final transition?)
+                    CourseEntryAnimation(
+                      key: ValueKey(
+                        'course-entry-animation-${transition.generation}',
+                      ),
+                      flag: transition.flag,
+                      onComplete: () =>
+                          _finishCourseEntryTransition(transition.generation),
+                    ),
                 ],
               ),
             ),

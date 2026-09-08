@@ -2,7 +2,7 @@ import 'package:audioplayers/audioplayers.dart';
 import 'settings_service.dart';
 
 class SoundEffectService {
-  final AudioPlayer _player = AudioPlayer();
+  AudioPlayer? _player;
   final SettingsService _settings = SettingsService();
 
   Future<void> playDuelWin() => _play('audio/duel_win.wav');
@@ -15,12 +15,15 @@ class SoundEffectService {
   Future<void> _play(String assetPath) async {
     if (!await _settings.areSoundEffectsEnabled()) return;
     try {
-      await _player.stop();
-      await _player.play(AssetSource(assetPath));
+      final player = _player ??= AudioPlayer();
+      await player.stop();
+      await player.play(AssetSource(assetPath));
     } catch (_) {
       // Sound effects are optional and must never block the learning flow.
     }
   }
 
-  Future<void> dispose() => _player.dispose();
+  Future<void> dispose() async {
+    await _player?.dispose();
+  }
 }

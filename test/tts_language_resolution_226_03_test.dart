@@ -7,6 +7,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:quisquislingo_app/models/course_models.dart';
+import 'package:quisquislingo_app/services/profile_service.dart';
+import 'package:quisquislingo_app/services/settings_service.dart';
 import 'package:quisquislingo_app/services/tts_cache_service.dart';
 import 'package:quisquislingo_app/services/tts_language_resolver.dart';
 
@@ -101,6 +103,8 @@ void main() {
     'missing metadata reports the course problem before requesting any voice',
     () async {
       SharedPreferences.setMockInitialValues({});
+      await ProfileService().addProfile('Missing Metadata Learner');
+      await SettingsService().setTtsEnabled(true);
       final service = TtsCacheService();
       expect(await service.speak(text: 'Hello', language: 'und'), isFalse);
       expect(
@@ -111,7 +115,11 @@ void main() {
       final preferences = await SharedPreferences.getInstance();
       expect(
         preferences.getString('quisquislingo_diagnostic_log'),
-        contains('requested=und'),
+        contains('Invalid requested TTS language metadata.'),
+      );
+      expect(
+        preferences.getString('quisquislingo_diagnostic_log'),
+        isNot(contains('Hello')),
       );
     },
   );
@@ -120,6 +128,8 @@ void main() {
     'speech service forwards canonical metadata and refreshes voice enumeration after absence',
     () async {
       SharedPreferences.setMockInitialValues({});
+      await ProfileService().addProfile('Voice Refresh Learner');
+      await SettingsService().setTtsEnabled(true);
       debugDefaultTargetPlatformOverride = TargetPlatform.android;
       const channel = MethodChannel('flutter_tts');
       final calls = <MethodCall>[];

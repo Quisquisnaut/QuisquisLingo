@@ -529,7 +529,7 @@ void main() {
       tester,
       find.byKey(const Key('settings-flag-game-trigger')),
     );
-    expect(find.byTooltip('Flag Game'), findsOneWidget);
+    expect(find.byTooltip('Tap tap... Flag Game'), findsOneWidget);
 
     for (var tap = 0; tap < 4; tap++) {
       await tester.tap(find.byKey(const Key('settings-flag-game-trigger')));

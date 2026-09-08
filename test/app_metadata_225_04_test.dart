@@ -22,18 +22,15 @@ void main() {
         multiLine: true,
       ).firstMatch(pubspec)?.group(1);
 
-      expect(AppMetadata.releaseVersion, '2.0.27');
-      expect(AppMetadata.developmentPhase, '227.04');
+      expect(AppMetadata.releaseVersion, '2.0.28');
+      expect(AppMetadata.developmentPhase, '228');
       expect(AppMetadata.correctiveRevision, 0);
-      expect(AppMetadata.build, '227.04');
-      expect(AppMetadata.platformBuildNumber, '227040');
-      expect(AppMetadata.technicalVersion, '2.0.27+227040');
+      expect(AppMetadata.build, '228');
+      expect(AppMetadata.platformBuildNumber, '228');
+      expect(AppMetadata.technicalVersion, '2.0.28+228');
       expect(AppMetadata.version, AppMetadata.technicalVersion);
       expect(version, AppMetadata.technicalVersion);
-      expect(
-        AppMetadata.displayLabel,
-        'Version 2.0.27\nPhase 227.04, revision 0',
-      );
+      expect(AppMetadata.displayLabel, 'Version 2.0.28\nPhase 228, revision 0');
     },
   );
 
@@ -76,7 +73,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('Course Manager unlocked.'), findsOneWidget);
       expect(await SettingsService().isCourseEditorUnlocked(), isTrue);
-      expect(find.text('Course Manager'), findsOneWidget);
+      expect(find.text('Course Manager'), findsNothing);
     },
   );
 }

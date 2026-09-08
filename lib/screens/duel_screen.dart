@@ -9,6 +9,9 @@ import '../services/report_service.dart';
 import '../services/tts_cache_service.dart';
 import '../services/sound_effect_service.dart';
 import '../services/course_service.dart';
+import '../services/settings_service.dart';
+import '../services/recorded_audio_service.dart';
+import '../services/audio_exercise_availability_service.dart';
 
 class DuelScreen extends StatefulWidget {
   final Course course;
@@ -50,10 +53,14 @@ class _DuelScreenState extends State<DuelScreen> {
   final _reports = ReportService();
   final _tts = TtsCacheService();
   final _sounds = SoundEffectService();
+  final _settings = SettingsService();
+  final _recordedAudio = RecordedAudioService();
   final _eligibility = const DuelEligibilityService();
+  late final AudioExerciseAvailabilityService _audioAvailability;
   final _random = Random();
   int _index = 0;
-  late List<_DuelItem> _items;
+  List<_DuelItem> _items = const [];
+  bool _ready = false;
   int _lives = 4;
   int? _selected;
   bool _answerCorrect = false;
@@ -88,17 +95,43 @@ class _DuelScreenState extends State<DuelScreen> {
           ),
         )
         .toList();
-    candidates.shuffle(_random);
-    return candidates
-        .take(DuelEligibilityService.requiredQuestionCount)
-        .toList();
+    return candidates;
   }
 
   @override
   void initState() {
     super.initState();
-    _items = List<_DuelItem>.from(_duelItems);
-    _shuffleDifferentItems(_items);
+    _audioAvailability = AudioExerciseAvailabilityService(
+      recordedAudio: _recordedAudio,
+    );
+    _initializeDuel();
+  }
+
+  Future<void> _initializeDuel() async {
+    final audioExercisesEnabled = await _settings.areAudioExercisesEnabled();
+    final ttsEnabled = audioExercisesEnabled && await _settings.isTtsEnabled();
+    final candidates = <_DuelItem>[];
+    for (final item in _duelItems) {
+      final exercise = item.exercise;
+      if (!_audioAvailability.isAudioExercise(exercise)) {
+        candidates.add(item);
+      } else if (audioExercisesEnabled &&
+          await _audioAvailability.isAvailable(
+            widget.course,
+            exercise,
+            ttsEnabled: ttsEnabled,
+          )) {
+        candidates.add(item);
+      }
+    }
+    _shuffleDifferentItems(candidates);
+    if (!mounted) return;
+    setState(() {
+      _items = candidates
+          .take(DuelEligibilityService.requiredQuestionCount)
+          .toList();
+      _ready = true;
+    });
     _prepareCurrent();
     _sounds.playDuelSuspense();
   }
@@ -142,12 +175,21 @@ class _DuelScreenState extends State<DuelScreen> {
 
   Future<void> _speak(Exercise ex) async {
     if (ex.tts == null || ex.tts!.isEmpty) return;
-    final ok = await _tts.speak(
-      text: ex.tts!,
-      language: widget.ttsLanguage,
-      learningLanguage: widget.course.learningLanguage,
-      targetLanguage: widget.course.targetLanguage,
-    );
+    var ok = false;
+    if (widget.course.audioMode != 'tts') {
+      ok = await _recordedAudio.playConcatenated(
+        ex.tts!,
+        widget.course.audioLibrary,
+      );
+    }
+    if (!ok && widget.course.audioMode != 'recorded') {
+      ok = await _tts.speak(
+        text: ex.tts!,
+        language: widget.ttsLanguage,
+        learningLanguage: widget.course.learningLanguage,
+        targetLanguage: widget.course.targetLanguage,
+      );
+    }
     if (!ok && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -329,6 +371,12 @@ class _DuelScreenState extends State<DuelScreen> {
   @override
   Widget build(BuildContext context) {
     if (AlphaLifecycleService.isExpired()) return const AlphaExpiredView();
+    if (!_ready) {
+      return Scaffold(
+        appBar: AppBar(title: Text(_screenTitle)),
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
     final items = _items;
     if (items.length < DuelEligibilityService.requiredQuestionCount) {
       return Scaffold(

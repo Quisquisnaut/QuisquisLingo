@@ -7,8 +7,9 @@ import '../services/tts_cache_service.dart';
 
 class TtsSettingsScreen extends StatefulWidget {
   final Course course;
+  final TtsCacheService? ttsService;
 
-  const TtsSettingsScreen({super.key, required this.course});
+  const TtsSettingsScreen({super.key, required this.course, this.ttsService});
 
   @override
   State<TtsSettingsScreen> createState() => _TtsSettingsScreenState();
@@ -16,28 +17,29 @@ class TtsSettingsScreen extends StatefulWidget {
 
 class _TtsSettingsScreenState extends State<TtsSettingsScreen> {
   final _settings = SettingsService();
-  final _tts = TtsCacheService();
+  late final TtsCacheService _tts;
 
   bool _loading = true;
-  bool _ttsEnabled = true;
-  bool _skipTtsExercises = false;
+  bool _audioExercisesEnabled = false;
+  bool _ttsEnabled = false;
   String _voicePreference = 'system';
 
   @override
   void initState() {
     super.initState();
+    _tts = widget.ttsService ?? TtsCacheService();
     _load();
   }
 
   Future<void> _load() async {
     try {
       final ttsEnabled = await _settings.isTtsEnabled();
-      final skipTtsExercises = await _settings.shouldSkipTtsExercises();
+      final audioExercisesEnabled = await _settings.areAudioExercisesEnabled();
       final voicePreference = await _settings.getTtsVoicePreference();
       if (!mounted) return;
       setState(() {
         _ttsEnabled = ttsEnabled;
-        _skipTtsExercises = skipTtsExercises;
+        _audioExercisesEnabled = audioExercisesEnabled;
         _voicePreference = voicePreference;
         _loading = false;
       });
@@ -55,7 +57,7 @@ class _TtsSettingsScreenState extends State<TtsSettingsScreen> {
           const SnackBar(
             duration: Duration(seconds: 8),
             content: Text(
-              'Some TTS settings could not be loaded. Safe defaults are being used.',
+              'Some Audio Settings could not be loaded. Safe defaults are being used.',
             ),
           ),
         );
@@ -68,9 +70,9 @@ class _TtsSettingsScreenState extends State<TtsSettingsScreen> {
     if (mounted) setState(() => _ttsEnabled = value);
   }
 
-  Future<void> _setSkipTts(bool value) async {
-    await _settings.setSkipTtsExercises(value);
-    if (mounted) setState(() => _skipTtsExercises = value);
+  Future<void> _setAudioExercisesEnabled(bool value) async {
+    await _settings.setAudioExercisesEnabled(value);
+    if (mounted) setState(() => _audioExercisesEnabled = value);
   }
 
   Future<void> _setVoice(String value) async {
@@ -79,18 +81,13 @@ class _TtsSettingsScreenState extends State<TtsSettingsScreen> {
   }
 
   Future<void> _testVoice() async {
-    final sample = switch (widget.course.learningLanguage.toUpperCase()) {
-      'DE' => 'Guten Tag. Dies ist die ausgewählte Stimme.',
-      'ES' => 'Hola. Esta es la voz seleccionada.',
-      'EN' => 'Hello. This is the selected voice.',
-      'FI' => 'Hei. Tämä on valittu ääni.',
-      'NL' => 'Hallo. Dit is de geselecteerde stem.',
-      'PT' => 'Olá. Esta é a voz selecionada.',
-      'CY' => 'Helo. Dyma’r llais a ddewiswyd.',
-      _ => 'Buongiorno. Questa è la voce selezionata.',
-    };
+    final text = await showDialog<String>(
+      context: context,
+      builder: (_) => const _TtsVoiceTestDialog(),
+    );
+    if (text == null || text.trim().isEmpty || !mounted) return;
     final ok = await _tts.speak(
-      text: sample,
+      text: text,
       language: widget.course.ttsLanguage,
       learningLanguage: widget.course.learningLanguage,
       targetLanguage: widget.course.targetLanguage,
@@ -112,12 +109,20 @@ class _TtsSettingsScreenState extends State<TtsSettingsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('TTS Settings')),
+      appBar: AppBar(title: const Text('Audio Settings')),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : ListView(
               padding: const EdgeInsets.only(bottom: 24),
               children: [
+                SwitchListTile(
+                  title: const Text('Enable Audio Exercises'),
+                  subtitle: const Text(
+                    'Allow learner exercises that use Text-to-speech or Recorded MP3 audio.',
+                  ),
+                  value: _audioExercisesEnabled,
+                  onChanged: _setAudioExercisesEnabled,
+                ),
                 SwitchListTile(
                   title: const Text('Text-to-speech'),
                   subtitle: const Text(
@@ -125,14 +130,6 @@ class _TtsSettingsScreenState extends State<TtsSettingsScreen> {
                   ),
                   value: _ttsEnabled,
                   onChanged: _setTts,
-                ),
-                SwitchListTile(
-                  title: const Text('Skip all TTS exercises'),
-                  subtitle: const Text(
-                    'Audio-dependent exercises are omitted. A zero-error round with skipped TTS receives a separate completion mark, not a laurel crown.',
-                  ),
-                  value: _skipTtsExercises,
-                  onChanged: _setSkipTts,
                 ),
                 const Divider(),
                 const ListTile(
@@ -176,4 +173,57 @@ class _TtsSettingsScreenState extends State<TtsSettingsScreen> {
             ),
     );
   }
+}
+
+class _TtsVoiceTestDialog extends StatefulWidget {
+  const _TtsVoiceTestDialog();
+
+  @override
+  State<_TtsVoiceTestDialog> createState() => _TtsVoiceTestDialogState();
+}
+
+class _TtsVoiceTestDialogState extends State<_TtsVoiceTestDialog> {
+  final _controller = TextEditingController();
+  bool _canPlay = false;
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _updatePlayState(String value) {
+    final canPlay = value.trim().isNotEmpty;
+    if (_canPlay != canPlay) setState(() => _canPlay = canPlay);
+  }
+
+  @override
+  Widget build(BuildContext context) => AlertDialog(
+    title: const Text('Test Voice'),
+    content: TextField(
+      key: const Key('tts-voice-test-text'),
+      controller: _controller,
+      autofocus: true,
+      minLines: 2,
+      maxLines: 4,
+      onChanged: _updatePlayState,
+      decoration: const InputDecoration(
+        border: OutlineInputBorder(),
+        hintText: 'Enter text to test',
+      ),
+    ),
+    actions: [
+      TextButton(
+        onPressed: () => Navigator.pop(context),
+        child: const Text('Cancel'),
+      ),
+      FilledButton(
+        key: const Key('tts-voice-test-play'),
+        onPressed: _canPlay
+            ? () => Navigator.pop(context, _controller.text)
+            : null,
+        child: const Text('Play'),
+      ),
+    ],
+  );
 }
