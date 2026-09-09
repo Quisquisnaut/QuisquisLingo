@@ -16,6 +16,11 @@ Map<String, dynamic> _bundledJson() =>
 Course _course({bool options = true}) => Course.fromJson({
   ..._bundledJson(),
   'originType': 'custom',
+  'creatorProfileId': '11111111-1111-4111-8111-111111111111',
+  'ownership': {
+    'type': 'individual',
+    'id': '11111111-1111-4111-8111-111111111111',
+  },
   if (options) ...{
     'createDuels': false,
     'useGuidebook': false,
@@ -29,7 +34,7 @@ void _expectOptions(Course course) {
   expect(course.useGuidebook, isFalse);
   expect(course.sectionNames, ['Planned', 'Unused']);
   expect(course.worldFlagId, 'italy');
-  expect(course.formatVersion, 6);
+  expect(course.formatVersion, 7);
 }
 
 void main() {
@@ -224,8 +229,11 @@ void main() {
   test(
     'licensed official fork preserves options and immutable original provenance',
     () {
+      final sourceJson = _course().toJson()
+        ..remove('creatorProfileId')
+        ..remove('ownership');
       final source = Course.fromJson({
-        ..._course().toJson(),
+        ...sourceJson,
         'originType': 'bundledOfficial',
         'derivativeWorksPolicy': 'allowed',
       });
@@ -238,13 +246,17 @@ void main() {
         originalCourseTitle: source.title,
         originalAuthor: source.author,
         originalAuthors: source.authors,
-        forkCreatedByProfileId: 'profile',
+        forkCreatedByProfileId: '11111111-1111-4111-8111-111111111111',
         forkCreatedByUsername: 'Fork author',
         forkCreatedAtUtc: '2026-09-06T00:00:00.000Z',
       );
       final fork = AuthoringDuplicationService().forkOfficialCourse(
         source,
         provenance: provenance,
+        creatorProfileId: '11111111-1111-4111-8111-111111111111',
+        ownership: const CourseOwnership.individual(
+          '11111111-1111-4111-8111-111111111111',
+        ),
       );
       _expectOptions(fork);
       expect(fork.forkProvenance!.toJson(), provenance.toJson());

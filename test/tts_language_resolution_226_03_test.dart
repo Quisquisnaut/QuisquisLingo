@@ -50,6 +50,11 @@ void main() {
         'ttsLanguage': 'und',
         'title': 'My course',
         'originType': 'custom',
+        'creatorProfileId': '12345678-1234-4234-9234-123456789abc',
+        'ownership': {
+          'type': 'individual',
+          'id': '12345678-1234-4234-9234-123456789abc',
+        },
       };
       final custom = Course.fromJson(customJson);
       final before = jsonEncode(custom.toJson());

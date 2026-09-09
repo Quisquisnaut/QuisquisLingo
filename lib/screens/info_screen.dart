@@ -40,7 +40,7 @@ class InfoScreen extends StatelessWidget {
         _InfoSection(
           title: 'Choosing and opening courses',
           body:
-              'The learner page course selector lists the current course, recently opened courses, bundled courses and My custom courses. When Animations are enabled, switching to a different course briefly shows its valid Course JSON flag before revealing the new Learner Panel. If no flag is declared, the same established course-code flag fallback used elsewhere is shown; invalid declared flag data does not receive that fallback. Selecting the current course again, normal startup and disabled Animations enter immediately. Each learner resumes the last Lesson selected in that course, or the first Lesson when no saved selection is valid. Use the Lesson selector to see the complete course.',
+              'The learner page Course Selector lists the current course, recently opened courses, bundled courses and local courses. Every row has a Course Info / Hide menu. Hide affects only the active learner\'s selector and never removes the course or its data; the current course cannot be hidden, and Hidden courses restores hidden entries immediately. When Animations are enabled, switching to a different course briefly shows its valid Course JSON flag before revealing the new Learner Panel. If no flag is declared, the same established course-code flag fallback used elsewhere is shown; invalid declared flag data does not receive that fallback. Selecting the current course again, normal startup and disabled Animations enter immediately. Each learner resumes the last Lesson selected in that course, or the first Lesson when no saved selection is valid. The bottom Lesson display control cycles through Expanded, Collapse completed and Focused while the Section selector remains the sole Section-level navigation.',
         ),
         _InfoSection(
           title: 'Course identity and progress',
@@ -126,7 +126,7 @@ class InfoScreen extends StatelessWidget {
         _InfoSection(
           title: 'Course Manager and Course Editor',
           body:
-              'Course Manager is opened from the learner Course Selector rather than Settings. For instructions on managing courses and using authoring tools, open Editor Help from Course Manager or any Course Editor hierarchy page.',
+              'Course Manager is opened from the learner Course Selector rather than Settings. It is the lifecycle hub: official courses provide read-only inspection, licensed Fork, Audit and supported Export; custom courses provide Edit, independent Duplicate, Audit, Export and manager-only Delete. Eligible official inspection also provides Fork, while custom Course Editor provides Duplicate without Delete. For complete authoring instructions, open Editor Help from Course Manager or any Course Editor hierarchy page.',
         ),
         _InfoSection(
           title: 'Course content and AI',

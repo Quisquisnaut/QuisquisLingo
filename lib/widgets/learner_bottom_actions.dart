@@ -20,12 +20,24 @@ String learnerIddqdExplanation(LearnerIddqdMode mode) => switch (mode) {
   LearnerIddqdMode.viewOnly => iddqdViewOnlyExplanation,
 };
 
+String learnerLessonExpansionExplanation(
+  LearnerLessonExpansionMode mode,
+) => switch (mode) {
+  LearnerLessonExpansionMode.expanded => 'All accessible Lessons are expanded.',
+  LearnerLessonExpansionMode.collapseCompleted =>
+    'Completed Lessons are collapsed; incomplete accessible Lessons are expanded.',
+  LearnerLessonExpansionMode.focused =>
+    'Only the current accessible Lesson is expanded.',
+};
+
 class LearnerBottomActions extends StatefulWidget {
   final VoidCallback onProfile;
   final VoidCallback onReview;
   final VoidCallback onCourseInfo;
   final LearnerIddqdMode iddqdMode;
   final ValueChanged<LearnerIddqdMode>? onIddqdChanged;
+  final LearnerLessonExpansionMode lessonExpansionMode;
+  final ValueChanged<LearnerLessonExpansionMode>? onLessonExpansionChanged;
   final ProfileService? profileService;
   final String? courseId;
 
@@ -36,6 +48,8 @@ class LearnerBottomActions extends StatefulWidget {
     required this.onCourseInfo,
     this.iddqdMode = LearnerIddqdMode.off,
     this.onIddqdChanged,
+    this.lessonExpansionMode = LearnerLessonExpansionMode.expanded,
+    this.onLessonExpansionChanged,
     this.profileService,
     this.courseId,
   });
@@ -158,7 +172,7 @@ class _LearnerBottomActionsState extends State<LearnerBottomActions> {
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 360),
         child: Padding(
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
           child: Row(
             children: [
               Expanded(
@@ -168,30 +182,39 @@ class _LearnerBottomActionsState extends State<LearnerBottomActions> {
                   onTap: widget.onProfile,
                 ),
               ),
-              const SizedBox(width: 4),
+              const SizedBox(width: 2),
               _BottomAction(
                 key: const Key('learner-bottom-review'),
                 icon: Icons.history_edu_outlined,
                 label: 'Review',
                 onTap: widget.onReview,
               ),
-              const SizedBox(width: 4),
+              const SizedBox(width: 2),
               _BottomAction(
                 key: const Key('learner-bottom-course-info'),
                 icon: Icons.info_outline,
                 label: 'Course Info',
                 onTap: widget.onCourseInfo,
               ),
-              const SizedBox(width: 4),
+              const SizedBox(width: 2),
               _IddqdAction(
                 mode: widget.iddqdMode,
                 onTap: widget.onIddqdChanged == null
                     ? null
                     : () => widget.onIddqdChanged!(widget.iddqdMode.next),
               ),
-              const SizedBox(width: 4),
+              const SizedBox(width: 2),
+              _LessonExpansionAction(
+                mode: widget.lessonExpansionMode,
+                onTap: widget.onLessonExpansionChanged == null
+                    ? null
+                    : () => widget.onLessonExpansionChanged!(
+                        widget.lessonExpansionMode.next,
+                      ),
+              ),
+              const SizedBox(width: 2),
               _ThemeModeAction(mode: _themeMode, onTap: _cycleThemeMode),
-              const SizedBox(width: 4),
+              const SizedBox(width: 2),
               _FlagBackgroundModeAction(
                 mode: _flagBackgroundMode,
                 onTap: _cycleFlagBackgroundMode,
@@ -428,6 +451,59 @@ class _IddqdAction extends StatelessWidget {
                     LearnerIddqdMode.off => Icons.lock_outline,
                     LearnerIddqdMode.on => Icons.lock_open,
                     LearnerIddqdMode.viewOnly => Icons.visibility_outlined,
+                  },
+                  size: 20,
+                  color: _actionColor(context),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _LessonExpansionAction extends StatelessWidget {
+  const _LessonExpansionAction({required this.mode, required this.onTap});
+
+  final LearnerLessonExpansionMode mode;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final label = 'Lessons: ${mode.label}';
+    final explanation = learnerLessonExpansionExplanation(mode);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return SizedBox(
+      key: const Key('learner-bottom-lesson-expansion'),
+      width: 40,
+      height: 40,
+      child: Tooltip(
+        message: '$label\n$explanation',
+        child: Material(
+          color: isDark
+              ? Theme.of(
+                  context,
+                ).colorScheme.surfaceContainerHighest.withValues(alpha: .36)
+              : Colors.white.withValues(alpha: .16),
+          borderRadius: BorderRadius.circular(20),
+          child: Semantics(
+            button: true,
+            label: '$label. $explanation',
+            onTap: onTap,
+            excludeSemantics: true,
+            child: InkWell(
+              borderRadius: BorderRadius.circular(20),
+              onTap: onTap,
+              child: Center(
+                child: Icon(
+                  switch (mode) {
+                    LearnerLessonExpansionMode.expanded => Icons.unfold_more,
+                    LearnerLessonExpansionMode.collapseCompleted =>
+                      Icons.done_all,
+                    LearnerLessonExpansionMode.focused =>
+                      Icons.filter_center_focus,
                   },
                   size: 20,
                   color: _actionColor(context),

@@ -1,18 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../models/course_metadata_options.dart';
 import '../models/course_models.dart';
+import '../services/profile_service.dart';
+import '../services/team_service.dart';
 import '../widgets/learner_shell.dart';
 
-class CourseInfoScreen extends StatelessWidget {
+class CourseInfoScreen extends StatefulWidget {
   final Course course;
   final Future<bool> Function(Uri uri)? launchExternal;
+  final ProfileService? profileService;
+  final TeamService? teamService;
 
   const CourseInfoScreen({
     super.key,
     required this.course,
     this.launchExternal,
+    this.profileService,
+    this.teamService,
   });
+
+  @override
+  State<CourseInfoScreen> createState() => _CourseInfoScreenState();
 
   Future<void> _buyCoffee(BuildContext context) async {
     final uri = Uri.tryParse(course.buyACoffeeUrl);
@@ -36,19 +46,46 @@ class CourseInfoScreen extends StatelessWidget {
     }
   }
 
-  String get _authors {
-    if (course.authors.isNotEmpty) {
-      return course.authors
-          .map(
-            (author) => author.roles.isEmpty
-                ? author.name
-                : '${author.name} — ${author.roles.join(', ')}',
-          )
-          .join('\n');
+  String get _credits {
+    final structured = course.authors;
+    final authorNames = structured
+        .map((author) => author.name.trim())
+        .where((name) => name.isNotEmpty)
+        .toList(growable: false);
+    final lines = <String>[
+      'Author: ${course.author.trim().isNotEmpty
+          ? course.author.trim()
+          : authorNames.isEmpty
+          ? 'Not specified'
+          : authorNames.join(', ')}',
+    ];
+    final peopleByRole = <String, List<String>>{};
+    for (final author in structured) {
+      for (final role in author.roles) {
+        final normalizedRole = role.trim();
+        if (normalizedRole.isEmpty) continue;
+        final people = peopleByRole.putIfAbsent(normalizedRole, () => []);
+        if (!people.contains(author.name)) people.add(author.name);
+      }
     }
-    return course.author.trim().isEmpty
-        ? 'Not specified'
-        : course.author.trim();
+    final orderedRoles = <String>[
+      ...CourseMetadataOptions.standardRoles,
+      ...peopleByRole.keys.where(
+        (role) => !CourseMetadataOptions.standardRoles.contains(role),
+      ),
+    ];
+    for (final role in orderedRoles) {
+      final people = peopleByRole[role];
+      if (people == null || people.isEmpty) continue;
+      final label = switch (role) {
+        'Contributor' => 'Contributors',
+        'Illustrator' => 'Illustrators',
+        'Course Creator' => 'Course Creator credit',
+        _ => role,
+      };
+      lines.add('$label: ${people.join(', ')}');
+    }
+    return lines.join('\n');
   }
 
   String _localDateTime(BuildContext context, String utc) {
@@ -88,8 +125,11 @@ class CourseInfoScreen extends StatelessWidget {
     ];
   }
 
-  @override
-  Widget build(BuildContext context) => LearnerStatusPage(
+  Widget _build(
+    BuildContext context, {
+    required String ownerLabel,
+    required String creatorLabel,
+  }) => LearnerStatusPage(
     child: Scaffold(
       appBar: LearnerStatusAppBar(
         appBar: AppBar(title: const Text('Course Info')),
@@ -110,7 +150,19 @@ class CourseInfoScreen extends StatelessWidget {
             Text(course.courseDescription.trim()),
           ],
           const SizedBox(height: 18),
-          _InfoCard(title: 'Course authors and credits', body: _authors),
+          _InfoCard(
+            title: 'Ownership and authorization',
+            body: [
+              'Owner: $ownerLabel',
+              'Creator: $creatorLabel',
+              'License: ${course.license.trim().isEmpty ? 'Not specified' : course.license}',
+              'Credits do not grant editing permission.',
+            ].join('\n'),
+          ),
+          _InfoCard(
+            title: 'Authorship and descriptive credits',
+            body: _credits,
+          ),
           if (course.forkProvenance != null)
             CourseForkProvenanceCard(provenance: course.forkProvenance!),
           _InfoCard(
@@ -118,6 +170,10 @@ class CourseInfoScreen extends StatelessWidget {
             body: [
               ..._originDetails(context),
               'Content revision: ${course.contentRevision}',
+              if (course.parentCourseId?.isNotEmpty == true)
+                'Derived from Course ID: ${course.parentCourseId}',
+              if (course.derivedFromVersion?.isNotEmpty == true)
+                'Derived from version: ${course.derivedFromVersion}',
               if (course.lastUpdated.trim().isNotEmpty)
                 'Last updated: ${course.lastUpdated}',
               'License: ${course.license.trim().isEmpty ? 'Not specified' : course.license}',
@@ -141,6 +197,61 @@ class CourseInfoScreen extends StatelessWidget {
       ),
     ),
   );
+}
+
+class _CourseInfoScreenState extends State<CourseInfoScreen> {
+  late final ProfileService _profiles =
+      widget.profileService ?? ProfileService();
+  late final TeamService _teams =
+      widget.teamService ?? TeamService(profileService: _profiles);
+  String _owner = 'Loading…';
+  String _creator = 'Loading…';
+
+  @override
+  void initState() {
+    super.initState();
+    _resolveIdentities();
+  }
+
+  Future<void> _resolveIdentities() async {
+    final course = widget.course;
+    String owner;
+    String creator;
+    if (course.originType.isOfficial) {
+      owner = course.publisherName.trim().isEmpty
+          ? 'Official publisher'
+          : course.publisherName;
+      creator = owner;
+    } else {
+      final ownerIdentity = course.ownership;
+      if (ownerIdentity == null) {
+        owner = 'Unsupported custom course (Owner missing)';
+      } else if (ownerIdentity.type == CourseOwnerType.team) {
+        final team = await _teams.teamById(ownerIdentity.id);
+        owner = team == null
+            ? 'Unavailable Team (${ownerIdentity.id})'
+            : '${team.displayName} (Team)';
+      } else {
+        final profile = await _profiles.getProfileById(ownerIdentity.id);
+        owner = profile == null
+            ? 'Unavailable local profile (${ownerIdentity.id})'
+            : profile.displayName;
+      }
+      final profile = await _profiles.getProfileById(course.creatorProfileId);
+      creator = profile == null
+          ? 'Unavailable local profile (${course.creatorProfileId})'
+          : profile.displayName;
+    }
+    if (!mounted) return;
+    setState(() {
+      _owner = owner;
+      _creator = creator;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) =>
+      widget._build(context, ownerLabel: _owner, creatorLabel: _creator);
 }
 
 /// Original attribution is distinct from the fork's editable contributor list.

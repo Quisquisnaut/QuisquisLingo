@@ -18,6 +18,7 @@ import 'package:quisquislingo_app/widgets/unified_learner_top_bar.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 const _courseId = 'course_31b11b63-e6d2-4f2a-a731-a71ba236960c';
+const _profileId = '12345678-1234-4234-9234-123456789abc';
 const _lessonId = 'persisted-published-lesson';
 const _roundId = 'persisted-published-round';
 
@@ -81,7 +82,10 @@ void main() {
         'FI',
       ],
     });
-    await ProfileService().addProfile('Persisted delivery tester');
+    await ProfileService().createProfile(
+      'Persisted delivery tester',
+      learnerProfileId: _profileId,
+    );
     await SettingsService().setAudioExercisesEnabled(false);
     editor = CourseEditorService(
       backupService: CourseBackupService(
@@ -334,11 +338,11 @@ Future<void> _openFixtureLesson(WidgetTester tester) async {
   expect(find.byType(LessonEditorScreen), findsOneWidget);
 }
 
-// Synthetic v6 storage fixture, deliberately written independently of model
+// Synthetic v7 storage fixture, deliberately written independently of model
 // constructors and toJson. This is not a user's Course or bundled content.
 const _rawDraftLessonCourse = r'''
 {
-  "formatVersion": 6,
+  "formatVersion": 7,
   "publicationState": "published",
   "lessonNumberingMode": "lesson",
   "defaultLessonIconStyle": "monochrome",
@@ -346,6 +350,8 @@ const _rawDraftLessonCourse = r'''
   "useGuidebook": false,
   "courseId": "course_31b11b63-e6d2-4f2a-a731-a71ba236960c",
   "originType": "custom",
+  "creatorProfileId": "12345678-1234-4234-9234-123456789abc",
+  "ownership": {"type": "individual", "id": "12345678-1234-4234-9234-123456789abc"},
   "learningLanguage": "Italian",
   "interfaceLanguage": "English",
   "sourceLanguage": "English",

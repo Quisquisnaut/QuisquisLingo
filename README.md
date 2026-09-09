@@ -1,13 +1,15 @@
 # QuisquisLingo App
 
-**Current source version: 2.0.28+2281 · Phase 228, revision 1 · Course Model v6 (`formatVersion: 6`).**
+**Current source version: 2.0.29+2291 · Phase 229, revision 1 · Course Model v7 (`formatVersion: 7`).**
 
 
-**QuisquisLingo 2.0.28 Alpha — QQL 228 Settings, Statistics, Debug and Audio**
+**QuisquisLingo 2.0.29 Alpha — QQL 229 Course Actions & Learner Panel Refinements**
 
-Current project version: 2.0.28
+Current project version: 2.0.29
 
-QQL 228 reorganizes Settings and Profile without redesigning them: Settings now shows Profile, App Info, Audio Settings, Do Not Disturb, Debug, Version and Build, Update; User Data is under Profile, and Course Manager remains in the learner Course Selector. Profile > Statistics derives Total Study Days and per-language Study Days, Current Streak and Max Streak from the established learner activity records. Crash and Diagnostic tools share Settings > Debug and `Documents/QuisquisLingo/Logs`. Audio Settings applies per-learner Enable Audio Exercises, Text-to-speech and the TTS voice selector with Test Voice before learner Round/Duel playback initialization while authoring Preview remains setting-independent and no-write. Test Voice speaks only user-entered text using the selected course's voice language. Actual course switches briefly reveal the new Learner Panel through the destination's explicit Course JSON flag, or the established course-code flag fallback when no flag is declared, while animations are enabled; startup and same-course navigation remain immediate. Show one-time notices again is a one-shot action. Update status distinguishes the published source repository from packaged GitHub Releases. A listening exercise prepared behind `Before you start` remains silent until Continue makes it active, with privacy-safe activation timing recorded in the existing audio diagnostics. See [QQL 228 validation](docs/228_VALIDATION.md).
+QQL 229 revision 1 retains the completed Course Selector Hide/Unhide and Learner Panel Expanded / Collapse completed / Focused behavior while making course authorization explicit. Course Model v7 requires every custom course to declare a stable Creator and an individual or Team Owner; visible Author and credit text never grants permission. Owners and every member of an owning Team can edit and Duplicate regardless of license, while outsiders can only inspect and may Fork when the license explicitly permits derivatives. Bundled originals use the same capability-driven Course Editor surface in read-only mode. Course Manager adds the separate local Team Manager, and New Course restores the complete historical license and credit editor. See [QQL 229 validation](docs/229_VALIDATION.md), [Course Manager and Editor](docs/COURSE_EDITOR.md), and [Team Manager](docs/TEAM_MANAGER.md).
+
+QQL 228 remains the completed Settings/Profile, Statistics, Debug/logging, learner Audio Settings and Course Entry Animation baseline. See [QQL 228 validation](docs/228_VALIDATION.md).
 
 Phase 227.04 remains the closed QQL 227 baseline. Flag Background remains **Small / Off / Extended / Tinted / Inspired** per learner and Course, initialized Off, with the compatible `soft_inspired` identity. IDDQD remains **Off / On / View Only** per learner and Course, and Theme remains **Light / Dark / System / Day/Night** per learner. See [227.01 baseline](docs/227_01_VALIDATION.md), [227.02 validation](docs/227_02_VALIDATION.md), [227.03 validation](docs/227_03_VALIDATION.md) and [227.04 validation](docs/227_04_VALIDATION.md).
 
@@ -26,7 +28,7 @@ A Flutter prototype for an offline-first language-learning app.
 
 ## Baseline 200
 
-Version **2.0.0+200** remains the historical Course Model v3 baseline. Current development starts from this Course Model v6 source tree rather than an older archive. Repository-level agent instructions are in `AGENTS.md`.
+Version **2.0.0+200** remains the historical Course Model v3 baseline. Current development starts from this Course Model v7 source tree rather than an older archive. Repository-level agent instructions are in `AGENTS.md`.
 
 ## Project authorship
 
@@ -38,7 +40,7 @@ The MPL-2.0 covers the QuisquisLingo software source. Courses, the Image Bank an
 
 ## Alpha lifecycle
 
-Version 2.0.28 is a time-limited alpha with the established 30-day lifetime from September 8: expiry is **2026-10-08 23:59:59 local time**. Near expiry it displays reminders. After expiry, learner exercises and Review are blocked until a newer alpha is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when an alpha expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM. Future stable builds can disable alpha expiry.
+Version 2.0.29 is a time-limited alpha with the established 30-day lifetime from September 9: expiry is **2026-10-09 23:59:59 local time**. Near expiry it displays reminders. After expiry, learner exercises and Review are blocked until a newer alpha is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when an alpha expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM. Future stable builds can disable alpha expiry.
 
 ## Core logic
 
@@ -49,9 +51,9 @@ Course
     - Content / Exercise
   - Duel
 
-Each Lesson has its own GuideBook, ordered Rounds and Lesson-scoped Duel in Course Model v6. The first Content item of a Lesson’s first Round may present a short essential introduction drawn from that GuideBook.
+Each Lesson has its own GuideBook, ordered Rounds and Lesson-scoped Duel in Course Model v7. The first Content item of a Lesson’s first Round may present a short essential introduction drawn from that GuideBook.
 
-The learner page shows a continuous Lesson path, opens the Section picker from the fixed Section selector when real Sections exist, and opens GuideBooks, Rounds and Duels directly.
+The learner page shows a continuous Lesson path, opens the Section picker from the fixed Section selector when real Sections exist, and opens GuideBooks, Rounds and Duels directly. Its Lesson display control cycles through Expanded, Collapse completed and Focused; it never collapses Sections or changes progression. The Course Selector can hide non-active Courses separately for each learner without uninstalling them or changing Course or learner data.
 
 The next Lesson unlocks when the current Lesson is completed or its Duel is won. A Duel remains unavailable when its actual eligible pool has fewer than the required 25 exercises; Round count is not used to decide availability.
 
@@ -70,6 +72,7 @@ All learner data remains on-device.
 - XP
 - Local TTS service with generated-file caching
 - Nine bundled sample courses, including Korean from English
+- Local authoring Teams with stable profile-ID membership and one or more Team Leads
 - No account
 - Local offline leaderboard for the previous completed week, based on each participating learner’s XP across all courses
 - No server dependency

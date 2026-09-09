@@ -1,12 +1,27 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:quisquislingo_app/models/course_models.dart';
 import 'package:quisquislingo_app/screens/course_projects_screen.dart';
+import 'package:quisquislingo_app/screens/course_editor_screen.dart';
+import 'package:quisquislingo_app/services/course_backup_service.dart';
 import 'package:quisquislingo_app/services/course_editor_service.dart';
 import 'package:quisquislingo_app/services/profile_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+const _ownerProfileId = '12345678-1234-4234-9234-123456789abc';
+
+Map<String, Object> _profilePreferences(String displayName) => {
+  ProfileService.profilesKey: [
+    LearnerProfile(
+      learnerProfileId: _ownerProfileId,
+      displayName: displayName,
+    ).encode(),
+  ],
+  ProfileService.activeProfileIdKey: _ownerProfileId,
+};
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -171,9 +186,11 @@ void main() {
   testWidgets('custom Course menu enters the 225.04 transaction for edits', (
     tester,
   ) async {
-    SharedPreferences.setMockInitialValues({});
+    SharedPreferences.setMockInitialValues(_profilePreferences('Menu owner'));
     final custom = Course(
       courseId: 'custom_menu',
+      creatorProfileId: _ownerProfileId,
+      ownership: const CourseOwnership.individual(_ownerProfileId),
       publicationState: PublicationState.draft,
       learningLanguage: 'Italian',
       interfaceLanguage: 'English',
@@ -190,7 +207,9 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byTooltip('Course actions'));
+    await tester.tap(
+      find.byKey(const Key('course-manager-actions-custom_menu')),
+    );
     await tester.pumpAndSettle();
     for (final label in [
       'Edit',
@@ -204,11 +223,194 @@ void main() {
     await tester.tap(find.text('Duplicate custom course'));
     await tester.pumpAndSettle();
     expect(find.text('Course Editor'), findsOneWidget);
-    expect(await CourseEditorService().listUserCourses(), hasLength(1));
+    expect(await CourseEditorService().listUserCourses(), hasLength(2));
     await tester.tap(find.byType(BackButton).last);
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('cancel-course-changes')));
-    await tester.pumpAndSettle();
-    expect(await CourseEditorService().listUserCourses(), hasLength(1));
+    expect(find.byKey(const Key('cancel-course-changes')), findsNothing);
+    expect(await CourseEditorService().listUserCourses(), hasLength(2));
+  });
+
+  for (final policy in [
+    DerivativeWorksPolicy.allowed,
+    DerivativeWorksPolicy.forbidden,
+    DerivativeWorksPolicy.unspecified,
+  ]) {
+    testWidgets(
+      'Course Manager ${policy.name} official action set keeps licensed Fork distinct',
+      (tester) async {
+        SharedPreferences.setMockInitialValues(
+          _profilePreferences('Official inspector'),
+        );
+        await tester.pumpWidget(
+          MaterialApp(
+            home: CourseProjectsScreen(currentCourse: _official(policy)),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        await tester.tap(
+          find.byKey(const Key('course-manager-actions-current')),
+        );
+        await tester.pumpAndSettle();
+        expect(find.text('View (read only)'), findsOneWidget);
+        expect(find.text('Audit'), findsOneWidget);
+        expect(find.text('Export JSON'), findsOneWidget);
+        expect(
+          find.text('Fork as custom course'),
+          policy == DerivativeWorksPolicy.allowed
+              ? findsOneWidget
+              : findsNothing,
+        );
+        expect(find.text('Duplicate custom course'), findsNothing);
+        expect(find.text('Delete course'), findsNothing);
+      },
+    );
+  }
+
+  testWidgets(
+    'custom Course Editor exposes Duplicate while Delete stays in Course Manager',
+    (tester) async {
+      const profileId = _ownerProfileId;
+      SharedPreferences.setMockInitialValues({
+        ProfileService.profilesKey: [
+          const LearnerProfile(
+            learnerProfileId: profileId,
+            displayName: 'Duplicate Author',
+          ).encode(),
+        ],
+        ProfileService.activeProfileIdKey: profileId,
+      });
+      final custom = Course(
+        courseId: 'editor_duplicate',
+        creatorProfileId: profileId,
+        ownership: const CourseOwnership.individual(profileId),
+        publicationState: PublicationState.draft,
+        learningLanguage: 'Italian',
+        interfaceLanguage: 'English',
+        sourceLanguage: 'English',
+        targetLanguage: 'Italian',
+        title: 'Editor Duplicate',
+        ttsLanguage: 'it-IT',
+        version: '1',
+        lessons: [
+          Lesson(lessonId: 'lesson', title: 'Lesson', rounds: const []),
+        ],
+      );
+      await CourseEditorService().saveUserCourse(custom);
+      await tester.pumpWidget(
+        MaterialApp(home: CourseEditorScreen(course: custom, userCourse: true)),
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        find.byKey(const Key('course-editor-duplicate-course')),
+        findsOneWidget,
+      );
+      expect(find.text('Delete course'), findsNothing);
+      expect(find.byTooltip('Run Course Audit'), findsOneWidget);
+
+      await tester.tap(
+        find.byKey(const Key('course-editor-lessons-navigation')),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('lesson-management-lock')), findsOneWidget);
+      expect(find.byTooltip('Run Course Audit'), findsNothing);
+      await tester.tap(find.byType(BackButton).last);
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(const Key('course-editor-duplicate-course')));
+      await tester.pumpAndSettle();
+      final duplicateEditor = tester.widget<CourseEditorScreen>(
+        find.byType(CourseEditorScreen).last,
+      );
+      expect(duplicateEditor.isNewCourse, isFalse);
+      expect(duplicateEditor.course.originType, CourseOriginType.custom);
+      expect(duplicateEditor.course.courseId, isNot(custom.courseId));
+      expect(duplicateEditor.course.parentCourseId, custom.courseId);
+      expect(
+        duplicateEditor.course.lessons.single.lessonId,
+        isNot(custom.lessons.single.lessonId),
+      );
+      expect(await CourseEditorService().listUserCourses(), hasLength(2));
+    },
+  );
+
+  testWidgets(
+    'Course Manager Fork uses licensed provenance and fresh identity semantics',
+    (tester) async {
+      const profileId = _ownerProfileId;
+      final official = _official(DerivativeWorksPolicy.allowed);
+      SharedPreferences.setMockInitialValues({
+        ProfileService.profilesKey: [
+          const LearnerProfile(
+            learnerProfileId: profileId,
+            displayName: 'Manager Forker',
+          ).encode(),
+        ],
+        ProfileService.activeProfileIdKey: profileId,
+        CourseEditorService.externalOfficialStorageKey: jsonEncode({
+          official.courseId: {'source': official.toJson()},
+        }),
+      });
+      final original = official.toJson();
+      await tester.pumpWidget(
+        MaterialApp(home: CourseProjectsScreen(currentCourse: official)),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(const Key('course-manager-actions-current')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Fork as custom course'));
+      await tester.pumpAndSettle();
+
+      final forkEditor = tester.widget<CourseEditorScreen>(
+        find.byType(CourseEditorScreen).last,
+      );
+      expect(forkEditor.isNewCourse, isFalse);
+      expect(forkEditor.course.originType, CourseOriginType.custom);
+      expect(forkEditor.course.courseId, isNot(official.courseId));
+      expect(forkEditor.course.parentCourseId, official.courseId);
+      expect(
+        forkEditor.course.forkProvenance?.originalCourseId,
+        official.courseId,
+      );
+      expect(
+        forkEditor.course.forkProvenance?.forkCreatedByUsername,
+        'Manager Forker',
+      );
+      expect(official.toJson(), original);
+      final stored = await CourseEditorService().listUserCourses();
+      final customCourses = stored
+          .where((course) => course.originType == CourseOriginType.custom)
+          .toList();
+      expect(customCourses, hasLength(1));
+      expect(customCourses.single.courseId, forkEditor.course.courseId);
+    },
+  );
+}
+
+Course _official(DerivativeWorksPolicy policy) {
+  final course = Course(
+    courseId: 'official-actions',
+    originType: CourseOriginType.externalOfficial,
+    publisherId: 'publisher',
+    publisherName: 'Publisher',
+    officialCourseVersion: '1',
+    officialReleaseDateUtc: '2026-09-09T00:00:00.000Z',
+    officialChecksum: '0' * 64,
+    distributionChannel: 'package',
+    learningLanguage: 'Italian',
+    interfaceLanguage: 'English',
+    sourceLanguage: 'English',
+    targetLanguage: 'Italian',
+    title: 'Official actions',
+    ttsLanguage: 'it-IT',
+    version: '1',
+    derivativeWorksPolicy: policy,
+    lessons: const [],
+  );
+  return Course.fromJson({
+    ...course.toJson(),
+    'officialChecksum': CourseBackupService.officialContentChecksum(course),
   });
 }

@@ -509,6 +509,8 @@ Course _customCourse({
   String courseId = 'custom-transaction-course',
 }) => Course(
   courseId: courseId,
+  creatorProfileId: _profileId,
+  ownership: const CourseOwnership.individual(_profileId),
   originType: CourseOriginType.custom,
   publicationState: PublicationState.draft,
   learningLanguage: 'Italian',

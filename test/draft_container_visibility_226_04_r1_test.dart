@@ -7,12 +7,23 @@ import 'package:quisquislingo_app/services/course_audit_service.dart';
 import 'package:quisquislingo_app/services/course_editor_service.dart';
 import 'package:quisquislingo_app/services/course_service.dart';
 import 'package:quisquislingo_app/services/editor_display_preferences.dart';
+import 'package:quisquislingo_app/services/profile_service.dart';
 import 'package:quisquislingo_app/services/settings_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+const _profileId = '12345678-1234-4234-9234-123456789abc';
+
 void main() {
   setUp(() {
-    SharedPreferences.setMockInitialValues({});
+    SharedPreferences.setMockInitialValues({
+      ProfileService.profilesKey: [
+        const LearnerProfile(
+          learnerProfileId: _profileId,
+          displayName: 'Container owner',
+        ).encode(),
+      ],
+      ProfileService.activeProfileIdKey: _profileId,
+    });
     EditorDisplayPreferences.resetForTesting();
   });
 
@@ -303,6 +314,8 @@ Course _course({
   List<LearningContent>? content,
 }) => Course(
   courseId: 'container-course',
+  creatorProfileId: _profileId,
+  ownership: const CourseOwnership.individual(_profileId),
   title: 'Container publication',
   learningLanguage: 'Italian',
   interfaceLanguage: 'English',

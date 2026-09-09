@@ -5,13 +5,24 @@ import 'package:quisquislingo_app/models/course_models.dart';
 import 'package:quisquislingo_app/screens/course_editor_screen.dart';
 import 'package:quisquislingo_app/screens/editor_help_screen.dart';
 import 'package:quisquislingo_app/services/course_editor_service.dart';
+import 'package:quisquislingo_app/services/profile_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+const _profileId = '12345678-1234-4234-9234-123456789abc';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   setUp(() {
-    SharedPreferences.setMockInitialValues({});
+    SharedPreferences.setMockInitialValues({
+      ProfileService.profilesKey: [
+        const LearnerProfile(
+          learnerProfileId: _profileId,
+          displayName: 'Editor fixture owner',
+        ).encode(),
+      ],
+      ProfileService.activeProfileIdKey: _profileId,
+    });
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(
           const MethodChannel('plugins.flutter.io/path_provider'),
@@ -232,6 +243,8 @@ void main() {
 
 Course _course() => Course(
   courseId: 'course_editor_224',
+  creatorProfileId: _profileId,
+  ownership: const CourseOwnership.individual(_profileId),
   learningLanguage: 'Italian',
   interfaceLanguage: 'English',
   sourceLanguage: 'English',

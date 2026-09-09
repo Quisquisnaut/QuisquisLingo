@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Deterministically regenerate the bundled Course Model v6 assets.
+"""Deterministically regenerate the bundled Course Model v7 assets.
 
 Existing assets contribute only reviewed course metadata and Guidebook material.
 Legacy exercises and their IDs are deliberately discarded rather than migrated.
@@ -517,7 +517,7 @@ def _regenerate_existing(code: str, filename: str, course_index: int) -> dict[st
         generated_lessons.append(lesson)
     source.update(
         {
-            "formatVersion": 6,
+            "formatVersion": 7,
             "title": (
                 "AI-Slop Demo: Inglés para hispanohablantes"
                 if source["sourceLanguage"] == "Spanish"
@@ -534,7 +534,7 @@ def _regenerate_existing(code: str, filename: str, course_index: int) -> dict[st
                 "Build 226.02 revision 3; learning content and stable IDs are unchanged."
             ),
             "courseDescription": (
-                "TEMPORARY SAMPLE course regenerated for Course Model v6."
+                "TEMPORARY SAMPLE course regenerated for Course Model v7."
             ),
             "lessons": generated_lessons,
         }
@@ -673,7 +673,7 @@ def _korean_course(course_index: int) -> dict[str, object]:
             }
         )
     course = {
-        "formatVersion": 6,
+        "formatVersion": 7,
         "publicationState": "published",
         "lessonNumberingMode": "lesson",
         "defaultLessonIconStyle": "monochrome",

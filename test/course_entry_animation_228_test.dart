@@ -263,7 +263,7 @@ void main() {
         rootBundle.evict(asset);
       }
       SharedPreferences.setMockInitialValues({
-        'one_time_notice_seen_welcome_2.0.28+2281': true,
+        'one_time_notice_seen_welcome_2.0.29+2291': true,
         'sound_effects_enabled': false,
       });
       await ProfileService().addProfile('Course Switch Learner');
@@ -299,15 +299,7 @@ void main() {
         await _openHome(tester);
         await _openCoursePicker(tester);
 
-        tester
-            .widget<ListTile>(
-              find.byKey(const ValueKey('local-course-explicit-custom')),
-            )
-            .onTap!();
-        await tester.runAsync(
-          () => Future<void>.delayed(const Duration(milliseconds: 20)),
-        );
-        await tester.pump(const Duration(milliseconds: 1));
+        await _tapCustomCourse(tester, 'explicit-custom');
 
         await _pumpUntilAbsent(tester, find.text('Choose course'));
         await _pumpUntil(
@@ -339,7 +331,10 @@ void main() {
         expect(_activeCourseId(tester), 'sample_ko_en_ko');
         expect(await SettingsService().getLastSelectedCourseCode(), 'KO');
 
-        await tester.pump(CourseEntryAnimationPolicy.duration);
+        await tester.pump(
+          CourseEntryAnimationPolicy.duration +
+              const Duration(milliseconds: 50),
+        );
         await tester.pump();
         expect(find.byKey(const Key('course-entry-animation')), findsNothing);
 
@@ -464,19 +459,35 @@ Future<void> _selectBundledCourse(WidgetTester tester, String code) async {
 Future<void> _openCoursePicker(WidgetTester tester) async {
   await tester.tap(find.byKey(const Key('unified-topbar-course-selector')));
   await _pumpUntil(tester, find.text('Choose course'));
+  await tester.pumpAndSettle();
 }
 
 Future<void> _tapBundledCourse(WidgetTester tester, String code) async {
   final tile = find.byKey(ValueKey('bundled-course-$code'));
+  await _revealCourseTile(tester, tile);
   tester.widget<ListTile>(tile).onTap!();
   await tester.pump();
 }
 
 Future<void> _selectCustomCourse(WidgetTester tester, String courseId) async {
   await _openCoursePicker(tester);
-  tester
-      .widget<ListTile>(find.byKey(ValueKey('local-course-$courseId')))
-      .onTap!();
+  await _tapCustomCourse(tester, courseId);
+}
+
+Future<void> _tapCustomCourse(WidgetTester tester, String courseId) async {
+  final tile = find.byKey(ValueKey('local-course-$courseId'));
+  await _revealCourseTile(tester, tile);
+  tester.widget<ListTile>(tile).onTap!();
+  await tester.pump();
+}
+
+Future<void> _revealCourseTile(WidgetTester tester, Finder tile) async {
+  final selectorScroll = find.descendant(
+    of: find.byType(BottomSheet),
+    matching: find.byType(Scrollable),
+  );
+  await tester.scrollUntilVisible(tile, 300, scrollable: selectorScroll);
+  await tester.ensureVisible(tile);
   await tester.pump();
 }
 

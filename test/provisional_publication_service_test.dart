@@ -505,7 +505,7 @@ void main() {
         originalCourseTitle: official.title,
         originalAuthor: official.author,
         originalAuthors: official.authors,
-        forkCreatedByProfileId: 'test-profile',
+        forkCreatedByProfileId: '11111111-1111-4111-8111-111111111111',
         forkCreatedByUsername: 'Fork author',
         forkCreatedAtUtc: '2026-09-07T10:00:00.000Z',
       );
@@ -513,6 +513,10 @@ void main() {
       final fork = AuthoringDuplicationService().forkOfficialCourse(
         official,
         provenance: provenance,
+        creatorProfileId: '11111111-1111-4111-8111-111111111111',
+        ownership: const CourseOwnership.individual(
+          '11111111-1111-4111-8111-111111111111',
+        ),
       );
       expect(fork.originType, CourseOriginType.custom);
       expect(fork.courseId, isNot(official.courseId));

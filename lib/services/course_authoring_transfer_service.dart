@@ -335,6 +335,8 @@ class CourseAuthoringTransferService {
     distributionChannel: source.distributionChannel,
     publisherVerificationStatus: source.publisherVerificationStatus,
     publisherSignature: source.publisherSignature,
+    creatorProfileId: source.creatorProfileId,
+    ownership: source.ownership,
     createdByProfileId: source.createdByProfileId,
     createdByUsername: source.createdByUsername,
     createdAtUtc: source.createdAtUtc,

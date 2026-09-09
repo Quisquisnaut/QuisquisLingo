@@ -33,7 +33,7 @@ void main() {
         final course = Course.fromJson(json);
         final lesson = course.lessons.first;
         final round = lesson.rounds.first;
-        expect(course.formatVersion, 6);
+        expect(course.formatVersion, 7);
         expect(lesson.publicationState, state);
         expect(round.publicationState, state);
         expect(lesson.provisionalDraft, isFalse);
@@ -63,7 +63,7 @@ void main() {
         );
         final lesson = reloaded.lessons.first;
         final round = lesson.rounds.first;
-        expect(reloaded.formatVersion, 6);
+        expect(reloaded.formatVersion, 7);
         expect(lesson.provisionalDraft, isTrue);
         expect(round.provisionalDraft, isTrue);
         expect(lesson.publicationState, state);

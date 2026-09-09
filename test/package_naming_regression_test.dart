@@ -12,12 +12,9 @@ void main() {
 
     expect(
       packagingScript,
-      contains('quisquislingo_alpha_\${buildNumber}_dev_windows_x64'),
+      contains('\$packageName = "quisquislingo_alpha_\${buildNumber}"'),
     );
-    expect(
-      agentInstructions,
-      contains('quisquislingo_alpha_<buildnumber>'),
-    );
+    expect(agentInstructions, contains('quisquislingo_alpha_<buildnumber>'));
     expect(
       agentInstructions,
       contains('quisquislingo_alpha_<buildnumber>_source'),

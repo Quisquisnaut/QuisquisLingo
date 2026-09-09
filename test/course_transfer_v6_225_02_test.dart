@@ -54,7 +54,7 @@ void main() {
           isA<FormatException>().having(
             (error) => error.message,
             'message',
-            contains('formatVersion 6 only'),
+            contains('formatVersion 7 only'),
           ),
         ),
       );

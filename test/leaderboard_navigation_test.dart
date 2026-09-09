@@ -6,12 +6,12 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:quisquislingo_app/models/course_models.dart';
+import 'package:quisquislingo_app/screens/course_editor_screen.dart';
 import 'package:quisquislingo_app/screens/course_info_screen.dart';
 import 'package:quisquislingo_app/screens/course_projects_screen.dart';
 import 'package:quisquislingo_app/screens/guidebook_screen.dart';
 import 'package:quisquislingo_app/screens/home_screen.dart';
 import 'package:quisquislingo_app/screens/info_screen.dart';
-import 'package:quisquislingo_app/screens/official_course_inspection_screen.dart';
 import 'package:quisquislingo_app/screens/profile_screen.dart';
 import 'package:quisquislingo_app/screens/review_screen.dart';
 import 'package:quisquislingo_app/screens/round_screen.dart';
@@ -74,7 +74,7 @@ void main() {
       buildSignature: '',
     );
     SharedPreferences.setMockInitialValues({
-      'one_time_notice_seen_welcome_2.0.28+2281': true,
+      'one_time_notice_seen_welcome_2.0.29+2291': true,
       'sound_effects_enabled': false,
     });
     await ProfileService().addProfile('Navigation Learner');
@@ -761,6 +761,144 @@ void main() {
       findsNothing,
     );
   });
+
+  testWidgets(
+    'Collapse completed expands every incomplete accessible Lesson only',
+    (tester) async {
+      final course = await _loadItalianCourse(tester, enableIddqd: false);
+      await ProgressService().completeLesson(
+        course.lessons.first.lessonId,
+        courseId: course.courseId,
+        courseCode: 'IT',
+      );
+      await SettingsService().setLessonExpansionMode(
+        course.courseId,
+        LearnerLessonExpansionMode.collapseCompleted,
+      );
+      await _openHome(tester, scrollToActions: false);
+
+      expect(
+        find.byTooltip(
+          'Lessons: Collapse completed\n'
+          'Completed Lessons are collapsed; incomplete accessible Lessons are expanded.',
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(
+          ValueKey('unified-round-${course.lessons.first.rounds.first.id}'),
+        ),
+        findsNothing,
+      );
+
+      final incompleteUnlocked = course.lessons[1];
+      await tester.scrollUntilVisible(
+        find.byKey(
+          ValueKey('unified-lesson-section-${incompleteUnlocked.lessonId}'),
+        ),
+        260,
+        scrollable: _mainLearnerScrollable(),
+      );
+      await tester.pumpAndSettle();
+      expect(
+        find.byKey(
+          ValueKey('unified-round-${incompleteUnlocked.rounds.first.id}'),
+        ),
+        findsOneWidget,
+      );
+
+      final locked = course.lessons[2];
+      await tester.scrollUntilVisible(
+        find.byKey(ValueKey('unified-lesson-section-${locked.lessonId}')),
+        260,
+        scrollable: _mainLearnerScrollable(),
+      );
+      await tester.pumpAndSettle();
+      expect(
+        find.byKey(ValueKey('unified-round-${locked.rounds.first.id}')),
+        findsNothing,
+      );
+    },
+  );
+
+  testWidgets(
+    'Focused opens one accessible Lesson and manual opening closes the previous one',
+    (tester) async {
+      final course = await _loadItalianCourse(tester);
+      final settings = SettingsService();
+      await settings.setLessonExpansionMode(
+        course.courseId,
+        LearnerLessonExpansionMode.focused,
+      );
+      await _openHome(tester, scrollToActions: false);
+
+      final first = course.lessons.first;
+      final second = course.lessons[1];
+      expect(
+        find.byKey(ValueKey('unified-round-${first.rounds.first.id}')),
+        findsOneWidget,
+      );
+      await tester.scrollUntilVisible(
+        find.byKey(ValueKey('unified-lesson-section-${second.lessonId}')),
+        260,
+        scrollable: _mainLearnerScrollable(),
+      );
+      await tester.pumpAndSettle();
+      expect(
+        find.byKey(ValueKey('unified-round-${second.rounds.first.id}')),
+        findsNothing,
+      );
+      await tester.tap(
+        find.byKey(Key('lesson-expansion-action-${second.lessonId}')),
+      );
+      await tester.pumpAndSettle();
+      expect(
+        find.byKey(ValueKey('unified-round-${second.rounds.first.id}')),
+        findsOneWidget,
+      );
+      expect(
+        await settings.getLastVisitedLessonId(course.courseId),
+        second.lessonId,
+      );
+
+      await tester.scrollUntilVisible(
+        find.byKey(ValueKey('unified-lesson-section-${first.lessonId}')),
+        -260,
+        scrollable: _mainLearnerScrollable(),
+      );
+      await tester.pumpAndSettle();
+      expect(
+        find.byKey(ValueKey('unified-round-${first.rounds.first.id}')),
+        findsNothing,
+      );
+      expect(
+        find.byKey(Key('lesson-expansion-action-${first.lessonId}')),
+        findsOneWidget,
+      );
+
+      final iddqdControl = find.byKey(const Key('learner-bottom-iddqd'));
+      await tester.tap(iddqdControl);
+      await tester.pumpAndSettle();
+      await tester.tap(iddqdControl);
+      await tester.pumpAndSettle();
+      expect(
+        find.byTooltip('IDDQD: Off\nNormal progression locks apply.'),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(ValueKey('unified-round-${first.rounds.first.id}')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(ValueKey('unified-round-${second.rounds.first.id}')),
+        findsNothing,
+      );
+      expect(
+        await settings.getLastVisitedLessonId(course.courseId),
+        first.lessonId,
+      );
+    },
+  );
 
   testWidgets(
     'bottom IDDQD toggles access immediately without authoritative progress',
@@ -2411,13 +2549,20 @@ void main() {
     expect(find.byTooltip('Flag background: Small'), findsOneWidget);
 
     Future<void> chooseCourse(String code) async {
+      await _pumpUntilGone(
+        tester,
+        find.byKey(const Key('course-entry-animation')),
+      );
       await tester.tap(find.byKey(const Key('unified-topbar-course-selector')));
       await _pumpUntilWithIo(
         tester,
         find.text('Choose course'),
         failureMessage: 'Timed out loading the course picker.',
       );
-      await tester.tap(find.byKey(ValueKey('bundled-course-$code')));
+      tester
+          .widget<ListTile>(find.byKey(ValueKey('bundled-course-$code')))
+          .onTap!();
+      await tester.pump();
       final expectedCourseId = code == 'IT'
           ? italianCourse.courseId
           : germanCourse.courseId;
@@ -2446,7 +2591,10 @@ void main() {
     expect(find.text('Current course'), findsOneWidget);
     expect(find.text('All included courses'), findsOneWidget);
     expect(find.text(italianCourse.title), findsWidgets);
-    await tester.tap(find.byKey(const ValueKey('bundled-course-DE')));
+    tester
+        .widget<ListTile>(find.byKey(const ValueKey('bundled-course-DE')))
+        .onTap!();
+    await tester.pump();
     await _pumpUntilWithIo(
       tester,
       find.byTooltip('Flag background: Off'),
@@ -2541,14 +2689,175 @@ void main() {
       await tester.tap(find.byKey(const Key('course-selector-edit-current')));
       await _pumpUntilWithIo(
         tester,
-        find.byType(OfficialCourseInspectionScreen),
+        find.byType(CourseEditorScreen),
         failureMessage: 'Timed out opening the current Course by stable ID.',
       );
-      final inspection = tester.widget<OfficialCourseInspectionScreen>(
-        find.byType(OfficialCourseInspectionScreen),
+      final inspection = tester.widget<CourseEditorScreen>(
+        find.byType(CourseEditorScreen),
       );
       expect(inspection.course.courseId, selectedCourseId);
       expect(await settings.getLastSelectedCourseCode(), selectedBefore);
+    },
+  );
+
+  testWidgets(
+    'course selector Hide is learner-only, active-safe, reversible, and storage-neutral',
+    (tester) async {
+      final italianCourse = await _loadItalianCourse(tester);
+      final custom = _publishedCustomCourse();
+      final editor = CourseEditorService();
+      final progress = ProgressService();
+      final settings = SettingsService();
+      await editor.saveUserCourse(custom);
+      await progress.completeRound(
+        'preserved-round',
+        courseId: custom.courseId,
+        courseCode: 'IT',
+      );
+      await settings.setLastSelectedCourseCode('DE');
+      await settings.setLastSelectedCourseCode('IT');
+      final courseBefore = (await editor.listUserCourses())
+          .singleWhere((course) => course.courseId == custom.courseId)
+          .toJson();
+      final progressBefore = await progress.getCompletedRounds(
+        courseId: custom.courseId,
+      );
+      final selectedBefore = await settings.getLastSelectedCourseCode();
+
+      await _openHome(tester, scrollToActions: false);
+      await _pumpUntilWithIo(
+        tester,
+        find.byType(UnifiedLearnerTopBar),
+        failureMessage: 'Timed out loading Home for Course visibility.',
+      );
+      await tester.tap(find.byKey(const Key('unified-topbar-course-selector')));
+      await _pumpUntilWithIo(
+        tester,
+        find.text('Choose course'),
+        failureMessage: 'Timed out opening the Course Selector.',
+      );
+      final selectorScroll = find.descendant(
+        of: find.byType(BottomSheet),
+        matching: find.byType(Scrollable),
+      );
+
+      await tester.tap(
+        find.byKey(const Key('course-selector-actions-current')),
+      );
+      await tester.pumpAndSettle();
+      final activeHide = tester.widget<PopupMenuItem<String>>(
+        find.byWidgetPredicate(
+          (widget) => widget is PopupMenuItem<String> && widget.value == 'hide',
+        ),
+      );
+      expect(activeHide.enabled, isFalse);
+      expect(find.text('The current course cannot be hidden.'), findsOneWidget);
+      await tester.tapAt(const Offset(4, 4));
+      await tester.pumpAndSettle();
+      await tester.tap(
+        find.byKey(const Key('course-selector-actions-current')),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Course Info').last);
+      await tester.pumpAndSettle();
+      expect(
+        tester
+            .widget<CourseInfoScreen>(find.byType(CourseInfoScreen))
+            .course
+            .courseId,
+        italianCourse.courseId,
+      );
+      await tester.tap(find.byType(BackButton).last);
+      await tester.pumpAndSettle();
+      expect(await settings.getLastSelectedCourseCode(), selectedBefore);
+      expect(await settings.isCourseHidden(italianCourse.courseId), isFalse);
+
+      Future<void> hideFromRow(Key key) async {
+        await tester.scrollUntilVisible(
+          find.byKey(key),
+          260,
+          scrollable: selectorScroll,
+        );
+        await tester.ensureVisible(find.byKey(key));
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(key));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Hide').last);
+        await tester.pumpAndSettle();
+      }
+
+      final germanCourse = await _loadCourse(tester, 'DE');
+      expect(find.byKey(const Key('recent-course-DE')), findsOneWidget);
+      await hideFromRow(const Key('course-selector-actions-bundled-DE'));
+      expect(find.byKey(const Key('bundled-course-DE')), findsNothing);
+      expect(find.byKey(const Key('recent-course-DE')), findsNothing);
+
+      await hideFromRow(
+        Key('course-selector-actions-local-${custom.courseId}'),
+      );
+      expect(
+        find.byKey(ValueKey('local-course-${custom.courseId}')),
+        findsNothing,
+      );
+      expect(await settings.getLastSelectedCourseCode(), selectedBefore);
+      expect(await settings.isCourseHidden(germanCourse.courseId), isTrue);
+      expect(await settings.isCourseHidden(custom.courseId), isTrue);
+      expect(
+        (await editor.listUserCourses())
+            .singleWhere((course) => course.courseId == custom.courseId)
+            .toJson(),
+        courseBefore,
+      );
+      expect(
+        await progress.getCompletedRounds(courseId: custom.courseId),
+        progressBefore,
+      );
+
+      await tester.scrollUntilVisible(
+        find.byKey(const Key('course-selector-hidden-courses')),
+        260,
+        scrollable: selectorScroll,
+      );
+      await tester.tap(find.byKey(const Key('course-selector-hidden-courses')));
+      await tester.pumpAndSettle();
+      expect(find.text('Hidden courses (2)'), findsWidgets);
+      expect(
+        find.byKey(ValueKey('hidden-course-${custom.courseId}')),
+        findsOneWidget,
+      );
+
+      Future<void> unhide(String courseId) async {
+        await tester.tap(find.byKey(Key('hidden-course-actions-$courseId')));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Unhide').last);
+        await tester.pumpAndSettle();
+      }
+
+      await unhide(custom.courseId);
+      expect(find.text('Hidden courses (1)'), findsWidgets);
+      await unhide(germanCourse.courseId);
+      expect(find.text('Hidden courses (0)'), findsOneWidget);
+      await tester.tap(find.text('Close'));
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('Hidden courses ('), findsNothing);
+      await tester.scrollUntilVisible(
+        find.byKey(ValueKey('local-course-${custom.courseId}')),
+        260,
+        scrollable: selectorScroll,
+      );
+      expect(
+        find.byKey(ValueKey('local-course-${custom.courseId}')),
+        findsOneWidget,
+      );
+      await tester.scrollUntilVisible(
+        find.byKey(const Key('bundled-course-DE')),
+        -260,
+        scrollable: selectorScroll,
+      );
+      expect(find.byKey(const Key('bundled-course-DE')), findsOneWidget);
+      expect(await settings.isCourseHidden(custom.courseId), isFalse);
+      expect(await settings.isCourseHidden(germanCourse.courseId), isFalse);
     },
   );
 
@@ -2632,8 +2941,8 @@ void main() {
       final phrase = dialogTexts.singleWhere(
         (text) =>
             text.data != 'Welcome to QuisquisLingo' &&
-            text.data != 'Version 2.0.28' &&
-            text.data != 'Phase 228, revision 1' &&
+            text.data != 'Version 2.0.29' &&
+            text.data != 'Phase 229, revision 1' &&
             text.data != 'Continue',
       );
       final welcomeDialog = tester.widget<AlertDialog>(
@@ -2646,11 +2955,11 @@ void main() {
         const Color(0xFF0756DF),
       );
       expect(
-        tester.widget<Text>(find.text('Version 2.0.28')).style?.color,
+        tester.widget<Text>(find.text('Version 2.0.29')).style?.color,
         const Color(0xFF0756DF),
       );
       expect(
-        tester.widget<Text>(find.text('Phase 228, revision 1')).style?.color,
+        tester.widget<Text>(find.text('Phase 229, revision 1')).style?.color,
         const Color(0xFF0756DF),
       );
       expect(find.textContaining('22621'), findsNothing);
@@ -2678,7 +2987,7 @@ void main() {
       final alphaDialog = tester.widget<AlertDialog>(find.byType(AlertDialog));
       expect(alphaDialog.backgroundColor, isNull);
       expect(alphaDialog.surfaceTintColor, isNull);
-      expect(find.textContaining('Expiry date: 2026-10-08.'), findsOneWidget);
+      expect(find.textContaining('Expiry date: 2026-10-09.'), findsOneWidget);
       expect(find.widgetWithText(FilledButton, 'OK'), findsOneWidget);
       expect(
         tester
@@ -2830,6 +3139,20 @@ Course _courseFixture() => Course(
   title: 'Navigation Course',
   ttsLanguage: 'it-IT',
   version: '1.0.0',
+  lessons: const [],
+);
+
+Course _publishedCustomCourse() => Course(
+  courseId: 'selector_custom_229',
+  publicationState: PublicationState.published,
+  learningLanguage: 'Italian',
+  interfaceLanguage: 'English',
+  sourceLanguage: 'English',
+  targetLanguage: 'Italian',
+  title: 'Selector custom 229',
+  ttsLanguage: 'it-IT',
+  version: '1',
+  courseVersion: '1',
   lessons: const [],
 );
 

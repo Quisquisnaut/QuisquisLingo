@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:crypto/crypto.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../models/authoring_team.dart';
 import 'learner_status_events.dart';
 
 enum LearnerThemeMode {
@@ -332,6 +333,7 @@ class ProfileService {
     )) {
       return;
     }
+    await _removeProfileFromAuthoringTeams(prefs, learnerProfileId);
     final remaining = profiles
         .where((profile) => profile.learnerProfileId != learnerProfileId)
         .toList();
@@ -355,6 +357,46 @@ class ProfileService {
       }
     }
     LearnerStatusEvents.publish(LearnerStatusInvalidation.activeProfile);
+  }
+
+  Future<void> _removeProfileFromAuthoringTeams(
+    SharedPreferences prefs,
+    String learnerProfileId,
+  ) async {
+    final raw = prefs.getString(AuthoringTeam.storageKey);
+    if (raw == null || raw.trim().isEmpty) return;
+    final decoded = jsonDecode(raw);
+    if (decoded is! List || decoded.any((item) => item is! Map)) {
+      throw const FormatException('Stored authoring-team registry is invalid.');
+    }
+    var changed = false;
+    final teams = decoded.map((item) {
+      final team = AuthoringTeam.fromJson(
+        Map<String, dynamic>.from(item as Map),
+      );
+      if (!team.hasMember(learnerProfileId)) return team;
+      if (team.hasLead(learnerProfileId) && team.leadProfileIds.length == 1) {
+        throw StateError(
+          'This profile is the final Team Lead of ${team.displayName}. '
+          'Promote another member before deleting the profile.',
+        );
+      }
+      changed = true;
+      return team.copyWith(
+        memberProfileIds: team.memberProfileIds.where(
+          (id) => id != learnerProfileId,
+        ),
+        leadProfileIds: team.leadProfileIds.where(
+          (id) => id != learnerProfileId,
+        ),
+      );
+    }).toList();
+    if (!changed) return;
+    final encoded = jsonEncode(teams.map((team) => team.toJson()).toList());
+    if (!await prefs.setString(AuthoringTeam.storageKey, encoded) ||
+        prefs.getString(AuthoringTeam.storageKey) != encoded) {
+      throw StateError('Verified authoring-team storage write failed.');
+    }
   }
 
   Future<void> deleteProfile(String idOrDisplayName) async {

@@ -241,6 +241,7 @@ void main() {
 }
 
 Future<void> _expectPersistedHome(WidgetTester tester, Course course) async {
+  await ProfileService().addProfile('Numbering learner');
   await CourseEditorService().saveUserCourse(course);
   final saved = (await CourseEditorService().listUserCourses()).single;
   expect(saved.lessonNumberingMode, LessonNumberingMode.module);
@@ -248,7 +249,6 @@ Future<void> _expectPersistedHome(WidgetTester tester, Course course) async {
     'Lesson 1',
     'Greetings',
   ]);
-  await ProfileService().addProfile('Numbering learner');
   final preferences = await SharedPreferences.getInstance();
   await preferences.setBool('sound_effects_enabled', false);
   await preferences.setBool(

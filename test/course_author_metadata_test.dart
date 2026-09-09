@@ -3,10 +3,15 @@ import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:quisquislingo_app/models/course_models.dart';
 import 'package:quisquislingo_app/services/course_editor_service.dart';
+import 'package:quisquislingo_app/services/profile_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 Course _metadataCourse() => Course(
   courseId: 'course_metadata',
+  creatorProfileId: '11111111-1111-4111-8111-111111111111',
+  ownership: const CourseOwnership.individual(
+    '11111111-1111-4111-8111-111111111111',
+  ),
   learningLanguage: 'Italian',
   interfaceLanguage: 'English',
   sourceLanguage: 'English',
@@ -92,7 +97,7 @@ void main() {
     );
   });
 
-  test('Course Editor uses a clean v6 storage namespace', () async {
+  test('Course Editor uses a clean v7 storage namespace', () async {
     final course = _metadataCourse();
     final legacyValue = jsonEncode({
       course.courseId: {'savedAt': '2026-08-28', 'course': course.toJson()},
@@ -101,12 +106,17 @@ void main() {
       'quisquislingo_user_courses_v2_100': legacyValue,
     });
 
-    final service = CourseEditorService();
+    final profiles = ProfileService();
+    await profiles.createProfile(
+      'Owner',
+      learnerProfileId: '11111111-1111-4111-8111-111111111111',
+    );
+    final service = CourseEditorService(profileService: profiles);
     expect(await service.listUserCourses(), isEmpty);
 
     await service.saveUserCourse(course);
     final prefs = await SharedPreferences.getInstance();
-    expect(prefs.getString('quisquislingo_user_courses_v6_225'), isNotNull);
+    expect(prefs.getString('quisquislingo_user_courses_v7_2291'), isNotNull);
     expect(prefs.getString('quisquislingo_user_courses_v5_223'), isNull);
     expect(prefs.getString('quisquislingo_user_courses_v4_215'), isNull);
     expect(prefs.getString('quisquislingo_user_courses_v2_100'), legacyValue);

@@ -11,6 +11,7 @@ import 'package:quisquislingo_app/services/course_service.dart';
 import 'package:quisquislingo_app/services/profile_service.dart';
 import 'package:quisquislingo_app/services/progress_service.dart';
 import 'package:quisquislingo_app/services/settings_service.dart';
+import 'package:quisquislingo_app/widgets/course_entry_animation.dart';
 import 'package:quisquislingo_app/widgets/flag_art.dart';
 import 'package:quisquislingo_app/widgets/unified_learner_top_bar.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -102,9 +103,23 @@ void main() {
       // badge uses the unchanged persisted KR flag (the same Korean artwork).
       expect(flag.code, 'KR');
 
+      final selectorScrollable = find.descendant(
+        of: find.byType(BottomSheet),
+        matching: find.byType(Scrollable),
+      );
+      await tester.scrollUntilVisible(
+        koreanTile,
+        180,
+        scrollable: selectorScrollable,
+      );
+      await tester.drag(selectorScrollable, const Offset(0, -120));
+      await tester.pumpAndSettle();
       await tester.tap(koreanTile);
       await _pumpIo(tester, frames: 30);
       expect(find.byType(BottomSheet), findsNothing);
+      await tester.pump(
+        CourseEntryAnimationPolicy.duration + const Duration(milliseconds: 50),
+      );
       final topBar = tester.widget<UnifiedLearnerTopBar>(
         find.byType(UnifiedLearnerTopBar),
       );
@@ -153,7 +168,12 @@ void main() {
       await _openCoursePicker(tester);
       _expectNineBundledTiles();
       expect(find.byKey(const ValueKey('bundled-course-KO')), findsOneWidget);
-      expect(find.text(custom.title), findsOneWidget);
+      await _expectCourseTile(
+        tester,
+        ValueKey('local-course-${custom.courseId}'),
+        custom.title,
+        selected: false,
+      );
 
       final preferences = await SharedPreferences.getInstance();
       final reconciled = preferences.getStringList(
@@ -295,7 +315,14 @@ Future<void> _expectCourseTile(
   );
   final tile = tester.widget<ListTile>(tileFinder);
   expect((tile.title! as Text).data, title);
-  expect(tile.trailing != null, selected);
+  expect(
+    find.descendant(of: tileFinder, matching: find.byIcon(Icons.check)),
+    selected ? findsOneWidget : findsNothing,
+  );
+  expect(
+    find.descendant(of: tileFinder, matching: find.byTooltip('Course actions')),
+    findsOneWidget,
+  );
   expect(
     find.descendant(of: tileFinder, matching: find.text(title)),
     findsOneWidget,

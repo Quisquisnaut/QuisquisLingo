@@ -16,6 +16,7 @@ import '../services/duel_eligibility_service.dart';
 import '../services/progress_service.dart';
 import '../services/profile_service.dart';
 import '../services/lesson_unlock_service.dart';
+import '../services/lesson_expansion_policy.dart';
 import '../services/learner_status_events.dart';
 import '../services/alpha_lifecycle_service.dart';
 import '../services/app_metadata.dart';
@@ -211,6 +212,8 @@ class _HomeScreenState extends State<HomeScreen> {
   Set<String> _ttsSkippedPerfectRounds = {};
   Set<String> _wonDuels = {};
   LearnerIddqdMode _iddqdMode = LearnerIddqdMode.off;
+  LearnerLessonExpansionMode _lessonExpansionMode =
+      LearnerLessonExpansionMode.expanded;
   LearnerFlagBackgroundMode _flagBackgroundMode = LearnerFlagBackgroundMode.off;
   String _selectedLanguage = 'IT';
   String _selectedCourseRef = 'IT';
@@ -484,6 +487,9 @@ class _HomeScreenState extends State<HomeScreen> {
       final iddqdMode = activeId == null
           ? LearnerIddqdMode.off
           : await _settings.getIddqdMode(course.courseId);
+      final lessonExpansionMode = activeId == null
+          ? LearnerLessonExpansionMode.expanded
+          : await _settings.getLessonExpansionMode(course.courseId);
       var flagBackgroundMode = LearnerFlagBackgroundMode.off;
       if (activeId != null) {
         try {
@@ -522,6 +528,7 @@ class _HomeScreenState extends State<HomeScreen> {
         _ttsSkippedPerfectRounds = skipped;
         _wonDuels = wonDuels;
         _iddqdMode = iddqdMode;
+        _lessonExpansionMode = lessonExpansionMode;
         _flagBackgroundMode = flagBackgroundMode;
         _activeLessonIndex = activeLessonIndex;
         if (resetFlow) {
@@ -782,8 +789,17 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
     if (ok == true) {
-      await _profiles.deleteProfileById(profile.learnerProfileId);
-      await _reload();
+      try {
+        await _profiles.deleteProfileById(profile.learnerProfileId);
+        await _reload();
+      } catch (error) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(error.toString().replaceFirst('StateError: ', '')),
+          ),
+        );
+      }
     }
   }
 
@@ -907,15 +923,27 @@ class _HomeScreenState extends State<HomeScreen> {
         .map(_publication.learnerCourse)
         .whereType<Course>()
         .toList();
+    final availableCoursesById = <String, Course>{
+      for (final course in bundledCourses.values) course.courseId: course,
+      for (final course in localCourses) course.courseId: course,
+    };
+    final hiddenCourseIds = await _settings.getHiddenCourseIds(
+      availableCoursesById.keys,
+    );
     final recentRefs = (await _settings.getRecentCourseRefs())
         .where(
           (ref) =>
               ref != _selectedCourseRef &&
-              (CourseService.hasCourse(ref.trim().toUpperCase()) ||
+              ((CourseService.hasCourse(ref.trim().toUpperCase()) &&
+                      !hiddenCourseIds.contains(
+                        bundledCourses[ref.trim().toUpperCase()]?.courseId,
+                      )) ||
                   (ref.startsWith('custom:') &&
                       localCourses.any(
                         (course) =>
-                            course.courseId == ref.substring('custom:'.length),
+                            course.courseId ==
+                                ref.substring('custom:'.length) &&
+                            !hiddenCourseIds.contains(course.courseId),
                       ))),
         )
         .take(3)
@@ -930,6 +958,12 @@ class _HomeScreenState extends State<HomeScreen> {
       return null;
     }
 
+    String? courseIdForRef(String ref) {
+      final custom = customCourseFor(ref);
+      if (custom != null) return custom.courseId;
+      return bundledCourses[ref.trim().toUpperCase()]?.courseId;
+    }
+
     String originLabel(Course course) {
       if (course.originType == CourseOriginType.bundledOfficial) {
         return 'Bundled official · ${course.publisherName} ${course.officialCourseVersion}';
@@ -940,27 +974,87 @@ class _HomeScreenState extends State<HomeScreen> {
       return 'Custom course · version ${course.courseVersion.isEmpty ? 'unconfirmed' : course.courseVersion}';
     }
 
+    StateSetter? updateSelector;
+
+    Future<void> openCourseInfo(BuildContext context, Course course) =>
+        Navigator.of(context).push<void>(
+          MaterialPageRoute(builder: (_) => CourseInfoScreen(course: course)),
+        );
+
+    Future<void> handleCourseAction(
+      BuildContext context,
+      Course course,
+      String action,
+    ) async {
+      if (action == 'info') {
+        await openCourseInfo(context, course);
+        return;
+      }
+      if (action != 'hide' || course.courseId == _course?.courseId) return;
+      await _settings.setCourseHidden(course.courseId, true);
+      if (!mounted || !context.mounted) return;
+      updateSelector?.call(() => hiddenCourseIds.add(course.courseId));
+    }
+
     Widget courseTile({
       Key? key,
+      required String rowId,
       required Course course,
       required Widget leading,
       Widget? subtitle,
       bool selected = false,
       VoidCallback? onTap,
-    }) => ListTile(
-      key: key,
-      leading: leading,
-      title: Text(course.title),
-      subtitle: subtitle,
-      trailing: selected ? const Icon(Icons.check) : null,
-      onTap: onTap,
-    );
+    }) {
+      final active = course.courseId == _course?.courseId;
+      return ListTile(
+        key: key,
+        leading: leading,
+        title: Text(course.title),
+        subtitle: subtitle,
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (selected) const Icon(Icons.check),
+            PopupMenuButton<String>(
+              key: ValueKey('course-selector-actions-$rowId'),
+              tooltip: 'Course actions',
+              onSelected: (action) =>
+                  handleCourseAction(overlayContext, course, action),
+              itemBuilder: (_) => [
+                const PopupMenuItem(
+                  value: 'info',
+                  child: ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: Icon(Icons.info_outline),
+                    title: Text('Course Info'),
+                  ),
+                ),
+                PopupMenuItem(
+                  value: 'hide',
+                  enabled: !active,
+                  child: ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: const Icon(Icons.visibility_off_outlined),
+                    title: const Text('Hide'),
+                    subtitle: active
+                        ? const Text('The current course cannot be hidden.')
+                        : null,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+        onTap: onTap,
+      );
+    }
 
     Widget recentCourseTile(BuildContext ctx, String ref) {
       final custom = customCourseFor(ref);
       if (custom != null) {
         return courseTile(
           key: ValueKey('recent-course-$ref'),
+          rowId: 'recent-$ref',
           course: custom,
           leading: CourseFlagBadge(
             course: custom,
@@ -968,7 +1062,9 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           subtitle: Text(originLabel(custom)),
           onTap: () {
-            selectedCourseSwitch = () => _switchCustomCourse(custom);
+            if (custom.courseId != _course?.courseId) {
+              selectedCourseSwitch = () => _switchCustomCourse(custom);
+            }
             Navigator.pop(ctx);
           },
         );
@@ -976,6 +1072,7 @@ class _HomeScreenState extends State<HomeScreen> {
       final code = ref.trim().toUpperCase();
       return courseTile(
         key: ValueKey('recent-course-$ref'),
+        rowId: 'recent-$ref',
         course: bundledCourses[code]!,
         leading: CourseFlagBadge(
           course: bundledCourses[code]!,
@@ -986,10 +1083,99 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         onTap: CourseService.hasCourse(code)
             ? () {
-                selectedCourseSwitch = () => _switchCourse(code);
+                if (bundledCourses[code]!.courseId != _course?.courseId) {
+                  selectedCourseSwitch = () => _switchCourse(code);
+                }
                 Navigator.pop(ctx);
               }
             : null,
+      );
+    }
+
+    Future<void> showHiddenCourses(BuildContext context) async {
+      await showDialog<void>(
+        context: context,
+        builder: (dialogContext) => StatefulBuilder(
+          builder: (dialogContext, setDialogState) {
+            final hiddenCourses = availableCoursesById.values
+                .where((course) => hiddenCourseIds.contains(course.courseId))
+                .toList();
+            return AlertDialog(
+              title: Text('Hidden courses (${hiddenCourses.length})'),
+              content: SizedBox(
+                width: 520,
+                child: hiddenCourses.isEmpty
+                    ? const Text('No hidden courses.')
+                    : ListView(
+                        shrinkWrap: true,
+                        children: [
+                          for (final course in hiddenCourses)
+                            ListTile(
+                              key: ValueKey('hidden-course-${course.courseId}'),
+                              leading: CourseFlagBadge(
+                                course: course,
+                                fallbackCode: CourseService.codeForCourse(
+                                  course,
+                                ),
+                              ),
+                              title: Text(course.title),
+                              subtitle: Text(originLabel(course)),
+                              trailing: PopupMenuButton<String>(
+                                key: ValueKey(
+                                  'hidden-course-actions-${course.courseId}',
+                                ),
+                                tooltip: 'Hidden course actions',
+                                onSelected: (action) async {
+                                  if (action == 'info') {
+                                    await openCourseInfo(dialogContext, course);
+                                    return;
+                                  }
+                                  if (action != 'unhide') return;
+                                  await _settings.setCourseHidden(
+                                    course.courseId,
+                                    false,
+                                  );
+                                  if (!mounted || !dialogContext.mounted) {
+                                    return;
+                                  }
+                                  setDialogState(
+                                    () =>
+                                        hiddenCourseIds.remove(course.courseId),
+                                  );
+                                  updateSelector?.call(() {});
+                                },
+                                itemBuilder: (_) => const [
+                                  PopupMenuItem(
+                                    value: 'info',
+                                    child: ListTile(
+                                      contentPadding: EdgeInsets.zero,
+                                      leading: Icon(Icons.info_outline),
+                                      title: Text('Course Info'),
+                                    ),
+                                  ),
+                                  PopupMenuItem(
+                                    value: 'unhide',
+                                    child: ListTile(
+                                      contentPadding: EdgeInsets.zero,
+                                      leading: Icon(Icons.visibility_outlined),
+                                      title: Text('Unhide'),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                        ],
+                      ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(dialogContext),
+                  child: const Text('Close'),
+                ),
+              ],
+            );
+          },
+        ),
       );
     }
 
@@ -1015,126 +1201,164 @@ class _HomeScreenState extends State<HomeScreen> {
       context: overlayContext,
       showDragHandle: true,
       isScrollControlled: true,
-      builder: (ctx) => SafeArea(
-        child: FractionallySizedBox(
-          heightFactor: .78,
-          child: ListView(
-            padding: const EdgeInsets.only(bottom: 12),
-            children: [
-              const ListTile(title: Text('Choose course')),
-              const Padding(
-                padding: EdgeInsets.fromLTRB(16, 4, 16, 6),
-                child: Text(
-                  'Current course',
-                  style: TextStyle(fontWeight: FontWeight.w800),
-                ),
-              ),
-              if (_course != null)
-                courseTile(
-                  key: const Key('current-course'),
-                  course: _course!,
-                  leading: CourseFlagBadge(
-                    course: _course!,
-                    fallbackCode: _selectedLanguage,
-                  ),
-                  selected: true,
-                ),
-              if (recentRefs.isNotEmpty) ...[
-                const Padding(
-                  padding: EdgeInsets.fromLTRB(16, 14, 16, 6),
-                  child: Text(
-                    'Recently opened',
-                    style: TextStyle(fontWeight: FontWeight.w800),
-                  ),
-                ),
-                for (final ref in recentRefs) recentCourseTile(ctx, ref),
-              ],
-              const Divider(),
-              const Padding(
-                padding: EdgeInsets.fromLTRB(16, 4, 16, 6),
-                child: Text(
-                  'All included courses',
-                  style: TextStyle(fontWeight: FontWeight.w800),
-                ),
-              ),
-              for (final code in codes)
-                courseTile(
-                  key: ValueKey('bundled-course-$code'),
-                  course: bundledCourses[code]!,
-                  leading: CourseFlagBadge(
-                    course: bundledCourses[code]!,
-                    fallbackCode: code,
-                  ),
-                  subtitle: Text(
-                    '${CourseService.sourceLabels[code] ?? 'English'} → ${CourseService.targetLabels[code] ?? code}'
-                    ' · Bundled official${CourseService.hasCourse(code) ? '' : ' · Coming soon'}',
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  selected: _selectedCourseRef == code,
-                  onTap: () {
-                    selectedCourseSwitch = () => _switchCourse(code);
-                    Navigator.pop(ctx);
-                  },
-                ),
-              if (localCourses.isNotEmpty) ...[
-                const Divider(),
-                const Padding(
-                  padding: EdgeInsets.fromLTRB(16, 8, 16, 6),
-                  child: Text(
-                    'Local courses',
-                    style: TextStyle(fontWeight: FontWeight.w800),
-                  ),
-                ),
-                for (final course in localCourses)
-                  courseTile(
-                    key: ValueKey('local-course-${course.courseId}'),
-                    course: course,
-                    leading: CourseFlagBadge(
-                      course: course,
-                      fallbackCode: CourseService.codeForCourse(course),
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setSheetState) {
+          updateSelector = setSheetState;
+          return SafeArea(
+            child: FractionallySizedBox(
+              heightFactor: .78,
+              child: ListView(
+                padding: const EdgeInsets.only(bottom: 12),
+                children: [
+                  const ListTile(title: Text('Choose course')),
+                  const Padding(
+                    padding: EdgeInsets.fromLTRB(16, 4, 16, 6),
+                    child: Text(
+                      'Current course',
+                      style: TextStyle(fontWeight: FontWeight.w800),
                     ),
-                    subtitle: Text(
-                      '${course.sourceLanguage} → ${course.targetLanguage}'
-                      ' · ${originLabel(course)}',
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    selected: _selectedCourseRef == 'custom:${course.courseId}',
-                    onTap: () {
-                      selectedCourseSwitch = () => _switchCustomCourse(course);
-                      Navigator.pop(ctx);
-                    },
                   ),
-              ],
-              const Divider(height: 28),
-              const Padding(
-                padding: EdgeInsets.fromLTRB(16, 0, 16, 6),
-                child: Text(
-                  'Editor',
-                  style: TextStyle(fontWeight: FontWeight.w800),
-                ),
+                  if (_course != null)
+                    courseTile(
+                      key: const Key('current-course'),
+                      rowId: 'current',
+                      course: _course!,
+                      leading: CourseFlagBadge(
+                        course: _course!,
+                        fallbackCode: _selectedLanguage,
+                      ),
+                      selected: true,
+                    ),
+                  if (recentRefs.isNotEmpty) ...[
+                    const Padding(
+                      padding: EdgeInsets.fromLTRB(16, 14, 16, 6),
+                      child: Text(
+                        'Recently opened',
+                        style: TextStyle(fontWeight: FontWeight.w800),
+                      ),
+                    ),
+                    for (final ref in recentRefs)
+                      if (!hiddenCourseIds.contains(courseIdForRef(ref)))
+                        recentCourseTile(ctx, ref),
+                  ],
+                  const Divider(),
+                  const Padding(
+                    padding: EdgeInsets.fromLTRB(16, 4, 16, 6),
+                    child: Text(
+                      'All included courses',
+                      style: TextStyle(fontWeight: FontWeight.w800),
+                    ),
+                  ),
+                  for (final code in codes)
+                    if (!hiddenCourseIds.contains(
+                      bundledCourses[code]!.courseId,
+                    ))
+                      courseTile(
+                        key: ValueKey('bundled-course-$code'),
+                        rowId: 'bundled-$code',
+                        course: bundledCourses[code]!,
+                        leading: CourseFlagBadge(
+                          course: bundledCourses[code]!,
+                          fallbackCode: code,
+                        ),
+                        subtitle: Text(
+                          '${CourseService.sourceLabels[code] ?? 'English'} → ${CourseService.targetLabels[code] ?? code}'
+                          ' · Bundled official${CourseService.hasCourse(code) ? '' : ' · Coming soon'}',
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        selected: _selectedCourseRef == code,
+                        onTap: () {
+                          if (bundledCourses[code]!.courseId !=
+                              _course?.courseId) {
+                            selectedCourseSwitch = () => _switchCourse(code);
+                          }
+                          Navigator.pop(ctx);
+                        },
+                      ),
+                  if (localCourses.isNotEmpty) ...[
+                    const Divider(),
+                    const Padding(
+                      padding: EdgeInsets.fromLTRB(16, 8, 16, 6),
+                      child: Text(
+                        'Local courses',
+                        style: TextStyle(fontWeight: FontWeight.w800),
+                      ),
+                    ),
+                    for (final course in localCourses)
+                      if (!hiddenCourseIds.contains(course.courseId))
+                        courseTile(
+                          key: ValueKey('local-course-${course.courseId}'),
+                          rowId: 'local-${course.courseId}',
+                          course: course,
+                          leading: CourseFlagBadge(
+                            course: course,
+                            fallbackCode: CourseService.codeForCourse(course),
+                          ),
+                          subtitle: Text(
+                            '${course.sourceLanguage} → ${course.targetLanguage}'
+                            ' · ${originLabel(course)}',
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          selected:
+                              _selectedCourseRef == 'custom:${course.courseId}',
+                          onTap: () {
+                            if (course.courseId != _course?.courseId) {
+                              selectedCourseSwitch = () =>
+                                  _switchCustomCourse(course);
+                            }
+                            Navigator.pop(ctx);
+                          },
+                        ),
+                  ],
+                  if (hiddenCourseIds.isNotEmpty) ...[
+                    const Divider(height: 28),
+                    ListTile(
+                      key: const Key('course-selector-hidden-courses'),
+                      leading: const Icon(Icons.visibility_off_outlined),
+                      title: Text('Hidden courses (${hiddenCourseIds.length})'),
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: () => showHiddenCourses(overlayContext),
+                    ),
+                  ],
+                  const Divider(height: 28),
+                  const Padding(
+                    padding: EdgeInsets.fromLTRB(16, 0, 16, 6),
+                    child: Text(
+                      'Editor',
+                      style: TextStyle(fontWeight: FontWeight.w800),
+                    ),
+                  ),
+                  ListTile(
+                    key: const Key('course-selector-edit-current'),
+                    leading: const Icon(Icons.edit_outlined),
+                    title: const Text('Edit current course'),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () => openCourseManager(ctx, editCurrent: true),
+                  ),
+                  ListTile(
+                    key: const Key('course-selector-course-manager'),
+                    leading: const Icon(Icons.library_books_outlined),
+                    title: const Text('Course Manager'),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () => openCourseManager(ctx, editCurrent: false),
+                  ),
+                ],
               ),
-              ListTile(
-                key: const Key('course-selector-edit-current'),
-                leading: const Icon(Icons.edit_outlined),
-                title: const Text('Edit current course'),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () => openCourseManager(ctx, editCurrent: true),
-              ),
-              ListTile(
-                key: const Key('course-selector-course-manager'),
-                leading: const Icon(Icons.library_books_outlined),
-                title: const Text('Course Manager'),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () => openCourseManager(ctx, editCurrent: false),
-              ),
-            ],
-          ),
-        ),
+            ),
+          );
+        },
       ),
     );
     if (!mounted || !overlayContext.mounted) return;
+    if (selectedCourseSwitch != null) {
+      // The sheet's result resolves when reverse animation starts. Wait through
+      // that dismissal so its row-menu semantics are disposed before the
+      // destination Course rebuild and optional entry overlay begin.
+      await Future<void>.delayed(const Duration(milliseconds: 250));
+      if (!mounted || !overlayContext.mounted) return;
+    }
     await selectedCourseSwitch?.call();
   }
 
@@ -1153,6 +1377,42 @@ class _HomeScreenState extends State<HomeScreen> {
         completedLessons: _completedLessons,
         wonDuels: _wonDuels,
       );
+
+  bool _hasLessonAccess(
+    Course course,
+    int index, {
+    LearnerIddqdMode? iddqdMode,
+  }) {
+    if (index < 0 || index >= course.lessons.length) return false;
+    final lesson = course.lessons[index];
+    return _isLessonUnlocked(course, index) ||
+        (iddqdMode ?? _iddqdMode).bypassesLocks ||
+        _sessionPreviewedLockedLessons.contains((
+          courseId: course.courseId,
+          lessonId: lesson.lessonId,
+        ));
+  }
+
+  int _nearestAccessibleLessonIndex(
+    Course course, {
+    LearnerIddqdMode? iddqdMode,
+  }) {
+    if (course.lessons.isEmpty) return 0;
+    if (_hasLessonAccess(course, _activeLessonIndex, iddqdMode: iddqdMode)) {
+      return _activeLessonIndex;
+    }
+    for (var index = _activeLessonIndex - 1; index >= 0; index--) {
+      if (_hasLessonAccess(course, index, iddqdMode: iddqdMode)) return index;
+    }
+    for (
+      var index = _activeLessonIndex + 1;
+      index < course.lessons.length;
+      index++
+    ) {
+      if (_hasLessonAccess(course, index, iddqdMode: iddqdMode)) return index;
+    }
+    return 0;
+  }
 
   void _resetLockedLessonTapSequence() {
     _lockedLessonTapResetTimer?.cancel();
@@ -1275,6 +1535,7 @@ class _HomeScreenState extends State<HomeScreen> {
       );
 
   void _schedulePrimaryLessonSync(Course course) {
+    if (_lessonExpansionMode == LearnerLessonExpansionMode.focused) return;
     if (_lessonVisibilityCheckScheduled) return;
     _lessonVisibilityCheckScheduled = true;
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -1685,6 +1946,20 @@ class _HomeScreenState extends State<HomeScreen> {
                                         courseId: course.courseId,
                                         lessonId: sectionLesson.lessonId,
                                       ));
+                                  final hasAccess =
+                                      unlocked ||
+                                      _iddqdMode.bypassesLocks ||
+                                      previewOnly;
+                                  final lessonExpanded =
+                                      LessonExpansionPolicy.isExpanded(
+                                        mode: _lessonExpansionMode,
+                                        hasAccess: hasAccess,
+                                        isCompleted: _completedLessons.contains(
+                                          sectionLesson.lessonId,
+                                        ),
+                                        isCurrent:
+                                            lessonIndex == _activeLessonIndex,
+                                      );
                                   return _LessonSection(
                                     key: ValueKey(
                                       'unified-lesson-section-${sectionLesson.lessonId}',
@@ -1710,10 +1985,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                     showBoundary: lessonIndex > 0,
                                     showSectionHeader: showSectionHeader,
                                     unlocked: unlocked,
-                                    hasAccess:
-                                        unlocked ||
-                                        _iddqdMode.bypassesLocks ||
-                                        previewOnly,
+                                    hasAccess: hasAccess,
+                                    isExpanded: lessonExpanded,
                                     iddqdAccessMode:
                                         !unlocked && _iddqdMode.bypassesLocks
                                         ? _iddqdMode
@@ -1738,6 +2011,15 @@ class _HomeScreenState extends State<HomeScreen> {
                                     ),
                                     onOpenDuel: () =>
                                         _openDuel(course, sectionLesson),
+                                    onExpand:
+                                        _lessonExpansionMode ==
+                                                LearnerLessonExpansionMode
+                                                    .focused &&
+                                            !lessonExpanded &&
+                                            hasAccess
+                                        ? () =>
+                                              _selectLesson(course, lessonIndex)
+                                        : null,
                                     onLockedTap:
                                         unlocked || _iddqdMode.bypassesLocks
                                         ? null
@@ -1771,7 +2053,19 @@ class _HomeScreenState extends State<HomeScreen> {
                             iddqdMode: _iddqdMode,
                             onIddqdChanged: (value) async {
                               final previous = _iddqdMode;
-                              setState(() => _iddqdMode = value);
+                              final previousLessonIndex = _activeLessonIndex;
+                              final nextLessonIndex =
+                                  _lessonExpansionMode ==
+                                      LearnerLessonExpansionMode.focused
+                                  ? _nearestAccessibleLessonIndex(
+                                      course,
+                                      iddqdMode: value,
+                                    )
+                                  : _activeLessonIndex;
+                              setState(() {
+                                _iddqdMode = value;
+                                _activeLessonIndex = nextLessonIndex;
+                              });
                               try {
                                 await _settings.setIddqdMode(
                                   course.courseId,
@@ -1779,8 +2073,53 @@ class _HomeScreenState extends State<HomeScreen> {
                                 );
                               } catch (_) {
                                 if (mounted) {
-                                  setState(() => _iddqdMode = previous);
+                                  setState(() {
+                                    _iddqdMode = previous;
+                                    _activeLessonIndex = previousLessonIndex;
+                                  });
                                 }
+                                return;
+                              }
+                              if (nextLessonIndex != previousLessonIndex) {
+                                await _settings.setLastVisitedLessonId(
+                                  course.courseId,
+                                  course.lessons[nextLessonIndex].lessonId,
+                                );
+                                _scrollToLesson(course, nextLessonIndex);
+                              }
+                            },
+                            lessonExpansionMode: _lessonExpansionMode,
+                            onLessonExpansionChanged: (value) async {
+                              final previous = _lessonExpansionMode;
+                              final previousLessonIndex = _activeLessonIndex;
+                              final nextLessonIndex =
+                                  value == LearnerLessonExpansionMode.focused
+                                  ? _nearestAccessibleLessonIndex(course)
+                                  : _activeLessonIndex;
+                              setState(() {
+                                _lessonExpansionMode = value;
+                                _activeLessonIndex = nextLessonIndex;
+                              });
+                              try {
+                                await _settings.setLessonExpansionMode(
+                                  course.courseId,
+                                  value,
+                                );
+                              } catch (_) {
+                                if (mounted) {
+                                  setState(() {
+                                    _lessonExpansionMode = previous;
+                                    _activeLessonIndex = previousLessonIndex;
+                                  });
+                                }
+                                return;
+                              }
+                              if (nextLessonIndex != previousLessonIndex) {
+                                await _settings.setLastVisitedLessonId(
+                                  course.courseId,
+                                  course.lessons[nextLessonIndex].lessonId,
+                                );
+                                _scrollToLesson(course, nextLessonIndex);
                               }
                             },
                             onCourseInfo: () {
@@ -1896,6 +2235,7 @@ class _LessonSection extends StatelessWidget {
   final bool showSectionHeader;
   final bool unlocked;
   final bool hasAccess;
+  final bool isExpanded;
   final LearnerIddqdMode? iddqdAccessMode;
   final bool previewOnly;
   final Set<String> completedRounds;
@@ -1905,6 +2245,7 @@ class _LessonSection extends StatelessWidget {
   final VoidCallback onOpenGuidebook;
   final void Function(LearningRound round) onOpenRound;
   final VoidCallback onOpenDuel;
+  final VoidCallback? onExpand;
   final VoidCallback? onLockedTap;
 
   const _LessonSection({
@@ -1920,6 +2261,7 @@ class _LessonSection extends StatelessWidget {
     required this.showSectionHeader,
     required this.unlocked,
     required this.hasAccess,
+    required this.isExpanded,
     required this.iddqdAccessMode,
     required this.previewOnly,
     required this.completedRounds,
@@ -1929,6 +2271,7 @@ class _LessonSection extends StatelessWidget {
     required this.onOpenGuidebook,
     required this.onOpenRound,
     required this.onOpenDuel,
+    required this.onExpand,
     required this.onLockedTap,
   });
 
@@ -1945,7 +2288,7 @@ class _LessonSection extends StatelessWidget {
         const Divider(),
       ],
       if (showSectionHeader) LessonSectionHeader(lesson: lesson),
-      if (previewOnly)
+      if (previewOnly && isExpanded)
         Align(
           alignment: Alignment.center,
           child: Container(
@@ -1992,6 +2335,7 @@ class _LessonSection extends StatelessWidget {
         unlocked: unlocked,
         iddqdAccessMode: iddqdAccessMode,
         onLockedTap: onLockedTap,
+        onExpandLesson: onExpand,
         onTap:
             hasAccess &&
                 !previewOnly &&
@@ -2029,7 +2373,7 @@ class _LessonSection extends StatelessWidget {
             ],
           ),
         )
-      else ...[
+      else if (isExpanded) ...[
         const _VerticalConnector(),
         LearnerRoundPath(
           courseId: courseId,
@@ -2116,6 +2460,7 @@ class _GuidebookNode extends StatelessWidget {
   final LearnerIddqdMode? iddqdAccessMode;
   final VoidCallback? onLockedTap;
   final VoidCallback? onTap;
+  final VoidCallback? onExpandLesson;
 
   const _GuidebookNode({
     required this.lesson,
@@ -2125,6 +2470,7 @@ class _GuidebookNode extends StatelessWidget {
     required this.iddqdAccessMode,
     required this.onLockedTap,
     required this.onTap,
+    required this.onExpandLesson,
   });
 
   @override
@@ -2137,6 +2483,12 @@ class _GuidebookNode extends StatelessWidget {
       onPressed: onTap,
       color: isDark ? Colors.white : Colors.black87,
       icon: const Icon(Icons.menu_book_outlined, size: 24),
+    );
+    final expandAction = IconButton(
+      key: ValueKey('lesson-expansion-action-${lesson.lessonId}'),
+      tooltip: 'Open Lesson',
+      onPressed: onExpandLesson,
+      icon: const Icon(Icons.expand_more),
     );
     final identity = const LessonPresentationService().identity(
       course,
@@ -2179,7 +2531,7 @@ class _GuidebookNode extends StatelessWidget {
             child: InkWell(
               borderRadius: BorderRadius.circular(18),
               excludeFromSemantics: !course.useGuidebook,
-              onTap: course.useGuidebook ? onTap : null,
+              onTap: onExpandLesson ?? (course.useGuidebook ? onTap : null),
               child: Padding(
                 padding: const EdgeInsets.all(12),
                 child: Column(
@@ -2298,7 +2650,9 @@ class _GuidebookNode extends StatelessWidget {
                             ),
                           ),
                         ),
-                        if (course.useGuidebook)
+                        if (onExpandLesson != null)
+                          expandAction
+                        else if (course.useGuidebook)
                           bookAction
                         else
                           ExcludeSemantics(

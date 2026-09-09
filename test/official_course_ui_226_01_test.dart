@@ -11,6 +11,7 @@ import 'package:quisquislingo_app/screens/course_version_history_screen.dart';
 import 'package:quisquislingo_app/screens/official_course_inspection_screen.dart';
 import 'package:quisquislingo_app/screens/round_screen.dart';
 import 'package:quisquislingo_app/services/course_backup_service.dart';
+import 'package:quisquislingo_app/services/course_access_policy.dart';
 import 'package:quisquislingo_app/services/course_editor_service.dart';
 import 'package:quisquislingo_app/services/course_service.dart';
 import 'package:quisquislingo_app/services/profile_service.dart';
@@ -58,11 +59,11 @@ void main() {
       await _storeSource(official);
       final before = await _preferences();
       await _open(tester, official, service);
-      expect(find.byType(OfficialCourseInspectionScreen), findsOneWidget);
-      expect(find.text('Official course - read only'), findsOneWidget);
+      expect(find.byType(CourseEditorScreen), findsOneWidget);
+      expect(find.text('Read-only course'), findsOneWidget);
       _expectNoAuthoring();
 
-      await tester.tap(find.byKey(const Key('official-course-info')));
+      await tester.tap(find.byKey(const Key('course-editor-course-info')));
       await _settle(tester);
       expect(find.byType(CourseInfoScreen), findsOneWidget);
       expect(find.textContaining('Original Publisher'), findsWidgets);
@@ -70,14 +71,14 @@ void main() {
       _expectNoAuthoring();
       await _back(tester);
 
-      await tester.tap(find.byKey(const Key('official-course-audit')));
+      await tester.tap(find.byKey(const Key('course-editor-audit')));
       await _settle(tester);
       expect(find.byType(CourseAuditScreen), findsOneWidget);
       expect(find.byKey(const Key('copy-audit-report')), findsOneWidget);
       _expectNoAuthoring();
       await _back(tester);
 
-      await tester.tap(find.byKey(const Key('official-course-history')));
+      await tester.tap(find.byKey(const Key('course-editor-version-history')));
       await _settle(tester);
       expect(find.byType(CourseVersionHistoryScreen), findsOneWidget);
       expect(find.text('Restore this version'), findsNothing);
@@ -86,7 +87,11 @@ void main() {
       expect(backups.customHistoryReads, 0);
       await _back(tester);
 
-      await tester.tap(find.byKey(const ValueKey('official-lesson-lesson')));
+      await tester.tap(
+        find.byKey(const Key('course-editor-lessons-navigation')),
+      );
+      await _settle(tester);
+      await tester.tap(find.byKey(const ValueKey('lesson-entry-lesson')));
       await _settle(tester);
       expect(find.text('Guidebook'), findsOneWidget);
       expect(find.text('Preview Lesson'), findsOneWidget);
@@ -121,23 +126,10 @@ void main() {
     DerivativeWorksPolicy.forbidden,
     DerivativeWorksPolicy.unspecified,
   ]) {
-    testWidgets('$policy disables the fork action with an explanation', (
-      tester,
-    ) async {
+    testWidgets('$policy hides the fork action', (tester) async {
       final official = _official(policy: policy);
       await _open(tester, official, service);
-      final action = tester.widget<FilledButton>(
-        find.byKey(const Key('fork-official-course')),
-      );
-      expect(action.onPressed, isNull);
-      expect(
-        find.textContaining(
-          policy == DerivativeWorksPolicy.forbidden
-              ? 'publisher forbids derivative works'
-              : 'has not been specified by the publisher',
-        ),
-        findsOneWidget,
-      );
+      expect(find.byKey(const Key('course-editor-fork-course')), findsNothing);
       expect(await service.listUserCourses(), isEmpty);
     });
   }
@@ -148,12 +140,12 @@ void main() {
       final official = _official();
       final original = official.toJson();
       await _open(tester, official, service);
-      await tester.tap(find.byKey(const Key('fork-official-course')));
+      await tester.tap(find.byKey(const Key('course-editor-fork-course')));
       await _settle(tester);
       final editor = tester.widget<CourseEditorScreen>(
         find.byType(CourseEditorScreen).last,
       );
-      expect(editor.isNewCourse, isTrue);
+      expect(editor.isNewCourse, isFalse);
       expect(editor.course.originType, CourseOriginType.custom);
       expect(editor.course.courseId, isNot(official.courseId));
       expect(editor.course.authors.single.name, 'Original Author');
@@ -161,7 +153,7 @@ void main() {
         editor.course.forkProvenance!.forkCreatedByUsername,
         'Fork Creator',
       );
-      expect(await service.listUserCourses(), isEmpty);
+      expect(await service.listUserCourses(), hasLength(1));
       await tester.tap(find.text('Course Info Editor'));
       await _settle(tester);
       expect(find.byType(CourseForkProvenanceCard), findsOneWidget);
@@ -170,24 +162,22 @@ void main() {
         findsOneWidget,
       );
       expect(find.textContaining('Forked by: Fork Creator'), findsOneWidget);
-      final title = find.byWidgetPredicate(
-        (widget) =>
-            widget is TextField &&
-            widget.decoration?.labelText == 'Course name',
-      );
+      final title = find.byKey(const Key('course-info-title'));
       await tester.enterText(title, 'My renamed custom fork');
-      await tester.tap(find.widgetWithText(FilledButton, 'Save'));
+      await tester.tap(find.byKey(const Key('course-info-save')));
       await _settle(tester);
+      expect(find.text('My renamed custom fork'), findsOneWidget);
       await _back(tester);
       expect(
         find.byKey(const Key('course-transaction-confirmation')),
         findsOneWidget,
       );
       await tester.tap(find.byKey(const Key('confirm-course-changes')));
-      await _settle(tester, frames: 30);
+      await _settle(tester);
+      expect(find.byType(CourseEditorScreen), findsOneWidget);
       final saved = (await service.listUserCourses()).single;
       expect(saved.title, 'My renamed custom fork');
-      expect(saved.courseVersion, '1');
+      expect(saved.courseVersion, '2');
       expect(saved.authors.single.name, 'Original Author');
       expect(saved.forkProvenance!.originalCourseTitle, official.title);
       expect(
@@ -196,7 +186,7 @@ void main() {
       );
       expect(saved.forkProvenance!.forkCreatedByProfileId, _profileId);
       expect(official.toJson(), original);
-      expect(find.byType(OfficialCourseInspectionScreen), findsOneWidget);
+      expect(find.byType(CourseEditorScreen), findsOneWidget);
     },
   );
 
@@ -204,12 +194,21 @@ void main() {
     'missing official source fails closed without edit or fork actions',
     (tester) async {
       final course = _official(origin: CourseOriginType.externalOfficial);
-      await _open(tester, course, service);
+      await tester.pumpWidget(
+        MaterialApp(
+          home: OfficialCourseInspectionScreen(
+            course: course,
+            editorService: service,
+            courseService: CourseService(),
+          ),
+        ),
+      );
+      await _settle(tester);
       expect(
         find.textContaining('immutable official source is unavailable'),
         findsOneWidget,
       );
-      expect(find.byKey(const Key('fork-official-course')), findsNothing);
+      expect(find.byKey(const Key('course-editor-fork-course')), findsNothing);
       _expectNoAuthoring();
     },
   );
@@ -226,9 +225,9 @@ void main() {
             width: width,
             brightness: brightness,
           );
-          expect(find.text('Official course - read only'), findsOneWidget);
+          expect(find.text('Read-only course'), findsOneWidget);
           expect(tester.takeException(), isNull);
-          await tester.tap(find.byKey(const Key('official-course-info')));
+          await tester.tap(find.byKey(const Key('course-editor-course-info')));
           await _settle(tester);
           expect(tester.takeException(), isNull);
         },
@@ -278,6 +277,10 @@ Future<void> _open(
             MaterialPageRoute(
               builder: (_) => CourseEditorScreen(
                 course: course,
+                access: CourseAccessPolicy.evaluate(
+                  course,
+                  profileId: _profileId,
+                ),
                 editorService: service,
                 courseService: _OfficialSource(course),
               ),
@@ -333,8 +336,14 @@ class _HistoryBackups extends CourseBackupService {
   Future<Directory> courseBackupDirectory(
     String courseId, {
     bool create = false,
-  }) async =>
-      Directory('${Directory.systemTemp.path}/qql_22601_readonly_ui/$courseId');
+  }) async {
+    final directory = Directory(
+      '${Directory.systemTemp.path}/qql_22601_readonly_ui/$courseId',
+    );
+    if (create) await directory.create(recursive: true);
+    return directory;
+  }
+
   @override
   Future<List<CourseBackupRecord>> listOfficialBackups(String courseId) async {
     officialHistoryReads++;
@@ -346,6 +355,20 @@ class _HistoryBackups extends CourseBackupService {
     customHistoryReads++;
     return [];
   }
+
+  @override
+  Future<CourseBackupRecord> createBackup(
+    Course course, {
+    required DateTime backedUpAt,
+    required String reason,
+  }) async => CourseBackupRecord(
+    manifestFile: File('${Directory.systemTemp.path}/$course.courseId.json'),
+    course: course,
+    checksum: CourseBackupService.courseChecksum(course),
+    backedUpAtUtc: backedUpAt.toUtc(),
+    reason: reason,
+    assets: const [],
+  );
 }
 
 Course _official({

@@ -1,9 +1,9 @@
 import 'dart:convert';
 import 'dart:math';
 
-/// QuisquisLingo Course Model v6.
+/// QuisquisLingo Course Model v7.
 ///
-/// The serialized course format is formatVersion 6. Course content is stored as
+/// The serialized course format is formatVersion 7. Course content is stored as
 /// Course > Lesson > Guidebook + Round > Content. Exercises are one Content kind
 /// and are represented through Prompt + Interaction + Evaluation primitives.
 ///
@@ -49,6 +49,53 @@ enum CourseOriginType {
   }
 
   bool get isOfficial => this != CourseOriginType.custom;
+}
+
+enum CourseOwnerType {
+  individual,
+  team;
+
+  static CourseOwnerType parse(Object? value) => values.firstWhere(
+    (type) => type.name == value,
+    orElse: () => throw const FormatException(
+      'course.ownership.type must be individual or team.',
+    ),
+  );
+}
+
+/// Stable authorization ownership for a custom course.
+///
+/// This is deliberately separate from visible authorship and other credits.
+class CourseOwnership {
+  static final RegExp _uuidV4 = RegExp(
+    r'^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$',
+  );
+
+  final CourseOwnerType type;
+  final String id;
+
+  const CourseOwnership({required this.type, required this.id});
+
+  const CourseOwnership.individual(String profileId)
+    : type = CourseOwnerType.individual,
+      id = profileId;
+
+  const CourseOwnership.team(String teamId)
+    : type = CourseOwnerType.team,
+      id = teamId;
+
+  Map<String, dynamic> toJson() => {'type': type.name, 'id': id};
+
+  factory CourseOwnership.fromJson(Map<String, dynamic> json) {
+    final type = CourseOwnerType.parse(json['type']);
+    final id = _requiredString(json, 'id', 'course.ownership');
+    if (!_uuidV4.hasMatch(id)) {
+      throw const FormatException(
+        'course.ownership.id must be a stable UUIDv4 identity.',
+      );
+    }
+    return CourseOwnership(type: type, id: id);
+  }
 }
 
 enum PublisherVerificationStatus {
@@ -356,7 +403,13 @@ class CourseForkProvenance {
 }
 
 class Course {
-  static const int currentFormatVersion = 6;
+  static const int currentFormatVersion = 7;
+
+  /// In-memory fixture identity used only by direct Dart constructors.
+  /// Serialized v7 custom JSON must still provide Creator and Owner explicitly,
+  /// and storage authorization never grants this detached identity rights.
+  static const String detachedInMemoryProfileId =
+      '00000000-0000-4000-8000-000000000000';
   final int formatVersion;
   final String courseId;
   final CourseOriginType originType;
@@ -369,6 +422,8 @@ class Course {
   final String distributionChannel;
   final PublisherVerificationStatus publisherVerificationStatus;
   final String publisherSignature;
+  final String creatorProfileId;
+  final CourseOwnership? ownership;
   final String createdByProfileId;
   final String createdByUsername;
   final String createdAtUtc;
@@ -436,6 +491,8 @@ class Course {
     this.distributionChannel = '',
     this.publisherVerificationStatus = PublisherVerificationStatus.unverified,
     this.publisherSignature = '',
+    String? creatorProfileId,
+    CourseOwnership? ownership,
     this.createdByProfileId = '',
     this.createdByUsername = '',
     this.createdAtUtc = '',
@@ -485,13 +542,29 @@ class Course {
     this.lessonIconAssets = const [],
     this.audioLibrary = const [],
     required this.lessons,
-  }) : sectionNames = _normalizeSectionNames(sectionNames),
+  }) : creatorProfileId =
+           creatorProfileId ??
+           (originType == CourseOriginType.custom
+               ? detachedInMemoryProfileId
+               : ''),
+       ownership =
+           ownership ??
+           (originType == CourseOriginType.custom
+               ? const CourseOwnership.individual(detachedInMemoryProfileId)
+               : null),
+       sectionNames = _normalizeSectionNames(sectionNames),
        worldFlagId = worldFlagId.trim(),
        customLessonLabel = customLessonLabel.trim(),
        buyACoffeeUrl = normalizeBuyACoffeeUrl(buyACoffeeUrl) {
     if (originType.isOfficial && forkProvenance != null) {
       throw const FormatException(
         'Only custom courses can have fork provenance.',
+      );
+    }
+    if (originType.isOfficial &&
+        (this.creatorProfileId.isNotEmpty || this.ownership != null)) {
+      throw const FormatException(
+        'Official courses use publisher provenance and cannot have custom-course ownership.',
       );
     }
     if (lessonNumberingMode == LessonNumberingMode.other &&
@@ -510,6 +583,16 @@ class Course {
       throw const FormatException(
         'Official courses require publisher, official version, release date, checksum and distribution channel provenance.',
       );
+    }
+    if (originType == CourseOriginType.custom &&
+        (this.creatorProfileId.isNotEmpty || this.ownership != null)) {
+      if (!CourseOwnership._uuidV4.hasMatch(this.creatorProfileId) ||
+          this.ownership == null ||
+          !CourseOwnership._uuidV4.hasMatch(this.ownership!.id)) {
+        throw const FormatException(
+          'Custom-course Creator and Owner must use stable UUIDv4 identities.',
+        );
+      }
     }
     for (final timestamp in {
       'officialReleaseDateUtc': officialReleaseDateUtc,
@@ -594,6 +677,8 @@ class Course {
     if (originType.isOfficial)
       'publisherVerificationStatus': publisherVerificationStatus.name,
     if (publisherSignature.isNotEmpty) 'publisherSignature': publisherSignature,
+    if (creatorProfileId.isNotEmpty) 'creatorProfileId': creatorProfileId,
+    if (ownership != null) 'ownership': ownership!.toJson(),
     if (createdByProfileId.isNotEmpty) 'createdByProfileId': createdByProfileId,
     if (createdByUsername.isNotEmpty) 'createdByUsername': createdByUsername,
     if (createdAtUtc.isNotEmpty) 'createdAtUtc': createdAtUtc,
@@ -661,22 +746,22 @@ class Course {
     final fv = json['formatVersion'];
     if (fv != currentFormatVersion) {
       throw FormatException(
-        'Unsupported course formatVersion: $fv. This version of QuisquisLingo supports Course Model formatVersion 6 only. Older course formats are not migrated or partially loaded.',
+        'Unsupported course formatVersion: $fv. This version of QuisquisLingo supports Course Model formatVersion 7 only. Older course formats are not migrated or partially loaded.',
       );
     }
     if (json.containsKey('topics')) {
       throw const FormatException(
-        'Course Model formatVersion 6 does not support the legacy topics field.',
+        'Course Model formatVersion 7 does not support the legacy topics field.',
       );
     }
     if (json.containsKey('chapters')) {
       throw const FormatException(
-        'Course Model formatVersion 6 does not support chapters.',
+        'Course Model formatVersion 7 does not support chapters.',
       );
     }
     if (json.containsKey('supportUrl')) {
       throw const FormatException(
-        'Course Model formatVersion 6 uses buyACoffeeUrl, not supportUrl.',
+        'Course Model formatVersion 7 uses buyACoffeeUrl, not supportUrl.',
       );
     }
     if (json.containsKey('buyACoffeeUrl') && json['buyACoffeeUrl'] is! String) {
@@ -684,10 +769,25 @@ class Course {
     }
     final learning = _requiredString(json, 'learningLanguage', 'course');
     final interface = _requiredString(json, 'interfaceLanguage', 'course');
+    final originType = CourseOriginType.parse(json);
+    final creatorProfileId = originType == CourseOriginType.custom
+        ? _requiredString(json, 'creatorProfileId', 'course')
+        : _optionalString(json, 'creatorProfileId', '');
+    final ownership = json['ownership'];
+    if (originType == CourseOriginType.custom && ownership is! Map) {
+      throw const FormatException(
+        'Course Model v7 custom courses require explicit course.ownership.',
+      );
+    }
+    if (originType.isOfficial && ownership != null) {
+      throw const FormatException(
+        'Official courses cannot contain custom-course ownership.',
+      );
+    }
     return Course(
       formatVersion: currentFormatVersion,
       courseId: _requiredString(json, 'courseId', 'course'),
-      originType: CourseOriginType.parse(json),
+      originType: originType,
       publisherId: _optionalString(json, 'publisherId', ''),
       publisherName: _optionalString(json, 'publisherName', ''),
       officialCourseVersion: _optionalString(json, 'officialCourseVersion', ''),
@@ -701,6 +801,10 @@ class Course {
       distributionChannel: _optionalString(json, 'distributionChannel', ''),
       publisherVerificationStatus: PublisherVerificationStatus.parse(json),
       publisherSignature: _optionalString(json, 'publisherSignature', ''),
+      creatorProfileId: creatorProfileId,
+      ownership: ownership is Map
+          ? CourseOwnership.fromJson(Map<String, dynamic>.from(ownership))
+          : null,
       createdByProfileId: _optionalString(json, 'createdByProfileId', ''),
       createdByUsername: _optionalString(json, 'createdByUsername', ''),
       createdAtUtc: _optionalString(json, 'createdAtUtc', ''),
@@ -817,7 +921,7 @@ class Course {
     return 'course_${hex(8)}-${hex(4)}-4${hex(3)}-${(8 + random.nextInt(4)).toRadixString(16)}${hex(3)}-${hex(12)}';
   }
 
-  Course fork() {
+  Course fork({String? creatorProfileId, CourseOwnership? ownership}) {
     if (originType.isOfficial) {
       throw StateError(
         'Official courses require the licensed Fork as custom course workflow.',
@@ -832,6 +936,8 @@ class Course {
           ? officialCourseVersion
           : courseVersion
       ..['courseVersion'] = '';
+    if (creatorProfileId != null) json['creatorProfileId'] = creatorProfileId;
+    if (ownership != null) json['ownership'] = ownership.toJson();
     for (final key in const [
       'publisherId',
       'publisherName',
@@ -1107,12 +1213,12 @@ class Lesson {
     }
     if (j.containsKey('id') || j.containsKey('topicId')) {
       throw const FormatException(
-        'Course Model formatVersion 6 Lessons require lessonId and reject legacy Lesson identity fields.',
+        'Course Model formatVersion 7 Lessons require lessonId and reject legacy Lesson identity fields.',
       );
     }
     if (j.containsKey('role') || j.containsKey('assessment')) {
       throw const FormatException(
-        'Course Model formatVersion 6 Lessons do not support role or assessment fields.',
+        'Course Model formatVersion 7 Lessons do not support role or assessment fields.',
       );
     }
     final rawGuidebook = j['guidebook'];
@@ -1130,7 +1236,7 @@ class Lesson {
     }
     if (j.containsKey('imageAsset')) {
       throw const FormatException(
-        'Course Model formatVersion 6 Lessons do not support the obsolete imageAsset field.',
+        'Course Model formatVersion 7 Lessons do not support the obsolete imageAsset field.',
       );
     }
     if (j.containsKey('sectionName') &&
@@ -1592,19 +1698,19 @@ class ExerciseEvaluation {
   factory ExerciseEvaluation.fromJson(Map<String, dynamic> j) {
     if (j.containsKey('accepted')) {
       throw const FormatException(
-        'Course Model formatVersion 6 uses acceptedAnswers and does not load the legacy accepted field.',
+        'Course Model formatVersion 7 uses acceptedAnswers and does not load the legacy accepted field.',
       );
     }
     if (j.containsKey('correctOrder')) {
       throw const FormatException(
-        'Course Model formatVersion 6 requires correctOrders and does not load the legacy single correctOrder field.',
+        'Course Model formatVersion 7 requires correctOrders and does not load the legacy single correctOrder field.',
       );
     }
     if (j.containsKey('caseSensitive') ||
         j.containsKey('ignorePunctuation') ||
         j.containsKey('ignoreAccents')) {
       throw const FormatException(
-        'Course Model formatVersion 6 requires the normalization object and does not load legacy normalization flags.',
+        'Course Model formatVersion 7 requires the normalization object and does not load legacy normalization flags.',
       );
     }
     final normalization = j['normalization'] is Map

@@ -32,7 +32,7 @@ class CourseBackupRecord {
 /// Durable, course-scoped backups for final Course Editor transactions.
 ///
 /// Backups live outside application storage under the existing resolved
-/// Documents/QuisquisLingo/Exports tree. A manifest contains the complete v6
+/// Documents/QuisquisLingo/Exports tree. A manifest contains the complete v7
 /// course plus SHA-256 integrity data; local course-owned file assets are
 /// copied alongside it when they exist.
 class CourseBackupService {

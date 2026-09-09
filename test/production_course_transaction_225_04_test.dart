@@ -547,7 +547,7 @@ void main() {
         courseService: _StubCourseService(official),
       );
       expect(find.text(official.title), findsWidgets);
-      expect(find.text('Official course - read only'), findsWidgets);
+      expect(find.text('Read-only course'), findsOneWidget);
       expect(find.text('Restore official version'), findsNothing);
       expect(
         find.byKey(const Key('course-transaction-confirmation')),
@@ -726,6 +726,8 @@ Finder _editorScroll() => find
 Course _course() => Course(
   courseId: 'transaction_ui_course',
   originType: CourseOriginType.custom,
+  creatorProfileId: _profileId,
+  ownership: const CourseOwnership.individual(_profileId),
   publicationState: PublicationState.draft,
   learningLanguage: 'Italian',
   interfaceLanguage: 'English',

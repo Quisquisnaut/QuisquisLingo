@@ -3,18 +3,16 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 
 import '../models/course_models.dart';
-import '../services/course_audit_service.dart';
 import '../services/course_editor_service.dart';
 import '../services/course_service.dart';
+import '../services/course_access_policy.dart';
 import 'course_editor_screen.dart';
-import 'course_info_screen.dart';
-import 'course_version_history_screen.dart';
 import 'guidebook_screen.dart';
 import 'round_screen.dart';
 import '../widgets/editor_app_bar_actions.dart';
 
-/// Official inspection resolves the publisher-owned source and never creates
-/// an authoring transaction. Only an explicitly licensed fork opens authoring.
+/// Compatibility entry point that resolves the immutable publisher source and
+/// opens the same capability-driven Course Editor used for custom courses.
 class OfficialCourseInspectionScreen extends StatefulWidget {
   const OfficialCourseInspectionScreen({
     super.key,
@@ -38,10 +36,11 @@ class _OfficialCourseInspectionScreenState
     extends State<OfficialCourseInspectionScreen> {
   late final _service = widget.editorService ?? CourseEditorService();
   late final _courseService = widget.courseService ?? CourseService();
+  final _access = CourseAccessPolicy();
   late final _source = _loadOfficialSource();
-  bool _forking = false;
 
-  Future<Course> _loadOfficialSource() async {
+  Future<({Course course, CourseAccessCapabilities access})>
+  _loadOfficialSource() async {
     final bundled = widget.course.originType == CourseOriginType.bundledOfficial
         ? await _courseService.loadBundledCourse(
             CourseService.codeForCourse(widget.course),
@@ -54,182 +53,40 @@ class _OfficialCourseInspectionScreenState
     if (source == null) {
       throw StateError('The immutable official source is unavailable.');
     }
-    return source;
-  }
-
-  Future<void> _fork(Course course) async {
-    if (_forking) return;
-    setState(() => _forking = true);
-    try {
-      final fork = await _service.forkOfficialCourse(course);
-      if (!mounted) return;
-      final result = await Navigator.of(context).push<CourseConfirmationResult>(
-        MaterialPageRoute(
-          builder: (_) => CourseEditorScreen(
-            course: fork,
-            userCourse: true,
-            isNewCourse: true,
-            editorService: _service,
-            clock: widget.clock,
-          ),
-        ),
-      );
-      if (result != null && mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Custom fork created: ${result.course.title}\n'
-              'Course version: ${result.course.courseVersion}',
-            ),
-          ),
-        );
-      }
-    } catch (error) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Custom fork could not be created: $error')),
-        );
-      }
-    } finally {
-      if (mounted) setState(() => _forking = false);
-    }
-  }
-
-  Future<void> _audit(Course course) async {
-    final issue = await Navigator.of(context).push<CourseAuditIssue>(
-      MaterialPageRoute(
-        builder: (_) => CourseAuditScreen(
-          course: course,
-          result: CourseAuditService().auditCourse(course),
-        ),
-      ),
-    );
-    if (issue == null || !mounted) return;
-    for (final lesson in course.lessons) {
-      for (var index = 0; index < lesson.rounds.length; index++) {
-        if (lesson.rounds[index].id != issue.roundId) continue;
-        await Navigator.of(context).push<void>(
-          MaterialPageRoute(
-            builder: (_) => _OfficialRoundInspectionScreen(
-              course: course,
-              lesson: lesson,
-              roundIndex: index,
-            ),
-          ),
-        );
-        return;
-      }
-    }
+    return (course: source, access: await _access.forCurrentProfile(source));
   }
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(
-      title: const Text('Course Editor'),
-      actions: const [EditorAppBarActions()],
-    ),
-    body: FutureBuilder<Course>(
-      future: _source,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState != ConnectionState.done) {
-          return const Center(child: CircularProgressIndicator());
-        }
-        if (snapshot.hasError) {
-          return Padding(
-            padding: const EdgeInsets.all(16),
-            child: Text(
-              'Official course could not be inspected: ${snapshot.error}',
-            ),
+  Widget build(BuildContext context) =>
+      FutureBuilder<({Course course, CourseAccessCapabilities access})>(
+        future: _source,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState != ConnectionState.done) {
+            return const Scaffold(
+              body: Center(child: CircularProgressIndicator()),
+            );
+          }
+          if (snapshot.hasError) {
+            return Scaffold(
+              appBar: AppBar(title: const Text('Course Editor')),
+              body: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Text(
+                  'Official course could not be inspected: ${snapshot.error}',
+                ),
+              ),
+            );
+          }
+          final value = snapshot.data!;
+          return CourseEditorScreen(
+            course: value.course,
+            access: value.access,
+            editorService: _service,
+            courseService: _courseService,
+            clock: widget.clock,
           );
-        }
-        final course = snapshot.data!;
-        final forkAllowed =
-            course.derivativeWorksPolicy == DerivativeWorksPolicy.allowed;
-        return ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
-            Text(
-              course.title,
-              style: Theme.of(context).textTheme.headlineSmall,
-            ),
-            const _ReadOnlyNotice(),
-            Text(
-              '${course.publisherName} · Official ${course.officialCourseVersion}',
-            ),
-            ListTile(
-              key: const Key('official-course-info'),
-              leading: const Icon(Icons.info_outline),
-              title: const Text('Course Info'),
-              onTap: () => Navigator.of(context).push<void>(
-                MaterialPageRoute(
-                  builder: (_) => CourseInfoScreen(course: course),
-                ),
-              ),
-            ),
-            ListTile(
-              key: const Key('official-course-audit'),
-              leading: const Icon(Icons.fact_check_outlined),
-              title: const Text('Audit'),
-              onTap: () => _audit(course),
-            ),
-            ListTile(
-              key: const Key('official-course-history'),
-              leading: const Icon(Icons.history_outlined),
-              title: const Text('Version history'),
-              onTap: () => Navigator.of(context).push<void>(
-                MaterialPageRoute(
-                  builder: (_) => CourseVersionHistoryScreen(
-                    course: course,
-                    backupService: _service.backupService,
-                  ),
-                ),
-              ),
-            ),
-            FilledButton.icon(
-              key: const Key('fork-official-course'),
-              onPressed: forkAllowed && !_forking ? () => _fork(course) : null,
-              icon: const Icon(Icons.fork_right_outlined),
-              label: const Text('Fork as custom course'),
-            ),
-            const SizedBox(height: 8),
-            Text(switch (course.derivativeWorksPolicy) {
-              DerivativeWorksPolicy.allowed =>
-                'The publisher permits derivative works. Create an independent editable custom course, preserving original authorship and provenance. Future official updates will not change your fork.',
-              DerivativeWorksPolicy.forbidden =>
-                'A custom fork is unavailable because the publisher forbids derivative works.',
-              DerivativeWorksPolicy.unspecified =>
-                'A custom fork is unavailable because permission for derivative works has not been specified by the publisher.',
-            }),
-            const Divider(height: 24),
-            Text('Lessons', style: Theme.of(context).textTheme.titleMedium),
-            for (var index = 0; index < course.lessons.length; index++)
-              _OfficialHierarchyEntry(
-                label: 'Lesson',
-                id: course.lessons[index].lessonId,
-                tile: ListTile(
-                  key: ValueKey(
-                    'official-lesson-${course.lessons[index].lessonId}',
-                  ),
-                  title: Text(course.lessons[index].title),
-                  subtitle: Text(
-                    '${course.lessons[index].rounds.length} Rounds',
-                  ),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => Navigator.of(context).push<void>(
-                    MaterialPageRoute(
-                      builder: (_) => _OfficialLessonInspectionScreen(
-                        course: course,
-                        lessonIndex: index,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-          ],
-        );
-      },
-    ),
-  );
+        },
+      );
 }
 
 class _OfficialHierarchyEntry extends StatelessWidget {
@@ -263,14 +120,15 @@ class _ReadOnlyNotice extends StatelessWidget {
   Widget build(BuildContext context) => const Padding(
     padding: EdgeInsets.symmetric(vertical: 12),
     child: Text(
-      'Official course - read only',
+      'Course content - read only',
       style: TextStyle(fontWeight: FontWeight.w700),
     ),
   );
 }
 
-class _OfficialLessonInspectionScreen extends StatelessWidget {
-  const _OfficialLessonInspectionScreen({
+class CourseLessonInspectionScreen extends StatelessWidget {
+  const CourseLessonInspectionScreen({
+    super.key,
     required this.course,
     required this.lessonIndex,
   });

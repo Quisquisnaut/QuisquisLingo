@@ -117,7 +117,7 @@ void main() {
     SharedPreferences.setMockInitialValues({});
     final course = await CourseService().loadKoreanCourse();
 
-    expect(course.formatVersion, 6);
+    expect(course.formatVersion, 7);
     expect(course.sourceLanguage, 'English');
     expect(course.targetLanguage, 'Korean');
     expect(course.ttsLanguage, 'ko-KR');

@@ -488,6 +488,9 @@ void main() {
   ]) {
     test('all transfers reject $origin before touching content', () {
       final json = _course().toJson()..remove('forkProvenance');
+      json
+        ..remove('creatorProfileId')
+        ..remove('ownership');
       final source = Course.fromJson({
         ...json,
         'originType': origin.name,
@@ -733,6 +736,8 @@ Set<String> _ownedContentIds(LearningContent content) => {
 
 Course _course({PublicationState state = PublicationState.published}) => Course(
   courseId: 'transfer-course',
+  creatorProfileId: _profileId,
+  ownership: const CourseOwnership.individual(_profileId),
   publicationState: PublicationState.draft,
   parentCourseId: 'official-parent',
   derivedFromVersion: '3',

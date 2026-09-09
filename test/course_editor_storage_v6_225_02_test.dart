@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:quisquislingo_app/models/course_models.dart';
 import 'package:quisquislingo_app/services/course_editor_service.dart';
+import 'package:quisquislingo_app/services/profile_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
@@ -14,18 +15,20 @@ void main() {
       const legacy = '{"legacy":"preserve me"}';
       SharedPreferences.setMockInitialValues({
         'quisquislingo_user_courses_v5_223': legacy,
+        'quisquislingo_user_courses_v6_225': legacy,
       });
       final service = CourseEditorService();
 
       expect(await service.listUserCourses(), isEmpty);
       final prefs = await SharedPreferences.getInstance();
       expect(prefs.getString('quisquislingo_user_courses_v5_223'), legacy);
-      expect(prefs.getString('quisquislingo_user_courses_v6_225'), isNull);
+      expect(prefs.getString('quisquislingo_user_courses_v6_225'), legacy);
+      expect(prefs.getString('quisquislingo_user_courses_v7_2291'), isNull);
     },
   );
 
   test(
-    'unsupported course in v6 storage fails clearly without deletion',
+    'unsupported course in v7 storage fails clearly without deletion',
     () async {
       final legacyCourse = _course().toJson()..['formatVersion'] = 5;
       final stored = jsonEncode({
@@ -35,7 +38,7 @@ void main() {
         },
       });
       SharedPreferences.setMockInitialValues({
-        'quisquislingo_user_courses_v6_225': stored,
+        'quisquislingo_user_courses_v7_2291': stored,
       });
       final service = CourseEditorService();
 
@@ -56,16 +59,16 @@ void main() {
         ),
       );
       final prefs = await SharedPreferences.getInstance();
-      expect(prefs.getString('quisquislingo_user_courses_v6_225'), stored);
+      expect(prefs.getString('quisquislingo_user_courses_v7_2291'), stored);
     },
   );
 
   test(
-    'corrupt v6 storage is copied aside and never silently emptied',
+    'corrupt v7 storage is copied aside and never silently emptied',
     () async {
       const corrupt = '[not an object]';
       SharedPreferences.setMockInitialValues({
-        'quisquislingo_user_courses_v6_225': corrupt,
+        'quisquislingo_user_courses_v7_2291': corrupt,
       });
       final service = CourseEditorService();
 
@@ -80,17 +83,22 @@ void main() {
         ),
       );
       final prefs = await SharedPreferences.getInstance();
-      expect(prefs.getString('quisquislingo_user_courses_v6_225'), corrupt);
+      expect(prefs.getString('quisquislingo_user_courses_v7_2291'), corrupt);
       expect(
-        prefs.getString('quisquislingo_course_editor_corrupt_backup_v6_225'),
+        prefs.getString('quisquislingo_course_editor_corrupt_backup_v7_2291'),
         corrupt,
       );
     },
   );
 
-  test('v6 local save/reload preserves canonical timestamp bytes', () async {
+  test('v7 local save/reload preserves canonical timestamp bytes', () async {
     SharedPreferences.setMockInitialValues({});
-    final service = CourseEditorService();
+    final profiles = ProfileService();
+    await profiles.createProfile(
+      'Owner',
+      learnerProfileId: '11111111-1111-4111-8111-111111111111',
+    );
+    final service = CourseEditorService(profileService: profiles);
     final original = _course();
 
     await service.saveUserCourse(original);
@@ -122,6 +130,10 @@ Course _course() {
   );
   return Course(
     courseId: 'user_storage_v6',
+    creatorProfileId: '11111111-1111-4111-8111-111111111111',
+    ownership: const CourseOwnership.individual(
+      '11111111-1111-4111-8111-111111111111',
+    ),
     publicationState: PublicationState.draft,
     learningLanguage: 'Italian',
     interfaceLanguage: 'English',

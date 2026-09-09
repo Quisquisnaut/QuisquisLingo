@@ -37,10 +37,14 @@ void main() {
           find.byTooltip('Internal IDs shown. Tap to hide'),
           findsOneWidget,
         );
+        await tester.tap(
+          find.byKey(const Key('course-editor-lessons-navigation')),
+        );
+        await tester.pumpAndSettle();
 
         await _checkEntryAndFollowBothLines(
           tester,
-          entryKey: 'official-lesson-lesson',
+          entryKey: 'lesson-entry-lesson',
           id: 'lesson',
           destinationText: 'Preview Lesson',
         );
@@ -101,7 +105,8 @@ Future<void> _checkEntryAndFollowBothLines(
   await tester.pumpAndSettle();
   expect(entry, findsOneWidget, reason: 'Selecting an ID must not navigate.');
 
-  await tester.tap(firstLine);
+  final currentTile = tester.widget<ListTile>(entry);
+  await tester.tap(find.byWidget(currentTile.title!));
   await tester.pumpAndSettle();
   expect(find.text(destinationText), findsOneWidget);
   await tester.pageBack();

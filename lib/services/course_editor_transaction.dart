@@ -8,11 +8,14 @@ import '../models/course_models.dart';
 /// Nested editors replace parts of [workingCourse]. The immutable original is
 /// retained until the user either confirms or cancels the whole course edit.
 class CourseEditorTransaction {
-  CourseEditorTransaction(Course persistedCourse, {bool isNewCourse = false})
-    : _originalCourse = _copy(persistedCourse),
-      _workingCourse = _copy(persistedCourse),
-      _newCourseUnconfirmed = isNewCourse {
-    if (persistedCourse.originType.isOfficial) {
+  CourseEditorTransaction(
+    Course persistedCourse, {
+    bool isNewCourse = false,
+    bool allowReadOnlyOfficial = false,
+  }) : _originalCourse = _copy(persistedCourse),
+       _workingCourse = _copy(persistedCourse),
+       _newCourseUnconfirmed = isNewCourse {
+    if (persistedCourse.originType.isOfficial && !allowReadOnlyOfficial) {
       throw StateError(
         'Official courses do not have content-editing transactions.',
       );
@@ -81,6 +84,8 @@ class CourseEditorTransaction {
       'distributionChannel',
       'publisherVerificationStatus',
       'publisherSignature',
+      'creatorProfileId',
+      'ownership',
       'courseVersion',
       'createdByProfileId',
       'createdByUsername',

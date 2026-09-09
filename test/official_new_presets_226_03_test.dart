@@ -6,8 +6,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:quisquislingo_app/models/course_models.dart';
 import 'package:quisquislingo_app/screens/course_editor_screen.dart';
-import 'package:quisquislingo_app/screens/official_course_inspection_screen.dart';
 import 'package:quisquislingo_app/screens/round_screen.dart';
+import 'package:quisquislingo_app/services/course_access_policy.dart';
 import 'package:quisquislingo_app/services/course_backup_service.dart';
 import 'package:quisquislingo_app/services/course_editor_service.dart';
 import 'package:quisquislingo_app/services/course_service.dart';
@@ -48,6 +48,7 @@ void main() {
           addTearDown(tester.view.resetDevicePixelRatio);
           addTearDown(tester.view.resetPhysicalSize);
           final course = _official(origin, preset);
+          final profileId = await ProfileService().getActiveProfileId();
           if (origin == CourseOriginType.externalOfficial) {
             final prefs = await SharedPreferences.getInstance();
             await prefs.setString(
@@ -70,6 +71,10 @@ void main() {
                     MaterialPageRoute(
                       builder: (_) => CourseEditorScreen(
                         course: course,
+                        access: CourseAccessPolicy.evaluate(
+                          course,
+                          profileId: profileId,
+                        ),
                         editorService: service,
                         courseService: _OfficialSource(course),
                       ),
@@ -82,13 +87,15 @@ void main() {
           );
           await tester.tap(find.text('Open official'));
           await workflow.settle(tester);
-          expect(find.byType(OfficialCourseInspectionScreen), findsOneWidget);
-          expect(find.text('Official course - read only'), findsOneWidget);
+          expect(find.byType(CourseEditorScreen), findsOneWidget);
+          expect(find.text('Read-only course'), findsOneWidget);
           _expectNoAuthorControls();
 
           await tester.tap(
-            find.byKey(const ValueKey('official-lesson-lesson')),
+            find.byKey(const Key('course-editor-lessons-navigation')),
           );
+          await workflow.settle(tester);
+          await tester.tap(find.byKey(const ValueKey('lesson-entry-lesson')));
           await workflow.settle(tester);
           _expectNoAuthorControls();
           await tester.tap(find.byKey(const ValueKey('official-round-round')));

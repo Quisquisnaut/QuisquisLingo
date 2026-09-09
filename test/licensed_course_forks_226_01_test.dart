@@ -281,7 +281,7 @@ void main() {
   );
 
   test(
-    'fork confirmation, rename and later version authors preserve original provenance',
+    'fork confirmation and owner rename preserve original provenance',
     () async {
       final official = _official();
       final unconfirmed = await service.forkOfficialCourse(official);
@@ -299,7 +299,7 @@ void main() {
       final preferences = await SharedPreferences.getInstance();
       await preferences.setString(
         ProfileService.activeProfileIdKey,
-        _otherProfileId,
+        _profileId,
       );
       final second = await _confirm(
         service,
@@ -308,7 +308,7 @@ void main() {
       );
       expect(second.course.courseVersion, '2');
       expect(second.course.createdByUsername, 'Fork Creator');
-      expect(second.course.lastModifiedByUsername, 'Later Contributor');
+      expect(second.course.lastModifiedByUsername, 'Fork Creator');
       expect(second.course.forkProvenance!.toJson(), provenance);
       expect(second.course.authors.map((author) => author.name), [
         'Original Author',

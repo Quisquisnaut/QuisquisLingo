@@ -205,6 +205,10 @@ void main() {
       expect(find.byKey(const Key('learner-bottom-theme')), findsOneWidget);
       expect(find.byKey(const Key('learner-bottom-iddqd')), findsOneWidget);
       expect(
+        find.byKey(const Key('learner-bottom-lesson-expansion')),
+        findsOneWidget,
+      );
+      expect(
         find.byTooltip('IDDQD: Off\nNormal progression locks apply.'),
         findsOneWidget,
       );
@@ -219,6 +223,18 @@ void main() {
       );
       expect(find.byTooltip('Theme: System'), findsOneWidget);
       expect(find.bySemanticsLabel('Theme: System'), findsOneWidget);
+      expect(
+        find.byTooltip(
+          'Lessons: Expanded\nAll accessible Lessons are expanded.',
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.bySemanticsLabel(
+          'Lessons: Expanded. All accessible Lessons are expanded.',
+        ),
+        findsOneWidget,
+      );
       expect(
         find.byKey(const Key('learner-bottom-flag-background')),
         findsOneWidget,
@@ -289,6 +305,55 @@ void main() {
       find.byTooltip('IDDQD: View Only\n$iddqdViewOnlyExplanation'),
       findsOneWidget,
     );
+  });
+
+  testWidgets('Lesson expansion control cycles with concise accessible state', (
+    tester,
+  ) async {
+    var mode = LearnerLessonExpansionMode.expanded;
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: StatefulBuilder(
+          builder: (context, setState) => Scaffold(
+            body: LearnerBottomActions(
+              onProfile: () {},
+              onReview: () {},
+              onCourseInfo: () {},
+              lessonExpansionMode: mode,
+              onLessonExpansionChanged: (value) => setState(() => mode = value),
+            ),
+          ),
+        ),
+      ),
+    );
+    await _pumpFrames(tester);
+
+    final control = find.byKey(const Key('learner-bottom-lesson-expansion'));
+    await tester.tap(control);
+    await tester.pump();
+    expect(mode, LearnerLessonExpansionMode.collapseCompleted);
+    expect(
+      find.byTooltip(
+        'Lessons: Collapse completed\n'
+        'Completed Lessons are collapsed; incomplete accessible Lessons are expanded.',
+      ),
+      findsOneWidget,
+    );
+
+    await tester.tap(control);
+    await tester.pump();
+    expect(mode, LearnerLessonExpansionMode.focused);
+    expect(
+      find.bySemanticsLabel(
+        'Lessons: Focused. Only the current accessible Lesson is expanded.',
+      ),
+      findsOneWidget,
+    );
+
+    await tester.tap(control);
+    await tester.pump();
+    expect(mode, LearnerLessonExpansionMode.expanded);
   });
 
   testWidgets(
@@ -792,8 +857,14 @@ void main() {
         ),
       ),
     );
+    await tester.pumpAndSettle();
 
-    final supportAction = find.widgetWithText(ListTile, 'Buy a Coffee');
+    final supportAction = find.byKey(const Key('course-info-buy-coffee'));
+    await tester.scrollUntilVisible(
+      supportAction,
+      300,
+      scrollable: find.byType(Scrollable).last,
+    );
     expect(supportAction, findsOneWidget);
     await tester.tap(supportAction);
     await tester.pump();

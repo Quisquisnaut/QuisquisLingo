@@ -8,6 +8,8 @@ import 'course_backup_service.dart';
 import 'learner_status_events.dart';
 import 'profile_service.dart';
 import 'authoring_duplication_service.dart';
+import 'course_access_policy.dart';
+import 'team_service.dart';
 
 class CourseConfirmationResult {
   final Course course;
@@ -31,17 +33,17 @@ class OfficialCourseUpdateResult {
   });
 }
 
-/// Local, offline Course Model v6 authoring storage.
+/// Local, offline Course Model v7 authoring storage.
 ///
 /// Bundled assets and imported official packages remain immutable sources.
 /// Official sources are locally read-only. Only custom courses have authoring
 /// transactions; nested editors never persist them independently.
 class CourseEditorService {
-  static const userCoursesStorageKey = 'quisquislingo_user_courses_v6_225';
+  static const userCoursesStorageKey = 'quisquislingo_user_courses_v7_2291';
   static const externalOfficialStorageKey =
-      'quisquislingo_external_official_courses_v6_22504';
+      'quisquislingo_external_official_courses_v7_2291';
   static const _corruptBackupKey =
-      'quisquislingo_course_editor_corrupt_backup_v6_225';
+      'quisquislingo_course_editor_corrupt_backup_v7_2291';
   static const _maxBytes = 8 * 1024 * 1024;
   static const _bundledOfficialCourseIds = {
     'sample_it_en_it',
@@ -59,16 +61,30 @@ class CourseEditorService {
     CourseEditorPreferenceWriter? preferenceWriter,
     CourseBackupService? backupService,
     ProfileService? profileService,
+    TeamService? teamService,
+    CourseAccessPolicy? accessPolicy,
     DateTime Function()? clock,
   }) : _preferenceWriter = preferenceWriter,
        backupService = backupService ?? CourseBackupService(),
        _profiles = profileService ?? ProfileService(),
+       _teams = teamService ?? TeamService(profileService: profileService),
+       _access =
+           accessPolicy ??
+           CourseAccessPolicy(
+             profileService: profileService,
+             teamService: teamService,
+           ),
        _clock = clock ?? DateTime.now;
 
   final CourseEditorPreferenceWriter? _preferenceWriter;
   final CourseBackupService backupService;
   final ProfileService _profiles;
+  final TeamService _teams;
+  final CourseAccessPolicy _access;
   final DateTime Function() _clock;
+
+  Future<CourseAccessCapabilities> capabilitiesFor(Course course) =>
+      _access.forCurrentProfile(course);
 
   Future<Map<String, dynamic>> _loadKey(String key) async {
     final preferences = await SharedPreferences.getInstance();
@@ -83,7 +99,7 @@ class CourseEditorService {
     } catch (error) {
       await preferences.setString(_corruptBackupKey, raw);
       throw FormatException(
-        'Stored Course Model v6 authoring data are invalid or unsupported. '
+        'Stored Course Model v7 authoring data are invalid or unsupported. '
         'The original data were preserved and were not loaded. $error',
       );
     }
@@ -163,6 +179,7 @@ class CourseEditorService {
     if (course.originType != CourseOriginType.custom) {
       throw ArgumentError('Official courses require official-source storage.');
     }
+    course = await _materializeDetachedConstructorOwnership(course);
     Course.fromJson(course.toJson());
     if (_bundledOfficialCourseIds.contains(course.courseId) ||
         (await _loadKey(
@@ -173,11 +190,51 @@ class CourseEditorService {
       );
     }
     final all = await _loadKey(userCoursesStorageKey);
-    if (all[course.courseId] != null) {
-      _requirePreservedProvenance(
-        _courseFromEntry(all[course.courseId]),
-        course,
+    final existing = all[course.courseId] == null
+        ? null
+        : _courseFromEntry(all[course.courseId]);
+    final access = await _access.forCurrentProfile(existing ?? course);
+    if (!access.canEditOriginal) {
+      throw StateError(
+        'Only the individual Owner or a member of the owning Team can save this course.',
       );
+    }
+    if (existing != null) {
+      _requirePreservedProvenance(existing, course);
+      _requirePreservedOwnership(existing, course);
+    }
+    all[course.courseId] = _entry(course, _clock());
+    await _saveKey(userCoursesStorageKey, all);
+    LearnerStatusEvents.publish(LearnerStatusInvalidation.courseMetadata);
+  }
+
+  /// Installs an imported custom source without granting the importer ownership.
+  /// Replacing an existing identity still requires Owner/Team authorization.
+  Future<void> installImportedCustomCourse(Course course) async {
+    if (course.originType != CourseOriginType.custom) {
+      throw ArgumentError(
+        'Only a custom course can use custom import storage.',
+      );
+    }
+    Course.fromJson(course.toJson());
+    if (course.creatorProfileId == Course.detachedInMemoryProfileId ||
+        course.ownership?.id == Course.detachedInMemoryProfileId) {
+      throw const FormatException(
+        'Imported Course Model v7 custom courses require real Creator and Owner identities.',
+      );
+    }
+    final all = await _loadKey(userCoursesStorageKey);
+    final existing = all[course.courseId];
+    if (existing != null) {
+      final current = _courseFromEntry(existing);
+      final access = await _access.forCurrentProfile(current);
+      if (!access.canEditOriginal) {
+        throw StateError(
+          'Only the Owner or owning Team can replace this imported course identity.',
+        );
+      }
+      _requirePreservedProvenance(current, course);
+      _requirePreservedOwnership(current, course);
     }
     all[course.courseId] = _entry(course, _clock());
     await _saveKey(userCoursesStorageKey, all);
@@ -235,6 +292,14 @@ class CourseEditorService {
 
   Future<void> deleteUserCourse(String courseId) async {
     final custom = await _loadKey(userCoursesStorageKey);
+    final raw = custom[courseId];
+    if (raw == null) return;
+    final course = _courseFromEntry(raw);
+    if (!(await _access.forCurrentProfile(course)).canDelete) {
+      throw StateError(
+        'Only the individual Owner or a member of the owning Team can delete this course.',
+      );
+    }
     custom.remove(courseId);
     await _saveKey(userCoursesStorageKey, custom);
     LearnerStatusEvents.publish(LearnerStatusInvalidation.courseMetadata);
@@ -287,7 +352,20 @@ class CourseEditorService {
     }
   }
 
-  Future<Course> forkOfficialCourse(Course official) async {
+  static void _requirePreservedOwnership(Course original, Course candidate) {
+    if (original.creatorProfileId != candidate.creatorProfileId ||
+        jsonEncode(original.ownership?.toJson()) !=
+            jsonEncode(candidate.ownership?.toJson())) {
+      throw const FormatException(
+        'Course Creator and Owner identities cannot be changed through content editing.',
+      );
+    }
+  }
+
+  Future<Course> forkOfficialCourse(
+    Course official, {
+    CourseOwnership? ownership,
+  }) async {
     _validateOfficialSource(official);
     if (official.derivativeWorksPolicy != DerivativeWorksPolicy.allowed) {
       throw StateError(
@@ -315,10 +393,104 @@ class CourseEditorService {
       forkCreatedByUsername: profile.displayName,
       forkCreatedAtUtc: _clock().toUtc().toIso8601String(),
     );
+    final targetOwnership =
+        ownership ?? CourseOwnership.individual(profile.learnerProfileId);
+    await _requireValidTargetOwnership(
+      targetOwnership,
+      profile.learnerProfileId,
+    );
     return AuthoringDuplicationService().forkOfficialCourse(
       official,
       provenance: provenance,
+      creatorProfileId: profile.learnerProfileId,
+      ownership: targetOwnership,
     );
+  }
+
+  Future<CourseConfirmationResult> createDuplicate({
+    required Course source,
+    required String title,
+  }) async {
+    final access = await _access.forCurrentProfile(source);
+    if (!access.canDuplicate || source.ownership == null) {
+      throw StateError(
+        'Duplicate is available only to the individual Owner or owning Team members.',
+      );
+    }
+    final profile = await _requireActiveProfile();
+    final duplicate = AuthoringDuplicationService().duplicateCourse(
+      source,
+      title: title,
+      creatorProfileId: profile.learnerProfileId,
+      ownership: source.ownership,
+    );
+    return confirmCourseTransaction(
+      originalCourse: duplicate,
+      workingCourse: duplicate,
+      languageCode: duplicate.targetLanguageTag,
+      versionNotes:
+          'Created as an independent Duplicate of ${source.courseId}.',
+      isNewCourse: true,
+    );
+  }
+
+  Future<CourseConfirmationResult> createFork({
+    required Course source,
+    CourseOwnership? ownership,
+  }) async {
+    final access = await _access.forCurrentProfile(source);
+    if (!access.canFork) {
+      throw StateError('This course does not permit a derivative Fork.');
+    }
+    final profile = await _requireActiveProfile();
+    final targetOwnership =
+        ownership ?? CourseOwnership.individual(profile.learnerProfileId);
+    await _requireValidTargetOwnership(
+      targetOwnership,
+      profile.learnerProfileId,
+    );
+    final fork = source.originType.isOfficial
+        ? await forkOfficialCourse(source, ownership: targetOwnership)
+        : AuthoringDuplicationService().forkCustomCourse(
+            source,
+            creatorProfileId: profile.learnerProfileId,
+            ownership: targetOwnership,
+          );
+    return confirmCourseTransaction(
+      originalCourse: fork,
+      workingCourse: fork,
+      languageCode: fork.targetLanguageTag,
+      versionNotes: 'Created as a licensed Fork of ${source.courseId}.',
+      isNewCourse: true,
+    );
+  }
+
+  Future<LearnerProfile> _requireActiveProfile() async {
+    final profile = await _profiles.getActiveProfileRecord();
+    if (profile == null) {
+      throw StateError('Select or create an active QQL learner profile first.');
+    }
+    return profile;
+  }
+
+  Future<void> _requireValidTargetOwnership(
+    CourseOwnership ownership,
+    String profileId,
+  ) async {
+    if (ownership.type == CourseOwnerType.individual) {
+      if (ownership.id != profileId) {
+        throw StateError(
+          'A new individual course must be owned by its creator.',
+        );
+      }
+      return;
+    }
+    final team = await _teams.teamById(ownership.id);
+    if (team == null || !team.hasMember(profileId)) {
+      throw StateError(
+        'The fork creator must belong to the selected owning Team.',
+      );
+    }
   }
 
   Future<String> exportUserCourse(Course course) async =>
@@ -332,6 +504,13 @@ class CourseEditorService {
     bool isNewCourse = false,
     DateTime? committedAt,
   }) async {
+    await CourseFlagService().validateWorldFlag(workingCourse);
+    originalCourse = await _materializeDetachedConstructorOwnership(
+      originalCourse,
+    );
+    workingCourse = await _materializeDetachedConstructorOwnership(
+      workingCourse,
+    );
     Course.fromJson(workingCourse.toJson());
     if (originalCourse.originType.isOfficial ||
         workingCourse.originType.isOfficial) {
@@ -340,7 +519,12 @@ class CourseEditorService {
       );
     }
     _requirePreservedProvenance(originalCourse, workingCourse);
-    await CourseFlagService().validateWorldFlag(workingCourse);
+    _requirePreservedOwnership(originalCourse, workingCourse);
+    if (!(await _access.forCurrentProfile(workingCourse)).canEditOriginal) {
+      throw StateError(
+        'Only the individual Owner or a member of the owning Team can confirm course changes.',
+      );
+    }
     if (workingCourse.courseId != originalCourse.courseId) {
       throw ArgumentError(
         'The working copy must retain the persisted course identity.',
@@ -421,6 +605,23 @@ class CourseEditorService {
     );
   }
 
+  Future<Course> _materializeDetachedConstructorOwnership(Course course) async {
+    if (course.originType != CourseOriginType.custom ||
+        course.creatorProfileId != Course.detachedInMemoryProfileId ||
+        course.ownership?.type != CourseOwnerType.individual ||
+        course.ownership?.id != Course.detachedInMemoryProfileId) {
+      return course;
+    }
+    final profile = await _requireActiveProfile();
+    return Course.fromJson({
+      ...course.toJson(),
+      'creatorProfileId': profile.learnerProfileId,
+      'ownership': CourseOwnership.individual(
+        profile.learnerProfileId,
+      ).toJson(),
+    });
+  }
+
   static Course _confirmedCustomCourse(
     Course working,
     Course? current,
@@ -434,6 +635,8 @@ class CourseEditorService {
     return Course.fromJson({
       ...working.toJson(),
       'originType': CourseOriginType.custom.name,
+      'creatorProfileId': working.creatorProfileId,
+      'ownership': working.ownership!.toJson(),
       'courseVersion': '$nextVersion',
       'createdByProfileId': first
           ? profile.learnerProfileId

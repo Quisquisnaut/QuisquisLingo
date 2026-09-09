@@ -26,16 +26,36 @@ class AuthoringDuplicationService {
 
   final AuthoringIdGenerator _ids;
 
-  Course duplicateCourse(Course source, {required String title}) {
+  Course duplicateCourse(
+    Course source, {
+    required String title,
+    String? creatorProfileId,
+    CourseOwnership? ownership,
+  }) {
     if (source.originType.isOfficial) {
       throw StateError('Official courses require a licensed custom fork.');
     }
-    return _copyCourse(source, title: title, provenance: source.forkProvenance);
+    final resolvedOwnership = ownership ?? source.ownership;
+    final resolvedCreator = creatorProfileId ?? source.creatorProfileId;
+    if (resolvedOwnership == null || resolvedCreator.isEmpty) {
+      throw StateError(
+        'Course Duplicate requires explicit Creator and Owner identities.',
+      );
+    }
+    return _copyCourse(
+      source,
+      title: title,
+      provenance: source.forkProvenance,
+      creatorProfileId: resolvedCreator,
+      ownership: resolvedOwnership,
+    );
   }
 
   Course forkOfficialCourse(
     Course source, {
     required CourseForkProvenance provenance,
+    required String creatorProfileId,
+    required CourseOwnership ownership,
   }) {
     if (!source.originType.isOfficial ||
         source.derivativeWorksPolicy != DerivativeWorksPolicy.allowed ||
@@ -49,6 +69,8 @@ class AuthoringDuplicationService {
       source,
       title: '${source.title} custom copy',
       provenance: provenance,
+      creatorProfileId: creatorProfileId,
+      ownership: ownership,
     );
     // Detach any nested JSON metadata as well as the owned authoring objects.
     return Course.fromJson(
@@ -56,10 +78,32 @@ class AuthoringDuplicationService {
     );
   }
 
+  Course forkCustomCourse(
+    Course source, {
+    required String creatorProfileId,
+    required CourseOwnership ownership,
+  }) {
+    if (source.originType != CourseOriginType.custom ||
+        source.derivativeWorksPolicy != DerivativeWorksPolicy.allowed) {
+      throw StateError(
+        'A custom-course fork requires explicit derivative permission.',
+      );
+    }
+    return _copyCourse(
+      source,
+      title: '${source.title} fork',
+      provenance: source.forkProvenance,
+      creatorProfileId: creatorProfileId,
+      ownership: ownership,
+    );
+  }
+
   Course _copyCourse(
     Course source, {
     required String title,
     CourseForkProvenance? provenance,
+    required String creatorProfileId,
+    required CourseOwnership ownership,
   }) {
     final newCourseId = Course.newCourseId();
     final remap = <String, String>{source.courseId: newCourseId};
@@ -85,6 +129,8 @@ class AuthoringDuplicationService {
     }
     return Course(
       courseId: newCourseId,
+      creatorProfileId: creatorProfileId,
+      ownership: ownership,
       publicationState: PublicationState.draft,
       lessonNumberingMode: source.lessonNumberingMode,
       customLessonLabel: source.customLessonLabel,

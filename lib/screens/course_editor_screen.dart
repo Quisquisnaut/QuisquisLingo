@@ -10,10 +10,12 @@ import '../widgets/script_recognition_editor.dart';
 import 'package:audioplayers/audioplayers.dart';
 
 import '../models/course_models.dart';
+import '../models/course_metadata_options.dart';
 import '../models/exercise_authoring.dart';
 import '../services/course_editor_service.dart';
 import '../services/course_flag_service.dart';
 import '../services/course_editor_transaction.dart';
+import '../services/course_access_policy.dart';
 import '../services/course_service.dart';
 import '../services/course_audit_service.dart';
 import '../services/audit_code_registry.dart' show AuditCode;
@@ -28,7 +30,8 @@ import 'flat_image_library_screen.dart';
 import 'editor_help_screen.dart';
 import 'course_version_history_screen.dart';
 import 'course_info_screen.dart';
-import 'official_course_inspection_screen.dart';
+import 'official_course_inspection_screen.dart'
+    show CourseLessonInspectionScreen;
 import '../services/exercise_image_service.dart';
 import '../services/course_authoring_transfer_service.dart';
 import '../services/exercise_field_help.dart';
@@ -379,6 +382,7 @@ class CourseEditorScreen extends StatelessWidget {
   final CourseService? courseService;
   final CustomCourseTransferService? transferService;
   final DateTime Function()? clock;
+  final CourseAccessCapabilities? access;
   const CourseEditorScreen({
     super.key,
     required this.course,
@@ -388,29 +392,38 @@ class CourseEditorScreen extends StatelessWidget {
     this.courseService,
     this.transferService,
     this.clock,
+    this.access,
   });
   @override
-  Widget build(BuildContext context) => course.originType.isOfficial
-      ? OfficialCourseInspectionScreen(
-          course: course,
-          editorService: editorService,
-          courseService: courseService,
-          clock: clock,
-        )
-      : _CustomCourseEditorScreen(
-          course: course,
-          userCourse: userCourse,
-          isNewCourse: isNewCourse,
-          editorService: editorService,
-          transferService: transferService,
-          clock: clock,
-        );
+  Widget build(BuildContext context) {
+    final resolvedAccess =
+        access ??
+        (userCourse && course.originType == CourseOriginType.custom
+            ? CourseAccessPolicy.evaluate(
+                course,
+                profileId: course.ownership?.type == CourseOwnerType.individual
+                    ? course.ownership!.id
+                    : course.creatorProfileId,
+                memberTeamIds: course.ownership?.type == CourseOwnerType.team
+                    ? {course.ownership!.id}
+                    : const {},
+              )
+            : CourseAccessPolicy.evaluate(course, profileId: null));
+    return _CustomCourseEditorScreen(
+      course: course,
+      access: resolvedAccess,
+      isNewCourse: isNewCourse,
+      editorService: editorService,
+      transferService: transferService,
+      clock: clock,
+    );
+  }
 }
 
 class _CustomCourseEditorScreen extends StatefulWidget {
   const _CustomCourseEditorScreen({
     required this.course,
-    required this.userCourse,
+    required this.access,
     required this.isNewCourse,
     this.editorService,
     this.transferService,
@@ -418,7 +431,7 @@ class _CustomCourseEditorScreen extends StatefulWidget {
   });
 
   final Course course;
-  final bool userCourse;
+  final CourseAccessCapabilities access;
   final bool isNewCourse;
   final CourseEditorService? editorService;
   final CustomCourseTransferService? transferService;
@@ -449,12 +462,16 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
     _transaction = CourseEditorTransaction(
       widget.course,
       isNewCourse: widget.isNewCourse,
+      allowReadOnlyOfficial: widget.access.readOnly,
     );
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      final locked = await _settings.isCourseEditorLocked(_course.courseId);
+      final locked = widget.access.readOnly
+          ? true
+          : await _settings.isCourseEditorLocked(_course.courseId);
       if (mounted) setState(() => _locked = locked);
-      await _showSampleContentNoticeIfNeeded();
-      if (await _settings.isAudioOrphanCheckDue(_code)) {
+      if (!widget.access.readOnly) await _showSampleContentNoticeIfNeeded();
+      if (!widget.access.readOnly &&
+          await _settings.isAudioOrphanCheckDue(_code)) {
         await _checkOrphanAudio();
         await _settings.markAudioOrphanCheckRun(_code);
       }
@@ -490,6 +507,9 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
   bool get _dirty => _transaction.hasChanges;
 
   void _updateDraft(Course value) => setState(() {
+    if (!widget.access.canEditOriginal) {
+      throw StateError('This course is read only.');
+    }
     _transaction.replaceWorkingCourse(
       const ProvisionalPublicationService().reconcile(
         value,
@@ -600,32 +620,8 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
   });
 
   Future<void> _editCourseInfo() async {
-    const standardRoles = [
-      'Team Leader',
-      'Contributor',
-      'Course Creator',
-      'Editor',
-      'Reviewer',
-      'Native Speaker',
-      'Audio Contributor',
-      'Illustrator',
-    ];
-    const roleDescriptions = <String, String>{
-      'Course Creator':
-          'Created the course or designed a substantial part of its original structure and content.',
-      'Editor':
-          'Maintains or substantially revises existing course content over time.',
-      'Contributor':
-          'Provided a specific or limited contribution without creating or maintaining the course as a whole.',
-      'Team Leader':
-          'Coordinates the course team and its decisions. This can be combined with another role.',
-      'Reviewer':
-          'Checks content and reports corrections or improvements without normally maintaining the course.',
-      'Native Speaker':
-          'Contributes specifically to naturalness and language-quality review.',
-      'Audio Contributor': 'Provides voice recordings or other course audio.',
-      'Illustrator': 'Creates or supplies visual artwork for the course.',
-    };
+    const standardRoles = CourseMetadataOptions.standardRoles;
+    const roleDescriptions = CourseMetadataOptions.roleDescriptions;
     final initialAuthors = _course.authors.isNotEmpty
         ? _course.authors
         : [
@@ -661,18 +657,11 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
     final description = TextEditingController(text: _course.courseDescription);
     final buyACoffeeUrl = TextEditingController(text: _course.buyACoffeeUrl);
     final customLicense = TextEditingController(text: _course.license);
-    const standardLicenses = <String>[
-      'All rights reserved',
-      'CC0 1.0',
-      'CC BY 4.0',
-      'CC BY-SA 4.0',
-      'CC BY-NC 4.0',
-      'CC BY-NC-SA 4.0',
-      'Other / Custom license',
-    ];
+    const standardLicenses = CourseMetadataOptions.standardLicenses;
     var selected = standardLicenses.contains(_course.license)
         ? _course.license
         : 'Other / Custom license';
+    var derivativePolicy = _course.derivativeWorksPolicy;
     final narrowCourseInfo = MediaQuery.sizeOf(context).width < 560;
     Widget readOnlyField(String label, String value) => InputDecorator(
       decoration: InputDecoration(
@@ -688,6 +677,7 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
             String title,
             List<CourseAuthor> authors,
             String license,
+            DerivativeWorksPolicy derivativePolicy,
             String variant,
             String startLevel,
             String targetLevel,
@@ -713,6 +703,7 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
                       ),
                       const SizedBox(height: 8),
                       TextField(
+                        key: const Key('course-info-title'),
                         controller: courseTitle,
                         maxLength: 120,
                         decoration: const InputDecoration(
@@ -726,6 +717,18 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
                       readOnlyField('Course ID', _course.courseId),
                       const SizedBox(height: 8),
                       readOnlyField('Course origin', _course.originType.name),
+                      const SizedBox(height: 8),
+                      readOnlyField(
+                        'Creator profile ID',
+                        _course.creatorProfileId,
+                      ),
+                      const SizedBox(height: 8),
+                      readOnlyField(
+                        'Owner',
+                        _course.ownership == null
+                            ? 'Not applicable'
+                            : '${_course.ownership!.type.name}: ${_course.ownership!.id}',
+                      ),
                       if (_course.forkProvenance != null)
                         CourseForkProvenanceCard(
                           provenance: _course.forkProvenance!,
@@ -1049,8 +1052,16 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
                               child: Text(v, overflow: TextOverflow.ellipsis),
                             ),
                         ],
-                        onChanged: (v) =>
-                            setLocalState(() => selected = v ?? selected),
+                        onChanged: (v) => setLocalState(() {
+                          selected = v ?? selected;
+                          final inferred =
+                              CourseMetadataOptions.derivativePolicyForLicense(
+                                selected,
+                              );
+                          if (inferred != DerivativeWorksPolicy.unspecified) {
+                            derivativePolicy = inferred;
+                          }
+                        }),
                       ),
                       if (selected == 'Other / Custom license') ...[
                         const SizedBox(height: 12),
@@ -1064,6 +1075,41 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
                             labelText: 'Custom license',
                           ),
                         ),
+                        const SizedBox(height: 8),
+                        DropdownButtonFormField<DerivativeWorksPolicy>(
+                          initialValue: derivativePolicy,
+                          isExpanded: true,
+                          decoration: const InputDecoration(
+                            border: OutlineInputBorder(),
+                            labelText: 'Derivative works for non-owners',
+                          ),
+                          items: const [
+                            DropdownMenuItem(
+                              value: DerivativeWorksPolicy.allowed,
+                              child: Text(
+                                'Allowed',
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            DropdownMenuItem(
+                              value: DerivativeWorksPolicy.forbidden,
+                              child: Text(
+                                'Forbidden',
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            DropdownMenuItem(
+                              value: DerivativeWorksPolicy.unspecified,
+                              child: Text(
+                                'Not specified',
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                          onChanged: (value) => setLocalState(
+                            () => derivativePolicy = value ?? derivativePolicy,
+                          ),
+                        ),
                       ],
                     ],
                   ),
@@ -1075,6 +1121,7 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
                   child: const Text('Cancel'),
                 ),
                 FilledButton(
+                  key: const Key('course-info-save'),
                   onPressed: () {
                     final title = courseTitle.text.trim();
                     if (title.isEmpty) return;
@@ -1113,6 +1160,13 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
                       title: title,
                       authors: aa,
                       license: license,
+                      derivativePolicy: selected == 'Other / Custom license'
+                          ? derivativePolicy
+                          : license == _course.license
+                          ? _course.derivativeWorksPolicy
+                          : CourseMetadataOptions.derivativePolicyForLicense(
+                              selected,
+                            ),
                       variant: variant.text.trim(),
                       startLevel: startLevel.text.trim(),
                       targetLevel: targetLevel.text.trim(),
@@ -1151,6 +1205,7 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
         'author': result.authors.map((author) => author.name).join(', '),
         'authors': result.authors.map((author) => author.toJson()).toList(),
         'license': result.license,
+        'derivativeWorksPolicy': result.derivativePolicy.name,
         'languageVariant': result.variant,
         'startLevel': result.startLevel,
         'targetLevel': result.targetLevel,
@@ -1167,13 +1222,15 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
         builder: (_) => LessonManagementScreen(
           course: _course,
           initiallyLocked: _locked,
-          onCourseChanged: _updateDraft,
+          readOnly: widget.access.readOnly,
+          onCourseChanged: widget.access.canEditOriginal ? _updateDraft : null,
           clock: _clock,
         ),
       ),
     );
-    if (updated != null) _updateDraft(updated);
+    if (updated != null && widget.access.canEditOriginal) _updateDraft(updated);
     if (!mounted) return;
+    if (widget.access.readOnly) return;
     final locked = await _settings.isCourseEditorLocked(_course.courseId);
     if (!mounted) return;
     setState(() {
@@ -1501,11 +1558,81 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
     }
   }
 
+  Future<void> _duplicateCustomCourse() async {
+    final existingTitles = (await _service.listUserCourses())
+        .map((course) => course.title)
+        .toSet();
+    var title = '${_course.title} copy';
+    var suffix = 2;
+    while (existingTitles.contains(title)) {
+      title = '${_course.title} copy ${suffix++}';
+    }
+    final created = await _service.createDuplicate(
+      source: _course,
+      title: title,
+    );
+    final createdAccess = await _service.capabilitiesFor(created.course);
+    if (!mounted) return;
+    final result = await Navigator.of(context).push<CourseConfirmationResult>(
+      MaterialPageRoute(
+        builder: (_) => CourseEditorScreen(
+          course: created.course,
+          access: createdAccess,
+          editorService: _service,
+          clock: _clock,
+        ),
+      ),
+    );
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Custom duplicate created: ${created.course.title}\n'
+            'Course version: ${created.course.courseVersion}',
+          ),
+        ),
+      );
+    }
+    if (result != null && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Course changes confirmed: ${result.course.title}'),
+        ),
+      );
+    }
+  }
+
+  Future<void> _forkCourse() async {
+    try {
+      final created = await _service.createFork(source: _course);
+      final createdAccess = await _service.capabilitiesFor(created.course);
+      if (!mounted) return;
+      await Navigator.of(context).push<CourseConfirmationResult>(
+        MaterialPageRoute(
+          builder: (_) => CourseEditorScreen(
+            course: created.course,
+            access: createdAccess,
+            editorService: _service,
+            clock: _clock,
+          ),
+        ),
+      );
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(error.toString().replaceFirst('StateError: ', '')),
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final hierarchyStatus = AuthoringHierarchyStatus.fromCourse(_course);
     final canExportCourse =
-        widget.userCourse && _course.originType == CourseOriginType.custom;
+        widget.access.isInsideOwnershipBoundary &&
+        _course.originType == CourseOriginType.custom;
     return PopScope(
       canPop: _routeMayPop || !_dirty,
       onPopInvokedWithResult: (didPop, _) {
@@ -1514,36 +1641,60 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
       child: Scaffold(
         appBar: AppBar(
           toolbarHeight: 68,
-          title: Row(
-            children: [
-              CourseFlagBadge(
-                course: _course,
-                fallbackCode: _code,
-                width: 38,
-                height: 27,
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text('Course Editor'),
-                    Text(
-                      _course.title,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.w700,
+          title: LayoutBuilder(
+            builder: (context, constraints) => Row(
+              children: [
+                if (constraints.maxWidth >= 58) ...[
+                  CourseFlagBadge(
+                    course: _course,
+                    fallbackCode: _code,
+                    width: 38,
+                    height: 27,
+                  ),
+                  const SizedBox(width: 10),
+                ],
+                Expanded(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('Course Editor'),
+                      Text(
+                        _course.title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
           actions: [
             IconButton(
+              key: const Key('course-editor-lock'),
+              tooltip: widget.access.readOnly
+                  ? 'Read-only course. The original cannot be unlocked.'
+                  : 'Lock or unlock course editing',
+              isSelected: _locked,
+              onPressed: widget.access.readOnly
+                  ? null
+                  : () async {
+                      final value = !_locked;
+                      await _settings.setCourseEditorLocked(
+                        _course.courseId,
+                        value,
+                      );
+                      if (mounted) setState(() => _locked = value);
+                    },
+              icon: const Icon(Icons.lock_open_outlined),
+              selectedIcon: const Icon(Icons.lock_outline),
+            ),
+            IconButton(
+              key: const Key('course-editor-audit'),
               tooltip: 'Run Course Audit',
               onPressed: _runAudit,
               icon: const Icon(Icons.fact_check_outlined),
@@ -1554,6 +1705,17 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
         body: ListView(
           padding: const EdgeInsets.only(bottom: 24),
           children: [
+            if (widget.access.readOnly)
+              ListTile(
+                key: const Key('course-editor-read-only-notice'),
+                leading: const Icon(Icons.visibility_outlined),
+                title: const Text('Read-only course'),
+                subtitle: Text(
+                  _course.originType.isOfficial
+                      ? 'Bundled and official originals are immutable.'
+                      : 'Only the individual Owner or members of the owning Team can edit this original.',
+                ),
+              ),
             AuthoringStatusCard(
               indicatorKey: const Key('course-lessons-status-indicator'),
               draftIndicatorKey: const Key('course-lessons-draft-indicator'),
@@ -1582,14 +1744,55 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
                 ),
               ),
             ListTile(
-              leading: const Icon(Icons.edit_note_outlined),
-              title: const Text('Course Info Editor'),
+              key: const Key('course-editor-course-info'),
+              leading: Icon(
+                widget.access.canEditOriginal
+                    ? Icons.edit_note_outlined
+                    : Icons.info_outline,
+              ),
+              title: Text(
+                widget.access.canEditOriginal
+                    ? 'Course Info Editor'
+                    : 'Course Info',
+              ),
               subtitle: Text(
-                'Edit course name, authors, license and metadata · ${_course.authors.isEmpty ? (_course.author.trim().isEmpty ? 'Author not specified' : _course.author) : _course.authors.map((a) => '${a.name} (${a.role})').join(', ')}',
+                '${widget.access.canEditOriginal ? 'Edit' : 'Inspect'} course name, credits, license and metadata · ${_course.authors.isEmpty ? (_course.author.trim().isEmpty ? 'Author not specified' : _course.author) : _course.authors.map((a) => '${a.name} (${a.role})').join(', ')}',
               ),
               trailing: const Icon(Icons.chevron_right),
-              onTap: _editCourseInfo,
+              onTap: widget.access.canEditOriginal
+                  ? _editCourseInfo
+                  : () => Navigator.of(context).push<void>(
+                      MaterialPageRoute(
+                        builder: (_) => CourseInfoScreen(course: _course),
+                      ),
+                    ),
             ),
+            if (widget.access.canDuplicate) ...[
+              const Divider(height: 1),
+              ListTile(
+                key: const Key('course-editor-duplicate-course'),
+                leading: const Icon(Icons.copy_outlined),
+                title: const Text('Duplicate'),
+                subtitle: const Text(
+                  'Create an independent custom course with fresh IDs.',
+                ),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: _duplicateCustomCourse,
+              ),
+            ],
+            if (widget.access.canFork) ...[
+              const Divider(height: 1),
+              ListTile(
+                key: const Key('course-editor-fork-course'),
+                leading: const Icon(Icons.fork_right_outlined),
+                title: const Text('Fork'),
+                subtitle: const Text(
+                  'Create a licensed editable derivative with fresh IDs.',
+                ),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: _forkCourse,
+              ),
+            ],
             const Divider(height: 1),
             ListTile(
               key: const Key('course-draft-status'),
@@ -1605,7 +1808,9 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
                     : 'Not published',
               ),
               trailing: TextButton.icon(
-                onPressed: _toggleCourseDraftStatus,
+                onPressed: widget.access.canEditOriginal
+                    ? _toggleCourseDraftStatus
+                    : null,
                 style: _course.publicationState.isPublished
                     ? null
                     : TextButton.styleFrom(
@@ -1668,7 +1873,7 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
                     : '${_course.audioLibrary.length} MP3 mappings · ${_course.audioMode}',
               ),
               trailing: const Icon(Icons.chevron_right),
-              onTap: _openAudioLibrary,
+              onTap: widget.access.canEditOriginal ? _openAudioLibrary : null,
             ),
             const Divider(height: 1),
             ListTile(
@@ -1717,12 +1922,14 @@ class LessonManagementScreen extends StatefulWidget {
     required this.course,
     bool userCourse = false,
     required this.initiallyLocked,
+    this.readOnly = false,
     this.onCourseChanged,
     this.clock,
   });
 
   final Course course;
   final bool initiallyLocked;
+  final bool readOnly;
   final ValueChanged<Course>? onCourseChanged;
   final DateTime Function()? clock;
 
@@ -1743,7 +1950,7 @@ class _LessonManagementScreenState extends State<LessonManagementScreen> {
   void initState() {
     super.initState();
     _course = widget.course;
-    _locked = widget.initiallyLocked;
+    _locked = widget.readOnly || widget.initiallyLocked;
   }
 
   Course _withLessons(
@@ -2017,6 +2224,15 @@ class _LessonManagementScreenState extends State<LessonManagementScreen> {
   }
 
   Future<void> _openLesson(int index) async {
+    if (widget.readOnly) {
+      await Navigator.of(context).push<void>(
+        MaterialPageRoute(
+          builder: (_) =>
+              CourseLessonInspectionScreen(course: _course, lessonIndex: index),
+        ),
+      );
+      return;
+    }
     if (_locked) {
       final messenger = ScaffoldMessenger.of(context);
       messenger.clearSnackBars();
@@ -2073,20 +2289,27 @@ class _LessonManagementScreenState extends State<LessonManagementScreen> {
               isSelected: _locked,
               icon: const Icon(Icons.lock_open_outlined),
               selectedIcon: const Icon(Icons.lock_outline),
-              onPressed: () async {
-                final value = !_locked;
-                await _settings.setCourseEditorLocked(_course.courseId, value);
-                if (mounted) setState(() => _locked = value);
-              },
+              onPressed: widget.readOnly
+                  ? null
+                  : () async {
+                      final value = !_locked;
+                      await _settings.setCourseEditorLocked(
+                        _course.courseId,
+                        value,
+                      );
+                      if (mounted) setState(() => _locked = value);
+                    },
             ),
             const EditorAppBarActions(),
           ],
         ),
-        floatingActionButton: FloatingActionButton.extended(
-          onPressed: _locked ? null : _addLesson,
-          icon: const Icon(Icons.add),
-          label: const Text('New lesson'),
-        ),
+        floatingActionButton: widget.readOnly
+            ? null
+            : FloatingActionButton.extended(
+                onPressed: _locked ? null : _addLesson,
+                icon: const Icon(Icons.add),
+                label: const Text('New lesson'),
+              ),
         body: Column(
           children: [
             EditorBreadcrumbs(course: _course),

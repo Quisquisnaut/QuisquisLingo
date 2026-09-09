@@ -27,7 +27,7 @@ class CourseService {
   };
 
   static const bundledCourseIndexStorageKey =
-      'quisquislingo_bundled_course_codes_v6_225';
+      'quisquislingo_bundled_course_codes_v7_2291';
 
   static const Map<String, String> targetLabels = {
     'IT': 'Italian',

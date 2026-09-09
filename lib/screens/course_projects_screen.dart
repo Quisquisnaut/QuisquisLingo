@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 
 import '../models/course_models.dart';
+import '../models/course_metadata_options.dart';
 import '../models/world_flag_entity.dart';
 import '../services/course_editor_service.dart';
 import '../services/course_audit_service.dart';
@@ -9,7 +10,9 @@ import '../services/course_flag_service.dart';
 import '../services/custom_course_transfer_service.dart';
 import '../services/course_service.dart';
 import '../services/settings_service.dart';
-import '../services/authoring_duplication_service.dart';
+import '../services/course_access_policy.dart';
+import '../services/profile_service.dart';
+import '../services/team_service.dart';
 import '../services/publication_service.dart';
 import '../services/new_course_structure.dart';
 import '../widgets/flag_art.dart';
@@ -17,6 +20,7 @@ import '../widgets/world_flag_art.dart';
 import '../widgets/world_flag_picker.dart';
 import '../widgets/editor_app_bar_actions.dart';
 import 'course_editor_screen.dart';
+import 'team_manager_screen.dart';
 
 class _DisposeOnUnmount extends StatefulWidget {
   final Widget child;
@@ -89,13 +93,18 @@ class CourseProjectsScreen extends StatefulWidget {
 
 class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
   final _service = CourseEditorService();
+  final _courseService = CourseService();
   final _flags = CourseFlagService();
   final _transfer = CustomCourseTransferService();
   final _settings = SettingsService();
+  final _profiles = ProfileService();
+  late final _teams = TeamService(profileService: _profiles);
   List<Course> _user = [];
   bool _loading = true;
   bool _currentCourseIsCustom = false;
   bool _openedInitialCourse = false;
+  String? _activeProfileId;
+  Set<String> _memberTeamIds = const {};
 
   @override
   void initState() {
@@ -105,6 +114,12 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
 
   Future<void> _reload() async {
     final value = await _service.listUserCourses();
+    final activeProfileId = await _profiles.getActiveProfileId();
+    final memberTeamIds = activeProfileId == null
+        ? const <String>{}
+        : (await _teams.teamsForProfile(
+            activeProfileId,
+          )).map((team) => team.teamId).toSet();
     final selectedRef = await _settings.getLastSelectedCourseCode();
     if (!mounted) return;
     setState(() {
@@ -115,6 +130,8 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
       _currentCourseIsCustom =
           selectedRef == 'custom:${widget.currentCourse.courseId}';
       _loading = false;
+      _activeProfileId = activeProfileId;
+      _memberTeamIds = memberTeamIds;
     });
     if (!_openedInitialCourse && widget.initialCourseIdToOpen != null) {
       _openedInitialCourse = true;
@@ -142,10 +159,40 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
   );
 
   Future<Course?> _createCourse() async {
+    final activeProfile = await _profiles.getActiveProfileRecord();
+    if (activeProfile == null) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Select or create a learner profile first.'),
+          ),
+        );
+      }
+      return null;
+    }
+    final eligibleTeams = await _teams.teamsForProfile(
+      activeProfile.learnerProfileId,
+    );
+    if (!mounted) return null;
     final title = TextEditingController();
     final source = TextEditingController(text: 'English');
     final target = TextEditingController();
-    final author = TextEditingController();
+    final authorNames = [
+      TextEditingController(text: activeProfile.displayName),
+    ];
+    final authorRoles = [
+      <String>{'Course Creator'},
+    ];
+    final customAuthorRoles = [TextEditingController()];
+    final variant = TextEditingController();
+    final startLevel = TextEditingController();
+    final targetLevel = TextEditingController();
+    final lastUpdated = TextEditingController(
+      text: DateTime.now().toIso8601String().substring(0, 10),
+    );
+    final description = TextEditingController();
+    final buyACoffeeUrl = TextEditingController();
+    final customLicense = TextEditingController();
     final lessonCount = TextEditingController(
       text: '${NewCourseStructure.defaultLessons}',
     );
@@ -158,6 +205,9 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
     String customFlagBase64 = '';
     String customFlagLabel = '';
     String? flagError;
+    var selectedLicense = CourseMetadataOptions.standardLicenses.first;
+    var selectedDerivativePolicy = DerivativeWorksPolicy.forbidden;
+    var selectedOwner = 'me';
 
     final result = await showDialog<Course>(
       context: context,
@@ -166,7 +216,19 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
           title.dispose();
           source.dispose();
           target.dispose();
-          author.dispose();
+          for (final controller in authorNames) {
+            controller.dispose();
+          }
+          for (final controller in customAuthorRoles) {
+            controller.dispose();
+          }
+          variant.dispose();
+          startLevel.dispose();
+          targetLevel.dispose();
+          lastUpdated.dispose();
+          description.dispose();
+          buyACoffeeUrl.dispose();
+          customLicense.dispose();
           lessonCount.dispose();
           roundsPerLesson.dispose();
         },
@@ -207,12 +269,288 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
                       ),
                     ),
                     const SizedBox(height: 8),
+                    if (eligibleTeams.isNotEmpty) ...[
+                      DropdownButtonFormField<String>(
+                        key: const Key('new-course-owner'),
+                        initialValue: selectedOwner,
+                        isExpanded: true,
+                        decoration: const InputDecoration(
+                          border: OutlineInputBorder(),
+                          labelText: 'Owner',
+                          helperText:
+                              'Ownership grants authoring rights. Credits below do not.',
+                        ),
+                        items: [
+                          const DropdownMenuItem(
+                            value: 'me',
+                            child: Text('Me'),
+                          ),
+                          for (final team in eligibleTeams)
+                            DropdownMenuItem(
+                              value: team.teamId,
+                              child: Text(team.displayName),
+                            ),
+                        ],
+                        onChanged: (value) => setDialogState(
+                          () => selectedOwner = value ?? selectedOwner,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                    ],
+                    const Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        'Authors and credits',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                    const Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        'Credits are descriptive only and never grant editing permission.',
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    for (
+                      var authorIndex = 0;
+                      authorIndex < authorNames.length;
+                      authorIndex++
+                    )
+                      Card(
+                        child: Padding(
+                          padding: const EdgeInsets.all(10),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Expanded(
+                                    child: TextField(
+                                      key: ValueKey(
+                                        'new-course-credit-name-$authorIndex',
+                                      ),
+                                      controller: authorNames[authorIndex],
+                                      maxLength: 120,
+                                      decoration: const InputDecoration(
+                                        border: OutlineInputBorder(),
+                                        labelText: 'Name',
+                                      ),
+                                    ),
+                                  ),
+                                  IconButton(
+                                    tooltip: 'Remove credit',
+                                    onPressed: authorNames.length == 1
+                                        ? null
+                                        : () => setDialogState(() {
+                                            authorNames
+                                                .removeAt(authorIndex)
+                                                .dispose();
+                                            authorRoles.removeAt(authorIndex);
+                                            customAuthorRoles
+                                                .removeAt(authorIndex)
+                                                .dispose();
+                                          }),
+                                    icon: const Icon(
+                                      Icons.remove_circle_outline,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              Wrap(
+                                spacing: 6,
+                                runSpacing: 6,
+                                children: [
+                                  for (final role
+                                      in CourseMetadataOptions.standardRoles)
+                                    FilterChip(
+                                      label: Text(role),
+                                      selected: authorRoles[authorIndex]
+                                          .contains(role),
+                                      onSelected: (selected) => setDialogState(
+                                        () {
+                                          if (selected) {
+                                            authorRoles[authorIndex].add(role);
+                                          } else {
+                                            authorRoles[authorIndex].remove(
+                                              role,
+                                            );
+                                          }
+                                        },
+                                      ),
+                                    ),
+                                ],
+                              ),
+                              const SizedBox(height: 8),
+                              TextField(
+                                controller: customAuthorRoles[authorIndex],
+                                maxLength: 240,
+                                decoration: const InputDecoration(
+                                  border: OutlineInputBorder(),
+                                  labelText: 'Custom role(s)',
+                                  helperText:
+                                      'Optional; separate roles with commas.',
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: TextButton.icon(
+                        key: const Key('new-course-add-credit'),
+                        onPressed: () => setDialogState(() {
+                          authorNames.add(TextEditingController());
+                          authorRoles.add({'Contributor'});
+                          customAuthorRoles.add(TextEditingController());
+                        }),
+                        icon: const Icon(Icons.add),
+                        label: const Text('Add author or contributor'),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    DropdownButtonFormField<String>(
+                      key: const Key('new-course-license'),
+                      initialValue: selectedLicense,
+                      isExpanded: true,
+                      decoration: const InputDecoration(
+                        border: OutlineInputBorder(),
+                        labelText: 'Course content license',
+                      ),
+                      items: [
+                        for (final license
+                            in CourseMetadataOptions.standardLicenses)
+                          DropdownMenuItem(
+                            value: license,
+                            child: Text(
+                              license,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                      ],
+                      onChanged: (value) => setDialogState(() {
+                        selectedLicense = value ?? selectedLicense;
+                        selectedDerivativePolicy =
+                            CourseMetadataOptions.derivativePolicyForLicense(
+                              selectedLicense,
+                            );
+                      }),
+                    ),
+                    if (selectedLicense == 'Other / Custom license') ...[
+                      const SizedBox(height: 8),
+                      TextField(
+                        controller: customLicense,
+                        minLines: 2,
+                        maxLines: 5,
+                        maxLength: 2000,
+                        decoration: const InputDecoration(
+                          border: OutlineInputBorder(),
+                          labelText: 'Custom license',
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      DropdownButtonFormField<DerivativeWorksPolicy>(
+                        key: const Key('new-course-derivative-policy'),
+                        initialValue: selectedDerivativePolicy,
+                        isExpanded: true,
+                        decoration: const InputDecoration(
+                          border: OutlineInputBorder(),
+                          labelText: 'Derivative works for non-owners',
+                        ),
+                        items: const [
+                          DropdownMenuItem(
+                            value: DerivativeWorksPolicy.allowed,
+                            child: Text(
+                              'Allowed',
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          DropdownMenuItem(
+                            value: DerivativeWorksPolicy.forbidden,
+                            child: Text(
+                              'Forbidden',
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          DropdownMenuItem(
+                            value: DerivativeWorksPolicy.unspecified,
+                            child: Text(
+                              'Not specified',
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                        onChanged: (value) => setDialogState(
+                          () => selectedDerivativePolicy =
+                              value ?? selectedDerivativePolicy,
+                        ),
+                      ),
+                    ],
+                    const SizedBox(height: 8),
                     TextField(
-                      controller: author,
+                      controller: variant,
                       maxLength: 120,
                       decoration: const InputDecoration(
                         border: OutlineInputBorder(),
-                        labelText: 'Author name',
+                        labelText: 'Language variant',
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: startLevel,
+                            maxLength: 40,
+                            decoration: const InputDecoration(
+                              border: OutlineInputBorder(),
+                              labelText: 'Starting level',
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: TextField(
+                            controller: targetLevel,
+                            maxLength: 40,
+                            decoration: const InputDecoration(
+                              border: OutlineInputBorder(),
+                              labelText: 'Target level',
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    TextField(
+                      key: const Key('new-course-last-updated'),
+                      controller: lastUpdated,
+                      maxLength: 10,
+                      decoration: const InputDecoration(
+                        border: OutlineInputBorder(),
+                        labelText: 'Last updated (YYYY-MM-DD)',
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    TextField(
+                      controller: description,
+                      minLines: 2,
+                      maxLines: 5,
+                      maxLength: 5000,
+                      decoration: const InputDecoration(
+                        border: OutlineInputBorder(),
+                        labelText: 'Course description / information',
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    TextField(
+                      controller: buyACoffeeUrl,
+                      maxLength: 2000,
+                      decoration: const InputDecoration(
+                        border: OutlineInputBorder(),
+                        labelText: 'Buy a Coffee URL (optional)',
+                        helperText: 'HTTPS only.',
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -472,6 +810,44 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
                           );
                           return;
                         }
+                        final license =
+                            selectedLicense == 'Other / Custom license'
+                            ? customLicense.text.trim()
+                            : selectedLicense;
+                        if (license.isEmpty) return;
+                        String normalizedBuyACoffeeUrl;
+                        try {
+                          normalizedBuyACoffeeUrl =
+                              Course.normalizeBuyACoffeeUrl(buyACoffeeUrl.text);
+                        } on FormatException catch (error) {
+                          ScaffoldMessenger.of(ctx).showSnackBar(
+                            SnackBar(content: Text(error.message)),
+                          );
+                          return;
+                        }
+                        final credits = <CourseAuthor>[];
+                        for (
+                          var index = 0;
+                          index < authorNames.length;
+                          index++
+                        ) {
+                          final name = authorNames[index].text.trim();
+                          if (name.isEmpty) continue;
+                          final roles = <String>[
+                            ...CourseMetadataOptions.standardRoles.where(
+                              authorRoles[index].contains,
+                            ),
+                          ];
+                          for (final part
+                              in customAuthorRoles[index].text.split(',')) {
+                            final role = part.trim();
+                            if (role.isNotEmpty && !roles.contains(role)) {
+                              roles.add(role);
+                            }
+                          }
+                          if (roles.isEmpty) roles.add('Contributor');
+                          credits.add(CourseAuthor(name: name, roles: roles));
+                        }
                         final updatedAt = DateTime.now().toUtc();
                         final lessons = NewCourseStructure.create(
                           sourceLanguage: s,
@@ -487,6 +863,12 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
                           ctx,
                           Course(
                             courseId: Course.newCourseId(),
+                            creatorProfileId: activeProfile.learnerProfileId,
+                            ownership: selectedOwner == 'me'
+                                ? CourseOwnership.individual(
+                                    activeProfile.learnerProfileId,
+                                  )
+                                : CourseOwnership.team(selectedOwner),
                             publicationState: PublicationState.draft,
                             learningLanguage: tg,
                             interfaceLanguage: s,
@@ -497,17 +879,23 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
                             version: '1.0.0',
                             originType: CourseOriginType.custom,
                             courseVersion: '',
-                            lastUpdated: DateTime.now()
-                                .toIso8601String()
-                                .substring(0, 10),
-                            authors: author.text.trim().isEmpty
-                                ? const []
-                                : [
-                                    CourseAuthor(
-                                      name: author.text.trim(),
-                                      roles: const ['Course Creator'],
-                                    ),
-                                  ],
+                            lastUpdated: lastUpdated.text.trim(),
+                            author: credits
+                                .map((credit) => credit.name)
+                                .join(', '),
+                            authors: credits,
+                            license: license,
+                            derivativeWorksPolicy:
+                                selectedLicense == 'Other / Custom license'
+                                ? selectedDerivativePolicy
+                                : CourseMetadataOptions.derivativePolicyForLicense(
+                                    selectedLicense,
+                                  ),
+                            languageVariant: variant.text.trim(),
+                            startLevel: startLevel.text.trim(),
+                            targetLevel: targetLevel.text.trim(),
+                            courseDescription: description.text.trim(),
+                            buyACoffeeUrl: normalizedBuyACoffeeUrl,
                             flagCode: flagSource == 'Automatic'
                                 ? automaticCode
                                 : flagSource == 'Existing QQL course flags'
@@ -543,8 +931,9 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
       MaterialPageRoute(
         builder: (_) => CourseEditorScreen(
           course: course,
-          userCourse: true,
+          access: _capabilities(course),
           isNewCourse: true,
+          editorService: _service,
         ),
       ),
     );
@@ -555,7 +944,12 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
   Future<void> _openBundled() async {
     final result = await Navigator.of(context).push<CourseConfirmationResult>(
       MaterialPageRoute(
-        builder: (_) => CourseEditorScreen(course: widget.currentCourse),
+        builder: (_) => CourseEditorScreen(
+          course: widget.currentCourse,
+          access: _capabilities(widget.currentCourse),
+          editorService: _service,
+          courseService: _courseService,
+        ),
       ),
     );
     if (result != null && mounted) _showConfirmationResult(result);
@@ -565,7 +959,8 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
   Future<void> _openUser(Course course) async {
     final result = await Navigator.of(context).push<CourseConfirmationResult>(
       MaterialPageRoute(
-        builder: (_) => CourseEditorScreen(course: course, userCourse: true),
+        builder: (_) =>
+            CourseEditorScreen(course: course, access: _capabilities(course)),
       ),
     );
     if (result != null && mounted) _showConfirmationResult(result);
@@ -598,22 +993,157 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
   }
 
   Future<void> _duplicateCourse(Course course) async {
-    final duplicate = AuthoringDuplicationService().duplicateCourse(
-      course,
-      title: _nextCopyTitle(course.title),
-    );
-    if (!mounted) return;
-    final result = await Navigator.of(context).push<CourseConfirmationResult>(
-      MaterialPageRoute(
-        builder: (_) => CourseEditorScreen(
-          course: duplicate,
-          userCourse: true,
-          isNewCourse: true,
+    try {
+      final created = await _service.createDuplicate(
+        source: course,
+        title: _nextCopyTitle(course.title),
+      );
+      await _reload();
+      if (!mounted) return;
+      _showConfirmationResult(created);
+      final result = await Navigator.of(context).push<CourseConfirmationResult>(
+        MaterialPageRoute(
+          builder: (_) => CourseEditorScreen(
+            course: created.course,
+            access: _capabilities(created.course),
+            editorService: _service,
+          ),
         ),
-      ),
+      );
+      if (result != null && mounted) _showConfirmationResult(result);
+      await _reload();
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(error.toString().replaceFirst('StateError: ', '')),
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _forkCourse(Course course) async {
+    try {
+      Course source = course;
+      if (course.originType.isOfficial) {
+        final bundledSource =
+            course.originType == CourseOriginType.bundledOfficial
+            ? await _courseService.loadBundledCourse(
+                CourseService.codeForCourse(course),
+              )
+            : null;
+        final official = await _service.officialSourceFor(
+          course,
+          bundledSource: bundledSource,
+        );
+        if (official == null) {
+          throw StateError('The immutable official source is unavailable.');
+        }
+        source = official;
+      }
+      final created = await _service.createFork(source: source);
+      await _reload();
+      if (!mounted) return;
+      _showConfirmationResult(created);
+      final result = await Navigator.of(context).push<CourseConfirmationResult>(
+        MaterialPageRoute(
+          builder: (_) => CourseEditorScreen(
+            course: created.course,
+            access: _capabilities(created.course),
+            editorService: _service,
+          ),
+        ),
+      );
+      if (result != null && mounted) _showConfirmationResult(result);
+      await _reload();
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Custom fork could not be created: $error')),
+      );
+    }
+  }
+
+  CourseAccessCapabilities _capabilities(Course course) =>
+      CourseAccessPolicy.evaluate(
+        course,
+        profileId: _activeProfileId,
+        memberTeamIds: _memberTeamIds,
+      );
+
+  Widget _courseActions(
+    Course course, {
+    required Key key,
+    required VoidCallback onOpen,
+  }) {
+    final access = _capabilities(course);
+    return PopupMenuButton<String>(
+      key: key,
+      tooltip: 'Course actions',
+      onSelected: (value) {
+        if (value == 'open') onOpen();
+        if (value == 'fork') _forkCourse(course);
+        if (value == 'duplicate') _duplicateCourse(course);
+        if (value == 'audit') _auditCourse(course);
+        if (value == 'export') _exportCourse(course);
+        if (value == 'delete' && course.originType == CourseOriginType.custom) {
+          _delete(course);
+        }
+      },
+      itemBuilder: (_) => [
+        PopupMenuItem(
+          value: 'open',
+          child: ListTile(
+            leading: Icon(
+              access.canEditOriginal
+                  ? Icons.edit_outlined
+                  : Icons.visibility_outlined,
+            ),
+            title: Text(access.canEditOriginal ? 'Edit' : 'View (read only)'),
+          ),
+        ),
+        if (access.canFork)
+          const PopupMenuItem(
+            value: 'fork',
+            child: ListTile(
+              leading: Icon(Icons.fork_right_outlined),
+              title: Text('Fork as custom course'),
+            ),
+          ),
+        if (access.canDuplicate)
+          const PopupMenuItem(
+            value: 'duplicate',
+            child: ListTile(
+              leading: Icon(Icons.copy_outlined),
+              title: Text('Duplicate custom course'),
+            ),
+          ),
+        const PopupMenuItem(
+          value: 'audit',
+          child: ListTile(
+            leading: Icon(Icons.fact_check_outlined),
+            title: Text('Audit'),
+          ),
+        ),
+        if (course.originType.isOfficial || access.isInsideOwnershipBoundary)
+          const PopupMenuItem(
+            value: 'export',
+            child: ListTile(
+              leading: Icon(Icons.download_outlined),
+              title: Text('Export JSON'),
+            ),
+          ),
+        if (access.canDelete)
+          const PopupMenuItem(
+            value: 'delete',
+            child: ListTile(
+              leading: Icon(Icons.delete_outline),
+              title: Text('Delete course'),
+            ),
+          ),
+      ],
     );
-    if (result != null && mounted) _showConfirmationResult(result);
-    await _reload();
   }
 
   Future<void> _auditCourse(Course course) async {
@@ -767,7 +1297,8 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
                     onPressed: () => Navigator.pop(ctx, 'copy'),
                     child: const Text('Separate copy'),
                   ),
-                  if (!existing.originType.isOfficial)
+                  if (!existing.originType.isOfficial &&
+                      _capabilities(existing).canEditOriginal)
                     FilledButton(
                       onPressed: () => Navigator.pop(ctx, 'replace'),
                       child: const Text('Replace / update'),
@@ -778,15 +1309,26 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
             'cancel';
         if (choice == 'cancel') return;
         if (choice == 'copy') {
-          final copy = course.fork();
+          final access = _capabilities(course);
+          final created = access.canDuplicate
+              ? await _service.createDuplicate(
+                  source: course,
+                  title: _nextCopyTitle(course.title),
+                )
+              : access.canFork
+              ? await _service.createFork(source: course)
+              : throw StateError(
+                  'This course does not permit an owned Duplicate or licensed Fork.',
+                );
+          await _reload();
           if (!mounted) return;
           final result = await Navigator.of(context)
               .push<CourseConfirmationResult>(
                 MaterialPageRoute(
                   builder: (_) => CourseEditorScreen(
-                    course: copy,
-                    userCourse: true,
-                    isNewCourse: true,
+                    course: created.course,
+                    access: _capabilities(created.course),
+                    editorService: _service,
                   ),
                 ),
               );
@@ -795,7 +1337,7 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
           return;
         }
       }
-      await _service.saveUserCourse(course);
+      await _service.installImportedCustomCourse(course);
       await _reload();
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -929,6 +1471,22 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
                     icon: const Icon(Icons.file_open_outlined),
                     label: const Text('Course Import'),
                   ),
+                  OutlinedButton.icon(
+                    key: const Key('team-manager-entry'),
+                    onPressed: () async {
+                      await Navigator.of(context).push<void>(
+                        MaterialPageRoute(
+                          builder: (_) => TeamManagerScreen(
+                            teamService: _teams,
+                            profileService: _profiles,
+                          ),
+                        ),
+                      );
+                      await _reload();
+                    },
+                    icon: const Icon(Icons.groups_outlined),
+                    label: const Text('Team Manager'),
+                  ),
                 ],
               ),
               if (!_currentCourseIsCustom) ...[
@@ -950,9 +1508,13 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
                     ),
                     title: Text(widget.currentCourse.title),
                     subtitle: const Text(
-                      'Bundled official · read only · Course Model v6',
+                      'Bundled official · read only · Course Model v7',
                     ),
-                    trailing: const Icon(Icons.chevron_right),
+                    trailing: _courseActions(
+                      widget.currentCourse,
+                      key: const Key('course-manager-actions-current'),
+                      onOpen: _openBundled,
+                    ),
                     onTap: _openBundled,
                   ),
                 ),
@@ -982,65 +1544,12 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
                       '${course.sourceLanguage} → ${course.targetLanguage} · ${course.originType.isOfficial ? '${course.publisherName} official ${course.officialCourseVersion} · read only' : 'custom version ${course.courseVersion.isEmpty ? 'unconfirmed' : course.courseVersion}'}',
                     ),
                     onTap: () => _openUser(course),
-                    trailing: PopupMenuButton<String>(
-                      tooltip: 'Course actions',
-                      onSelected: (value) {
-                        if (value == 'edit') _openUser(course);
-                        if (value == 'duplicate') _duplicateCourse(course);
-                        if (value == 'audit') _auditCourse(course);
-                        if (value == 'export') _exportCourse(course);
-                        if (value == 'delete' &&
-                            course.originType == CourseOriginType.custom) {
-                          _delete(course);
-                        }
-                      },
-                      itemBuilder: (_) => [
-                        PopupMenuItem(
-                          value: 'edit',
-                          child: ListTile(
-                            leading: Icon(
-                              course.originType.isOfficial
-                                  ? Icons.visibility_outlined
-                                  : Icons.edit_outlined,
-                            ),
-                            title: Text(
-                              course.originType.isOfficial
-                                  ? 'Inspect (read only)'
-                                  : 'Edit',
-                            ),
-                          ),
-                        ),
-                        if (!course.originType.isOfficial)
-                          const PopupMenuItem(
-                            value: 'duplicate',
-                            child: ListTile(
-                              leading: Icon(Icons.copy_outlined),
-                              title: Text('Duplicate custom course'),
-                            ),
-                          ),
-                        const PopupMenuItem(
-                          value: 'audit',
-                          child: ListTile(
-                            leading: Icon(Icons.fact_check_outlined),
-                            title: Text('Audit'),
-                          ),
-                        ),
-                        const PopupMenuItem(
-                          value: 'export',
-                          child: ListTile(
-                            leading: Icon(Icons.download_outlined),
-                            title: Text('Export JSON'),
-                          ),
-                        ),
-                        if (course.originType == CourseOriginType.custom)
-                          const PopupMenuItem(
-                            value: 'delete',
-                            child: ListTile(
-                              leading: Icon(Icons.delete_outline),
-                              title: Text('Delete course'),
-                            ),
-                          ),
-                      ],
+                    trailing: _courseActions(
+                      course,
+                      key: ValueKey(
+                        'course-manager-actions-${course.courseId}',
+                      ),
+                      onOpen: () => _openUser(course),
                     ),
                   ),
                 ),
