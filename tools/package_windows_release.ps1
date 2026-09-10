@@ -44,8 +44,42 @@ $readmeFileNames = @(
     "readme-pms.txt",
     "readme-nld.txt",
     "readme-lat.txt",
-    "readme-cat.txt"
+    "readme-cat.txt",
+    "readme-ces.txt",
+    "readme-slk.txt",
+    "readme-hun.txt",
+    "readme-ell.txt",
+    "readme-bul.txt",
+    "readme-hrv.txt",
+    "readme-srp.txt",
+    "readme-slv.txt",
+    "readme-bos.txt",
+    "readme-sqi.txt",
+    "readme-swe.txt",
+    "readme-dan.txt",
+    "readme-nob.txt",
+    "readme-fin.txt",
+    "readme-isl.txt",
+    "readme-heb.txt",
+    "readme-hye.txt",
+    "readme-kat.txt",
+    "readme-aze.txt",
+    "readme-kaz.txt",
+    "readme-uzb.txt",
+    "readme-tam.txt",
+    "readme-tel.txt",
+    "readme-mar.txt",
+    "readme-guj.txt",
+    "readme-pan.txt",
+    "readme-mal.txt",
+    "readme-fil.txt",
+    "readme-amh.txt",
+    "readme-yor.txt"
 )
+
+if ($readmeFileNames.Count -ne 60 -or @($readmeFileNames | Select-Object -Unique).Count -ne 60) {
+    throw "Packaging requires exactly 60 uniquely named multilingual README files."
+}
 
 function Get-VisualStudioInstallationPaths {
     $installationPaths = @()
