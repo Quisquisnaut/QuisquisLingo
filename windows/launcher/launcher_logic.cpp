@@ -120,10 +120,14 @@ PreflightResult EvaluatePreflight(
       result.recoverable_issues.emplace_back(
           L"Windows Media Foundation:\nThis Windows environment does not "
           L"provide Media Foundation functionality needed by QQL's media and "
-          L"audio stack. Depending on the Windows edition, enable or install "
-          L"the Microsoft Media Feature Pack through the applicable Windows "
-          L"Optional Features or edition-specific mechanism. The launcher "
-          L"will not download, install, elevate, or modify Windows.");
+          L"audio stack. Windows N editions may require Microsoft Media "
+          L"Feature Pack, which is normally available under Windows Optional "
+          L"Features. On some versions of Windows N, Media Feature Pack may "
+          L"not be available under Optional Features. In that case, download "
+          L"the appropriate Media Feature Pack for your version of Windows "
+          L"from the Microsoft website. Restart Windows after installing it. "
+          L"The launcher will not download, install, elevate, or modify "
+          L"Windows.");
     }
   }
 

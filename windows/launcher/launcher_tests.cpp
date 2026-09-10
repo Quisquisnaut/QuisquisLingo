@@ -140,6 +140,12 @@ void TestMissingMediaFoundationOnWindows() {
           "Windows Media Feature Pack guidance missing");
   Require(Contains(warning, L"Optional Features"),
           "Windows Optional Features guidance missing");
+  Require(Contains(warning, L"Windows N"),
+          "Windows N edition guidance missing");
+  Require(Contains(warning, L"Microsoft website"),
+          "Microsoft website fallback guidance missing");
+  Require(Contains(warning, L"Restart Windows"),
+          "Windows restart guidance missing");
   Require(!Contains(warning, L"winetricks"),
           "Windows warning used Wine wording");
 }

@@ -14,6 +14,38 @@ $requiredRuntimeDlls = @(
 
 $launcherFileName = "QuisquisLingo.exe"
 $infographicFileName = "QQL infographic.png"
+$readmeFileNames = @(
+    "readme-eng.txt",
+    "readme-ita.txt",
+    "readme-spa.txt",
+    "readme-fra.txt",
+    "readme-deu.txt",
+    "readme-por.txt",
+    "readme-rus.txt",
+    "readme-pol.txt",
+    "readme-tur.txt",
+    "readme-ara.txt",
+    "readme-fas.txt",
+    "readme-hin.txt",
+    "readme-ben.txt",
+    "readme-urd.txt",
+    "readme-zho.txt",
+    "readme-jpn.txt",
+    "readme-kor.txt",
+    "readme-ind.txt",
+    "readme-vie.txt",
+    "readme-tha.txt",
+    "readme-swa.txt",
+    "readme-ukr.txt",
+    "readme-ron.txt",
+    "readme-cym.txt",
+    "readme-bre.txt",
+    "readme-nap.txt",
+    "readme-pms.txt",
+    "readme-nld.txt",
+    "readme-lat.txt",
+    "readme-cat.txt"
+)
 
 function Get-VisualStudioInstallationPaths {
     $installationPaths = @()
@@ -221,6 +253,93 @@ function Find-VcRuntimeDirectory {
     throw "No Visual Studio x64 VC Redist CRT directory was found. Missing required DLLs: $($RequiredDlls -join ', ')"
 }
 
+function Assert-ReadmeDirectory {
+    param([string]$Directory)
+
+    if (-not (Test-Path -LiteralPath $Directory -PathType Container)) {
+        throw "The multilingual readme directory is missing: $Directory"
+    }
+
+    $nestedDirectories = @(Get-ChildItem -LiteralPath $Directory -Directory -Force)
+    if ($nestedDirectories.Count -gt 0) {
+        throw "The multilingual readme directory must not contain subdirectories."
+    }
+
+    $files = @(Get-ChildItem -LiteralPath $Directory -File -Force)
+    $actualNames = @($files | ForEach-Object { $_.Name })
+    $missing = @($readmeFileNames | Where-Object { $_ -cnotin $actualNames })
+    $unexpected = @($actualNames | Where-Object { $_ -cnotin $readmeFileNames })
+    if ($files.Count -ne $readmeFileNames.Count -or
+        $missing.Count -gt 0 -or $unexpected.Count -gt 0) {
+        throw "The multilingual readme set is invalid. Count: $($files.Count); missing: $($missing -join ', '); unexpected: $($unexpected -join ', ')"
+    }
+
+    $strictUtf8 = [System.Text.UTF8Encoding]::new($false, $true)
+    $requiredText = @(
+        "QuisquisLingo",
+        "QQL",
+        "QuisquisLingo.exe",
+        "QQL infographic.png",
+        "Media Feature Pack",
+        "msvcp140.dll",
+        "vcruntime140.dll",
+        "vcruntime140_1.dll",
+        "Documents\QuisquisLingo\Logs\quisquislingo_crash.log",
+        "%LOCALAPPDATA%\QuisquisLingo\Logs\quisquislingo_launcher.log"
+    )
+    $englishText = $strictUtf8.GetString(
+        [System.IO.File]::ReadAllBytes((Join-Path $Directory "readme-eng.txt")))
+    $expectedSectionCount = [regex]::Matches($englishText, '(?m)^-{3,}\r?$').Count
+    $expectedTroubleshootingCount = [regex]::Matches($englishText, '(?m)^[1-5]\. ').Count
+
+    foreach ($fileName in $readmeFileNames) {
+        $path = Join-Path $Directory $fileName
+        $bytes = [System.IO.File]::ReadAllBytes($path)
+        if ($bytes.Length -eq 0) {
+            throw "Multilingual readme is empty: $fileName"
+        }
+        try {
+            $text = $strictUtf8.GetString($bytes)
+        }
+        catch {
+            throw "Multilingual readme is not valid UTF-8: $fileName"
+        }
+        if ($text.Contains([char]0xFFFD)) {
+            throw "Multilingual readme contains a replacement character: $fileName"
+        }
+        if ($text -match '(?<!\r)\n|\r(?!\n)' -or -not $text.EndsWith("`r`n")) {
+            throw "Multilingual readme must use CRLF line endings throughout: $fileName"
+        }
+        if ($text -match '(?m)[ \t]+$' -or $text.Contains("`t")) {
+            throw "Multilingual readme contains trailing whitespace or a tab: $fileName"
+        }
+        foreach ($line in $text.Split([string[]]@("`r`n"), [System.StringSplitOptions]::None)) {
+            if ($line -match '^\s' -and $line -notmatch '^   \S') {
+                throw "Multilingual readme contains anomalous leading whitespace: $fileName"
+            }
+            if ($line.TrimStart() -match ' {2,}') {
+                throw "Multilingual readme contains doubled spaces: $fileName"
+            }
+        }
+        if ($text -match '(?i)Flutter|unchanged|frozen|2\.0\.29|2293|\b(?:build|phase|revision)\s*(?:number\s*)?[:#]?\s*\d+\b') {
+            throw "Multilingual readme contains prohibited internal or version-specific wording: $fileName"
+        }
+        if ($text -match 'Ã[\u0080-\u00BF]|Â[\u0080-\u00BF]|â€[^\r\n]?|ï¿½') {
+            throw "Multilingual readme appears to contain mojibake: $fileName"
+        }
+        $missingText = @($requiredText | Where-Object { -not $text.Contains($_) })
+        if ($missingText.Count -gt 0) {
+            throw "Multilingual readme omits required package information: $fileName ($($missingText -join ', '))"
+        }
+        $sectionCount = [regex]::Matches($text, '(?m)^-{3,}\r?$').Count
+        $troubleshootingCount = [regex]::Matches($text, '(?m)^[1-5]\. ').Count
+        if ($sectionCount -ne $expectedSectionCount -or
+            $troubleshootingCount -ne $expectedTroubleshootingCount) {
+            throw "Multilingual readme structure differs from the English guide: $fileName"
+        }
+    }
+}
+
 function Assert-PackageContents {
     param([string]$Directory)
 
@@ -236,7 +355,7 @@ function Assert-PackageContents {
         "screen_retriever_windows_plugin.dll",
         "url_launcher_windows_plugin.dll",
         "window_manager_plugin.dll",
-        "readme.txt",
+        "readme",
         $infographicFileName
     ) + $requiredRuntimeDlls
 
@@ -249,6 +368,10 @@ function Assert-PackageContents {
     if (Test-Path -LiteralPath (Join-Path $Directory "flutter_tts_plugin.dll")) {
         throw "Unexpected flutter_tts_plugin.dll found in packaged Windows output."
     }
+    if (Test-Path -LiteralPath (Join-Path $Directory "readme.txt")) {
+        throw "The obsolete root readme.txt must not be present in the package."
+    }
+    Assert-ReadmeDirectory -Directory (Join-Path $Directory "readme")
 }
 
 function Assert-LauncherPeDependencies {
@@ -416,7 +539,8 @@ Assert-MatchingManifests `
     -Description "Frozen QQL $qqlVersion application preservation"
 
 $runtimeSource = Find-VcRuntimeDirectory -RequiredDlls $requiredRuntimeDlls
-$readmeSource = Join-Path $projectRoot "readme_windows.txt"
+$readmeSourceDirectory = Join-Path $projectRoot "readme"
+Assert-ReadmeDirectory -Directory $readmeSourceDirectory
 $infographicSource = Join-Path $projectRoot "docs\$infographicFileName"
 if (-not (Test-Path -LiteralPath $infographicSource -PathType Leaf)) {
     throw "The approved external infographic is unavailable: $infographicSource"
@@ -444,7 +568,7 @@ New-Item -ItemType Directory -Path $stagingDirectory | Out-Null
 
 Get-ChildItem -LiteralPath $releaseDirectory -Force | Copy-Item -Destination $stagingDirectory -Recurse -Force
 Copy-Item -LiteralPath $launcherOutput -Destination (Join-Path $stagingDirectory $launcherFileName) -Force
-Copy-Item -LiteralPath $readmeSource -Destination (Join-Path $stagingDirectory "readme.txt") -Force
+Copy-Item -LiteralPath $readmeSourceDirectory -Destination (Join-Path $stagingDirectory "readme") -Recurse -Force
 Copy-Item -LiteralPath $infographicSource -Destination (Join-Path $stagingDirectory $infographicFileName) -Force
 foreach ($dll in $requiredRuntimeDlls) {
     Copy-Item -LiteralPath (Join-Path $runtimeSource $dll) -Destination (Join-Path $stagingDirectory $dll) -Force
@@ -453,9 +577,8 @@ foreach ($dll in $requiredRuntimeDlls) {
 Assert-PackageContents -Directory $stagingDirectory
 $packagingOnlyPaths = @(
     $launcherFileName,
-    "readme.txt",
     $infographicFileName
-) + $requiredRuntimeDlls
+) + $requiredRuntimeDlls + @($readmeFileNames | ForEach-Object { "readme\$_" })
 $stagedApplicationManifest = Get-TreeManifest `
     -Directory $stagingDirectory `
     -ExcludeRelativePaths $packagingOnlyPaths
@@ -470,12 +593,17 @@ foreach ($entry in $frozenApplicationManifest.GetEnumerator()) {
 }
 foreach ($extra in @(
     @{ RelativePath = $launcherFileName; Source = $launcherOutput },
-    @{ RelativePath = "readme.txt"; Source = $readmeSource },
     @{ RelativePath = $infographicFileName; Source = $infographicSource }
 )) {
     $item = Get-Item -LiteralPath $extra.Source
     $hash = (Get-FileHash -Algorithm SHA256 -LiteralPath $extra.Source).Hash
     $expectedPackageManifest[$extra.RelativePath] = "$($item.Length)|$hash"
+}
+foreach ($fileName in $readmeFileNames) {
+    $readmePath = Join-Path $readmeSourceDirectory $fileName
+    $item = Get-Item -LiteralPath $readmePath
+    $hash = (Get-FileHash -Algorithm SHA256 -LiteralPath $readmePath).Hash
+    $expectedPackageManifest["readme\$fileName"] = "$($item.Length)|$hash"
 }
 foreach ($dll in $requiredRuntimeDlls) {
     $runtimePath = Join-Path $runtimeSource $dll
