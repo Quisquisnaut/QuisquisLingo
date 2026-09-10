@@ -19,7 +19,7 @@ void main() {
       await tester.pumpAndSettle();
       _expectCourseConcern(tester, true);
 
-      await tester.tap(find.byTooltip('Run Course Audit'));
+      await tester.tap(find.widgetWithText(TextButton, 'Run audit'));
       await tester.pumpAndSettle();
       final issue = find.text('Code: CHOICE_CORRECT_ANSWER_INVALID');
       await tester.ensureVisible(issue);
@@ -51,7 +51,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.byType(ExerciseEditorScreen), findsNothing);
       _expectCourseConcern(tester, false);
-      await tester.tap(find.byTooltip('Run Course Audit'));
+      await tester.tap(find.widgetWithText(TextButton, 'Run audit'));
       await tester.pumpAndSettle();
       final audit = tester
           .widget<CourseAuditScreen>(find.byType(CourseAuditScreen))

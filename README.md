@@ -1,13 +1,13 @@
 # QuisquisLingo App
 
-**Current source version: 2.0.29+2291 · Phase 229, revision 1 · Course Model v7 (`formatVersion: 7`).**
+**Current source version: 2.0.29+2293 · Build 229 · Revision 3 · Course Model v7 (`formatVersion: 7`).**
 
 
 **QuisquisLingo 2.0.29 Alpha — QQL 229 Course Actions & Learner Panel Refinements**
 
 Current project version: 2.0.29
 
-QQL 229 revision 1 retains the completed Course Selector Hide/Unhide and Learner Panel Expanded / Collapse completed / Focused behavior while making course authorization explicit. Course Model v7 requires every custom course to declare a stable Creator and an individual or Team Owner; visible Author and credit text never grants permission. Owners and every member of an owning Team can edit and Duplicate regardless of license, while outsiders can only inspect and may Fork when the license explicitly permits derivatives. Bundled originals use the same capability-driven Course Editor surface in read-only mode. Course Manager adds the separate local Team Manager, and New Course restores the complete historical license and credit editor. See [QQL 229 validation](docs/229_VALIDATION.md), [Course Manager and Editor](docs/COURSE_EDITOR.md), and [Team Manager](docs/TEAM_MANAGER.md).
+QQL 229 revision 3 retains every Revision 2 metadata, language, flag, Internal-ID and per-user developer-unlock correction. Ordinary Team members can now leave through a confirmed self-service action, with Team-owned authorization updating from the unchanged membership policy and the final-Lead invariant preserved. Temporary Sample guidance appears in Course Info rather than the main Course Editor, and Course Manager distinguishes independent blue Draft and Unpublished states. See [QQL 229 validation](docs/229_VALIDATION.md), [Course Manager and Editor](docs/COURSE_EDITOR.md), and [Team Manager](docs/TEAM_MANAGER.md).
 
 QQL 228 remains the completed Settings/Profile, Statistics, Debug/logging, learner Audio Settings and Course Entry Animation baseline. See [QQL 228 validation](docs/228_VALIDATION.md).
 

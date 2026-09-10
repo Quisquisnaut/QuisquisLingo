@@ -101,7 +101,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      await tester.tap(find.widgetWithText(FilledButton, 'Create new course'));
+      await tester.tap(find.byKey(const Key('create-course-icon-action')));
       await tester.pumpAndSettle();
       await tester.enterText(_field('Course title *'), 'MyTest');
       await tester.enterText(_field('Target language *'), 'Italian');

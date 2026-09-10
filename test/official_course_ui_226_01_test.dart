@@ -71,7 +71,7 @@ void main() {
       _expectNoAuthoring();
       await _back(tester);
 
-      await tester.tap(find.byKey(const Key('course-editor-audit')));
+      await tester.tap(find.widgetWithText(TextButton, 'Run audit'));
       await _settle(tester);
       expect(find.byType(CourseAuditScreen), findsOneWidget);
       expect(find.byKey(const Key('copy-audit-report')), findsOneWidget);

@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../models/course_models.dart';
+import 'course_flag_service.dart';
 import 'world_flag_repository.dart';
 
 @immutable
@@ -422,10 +423,13 @@ class CourseFlagPaletteResolver {
     required String fallbackCode,
     required Brightness brightness,
   }) async {
-    final worldFlagId = course.worldFlagId.trim();
-    if (worldFlagId.isNotEmpty) {
+    final resolved = CourseFlagService.resolve(
+      course,
+      fallbackCode: fallbackCode,
+    );
+    if (resolved.kind == ResolvedCourseFlagKind.worldFlag) {
       try {
-        final entity = await _worldFlags.findById(worldFlagId);
+        final entity = await _worldFlags.findById(resolved.identifier);
         if (entity != null) {
           final samples = FlagBackgroundPaletteService.colorsFromSvg(
             await _bundle.loadString(entity.assetPath),
@@ -442,17 +446,20 @@ class CourseFlagPaletteResolver {
         // The derived background alone falls back to the built-in flag colors.
       }
       return _builtIn(
-        course,
-        fallbackCode: fallbackCode,
+        CourseFlagService.builtInRecoveryCode(
+          course,
+          fallbackCode: fallbackCode,
+        ),
         brightness: brightness,
         usedFallback: true,
       );
     }
 
-    final encoded = course.flagImageBase64.trim();
-    if (encoded.isNotEmpty) {
+    if (resolved.kind == ResolvedCourseFlagKind.customImage) {
       try {
-        final samples = await _colorsFromRaster(base64Decode(encoded));
+        final samples = await _colorsFromRaster(
+          base64Decode(resolved.identifier),
+        );
         if (samples.isNotEmpty) {
           return CourseFlagPaletteResult(
             palette: _paletteService.derive(samples, brightness: brightness),
@@ -464,30 +471,29 @@ class CourseFlagPaletteResolver {
         // Keep the learner page usable through the existing built-in source.
       }
       return _builtIn(
-        course,
-        fallbackCode: fallbackCode,
+        CourseFlagService.builtInRecoveryCode(
+          course,
+          fallbackCode: fallbackCode,
+        ),
         brightness: brightness,
         usedFallback: true,
       );
     }
 
     return _builtIn(
-      course,
-      fallbackCode: fallbackCode,
+      resolved.kind == ResolvedCourseFlagKind.builtIn
+          ? resolved.identifier
+          : '',
       brightness: brightness,
       usedFallback: false,
     );
   }
 
   CourseFlagPaletteResult _builtIn(
-    Course course, {
-    required String fallbackCode,
+    String code, {
     required Brightness brightness,
     required bool usedFallback,
   }) {
-    final code = course.flagCode.trim().isEmpty
-        ? fallbackCode
-        : course.flagCode;
     final samples = FlagBackgroundPaletteService.builtInColors(code);
     final hasKnownColors = samples.isNotEmpty;
     return CourseFlagPaletteResult(

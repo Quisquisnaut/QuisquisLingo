@@ -161,6 +161,35 @@ class TeamService {
     );
   });
 
+  /// Removes the active profile's own ordinary Team membership.
+  ///
+  /// Team Leads remain subject to Team administration so this self-service
+  /// path can never leave the Team without a Lead.
+  Future<AuthoringTeam> leaveTeam({required String teamId}) async {
+    final profileId = await _profiles.getActiveProfileId();
+    if (profileId == null) {
+      throw StateError('Select a learner profile before leaving a Team.');
+    }
+    final teams = await listTeams();
+    final index = teams.indexWhere((team) => team.teamId == teamId);
+    if (index < 0) throw StateError('The Team is unavailable.');
+    final current = teams[index];
+    if (!current.hasMember(profileId)) {
+      throw StateError('You are not a member of this Team.');
+    }
+    if (current.hasLead(profileId)) {
+      throw StateError(
+        'A Team Lead cannot leave directly. Another Team Lead must demote you first.',
+      );
+    }
+    final updated = current.copyWith(
+      memberProfileIds: current.memberProfileIds.where((id) => id != profileId),
+    );
+    teams[index] = updated;
+    await _save(teams);
+    return updated;
+  }
+
   Future<AuthoringTeam> promoteToLead({
     required String teamId,
     required String actorProfileId,

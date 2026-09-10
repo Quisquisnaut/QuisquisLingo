@@ -7,6 +7,7 @@ import 'app_errors.dart';
 import 'diagnostic_log_service.dart';
 import 'course_backup_service.dart';
 import 'learning_language_identity.dart';
+import 'course_language_resolver.dart';
 
 /// Loads immutable bundled official courses.
 ///
@@ -84,6 +85,11 @@ class CourseService {
       courseAssets.containsKey(languageCode.trim().toUpperCase());
 
   static String codeForCourse(Course course) {
+    final resolved = CourseLanguageResolver.learning(course).code;
+    if (resolved != null) {
+      final canonical = LearningLanguageIdentity.storageId(resolved);
+      if (canonical.length == 2) return canonical;
+    }
     for (final candidate in [
       course.learningLanguage,
       course.targetLanguageTag,

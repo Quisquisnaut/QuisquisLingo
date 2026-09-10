@@ -9,6 +9,7 @@ import '../services/course_audit_service.dart';
 import '../services/course_flag_service.dart';
 import '../services/custom_course_transfer_service.dart';
 import '../services/course_service.dart';
+import '../services/course_language_resolver.dart';
 import '../services/settings_service.dart';
 import '../services/course_access_policy.dart';
 import '../services/profile_service.dart';
@@ -858,7 +859,9 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
                           ),
                           updatedAt: updatedAt,
                         );
-                        final automaticCode = _flags.codeForLanguage(tg);
+                        final speechLanguage =
+                            CourseLanguageResolver.codeFromMetadata([tg]) ??
+                            'und';
                         Navigator.pop(
                           ctx,
                           Course(
@@ -875,7 +878,7 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
                             sourceLanguage: s,
                             targetLanguage: tg,
                             title: t,
-                            ttsLanguage: 'und',
+                            ttsLanguage: speechLanguage,
                             version: '1.0.0',
                             originType: CourseOriginType.custom,
                             courseVersion: '',
@@ -896,9 +899,7 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
                             targetLevel: targetLevel.text.trim(),
                             courseDescription: description.text.trim(),
                             buyACoffeeUrl: normalizedBuyACoffeeUrl,
-                            flagCode: flagSource == 'Automatic'
-                                ? automaticCode
-                                : flagSource == 'Existing QQL course flags'
+                            flagCode: flagSource == 'Existing QQL course flags'
                                 ? selectedFlag
                                 : '',
                             flagImageBase64:
@@ -1439,11 +1440,13 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
       title: const Text('Course Manager'),
       actions: [
         IconButton(
+          key: const Key('course-import-icon-action'),
           tooltip: 'Course Import',
           onPressed: _openCourseImport,
           icon: const Icon(Icons.file_open_outlined),
         ),
         IconButton(
+          key: const Key('create-course-icon-action'),
           tooltip: 'Create new course',
           onPressed: _newCourse,
           icon: const Icon(Icons.add),
@@ -1460,17 +1463,6 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
                 spacing: 8,
                 runSpacing: 8,
                 children: [
-                  FilledButton.icon(
-                    onPressed: _newCourse,
-                    icon: const Icon(Icons.add),
-                    label: const Text('Create new course'),
-                  ),
-                  OutlinedButton.icon(
-                    key: const Key('course-import-entry'),
-                    onPressed: _openCourseImport,
-                    icon: const Icon(Icons.file_open_outlined),
-                    label: const Text('Course Import'),
-                  ),
                   OutlinedButton.icon(
                     key: const Key('team-manager-entry'),
                     onPressed: () async {
@@ -1564,6 +1556,10 @@ Widget _courseStatusCard(Course course, Widget child) {
     indicatorKey: ValueKey('course-manager-status-${course.courseId}'),
     draftIndicatorKey: ValueKey('course-manager-draft-${course.courseId}'),
     hasDraft: status.courseHasDraft,
+    hasUnpublished: !course.publicationState.isPublished,
+    unpublishedIndicatorKey: ValueKey(
+      'course-manager-unpublished-${course.courseId}',
+    ),
     hasAuditConcern: status.hasCourseAuditConcern,
     child: child,
   );

@@ -290,7 +290,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.byType(CourseEditorScreen), findsNothing);
       expect(await CourseEditorService().listUserCourses(), isEmpty);
-      await tester.tap(find.widgetWithText(FilledButton, 'Create new course'));
+      await tester.tap(find.byKey(const Key('create-course-icon-action')));
       await tester.pumpAndSettle();
       expect(tester.widget<TextField>(_lessons).controller!.text, '3');
       expect(tester.widget<TextField>(_rounds).controller!.text, '1');
@@ -394,7 +394,7 @@ Future<void> _open(WidgetTester tester) async {
     MaterialApp(home: CourseProjectsScreen(currentCourse: _course([]))),
   );
   await tester.pumpAndSettle();
-  await tester.tap(find.widgetWithText(FilledButton, 'Create new course'));
+  await tester.tap(find.byKey(const Key('create-course-icon-action')));
   await tester.pumpAndSettle();
   await _enter(
     tester,

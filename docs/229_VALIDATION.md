@@ -1,10 +1,48 @@
-# QQL 229 revision 1 implementation and validation
+# QQL 229 revision 3 implementation and validation
 
 ## Release boundary
 
-QQL 229 revision 1 is Version `2.0.29`, Phase `229`, revision `1`, display build `229.1`, technical build `2291`, and pubspec `2.0.29+2291`. The Alpha lifetime remains exactly `2026-10-09 23:59:59` local time. Course Model is v7 (`formatVersion: 7`).
+QQL 229 revision 3 is Version `2.0.29`, Build `229`, Revision `3`, display build `229.3`, technical build `2293`, and pubspec `2.0.29+2293`. User-facing metadata uses Build/Revision terminology and does not label 229 as a Phase. The Alpha lifetime remains exactly `2026-10-09 23:59:59` local time. Course Model remains v7 (`formatVersion: 7`).
 
-Revision 1 starts from and retains the uncommitted revision-0 Course Manager action consistency, Course Selector Course Info/Hide/Unhide, and Learner Panel Expanded / Collapse completed / Focused implementation. QQL 227 IDDQD/Theme/Flag Background behavior and QQL 228 Settings/Profile, Statistics, Debug/logging, Audio Settings, and Course Entry behavior remain closed baselines.
+Revision 3 retains every revision-2 language, flag, Course Info, Internal-ID and per-user developer-unlock correction; revision-1 Course Model v7 ownership, Team authorization and clean Duplicate/Fork behavior; and revision-0 Course Manager action consistency, Course Selector Course Info/Hide/Unhide, and Learner Panel Expanded / Collapse completed / Focused behavior. QQL 227 IDDQD/Theme/Flag Background behavior and QQL 228 Settings/Profile, Statistics, Debug/logging, Audio Settings, and Course Entry behavior remain closed baselines.
+
+## Revision 3 corrections
+
+### Ordinary Team-member departure
+
+`TeamService.leaveTeam` resolves the active opaque profile through `ProfileService` and removes only that profile's ordinary membership after Team Manager confirmation. Cancel performs no write. The Team, its other members and Leads, Team-owned courses, learner progress and authoring data remain untouched. Course access changes immediately because `CourseAccessPolicy` continues to derive authorization from the authoritative Team registry. Team Leads cannot use the self-service path; their existing administration flow and the service-enforced mandatory final-Lead invariant remain unchanged.
+
+### Temporary Sample placement
+
+The course-level `temporarySample` field remains canonical Course Model v7 metadata and continues through `Course.toJson`, editor working-copy spreads, Duplicate/Fork copying and `CustomCourseTransferService` export. Course Info now owns the Temporary Sample description. The main Course Editor no longer renders the redundant badge/description or the reopen dialog, so opening or saving unrelated metadata neither alters the flag nor restores that presentation.
+
+### Independent Unpublished state
+
+Course Manager now passes Course publication state separately from `AuthoringHierarchyStatus.courseHasDraft`. A published Course with no authored Draft descendants has no badge; a published Course with Draft descendants shows Draft; an unpublished Course without Draft descendants shows Unpublished; and a Course meeting both conditions shows Draft followed by Unpublished. Both indicators use the established theme-aware blue badge presentation in one wrapping container. Publication changes never synthesize authored Draft state, and descendant Draft changes never alter Course delivery state.
+
+## Authoritative language resolution
+
+The custom-course `und` defect had two linked causes: New Course always stored the undefined `ttsLanguage` sentinel, and Audio Settings rendered/passed that raw field instead of resolving the Course's complete learning-language metadata. Bundled courses happened to carry populated TTS values, which concealed the origin-dependent difference.
+
+`CourseLanguageResolver` now applies one origin-neutral order to valid stored target variants, TTS codes, and established language-name fallback. It preserves variants such as `it-IT`, `en-GB` and `en-US`, preserves general `it`/`en`, rejects absent, malformed and undefined codes, and never invents a regional subtag. Audio Settings Test Voice consumes that result without changing its backend, selected-voice logic, lazy initialization or playback path. Course Info and Course Info Editor show both Learning and Base language names with those authoritative codes and never present blank/`und` when the established fallback resolves them.
+
+## Course Info identity, dates and flag
+
+Course Info and Course Info Editor format Created and Modified with `MaterialLocalizations.formatFullDate`, retaining the existing interface locale and time formatting while guaranteeing a four-digit year. Opening/inspection remains read-only. The existing confirmed authoring transaction preserves Created and updates Modified only after an actual saved semantic change.
+
+`CourseOwnerResolver` reads current Profile/Team records by the stable v7 ownership identity. A Team name is therefore the primary Owner label and changes automatically after a Team rename; Course JSON continues to store only the Team ID. Course Info Editor reveals that ID only under the existing Internal IDs preference. The same preference reveals `Course Model: v<formatVersion>` from the parsed Course schema value and never makes it editable.
+
+`CourseFlagService.resolve` is the shared explicit/automatic precedence source used by Course Info, Course Info Editor preview, selectors, learner surfaces, derived backgrounds and Course Entry Animation. Automatic clears `worldFlagId`, `flagImageBase64` and `flagCode` and resolves the learning-language fallback. Explicit selection persists exactly one authorized built-in, World Flag or custom source and takes precedence. Read-only courses display the resolved result without editing; invalid/unsupported data retains the neutral fallback.
+
+## Authoring-control and Team Manager corrections
+
+Course Manager keeps its AppBar Course Import and Create icon buttons, while their duplicate text buttons are removed. Course Editor keeps the text **Run audit** entry point while its duplicate AppBar Audit icon is removed. No service, registry, count, filter, result or other Audit route changes.
+
+Team Manager applies the existing Internal IDs preference to every Team, Team Lead and ordinary member using the shared selectable monospaced passive presentation. Names remain primary. The permanent final-Lead explanatory sentence is removed; its contextual tooltip, action feedback and independent `TeamService` invariant remain.
+
+## Per-user developer unlock
+
+The developer unlock was device-wide because `SettingsService` read and wrote the unprefixed `course_editor_unlocked` SharedPreferences key. It now resolves the active opaque learner ID and uses the existing Profile namespace. New users default locked; switching/restarting restores only that user's setting; normal learner backup/restore carries it; deleting the profile removes it with the existing namespace lifecycle. Loading Settings resets the in-progress tap counter, so taps cannot be shared across a profile switch. The Course Selector and Settings exposure both read this per-user value, while `CourseAccessPolicy` continues to enforce v7 individual/Team ownership independently.
 
 ## Duplicate/Fork first-open correction
 
@@ -52,7 +90,7 @@ New Course offers **Me** plus Teams the active profile belongs to only when at l
 
 ## Unified Course Editor
 
-Bundled official, external official, individually owned custom, Team-owned custom, and outsider-owned custom courses all use `CourseEditorScreen` and the same hierarchy/navigation. Capability state controls mutation: official and outsider courses show the read-only notice and cannot unlock or mutate, while an individual Owner or any owning-Team member receives full editing. Course Info, Audit, Help, IDs, metadata inspection, Lessons/Rounds/Exercises, and navigation remain available as appropriate. Fork or Duplicate appears from the policy; Delete remains Course Manager-only; the existing top Lock and Audit placements remain distinct.
+Bundled official, external official, individually owned custom, Team-owned custom, and outsider-owned custom courses all use `CourseEditorScreen` and the same hierarchy/navigation. Capability state controls mutation: official and outsider courses show the read-only notice and cannot unlock or mutate, while an individual Owner or any owning-Team member receives full editing. Course Info, Audit, Help, IDs, metadata inspection, Lessons/Rounds/Exercises, and navigation remain available as appropriate. Fork or Duplicate appears from the policy; Delete remains Course Manager-only; Audit keeps its single top-level text entry rather than a duplicate AppBar icon.
 
 ## Preserved revision-0 learner behavior
 
@@ -62,15 +100,15 @@ The bottom Lesson display control retains **Expanded**, **Collapse completed**, 
 
 ## Automated coverage
 
-Focused revision-1 coverage exercises first-open Duplicate/Fork cleanliness and real edit dirtiness; required v7 ownership; metadata creation/round trips/Course Info; owner, Team member, removed member, outsider and official permission matrices; no-derivatives enforcement; Duplicate ownership; Fork lineage; Team creation/membership/multiple Leads/final-Lead invariants/rename/profile deletion; New Course ownership choices; unified Editor read-only/editable surfaces; and Course Manager Team navigation.
+Focused revision-3 coverage exercises ordinary-member Leave Team visibility, confirmation/cancellation, self-only removal, immediate authorization loss, preservation of the Team, other members and Team-owned course data, and Team-Lead self-leave protection; Temporary Sample placement plus unrelated-save and real-export preservation; every Draft/Unpublished combination in light and dark themes; and independent narrow-layout badge updates with Draft ordered before Unpublished. The retained revision-2 coverage exercises Build/Revision wording; general/variant language preservation and custom/bundled parity; Test Voice fallback without `und`; language codes, live Team ownership, full-year dates and model visibility in both Course Info surfaces; Created/Modified save semantics; automatic/explicit/read-only flag behavior and cross-consumer resolution; retained icon/text controls; Team/User ID toggling and final-Lead enforcement; per-user unlock isolation, restart/default/backup/deletion behavior and independent ownership enforcement; plus revision-1 Duplicate/Fork cleanliness.
 
 The retained revision-0 suites cover Course Selector menus, Course Info, Hide/Unhide, active-course protection, profile isolation, Lesson expansion default/cycle/persistence, progression and Duel unlock edges, IDDQD interaction, Focused manual switching, Sections, and last-visited behavior.
 
 ## Validation results
 
-- Focused revision-1 and retained 229 regression batch: **118 tests passed**.
-- Complete Flutter suite: **1,278 tests passed** in 20:33 with zero failures.
-- `flutter analyze --no-pub`: **0 errors**, **1 inherited warning**, and **70 inherited info diagnostics** (71 total); revision-1 delta: **0**.
+- Focused revision-3 suite: **9 tests passed**. The revision-3 plus retained revision-2/revision-1 and adjacent authoring regression batch: **70 tests passed**.
+- Complete Flutter suite: **1,306 tests passed** in **11 minutes 27 seconds** with zero failures.
+- `flutter analyze --no-pub`: **0 errors and 0 new findings**. The repository retains its revision-1 baseline of **71 inherited findings**: **70 infos** (`curly_braces_in_flow_control_structures`) and **1 warning** (`unused_element` in `test/guidebook_sentence_generator_test.dart`). Focused analysis of all changed production and test files reported **no issues**.
 - Bundled Course validator: **9 Course Model v7 files passed**.
 - Deterministic bundled-course generator/checksum check: **9 files passed**.
 - Lesson icon validator: **14 assets, 0 issues**.
@@ -78,4 +116,4 @@ The retained revision-0 suites cover Course Selector menus, Course Info, Hide/Un
 - Audit Code Registry: **102 rules**, unchanged.
 - `git diff --check`: passed; existing LF/CRLF conversion notices are not product failures.
 
-No learner persistence format changed. The revision-0 profile-scoped Hide (`course_hidden_<encoded courseId>`) and Lesson expansion (`lesson_expansion_mode_<encoded courseId>`) key families remain unchanged. Revision 1 adds only the Team registry and clean v7 custom/official Course JSON changes described above. No package, Git stage, commit, tag, or push is part of this implementation.
+No Course Model or learner backup format changed. The revision-0 profile-scoped Hide (`course_hidden_<encoded courseId>`) and Lesson expansion (`lesson_expansion_mode_<encoded courseId>`) key families remain unchanged. Revision 2 moves only the existing developer-unlock suffix into the ordinary active-profile namespace; obsolete global data is left untouched and unread. Revision 3 mutates only the existing Team registry when an ordinary member confirms self-removal; it adds no persistence family. The revision-1 Team registry and clean v7 custom/official Course namespaces remain unchanged. Nothing was staged, committed, tagged, pushed, reset, reverted or cleaned, and no worktree was created or switched.

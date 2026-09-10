@@ -562,7 +562,7 @@ void main() {
       );
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 100));
-      await tester.tap(find.text('Create new course').first);
+      await tester.tap(find.byKey(const Key('create-course-icon-action')));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 400));
 

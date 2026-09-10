@@ -1,4 +1,24 @@
-# 2.0.29 (Phase 229, revision 1) - Ownership, Teams and unified Course Editor - 2026-09-09
+# 2.0.29 (Build 229, Revision 3) - Team leave and Course Manager status corrections - 2026-09-10
+
+- Added a confirmed **Leave Team** action to the current ordinary Team member's three-dot menu. Confirmation removes only that active opaque profile's membership; cancellation writes nothing, other members and Team-owned courses remain unchanged, and access updates through the existing Team-based authorization policy.
+- Kept Team Leads on the established administration path so self-service leave cannot weaken the mandatory last-Team-Lead invariant.
+- Moved Temporary Sample guidance out of the main Course Editor and into read-only Course Info. The course-level `temporarySample` metadata remains unchanged through unrelated saves, reopen, Duplicate/Fork paths and canonical v7 export.
+- Added an independent blue **Unpublished** Course Manager badge derived only from Course publication state. The existing **Draft** badge continues to derive only from authored Draft descendants; when both apply they appear in Draft/Unpublished order in a wrapping layout suitable for narrow light and dark themes.
+- Advanced technical metadata to `2.0.29+2293`, Build 229, Revision 3, display build `229.3`, while preserving the `2026-10-09 23:59:59` Alpha expiry, Course Model v7, ownership rules, persistence formats and all Revision 2 behavior.
+
+# 2.0.29 (Build 229, Revision 2) - Course metadata and per-user authoring access corrections - 2026-09-09
+
+- Corrected user-facing release wording to **Build 229** and **Revision 2**, with technical version `2.0.29+2292` and display build `229.2`; the Alpha expiry remains `2026-10-09 23:59:59` local time.
+- Added one origin-neutral Course language resolver. Audio Settings Test Voice and both Course Info surfaces now preserve authoritative general or regional codes, reject `und` for presentation, and use the established language-name fallback without inventing a region.
+- Added live resolved flag preview and authorized Automatic/Explicit editing in Course Info Editor. Automatic stores no override; explicit World Flag, custom image or built-in selection takes precedence. Course Info, the selector, learner surfaces, derived backgrounds and Course Entry Animation consume the shared resolution order and neutral fallback.
+- Course Info and Course Info Editor now show Learning/Base language names with codes and Created/Modified values with a four-digit year. Confirmed content changes continue to preserve Created and update Modified; inspection does not write either timestamp.
+- Team-owned Course Info surfaces resolve the Owner from the live Team registry. Course Info Editor keeps the Team name primary, reveals the stable Team ID only with Internal IDs, and shows the model's read-only `Course Model: v7` line under that same preference.
+- Removed only the duplicate Course Import/Create text buttons from Course Manager and only the duplicate Audit icon from Course Editor, retaining the icon Import/Create actions and the text Audit entry point with their established behavior.
+- Extended Team Manager's existing Internal IDs preference to Team IDs and every Lead/member User ID using the shared passive monospaced presentation. The permanent final-Lead sentence is removed while the contextual tooltip, feedback and service-enforced last-Lead invariant remain intact.
+- Moved the developer Course Manager unlock into the active opaque learner namespace. Each learner independently performs ten Build-row taps, restores their own state after switching/restart, starts locked when new, participates in ordinary learner backup/restore, and loses the setting on profile deletion. Unlock visibility never changes Course Model v7 ownership or Team authorization.
+- Preserved revision-1 Duplicate/Fork clean-state behavior, clean-cut v7 storage/import policy, course content, checksums, progression, XP, Review and Duel behavior.
+
+# 2.0.29 (Build 229, Revision 1) - Ownership, Teams and unified Course Editor - 2026-09-09
 
 - Made Course Manager actions consistent while preserving the established lifecycle paths: official sources provide read-only inspection, licensed Fork, Audit and Export where applicable; custom courses provide Edit, independent Duplicate, Audit, Export and manager-only Delete. Eligible official inspection retains Fork, and the custom Course Editor now provides Duplicate without adding Delete or another top-area Audit action. Fork and Duplicate continue through the existing provenance-aware, fresh-ID authoring architecture.
 - Added a three-dot Course Info / Hide menu to every Course Selector row. Hide is a reversible per-learner × Course visibility preference, never deletion; the active Course cannot be hidden, and `Hidden courses (n)` provides Course Info and immediate Unhide.
@@ -8,7 +28,7 @@
 - Introduced the clean Course Model v7 ownership boundary. Every custom Course JSON now requires a stable Creator profile ID and an Owner object naming either an individual profile ID or Team ID. No Author/name fallback or legacy custom migration exists. The centralized course access policy gives an Owner or any owning-Team member full editing and Duplicate rights regardless of license; outsiders remain read-only and may Fork only when derivatives are allowed.
 - Added the offline Team Manager as a separate Course Manager destination. Teams have stable IDs, local-profile members and one or more Leads; Leads administer membership and Lead status, the final Lead cannot be removed or demoted, and Lead status is not required for ordinary editing of Team-owned courses. New Course offers Me or an eligible Team only when the active profile belongs to a Team.
 - Unified official, owned custom, Team-owned and outsider custom inspection on the same capability-driven Course Editor hierarchy. Official originals and outsider originals remain immutable at both UI and service boundaries. Duplicate retains authorized ownership; Fork retains lineage/credits/license/provenance and receives explicit local ownership with fresh IDs.
-- Advanced metadata to `2.0.29+2291`, Phase 229 revision 1, display build `229.1`, while retaining the Alpha expiry `2026-10-09 23:59:59` local time. Bundled courses and checksums move to Course Model v7; learner progress, XP, activity, Review, Duel, Hide/Unhide and Lesson-expansion persistence formats remain unchanged; see `docs/229_VALIDATION.md`.
+- Advanced metadata to `2.0.29+2291`, Build 229, Revision 1, display build `229.1`, while retaining the Alpha expiry `2026-10-09 23:59:59` local time. Bundled courses and checksums move to Course Model v7; learner progress, XP, activity, Review, Duel, Hide/Unhide and Lesson-expansion persistence formats remain unchanged; see `docs/229_VALIDATION.md`.
 
 # 2.0.28 (Phase 228, revision 1) - Settings, Statistics, Debug and Audio - 2026-09-08
 

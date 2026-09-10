@@ -8,6 +8,7 @@ import 'package:flutter/services.dart';
 import '../controllers/learner_status_controller.dart';
 import '../services/settings_service.dart';
 import '../models/course_models.dart';
+import '../services/course_language_resolver.dart';
 import '../services/course_service.dart';
 import '../services/course_editor_service.dart';
 import '../services/publication_service.dart';
@@ -316,7 +317,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
               Text(
-                'Phase ${AppMetadata.developmentPhase}, revision ${AppMetadata.correctiveRevision}',
+                'Build ${AppMetadata.buildNumber}, Revision ${AppMetadata.correctiveRevision}',
                 style: Theme.of(ctx).textTheme.labelLarge?.copyWith(
                   color: _welcomeDialogForeground,
                 ),
@@ -930,6 +931,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final hiddenCourseIds = await _settings.getHiddenCourseIds(
       availableCoursesById.keys,
     );
+    final editorUnlocked = await _settings.isCourseEditorUnlocked();
     final recentRefs = (await _settings.getRecentCourseRefs())
         .where(
           (ref) =>
@@ -1322,28 +1324,30 @@ class _HomeScreenState extends State<HomeScreen> {
                       onTap: () => showHiddenCourses(overlayContext),
                     ),
                   ],
-                  const Divider(height: 28),
-                  const Padding(
-                    padding: EdgeInsets.fromLTRB(16, 0, 16, 6),
-                    child: Text(
-                      'Editor',
-                      style: TextStyle(fontWeight: FontWeight.w800),
+                  if (editorUnlocked) ...[
+                    const Divider(height: 28),
+                    const Padding(
+                      padding: EdgeInsets.fromLTRB(16, 0, 16, 6),
+                      child: Text(
+                        'Editor',
+                        style: TextStyle(fontWeight: FontWeight.w800),
+                      ),
                     ),
-                  ),
-                  ListTile(
-                    key: const Key('course-selector-edit-current'),
-                    leading: const Icon(Icons.edit_outlined),
-                    title: const Text('Edit current course'),
-                    trailing: const Icon(Icons.chevron_right),
-                    onTap: () => openCourseManager(ctx, editCurrent: true),
-                  ),
-                  ListTile(
-                    key: const Key('course-selector-course-manager'),
-                    leading: const Icon(Icons.library_books_outlined),
-                    title: const Text('Course Manager'),
-                    trailing: const Icon(Icons.chevron_right),
-                    onTap: () => openCourseManager(ctx, editCurrent: false),
-                  ),
+                    ListTile(
+                      key: const Key('course-selector-edit-current'),
+                      leading: const Icon(Icons.edit_outlined),
+                      title: const Text('Edit current course'),
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: () => openCourseManager(ctx, editCurrent: true),
+                    ),
+                    ListTile(
+                      key: const Key('course-selector-course-manager'),
+                      leading: const Icon(Icons.library_books_outlined),
+                      title: const Text('Course Manager'),
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: () => openCourseManager(ctx, editCurrent: false),
+                    ),
+                  ],
                 ],
               ),
             ),
@@ -1692,7 +1696,7 @@ class _HomeScreenState extends State<HomeScreen> {
           lesson: lesson,
           round: round,
           roundIndex: lesson.rounds.indexOf(round),
-          ttsLanguage: course.ttsLanguage,
+          ttsLanguage: CourseLanguageResolver.learning(course).code ?? '',
           completeLessonOnFinish: true,
           viewOnlyMode: _iddqdMode == LearnerIddqdMode.viewOnly,
         ),
@@ -1712,7 +1716,7 @@ class _HomeScreenState extends State<HomeScreen> {
         builder: (_) => DuelScreen(
           course: course,
           lesson: lesson,
-          ttsLanguage: course.ttsLanguage,
+          ttsLanguage: CourseLanguageResolver.learning(course).code ?? '',
           viewOnlyMode: _iddqdMode == LearnerIddqdMode.viewOnly,
         ),
       ),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../models/course_models.dart';
 import '../services/crash_log_service.dart';
+import '../services/course_language_resolver.dart';
 import '../services/settings_service.dart';
 import '../services/tts_cache_service.dart';
 
@@ -86,9 +87,10 @@ class _TtsSettingsScreenState extends State<TtsSettingsScreen> {
       builder: (_) => const _TtsVoiceTestDialog(),
     );
     if (text == null || text.trim().isEmpty || !mounted) return;
+    final language = CourseLanguageResolver.learning(widget.course);
     final ok = await _tts.speak(
       text: text,
-      language: widget.course.ttsLanguage,
+      language: language.code ?? '',
       learningLanguage: widget.course.learningLanguage,
       targetLanguage: widget.course.targetLanguage,
     );
@@ -108,6 +110,7 @@ class _TtsSettingsScreenState extends State<TtsSettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final language = CourseLanguageResolver.learning(widget.course);
     return Scaffold(
       appBar: AppBar(title: const Text('Audio Settings')),
       body: _loading
@@ -164,9 +167,7 @@ class _TtsSettingsScreenState extends State<TtsSettingsScreen> {
                 ListTile(
                   leading: const Icon(Icons.record_voice_over_outlined),
                   title: const Text('Test Voice'),
-                  subtitle: Text(
-                    '${widget.course.targetLanguage} · ${widget.course.ttsLanguage}',
-                  ),
+                  subtitle: Text(language.displayLabel),
                   onTap: _ttsEnabled ? _testVoice : null,
                 ),
               ],

@@ -27,6 +27,7 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
+      expect(find.text('English (en-GB)'), findsOneWidget);
 
       await tester.tap(find.widgetWithText(ListTile, 'Test Voice'));
       await tester.pumpAndSettle();
@@ -116,6 +117,79 @@ void main() {
     );
     expect(tts.requests.single.text, 'Testo scelto');
     expect(tts.requests.single.language, 'it-IT');
+  });
+
+  testWidgets(
+    'custom Test Voice replaces und with the authoritative stored variant',
+    (tester) async {
+      final tts = _RecordingTtsService();
+      final custom = Course.fromJson({
+        ..._englishCourse().toJson(),
+        'originType': 'custom',
+        'creatorProfileId': '11111111-1111-4111-8111-111111111111',
+        'ownership': {
+          'type': 'individual',
+          'id': '11111111-1111-4111-8111-111111111111',
+        },
+        'ttsLanguage': 'und',
+        'targetLanguageTag': 'en-US',
+      });
+      await tester.pumpWidget(
+        MaterialApp(
+          home: TtsSettingsScreen(course: custom, ttsService: tts),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('English (en-US)'), findsOneWidget);
+      expect(find.textContaining('und'), findsNothing);
+
+      await tester.tap(find.widgetWithText(ListTile, 'Test Voice'));
+      await tester.pumpAndSettle();
+      await tester.enterText(
+        find.byKey(const Key('tts-voice-test-text')),
+        'Hello',
+      );
+      await tester.pump();
+      await tester.tap(find.byKey(const Key('tts-voice-test-play')));
+      await tester.pumpAndSettle();
+      expect(tts.requests.single.language, 'en-US');
+    },
+  );
+
+  testWidgets('custom malformed code falls back to a general code, never und', (
+    tester,
+  ) async {
+    final tts = _RecordingTtsService();
+    final custom = Course.fromJson({
+      ..._italianCourse().toJson(),
+      'originType': 'custom',
+      'creatorProfileId': '11111111-1111-4111-8111-111111111111',
+      'ownership': {
+        'type': 'individual',
+        'id': '11111111-1111-4111-8111-111111111111',
+      },
+      'ttsLanguage': 'und',
+      'targetLanguageTag': 'malformed code',
+    });
+    await tester.pumpWidget(
+      MaterialApp(
+        home: TtsSettingsScreen(course: custom, ttsService: tts),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Italian (it)'), findsOneWidget);
+    expect(find.textContaining('und'), findsNothing);
+
+    await tester.tap(find.widgetWithText(ListTile, 'Test Voice'));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.byKey(const Key('tts-voice-test-text')),
+      'Ciao',
+    );
+    await tester.pump();
+    await tester.tap(find.byKey(const Key('tts-voice-test-play')));
+    await tester.pumpAndSettle();
+    expect(tts.requests.single.language, 'it');
   });
 }
 

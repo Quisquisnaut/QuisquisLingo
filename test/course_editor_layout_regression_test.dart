@@ -98,11 +98,12 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('Course Manager'), findsOneWidget);
       expect(find.text('Course Editor'), findsNothing);
-      expect(find.text('Course Import'), findsOneWidget);
+      expect(find.text('Course Import'), findsNothing);
+      expect(find.byTooltip('Course Import'), findsOneWidget);
       expect(find.text('Import instructions'), findsNothing);
       expect(find.text('Import course JSON'), findsNothing);
 
-      await tester.tap(find.byKey(const Key('course-import-entry')));
+      await tester.tap(find.byKey(const Key('course-import-icon-action')));
       await tester.pumpAndSettle();
       expect(find.byType(CourseImportScreen), findsOneWidget);
       expect(find.text('Course Import'), findsOneWidget);
@@ -119,7 +120,7 @@ void main() {
       await tester.tap(find.byType(BackButton));
       await tester.pumpAndSettle();
 
-      await tester.tap(find.widgetWithText(FilledButton, 'Create new course'));
+      await tester.tap(find.byKey(const Key('create-course-icon-action')));
       await tester.pumpAndSettle();
       final titleField = find.byWidgetPredicate(
         (widget) =>
@@ -307,14 +308,15 @@ void main() {
         findsOneWidget,
       );
       expect(find.text('Delete course'), findsNothing);
-      expect(find.byTooltip('Run Course Audit'), findsOneWidget);
+      expect(find.byTooltip('Run Course Audit'), findsNothing);
+      expect(find.widgetWithText(TextButton, 'Run audit'), findsOneWidget);
 
       await tester.tap(
         find.byKey(const Key('course-editor-lessons-navigation')),
       );
       await tester.pumpAndSettle();
       expect(find.byKey(const Key('lesson-management-lock')), findsOneWidget);
-      expect(find.byTooltip('Run Course Audit'), findsNothing);
+      expect(find.widgetWithText(TextButton, 'Run audit'), findsNothing);
       await tester.tap(find.byType(BackButton).last);
       await tester.pumpAndSettle();
 

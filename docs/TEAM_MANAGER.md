@@ -1,6 +1,6 @@
 # Team Manager
 
-Updated for QuisquisLingo 2.0.29, Phase 229 revision 1 (technical build 2291).
+Updated for QuisquisLingo 2.0.29, Build 229 revision 3 (technical build 2293).
 
 Team Manager is an offline authoring feature. Open Course Manager and select **Team Manager** to open its separate page. It creates no account, invitation, network, server, email, or online collaboration state.
 
@@ -8,15 +8,19 @@ Team Manager is an offline authoring feature. Open Course Manager and select **T
 
 A Team has a generated stable Team ID, a changeable display name, the stable local profile ID of its creator, a creation timestamp, members, and one or more Team Leads. Membership and Lead records always use opaque local profile IDs; display names are resolved only for presentation. Renaming a Team therefore does not alter any Team-owned Course.
 
-The profile that creates a Team becomes its first member and Team Lead. The creator identity remains provenance only and gives no permanent administrative privilege. A Team Lead may add an existing local profile, remove a member, promote a member to Team Lead, or demote a Lead to Member. A Team can have multiple Leads. The last remaining Lead cannot be removed or demoted; the UI disables that action with an explanation and the service rejects the same operation independently. An ordinary member cannot administer membership or Lead state.
+The profile that creates a Team becomes its first member and Team Lead. The creator identity remains provenance only and gives no permanent administrative privilege. A Team Lead may add an existing local profile, remove a member, promote a member to Team Lead, or demote a Lead to Member. A Team can have multiple Leads. The last remaining Lead cannot be removed or demoted; the contextual control tooltip explains why, attempted invalid actions retain appropriate feedback, and the service rejects the same operation independently. The interface does not repeat this as permanent explanatory text. An ordinary member cannot administer membership or Lead state.
+
+The active ordinary member has a three-dot menu on their own member row with **Leave Team**. The action requires confirmation; Cancel changes nothing. Confirm removes only that active opaque profile ID from membership and returns to the Team list. It does not delete or rewrite the Team, Team-owned courses, learner progress or other members. Team-derived Course edit/Duplicate access disappears automatically because the existing authorization policy reads current Team membership. Team Leads do not receive this self-service action; they remain on the promote/demote administration path so a Team can never lose its final Lead.
+
+The shared **Internal IDs** preference keeps Team names and learner display names primary. When enabled, Team Manager shows every Team ID plus every Lead/member User ID in the established selectable monospaced, non-clickable style. When disabled, it hides only those IDs and leaves names, roles, permissions and actions unchanged.
 
 Deleting a local profile also preserves the last-Lead invariant. A profile that is the sole Lead of any Team must first promote another member. Otherwise its membership is removed from each Team while the historical Team creator identity remains unchanged.
 
 ## Course ownership
 
-A custom course is owned either by one local profile or by one Team. New Course displays an Owner choice only when the active profile belongs to at least one Team: **Me** plus those eligible Teams. The choice stores the stable Owner ID, never the display name. There is no automatic transfer of an existing individually owned course.
+A custom course is owned either by one local profile or by one Team. New Course displays an Owner choice only when the active profile belongs to at least one Team: **Me** plus those eligible Teams. The choice stores the stable Owner ID, never the display name. Course Info resolves the current Team name from the Team registry, so a Team rename changes presentation without changing Course JSON or ownership. There is no automatic transfer of an existing individually owned course.
 
-Every member of an owning Team may edit and Duplicate its course. Team Lead status is not required for ordinary course authoring. Removing a member immediately removes these Team-derived rights. The course remains Team-owned if its original Creator later leaves the Team, loses Lead status, or changes display name.
+Every member of an owning Team may edit and Duplicate its course. Team Lead status is not required for ordinary course authoring. Removing a member or an ordinary member leaving immediately removes these Team-derived rights. The course remains Team-owned if its original Creator later leaves the Team, loses Lead status, or changes display name.
 
 Authorization follows one rule throughout Course Manager, Course Editor, Course Info, Duplicate, Fork, import, and persistence:
 

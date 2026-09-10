@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import '../models/course_models.dart';
 import '../models/world_flag_entity.dart';
+import '../services/course_flag_service.dart';
 import '../services/world_flag_repository.dart';
 import 'world_flag_art.dart';
 
@@ -319,8 +320,12 @@ class CourseFlagBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final worldFlagId = course.worldFlagId.trim();
-    if (worldFlagId.isNotEmpty) {
+    final resolved = CourseFlagService.resolve(
+      course,
+      fallbackCode: fallbackCode,
+    );
+    if (resolved.kind == ResolvedCourseFlagKind.worldFlag) {
+      final worldFlagId = resolved.identifier;
       return _WorldFlagResolver(
         id: worldFlagId,
         repository: worldFlagRepository ?? _sharedWorldFlagRepository,
@@ -383,10 +388,9 @@ class CourseFlagBadge extends StatelessWidget {
         },
       );
     }
-    final encoded = course.flagImageBase64.trim();
-    if (encoded.isNotEmpty) {
+    if (resolved.kind == ResolvedCourseFlagKind.customImage) {
       try {
-        final bytes = base64Decode(encoded);
+        final bytes = base64Decode(resolved.identifier);
         return Container(
           width: width,
           height: height,
@@ -405,14 +409,23 @@ class CourseFlagBadge extends StatelessWidget {
             gaplessPlayback: true,
           ),
         );
-      } catch (_) {
-        // Fall back to the built-in flag if imported data are damaged.
-      }
+      } catch (_) {}
+      return FlagBadge(
+        CourseFlagService.builtInRecoveryCode(
+          course,
+          fallbackCode: fallbackCode,
+        ),
+        width: width,
+        height: height,
+      );
     }
-    final code = course.flagCode.trim().isEmpty
-        ? fallbackCode
-        : course.flagCode;
-    return FlagBadge(code, width: width, height: height);
+    return FlagBadge(
+      resolved.kind == ResolvedCourseFlagKind.builtIn
+          ? resolved.identifier
+          : '',
+      width: width,
+      height: height,
+    );
   }
 }
 
@@ -434,8 +447,12 @@ class CourseFlagBackdrop extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final worldFlagId = course.worldFlagId.trim();
-    if (worldFlagId.isNotEmpty) {
+    final resolved = CourseFlagService.resolve(
+      course,
+      fallbackCode: fallbackCode,
+    );
+    if (resolved.kind == ResolvedCourseFlagKind.worldFlag) {
+      final worldFlagId = resolved.identifier;
       return _WorldFlagResolver(
         id: worldFlagId,
         repository: worldFlagRepository ?? _sharedWorldFlagRepository,
@@ -473,10 +490,9 @@ class CourseFlagBackdrop extends StatelessWidget {
         },
       );
     }
-    final encoded = course.flagImageBase64.trim();
-    if (encoded.isNotEmpty) {
+    if (resolved.kind == ResolvedCourseFlagKind.customImage) {
       try {
-        final bytes = base64Decode(encoded);
+        final bytes = base64Decode(resolved.identifier);
         return IgnorePointer(
           child: Opacity(
             opacity: opacity,
@@ -485,14 +501,23 @@ class CourseFlagBackdrop extends StatelessWidget {
             ),
           ),
         );
-      } catch (_) {
-        // Fall back to the built-in flag if imported data are damaged.
-      }
+      } catch (_) {}
+      return FlagBackdrop(
+        code: CourseFlagService.builtInRecoveryCode(
+          course,
+          fallbackCode: fallbackCode,
+        ),
+        opacity: opacity,
+        fit: fit,
+      );
     }
-    final code = course.flagCode.trim().isEmpty
-        ? fallbackCode
-        : course.flagCode;
-    return FlagBackdrop(code: code, opacity: opacity, fit: fit);
+    return FlagBackdrop(
+      code: resolved.kind == ResolvedCourseFlagKind.builtIn
+          ? resolved.identifier
+          : '',
+      opacity: opacity,
+      fit: fit,
+    );
   }
 }
 

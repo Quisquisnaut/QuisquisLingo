@@ -1,4 +1,4 @@
-import 'course_service.dart';
+import 'learning_language_identity.dart';
 
 /// Resolves speech metadata without inferring language from a course title,
 /// origin, filename, or a machine's default voice. No course data is rewritten.
@@ -9,9 +9,8 @@ class TtsLanguageResolver {
         const {'und', 'mul', 'mis', 'zxx'}.contains(text.split('-').first)) {
       return null;
     }
-    for (final entry in CourseService.targetLabels.entries) {
-      if (entry.value.toLowerCase() == text) return entry.key.toLowerCase();
-    }
+    final named = LearningLanguageIdentity.idForKnownName(text);
+    if (named != null) return named;
     if (!RegExp(r'^[a-z]{2,3}(?:-[a-z0-9]{2,8})*$').hasMatch(text)) {
       return null;
     }

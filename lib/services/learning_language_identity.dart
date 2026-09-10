@@ -37,6 +37,11 @@ class LearningLanguageIdentity {
 
   const LearningLanguageIdentity._();
 
+  /// Returns a canonical ID only when [value] is a recognized language name.
+  /// Unlike [canonicalId], arbitrary text is not treated as a language code.
+  static String? idForKnownName(String value) =>
+      _idsByName[value.trim().toLowerCase()];
+
   static String canonicalId(String value) {
     final normalized = value.trim().toLowerCase().replaceAll('_', '-');
     if (normalized.isEmpty) return '';

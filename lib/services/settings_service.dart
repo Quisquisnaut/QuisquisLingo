@@ -384,16 +384,28 @@ class SettingsService {
     }
   }
 
-  Future<bool> isCourseEditorUnlocked() async =>
-      (await SharedPreferences.getInstance()).getBool(
-        _courseEditorUnlockedKey,
-      ) ??
-      false;
-  Future<void> setCourseEditorUnlocked(bool unlocked) async =>
-      (await SharedPreferences.getInstance()).setBool(
-        _courseEditorUnlockedKey,
-        unlocked,
-      );
+  Future<bool> isCourseEditorUnlocked() async {
+    final profiles = ProfileService();
+    final activeId = await profiles.getActiveProfileId();
+    if (activeId == null) return false;
+    return (await SharedPreferences.getInstance()).getBool(
+          profiles.keyForProfileId(activeId, _courseEditorUnlockedKey),
+        ) ??
+        false;
+  }
+
+  Future<void> setCourseEditorUnlocked(bool unlocked) async {
+    final profiles = ProfileService();
+    final activeId = await profiles.getActiveProfileId();
+    if (activeId == null) return;
+    final preferences = await SharedPreferences.getInstance();
+    final key = profiles.keyForProfileId(activeId, _courseEditorUnlockedKey);
+    if (unlocked) {
+      await preferences.setBool(key, true);
+    } else {
+      await preferences.remove(key);
+    }
+  }
 
   Future<bool> isAudioOrphanCheckDue(String courseCode) async {
     final raw = (await SharedPreferences.getInstance()).getString(

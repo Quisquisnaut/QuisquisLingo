@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 
 import '../models/course_models.dart';
+import '../services/course_language_resolver.dart';
 import '../services/course_editor_service.dart';
 import '../services/course_service.dart';
 import '../services/course_access_policy.dart';
@@ -237,7 +238,8 @@ class _OfficialRoundInspectionScreen extends StatelessWidget {
                   course: course,
                   lesson: lesson,
                   round: round,
-                  ttsLanguage: course.ttsLanguage,
+                  ttsLanguage:
+                      CourseLanguageResolver.learning(course).code ?? '',
                   roundIndex: roundIndex,
                   previewMode: true,
                 ),
@@ -308,7 +310,7 @@ class _OfficialExerciseInspectionScreen extends StatelessWidget {
                   visualType: lesson.rounds[roundIndex].visualType,
                   exercises: [exercise],
                 ),
-                ttsLanguage: course.ttsLanguage,
+                ttsLanguage: CourseLanguageResolver.learning(course).code ?? '',
                 roundIndex: roundIndex,
                 previewMode: true,
               ),

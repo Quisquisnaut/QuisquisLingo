@@ -134,8 +134,14 @@ class _TeamManagerScreenState extends State<TeamManagerScreen> {
                   key: ValueKey('team-${team.teamId}'),
                   leading: const Icon(Icons.groups_outlined),
                   title: Text(team.displayName),
-                  subtitle: Text(
-                    '${team.memberProfileIds.length} members · ${team.leadProfileIds.length} Team Lead${team.leadProfileIds.length == 1 ? '' : 's'}${team.hasLead(_active!.learnerProfileId) ? ' · You are a Lead' : ''}',
+                  subtitle: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '${team.memberProfileIds.length} members · ${team.leadProfileIds.length} Team Lead${team.leadProfileIds.length == 1 ? '' : 's'}${team.hasLead(_active!.learnerProfileId) ? ' · You are a Lead' : ''}',
+                      ),
+                      EditorInternalIdText(label: 'Team', id: team.teamId),
+                    ],
                   ),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () => _open(team),
@@ -313,6 +319,51 @@ class _TeamDetailScreenState extends State<TeamDetailScreen> {
     });
   }
 
+  Future<void> _leaveTeam() async {
+    final team = _team;
+    final active = _active;
+    if (team == null ||
+        active == null ||
+        !team.hasMember(active.learnerProfileId) ||
+        team.hasLead(active.learnerProfileId)) {
+      return;
+    }
+    final confirmed =
+        await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Leave Team?'),
+            content: Text(
+              'Leave “${team.displayName}”? You will lose access to its Team-owned courses unless you join the Team again. Courses, Team data and learner progress will not be deleted.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('Cancel'),
+              ),
+              FilledButton(
+                key: const Key('leave-team-confirm'),
+                onPressed: () => Navigator.pop(context, true),
+                child: const Text('Leave Team'),
+              ),
+            ],
+          ),
+        ) ??
+        false;
+    if (!confirmed) return;
+    try {
+      await widget.teamService.leaveTeam(teamId: team.teamId);
+      if (mounted) Navigator.pop(context);
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(error.toString().replaceFirst('StateError: ', '')),
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_loading) {
@@ -355,6 +406,11 @@ class _TeamDetailScreenState extends State<TeamDetailScreen> {
                 ? 'Team Leads administer membership. Every member can edit and duplicate Team-owned courses.'
                 : 'Every Team member can edit and duplicate Team-owned courses. Only Team Leads administer membership.',
           ),
+          EditorInternalIdText(
+            label: 'Team',
+            id: team.teamId,
+            padding: const EdgeInsets.only(top: 6),
+          ),
           const SizedBox(height: 16),
           Text('Team Leads', style: Theme.of(context).textTheme.titleMedium),
           for (final id in leads) _memberTile(team, id, isLead: true),
@@ -374,43 +430,56 @@ class _TeamDetailScreenState extends State<TeamDetailScreen> {
     required bool isLead,
   }) {
     final finalLead = isLead && team.leadProfileIds.length == 1;
+    final currentOrdinaryMember =
+        !isLead && profileId == _active?.learnerProfileId;
     return ListTile(
       key: ValueKey('team-member-$profileId'),
       leading: Icon(
         isLead ? Icons.admin_panel_settings_outlined : Icons.person_outline,
       ),
       title: Text(_name(profileId)),
-      subtitle: Text(
-        finalLead
-            ? 'Team Lead · The final Team Lead cannot be demoted or removed.'
-            : isLead
-            ? 'Team Lead'
-            : 'Member',
+      subtitle: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(isLead ? 'Team Lead' : 'Member'),
+          EditorInternalIdText(label: 'User', id: profileId),
+        ],
       ),
-      trailing: !_canManage
+      trailing: !_canManage && !currentOrdinaryMember
           ? null
           : PopupMenuButton<String>(
+              key: ValueKey('team-member-actions-$profileId'),
               tooltip: finalLead
                   ? 'The Team must retain at least one Team Lead'
+                  : currentOrdinaryMember
+                  ? 'Team membership options'
                   : 'Manage member',
-              onSelected: (value) => _memberAction(value, profileId),
+              onSelected: (value) => value == 'leave'
+                  ? _leaveTeam()
+                  : _memberAction(value, profileId),
               itemBuilder: (_) => [
-                if (!isLead)
+                if (_canManage && !isLead)
                   const PopupMenuItem(
                     value: 'promote',
                     child: Text('Promote to Team Lead'),
                   ),
-                if (isLead)
+                if (_canManage && isLead)
                   PopupMenuItem(
                     value: 'demote',
                     enabled: !finalLead,
                     child: const Text('Demote to Member'),
                   ),
-                PopupMenuItem(
-                  value: 'remove',
-                  enabled: !finalLead,
-                  child: const Text('Remove member'),
-                ),
+                if (_canManage)
+                  PopupMenuItem(
+                    value: 'remove',
+                    enabled: !finalLead,
+                    child: const Text('Remove member'),
+                  ),
+                if (currentOrdinaryMember)
+                  const PopupMenuItem(
+                    value: 'leave',
+                    child: Text('Leave Team'),
+                  ),
               ],
             ),
     );

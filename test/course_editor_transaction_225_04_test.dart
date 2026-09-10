@@ -101,6 +101,40 @@ void main() {
     },
   );
 
+  test(
+    'Created stays stable while a saved content change updates Modified',
+    () async {
+      final source = _customCourse(title: 'Timestamped', version: '');
+      final service = CourseEditorService(
+        backupService: backups,
+        clock: () => _when,
+      );
+      final created = await service.confirmCourseTransaction(
+        originalCourse: source,
+        workingCourse: source,
+        languageCode: 'IT',
+        versionNotes: '',
+        isNewCourse: true,
+        committedAt: _when,
+      );
+      final later = _when.add(const Duration(days: 2, hours: 3));
+      final modified = await service.confirmCourseTransaction(
+        originalCourse: created.course,
+        workingCourse: Course.fromJson({
+          ...created.course.toJson(),
+          'title': 'Timestamped update',
+        }),
+        languageCode: 'IT',
+        versionNotes: '',
+        committedAt: later,
+      );
+
+      expect(modified.course.createdAtUtc, created.course.createdAtUtc);
+      expect(modified.course.createdAtUtc, _when.toIso8601String());
+      expect(modified.course.lastModifiedAtUtc, later.toIso8601String());
+    },
+  );
+
   test('confirmation is blocked without an active local QQL profile', () async {
     SharedPreferences.setMockInitialValues({});
     final blocked = CourseEditorService(

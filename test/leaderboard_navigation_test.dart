@@ -74,7 +74,7 @@ void main() {
       buildSignature: '',
     );
     SharedPreferences.setMockInitialValues({
-      'one_time_notice_seen_welcome_2.0.29+2291': true,
+      'one_time_notice_seen_welcome_2.0.29+2293': true,
       'sound_effects_enabled': false,
     });
     await ProfileService().addProfile('Navigation Learner');
@@ -2647,6 +2647,7 @@ void main() {
         failureMessage: 'Timed out loading the current Course in the top bar.',
       );
       final settings = SettingsService();
+      await settings.setCourseEditorUnlocked(true);
       final selectedBefore = await settings.getLastSelectedCourseCode();
       final selectedCourseId = _activeCourse(tester).courseId;
 
@@ -2942,7 +2943,7 @@ void main() {
         (text) =>
             text.data != 'Welcome to QuisquisLingo' &&
             text.data != 'Version 2.0.29' &&
-            text.data != 'Phase 229, revision 1' &&
+            text.data != 'Build 229, Revision 3' &&
             text.data != 'Continue',
       );
       final welcomeDialog = tester.widget<AlertDialog>(
@@ -2959,7 +2960,7 @@ void main() {
         const Color(0xFF0756DF),
       );
       expect(
-        tester.widget<Text>(find.text('Phase 229, revision 1')).style?.color,
+        tester.widget<Text>(find.text('Build 229, Revision 3')).style?.color,
         const Color(0xFF0756DF),
       );
       expect(find.textContaining('22621'), findsNothing);

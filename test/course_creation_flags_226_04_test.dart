@@ -20,7 +20,7 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   testWidgets(
-    'creation offers all sources and Automatic keeps language suggestion',
+    'creation offers all sources and Automatic stores no explicit override',
     (tester) async {
       await _pumpManager(tester);
       await _openCreation(tester);
@@ -41,7 +41,7 @@ void main() {
       await _create(tester);
 
       final course = _editorCourse(tester);
-      expect(course.flagCode, 'IT');
+      expect(course.flagCode, isEmpty);
       expect(course.worldFlagId, isEmpty);
       expect(course.flagImageBase64, isEmpty);
     },
@@ -321,7 +321,7 @@ Future<void> _pumpManager(WidgetTester tester) async {
 }
 
 Future<void> _openCreation(WidgetTester tester) async {
-  await tester.tap(find.widgetWithText(FilledButton, 'Create new course'));
+  await tester.tap(find.byKey(const Key('create-course-icon-action')));
   await tester.pumpAndSettle();
   expect(find.byType(AlertDialog), findsOneWidget);
   expect(

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../services/alpha_lifecycle_service.dart';
 import '../widgets/alpha_expired_view.dart';
 import '../models/course_models.dart';
+import '../services/course_language_resolver.dart';
 import '../services/progress_service.dart';
 import 'round_screen.dart';
 import '../widgets/learner_shell.dart';
@@ -82,7 +83,8 @@ class _ReviewScreenState extends State<ReviewScreen> {
           lesson: location.lesson,
           round: location.round,
           roundIndex: location.roundIndex,
-          ttsLanguage: widget.course.ttsLanguage,
+          ttsLanguage:
+              CourseLanguageResolver.learning(widget.course).code ?? '',
           viewOnlyMode: widget.viewOnlyMode,
         ),
       ),

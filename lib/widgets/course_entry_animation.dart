@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 
 import '../models/course_models.dart';
 import '../models/world_flag_entity.dart';
+import '../services/course_flag_service.dart';
 import '../services/world_flag_repository.dart';
 import 'flag_art.dart';
 import 'world_flag_art.dart';
@@ -46,10 +47,9 @@ class CourseEntryFlagSource {
     : this._(kind: CourseEntryFlagKind.builtIn, identifier: code);
 }
 
-/// Decides whether a real course switch has an explicit, renderable JSON flag.
-///
-/// Language, locale and title are intentionally absent from this policy. They
-/// must never supply or replace the course's configured flag.
+/// Decides whether a real course switch has the same resolved, renderable flag
+/// used by the other course surfaces. Explicit course data takes precedence;
+/// otherwise the caller supplies the established automatic language fallback.
 abstract final class CourseEntryAnimationPolicy {
   static const duration = Duration(seconds: 2);
 
@@ -83,38 +83,34 @@ abstract final class CourseEntryAnimationPolicy {
       return null;
     }
 
-    final worldFlagId = destination.worldFlagId.trim();
-    if (worldFlagId.isNotEmpty) {
+    final resolved = CourseFlagService.resolve(
+      destination,
+      fallbackCode: fallbackCode,
+    );
+    if (resolved.kind == ResolvedCourseFlagKind.worldFlag) {
       final entity = await (worldFlagLookup ?? WorldFlagRepository().findById)(
-        worldFlagId,
+        resolved.identifier,
       );
       return entity == null ? null : CourseEntryFlagSource.worldFlag(entity);
     }
 
-    final encodedImage = destination.flagImageBase64.trim();
-    if (encodedImage.isNotEmpty) {
+    if (resolved.kind == ResolvedCourseFlagKind.customImage) {
       try {
-        final bytes = base64Decode(encodedImage);
+        final bytes = base64Decode(resolved.identifier);
         final valid = await (imageValidator ?? _isDecodableImage)(bytes);
         if (valid) return CourseEntryFlagSource.customImage(bytes);
       } on FormatException {
-        // A damaged custom image may still fall through to an explicitly
-        // configured built-in flag, matching the existing course flag order.
+        // Invalid explicit data resolves neutrally on every consumer.
       }
+      return null;
     }
 
-    final flagCode = destination.flagCode.trim().toUpperCase();
-    if (flagCode.isNotEmpty) {
-      return _builtInFlagCodes.contains(flagCode)
-          ? CourseEntryFlagSource.builtIn(flagCode)
+    if (resolved.kind == ResolvedCourseFlagKind.builtIn) {
+      return _builtInFlagCodes.contains(resolved.identifier)
+          ? CourseEntryFlagSource.builtIn(resolved.identifier)
           : null;
     }
-    if (encodedImage.isNotEmpty) return null;
-
-    final fallback = fallbackCode.trim().toUpperCase();
-    return _builtInFlagCodes.contains(fallback)
-        ? CourseEntryFlagSource.builtIn(fallback)
-        : null;
+    return null;
   }
 
   static Future<bool> _isDecodableImage(Uint8List bytes) async {

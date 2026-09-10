@@ -5,6 +5,11 @@ import '../models/course_metadata_options.dart';
 import '../models/course_models.dart';
 import '../services/profile_service.dart';
 import '../services/team_service.dart';
+import '../services/course_language_resolver.dart';
+import '../services/course_owner_resolver.dart';
+import '../services/course_service.dart';
+import '../services/editor_display_preferences.dart';
+import '../widgets/flag_art.dart';
 import '../widgets/learner_shell.dart';
 
 class CourseInfoScreen extends StatefulWidget {
@@ -92,7 +97,7 @@ class CourseInfoScreen extends StatefulWidget {
     final parsed = DateTime.tryParse(utc)?.toLocal();
     if (parsed == null) return 'Not recorded';
     final localizations = MaterialLocalizations.of(context);
-    return '${localizations.formatMediumDate(parsed)} · '
+    return '${localizations.formatFullDate(parsed)} · '
         '${localizations.formatTimeOfDay(TimeOfDay.fromDateTime(parsed))}';
   }
 
@@ -119,7 +124,7 @@ class CourseInfoScreen extends StatefulWidget {
       if (course.lastModifiedByUsername.isNotEmpty)
         'Last modified by: ${course.lastModifiedByUsername}',
       if (course.lastModifiedAtUtc.isNotEmpty)
-        'Last modified: ${_localDateTime(context, course.lastModifiedAtUtc)}',
+        'Modified: ${_localDateTime(context, course.lastModifiedAtUtc)}',
       if (course.versionNotes.isNotEmpty)
         'Version notes:\n${course.versionNotes}',
     ];
@@ -144,12 +149,40 @@ class CourseInfoScreen extends StatefulWidget {
             ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w900),
           ),
           const SizedBox(height: 6),
-          Text('${course.sourceLanguage} → ${course.targetLanguage}'),
+          Text(
+            '${CourseLanguageResolver.base(course).displayLabel} → '
+            '${CourseLanguageResolver.learning(course).displayLabel}',
+          ),
+          const SizedBox(height: 12),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: CourseFlagBadge(
+              course: course,
+              fallbackCode: CourseService.codeForCourse(course),
+              width: 64,
+              height: 44,
+            ),
+          ),
+          ValueListenableBuilder<bool>(
+            valueListenable: EditorDisplayPreferences.showInternalIds,
+            builder: (context, showInternalIds, _) => showInternalIds
+                ? _InfoCard(
+                    title: 'Internal course data',
+                    body: 'Course Model: v${course.formatVersion}',
+                  )
+                : const SizedBox.shrink(),
+          ),
           if (course.courseDescription.trim().isNotEmpty) ...[
             const SizedBox(height: 16),
             Text(course.courseDescription.trim()),
           ],
           const SizedBox(height: 18),
+          if (course.temporarySample)
+            const _InfoCard(
+              title: 'Temporary Sample',
+              body:
+                  'This course is marked TEMPORARY SAMPLE. The preloaded material is provided only to demonstrate and test the editor. Replace sample material with reviewed content before publishing or distributing the course.',
+            ),
           _InfoCard(
             title: 'Ownership and authorization',
             body: [
@@ -162,6 +195,13 @@ class CourseInfoScreen extends StatefulWidget {
           _InfoCard(
             title: 'Authorship and descriptive credits',
             body: _credits,
+          ),
+          _InfoCard(
+            title: 'Languages',
+            body: [
+              'Learning language: ${CourseLanguageResolver.learning(course).displayLabel}',
+              'Base language: ${CourseLanguageResolver.base(course).displayLabel}',
+            ].join('\n'),
           ),
           if (course.forkProvenance != null)
             CourseForkProvenanceCard(provenance: course.forkProvenance!),
@@ -210,42 +250,20 @@ class _CourseInfoScreenState extends State<CourseInfoScreen> {
   @override
   void initState() {
     super.initState();
+    EditorDisplayPreferences.load();
     _resolveIdentities();
   }
 
   Future<void> _resolveIdentities() async {
     final course = widget.course;
-    String owner;
-    String creator;
-    if (course.originType.isOfficial) {
-      owner = course.publisherName.trim().isEmpty
-          ? 'Official publisher'
-          : course.publisherName;
-      creator = owner;
-    } else {
-      final ownerIdentity = course.ownership;
-      if (ownerIdentity == null) {
-        owner = 'Unsupported custom course (Owner missing)';
-      } else if (ownerIdentity.type == CourseOwnerType.team) {
-        final team = await _teams.teamById(ownerIdentity.id);
-        owner = team == null
-            ? 'Unavailable Team (${ownerIdentity.id})'
-            : '${team.displayName} (Team)';
-      } else {
-        final profile = await _profiles.getProfileById(ownerIdentity.id);
-        owner = profile == null
-            ? 'Unavailable local profile (${ownerIdentity.id})'
-            : profile.displayName;
-      }
-      final profile = await _profiles.getProfileById(course.creatorProfileId);
-      creator = profile == null
-          ? 'Unavailable local profile (${course.creatorProfileId})'
-          : profile.displayName;
-    }
+    final resolved = await CourseOwnerResolver(
+      profileService: _profiles,
+      teamService: _teams,
+    ).resolve(course);
     if (!mounted) return;
     setState(() {
-      _owner = owner;
-      _creator = creator;
+      _owner = resolved.ownerLabel;
+      _creator = resolved.creatorLabel;
     });
   }
 
@@ -277,7 +295,7 @@ class CourseForkProvenanceCard extends StatelessWidget {
     final localizations = MaterialLocalizations.of(context);
     final createdLabel = created == null
         ? 'Not recorded'
-        : '${localizations.formatMediumDate(created)} · ${localizations.formatTimeOfDay(TimeOfDay.fromDateTime(created))}';
+        : '${localizations.formatFullDate(created)} · ${localizations.formatTimeOfDay(TimeOfDay.fromDateTime(created))}';
     return _InfoCard(
       title: 'Original course and fork provenance',
       body: [

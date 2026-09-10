@@ -11,9 +11,12 @@ import 'package:audioplayers/audioplayers.dart';
 
 import '../models/course_models.dart';
 import '../models/course_metadata_options.dart';
+import '../models/world_flag_entity.dart';
 import '../models/exercise_authoring.dart';
 import '../services/course_editor_service.dart';
 import '../services/course_flag_service.dart';
+import '../services/course_language_resolver.dart';
+import '../services/course_owner_resolver.dart';
 import '../services/course_editor_transaction.dart';
 import '../services/course_access_policy.dart';
 import '../services/course_service.dart';
@@ -21,6 +24,9 @@ import '../services/course_audit_service.dart';
 import '../services/audit_code_registry.dart' show AuditCode;
 import '../services/course_audit_report_service.dart';
 import '../services/settings_service.dart';
+import '../services/editor_display_preferences.dart';
+import '../services/profile_service.dart';
+import '../services/team_service.dart';
 import '../services/lesson_icon_catalog.dart';
 import '../services/lesson_icon_service.dart';
 import '../services/lesson_presentation_service.dart';
@@ -46,6 +52,7 @@ import '../services/publication_service.dart';
 import '../services/provisional_publication_service.dart';
 import '../services/new_course_structure.dart';
 import '../widgets/flag_art.dart';
+import '../widgets/world_flag_picker.dart';
 import '../widgets/lesson_fallback_icon.dart';
 
 String _exerciseCountLabel(int count) =>
@@ -169,6 +176,8 @@ class AuthoringStatusCard extends StatelessWidget {
     required this.hasAuditConcern,
     required this.child,
     this.cardMargin,
+    this.hasUnpublished = false,
+    this.unpublishedIndicatorKey,
   });
 
   final Key indicatorKey;
@@ -177,6 +186,8 @@ class AuthoringStatusCard extends StatelessWidget {
   final bool? hasAuditConcern;
   final Widget child;
   final EdgeInsetsGeometry? cardMargin;
+  final bool hasUnpublished;
+  final Key? unpublishedIndicatorKey;
 
   @override
   Widget build(BuildContext context) {
@@ -194,18 +205,32 @@ class AuthoringStatusCard extends StatelessWidget {
     };
     return Tooltip(
       message:
-          '$auditMessage${hasDraft ? ' Blue Draft indicator: this branch contains authored Draft content hidden from learner delivery.' : ''}',
+          '$auditMessage${hasDraft ? ' Blue Draft indicator: this branch contains authored Draft content hidden from learner delivery.' : ''}${hasUnpublished ? ' Blue Unpublished indicator: this Course is not currently delivered to learners.' : ''}',
       child: Container(
         key: indicatorKey,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            if (hasDraft)
+            if (hasDraft || hasUnpublished)
               Align(
                 alignment: Alignment.centerLeft,
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(12, 2, 12, 0),
-                  child: _DraftBranchIndicator(key: draftIndicatorKey),
+                  child: Wrap(
+                    spacing: 6,
+                    runSpacing: 4,
+                    children: [
+                      if (hasDraft)
+                        _DraftBranchIndicator(key: draftIndicatorKey),
+                      if (hasUnpublished)
+                        _DraftBranchIndicator(
+                          key: unpublishedIndicatorKey,
+                          label: 'Unpublished',
+                          message:
+                              'This Course is not currently delivered to learners.',
+                        ),
+                    ],
+                  ),
                 ),
               ),
             Card(
@@ -228,9 +253,11 @@ class AuthoringStatusCard extends StatelessWidget {
 class _DraftBranchIndicator extends StatelessWidget {
   const _DraftBranchIndicator({
     super.key,
+    this.label = 'Draft',
     this.message = 'At least one authored item in this branch is Draft.',
   });
 
+  final String label;
   final String message;
 
   @override
@@ -241,7 +268,7 @@ class _DraftBranchIndicator extends StatelessWidget {
     return Tooltip(
       message: message,
       child: Semantics(
-        label: 'Draft',
+        label: label,
         child: DecoratedBox(
           decoration: BoxDecoration(
             color: background,
@@ -250,7 +277,7 @@ class _DraftBranchIndicator extends StatelessWidget {
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
             child: Text(
-              'Draft',
+              label,
               style: TextStyle(
                 color: foreground,
                 fontSize: 12,
@@ -270,7 +297,7 @@ String _localCourseDateTime(BuildContext context, String utc) {
   final parsed = DateTime.tryParse(utc)?.toLocal();
   if (parsed == null) return 'Not recorded';
   final localizations = MaterialLocalizations.of(context);
-  return '${localizations.formatMediumDate(parsed)} · '
+  return '${localizations.formatFullDate(parsed)} · '
       '${localizations.formatTimeOfDay(TimeOfDay.fromDateTime(parsed))}';
 }
 
@@ -445,6 +472,9 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
   late final CourseEditorService _service =
       widget.editorService ?? CourseEditorService();
   final _settings = SettingsService();
+  final _profiles = ProfileService();
+  final _flags = CourseFlagService();
+  late final _teams = TeamService(profileService: _profiles);
   final _recordedAudio = RecordedAudioService();
   late final CustomCourseTransferService _transfer =
       widget.transferService ?? CustomCourseTransferService();
@@ -469,35 +499,12 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
           ? true
           : await _settings.isCourseEditorLocked(_course.courseId);
       if (mounted) setState(() => _locked = locked);
-      if (!widget.access.readOnly) await _showSampleContentNoticeIfNeeded();
       if (!widget.access.readOnly &&
           await _settings.isAudioOrphanCheckDue(_code)) {
         await _checkOrphanAudio();
         await _settings.markAudioOrphanCheckRun(_code);
       }
     });
-  }
-
-  Future<void> _showSampleContentNoticeIfNeeded() async {
-    if (!_course.temporarySample || !mounted) {
-      return;
-    }
-    await showDialog<void>(
-      context: context,
-      barrierDismissible: false,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Temporary sample content'),
-        content: const Text(
-          'This course is marked TEMPORARY SAMPLE. The preloaded material is provided only to demonstrate and test the editor. Replace it with reviewed course content and remove the TEMPORARY SAMPLE badge before publishing or distributing the course.',
-        ),
-        actions: [
-          FilledButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Continue'),
-          ),
-        ],
-      ),
-    );
   }
 
   String get _code => CourseService.codeForCourse(_course);
@@ -620,6 +627,15 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
   });
 
   Future<void> _editCourseInfo() async {
+    final ownership = await CourseOwnerResolver(
+      profileService: _profiles,
+      teamService: _teams,
+    ).resolve(_course);
+    WorldFlagEntity? selectedWorldFlag;
+    if (_course.worldFlagId.isNotEmpty) {
+      selectedWorldFlag = await _flags.resolveWorldFlag(_course);
+    }
+    if (!mounted) return;
     const standardRoles = CourseMetadataOptions.standardRoles;
     const roleDescriptions = CourseMetadataOptions.roleDescriptions;
     final initialAuthors = _course.authors.isNotEmpty
@@ -662,6 +678,25 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
         ? _course.license
         : 'Other / Custom license';
     var derivativePolicy = _course.derivativeWorksPolicy;
+    var flagChoice = CourseFlagService.hasExplicitFlag(_course)
+        ? 'Explicit flag'
+        : 'Automatic';
+    var explicitFlagSource = _course.worldFlagId.isNotEmpty
+        ? 'World Flag'
+        : _course.flagImageBase64.isNotEmpty
+        ? 'Custom uploaded flag'
+        : 'Built-in flag';
+    var selectedFlag = _course.flagCode.trim().toUpperCase();
+    if (selectedFlag.isEmpty && flagChoice == 'Automatic') {
+      final automatic = CourseService.codeForCourse(_course);
+      if (CourseFlagService.renderableBuiltInCodes.contains(automatic)) {
+        selectedFlag = automatic;
+      }
+    }
+    var customFlagBase64 = _course.flagImageBase64;
+    String? flagError;
+    final learningLanguage = CourseLanguageResolver.learning(_course);
+    final baseLanguage = CourseLanguageResolver.base(_course);
     final narrowCourseInfo = MediaQuery.sizeOf(context).width < 560;
     Widget readOnlyField(String label, String value) => InputDecorator(
       decoration: InputDecoration(
@@ -684,6 +719,9 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
             String lastUpdated,
             String description,
             String buyACoffeeUrl,
+            String flagCode,
+            String flagImageBase64,
+            String worldFlagId,
           })
         >(
           context: context,
@@ -723,11 +761,31 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
                         _course.creatorProfileId,
                       ),
                       const SizedBox(height: 8),
-                      readOnlyField(
-                        'Owner',
-                        _course.ownership == null
-                            ? 'Not applicable'
-                            : '${_course.ownership!.type.name}: ${_course.ownership!.id}',
+                      readOnlyField('Owner', ownership.ownerLabel),
+                      if (ownership.ownerId != null)
+                        EditorInternalIdText(
+                          label: ownership.ownerType == CourseOwnerType.team
+                              ? 'Team'
+                              : 'User',
+                          id: ownership.ownerId!,
+                          padding: const EdgeInsets.only(top: 6),
+                        ),
+                      ValueListenableBuilder<bool>(
+                        valueListenable:
+                            EditorDisplayPreferences.showInternalIds,
+                        builder: (context, showInternalIds, _) =>
+                            showInternalIds
+                            ? Padding(
+                                padding: const EdgeInsets.only(top: 6),
+                                child: SelectableText(
+                                  'Course Model: v${_course.formatVersion}',
+                                  key: const Key('course-info-model-version'),
+                                  maxLines: 1,
+                                  style: Theme.of(ctx).textTheme.bodySmall
+                                      ?.copyWith(fontFamily: 'monospace'),
+                                ),
+                              )
+                            : const SizedBox.shrink(),
                       ),
                       if (_course.forkProvenance != null)
                         CourseForkProvenanceCard(
@@ -738,7 +796,7 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
                         readOnlyField('Created by', _course.createdByUsername),
                         const SizedBox(height: 8),
                         readOnlyField(
-                          'Created date and time',
+                          'Created',
                           _localCourseDateTime(ctx, _course.createdAtUtc),
                         ),
                         const SizedBox(height: 8),
@@ -748,7 +806,7 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
                         ),
                         const SizedBox(height: 8),
                         readOnlyField(
-                          'Last modification date and time',
+                          'Modified',
                           _localCourseDateTime(ctx, _course.lastModifiedAtUtc),
                         ),
                         if (_course.versionNotes.isNotEmpty) ...[
@@ -775,13 +833,13 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
                       const SizedBox(height: 8),
                       if (narrowCourseInfo) ...[
                         readOnlyField(
-                          'Source language',
-                          _course.sourceLanguage,
+                          'Base language',
+                          baseLanguage.displayLabel,
                         ),
                         const SizedBox(height: 8),
                         readOnlyField(
-                          'Target language',
-                          _course.targetLanguage,
+                          'Learning language',
+                          learningLanguage.displayLabel,
                         ),
                       ] else
                         Row(
@@ -789,19 +847,229 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
                           children: [
                             Expanded(
                               child: readOnlyField(
-                                'Source language',
-                                _course.sourceLanguage,
+                                'Base language',
+                                baseLanguage.displayLabel,
                               ),
                             ),
                             const SizedBox(width: 8),
                             Expanded(
                               child: readOnlyField(
-                                'Target language',
-                                _course.targetLanguage,
+                                'Learning language',
+                                learningLanguage.displayLabel,
                               ),
                             ),
                           ],
                         ),
+                      const SizedBox(height: 14),
+                      const Text(
+                        'Course flag',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 8),
+                      DropdownButtonFormField<String>(
+                        key: const Key('course-info-flag-choice'),
+                        initialValue: flagChoice,
+                        isExpanded: true,
+                        decoration: const InputDecoration(
+                          border: OutlineInputBorder(),
+                          labelText: 'Flag choice',
+                        ),
+                        items: const [
+                          DropdownMenuItem(
+                            value: 'Automatic',
+                            child: Text('Automatic'),
+                          ),
+                          DropdownMenuItem(
+                            value: 'Explicit flag',
+                            child: Text('Explicit flag'),
+                          ),
+                        ],
+                        onChanged: (value) => setLocalState(() {
+                          flagChoice = value ?? 'Automatic';
+                          flagError = null;
+                        }),
+                      ),
+                      if (flagChoice == 'Explicit flag') ...[
+                        const SizedBox(height: 8),
+                        DropdownButtonFormField<String>(
+                          key: const Key('course-info-explicit-flag-source'),
+                          initialValue: explicitFlagSource,
+                          isExpanded: true,
+                          decoration: const InputDecoration(
+                            border: OutlineInputBorder(),
+                            labelText: 'Explicit flag source',
+                          ),
+                          items: const [
+                            DropdownMenuItem(
+                              value: 'Built-in flag',
+                              child: Text('Built-in flag'),
+                            ),
+                            DropdownMenuItem(
+                              value: 'World Flag',
+                              child: Text('World Flag'),
+                            ),
+                            DropdownMenuItem(
+                              value: 'Custom uploaded flag',
+                              child: Text('Custom uploaded flag'),
+                            ),
+                          ],
+                          onChanged: (value) => setLocalState(() {
+                            explicitFlagSource = value ?? 'Built-in flag';
+                            flagError = null;
+                          }),
+                        ),
+                        if (explicitFlagSource == 'Built-in flag') ...[
+                          const SizedBox(height: 8),
+                          DropdownButtonFormField<String>(
+                            key: const Key('course-info-built-in-flag'),
+                            initialValue:
+                                CourseFlagService.builtInFlags.containsKey(
+                                  selectedFlag,
+                                )
+                                ? selectedFlag
+                                : null,
+                            isExpanded: true,
+                            decoration: const InputDecoration(
+                              border: OutlineInputBorder(),
+                              labelText: 'Course flag',
+                            ),
+                            items: [
+                              for (final entry
+                                  in CourseFlagService.builtInFlags.entries)
+                                DropdownMenuItem(
+                                  value: entry.key,
+                                  child: Text('${entry.value} (${entry.key})'),
+                                ),
+                            ],
+                            onChanged: (value) => setLocalState(() {
+                              selectedFlag = value ?? '';
+                              flagError = null;
+                            }),
+                          ),
+                        ],
+                        if (explicitFlagSource == 'World Flag') ...[
+                          const SizedBox(height: 8),
+                          OutlinedButton.icon(
+                            key: const Key('course-info-choose-world-flag'),
+                            icon: const Icon(Icons.public),
+                            label: Text(
+                              selectedWorldFlag?.displayNameEn ??
+                                  (_course.worldFlagId.isEmpty
+                                      ? 'Choose World Flag'
+                                      : 'World Flag unavailable'),
+                            ),
+                            onPressed: () async {
+                              final selected = await showWorldFlagPicker(
+                                context: ctx,
+                                initialWorldFlagId:
+                                    selectedWorldFlag?.id ??
+                                    _course.worldFlagId,
+                              );
+                              if (selected != null && ctx.mounted) {
+                                setLocalState(() {
+                                  selectedWorldFlag = selected;
+                                  flagError = null;
+                                });
+                              }
+                            },
+                          ),
+                        ],
+                        if (explicitFlagSource == 'Custom uploaded flag') ...[
+                          const SizedBox(height: 8),
+                          OutlinedButton.icon(
+                            key: const Key('course-info-import-flag'),
+                            icon: const Icon(Icons.upload_file),
+                            label: const Text('Import flag'),
+                            onPressed: () async {
+                              try {
+                                final imported = await _flags
+                                    .importPreparedFlag();
+                                if (!ctx.mounted) return;
+                                setLocalState(() {
+                                  customFlagBase64 = imported.base64Png;
+                                  flagError = null;
+                                });
+                              } catch (error) {
+                                if (!ctx.mounted) return;
+                                setLocalState(
+                                  () => flagError = error
+                                      .toString()
+                                      .replaceFirst('FormatException: ', ''),
+                                );
+                              }
+                            },
+                          ),
+                        ],
+                      ],
+                      const SizedBox(height: 8),
+                      Builder(
+                        builder: (context) {
+                          final hasExplicitSelection =
+                              switch (explicitFlagSource) {
+                                'World Flag' => selectedWorldFlag != null,
+                                'Custom uploaded flag' =>
+                                  customFlagBase64.isNotEmpty,
+                                _ => CourseFlagService.builtInFlags.containsKey(
+                                  selectedFlag,
+                                ),
+                              };
+                          if (flagChoice == 'Explicit flag' &&
+                              !hasExplicitSelection) {
+                            return const Row(
+                              children: [
+                                SizedBox(
+                                  width: 64,
+                                  height: 44,
+                                  child: Icon(Icons.outlined_flag),
+                                ),
+                                SizedBox(width: 10),
+                                Flexible(child: Text('Flag preview')),
+                              ],
+                            );
+                          }
+                          final preview = Course.fromJson({
+                            ..._course.toJson(),
+                            'flagCode':
+                                flagChoice == 'Explicit flag' &&
+                                    explicitFlagSource == 'Built-in flag'
+                                ? selectedFlag
+                                : '',
+                            'flagImageBase64':
+                                flagChoice == 'Explicit flag' &&
+                                    explicitFlagSource == 'Custom uploaded flag'
+                                ? customFlagBase64
+                                : '',
+                            'worldFlagId':
+                                flagChoice == 'Explicit flag' &&
+                                    explicitFlagSource == 'World Flag'
+                                ? selectedWorldFlag!.id
+                                : '',
+                          });
+                          return Row(
+                            children: [
+                              CourseFlagBadge(
+                                course: preview,
+                                fallbackCode: CourseService.codeForCourse(
+                                  preview,
+                                ),
+                                width: 64,
+                                height: 44,
+                              ),
+                              const SizedBox(width: 10),
+                              const Flexible(child: Text('Flag preview')),
+                            ],
+                          );
+                        },
+                      ),
+                      if (flagError != null) ...[
+                        const SizedBox(height: 6),
+                        Text(
+                          flagError!,
+                          style: TextStyle(
+                            color: Theme.of(ctx).colorScheme.error,
+                          ),
+                        ),
+                      ],
                       const SizedBox(height: 14),
                       const Text(
                         'Authors',
@@ -1140,6 +1408,39 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
                       ).showSnackBar(SnackBar(content: Text(error.message)));
                       return;
                     }
+                    var resultFlagCode = '';
+                    var resultFlagImageBase64 = '';
+                    var resultWorldFlagId = '';
+                    if (flagChoice == 'Explicit flag') {
+                      switch (explicitFlagSource) {
+                        case 'World Flag':
+                          if (selectedWorldFlag == null) {
+                            setLocalState(
+                              () => flagError = 'Choose a World Flag.',
+                            );
+                            return;
+                          }
+                          resultWorldFlagId = selectedWorldFlag!.id;
+                        case 'Custom uploaded flag':
+                          if (customFlagBase64.isEmpty) {
+                            setLocalState(
+                              () => flagError = 'Import a custom flag first.',
+                            );
+                            return;
+                          }
+                          resultFlagImageBase64 = customFlagBase64;
+                        default:
+                          if (!CourseFlagService.builtInFlags.containsKey(
+                            selectedFlag,
+                          )) {
+                            setLocalState(
+                              () => flagError = 'Choose a built-in flag.',
+                            );
+                            return;
+                          }
+                          resultFlagCode = selectedFlag;
+                      }
+                    }
                     final aa = <CourseAuthor>[];
                     for (var i = 0; i < names.length; i++) {
                       final n = names[i].text.trim();
@@ -1173,6 +1474,9 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
                       lastUpdated: lastUpdated.text.trim(),
                       description: description.text.trim(),
                       buyACoffeeUrl: normalizedBuyACoffeeUrl,
+                      flagCode: resultFlagCode,
+                      flagImageBase64: resultFlagImageBase64,
+                      worldFlagId: resultWorldFlagId,
                     ));
                   },
                   child: const Text('Save'),
@@ -1212,6 +1516,9 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
         'lastUpdated': result.lastUpdated,
         'courseDescription': result.description,
         'buyACoffeeUrl': result.buyACoffeeUrl,
+        'flagCode': result.flagCode,
+        'flagImageBase64': result.flagImageBase64,
+        'worldFlagId': result.worldFlagId,
       }),
     );
   }
@@ -1693,12 +2000,6 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
               icon: const Icon(Icons.lock_open_outlined),
               selectedIcon: const Icon(Icons.lock_outline),
             ),
-            IconButton(
-              key: const Key('course-editor-audit'),
-              tooltip: 'Run Course Audit',
-              onPressed: _runAudit,
-              icon: const Icon(Icons.fact_check_outlined),
-            ),
             const EditorAppBarActions(),
           ],
         ),
@@ -1732,17 +2033,6 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
               ),
             ),
             const Divider(height: 1),
-            if (_course.temporarySample)
-              const ListTile(
-                leading: Icon(Icons.label_outline),
-                title: Text(
-                  'TEMPORARY SAMPLE',
-                  style: TextStyle(fontWeight: FontWeight.w800),
-                ),
-                subtitle: Text(
-                  'Replace sample material with reviewed content before distribution.',
-                ),
-              ),
             ListTile(
               key: const Key('course-editor-course-info'),
               leading: Icon(
@@ -2615,7 +2905,8 @@ class LessonAuthoringPreviewScreen extends StatelessWidget {
                         course: course,
                         lesson: lesson,
                         round: round,
-                        ttsLanguage: course.ttsLanguage,
+                        ttsLanguage:
+                            CourseLanguageResolver.learning(course).code ?? '',
                         roundIndex: index,
                         previewMode: true,
                       ),
@@ -4091,7 +4382,7 @@ class _GuidebookRoundGeneratorScreenState
         course: widget.course,
         lesson: _draftLesson,
         round: _drafts[index],
-        ttsLanguage: widget.course.ttsLanguage,
+        ttsLanguage: CourseLanguageResolver.learning(widget.course).code ?? '',
         roundIndex: widget.lesson.rounds.length + index,
         previewMode: true,
       ),
@@ -4627,7 +4918,7 @@ class _LessonRoundsScreenState extends State<LessonRoundsScreen> {
         course: _course,
         lesson: _draftLesson,
         round: _rounds[index],
-        ttsLanguage: _course.ttsLanguage,
+        ttsLanguage: CourseLanguageResolver.learning(_course).code ?? '',
         roundIndex: index,
         previewMode: true,
       ),
@@ -5761,7 +6052,7 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
           course: _course,
           lesson: _lesson,
           round: preview,
-          ttsLanguage: _course.ttsLanguage,
+          ttsLanguage: CourseLanguageResolver.learning(_course).code ?? '',
           roundIndex: widget.roundIndex,
           previewMode: true,
         ),
@@ -5784,7 +6075,7 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
           course: _course,
           lesson: _lesson,
           round: preview,
-          ttsLanguage: _course.ttsLanguage,
+          ttsLanguage: CourseLanguageResolver.learning(_course).code ?? '',
           roundIndex: widget.roundIndex,
           previewMode: true,
         ),
@@ -6133,7 +6424,8 @@ class _ExerciseCreationWizardScreenState
             title: 'Preview exercise',
             exercises: [exercise],
           ),
-          ttsLanguage: widget.course.ttsLanguage,
+          ttsLanguage:
+              CourseLanguageResolver.learning(widget.course).code ?? '',
           roundIndex: widget.roundIndex,
           previewMode: true,
         ),
@@ -8233,7 +8525,7 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
           course: detachedCourse,
           lesson: detachedLesson,
           round: detachedRound,
-          ttsLanguage: course.ttsLanguage,
+          ttsLanguage: CourseLanguageResolver.learning(course).code ?? '',
           roundIndex: lesson.rounds
               .indexWhere((item) => item.id == round.id)
               .clamp(0, lesson.rounds.length),

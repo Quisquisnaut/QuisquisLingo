@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:quisquislingo_app/models/course_models.dart';
 import 'package:quisquislingo_app/screens/settings_screen.dart';
 import 'package:quisquislingo_app/services/app_metadata.dart';
+import 'package:quisquislingo_app/services/profile_service.dart';
 import 'package:quisquislingo_app/services/settings_service.dart';
 import 'package:quisquislingo_app/services/sound_effect_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -23,14 +24,15 @@ void main() {
       ).firstMatch(pubspec)?.group(1);
 
       expect(AppMetadata.releaseVersion, '2.0.29');
+      expect(AppMetadata.buildNumber, '229');
       expect(AppMetadata.developmentPhase, '229');
-      expect(AppMetadata.correctiveRevision, 1);
-      expect(AppMetadata.build, '229.1');
-      expect(AppMetadata.platformBuildNumber, '2291');
-      expect(AppMetadata.technicalVersion, '2.0.29+2291');
+      expect(AppMetadata.correctiveRevision, 3);
+      expect(AppMetadata.build, '229.3');
+      expect(AppMetadata.platformBuildNumber, '2293');
+      expect(AppMetadata.technicalVersion, '2.0.29+2293');
       expect(AppMetadata.version, AppMetadata.technicalVersion);
       expect(version, AppMetadata.technicalVersion);
-      expect(AppMetadata.displayLabel, 'Version 2.0.29\nPhase 229, revision 1');
+      expect(AppMetadata.displayLabel, 'Version 2.0.29\nBuild 229\nRevision 3');
     },
   );
 
@@ -38,6 +40,7 @@ void main() {
     'complete Settings Version and Build area remains ten-tap target',
     (tester) async {
       SharedPreferences.setMockInitialValues({'sound_effects_enabled': false});
+      await ProfileService().addProfile('Metadata Learner');
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(
             const MethodChannel('plugins.flutter.io/path_provider'),

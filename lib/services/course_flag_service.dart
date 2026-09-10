@@ -7,7 +7,22 @@ import 'package:path_provider/path_provider.dart';
 
 import '../models/course_models.dart';
 import '../models/world_flag_entity.dart';
+import 'course_language_resolver.dart';
 import 'world_flag_repository.dart';
+
+enum ResolvedCourseFlagKind { worldFlag, customImage, builtIn, neutral }
+
+class ResolvedCourseFlag {
+  final ResolvedCourseFlagKind kind;
+  final String identifier;
+  final bool isExplicit;
+
+  const ResolvedCourseFlag({
+    required this.kind,
+    required this.identifier,
+    required this.isExplicit,
+  });
+}
 
 class ImportedCourseFlag {
   final String base64Png;
@@ -37,11 +52,92 @@ class CourseFlagService {
     'DE': 'Germany',
     'ES': 'Spain',
     'EN': 'United Kingdom / English',
+    'UK': 'United Kingdom',
     'CY': 'Wales',
     'NL': 'Netherlands',
     'PT': 'Portugal',
     'FI': 'Finland',
+    'KO': 'South Korea / Korean',
+    'KR': 'South Korea',
   };
+
+  static const Set<String> renderableBuiltInCodes = {
+    'DE',
+    'IT',
+    'ES',
+    'PT',
+    'NL',
+    'FI',
+    'CY',
+    'EN',
+    'UK',
+    'KO',
+    'KR',
+  };
+
+  static bool hasExplicitFlag(Course course) =>
+      course.worldFlagId.trim().isNotEmpty ||
+      course.flagImageBase64.trim().isNotEmpty ||
+      course.flagCode.trim().isNotEmpty;
+
+  /// The established recovery source when explicit raster flag data cannot be
+  /// decoded, or when a derived palette cannot load its selected asset.
+  static String builtInRecoveryCode(
+    Course course, {
+    required String fallbackCode,
+  }) {
+    final configured = course.flagCode.trim().toUpperCase();
+    return configured.isEmpty ? fallbackCode.trim().toUpperCase() : configured;
+  }
+
+  /// Shared source precedence for Course Info, selectors, learner surfaces and
+  /// the Course Entry Animation. Invalid explicit sources remain explicit so
+  /// consumers can render the established neutral fallback rather than
+  /// silently substituting an automatic flag.
+  static ResolvedCourseFlag resolve(Course course, {String? fallbackCode}) {
+    final worldFlagId = course.worldFlagId.trim();
+    if (worldFlagId.isNotEmpty) {
+      return ResolvedCourseFlag(
+        kind: ResolvedCourseFlagKind.worldFlag,
+        identifier: worldFlagId,
+        isExplicit: true,
+      );
+    }
+    final customImage = course.flagImageBase64.trim();
+    if (customImage.isNotEmpty) {
+      return ResolvedCourseFlag(
+        kind: ResolvedCourseFlagKind.customImage,
+        identifier: customImage,
+        isExplicit: true,
+      );
+    }
+    final explicitCode = course.flagCode.trim().toUpperCase();
+    if (explicitCode.isNotEmpty) {
+      return ResolvedCourseFlag(
+        kind: ResolvedCourseFlagKind.builtIn,
+        identifier: explicitCode,
+        isExplicit: true,
+      );
+    }
+    final languageCode =
+        (fallbackCode ?? CourseLanguageResolver.learning(course).code ?? '')
+            .trim()
+            .toUpperCase()
+            .split('-')
+            .first;
+    if (languageCode.isNotEmpty) {
+      return ResolvedCourseFlag(
+        kind: ResolvedCourseFlagKind.builtIn,
+        identifier: languageCode,
+        isExplicit: false,
+      );
+    }
+    return const ResolvedCourseFlag(
+      kind: ResolvedCourseFlagKind.neutral,
+      identifier: '',
+      isExplicit: false,
+    );
+  }
 
   String codeForLanguage(String language) {
     switch (language.trim().toLowerCase()) {

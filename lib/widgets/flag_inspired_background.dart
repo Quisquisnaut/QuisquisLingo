@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../models/course_models.dart';
+import '../services/course_flag_service.dart';
 import '../services/flag_background_palette_service.dart';
 import '../services/profile_service.dart';
 
@@ -66,9 +67,13 @@ class _CourseFlagInspiredBackgroundState
   }
 
   FlagBackgroundPalette _safeInitialPalette() {
-    final code = widget.course.flagCode.trim().isEmpty
-        ? widget.fallbackCode
-        : widget.course.flagCode;
+    final resolved = CourseFlagService.resolve(
+      widget.course,
+      fallbackCode: widget.fallbackCode,
+    );
+    final code = resolved.kind == ResolvedCourseFlagKind.builtIn
+        ? resolved.identifier
+        : '';
     return const FlagBackgroundPaletteService().derive(
       FlagBackgroundPaletteService.builtInColors(code),
       brightness: widget.brightness,

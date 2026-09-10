@@ -263,7 +263,7 @@ void main() {
         rootBundle.evict(asset);
       }
       SharedPreferences.setMockInitialValues({
-        'one_time_notice_seen_welcome_2.0.29+2291': true,
+        'one_time_notice_seen_welcome_2.0.29+2293': true,
         'sound_effects_enabled': false,
       });
       await ProfileService().addProfile('Course Switch Learner');
