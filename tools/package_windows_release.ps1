@@ -1,5 +1,7 @@
 [CmdletBinding()]
-param()
+param(
+    [switch]$RebuildFlutterApplication
+)
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
@@ -9,6 +11,125 @@ $requiredRuntimeDlls = @(
     "vcruntime140.dll",
     "vcruntime140_1.dll"
 )
+
+$launcherFileName = "QuisquisLingo.exe"
+$infographicFileName = "QQL infographic.png"
+
+function Get-VisualStudioInstallationPaths {
+    $installationPaths = @()
+    $programFilesX86 = ${env:ProgramFiles(x86)}
+    if (-not [string]::IsNullOrWhiteSpace($programFilesX86)) {
+        $vswhere = Join-Path $programFilesX86 "Microsoft Visual Studio\Installer\vswhere.exe"
+        if (Test-Path -LiteralPath $vswhere -PathType Leaf) {
+            $json = & $vswhere -all -products "*" -format json
+            if ($LASTEXITCODE -ne 0) {
+                throw "vswhere failed while locating installed Visual Studio instances."
+            }
+            $instances = @($json | ConvertFrom-Json) | Sort-Object installationVersion -Descending
+            $installationPaths += $instances | ForEach-Object { $_.installationPath }
+        }
+    }
+
+    $visualStudioRoots = @()
+    if (-not [string]::IsNullOrWhiteSpace($env:ProgramFiles)) {
+        $visualStudioRoots += Join-Path $env:ProgramFiles "Microsoft Visual Studio"
+    }
+    if (-not [string]::IsNullOrWhiteSpace($programFilesX86)) {
+        $visualStudioRoots += Join-Path $programFilesX86 "Microsoft Visual Studio"
+    }
+    foreach ($visualStudioRoot in $visualStudioRoots) {
+        if (-not (Test-Path -LiteralPath $visualStudioRoot -PathType Container)) {
+            continue
+        }
+        foreach ($productLine in Get-ChildItem -LiteralPath $visualStudioRoot -Directory) {
+            $installationPaths += Get-ChildItem -LiteralPath $productLine.FullName -Directory |
+                ForEach-Object { $_.FullName }
+        }
+    }
+
+    @($installationPaths |
+        Where-Object { -not [string]::IsNullOrWhiteSpace($_) -and (Test-Path -LiteralPath $_ -PathType Container) } |
+        ForEach-Object { (Resolve-Path -LiteralPath $_).Path } |
+        Select-Object -Unique)
+}
+
+function Find-CMake {
+    $command = Get-Command cmake -ErrorAction SilentlyContinue
+    if ($null -ne $command) {
+        return $command.Source
+    }
+    foreach ($installationPath in Get-VisualStudioInstallationPaths) {
+        $candidate = Join-Path $installationPath "Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe"
+        if (Test-Path -LiteralPath $candidate -PathType Leaf) {
+            return $candidate
+        }
+    }
+    throw "cmake.exe was not found in PATH or an installed Visual Studio instance."
+}
+
+function Find-Dumpbin {
+    $command = Get-Command dumpbin -ErrorAction SilentlyContinue
+    if ($null -ne $command) {
+        return $command.Source
+    }
+    foreach ($installationPath in Get-VisualStudioInstallationPaths) {
+        $toolsRoot = Join-Path $installationPath "VC\Tools\MSVC"
+        if (-not (Test-Path -LiteralPath $toolsRoot -PathType Container)) {
+            continue
+        }
+        $candidate = Get-ChildItem -LiteralPath $toolsRoot -Directory |
+            Sort-Object Name -Descending |
+            ForEach-Object { Join-Path $_.FullName "bin\Hostx64\x64\dumpbin.exe" } |
+            Where-Object { Test-Path -LiteralPath $_ -PathType Leaf } |
+            Select-Object -First 1
+        if ($null -ne $candidate) {
+            return $candidate
+        }
+    }
+    throw "The x64 dumpbin.exe tool was not found in PATH or Visual Studio."
+}
+
+function Get-TreeManifest {
+    param(
+        [string]$Directory,
+        [string[]]$ExcludeRelativePaths = @()
+    )
+
+    $resolvedDirectory = (Resolve-Path -LiteralPath $Directory).Path.TrimEnd('\')
+    $prefix = "$resolvedDirectory\"
+    $excluded = @{}
+    foreach ($relativePath in $ExcludeRelativePaths) {
+        $excluded[$relativePath.ToLowerInvariant()] = $true
+    }
+
+    $manifest = @{}
+    foreach ($file in Get-ChildItem -LiteralPath $resolvedDirectory -Recurse -File | Sort-Object FullName) {
+        $relativePath = $file.FullName.Substring($prefix.Length)
+        if ($excluded.ContainsKey($relativePath.ToLowerInvariant())) {
+            continue
+        }
+        $hash = (Get-FileHash -Algorithm SHA256 -LiteralPath $file.FullName).Hash
+        $manifest[$relativePath] = "$($file.Length)|$hash"
+    }
+    return $manifest
+}
+
+function Assert-MatchingManifests {
+    param(
+        [hashtable]$Expected,
+        [hashtable]$Actual,
+        [string]$Description
+    )
+
+    $missing = @($Expected.Keys | Where-Object { -not $Actual.ContainsKey($_) } | Sort-Object)
+    $unexpected = @($Actual.Keys | Where-Object { -not $Expected.ContainsKey($_) } | Sort-Object)
+    $changed = @($Expected.Keys | Where-Object {
+        $Actual.ContainsKey($_) -and $Actual[$_] -ne $Expected[$_]
+    } | Sort-Object)
+    if ($missing.Count -gt 0 -or $unexpected.Count -gt 0 -or $changed.Count -gt 0) {
+        throw "$Description failed. Missing: $($missing -join ', '); unexpected: $($unexpected -join ', '); changed: $($changed -join ', ')"
+    }
+}
 
 function Get-VisualStudioRedistDirectories {
     param([string]$InstallationPath)
@@ -104,15 +225,19 @@ function Assert-PackageContents {
     param([string]$Directory)
 
     $requiredPaths = @(
+        $launcherFileName,
         "quisquislingo_app.exe",
         "flutter_windows.dll",
+        "native_assets.json",
         "data\icudtl.dat",
         "data\app.so",
         "data\flutter_assets",
         "audioplayers_windows_plugin.dll",
         "screen_retriever_windows_plugin.dll",
         "url_launcher_windows_plugin.dll",
-        "window_manager_plugin.dll"
+        "window_manager_plugin.dll",
+        "readme.txt",
+        $infographicFileName
     ) + $requiredRuntimeDlls
 
     $missing = @($requiredPaths | Where-Object {
@@ -126,55 +251,176 @@ function Assert-PackageContents {
     }
 }
 
-function Assert-MatchingFiles {
+function Assert-LauncherPeDependencies {
     param(
-        [string]$ExpectedDirectory,
-        [string]$ActualDirectory
+        [string]$LauncherPath,
+        [string]$DumpbinPath
     )
 
-    $expectedPrefix = $ExpectedDirectory.TrimEnd('\') + '\'
-    $mismatches = @()
-    foreach ($file in Get-ChildItem -LiteralPath $ExpectedDirectory -Recurse -File) {
-        $relativePath = $file.FullName.Substring($expectedPrefix.Length)
-        $actualPath = Join-Path $ActualDirectory $relativePath
-        if (-not (Test-Path -LiteralPath $actualPath -PathType Leaf)) {
-            $mismatches += $relativePath
-            continue
-        }
-        if ((Get-Item -LiteralPath $actualPath).Length -ne $file.Length) {
-            $mismatches += $relativePath
+    $dependencyOutput = @(& $DumpbinPath /DEPENDENTS $LauncherPath)
+    if ($LASTEXITCODE -ne 0) {
+        throw "dumpbin /DEPENDENTS failed for $LauncherPath"
+    }
+    $dependencies = @($dependencyOutput |
+        ForEach-Object { $_.Trim() } |
+        Where-Object { $_ -match '^[A-Za-z0-9_.-]+\.dll$' } |
+        ForEach-Object { $_.ToUpperInvariant() } |
+        Select-Object -Unique)
+    $allowedSystemDependencies = @(
+        "COMCTL32.DLL",
+        "SHELL32.DLL",
+        "KERNEL32.DLL"
+    )
+    $unexpected = @($dependencies | Where-Object { $_ -notin $allowedSystemDependencies })
+    if ($unexpected.Count -gt 0) {
+        throw "The bootstrap launcher imports non-approved DLLs: $($unexpected -join ', ')"
+    }
+    foreach ($forbidden in @(
+        "MSVCP140.DLL",
+        "VCRUNTIME140.DLL",
+        "VCRUNTIME140_1.DLL",
+        "UCRTBASE.DLL",
+        "FLUTTER_WINDOWS.DLL"
+    )) {
+        if ($forbidden -in $dependencies) {
+            throw "The bootstrap launcher must not import $forbidden"
         }
     }
-    if ($mismatches.Count -gt 0) {
-        throw "ZIP validation failed for: $($mismatches -join ', ')"
+    if ($dependencies.Count -eq 0) {
+        throw "No PE dependencies were parsed for the bootstrap launcher."
+    }
+    return [pscustomobject]@{
+        Output = $dependencyOutput
+        Dependencies = $dependencies
+    }
+}
+
+function Assert-ReleaseStaticRuntime {
+    param([string]$ProjectPath)
+
+    $projectText = Get-Content -LiteralPath $ProjectPath -Raw
+    $match = [regex]::Match(
+        $projectText,
+        '(?s)<ItemDefinitionGroup Condition="[^\"]*Release\|x64[^\"]*">(.*?)</ItemDefinitionGroup>')
+    if (-not $match.Success) {
+        throw "Could not locate the Release|x64 settings in $ProjectPath"
+    }
+    $releaseSettings = $match.Groups[1].Value
+    if ($releaseSettings -notmatch '<RuntimeLibrary>MultiThreaded</RuntimeLibrary>' -or
+        $releaseSettings -match '<RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>') {
+        throw "Release|x64 does not use the static MultiThreaded runtime in $ProjectPath"
     }
 }
 
 $projectRoot = (Resolve-Path (Split-Path -Parent $PSScriptRoot)).Path
-$versionMatch = Select-String -Path (Join-Path $projectRoot "pubspec.yaml") -Pattern '^version:\s*[^+]+\+(\d+)\s*$'
+$versionMatch = Select-String -Path (Join-Path $projectRoot "pubspec.yaml") -Pattern '^version:\s*([^\s]+)\+(\d+)\s*$'
 if ($null -eq $versionMatch) {
     throw "Could not read the numeric Flutter build number from pubspec.yaml."
 }
-$buildNumber = $versionMatch.Matches[0].Groups[1].Value
+$qqlVersion = "$($versionMatch.Matches[0].Groups[1].Value)+$($versionMatch.Matches[0].Groups[2].Value)"
+$buildNumber = $versionMatch.Matches[0].Groups[2].Value
 $packageName = "quisquislingo_alpha_${buildNumber}"
+$releaseDirectory = Join-Path $projectRoot "build\windows\x64\runner\Release"
+$nativeBuildDirectory = Join-Path $projectRoot "build\windows\x64"
 
-Push-Location $projectRoot
-try {
-    & flutter build windows --release
-    if ($LASTEXITCODE -ne 0) {
-        throw "Flutter Windows release build failed."
+if ($RebuildFlutterApplication) {
+    Push-Location $projectRoot
+    try {
+        & flutter build windows --release --no-pub
+        if ($LASTEXITCODE -ne 0) {
+            throw "Flutter Windows release build failed."
+        }
+    }
+    finally {
+        Pop-Location
     }
 }
-finally {
-    Pop-Location
+
+if (-not (Test-Path -LiteralPath $releaseDirectory -PathType Container)) {
+    throw "Windows Release directory was not found: $releaseDirectory. Build and validate the frozen Flutter application first."
+}
+if (-not (Test-Path -LiteralPath $nativeBuildDirectory -PathType Container)) {
+    throw "The configured native Windows build directory was not found: $nativeBuildDirectory"
 }
 
-$releaseDirectory = Join-Path $projectRoot "build\windows\x64\runner\Release"
-if (-not (Test-Path -LiteralPath $releaseDirectory -PathType Container)) {
-    throw "Windows Release directory was not found: $releaseDirectory"
+$childExecutable = Join-Path $releaseDirectory "quisquislingo_app.exe"
+if (-not (Test-Path -LiteralPath $childExecutable -PathType Leaf)) {
+    throw "The frozen internal Flutter executable is missing: $childExecutable"
 }
+$childProductVersion = (Get-Item -LiteralPath $childExecutable).VersionInfo.ProductVersion
+if ($childProductVersion -ne $qqlVersion) {
+    throw "The internal Flutter executable reports $childProductVersion instead of pubspec version $qqlVersion."
+}
+
+# Freeze every existing QQL/Flutter package byte before compiling the standalone
+# launcher. QuisquisLingo.exe is the only native output excluded from this map.
+$frozenApplicationManifest = Get-TreeManifest `
+    -Directory $releaseDirectory `
+    -ExcludeRelativePaths @($launcherFileName)
+$frozenApplicationBytes = 0L
+foreach ($value in $frozenApplicationManifest.Values) {
+    $frozenApplicationBytes += [long]($value.Split('|')[0])
+}
+
+$cmakePath = Find-CMake
+$dumpbinPath = Find-Dumpbin
+$launcherProject = Join-Path $nativeBuildDirectory "launcher\qql_bootstrap_launcher.vcxproj"
+$launcherTestsProject = Join-Path $nativeBuildDirectory "launcher\qql_bootstrap_launcher_tests.vcxproj"
+$packageTestsProject = Join-Path $nativeBuildDirectory "launcher\qql_bootstrap_package_tests.vcxproj"
+$childProbeProject = Join-Path $nativeBuildDirectory "launcher\qql_bootstrap_child_probe.vcxproj"
+
+& $cmakePath --build $nativeBuildDirectory --config Release --target `
+    qql_bootstrap_launcher_tests qql_bootstrap_package_tests
+if ($LASTEXITCODE -ne 0) {
+    throw "Native bootstrap launcher/test build failed."
+}
+
+foreach ($project in @(
+    $launcherProject,
+    $launcherTestsProject,
+    $packageTestsProject,
+    $childProbeProject
+)) {
+    Assert-ReleaseStaticRuntime -ProjectPath $project
+}
+
+$launcherOutput = Join-Path $nativeBuildDirectory "launcher\Release\$launcherFileName"
+$launcherTests = Join-Path $nativeBuildDirectory "launcher\Release\qql_bootstrap_launcher_tests.exe"
+$packageTests = Join-Path $nativeBuildDirectory "launcher\Release\qql_bootstrap_package_tests.exe"
+$childProbe = Join-Path $nativeBuildDirectory "launcher\Release\qql_bootstrap_child_probe.exe"
+foreach ($nativeOutput in @($launcherOutput, $launcherTests, $packageTests, $childProbe)) {
+    if (-not (Test-Path -LiteralPath $nativeOutput -PathType Leaf)) {
+        throw "Expected native output is missing: $nativeOutput"
+    }
+}
+
+& $launcherTests
+if ($LASTEXITCODE -ne 0) {
+    throw "Bootstrap launcher unit tests failed."
+}
+& $packageTests $launcherOutput $childProbe
+if ($LASTEXITCODE -ne 0) {
+    throw "Packaged-launcher integration tests failed."
+}
+
+$sourcePeResult = Assert-LauncherPeDependencies `
+    -LauncherPath $launcherOutput `
+    -DumpbinPath $dumpbinPath
+
+$applicationManifestAfterNativeBuild = Get-TreeManifest `
+    -Directory $releaseDirectory `
+    -ExcludeRelativePaths @($launcherFileName)
+Assert-MatchingManifests `
+    -Expected $frozenApplicationManifest `
+    -Actual $applicationManifestAfterNativeBuild `
+    -Description "Frozen QQL $qqlVersion application preservation"
 
 $runtimeSource = Find-VcRuntimeDirectory -RequiredDlls $requiredRuntimeDlls
+$readmeSource = Join-Path $projectRoot "readme_windows.txt"
+$infographicSource = Join-Path $projectRoot "docs\$infographicFileName"
+if (-not (Test-Path -LiteralPath $infographicSource -PathType Leaf)) {
+    throw "The approved external infographic is unavailable: $infographicSource"
+}
 $packagesRoot = Join-Path $projectRoot "build\packages"
 $stagingDirectory = Join-Path $packagesRoot $packageName
 $zipPath = Join-Path $packagesRoot "$packageName.zip"
@@ -197,18 +443,68 @@ foreach ($generatedPath in @($stagingDirectory, $zipPath, $zipValidationDirector
 New-Item -ItemType Directory -Path $stagingDirectory | Out-Null
 
 Get-ChildItem -LiteralPath $releaseDirectory -Force | Copy-Item -Destination $stagingDirectory -Recurse -Force
-Copy-Item -LiteralPath (Join-Path $projectRoot "readme_windows.txt") -Destination (Join-Path $stagingDirectory "readme.txt") -Force
+Copy-Item -LiteralPath $launcherOutput -Destination (Join-Path $stagingDirectory $launcherFileName) -Force
+Copy-Item -LiteralPath $readmeSource -Destination (Join-Path $stagingDirectory "readme.txt") -Force
+Copy-Item -LiteralPath $infographicSource -Destination (Join-Path $stagingDirectory $infographicFileName) -Force
 foreach ($dll in $requiredRuntimeDlls) {
     Copy-Item -LiteralPath (Join-Path $runtimeSource $dll) -Destination (Join-Path $stagingDirectory $dll) -Force
 }
 
 Assert-PackageContents -Directory $stagingDirectory
+$packagingOnlyPaths = @(
+    $launcherFileName,
+    "readme.txt",
+    $infographicFileName
+) + $requiredRuntimeDlls
+$stagedApplicationManifest = Get-TreeManifest `
+    -Directory $stagingDirectory `
+    -ExcludeRelativePaths $packagingOnlyPaths
+Assert-MatchingManifests `
+    -Expected $frozenApplicationManifest `
+    -Actual $stagedApplicationManifest `
+    -Description "Staged frozen QQL $qqlVersion application"
+
+$expectedPackageManifest = @{}
+foreach ($entry in $frozenApplicationManifest.GetEnumerator()) {
+    $expectedPackageManifest[$entry.Key] = $entry.Value
+}
+foreach ($extra in @(
+    @{ RelativePath = $launcherFileName; Source = $launcherOutput },
+    @{ RelativePath = "readme.txt"; Source = $readmeSource },
+    @{ RelativePath = $infographicFileName; Source = $infographicSource }
+)) {
+    $item = Get-Item -LiteralPath $extra.Source
+    $hash = (Get-FileHash -Algorithm SHA256 -LiteralPath $extra.Source).Hash
+    $expectedPackageManifest[$extra.RelativePath] = "$($item.Length)|$hash"
+}
+foreach ($dll in $requiredRuntimeDlls) {
+    $runtimePath = Join-Path $runtimeSource $dll
+    $item = Get-Item -LiteralPath $runtimePath
+    $hash = (Get-FileHash -Algorithm SHA256 -LiteralPath $runtimePath).Hash
+    $expectedPackageManifest[$dll] = "$($item.Length)|$hash"
+}
+$stagedPackageManifest = Get-TreeManifest -Directory $stagingDirectory
+Assert-MatchingManifests `
+    -Expected $expectedPackageManifest `
+    -Actual $stagedPackageManifest `
+    -Description "Staged package file set and SHA-256 content"
+
+$stagedPeResult = Assert-LauncherPeDependencies `
+    -LauncherPath (Join-Path $stagingDirectory $launcherFileName) `
+    -DumpbinPath $dumpbinPath
 Compress-Archive -Path (Join-Path $stagingDirectory "*") -DestinationPath $zipPath -CompressionLevel Optimal
 
 try {
     Expand-Archive -LiteralPath $zipPath -DestinationPath $zipValidationDirectory
     Assert-PackageContents -Directory $zipValidationDirectory
-    Assert-MatchingFiles -ExpectedDirectory $stagingDirectory -ActualDirectory $zipValidationDirectory
+    $zipManifest = Get-TreeManifest -Directory $zipValidationDirectory
+    Assert-MatchingManifests `
+        -Expected $expectedPackageManifest `
+        -Actual $zipManifest `
+        -Description "Extracted ZIP file set and SHA-256 content"
+    $zipPeResult = Assert-LauncherPeDependencies `
+        -LauncherPath (Join-Path $zipValidationDirectory $launcherFileName) `
+        -DumpbinPath $dumpbinPath
 }
 finally {
     if (Test-Path -LiteralPath $zipValidationDirectory) {
@@ -217,7 +513,16 @@ finally {
 }
 
 Write-Host "QuisquisLingo Windows standalone release package prepared."
+Write-Host "QQL application version: $qqlVersion (unchanged)"
+Write-Host "Frozen QQL files: $($frozenApplicationManifest.Count) ($frozenApplicationBytes bytes)"
+Write-Host "Native launcher tests: passed"
+Write-Host "Packaged-launcher integration tests: passed"
+Write-Host "Launcher PE dependencies: $($sourcePeResult.Dependencies -join ', ')"
+Write-Host "Staged launcher PE dependencies: $($stagedPeResult.Dependencies -join ', ')"
+Write-Host "ZIP launcher PE dependencies: $($zipPeResult.Dependencies -join ', ')"
+Write-Host "PE inspection tool: $dumpbinPath /DEPENDENTS"
 Write-Host "VC runtime source: $runtimeSource"
 Write-Host "Staging directory: $stagingDirectory"
 Write-Host "ZIP package: $zipPath"
-Write-Host "Distribute or test the complete staged directory or ZIP contents, not the EXE alone."
+Write-Host "Normal packaged entry point: $launcherFileName"
+Write-Host "Distribute or test the complete staged directory or ZIP contents, not either EXE alone."

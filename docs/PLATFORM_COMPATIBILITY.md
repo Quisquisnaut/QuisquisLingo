@@ -4,7 +4,11 @@
 
 ### Windows
 
-Windows is a supported code path. TTS uses System.Speech. Validate both debug and `flutter build windows --release`, then launch the complete packaged application on a Windows machine without Flutter or VS Code installed.
+Windows is a supported code path. TTS uses System.Speech. QQL itself remains `2.0.29+2293`; the Windows package wraps the unchanged `quisquislingo_app.exe` with a separate native x64 bootstrap named `QuisquisLingo.exe`. Packaged users should start the bootstrap, while direct runner and `flutter run` development behavior remain available and unchanged.
+
+The bootstrap resolves package files relative to its own executable, checks the explicit native runtime set and system `MFPlat.dll`, and consolidates recoverable findings into one Continue anyway / Cancel warning. A missing internal Flutter executable is fatal and Close-only. Native Windows earlier than Windows 10 receives a compatibility warning rather than a hard block. Wine is detected first and is Experimental; missing Media Foundation under Wine receives Wine-specific guidance rather than Windows Optional Features guidance. A complete QQL package already ships the expected Visual C++ runtime DLLs, so re-downloading and fully extracting the package is the primary remediation for missing package files.
+
+Validate both debug and `flutter build windows --release`, then run `tools/package_windows_release.ps1` and launch the complete packaged application on a Windows machine without Flutter or VS Code installed. For the frozen packaging-only intervention, the script defaults to reusing the existing validated Flutter Release bytes and rebuilds only the native bootstrap/tests. Its explicit `-RebuildFlutterApplication` option is for a separately authorized future app build, not this frozen QQL package.
 
 ### Android
 

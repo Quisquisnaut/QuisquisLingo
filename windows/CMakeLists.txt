@@ -52,6 +52,10 @@ add_subdirectory(${FLUTTER_MANAGED_DIR})
 # Application build; see runner/CMakeLists.txt.
 add_subdirectory("runner")
 
+# Standalone Windows bootstrap used only by packaged distributions. The Flutter
+# runner remains the unchanged development and internal application target.
+add_subdirectory("launcher")
+
 
 # Generated plugin build rules, which manage building the plugins and adding
 # them to the application.

@@ -1,5 +1,65 @@
 # Windows standalone release test
 
+## Bootstrap/package validation for frozen QQL 2.0.29+2293
+
+This packaging-only change does not alter the Flutter application. The normal
+packaged entry point is `QuisquisLingo.exe`; `quisquislingo_app.exe` remains the
+unchanged internal app and can still be started directly to bypass preflight.
+The package root also contains the unchanged external `QQL infographic.png`.
+
+With an already validated `build\windows\x64\runner\Release` for QQL
+`2.0.29+2293`, run:
+
+```powershell
+.\tools\package_windows_release.ps1
+```
+
+The script deliberately does not rebuild Flutter by default. It hashes every
+existing QQL/Flutter Release file, builds and runs only the native launcher/test
+targets, verifies the frozen file manifest did not change, verifies the staged
+and independently extracted ZIP manifests byte-for-byte, and runs
+`dumpbin /DEPENDENTS` against the built, staged and ZIP-extracted launchers. The
+launcher must use `MultiThreaded` (`/MT`) for Release and import only the expected
+Windows system DLLs, never `MSVCP140.dll`, `VCRUNTIME140.dll`,
+`VCRUNTIME140_1.dll`, `flutter_windows.dll`, Dart or .NET.
+
+Use `-RebuildFlutterApplication` only for a separately authorized future app
+build. It is out of scope for this frozen 2293 packaging operation.
+
+### Concise manual bootstrap checklist
+
+1. Healthy Windows 10/11: start `QuisquisLingo.exe`; expect no warning and the
+   unchanged QQL 2.0.29+2293 app.
+2. Missing packaged VC DLL: in a disposable package copy remove one VC DLL;
+   expect the launcher itself to start, one package-incomplete warning,
+   re-download/re-extract guidance, and Continue anyway / Cancel.
+3. Missing `MFPlat.dll`: on an appropriate disposable Windows environment,
+   expect Windows Media Foundation/Media Feature Pack guidance and Continue
+   anyway / Cancel.
+4. Multiple recoverable issues: expect one consolidated dialog, not a warning
+   cascade.
+5. Missing `quisquislingo_app.exe`: in a disposable package copy remove it;
+   expect an incomplete-package fatal dialog with Close only.
+6. Older native Windows: expect a Windows 10-or-later compatibility warning with
+   Continue anyway / Cancel, not a hard block.
+7. Wine: expect Wine to be detected before version policy, no native
+   old-Windows warning, Experimental status, and Wine-specific Media Foundation
+   text when applicable.
+8. Unicode path: place the full package under a path with spaces, accents and a
+   non-Latin segment; start the bootstrap from another current directory.
+9. Command-line forwarding: verify plain, spaced, quoted, Unicode and
+   backslash/quote-sensitive arguments arrive unchanged.
+10. Confirm `QQL infographic.png` opens externally and is byte-identical to the
+    approved source; no QQL UI entry should reference it.
+
+The native automated package tests exercise the missing-VC and missing-app
+copies, exact dialog buttons, Continue/Cancel, child creation/failure, Unicode
+package resolution, argument forwarding, current-directory inheritance and
+environment inheritance. Wine and older-Windows machine validation remains
+recommended on those actual runtimes.
+
+## Existing QQL application validation
+
 Run before distributing a Windows build:
 
 1. `flutter pub get`
@@ -7,7 +67,8 @@ Run before distributing a Windows build:
 3. `flutter test` and require all tests to pass.
 4. `flutter build windows --release`.
 5. Copy the entire `build\\windows\\x64\\runner\\Release` directory to a Windows machine without Flutter or VS Code.
-6. Start QuisquisLingo from the packaged executable.
+6. Start QuisquisLingo from the packaged `QuisquisLingo.exe` bootstrap. Also
+   confirm direct `quisquislingo_app.exe` execution still bypasses preflight.
 7. Verify Settings is ordered Profile, App Info, Audio Settings, Do Not Disturb, Debug, Version and Build, Update. Verify Course Manager and User Data are absent there.
 8. Verify Profile is ordered Avatar, Learner profiles, Gamification, Statistics, User Data, then Log out.
 9. Open Statistics after studying more than one language. Verify Total Study Days counts shared dates once and each language shows its flag, name, canonical ID, Study Days, Current Streak and Max Streak.
