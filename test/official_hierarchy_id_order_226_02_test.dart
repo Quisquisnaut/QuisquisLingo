@@ -48,17 +48,19 @@ void main() {
           id: 'lesson',
           destinationText: 'Preview Lesson',
         );
+        await tester.tap(find.byKey(const Key('lesson-rounds-navigation')));
+        await tester.pumpAndSettle();
         await _checkEntryAndFollowBothLines(
           tester,
-          entryKey: 'official-round-round',
+          entryKey: 'round-entry-round',
           id: 'round',
-          destinationText: 'Preview Round',
+          destinationText: 'Preview',
         );
         await _checkEntryAndFollowBothLines(
           tester,
-          entryKey: 'official-exercise-exercise',
+          entryKey: 'exercise-entry-exercise',
           id: 'exercise',
-          destinationText: 'Exercise inspection',
+          destinationText: 'View Exercise 1',
         );
         expect(tester.takeException(), isNull);
       },

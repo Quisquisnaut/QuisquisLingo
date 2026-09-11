@@ -1,3 +1,23 @@
+# 2.0.31 (Build 231.1, Revision 1) - Course Editor view and inspection states - 2026-09-13
+
+- Replaced the three-state Course Editor access control with four explicit states: Locked, View only, Inspection mode and Edit. The root control uses closed-lock, eye, code and pencil icons respectively; Edit remains unavailable unless the existing individual/Team ownership policy permits it.
+- Made View only open the ordinary preset-specific Exercise form with every text, selector, checkbox/toggle, image, add/remove and reorder mutation path disabled. Preview, Help, IDs, Audit and Search remain available without creating course or dirty state.
+- Promoted the former technical Exercise representation to Inspection mode. Exercises opened directly or from Search default to technical inspection in that root state, while the normal form remains read-only when selected locally.
+- Added the Exercise-level Inspection toggle beside Preview and Save actions. It switches only the current Exercise presentation: View returns to a read-only form, Inspection mode returns to a read-only form, and Edit returns to the same editable form with legitimate unsaved values and dirty state preserved.
+- Preserved Locked Search rejection and state-specific Search behavior: View opens the normal read-only form, Inspection mode opens technical inspection, and Edit opens the normal editable form. Search scope, matching, type filtering and the 22-preset searchable-field inventory are unchanged.
+- Corrected Create Duels guidance to say that winning may unlock the next Lesson “without completing the preceding Lesson,” without changing Duel behavior.
+- Advanced metadata to `2.0.31+2311`, display Build 231.1, Revision 1, technical build 2311. The repository's version-update policy refreshes the established 30-day Alpha expiry to `2026-10-13 23:59:59` local time. Course Model v7 and learner/course persistence remain unchanged.
+
+# 2.0.31 (Build 231, Revision 0) - Course Editor search and access - 2026-09-12
+
+- Added Course Editor Exercise Search on Lessons, Lesson, Rounds and Round with whole-Course, current-Lesson and current-Round scopes, complete-word/contiguous-phrase matching, case and diacritic insensitivity, exact/partial Exercise ID matching and an optional Exercise Type filter.
+- Added one authoritative searchable-authored-text registry covering all 22 supported Exercise presets. Search includes the intended prompt, audio script, dialogue speaker, answer/block, accepted-answer, ordered-answer, hint and missing-word fields per type while excluding assets, internal item/reference IDs and configuration.
+- Replaced hierarchy-local edit locking with one three-state Course Editor root control: Locked, View unlocked (default) and Edit unlocked. Locked rejects hierarchy entry; View preserves navigation, Search, Help, IDs, Preview and Audit without mutation; Edit remains gated by the existing individual/Team ownership policy and never derives from license.
+- Added the one-time View unlocked explanation with per-user × Course dismissal. Settings → Show one-time notices again resets it for the active user without changing the saved Course Editor mode.
+- Normalized top actions: Course Editor has Lock/Help/IDs; Lessons, Lesson, Rounds and Round have Search/Help/IDs. Removed the Lesson Rename/Generate and Round Rename/Preview app-bar icons while retaining Lesson text actions, adding Rename Round as a page action and moving Round Preview before Save as draft/Save in the bottom action area.
+- Added focused service and widget regressions for matching, type/structural filters, every type's searchable fields, result navigation, lock authorization, View notice isolation/reset, View Preview and icon/action organization. Added the complete Exercise Type inventory and QQL 231 validation record.
+- Advanced metadata to `2.0.31+231`, Build 231, Revision 0, and refreshed the established Alpha expiry to `2026-10-12 23:59:59` local time. Course Model v7, course JSON/checksums, ownership, learner identity, progression, XP, Review and Duel behavior remain compatible.
+
 # 2.0.30 (Build 230, Revision 0) - Robustness and modularity audit - 2026-09-11
 
 - Prevented rapid or re-entrant Round and Duel completion from dispatching duplicate learner writes or XP awards. Round completion is single-flight by Course/Round, optional sound and weekly-target failures no longer interrupt earned accounting, introduction controls wait for completed initialization, and Duel initialization reaches an explicit safe error state.

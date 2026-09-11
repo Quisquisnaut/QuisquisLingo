@@ -4,6 +4,12 @@ This roadmap describes planned work after build 204.
 
 Version numbers are provisional. If a task requires more than one build, later items may move forward rather than being compressed into an unsafe release.
 
+## QQL 231 complete: Course Editor Search & Access
+
+`2.0.31+2311` is Build 231.1 revision 1 on the completed QQL 231 revision-0 baseline. It makes the Course Editor root states Locked, View only, Inspection mode and Edit; reuses the normal 22-preset Exercise form in completely read-only View; makes technical Exercise inspection an explicit state; and adds a local Inspection presentation toggle that preserves access, authorization, unsaved values and dirty state. Search remains absent while Locked and opens the state-appropriate Exercise presentation otherwise. Course Model v7, the authoritative Search inventory, JSON/checksums, scoring and learner progression remain unchanged. Release evidence is recorded in [231 validation](231_VALIDATION.md).
+
+`2.0.31+231` is Build 231 revision 0 on the completed QQL 230 baseline. It adds an authoritative searchable-field inventory for all 22 Exercise presets, scoped Course Editor Search, a single three-state root Lock with ownership-safe Edit availability, a per-user × Course View notice and normalized Lesson/Round app-bar and page actions. View unlocked preserves Search, Help, IDs, Preview and Audit without working-copy mutation. Course Model v7, JSON/checksums, scoring, learner progression and the QQL 230 robustness boundaries remain unchanged. Release evidence is recorded in [231 validation](231_VALIDATION.md) and the [Exercise Type inventory](EXERCISE_TYPE_INVENTORY_231.md).
+
 ## QQL 230 complete: Robustness & Modularity
 
 `2.0.30+230` is Build 230 revision 0 on the completed QQL 229 baseline. It adds no new feature family and changes no Course Model v7 or scoring rule. The release hardens learner completion against re-entry, makes Audio Exercises Off authoritative through one effective Duel-eligibility calculation shared by Home and Duel entry, makes learner restore and custom-Course replacement rollback-safe, protects official/custom Course identity and individual ownership, bounds diagnostic persistence, corrects QQL build comparison, improves multilingual audio boundaries, applies targeted evidence-driven modularization, and clears the inherited analyzer backlog. Release evidence and deferred design decisions are recorded in [230 validation](230_VALIDATION.md).

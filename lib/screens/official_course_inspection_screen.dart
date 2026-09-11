@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 
 import '../models/course_models.dart';
@@ -257,7 +255,7 @@ class _OfficialRoundInspectionScreen extends StatelessWidget {
                 trailing: const Icon(Icons.visibility_outlined),
                 onTap: () => Navigator.of(context).push<void>(
                   MaterialPageRoute(
-                    builder: (_) => _OfficialExerciseInspectionScreen(
+                    builder: (_) => CourseExerciseInspectionScreen(
                       course: course,
                       lesson: lesson,
                       roundIndex: roundIndex,
@@ -273,8 +271,9 @@ class _OfficialRoundInspectionScreen extends StatelessWidget {
   }
 }
 
-class _OfficialExerciseInspectionScreen extends StatelessWidget {
-  const _OfficialExerciseInspectionScreen({
+class CourseExerciseInspectionScreen extends StatelessWidget {
+  const CourseExerciseInspectionScreen({
+    super.key,
     required this.course,
     required this.lesson,
     required this.roundIndex,
@@ -287,43 +286,14 @@ class _OfficialExerciseInspectionScreen extends StatelessWidget {
   final Exercise exercise;
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(
-      title: const Text('Exercise inspection'),
-      actions: const [EditorAppBarActions()],
-    ),
-    body: ListView(
-      padding: const EdgeInsets.all(16),
-      children: [
-        const _ReadOnlyNotice(),
-        EditorInternalIdText(label: 'Exercise', id: exercise.id),
-        OutlinedButton.icon(
-          onPressed: () => Navigator.of(context).push<void>(
-            MaterialPageRoute(
-              builder: (_) => RoundScreen(
-                course: course,
-                lesson: lesson,
-                round: LearningRound(
-                  id: 'preview_${exercise.id}',
-                  updatedAt: lesson.rounds[roundIndex].updatedAt,
-                  title: 'Preview exercise',
-                  visualType: lesson.rounds[roundIndex].visualType,
-                  exercises: [exercise],
-                ),
-                ttsLanguage: CourseLanguageResolver.learning(course).code ?? '',
-                roundIndex: roundIndex,
-                previewMode: true,
-              ),
-            ),
-          ),
-          icon: const Icon(Icons.play_circle_outline),
-          label: const Text('Preview Exercise'),
-        ),
-        const SizedBox(height: 12),
-        SelectableText(
-          const JsonEncoder.withIndent('  ').convert(exercise.toJson()),
-        ),
-      ],
-    ),
+  Widget build(BuildContext context) => ExerciseEditorScreen(
+    exercise: exercise,
+    title: 'View exercise',
+    isNew: false,
+    course: course,
+    lesson: lesson,
+    round: lesson.rounds[roundIndex],
+    readOnly: true,
+    initiallyInspecting: true,
   );
 }

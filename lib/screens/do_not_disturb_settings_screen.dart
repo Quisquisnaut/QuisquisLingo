@@ -107,7 +107,7 @@ class _DoNotDisturbSettingsScreenState
                   leading: const Icon(Icons.notifications_active_outlined),
                   title: const Text('Show one-time notices again'),
                   subtitle: const Text(
-                    'Reset notices that normally appear only once, including the version Welcome. This does not reset Guidebooks or learning progress.',
+                    'Reset notices that normally appear only once for this user, including the version Welcome and Course Editor View notice. This does not reset the Course Editor lock, Guidebooks or learning progress.',
                   ),
                   trailing: const Icon(Icons.replay),
                   onTap: _showOneTimeNoticesAgain,

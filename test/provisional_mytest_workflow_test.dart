@@ -166,15 +166,14 @@ void main() {
       }
       expect(await CourseEditorService().listUserCourses(), isEmpty);
 
+      await tester.tap(find.byKey(const Key('course-editor-lock')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Edit'));
+      await tester.pumpAndSettle();
       await tester.tap(
         find.byKey(const Key('course-editor-lessons-navigation')),
       );
       await tester.pumpAndSettle();
-      final lock = find.byKey(const Key('lesson-management-lock'));
-      if (tester.widget<IconButton>(lock).isSelected == true) {
-        await tester.tap(lock);
-        await tester.pumpAndSettle();
-      }
       await tester.tap(find.byKey(ValueKey(lessonIds.first)));
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const Key('lesson-rounds-navigation')));

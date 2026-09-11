@@ -13,11 +13,13 @@ class CourseHistorySelection {
 class CourseVersionHistoryScreen extends StatefulWidget {
   final Course course;
   final CourseBackupService backupService;
+  final bool allowRestore;
 
   const CourseVersionHistoryScreen({
     super.key,
     required this.course,
     required this.backupService,
+    this.allowRestore = true,
   });
 
   @override
@@ -210,7 +212,8 @@ class _CourseVersionHistoryScreenState
                         spacing: 8,
                         runSpacing: 8,
                         children: [
-                          if (!widget.course.originType.isOfficial)
+                          if (!widget.course.originType.isOfficial &&
+                              widget.allowRestore)
                             FilledButton(
                               onPressed: () => Navigator.pop(
                                 context,

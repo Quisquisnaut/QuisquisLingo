@@ -52,12 +52,12 @@ void main() {
     CourseOriginType.bundledOfficial,
     CourseOriginType.externalOfficial,
   ]) {
-    testWidgets('${origin.name} inspection has no authoring workflow', (
+    testWidgets('${origin.name} View only has no authoring workflow', (
       tester,
     ) async {
       final official = _official(origin: origin);
       await _storeSource(official);
-      final before = await _preferences();
+      var before = await _preferences();
       await _open(tester, official, service);
       expect(find.byType(CourseEditorScreen), findsOneWidget);
       expect(find.text('Read-only course'), findsOneWidget);
@@ -91,22 +91,40 @@ void main() {
         find.byKey(const Key('course-editor-lessons-navigation')),
       );
       await _settle(tester);
+      expect(
+        find.byKey(const Key('course-editor-view-mode-notice')),
+        findsOneWidget,
+      );
+      await tester.tap(find.text('Continue'));
+      await _settle(tester);
+      // Acknowledging the new QQL 231 View notice is the sole expected
+      // preference write in this read-only navigation path.
+      before = await _preferences();
       await tester.tap(find.byKey(const ValueKey('lesson-entry-lesson')));
       await _settle(tester);
-      expect(find.text('Guidebook'), findsOneWidget);
+      expect(find.text('Lesson Guidebook'), findsOneWidget);
       expect(find.text('Preview Lesson'), findsOneWidget);
       _expectNoAuthoring();
-      await tester.tap(find.byKey(const ValueKey('official-round-round')));
+      await tester.tap(find.byKey(const Key('lesson-rounds-navigation')));
       await _settle(tester);
-      expect(find.text('Preview Round'), findsOneWidget);
-      await tester.tap(
-        find.byKey(const ValueKey('official-exercise-exercise')),
+      await tester.tap(find.byKey(const ValueKey('round-entry-round')));
+      await _settle(tester);
+      expect(find.byKey(const Key('round-preview')), findsOneWidget);
+      await tester.tap(find.byKey(const ValueKey('exercise-entry-exercise')));
+      await _settle(tester);
+      expect(find.text('View Exercise 1'), findsOneWidget);
+      expect(
+        find.byKey(const Key('exercise-read-only-notice')),
+        findsOneWidget,
       );
-      await _settle(tester);
-      expect(find.text('Exercise inspection'), findsOneWidget);
+      expect(
+        find.byKey(const Key('exercise-inspection-presentation')),
+        findsNothing,
+      );
       expect(find.textContaining('Publisher prompt'), findsOneWidget);
-      _expectNoAuthoring();
-      await tester.tap(find.text('Preview Exercise'));
+      _expectReadOnlyExercise(tester);
+      await tester.ensureVisible(find.byKey(const Key('exercise-preview')));
+      await tester.tap(find.byKey(const Key('exercise-preview')));
       await _settle(tester, frames: 30);
       expect(find.byType(RoundScreen), findsOneWidget);
       expect(
@@ -154,6 +172,10 @@ void main() {
         'Fork Creator',
       );
       expect(await service.listUserCourses(), hasLength(1));
+      await tester.tap(find.byKey(const Key('course-editor-lock')));
+      await _settle(tester);
+      await tester.tap(find.text('Edit'));
+      await _settle(tester);
       await tester.tap(find.text('Course Info Editor'));
       await _settle(tester);
       expect(find.byType(CourseForkProvenanceCard), findsOneWidget);
@@ -254,6 +276,33 @@ void _expectNoAuthoring() {
   expect(
     find.byKey(const Key('course-transaction-confirmation')),
     findsNothing,
+  );
+}
+
+void _expectReadOnlyExercise(WidgetTester tester) {
+  expect(find.byType(ExerciseEditorScreen), findsOneWidget);
+  final fields = find.byType(TextField);
+  expect(fields, findsWidgets);
+  for (final element in fields.evaluate()) {
+    expect((element.widget as TextField).readOnly, isTrue);
+  }
+  expect(
+    tester
+        .widget<OutlinedButton>(find.byKey(const Key('exercise-save-draft')))
+        .onPressed,
+    isNull,
+  );
+  expect(
+    tester
+        .widget<FilledButton>(find.byKey(const Key('exercise-save')))
+        .onPressed,
+    isNull,
+  );
+  expect(
+    tester
+        .widget<OutlinedButton>(find.byKey(const Key('exercise-preview')))
+        .onPressed,
+    isNotNull,
   );
 }
 

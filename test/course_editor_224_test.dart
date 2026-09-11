@@ -86,7 +86,7 @@ void main() {
     expect(roundsStyle?.fontWeight, FontWeight.w800);
   });
 
-  testWidgets('Lessons subpage exposes upper Lock and preserves Lesson IDs', (
+  testWidgets('Lessons subpage exposes Search and preserves Lesson IDs', (
     tester,
   ) async {
     final course = _course();
@@ -94,17 +94,19 @@ void main() {
       MaterialApp(home: CourseEditorScreen(course: course, userCourse: true)),
     );
     await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('course-editor-lock')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Edit'));
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('course-editor-lessons-navigation')));
     await tester.pumpAndSettle();
 
     expect(find.byType(LessonManagementScreen), findsOneWidget);
-    expect(find.byKey(const Key('lesson-management-lock')), findsOneWidget);
+    expect(find.byKey(const Key('lessons-search-action')), findsOneWidget);
     expect(find.byKey(const Key('lesson-management-list')), findsOneWidget);
     expect(find.text('Lesson 1: First Lesson'), findsOneWidget);
     expect(find.byKey(const ValueKey('stable_lesson_one')), findsOneWidget);
 
-    await tester.tap(find.byKey(const Key('lesson-management-lock')));
-    await tester.pumpAndSettle();
     await tester.tap(find.text('Lesson 1: First Lesson'));
     await tester.pumpAndSettle();
     expect(find.byType(LessonEditorScreen), findsOneWidget);

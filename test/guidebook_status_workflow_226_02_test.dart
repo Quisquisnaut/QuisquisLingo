@@ -292,11 +292,6 @@ Future<void> _openLesson(
   await tester.pumpAndSettle();
   await tester.tap(find.byKey(const Key('course-editor-lessons-navigation')));
   await tester.pumpAndSettle();
-  final lock = find.byKey(const Key('lesson-management-lock'));
-  if (tester.widget<IconButton>(lock).isSelected == true) {
-    await tester.tap(lock);
-    await tester.pumpAndSettle();
-  }
   await tester.tap(find.text('Lesson 1: Guidebook status Lesson'));
   await tester.pumpAndSettle();
 }

@@ -322,7 +322,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
               Text(
-                'Build ${AppMetadata.buildNumber}, Revision ${AppMetadata.correctiveRevision}',
+                'Build ${AppMetadata.build}, Revision ${AppMetadata.correctiveRevision}',
                 style: Theme.of(ctx).textTheme.labelLarge?.copyWith(
                   color: _welcomeDialogForeground,
                 ),

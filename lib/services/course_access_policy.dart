@@ -8,6 +8,7 @@ class CourseAccessCapabilities {
   final bool canFork;
   final bool canDelete;
   final bool isInsideOwnershipBoundary;
+  final String? editDeniedReason;
 
   const CourseAccessCapabilities({
     required this.canEditOriginal,
@@ -15,9 +16,14 @@ class CourseAccessCapabilities {
     required this.canFork,
     required this.canDelete,
     required this.isInsideOwnershipBoundary,
+    this.editDeniedReason,
   });
 
   bool get readOnly => !canEditOriginal;
+
+  String get effectiveEditDeniedReason =>
+      editDeniedReason ??
+      'You do not have permission to edit this course. Only its Owner or a member of its owning Team can edit the original.';
 }
 
 /// One authoritative Owner/Team-versus-license authorization policy.
@@ -53,6 +59,8 @@ class CourseAccessPolicy {
             course.derivativeWorksPolicy == DerivativeWorksPolicy.allowed,
         canDelete: false,
         isInsideOwnershipBoundary: false,
+        editDeniedReason:
+            'Official courses are read-only. Their original content cannot be edited.',
       );
     }
     final owner = course.ownership;
@@ -71,6 +79,9 @@ class CourseAccessPolicy {
           course.derivativeWorksPolicy == DerivativeWorksPolicy.allowed,
       canDelete: inside,
       isInsideOwnershipBoundary: inside,
+      editDeniedReason: inside
+          ? null
+          : 'You do not have permission to edit this course. Only its individual Owner or a member of its owning Team can edit the original.',
     );
   }
 }

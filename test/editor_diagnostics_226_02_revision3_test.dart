@@ -198,7 +198,7 @@ void main() {
     );
     await tester.pumpAndSettle();
     expect(find.text('Round ID: round-one'), findsOneWidget);
-    await tester.tap(find.byTooltip('Rename round'));
+    await tester.tap(find.byKey(const Key('round-rename-action')));
     await tester.pumpAndSettle();
     final titleField = find.byWidgetPredicate(
       (widget) =>
@@ -213,7 +213,13 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    expect(find.text('Renamed Round'), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byType(AppBar),
+        matching: find.text('Renamed Round'),
+      ),
+      findsOneWidget,
+    );
     expect(find.text('Round ID: round-one'), findsOneWidget);
   });
 

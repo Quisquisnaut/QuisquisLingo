@@ -437,9 +437,15 @@ void main() {
     );
     await tester.tap(find.text('Open Round'));
     await tester.pumpAndSettle();
-    await tester.tap(find.byTooltip('Rename round'));
+    await tester.tap(find.byKey(const Key('round-rename-action')));
     await tester.pumpAndSettle();
-    expect(find.text('Rename Round'), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byType(AlertDialog),
+        matching: find.text('Rename Round'),
+      ),
+      findsOneWidget,
+    );
     expect(field('Title, or Enter to skip'), findsOneWidget);
     expect(find.text('Press Enter to keep this Round untitled.'), findsNothing);
     expect(tester.takeException(), isNull);
@@ -513,13 +519,19 @@ void main() {
     );
     await tester.tap(find.text('Open titled Round'));
     await tester.pumpAndSettle();
-    await tester.tap(find.byTooltip('Rename round'));
+    await tester.tap(find.byKey(const Key('round-rename-action')));
     await tester.pumpAndSettle();
     expect(field('Title, or Enter to skip'), findsOneWidget);
     await tester.enterText(field('Title, or Enter to skip'), '');
     await tester.testTextInput.receiveAction(TextInputAction.done);
     await tester.pumpAndSettle();
-    expect(find.text('Keep this title'), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byType(AppBar),
+        matching: find.text('Keep this title'),
+      ),
+      findsOneWidget,
+    );
     await tester.tap(find.byType(BackButton));
     await tester.pumpAndSettle();
     expect(returned?.title, 'Keep this title');
@@ -613,7 +625,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      await tester.tap(find.byTooltip('Rename lesson'));
+      await tester.tap(find.byKey(const Key('lesson-title-control')));
       await tester.pumpAndSettle();
       await tester.enterText(find.byType(TextFormField), 'Renamed lesson');
       await tester.tap(

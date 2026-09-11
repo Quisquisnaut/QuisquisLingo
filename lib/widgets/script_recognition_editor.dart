@@ -258,9 +258,14 @@ class _ScriptOption {
 }
 
 class ScriptRecognitionEditor extends StatelessWidget {
-  const ScriptRecognitionEditor({super.key, required this.controller});
+  const ScriptRecognitionEditor({
+    super.key,
+    required this.controller,
+    this.readOnly = false,
+  });
 
   final ScriptRecognitionController controller;
+  final bool readOnly;
 
   Widget _help(BuildContext context, String fieldKey) {
     final help = ExerciseFieldHelpRegistry.forEditorField(
@@ -409,9 +414,11 @@ class ScriptRecognitionEditor extends StatelessWidget {
               child: Text('Text to image'),
             ),
           ],
-          onChanged: (mode) {
-            if (mode != null) controller.setMode(mode);
-          },
+          onChanged: readOnly
+              ? null
+              : (mode) {
+                  if (mode != null) controller.setMode(mode);
+                },
         ),
         const SizedBox(height: 8),
         Text(
@@ -437,6 +444,7 @@ class ScriptRecognitionEditor extends StatelessWidget {
           TextField(
             key: const ValueKey('script-prompt'),
             controller: controller.prompt,
+            readOnly: readOnly,
             decoration: InputDecoration(
               labelText: 'Text prompt',
               suffixIcon: _help(context, 'scriptPrompt'),
@@ -462,29 +470,35 @@ class ScriptRecognitionEditor extends StatelessWidget {
                   'Prompt image ${i + 1}',
                 ),
                 TextButton(
-                  onPressed: () async {
-                    final asset = await _pickImage(context);
-                    if (asset != null && context.mounted) {
-                      controller.replacePromptImage(i, asset);
-                    }
-                  },
+                  onPressed: readOnly
+                      ? null
+                      : () async {
+                          final asset = await _pickImage(context);
+                          if (asset != null && context.mounted) {
+                            controller.replacePromptImage(i, asset);
+                          }
+                        },
                   child: Text('Replace image ${i + 1}'),
                 ),
                 IconButton(
                   tooltip: 'Remove prompt image ${i + 1}',
-                  onPressed: () => controller.removePromptImage(i),
+                  onPressed: readOnly
+                      ? null
+                      : () => controller.removePromptImage(i),
                   icon: const Icon(Icons.delete_outline),
                 ),
               ],
             ),
           TextButton.icon(
             key: const ValueKey('script-add-prompt-image'),
-            onPressed: () async {
-              final asset = await _pickImage(context);
-              if (asset != null && context.mounted) {
-                controller.addPromptImage(asset);
-              }
-            },
+            onPressed: readOnly
+                ? null
+                : () async {
+                    final asset = await _pickImage(context);
+                    if (asset != null && context.mounted) {
+                      controller.addPromptImage(asset);
+                    }
+                  },
             icon: const Icon(Icons.add_photo_alternate_outlined),
             label: const Text('Add prompt image'),
           ),
@@ -502,6 +516,7 @@ class ScriptRecognitionEditor extends StatelessWidget {
                     TextField(
                       key: ValueKey('script-option-text-$i'),
                       controller: controller.optionText(i),
+                      readOnly: readOnly,
                       decoration: InputDecoration(
                         labelText: 'Option ${i + 1}',
                         suffixIcon: _help(context, 'scriptTextOptions'),
@@ -518,12 +533,14 @@ class ScriptRecognitionEditor extends StatelessWidget {
                         ),
                         TextButton(
                           key: ValueKey('script-option-image-$i'),
-                          onPressed: () async {
-                            final asset = await _pickImage(context);
-                            if (asset != null && context.mounted) {
-                              controller.setOptionImage(i, asset);
-                            }
-                          },
+                          onPressed: readOnly
+                              ? null
+                              : () async {
+                                  final asset = await _pickImage(context);
+                                  if (asset != null && context.mounted) {
+                                    controller.setOptionImage(i, asset);
+                                  }
+                                },
                           child: Text('Choose image for option ${i + 1}'),
                         ),
                         _help(context, 'scriptImageOptions'),
@@ -538,7 +555,9 @@ class ScriptRecognitionEditor extends StatelessWidget {
                             ? 'Correct option ${i + 1}'
                             : 'Mark option ${i + 1} correct',
                         isSelected: controller.isCorrect(i),
-                        onPressed: () => controller.setCorrect(i),
+                        onPressed: readOnly
+                            ? null
+                            : () => controller.setCorrect(i),
                         icon: Icon(
                           controller.isCorrect(i)
                               ? Icons.radio_button_checked
@@ -549,21 +568,23 @@ class ScriptRecognitionEditor extends StatelessWidget {
                       _help(context, 'scriptCorrect'),
                       IconButton(
                         tooltip: 'Move option ${i + 1} up',
-                        onPressed: i == 0
+                        onPressed: readOnly || i == 0
                             ? null
                             : () => controller.moveOption(i, i - 1),
                         icon: const Icon(Icons.arrow_upward),
                       ),
                       IconButton(
                         tooltip: 'Move option ${i + 1} down',
-                        onPressed: i + 1 == controller.optionCount
+                        onPressed: readOnly || i + 1 == controller.optionCount
                             ? null
                             : () => controller.moveOption(i, i + 1),
                         icon: const Icon(Icons.arrow_downward),
                       ),
                       IconButton(
                         tooltip: 'Delete option ${i + 1}',
-                        onPressed: () => controller.removeOption(i),
+                        onPressed: readOnly
+                            ? null
+                            : () => controller.removeOption(i),
                         icon: const Icon(Icons.delete_outline),
                       ),
                     ],
@@ -574,7 +595,7 @@ class ScriptRecognitionEditor extends StatelessWidget {
           ),
         TextButton.icon(
           key: const ValueKey('script-add-option'),
-          onPressed: controller.addOption,
+          onPressed: readOnly ? null : controller.addOption,
           icon: const Icon(Icons.add),
           label: const Text('Add answer option'),
         ),

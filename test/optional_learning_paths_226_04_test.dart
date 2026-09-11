@@ -272,6 +272,10 @@ void main() {
         MaterialApp(home: CourseEditorScreen(course: course, userCourse: true)),
       );
       await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('course-editor-lock')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Edit'));
+      await tester.pumpAndSettle();
       final ancestor = find.byWidgetPredicate(
         (widget) =>
             widget is AuthoringStatusCard &&
@@ -285,8 +289,6 @@ void main() {
       await tester.tap(
         find.byKey(const Key('course-editor-lessons-navigation')),
       );
-      await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const Key('lesson-management-lock')));
       await tester.pumpAndSettle();
       final toggle = find.byKey(const Key('course-use-guidebook'));
       await tester.ensureVisible(toggle);

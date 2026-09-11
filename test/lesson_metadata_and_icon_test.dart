@@ -559,6 +559,16 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.byType(LessonEditorScreen), findsOneWidget);
       expect(find.text('Draft title'), findsWidgets);
+      await tester.scrollUntilVisible(
+        _sectionPicker(),
+        200,
+        scrollable: find
+            .descendant(
+              of: find.byKey(const Key('lesson-metadata-controls')),
+              matching: find.byType(Scrollable),
+            )
+            .first,
+      );
       expect(
         tester
             .widget<DropdownButtonFormField<String>>(_sectionPicker())
@@ -608,12 +618,7 @@ void main() {
         find.byKey(const Key('course-editor-lessons-navigation')),
       );
       await tester.pumpAndSettle();
-      expect(
-        tester
-            .widget<IconButton>(find.byKey(const Key('lesson-management-lock')))
-            .isSelected,
-        isFalse,
-      );
+      expect(find.byKey(const Key('lessons-search-action')), findsOneWidget);
       expect(find.text('Fallback lesson number icons'), findsNothing);
       expect(find.text('Theme-colored circle'), findsNothing);
       expect(find.text('Four-color circle'), findsNothing);

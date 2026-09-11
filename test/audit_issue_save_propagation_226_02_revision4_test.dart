@@ -9,7 +9,9 @@ void main() {
   testWidgets(
     'Exercise saves through a Course Audit finding update the open Course before Previous/Next leaves the editor',
     (tester) async {
-      SharedPreferences.setMockInitialValues({});
+      SharedPreferences.setMockInitialValues({
+        'course_editor_locked_AUDIT-SAVE-COURSE': false,
+      });
       await tester.binding.setSurfaceSize(const Size(1200, 1200));
       addTearDown(() => tester.binding.setSurfaceSize(null));
       final course = _course();

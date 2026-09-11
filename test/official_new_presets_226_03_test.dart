@@ -58,7 +58,7 @@ void main() {
               }),
             );
           }
-          final beforePrefs = await workflow.preferences();
+          var beforePrefs = await workflow.preferences();
           final beforeCourse = jsonEncode(course.toJson());
           final service = CourseEditorService(
             backupService: _ReadOnlyBackups(),
@@ -95,18 +95,38 @@ void main() {
             find.byKey(const Key('course-editor-lessons-navigation')),
           );
           await workflow.settle(tester);
+          expect(
+            find.byKey(const Key('course-editor-view-mode-notice')),
+            findsOneWidget,
+          );
+          await tester.tap(find.text('Continue'));
+          await workflow.settle(tester);
+          // The QQL 231 View notice acknowledgement is the only expected
+          // preference write during this read-only workflow.
+          beforePrefs = await workflow.preferences();
           await tester.tap(find.byKey(const ValueKey('lesson-entry-lesson')));
           await workflow.settle(tester);
           _expectNoAuthorControls();
-          await tester.tap(find.byKey(const ValueKey('official-round-round')));
+          await tester.tap(find.byKey(const Key('lesson-rounds-navigation')));
+          await workflow.settle(tester);
+          await tester.tap(find.byKey(const ValueKey('round-entry-round')));
           await workflow.settle(tester);
           await tester.tap(
-            find.byKey(const ValueKey('official-exercise-exercise')),
+            find.byKey(const ValueKey('exercise-entry-exercise')),
           );
           await workflow.settle(tester);
-          expect(find.text('Exercise inspection'), findsOneWidget);
-          _expectNoAuthorControls();
-          await tester.tap(find.text('Preview Exercise'));
+          expect(find.text('View Exercise 1'), findsOneWidget);
+          expect(
+            find.byKey(const Key('exercise-read-only-notice')),
+            findsOneWidget,
+          );
+          expect(
+            find.byKey(const Key('exercise-inspection-presentation')),
+            findsNothing,
+          );
+          _expectReadOnlyExercise(tester);
+          await tester.ensureVisible(find.byKey(const Key('exercise-preview')));
+          await tester.tap(find.byKey(const Key('exercise-preview')));
           await workflow.settle(tester);
           expect(find.byType(RoundScreen), findsOneWidget);
           expect(
@@ -157,6 +177,33 @@ void _expectNoAuthorControls() {
   }
 }
 
+void _expectReadOnlyExercise(WidgetTester tester) {
+  expect(find.byType(ExerciseEditorScreen), findsOneWidget);
+  final fields = find.byType(TextField);
+  expect(fields, findsWidgets);
+  for (final element in fields.evaluate()) {
+    expect((element.widget as TextField).readOnly, isTrue);
+  }
+  expect(
+    tester
+        .widget<OutlinedButton>(find.byKey(const Key('exercise-save-draft')))
+        .onPressed,
+    isNull,
+  );
+  expect(
+    tester
+        .widget<FilledButton>(find.byKey(const Key('exercise-save')))
+        .onPressed,
+    isNull,
+  );
+  expect(
+    tester
+        .widget<OutlinedButton>(find.byKey(const Key('exercise-preview')))
+        .onPressed,
+    isNotNull,
+  );
+}
+
 Course _official(CourseOriginType origin, String preset) {
   final exercise = Exercise.v2(
     id: 'exercise',
@@ -200,7 +247,7 @@ Course _official(CourseOriginType origin, String preset) {
         : ExerciseEvaluation(
             kind: 'text_match',
             accepted: preset == 'type_translation'
-                ? const ['(an) apple', 'fruit']
+                ? const ['{an} apple', 'fruit']
                 : const ['apple'],
           ),
   );

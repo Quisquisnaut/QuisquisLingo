@@ -14,6 +14,7 @@ import 'package:quisquislingo_app/services/course_backup_service.dart';
 import 'package:quisquislingo_app/services/course_editor_service.dart';
 import 'package:quisquislingo_app/services/course_editor_transaction.dart';
 import 'package:quisquislingo_app/services/profile_service.dart';
+import 'package:quisquislingo_app/services/settings_service.dart';
 import 'package:quisquislingo_app/services/team_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -410,6 +411,10 @@ void main() {
       }
 
       selected = duplicate;
+      await SettingsService().setCourseEditorMode(
+        duplicate.courseId,
+        CourseEditorMode.edit,
+      );
       await tester.tap(find.byKey(const Key('open-generated-course')));
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const Key('course-editor-course-info')));
@@ -632,6 +637,7 @@ void main() {
   );
 
   testWidgets('unified Editor surface is capability-driven', (tester) async {
+    await _profiles(includeCharlie: false);
     final official = _official(DerivativeWorksPolicy.allowed);
     await tester.pumpWidget(
       MaterialApp(
@@ -650,7 +656,16 @@ void main() {
     expect(find.text('Course Info'), findsOneWidget);
     expect(find.byKey(const Key('course-editor-fork-course')), findsOneWidget);
 
+    // Dispose the first editor before mounting a different course. In the app,
+    // each editor is a separate route; replacing MaterialApp.home directly
+    // would otherwise reuse the private state solely because its type matches.
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump();
     final own = _custom();
+    await SettingsService().setCourseEditorMode(
+      own.courseId,
+      CourseEditorMode.edit,
+    );
     await tester.pumpWidget(
       MaterialApp(
         home: CourseEditorScreen(
@@ -659,7 +674,7 @@ void main() {
         ),
       ),
     );
-    await tester.pump();
+    await tester.pumpAndSettle();
     expect(
       find.byKey(const Key('course-editor-read-only-notice')),
       findsNothing,

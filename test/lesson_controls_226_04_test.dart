@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:quisquislingo_app/models/course_models.dart';
 import 'package:quisquislingo_app/screens/course_editor_screen.dart';
 import 'package:quisquislingo_app/services/editor_display_preferences.dart';
 import 'package:quisquislingo_app/services/lesson_presentation_service.dart';
-import 'package:quisquislingo_app/services/settings_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 Course course({List<Lesson>? lessons, List<String> sections = const []}) =>
@@ -59,7 +57,7 @@ void main() {
   }
 
   testWidgets(
-    'Lock is an upper action with unchanged tooltip, persistence and protection at 320 px',
+    'Lessons keeps Search, Help and IDs as its upper actions at 320 px',
     (tester) async {
       await tester.binding.setSurfaceSize(const Size(320, 640));
       addTearDown(() => tester.binding.setSurfaceSize(null));
@@ -68,23 +66,19 @@ void main() {
           home: LessonManagementScreen(
             course: course(),
             initiallyLocked: false,
+            readOnly: true,
           ),
         ),
       );
       await tester.pumpAndSettle();
-      final lock = find.byKey(const Key('lesson-management-lock'));
-      expect(tester.widget(lock), isA<IconButton>());
+      final search = find.byKey(const Key('lessons-search-action'));
+      expect(tester.widget(search), isA<IconButton>());
       expect(
-        find.ancestor(of: lock, matching: find.byType(AppBar)),
+        find.ancestor(of: search, matching: find.byType(AppBar)),
         findsOneWidget,
       );
-      expect(find.text('Lock'), findsNothing);
-      expect(
-        find.byTooltip(
-          'Prevents accidental course edits. Stored separately for each course.',
-        ),
-        findsOneWidget,
-      );
+      expect(find.byKey(const Key('lesson-management-lock')), findsNothing);
+      expect(find.byTooltip('Search the whole course'), findsOneWidget);
       expect(find.byTooltip('Editor Help'), findsOneWidget);
       expect(find.text('Fallback lesson number icons'), findsNothing);
       expect(find.text('Four-color circle'), findsNothing);
@@ -92,42 +86,14 @@ void main() {
         find.byTooltip('Internal IDs hidden. Tap to show'),
         findsOneWidget,
       );
-      await tester.tap(lock);
-      await tester.pumpAndSettle();
-      expect(await SettingsService().isCourseEditorLocked('controls'), isTrue);
-      expect(
-        tester
-            .widget<FloatingActionButton>(find.byType(FloatingActionButton))
-            .onPressed,
-        isNull,
-      );
+      expect(find.byType(FloatingActionButton), findsNothing);
       final lessonEntry = find.byKey(
         const ValueKey('lesson-entry-stable-lesson'),
       );
       await tester.tap(lessonEntry);
-      await tester.pump();
-      const lockedMessage =
-          'This Lesson is locked. To edit it, tap the lock icon at the top of the Lessons page.';
-      expect(find.text(lockedMessage), findsOneWidget);
-      final entryText = find.descendant(
-        of: lessonEntry,
-        matching: find.byType(Text),
-      );
-      Focus.of(tester.element(entryText.first)).requestFocus();
-      await tester.pump();
-      await tester.sendKeyEvent(LogicalKeyboardKey.enter);
-      await tester.pump();
-      expect(find.text(lockedMessage), findsOneWidget);
-      expect(find.byType(LessonEditorScreen), findsNothing);
-      await tester.tap(lock);
       await tester.pumpAndSettle();
-      expect(await SettingsService().isCourseEditorLocked('controls'), isFalse);
-      expect(
-        tester
-            .widget<FloatingActionButton>(find.byType(FloatingActionButton))
-            .onPressed,
-        isNotNull,
-      );
+      expect(find.byType(LessonEditorScreen), findsOneWidget);
+      expect(find.byKey(const Key('lesson-search-action')), findsOneWidget);
       expect(tester.takeException(), isNull);
     },
   );
@@ -152,7 +118,14 @@ void main() {
       expect(line, findsNothing);
       await tester.tap(find.byTooltip('Internal IDs hidden. Tap to show'));
       await tester.pumpAndSettle();
-      await tester.ensureVisible(line);
+      await tester.scrollUntilVisible(
+        line,
+        200,
+        scrollable: find.descendant(
+          of: find.byKey(const Key('lesson-metadata-controls')),
+          matching: find.byType(Scrollable),
+        ).first,
+      );
       expect(
         tester.widget<SelectableText>(line).style?.fontFamily,
         'monospace',
@@ -196,7 +169,14 @@ void main() {
             w is DropdownButtonFormField<String> &&
             w.decoration.labelText == 'Section',
       );
-      await tester.ensureVisible(picker());
+      await tester.scrollUntilVisible(
+        picker(),
+        200,
+        scrollable: find.descendant(
+          of: find.byKey(const Key('lesson-metadata-controls')),
+          matching: find.byType(Scrollable),
+        ).first,
+      );
       await tester.tap(picker());
       await tester.pumpAndSettle();
       await tester.tap(find.text('Add new section...').last);
@@ -447,7 +427,7 @@ void main() {
   }
 
   testWidgets(
-    'GuideBook and Duel switches update canonical working Course immediately and Lock protects both',
+    'GuideBook and Duel switches update in Edit and are protected in View',
     (tester) async {
       final source = course(sections: ['Retain']);
       var latest = source;
@@ -477,7 +457,16 @@ void main() {
       final reloaded = Course.fromJson(latest.toJson());
       expect(reloaded.useGuidebook, isFalse);
       expect(reloaded.createDuels, isFalse);
-      await tester.tap(find.byKey(const Key('lesson-management-lock')));
+      await tester.pumpWidget(
+        MaterialApp(
+          home: LessonManagementScreen(
+            key: const ValueKey('readonly-lessons'),
+            course: latest,
+            initiallyLocked: false,
+            readOnly: true,
+          ),
+        ),
+      );
       await tester.pumpAndSettle();
       for (final key in ['course-use-guidebook', 'course-create-duels']) {
         expect(
@@ -485,7 +474,16 @@ void main() {
           isNull,
         );
       }
-      await tester.tap(find.byKey(const Key('lesson-management-lock')));
+      await tester.pumpWidget(
+        MaterialApp(
+          home: LessonManagementScreen(
+            key: const ValueKey('editable-lessons'),
+            course: latest,
+            initiallyLocked: false,
+            onCourseChanged: (value) => latest = value,
+          ),
+        ),
+      );
       await tester.pumpAndSettle();
       for (final key in ['course-use-guidebook', 'course-create-duels']) {
         final toggle = find.byKey(Key(key));

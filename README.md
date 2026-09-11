@@ -1,13 +1,15 @@
 # QuisquisLingo App
 
-**Current source version: 2.0.30+230 · Build 230 · Revision 0 · Course Model v7 (`formatVersion: 7`).**
+**Current source version: 2.0.31+2311 · Build 231.1 · Revision 1 · Course Model v7 (`formatVersion: 7`).**
 
 
-**QuisquisLingo 2.0.30 Alpha — QQL 230 Robustness & Modularity**
+**QuisquisLingo 2.0.31 Alpha — QQL 231 Course Editor Search & Access**
 
-Current project version: 2.0.30
+Current project version: 2.0.31
 
-QQL 230 is a broad hardening release with targeted, evidence-driven modularization and no new feature family. It makes Round/Duel completion single-dispatch, makes Audio Exercises Off authoritative through one effective Duel-eligibility service used by Home and Duel entry, isolates optional feedback from learner accounting, makes learner restore and Course replacement rollback-safe, protects official/custom identities and individual Course ownership, bounds diagnostic logs, hardens Unicode recorded audio and Linux voice selection, compares QQL update build numbers correctly, and restores a clean analyzer baseline. Course Model v7, course JSON, progression and XP formulas remain unchanged. See [QQL 230 validation](docs/230_VALIDATION.md), [Course Manager and Editor](docs/COURSE_EDITOR.md), and [Team Manager](docs/TEAM_MANAGER.md).
+QQL 231 revision 1 retains the authoritative 22-type authored-text inventory, scoped Search and normalized Lesson/Round actions while making the root access states explicit: Locked, View only, Inspection mode and Edit. View only now presents the ordinary Exercise form with every mutation control disabled; Inspection mode defaults exercises to their read-only technical representation; and the local Exercise-level Inspection toggle changes presentation without changing access or losing legitimate unsaved Edit values. Locked still has no Search, while View, Inspection and Edit open Search results in their state-appropriate presentation. Edit continues to require the existing Owner/Team authorization. Course Model v7, course JSON, checksums, progression and XP remain unchanged. See [QQL 231 validation](docs/231_VALIDATION.md), [Exercise Type inventory](docs/EXERCISE_TYPE_INVENTORY_231.md), and [Course Manager and Editor](docs/COURSE_EDITOR.md).
+
+QQL 230 remains the completed robustness and modularity baseline. See [QQL 230 validation](docs/230_VALIDATION.md).
 
 QQL 229 remains the completed Course Actions, ownership/Teams and Learner Panel baseline. See [QQL 229 validation](docs/229_VALIDATION.md).
 
@@ -42,7 +44,7 @@ The MPL-2.0 covers the QuisquisLingo software source. Courses, the Image Bank an
 
 ## Alpha lifecycle
 
-Version 2.0.30 is a time-limited alpha with the established 30-day lifetime from September 11: expiry is **2026-10-11 23:59:59 local time**. Near expiry it displays reminders. After expiry, learner exercises and Review are blocked until a newer alpha is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when an alpha expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM. Future stable builds can disable alpha expiry.
+Version 2.0.31 revision 1 is a time-limited alpha with the established 30-day lifetime from September 13: expiry is **2026-10-13 23:59:59 local time**. Near expiry it displays reminders. After expiry, learner exercises and Review are blocked until a newer alpha is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when an alpha expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM. Future stable builds can disable alpha expiry.
 
 ## Core logic
 

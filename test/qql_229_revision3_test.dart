@@ -25,10 +25,10 @@ void main() {
 
   setUp(() => SharedPreferences.setMockInitialValues({}));
 
-  test('QQL 230 release metadata uses Build and Revision terminology', () {
-    expect(AppMetadata.technicalVersion, '2.0.30+230');
-    expect(AppMetadata.build, '230');
-    expect(AppMetadata.displayLabel, 'Version 2.0.30\nBuild 230\nRevision 0');
+  test('QQL 231 release metadata uses Build and Revision terminology', () {
+    expect(AppMetadata.technicalVersion, '2.0.31+2311');
+    expect(AppMetadata.build, '231.1');
+    expect(AppMetadata.displayLabel, 'Version 2.0.31\nBuild 231.1\nRevision 1');
   });
 
   testWidgets(
@@ -156,6 +156,10 @@ void main() {
       await _profiles(activeId: _leadId);
       await SettingsService().markAudioOrphanCheckRun('IT');
       final course = _customCourse(temporarySample: true);
+      await SettingsService().setCourseEditorMode(
+        course.courseId,
+        CourseEditorMode.edit,
+      );
       final transfer = _RecordingTransferService();
       await tester.pumpWidget(
         MaterialApp(

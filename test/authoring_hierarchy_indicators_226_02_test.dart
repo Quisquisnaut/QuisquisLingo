@@ -31,6 +31,10 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('course-editor-lock')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Edit'));
+      await tester.pumpAndSettle();
       _expectIndicator(
         tester,
         const Key('course-lessons-status-indicator'),
@@ -645,6 +649,10 @@ void main() {
         MaterialApp(home: CourseEditorScreen(course: course, userCourse: true)),
       );
       await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('course-editor-lock')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Edit'));
+      await tester.pumpAndSettle();
       _expectIndicator(
         tester,
         const Key('course-lessons-status-indicator'),
@@ -725,6 +733,10 @@ void main() {
         MaterialApp(home: CourseEditorScreen(course: course, userCourse: true)),
       );
       await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('course-editor-lock')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Edit'));
+      await tester.pumpAndSettle();
       _expectIndicator(
         tester,
         const Key('course-lessons-status-indicator'),
@@ -744,9 +756,6 @@ void main() {
         draft: false,
         auditConcern: true,
       );
-      await tester.tap(find.byKey(const Key('lesson-management-lock')));
-      await tester.pumpAndSettle();
-
       await tester.tap(find.text('Lesson 1: Status lesson'));
       await tester.pumpAndSettle();
       expect(find.byType(LessonEditorScreen), findsOneWidget);
@@ -855,17 +864,14 @@ void main() {
         MaterialApp(home: CourseEditorScreen(course: course, userCourse: true)),
       );
       await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('course-editor-lock')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Edit'));
+      await tester.pumpAndSettle();
       await tester.tap(
         find.byKey(const Key('course-editor-lessons-navigation')),
       );
       await tester.pumpAndSettle();
-      final lock = tester.widget<IconButton>(
-        find.byKey(const Key('lesson-management-lock')),
-      );
-      if (lock.isSelected == true) {
-        await tester.tap(find.byKey(const Key('lesson-management-lock')));
-        await tester.pumpAndSettle();
-      }
       await tester.tap(find.text('Lesson 1: Live Audit Lesson'));
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const Key('lesson-rounds-navigation')));

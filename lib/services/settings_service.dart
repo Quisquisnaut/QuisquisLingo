@@ -45,6 +45,24 @@ enum LearnerLessonExpansionMode {
       );
 }
 
+enum CourseEditorMode {
+  locked('Locked', 'locked'),
+  viewOnly('View only', 'view'),
+  inspection('Inspection mode', 'inspection'),
+  edit('Edit', 'edit');
+
+  const CourseEditorMode(this.label, this.storageValue);
+
+  final String label;
+  final String storageValue;
+
+  static CourseEditorMode fromStorage(String? value) =>
+      CourseEditorMode.values.firstWhere(
+        (mode) => mode.storageValue == value,
+        orElse: () => CourseEditorMode.viewOnly,
+      );
+}
+
 /// Persistent device and learner-scoped settings.
 ///
 /// Learner-specific appearance lives in ProfileService. Learner audio exercise
@@ -59,6 +77,7 @@ class SettingsService {
       'startup_animation_enabled'; // Legacy key retained for compatibility.
   static const _oneTimeNoticePrefix = 'one_time_notice_seen_';
   static const _courseEditorUnlockedKey = 'course_editor_unlocked';
+  static const _courseEditorModeKeyPrefix = 'course_editor_mode_';
   static const _audioOrphanCheckKey = 'audio_orphan_check_last_';
   static const _lastSelectedCourseKeyBase = 'last_selected_course_code';
   static const _recentCourseRefsKey = 'recent_course_refs';
@@ -375,13 +394,52 @@ class SettingsService {
       );
   Future<void> resetOneTimeNotices() async {
     final prefs = await SharedPreferences.getInstance();
+    final profiles = ProfileService();
+    final activeId = await profiles.getActiveProfileId();
+    final profileNoticePrefix = activeId == null
+        ? null
+        : profiles.keyForProfileId(activeId, _oneTimeNoticePrefix);
     for (final key
         in prefs
             .getKeys()
-            .where((k) => k.startsWith(_oneTimeNoticePrefix))
+            .where(
+              (k) =>
+                  k.startsWith(_oneTimeNoticePrefix) ||
+                  (profileNoticePrefix != null &&
+                      k.startsWith(profileNoticePrefix)),
+            )
             .toList()) {
       await prefs.remove(key);
     }
+  }
+
+  String _courseEditorViewNoticeId(String courseId) =>
+      'course_editor_view_${Uri.encodeComponent(courseId.trim())}';
+
+  Future<bool> hasSeenCourseEditorViewNotice(String courseId) async {
+    final profiles = ProfileService();
+    final activeId = await profiles.getActiveProfileId();
+    if (activeId == null) return false;
+    return (await SharedPreferences.getInstance()).getBool(
+          profiles.keyForProfileId(
+            activeId,
+            '$_oneTimeNoticePrefix${_courseEditorViewNoticeId(courseId)}',
+          ),
+        ) ??
+        false;
+  }
+
+  Future<void> markCourseEditorViewNoticeSeen(String courseId) async {
+    final profiles = ProfileService();
+    final activeId = await profiles.getActiveProfileId();
+    if (activeId == null) return;
+    await (await SharedPreferences.getInstance()).setBool(
+      profiles.keyForProfileId(
+        activeId,
+        '$_oneTimeNoticePrefix${_courseEditorViewNoticeId(courseId)}',
+      ),
+      true,
+    );
   }
 
   Future<bool> isCourseEditorUnlocked() async {
@@ -464,14 +522,68 @@ class SettingsService {
     LearnerStatusEvents.publish(LearnerStatusInvalidation.weeklyGoal);
   }
 
-  Future<bool> isCourseEditorLocked(String courseId) async =>
-      (await SharedPreferences.getInstance()).getBool(
-        'course_editor_locked_${courseId.toUpperCase()}',
-      ) ??
-      true;
-  Future<void> setCourseEditorLocked(String courseId, bool locked) async =>
-      (await SharedPreferences.getInstance()).setBool(
-        'course_editor_locked_${courseId.toUpperCase()}',
-        locked,
+  Future<CourseEditorMode> getCourseEditorMode(String courseId) async {
+    final preferences = await SharedPreferences.getInstance();
+    final profiles = ProfileService();
+    final activeId = await profiles.getActiveProfileId();
+    if (activeId != null) {
+      final stored = preferences.getString(
+        profiles.keyForProfileId(
+          activeId,
+          _coursePreferenceKey(_courseEditorModeKeyPrefix, courseId),
+        ),
       );
+      if (stored != null) return CourseEditorMode.fromStorage(stored);
+    }
+    // Preserve a user's former two-state choice once. A fresh course/editor
+    // has no legacy value and therefore starts in View only.
+    final legacy = preferences.getBool(
+      'course_editor_locked_${courseId.toUpperCase()}',
+    );
+    return switch (legacy) {
+      true => CourseEditorMode.locked,
+      false => CourseEditorMode.edit,
+      null => CourseEditorMode.viewOnly,
+    };
+  }
+
+  Future<void> setCourseEditorMode(
+    String courseId,
+    CourseEditorMode mode,
+  ) async {
+    final profiles = ProfileService();
+    final activeId = await profiles.getActiveProfileId();
+    if (activeId == null) return;
+    await (await SharedPreferences.getInstance()).setString(
+      profiles.keyForProfileId(
+        activeId,
+        _coursePreferenceKey(_courseEditorModeKeyPrefix, courseId),
+      ),
+      mode.storageValue,
+    );
+  }
+
+  /// Compatibility facade for older callers and tests.
+  Future<bool> isCourseEditorLocked(String courseId) async =>
+      await getCourseEditorMode(courseId) == CourseEditorMode.locked;
+
+  /// Compatibility facade for the former two-state lock. Unlocking maps to the
+  /// old editable behavior; the QQL 231 UI uses [setCourseEditorMode].
+  Future<void> setCourseEditorLocked(String courseId, bool locked) async {
+    final profiles = ProfileService();
+    if (await profiles.getActiveProfileId() != null) {
+      await setCourseEditorMode(
+        courseId,
+        locked ? CourseEditorMode.locked : CourseEditorMode.edit,
+      );
+      return;
+    }
+    // Headless tools and older callers can legitimately run before a learner
+    // profile exists. Keep their former global preference path functional;
+    // normal signed-in app use is stored through the profile-scoped mode key.
+    await (await SharedPreferences.getInstance()).setBool(
+      'course_editor_locked_${courseId.toUpperCase()}',
+      locked,
+    );
+  }
 }

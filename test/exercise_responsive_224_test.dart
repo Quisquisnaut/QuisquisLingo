@@ -42,6 +42,10 @@ void main() {
         );
         await tester.pumpAndSettle();
         expect(tester.takeException(), isNull);
+        await tester.tap(find.byKey(const Key('course-editor-lock')));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Edit'));
+        await tester.pumpAndSettle();
         await tester.ensureVisible(
           find.byKey(const Key('course-editor-lessons-navigation')),
         );
@@ -49,7 +53,7 @@ void main() {
           find.byKey(const Key('course-editor-lessons-navigation')),
         );
         await tester.pumpAndSettle();
-        expect(find.byKey(const Key('lesson-management-lock')), findsOneWidget);
+        expect(find.byKey(const Key('lessons-search-action')), findsOneWidget);
         await tester.ensureVisible(
           find.byKey(const ValueKey('lesson-actions-responsive_lesson')),
         );

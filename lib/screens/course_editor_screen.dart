@@ -25,6 +25,7 @@ import '../services/audit_code_registry.dart' show AuditCode;
 import '../services/course_audit_report_service.dart';
 import '../services/settings_service.dart';
 import '../services/editor_display_preferences.dart';
+import '../services/exercise_search_service.dart';
 import '../services/profile_service.dart';
 import '../services/team_service.dart';
 import '../services/lesson_icon_catalog.dart';
@@ -36,8 +37,8 @@ import 'flat_image_library_screen.dart';
 import 'editor_help_screen.dart';
 import 'course_version_history_screen.dart';
 import 'course_info_screen.dart';
-import 'official_course_inspection_screen.dart'
-    show CourseLessonInspectionScreen;
+import 'guidebook_screen.dart';
+import 'course_editor_search_screen.dart';
 import '../services/exercise_image_service.dart';
 import '../services/course_authoring_transfer_service.dart';
 import '../services/exercise_field_help.dart';
@@ -395,6 +396,64 @@ Exercise _withExercisePublication(
   missingWords: source.missingWords,
 );
 
+Future<Course?> _openSearchResult(
+  BuildContext context, {
+  required Course course,
+  required ExerciseSearchResult result,
+  required bool readOnly,
+  required bool initiallyInspecting,
+  DateTime Function()? clock,
+}) async {
+  final lesson = course.lessons[result.lessonIndex];
+  final round = lesson.rounds[result.roundIndex];
+  final exercise = round.exercises[result.exerciseIndex];
+  final saved = <String, Exercise>{};
+  final returned = await Navigator.of(context).push<Exercise>(
+    MaterialPageRoute(
+      builder: (_) => ExerciseEditorScreen(
+        exercise: exercise,
+        title: 'Edit exercise ${result.exerciseIndex + 1}',
+        isNew: false,
+        course: course,
+        lesson: lesson,
+        round: round,
+        clock: clock,
+        readOnly: readOnly,
+        initiallyInspecting: initiallyInspecting,
+        onExerciseSaved: readOnly ? null : (value) => saved[value.id] = value,
+      ),
+    ),
+  );
+  if (readOnly) return null;
+  if (returned != null) saved[returned.id] = returned;
+  if (saved.isEmpty) return null;
+  final content = [
+    for (final item in round.content)
+      saved.containsKey(item.id)
+          ? _replaceLearningContentExercise(item, saved[item.id]!)
+          : item,
+  ];
+  final changedRound = LearningRound.fromJson({
+    ...round.toJson(),
+    'content': content.map((item) => item.toJson()).toList(),
+  });
+  final changedLesson = Lesson.fromJson({
+    ...lesson.toJson(),
+    'rounds': [
+      for (final candidate in lesson.rounds)
+        (candidate.id == round.id ? changedRound : candidate).toJson(),
+    ],
+  });
+  return Course.fromJson({
+    ...course.toJson(),
+    'lessons': [
+      for (final candidate in course.lessons)
+        (candidate.lessonId == lesson.lessonId ? changedLesson : candidate)
+            .toJson(),
+    ],
+  });
+}
+
 /// Custom-course authoring and read-only official-course inspection.
 ///
 /// For custom courses, the hierarchy is editable at every level: Lessons, Rounds and v6
@@ -482,7 +541,7 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
   late final CourseEditorTransaction _transaction;
   CourseAuditResult? _lastAudit;
   bool _auditOutdated = true;
-  bool _locked = true;
+  CourseEditorMode _editorMode = CourseEditorMode.viewOnly;
   bool _routeMayPop = false;
   String _pendingVersionNotes = '';
 
@@ -495,11 +554,13 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
       allowReadOnlyOfficial: widget.access.readOnly,
     );
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      final locked = widget.access.readOnly
-          ? true
-          : await _settings.isCourseEditorLocked(_course.courseId);
-      if (mounted) setState(() => _locked = locked);
-      if (!widget.access.readOnly &&
+      var mode = await _settings.getCourseEditorMode(_course.courseId);
+      if (!widget.access.canEditOriginal && mode == CourseEditorMode.edit) {
+        mode = CourseEditorMode.viewOnly;
+      }
+      if (mounted) setState(() => _editorMode = mode);
+      if (widget.access.canEditOriginal &&
+          mode == CourseEditorMode.edit &&
           await _settings.isAudioOrphanCheckDue(_code)) {
         await _checkOrphanAudio();
         await _settings.markAudioOrphanCheckRun(_code);
@@ -513,9 +574,12 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
 
   bool get _dirty => _transaction.hasChanges;
 
+  bool get _canModify =>
+      widget.access.canEditOriginal && _editorMode == CourseEditorMode.edit;
+
   void _updateDraft(Course value) => setState(() {
-    if (!widget.access.canEditOriginal) {
-      throw StateError('This course is read only.');
+    if (!_canModify) {
+      throw StateError('The Course Editor is not in Edit.');
     }
     _transaction.replaceWorkingCourse(
       const ProvisionalPublicationService().reconcile(
@@ -1524,26 +1588,177 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
   }
 
   Future<void> _openLessons() async {
+    if (_editorMode == CourseEditorMode.locked) {
+      await showDialog<void>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Course Editor is locked'),
+          content: const Text(
+            'The Course Editor root remains available, but the Lessons and authoring structure cannot be opened while the access state is Locked. Choose View only, Inspection mode or, when authorized, Edit.',
+          ),
+          actions: [
+            FilledButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
+    final readOnly = !_canModify;
+    final activeProfileId = await _profiles.getActiveProfileId();
+    if (_editorMode == CourseEditorMode.viewOnly &&
+        activeProfileId != null &&
+        !await _settings.hasSeenCourseEditorViewNotice(_course.courseId)) {
+      if (!mounted) return;
+      await showDialog<void>(
+        context: context,
+        builder: (context) => AlertDialog(
+          key: const Key('course-editor-view-mode-notice'),
+          title: const Text('View only'),
+          content: Text(
+            widget.access.canEditOriginal
+                ? 'You are viewing this course in read-only mode. To make changes, return to the Course Editor and switch the access state to Edit.'
+                : 'You are viewing this course in read-only mode. You do not have permission to edit this course.',
+          ),
+          actions: [
+            FilledButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Continue'),
+            ),
+          ],
+        ),
+      );
+      await _settings.markCourseEditorViewNoticeSeen(_course.courseId);
+      if (!mounted) return;
+    }
+    if (!mounted) return;
     final updated = await Navigator.of(context).push<Course>(
       MaterialPageRoute(
         builder: (_) => LessonManagementScreen(
           course: _course,
-          initiallyLocked: _locked,
-          readOnly: widget.access.readOnly,
-          onCourseChanged: widget.access.canEditOriginal ? _updateDraft : null,
+          initiallyLocked: false,
+          readOnly: readOnly,
+          courseEditorMode: _editorMode,
+          onCourseChanged: _canModify ? _updateDraft : null,
           clock: _clock,
         ),
       ),
     );
-    if (updated != null && widget.access.canEditOriginal) _updateDraft(updated);
-    if (!mounted) return;
-    if (widget.access.readOnly) return;
-    final locked = await _settings.isCourseEditorLocked(_course.courseId);
-    if (!mounted) return;
-    setState(() {
-      _locked = locked;
-      _auditOutdated = true;
-    });
+    if (updated != null && _canModify) _updateDraft(updated);
+    if (mounted) setState(() => _auditOutdated = true);
+  }
+
+  Future<void> _setEditorMode(CourseEditorMode mode) async {
+    if (mode == CourseEditorMode.edit && !widget.access.canEditOriginal) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(widget.access.effectiveEditDeniedReason)),
+      );
+      return;
+    }
+    if (_editorMode == CourseEditorMode.edit &&
+        mode != CourseEditorMode.edit &&
+        !await _resolveChangesBeforeModeSwitch()) {
+      return;
+    }
+    await _settings.setCourseEditorMode(_course.courseId, mode);
+    if (mounted) setState(() => _editorMode = mode);
+  }
+
+  Future<bool> _resolveChangesBeforeModeSwitch() async {
+    if (!_dirty) return true;
+    var versionNotes = _pendingVersionNotes;
+    final choice = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        key: const Key('course-transaction-confirmation'),
+        title: const Text('Unapplied course changes'),
+        content: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 560),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const Text(
+                  'The complete Course Editor working copy differs from the persisted course. Confirm all changes as one new course version, cancel the complete editing session, or keep the editor in Edit.',
+                ),
+                const SizedBox(height: 12),
+                TextFormField(
+                  key: const Key('course-version-notes'),
+                  initialValue: versionNotes,
+                  onChanged: (value) => versionNotes = value,
+                  minLines: 3,
+                  maxLines: 8,
+                  decoration: const InputDecoration(
+                    border: OutlineInputBorder(),
+                    labelText: 'Version notes (optional)',
+                    helperText:
+                        'Describe the changes made in this course version.',
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        actions: [
+          FilledButton(
+            onPressed: () => Navigator.pop(context, 'stay'),
+            child: const Text('Keep editing'),
+          ),
+          TextButton(
+            key: const Key('cancel-course-changes'),
+            onPressed: () => Navigator.pop(context, 'cancel'),
+            child: const Text('Cancel course changes'),
+          ),
+          TextButton(
+            key: const Key('confirm-course-changes'),
+            onPressed: () => Navigator.pop(context, 'confirm'),
+            child: const Text('Confirm course changes'),
+          ),
+        ],
+      ),
+    );
+    if (!mounted || choice == null || choice == 'stay') return false;
+    if (choice == 'cancel') {
+      _pendingVersionNotes = '';
+      setState(() {
+        _transaction.cancel();
+        _auditOutdated = true;
+      });
+      return true;
+    }
+    _pendingVersionNotes = versionNotes;
+    try {
+      final result = await _service.confirmCourseTransaction(
+        originalCourse: _transaction.originalCourse,
+        workingCourse: _course,
+        languageCode: _code,
+        versionNotes: versionNotes,
+        isNewCourse: widget.isNewCourse,
+        committedAt: _clock(),
+      );
+      if (!mounted) return false;
+      setState(() {
+        _transaction.markConfirmed(result.course);
+        _pendingVersionNotes = '';
+        _auditOutdated = true;
+      });
+      return true;
+    } catch (error) {
+      if (!mounted) return false;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          duration: const Duration(seconds: 10),
+          content: Text(
+            'Course changes were not confirmed. The working copy remains open in Edit. $error',
+          ),
+          backgroundColor: Theme.of(context).colorScheme.error,
+        ),
+      );
+      return false;
+    }
   }
 
   Future<void> _toggleCourseDraftStatus() async {
@@ -1611,6 +1826,7 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
         builder: (_) => CourseVersionHistoryScreen(
           course: _course,
           backupService: _service.backupService,
+          allowRestore: _canModify,
         ),
       ),
     );
@@ -1705,7 +1921,7 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
         context,
       ).showSnackBar(SnackBar(content: Text(error.message)));
     }
-    await _checkOrphanAudio();
+    await _checkOrphanAudio(prompt: _canModify);
     final fresh = _course;
     final result = CourseAuditService().auditCourse(fresh);
     if (!mounted) return;
@@ -1745,40 +1961,47 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
                   course: _course,
                   lesson: lesson,
                   round: round,
-                  onExerciseSaved: (exercise) {
-                    savedExercises[exercise.id] = exercise;
-                    if (!mounted) return;
-                    _updateDraft(
-                      _withLessons([
-                        for (final currentLesson in _course.lessons)
-                          if (currentLesson.lessonId == lesson.lessonId)
-                            Lesson.fromJson({
-                              ...currentLesson.toJson(),
-                              'rounds': [
-                                for (final currentRound in currentLesson.rounds)
-                                  if (currentRound.id == round.id)
-                                    {
-                                      ...currentRound.toJson(),
-                                      'content': [
-                                        for (final item in currentRound.content)
-                                          (item.id == exercise.id
-                                                  ? _replaceLearningContentExercise(
-                                                      item,
-                                                      exercise,
-                                                    )
-                                                  : item)
-                                              .toJson(),
-                                      ],
-                                    }
-                                  else
-                                    currentRound.toJson(),
-                              ],
-                            })
-                          else
-                            currentLesson,
-                      ]),
-                    );
-                  },
+                  readOnly: !_canModify,
+                  initiallyInspecting:
+                      _editorMode == CourseEditorMode.inspection,
+                  onExerciseSaved: !_canModify
+                      ? null
+                      : (exercise) {
+                          savedExercises[exercise.id] = exercise;
+                          if (!mounted) return;
+                          _updateDraft(
+                            _withLessons([
+                              for (final currentLesson in _course.lessons)
+                                if (currentLesson.lessonId == lesson.lessonId)
+                                  Lesson.fromJson({
+                                    ...currentLesson.toJson(),
+                                    'rounds': [
+                                      for (final currentRound
+                                          in currentLesson.rounds)
+                                        if (currentRound.id == round.id)
+                                          {
+                                            ...currentRound.toJson(),
+                                            'content': [
+                                              for (final item
+                                                  in currentRound.content)
+                                                (item.id == exercise.id
+                                                        ? _replaceLearningContentExercise(
+                                                            item,
+                                                            exercise,
+                                                          )
+                                                        : item)
+                                                    .toJson(),
+                                            ],
+                                          }
+                                        else
+                                          currentRound.toJson(),
+                                    ],
+                                  })
+                                else
+                                  currentLesson,
+                            ]),
+                          );
+                        },
                 ),
               ),
             );
@@ -1813,10 +2036,12 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
           MaterialPageRoute(
             builder: (_) => RoundEditorScreen(
               course: _course,
-              onCourseChanged: _updateDraft,
+              onCourseChanged: _canModify ? _updateDraft : null,
               lesson: lesson,
               round: round,
               roundIndex: ri,
+              readOnly: !_canModify,
+              courseEditorMode: _editorMode,
             ),
           ),
         );
@@ -1981,24 +2206,61 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
             ),
           ),
           actions: [
-            IconButton(
+            PopupMenuButton<CourseEditorMode>(
               key: const Key('course-editor-lock'),
-              tooltip: widget.access.readOnly
-                  ? 'Read-only course. The original cannot be unlocked.'
-                  : 'Lock or unlock course editing',
-              isSelected: _locked,
-              onPressed: widget.access.readOnly
-                  ? null
-                  : () async {
-                      final value = !_locked;
-                      await _settings.setCourseEditorLocked(
-                        _course.courseId,
-                        value,
-                      );
-                      if (mounted) setState(() => _locked = value);
-                    },
-              icon: const Icon(Icons.lock_open_outlined),
-              selectedIcon: const Icon(Icons.lock_outline),
+              tooltip: 'Course Editor access: ${_editorMode.label}',
+              initialValue: _editorMode,
+              onSelected: _setEditorMode,
+              icon: Icon(switch (_editorMode) {
+                CourseEditorMode.locked => Icons.lock_outline,
+                CourseEditorMode.viewOnly => Icons.visibility_outlined,
+                CourseEditorMode.inspection => Icons.code,
+                CourseEditorMode.edit => Icons.edit_outlined,
+              }),
+              itemBuilder: (context) => [
+                for (final mode in CourseEditorMode.values)
+                  PopupMenuItem<CourseEditorMode>(
+                    value: mode,
+                    enabled:
+                        mode != CourseEditorMode.edit ||
+                        widget.access.canEditOriginal,
+                    child: Tooltip(
+                      message:
+                          mode == CourseEditorMode.edit &&
+                              !widget.access.canEditOriginal
+                          ? widget.access.effectiveEditDeniedReason
+                          : switch (mode) {
+                              CourseEditorMode.locked =>
+                                'Keep the Course Editor root visible and block the authoring structure.',
+                              CourseEditorMode.viewOnly =>
+                                'Use the normal exercise form read-only while keeping Search, Preview and Audit available.',
+                              CourseEditorMode.inspection =>
+                                'Open exercises in their read-only technical representation by default.',
+                              CourseEditorMode.edit =>
+                                'Allow authoring actions under the existing ownership permissions.',
+                            },
+                      child: Row(
+                        children: [
+                          Icon(switch (mode) {
+                            CourseEditorMode.locked => Icons.lock_outline,
+                            CourseEditorMode.viewOnly =>
+                              Icons.visibility_outlined,
+                            CourseEditorMode.inspection => Icons.code,
+                            CourseEditorMode.edit => Icons.edit_outlined,
+                          }),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              mode.label,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          if (mode == _editorMode) ...[const Icon(Icons.check)],
+                        ],
+                      ),
+                    ),
+                  ),
+              ],
             ),
             const EditorAppBarActions(),
           ],
@@ -2036,20 +2298,14 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
             ListTile(
               key: const Key('course-editor-course-info'),
               leading: Icon(
-                widget.access.canEditOriginal
-                    ? Icons.edit_note_outlined
-                    : Icons.info_outline,
+                _canModify ? Icons.edit_note_outlined : Icons.info_outline,
               ),
-              title: Text(
-                widget.access.canEditOriginal
-                    ? 'Course Info Editor'
-                    : 'Course Info',
-              ),
+              title: Text(_canModify ? 'Course Info Editor' : 'Course Info'),
               subtitle: Text(
-                '${widget.access.canEditOriginal ? 'Edit' : 'Inspect'} course name, credits, license and metadata · ${_course.authors.isEmpty ? (_course.author.trim().isEmpty ? 'Author not specified' : _course.author) : _course.authors.map((a) => '${a.name} (${a.role})').join(', ')}',
+                '${_canModify ? 'Edit' : 'Inspect'} course name, credits, license and metadata · ${_course.authors.isEmpty ? (_course.author.trim().isEmpty ? 'Author not specified' : _course.author) : _course.authors.map((a) => '${a.name} (${a.role})').join(', ')}',
               ),
               trailing: const Icon(Icons.chevron_right),
-              onTap: widget.access.canEditOriginal
+              onTap: _canModify
                   ? _editCourseInfo
                   : () => Navigator.of(context).push<void>(
                       MaterialPageRoute(
@@ -2098,9 +2354,7 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
                     : 'Not published',
               ),
               trailing: TextButton.icon(
-                onPressed: widget.access.canEditOriginal
-                    ? _toggleCourseDraftStatus
-                    : null,
+                onPressed: _canModify ? _toggleCourseDraftStatus : null,
                 style: _course.publicationState.isPublished
                     ? null
                     : TextButton.styleFrom(
@@ -2163,7 +2417,7 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
                     : '${_course.audioLibrary.length} MP3 mappings · ${_course.audioMode}',
               ),
               trailing: const Icon(Icons.chevron_right),
-              onTap: widget.access.canEditOriginal ? _openAudioLibrary : null,
+              onTap: _canModify ? _openAudioLibrary : null,
             ),
             const Divider(height: 1),
             ListTile(
@@ -2176,12 +2430,14 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
                 'Browse, import and manage reusable exercise images.',
               ),
               trailing: const Icon(Icons.chevron_right),
-              onTap: () => Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) =>
-                      const FlatImageLibraryScreen(selectMode: false),
-                ),
-              ),
+              onTap: _canModify
+                  ? () => Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) =>
+                            const FlatImageLibraryScreen(selectMode: false),
+                      ),
+                    )
+                  : null,
             ),
             if (canExportCourse) ...[
               const Divider(height: 1),
@@ -2213,6 +2469,7 @@ class LessonManagementScreen extends StatefulWidget {
     bool userCourse = false,
     required this.initiallyLocked,
     this.readOnly = false,
+    this.courseEditorMode = CourseEditorMode.edit,
     this.onCourseChanged,
     this.clock,
   });
@@ -2220,6 +2477,7 @@ class LessonManagementScreen extends StatefulWidget {
   final Course course;
   final bool initiallyLocked;
   final bool readOnly;
+  final CourseEditorMode courseEditorMode;
   final ValueChanged<Course>? onCourseChanged;
   final DateTime Function()? clock;
 
@@ -2229,7 +2487,6 @@ class LessonManagementScreen extends StatefulWidget {
 
 class _LessonManagementScreenState extends State<LessonManagementScreen> {
   int _numberingFieldVersion = 0;
-  final _settings = SettingsService();
   final _ids = TimestampAuthoringIdGenerator();
   late Course _course;
   late bool _locked;
@@ -2514,49 +2771,56 @@ class _LessonManagementScreenState extends State<LessonManagementScreen> {
   }
 
   Future<void> _openLesson(int index) async {
-    if (widget.readOnly) {
-      await Navigator.of(context).push<void>(
-        MaterialPageRoute(
-          builder: (_) =>
-              CourseLessonInspectionScreen(course: _course, lessonIndex: index),
-        ),
-      );
-      return;
-    }
-    if (_locked) {
-      final messenger = ScaffoldMessenger.of(context);
-      messenger.clearSnackBars();
-      messenger.showSnackBar(
-        const SnackBar(
-          content: Text(
-            'This Lesson is locked. To edit it, tap the lock icon at the top of the Lessons page.',
-          ),
-        ),
-      );
-      return;
-    }
     var iconAssets = _course.lessonIconAssets;
     final updated = await Navigator.of(context).push<Lesson>(
       MaterialPageRoute(
         builder: (_) => LessonEditorScreen(
           course: _course,
           lesson: _course.lessons[index],
-          onLessonIconAssetsChanged: (value) => iconAssets = value,
-          onCourseChanged: (course) {
-            iconAssets = course.lessonIconAssets;
-            _adoptCourse(course);
-          },
+          readOnly: _locked,
+          courseEditorMode: widget.courseEditorMode,
+          onLessonIconAssetsChanged: _locked
+              ? null
+              : (value) => iconAssets = value,
+          onCourseChanged: _locked
+              ? null
+              : (course) {
+                  iconAssets = course.lessonIconAssets;
+                  _adoptCourse(course);
+                },
           clock: _clock,
         ),
       ),
     );
-    if (updated == null || !mounted) return;
+    if (_locked || updated == null || !mounted) return;
     final currentIndex = _course.lessons.indexWhere(
       (lesson) => lesson.lessonId == updated.lessonId,
     );
     if (currentIndex < 0) return;
     final lessons = [..._course.lessons]..[currentIndex] = updated;
     _replaceLessons(lessons, lessonIconAssets: iconAssets);
+  }
+
+  Future<void> _openSearch() async {
+    final result = await Navigator.of(context).push<ExerciseSearchResult>(
+      MaterialPageRoute(
+        builder: (_) => CourseEditorSearchScreen(
+          course: _course,
+          scope: ExerciseSearchScope.course,
+        ),
+      ),
+    );
+    if (result == null || !mounted) return;
+    final changed = await _openSearchResult(
+      context,
+      course: _course,
+      result: result,
+      readOnly: _locked,
+      initiallyInspecting:
+          widget.courseEditorMode == CourseEditorMode.inspection,
+      clock: _clock,
+    );
+    if (changed != null && mounted) _adoptCourse(changed);
   }
 
   @override
@@ -2573,22 +2837,10 @@ class _LessonManagementScreenState extends State<LessonManagementScreen> {
           leading: BackButton(onPressed: _returnToCourse),
           actions: [
             IconButton(
-              key: const Key('lesson-management-lock'),
-              tooltip:
-                  'Prevents accidental course edits. Stored separately for each course.',
-              isSelected: _locked,
-              icon: const Icon(Icons.lock_open_outlined),
-              selectedIcon: const Icon(Icons.lock_outline),
-              onPressed: widget.readOnly
-                  ? null
-                  : () async {
-                      final value = !_locked;
-                      await _settings.setCourseEditorLocked(
-                        _course.courseId,
-                        value,
-                      );
-                      if (mounted) setState(() => _locked = value);
-                    },
+              key: const Key('lessons-search-action'),
+              tooltip: 'Search the whole course',
+              onPressed: _openSearch,
+              icon: const Icon(Icons.search),
             ),
             const EditorAppBarActions(),
           ],
@@ -2718,7 +2970,7 @@ class _LessonManagementScreenState extends State<LessonManagementScreen> {
                       key: const Key('course-create-duels'),
                       title: const Text('Create Duels'),
                       subtitle: const Text(
-                        'When enough eligible Exercises are available, winning a Duel unlocks the next Lesson without normally completing the preceding Lesson.',
+                        'When enough eligible Exercises are available, winning a Duel unlocks the next Lesson without completing the preceding Lesson.',
                       ),
                       value: _course.createDuels,
                       onChanged: _locked
@@ -2808,8 +3060,7 @@ class _LessonManagementScreenState extends State<LessonManagementScreen> {
                                   itemBuilder: (_) => [
                                     PopupMenuItem(
                                       value: 'edit',
-                                      enabled: !_locked,
-                                      child: const Text('Edit'),
+                                      child: Text(_locked ? 'View' : 'Edit'),
                                     ),
                                     PopupMenuItem(
                                       value: 'rename',
@@ -3359,6 +3610,8 @@ class LessonEditorScreen extends StatefulWidget {
   final Lesson lesson;
   final ValueChanged<List<CourseLessonIconAsset>>? onLessonIconAssetsChanged;
   final DateTime Function()? clock;
+  final bool readOnly;
+  final CourseEditorMode courseEditorMode;
   const LessonEditorScreen({
     super.key,
     required this.course,
@@ -3366,6 +3619,8 @@ class LessonEditorScreen extends StatefulWidget {
     required this.lesson,
     this.onLessonIconAssetsChanged,
     this.clock,
+    this.readOnly = false,
+    this.courseEditorMode = CourseEditorMode.edit,
   });
   @override
   State<LessonEditorScreen> createState() => _LessonEditorScreenState();
@@ -3461,6 +3716,7 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
   }
 
   Future<void> _chooseSection(String? choice) async {
+    if (widget.readOnly) return;
     if (choice == null) return;
     if (choice == 'manage') {
       await _manageSections();
@@ -3652,6 +3908,7 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
   }
 
   Future<void> _saveLesson(PublicationState state) async {
+    if (widget.readOnly) return;
     if (!state.isPublished &&
         _lesson.publicationState.isPublished &&
         !await _confirmMoveToDraft(context, 'Lesson')) {
@@ -3734,11 +3991,25 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
   }
 
   Future<void> _rename() async {
+    if (widget.readOnly) return;
     final n = await _name('Rename lesson', initial: _lesson.title);
     if (n != null && mounted) _publishLesson(_copy(title: n));
   }
 
   Future<void> _editGuidebook() async {
+    if (widget.readOnly) {
+      await Navigator.of(context).push<void>(
+        MaterialPageRoute(
+          builder: (_) => GuidebookScreen(
+            course: _courseWithIcons,
+            lesson: _lesson,
+            lessonIndex: _lessonNumber - 1,
+            includeDraftContent: true,
+          ),
+        ),
+      );
+      return;
+    }
     final oldGuideIds = _lesson.guidebook.content
         .map((content) => content.id)
         .toSet();
@@ -3808,18 +4079,21 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
       MaterialPageRoute(
         builder: (_) => LessonRoundsScreen(
           course: _courseWithIcons,
-          onCourseChanged: _adoptCourse,
+          onCourseChanged: widget.readOnly ? null : _adoptCourse,
           lesson: draftLesson,
+          readOnly: widget.readOnly,
+          courseEditorMode: widget.courseEditorMode,
           clock: _clock,
         ),
       ),
     );
-    if (rounds != null && mounted) {
+    if (!widget.readOnly && rounds != null && mounted) {
       _publishLesson(_copy(rounds: rounds));
     }
   }
 
   Future<void> _chooseThemeIcon() async {
+    if (widget.readOnly) return;
     const none = '__none__';
     const import = '__import__';
     final selected = await showModalBottomSheet<String>(
@@ -4024,6 +4298,7 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
   }
 
   Future<void> _openGuidebookRoundGenerator() async {
+    if (widget.readOnly) return;
     final generated = await Navigator.of(context).push<List<LearningRound>>(
       MaterialPageRoute(
         builder: (_) => GuidebookRoundGeneratorScreen(
@@ -4036,6 +4311,51 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
     if (generated == null || generated.isEmpty || !mounted) return;
     _publishLesson(_copy(rounds: [..._lesson.rounds, ...generated]));
   }
+
+  Future<void> _openSearch() async {
+    final result = await Navigator.of(context).push<ExerciseSearchResult>(
+      MaterialPageRoute(
+        builder: (_) => CourseEditorSearchScreen(
+          course: _courseWithIcons,
+          scope: ExerciseSearchScope.lesson,
+          lessonId: _lesson.lessonId,
+        ),
+      ),
+    );
+    if (result == null || !mounted) return;
+    final changed = await _openSearchResult(
+      context,
+      course: _courseWithIcons,
+      result: result,
+      readOnly: widget.readOnly,
+      initiallyInspecting:
+          widget.courseEditorMode == CourseEditorMode.inspection,
+      clock: _clock,
+    );
+    if (changed != null && mounted) _adoptCourse(changed);
+  }
+
+  Future<void> _previewLesson() => Navigator.of(context).push<void>(
+    MaterialPageRoute(
+      builder: (_) => LessonAuthoringPreviewScreen(
+        course: _courseWithIcons,
+        lesson: _lesson,
+      ),
+    ),
+  );
+
+  Future<void> _auditLesson() => Navigator.of(context).push<void>(
+    MaterialPageRoute(
+      builder: (_) => CourseAuditScreen(
+        course: _courseWithIcons,
+        result: CourseAuditService().auditLesson(
+          _courseWithIcons,
+          _lesson.lessonId,
+        ),
+        title: 'Lesson Audit',
+      ),
+    ),
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -4053,14 +4373,10 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
           title: Text(_lessonLabel),
           actions: [
             IconButton(
-              tooltip: 'Generate Rounds from GuideBook',
-              onPressed: _openGuidebookRoundGenerator,
-              icon: const Icon(Icons.auto_awesome_outlined),
-            ),
-            IconButton(
-              tooltip: 'Rename lesson',
-              onPressed: _rename,
-              icon: const Icon(Icons.edit_outlined),
+              key: const Key('lesson-search-action'),
+              tooltip: 'Search this Lesson',
+              onPressed: _openSearch,
+              icon: const Icon(Icons.search),
             ),
             const EditorAppBarActions(),
           ],
@@ -4084,16 +4400,18 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
                         ? 'This new Lesson is Draft until its required branch is complete and saved. It then becomes non-Draft automatically. Save as draft keeps the Lesson Draft until you explicitly Save it.'
                         : 'This Lesson is Draft and hidden from learner delivery, even when its Rounds and Exercises are Published. Use Save to publish the Lesson.',
                   ),
-                OutlinedButton(
-                  key: const Key('save-lesson-draft'),
-                  onPressed: () => _saveLesson(PublicationState.draft),
-                  child: const Text('Save as draft'),
-                ),
-                FilledButton(
-                  key: const Key('save-lesson'),
-                  onPressed: () => _saveLesson(PublicationState.published),
-                  child: const Text('Save'),
-                ),
+                if (!widget.readOnly) ...[
+                  OutlinedButton(
+                    key: const Key('save-lesson-draft'),
+                    onPressed: () => _saveLesson(PublicationState.draft),
+                    child: const Text('Save as draft'),
+                  ),
+                  FilledButton(
+                    key: const Key('save-lesson'),
+                    onPressed: () => _saveLesson(PublicationState.published),
+                    child: const Text('Save'),
+                  ),
+                ],
               ],
             ),
           ),
@@ -4126,8 +4444,12 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
               leading: const Icon(Icons.title),
               title: const Text('Lesson title'),
               subtitle: Text(_lesson.title),
-              trailing: const Icon(Icons.edit_outlined),
-              onTap: _rename,
+              trailing: Icon(
+                widget.readOnly
+                    ? Icons.visibility_outlined
+                    : Icons.edit_outlined,
+              ),
+              onTap: widget.readOnly ? null : _rename,
             ),
             AuthoringStatusCard(
               indicatorKey: const Key('lesson-guidebook-status-indicator'),
@@ -4156,7 +4478,21 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
                 'Choose Round and Exercise counts, preview the difficulty plan, review every draft, then explicitly approve insertion.',
               ),
               trailing: const Icon(Icons.chevron_right),
-              onTap: _openGuidebookRoundGenerator,
+              onTap: widget.readOnly ? null : _openGuidebookRoundGenerator,
+            ),
+            ListTile(
+              key: const Key('lesson-preview-action'),
+              leading: const Icon(Icons.play_circle_outline),
+              title: const Text('Preview Lesson'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: _previewLesson,
+            ),
+            ListTile(
+              key: const Key('lesson-audit-action'),
+              leading: const Icon(Icons.fact_check_outlined),
+              title: const Text('Audit Lesson'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: _auditLesson,
             ),
             EditorInternalIdText(label: 'GuideBook', id: _lesson.guidebookId),
             Padding(
@@ -4192,7 +4528,7 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
                     child: Text('Manage sections...'),
                   ),
                 ],
-                onChanged: _chooseSection,
+                onChanged: widget.readOnly ? null : _chooseSection,
               ),
             ),
             ListTile(
@@ -4231,7 +4567,7 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
                           .label,
               ),
               trailing: const Icon(Icons.grid_view_outlined),
-              onTap: _chooseThemeIcon,
+              onTap: widget.readOnly ? null : _chooseThemeIcon,
             ),
           ],
         ),
@@ -4662,6 +4998,8 @@ class LessonRoundsScreen extends StatefulWidget {
   final ValueChanged<Course>? onCourseChanged;
   final Lesson lesson;
   final DateTime Function()? clock;
+  final bool readOnly;
+  final CourseEditorMode courseEditorMode;
 
   const LessonRoundsScreen({
     super.key,
@@ -4669,6 +5007,8 @@ class LessonRoundsScreen extends StatefulWidget {
     this.onCourseChanged,
     required this.lesson,
     this.clock,
+    this.readOnly = false,
+    this.courseEditorMode = CourseEditorMode.edit,
   });
 
   @override
@@ -4750,6 +5090,7 @@ class _LessonRoundsScreenState extends State<LessonRoundsScreen> {
   }
 
   Future<void> _transferRound(int index, {required bool copy}) async {
+    if (widget.readOnly) return;
     final source = _rounds[index];
     final course = _auditableCourse;
     final destination = await chooseAuthoringDestination(
@@ -4785,6 +5126,7 @@ class _LessonRoundsScreenState extends State<LessonRoundsScreen> {
   }
 
   void _updateRounds(List<LearningRound> rounds) {
+    if (widget.readOnly) return;
     _adoptCourse(_courseWithRounds(rounds));
   }
 
@@ -4849,6 +5191,7 @@ class _LessonRoundsScreenState extends State<LessonRoundsScreen> {
   }
 
   Future<void> _add() async {
+    if (widget.readOnly) return;
     final title = await _name('New round', allowEmpty: true);
     if (title != null && mounted) {
       _updateRounds([..._rounds, _blankRound(title)]);
@@ -4871,10 +5214,12 @@ class _LessonRoundsScreenState extends State<LessonRoundsScreen> {
           round: _rounds[index],
           roundIndex: index,
           clock: _clock,
+          readOnly: widget.readOnly,
+          courseEditorMode: widget.courseEditorMode,
         ),
       ),
     );
-    if (updated != null && mounted) {
+    if (!widget.readOnly && updated != null && mounted) {
       final currentIndex = _rounds.indexWhere(
         (round) => round.id == updated.id,
       );
@@ -4885,6 +5230,7 @@ class _LessonRoundsScreenState extends State<LessonRoundsScreen> {
   }
 
   Future<void> _renameRound(int index) async {
+    if (widget.readOnly) return;
     final source = _rounds[index];
     final title = await _name(
       'Rename Round',
@@ -4906,6 +5252,7 @@ class _LessonRoundsScreenState extends State<LessonRoundsScreen> {
   }
 
   void _duplicateRound(int index) {
+    if (widget.readOnly) return;
     final duplicate = AuthoringDuplicationService(
       ids: _ids,
     ).duplicateRound(_rounds[index]);
@@ -4939,6 +5286,7 @@ class _LessonRoundsScreenState extends State<LessonRoundsScreen> {
   );
 
   Future<void> _setRoundPublication(int index, PublicationState state) async {
+    if (widget.readOnly) return;
     final source = _rounds[index];
     if (!state.isPublished && source.publicationState.isPublished) {
       final confirmed = await showDialog<bool>(
@@ -5010,6 +5358,7 @@ class _LessonRoundsScreenState extends State<LessonRoundsScreen> {
   }
 
   Future<void> _remove(int index) async {
+    if (widget.readOnly) return;
     final confirmed =
         await showDialog<bool>(
           context: context,
@@ -5036,6 +5385,7 @@ class _LessonRoundsScreenState extends State<LessonRoundsScreen> {
   }
 
   void _reorder(int oldIndex, int newIndex) {
+    if (widget.readOnly) return;
     final rounds = [..._rounds];
     final round = rounds.removeAt(oldIndex);
     rounds.insert(newIndex, round);
@@ -5047,6 +5397,29 @@ class _LessonRoundsScreenState extends State<LessonRoundsScreen> {
     setState(() => _routeMayPop = true);
     await WidgetsBinding.instance.endOfFrame;
     if (mounted) Navigator.pop(context, _rounds);
+  }
+
+  Future<void> _openSearch() async {
+    final result = await Navigator.of(context).push<ExerciseSearchResult>(
+      MaterialPageRoute(
+        builder: (_) => CourseEditorSearchScreen(
+          course: _auditableCourse,
+          scope: ExerciseSearchScope.lesson,
+          lessonId: widget.lesson.lessonId,
+        ),
+      ),
+    );
+    if (result == null || !mounted) return;
+    final changed = await _openSearchResult(
+      context,
+      course: _auditableCourse,
+      result: result,
+      readOnly: widget.readOnly,
+      initiallyInspecting:
+          widget.courseEditorMode == CourseEditorMode.inspection,
+      clock: _clock,
+    );
+    if (changed != null && mounted) _adoptCourse(changed);
   }
 
   @override
@@ -5070,13 +5443,23 @@ class _LessonRoundsScreenState extends State<LessonRoundsScreen> {
       child: Scaffold(
         appBar: AppBar(
           title: Text('Rounds · $lessonLabel'),
-          actions: const [EditorAppBarActions()],
+          actions: [
+            IconButton(
+              key: const Key('rounds-search-action'),
+              tooltip: 'Search this Lesson',
+              onPressed: _openSearch,
+              icon: const Icon(Icons.search),
+            ),
+            const EditorAppBarActions(),
+          ],
         ),
-        floatingActionButton: FloatingActionButton.extended(
-          onPressed: _add,
-          icon: const Icon(Icons.add),
-          label: const Text('New round'),
-        ),
+        floatingActionButton: widget.readOnly
+            ? null
+            : FloatingActionButton.extended(
+                onPressed: _add,
+                icon: const Icon(Icons.add),
+                label: const Text('New round'),
+              ),
         body: ReorderableListView.builder(
           key: const Key('lesson-rounds-list'),
           header: Column(
@@ -5103,8 +5486,10 @@ class _LessonRoundsScreenState extends State<LessonRoundsScreen> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   ListTile(
+                    key: ValueKey('round-entry-${round.id}'),
                     leading: ReorderableDragStartListener(
                       index: index,
+                      enabled: !widget.readOnly,
                       child: const Icon(Icons.drag_handle),
                     ),
                     title: Text(round.displayTitle(index)),
@@ -5135,26 +5520,34 @@ class _LessonRoundsScreenState extends State<LessonRoundsScreen> {
                         }
                       },
                       itemBuilder: (_) => [
-                        const PopupMenuItem(value: 'edit', child: Text('Edit')),
-                        const PopupMenuItem(
+                        PopupMenuItem(
+                          value: 'edit',
+                          child: Text(widget.readOnly ? 'View' : 'Edit'),
+                        ),
+                        PopupMenuItem(
                           value: 'rename',
-                          child: Text('Rename'),
+                          enabled: !widget.readOnly,
+                          child: const Text('Rename'),
                         ),
-                        const PopupMenuItem(
+                        PopupMenuItem(
                           value: 'delete',
-                          child: Text('Delete'),
+                          enabled: !widget.readOnly,
+                          child: const Text('Delete'),
                         ),
-                        const PopupMenuItem(
+                        PopupMenuItem(
                           value: 'duplicate',
-                          child: Text('Duplicate'),
+                          enabled: !widget.readOnly,
+                          child: const Text('Duplicate'),
                         ),
-                        const PopupMenuItem(
+                        PopupMenuItem(
                           value: 'move_to',
-                          child: Text('Move to…'),
+                          enabled: !widget.readOnly,
+                          child: const Text('Move to…'),
                         ),
-                        const PopupMenuItem(
+                        PopupMenuItem(
                           value: 'copy_to',
-                          child: Text('Copy to…'),
+                          enabled: !widget.readOnly,
+                          child: const Text('Copy to…'),
                         ),
                         const PopupMenuItem(
                           value: 'preview',
@@ -5166,6 +5559,7 @@ class _LessonRoundsScreenState extends State<LessonRoundsScreen> {
                         ),
                         PopupMenuItem(
                           value: 'publication',
+                          enabled: !widget.readOnly,
                           child: Text(
                             round.publicationState.isPublished
                                 ? 'Save as draft'
@@ -5198,6 +5592,8 @@ class RoundEditorScreen extends StatefulWidget {
   final int roundIndex;
   final DateTime Function()? clock;
   final bool linkParent;
+  final bool readOnly;
+  final CourseEditorMode courseEditorMode;
   const RoundEditorScreen({
     super.key,
     required this.course,
@@ -5207,6 +5603,8 @@ class RoundEditorScreen extends StatefulWidget {
     required this.roundIndex,
     this.clock,
     this.linkParent = false,
+    this.readOnly = false,
+    this.courseEditorMode = CourseEditorMode.edit,
   });
   @override
   State<RoundEditorScreen> createState() => _RoundEditorScreenState();
@@ -5273,7 +5671,9 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
     if (!mounted || _routeMayPop) return;
     setState(() => _routeMayPop = true);
     await WidgetsBinding.instance.endOfFrame;
-    if (mounted) Navigator.pop(context, _editedRound());
+    if (mounted) {
+      Navigator.pop(context, widget.readOnly ? widget.round : _editedRound());
+    }
   }
 
   LearningContent _contentForEditedExercise(Exercise exercise) {
@@ -5291,6 +5691,7 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
   }
 
   Future<void> _saveRound(PublicationState state) async {
+    if (widget.readOnly) return;
     if (!state.isPublished &&
         _publicationState.isPublished &&
         !await _confirmMoveToDraft(context, 'Round')) {
@@ -5349,6 +5750,7 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
     int index,
     PublicationState state,
   ) async {
+    if (widget.readOnly) return;
     final source = _exercises[index];
     if (!state.isPublished && source.publicationState.isPublished) {
       final confirmed = await showDialog<bool>(
@@ -5450,6 +5852,7 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
       );
 
   void _acceptExercise(Exercise exercise) {
+    if (widget.readOnly) return;
     final index = _exercises.indexWhere((value) => value.id == exercise.id);
     _mutateRound(() {
       if (index < 0) {
@@ -5470,9 +5873,12 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
           course: _workingCourse,
           lesson: _lesson,
           round: _editedRound(),
-          onExerciseSaved: _acceptExercise,
+          onExerciseSaved: widget.readOnly ? null : _acceptExercise,
           linkParent: true,
           clock: _clock,
+          readOnly: widget.readOnly,
+          initiallyInspecting:
+              widget.courseEditorMode == CourseEditorMode.inspection,
         ),
       ),
     );
@@ -5480,6 +5886,7 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
   }
 
   Future<void> _insert() async {
+    if (widget.readOnly) return;
     final e = await Navigator.of(context).push<Exercise>(
       MaterialPageRoute(
         builder: (_) => ExerciseEditorScreen(
@@ -5503,6 +5910,7 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
   }
 
   Future<void> _openCreationWizard() async {
+    if (widget.readOnly) return;
     final created = await Navigator.of(context).push<List<Exercise>>(
       MaterialPageRoute(
         builder: (_) => ExerciseCreationWizardScreen(
@@ -5519,6 +5927,7 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
   }
 
   void _duplicateExercise(int index) {
+    if (widget.readOnly) return;
     final duplicate = AuthoringDuplicationService(
       ids: _ids,
     ).duplicateExercise(_exercises[index]);
@@ -5540,6 +5949,7 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
   }
 
   Future<void> _transferExercise(int index, {required bool copy}) async {
+    if (widget.readOnly) return;
     if (!_canTransfer) return;
     final course = _workingCourse;
     final source = _exercises[index];
@@ -5598,6 +6008,7 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
   }
 
   Future<void> _delete(int i) async {
+    if (widget.readOnly) return;
     final ok =
         await showDialog<bool>(
           context: context,
@@ -5623,6 +6034,7 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
   }
 
   void _reorder(int oldIndex, int newIndex) {
+    if (widget.readOnly) return;
     // onReorderItem supplies the insertion index after the item was removed.
     _mutateRound(() {
       final item = _exercises.removeAt(oldIndex);
@@ -5631,6 +6043,7 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
   }
 
   Future<void> _rename() async {
+    if (widget.readOnly) return;
     final c = TextEditingController(text: _title);
     final n = await showDialog<String>(
       context: context,
@@ -5668,6 +6081,7 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
   }
 
   Future<void> _generateFromReading(int index) async {
+    if (widget.readOnly) return;
     final reading = _exercises[index];
     bool listening = true,
         audio = true,
@@ -6083,6 +6497,60 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
     );
   }
 
+  Future<void> _openSearch() async {
+    final result = await Navigator.of(context).push<ExerciseSearchResult>(
+      MaterialPageRoute(
+        builder: (_) => CourseEditorSearchScreen(
+          course: _workingCourse,
+          scope: ExerciseSearchScope.round,
+          lessonId: _lesson.lessonId,
+          roundId: widget.round.id,
+        ),
+      ),
+    );
+    if (result == null || !mounted) return;
+    final changed = await _openSearchResult(
+      context,
+      course: _workingCourse,
+      result: result,
+      readOnly: widget.readOnly,
+      initiallyInspecting:
+          widget.courseEditorMode == CourseEditorMode.inspection,
+      clock: _clock,
+    );
+    if (changed == null || !mounted) return;
+    final lesson = changed.lessons.firstWhere(
+      (candidate) => candidate.lessonId == _lesson.lessonId,
+    );
+    final round = lesson.rounds.firstWhere(
+      (candidate) => candidate.id == widget.round.id,
+    );
+    setState(() {
+      _course = changed;
+      _lesson = lesson;
+      _exercises = [...round.exercises];
+      _originalContent = [...round.content];
+      _title = round.title;
+      _updatedAt = round.updatedAt;
+      _publicationState = round.publicationState;
+      _provisionalDraft = round.provisionalDraft;
+    });
+    widget.onCourseChanged?.call(changed);
+  }
+
+  Future<void> _auditRound() => Navigator.of(context).push<void>(
+    MaterialPageRoute(
+      builder: (_) => CourseAuditScreen(
+        course: _workingCourse,
+        result: CourseAuditService().auditRound(
+          _workingCourse,
+          widget.round.id,
+        ),
+        title: 'Round Audit',
+      ),
+    ),
+  );
+
   @override
   Widget build(BuildContext context) {
     final hierarchyStatus = AuthoringHierarchyStatus.fromCourse(_workingCourse);
@@ -6099,14 +6567,10 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
           ),
           actions: [
             IconButton(
-              tooltip: 'Preview round',
-              onPressed: _exercises.isEmpty ? null : _previewRound,
-              icon: const Icon(Icons.play_circle_outline),
-            ),
-            IconButton(
-              tooltip: 'Rename round',
-              onPressed: _rename,
-              icon: const Icon(Icons.edit_outlined),
+              key: const Key('round-search-action'),
+              tooltip: 'Search this Round',
+              onPressed: _openSearch,
+              icon: const Icon(Icons.search),
             ),
             const EditorAppBarActions(),
           ],
@@ -6119,6 +6583,12 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
               spacing: 8,
               runSpacing: 8,
               children: [
+                OutlinedButton.icon(
+                  key: const Key('round-preview'),
+                  onPressed: _exercises.isEmpty ? null : _previewRound,
+                  icon: const Icon(Icons.play_circle_outline),
+                  label: const Text('Preview'),
+                ),
                 if (!_publicationState.isPublished)
                   _DraftBranchIndicator(
                     key: const Key('round-own-draft-indicator'),
@@ -6126,28 +6596,30 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
                         ? 'This new Round is Draft until its required content is complete and saved. It then becomes non-Draft automatically. Save as draft keeps the Round Draft until you explicitly Save it.'
                         : 'This Round is Draft and hidden from learner delivery, even when its Exercises are Published. Use Save to publish the Round.',
                   ),
-                OutlinedButton(
-                  key: const Key('round-save-draft'),
-                  onPressed: () => _saveRound(PublicationState.draft),
-                  child: const Text('Save as draft'),
-                ),
-                FilledButton(
-                  key: const Key('round-save'),
-                  onPressed: () => _saveRound(PublicationState.published),
-                  child: const Text('Save'),
-                ),
-                OutlinedButton.icon(
-                  key: const Key('new-exercise'),
-                  onPressed: _insert,
-                  icon: const Icon(Icons.add),
-                  label: const Text('New exercise'),
-                ),
-                FilledButton.icon(
-                  key: const Key('exercise-creation-wizard'),
-                  onPressed: _openCreationWizard,
-                  icon: const Icon(Icons.auto_awesome_outlined),
-                  label: const Text('Creation Wizard'),
-                ),
+                if (!widget.readOnly) ...[
+                  OutlinedButton(
+                    key: const Key('round-save-draft'),
+                    onPressed: () => _saveRound(PublicationState.draft),
+                    child: const Text('Save as draft'),
+                  ),
+                  FilledButton(
+                    key: const Key('round-save'),
+                    onPressed: () => _saveRound(PublicationState.published),
+                    child: const Text('Save'),
+                  ),
+                  OutlinedButton.icon(
+                    key: const Key('new-exercise'),
+                    onPressed: _insert,
+                    icon: const Icon(Icons.add),
+                    label: const Text('New exercise'),
+                  ),
+                  FilledButton.icon(
+                    key: const Key('exercise-creation-wizard'),
+                    onPressed: _openCreationWizard,
+                    icon: const Icon(Icons.auto_awesome_outlined),
+                    label: const Text('Creation Wizard'),
+                  ),
+                ],
               ],
             ),
           ),
@@ -6169,6 +6641,27 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
                   id: widget.round.id,
                 ),
               ),
+              ListTile(
+                key: const Key('round-rename-action'),
+                leading: const Icon(Icons.title),
+                title: const Text('Rename Round'),
+                subtitle: Text(
+                  _title.trim().isEmpty ? 'No custom title' : _title,
+                ),
+                trailing: Icon(
+                  widget.readOnly
+                      ? Icons.visibility_outlined
+                      : Icons.edit_outlined,
+                ),
+                onTap: widget.readOnly ? null : _rename,
+              ),
+              ListTile(
+                key: const Key('round-audit-action'),
+                leading: const Icon(Icons.fact_check_outlined),
+                title: const Text('Audit Round'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: _auditRound,
+              ),
             ],
           ),
           padding: const EdgeInsets.fromLTRB(10, 10, 10, 20),
@@ -6186,8 +6679,10 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   ListTile(
+                    key: ValueKey('exercise-entry-${e.id}'),
                     leading: ReorderableDragStartListener(
                       index: i,
+                      enabled: !widget.readOnly,
                       child: CircleAvatar(child: Text('${i + 1}')),
                     ),
                     title: Text(
@@ -6219,10 +6714,14 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
                         }
                       },
                       itemBuilder: (_) => [
-                        const PopupMenuItem(value: 'edit', child: Text('Edit')),
-                        const PopupMenuItem(
+                        PopupMenuItem(
+                          value: 'edit',
+                          child: Text(widget.readOnly ? 'View' : 'Edit'),
+                        ),
+                        PopupMenuItem(
                           value: 'duplicate',
-                          child: Text('Duplicate'),
+                          enabled: !widget.readOnly,
+                          child: const Text('Duplicate'),
                         ),
                         const PopupMenuItem(
                           value: 'preview',
@@ -6230,16 +6729,17 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
                         ),
                         PopupMenuItem(
                           value: 'copy',
-                          enabled: _canTransfer,
+                          enabled: !widget.readOnly && _canTransfer,
                           child: const Text('Copy to…'),
                         ),
                         PopupMenuItem(
                           value: 'move',
-                          enabled: _canTransfer,
+                          enabled: !widget.readOnly && _canTransfer,
                           child: const Text('Move to…'),
                         ),
                         PopupMenuItem(
                           value: 'publication',
+                          enabled: !widget.readOnly,
                           child: Text(
                             e.publicationState.isPublished
                                 ? 'Save as draft'
@@ -6247,13 +6747,15 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
                           ),
                         ),
                         if (e.type == 'reading_comprehension')
-                          const PopupMenuItem(
+                          PopupMenuItem(
                             value: 'generate',
-                            child: Text('Generate exercise set'),
+                            enabled: !widget.readOnly,
+                            child: const Text('Generate exercise set'),
                           ),
-                        const PopupMenuItem(
+                        PopupMenuItem(
                           value: 'delete',
-                          child: Text('Delete exercise'),
+                          enabled: !widget.readOnly,
+                          child: const Text('Delete exercise'),
                         ),
                       ],
                     ),
@@ -6918,6 +7420,8 @@ class ExerciseEditorScreen extends StatefulWidget {
   final Lesson? lesson;
   final LearningRound? round;
   final ValueChanged<Exercise>? onExerciseSaved;
+  final bool readOnly;
+  final bool initiallyInspecting;
   const ExerciseEditorScreen({
     super.key,
     required this.exercise,
@@ -6929,6 +7433,8 @@ class ExerciseEditorScreen extends StatefulWidget {
     this.lesson,
     this.round,
     this.onExerciseSaved,
+    this.readOnly = false,
+    this.initiallyInspecting = false,
   });
   @override
   State<ExerciseEditorScreen> createState() => _ExerciseEditorScreenState();
@@ -6939,6 +7445,7 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
   bool _dirty = false;
   bool _routeMayPop = false;
   bool _navigationBusy = false;
+  late bool _inspection;
   Exercise? _savedDuringSession;
   late Exercise _exercise;
   ScriptRecognitionController? _scriptController;
@@ -6971,6 +7478,7 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
   @override
   void initState() {
     super.initState();
+    _inspection = widget.initiallyInspecting;
     _exercise = widget.exercise;
     _loadScriptController();
     _navigationExercises = [...?widget.round?.exercises];
@@ -7055,7 +7563,8 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
   }
 
   void _markDirty() {
-    if (mounted &&
+    if (!widget.readOnly &&
+        mounted &&
         (!_dirty ||
             _correctTranslationError != null ||
             _correctTranslationErrorIndexes.isNotEmpty)) {
@@ -7107,6 +7616,7 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
       .toLowerCase();
 
   void _addCorrectTranslation() {
+    if (widget.readOnly) return;
     final controller = _translationController('');
     setState(() {
       _correctTranslations.add(controller);
@@ -7117,6 +7627,7 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
   }
 
   void _removeCorrectTranslation(int index) {
+    if (widget.readOnly) return;
     if (_correctTranslations.length == 1) {
       _correctTranslations.single.clear();
       return;
@@ -7130,6 +7641,7 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
   }
 
   void _reorderCorrectTranslations(int oldIndex, int newIndex) {
+    if (widget.readOnly) return;
     setState(() {
       if (newIndex > oldIndex) newIndex -= 1;
       final controller = _correctTranslations.removeAt(oldIndex);
@@ -7152,55 +7664,29 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
         'Each entry is one complete literal target-language sentence. Answer syntax and similarity matching are not used.',
       ),
       const SizedBox(height: 8),
-      ReorderableListView.builder(
-        key: const Key('build-translation-correct-translations'),
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        itemCount: _correctTranslations.length,
-        onReorderItem: _reorderCorrectTranslations,
-        itemBuilder: (context, index) => Padding(
-          key: ValueKey(_correctTranslations[index]),
-          padding: const EdgeInsets.only(bottom: 8),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: TextField(
-                  key: ValueKey('build-translation-answer-$index'),
-                  controller: _correctTranslations[index],
-                  minLines: 1,
-                  maxLines: 3,
-                  decoration: InputDecoration(
-                    border: const OutlineInputBorder(),
-                    labelText: 'Correct translation ${index + 1}',
-                    suffixIcon: _helpButton('correctTranslation'),
-                    errorText: _correctTranslationErrorIndexes.contains(index)
-                        ? _correctTranslationError
-                        : null,
-                  ),
-                ),
-              ),
-              IconButton(
-                tooltip: 'Delete correct translation ${index + 1}',
-                onPressed: () => _removeCorrectTranslation(index),
-                icon: const Icon(Icons.delete_outline),
-              ),
-              ReorderableDragStartListener(
-                index: index,
-                child: const Padding(
-                  padding: EdgeInsets.all(12),
-                  child: Icon(Icons.drag_handle),
-                ),
-              ),
-            ],
-          ),
+      if (widget.readOnly)
+        Column(
+          key: const Key('build-translation-correct-translations'),
+          children: [
+            for (var index = 0; index < _correctTranslations.length; index++)
+              _correctTranslationRow(index, reorderable: false),
+          ],
+        )
+      else
+        ReorderableListView.builder(
+          key: const Key('build-translation-correct-translations'),
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: _correctTranslations.length,
+          onReorderItem: _reorderCorrectTranslations,
+          itemBuilder: (context, index) =>
+              _correctTranslationRow(index, reorderable: true),
         ),
-      ),
       Align(
         alignment: Alignment.centerLeft,
         child: OutlinedButton.icon(
           key: const Key('add-correct-translation'),
-          onPressed: _addCorrectTranslation,
+          onPressed: widget.readOnly ? null : _addCorrectTranslation,
           icon: const Icon(Icons.add),
           label: const Text('Add correct translation'),
         ),
@@ -7208,6 +7694,49 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
       const SizedBox(height: 12),
     ],
   );
+
+  Widget _correctTranslationRow(int index, {required bool reorderable}) =>
+      Padding(
+        key: ValueKey(_correctTranslations[index]),
+        padding: const EdgeInsets.only(bottom: 8),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: TextField(
+                key: ValueKey('build-translation-answer-$index'),
+                controller: _correctTranslations[index],
+                readOnly: widget.readOnly,
+                minLines: 1,
+                maxLines: 3,
+                decoration: InputDecoration(
+                  border: const OutlineInputBorder(),
+                  labelText: 'Correct translation ${index + 1}',
+                  suffixIcon: _helpButton('correctTranslation'),
+                  errorText: _correctTranslationErrorIndexes.contains(index)
+                      ? _correctTranslationError
+                      : null,
+                ),
+              ),
+            ),
+            IconButton(
+              tooltip: 'Delete correct translation ${index + 1}',
+              onPressed: widget.readOnly
+                  ? null
+                  : () => _removeCorrectTranslation(index),
+              icon: const Icon(Icons.delete_outline),
+            ),
+            if (reorderable)
+              ReorderableDragStartListener(
+                index: index,
+                child: const Padding(
+                  padding: EdgeInsets.all(12),
+                  child: Icon(Icons.drag_handle),
+                ),
+              ),
+          ],
+        ),
+      );
 
   List<String> _lines(TextEditingController c) => c.text
       .split('\n')
@@ -7309,7 +7838,9 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
   }) => Padding(
     padding: const EdgeInsets.only(bottom: 12),
     child: TextField(
+      key: ValueKey('exercise-field-${_fieldKey(c)}'),
       controller: c,
+      readOnly: widget.readOnly,
       minLines: lines,
       maxLines: lines == 1 ? 3 : lines + 4,
       decoration: InputDecoration(
@@ -7318,6 +7849,12 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
         suffixIcon: _helpButton(_fieldKey(c)),
         helperText: helper,
         helperMaxLines: 3,
+        filled: widget.readOnly,
+        fillColor: widget.readOnly
+            ? Theme.of(
+                context,
+              ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.45)
+            : null,
       ),
     ),
   );
@@ -7326,6 +7863,7 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
       _showFieldHelp('accepted', title: 'Type the translation · answer syntax');
 
   Future<void> _expandTranslationAnswers() async {
+    if (widget.readOnly) return;
     try {
       final expressions = _lines(_accepted);
       final normalization = _exercise.evaluation.normalization;
@@ -7399,7 +7937,12 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
   List<Widget> _specificFields() {
     switch (_type) {
       case 'script_recognition':
-        return [ScriptRecognitionEditor(controller: _scriptController!)];
+        return [
+          ScriptRecognitionEditor(
+            controller: _scriptController!,
+            readOnly: widget.readOnly,
+          ),
+        ];
       case 'flashcard':
         return [
           _field(_prompt, 'Word / expression'),
@@ -7465,7 +8008,7 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
             alignment: Alignment.centerLeft,
             child: OutlinedButton.icon(
               key: const Key('expand-translation-answers'),
-              onPressed: _expandTranslationAnswers,
+              onPressed: widget.readOnly ? null : _expandTranslationAnswers,
               icon: const Icon(Icons.unfold_more),
               label: const Text('Expand answers'),
             ),
@@ -7710,10 +8253,12 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
                 child: Text('Text and audio'),
               ),
             ],
-            onChanged: (value) => setState(() {
-              _contextMode = value ?? _contextMode;
-              _dirty = true;
-            }),
+            onChanged: widget.readOnly
+                ? null
+                : (value) => setState(() {
+                    _contextMode = value ?? _contextMode;
+                    _dirty = true;
+                  }),
           ),
           const SizedBox(height: 12),
           if (_contextMode != 'audio')
@@ -7785,6 +8330,7 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
   }
 
   Future<void> _chooseFlatImage() async {
+    if (widget.readOnly) return;
     final selected = await Navigator.of(context).push<String>(
       MaterialPageRoute(builder: (_) => const FlatImageLibraryScreen()),
     );
@@ -7797,6 +8343,7 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
   }
 
   Future<void> _importCustomImage() async {
+    if (widget.readOnly) return;
     try {
       final selected = await _imageService.importImage();
       if (selected != null && mounted) {
@@ -7872,21 +8419,23 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
               runSpacing: 8,
               children: [
                 OutlinedButton.icon(
-                  onPressed: _chooseFlatImage,
+                  onPressed: widget.readOnly ? null : _chooseFlatImage,
                   icon: const Icon(Icons.grid_view_outlined),
                   label: const Text('Choose flat image'),
                 ),
                 OutlinedButton.icon(
-                  onPressed: _importCustomImage,
+                  onPressed: widget.readOnly ? null : _importCustomImage,
                   icon: const Icon(Icons.upload_file_outlined),
                   label: const Text('Import custom image'),
                 ),
                 if (_imageAsset.isNotEmpty)
                   TextButton.icon(
-                    onPressed: () => setState(() {
-                      _imageAsset = '';
-                      _dirty = true;
-                    }),
+                    onPressed: widget.readOnly
+                        ? null
+                        : () => setState(() {
+                            _imageAsset = '';
+                            _dirty = true;
+                          }),
                     icon: const Icon(Icons.delete_outline),
                     label: const Text('Remove image'),
                   ),
@@ -7904,6 +8453,7 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
   }
 
   Future<void> _choosePreset() async {
+    if (widget.readOnly) return;
     final search = TextEditingController();
     var query = '';
     final selected = await showModalBottomSheet<String>(
@@ -8343,6 +8893,7 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
     PublicationState publicationState, {
     bool close = true,
   }) async {
+    if (widget.readOnly || _inspection) return false;
     if (!publicationState.isPublished &&
         _exercise.publicationState.isPublished &&
         !await _confirmMoveToDraft(context, 'Exercise')) {
@@ -8442,7 +8993,7 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
   }
 
   Future<void> _persistAndClose(Exercise exercise, {bool close = true}) async {
-    if (!mounted) return;
+    if (widget.readOnly || !mounted) return;
     final index = _navigationExercises.indexWhere(
       (item) => item.id == exercise.id,
     );
@@ -8473,10 +9024,9 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
       );
       return;
     }
-    final candidate = _buildCandidate(
-      _exercise.publicationState,
-      requireValidAnswer: true,
-    );
+    final candidate = widget.readOnly
+        ? _exercise
+        : _buildCandidate(_exercise.publicationState, requireValidAnswer: true);
     if (candidate == null) return;
     if (!await _validateScriptImages(candidate)) return;
     if (!mounted) return;
@@ -8640,11 +9190,58 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
         _correctTranslationError = null;
         _correctTranslationErrorIndexes = const {};
         _dirty = false;
+        _inspection = widget.initiallyInspecting;
       });
     } finally {
       _navigationBusy = false;
     }
   }
+
+  void _setInspection(bool value) {
+    if (_inspection == value) return;
+    setState(() => _inspection = value);
+  }
+
+  String get _pageTitle {
+    if (_inspection) return 'Exercise inspection';
+    if (_exerciseIndex < 0) return widget.title;
+    return '${widget.readOnly ? 'View' : 'Edit'} Exercise ${_exerciseIndex + 1}';
+  }
+
+  Widget _presentationNotice() => Card(
+    key: ValueKey(
+      _inspection ? 'exercise-inspection-notice' : 'exercise-read-only-notice',
+    ),
+    child: ListTile(
+      leading: Icon(_inspection ? Icons.code : Icons.visibility_outlined),
+      title: Text(_inspection ? 'Inspection' : 'View only'),
+      subtitle: Text(
+        _inspection
+            ? 'Technical exercise representation. Inspection is always read-only.'
+            : 'This is the normal exercise form in read-only mode. Preview and field Help remain available.',
+      ),
+    ),
+  );
+
+  Widget _inspectionPanel() => Card(
+    key: const Key('exercise-inspection-presentation'),
+    child: Padding(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            'Technical exercise representation',
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+          const SizedBox(height: 12),
+          SelectableText(
+            const JsonEncoder.withIndent('  ').convert(_exercise.toJson()),
+          ),
+        ],
+      ),
+    ),
+  );
 
   @override
   Widget build(BuildContext context) => PopScope(
@@ -8655,11 +9252,7 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
     child: Scaffold(
       appBar: AppBar(
         leading: BackButton(onPressed: _leave),
-        title: Text(
-          _exerciseIndex < 0
-              ? widget.title
-              : 'Edit Exercise ${_exerciseIndex + 1}',
-        ),
+        title: Text(_pageTitle),
         actions: const [EditorAppBarActions()],
       ),
       body: ListView(
@@ -8697,39 +9290,44 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
               ),
             ],
           ),
-          if (widget.isNew)
-            Card(
-              key: const Key('exercise-preset-selector'),
-              child: ListTile(
-                title: Text(labelForType(_type)),
-                subtitle: Text(
-                  '${ExercisePresetRegistry.byId(_type)!.category.label} · ${ExercisePresetRegistry.byId(_type)!.description}',
+          if (_inspection || widget.readOnly) _presentationNotice(),
+          if (_inspection)
+            _inspectionPanel()
+          else ...[
+            if (widget.isNew)
+              Card(
+                key: const Key('exercise-preset-selector'),
+                child: ListTile(
+                  title: Text(labelForType(_type)),
+                  subtitle: Text(
+                    '${ExercisePresetRegistry.byId(_type)!.category.label} · ${ExercisePresetRegistry.byId(_type)!.description}',
+                  ),
+                  trailing: const Icon(Icons.unfold_more),
+                  onTap: widget.readOnly ? null : _choosePreset,
                 ),
-                trailing: const Icon(Icons.unfold_more),
-                onTap: _choosePreset,
+              )
+            else
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                title: const Text('Exercise type'),
+                subtitle: Text(labelForType(_type)),
+                trailing: const Icon(Icons.lock_outline),
               ),
-            )
-          else
-            ListTile(
-              contentPadding: EdgeInsets.zero,
-              title: const Text('Exercise type'),
-              subtitle: Text(labelForType(_type)),
-              trailing: const Icon(Icons.lock_outline),
-            ),
-          Align(
-            alignment: Alignment.centerLeft,
-            child: TextButton.icon(
-              onPressed: () => Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const ExerciseHelpScreen()),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: TextButton.icon(
+                onPressed: () => Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const ExerciseHelpScreen()),
+                ),
+                icon: const Icon(Icons.help_outline),
+                label: const Text('Exercise Help'),
               ),
-              icon: const Icon(Icons.help_outline),
-              label: const Text('Exercise Help'),
             ),
-          ),
-          const SizedBox(height: 12),
-          ..._specificFields(),
-          const SizedBox(height: 12),
-          if (_type != 'script_recognition') _imageEditor(),
+            const SizedBox(height: 12),
+            ..._specificFields(),
+            const SizedBox(height: 12),
+            if (_type != 'script_recognition') _imageEditor(),
+          ],
           const SizedBox(height: 12),
           Wrap(
             alignment: WrapAlignment.end,
@@ -8742,15 +9340,26 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
                 icon: const Icon(Icons.play_circle_outline),
                 label: const Text('Preview'),
               ),
+              FilterChip(
+                key: const Key('exercise-inspection-toggle'),
+                avatar: const Icon(Icons.code),
+                label: const Text('Inspection'),
+                selected: _inspection,
+                onSelected: _setInspection,
+              ),
               OutlinedButton.icon(
                 key: const Key('exercise-save-draft'),
-                onPressed: () => _save(PublicationState.draft),
+                onPressed: widget.readOnly || _inspection
+                    ? null
+                    : () => _save(PublicationState.draft),
                 icon: const Icon(Icons.save_outlined),
                 label: const Text('Save as draft'),
               ),
               FilledButton.icon(
                 key: const Key('exercise-save'),
-                onPressed: () => _save(PublicationState.published),
+                onPressed: widget.readOnly || _inspection
+                    ? null
+                    : () => _save(PublicationState.published),
                 icon: const Icon(Icons.save_outlined),
                 label: const Text('Save'),
               ),

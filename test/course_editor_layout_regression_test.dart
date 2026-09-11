@@ -138,6 +138,10 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(await CourseEditorService().listUserCourses(), isEmpty);
+      await tester.tap(find.byKey(const Key('course-editor-lock')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Edit'));
+      await tester.pumpAndSettle();
       await tester.tap(
         find.byKey(const Key('course-editor-lessons-navigation')),
       );
@@ -311,11 +315,15 @@ void main() {
       expect(find.byTooltip('Run Course Audit'), findsNothing);
       expect(find.widgetWithText(TextButton, 'Run audit'), findsOneWidget);
 
+      await tester.tap(find.byKey(const Key('course-editor-lock')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Edit'));
+      await tester.pumpAndSettle();
       await tester.tap(
         find.byKey(const Key('course-editor-lessons-navigation')),
       );
       await tester.pumpAndSettle();
-      expect(find.byKey(const Key('lesson-management-lock')), findsOneWidget);
+      expect(find.byKey(const Key('lessons-search-action')), findsOneWidget);
       expect(find.widgetWithText(TextButton, 'Run audit'), findsNothing);
       await tester.tap(find.byType(BackButton).last);
       await tester.pumpAndSettle();

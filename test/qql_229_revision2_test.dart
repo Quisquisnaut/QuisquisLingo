@@ -456,6 +456,10 @@ Future<TeamService> _team(ProfileService profiles) async {
 
 Future<void> _pumpEditor(WidgetTester tester, Course course) async {
   await SettingsService().markAudioOrphanCheckRun('IT');
+  await SettingsService().setCourseEditorMode(
+    course.courseId,
+    CourseEditorMode.edit,
+  );
   await tester.pumpWidget(
     MaterialApp(
       home: CourseEditorScreen(
