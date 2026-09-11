@@ -691,7 +691,7 @@ Verify at least:
 
 ## Packaging
 
-- [ ] Release package uses `quisquislingo_alpha_<buildnumber>`.
+- [ ] Windows release package uses `quisquislingo_windows_alpha_<buildnumber>`.
 - [ ] Source package uses `quisquislingo_alpha_<buildnumber>_source`.
 - [ ] Source archive contains project files directly at archive root.
 - [ ] No extra wrapper directory.

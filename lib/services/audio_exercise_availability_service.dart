@@ -1,6 +1,14 @@
 import '../models/course_models.dart';
 import 'recorded_audio_service.dart';
 
+enum EffectiveRoundAudioAvailability {
+  none,
+  available,
+  audioExercisesDisabled,
+  ttsDisabled,
+  unavailable,
+}
+
 /// Resolves learner audio availability without creating a playback controller.
 class AudioExerciseAvailabilityService {
   final RecordedAudioService _recordedAudio;
@@ -42,6 +50,36 @@ class AudioExerciseAvailabilityService {
       'hybrid' => await hasRecordedSource(course, exercise) || ttsEnabled,
       _ => ttsEnabled,
     };
+  }
+
+  Future<EffectiveRoundAudioAvailability> evaluateRound(
+    Course course,
+    LearningRound round, {
+    required bool audioExercisesEnabled,
+    required bool ttsEnabled,
+  }) async {
+    final audioExercises = round.exercises
+        .where(isAudioExercise)
+        .toList(growable: false);
+    if (audioExercises.isEmpty) {
+      return EffectiveRoundAudioAvailability.none;
+    }
+    if (!audioExercisesEnabled) {
+      return EffectiveRoundAudioAvailability.audioExercisesDisabled;
+    }
+    for (final exercise in audioExercises) {
+      if (await isAvailable(course, exercise, ttsEnabled: ttsEnabled)) {
+        return EffectiveRoundAudioAvailability.available;
+      }
+    }
+    if (!ttsEnabled) {
+      for (final exercise in audioExercises) {
+        if (await isAvailable(course, exercise, ttsEnabled: true)) {
+          return EffectiveRoundAudioAvailability.ttsDisabled;
+        }
+      }
+    }
+    return EffectiveRoundAudioAvailability.unavailable;
   }
 
   String _audioText(Exercise exercise) {

@@ -12,14 +12,31 @@ void main() {
 
     expect(
       packagingScript,
-      contains('\$packageName = "quisquislingo_alpha_\${buildNumber}"'),
+      contains('\$packageName = "quisquislingo_windows_alpha_\${buildNumber}"'),
     );
-    expect(agentInstructions, contains('quisquislingo_alpha_<buildnumber>'));
     expect(
       agentInstructions,
-      contains('quisquislingo_alpha_<buildnumber>_source'),
+      contains(
+        'Windows release/package: `quisquislingo_windows_alpha_<buildnumber>`',
+      ),
     );
-    expect(roadmap, contains('quisquislingo_alpha_<buildnumber>'));
-    expect(roadmap, contains('quisquislingo_alpha_<buildnumber>_source'));
+    expect(
+      agentInstructions,
+      contains(
+        'source folder/archive: `quisquislingo_alpha_<buildnumber>_source`',
+      ),
+    );
+    expect(
+      roadmap,
+      contains(
+        'Windows release package uses `quisquislingo_windows_alpha_<buildnumber>`',
+      ),
+    );
+    expect(
+      roadmap,
+      contains(
+        'Source package uses `quisquislingo_alpha_<buildnumber>_source`',
+      ),
+    );
   });
 }

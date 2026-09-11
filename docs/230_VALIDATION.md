@@ -4,7 +4,7 @@
 
 QQL 230 is Version `2.0.30`, Build `230`, Revision `0`, technical build `230`, and pubspec `2.0.30+230`. The established 30-day Alpha lifetime is refreshed from the September 11 release date to `2026-10-11 23:59:59` local time. Course Model remains v7 (`formatVersion: 7`). No course JSON field, checksum input, persistence key, XP formula, progression rule, Review rule, or new feature family is introduced.
 
-The source baseline was clean `main` at `b4822e5794ff23a8faf774a52e4fb1087f1a6b35`. The audit covered learner Round/Duel/Review entry and completion, Course Manager and Team authorization, custom/official Course lifecycle, Course Editor transactions and backups, learner backup/restore, activity/streak/XP persistence, update comparison, recorded audio, TTS platform routing, diagnostics, and analyzer health.
+The source baseline was clean `main` at `b4822e5794ff23a8faf774a52e4fb1087f1a6b35`. The audit covered learner Round/Duel/Review entry and completion, Course Manager and Team authorization, custom/official Course lifecycle, Course Editor transactions and backups, learner backup/restore, activity/streak/XP persistence, update comparison, recorded audio, TTS platform routing, diagnostics, and analyzer health. The final audio-indicator and Windows-package-name consistency correction began from the already-pushed QQL 230 implementation at `b313082d80c301f9df5a013e77ef02b200deaf3d` without reopening unrelated audit work.
 
 ## Corrected robustness defects
 
@@ -13,6 +13,7 @@ The source baseline was clean `main` at `b4822e5794ff23a8faf774a52e4fb1087f1a6b3
 - Round completion now latches final submission immediately and `LearningCompletionService` shares one in-flight operation per Course/Round. Rapid taps cannot duplicate completion, recent-Round history, Laurel, Lesson completion, activity, or XP writes. Review uses the same hardened Round path.
 - Duel final submission is likewise latched before victory persistence. Optional sound failures cannot conceal an already persisted Round/Duel result or invite another reward attempt.
 - **Audio Exercises Off** is authoritative. `DuelEligibilityService` now computes the effective Lesson-local candidate pool after the learner setting and runtime audio availability are applied. Home displays that result and Duel entry recalculates through the same service: 25 remaining non-audio exercises keep the Duel available, while a smaller effective pool produces a visible disabled Home card.
+- Learner Panel Round audio indicators previously used a private structural type-name heuristic and always painted detected audio as active. They now preserve that structural signal while deriving active versus grey state from the existing per-learner **Enable Audio Exercises** and **Text-to-speech** settings through `AudioExerciseAvailabilityService.evaluateRound`. Master audio Off always greys a structurally audio-bearing Round. With audio On and TTS Off, TTS-only Rounds are grey, recorded/non-TTS Rounds remain active when their source is usable, and mixed Rounds remain active when any recorded/non-TTS exercise is usable. Rounds without structural audio retain the established no-icon behavior. Returning from the existing Settings flow reloads the same authoritative settings and updates the icon without restarting, reloading or switching Course.
 - The Round `Before you start` surface cannot expose Continue until asynchronous filtering and queue construction complete. Duel initialization failures leave the spinner and show a bounded safe state.
 - Laurel feedback and weekly-target settings are explicitly non-authoritative side effects. Their failure cannot interrupt earned XP/activity accounting.
 
@@ -38,6 +39,7 @@ The source baseline was clean `main` at `b4822e5794ff23a8faf774a52e4fb1087f1a6b3
 - Linux TTS validates course language metadata and passes valid base languages such as Finnish, Korean, and Irish through to eSpeak instead of silently selecting English. Invalid metadata produces an unavailable result.
 - One shared bounded writer serializes concurrent crash/audio file appends. Preference diagnostics retain at most 256 KiB and the crash/audio file at most 2 MiB, retaining the newest evidence after rotation.
 - Analyzer-recommended braces were added to 70 existing control-flow statements in Course Audit, the flat image library, and Settings. One unused test helper was removed. This changes no branch condition or behavior and establishes a clean analyzer baseline.
+- The Windows packaging script now names its staging directory and ZIP `quisquislingo_windows_alpha_<buildnumber>` so future artifacts identify their platform explicitly. Source-package naming is unchanged.
 
 ## Targeted modularization
 
@@ -51,9 +53,10 @@ QQL 230 therefore applies targeted modularization only where the audit demonstra
 | `CourseOwnershipGuard` | Profile deletion had no narrow place to enforce custom-Course ownership and could orphan an individually owned original. | Ownership parsing and the deletion invariant live in one model-aware guard called by `ProfileService`, outside UI and the large editor service. | Owner/non-owner deletion, malformed storage and Team ownership cases. |
 | `BoundedLogWriter` | Preference diagnostics and crash/audio file logs had separate unbounded append paths and inconsistent concurrency behavior. | Both logging services delegate retention, Unicode-safe truncation, file rotation and per-file serialization downward to one writer. | Six direct boundary tests plus startup/diagnostic/audio logging suites. |
 | `DuelEligibilityService.evaluateEffective` | Structural eligibility lived in the service, but `DuelScreen` separately filtered audio and Home advertised only the structural result. | The service owns structural validation plus effective audio filtering. Home presentation, Home's tap-time guard and `DuelScreen` all depend on that result; no UI contains a second eligibility rule set. | Eleven service tests and Home/Duel widget cases for Audio On, Audio Off with 25 remaining, and Audio Off with 24 remaining. |
+| `AudioExerciseAvailabilityService.evaluateRound` | Learner Panel `_RoundNode` duplicated a narrower structural audio heuristic and had no access to effective learner settings or recorded-source availability. | The existing runtime audio service now owns the Round-level projection from structural content plus the authoritative Audio Exercises/TTS inputs. Home passes the projection down to presentation; the UI owns only icon styling and exact tooltip text. | Six direct policy cases plus four widget cases covering active/disabled/no-icon presentation, exact tooltips, live Audio/TTS changes and re-enabling. |
 | `LearningCompletionService` single-flight boundary | The existing orchestration service allowed concurrent calls for the same Course/Round to run independently. | The existing service—not the screen—owns one in-flight completion operation per Course/Round, while UI latches submission before calling it. | Deterministic concurrent-completion and rapid-submit widget tests. |
 
-Duplicate policy was removed rather than merely wrapped in the Duel and logging paths. The storage constants were centralized without changing their values. The ownership guard adds a missing cross-domain invariant at a narrow seam. Other persistence, restore, replacement and error-handling work strengthens existing service boundaries rather than being presented as a new extraction.
+Duplicate policy was removed rather than merely wrapped in the Duel, Round-audio-indicator and logging paths. In particular, the private Learner Panel `_needsAudio` heuristic was removed; structural detection and runtime usability now have one service owner. The storage constants were centralized without changing their values. The ownership guard adds a missing cross-domain invariant at a narrow seam. Other persistence, restore, replacement and error-handling work strengthens existing service boundaries rather than being presented as a new extraction.
 
 No modularization change alters Course Model v7, serialized Course JSON, SharedPreferences keys or value formats, learner progress, XP/scoring, Review rules, or ownership semantics. New boundaries point from screens and lifecycle services toward smaller policy/storage utilities; none depends back on UI code.
 
@@ -64,6 +67,7 @@ No modularization change alters Course Model v7, serialized Course JSON, SharedP
 - Round, Lesson, Review, and Duel XP values are unchanged.
 - Official originals remain immutable; Duplicate/Fork, Creator/Owner, Team membership, and derivative-license rules remain unchanged except for the new deletion/collision guards that prevent invalid lifecycle states.
 - Existing recorded-audio file paths remain readable. Only newly imported files use the Course-ID-derived directory.
+- The Round audio indicator is presentation-only. It changes no exercise filtering or execution, progression, completion, XP, Laurel, streak, Review, Duel, persistence, Course Model, Editor Preview, Course Editor audio behavior, or bundled Course content.
 
 ## Deliberately unresolved decisions
 
@@ -79,10 +83,12 @@ All commands were run against the final working tree through the repository's ex
 
 - `flutter analyze --no-pub`: pass, no issues.
 - Focused learner completion, Round/Duel, Course transaction/ownership, learner identity, activity, XP, update, audio/TTS, log, metadata, and Alpha lifecycle suites: pass. This includes all three effective-Duel-pool states at both the service boundary and Home/Duel integration boundary.
-- Full repository suite: pass, 1,346 tests and zero failures in 12 minutes 8 seconds with concurrency bounded to four workers.
+- Final consistency-correction focus: pass, ten effective Round-audio service/widget tests covering master Audio Off, TTS-only, recorded, mixed, no-audio, exact disabled tooltips, both live preference changes and re-enabling. The Windows-explicit package-name regression also passes.
+- Neighboring audio settings, recorded-audio, Learner Panel path, optional learning-path, and Home/Duel suites: pass, 112 tests and zero failures.
+- Final full repository suite after all semantic changes: pass, 1,356 tests and zero failures in 8 minutes 44 seconds with concurrency bounded to four workers.
 - All nine bundled Course sources: checksum verification passed unchanged.
 - `git diff --check`: pass; only the repository's existing Windows line-ending conversion notices were emitted.
 
 An initial integration run exposed a cross-test/lifecycle failure caused by a static preference-log write queue retaining a failed asynchronous zone, plus three release-sensitive assertions that still named the prior version or direct append implementation. The queue is now scoped to each diagnostic service instance, and the contracts assert the bounded writer and current release identity. Effective Duel integration also exposed two older navigation tests that implicitly relied on Audio Off still allowing an audio-dependent Duel; those tests now make their unrelated Audio On precondition explicit. The uninterrupted final run above is green.
 
-No commit, tag, push, package, installer, or source archive is part of this task.
+No commit, tag, push, package, installer, or source archive was created before the required post-validation approval gate.

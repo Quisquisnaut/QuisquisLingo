@@ -159,7 +159,7 @@ Weekly rollover, streaks, activity timestamps, Review timestamps, and other time
 - Preserve existing source comments unless a comment has become factually wrong because of the requested change.
 - Source ZIPs must contain `pubspec.yaml`, `lib/`, `assets/`, `test/`, `tools/`, and other project files directly at archive root. Never add an extra wrapper directory.
 - Package naming:
-  - release/package: `quisquislingo_alpha_<buildnumber>`
+  - Windows release/package: `quisquislingo_windows_alpha_<buildnumber>`
   - source folder/archive: `quisquislingo_alpha_<buildnumber>_source`
 - Use the numeric build number without dots in package names.
 - Keep the previous packaged release as a rollback copy until the new release has been tested successfully.

@@ -52,6 +52,7 @@ void main() {
             completedRounds: completedRounds,
             perfectRounds: perfectRounds,
             ttsSkippedPerfectRounds: const {},
+            roundAudioAvailability: const {},
             mascotAssets: mascotAssets,
             mascotPositionOffset: mascotPositionOffset,
             roundPositionOffset: roundPositionOffset,
@@ -289,6 +290,7 @@ void main() {
                       completedRounds: const {},
                       perfectRounds: const {},
                       ttsSkippedPerfectRounds: const {},
+                      roundAudioAvailability: const {},
                       mascotAssets: assets,
                       mascotPositionOffset:
                           learnerMascotPositionOffsetForLesson(

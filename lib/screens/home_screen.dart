@@ -173,7 +173,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final _courseEditorService = CourseEditorService();
   final _publication = const PublicationService();
   final _duelEligibility = const DuelEligibilityService();
-  final _duelAudioAvailability = AudioExerciseAvailabilityService();
+  final _audioAvailability = AudioExerciseAvailabilityService();
   final _progress = ProgressService();
   final _profiles = ProfileService();
   final _settings = SettingsService();
@@ -215,6 +215,8 @@ class _HomeScreenState extends State<HomeScreen> {
   Set<String> _ttsSkippedPerfectRounds = {};
   Set<String> _wonDuels = {};
   Map<String, DuelEligibilityResult> _duelEligibilityByLessonId = const {};
+  Map<String, EffectiveRoundAudioAvailability> _roundAudioAvailability =
+      const {};
   LearnerIddqdMode _iddqdMode = LearnerIddqdMode.off;
   LearnerLessonExpansionMode _lessonExpansionMode =
       LearnerLessonExpansionMode.expanded;
@@ -488,8 +490,18 @@ class _HomeScreenState extends State<HomeScreen> {
       final wonDuels = activeId == null
           ? <String>{}
           : await _progress.getWonDuels(courseId: course.courseId);
+      final audioExercisesEnabled = await _settings.areAudioExercisesEnabled();
+      final ttsEnabled =
+          audioExercisesEnabled && await _settings.isTtsEnabled();
       final duelEligibilityByLessonId = await _effectiveDuelEligibilityFor(
         course,
+        audioExercisesEnabled: audioExercisesEnabled,
+        ttsEnabled: ttsEnabled,
+      );
+      final roundAudioAvailability = await _effectiveRoundAudioAvailabilityFor(
+        course,
+        audioExercisesEnabled: audioExercisesEnabled,
+        ttsEnabled: ttsEnabled,
       );
       final iddqdMode = activeId == null
           ? LearnerIddqdMode.off
@@ -535,6 +547,7 @@ class _HomeScreenState extends State<HomeScreen> {
         _ttsSkippedPerfectRounds = skipped;
         _wonDuels = wonDuels;
         _duelEligibilityByLessonId = duelEligibilityByLessonId;
+        _roundAudioAvailability = roundAudioAvailability;
         _iddqdMode = iddqdMode;
         _lessonExpansionMode = lessonExpansionMode;
         _flagBackgroundMode = flagBackgroundMode;
@@ -588,6 +601,7 @@ class _HomeScreenState extends State<HomeScreen> {
         _selectedLanguage = normalized;
         _course = course;
         _duelEligibilityByLessonId = const {};
+        _roundAudioAvailability = const {};
         _courseEntryTransition = null;
       });
       await _settings.setLastSelectedCourseCode(normalized);
@@ -617,6 +631,7 @@ class _HomeScreenState extends State<HomeScreen> {
       _selectedLanguage = code;
       _course = learnerCourse;
       _duelEligibilityByLessonId = const {};
+      _roundAudioAvailability = const {};
       _courseEntryTransition = null;
     });
     await _settings.setLastSelectedCourseCode(ref);
@@ -1744,11 +1759,11 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<Map<String, DuelEligibilityResult>> _effectiveDuelEligibilityFor(
-    Course course,
-  ) async {
+    Course course, {
+    required bool audioExercisesEnabled,
+    required bool ttsEnabled,
+  }) async {
     if (!course.createDuels) return const {};
-    final audioExercisesEnabled = await _settings.areAudioExercisesEnabled();
-    final ttsEnabled = audioExercisesEnabled && await _settings.isTtsEnabled();
     final results = await Future.wait([
       for (final lesson in course.lessons)
         _duelEligibility.evaluateEffective(
@@ -1756,12 +1771,34 @@ class _HomeScreenState extends State<HomeScreen> {
           lesson,
           audioExercisesEnabled: audioExercisesEnabled,
           ttsEnabled: ttsEnabled,
-          audioAvailability: _duelAudioAvailability,
+          audioAvailability: _audioAvailability,
         ),
     ]);
     return {
       for (var index = 0; index < course.lessons.length; index++)
         course.lessons[index].lessonId: results[index],
+    };
+  }
+
+  Future<Map<String, EffectiveRoundAudioAvailability>>
+  _effectiveRoundAudioAvailabilityFor(
+    Course course, {
+    required bool audioExercisesEnabled,
+    required bool ttsEnabled,
+  }) async {
+    final rounds = [for (final lesson in course.lessons) ...lesson.rounds];
+    final results = await Future.wait([
+      for (final round in rounds)
+        _audioAvailability.evaluateRound(
+          course,
+          round,
+          audioExercisesEnabled: audioExercisesEnabled,
+          ttsEnabled: ttsEnabled,
+        ),
+    ]);
+    return {
+      for (var index = 0; index < rounds.length; index++)
+        rounds[index].id: results[index],
     };
   }
 
@@ -1776,7 +1813,7 @@ class _HomeScreenState extends State<HomeScreen> {
       lesson,
       audioExercisesEnabled: audioExercisesEnabled,
       ttsEnabled: ttsEnabled,
-      audioAvailability: _duelAudioAvailability,
+      audioAvailability: _audioAvailability,
     );
   }
 
@@ -2056,6 +2093,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                     perfectRounds: _perfectRounds,
                                     ttsSkippedPerfectRounds:
                                         _ttsSkippedPerfectRounds,
+                                    roundAudioAvailability:
+                                        _roundAudioAvailability,
                                     duelEligibility:
                                         _duelEligibilityByLessonId[sectionLesson
                                             .lessonId] ??
@@ -2307,6 +2346,7 @@ class _LessonSection extends StatelessWidget {
   final Set<String> completedRounds;
   final Set<String> perfectRounds;
   final Set<String> ttsSkippedPerfectRounds;
+  final Map<String, EffectiveRoundAudioAvailability> roundAudioAvailability;
   final DuelEligibilityResult duelEligibility;
   final VoidCallback onOpenGuidebook;
   final void Function(LearningRound round) onOpenRound;
@@ -2333,6 +2373,7 @@ class _LessonSection extends StatelessWidget {
     required this.completedRounds,
     required this.perfectRounds,
     required this.ttsSkippedPerfectRounds,
+    required this.roundAudioAvailability,
     required this.duelEligibility,
     required this.onOpenGuidebook,
     required this.onOpenRound,
@@ -2447,6 +2488,7 @@ class _LessonSection extends StatelessWidget {
           completedRounds: completedRounds,
           perfectRounds: perfectRounds,
           ttsSkippedPerfectRounds: ttsSkippedPerfectRounds,
+          roundAudioAvailability: roundAudioAvailability,
           mascotPositionOffset: mascotPositionOffset,
           roundPositionOffset: roundPositionOffset,
           interactive: !previewOnly,
@@ -2968,6 +3010,7 @@ class LearnerRoundPath extends StatefulWidget {
   final Set<String> completedRounds;
   final Set<String> perfectRounds;
   final Set<String> ttsSkippedPerfectRounds;
+  final Map<String, EffectiveRoundAudioAvailability> roundAudioAvailability;
   final void Function(LearningRound round) onOpenRound;
   final List<String>? mascotAssets;
   final int mascotPositionOffset;
@@ -2981,6 +3024,7 @@ class LearnerRoundPath extends StatefulWidget {
     required this.completedRounds,
     required this.perfectRounds,
     required this.ttsSkippedPerfectRounds,
+    required this.roundAudioAvailability,
     required this.onOpenRound,
     this.mascotAssets,
     this.mascotPositionOffset = 0,
@@ -3132,6 +3176,11 @@ class _LearnerRoundPathState extends State<LearnerRoundPath> {
                     ttsSkippedPerfect: widget.ttsSkippedPerfectRounds.contains(
                       widget.rounds[index].id,
                     ),
+                    audioAvailability:
+                        widget.roundAudioAvailability[widget
+                            .rounds[index]
+                            .id] ??
+                        EffectiveRoundAudioAvailability.none,
                     onTap: widget.interactive
                         ? () => widget.onOpenRound(widget.rounds[index])
                         : null,
@@ -3186,6 +3235,7 @@ class _RoundNode extends StatelessWidget {
   final bool completed;
   final bool perfect;
   final bool ttsSkippedPerfect;
+  final EffectiveRoundAudioAvailability audioAvailability;
   final VoidCallback? onTap;
 
   const _RoundNode({
@@ -3194,6 +3244,7 @@ class _RoundNode extends StatelessWidget {
     required this.completed,
     required this.perfect,
     required this.ttsSkippedPerfect,
+    required this.audioAvailability,
     required this.onTap,
   });
 
@@ -3204,17 +3255,19 @@ class _RoundNode extends StatelessWidget {
     _ => Icons.school_outlined,
   };
 
-  bool get _needsAudio => round.exercises.any(
-    (exercise) =>
-        (exercise.tts?.trim().isNotEmpty ?? false) ||
-        const {
-          'audio_match',
-          'listening_choice',
-          'listening_comprehension',
-          'listening_spelling',
-          'missing_word',
-        }.contains(exercise.type),
-  );
+  bool get _hasAudio =>
+      audioAvailability != EffectiveRoundAudioAvailability.none;
+
+  bool get _hasAvailableAudio =>
+      audioAvailability == EffectiveRoundAudioAvailability.available;
+
+  String get _disabledAudioTooltip => switch (audioAvailability) {
+    EffectiveRoundAudioAvailability.audioExercisesDisabled =>
+      'Audio exercises are turned off in Audio Settings.',
+    EffectiveRoundAudioAvailability.ttsDisabled =>
+      'Text-to-speech is turned off in Audio Settings.',
+    _ => 'Audio exercises are currently unavailable.',
+  };
 
   bool get _hasDescriptiveTitle {
     final title = round.title.trim();
@@ -3349,13 +3402,23 @@ class _RoundNode extends StatelessWidget {
                   ],
                 ),
               ),
-              if (_needsAudio)
-                Icon(
-                  Icons.volume_up_outlined,
-                  color: isDark
-                      ? const Color(0xFF8DB8FF)
-                      : const Color(0xFF1657D9),
-                ),
+              if (_hasAudio)
+                _hasAvailableAudio
+                    ? Icon(
+                        Icons.volume_up_outlined,
+                        key: ValueKey('unified-round-audio-${round.id}'),
+                        color: isDark
+                            ? const Color(0xFF8DB8FF)
+                            : const Color(0xFF1657D9),
+                      )
+                    : Tooltip(
+                        message: _disabledAudioTooltip,
+                        child: Icon(
+                          Icons.volume_up_outlined,
+                          key: ValueKey('unified-round-audio-${round.id}'),
+                          color: Theme.of(context).disabledColor,
+                        ),
+                      ),
             ],
           ),
         ),

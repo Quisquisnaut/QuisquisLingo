@@ -476,7 +476,7 @@ if ($null -eq $versionMatch) {
 }
 $qqlVersion = "$($versionMatch.Matches[0].Groups[1].Value)+$($versionMatch.Matches[0].Groups[2].Value)"
 $buildNumber = $versionMatch.Matches[0].Groups[2].Value
-$packageName = "quisquislingo_alpha_${buildNumber}"
+$packageName = "quisquislingo_windows_alpha_${buildNumber}"
 $releaseDirectory = Join-Path $projectRoot "build\windows\x64\runner\Release"
 $nativeBuildDirectory = Join-Path $projectRoot "build\windows\x64"
 
