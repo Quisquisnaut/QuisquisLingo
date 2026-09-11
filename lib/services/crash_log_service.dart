@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 
 import 'app_metadata.dart';
+import 'bounded_log_writer.dart';
 import 'diagnostic_log_service.dart';
 
 /// Writes uncaught Flutter/Dart errors to a persistent local text file.
@@ -12,6 +13,8 @@ import 'diagnostic_log_service.dart';
 /// QuisquisLingo: timestamp, app version, platform, error and stack trace. It does
 /// not collect course answers, profile names, or other user content.
 class CrashLogService {
+  static const _maximumLogBytes = 2 * 1024 * 1024;
+
   CrashLogService._();
 
   static final CrashLogService instance = CrashLogService._();
@@ -113,7 +116,11 @@ class CrashLogService {
     final targets = <File>{if (_file != null) _file!};
     for (final target in targets) {
       try {
-        await target.writeAsString(text, mode: FileMode.append, flush: true);
+        await BoundedLogWriter.appendFile(
+          target,
+          text,
+          maximumBytes: _maximumLogBytes,
+        );
       } catch (error, stackTrace) {
         debugPrint(
           'Writing crash log failed for ${target.path}: $error\n$stackTrace',

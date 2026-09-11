@@ -1,6 +1,6 @@
 # Team Manager
 
-Updated for QuisquisLingo 2.0.29, Build 229 revision 3 (technical build 2293).
+Updated for QuisquisLingo 2.0.30, Build 230 revision 0 (technical build 230).
 
 Team Manager is an offline authoring feature. Open Course Manager and select **Team Manager** to open its separate page. It creates no account, invitation, network, server, email, or online collaboration state.
 
@@ -14,7 +14,7 @@ The active ordinary member has a three-dot menu on their own member row with **L
 
 The shared **Internal IDs** preference keeps Team names and learner display names primary. When enabled, Team Manager shows every Team ID plus every Lead/member User ID in the established selectable monospaced, non-clickable style. When disabled, it hides only those IDs and leaves names, roles, permissions and actions unchanged.
 
-Deleting a local profile also preserves the last-Lead invariant. A profile that is the sole Lead of any Team must first promote another member. Otherwise its membership is removed from each Team while the historical Team creator identity remains unchanged.
+Deleting a local profile preserves both authoring invariants. A profile that is the sole Lead of any Team must first promote another member. A profile that individually owns a custom Course must first change its Owner or delete that Course. Otherwise its membership is removed from each Team while the historical Team creator identity remains unchanged.
 
 ## Course ownership
 

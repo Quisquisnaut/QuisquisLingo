@@ -8,6 +8,30 @@ void main() {
       expect(UpdateService.compareVersions('v1.5.6', '1.5.5'), greaterThan(0));
     });
 
+    test('preserves and compares numeric QQL build metadata', () {
+      expect(UpdateService.normalizeVersion('v2.0.29+2293'), '2.0.29+2293');
+      expect(
+        UpdateService.compareVersions('2.0.29+2293', '2.0.29+2292'),
+        greaterThan(0),
+      );
+      expect(UpdateService.compareVersions('2.0.29+2293', '2.0.29+2293'), 0);
+      expect(
+        UpdateService.compareVersions('2.0.29+2292', '2.0.29+2293'),
+        lessThan(0),
+      );
+    });
+
+    test('semantic components take precedence over build metadata', () {
+      expect(
+        UpdateService.compareVersions('2.0.30+1', '2.0.29+9999'),
+        greaterThan(0),
+      );
+      expect(
+        UpdateService.compareVersions('2.0.29+1', '2.0.29'),
+        greaterThan(0),
+      );
+    });
+
     test('compares semantic version components numerically', () {
       expect(UpdateService.compareVersions('1.10.0', '1.9.9'), greaterThan(0));
       expect(UpdateService.compareVersions('2.0.0', '2.0.0'), 0);
@@ -56,21 +80,27 @@ void main() {
       version: '1.5.6',
       title: 'QuisquisLingo 1.5.6',
       notes: '',
-      htmlUrl: 'https://github.com/Quisquisnaut/QuisquisLingo/releases/tag/v1.5.6',
+      htmlUrl:
+          'https://github.com/Quisquisnaut/QuisquisLingo/releases/tag/v1.5.6',
       assets: [
         UpdateAsset(
           name: 'quisquislingo_windows_x64.zip',
-          downloadUrl: 'https://github.com/Quisquisnaut/QuisquisLingo/releases/download/v1.5.6/quisquislingo_windows_x64.zip',
+          downloadUrl:
+              'https://github.com/Quisquisnaut/QuisquisLingo/releases/download/v1.5.6/quisquislingo_windows_x64.zip',
         ),
         UpdateAsset(
           name: 'quisquislingo_antix_1.5.6.deb',
-          downloadUrl: 'https://github.com/Quisquisnaut/QuisquisLingo/releases/download/v1.5.6/quisquislingo_antix_1.5.6.deb',
+          downloadUrl:
+              'https://github.com/Quisquisnaut/QuisquisLingo/releases/download/v1.5.6/quisquislingo_antix_1.5.6.deb',
         ),
       ],
     );
     final service = UpdateService();
     expect(service.platformAvailable(release, UpdatePlatform.windows), isTrue);
-    expect(service.platformAvailable(release, UpdatePlatform.linuxAntix), isTrue);
+    expect(
+      service.platformAvailable(release, UpdatePlatform.linuxAntix),
+      isTrue,
+    );
     expect(service.platformAvailable(release, UpdatePlatform.macos), isFalse);
     expect(service.platformAvailable(release, UpdatePlatform.android), isFalse);
   });

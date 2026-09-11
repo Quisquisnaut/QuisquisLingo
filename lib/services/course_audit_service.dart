@@ -314,7 +314,7 @@ class CourseAuditService {
       );
     }
     for (final author in course.authors) {
-      if (author.name.trim().isEmpty)
+      if (author.name.trim().isEmpty) {
         issues.add(
           CourseAuditIssue.fromCode(
             AuditCode.courseAuthorEmpty,
@@ -322,7 +322,8 @@ class CourseAuditService {
             location: 'Course info',
           ),
         );
-      if (author.name.length > 120 || author.roles.any((r) => r.length > 120))
+      }
+      if (author.name.length > 120 || author.roles.any((r) => r.length > 120)) {
         issues.add(
           CourseAuditIssue.fromCode(
             AuditCode.courseAuthorLong,
@@ -331,7 +332,8 @@ class CourseAuditService {
             location: 'Course info',
           ),
         );
-      if (author.roles.isEmpty)
+      }
+      if (author.roles.isEmpty) {
         issues.add(
           CourseAuditIssue.fromCode(
             AuditCode.courseAuthorRoleEmpty,
@@ -340,7 +342,8 @@ class CourseAuditService {
             location: 'Course info',
           ),
         );
-      if (author.roles.length > 12)
+      }
+      if (author.roles.length > 12) {
         issues.add(
           CourseAuditIssue.fromCode(
             AuditCode.courseAuthorRolesMany,
@@ -349,8 +352,9 @@ class CourseAuditService {
             location: 'Course info',
           ),
         );
+      }
     }
-    if (course.courseDescription.length > 5000)
+    if (course.courseDescription.length > 5000) {
       issues.add(
         CourseAuditIssue.fromCode(
           AuditCode.courseDescriptionLong,
@@ -359,6 +363,7 @@ class CourseAuditService {
           location: 'Course info',
         ),
       );
+    }
     if (course.lastUpdated.trim().isNotEmpty) {
       final raw = course.lastUpdated.trim();
       final validShape = RegExp(r'^\d{4}-\d{2}-\d{2}$').hasMatch(raw);
@@ -402,7 +407,7 @@ class CourseAuditService {
         );
         continue;
       }
-      if (!audioKeys.add(key))
+      if (!audioKeys.add(key)) {
         issues.add(
           CourseAuditIssue.fromCode(
             AuditCode.audioMappingDuplicate,
@@ -410,8 +415,9 @@ class CourseAuditService {
             location: 'Audio Library',
           ),
         );
+      }
     }
-    if (course.audioMode == 'recorded' && course.audioLibrary.isEmpty)
+    if (course.audioMode == 'recorded' && course.audioLibrary.isEmpty) {
       issues.add(
         CourseAuditIssue.fromCode(
           AuditCode.recordedAudioLibraryEmpty,
@@ -420,6 +426,7 @@ class CourseAuditService {
           location: 'Audio Library',
         ),
       );
+    }
 
     final lessonIconIds = <String>{};
     for (final asset in course.lessonIconAssets) {
@@ -450,7 +457,8 @@ class CourseAuditService {
       final tl = 'Lesson ${ti + 1} · ${t.title}';
       idCheck(t.lessonId, tl);
       idCheck(t.duel.id, '$tl · Duel');
-      if (t.section && (t.sectionName == null || t.sectionName!.trim().isEmpty))
+      if (t.section &&
+          (t.sectionName == null || t.sectionName!.trim().isEmpty)) {
         issues.add(
           CourseAuditIssue.fromCode(
             AuditCode.lessonSectionNameRequired,
@@ -459,7 +467,8 @@ class CourseAuditService {
             location: tl,
           ),
         );
-      if (!t.section && t.sectionName?.trim().isNotEmpty == true)
+      }
+      if (!t.section && t.sectionName?.trim().isNotEmpty == true) {
         issues.add(
           CourseAuditIssue.fromCode(
             AuditCode.lessonSectionNameWithoutSection,
@@ -468,6 +477,7 @@ class CourseAuditService {
             location: tl,
           ),
         );
+      }
       if (t.themeIconAsset != null) {
         final icon = t.themeIconAsset!;
         final managedId = CourseLessonIconAsset.assetIdFromReference(icon);
@@ -499,7 +509,7 @@ class CourseAuditService {
           ));
         }
       }
-      if (course.useGuidebook && gb.content.isEmpty)
+      if (course.useGuidebook && gb.content.isEmpty) {
         issues.add(
           CourseAuditIssue.fromCode(
             AuditCode.lessonGuidebookEmpty,
@@ -508,7 +518,8 @@ class CourseAuditService {
             location: '$tl · Guidebook',
           ),
         );
-      if (t.rounds.isEmpty)
+      }
+      if (t.rounds.isEmpty) {
         issues.add(
           CourseAuditIssue.fromCode(
             AuditCode.lessonRoundsEmpty,
@@ -516,7 +527,8 @@ class CourseAuditService {
             location: tl,
           ),
         );
-      if (t.rounds.length < 3)
+      }
+      if (t.rounds.length < 3) {
         issues.add(
           CourseAuditIssue.fromCode(
             AuditCode.lessonRoundGuidance,
@@ -525,11 +537,12 @@ class CourseAuditService {
             location: tl,
           ),
         );
+      }
       if (t.rounds.isNotEmpty) {
         final intro = t.rounds.first.content
             .where((content) => content.role == 'lesson_intro')
             .toList();
-        if (intro.isEmpty)
+        if (intro.isEmpty) {
           issues.add(
             CourseAuditIssue.fromCode(
               AuditCode.lessonIntroMissing,
@@ -538,12 +551,13 @@ class CourseAuditService {
               location: '$tl · Round 1',
             ),
           );
+        }
       }
       for (var ri = 0; ri < t.rounds.length; ri++) {
         final r = t.rounds[ri];
         final rl = '$tl · ${r.displayTitle(ri)}';
         idCheck(r.id, rl, roundId: r.id);
-        if (r.content.isEmpty)
+        if (r.content.isEmpty) {
           issues.add(
             CourseAuditIssue.fromCode(
               AuditCode.roundContentEmpty,
@@ -552,7 +566,8 @@ class CourseAuditService {
               roundId: r.id,
             ),
           );
-        if (r.content.length > 10)
+        }
+        if (r.content.length > 10) {
           issues.add(
             CourseAuditIssue.fromCode(
               AuditCode.roundContentLong,
@@ -562,6 +577,7 @@ class CourseAuditService {
               roundId: r.id,
             ),
           );
+        }
         for (
           var contentIndex = 0;
           contentIndex < r.content.length;
@@ -613,7 +629,7 @@ class CourseAuditService {
               prompt.toLowerCase().contains('contrar') ||
               prompt.toLowerCase().contains('gegenteil') ||
               prompt.toLowerCase().contains('opuesto');
-          if (ri < 2 && isOpposite)
+          if (ri < 2 && isOpposite) {
             issues.add(
               CourseAuditIssue.fromCode(
                 AuditCode.oppositeTooEarly,
@@ -624,6 +640,7 @@ class CourseAuditService {
                 exerciseId: ex.id,
               ),
             );
+          }
           final isolated = [
             prompt,
             ex.question.trim(),
@@ -632,7 +649,7 @@ class CourseAuditService {
           if (_courseTargetCode(course) != 'DE' &&
               isolated.any(
                 (v) => RegExp(r'^\p{Lu}\p{L}*$', unicode: true).hasMatch(v),
-              ))
+              )) {
             issues.add(
               CourseAuditIssue.fromCode(
                 AuditCode.singleWordCase,
@@ -643,9 +660,10 @@ class CourseAuditService {
                 exerciseId: ex.id,
               ),
             );
+          }
           final key =
               '${ex.type}|${ex.prompt.trim().toLowerCase()}|${ex.question.trim().toLowerCase()}';
-          if (!duplicatePrompts.add(key))
+          if (!duplicatePrompts.add(key)) {
             issues.add(
               CourseAuditIssue.fromCode(
                 AuditCode.roundDuplicateContent,
@@ -656,10 +674,11 @@ class CourseAuditService {
                 exerciseId: ex.id,
               ),
             );
+          }
         }
       }
       final eligibility = const DuelEligibilityService().evaluate(t);
-      if (course.createDuels && !eligibility.isAvailable)
+      if (course.createDuels && !eligibility.isAvailable) {
         issues.add(
           CourseAuditIssue.fromCode(
             AuditCode.duelUnavailable,
@@ -668,10 +687,11 @@ class CourseAuditService {
             location: '$tl · Duel',
           ),
         );
+      }
     }
     for (final pending in pendingSourceRefs) {
       if (!ids.contains(pending.ref) &&
-          !authoredSourceIds.contains(pending.ref))
+          !authoredSourceIds.contains(pending.ref)) {
         issues.add(
           CourseAuditIssue.fromCode(
             AuditCode.sourceRefMissing,
@@ -681,6 +701,7 @@ class CourseAuditService {
             exerciseId: pending.exerciseId,
           ),
         );
+      }
     }
     return CourseAuditResult(_attachContentTimestamps(course, issues));
   }
@@ -1030,8 +1051,9 @@ class CourseAuditService {
         updatedAt: ex.updatedAt,
       ),
     );
-    if (!supportedTypes.contains(ex.type))
+    if (!supportedTypes.contains(ex.type)) {
       add(AuditCode.exerciseTypeUnknown, 'Unknown exercise type: ${ex.type}');
+    }
     final preset =
         ExercisePresetRegistry.byId(ex.editorTemplate) ??
         ExercisePresetRegistry.byId(ex.type) ??
@@ -1087,22 +1109,24 @@ class CourseAuditService {
         'Exercise evaluation references an unknown Item ID.',
       );
     }
-    if (ex.prompt.length > 1200 || ex.question.length > 800)
+    if (ex.prompt.length > 1200 || ex.question.length > 800) {
       add(
         AuditCode.exerciseTextLong,
         'Very long text may be difficult to read on small screens.',
       );
+    }
 
     // Flag genuinely independent fields that do not belong to the selected
     // preset. Canonical v6 interaction items are shared by Select, Arrange and
     // Match; the author-friendly answers/tokens/icons getters are projections
     // of those same items and therefore cannot be used to detect stale data.
     void unexpected(bool condition, String field) {
-      if (condition)
+      if (condition) {
         add(
           AuditCode.exerciseFieldUnexpected,
           'Unexpected field for ${ex.type}: $field.',
         );
+      }
     }
 
     unexpected(
@@ -1238,41 +1262,48 @@ class CourseAuditService {
       }
     }
     if (choiceTypes.contains(ex.type)) {
-      if (ex.answers.length < 2)
+      if (ex.answers.length < 2) {
         add(
           AuditCode.choiceAnswersRequired,
           'Choice exercise needs at least two answers.',
         );
-      if (ex.type == 'dialogue_response' && ex.answers.length != 2)
+      }
+      if (ex.type == 'dialogue_response' && ex.answers.length != 2) {
         add(
           AuditCode.dialogueResponseOptionCount,
           'Dialogue Response requires exactly two response options.',
         );
-      if (ex.type == 'dialogue_response' && ex.prompt.trim().isEmpty)
+      }
+      if (ex.type == 'dialogue_response' && ex.prompt.trim().isEmpty) {
         add(
           AuditCode.dialogueContextRequired,
           'Dialogue Response needs a context sentence.',
         );
-      if (ex.type == 'dialogue_response' && ex.question.trim().isEmpty)
+      }
+      if (ex.type == 'dialogue_response' && ex.question.trim().isEmpty) {
         add(
           AuditCode.dialogueQuestionRequired,
           'Dialogue Response needs a question.',
         );
+      }
       if (ex.correct == null ||
           ex.correct! < 0 ||
-          ex.correct! >= ex.answers.length)
+          ex.correct! >= ex.answers.length) {
         add(
           AuditCode.choiceCorrectAnswerInvalid,
           'Correct answer is missing or outside the answer list. Select a correct answer from the current options.',
         );
-      if (ex.answers.any((e) => e.trim().isEmpty))
+      }
+      if (ex.answers.any((e) => e.trim().isEmpty)) {
         add(AuditCode.choiceAnswerEmpty, 'Answer options cannot be blank.');
+      }
       if (ex.answers.map((e) => e.trim().toLowerCase()).toSet().length !=
-          ex.answers.length)
+          ex.answers.length) {
         add(
           AuditCode.choiceAnswerDuplicate,
           'Answer options contain duplicates.',
         );
+      }
       const placeholderAnswers = {
         'xyz',
         'abc',
@@ -1282,23 +1313,26 @@ class CourseAuditService {
       };
       if (ex.answers.any(
         (e) => placeholderAnswers.contains(e.trim().toLowerCase()),
-      ))
+      )) {
         add(
           AuditCode.placeholderAnswer,
           'Answer options contain placeholder text. Replace it with a real course-language distractor.',
         );
+      }
       final normalizedPrompt = ex.prompt.trim().toLowerCase();
       if (normalizedPrompt == 'choose the correct translation.' ||
-          normalizedPrompt == 'elige la traducción correcta.')
+          normalizedPrompt == 'elige la traducción correcta.') {
         add(
           AuditCode.translationPromptMissingSource,
           'Translation prompt does not identify the word or expression to translate.',
         );
-      if (ex.evaluation.correctItemIds.isNotEmpty && ex.correct == null)
+      }
+      if (ex.evaluation.correctItemIds.isNotEmpty && ex.correct == null) {
         add(
           AuditCode.correctItemUnresolved,
           'Correct Item ID does not resolve to a visible answer option.',
         );
+      }
       if (ex.type == 'reading_comprehension' &&
           ex.question.toLowerCase().contains(
             'which option best fits the lesson vocabulary',
@@ -1308,36 +1342,41 @@ class CourseAuditService {
           ex.correct! < ex.answers.length) {
         final correctText = ex.answers[ex.correct!].trim().toLowerCase();
         final passage = ex.prompt.trim().toLowerCase();
-        if (correctText.isNotEmpty && !passage.contains(correctText))
+        if (correctText.isNotEmpty && !passage.contains(correctText)) {
           add(
             AuditCode.readingOptionNotInPassage,
             'The declared correct option does not occur in the reading passage. Review this generated Reading exercise for a likely vocabulary mismatch.',
           );
+        }
       }
     }
     if ((ex.type.startsWith('listening') || ex.type == 'missing_word') &&
-        (ex.tts == null || ex.tts!.trim().isEmpty))
+        (ex.tts == null || ex.tts!.trim().isEmpty)) {
       add(
         AuditCode.listeningAudioRequired,
         'Listening exercise has no audio text. Enter the text the learner should hear.',
       );
+    }
     if (ex.type == 'gap_choice') {
-      if (ex.question.trim().isEmpty)
+      if (ex.question.trim().isEmpty) {
         add(
           AuditCode.gapSentenceRequired,
           'Gap Choice needs a target-language sentence.',
         );
+      }
       final gapCount = RegExp(r'___').allMatches(ex.question).length;
-      if (gapCount == 0)
+      if (gapCount == 0) {
         add(
           AuditCode.gapMarkerMissing,
           'Gap Choice sentence must contain the ___ gap marker.',
         );
-      if (gapCount > 1)
+      }
+      if (gapCount > 1) {
         add(
           AuditCode.gapMarkerCount,
           'Gap Choice should normally contain exactly one gap.',
         );
+      }
       final correctAnswer =
           ex.correct != null &&
               ex.correct! >= 0 &&
@@ -1354,11 +1393,12 @@ class CourseAuditService {
         }
       }
     }
-    if (ex.type == 'listening_spelling' && ex.accepted.isEmpty)
+    if (ex.type == 'listening_spelling' && ex.accepted.isEmpty) {
       add(
         AuditCode.listeningSpellingNoAnswer,
         'Listening Spelling needs at least one accepted text answer.',
       );
+    }
     if (const {
           'fill_blank',
           'listening_spelling',
@@ -1417,30 +1457,34 @@ class CourseAuditService {
       }
     }
     if (ex.type == 'missing_word') {
-      if (ex.prompt.trim().isEmpty)
+      if (ex.prompt.trim().isEmpty) {
         add(
           AuditCode.missingWordTranscriptRequired,
           'Missing Word exercise needs a passage transcript.',
         );
-      if (ex.missingWords.isEmpty)
+      }
+      if (ex.missingWords.isEmpty) {
         add(
           AuditCode.missingWordAnswerRequired,
           'Missing Word exercise needs at least one missing word.',
         );
+      }
       final passage = ex.prompt.toLowerCase();
       for (final word in ex.missingWords) {
-        if (!passage.contains(word.toLowerCase()))
+        if (!passage.contains(word.toLowerCase())) {
           add(
             AuditCode.missingWordNotInTranscript,
             'Missing word “$word” does not occur in the passage transcript.',
           );
+        }
       }
       if (ex.missingWords.map((e) => e.trim().toLowerCase()).toSet().length !=
-          ex.missingWords.length)
+          ex.missingWords.length) {
         add(
           AuditCode.missingWordDuplicate,
           'Missing Word exercise contains duplicate missing-word entries.',
         );
+      }
     }
     if (ex.type == 'reading_comprehension') {
       final lexicalWords = _lexicalWordCount(ex.prompt);
@@ -1457,31 +1501,34 @@ class CourseAuditService {
       }
     }
     if (ex.type == 'listening_comprehension' &&
-        (ex.tts ?? '').trim().split(RegExp(r'\s+')).length < 5)
+        (ex.tts ?? '').trim().split(RegExp(r'\s+')).length < 5) {
       add(
         AuditCode.listeningPassageShort,
         'Listening comprehension passage is very short; make sure it tests comprehension.',
       );
+    }
 
     if (ex.type == 'fill_blank') {
-      if (ex.accepted.isEmpty)
+      if (ex.accepted.isEmpty) {
         add(
           AuditCode.fillBlankAnswerRequired,
           'Fill-in exercise needs at least one accepted answer.',
         );
+      }
     }
     if (const {
       'word_order',
       'image_word',
       'build_translation',
     }.contains(ex.type)) {
-      if (ex.tokens.isEmpty || ex.evaluation.correctOrders.isEmpty)
+      if (ex.tokens.isEmpty || ex.evaluation.correctOrders.isEmpty) {
         add(
           AuditCode.wordBlockDataRequired,
           ex.type == 'build_translation'
               ? 'Build the translation needs usable Language blocks and at least one correct translation.'
               : 'Word-block exercise needs available blocks and a correct answer. Enter the answer and select its blocks in order.',
         );
+      }
       final normalizedAnswers = <String>{};
       final usedItemIds = <String>{};
       final itemValueById = {
@@ -1547,61 +1594,71 @@ class CourseAuditService {
       _auditWordBlockLanguage(ex, add);
     }
     if (ex.type == 'flashcard') {
-      if (ex.prompt.trim().isEmpty)
+      if (ex.prompt.trim().isEmpty) {
         add(
           AuditCode.flashcardTextRequired,
           'Flashcard needs a target word or phrase.',
         );
-      if (ex.question.trim().isEmpty)
+      }
+      if (ex.question.trim().isEmpty) {
         add(AuditCode.flashcardMeaningEmpty, 'Flashcard meaning is empty.');
-      if (ex.answers.isEmpty || ex.answers.first.trim().isEmpty)
+      }
+      if (ex.answers.isEmpty || ex.answers.first.trim().isEmpty) {
         add(
           AuditCode.flashcardExampleEmpty,
           'Flashcard has no usage sentence.',
         );
-      if (ex.tts == null || ex.tts!.trim().isEmpty)
+      }
+      if (ex.tts == null || ex.tts!.trim().isEmpty) {
         add(
           AuditCode.flashcardAudioEmpty,
           'Flashcard has no pronunciation TTS text.',
         );
+      }
     }
-    if (ex.type == 'matching' && ex.pairs.isEmpty)
+    if (ex.type == 'matching' && ex.pairs.isEmpty) {
       add(
         AuditCode.matchingPairsRequired,
         'Matching exercise needs at least one pair.',
       );
+    }
     if (ex.type == 'audio_match') {
-      if (ex.pairs.length != 3)
+      if (ex.pairs.length != 3) {
         add(
           AuditCode.audioMatchPairCount,
           'Audio Match requires exactly 3 sound/text pairs.',
         );
-      if (ex.answers.length != ex.pairs.length)
+      }
+      if (ex.answers.length != ex.pairs.length) {
         add(
           AuditCode.audioMatchAnswerCount,
           'Audio Match must have one visible answer for each sound and no distractors.',
         );
+      }
       final visibleKeys = ex.answers
           .map((e) => e.trim().toLowerCase())
           .toList();
       final visible = visibleKeys.toSet();
-      if (visible.length != visibleKeys.length)
+      if (visible.length != visibleKeys.length) {
         add(
           AuditCode.audioMatchAnswerDuplicate,
           'Audio Match visible choices contain duplicates.',
         );
+      }
       if (ex.pairs.any(
         (p) => p.length != 2 || p[0].trim().isEmpty || p[1].trim().isEmpty,
-      ))
+      )) {
         add(
           AuditCode.audioMatchPairEmpty,
           'Audio Match contains an empty sound or match.',
         );
-      if (ex.pairs.any((p) => !visible.contains(p[1].trim().toLowerCase())))
+      }
+      if (ex.pairs.any((p) => !visible.contains(p[1].trim().toLowerCase()))) {
         add(
           AuditCode.audioMatchAnswerMissing,
           'Every Audio Match value must appear among the visible choices.',
         );
+      }
       String normalizedAudioMatchText(String value) => value
           .toLowerCase()
           .replaceAll(RegExp(r'[^\p{L}\p{N}\s]', unicode: true), '')
@@ -1613,27 +1670,31 @@ class CourseAuditService {
       final matchKeys = ex.pairs
           .map((p) => normalizedAudioMatchText(p[1]))
           .toList();
-      if (soundKeys.toSet().length != soundKeys.length)
+      if (soundKeys.toSet().length != soundKeys.length) {
         add(
           AuditCode.audioMatchSoundDuplicate,
           'Audio Match repeats the same target audio.',
         );
-      if (matchKeys.toSet().length != matchKeys.length)
+      }
+      if (matchKeys.toSet().length != matchKeys.length) {
         add(
           AuditCode.audioMatchTextDuplicate,
           'Audio Match repeats the same matching text.',
         );
+      }
     }
     if (ex.type == 'word_match' || ex.type == 'super_match') {
-      if (ex.pairs.length != 3)
+      if (ex.pairs.length != 3) {
         add(
           AuditCode.matchPairCount,
           '${ex.type == 'word_match' ? 'Word Match' : 'Super Match'} requires exactly 3 pairs.',
         );
+      }
       if (ex.pairs.any(
         (p) => p.length != 2 || p[0].trim().isEmpty || p[1].trim().isEmpty,
-      ))
+      )) {
         add(AuditCode.matchPairEmpty, 'Match exercise contains an empty pair.');
+      }
       String normalizedMatchText(String value) => value
           .toLowerCase()
           .replaceAll(RegExp(r'[^\p{L}\p{N}\s]', unicode: true), '')
@@ -1647,36 +1708,42 @@ class CourseAuditService {
           .where((p) => p.length == 2)
           .map((p) => normalizedMatchText(p[1]))
           .toList();
-      if (left.toSet().length != left.length)
+      if (left.toSet().length != left.length) {
         add(
           AuditCode.matchLeftDuplicate,
           'Match exercise repeats the same left-side item after ignoring case and punctuation.',
         );
-      if (right.toSet().length != right.length)
+      }
+      if (right.toSet().length != right.length) {
         add(
           AuditCode.matchRightDuplicate,
           'Match exercise repeats the same right-side item after ignoring case and punctuation.',
         );
+      }
     }
     if (ex.type == 'image_word') {
-      if (ex.imageAsset.trim().isEmpty)
+      if (ex.imageAsset.trim().isEmpty) {
         add(
           AuditCode.imageWordImageRequired,
           'Image Word exercise requires an image.',
         );
-      if (ex.orderAnswer.isEmpty)
+      }
+      if (ex.orderAnswer.isEmpty) {
         add(
           AuditCode.imageWordAnswerRequired,
           'Image Word exercise requires a correct target-language word.',
         );
-      if (ex.orderAnswer.join().trim().isEmpty)
+      }
+      if (ex.orderAnswer.join().trim().isEmpty) {
         add(
           AuditCode.imageWordAnswerBlank,
           'Image Word correct word cannot be blank.',
         );
+      }
     }
-    if (ex.type == 'icon_choice' && ex.icons.length != ex.answers.length)
+    if (ex.type == 'icon_choice' && ex.icons.length != ex.answers.length) {
       add(AuditCode.iconChoiceCount, 'Icon count must match answer count.');
+    }
     _auditRepeatingHint(ex.hint, [
       ex.prompt,
       ex.question,

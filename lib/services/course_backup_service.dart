@@ -125,6 +125,21 @@ class CourseBackupService {
       .replaceAll('-', '')
       .replaceAll('.', '');
 
+  static String _normalizedAbsolutePath(FileSystemEntity entity) {
+    final normalized = entity.absolute.uri.normalizePath().toFilePath();
+    return Platform.isWindows ? normalized.toLowerCase() : normalized;
+  }
+
+  static void _requireChildPath(Directory directory, FileSystemEntity child) {
+    final parentPath = _normalizedAbsolutePath(
+      directory,
+    ).replaceFirst(RegExp(r'[\\/]+$'), '');
+    final childPath = _normalizedAbsolutePath(child);
+    if (!childPath.startsWith('$parentPath${Platform.pathSeparator}')) {
+      throw const FormatException('Unsafe Course Backup manifest path.');
+    }
+  }
+
   Future<void> _write(File file, List<int> bytes) async {
     final writer = _fileWriter;
     if (writer != null) {
@@ -146,15 +161,17 @@ class CourseBackupService {
     );
     final version = course.originType.isOfficial
         ? 'official_${sanitizedCourseId(course.officialCourseVersion)}'
-        : 'course_${course.courseVersion.trim().isEmpty ? '0' : course.courseVersion.trim()}';
+        : 'course_${sanitizedCourseId(course.courseVersion.trim().isEmpty ? '0' : course.courseVersion)}';
     final base =
         '${sanitizedCourseId(course.courseId)}_${version}_${_filenameStamp(when)}';
     var manifest = File('${directory.path}${Platform.pathSeparator}$base.json');
+    _requireChildPath(directory, manifest);
     var suffix = 2;
     while (await manifest.exists()) {
       manifest = File(
         '${directory.path}${Platform.pathSeparator}${base}_$suffix.json',
       );
+      _requireChildPath(directory, manifest);
       suffix += 1;
     }
 

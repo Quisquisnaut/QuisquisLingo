@@ -5,11 +5,7 @@ import 'dart:io';
 import 'package:url_launcher/url_launcher.dart';
 
 /// Result of a GitHub release check.
-enum UpdateCheckStatus {
-  updateAvailable,
-  upToDate,
-  noPublishedRelease,
-}
+enum UpdateCheckStatus { updateAvailable, upToDate, noPublishedRelease }
 
 class UpdateAsset {
   final String name;
@@ -65,7 +61,9 @@ class UpdateService {
     final client = HttpClient()..connectionTimeout = const Duration(seconds: 6);
     try {
       final uri = Uri.parse(latestReleaseApiUrl);
-      final request = await client.getUrl(uri).timeout(const Duration(seconds: 8));
+      final request = await client
+          .getUrl(uri)
+          .timeout(const Duration(seconds: 8));
       request
         ..followRedirects = false
         ..maxRedirects = 0
@@ -73,37 +71,49 @@ class UpdateService {
         ..headers.set(HttpHeaders.userAgentHeader, 'QuisquisLingo-Update-Check')
         ..headers.set('X-GitHub-Api-Version', _apiVersion);
 
-      final response = await request.close().timeout(const Duration(seconds: 8));
+      final response = await request.close().timeout(
+        const Duration(seconds: 8),
+      );
       if (response.statusCode == HttpStatus.notFound) {
         await response.drain();
         return const UpdateCheckResult(UpdateCheckStatus.noPublishedRelease);
       }
       if (response.statusCode != HttpStatus.ok) {
         await response.drain();
-        throw UpdateCheckException('GitHub returned HTTP ${response.statusCode}.');
+        throw UpdateCheckException(
+          'GitHub returned HTTP ${response.statusCode}.',
+        );
       }
       final declaredLength = response.contentLength;
       if (declaredLength > _maxResponseBytes) {
         await response.drain();
-        throw const UpdateCheckException('GitHub response is unexpectedly large.');
+        throw const UpdateCheckException(
+          'GitHub response is unexpectedly large.',
+        );
       }
 
       final bytes = <int>[];
       await for (final chunk in response.timeout(const Duration(seconds: 8))) {
         bytes.addAll(chunk);
         if (bytes.length > _maxResponseBytes) {
-          throw const UpdateCheckException('GitHub response exceeded the safety limit.');
+          throw const UpdateCheckException(
+            'GitHub response exceeded the safety limit.',
+          );
         }
       }
 
       final decoded = jsonDecode(utf8.decode(bytes));
       if (decoded is! Map<String, dynamic>) {
-        throw const UpdateCheckException('GitHub returned an unexpected response format.');
+        throw const UpdateCheckException(
+          'GitHub returned an unexpected response format.',
+        );
       }
       final release = _parseRelease(decoded);
       final comparison = compareVersions(release.version, currentVersion);
       return UpdateCheckResult(
-        comparison > 0 ? UpdateCheckStatus.updateAvailable : UpdateCheckStatus.upToDate,
+        comparison > 0
+            ? UpdateCheckStatus.updateAvailable
+            : UpdateCheckStatus.upToDate,
         release: release,
       );
     } on TimeoutException {
@@ -121,11 +131,19 @@ class UpdateService {
     final tag = _requiredShortString(json['tag_name'], 'tag_name', max: 80);
     final version = normalizeVersion(tag);
     if (_parseVersion(version) == null) {
-      throw const UpdateCheckException('The latest release tag is not a supported version number.');
+      throw const UpdateCheckException(
+        'The latest release tag is not a supported version number.',
+      );
     }
-    final htmlUrl = _requiredShortString(json['html_url'], 'html_url', max: 400);
+    final htmlUrl = _requiredShortString(
+      json['html_url'],
+      'html_url',
+      max: 400,
+    );
     if (!isTrustedReleaseUrl(htmlUrl)) {
-      throw const UpdateCheckException('GitHub returned an unexpected release URL.');
+      throw const UpdateCheckException(
+        'GitHub returned an unexpected release URL.',
+      );
     }
     final rawTitle = json['name'];
     final title = rawTitle is String && rawTitle.trim().isNotEmpty
@@ -167,8 +185,14 @@ class UpdateService {
       .replaceAll(RegExp(r'[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]'), '')
       .replaceAll(RegExp(r'[\u202A-\u202E\u2066-\u2069]'), '');
 
-  static String _requiredShortString(Object? raw, String field, {required int max}) {
-    if (raw is! String) throw UpdateCheckException('Missing GitHub release field: $field.');
+  static String _requiredShortString(
+    Object? raw,
+    String field, {
+    required int max,
+  }) {
+    if (raw is! String) {
+      throw UpdateCheckException('Missing GitHub release field: $field.');
+    }
     final value = raw.trim();
     if (value.isEmpty || value.length > max) {
       throw UpdateCheckException('Invalid GitHub release field: $field.');
@@ -178,20 +202,25 @@ class UpdateService {
 
   static String normalizeVersion(String value) {
     var normalized = value.trim();
-    if (normalized.toLowerCase().startsWith('v')) normalized = normalized.substring(1);
-    final plus = normalized.indexOf('+');
-    if (plus >= 0) normalized = normalized.substring(0, plus);
+    if (normalized.toLowerCase().startsWith('v')) {
+      normalized = normalized.substring(1);
+    }
     return normalized.trim();
   }
 
   static List<int>? _parseVersion(String value) {
-    final match = RegExp(r'^(\d+)\.(\d+)\.(\d+)$').firstMatch(normalizeVersion(value));
+    final match = RegExp(
+      r'^(\d+)\.(\d+)\.(\d+)(?:\+(\d+))?$',
+    ).firstMatch(normalizeVersion(value));
     if (match == null) return null;
-    return [
-      int.parse(match.group(1)!),
-      int.parse(match.group(2)!),
-      int.parse(match.group(3)!),
-    ];
+    final components = [
+      match.group(1),
+      match.group(2),
+      match.group(3),
+      match.group(4) ?? '0',
+    ].map((component) => int.tryParse(component!)).toList();
+    if (components.any((component) => component == null)) return null;
+    return components.cast<int>();
   }
 
   static int compareVersions(String a, String b) {
@@ -200,7 +229,7 @@ class UpdateService {
     if (av == null || bv == null) {
       throw const UpdateCheckException('Unable to compare version numbers.');
     }
-    for (var i = 0; i < 3; i++) {
+    for (var i = 0; i < 4; i++) {
       if (av[i] != bv[i]) return av[i].compareTo(bv[i]);
     }
     return 0;
@@ -208,8 +237,15 @@ class UpdateService {
 
   static bool isTrustedReleaseUrl(String value) {
     final uri = Uri.tryParse(value);
-    if (uri == null || uri.scheme != 'https' || uri.host != 'github.com') return false;
-    if (uri.userInfo.isNotEmpty || uri.hasQuery || uri.hasFragment || (uri.hasPort && uri.port != 443)) return false;
+    if (uri == null || uri.scheme != 'https' || uri.host != 'github.com') {
+      return false;
+    }
+    if (uri.userInfo.isNotEmpty ||
+        uri.hasQuery ||
+        uri.hasFragment ||
+        (uri.hasPort && uri.port != 443)) {
+      return false;
+    }
     final path = uri.path.toLowerCase();
     return path == '/quisquisnaut/quisquislingo/releases' ||
         path.startsWith('/quisquisnaut/quisquislingo/releases/');
@@ -218,12 +254,14 @@ class UpdateService {
   static bool _isTrustedDownloadUrl(String value) {
     final uri = Uri.tryParse(value);
     if (uri == null || uri.scheme != 'https') return false;
-    return uri.host == 'github.com' || uri.host == 'objects.githubusercontent.com';
+    return uri.host == 'github.com' ||
+        uri.host == 'objects.githubusercontent.com';
   }
 
   Future<bool> openRepository() => _openTrustedGitHubUrl(repositoryUrl);
   Future<bool> openReleases() => _openTrustedGitHubUrl(releasesUrl);
-  Future<bool> openRelease(UpdateRelease release) => _openTrustedGitHubUrl(release.htmlUrl);
+  Future<bool> openRelease(UpdateRelease release) =>
+      _openTrustedGitHubUrl(release.htmlUrl);
 
   Future<bool> _openTrustedGitHubUrl(String value) async {
     if (!isTrustedReleaseUrl(value) && value != repositoryUrl) return false;
@@ -239,12 +277,34 @@ class UpdateService {
     final names = release.assets.map((e) => e.name.toLowerCase()).toList();
     bool any(bool Function(String) test) => names.any(test);
     return switch (platform) {
-      UpdatePlatform.windows => any((n) => n.contains('windows') || n.contains('win64') || n.endsWith('.msi') || n.endsWith('.exe')),
-      UpdatePlatform.macos => any((n) => n.contains('macos') || n.contains('osx') || n.endsWith('.dmg') || n.endsWith('.pkg')),
-      UpdatePlatform.linuxAntix => any((n) => n.contains('antix') && (n.endsWith('.deb') || n.endsWith('.zip') || n.endsWith('.tar.gz'))),
-      UpdatePlatform.android => any((n) => n.contains('android') || n.endsWith('.apk') || n.endsWith('.aab')),
+      UpdatePlatform.windows => any(
+        (n) =>
+            n.contains('windows') ||
+            n.contains('win64') ||
+            n.endsWith('.msi') ||
+            n.endsWith('.exe'),
+      ),
+      UpdatePlatform.macos => any(
+        (n) =>
+            n.contains('macos') ||
+            n.contains('osx') ||
+            n.endsWith('.dmg') ||
+            n.endsWith('.pkg'),
+      ),
+      UpdatePlatform.linuxAntix => any(
+        (n) =>
+            n.contains('antix') &&
+            (n.endsWith('.deb') || n.endsWith('.zip') || n.endsWith('.tar.gz')),
+      ),
+      UpdatePlatform.android => any(
+        (n) =>
+            n.contains('android') || n.endsWith('.apk') || n.endsWith('.aab'),
+      ),
       UpdatePlatform.ios => any((n) => n.contains('ios') || n.endsWith('.ipa')),
-      UpdatePlatform.web => any((n) => n.contains('web') && (n.endsWith('.zip') || n.endsWith('.tar.gz'))),
+      UpdatePlatform.web => any(
+        (n) =>
+            n.contains('web') && (n.endsWith('.zip') || n.endsWith('.tar.gz')),
+      ),
     };
   }
 }

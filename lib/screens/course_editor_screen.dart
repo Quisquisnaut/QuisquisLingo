@@ -8801,7 +8801,7 @@ class _AudioLibraryScreenState extends State<AudioLibraryScreen> {
       });
   Future<void> _import() async {
     try {
-      final clips = await _audio.importMp3Files(_course.learningLanguage);
+      final clips = await _audio.importMp3Files(_course.courseId);
       if (clips.isNotEmpty && mounted) {
         setState(
           () => _course = _copy(clips: [..._course.audioLibrary, ...clips]),

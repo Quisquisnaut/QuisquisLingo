@@ -25,10 +25,10 @@ void main() {
 
   setUp(() => SharedPreferences.setMockInitialValues({}));
 
-  test('Revision 3 release metadata uses Build and Revision terminology', () {
-    expect(AppMetadata.technicalVersion, '2.0.29+2293');
-    expect(AppMetadata.build, '229.3');
-    expect(AppMetadata.displayLabel, 'Version 2.0.29\nBuild 229\nRevision 3');
+  test('QQL 230 release metadata uses Build and Revision terminology', () {
+    expect(AppMetadata.technicalVersion, '2.0.30+230');
+    expect(AppMetadata.build, '230');
+    expect(AppMetadata.displayLabel, 'Version 2.0.30\nBuild 230\nRevision 0');
   });
 
   testWidgets(

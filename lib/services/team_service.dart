@@ -95,15 +95,19 @@ class TeamService {
         'Enter a Team name up to 120 characters.',
       );
     }
+    final teams = await listTeams();
+    final teamId = _idGenerator();
+    if (teams.any((team) => team.teamId == teamId)) {
+      throw StateError('The generated Team ID is already in use.');
+    }
     final team = AuthoringTeam(
-      teamId: _idGenerator(),
+      teamId: teamId,
       displayName: name,
       creatorProfileId: creatorProfileId,
       createdAtUtc: _clock().toUtc().toIso8601String(),
       memberProfileIds: [creatorProfileId],
       leadProfileIds: [creatorProfileId],
     );
-    final teams = await listTeams();
     await _save([...teams, team]);
     return team;
   }

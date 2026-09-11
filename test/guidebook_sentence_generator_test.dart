@@ -252,14 +252,6 @@ Future<void> _openLessonEditor(
   expect(find.byType(LessonEditorScreen), findsOneWidget);
 }
 
-Future<void> _tapAndSettle(WidgetTester tester, String label) async {
-  final finder = find.text(label);
-  expect(finder, findsOneWidget);
-  await tester.ensureVisible(finder);
-  await tester.tap(finder);
-  await tester.pumpAndSettle();
-}
-
 Future<void> _tapKeyAndSettle(WidgetTester tester, String key) async {
   final finder = find.byKey(Key(key));
   expect(finder, findsOneWidget);

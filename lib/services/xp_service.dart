@@ -19,6 +19,7 @@ class LocalLeaderboardEntry {
 
 /// Stores learner XP totals and weekly XP accounting.
 class XpService {
+  static const int _maximumXp = 2147483647;
   final _profiles = ProfileService();
   final DateTime Function() _now;
 
@@ -52,13 +53,18 @@ class XpService {
       final result = <String, int>{};
       for (final entry in decoded.entries) {
         final value = entry.value;
-        if (value is int && value >= 0) result[entry.key.toString()] = value;
+        if (value is int && value >= 0) {
+          result[entry.key.toString()] = value.clamp(0, _maximumXp).toInt();
+        }
       }
       return result;
     } catch (_) {
       return <String, int>{};
     }
   }
+
+  int _storedXp(SharedPreferences preferences, String key) =>
+      (preferences.getInt(key) ?? 0).clamp(0, _maximumXp).toInt();
 
   Future<void> _ensureWeeklyRollover() async {
     final p = await _prefs;
@@ -76,7 +82,7 @@ class XpService {
     final lastByCourseKey = await _k('last_week_xp_by_course');
     if (storedWeek == previousWeek) {
       await p.setString(lastWeekKey, previousWeek);
-      await p.setInt(lastTotalKey, p.getInt(totalKey) ?? 0);
+      await p.setInt(lastTotalKey, _storedXp(p, totalKey));
       await p.setString(lastByCourseKey, p.getString(byCourseKey) ?? '{}');
     } else {
       // If the app was not used during the immediately preceding week, that
@@ -103,10 +109,7 @@ class XpService {
     if (storedWeek == currentWeek) return;
     if (storedWeek == previousWeek) {
       await p.setString('${prefix}last_week_xp_week', previousWeek);
-      await p.setInt(
-        '${prefix}last_week_xp',
-        p.getInt('${prefix}week_xp') ?? 0,
-      );
+      await p.setInt('${prefix}last_week_xp', _storedXp(p, '${prefix}week_xp'));
       await p.setString(
         '${prefix}last_week_xp_by_course',
         p.getString('${prefix}week_xp_by_course') ?? '{}',
@@ -123,19 +126,19 @@ class XpService {
 
   Future<int> getXp({required String courseCode}) async {
     final p = await _prefs;
-    return p.getInt(await _lk('xp', courseCode)) ?? 0;
+    return _storedXp(p, await _lk('xp', courseCode));
   }
 
   Future<int> getWeeklyXp() async {
     await _ensureWeeklyRollover();
     final p = await _prefs;
-    return p.getInt(await _k('week_xp')) ?? 0;
+    return _storedXp(p, await _k('week_xp'));
   }
 
   Future<int> getLastWeekXp() async {
     await _ensureWeeklyRollover();
     final p = await _prefs;
-    return p.getInt(await _k('last_week_xp')) ?? 0;
+    return _storedXp(p, await _k('last_week_xp'));
   }
 
   Future<Map<String, int>> getLastWeekXpByCourse() async {
@@ -156,7 +159,7 @@ class XpService {
       final prefix = ProfileService.prefixForProfileId(
         profile.learnerProfileId,
       );
-      final xp = p.getInt('${prefix}last_week_xp') ?? 0;
+      final xp = _storedXp(p, '${prefix}last_week_xp');
       entries.add(
         LocalLeaderboardEntry(
           learnerProfileId: profile.learnerProfileId,
@@ -198,21 +201,21 @@ class XpService {
     }
     final p = await _prefs;
     final k = await _lk('xp', courseCode);
-    final current = p.getInt(k) ?? 0;
+    final current = _storedXp(p, k);
     // Keep the value inside a predictable range even if an editor/test produces
     // an unexpectedly large reward.
-    await p.setInt(k, (current + amount).clamp(0, 2147483647).toInt());
+    await p.setInt(k, (current + amount).clamp(0, _maximumXp).toInt());
     final weekCurrent = await getWeeklyXp();
     await p.setInt(
       await _k('week_xp'),
-      (weekCurrent + amount).clamp(0, 2147483647).toInt(),
+      (weekCurrent + amount).clamp(0, _maximumXp).toInt(),
     );
 
     final stableCourseId = courseId.trim();
     final byCourseKey = await _k('week_xp_by_course');
     final byCourse = _decodeXpByCourse(p.getString(byCourseKey));
     final old = byCourse[stableCourseId] ?? 0;
-    byCourse[stableCourseId] = (old + amount).clamp(0, 2147483647).toInt();
+    byCourse[stableCourseId] = (old + amount).clamp(0, _maximumXp).toInt();
     await p.setString(byCourseKey, jsonEncode(byCourse));
     LearnerStatusEvents.publish(LearnerStatusInvalidation.xp);
   }

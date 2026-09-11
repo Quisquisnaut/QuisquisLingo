@@ -139,10 +139,11 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
     try {
       path = await _imageService.importImage();
     } catch (e) {
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(duration: Duration(seconds: 8), content: Text('$e')),
         );
+      }
       return;
     }
     if (path == null || !mounted) return;
@@ -300,10 +301,11 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
       );
     }
     final file = File(item.assetPath);
-    if (!file.existsSync())
+    if (!file.existsSync()) {
       return const Center(
         child: Text('Image file missing', textAlign: TextAlign.center),
       );
+    }
     return Image.file(
       file,
       fit: BoxFit.contain,
@@ -507,12 +509,13 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
                               final i = items.indexWhere(
                                 (e) => _initial(e.label) == l,
                               );
-                              if (i >= 0 && _scroll.hasClients)
+                              if (i >= 0 && _scroll.hasClients) {
                                 _scroll.animateTo(
                                   (i ~/ 3) * 145.0,
                                   duration: const Duration(milliseconds: 250),
                                   curve: Curves.easeOut,
                                 );
+                              }
                             },
                           ),
                         ),

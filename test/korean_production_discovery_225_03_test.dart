@@ -68,6 +68,8 @@ void main() {
   testWidgets(
     'existing v6 installation discovers, opens, and retains one Korean bundled course through the real selector',
     (tester) async {
+      await SettingsService().setAudioExercisesEnabled(true);
+      await SettingsService().setTtsEnabled(true);
       final custom = _customCourse();
       await CourseEditorService().saveUserCourse(custom);
       final progress = ProgressService();

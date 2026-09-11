@@ -1,5 +1,7 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:audioplayers/audioplayers.dart';
+import 'package:crypto/crypto.dart';
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 import '../models/course_models.dart';
@@ -10,6 +12,25 @@ import 'audio_diagnostic_service.dart';
 /// break the local course. Course packaging can later export this directory as
 /// an optional audio pack.
 class RecordedAudioService {
+  static final RegExp _nonWordBoundary = RegExp(
+    r'^[^\p{L}\p{M}\p{N}]+|[^\p{L}\p{M}\p{N}]+$',
+    unicode: true,
+  );
+
+  static String _segmentKey(String value) => value
+      .trim()
+      .replaceAll(RegExp(r'\s+'), ' ')
+      .replaceAll(_nonWordBoundary, '')
+      .toLowerCase();
+
+  static String storageDirectoryForCourseId(String courseId) {
+    final value = courseId.trim();
+    if (value.isEmpty) {
+      throw ArgumentError.value(courseId, 'courseId', 'Course ID is required');
+    }
+    return 'course_${sha256.convert(utf8.encode(value))}';
+  }
+
   Future<Directory> fixedImportDirectory() async {
     final documents = await getApplicationDocumentsDirectory();
     final dir = Directory(
@@ -19,7 +40,7 @@ class RecordedAudioService {
     return dir;
   }
 
-  Future<List<CourseAudioClip>> importMp3Files(String courseCode) async {
+  Future<List<CourseAudioClip>> importMp3Files(String courseId) async {
     final importDir = await fixedImportDirectory();
     final sources = await importDir
         .list(followLinks: false)
@@ -37,24 +58,31 @@ class RecordedAudioService {
     }
     final root = await getApplicationSupportDirectory();
     final dir = Directory(
-      '${root.path}${Platform.pathSeparator}quisquislingo_audio${Platform.pathSeparator}${courseCode.toLowerCase()}',
+      '${root.path}${Platform.pathSeparator}quisquislingo_audio${Platform.pathSeparator}${storageDirectoryForCourseId(courseId)}',
     );
     await dir.create(recursive: true);
     final out = <CourseAudioClip>[];
-    for (final source in sources) {
+    final batchStamp = DateTime.now().microsecondsSinceEpoch;
+    for (var index = 0; index < sources.length; index++) {
+      final source = sources[index];
       final size = await source.length();
       if (size > 50 * 1024 * 1024) {
         throw StateError('MP3 files larger than 50 MB are not accepted.');
       }
       final sourceName = source.uri.pathSegments.last;
       final safeName = sourceName.replaceAll(RegExp(r'[^A-Za-z0-9._-]'), '_');
-      final stamp = DateTime.now().microsecondsSinceEpoch;
-      final destination =
-          '${dir.path}${Platform.pathSeparator}${stamp}_$safeName';
+      final baseClipId = 'audio_${batchStamp}_$index';
+      var clipId = baseClipId;
+      var destination =
+          '${dir.path}${Platform.pathSeparator}${clipId}_$safeName';
+      var collision = 2;
+      while (await File(destination).exists()) {
+        clipId = '${baseClipId}_$collision';
+        destination = '${dir.path}${Platform.pathSeparator}${clipId}_$safeName';
+        collision += 1;
+      }
       await source.copy(destination);
-      out.add(
-        CourseAudioClip(id: 'audio_$stamp', text: '', filePath: destination),
-      );
+      out.add(CourseAudioClip(id: clipId, text: '', filePath: destination));
     }
     return out;
   }
@@ -77,8 +105,8 @@ class RecordedAudioService {
     final words = text.trim().split(RegExp(r'\s+'));
     if (words.isEmpty) return const [];
     final byText = {
-      for (final c in library.where((c) => c.text.trim().isNotEmpty))
-        c.text.trim().toLowerCase(): c,
+      for (final c in library)
+        if (_segmentKey(c.text).isNotEmpty) _segmentKey(c.text): c,
     };
     final out = <CourseAudioClip>[];
     var i = 0;
@@ -86,11 +114,7 @@ class RecordedAudioService {
       CourseAudioClip? found;
       int foundLen = 0;
       for (var len = words.length - i; len >= 1; len--) {
-        final raw = words
-            .sublist(i, i + len)
-            .join(' ')
-            .replaceAll(RegExp(r'^[^\wÀ-ÿ]+|[^\wÀ-ÿ]+$'), '')
-            .toLowerCase();
+        final raw = _segmentKey(words.sublist(i, i + len).join(' '));
         if (byText.containsKey(raw)) {
           found = byText[raw];
           foundLen = len;
@@ -187,7 +211,7 @@ class RecordedAudioService {
       );
       for (final source in sources) {
         await player.play(source);
-        await player.onPlayerComplete.first;
+        await player.onPlayerComplete.first.timeout(const Duration(minutes: 5));
         await Future<void>.delayed(gap);
       }
       await lifecycle.event(

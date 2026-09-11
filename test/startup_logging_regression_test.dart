@@ -51,11 +51,15 @@ void main() {
     },
   );
 
-  test('diagnostic writes use append mode so a deleted log is recreated', () {
-    final source = File(
+  test('diagnostic writes use the bounded append path', () {
+    final crashSource = File(
       'lib/services/crash_log_service.dart',
     ).readAsStringSync();
-    expect(source.contains('mode: FileMode.append'), isTrue);
+    final writerSource = File(
+      'lib/services/bounded_log_writer.dart',
+    ).readAsStringSync();
+    expect(crashSource.contains('BoundedLogWriter.appendFile'), isTrue);
+    expect(writerSource.contains('mode: FileMode.append'), isTrue);
   });
 
   test('startup trace and exported diagnostic log use QuisquisLingo paths', () {

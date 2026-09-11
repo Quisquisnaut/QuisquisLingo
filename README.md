@@ -1,13 +1,15 @@
 # QuisquisLingo App
 
-**Current source version: 2.0.29+2293 · Build 229 · Revision 3 · Course Model v7 (`formatVersion: 7`).**
+**Current source version: 2.0.30+230 · Build 230 · Revision 0 · Course Model v7 (`formatVersion: 7`).**
 
 
-**QuisquisLingo 2.0.29 Alpha — QQL 229 Course Actions & Learner Panel Refinements**
+**QuisquisLingo 2.0.30 Alpha — QQL 230 Robustness & Modularity**
 
-Current project version: 2.0.29
+Current project version: 2.0.30
 
-QQL 229 revision 3 retains every Revision 2 metadata, language, flag, Internal-ID and per-user developer-unlock correction. Ordinary Team members can now leave through a confirmed self-service action, with Team-owned authorization updating from the unchanged membership policy and the final-Lead invariant preserved. Temporary Sample guidance appears in Course Info rather than the main Course Editor, and Course Manager distinguishes independent blue Draft and Unpublished states. See [QQL 229 validation](docs/229_VALIDATION.md), [Course Manager and Editor](docs/COURSE_EDITOR.md), and [Team Manager](docs/TEAM_MANAGER.md).
+QQL 230 is a broad hardening release with targeted, evidence-driven modularization and no new feature family. It makes Round/Duel completion single-dispatch, makes Audio Exercises Off authoritative through one effective Duel-eligibility service used by Home and Duel entry, isolates optional feedback from learner accounting, makes learner restore and Course replacement rollback-safe, protects official/custom identities and individual Course ownership, bounds diagnostic logs, hardens Unicode recorded audio and Linux voice selection, compares QQL update build numbers correctly, and restores a clean analyzer baseline. Course Model v7, course JSON, progression and XP formulas remain unchanged. See [QQL 230 validation](docs/230_VALIDATION.md), [Course Manager and Editor](docs/COURSE_EDITOR.md), and [Team Manager](docs/TEAM_MANAGER.md).
+
+QQL 229 remains the completed Course Actions, ownership/Teams and Learner Panel baseline. See [QQL 229 validation](docs/229_VALIDATION.md).
 
 QQL 228 remains the completed Settings/Profile, Statistics, Debug/logging, learner Audio Settings and Course Entry Animation baseline. See [QQL 228 validation](docs/228_VALIDATION.md).
 
@@ -40,7 +42,7 @@ The MPL-2.0 covers the QuisquisLingo software source. Courses, the Image Bank an
 
 ## Alpha lifecycle
 
-Version 2.0.29 is a time-limited alpha with the established 30-day lifetime from September 9: expiry is **2026-10-09 23:59:59 local time**. Near expiry it displays reminders. After expiry, learner exercises and Review are blocked until a newer alpha is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when an alpha expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM. Future stable builds can disable alpha expiry.
+Version 2.0.30 is a time-limited alpha with the established 30-day lifetime from September 11: expiry is **2026-10-11 23:59:59 local time**. Near expiry it displays reminders. After expiry, learner exercises and Review are blocked until a newer alpha is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when an alpha expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM. Future stable builds can disable alpha expiry.
 
 ## Core logic
 
@@ -55,7 +57,7 @@ Each Lesson has its own GuideBook, ordered Rounds and Lesson-scoped Duel in Cour
 
 The learner page shows a continuous Lesson path, opens the Section picker from the fixed Section selector when real Sections exist, and opens GuideBooks, Rounds and Duels directly. Its Lesson display control cycles through Expanded, Collapse completed and Focused; it never collapses Sections or changes progression. The Course Selector can hide non-active Courses separately for each learner without uninstalling them or changing Course or learner data.
 
-The next Lesson unlocks when the current Lesson is completed or its Duel is won. A Duel remains unavailable when its actual eligible pool has fewer than the required 25 exercises; Round count is not used to decide availability.
+The next Lesson unlocks when the current Lesson is completed or its Duel is won. A Duel remains unavailable when its effective eligible pool has fewer than the required 25 exercises after the learner's Audio Exercises setting and runtime audio availability are applied; Home and Duel entry use the same calculation. Round count is not used to decide availability.
 
 All learner data remains on-device.
 

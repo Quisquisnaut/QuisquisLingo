@@ -18,6 +18,7 @@ class DuelScreen extends StatefulWidget {
   final Lesson lesson;
   final String ttsLanguage;
   final bool viewOnlyMode;
+  final SettingsService? settingsService;
 
   const DuelScreen({
     super.key,
@@ -25,6 +26,7 @@ class DuelScreen extends StatefulWidget {
     required this.lesson,
     required this.ttsLanguage,
     this.viewOnlyMode = false,
+    this.settingsService,
   });
 
   @override
@@ -53,7 +55,7 @@ class _DuelScreenState extends State<DuelScreen> {
   final _reports = ReportService();
   final _tts = TtsCacheService();
   final _sounds = SoundEffectService();
-  final _settings = SettingsService();
+  late final SettingsService _settings;
   final _recordedAudio = RecordedAudioService();
   final _eligibility = const DuelEligibilityService();
   late final AudioExerciseAvailabilityService _audioAvailability;
@@ -61,10 +63,12 @@ class _DuelScreenState extends State<DuelScreen> {
   int _index = 0;
   List<_DuelItem> _items = const [];
   bool _ready = false;
+  bool _initializationFailed = false;
   int _lives = 4;
   int? _selected;
   bool _answerCorrect = false;
   List<_DuelChoice> _choices = [];
+  bool _finishing = false;
 
   static const _backgrounds = <Color>[
     Color(0xFFE7E1CF),
@@ -82,25 +86,10 @@ class _DuelScreenState extends State<DuelScreen> {
   String get _screenTitle =>
       widget.viewOnlyMode ? 'VIEW ONLY · $_duelTitle' : _duelTitle;
 
-  List<_DuelItem> get _duelItems {
-    // Availability and selection share one Lesson-scoped candidate pool.
-    final candidates = _eligibility
-        .evaluate(widget.lesson)
-        .candidates
-        .map(
-          (candidate) => _DuelItem(
-            lesson: widget.lesson,
-            round: candidate.round,
-            exercise: candidate.exercise,
-          ),
-        )
-        .toList();
-    return candidates;
-  }
-
   @override
   void initState() {
     super.initState();
+    _settings = widget.settingsService ?? SettingsService();
     _audioAvailability = AudioExerciseAvailabilityService(
       recordedAudio: _recordedAudio,
     );
@@ -108,32 +97,48 @@ class _DuelScreenState extends State<DuelScreen> {
   }
 
   Future<void> _initializeDuel() async {
-    final audioExercisesEnabled = await _settings.areAudioExercisesEnabled();
-    final ttsEnabled = audioExercisesEnabled && await _settings.isTtsEnabled();
-    final candidates = <_DuelItem>[];
-    for (final item in _duelItems) {
-      final exercise = item.exercise;
-      if (!_audioAvailability.isAudioExercise(exercise)) {
-        candidates.add(item);
-      } else if (audioExercisesEnabled &&
-          await _audioAvailability.isAvailable(
-            widget.course,
-            exercise,
-            ttsEnabled: ttsEnabled,
-          )) {
-        candidates.add(item);
-      }
-    }
-    _shuffleDifferentItems(candidates);
-    if (!mounted) return;
-    setState(() {
-      _items = candidates
-          .take(DuelEligibilityService.requiredQuestionCount)
+    try {
+      final audioExercisesEnabled = await _settings.areAudioExercisesEnabled();
+      final ttsEnabled =
+          audioExercisesEnabled && await _settings.isTtsEnabled();
+      final eligibility = await _eligibility.evaluateEffective(
+        widget.course,
+        widget.lesson,
+        audioExercisesEnabled: audioExercisesEnabled,
+        ttsEnabled: ttsEnabled,
+        audioAvailability: _audioAvailability,
+      );
+      final candidates = eligibility.candidates
+          .map(
+            (candidate) => _DuelItem(
+              lesson: widget.lesson,
+              round: candidate.round,
+              exercise: candidate.exercise,
+            ),
+          )
           .toList();
-      _ready = true;
-    });
-    _prepareCurrent();
-    _sounds.playDuelSuspense();
+      _shuffleDifferentItems(candidates);
+      if (!mounted) return;
+      setState(() {
+        _items = candidates
+            .take(DuelEligibilityService.requiredQuestionCount)
+            .toList();
+        _ready = true;
+      });
+      _prepareCurrent();
+      try {
+        await _sounds.playDuelSuspense();
+      } catch (_) {
+        // Intro music is optional and cannot make a prepared Duel unavailable.
+      }
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _items = const [];
+        _initializationFailed = true;
+        _ready = true;
+      });
+    }
   }
 
   @override
@@ -300,10 +305,14 @@ class _DuelScreenState extends State<DuelScreen> {
         courseCode: CourseService.codeForCourse(widget.course),
       );
     }
-    if (won) {
-      await _sounds.playDuelWin();
-    } else {
-      await _sounds.playDuelLost();
+    try {
+      if (won) {
+        await _sounds.playDuelWin();
+      } else {
+        await _sounds.playDuelLost();
+      }
+    } catch (_) {
+      // Completion feedback is optional and must not hide a persisted result.
     }
     if (!mounted) return;
     showDialog<void>(
@@ -344,17 +353,33 @@ class _DuelScreenState extends State<DuelScreen> {
   }
 
   Future<void> _next() async {
+    if (_finishing) return;
     final items = _items;
-    if (_lives <= 0) {
-      await _finishDuel();
-      return;
-    }
-    if (_index + 1 < items.length) {
+    if (_lives > 0 && _index + 1 < items.length) {
       setState(() => _index++);
       _prepareCurrent();
       return;
     }
-    await _finishDuel();
+    if (!mounted) return;
+    setState(() => _finishing = true);
+    final persistenceStarted =
+        _lives > 0 && _index + 1 >= items.length && !widget.viewOnlyMode;
+    try {
+      await _finishDuel();
+    } catch (_) {
+      if (!mounted) return;
+      if (!persistenceStarted) setState(() => _finishing = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          duration: Duration(seconds: 8),
+          content: Text(
+            persistenceStarted
+                ? 'Duel completion did not finish safely. Return to the course before trying again.'
+                : 'Duel completion could not be shown. Please try again.',
+          ),
+        ),
+      );
+    }
   }
 
   void _selectChoice(int i) {
@@ -381,11 +406,13 @@ class _DuelScreenState extends State<DuelScreen> {
     if (items.length < DuelEligibilityService.requiredQuestionCount) {
       return Scaffold(
         appBar: AppBar(title: Text(_screenTitle)),
-        body: const Center(
+        body: Center(
           child: Padding(
-            padding: EdgeInsets.all(24),
+            padding: const EdgeInsets.all(24),
             child: Text(
-              'Duel unavailable for this Lesson because there are not enough suitable exercises.',
+              _initializationFailed
+                  ? 'This Duel could not be opened safely. Return to the course and try again.'
+                  : 'Duel unavailable for this Lesson because there are not enough suitable exercises.',
               textAlign: TextAlign.center,
             ),
           ),
@@ -509,9 +536,11 @@ class _DuelScreenState extends State<DuelScreen> {
                 ],
                 const SizedBox(height: 20),
                 FilledButton(
-                  onPressed: _selected == null ? null : _next,
+                  onPressed: _selected == null || _finishing ? null : _next,
                   child: Text(
-                    _lives <= 0 || _index + 1 == items.length
+                    _finishing
+                        ? 'Finishing duel…'
+                        : _lives <= 0 || _index + 1 == items.length
                         ? 'Finish duel'
                         : 'Next',
                   ),

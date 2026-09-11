@@ -5,6 +5,7 @@ import 'package:crypto/crypto.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/authoring_team.dart';
+import 'course_ownership_guard.dart';
 import 'learner_status_events.dart';
 
 enum LearnerThemeMode {
@@ -333,6 +334,10 @@ class ProfileService {
     )) {
       return;
     }
+    CourseOwnershipGuard.ensureProfileDoesNotOwnCourses(
+      prefs,
+      learnerProfileId,
+    );
     await _removeProfileFromAuthoringTeams(prefs, learnerProfileId);
     final remaining = profiles
         .where((profile) => profile.learnerProfileId != learnerProfileId)

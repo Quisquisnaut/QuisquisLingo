@@ -50,14 +50,30 @@ class LearningActivityService {
   DateTime? _parseDay(String? raw) =>
       raw == null ? null : DateTime.tryParse(raw);
 
+  Set<String> _validDayKeys(Iterable<String> values) {
+    final valid = <String>{};
+    for (final value in values) {
+      final parsed = _parseDay(value);
+      if (parsed != null && _dayString(parsed) == value) valid.add(value);
+    }
+    return valid;
+  }
+
+  int _storedStreak(SharedPreferences preferences, String key) =>
+      (preferences.getInt(key) ?? 0).clamp(0, 2147483647).toInt();
+
   Future<Set<String>> _globalStudyDays() async {
     final p = await _prefs;
-    return (p.getStringList(await _k('study_days_all')) ?? []).toSet();
+    return _validDayKeys(
+      p.getStringList(await _k('study_days_all')) ?? const <String>[],
+    );
   }
 
   Future<Set<String>> _languageStudyDays(String courseCode) async {
     final p = await _prefs;
-    return (p.getStringList(await _lk('study_days', courseCode)) ?? []).toSet();
+    return _validDayKeys(
+      p.getStringList(await _lk('study_days', courseCode)) ?? const <String>[],
+    );
   }
 
   Future<int> getDaysStudied({required String courseCode}) async =>
@@ -85,7 +101,7 @@ class LearningActivityService {
       if (languageId.isEmpty) continue;
       daysByLanguage
           .putIfAbsent(languageId, () => <String>{})
-          .addAll(p.getStringList(key) ?? const <String>[]);
+          .addAll(_validDayKeys(p.getStringList(key) ?? const <String>[]));
     }
 
     final globalDays = await _globalStudyDays();
@@ -178,7 +194,7 @@ class LearningActivityService {
         return 0;
       }
     }
-    return p.getInt(streakKey) ?? 0;
+    return _storedStreak(p, streakKey);
   }
 
   Future<void> registerLearningActivity({required String courseCode}) async {
@@ -196,7 +212,7 @@ class LearningActivityService {
       await p.setInt(streakKey, 1);
     } else {
       final lastDay = DateTime(last.year, last.month, last.day);
-      if (lastDay != today) {
+      if (today.isAfter(lastDay)) {
         var uninterrupted = true;
         for (
           var d = lastDay.add(const Duration(days: 1));
@@ -210,12 +226,18 @@ class LearningActivityService {
         }
         await p.setInt(
           streakKey,
-          uninterrupted ? (p.getInt(streakKey) ?? 0) + 1 : 1,
+          uninterrupted ? _storedStreak(p, streakKey) + 1 : 1,
         );
       }
     }
 
-    await p.setString(lastKey, today.toIso8601String());
+    // A corrected device clock can move backward. Preserve the authoritative
+    // latest activity boundary so a historical date cannot manufacture a
+    // streak increment or make future consecutive-day checks run backward.
+    if (last == null ||
+        !today.isBefore(DateTime(last.year, last.month, last.day))) {
+      await p.setString(lastKey, today.toIso8601String());
+    }
     global.add(todayKey);
     await p.setStringList(await _k('study_days_all'), global.toList()..sort());
     final languageDays = await _languageStudyDays(code);

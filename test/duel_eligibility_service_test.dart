@@ -37,6 +37,18 @@ Lesson _lesson(List<List<Exercise>> rounds) => Lesson(
   ],
 );
 
+Course _course(Lesson lesson) => Course(
+  courseId: 'duel-audio-course',
+  title: 'Duel audio course',
+  learningLanguage: 'Italian',
+  interfaceLanguage: 'English',
+  sourceLanguage: 'English',
+  targetLanguage: 'Italian',
+  ttsLanguage: 'it-IT',
+  version: '1',
+  lessons: [lesson],
+);
+
 List<Exercise> _eligibleRange(int start, int count) => [
   for (var i = start; i < start + count; i++)
     _exercise('exercise_$i', prompt: 'Prompt $i'),
@@ -134,4 +146,71 @@ void main() {
       'round_0',
     });
   });
+
+  test(
+    'Audio On retains available audio exercises in the effective pool',
+    () async {
+      final lesson = _lesson([
+        [
+          ..._eligibleRange(0, 24),
+          _exercise('audio_24', type: 'listening_choice', tts: 'Ascolta'),
+        ],
+      ]);
+
+      final result = await service.evaluateEffective(
+        _course(lesson),
+        lesson,
+        audioExercisesEnabled: true,
+        ttsEnabled: true,
+      );
+
+      expect(result.eligibleCount, 25);
+      expect(result.isAvailable, isTrue);
+    },
+  );
+
+  test(
+    'Audio Off keeps Duel available when 25 non-audio exercises remain',
+    () async {
+      final lesson = _lesson([
+        [
+          ..._eligibleRange(0, 25),
+          _exercise('audio_25', type: 'listening_choice', tts: 'Ascolta'),
+        ],
+      ]);
+
+      final result = await service.evaluateEffective(
+        _course(lesson),
+        lesson,
+        audioExercisesEnabled: false,
+        ttsEnabled: false,
+      );
+
+      expect(result.eligibleCount, 25);
+      expect(result.isAvailable, isTrue);
+    },
+  );
+
+  test(
+    'Audio Off makes Duel unavailable when filtering leaves only 24',
+    () async {
+      final lesson = _lesson([
+        [
+          ..._eligibleRange(0, 24),
+          _exercise('audio_24', type: 'listening_choice', tts: 'Ascolta'),
+        ],
+      ]);
+
+      final result = await service.evaluateEffective(
+        _course(lesson),
+        lesson,
+        audioExercisesEnabled: false,
+        ttsEnabled: false,
+      );
+
+      expect(result.eligibleCount, 24);
+      expect(result.isAvailable, isFalse);
+      expect(result.isStructurallyAvailable, isTrue);
+    },
+  );
 }

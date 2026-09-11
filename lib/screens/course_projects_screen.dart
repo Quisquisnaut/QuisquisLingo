@@ -102,6 +102,7 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
   late final _teams = TeamService(profileService: _profiles);
   List<Course> _user = [];
   bool _loading = true;
+  String? _loadError;
   bool _currentCourseIsCustom = false;
   bool _openedInitialCourse = false;
   String? _activeProfileId;
@@ -114,29 +115,48 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
   }
 
   Future<void> _reload() async {
-    final value = await _service.listUserCourses();
-    final activeProfileId = await _profiles.getActiveProfileId();
-    final memberTeamIds = activeProfileId == null
-        ? const <String>{}
-        : (await _teams.teamsForProfile(
-            activeProfileId,
-          )).map((team) => team.teamId).toSet();
-    final selectedRef = await _settings.getLastSelectedCourseCode();
-    if (!mounted) return;
-    setState(() {
-      _user = value;
-      // The persisted selection reference carries the actual course origin.
-      // Do not infer bundled/custom status from title or courseId because a
-      // custom course is allowed to reuse either without becoming bundled.
-      _currentCourseIsCustom =
-          selectedRef == 'custom:${widget.currentCourse.courseId}';
-      _loading = false;
-      _activeProfileId = activeProfileId;
-      _memberTeamIds = memberTeamIds;
-    });
-    if (!_openedInitialCourse && widget.initialCourseIdToOpen != null) {
-      _openedInitialCourse = true;
-      WidgetsBinding.instance.addPostFrameCallback((_) => _openInitialCourse());
+    if (mounted) {
+      setState(() {
+        _loading = true;
+        _loadError = null;
+      });
+    }
+    try {
+      final value = await _service.listUserCourses();
+      final activeProfileId = await _profiles.getActiveProfileId();
+      final memberTeamIds = activeProfileId == null
+          ? const <String>{}
+          : (await _teams.teamsForProfile(
+              activeProfileId,
+            )).map((team) => team.teamId).toSet();
+      final selectedRef = await _settings.getLastSelectedCourseCode();
+      if (!mounted) return;
+      setState(() {
+        _user = value;
+        // The persisted selection reference carries the actual course origin.
+        // Do not infer bundled/custom status from title or courseId because a
+        // custom course is allowed to reuse either without becoming bundled.
+        _currentCourseIsCustom =
+            selectedRef == 'custom:${widget.currentCourse.courseId}';
+        _loading = false;
+        _activeProfileId = activeProfileId;
+        _memberTeamIds = memberTeamIds;
+      });
+      if (!_openedInitialCourse && widget.initialCourseIdToOpen != null) {
+        _openedInitialCourse = true;
+        WidgetsBinding.instance.addPostFrameCallback(
+          (_) => _openInitialCourse(),
+        );
+      }
+    } catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _loading = false;
+        _loadError = error
+            .toString()
+            .replaceFirst('FormatException: ', '')
+            .replaceFirst('StateError: ', '');
+      });
     }
   }
 
@@ -1456,6 +1476,32 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
     ),
     body: _loading
         ? const Center(child: CircularProgressIndicator())
+        : _loadError != null
+        ? Center(
+            key: const Key('course-manager-load-error'),
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.error_outline, size: 40),
+                  const SizedBox(height: 12),
+                  const Text(
+                    'Course Manager could not load local course data.',
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(_loadError!, textAlign: TextAlign.center),
+                  const SizedBox(height: 16),
+                  OutlinedButton.icon(
+                    onPressed: _reload,
+                    icon: const Icon(Icons.refresh),
+                    label: const Text('Retry'),
+                  ),
+                ],
+              ),
+            ),
+          )
         : ListView(
             padding: const EdgeInsets.all(16),
             children: [

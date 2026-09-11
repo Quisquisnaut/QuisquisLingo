@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'course_flag_service.dart';
+import 'course_editor_storage.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -39,11 +40,10 @@ class OfficialCourseUpdateResult {
 /// Official sources are locally read-only. Only custom courses have authoring
 /// transactions; nested editors never persist them independently.
 class CourseEditorService {
-  static const userCoursesStorageKey = 'quisquislingo_user_courses_v7_2291';
+  static const userCoursesStorageKey = CourseEditorStorage.userCoursesKey;
   static const externalOfficialStorageKey =
-      'quisquislingo_external_official_courses_v7_2291';
-  static const _corruptBackupKey =
-      'quisquislingo_course_editor_corrupt_backup_v7_2291';
+      CourseEditorStorage.externalOfficialCoursesKey;
+  static const _corruptBackupKey = CourseEditorStorage.corruptBackupKey;
   static const _maxBytes = 8 * 1024 * 1024;
   static const _bundledOfficialCourseIds = {
     'sample_it_en_it',
@@ -223,21 +223,28 @@ class CourseEditorService {
         'Imported Course Model v7 custom courses require real Creator and Owner identities.',
       );
     }
+    if (_bundledOfficialCourseIds.contains(course.courseId) ||
+        (await _loadKey(
+          externalOfficialStorageKey,
+        )).containsKey(course.courseId)) {
+      throw const FormatException(
+        'A custom course cannot replace an official course identity. Import it as a separate copy.',
+      );
+    }
     final all = await _loadKey(userCoursesStorageKey);
     final existing = all[course.courseId];
     if (existing != null) {
       final current = _courseFromEntry(existing);
-      final access = await _access.forCurrentProfile(current);
-      if (!access.canEditOriginal) {
-        throw StateError(
-          'Only the Owner or owning Team can replace this imported course identity.',
-        );
-      }
-      _requirePreservedProvenance(current, course);
-      _requirePreservedOwnership(current, course);
+      await confirmCourseTransaction(
+        originalCourse: current,
+        workingCourse: course,
+        languageCode: course.targetLanguageTag,
+        versionNotes: course.versionNotes,
+      );
+      return;
     }
     all[course.courseId] = _entry(course, _clock());
-    await _saveKey(userCoursesStorageKey, all);
+    await _replaceKeyAtomically(userCoursesStorageKey, all);
     LearnerStatusEvents.publish(LearnerStatusInvalidation.courseMetadata);
   }
 
@@ -345,7 +352,9 @@ class CourseEditorService {
 
   static void _requirePreservedProvenance(Course original, Course candidate) {
     if (jsonEncode(original.forkProvenance?.toJson()) !=
-        jsonEncode(candidate.forkProvenance?.toJson())) {
+            jsonEncode(candidate.forkProvenance?.toJson()) ||
+        original.parentCourseId != candidate.parentCourseId ||
+        original.derivedFromVersion != candidate.derivedFromVersion) {
       throw const FormatException(
         'Original fork authorship and provenance cannot be changed or removed.',
       );

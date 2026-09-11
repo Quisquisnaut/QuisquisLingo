@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:quisquislingo_app/models/course_models.dart';
 import 'package:quisquislingo_app/screens/course_editor_screen.dart';
+import 'package:quisquislingo_app/screens/duel_screen.dart';
 import 'package:quisquislingo_app/screens/guidebook_screen.dart';
 import 'package:quisquislingo_app/screens/home_screen.dart';
 import 'package:quisquislingo_app/screens/round_screen.dart';
@@ -79,6 +80,69 @@ void main() {
       );
     }
   }
+
+  testWidgets('Audio On keeps an audio-dependent Duel available on Home', (
+    tester,
+  ) async {
+    await SettingsService().setAudioExercisesEnabled(true);
+    await SettingsService().setTtsEnabled(true);
+    final course = _course(count: 24, audioCount: 1);
+
+    await _openHome(tester, course);
+
+    final duel = find.byKey(const ValueKey('unified-duel-optional-lesson'));
+    expect(duel, findsOneWidget);
+    expect(
+      tester
+          .widget<InkWell>(
+            find.descendant(of: duel, matching: find.byType(InkWell)),
+          )
+          .onTap,
+      isNotNull,
+    );
+    expect(find.text('Final challenge'), findsOneWidget);
+  });
+
+  testWidgets(
+    'Audio Off keeps Duel available and openable with 25 non-audio exercises',
+    (tester) async {
+      final course = _course(count: 25, audioCount: 1);
+
+      await _openHome(tester, course);
+
+      final duel = find.byKey(const ValueKey('unified-duel-optional-lesson'));
+      final tapTarget = find.descendant(
+        of: duel,
+        matching: find.byType(InkWell),
+      );
+      expect(duel, findsOneWidget);
+      expect(tester.widget<InkWell>(tapTarget).onTap, isNotNull);
+
+      await tester.tap(tapTarget);
+      await _pumpFrames(tester);
+
+      expect(find.byType(DuelScreen), findsOneWidget);
+      expect(find.text('Question 1/25 · 4 lives'), findsOneWidget);
+    },
+  );
+
+  testWidgets('Audio Off shows a disabled Duel when only 24 exercises remain', (
+    tester,
+  ) async {
+    final course = _course(count: 24, audioCount: 1);
+
+    await _openHome(tester, course);
+
+    final duel = find.byKey(const ValueKey('unified-duel-optional-lesson'));
+    final tapTarget = find.descendant(of: duel, matching: find.byType(InkWell));
+    expect(duel, findsOneWidget);
+    expect(tester.widget<InkWell>(tapTarget).onTap, isNull);
+    expect(
+      find.text('Unavailable for this Lesson: not enough suitable exercises.'),
+      findsOneWidget,
+    );
+    expect(find.byType(DuelScreen), findsNothing);
+  });
 
   test(
     'Use GuideBook suppresses only the empty rule and restores canonical red',
@@ -495,6 +559,7 @@ Course _course({
   bool createDuels = true,
   bool useGuidebook = true,
   int count = 25,
+  int audioCount = 0,
   bool emptyGuidebook = false,
   bool malformedGuidebook = false,
   bool draftGuidebook = false,
@@ -553,6 +618,25 @@ Course _course({
                   answers: ['Answer $index', 'Another answer $index'],
                   correct: 0,
                   tts: null,
+                  accepted: const [],
+                  tokens: const [],
+                  orderAnswer: const [],
+                  pairs: const [],
+                  hint: '',
+                  icons: const [],
+                ),
+              ),
+            for (var index = 0; index < audioCount; index++)
+              LearningContent.fromExercise(
+                Exercise(
+                  id: 'optional-audio-exercise-$index',
+                  type: 'listening_choice',
+                  editorTemplate: 'listening_choice',
+                  prompt: 'Choose what you hear.',
+                  question: 'Audio question $index',
+                  answers: ['Audio answer $index', 'Wrong audio answer $index'],
+                  correct: 0,
+                  tts: 'Audio prompt $index',
                   accepted: const [],
                   tokens: const [],
                   orderAnswer: const [],

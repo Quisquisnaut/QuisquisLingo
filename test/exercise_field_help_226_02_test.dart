@@ -348,7 +348,7 @@ void main() {
       'docs/COURSE_EDITOR.md',
     ]) {
       final text = File(path).readAsStringSync();
-      expect(text, contains('grouped by learning language'), reason: path);
+      expect(text, contains('derived from the stable Course ID'), reason: path);
       expect(
         text,
         contains('metadata and references belong to the Course'),

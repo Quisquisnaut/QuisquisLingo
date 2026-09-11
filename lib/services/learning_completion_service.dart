@@ -9,7 +9,8 @@ class LearningCompletionRequest {
   final String? completedLessonId;
 
   /// Reads screen-owned attempt state at the same await boundaries used before
-  /// extraction, preserving the existing unguarded completion race behavior.
+  /// extraction. Concurrent completion requests for the same Course and Round
+  /// share one in-flight operation, so these facts are consumed only once.
   final LearningCompletionAttemptFacts Function() readAttemptFacts;
 
   const LearningCompletionRequest({
@@ -111,6 +112,7 @@ abstract interface class LearningCompletionProgress {
 class LearningCompletionService {
   final LearningCompletionProgress _progress;
   final XpCalculator _xpCalculator;
+  final Map<(String, String), Future<LearningCompletionResult>> _inFlight = {};
 
   LearningCompletionService({
     ProgressService? progressService,
@@ -126,6 +128,28 @@ class LearningCompletionService {
   }) : _xpCalculator = xpCalculator;
 
   Future<LearningCompletionResult> completeRound(
+    LearningCompletionRequest request, {
+    required Future<void> Function() onNewLaurel,
+    required Future<int> Function() getWeeklyXpTarget,
+  }) {
+    final key = (request.courseId.trim(), request.roundId.trim());
+    final existing = _inFlight[key];
+    if (existing != null) return existing;
+
+    final future = _completeRoundOnce(
+      request,
+      onNewLaurel: onNewLaurel,
+      getWeeklyXpTarget: getWeeklyXpTarget,
+    );
+    late final Future<LearningCompletionResult> guarded;
+    guarded = future.whenComplete(() {
+      if (identical(_inFlight[key], guarded)) _inFlight.remove(key);
+    });
+    _inFlight[key] = guarded;
+    return guarded;
+  }
+
+  Future<LearningCompletionResult> _completeRoundOnce(
     LearningCompletionRequest request, {
     required Future<void> Function() onNewLaurel,
     required Future<int> Function() getWeeklyXpTarget,
@@ -154,9 +178,16 @@ class LearningCompletionService {
         request.roundId,
         courseId: request.courseId,
       );
-      // RoundScreen supplies its sound/settings work here so the existing
-      // laurel-persisted -> sound -> XP ordering remains intact.
-      if (newlyEarnedLaurel) await onNewLaurel();
+      // Laurel feedback is optional. A settings or audio failure must not stop
+      // the already-started persistence and XP accounting operation.
+      if (newlyEarnedLaurel) {
+        try {
+          await onNewLaurel();
+        } catch (_) {
+          // SoundEffectService is normally failure-tolerant; keep this boundary
+          // safe for injected/platform settings failures too.
+        }
+      }
     } else if (perfectFacts.errorsThisAttempt == 0 &&
         perfectFacts.ttsWasSkipped) {
       // Zero errors among presented exercises gets a separate mark when any
@@ -194,7 +225,15 @@ class LearningCompletionService {
     final weeklyXpAfter = await _progress.getWeeklyXp();
     // Keep this read before the explicit second activity registration, matching
     // the current RoundScreen partial-failure and clock-dependent ordering.
-    final weeklyXpTarget = await getWeeklyXpTarget();
+    int weeklyXpTarget;
+    try {
+      weeklyXpTarget = await getWeeklyXpTarget();
+    } catch (_) {
+      // The target controls celebration presentation, not earned progress.
+      // A corrupt/unavailable setting must not turn a completed XP write into
+      // a retryable completion failure.
+      weeklyXpTarget = 1000;
+    }
     await _progress.registerLearningActivity(courseCode: request.courseCode);
 
     return LearningCompletionResult(

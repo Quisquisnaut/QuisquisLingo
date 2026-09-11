@@ -4,6 +4,10 @@ This roadmap describes planned work after build 204.
 
 Version numbers are provisional. If a task requires more than one build, later items may move forward rather than being compressed into an unsafe release.
 
+## QQL 230 complete: Robustness & Modularity
+
+`2.0.30+230` is Build 230 revision 0 on the completed QQL 229 baseline. It adds no new feature family and changes no Course Model v7 or scoring rule. The release hardens learner completion against re-entry, makes Audio Exercises Off authoritative through one effective Duel-eligibility calculation shared by Home and Duel entry, makes learner restore and custom-Course replacement rollback-safe, protects official/custom Course identity and individual ownership, bounds diagnostic persistence, corrects QQL build comparison, improves multilingual audio boundaries, applies targeted evidence-driven modularization, and clears the inherited analyzer backlog. Release evidence and deferred design decisions are recorded in [230 validation](230_VALIDATION.md).
+
 ## QQL 229 complete: Course Actions & Learner Panel Refinements
 
 `2.0.29+2293` is Build 229 revision 3 on the completed QQL 228 baseline and revision-1 ownership implementation. Course Manager remains the lifecycle hub and presents actions through one ownership/license policy. Duplicate is reserved for an individual Owner or owning-Team member; outsider and official derivatives use Fork only when allowed. Delete remains manager-only. Official and custom courses share the same capability-driven Course Editor hierarchy, with official and outsider originals read-only and owned/Team-owned custom courses editable.

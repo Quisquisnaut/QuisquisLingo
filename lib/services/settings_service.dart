@@ -450,12 +450,13 @@ class SettingsService {
       (await SharedPreferences.getInstance()).getInt('weekly_xp_target') ??
       1000;
   Future<void> setWeeklyXpTarget(int value) async {
-    if (value < 1)
+    if (value < 1) {
       throw ArgumentError.value(
         value,
         'value',
         'Weekly XP target must be positive',
       );
+    }
     await (await SharedPreferences.getInstance()).setInt(
       'weekly_xp_target',
       value,

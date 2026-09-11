@@ -242,6 +242,30 @@ void main() {
     },
   );
 
+  test('Team creation rejects a generated ID collision', () async {
+    final profiles = await _profiles(includeCharlie: false);
+    final teams = TeamService(
+      profileService: profiles,
+      idGenerator: () => teamId,
+      clock: () => DateTime.utc(2026, 9, 11),
+    );
+
+    await teams.createTeam(
+      creatorProfileId: aliceId,
+      displayName: 'First Team',
+    );
+    await expectLater(
+      teams.createTeam(
+        creatorProfileId: aliceId,
+        displayName: 'Colliding Team',
+      ),
+      throwsStateError,
+    );
+    expect((await teams.listTeams()).map((team) => team.displayName), [
+      'First Team',
+    ]);
+  });
+
   test(
     'Profile deletion preserves Team membership and final-Lead invariants',
     () async {
@@ -273,6 +297,28 @@ void main() {
       expect(team!.hasMember(aliceId), isFalse);
       expect(team.hasLead(bobId), isTrue);
       expect(team.creatorProfileId, aliceId);
+    },
+  );
+
+  test(
+    'Profile deletion cannot orphan an individually owned custom course',
+    () async {
+      final profiles = await _profiles(includeCharlie: false);
+      final courses = CourseEditorService(profileService: profiles);
+      final course = _custom(title: 'Alice owned course');
+      await courses.saveUserCourse(course);
+
+      await expectLater(profiles.deleteProfileById(aliceId), throwsStateError);
+      expect(await profiles.getProfileById(aliceId), isNotNull);
+      expect(await profiles.getActiveProfileId(), aliceId);
+      expect((await courses.listUserCourses()).map((value) => value.courseId), [
+        course.courseId,
+      ]);
+
+      await courses.deleteUserCourse(course.courseId);
+      await profiles.deleteProfileById(aliceId);
+      expect(await profiles.getProfileById(aliceId), isNull);
+      expect(await profiles.getActiveProfileId(), bobId);
     },
   );
 

@@ -14,6 +14,7 @@ import '../services/course_editor_service.dart';
 import '../services/publication_service.dart';
 import '../services/lesson_presentation_service.dart';
 import '../services/duel_eligibility_service.dart';
+import '../services/audio_exercise_availability_service.dart';
 import '../services/progress_service.dart';
 import '../services/profile_service.dart';
 import '../services/lesson_unlock_service.dart';
@@ -172,6 +173,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final _courseEditorService = CourseEditorService();
   final _publication = const PublicationService();
   final _duelEligibility = const DuelEligibilityService();
+  final _duelAudioAvailability = AudioExerciseAvailabilityService();
   final _progress = ProgressService();
   final _profiles = ProfileService();
   final _settings = SettingsService();
@@ -212,6 +214,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Set<String> _perfectRounds = {};
   Set<String> _ttsSkippedPerfectRounds = {};
   Set<String> _wonDuels = {};
+  Map<String, DuelEligibilityResult> _duelEligibilityByLessonId = const {};
   LearnerIddqdMode _iddqdMode = LearnerIddqdMode.off;
   LearnerLessonExpansionMode _lessonExpansionMode =
       LearnerLessonExpansionMode.expanded;
@@ -485,6 +488,9 @@ class _HomeScreenState extends State<HomeScreen> {
       final wonDuels = activeId == null
           ? <String>{}
           : await _progress.getWonDuels(courseId: course.courseId);
+      final duelEligibilityByLessonId = await _effectiveDuelEligibilityFor(
+        course,
+      );
       final iddqdMode = activeId == null
           ? LearnerIddqdMode.off
           : await _settings.getIddqdMode(course.courseId);
@@ -528,6 +534,7 @@ class _HomeScreenState extends State<HomeScreen> {
         _perfectRounds = perfect;
         _ttsSkippedPerfectRounds = skipped;
         _wonDuels = wonDuels;
+        _duelEligibilityByLessonId = duelEligibilityByLessonId;
         _iddqdMode = iddqdMode;
         _lessonExpansionMode = lessonExpansionMode;
         _flagBackgroundMode = flagBackgroundMode;
@@ -580,6 +587,7 @@ class _HomeScreenState extends State<HomeScreen> {
         _selectedCourseRef = normalized;
         _selectedLanguage = normalized;
         _course = course;
+        _duelEligibilityByLessonId = const {};
         _courseEntryTransition = null;
       });
       await _settings.setLastSelectedCourseCode(normalized);
@@ -608,6 +616,7 @@ class _HomeScreenState extends State<HomeScreen> {
       _selectedCourseRef = ref;
       _selectedLanguage = code;
       _course = learnerCourse;
+      _duelEligibilityByLessonId = const {};
       _courseEntryTransition = null;
     });
     await _settings.setLastSelectedCourseCode(ref);
@@ -1707,8 +1716,17 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _openDuel(Course course, Lesson lesson) async {
     if (!course.createDuels) return;
-    final eligibility = _duelEligibility.evaluate(lesson);
-    if (!eligibility.isAvailable) return;
+    final eligibility = await _effectiveDuelEligibility(course, lesson);
+    if (!mounted) return;
+    if (!eligibility.isAvailable) {
+      setState(() {
+        _duelEligibilityByLessonId = {
+          ..._duelEligibilityByLessonId,
+          lesson.lessonId: eligibility,
+        };
+      });
+      return;
+    }
     _resetLockedLessonTapSequence();
     if (!await _canOpenLearnerContent() || !mounted) return;
     await Navigator.of(context).push(
@@ -1718,10 +1736,48 @@ class _HomeScreenState extends State<HomeScreen> {
           lesson: lesson,
           ttsLanguage: CourseLanguageResolver.learning(course).code ?? '',
           viewOnlyMode: _iddqdMode == LearnerIddqdMode.viewOnly,
+          settingsService: _settings,
         ),
       ),
     );
     await _reload();
+  }
+
+  Future<Map<String, DuelEligibilityResult>> _effectiveDuelEligibilityFor(
+    Course course,
+  ) async {
+    if (!course.createDuels) return const {};
+    final audioExercisesEnabled = await _settings.areAudioExercisesEnabled();
+    final ttsEnabled = audioExercisesEnabled && await _settings.isTtsEnabled();
+    final results = await Future.wait([
+      for (final lesson in course.lessons)
+        _duelEligibility.evaluateEffective(
+          course,
+          lesson,
+          audioExercisesEnabled: audioExercisesEnabled,
+          ttsEnabled: ttsEnabled,
+          audioAvailability: _duelAudioAvailability,
+        ),
+    ]);
+    return {
+      for (var index = 0; index < course.lessons.length; index++)
+        course.lessons[index].lessonId: results[index],
+    };
+  }
+
+  Future<DuelEligibilityResult> _effectiveDuelEligibility(
+    Course course,
+    Lesson lesson,
+  ) async {
+    final audioExercisesEnabled = await _settings.areAudioExercisesEnabled();
+    final ttsEnabled = audioExercisesEnabled && await _settings.isTtsEnabled();
+    return _duelEligibility.evaluateEffective(
+      course,
+      lesson,
+      audioExercisesEnabled: audioExercisesEnabled,
+      ttsEnabled: ttsEnabled,
+      audioAvailability: _duelAudioAvailability,
+    );
   }
 
   Future<void> _openReview(Course course) async {
@@ -2000,9 +2056,15 @@ class _HomeScreenState extends State<HomeScreen> {
                                     perfectRounds: _perfectRounds,
                                     ttsSkippedPerfectRounds:
                                         _ttsSkippedPerfectRounds,
-                                    duelEligibility: _duelEligibility.evaluate(
-                                      sectionLesson,
-                                    ),
+                                    duelEligibility:
+                                        _duelEligibilityByLessonId[sectionLesson
+                                            .lessonId] ??
+                                        const DuelEligibilityResult(
+                                          candidates: [],
+                                          requiredCount: DuelEligibilityService
+                                              .requiredQuestionCount,
+                                          structuralEligibleCount: 0,
+                                        ),
                                     onOpenGuidebook: () => _openGuidebook(
                                       course,
                                       sectionLesson,
@@ -2390,7 +2452,7 @@ class _LessonSection extends StatelessWidget {
           interactive: !previewOnly,
           onOpenRound: onOpenRound,
         ),
-        if (course.createDuels && duelEligibility.isAvailable) ...[
+        if (course.createDuels && duelEligibility.isStructurallyAvailable) ...[
           const _VerticalConnector(),
           _DuelCard(
             key: ValueKey('unified-duel-${lesson.lessonId}'),

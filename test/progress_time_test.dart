@@ -455,7 +455,7 @@ void main() {
     });
 
     test(
-      'missing and malformed last-active values currently hide stored streaks without rewriting them',
+      'malformed stored study dates do not inflate statistics or rewrite persistence',
       () async {
         const missingLanguageDays = ['not-a-date', '2026-01-01', '2026-01-01'];
         const malformedLanguageDays = ['2026-01-02', 'also-not-a-date'];
@@ -482,8 +482,9 @@ void main() {
 
         expect(await service.getStreak(courseCode: 'IT'), 0);
         expect(await service.getStreak(courseCode: 'DE'), 0);
-        expect(await service.getDaysStudied(courseCode: 'IT'), 2);
-        expect(await service.getDaysStudied(courseCode: 'DE'), 2);
+        expect(await service.getDaysStudied(courseCode: 'IT'), 1);
+        expect(await service.getDaysStudied(courseCode: 'DE'), 1);
+        expect(await service.getTotalStudyDays(), 1);
         expect(prefs.getInt('${_testerPrefix}streak_IT'), 7);
         expect(prefs.getInt('${_testerPrefix}streak_DE'), -3);
         expect(prefs.containsKey('${_testerPrefix}last_active_IT'), isFalse);
@@ -503,7 +504,7 @@ void main() {
     );
 
     test(
-      'KNOWN CURRENT wall-clock behavior increments and rewrites last-active backwards',
+      'wall-clock rollback records history without incrementing or moving last-active backward',
       () async {
         final clock = _MutableClock(DateTime(2026, 6, 10, 8));
         await addProfile('Tester');
@@ -514,10 +515,10 @@ void main() {
         clock.value = DateTime(2026, 6, 5, 8);
         await service.registerLearningActivity(courseCode: 'IT');
 
-        expect(await service.getStreak(courseCode: 'IT'), 2);
+        expect(await service.getStreak(courseCode: 'IT'), 1);
         expect(
           prefs.getString('${_testerPrefix}last_active_IT'),
-          '2026-06-05T00:00:00.000',
+          '2026-06-10T00:00:00.000',
         );
         expect(prefs.getStringList('${_testerPrefix}study_days_IT'), [
           '2026-06-05',
@@ -529,6 +530,25 @@ void main() {
         ]);
       },
     );
+
+    test('negative persisted streaks are projected as zero', () async {
+      SharedPreferences.setMockInitialValues({
+        ProfileService.profilesKey: <String>[
+          const LearnerProfile(
+            learnerProfileId: _testerId,
+            displayName: 'Tester',
+          ).encode(),
+        ],
+        ProfileService.activeProfileIdKey: _testerId,
+        '${_testerPrefix}streak_IT': -4,
+        '${_testerPrefix}last_active_IT': '2026-06-10T00:00:00.000',
+        '${_testerPrefix}study_days_IT': <String>['2026-06-10'],
+        '${_testerPrefix}study_days_all': <String>['2026-06-10'],
+      });
+      final service = ProgressService(now: () => DateTime(2026, 6, 10, 12));
+
+      expect(await service.getStreak(courseCode: 'IT'), 0);
+    });
 
     test('activity remains consecutive across a month boundary', () async {
       final clock = _MutableClock(DateTime(2026, 1, 31, 23, 59));

@@ -5,9 +5,33 @@ import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'app_errors.dart';
+import 'bounded_log_writer.dart';
 
 class DiagnosticLogService {
   static const _logKey = 'quisquislingo_diagnostic_log';
+  static const _maximumLogCharacters = 256 * 1024;
+  Future<void> _pendingLogWrite = Future<void>.value();
+
+  Future<void> _append(String entry) {
+    final ready = _pendingLogWrite.then<void>(
+      (_) {},
+      onError: (Object _, StackTrace __) {},
+    );
+    final operation = ready.then((_) async {
+      final prefs = await SharedPreferences.getInstance();
+      final previous = prefs.getString(_logKey) ?? '';
+      await prefs.setString(
+        _logKey,
+        BoundedLogWriter.appendString(
+          current: previous,
+          entry: entry,
+          maximumCharacters: _maximumLogCharacters,
+        ),
+      );
+    });
+    _pendingLogWrite = operation;
+    return operation;
+  }
 
   static Future<Directory?> logsDirectory({bool create = false}) async {
     if (kIsWeb) return null;
@@ -27,7 +51,6 @@ class DiagnosticLogService {
     StackTrace? stackTrace,
   }) async {
     try {
-      final prefs = await SharedPreferences.getInstance();
       final timestamp = DateTime.now().toIso8601String();
       final entry = StringBuffer()
         ..writeln('[$timestamp] ${error.code}')
@@ -38,8 +61,7 @@ class DiagnosticLogService {
       if (exception != null) entry.writeln('Exception: $exception');
       if (stackTrace != null) entry.writeln('Stack trace: $stackTrace');
       entry.writeln('---');
-      final previous = prefs.getString(_logKey) ?? '';
-      await prefs.setString(_logKey, '$previous${entry.toString()}');
+      await _append(entry.toString());
     } catch (_) {
       // Logging must never crash the app.
     }
@@ -50,13 +72,8 @@ class DiagnosticLogService {
   /// an error code.
   Future<void> logInfo(String message) async {
     try {
-      final prefs = await SharedPreferences.getInstance();
       final timestamp = DateTime.now().toIso8601String();
-      final previous = prefs.getString(_logKey) ?? '';
-      await prefs.setString(
-        _logKey,
-        '$previous[$timestamp] INFO\n$message\n---\n',
-      );
+      await _append('[$timestamp] INFO\n$message\n---\n');
     } catch (_) {}
   }
 

@@ -222,6 +222,126 @@ void main() {
   });
 
   test(
+    'replace restore rolls back profile, active learner, and namespace when a verified write fails',
+    () async {
+      final ids = [_idA, _idB].iterator;
+      final profiles = ProfileService(
+        idGenerator: () {
+          ids.moveNext();
+          return ids.current;
+        },
+      );
+      await profiles.createProfile('Existing');
+      await profiles.createProfile('Active peer');
+      final prefs = await SharedPreferences.getInstance();
+      final prefix = ProfileService.prefixForProfileId(_idA);
+      await prefs.setString('${prefix}old', 'preserve');
+      final before = {for (final key in prefs.getKeys()) key: prefs.get(key)};
+      final backup = LearnerBackupService(
+        profileService: profiles,
+        preferenceWriter: (preferences, key, value) async {
+          if (key == '${prefix}new_2') return false;
+          return _writePreferenceForTest(preferences, key, value);
+        },
+      );
+      final document = LearnerBackupDocument(
+        schemaVersion: LearnerBackupService.schemaVersion,
+        learnerProfileId: _idA,
+        displayName: 'Replacement name',
+        data: const {'new_1': 'written before failure', 'new_2': 2},
+      );
+
+      await expectLater(
+        backup.restorePreservingIdentity(document, replaceExisting: true),
+        throwsStateError,
+      );
+
+      expect((await profiles.getProfileById(_idA))?.displayName, 'Existing');
+      expect(await profiles.getActiveProfileId(), _idB);
+      expect(prefs.getString('${prefix}old'), 'preserve');
+      expect(prefs.getString('${prefix}new_1'), isNull);
+      expect(prefs.getInt('${prefix}new_2'), isNull);
+      expect({for (final key in prefs.getKeys()) key: prefs.get(key)}, before);
+    },
+  );
+
+  test(
+    'separate-copy restore removes a partial profile after write failure',
+    () async {
+      final ids = [_idA, _idB].iterator;
+      final profiles = ProfileService(
+        idGenerator: () {
+          ids.moveNext();
+          return ids.current;
+        },
+      );
+      await profiles.createProfile('Existing');
+      final failedPrefix = ProfileService.prefixForProfileId(_idB);
+      final backup = LearnerBackupService(
+        profileService: profiles,
+        preferenceWriter: (preferences, key, value) async {
+          if (key == '${failedPrefix}xp_IT') return false;
+          return _writePreferenceForTest(preferences, key, value);
+        },
+      );
+
+      await expectLater(
+        backup.importAsSeparateCopy(
+          const LearnerBackupDocument(
+            schemaVersion: LearnerBackupService.schemaVersion,
+            learnerProfileId: _idC,
+            displayName: 'Imported',
+            data: {'xp_IT': 40},
+          ),
+          displayName: 'Failed copy',
+        ),
+        throwsStateError,
+      );
+
+      final prefs = await SharedPreferences.getInstance();
+      expect(await profiles.getProfileById(_idB), isNull);
+      expect(await profiles.getActiveProfileId(), _idA);
+      expect(
+        prefs.getKeys().where((key) => key.startsWith(failedPrefix)),
+        isEmpty,
+      );
+    },
+  );
+
+  test(
+    'backup v2 rejects invalid keys and values instead of dropping them',
+    () {
+      final backup = LearnerBackupService();
+      Map<String, Object?> payload(Object data) => {
+        'format': LearnerBackupService.format,
+        'schemaVersion': LearnerBackupService.schemaVersion,
+        'learnerProfileId': _idA,
+        'displayName': 'Imported',
+        'data': data,
+      };
+
+      expect(
+        () => backup.decodeDocument(
+          utf8.encode(jsonEncode(payload({'unsafe key': 1}))),
+        ),
+        throwsFormatException,
+      );
+      expect(
+        () => backup.decodeDocument(
+          utf8.encode(
+            jsonEncode(
+              payload({
+                'unsupported': [1, 2],
+              }),
+            ),
+          ),
+        ),
+        throwsFormatException,
+      );
+    },
+  );
+
+  test(
     'separate copy gets a new ID, chosen name, and independent data',
     () async {
       final ids = [_idB, _idC].iterator;
@@ -383,4 +503,17 @@ void main() {
     expect(await File(first).exists(), isTrue);
     expect(await File(second).exists(), isTrue);
   });
+}
+
+Future<bool> _writePreferenceForTest(
+  SharedPreferences preferences,
+  String key,
+  Object value,
+) {
+  if (value is String) return preferences.setString(key, value);
+  if (value is bool) return preferences.setBool(key, value);
+  if (value is int) return preferences.setInt(key, value);
+  if (value is double) return preferences.setDouble(key, value);
+  if (value is List<String>) return preferences.setStringList(key, value);
+  throw ArgumentError.value(value, 'value');
 }

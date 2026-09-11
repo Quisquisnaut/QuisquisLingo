@@ -334,7 +334,7 @@ void main() {
   );
 
   test(
-    'new-laurel callback failure stops before XP and later activity',
+    'new-laurel callback failure cannot stop XP and later activity',
     () async {
       final events = <String>[];
       final progress = _FakeLearningCompletionProgress(
@@ -344,36 +344,109 @@ void main() {
       );
       final service = LearningCompletionService.withProgress(progress);
 
-      await expectLater(
-        service.completeRound(
-          _request(
-            errorsThisAttempt: 0,
-            firstPassCorrect: 1,
-            wasCompletedAtStart: false,
-            ttsWasSkipped: false,
-          ),
-          onNewLaurel: () async {
-            events.add('newLaurel:start');
-            throw StateError('sound failed');
-          },
-          getWeeklyXpTarget: () async => 100,
+      final result = await service.completeRound(
+        _request(
+          errorsThisAttempt: 0,
+          firstPassCorrect: 1,
+          wasCompletedAtStart: false,
+          ttsWasSkipped: false,
         ),
-        throwsStateError,
+        onNewLaurel: () async {
+          events.add('newLaurel:start');
+          throw StateError('sound failed');
+        },
+        getWeeklyXpTarget: () async => 100,
       );
 
-      expect(events, [
-        'completeRound:start',
-        'completeRound:completedRoundPersisted',
-        'activity:first',
-        'completeRound:end',
-        'recentRound:start',
-        'recentRound:end',
-        'perfectRound:start',
-        'perfectRound:end',
-        'newLaurel:start',
-      ]);
-      expect(progress.addXpCalls, 0);
-      expect(progress.effectiveActivityRegistrations, 1);
+      expect(
+        events,
+        containsAllInOrder([
+          'perfectRound:end',
+          'newLaurel:start',
+          'addXp:35:start',
+          'addXp:35:end',
+          'activity:second:start',
+          'activity:second:end',
+        ]),
+      );
+      expect(progress.addXpCalls, 1);
+      expect(progress.addedXp, 35);
+      expect(progress.effectiveActivityRegistrations, 2);
+      expect(result.awardedXp, 35);
+    },
+  );
+
+  test(
+    'weekly-target read failure cannot invalidate persisted completion',
+    () async {
+      final events = <String>[];
+      final progress = _FakeLearningCompletionProgress(
+        events: events,
+        weeklyXpValues: [0, 10],
+        newlyEarnedLaurel: false,
+      );
+      final service = LearningCompletionService.withProgress(progress);
+
+      final result = await service.completeRound(
+        _request(
+          errorsThisAttempt: 1,
+          firstPassCorrect: 1,
+          wasCompletedAtStart: false,
+          ttsWasSkipped: false,
+        ),
+        onNewLaurel: () async {},
+        getWeeklyXpTarget: () => throw StateError('setting unavailable'),
+      );
+
+      expect(progress.addXpCalls, 1);
+      expect(progress.effectiveActivityRegistrations, 2);
+      expect(result.awardedXp, 5);
+      expect(result.weeklyXpTarget, 1000);
+      expect(result.crossedWeeklyXpTarget, isFalse);
+    },
+  );
+
+  test(
+    'concurrent completion calls for one Round share one operation',
+    () async {
+      final events = <String>[];
+      final progress = _FakeLearningCompletionProgress(
+        events: events,
+        weeklyXpValues: [0, 35],
+        newlyEarnedLaurel: true,
+      );
+      final service = LearningCompletionService.withProgress(progress);
+      var laurelCallbacks = 0;
+      final request = _request(
+        errorsThisAttempt: 0,
+        firstPassCorrect: 1,
+        wasCompletedAtStart: false,
+        ttsWasSkipped: false,
+      );
+
+      final first = service.completeRound(
+        request,
+        onNewLaurel: () async => laurelCallbacks++,
+        getWeeklyXpTarget: () async => 100,
+      );
+      final second = service.completeRound(
+        request,
+        onNewLaurel: () async => laurelCallbacks++,
+        getWeeklyXpTarget: () async => 100,
+      );
+
+      expect(identical(first, second), isTrue);
+      final results = await Future.wait([first, second]);
+      expect(identical(results.first, results.last), isTrue);
+      expect(
+        events.where((event) => event == 'completeRound:start'),
+        hasLength(1),
+      );
+      expect(progress.addXpCalls, 1);
+      expect(progress.addedXp, 35);
+      expect(progress.perfectRoundCalls, 1);
+      expect(progress.effectiveActivityRegistrations, 2);
+      expect(laurelCallbacks, 1);
     },
   );
 

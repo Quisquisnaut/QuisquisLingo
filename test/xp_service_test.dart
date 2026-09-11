@@ -93,6 +93,36 @@ void main() {
   });
 
   test(
+    'corrupt persisted XP is projected inside the supported range',
+    () async {
+      final clock = _MutableClock(DateTime(2026, 8, 24, 12));
+      await addProfile('Tester');
+      final learnerPrefix = ProfileService.prefixForProfileId(
+        (await ProfileService().getActiveProfileId())!,
+      );
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('${learnerPrefix}week_xp_week', '2026-08-23');
+      await prefs.setInt('${learnerPrefix}xp_IT', -10);
+      await prefs.setInt('${learnerPrefix}week_xp', -20);
+      await prefs.setInt('${learnerPrefix}last_week_xp', -30);
+      await prefs.setString(
+        '${learnerPrefix}last_week_xp_by_course',
+        jsonEncode({
+          'negative': -1,
+          'oversized': 999999999999,
+          'invalid': 'not XP',
+        }),
+      );
+
+      final service = XpService(now: clock.call);
+      expect(await service.getXp(courseCode: 'IT'), 0);
+      expect(await service.getWeeklyXp(), 0);
+      expect(await service.getLastWeekXp(), 0);
+      expect(await service.getLastWeekXpByCourse(), {'oversized': 2147483647});
+    },
+  );
+
+  test(
     'Sunday rollover preserves previous-week total and course breakdown',
     () async {
       final clock = _MutableClock(DateTime(2026, 8, 22, 23, 59));

@@ -116,6 +116,7 @@ class _RoundScreenState extends State<RoundScreen> {
   int _evaluableExerciseCount = 0;
   int _errorsThisAttempt = 0;
   bool _reviewPhase = false;
+  bool _finishing = false;
   bool _answered = false;
   bool _lastAnswerCorrect = false;
   String _feedback = '';
@@ -922,6 +923,7 @@ class _RoundScreenState extends State<RoundScreen> {
   }
 
   Future<void> _next() async {
+    if (_finishing) return;
     if (_position + 1 < _queue.length) {
       setState(() => _position++);
       _prepareExercise(trigger: 'exercise_advanced');
@@ -954,110 +956,97 @@ class _RoundScreenState extends State<RoundScreen> {
       return;
     }
 
-    if (widget.previewMode || widget.viewOnlyMode) {
-      if (!mounted) return;
-      final viewOnly = widget.viewOnlyMode;
-      await showDialog<void>(
-        context: context,
-        builder: (ctx) => AlertDialog(
-          title: Text(viewOnly ? 'View Only result' : 'Preview complete'),
-          content: Text(
-            '${viewOnly ? 'Preview' : 'Temporary'} result: ${_errorsThisAttempt == 0 ? 'perfect' : '$_errorsThisAttempt error${_errorsThisAttempt == 1 ? '' : 's'}'}. ${viewOnly ? 'No learning progress or rewards were recorded.' : 'No learner progress was recorded.'}',
-          ),
-          actions: [
-            FilledButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: const Text('Close'),
-            ),
-          ],
-        ),
-      );
-      if (mounted) Navigator.of(context).pop();
-      return;
-    }
-    final code = CourseService.codeForCourse(widget.course);
-    String? completedLessonId;
-    if (widget.completeLessonOnFinish && widget.lesson.rounds.isNotEmpty) {
-      final completedLessons = await _progress.getCompletedLessons(
-        courseId: widget.course.courseId,
-      );
-      final completedRounds = await _progress.getCompletedRounds(
-        courseId: widget.course.courseId,
-      );
-      final completesLesson = widget.lesson.rounds.every(
-        (round) =>
-            round.id == widget.round.id || completedRounds.contains(round.id),
-      );
-      if (completesLesson &&
-          !completedLessons.contains(widget.lesson.lessonId)) {
-        completedLessonId = widget.lesson.lessonId;
-      }
-    }
-    final completion = await _completion.completeRound(
-      LearningCompletionRequest(
-        roundId: widget.round.id,
-        lessonId: widget.lesson.lessonId,
-        courseId: widget.course.courseId,
-        courseCode: code,
-        completedLessonId: completedLessonId,
-        readAttemptFacts: () => LearningCompletionAttemptFacts(
-          errorsThisAttempt: _errorsThisAttempt,
-          firstPassCorrect: _firstPassCorrect,
-          evaluableExerciseCount: _evaluableExerciseCount,
-          wasCompletedAtStart: _wasCompleted,
-          ttsWasSkipped: _ttsWasSkipped,
-        ),
-      ),
-      onNewLaurel: () async {
-        if (await _settings.areSoundEffectsEnabled()) {
-          await _sounds.playDuelWin();
-        }
-      },
-      getWeeklyXpTarget: _settings.getWeeklyXpTarget,
-    );
     if (!mounted) return;
-    await showDialog<void>(
-      context: context,
-      barrierDismissible: false,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Round completed'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Correct answers: ${completion.firstPassCorrect}/'
-              '${completion.evaluableExerciseCount} — '
-              '${completion.roundXp.correctAnswerXp} XP',
+    setState(() => _finishing = true);
+    var persistenceStarted = false;
+    var persistenceCompleted = false;
+    try {
+      if (widget.previewMode || widget.viewOnlyMode) {
+        if (!mounted) return;
+        final viewOnly = widget.viewOnlyMode;
+        await showDialog<void>(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: Text(viewOnly ? 'View Only result' : 'Preview complete'),
+            content: Text(
+              '${viewOnly ? 'Preview' : 'Temporary'} result: ${_errorsThisAttempt == 0 ? 'perfect' : '$_errorsThisAttempt error${_errorsThisAttempt == 1 ? '' : 's'}'}. ${viewOnly ? 'No learning progress or rewards were recorded.' : 'No learner progress was recorded.'}',
             ),
-            if (completion.roundXp.perfectBonusXp > 0)
-              Text('Perfect bonus: +${completion.roundXp.perfectBonusXp} XP'),
-            if (completion.roundXp.laurelBonusXp > 0)
-              Text('First Laurel: +${completion.roundXp.laurelBonusXp} XP'),
-            if (completion.lessonCompletionXp > 0)
-              Text('Lesson completed: +${completion.lessonCompletionXp} XP'),
-            Text('Total: ${completion.awardedXp} XP'),
-          ],
-        ),
-        actions: [
-          FilledButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Continue'),
+            actions: [
+              FilledButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('Close'),
+              ),
+            ],
           ),
-        ],
-      ),
-    );
-    if (mounted &&
-        completion.crossedWeeklyXpTarget &&
-        await _completion.claimWeeklyGoalCelebration()) {
-      if (await _settings.areSoundEffectsEnabled()) await _sounds.playDuelWin();
+        );
+        if (mounted) Navigator.of(context).pop();
+        return;
+      }
+      final code = CourseService.codeForCourse(widget.course);
+      String? completedLessonId;
+      if (widget.completeLessonOnFinish && widget.lesson.rounds.isNotEmpty) {
+        final completedLessons = await _progress.getCompletedLessons(
+          courseId: widget.course.courseId,
+        );
+        final completedRounds = await _progress.getCompletedRounds(
+          courseId: widget.course.courseId,
+        );
+        final completesLesson = widget.lesson.rounds.every(
+          (round) =>
+              round.id == widget.round.id || completedRounds.contains(round.id),
+        );
+        if (completesLesson &&
+            !completedLessons.contains(widget.lesson.lessonId)) {
+          completedLessonId = widget.lesson.lessonId;
+        }
+      }
+      persistenceStarted = true;
+      final completion = await _completion.completeRound(
+        LearningCompletionRequest(
+          roundId: widget.round.id,
+          lessonId: widget.lesson.lessonId,
+          courseId: widget.course.courseId,
+          courseCode: code,
+          completedLessonId: completedLessonId,
+          readAttemptFacts: () => LearningCompletionAttemptFacts(
+            errorsThisAttempt: _errorsThisAttempt,
+            firstPassCorrect: _firstPassCorrect,
+            evaluableExerciseCount: _evaluableExerciseCount,
+            wasCompletedAtStart: _wasCompleted,
+            ttsWasSkipped: _ttsWasSkipped,
+          ),
+        ),
+        onNewLaurel: () async {
+          if (await _settings.areSoundEffectsEnabled()) {
+            await _sounds.playDuelWin();
+          }
+        },
+        getWeeklyXpTarget: _settings.getWeeklyXpTarget,
+      );
+      persistenceCompleted = true;
       if (!mounted) return;
       await showDialog<void>(
         context: context,
+        barrierDismissible: false,
         builder: (ctx) => AlertDialog(
-          title: const Text('Weekly goal reached!'),
-          content: Text(
-            '${completion.weeklyXpAfter} / ${completion.weeklyXpTarget} XP',
+          title: const Text('Round completed'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Correct answers: ${completion.firstPassCorrect}/'
+                '${completion.evaluableExerciseCount} — '
+                '${completion.roundXp.correctAnswerXp} XP',
+              ),
+              if (completion.roundXp.perfectBonusXp > 0)
+                Text('Perfect bonus: +${completion.roundXp.perfectBonusXp} XP'),
+              if (completion.roundXp.laurelBonusXp > 0)
+                Text('First Laurel: +${completion.roundXp.laurelBonusXp} XP'),
+              if (completion.lessonCompletionXp > 0)
+                Text('Lesson completed: +${completion.lessonCompletionXp} XP'),
+              Text('Total: ${completion.awardedXp} XP'),
+            ],
           ),
           actions: [
             FilledButton(
@@ -1067,8 +1056,53 @@ class _RoundScreenState extends State<RoundScreen> {
           ],
         ),
       );
+      if (mounted &&
+          completion.crossedWeeklyXpTarget &&
+          await _completion.claimWeeklyGoalCelebration()) {
+        if (await _settings.areSoundEffectsEnabled()) {
+          await _sounds.playDuelWin();
+        }
+        if (!mounted) return;
+        await showDialog<void>(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: const Text('Weekly goal reached!'),
+            content: Text(
+              '${completion.weeklyXpAfter} / ${completion.weeklyXpTarget} XP',
+            ),
+            actions: [
+              FilledButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('Continue'),
+              ),
+            ],
+          ),
+        );
+      }
+      if (mounted) Navigator.of(context).pop(true);
+    } catch (error, stackTrace) {
+      await CrashLogService.instance.record(
+        error,
+        stackTrace,
+        source: 'RoundScreen._next',
+      );
+      if (!mounted) return;
+      if (persistenceCompleted) {
+        Navigator.of(context).pop(true);
+        return;
+      }
+      if (!persistenceStarted) setState(() => _finishing = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          duration: Duration(seconds: 8),
+          content: Text(
+            persistenceStarted
+                ? 'Round completion did not finish safely. Return to the course before trying again.'
+                : 'Round completion could not be prepared. Your answers are still here; please try again.',
+          ),
+        ),
+      );
     }
-    if (mounted) Navigator.of(context).pop(true);
   }
 
   Widget _choiceExercise(Exercise ex) {
@@ -1914,7 +1948,7 @@ class _RoundScreenState extends State<RoundScreen> {
       _autumnBackgrounds[widget.roundIndex % _autumnBackgrounds.length],
     );
     final intro = _lessonIntro;
-    if (intro != null && !_introAcknowledged) {
+    if (_ready && _queue.isNotEmpty && intro != null && !_introAcknowledged) {
       return Scaffold(
         backgroundColor: background,
         appBar: AppBar(backgroundColor: background, title: Text(_screenTitle)),
@@ -2212,11 +2246,13 @@ class _RoundScreenState extends State<RoundScreen> {
               ),
               const SizedBox(height: 12),
               FilledButton(
-                onPressed: _next,
+                onPressed: _finishing ? null : _next,
                 child: Text(
-                  !_reviewPhase &&
-                          _position + 1 == _queue.length &&
-                          _wrongFirstPass.isNotEmpty
+                  _finishing
+                      ? 'Finishing round…'
+                      : !_reviewPhase &&
+                            _position + 1 == _queue.length &&
+                            _wrongFirstPass.isNotEmpty
                       ? 'Review mistakes'
                       : (_position + 1 == _queue.length
                             ? 'Finish round'

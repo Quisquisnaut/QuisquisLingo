@@ -8,6 +8,13 @@ import 'learner_status_events.dart';
 import 'profile_service.dart';
 import 'flag_game_score_service.dart';
 
+typedef LearnerBackupPreferenceWriter =
+    Future<bool> Function(
+      SharedPreferences preferences,
+      String key,
+      Object value,
+    );
+
 class LearnerBackupDocument {
   final int schemaVersion;
   final String learnerProfileId;
@@ -39,13 +46,16 @@ class LearnerBackupService {
 
   final ProfileService _profiles;
   final Future<Directory> Function() _documentsDirectoryProvider;
+  final LearnerBackupPreferenceWriter? _preferenceWriter;
 
   LearnerBackupService({
     ProfileService? profileService,
     Future<Directory> Function()? documentsDirectoryProvider,
+    LearnerBackupPreferenceWriter? preferenceWriter,
   }) : _profiles = profileService ?? ProfileService(),
        _documentsDirectoryProvider =
-           documentsDirectoryProvider ?? getApplicationDocumentsDirectory;
+           documentsDirectoryProvider ?? getApplicationDocumentsDirectory,
+       _preferenceWriter = preferenceWriter;
 
   Future<Directory> transferDirectory() async {
     final documents = await _documentsDirectoryProvider();
@@ -187,13 +197,19 @@ class LearnerBackupService {
       if (suffix.isEmpty ||
           suffix.length > 160 ||
           !RegExp(r'^[A-Za-z0-9_.:-]+$').hasMatch(suffix)) {
-        continue;
+        throw FormatException(
+          'Learner backup contains an invalid data key: $suffix',
+        );
       }
       final value = entry.value;
       if (value is String || value is bool || value is int || value is double) {
         data[suffix] = value;
       } else if (value is List && value.every((element) => element is String)) {
         data[suffix] = value.cast<String>();
+      } else {
+        throw FormatException(
+          'Learner backup contains an unsupported value for $suffix.',
+        );
       }
     }
     return LearnerBackupDocument(
@@ -215,52 +231,141 @@ class LearnerBackupService {
     if (existing != null && !replaceExisting) {
       throw LearnerBackupIdentityCollision(document.learnerProfileId);
     }
-    if (existing != null) {
-      await _removeNamespace(document.learnerProfileId);
-    }
     final profile = LearnerProfile(
       learnerProfileId: document.learnerProfileId,
       displayName: ProfileService.validateDisplayName(document.displayName),
     );
-    await _profiles.replaceProfileRecord(profile);
-    await _writeNamespace(profile.learnerProfileId, document.data);
-    await _profiles.setActiveProfileById(profile.learnerProfileId);
-    LearnerStatusEvents.publish(LearnerStatusInvalidation.activeProfile);
-    return profile;
+    final preferences = await SharedPreferences.getInstance();
+    final snapshot = _snapshot(preferences, profile.learnerProfileId);
+    try {
+      await _upsertProfile(preferences, profile);
+      await _replaceNamespace(
+        preferences,
+        profile.learnerProfileId,
+        document.data,
+      );
+      await _writeVerified(
+        preferences,
+        ProfileService.activeProfileIdKey,
+        profile.learnerProfileId,
+      );
+      LearnerStatusEvents.publish(LearnerStatusInvalidation.activeProfile);
+      return profile;
+    } catch (error, stackTrace) {
+      await _rollbackOrThrow(
+        preferences,
+        profile.learnerProfileId,
+        snapshot,
+        error,
+      );
+      Error.throwWithStackTrace(error, stackTrace);
+    }
   }
 
   Future<LearnerProfile> importAsSeparateCopy(
     LearnerBackupDocument document, {
     required String displayName,
   }) async {
-    final profile = await _profiles.createProfile(
-      ProfileService.validateDisplayName(displayName),
+    final preferences = await SharedPreferences.getInstance();
+    final profilesBefore = preferences.getStringList(
+      ProfileService.profilesKey,
     );
-    await _writeNamespace(
-      profile.learnerProfileId,
-      document.data,
-      rewriteImportedProfileId: true,
+    final activeBefore = preferences.getString(
+      ProfileService.activeProfileIdKey,
     );
-    await _profiles.setActiveProfileById(profile.learnerProfileId);
-    LearnerStatusEvents.publish(LearnerStatusInvalidation.activeProfile);
-    return profile;
-  }
-
-  Future<void> _removeNamespace(String learnerProfileId) async {
-    final prefs = await SharedPreferences.getInstance();
-    final prefix = ProfileService.prefixForProfileId(learnerProfileId);
-    for (final key
-        in prefs.getKeys().where((key) => key.startsWith(prefix)).toList()) {
-      await prefs.remove(key);
+    LearnerProfile? profile;
+    try {
+      profile = await _profiles.createProfile(
+        ProfileService.validateDisplayName(displayName),
+      );
+      final created = await _profiles.getProfileById(profile.learnerProfileId);
+      if (created?.displayName != profile.displayName ||
+          await _profiles.getActiveProfileId() != profile.learnerProfileId) {
+        throw StateError('Learner profile creation could not be verified.');
+      }
+      await _writeNamespace(
+        preferences,
+        profile.learnerProfileId,
+        document.data,
+        rewriteImportedProfileId: true,
+      );
+      LearnerStatusEvents.publish(LearnerStatusInvalidation.activeProfile);
+      return profile;
+    } catch (error, stackTrace) {
+      try {
+        if (profile != null) {
+          await _removeNamespace(preferences, profile.learnerProfileId);
+        }
+        await _restoreOptionalStringList(
+          preferences,
+          ProfileService.profilesKey,
+          profilesBefore,
+        );
+        await _restoreOptionalString(
+          preferences,
+          ProfileService.activeProfileIdKey,
+          activeBefore,
+        );
+        LearnerStatusEvents.publish(LearnerStatusInvalidation.activeProfile);
+      } catch (rollbackError) {
+        throw StateError(
+          'Learner backup import failed and its partial changes could not be rolled back. '
+          'Original error: $error. Rollback error: $rollbackError',
+        );
+      }
+      Error.throwWithStackTrace(error, stackTrace);
     }
   }
 
+  Future<void> _upsertProfile(
+    SharedPreferences preferences,
+    LearnerProfile replacement,
+  ) async {
+    final profiles = await _profiles.getProfileRecords();
+    final index = profiles.indexWhere(
+      (profile) => profile.learnerProfileId == replacement.learnerProfileId,
+    );
+    final updated = [...profiles];
+    if (index < 0) {
+      updated.add(replacement);
+    } else {
+      updated[index] = replacement;
+    }
+    await _writeVerified(
+      preferences,
+      ProfileService.profilesKey,
+      updated.map((profile) => profile.encode()).toList(),
+    );
+  }
+
+  Future<void> _removeNamespace(
+    SharedPreferences prefs,
+    String learnerProfileId,
+  ) async {
+    final prefix = ProfileService.prefixForProfileId(learnerProfileId);
+    for (final key
+        in prefs.getKeys().where((key) => key.startsWith(prefix)).toList()) {
+      if (!await prefs.remove(key) || prefs.containsKey(key)) {
+        throw StateError('Verified learner-data removal failed for $key.');
+      }
+    }
+  }
+
+  Future<void> _replaceNamespace(
+    SharedPreferences preferences,
+    String learnerProfileId,
+    Map<String, Object> data,
+  ) async {
+    await _removeNamespace(preferences, learnerProfileId);
+    await _writeNamespace(preferences, learnerProfileId, data);
+  }
+
   Future<void> _writeNamespace(
+    SharedPreferences prefs,
     String learnerProfileId,
     Map<String, Object> data, {
     bool rewriteImportedProfileId = false,
   }) async {
-    final prefs = await SharedPreferences.getInstance();
     final prefix = ProfileService.prefixForProfileId(learnerProfileId);
     for (final entry in data.entries) {
       final key = '$prefix${entry.key}';
@@ -270,18 +375,140 @@ class LearnerBackupService {
               entry.value is String
           ? _rewriteFlagGameRecord(entry.value as String, learnerProfileId)
           : entry.value;
-      if (value is String) {
-        await prefs.setString(key, value);
-      } else if (value is bool) {
-        await prefs.setBool(key, value);
-      } else if (value is int) {
-        await prefs.setInt(key, value);
-      } else if (value is double) {
-        await prefs.setDouble(key, value);
-      } else if (value is List<String>) {
-        await prefs.setStringList(key, value);
+      await _writeVerified(prefs, key, value);
+    }
+  }
+
+  _LearnerRestoreSnapshot _snapshot(
+    SharedPreferences preferences,
+    String learnerProfileId,
+  ) {
+    final prefix = ProfileService.prefixForProfileId(learnerProfileId);
+    final namespace = <String, Object>{};
+    for (final key in preferences.getKeys().where(
+      (key) => key.startsWith(prefix),
+    )) {
+      final value = preferences.get(key);
+      if (value is List<String>) {
+        namespace[key] = List<String>.from(value);
+      } else if (value is String ||
+          value is bool ||
+          value is int ||
+          value is double) {
+        namespace[key] = value!;
       }
     }
+    return _LearnerRestoreSnapshot(
+      profiles: preferences.getStringList(ProfileService.profilesKey),
+      activeProfileId: preferences.getString(ProfileService.activeProfileIdKey),
+      namespace: namespace,
+    );
+  }
+
+  Future<void> _rollbackOrThrow(
+    SharedPreferences preferences,
+    String learnerProfileId,
+    _LearnerRestoreSnapshot snapshot,
+    Object originalError,
+  ) async {
+    try {
+      await _removeNamespace(preferences, learnerProfileId);
+      for (final entry in snapshot.namespace.entries) {
+        await _writeDirectVerified(preferences, entry.key, entry.value);
+      }
+      await _restoreOptionalStringList(
+        preferences,
+        ProfileService.profilesKey,
+        snapshot.profiles,
+      );
+      await _restoreOptionalString(
+        preferences,
+        ProfileService.activeProfileIdKey,
+        snapshot.activeProfileId,
+      );
+    } catch (rollbackError) {
+      throw StateError(
+        'Learner backup restore failed and the previous learner data could not be rolled back. '
+        'Original error: $originalError. Rollback error: $rollbackError',
+      );
+    }
+  }
+
+  Future<void> _restoreOptionalStringList(
+    SharedPreferences preferences,
+    String key,
+    List<String>? value,
+  ) async {
+    if (value == null) {
+      if (!await preferences.remove(key) || preferences.containsKey(key)) {
+        throw StateError('Verified preference rollback failed for $key.');
+      }
+      return;
+    }
+    await _writeDirectVerified(preferences, key, value);
+  }
+
+  Future<void> _restoreOptionalString(
+    SharedPreferences preferences,
+    String key,
+    String? value,
+  ) async {
+    if (value == null) {
+      if (!await preferences.remove(key) || preferences.containsKey(key)) {
+        throw StateError('Verified preference rollback failed for $key.');
+      }
+      return;
+    }
+    await _writeDirectVerified(preferences, key, value);
+  }
+
+  Future<void> _writeVerified(
+    SharedPreferences preferences,
+    String key,
+    Object value,
+  ) async {
+    final writer = _preferenceWriter;
+    final saved = writer == null
+        ? await _setPreference(preferences, key, value)
+        : await writer(preferences, key, value);
+    if (!saved || !_samePreferenceValue(preferences.get(key), value)) {
+      throw StateError('Verified learner-data write failed for $key.');
+    }
+  }
+
+  Future<void> _writeDirectVerified(
+    SharedPreferences preferences,
+    String key,
+    Object value,
+  ) async {
+    if (!await _setPreference(preferences, key, value) ||
+        !_samePreferenceValue(preferences.get(key), value)) {
+      throw StateError('Verified preference rollback failed for $key.');
+    }
+  }
+
+  static Future<bool> _setPreference(
+    SharedPreferences preferences,
+    String key,
+    Object value,
+  ) {
+    if (value is String) return preferences.setString(key, value);
+    if (value is bool) return preferences.setBool(key, value);
+    if (value is int) return preferences.setInt(key, value);
+    if (value is double) return preferences.setDouble(key, value);
+    if (value is List<String>) return preferences.setStringList(key, value);
+    throw ArgumentError.value(value, 'value', 'Unsupported preference value');
+  }
+
+  static bool _samePreferenceValue(Object? actual, Object expected) {
+    if (actual is List<String> && expected is List<String>) {
+      if (actual.length != expected.length) return false;
+      for (var index = 0; index < actual.length; index++) {
+        if (actual[index] != expected[index]) return false;
+      }
+      return true;
+    }
+    return actual == expected;
   }
 
   String _rewriteFlagGameRecord(String raw, String learnerProfileId) {
@@ -295,4 +522,16 @@ class LearnerBackupService {
       return raw;
     }
   }
+}
+
+class _LearnerRestoreSnapshot {
+  final List<String>? profiles;
+  final String? activeProfileId;
+  final Map<String, Object> namespace;
+
+  const _LearnerRestoreSnapshot({
+    required this.profiles,
+    required this.activeProfileId,
+    required this.namespace,
+  });
 }

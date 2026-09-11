@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:quisquislingo_flutter_tts_windows/quisquislingo_flutter_tts_windows.dart';
+import 'package:quisquislingo_app/services/tts_linux_backend.dart';
 
 void main() {
   test('Windows flutter_tts implementation is an intentional no-op', () {
@@ -78,5 +79,19 @@ void main() {
     ]) {
       expect(generatedCmake, contains(plugin));
     }
+  });
+
+  test('Linux TTS preserves valid non-English language identity', () {
+    expect(linuxTtsVoiceForLanguage('it-IT'), 'it');
+    expect(linuxTtsVoiceForLanguage('fi-FI'), 'fi');
+    expect(linuxTtsVoiceForLanguage('ko-KR'), 'ko');
+    expect(linuxTtsVoiceForLanguage('ga-IE'), 'ga');
+    expect(linuxTtsVoiceForLanguage('en-US'), 'en-gb');
+  });
+
+  test('Linux TTS rejects missing or malformed language metadata', () {
+    expect(linuxTtsVoiceForLanguage(''), isNull);
+    expect(linuxTtsVoiceForLanguage('und'), isNull);
+    expect(linuxTtsVoiceForLanguage('not a language code'), isNull);
   });
 }
