@@ -224,7 +224,7 @@ class ProgressService {
   }
 
   /// Returns up to [limit] distinct recent rounds, prioritized by the number
-  /// of errors in the latest attempt. Ties are resolved by recency.
+  /// of errors in the latest attempt. Ties are resolved oldest first.
   Future<List<RecentRoundEntry>> getRecentRounds({
     String? courseId,
     int limit = 50,
@@ -241,7 +241,7 @@ class ProgressService {
     entries.sort((a, b) {
       final byErrors = b.errors.compareTo(a.errors);
       if (byErrors != 0) return byErrors;
-      return b.completedAt.compareTo(a.completedAt);
+      return a.completedAt.compareTo(b.completedAt);
     });
     if (entries.length > limit) entries = entries.sublist(0, limit);
     return entries;

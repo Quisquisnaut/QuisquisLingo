@@ -459,15 +459,10 @@ void main() {
     expect(find.text('1250 / 2000'), findsOneWidget);
   });
 
-  testWidgets('Home and Review use the identical learner-shell position', (
-    tester,
-  ) async {
+  testWidgets('Review does not show the learner status bar', (tester) async {
     final course = _navigationCourse();
     await tester.pumpWidget(app());
     await tester.pump();
-    final before = tester.getTopLeft(
-      find.byKey(const Key('learner-status-position')),
-    );
 
     unawaited(
       Navigator.of(
@@ -480,9 +475,8 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(
-      tester.getTopLeft(find.byKey(const Key('learner-status-position'))),
-      before,
-    );
+    expect(find.byKey(const Key('learner-status-position')), findsNothing);
+    expect(find.byKey(const Key('review-reset-word-list')), findsOneWidget);
+    expect(find.byKey(const Key('review-help')), findsOneWidget);
   });
 }

@@ -31,6 +31,7 @@ class RoundScreen extends StatefulWidget {
   final int roundIndex;
   final bool previewMode;
   final bool viewOnlyMode;
+  final bool reviewMode;
   final bool completeLessonOnFinish;
   final SettingsService? settingsService;
   final TtsCacheService? ttsCacheService;
@@ -45,6 +46,7 @@ class RoundScreen extends StatefulWidget {
     required this.roundIndex,
     this.previewMode = false,
     this.viewOnlyMode = false,
+    this.reviewMode = false,
     this.completeLessonOnFinish = false,
     this.settingsService,
     this.ttsCacheService,
@@ -85,7 +87,20 @@ class _RoundScreenState extends State<RoundScreen> {
       ? 'PREVIEW · $_roundTitle'
       : widget.viewOnlyMode
       ? 'VIEW ONLY · $_roundTitle'
+      : widget.reviewMode
+      ? 'Review · $_roundTitle'
       : _roundTitle;
+  int get _lessonIndex => widget.course.lessons.indexWhere(
+    (lesson) => lesson.lessonId == widget.lesson.lessonId,
+  );
+  String get _reviewContext {
+    final roundTitle = widget.round.title.trim();
+    return '${widget.course.title} · ${widget.course.targetLanguage} · '
+        'Lesson ${_lessonIndex + 1}: ${widget.lesson.title} · '
+        'Round ${widget.roundIndex + 1}'
+        '${roundTitle.isEmpty ? '' : ': $roundTitle'}';
+  }
+
   final _progress = ProgressService();
   late final LearningCompletionService _completion;
   late final TtsCacheService _ttsCache;
@@ -1939,6 +1954,25 @@ class _RoundScreenState extends State<RoundScreen> {
     }
   }
 
+  PreferredSizeWidget _simpleRoundAppBar(Color background) => AppBar(
+    backgroundColor: background,
+    toolbarHeight: widget.reviewMode ? 104 : null,
+    title: widget.reviewMode
+        ? Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(_screenTitle, softWrap: true),
+              Text(
+                _reviewContext,
+                softWrap: true,
+                style: Theme.of(context).textTheme.labelSmall,
+              ),
+            ],
+          )
+        : Text(_screenTitle),
+  );
+
   @override
   Widget build(BuildContext context) {
     if (!widget.previewMode && AlphaLifecycleService.isExpired()) {
@@ -1951,7 +1985,7 @@ class _RoundScreenState extends State<RoundScreen> {
     if (_ready && _queue.isNotEmpty && intro != null && !_introAcknowledged) {
       return Scaffold(
         backgroundColor: background,
-        appBar: AppBar(backgroundColor: background, title: Text(_screenTitle)),
+        appBar: _simpleRoundAppBar(background),
         body: SafeArea(
           child: ListView(
             padding: const EdgeInsets.fromLTRB(20, 20, 20, 28),
@@ -2023,14 +2057,14 @@ class _RoundScreenState extends State<RoundScreen> {
     if (!_ready) {
       return Scaffold(
         backgroundColor: background,
-        appBar: AppBar(backgroundColor: background, title: Text(_screenTitle)),
+        appBar: _simpleRoundAppBar(background),
         body: const Center(child: CircularProgressIndicator()),
       );
     }
     if (_queue.isEmpty) {
       return Scaffold(
         backgroundColor: background,
-        appBar: AppBar(backgroundColor: background, title: Text(_screenTitle)),
+        appBar: _simpleRoundAppBar(background),
         body: SafeArea(
           child: ListView(
             padding: const EdgeInsets.all(20),
@@ -2066,15 +2100,30 @@ class _RoundScreenState extends State<RoundScreen> {
       backgroundColor: background,
       appBar: AppBar(
         backgroundColor: background,
+        toolbarHeight: widget.reviewMode ? 104 : null,
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(_reviewPhase ? '$_roundTitle · Review' : _roundTitle),
-            Text(
-              '${widget.course.targetLanguage} · Lesson ${widget.course.lessons.indexWhere((lesson) => lesson.lessonId == widget.lesson.lessonId) + 1} · ${widget.lesson.title}',
-              style: Theme.of(context).textTheme.labelSmall,
-            ),
+            if (widget.reviewMode) ...[
+              Text(_screenTitle, softWrap: true),
+              Text(
+                _reviewContext,
+                softWrap: true,
+                style: Theme.of(context).textTheme.labelSmall,
+              ),
+              if (_reviewPhase)
+                Text(
+                  'Reviewing exercises you missed',
+                  style: Theme.of(context).textTheme.labelSmall,
+                ),
+            ] else ...[
+              Text(_reviewPhase ? '$_roundTitle · Review' : _roundTitle),
+              Text(
+                '${widget.course.targetLanguage} · Lesson ${_lessonIndex + 1} · ${widget.lesson.title}',
+                style: Theme.of(context).textTheme.labelSmall,
+              ),
+            ],
           ],
         ),
         actions: [

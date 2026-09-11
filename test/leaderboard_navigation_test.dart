@@ -74,7 +74,7 @@ void main() {
       buildSignature: '',
     );
     SharedPreferences.setMockInitialValues({
-      'one_time_notice_seen_welcome_2.0.31+2311': true,
+      'one_time_notice_seen_welcome_2.0.32+232': true,
       'sound_effects_enabled': false,
     });
     await ProfileService().addProfile('Navigation Learner');
@@ -2704,6 +2704,99 @@ void main() {
   );
 
   testWidgets(
+    'course selector offers Review only on Current course and preserves Home scroll',
+    (tester) async {
+      final italianCourse = await _loadItalianCourse(tester);
+      await SettingsService().setIddqdMode(
+        italianCourse.courseId,
+        LearnerIddqdMode.viewOnly,
+      );
+      await _openHome(tester, scrollToActions: false);
+      await _pumpUntilWithIo(
+        tester,
+        find.byType(UnifiedLearnerTopBar),
+        failureMessage: 'Timed out loading Home for Review navigation.',
+      );
+      final learnerScroll = _mainLearnerScrollable();
+      final position = tester.state<ScrollableState>(learnerScroll).position;
+      position.jumpTo(position.maxScrollExtent / 2);
+      await tester.pump();
+      final offsetBefore = position.pixels;
+
+      await tester.tap(find.byKey(const Key('unified-topbar-course-selector')));
+      await _pumpUntilWithIo(
+        tester,
+        find.text('Choose course'),
+        failureMessage: 'Timed out opening the Course Selector.',
+      );
+      final selectorScroll = find.descendant(
+        of: find.byType(BottomSheet),
+        matching: find.byType(Scrollable),
+      );
+
+      await tester.tap(
+        find.byKey(const Key('course-selector-actions-current')),
+      );
+      await tester.pumpAndSettle();
+      expect(
+        find.byWidgetPredicate(
+          (widget) =>
+              widget is PopupMenuItem<String> && widget.value == 'review',
+        ),
+        findsOneWidget,
+      );
+      await tester.tapAt(const Offset(4, 4));
+      await tester.pumpAndSettle();
+
+      await tester.scrollUntilVisible(
+        find.byKey(const Key('course-selector-actions-bundled-DE')),
+        260,
+        scrollable: selectorScroll,
+      );
+      await tester.tap(
+        find.byKey(const Key('course-selector-actions-bundled-DE')),
+      );
+      await tester.pumpAndSettle();
+      expect(
+        find.byWidgetPredicate(
+          (widget) =>
+              widget is PopupMenuItem<String> && widget.value == 'review',
+        ),
+        findsNothing,
+      );
+      await tester.tapAt(const Offset(4, 4));
+      await tester.pumpAndSettle();
+
+      await tester.scrollUntilVisible(
+        find.byKey(const Key('current-course')),
+        -260,
+        scrollable: selectorScroll,
+      );
+      await tester.tap(
+        find.byKey(const Key('course-selector-actions-current')),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Review').last);
+      await _pumpUntilWithIo(
+        tester,
+        find.byType(ReviewScreen),
+        failureMessage: 'Timed out opening Review from Current course.',
+      );
+      final review = tester.widget<ReviewScreen>(find.byType(ReviewScreen));
+      expect(review.course.courseId, italianCourse.courseId);
+      expect(review.viewOnlyMode, isFalse);
+
+      await tester.pageBack();
+      await tester.pumpAndSettle();
+      expect(find.byType(HomeScreen), findsOneWidget);
+      expect(
+        tester.state<ScrollableState>(_mainLearnerScrollable()).position.pixels,
+        closeTo(offsetBefore, 1),
+      );
+    },
+  );
+
+  testWidgets(
     'course selector Hide is learner-only, active-safe, reversible, and storage-neutral',
     (tester) async {
       final italianCourse = await _loadItalianCourse(tester);
@@ -2944,8 +3037,8 @@ void main() {
       final phrase = dialogTexts.singleWhere(
         (text) =>
             text.data != 'Welcome to QuisquisLingo' &&
-            text.data != 'Version 2.0.31' &&
-            text.data != 'Build 231.1, Revision 1' &&
+            text.data != 'Version 2.0.32' &&
+            text.data != 'Build 232, Revision 0' &&
             text.data != 'Continue',
       );
       final welcomeDialog = tester.widget<AlertDialog>(
@@ -2958,11 +3051,11 @@ void main() {
         const Color(0xFF0756DF),
       );
       expect(
-        tester.widget<Text>(find.text('Version 2.0.31')).style?.color,
+        tester.widget<Text>(find.text('Version 2.0.32')).style?.color,
         const Color(0xFF0756DF),
       );
       expect(
-        tester.widget<Text>(find.text('Build 231.1, Revision 1')).style?.color,
+        tester.widget<Text>(find.text('Build 232, Revision 0')).style?.color,
         const Color(0xFF0756DF),
       );
       expect(find.textContaining('22621'), findsNothing);

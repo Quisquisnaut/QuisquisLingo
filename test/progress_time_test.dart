@@ -592,7 +592,7 @@ void main() {
     });
   });
 
-  test('Review recency uses the injected time', () async {
+  test('Review oldest-attempt tie-break uses the injected time', () async {
     final clock = _MutableClock(DateTime(2026, 2, 1, 8));
     await addProfile('Tester');
     final service = ProgressService(now: clock.call);
@@ -602,8 +602,8 @@ void main() {
     await service.recordRecentRound('course_a', 'lesson_a', 'newer', errors: 2);
 
     final recent = await service.getRecentRounds(courseId: 'course_a');
-    expect(recent.map((entry) => entry.roundId), ['newer', 'older']);
-    expect(recent[0].completedAt, DateTime(2026, 2, 1, 9));
-    expect(recent[1].completedAt, DateTime(2026, 2, 1, 8));
+    expect(recent.map((entry) => entry.roundId), ['older', 'newer']);
+    expect(recent[0].completedAt, DateTime(2026, 2, 1, 8));
+    expect(recent[1].completedAt, DateTime(2026, 2, 1, 9));
   });
 }

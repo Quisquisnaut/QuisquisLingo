@@ -1,13 +1,15 @@
 # QuisquisLingo App
 
-**Current source version: 2.0.31+2311 · Build 231.1 · Revision 1 · Course Model v7 (`formatVersion: 7`).**
+**Current source version: 2.0.32+232 · Build 232 · Revision 0 · Course Model v7 (`formatVersion: 7`).**
 
 
-**QuisquisLingo 2.0.31 Alpha — QQL 231 Course Editor Search & Access**
+**QuisquisLingo 2.0.32 Alpha — QQL 232 Integrated Vocabulary Reinforcement in Review**
 
-Current project version: 2.0.31
+Current project version: 2.0.32
 
-QQL 231 revision 1 retains the authoritative 22-type authored-text inventory, scoped Search and normalized Lesson/Round actions while making the root access states explicit: Locked, View only, Inspection mode and Edit. View only now presents the ordinary Exercise form with every mutation control disabled; Inspection mode defaults exercises to their read-only technical representation; and the local Exercise-level Inspection toggle changes presentation without changing access or losing legitimate unsaved Edit values. Locked still has no Search, while View, Inspection and Edit open Search results in their state-appropriate presentation. Edit continues to require the existing Owner/Team authorization. Course Model v7, course JSON, checksums, progression and XP remain unchanged. See [QQL 231 validation](docs/231_VALIDATION.md), [Exercise Type inventory](docs/EXERCISE_TYPE_INVENTORY_231.md), and [Course Manager and Editor](docs/COURSE_EDITOR.md).
+QQL 232 makes Review a dedicated automatic page for the active Course. It selects genuinely completed Rounds by most errors and then oldest latest attempt, optionally prepares published GuideBook Vocabulary, repeats only learner-requested words once after the Round, and remembers known/difficult words per learner and Course. Next Review excludes Rounds already completed during the current Review visit; Reset Word List clears only that Course's vocabulary memory. Review remains independent of IDDQD View Only and adds no separate vocabulary XP or progression. Course Model v7, course JSON and bundled checksums remain unchanged. See [QQL 232 validation](docs/232_VALIDATION.md).
+
+QQL 231 remains the completed Course Editor Search & Access baseline. See [QQL 231 validation](docs/231_VALIDATION.md), [Exercise Type inventory](docs/EXERCISE_TYPE_INVENTORY_231.md), and [Course Manager and Editor](docs/COURSE_EDITOR.md).
 
 QQL 230 remains the completed robustness and modularity baseline. See [QQL 230 validation](docs/230_VALIDATION.md).
 
@@ -44,7 +46,7 @@ The MPL-2.0 covers the QuisquisLingo software source. Courses, the Image Bank an
 
 ## Alpha lifecycle
 
-Version 2.0.31 revision 1 is a time-limited alpha with the established 30-day lifetime from September 13: expiry is **2026-10-13 23:59:59 local time**. Near expiry it displays reminders. After expiry, learner exercises and Review are blocked until a newer alpha is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when an alpha expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM. Future stable builds can disable alpha expiry.
+Version 2.0.32 Build 232 revision 0 is a time-limited alpha and retains the established expiry at **2026-10-13 23:59:59 local time**. Near expiry it displays reminders. After expiry, learner exercises and Review are blocked until a newer alpha is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when an alpha expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM. Future stable builds can disable alpha expiry.
 
 ## Core logic
 

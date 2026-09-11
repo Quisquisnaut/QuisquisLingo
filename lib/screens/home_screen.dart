@@ -1012,6 +1012,12 @@ class _HomeScreenState extends State<HomeScreen> {
       Course course,
       String action,
     ) async {
+      if (action == 'review') {
+        if (course.courseId != _course?.courseId) return;
+        selectedCourseSwitch = () => _openReview(course);
+        Navigator.of(context).pop();
+        return;
+      }
       if (action == 'info') {
         await openCourseInfo(context, course);
         return;
@@ -1029,6 +1035,7 @@ class _HomeScreenState extends State<HomeScreen> {
       required Widget leading,
       Widget? subtitle,
       bool selected = false,
+      bool showReview = false,
       VoidCallback? onTap,
     }) {
       final active = course.courseId == _course?.courseId;
@@ -1047,6 +1054,15 @@ class _HomeScreenState extends State<HomeScreen> {
               onSelected: (action) =>
                   handleCourseAction(overlayContext, course, action),
               itemBuilder: (_) => [
+                if (showReview)
+                  const PopupMenuItem(
+                    value: 'review',
+                    child: ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: Icon(Icons.history_edu_outlined),
+                      title: Text('Review'),
+                    ),
+                  ),
                 const PopupMenuItem(
                   value: 'info',
                   child: ListTile(
@@ -1254,6 +1270,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         fallbackCode: _selectedLanguage,
                       ),
                       selected: true,
+                      showReview: true,
                     ),
                   if (recentRefs.isNotEmpty) ...[
                     const Padding(
@@ -1825,11 +1842,8 @@ class _HomeScreenState extends State<HomeScreen> {
     }
     await Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => ReviewScreen(
-          course: course,
-          courseCode: _selectedLanguage,
-          viewOnlyMode: _iddqdMode == LearnerIddqdMode.viewOnly,
-        ),
+        builder: (_) =>
+            ReviewScreen(course: course, courseCode: _selectedLanguage),
       ),
     );
     await _reload();

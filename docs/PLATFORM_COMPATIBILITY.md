@@ -4,7 +4,7 @@
 
 ### Windows
 
-Windows is a supported code path. TTS uses System.Speech. QQL itself is `2.0.31+2311`; the Windows package wraps the unchanged `quisquislingo_app.exe` with a separate native x64 bootstrap named `QuisquisLingo.exe`. Packaged users should start the bootstrap, while direct runner and `flutter run` development behavior remain available and unchanged.
+Windows is a supported code path. TTS uses System.Speech. QQL itself is `2.0.32+232`; the Windows package wraps the unchanged `quisquislingo_app.exe` with a separate native x64 bootstrap named `QuisquisLingo.exe`. Packaged users should start the bootstrap, while direct runner and `flutter run` development behavior remain available and unchanged.
 
 The bootstrap resolves package files relative to its own executable, checks the explicit native runtime set and system `MFPlat.dll`, and consolidates recoverable findings into one Continue anyway / Cancel warning. A missing internal Flutter executable is fatal and Close-only. Native Windows earlier than Windows 10 receives a compatibility warning rather than a hard block. Wine is detected first and is Experimental; missing Media Foundation under Wine receives Wine-specific guidance rather than Windows Optional Features guidance. A complete QQL package already ships the expected Visual C++ runtime DLLs, so re-downloading and fully extracting the package is the primary remediation for missing package files.
 

@@ -1,3 +1,12 @@
+# 2.0.32 (Build 232, Revision 0) - Integrated Vocabulary Reinforcement in Review - 2026-09-11
+
+- Replaced the former selectable Review list with a dedicated page that starts the active Course's highest-priority valid Round automatically. Review history remains capped at 50 Rounds per Course and now orders by descending errors, then oldest latest attempt; completing a Review refreshes that Round's timestamp and result through the existing completion path.
+- Added Review to the active Course's Learner Panel bottom action and only to the Current course row's three-dot menu. Review does not appear on inactive/recent/included/local/hidden Course rows, ignores IDDQD View Only, shows no learner status bar, and returns to the retained active Course Learner Panel state.
+- Added pre-Round published GuideBook Vocabulary cards and one-time post-Round reinforcement. Authored order and distinct occurrences are preserved; malformed, Draft, disabled or empty vocabulary safely skips preparation. The current schema provides prompt/answer pairs only, so no extra linguistic metadata is fabricated.
+- Added `VocabularyReviewService` with versioned learner × Course × Lesson × entry state. Stable Content IDs are primary identity, duplicate occurrences remain distinct, and SHA-256 fingerprints make changed prompt/answer content new without invalidating state for title-only changes.
+- Added immediate known/reinforcement persistence, session-local Next Review Round exclusion, a no-more-Rounds notice, congratulations choices for Next Review or Back to course, Review Help, and confirmation-gated per-Course Reset Word List. Vocabulary interactions add no independent XP, completion, streak, Laurel, Duel, unlocking or Review-order effects.
+- Advanced metadata to `2.0.32+232`, display Build 232, Revision 0. Course Model v7, course JSON, bundled assets/checksums and the Alpha expiry `2026-10-13 23:59:59` local time remain unchanged.
+
 # 2.0.31 (Build 231.1, Revision 1) - Course Editor view and inspection states - 2026-09-13
 
 - Replaced the three-state Course Editor access control with four explicit states: Locked, View only, Inspection mode and Edit. The root control uses closed-lock, eye, code and pencil icons respectively; Edit remains unavailable unless the existing individual/Team ownership policy permits it.

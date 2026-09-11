@@ -190,19 +190,14 @@ void main() {
           home: ReviewScreen(course: fixture.course, courseCode: courseCode),
         ),
       );
-      await _pumpUntilText(tester, fixture.firstRound.title);
-      expect(find.textContaining('1 error in latest attempt'), findsOneWidget);
-
-      await tester.tap(find.text(fixture.firstRound.title));
-      await tester.pump();
       await _pumpUntilText(tester, 'Correct ${fixture.firstRound.id}');
+      expect(
+        tester.widget<RoundScreen>(find.byType(RoundScreen)).reviewMode,
+        isTrue,
+      );
       await _answerPerfectChoice(tester, fixture.firstRound);
       await _tapAndPump(tester, 'Finish round');
-      await _pumpUntilText(
-        tester,
-        'Lesson 1: Characterization Lesson · '
-        '0 errors in latest attempt',
-      );
+      await _pumpUntilText(tester, 'Review completed!');
 
       expect(await progress.getPerfectRounds(courseId: courseId), {
         fixture.firstRound.id,
@@ -217,7 +212,7 @@ void main() {
     },
   );
 
-  testWidgets('View Only Review leaves the existing review record unchanged', (
+  testWidgets('Review ignores the View Only compatibility argument', (
     tester,
   ) async {
     final fixture = _lessonFixture();
@@ -239,28 +234,26 @@ void main() {
         ),
       ),
     );
-    await _pumpUntilText(tester, fixture.firstRound.title);
-    await tester.tap(find.text(fixture.firstRound.title));
-    await tester.pump();
     await _pumpUntilText(tester, 'Correct ${fixture.firstRound.id}');
     expect(
       tester.widget<RoundScreen>(find.byType(RoundScreen)).viewOnlyMode,
+      isFalse,
+    );
+    expect(
+      tester.widget<RoundScreen>(find.byType(RoundScreen)).reviewMode,
       isTrue,
     );
     await _answerPerfectChoice(tester, fixture.firstRound);
     await _tapAndPump(tester, 'Finish round');
-    expect(find.text('View Only result'), findsOneWidget);
-    await _tapAndPump(tester, 'Close');
-    await _pumpUntilText(tester, fixture.firstRound.title);
+    await _pumpUntilText(tester, 'Review completed!');
 
     final restartedProgress = ProgressService();
-    expect(
-      await restartedProgress.getPerfectRounds(courseId: courseId),
-      isEmpty,
-    );
+    expect(await restartedProgress.getPerfectRounds(courseId: courseId), {
+      fixture.firstRound.id,
+    });
     final recent = await restartedProgress.getRecentRounds(courseId: courseId);
     expect(recent, hasLength(1));
-    expect(recent.single.errors, 1);
+    expect(recent.single.errors, 0);
     expect(await restartedProgress.getCompletedRounds(courseId: courseId), {
       fixture.firstRound.id,
     });
@@ -268,8 +261,8 @@ void main() {
       await restartedProgress.getCompletedLessons(courseId: courseId),
       isEmpty,
     );
-    expect(await restartedProgress.getXp(courseCode: courseCode), 0);
-    expect(await restartedProgress.getWeeklyXp(), 0);
+    expect(await restartedProgress.getXp(courseCode: courseCode), 32);
+    expect(await restartedProgress.getWeeklyXp(), 32);
   });
 }
 

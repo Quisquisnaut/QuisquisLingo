@@ -213,6 +213,61 @@ void main() {
         expect(courseB.single.errors, 9);
       },
     );
+
+    test(
+      'Review orders more errors first and oldest timestamp first on ties',
+      () async {
+        final clock = _MutableClock(DateTime.utc(2026, 9, 1, 10));
+        final service = await progress(now: clock.call);
+        await service.recordRecentRound(
+          'course',
+          'lesson',
+          'older-two',
+          errors: 2,
+        );
+        clock.value = DateTime.utc(2026, 9, 1, 11);
+        await service.recordRecentRound(
+          'course',
+          'lesson',
+          'newer-two',
+          errors: 2,
+        );
+        clock.value = DateTime.utc(2026, 9, 1, 12);
+        await service.recordRecentRound('course', 'lesson', 'three', errors: 3);
+
+        expect(
+          (await service.getRecentRounds(
+            courseId: 'course',
+          )).map((entry) => entry.roundId),
+          ['three', 'older-two', 'newer-two'],
+        );
+      },
+    );
+
+    test(
+      'recording a reviewed Round makes it newest for the next tie',
+      () async {
+        final clock = _MutableClock(DateTime.utc(2026, 9, 1, 10));
+        final service = await progress(now: clock.call);
+        await service.recordRecentRound('course', 'lesson', 'first', errors: 2);
+        clock.value = DateTime.utc(2026, 9, 1, 11);
+        await service.recordRecentRound(
+          'course',
+          'lesson',
+          'second',
+          errors: 2,
+        );
+        clock.value = DateTime.utc(2026, 9, 1, 12);
+        await service.recordRecentRound('course', 'lesson', 'first', errors: 2);
+
+        expect(
+          (await service.getRecentRounds(
+            courseId: 'course',
+          )).map((entry) => entry.roundId),
+          ['second', 'first'],
+        );
+      },
+    );
   });
 
   test(

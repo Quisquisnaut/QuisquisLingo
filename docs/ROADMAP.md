@@ -4,6 +4,10 @@ This roadmap describes planned work after build 204.
 
 Version numbers are provisional. If a task requires more than one build, later items may move forward rather than being compressed into an unsafe release.
 
+## QQL 232 complete: Integrated Vocabulary Reinforcement in Review
+
+`2.0.32+232` is Build 232 revision 0 on the completed QQL 231 baseline. Review is now an automatic page for the active Course, ordered by descending errors and oldest attempt on ties, with session-local Next Review exclusion. Published GuideBook Vocabulary is integrated before a Round and, only for requested words, once after it; known/difficult memory is versioned and isolated per learner, Course, Lesson and authored entry. Reset Word List clears only that vocabulary memory. IDDQD, Course Model v7, course JSON, bundled checksums and all vocabulary-independent scoring/progression remain unchanged. Release evidence is recorded in [232 validation](232_VALIDATION.md).
+
 ## QQL 231 complete: Course Editor Search & Access
 
 `2.0.31+2311` is Build 231.1 revision 1 on the completed QQL 231 revision-0 baseline. It makes the Course Editor root states Locked, View only, Inspection mode and Edit; reuses the normal 22-preset Exercise form in completely read-only View; makes technical Exercise inspection an explicit state; and adds a local Inspection presentation toggle that preserves access, authorization, unsaved values and dirty state. Search remains absent while Locked and opens the state-appropriate Exercise presentation otherwise. Course Model v7, the authoritative Search inventory, JSON/checksums, scoring and learner progression remain unchanged. Release evidence is recorded in [231 validation](231_VALIDATION.md).
