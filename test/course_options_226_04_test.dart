@@ -34,7 +34,7 @@ void _expectOptions(Course course) {
   expect(course.useGuidebook, isFalse);
   expect(course.sectionNames, ['Planned', 'Unused']);
   expect(course.worldFlagId, 'italy');
-  expect(course.formatVersion, 7);
+  expect(course.formatVersion, 8);
 }
 
 void main() {

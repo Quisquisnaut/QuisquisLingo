@@ -875,6 +875,7 @@ class _FailingCourseEditorService extends CourseEditorService {
     required String languageCode,
     required String versionNotes,
     bool isNewCourse = false,
+    bool governanceChangesMadeInEditMode = false,
     DateTime? committedAt,
   }) async {
     throw StateError('simulated persistence failure');

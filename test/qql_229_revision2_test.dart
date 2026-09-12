@@ -87,8 +87,7 @@ void main() {
       final profiles = await _profiles();
       final teams = await _team(profiles);
       final course = _course(
-        ownerId: _teamId,
-        ownerType: CourseOwnerType.team,
+        assignedTeamId: _teamId,
         ttsLanguage: 'it-IT',
         targetLanguageTag: 'it-IT',
         sourceLanguageTag: 'en-GB',
@@ -116,7 +115,7 @@ void main() {
         findsOneWidget,
       );
       expect(
-        find.textContaining('Owner: Revision Two Team (Team)'),
+        find.textContaining('Assigned Team: Revision Two Team'),
         findsOneWidget,
       );
       expect(find.byType(CourseFlagBadge), findsOneWidget);
@@ -140,8 +139,9 @@ void main() {
         profileService: profiles,
         teamService: teams,
       ).resolve(course);
-      expect(renamed.ownerLabel, 'Renamed Team (Team)');
-      expect(course.ownership!.id, _teamId);
+      expect(renamed.ownerLabel, 'Alice');
+      expect(renamed.assignedTeamLabel, 'Renamed Team');
+      expect(course.ownership!.id, _aliceId);
     },
   );
 
@@ -151,8 +151,7 @@ void main() {
       final profiles = await _profiles();
       await _team(profiles);
       final course = _course(
-        ownerId: _teamId,
-        ownerType: CourseOwnerType.team,
+        assignedTeamId: _teamId,
         ttsLanguage: 'it-IT',
         targetLanguageTag: 'it-IT',
         sourceLanguageTag: 'en-GB',
@@ -162,7 +161,7 @@ void main() {
       await _pumpEditor(tester, course);
       await _openCourseInfoEditor(tester);
 
-      expect(find.text('Revision Two Team (Team)'), findsOneWidget);
+      expect(find.text('Revision Two Team'), findsWidgets);
       expect(find.textContaining(_teamId), findsNothing);
       expect(find.byKey(const Key('course-info-model-version')), findsNothing);
       expect(find.text('Italian (it-IT)'), findsOneWidget);
@@ -333,11 +332,13 @@ void main() {
       expect(find.textContaining('User ID: $_aliceId'), findsOneWidget);
       expect(find.textContaining('User ID: $_bobId'), findsOneWidget);
       expect(
-        find.textContaining('The final Team Lead cannot be demoted or removed'),
+        find.textContaining(
+          'The final Team Leader cannot be demoted or removed',
+        ),
         findsNothing,
       );
       expect(
-        find.byTooltip('The Team must retain at least one Team Lead'),
+        find.byTooltip('The Team must retain at least one Team Leader'),
         findsOneWidget,
       );
       await expectLater(
@@ -511,7 +512,7 @@ Course _course({
   String targetLanguageTag = '',
   String sourceLanguageTag = '',
   String ownerId = _aliceId,
-  CourseOwnerType ownerType = CourseOwnerType.individual,
+  String? assignedTeamId,
   CourseOriginType origin = CourseOriginType.custom,
   String flagCode = '',
   String createdAtUtc = '',
@@ -529,9 +530,8 @@ Course _course({
       ? PublisherVerificationStatus.verified
       : PublisherVerificationStatus.unverified,
   creatorProfileId: origin.isOfficial ? null : _aliceId,
-  ownership: origin.isOfficial
-      ? null
-      : CourseOwnership(type: ownerType, id: ownerId),
+  ownership: origin.isOfficial ? null : CourseOwnership.individual(ownerId),
+  assignedTeamId: origin.isOfficial ? null : assignedTeamId,
   createdByProfileId: origin.isOfficial ? '' : _aliceId,
   createdByUsername: origin.isOfficial ? '' : 'Alice',
   createdAtUtc: createdAtUtc,

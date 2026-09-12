@@ -16,7 +16,7 @@ abstract final class CourseOwnershipGuard {
     final decoded = jsonDecode(raw);
     if (decoded is! Map) {
       throw const FormatException(
-        'Stored Course Model v7 authoring data are invalid or unsupported.',
+        'Stored Course Model v8 authoring data are invalid or unsupported.',
       );
     }
     for (final entry in decoded.entries) {
@@ -29,7 +29,6 @@ abstract final class CourseOwnershipGuard {
       );
       final ownership = course.ownership;
       if (course.originType == CourseOriginType.custom &&
-          ownership?.type == CourseOwnerType.individual &&
           ownership?.id == learnerProfileId) {
         throw StateError(
           'This profile owns ${course.title}. Change the Course Owner or delete the course before deleting the profile.',

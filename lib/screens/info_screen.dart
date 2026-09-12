@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/app_metadata.dart';
 import '../services/alpha_lifecycle_service.dart';
+import '../services/status_service.dart';
 import 'credits_screen.dart';
 
 /// Human-readable explanation of learning metrics and game rules.
@@ -81,12 +82,12 @@ class InfoScreen extends StatelessWidget {
         _InfoSection(
           title: 'Status',
           body:
-              'Status is a long-term rank calculated separately for each language from XP, streak, total study days, completed rounds and laurel crowns. Progression is deliberately slow. The ranks and level numbers are Apprentice (lev. 0), Wanderer (lev. 1), Squire (lev. 2), Wordsmith (lev. 3), Knight (lev. 4), Lorekeeper (lev. 5), Language Wizard (lev. 6), Grand Master (lev. 7), Sage (lev. 8) and Guru (lev. 9).',
+              '${StatusService.progressionExplanation} The levels are Apprentice, Wanderer, Squire, Wordsmith, Knight, Lorekeeper, Language Wizard, Grand Master, Sage and Guru.',
         ),
         _InfoSection(
           title: 'Avatar appearance',
           body:
-              'Profile > Avatar contains Avatar skin color and Avatar hair color. These controls customize only the profile avatar. They do not describe the learner. The same avatar appearance is used across languages, while Status itself changes by language.',
+              'Profile > Avatar Customization contains skin and hair choices. T-shirt color is not a customization preference: it always uses the vivid color assigned to the learner’s current Status for the selected learning language, and changes automatically when Status changes.',
         ),
         _InfoSection(
           title: 'Review',
@@ -116,7 +117,7 @@ class InfoScreen extends StatelessWidget {
         _InfoSection(
           title: 'Updates',
           body:
-              'At the bottom of Settings, Version and Build are shown immediately before Update. Settings > Update displays the published QuisquisLingo source repository https://github.com/Quisquisnaut/QuisquisLingo, lets you check the latest packaged GitHub Release manually, and can optionally check automatically at startup. If no packaged GitHub Release exists, the page distinguishes that from the published source repository. Automatic checks are off by default. Update checks send no learner data or course data and never download or install software. If a newer release exists, the page shows release information and installation guidance in the fixed order Windows, macOS, Linux antiX, Android, iOS and Web, marking platforms that have no matching published release asset as not currently available.',
+              'At the bottom of Settings, Version and Build are shown immediately before Update. Settings > Update displays the published QuisquisLingo source repository https://github.com/Quisquisnaut/QuisquisLingo, lets you check the latest packaged GitHub Release manually, and can optionally check automatically at startup. If no packaged GitHub Release exists, the page distinguishes that from the published source repository. Automatic checks are off by default. Update checks send no learner data or course data and never download or install software. If a newer release exists, the page shows release information and installation guidance in the fixed order Windows, macOS, Linux, Android, iOS and Web, marking platforms that have no matching published release asset as not currently available.',
         ),
         _InfoSection(
           title: 'Crash Log and Diagnostic Log',

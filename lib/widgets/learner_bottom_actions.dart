@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../services/learner_status_events.dart';
+import '../services/learner_status_level_service.dart';
 import '../services/profile_service.dart';
 import '../services/settings_service.dart';
 import 'learner_avatar.dart';
@@ -39,7 +40,9 @@ class LearnerBottomActions extends StatefulWidget {
   final LearnerLessonExpansionMode lessonExpansionMode;
   final ValueChanged<LearnerLessonExpansionMode>? onLessonExpansionChanged;
   final ProfileService? profileService;
+  final LearnerStatusLevelService? statusLevelService;
   final String? courseId;
+  final String? courseCode;
 
   const LearnerBottomActions({
     super.key,
@@ -51,7 +54,9 @@ class LearnerBottomActions extends StatefulWidget {
     this.lessonExpansionMode = LearnerLessonExpansionMode.expanded,
     this.onLessonExpansionChanged,
     this.profileService,
+    this.statusLevelService,
     this.courseId,
+    this.courseCode,
   });
 
   @override
@@ -60,20 +65,26 @@ class LearnerBottomActions extends StatefulWidget {
 
 class _LearnerBottomActionsState extends State<LearnerBottomActions> {
   late final ProfileService _profiles;
+  late final LearnerStatusLevelService _statusLevels;
   StreamSubscription<LearnerStatusInvalidation>? _subscription;
   String? _learnerName;
   ProfileAvatarAppearance? _appearance;
   LearnerThemeMode _themeMode = LearnerThemeMode.defaultMode;
   LearnerFlagBackgroundMode _flagBackgroundMode = LearnerFlagBackgroundMode.off;
+  int _currentLevel = 0;
   int _loadGeneration = 0;
 
   @override
   void initState() {
     super.initState();
     _profiles = widget.profileService ?? ProfileService();
+    _statusLevels = widget.statusLevelService ?? LearnerStatusLevelService();
     _subscription = LearnerStatusEvents.stream.listen((event) {
       if (event == LearnerStatusInvalidation.activeProfile ||
           event == LearnerStatusInvalidation.avatar ||
+          event == LearnerStatusInvalidation.xp ||
+          event == LearnerStatusInvalidation.activity ||
+          event == LearnerStatusInvalidation.laurels ||
           event == LearnerStatusInvalidation.theme ||
           event == LearnerStatusInvalidation.flagBackground) {
         _load();
@@ -85,7 +96,8 @@ class _LearnerBottomActionsState extends State<LearnerBottomActions> {
   @override
   void didUpdateWidget(covariant LearnerBottomActions oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.courseId != widget.courseId) {
+    if (oldWidget.courseId != widget.courseId ||
+        oldWidget.courseCode != widget.courseCode) {
       _load();
     }
   }
@@ -96,6 +108,7 @@ class _LearnerBottomActionsState extends State<LearnerBottomActions> {
     ProfileAvatarAppearance? appearance;
     var themeMode = LearnerThemeMode.defaultMode;
     var flagBackgroundMode = LearnerFlagBackgroundMode.off;
+    var currentLevel = 0;
     try {
       final active = await _profiles.getActiveProfileRecord();
       final fallbackName = active == null
@@ -111,6 +124,13 @@ class _LearnerBottomActionsState extends State<LearnerBottomActions> {
         final courseId = widget.courseId?.trim() ?? '';
         if (courseId.isNotEmpty) {
           flagBackgroundMode = await _profiles.getFlagBackgroundMode(courseId);
+          final courseCode = widget.courseCode?.trim() ?? '';
+          if (courseCode.isNotEmpty) {
+            currentLevel = (await _statusLevels.rankForActiveLearner(
+              courseId: courseId,
+              courseCode: courseCode,
+            )).index;
+          }
         }
       }
     } catch (_) {
@@ -122,6 +142,7 @@ class _LearnerBottomActionsState extends State<LearnerBottomActions> {
       _appearance = appearance;
       _themeMode = themeMode;
       _flagBackgroundMode = flagBackgroundMode;
+      _currentLevel = currentLevel;
     });
   }
 
@@ -179,6 +200,7 @@ class _LearnerBottomActionsState extends State<LearnerBottomActions> {
                 child: _ProfileAction(
                   learnerName: _learnerName,
                   appearance: _appearance,
+                  level: _currentLevel,
                   onTap: widget.onProfile,
                 ),
               ),
@@ -329,11 +351,13 @@ class _ThemeModeAction extends StatelessWidget {
 class _ProfileAction extends StatelessWidget {
   final String? learnerName;
   final ProfileAvatarAppearance? appearance;
+  final int level;
   final VoidCallback onTap;
 
   const _ProfileAction({
     required this.learnerName,
     required this.appearance,
+    required this.level,
     required this.onTap,
   });
 
@@ -351,6 +375,7 @@ class _ProfileAction extends StatelessWidget {
             height: 32,
             child: LearnerAvatar(
               key: const Key('learner-bottom-profile-avatar'),
+              level: level,
               skinTone: avatar.skinTone,
               hairTone: avatar.hairTone,
             ),

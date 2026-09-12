@@ -242,6 +242,22 @@ void main() {
       expect(find.byTooltip('Flag background: Off'), findsOneWidget);
       expect(find.bySemanticsLabel('Flag background: Off'), findsOneWidget);
 
+      final bottomKeys = <Key>[
+        const Key('learner-bottom-profile'),
+        const Key('learner-bottom-review'),
+        const Key('learner-bottom-course-info'),
+        const Key('learner-bottom-iddqd'),
+        const Key('learner-bottom-lesson-expansion'),
+        const Key('learner-bottom-theme'),
+        const Key('learner-bottom-flag-background'),
+      ];
+      final centers = bottomKeys
+          .map((key) => tester.getCenter(find.byKey(key)))
+          .toList(growable: false);
+      for (var index = 1; index < centers.length; index++) {
+        expect(centers[index - 1].dx, lessThan(centers[index].dx));
+      }
+
       await tester.tap(find.byKey(const Key('learner-bottom-profile')));
       await tester.tap(find.byKey(const Key('learner-bottom-review')));
       await tester.tap(find.byKey(const Key('learner-bottom-course-info')));
@@ -820,7 +836,11 @@ void main() {
         findsOneWidget,
       );
       final logout = find.byKey(const Key('profile-logout'));
-      await tester.ensureVisible(logout);
+      await tester.scrollUntilVisible(
+        logout,
+        240,
+        scrollable: find.byType(Scrollable),
+      );
       await tester.tap(logout);
       await _pumpUntil(tester, find.text('Log out of this local profile?'));
       await tester.tap(find.widgetWithText(TextButton, 'Cancel'));
@@ -860,11 +880,8 @@ void main() {
     await tester.pumpAndSettle();
 
     final supportAction = find.byKey(const Key('course-info-buy-coffee'));
-    await tester.scrollUntilVisible(
-      supportAction,
-      300,
-      scrollable: find.byType(Scrollable).last,
-    );
+    await tester.drag(find.byType(ListView), const Offset(0, -500));
+    await tester.pumpAndSettle();
     expect(supportAction, findsOneWidget);
     await tester.tap(supportAction);
     await tester.pump();

@@ -3,8 +3,11 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../models/course_models.dart';
+import '../services/course_service.dart';
 import '../services/learner_status_events.dart';
+import '../services/learner_status_level_service.dart';
 import '../services/profile_service.dart';
+import '../services/status_service.dart';
 import '../widgets/learner_avatar.dart';
 import 'avatar_settings_screen.dart';
 import 'gamification_settings_screen.dart';
@@ -29,19 +32,25 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   late final ProfileService _profiles;
+  late final LearnerStatusLevelService _statusLevels;
   StreamSubscription<LearnerStatusInvalidation>? _subscription;
   bool _loading = true;
-  String? _learnerName;
+  LearnerProfile? _profile;
   ProfileAvatarAppearance? _appearance;
+  StatusRank? _statusRank;
   int _loadGeneration = 0;
 
   @override
   void initState() {
     super.initState();
     _profiles = widget.profileService ?? ProfileService();
+    _statusLevels = LearnerStatusLevelService();
     _subscription = LearnerStatusEvents.stream.listen((event) {
       if (event == LearnerStatusInvalidation.activeProfile ||
-          event == LearnerStatusInvalidation.avatar) {
+          event == LearnerStatusInvalidation.avatar ||
+          event == LearnerStatusInvalidation.xp ||
+          event == LearnerStatusInvalidation.activity ||
+          event == LearnerStatusInvalidation.laurels) {
         _load();
       }
     });
@@ -56,10 +65,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
         : await _profiles.getAvatarAppearanceForProfile(
             profile.learnerProfileId,
           );
+    StatusRank? statusRank;
+    if (profile != null) {
+      try {
+        statusRank = await _statusLevels.rankForActiveLearner(
+          courseId: widget.course.courseId,
+          courseCode: CourseService.codeForCourse(widget.course),
+        );
+      } catch (_) {
+        // Profile remains usable if one progression projection cannot load.
+      }
+    }
     if (!mounted || generation != _loadGeneration) return;
     setState(() {
-      _learnerName = profile?.displayName;
+      _profile = profile;
       _appearance = appearance;
+      _statusRank = statusRank;
       _loading = false;
     });
   }
@@ -67,7 +88,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Future<void> _openAvatar() async {
     await Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => AvatarSettingsScreen(profileService: _profiles),
+        builder: (_) => AvatarSettingsScreen(
+          course: widget.course,
+          profileService: _profiles,
+          statusLevelService: _statusLevels,
+        ),
       ),
     );
     if (mounted) await _load();
@@ -76,6 +101,74 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Future<void> _openLearnerProfiles() async {
     await widget.onManageLearners(context);
     if (mounted) await _load();
+  }
+
+  Future<void> _editProfileIdentity() async {
+    final profile = _profile;
+    if (profile == null) return;
+    final screenName = TextEditingController(text: profile.displayName);
+    final discord = TextEditingController(
+      text: profile.discordHandle?.replaceFirst('@', '') ?? '',
+    );
+    final replacement = await showDialog<LearnerProfile>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Edit Profile'),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: screenName,
+                maxLength: ProfileService.maxNameLength,
+                decoration: const InputDecoration(labelText: 'Screen Name'),
+              ),
+              TextField(
+                controller: discord,
+                maxLength: ProfileService.maxDiscordHandleLength - 1,
+                decoration: const InputDecoration(
+                  labelText: 'Discord name (optional)',
+                  prefixText: '@',
+                ),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () {
+              try {
+                Navigator.pop(
+                  dialogContext,
+                  LearnerProfile(
+                    learnerProfileId: profile.learnerProfileId,
+                    displayName: ProfileService.validateDisplayName(
+                      screenName.text,
+                    ),
+                    discordHandle: ProfileService.normalizeDiscordHandle(
+                      discord.text,
+                    ),
+                  ),
+                );
+              } on ArgumentError {
+                // Invalid text remains in the dialog for correction.
+              }
+            },
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
+    screenName.dispose();
+    discord.dispose();
+    if (replacement == null) return;
+    await _profiles.replaceProfileRecord(replacement);
+    LearnerStatusEvents.publish(LearnerStatusInvalidation.activeProfile);
+    await _load();
   }
 
   Future<void> _openGamification() async {
@@ -135,7 +228,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final learnerName = _learnerName?.trim() ?? '';
+    final learnerName = _profile?.displayName.trim() ?? '';
+    final statusRank = _statusRank;
     return Scaffold(
       appBar: AppBar(title: const Text('Profile')),
       body: _loading
@@ -155,6 +249,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           )
                         : LearnerAvatar(
                             key: const Key('profile-large-avatar'),
+                            level: statusRank?.index ?? 0,
                             skinTone: _appearance!.skinTone,
                             hairTone: _appearance!.hairTone,
                           ),
@@ -162,13 +257,44 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
                 const SizedBox(height: 10),
                 Text(
-                  learnerName.isEmpty ? 'Profile' : _learnerName!,
+                  learnerName.isEmpty ? 'Profile' : _profile!.displayName,
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                     fontWeight: FontWeight.w800,
                   ),
                 ),
+                if (_profile?.discordHandle != null) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    _profile!.discordHandle!,
+                    key: const Key('profile-discord-handle'),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+                if (statusRank != null) ...[
+                  const SizedBox(height: 6),
+                  Text(
+                    'Current Status: ${statusRank.name}',
+                    key: const Key('profile-current-status'),
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 24),
+                ListTile(
+                  key: const Key('profile-identity-link'),
+                  leading: const Icon(Icons.badge_outlined),
+                  title: const Text('Profile identity'),
+                  subtitle: Text(
+                    _profile?.discordHandle == null
+                        ? 'Screen Name and optional Discord name.'
+                        : '${_profile!.displayName} · ${_profile!.discordHandle}',
+                  ),
+                  trailing: const Icon(Icons.edit_outlined),
+                  onTap: _editProfileIdentity,
+                ),
                 ListTile(
                   key: const Key('profile-avatar-link'),
                   leading: const Icon(Icons.face_retouching_natural_outlined),

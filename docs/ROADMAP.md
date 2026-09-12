@@ -4,6 +4,10 @@ This roadmap describes planned work after build 204.
 
 Version numbers are provisional. If a task requires more than one build, later items may move forward rather than being compressed into an unsafe release.
 
+## QQL 233 complete: three planned phases
+
+`2.0.33+233030` is Phase 233.3 revision 0 and completes the sequential QQL 233 plan. Phase 233.1 corrects generic Linux release-package recognition without changing Windows or GitHub Releases policy. Phase 233.2 introduces the two-step new-Learner flow, optional display-only Discord handle, new-profile-only random skin/hair initialization and authoritative Status-derived vivid T-shirt colors with all ten levels and accurate progression Help. Phase 233.3 separates individual Course ownership from optional assigned-Team management and Team governance, introduces Course Model v8, adds warning-gated Owner assignment controls, uses Discord/Screen Name presentation with the existing ID toggle, and confines the Learner status bar to the Learner Panel while preserving its approved bottom controls. Release evidence is recorded in [233 validation](233_VALIDATION.md).
+
 ## QQL 232 complete: Integrated Vocabulary Reinforcement in Review
 
 `2.0.32+232` is Build 232 revision 0 on the completed QQL 231 baseline. Review is now an automatic page for the active Course, ordered by descending errors and oldest attempt on ties, with session-local Next Review exclusion. Published GuideBook Vocabulary is integrated before a Round and, only for requested words, once after it; known/difficult memory is versioned and isolated per learner, Course, Lesson and authored entry. Reset Word List clears only that vocabulary memory. IDDQD, Course Model v7, course JSON, bundled checksums and all vocabulary-independent scoring/progression remain unchanged. Release evidence is recorded in [232 validation](232_VALIDATION.md).

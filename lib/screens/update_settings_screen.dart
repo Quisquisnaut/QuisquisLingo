@@ -275,13 +275,13 @@ class _UpdateSettingsScreenState extends State<UpdateSettingsScreen> {
                   'Download the macOS asset from the GitHub release. Close QuisquisLingo, install or replace the application, then reopen it. Follow any signing or Gatekeeper instructions stated in the release.',
             ),
             _PlatformInstructions(
-              title: '3. Linux antiX',
+              title: '3. Linux',
               available: _updates.platformAvailable(
                 release,
-                UpdatePlatform.linuxAntix,
+                UpdatePlatform.linux,
               ),
               instructions:
-                  'Download the antiX package from the GitHub release. Close QuisquisLingo and install the package using the antiX/Debian package tools described in the release. Then start QuisquisLingo again from the menu or the quisquislingo command.',
+                  'Download the Linux package from the GitHub release. Close QuisquisLingo, extract or install the package as described in that release, then start QuisquisLingo again. On antiX or another Debian-based system, follow any distribution-specific instructions stated in the release.',
             ),
             _PlatformInstructions(
               title: '4. Android',

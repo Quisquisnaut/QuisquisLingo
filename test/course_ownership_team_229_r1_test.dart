@@ -36,13 +36,14 @@ Future<ProfileService> _profiles({bool includeCharlie = true}) async {
 
 Course _custom({
   String ownerId = aliceId,
-  CourseOwnerType ownerType = CourseOwnerType.individual,
+  String? assignedTeamId,
   DerivativeWorksPolicy policy = DerivativeWorksPolicy.forbidden,
   String title = 'Owned course',
 }) => Course(
-  courseId: 'course-owned-${ownerType.name}-$ownerId',
+  courseId: 'course-owned-$ownerId-${assignedTeamId ?? 'individual'}',
   creatorProfileId: aliceId,
-  ownership: CourseOwnership(type: ownerType, id: ownerId),
+  ownership: CourseOwnership.individual(ownerId),
+  assignedTeamId: assignedTeamId,
   publicationState: PublicationState.draft,
   learningLanguage: 'Italian',
   interfaceLanguage: 'English',
@@ -101,9 +102,9 @@ void main() {
 
   setUp(() => SharedPreferences.setMockInitialValues({}));
 
-  test('Course Model v7 requires explicit custom Creator and Owner JSON', () {
+  test('Course Model v8 requires explicit custom Creator and Owner JSON', () {
     final json = _custom().toJson();
-    expect(json['formatVersion'], 7);
+    expect(json['formatVersion'], 8);
     expect(json['creatorProfileId'], aliceId);
     expect(json['ownership'], {'type': 'individual', 'id': aliceId});
     expect(Course.fromJson(json).ownership!.id, aliceId);
@@ -146,7 +147,7 @@ void main() {
   test(
     'Team members edit regardless of license and removed members do not',
     () {
-      final course = _custom(ownerId: teamId, ownerType: CourseOwnerType.team);
+      final course = _custom(assignedTeamId: teamId);
       final member = CourseAccessPolicy.evaluate(
         course,
         profileId: bobId,
@@ -206,10 +207,7 @@ void main() {
         displayName: 'Renamed Authors',
       );
       expect(team.teamId, teamId);
-      final teamCourse = _custom(
-        ownerId: team.teamId,
-        ownerType: CourseOwnerType.team,
-      );
+      final teamCourse = _custom(assignedTeamId: team.teamId);
       team = await teams.demoteLead(
         teamId: teamId,
         actorProfileId: aliceId,
@@ -231,7 +229,8 @@ void main() {
       );
       expect(team.hasMember(aliceId), isFalse);
       expect(team.creatorProfileId, aliceId);
-      expect(teamCourse.ownership!.id, team.teamId);
+      expect(teamCourse.ownership!.id, aliceId);
+      expect(teamCourse.assignedTeamId, team.teamId);
       expect(
         CourseAccessPolicy.evaluate(
           teamCourse,
@@ -507,7 +506,7 @@ void main() {
   );
 
   test(
-    'Team duplicate preserves Team ownership and creator is duplicator',
+    'Team duplicate preserves Owner and Team assignment while creator is duplicator',
     () async {
       final profiles = await _profiles(includeCharlie: false);
       final teams = TeamService(
@@ -524,7 +523,7 @@ void main() {
         actorProfileId: aliceId,
         memberProfileId: bobId,
       );
-      final source = _custom(ownerId: teamId, ownerType: CourseOwnerType.team);
+      final source = _custom(assignedTeamId: teamId);
       final aliceStorage = CourseEditorService(
         profileService: profiles,
         teamService: teams,
@@ -535,8 +534,9 @@ void main() {
         source: source,
         title: 'Team copy',
       );
-      expect(duplicate.course.ownership!.type, CourseOwnerType.team);
-      expect(duplicate.course.ownership!.id, teamId);
+      expect(duplicate.course.ownership!.type, CourseOwnerType.individual);
+      expect(duplicate.course.ownership!.id, aliceId);
+      expect(duplicate.course.assignedTeamId, teamId);
       expect(duplicate.course.creatorProfileId, bobId);
 
       await profiles.setActiveProfileById(aliceId);
@@ -566,7 +566,7 @@ void main() {
       creatorProfileId: aliceId,
       displayName: 'Renamable Team',
     );
-    final course = _custom(ownerId: teamId, ownerType: CourseOwnerType.team);
+    final course = _custom(assignedTeamId: teamId);
     await tester.pumpWidget(
       MaterialApp(
         home: CourseInfoScreen(
@@ -577,8 +577,12 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    expect(find.textContaining('Owner: Renamable Team (Team)'), findsOneWidget);
-    expect(find.textContaining('Creator: Alice'), findsOneWidget);
+    expect(find.textContaining('Course Owner: Alice'), findsOneWidget);
+    expect(find.textContaining('Course Creator: Alice'), findsOneWidget);
+    expect(
+      find.textContaining('Assigned Team: Renamable Team'),
+      findsOneWidget,
+    );
     expect(find.textContaining('Visible Author'), findsOneWidget);
     expect(
       find.textContaining('Contributors: Contributor Person'),
@@ -592,7 +596,7 @@ void main() {
   });
 
   testWidgets(
-    'New Course restores license, every credit role and Team ownership choice',
+    'New Course restores metadata and offers only individual ownership choices',
     (tester) async {
       final profiles = await _profiles(includeCharlie: false);
       final teams = TeamService(
@@ -627,8 +631,10 @@ void main() {
       await tester.ensureVisible(find.byKey(const Key('new-course-owner')));
       await tester.tap(find.byKey(const Key('new-course-owner')));
       await tester.pump();
-      expect(find.text('Creation Team'), findsOneWidget);
-      await tester.tap(find.text('Creation Team'));
+      expect(find.text('Creation Team'), findsNothing);
+      expect(find.text('Alice (Creator)'), findsWidgets);
+      expect(find.text('Bob'), findsOneWidget);
+      await tester.tap(find.text('Bob'));
       await tester.pump();
       await tester.tap(find.text('Cancel'));
       await tester.pump();

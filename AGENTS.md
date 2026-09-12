@@ -61,7 +61,8 @@ These are persistent instructions for Codex when working on QuisquisLingo.
 - `2.0.31+231` is QQL Build 231, Revision 0. It adds the authoritative 22-preset searchable-text inventory and scoped Course Editor Search; centralizes Locked / View unlocked / Edit unlocked at the Course Editor root without granting authorization; adds the per-user × Course View notice; and normalizes Lesson/Round top icons, Rename and Preview placement. View remains no-write while preserving Search, Help, IDs, Preview and Audit. Course Model stays v7; course JSON/checksums, ownership, progression, XP, Review, Duel and QQL 230 robustness behavior remain compatible. The Alpha expiry is `2026-10-12 23:59:59` local time; see `docs/231_VALIDATION.md`.
 - `2.0.31+2311` is QQL Build 231.1, Revision 1. It replaces the root access modes with Locked / View only / Inspection mode / Edit; makes View only the ordinary 22-preset Exercise form with all mutation paths disabled; makes the former technical representation explicit Inspection mode; and adds the local Exercise Inspection presentation toggle without changing authorization or dirty state. Search opens the state-appropriate presentation and remains unavailable while Locked. The Create Duels wording is corrected without behavior change. Course Model stays v7; the Alpha expiry is `2026-10-13 23:59:59` local time; see `docs/231_VALIDATION.md`.
 - `2.0.32+232` is QQL Build 232, Revision 0. Review is a dedicated automatic page for the active Course, reachable from the Learner Panel bottom action and only the Current course row menu. It selects genuine completed-Round records by descending errors and oldest latest attempt on ties, refreshes the reviewed record through ordinary completion, excludes completed Round IDs only for the current Review visit, and ends with Next Review or Back to course. Published GuideBook Vocabulary is integrated before the Round and requested reinforcement once after it, with immediate versioned learner × Course × Lesson × entry memory and an isolated Reset Word List action. Review ignores IDDQD View Only; vocabulary adds no independent XP or progression. Course Model stays v7, course JSON/checksums are unchanged, and the Alpha expiry remains `2026-10-13 23:59:59` local time; see `docs/232_VALIDATION.md`.
-- Do not read, apply, migrate or automatically convert Build 225 official local overrides. Leave stored remnants untouched. Official history contains publisher sources only. QQL 229 uses the clean Course Model v7 custom-course namespace; older custom formats and namespaces remain untouched and unsupported. An explicit derivatives-allowed policy is required for any outsider or official fork.
+- `2.0.33+233030` is QQL Phase 233.3, revision 0, and closes the three planned QQL 233 phases. Phase 233.1 fixes generic Linux release-package selection while preserving Windows and GitHub Releases policy. Phase 233.2 adds the two-step Learner profile/avatar flow, optional display-only Discord handle, new-profile-only random skin/hair initialization and the authoritative ten-level Status-derived vivid T-shirt presentation. Phase 233.3 makes every Course Owner an individual, separates optional Team assignment and Team governance, adds warning-gated Owner controls and experimental-model Help, corrects identity/Internal-ID presentation, and confines the learner status bar to the Learner Panel. Course Model v8 is a clean cut; older custom namespaces remain untouched and unread. The Alpha expiry is `2026-10-14 23:59:59` local time; see `docs/233_VALIDATION.md`.
+- Do not read, apply, migrate or automatically convert Build 225 official local overrides. Leave stored remnants untouched. Official history contains publisher sources only. QQL 233.3 uses the clean Course Model v8 custom-course namespace; older custom formats and namespaces remain untouched and unsupported. An explicit derivatives-allowed policy is required for any outsider or official fork.
 
 ## Architecture and service boundaries
 
@@ -171,13 +172,14 @@ Weekly rollover, streaks, activity timestamps, Review timestamps, and other time
 - Source ZIPs must contain `pubspec.yaml`, `lib/`, `assets/`, `test/`, `tools/`, and other project files directly at archive root. Never add an extra wrapper directory.
 - Package naming:
   - Windows release/package: `quisquislingo_windows_alpha_<buildnumber>`
+  - Linux release/package: `quisquislingo_linux_alpha_<buildnumber>`
   - source folder/archive: `quisquislingo_alpha_<buildnumber>_source`
 - Use the numeric build number without dots in package names.
 - Keep the previous packaged release as a rollback copy until the new release has been tested successfully.
 
-## Course Model v7 invariants
+## Course Model v8 invariants
 
-- Canonical course format is `formatVersion: 7`.
+- Canonical course format is `formatVersion: 8`.
 - Hierarchy: Course > Lesson > GuideBook + Rounds + Duel > Content/Exercise.
 - Chapter is not part of the production model, learner navigation, editor or persistence. Chapter-based course formats are unsupported and are not read, migrated or converted.
 - Lesson is canonical in the model, JSON, services, persistence, editor and learner UI. Do not add Topic compatibility aliases or v4 parsing fallbacks.
@@ -192,20 +194,20 @@ Weekly rollover, streaks, activity timestamps, Review timestamps, and other time
 - Preserve stable Item IDs and valid references.
 - Optional `section` and `sectionName` are presentational Lesson metadata only. Section has no ID, progress, unlock, XP, Duel, Guidebook, Review or navigation state, and consecutive grouping/relative numbering derive from Lesson order.
 - Optional `themeIconAsset` must reference an approved 256 × 256 transparent PNG under `assets/lesson_icons/`; JSON stores only the asset path.
-- Canonical v7 text-match exports use `acceptedAnswers`; the legacy `accepted` field is rejected.
+- Canonical v8 text-match exports use `acceptedAnswers`; the legacy `accepted` field is rejected.
 - Lesson, Round and Exercise JSON requires a canonical UTC `updatedAt` timestamp. Bundled timestamps are deterministic; authoring timestamps come from the injected/current authoring clock.
 - Build the translation serializes one or more literal answers as `evaluation.correctOrders`, each with answer text and stable ordered Item IDs. The legacy single `correctOrder` field is rejected without adaptation.
 - Imported/custom courses remain custom even when selected. Do not infer bundled/custom origin from title alone.
 
 ## Course ownership, license and Teams
 
-- Every v7 custom course requires `creatorProfileId` and `ownership`. Ownership is exactly one stable individual profile ID or one stable Team ID. Official courses must not declare local ownership.
-- Creator is immutable provenance. Owner controls authoring. Author, contributors, illustrators and all other visible credits are descriptive only and never grant authorization.
-- The individual Owner and every member of an owning Team can edit and Duplicate the original regardless of license. Team Lead status governs Team administration only.
+- Every v8 custom course requires `creatorProfileId` and `ownership`. Ownership is exactly one stable individual profile ID. Optional `assignedTeamId` separately grants Team management access. Official courses must not declare local ownership or Team assignment.
+- Creator is immutable provenance. The individual Owner controls ownership transfer and Team assignment. Author, contributors, illustrators and all other visible credits are descriptive only and never grant authorization.
+- The individual Owner and every member of an assigned Team can edit and Duplicate the original regardless of license. Only the Owner may transfer ownership or assign/revoke a Team. Team Leader status governs Team administration only.
 - An outsider cannot edit or Duplicate another Owner's original. They may Fork only when derivative works are allowed. A permissive license never grants mutation of the original.
-- Teams are device-local user-management data keyed by stable Team and opaque profile IDs. A Team has one or more Leads; no operation may leave it with zero Leads. Renaming a Team does not change course ownership.
-- Duplicate is restricted to users already authorized to edit and preserves individual or Team ownership. Fork is an outsider derivative operation, preserves source provenance and credits, creates fresh IDs, and receives explicit local ownership.
-- No legacy custom-course ownership inference or migration is permitted. Do not use visible names, credits, filenames or titles as fallback ownership.
+- Teams are device-local user-management data keyed by stable Team and opaque profile IDs. A Team has one or more Team Leaders; no operation may leave it with zero Team Leaders. Renaming a Team does not change a Course assignment. Team governance is independent from Course ownership.
+- Duplicate is restricted to users already authorized to edit and preserves individual ownership plus optional Team assignment. Fork is an outsider derivative operation, preserves source provenance and credits, creates fresh IDs, and receives explicit local individual ownership without automatic Team assignment.
+- No legacy custom-course ownership or Team-assignment inference or migration is permitted. Do not use visible names, Discord handles, credits, filenames or titles as fallback identity.
 
 ## Course identity and collision handling
 

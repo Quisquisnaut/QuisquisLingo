@@ -48,6 +48,7 @@ class AuthoringDuplicationService {
       provenance: source.forkProvenance,
       creatorProfileId: resolvedCreator,
       ownership: resolvedOwnership,
+      assignedTeamId: source.assignedTeamId,
     );
   }
 
@@ -104,6 +105,7 @@ class AuthoringDuplicationService {
     CourseForkProvenance? provenance,
     required String creatorProfileId,
     required CourseOwnership ownership,
+    String? assignedTeamId,
   }) {
     final newCourseId = Course.newCourseId();
     final remap = <String, String>{source.courseId: newCourseId};
@@ -131,6 +133,7 @@ class AuthoringDuplicationService {
       courseId: newCourseId,
       creatorProfileId: creatorProfileId,
       ownership: ownership,
+      assignedTeamId: assignedTeamId,
       publicationState: PublicationState.draft,
       lessonNumberingMode: source.lessonNumberingMode,
       customLessonLabel: source.customLessonLabel,

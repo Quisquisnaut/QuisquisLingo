@@ -74,7 +74,7 @@ void main() {
       buildSignature: '',
     );
     SharedPreferences.setMockInitialValues({
-      'one_time_notice_seen_welcome_2.0.32+232': true,
+      'one_time_notice_seen_welcome_2.0.33+233030': true,
       'sound_effects_enabled': false,
     });
     await ProfileService().addProfile('Navigation Learner');
@@ -1692,12 +1692,13 @@ void main() {
 
     await tester.tap(find.byKey(const Key('learner-bottom-profile')));
     await _pumpUntil(tester, find.byType(ProfileScreen));
-    await tester.drag(
-      find.descendant(
+    await tester.scrollUntilVisible(
+      find.byKey(const Key('profile-logout')),
+      300,
+      scrollable: find.descendant(
         of: find.byType(ProfileScreen),
-        matching: find.byType(ListView),
+        matching: find.byType(Scrollable),
       ),
-      const Offset(0, -260),
     );
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('profile-logout')));
@@ -3037,8 +3038,8 @@ void main() {
       final phrase = dialogTexts.singleWhere(
         (text) =>
             text.data != 'Welcome to QuisquisLingo' &&
-            text.data != 'Version 2.0.32' &&
-            text.data != 'Build 232, Revision 0' &&
+            text.data != 'Version 2.0.33' &&
+            text.data != 'Phase 233.3, revision 0' &&
             text.data != 'Continue',
       );
       final welcomeDialog = tester.widget<AlertDialog>(
@@ -3051,11 +3052,11 @@ void main() {
         const Color(0xFF0756DF),
       );
       expect(
-        tester.widget<Text>(find.text('Version 2.0.32')).style?.color,
+        tester.widget<Text>(find.text('Version 2.0.33')).style?.color,
         const Color(0xFF0756DF),
       );
       expect(
-        tester.widget<Text>(find.text('Build 232, Revision 0')).style?.color,
+        tester.widget<Text>(find.text('Phase 233.3, revision 0')).style?.color,
         const Color(0xFF0756DF),
       );
       expect(find.textContaining('22621'), findsNothing);
@@ -3083,7 +3084,7 @@ void main() {
       final alphaDialog = tester.widget<AlertDialog>(find.byType(AlertDialog));
       expect(alphaDialog.backgroundColor, isNull);
       expect(alphaDialog.surfaceTintColor, isNull);
-      expect(find.textContaining('Expiry date: 2026-10-13.'), findsOneWidget);
+      expect(find.textContaining('Expiry date: 2026-10-14.'), findsOneWidget);
       expect(find.widgetWithText(FilledButton, 'OK'), findsOneWidget);
       expect(
         tester
@@ -3345,11 +3346,14 @@ Future<void> _logoutToLearnerChooser(WidgetTester tester) async {
   await tester.tap(find.byKey(const Key('learner-bottom-profile')));
   await _pumpUntil(tester, find.byType(ProfileScreen));
   await tester.pumpAndSettle();
-  final profileList = find.descendant(
-    of: find.byType(ProfileScreen),
-    matching: find.byType(ListView),
+  await tester.scrollUntilVisible(
+    find.byKey(const Key('profile-logout')),
+    300,
+    scrollable: find.descendant(
+      of: find.byType(ProfileScreen),
+      matching: find.byType(Scrollable),
+    ),
   );
-  await tester.drag(profileList, const Offset(0, -260));
   await tester.pumpAndSettle();
   await tester.tap(find.byKey(const Key('profile-logout')));
   await _pumpUntil(tester, find.text('Log out of this local profile?'));

@@ -273,43 +273,81 @@ class UpdateService {
     }
   }
 
-  bool platformAvailable(UpdateRelease release, UpdatePlatform platform) {
-    final names = release.assets.map((e) => e.name.toLowerCase()).toList();
-    bool any(bool Function(String) test) => names.any(test);
+  UpdateAsset? compatibleAsset(UpdateRelease release, UpdatePlatform platform) {
+    for (final asset in release.assets) {
+      if (_isCompatibleAsset(asset.name.toLowerCase(), platform)) return asset;
+    }
+    return null;
+  }
+
+  bool platformAvailable(UpdateRelease release, UpdatePlatform platform) =>
+      compatibleAsset(release, platform) != null;
+
+  static bool _isCompatibleAsset(String name, UpdatePlatform platform) {
+    bool hasAny(Iterable<String> markers) =>
+        markers.any((marker) => name.contains(marker));
+    bool hasExtension(Iterable<String> extensions) =>
+        extensions.any(name.endsWith);
+    bool conflictsWith(Iterable<String> allowedMarkers) {
+      const platformMarkers = <String>{
+        'windows',
+        'win64',
+        'linux',
+        'antix',
+        'macos',
+        'osx',
+        'android',
+        'ios',
+        'web',
+      };
+      return hasAny(platformMarkers.difference(allowedMarkers.toSet()));
+    }
+
     return switch (platform) {
-      UpdatePlatform.windows => any(
-        (n) =>
-            n.contains('windows') ||
-            n.contains('win64') ||
-            n.endsWith('.msi') ||
-            n.endsWith('.exe'),
-      ),
-      UpdatePlatform.macos => any(
-        (n) =>
-            n.contains('macos') ||
-            n.contains('osx') ||
-            n.endsWith('.dmg') ||
-            n.endsWith('.pkg'),
-      ),
-      UpdatePlatform.linuxAntix => any(
-        (n) =>
-            n.contains('antix') &&
-            (n.endsWith('.deb') || n.endsWith('.zip') || n.endsWith('.tar.gz')),
-      ),
-      UpdatePlatform.android => any(
-        (n) =>
-            n.contains('android') || n.endsWith('.apk') || n.endsWith('.aab'),
-      ),
-      UpdatePlatform.ios => any((n) => n.contains('ios') || n.endsWith('.ipa')),
-      UpdatePlatform.web => any(
-        (n) =>
-            n.contains('web') && (n.endsWith('.zip') || n.endsWith('.tar.gz')),
-      ),
+      UpdatePlatform.windows =>
+        !conflictsWith(const {'windows', 'win64'}) &&
+            (hasAny(const {'windows', 'win64'}) ||
+                hasExtension(const {'.msi', '.exe'})),
+      UpdatePlatform.macos =>
+        !conflictsWith(const {'macos', 'osx'}) &&
+            (hasAny(const {'macos', 'osx'}) ||
+                hasExtension(const {'.dmg', '.pkg'})),
+      UpdatePlatform.linux =>
+        !conflictsWith(const {'linux', 'antix'}) &&
+            hasAny(const {'linux', 'antix'}) &&
+            hasExtension(const {'.deb', '.zip', '.tar.gz', '.appimage'}),
+      UpdatePlatform.android =>
+        !conflictsWith(const {'android'}) &&
+            (name.contains('android') || hasExtension(const {'.apk', '.aab'})),
+      UpdatePlatform.ios =>
+        !conflictsWith(const {'ios'}) &&
+            (name.contains('ios') || name.endsWith('.ipa')),
+      UpdatePlatform.web =>
+        !conflictsWith(const {'web'}) &&
+            name.contains('web') &&
+            hasExtension(const {'.zip', '.tar.gz'}),
     };
   }
 }
 
-enum UpdatePlatform { windows, macos, linuxAntix, android, ios, web }
+enum UpdatePlatform {
+  windows,
+  macos,
+  linux,
+  android,
+  ios,
+  web;
+
+  static UpdatePlatform? fromOperatingSystem(String operatingSystem) =>
+      switch (operatingSystem.trim().toLowerCase()) {
+        'windows' => UpdatePlatform.windows,
+        'macos' => UpdatePlatform.macos,
+        'linux' => UpdatePlatform.linux,
+        'android' => UpdatePlatform.android,
+        'ios' => UpdatePlatform.ios,
+        _ => null,
+      };
+}
 
 class UpdateCheckException implements Exception {
   final String message;

@@ -86,6 +86,7 @@ class CourseEditorTransaction {
       'publisherSignature',
       'creatorProfileId',
       'ownership',
+      'assignedTeamId',
       'courseVersion',
       'createdByProfileId',
       'createdByUsername',

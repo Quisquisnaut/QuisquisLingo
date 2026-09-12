@@ -28,6 +28,11 @@ class LearnerAvatarPainter extends CustomPainter {
 
   const LearnerAvatarPainter(this.level, this.skinTone, this.hairTone);
 
+  Color get shirtColor {
+    final safeLevel = level.clamp(0, StatusService.colorValues.length - 1);
+    return Color(StatusService.colorValues[safeLevel]);
+  }
+
   @override
   void paint(Canvas canvas, Size size) {
     final skinColor =
@@ -40,12 +45,7 @@ class LearnerAvatarPainter extends CustomPainter {
     final hairColor = hairTone == 'light'
         ? const Color(0xFFD6B56C)
         : const Color(0xFF4A3428);
-    final robe = Paint()
-      ..color = Color.lerp(
-        const Color(0xFF718447),
-        const Color(0xFF5B477C),
-        level / (StatusService.names.length - 1),
-      )!;
+    final robe = Paint()..color = shirtColor;
     final center = Offset(size.width / 2, size.height * .42);
     canvas.drawCircle(center, size.width * .22, Paint()..color = skinColor);
     canvas.drawArc(

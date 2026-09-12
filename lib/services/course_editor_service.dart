@@ -34,7 +34,7 @@ class OfficialCourseUpdateResult {
   });
 }
 
-/// Local, offline Course Model v7 authoring storage.
+/// Local, offline Course Model v8 authoring storage.
 ///
 /// Bundled assets and imported official packages remain immutable sources.
 /// Official sources are locally read-only. Only custom courses have authoring
@@ -99,7 +99,7 @@ class CourseEditorService {
     } catch (error) {
       await preferences.setString(_corruptBackupKey, raw);
       throw FormatException(
-        'Stored Course Model v7 authoring data are invalid or unsupported. '
+        'Stored Course Model v8 authoring data are invalid or unsupported. '
         'The original data were preserved and were not loaded. $error',
       );
     }
@@ -196,12 +196,12 @@ class CourseEditorService {
     final access = await _access.forCurrentProfile(existing ?? course);
     if (!access.canEditOriginal) {
       throw StateError(
-        'Only the individual Owner or a member of the owning Team can save this course.',
+        'Only the individual Owner or a member of the assigned Team can save this course.',
       );
     }
     if (existing != null) {
       _requirePreservedProvenance(existing, course);
-      _requirePreservedOwnership(existing, course);
+      await _requireAuthorizedGovernanceChange(existing, course);
     }
     all[course.courseId] = _entry(course, _clock());
     await _saveKey(userCoursesStorageKey, all);
@@ -209,7 +209,8 @@ class CourseEditorService {
   }
 
   /// Installs an imported custom source without granting the importer ownership.
-  /// Replacing an existing identity still requires Owner/Team authorization.
+  /// Replacing an existing identity still requires Owner/assigned-Team
+  /// authorization.
   Future<void> installImportedCustomCourse(Course course) async {
     if (course.originType != CourseOriginType.custom) {
       throw ArgumentError(
@@ -220,7 +221,7 @@ class CourseEditorService {
     if (course.creatorProfileId == Course.detachedInMemoryProfileId ||
         course.ownership?.id == Course.detachedInMemoryProfileId) {
       throw const FormatException(
-        'Imported Course Model v7 custom courses require real Creator and Owner identities.',
+        'Imported Course Model v8 custom courses require real Creator and Owner identities.',
       );
     }
     if (_bundledOfficialCourseIds.contains(course.courseId) ||
@@ -304,7 +305,7 @@ class CourseEditorService {
     final course = _courseFromEntry(raw);
     if (!(await _access.forCurrentProfile(course)).canDelete) {
       throw StateError(
-        'Only the individual Owner or a member of the owning Team can delete this course.',
+        'Only the individual Owner or a member of the assigned Team can delete this course.',
       );
     }
     custom.remove(courseId);
@@ -361,13 +362,42 @@ class CourseEditorService {
     }
   }
 
-  static void _requirePreservedOwnership(Course original, Course candidate) {
-    if (original.creatorProfileId != candidate.creatorProfileId ||
-        jsonEncode(original.ownership?.toJson()) !=
-            jsonEncode(candidate.ownership?.toJson())) {
+  Future<void> _requireAuthorizedGovernanceChange(
+    Course original,
+    Course candidate, {
+    bool governanceChangesMadeInEditMode = false,
+  }) async {
+    if (original.creatorProfileId != candidate.creatorProfileId) {
       throw const FormatException(
-        'Course Creator and Owner identities cannot be changed through content editing.',
+        'Course Creator provenance cannot be changed.',
       );
+    }
+    final ownershipChanged =
+        jsonEncode(original.ownership?.toJson()) !=
+        jsonEncode(candidate.ownership?.toJson());
+    final assignmentChanged =
+        original.assignedTeamId != candidate.assignedTeamId;
+    if (!ownershipChanged && !assignmentChanged) return;
+    if (!governanceChangesMadeInEditMode) {
+      throw const FormatException(
+        'Course ownership and Team assignment can change only through Course Editor Edit mode.',
+      );
+    }
+    final actorProfileId = await _profiles.getActiveProfileId();
+    if (actorProfileId == null || original.ownership?.id != actorProfileId) {
+      throw StateError(
+        'Only the current individual Course Owner can change ownership or Team assignment.',
+      );
+    }
+    final newOwnerId = candidate.ownership?.id;
+    if (newOwnerId == null ||
+        await _profiles.getProfileById(newOwnerId) == null) {
+      throw StateError('The new Course Owner must be an existing local user.');
+    }
+    final assignedTeamId = candidate.assignedTeamId;
+    if (assignedTeamId != null &&
+        await _teams.teamById(assignedTeamId) == null) {
+      throw StateError('The selected Team is unavailable.');
     }
   }
 
@@ -423,7 +453,7 @@ class CourseEditorService {
     final access = await _access.forCurrentProfile(source);
     if (!access.canDuplicate || source.ownership == null) {
       throw StateError(
-        'Duplicate is available only to the individual Owner or owning Team members.',
+        'Duplicate is available only to the individual Owner or assigned Team members.',
       );
     }
     final profile = await _requireActiveProfile();
@@ -486,19 +516,9 @@ class CourseEditorService {
     CourseOwnership ownership,
     String profileId,
   ) async {
-    if (ownership.type == CourseOwnerType.individual) {
-      if (ownership.id != profileId) {
-        throw StateError(
-          'A new individual course must be owned by its creator.',
-        );
-      }
-      return;
-    }
-    final team = await _teams.teamById(ownership.id);
-    if (team == null || !team.hasMember(profileId)) {
-      throw StateError(
-        'The fork creator must belong to the selected owning Team.',
-      );
+    if (ownership.id != profileId ||
+        await _profiles.getProfileById(ownership.id) == null) {
+      throw StateError('A new Fork must be owned by its individual creator.');
     }
   }
 
@@ -511,6 +531,7 @@ class CourseEditorService {
     required String languageCode,
     required String versionNotes,
     bool isNewCourse = false,
+    bool governanceChangesMadeInEditMode = false,
     DateTime? committedAt,
   }) async {
     await CourseFlagService().validateWorldFlag(workingCourse);
@@ -528,10 +549,20 @@ class CourseEditorService {
       );
     }
     _requirePreservedProvenance(originalCourse, workingCourse);
-    _requirePreservedOwnership(originalCourse, workingCourse);
-    if (!(await _access.forCurrentProfile(workingCourse)).canEditOriginal) {
+    await _requireAuthorizedGovernanceChange(
+      originalCourse,
+      workingCourse,
+      governanceChangesMadeInEditMode: governanceChangesMadeInEditMode,
+    );
+    final activeProfileId = await _profiles.getActiveProfileId();
+    final authorized = (await _access.forCurrentProfile(
+      isNewCourse ? workingCourse : originalCourse,
+    )).canEditOriginal;
+    final authorizedNewCreator =
+        isNewCourse && activeProfileId == workingCourse.creatorProfileId;
+    if (!authorized && !authorizedNewCreator) {
       throw StateError(
-        'Only the individual Owner or a member of the owning Team can confirm course changes.',
+        'Only the individual Owner, a member of the assigned Team, or the creator of an unconfirmed new Course can confirm course changes.',
       );
     }
     if (workingCourse.courseId != originalCourse.courseId) {
@@ -544,6 +575,17 @@ class CourseEditorService {
       throw StateError(
         'Select or create an active QQL learner profile before confirming course changes.',
       );
+    }
+    if (isNewCourse &&
+        await _profiles.getProfileById(workingCourse.ownership!.id) == null) {
+      throw StateError(
+        'The initial Course Owner must be an existing local user.',
+      );
+    }
+    if (isNewCourse &&
+        workingCourse.assignedTeamId != null &&
+        await _teams.teamById(workingCourse.assignedTeamId!) == null) {
+      throw StateError('The assigned Team is unavailable.');
     }
     final when = (committedAt ?? _clock()).toUtc();
     final notes = versionNotes.trim();

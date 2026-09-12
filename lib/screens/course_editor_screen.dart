@@ -17,6 +17,7 @@ import '../services/course_editor_service.dart';
 import '../services/course_flag_service.dart';
 import '../services/course_language_resolver.dart';
 import '../services/course_owner_resolver.dart';
+import '../services/course_governance_service.dart';
 import '../services/course_editor_transaction.dart';
 import '../services/course_access_policy.dart';
 import '../services/course_service.dart';
@@ -487,11 +488,9 @@ class CourseEditorScreen extends StatelessWidget {
         (userCourse && course.originType == CourseOriginType.custom
             ? CourseAccessPolicy.evaluate(
                 course,
-                profileId: course.ownership?.type == CourseOwnerType.individual
-                    ? course.ownership!.id
-                    : course.creatorProfileId,
-                memberTeamIds: course.ownership?.type == CourseOwnerType.team
-                    ? {course.ownership!.id}
+                profileId: course.ownership?.id,
+                memberTeamIds: course.assignedTeamId != null
+                    ? {course.assignedTeamId!}
                     : const {},
               )
             : CourseAccessPolicy.evaluate(course, profileId: null));
@@ -543,6 +542,7 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
   bool _auditOutdated = true;
   CourseEditorMode _editorMode = CourseEditorMode.viewOnly;
   bool _routeMayPop = false;
+  bool _governanceChangedInEditMode = false;
   String _pendingVersionNotes = '';
 
   @override
@@ -653,6 +653,7 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
     if (choice == 'cancel') {
       _pendingVersionNotes = '';
       _transaction.cancel();
+      _governanceChangedInEditMode = false;
       await _popEditor();
       return;
     }
@@ -665,10 +666,12 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
         languageCode: _code,
         versionNotes: versionNotes,
         isNewCourse: widget.isNewCourse,
+        governanceChangesMadeInEditMode: _governanceChangedInEditMode,
         committedAt: _clock(),
       );
       _transaction.markConfirmed(result.course);
       _pendingVersionNotes = '';
+      _governanceChangedInEditMode = false;
       if (!mounted) return;
       await _popEditor(result);
     } catch (error) {
@@ -695,6 +698,16 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
       profileService: _profiles,
       teamService: _teams,
     ).resolve(_course);
+    final profiles = await _profiles.getProfileRecords();
+    final teams = await _teams.listTeams();
+    final activeProfileId = await _profiles.getActiveProfileId();
+    final canGovern =
+        _editorMode == CourseEditorMode.edit &&
+        widget.access.canTransferOwnership &&
+        activeProfileId == _course.ownership?.id;
+    var selectedOwnerId = _course.ownership!.id;
+    var selectedAssignedTeamId = _course.assignedTeamId;
+    final assignedTeamFieldKey = GlobalKey<FormFieldState<String?>>();
     WorldFlagEntity? selectedWorldFlag;
     if (_course.worldFlagId.isNotEmpty) {
       selectedWorldFlag = await _flags.resolveWorldFlag(_course);
@@ -762,11 +775,15 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
     final learningLanguage = CourseLanguageResolver.learning(_course);
     final baseLanguage = CourseLanguageResolver.base(_course);
     final narrowCourseInfo = MediaQuery.sizeOf(context).width < 560;
-    Widget readOnlyField(String label, String value) => InputDecorator(
+    Widget readOnlyField(
+      String label,
+      String value, {
+      String helperText = 'Read-only',
+    }) => InputDecorator(
       decoration: InputDecoration(
         border: const OutlineInputBorder(),
         labelText: label,
-        helperText: 'Read-only for now',
+        helperText: helperText,
       ),
       child: Text(value.trim().isEmpty ? 'Not specified' : value),
     );
@@ -786,6 +803,8 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
             String flagCode,
             String flagImageBase64,
             String worldFlagId,
+            String ownerProfileId,
+            String? assignedTeamId,
           })
         >(
           context: context,
@@ -816,22 +835,161 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
                         ),
                       ),
                       const SizedBox(height: 8),
-                      readOnlyField('Course ID', _course.courseId),
-                      const SizedBox(height: 8),
+                      ValueListenableBuilder<bool>(
+                        valueListenable:
+                            EditorDisplayPreferences.showInternalIds,
+                        builder: (context, showInternalIds, _) =>
+                            showInternalIds
+                            ? Column(
+                                children: [
+                                  readOnlyField('Course ID', _course.courseId),
+                                  const SizedBox(height: 8),
+                                ],
+                              )
+                            : const SizedBox.shrink(),
+                      ),
                       readOnlyField('Course origin', _course.originType.name),
                       const SizedBox(height: 8),
                       readOnlyField(
-                        'Creator profile ID',
-                        _course.creatorProfileId,
+                        'Course Creator',
+                        ownership.creatorLabel,
+                        helperText: 'Permanent provenance · read-only',
+                      ),
+                      EditorInternalIdText(
+                        label: 'User',
+                        id: _course.creatorProfileId,
+                        padding: const EdgeInsets.only(top: 6),
                       ),
                       const SizedBox(height: 8),
-                      readOnlyField('Owner', ownership.ownerLabel),
-                      if (ownership.ownerId != null)
+                      if (canGovern)
+                        DropdownButtonFormField<String>(
+                          key: const Key('course-info-owner'),
+                          initialValue: selectedOwnerId,
+                          isExpanded: true,
+                          decoration: const InputDecoration(
+                            border: OutlineInputBorder(),
+                            labelText: 'Course Owner',
+                            helperText:
+                                'Only the current Owner may transfer ownership to another individual user.',
+                          ),
+                          items: [
+                            for (final profile in profiles)
+                              DropdownMenuItem(
+                                value: profile.learnerProfileId,
+                                child: Text(profile.presentationName),
+                              ),
+                          ],
+                          onChanged: (value) => setLocalState(
+                            () => selectedOwnerId = value ?? selectedOwnerId,
+                          ),
+                        )
+                      else
+                        readOnlyField(
+                          'Course Owner',
+                          ownership.ownerLabel,
+                          helperText: _editorMode == CourseEditorMode.edit
+                              ? 'Only the current Course Owner may change this field.'
+                              : 'Read-only outside Edit mode',
+                        ),
+                      EditorInternalIdText(
+                        label: 'User',
+                        id: selectedOwnerId,
+                        padding: const EdgeInsets.only(top: 6),
+                      ),
+                      const SizedBox(height: 8),
+                      if (canGovern)
+                        KeyedSubtree(
+                          key: const Key('course-info-assigned-team'),
+                          child: DropdownButtonFormField<String?>(
+                            key: assignedTeamFieldKey,
+                            initialValue: selectedAssignedTeamId,
+                            isExpanded: true,
+                            decoration: const InputDecoration(
+                              border: OutlineInputBorder(),
+                              labelText: 'Assigned Team',
+                              helperText:
+                                  'Assignment grants management access but does not change the Course Owner or Creator.',
+                            ),
+                            items: [
+                              const DropdownMenuItem<String?>(
+                                value: null,
+                                child: Text('No assigned Team'),
+                              ),
+                              for (final team in teams)
+                                DropdownMenuItem<String?>(
+                                  value: team.teamId,
+                                  child: Text(team.displayName),
+                                ),
+                            ],
+                            onChanged: (value) async {
+                              if (value == selectedAssignedTeamId) return;
+                              if (value != null) {
+                                final confirmed =
+                                    await showDialog<bool>(
+                                      context: ctx,
+                                      builder: (warningContext) => AlertDialog(
+                                        key: const Key(
+                                          'team-assignment-warning',
+                                        ),
+                                        title: const Text(
+                                          'Assign Course to Team?',
+                                        ),
+                                        content: const Text(
+                                          CourseGovernanceService
+                                              .teamAssignmentWarning,
+                                        ),
+                                        actions: [
+                                          TextButton(
+                                            key: const Key(
+                                              'team-assignment-cancel',
+                                            ),
+                                            onPressed: () => Navigator.pop(
+                                              warningContext,
+                                              false,
+                                            ),
+                                            child: const Text('Cancel'),
+                                          ),
+                                          FilledButton(
+                                            key: const Key(
+                                              'team-assignment-confirm',
+                                            ),
+                                            onPressed: () => Navigator.pop(
+                                              warningContext,
+                                              true,
+                                            ),
+                                            child: const Text(
+                                              'Confirm assignment',
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ) ??
+                                    false;
+                                if (!confirmed) {
+                                  assignedTeamFieldKey.currentState?.didChange(
+                                    selectedAssignedTeamId,
+                                  );
+                                  return;
+                                }
+                              }
+                              setLocalState(
+                                () => selectedAssignedTeamId = value,
+                              );
+                            },
+                          ),
+                        )
+                      else ...[
+                        readOnlyField(
+                          'Assigned Team',
+                          ownership.assignedTeamLabel ?? 'None',
+                          helperText:
+                              'Only the current Course Owner may assign or revoke a Team.',
+                        ),
+                      ],
+                      if (selectedAssignedTeamId != null)
                         EditorInternalIdText(
-                          label: ownership.ownerType == CourseOwnerType.team
-                              ? 'Team'
-                              : 'User',
-                          id: ownership.ownerId!,
+                          label: 'Team',
+                          id: selectedAssignedTeamId!,
                           padding: const EdgeInsets.only(top: 6),
                         ),
                       ValueListenableBuilder<bool>(
@@ -1541,6 +1699,8 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
                       flagCode: resultFlagCode,
                       flagImageBase64: resultFlagImageBase64,
                       worldFlagId: resultWorldFlagId,
+                      ownerProfileId: selectedOwnerId,
+                      assignedTeamId: selectedAssignedTeamId,
                     ));
                   },
                   child: const Text('Save'),
@@ -1566,9 +1726,35 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
       customLicense.dispose();
     });
     if (result == null || !mounted) return;
+    final governance = CourseGovernanceService(
+      profileService: _profiles,
+      teamService: _teams,
+    );
+    var governedCourse = _course;
+    if (governedCourse.assignedTeamId != result.assignedTeamId) {
+      governedCourse = await governance.assignTeam(
+        course: governedCourse,
+        actorProfileId: activeProfileId!,
+        teamId: result.assignedTeamId,
+        editMode: true,
+        assignmentConfirmed: true,
+      );
+    }
+    if (governedCourse.ownership!.id != result.ownerProfileId) {
+      governedCourse = await governance.transferOwnership(
+        course: governedCourse,
+        actorProfileId: activeProfileId!,
+        newOwnerProfileId: result.ownerProfileId,
+        editMode: true,
+      );
+    }
+    final governanceChanged =
+        _course.ownership!.id != governedCourse.ownership!.id ||
+        _course.assignedTeamId != governedCourse.assignedTeamId;
+    if (governanceChanged) _governanceChangedInEditMode = true;
     _updateDraft(
       Course.fromJson({
-        ..._course.toJson(),
+        ...governedCourse.toJson(),
         'title': result.title,
         'author': result.authors.map((author) => author.name).join(', '),
         'authors': result.authors.map((author) => author.toJson()).toList(),
@@ -1725,6 +1911,7 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
       _pendingVersionNotes = '';
       setState(() {
         _transaction.cancel();
+        _governanceChangedInEditMode = false;
         _auditOutdated = true;
       });
       return true;
@@ -1737,12 +1924,14 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
         languageCode: _code,
         versionNotes: versionNotes,
         isNewCourse: widget.isNewCourse,
+        governanceChangesMadeInEditMode: _governanceChangedInEditMode,
         committedAt: _clock(),
       );
       if (!mounted) return false;
       setState(() {
         _transaction.markConfirmed(result.course);
         _pendingVersionNotes = '';
+        _governanceChangedInEditMode = false;
         _auditOutdated = true;
       });
       return true;
@@ -2276,7 +2465,7 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
                 subtitle: Text(
                   _course.originType.isOfficial
                       ? 'Bundled and official originals are immutable.'
-                      : 'Only the individual Owner or members of the owning Team can edit this original.',
+                      : 'Only the individual Owner or members of the assigned Team can edit this original.',
                 ),
               ),
             AuthoringStatusCard(

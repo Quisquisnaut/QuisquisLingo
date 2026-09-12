@@ -97,7 +97,7 @@ void main() {
     );
   });
 
-  test('Course Editor uses a clean v7 storage namespace', () async {
+  test('Course Editor uses a clean v8 storage namespace', () async {
     final course = _metadataCourse();
     final legacyValue = jsonEncode({
       course.courseId: {'savedAt': '2026-08-28', 'course': course.toJson()},
@@ -116,7 +116,7 @@ void main() {
 
     await service.saveUserCourse(course);
     final prefs = await SharedPreferences.getInstance();
-    expect(prefs.getString('quisquislingo_user_courses_v7_2291'), isNotNull);
+    expect(prefs.getString('quisquislingo_user_courses_v8_233030'), isNotNull);
     expect(prefs.getString('quisquislingo_user_courses_v5_223'), isNull);
     expect(prefs.getString('quisquislingo_user_courses_v4_215'), isNull);
     expect(prefs.getString('quisquislingo_user_courses_v2_100'), legacyValue);

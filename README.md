@@ -1,13 +1,15 @@
 # QuisquisLingo App
 
-**Current source version: 2.0.32+232 · Build 232 · Revision 0 · Course Model v7 (`formatVersion: 7`).**
+**Current source version: 2.0.33+233030 · Phase 233.3 · revision 0 · Course Model v8 (`formatVersion: 8`).**
 
 
-**QuisquisLingo 2.0.32 Alpha — QQL 232 Integrated Vocabulary Reinforcement in Review**
+**QuisquisLingo 2.0.33 Alpha — QQL 233 Linux Update, Learner Status Avatar, and Course/Team Governance**
 
-Current project version: 2.0.32
+Current project version: 2.0.33
 
-QQL 232 makes Review a dedicated automatic page for the active Course. It selects genuinely completed Rounds by most errors and then oldest latest attempt, optionally prepares published GuideBook Vocabulary, repeats only learner-requested words once after the Round, and remembers known/difficult words per learner and Course. Next Review excludes Rounds already completed during the current Review visit; Reset Word List clears only that Course's vocabulary memory. Review remains independent of IDDQD View Only and adds no separate vocabulary XP or progression. Course Model v7, course JSON and bundled checksums remain unchanged. See [QQL 232 validation](docs/232_VALIDATION.md).
+QQL 233 is delivered through three planned phases. Phase 233.1 recognizes the actual generic Linux Alpha ZIP while preserving Windows and GitHub Releases policy. Phase 233.2 adds the two-step Learner profile/avatar flow, optional normalized Discord presentation, random initial skin and hair, and the authoritative ten-level Status display whose vivid current-level color drives the avatar T-shirt. Phase 233.3 makes every Course Owner an individual, separates optional Team assignment and Team governance, adds assignment warnings and experimental-model Help, corrects role identity/ID presentation, and keeps the Learner status bar exclusively inside the Learner Panel. Course Model v8 is a clean cut with no legacy custom-course migration. See [QQL 233 validation](docs/233_VALIDATION.md).
+
+QQL 232 remains the completed Review and Vocabulary reinforcement baseline. See [QQL 232 validation](docs/232_VALIDATION.md).
 
 QQL 231 remains the completed Course Editor Search & Access baseline. See [QQL 231 validation](docs/231_VALIDATION.md), [Exercise Type inventory](docs/EXERCISE_TYPE_INVENTORY_231.md), and [Course Manager and Editor](docs/COURSE_EDITOR.md).
 
@@ -34,7 +36,7 @@ A Flutter prototype for an offline-first language-learning app.
 
 ## Baseline 200
 
-Version **2.0.0+200** remains the historical Course Model v3 baseline. Current development starts from this Course Model v7 source tree rather than an older archive. Repository-level agent instructions are in `AGENTS.md`.
+Version **2.0.0+200** remains the historical Course Model v3 baseline. Current development starts from this Course Model v8 source tree rather than an older archive. Repository-level agent instructions are in `AGENTS.md`.
 
 ## Project authorship
 
@@ -46,7 +48,7 @@ The MPL-2.0 covers the QuisquisLingo software source. Courses, the Image Bank an
 
 ## Alpha lifecycle
 
-Version 2.0.32 Build 232 revision 0 is a time-limited alpha and retains the established expiry at **2026-10-13 23:59:59 local time**. Near expiry it displays reminders. After expiry, learner exercises and Review are blocked until a newer alpha is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when an alpha expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM. Future stable builds can disable alpha expiry.
+Version 2.0.33 Phase 233.3 revision 0 is a time-limited alpha and refreshes the established expiry to **2026-10-14 23:59:59 local time**. Near expiry it displays reminders. After expiry, learner exercises and Review are blocked until a newer alpha is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when an alpha expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM. Future stable builds can disable alpha expiry.
 
 ## Core logic
 
@@ -57,7 +59,7 @@ Course
     - Content / Exercise
   - Duel
 
-Each Lesson has its own GuideBook, ordered Rounds and Lesson-scoped Duel in Course Model v7. The first Content item of a Lesson’s first Round may present a short essential introduction drawn from that GuideBook.
+Each Lesson has its own GuideBook, ordered Rounds and Lesson-scoped Duel in Course Model v8. The first Content item of a Lesson’s first Round may present a short essential introduction drawn from that GuideBook.
 
 The learner page shows a continuous Lesson path, opens the Section picker from the fixed Section selector when real Sections exist, and opens GuideBooks, Rounds and Duels directly. Its Lesson display control cycles through Expanded, Collapse completed and Focused; it never collapses Sections or changes progression. The Course Selector can hide non-active Courses separately for each learner without uninstalling them or changing Course or learner data.
 
@@ -78,7 +80,7 @@ All learner data remains on-device.
 - XP
 - Local TTS service with generated-file caching
 - Nine bundled sample courses, including Korean from English
-- Local authoring Teams with stable profile-ID membership and one or more Team Leads
+- Local authoring Teams with stable profile-ID membership and one or more Team Leaders
 - No account
 - Local offline leaderboard for the previous completed week, based on each participating learner’s XP across all courses
 - No server dependency

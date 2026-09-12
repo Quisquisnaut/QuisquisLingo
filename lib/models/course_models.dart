@@ -1,9 +1,9 @@
 import 'dart:convert';
 import 'dart:math';
 
-/// QuisquisLingo Course Model v7.
+/// QuisquisLingo Course Model v8.
 ///
-/// The serialized course format is formatVersion 7. Course content is stored as
+/// The serialized course format is formatVersion 8. Course content is stored as
 /// Course > Lesson > Guidebook + Round > Content. Exercises are one Content kind
 /// and are represented through Prompt + Interaction + Evaluation primitives.
 ///
@@ -52,13 +52,12 @@ enum CourseOriginType {
 }
 
 enum CourseOwnerType {
-  individual,
-  team;
+  individual;
 
   static CourseOwnerType parse(Object? value) => values.firstWhere(
     (type) => type.name == value,
     orElse: () => throw const FormatException(
-      'course.ownership.type must be individual or team.',
+      'course.ownership.type must be individual.',
     ),
   );
 }
@@ -79,10 +78,6 @@ class CourseOwnership {
   const CourseOwnership.individual(String profileId)
     : type = CourseOwnerType.individual,
       id = profileId;
-
-  const CourseOwnership.team(String teamId)
-    : type = CourseOwnerType.team,
-      id = teamId;
 
   Map<String, dynamic> toJson() => {'type': type.name, 'id': id};
 
@@ -403,10 +398,10 @@ class CourseForkProvenance {
 }
 
 class Course {
-  static const int currentFormatVersion = 7;
+  static const int currentFormatVersion = 8;
 
   /// In-memory fixture identity used only by direct Dart constructors.
-  /// Serialized v7 custom JSON must still provide Creator and Owner explicitly,
+  /// Serialized v8 custom JSON must still provide Creator and Owner explicitly,
   /// and storage authorization never grants this detached identity rights.
   static const String detachedInMemoryProfileId =
       '00000000-0000-4000-8000-000000000000';
@@ -424,6 +419,7 @@ class Course {
   final String publisherSignature;
   final String creatorProfileId;
   final CourseOwnership? ownership;
+  final String? assignedTeamId;
   final String createdByProfileId;
   final String createdByUsername;
   final String createdAtUtc;
@@ -493,6 +489,7 @@ class Course {
     this.publisherSignature = '',
     String? creatorProfileId,
     CourseOwnership? ownership,
+    String? assignedTeamId,
     this.createdByProfileId = '',
     this.createdByUsername = '',
     this.createdAtUtc = '',
@@ -552,6 +549,9 @@ class Course {
            (originType == CourseOriginType.custom
                ? const CourseOwnership.individual(detachedInMemoryProfileId)
                : null),
+       assignedTeamId = assignedTeamId?.trim().isEmpty == true
+           ? null
+           : assignedTeamId?.trim(),
        sectionNames = _normalizeSectionNames(sectionNames),
        worldFlagId = worldFlagId.trim(),
        customLessonLabel = customLessonLabel.trim(),
@@ -562,7 +562,9 @@ class Course {
       );
     }
     if (originType.isOfficial &&
-        (this.creatorProfileId.isNotEmpty || this.ownership != null)) {
+        (this.creatorProfileId.isNotEmpty ||
+            this.ownership != null ||
+            this.assignedTeamId != null)) {
       throw const FormatException(
         'Official courses use publisher provenance and cannot have custom-course ownership.',
       );
@@ -588,9 +590,12 @@ class Course {
         (this.creatorProfileId.isNotEmpty || this.ownership != null)) {
       if (!CourseOwnership._uuidV4.hasMatch(this.creatorProfileId) ||
           this.ownership == null ||
-          !CourseOwnership._uuidV4.hasMatch(this.ownership!.id)) {
+          !CourseOwnership._uuidV4.hasMatch(this.ownership!.id) ||
+          this.ownership!.type != CourseOwnerType.individual ||
+          (this.assignedTeamId != null &&
+              !CourseOwnership._uuidV4.hasMatch(this.assignedTeamId!))) {
         throw const FormatException(
-          'Custom-course Creator and Owner must use stable UUIDv4 identities.',
+          'Custom-course Creator, individual Owner and assigned Team must use stable UUIDv4 identities.',
         );
       }
     }
@@ -679,6 +684,7 @@ class Course {
     if (publisherSignature.isNotEmpty) 'publisherSignature': publisherSignature,
     if (creatorProfileId.isNotEmpty) 'creatorProfileId': creatorProfileId,
     if (ownership != null) 'ownership': ownership!.toJson(),
+    if (assignedTeamId != null) 'assignedTeamId': assignedTeamId,
     if (createdByProfileId.isNotEmpty) 'createdByProfileId': createdByProfileId,
     if (createdByUsername.isNotEmpty) 'createdByUsername': createdByUsername,
     if (createdAtUtc.isNotEmpty) 'createdAtUtc': createdAtUtc,
@@ -746,22 +752,22 @@ class Course {
     final fv = json['formatVersion'];
     if (fv != currentFormatVersion) {
       throw FormatException(
-        'Unsupported course formatVersion: $fv. This version of QuisquisLingo supports Course Model formatVersion 7 only. Older course formats are not migrated or partially loaded.',
+        'Unsupported course formatVersion: $fv. This version of QuisquisLingo supports Course Model formatVersion 8 only. Older course formats are not migrated or partially loaded.',
       );
     }
     if (json.containsKey('topics')) {
       throw const FormatException(
-        'Course Model formatVersion 7 does not support the legacy topics field.',
+        'Course Model formatVersion 8 does not support the legacy topics field.',
       );
     }
     if (json.containsKey('chapters')) {
       throw const FormatException(
-        'Course Model formatVersion 7 does not support chapters.',
+        'Course Model formatVersion 8 does not support chapters.',
       );
     }
     if (json.containsKey('supportUrl')) {
       throw const FormatException(
-        'Course Model formatVersion 7 uses buyACoffeeUrl, not supportUrl.',
+        'Course Model formatVersion 8 uses buyACoffeeUrl, not supportUrl.',
       );
     }
     if (json.containsKey('buyACoffeeUrl') && json['buyACoffeeUrl'] is! String) {
@@ -774,9 +780,13 @@ class Course {
         ? _requiredString(json, 'creatorProfileId', 'course')
         : _optionalString(json, 'creatorProfileId', '');
     final ownership = json['ownership'];
+    if (json.containsKey('assignedTeamId') &&
+        json['assignedTeamId'] is! String) {
+      throw const FormatException('course.assignedTeamId must be a string.');
+    }
     if (originType == CourseOriginType.custom && ownership is! Map) {
       throw const FormatException(
-        'Course Model v7 custom courses require explicit course.ownership.',
+        'Course Model v8 custom courses require explicit course.ownership.',
       );
     }
     if (originType.isOfficial && ownership != null) {
@@ -805,6 +815,9 @@ class Course {
       ownership: ownership is Map
           ? CourseOwnership.fromJson(Map<String, dynamic>.from(ownership))
           : null,
+      assignedTeamId: _optionalString(json, 'assignedTeamId', '').isEmpty
+          ? null
+          : _optionalString(json, 'assignedTeamId', ''),
       createdByProfileId: _optionalString(json, 'createdByProfileId', ''),
       createdByUsername: _optionalString(json, 'createdByUsername', ''),
       createdAtUtc: _optionalString(json, 'createdAtUtc', ''),
@@ -1213,12 +1226,12 @@ class Lesson {
     }
     if (j.containsKey('id') || j.containsKey('topicId')) {
       throw const FormatException(
-        'Course Model formatVersion 7 Lessons require lessonId and reject legacy Lesson identity fields.',
+        'Course Model formatVersion 8 Lessons require lessonId and reject legacy Lesson identity fields.',
       );
     }
     if (j.containsKey('role') || j.containsKey('assessment')) {
       throw const FormatException(
-        'Course Model formatVersion 7 Lessons do not support role or assessment fields.',
+        'Course Model formatVersion 8 Lessons do not support role or assessment fields.',
       );
     }
     final rawGuidebook = j['guidebook'];
@@ -1236,7 +1249,7 @@ class Lesson {
     }
     if (j.containsKey('imageAsset')) {
       throw const FormatException(
-        'Course Model formatVersion 7 Lessons do not support the obsolete imageAsset field.',
+        'Course Model formatVersion 8 Lessons do not support the obsolete imageAsset field.',
       );
     }
     if (j.containsKey('sectionName') &&
@@ -1698,19 +1711,19 @@ class ExerciseEvaluation {
   factory ExerciseEvaluation.fromJson(Map<String, dynamic> j) {
     if (j.containsKey('accepted')) {
       throw const FormatException(
-        'Course Model formatVersion 7 uses acceptedAnswers and does not load the legacy accepted field.',
+        'Course Model formatVersion 8 uses acceptedAnswers and does not load the legacy accepted field.',
       );
     }
     if (j.containsKey('correctOrder')) {
       throw const FormatException(
-        'Course Model formatVersion 7 requires correctOrders and does not load the legacy single correctOrder field.',
+        'Course Model formatVersion 8 requires correctOrders and does not load the legacy single correctOrder field.',
       );
     }
     if (j.containsKey('caseSensitive') ||
         j.containsKey('ignorePunctuation') ||
         j.containsKey('ignoreAccents')) {
       throw const FormatException(
-        'Course Model formatVersion 7 requires the normalization object and does not load legacy normalization flags.',
+        'Course Model formatVersion 8 requires the normalization object and does not load legacy normalization flags.',
       );
     }
     final normalization = j['normalization'] is Map

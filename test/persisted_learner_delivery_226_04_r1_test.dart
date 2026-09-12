@@ -338,11 +338,11 @@ Future<void> _openFixtureLesson(WidgetTester tester) async {
   expect(find.byType(LessonEditorScreen), findsOneWidget);
 }
 
-// Synthetic v7 storage fixture, deliberately written independently of model
+// Synthetic v8 storage fixture, deliberately written independently of model
 // constructors and toJson. This is not a user's Course or bundled content.
 const _rawDraftLessonCourse = r'''
 {
-  "formatVersion": 7,
+  "formatVersion": 8,
   "publicationState": "published",
   "lessonNumberingMode": "lesson",
   "defaultLessonIconStyle": "monochrome",

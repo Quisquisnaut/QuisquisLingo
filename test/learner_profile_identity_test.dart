@@ -43,6 +43,94 @@ void main() {
   });
 
   test(
+    'Discord display information is optional and normalized with @',
+    () async {
+      final ids = [_idA, _idB].iterator;
+      final profiles = ProfileService(
+        idGenerator: () {
+          ids.moveNext();
+          return ids.current;
+        },
+        randomIndex: (_) => 0,
+      );
+
+      final withDiscord = await profiles.createProfile(
+        'Discord learner',
+        discordHandle: '  quisquis_learner  ',
+      );
+      final withoutDiscord = await profiles.createProfile('Local learner');
+
+      expect(withDiscord.discordHandle, '@quisquis_learner');
+      expect(withoutDiscord.discordHandle, isNull);
+      expect(
+        LearnerProfile.decode(withDiscord.encode())?.discordHandle,
+        '@quisquis_learner',
+      );
+    },
+  );
+
+  test(
+    'new profile skin and hair start from injected random selections',
+    () async {
+      final selections = [2, 0].iterator;
+      final profiles = ProfileService(
+        idGenerator: () => _idA,
+        randomIndex: (_) {
+          selections.moveNext();
+          return selections.current;
+        },
+      );
+
+      await profiles.createProfile('Random avatar');
+
+      expect(
+        await profiles.getAvatarAppearanceForProfile(_idA),
+        isA<ProfileAvatarAppearance>()
+            .having((value) => value.skinTone, 'skin', 'dark')
+            .having((value) => value.hairTone, 'hair', 'light'),
+      );
+    },
+  );
+
+  test(
+    'profile presentation edits preserve identity progress and appearance',
+    () async {
+      final profiles = ProfileService(
+        idGenerator: () => _idA,
+        randomIndex: (_) => 0,
+      );
+      final created = await profiles.createProfile(
+        'Before',
+        discordHandle: 'before',
+      );
+      final progress = ProgressService(now: () => DateTime(2026, 9, 12));
+      await progress.addXp(75, courseCode: 'IT', courseId: 'course-a');
+      await profiles.setSkinTone('dark');
+      await profiles.setHairTone('dark');
+
+      await profiles.replaceProfileRecord(
+        LearnerProfile(
+          learnerProfileId: created.learnerProfileId,
+          displayName: 'After',
+          discordHandle: '@after',
+        ),
+      );
+
+      final updated = await profiles.getProfileById(_idA);
+      expect(updated?.learnerProfileId, _idA);
+      expect(updated?.displayName, 'After');
+      expect(updated?.discordHandle, '@after');
+      expect(await progress.getXp(courseCode: 'IT'), 75);
+      expect(
+        await profiles.getAvatarAppearanceForProfile(_idA),
+        isA<ProfileAvatarAppearance>()
+            .having((value) => value.skinTone, 'skin', 'dark')
+            .having((value) => value.hairTone, 'hair', 'dark'),
+      );
+    },
+  );
+
+  test(
     'legacy name registry and namespace are ignored by the clean cut',
     () async {
       SharedPreferences.setMockInitialValues({
@@ -121,7 +209,7 @@ void main() {
       );
       expect(
         prefs.getString('${ProfileService.prefixForProfileId(_idA)}skin_tone'),
-        'medium',
+        before['${ProfileService.prefixForProfileId(_idA)}skin_tone'],
       );
       expect(
         before[ProfileService.profilesKey],
@@ -174,6 +262,7 @@ void main() {
           'schemaVersion': LearnerBackupService.schemaVersion,
           'learnerProfileId': _idB,
           'displayName': 'Restored',
+          'discordHandle': 'restored_handle',
           'data': {'xp_IT': 42, 'skin_tone': 'dark', 'hair_tone': 'light'},
         }),
       ),
@@ -183,6 +272,7 @@ void main() {
 
     expect(restored.learnerProfileId, _idB);
     expect(restored.displayName, 'Restored');
+    expect(restored.discordHandle, '@restored_handle');
     expect(await profiles.getActiveProfileId(), _idB);
     final prefs = await SharedPreferences.getInstance();
     expect(prefs.getInt('${ProfileService.prefixForProfileId(_idB)}xp_IT'), 42);
@@ -390,7 +480,7 @@ void main() {
     'backup v1 is rejected and export contains v2 identity fields',
     () async {
       final profiles = ProfileService(idGenerator: () => _idA);
-      await profiles.createProfile('Exported');
+      await profiles.createProfile('Exported', discordHandle: 'exported');
       final backup = LearnerBackupService(profileService: profiles);
 
       expect(
@@ -405,6 +495,7 @@ void main() {
       expect(exported['schemaVersion'], 2);
       expect(exported['learnerProfileId'], _idA);
       expect(exported['displayName'], 'Exported');
+      expect(exported['discordHandle'], '@exported');
     },
   );
 

@@ -19,12 +19,14 @@ class LearnerBackupDocument {
   final int schemaVersion;
   final String learnerProfileId;
   final String displayName;
+  final String? discordHandle;
   final Map<String, Object> data;
 
   const LearnerBackupDocument({
     required this.schemaVersion,
     required this.learnerProfileId,
     required this.displayName,
+    this.discordHandle,
     required this.data,
   });
 }
@@ -98,6 +100,7 @@ class LearnerBackupService {
       'schemaVersion': schemaVersion,
       'learnerProfileId': profile.learnerProfileId,
       'displayName': profile.displayName,
+      if (profile.discordHandle != null) 'discordHandle': profile.discordHandle,
       'exportedAt': DateTime.now().toIso8601String(),
       'data': data,
     };
@@ -168,6 +171,8 @@ class LearnerBackupService {
         decoded['schemaVersion'] != schemaVersion ||
         decoded['learnerProfileId'] is! String ||
         decoded['displayName'] is! String ||
+        (decoded['discordHandle'] != null &&
+            decoded['discordHandle'] is! String) ||
         decoded['data'] is! Map) {
       throw const FormatException(
         'Not a supported QuisquisLingo learner backup.',
@@ -178,8 +183,12 @@ class LearnerBackupService {
       throw const FormatException('Backup learner profile ID is invalid.');
     }
     final displayName = decoded['displayName'] as String;
+    String? discordHandle;
     try {
       ProfileService.validateDisplayName(displayName);
+      discordHandle = ProfileService.normalizeDiscordHandle(
+        decoded['discordHandle'] as String?,
+      );
     } on ArgumentError catch (error) {
       throw FormatException(
         error.message?.toString() ?? 'Invalid learner name',
@@ -216,6 +225,7 @@ class LearnerBackupService {
       schemaVersion: schemaVersion,
       learnerProfileId: learnerProfileId,
       displayName: displayName.trim(),
+      discordHandle: discordHandle,
       data: data,
     );
   }
@@ -234,6 +244,7 @@ class LearnerBackupService {
     final profile = LearnerProfile(
       learnerProfileId: document.learnerProfileId,
       displayName: ProfileService.validateDisplayName(document.displayName),
+      discordHandle: document.discordHandle,
     );
     final preferences = await SharedPreferences.getInstance();
     final snapshot = _snapshot(preferences, profile.learnerProfileId);
@@ -277,6 +288,7 @@ class LearnerBackupService {
     try {
       profile = await _profiles.createProfile(
         ProfileService.validateDisplayName(displayName),
+        discordHandle: document.discordHandle,
       );
       final created = await _profiles.getProfileById(profile.learnerProfileId);
       if (created?.displayName != profile.displayName ||

@@ -14,7 +14,8 @@ LEARNER PROFILE
 |
 +-- learner-global Weekly XP and weekly-goal celebration state
 |
-+-- avatar appearance (shared across languages)
++-- avatar skin/hair appearance (shared across languages)
++-- avatar T-shirt color (derived live from authoritative current Status level)
 +-- Theme (Light / Dark / System / Day/Night, initially System; shared across Courses)
 +-- Audio Settings (shared across Courses)
      +-- Enable Audio Exercises (initially Off)
@@ -76,9 +77,9 @@ Learner Round and Duel queues first read the active profile's positive `audio_ex
 
 ## Course authoring boundary
 
-All origins use the same capability-driven Course Editor hierarchy. Bundled/external official courses and outsider-owned custom courses open read-only; an individual Owner and every member of an owning Team receive full custom editing. Opening an editable custom Course Editor creates an immutable snapshot of the persisted course and a separate editable working copy. Every nested authoring operation changes only the working copy. Nested Save/Save as draft never touches the learner-visible course, creates a backup, or increments a version. Canonical semantic comparison decides whether the complete working copy differs from the snapshot.
+All origins use the same capability-driven Course Editor hierarchy. Bundled/external official courses and outsider custom courses open read-only; an individual Owner and every current member of an assigned Team receive custom content editing. Only the individual Owner can transfer ownership or assign/revoke a Team. Opening an editable custom Course Editor creates an immutable snapshot of the persisted course and a separate editable working copy. Every nested authoring operation changes only the working copy. Nested Save/Save as draft never touches the learner-visible course, creates a backup, or increments a version. Canonical semantic comparison decides whether the complete working copy differs from the snapshot.
 
-Creator, Owner, credits, license and provenance are separate. `creatorProfileId` is immutable creation provenance. `ownership` names one stable profile ID or Team ID and is the only authoring ownership boundary. Author, Contributor, Illustrator, Team Leader and other credit strings are descriptive and never grant authorization. The Owner or any owning-Team member can Edit and Duplicate regardless of license; Team Lead status controls Team membership administration only. An outsider cannot mutate or Duplicate the original and may Fork only when derivative works are allowed. Duplicate preserves individual/Team ownership; Fork receives explicit local ownership, fresh IDs and source lineage/provenance.
+Creator, Owner, assigned Team, credits, license and provenance are separate. `creatorProfileId` is immutable creation provenance. `ownership` names one stable individual profile ID; optional `assignedTeamId` names a Team with management access but never ownership. Author, Contributor, Illustrator, Team Leader and other credit strings are descriptive and never grant authorization. The Owner or any assigned-Team member can Edit and Duplicate regardless of license; only the Owner can transfer ownership or assign/revoke a Team. Team leadership controls Team membership administration only. An outsider cannot mutate or Duplicate the original and may Fork only when derivative works are allowed. Duplicate preserves individual ownership and optional Team assignment; Fork receives explicit local individual ownership, fresh IDs and source lineage/provenance.
 
 Only the top-level Confirm course changes action may persist authoring work. For an existing course it first creates and verifies a complete versioned backup, then increments the separate internal course version and atomically writes and verifies the entire working copy. Cancel course changes discards the working copy without backup or version change. Failed backup or persistence preserves the original and keeps the working copy open. Official sources use only their publisher-owned version. Explicitly licensed forks are independent custom courses with permanent original authorship/provenance and a separate fork creator.
 
@@ -90,7 +91,7 @@ DEVICE ONLY
 - language-scoped XP, streaks, study days and Status inputs
 - learner-global Weekly XP and per-course Weekly XP breakdowns
 - course-scoped Round/Lesson/Duel progress, Laurels and Review history
-- local Course Model v7 custom courses and external official sources
+- local Course Model v8 custom courses and external official sources
 - offline authoring Teams keyed by stable Team and profile IDs, with one or more Leads
 - settings, including per-profile Enable Audio Exercises, Text-to-speech and TTS voice
 - automatic Crash Log plus separate exportable Diagnostic Log under `Documents/QuisquisLingo/Logs`
@@ -109,7 +110,7 @@ Learner backup schema v2 remains unchanged. Its only learner-state payload is an
 
 Build 228 makes a clean per-profile Audio Settings cut. Below the active opaque learner prefix, `audio_exercises_enabled` and `tts_enabled` default Off and `tts_voice_preference` defaults System. Previous device-level `tts_enabled` / `tts_voice_preference`, device-level `skip_tts_exercises`, and per-profile `skip_all_audio_exercises` values are left untouched and unread; none are migrated or converted. Statistics uses only existing profile-prefixed `study_days_<language>` and `study_days_all` records. Learner backup schema v2 already carries opaque profile-prefixed values, so no backup or Course Model schema change is required.
 
-QQL 229 revision 1 moves custom authoring storage to the clean v7/build-2291 namespace. Older custom data remains untouched and unread; no ownership migration or name-based fallback runs. Custom Course JSON requires stable Creator and individual/Team Owner identities. Team membership and Lead state live separately in the verified `quisquislingo_authoring_teams_v1_2291` registry and never enter Course JSON. Course Selector Hide and Lesson expansion mode retain their revision-0 per-learner × Course keys unchanged.
+QQL 233.3 moves custom authoring storage to the clean v8/build-233030 namespace. Older custom data remains untouched and unread; no ownership or Team-assignment migration or name-based fallback runs. Custom Course JSON requires stable Creator and individual Owner identities and may include a separate assigned Team ID. Team membership and leadership state live separately in the verified `quisquislingo_authoring_teams_v1_2291` registry and never enter Course JSON. Course Selector Hide and Lesson expansion mode retain their existing per-learner × Course keys unchanged.
 
 SERVER
 - none required by the current prototype

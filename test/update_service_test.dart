@@ -74,34 +74,127 @@ void main() {
     });
   });
 
-  test('platform availability is conservative and asset-based', () {
-    const release = UpdateRelease(
-      tagName: 'v1.5.6',
-      version: '1.5.6',
-      title: 'QuisquisLingo 1.5.6',
+  group('UpdateService platform asset selection', () {
+    const windows = UpdateAsset(
+      name: 'quisquislingo_windows_alpha_232.zip',
+      downloadUrl:
+          'https://github.com/Quisquisnaut/QuisquisLingo/releases/download/v2.0.32%2B232/quisquislingo_windows_alpha_232.zip',
+    );
+    const linux = UpdateAsset(
+      name: 'quisquislingo_linux_alpha_232.zip',
+      downloadUrl:
+          'https://github.com/Quisquisnaut/QuisquisLingo/releases/download/v2.0.32%2B232/quisquislingo_linux_alpha_232.zip',
+    );
+    const source = UpdateAsset(
+      name: 'quisquislingo_alpha_232_source.zip',
+      downloadUrl:
+          'https://github.com/Quisquisnaut/QuisquisLingo/releases/download/v2.0.32%2B232/quisquislingo_alpha_232_source.zip',
+    );
+
+    UpdateRelease release(List<UpdateAsset> assets) => UpdateRelease(
+      tagName: 'v2.0.32+232',
+      version: '2.0.32+232',
+      title: 'QuisquisLingo 2.0.32',
       notes: '',
       htmlUrl:
-          'https://github.com/Quisquisnaut/QuisquisLingo/releases/tag/v1.5.6',
-      assets: [
-        UpdateAsset(
-          name: 'quisquislingo_windows_x64.zip',
-          downloadUrl:
-              'https://github.com/Quisquisnaut/QuisquisLingo/releases/download/v1.5.6/quisquislingo_windows_x64.zip',
-        ),
-        UpdateAsset(
-          name: 'quisquislingo_antix_1.5.6.deb',
-          downloadUrl:
-              'https://github.com/Quisquisnaut/QuisquisLingo/releases/download/v1.5.6/quisquislingo_antix_1.5.6.deb',
-        ),
-      ],
+          'https://github.com/Quisquisnaut/QuisquisLingo/releases/tag/v2.0.32%2B232',
+      assets: assets,
     );
-    final service = UpdateService();
-    expect(service.platformAvailable(release, UpdatePlatform.windows), isTrue);
-    expect(
-      service.platformAvailable(release, UpdatePlatform.linuxAntix),
-      isTrue,
-    );
-    expect(service.platformAvailable(release, UpdatePlatform.macos), isFalse);
-    expect(service.platformAvailable(release, UpdatePlatform.android), isFalse);
+
+    test('recognizes Linux and Windows operating systems', () {
+      expect(UpdatePlatform.fromOperatingSystem('linux'), UpdatePlatform.linux);
+      expect(
+        UpdatePlatform.fromOperatingSystem('windows'),
+        UpdatePlatform.windows,
+      );
+      expect(UpdatePlatform.fromOperatingSystem('freebsd'), isNull);
+    });
+
+    test('recognizes the actual QQL Linux release package', () {
+      final service = UpdateService();
+      final selected = service.compatibleAsset(
+        release([linux]),
+        UpdatePlatform.linux,
+      );
+
+      expect(selected, same(linux));
+      expect(
+        service.platformAvailable(release([linux]), UpdatePlatform.linux),
+        isTrue,
+      );
+    });
+
+    test('keeps recognizing the actual QQL Windows release package', () {
+      final selected = UpdateService().compatibleAsset(
+        release([windows]),
+        UpdatePlatform.windows,
+      );
+
+      expect(selected, same(windows));
+    });
+
+    test('Linux never selects the Windows package', () {
+      final service = UpdateService();
+
+      expect(
+        service.compatibleAsset(release([windows]), UpdatePlatform.linux),
+        isNull,
+      );
+      expect(
+        service.platformAvailable(release([windows]), UpdatePlatform.linux),
+        isFalse,
+      );
+    });
+
+    test('Windows never selects the Linux package', () {
+      final service = UpdateService();
+
+      expect(
+        service.compatibleAsset(release([linux]), UpdatePlatform.windows),
+        isNull,
+      );
+      expect(
+        service.platformAvailable(release([linux]), UpdatePlatform.windows),
+        isFalse,
+      );
+    });
+
+    test('source and incompatible assets are not selected', () {
+      final service = UpdateService();
+      final incompatible = release([
+        source,
+        const UpdateAsset(
+          name: 'quisquislingo_linux_alpha_232.dmg',
+          downloadUrl:
+              'https://github.com/Quisquisnaut/QuisquisLingo/releases/download/v2.0.32%2B232/quisquislingo_linux_alpha_232.dmg',
+        ),
+      ]);
+
+      expect(
+        service.compatibleAsset(incompatible, UpdatePlatform.linux),
+        isNull,
+      );
+      expect(
+        service.compatibleAsset(incompatible, UpdatePlatform.windows),
+        isNull,
+      );
+    });
+
+    test('release without a compatible package remains unavailable', () {
+      final service = UpdateService();
+      final onlyOtherPlatforms = release([linux]);
+
+      expect(
+        service.platformAvailable(onlyOtherPlatforms, UpdatePlatform.windows),
+        isFalse,
+      );
+      expect(
+        UpdateCheckResult(
+          UpdateCheckStatus.updateAvailable,
+          release: onlyOtherPlatforms,
+        ).status,
+        UpdateCheckStatus.updateAvailable,
+      );
+    });
   });
 }

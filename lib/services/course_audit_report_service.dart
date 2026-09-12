@@ -35,7 +35,7 @@ class CourseAuditReportService {
     final buffer = StringBuffer()
       ..writeln('QuisquisLingo Course Audit report')
       ..writeln('Version: ${AppMetadata.releaseVersion}')
-      ..writeln('Build: ${AppMetadata.build}')
+      ..writeln('Phase: ${AppMetadata.build}')
       ..writeln('Technical version: ${AppMetadata.technicalVersion}')
       ..writeln('Generated: ${generated.toIso8601String()}')
       ..writeln('Course name: ${course.title}')

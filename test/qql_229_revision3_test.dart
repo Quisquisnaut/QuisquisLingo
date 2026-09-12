@@ -25,10 +25,10 @@ void main() {
 
   setUp(() => SharedPreferences.setMockInitialValues({}));
 
-  test('QQL 232 release metadata uses Build and Revision terminology', () {
-    expect(AppMetadata.technicalVersion, '2.0.32+232');
-    expect(AppMetadata.build, '232');
-    expect(AppMetadata.displayLabel, 'Version 2.0.32\nBuild 232\nRevision 0');
+  test('QQL 233 release metadata uses Phase and revision terminology', () {
+    expect(AppMetadata.technicalVersion, '2.0.33+233030');
+    expect(AppMetadata.build, '233.3');
+    expect(AppMetadata.displayLabel, 'Version 2.0.33\nPhase 233.3, revision 0');
   });
 
   testWidgets(
@@ -102,7 +102,7 @@ void main() {
     },
   );
 
-  test('a Team Lead cannot use self-service leave', () async {
+  test('a Team Leader cannot use self-service leave', () async {
     final profiles = await _profiles(activeId: _leadId);
     final teams = await _team(profiles);
     await expectLater(
@@ -111,7 +111,7 @@ void main() {
         isA<StateError>().having(
           (error) => error.message,
           'message',
-          contains('Team Lead'),
+          contains('Team Leader'),
         ),
       ),
     );
@@ -342,12 +342,8 @@ Course _customCourse({
 }) => Course(
   courseId: 'revision-three-custom-course',
   creatorProfileId: _leadId,
-  ownership: CourseOwnership(
-    type: ownerId == _teamId
-        ? CourseOwnerType.team
-        : CourseOwnerType.individual,
-    id: ownerId,
-  ),
+  ownership: CourseOwnership.individual(ownerId == _teamId ? _leadId : ownerId),
+  assignedTeamId: ownerId == _teamId ? _teamId : null,
   publicationState: PublicationState.published,
   learningLanguage: 'Italian',
   interfaceLanguage: 'English',

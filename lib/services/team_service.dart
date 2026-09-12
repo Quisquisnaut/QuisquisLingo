@@ -155,7 +155,7 @@ class TeamService {
   }) => _update(teamId, actorProfileId, (team) {
     if (!team.hasMember(memberProfileId)) return team;
     if (team.hasLead(memberProfileId) && team.leadProfileIds.length == 1) {
-      throw StateError('A Team must always have at least one Team Lead.');
+      throw StateError('A Team must always have at least one Team Leader.');
     }
     return team.copyWith(
       memberProfileIds: team.memberProfileIds.where(
@@ -167,7 +167,7 @@ class TeamService {
 
   /// Removes the active profile's own ordinary Team membership.
   ///
-  /// Team Leads remain subject to Team administration so this self-service
+  /// Team Leaders remain subject to Team administration so this self-service
   /// path can never leave the Team without a Lead.
   Future<AuthoringTeam> leaveTeam({required String teamId}) async {
     final profileId = await _profiles.getActiveProfileId();
@@ -183,7 +183,7 @@ class TeamService {
     }
     if (current.hasLead(profileId)) {
       throw StateError(
-        'A Team Lead cannot leave directly. Another Team Lead must demote you first.',
+        'A Team Leader cannot leave directly. Another Team Leader must demote you first.',
       );
     }
     final updated = current.copyWith(
@@ -200,7 +200,7 @@ class TeamService {
     required String memberProfileId,
   }) => _update(teamId, actorProfileId, (team) {
     if (!team.hasMember(memberProfileId)) {
-      throw StateError('Only a Team member can become a Team Lead.');
+      throw StateError('Only a Team member can become a Team Leader.');
     }
     if (team.hasLead(memberProfileId)) return team;
     return team.copyWith(
@@ -215,7 +215,7 @@ class TeamService {
   }) => _update(teamId, actorProfileId, (team) {
     if (!team.hasLead(leadProfileId)) return team;
     if (team.leadProfileIds.length == 1) {
-      throw StateError('The final Team Lead cannot be demoted.');
+      throw StateError('The final Team Leader cannot be demoted.');
     }
     return team.copyWith(
       leadProfileIds: team.leadProfileIds.where((id) => id != leadProfileId),
@@ -233,7 +233,7 @@ class TeamService {
     final current = teams[index];
     if (!current.hasLead(actorProfileId)) {
       throw StateError(
-        'Only a Team Lead can manage Team membership and roles.',
+        'Only a Team Leader can manage Team membership and roles.',
       );
     }
     final updated = change(current);

@@ -337,6 +337,7 @@ class CourseAuthoringTransferService {
     publisherSignature: source.publisherSignature,
     creatorProfileId: source.creatorProfileId,
     ownership: source.ownership,
+    assignedTeamId: source.assignedTeamId,
     createdByProfileId: source.createdByProfileId,
     createdByUsername: source.createdByUsername,
     createdAtUtc: source.createdAtUtc,

@@ -18,10 +18,12 @@ Course _course({
   String courseId = 'qql231_course',
   CourseOriginType origin = CourseOriginType.custom,
   CourseOwnership? ownership = const CourseOwnership.individual(ownerId),
+  String? assignedTeamId,
 }) => Course(
   courseId: courseId,
   creatorProfileId: origin == CourseOriginType.custom ? ownerId : null,
   ownership: origin == CourseOriginType.custom ? ownership : null,
+  assignedTeamId: origin == CourseOriginType.custom ? assignedTeamId : null,
   originType: origin,
   publisherId: origin.isOfficial ? 'org.quisquislingo' : '',
   publisherName: origin.isOfficial ? 'QQL' : '',
@@ -310,13 +312,11 @@ void main() {
   });
 
   test(
-    'Team membership, not Team Lead status, grants existing edit rights',
+    'Team membership, not Team Leader status, grants existing edit rights',
     () {
       final teamCourse = _course(
         courseId: 'team_course',
-        ownership: const CourseOwnership.team(
-          '00000000-0000-4000-8000-000000000233',
-        ),
+        assignedTeamId: '00000000-0000-4000-8000-000000000233',
       );
       expect(
         CourseAccessPolicy.evaluate(

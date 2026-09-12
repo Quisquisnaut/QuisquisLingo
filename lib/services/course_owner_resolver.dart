@@ -2,23 +2,38 @@ import '../models/course_models.dart';
 import 'profile_service.dart';
 import 'team_service.dart';
 
+class ResolvedUserIdentity {
+  final String profileId;
+  final String label;
+
+  const ResolvedUserIdentity({required this.profileId, required this.label});
+}
+
 class ResolvedCourseOwnership {
   final String ownerLabel;
   final String creatorLabel;
   final String? ownerId;
   final CourseOwnerType? ownerType;
+  final String? assignedTeamLabel;
+  final String? assignedTeamId;
+  final List<ResolvedUserIdentity> teamLeaders;
+  final List<ResolvedUserIdentity> teamMembers;
 
   const ResolvedCourseOwnership({
     required this.ownerLabel,
     required this.creatorLabel,
     required this.ownerId,
     required this.ownerType,
+    required this.assignedTeamLabel,
+    required this.assignedTeamId,
+    required this.teamLeaders,
+    required this.teamMembers,
   });
 }
 
-/// Resolves live Owner/Creator names from authoritative Profile and Team data.
-/// Course JSON retains only stable ownership identity and never caches a Team
-/// display name.
+/// Resolves live Owner, Creator and assigned-Team names from authoritative
+/// Profile and Team data. Course JSON retains only stable identities and never
+/// caches presentation names or Team membership.
 class CourseOwnerResolver {
   final ProfileService _profiles;
   final TeamService _teams;
@@ -40,31 +55,53 @@ class CourseOwnerResolver {
         creatorLabel: label,
         ownerId: course.publisherId.trim().isEmpty ? null : course.publisherId,
         ownerType: null,
+        assignedTeamLabel: null,
+        assignedTeamId: null,
+        teamLeaders: const [],
+        teamMembers: const [],
       );
     }
 
     final ownership = course.ownership;
-    var ownerLabel = 'Unsupported custom course (Owner missing)';
-    if (ownership?.type == CourseOwnerType.team) {
-      final team = await _teams.teamById(ownership!.id);
-      ownerLabel = team == null
-          ? 'Unavailable Team'
-          : '${team.displayName} (Team)';
-    } else if (ownership?.type == CourseOwnerType.individual) {
-      final profile = await _profiles.getProfileById(ownership!.id);
-      ownerLabel = profile == null
-          ? 'Unavailable local profile'
-          : profile.displayName;
+    final owner = ownership == null
+        ? null
+        : await _profiles.getProfileById(ownership.id);
+    final creator = await _profiles.getProfileById(course.creatorProfileId);
+    final assignedTeamId = course.assignedTeamId;
+    final assignedTeam = assignedTeamId == null
+        ? null
+        : await _teams.teamById(assignedTeamId);
+
+    Future<ResolvedUserIdentity> resolveUser(String profileId) async {
+      final profile = await _profiles.getProfileById(profileId);
+      return ResolvedUserIdentity(
+        profileId: profileId,
+        label: profile?.presentationName ?? 'Unavailable local profile',
+      );
     }
 
-    final creator = await _profiles.getProfileById(course.creatorProfileId);
     return ResolvedCourseOwnership(
-      ownerLabel: ownerLabel,
-      creatorLabel: creator == null
-          ? 'Unavailable local profile'
-          : creator.displayName,
+      ownerLabel: owner?.presentationName ?? 'Unavailable local profile',
+      creatorLabel: creator?.presentationName ?? 'Unavailable local profile',
       ownerId: ownership?.id,
       ownerType: ownership?.type,
+      assignedTeamLabel: assignedTeamId == null
+          ? null
+          : assignedTeam?.displayName ?? 'Unavailable Team',
+      assignedTeamId: assignedTeamId,
+      teamLeaders: assignedTeam == null
+          ? const []
+          : [
+              for (final profileId in assignedTeam.leadProfileIds)
+                await resolveUser(profileId),
+            ],
+      teamMembers: assignedTeam == null
+          ? const []
+          : [
+              for (final profileId in assignedTeam.memberProfileIds)
+                if (!assignedTeam.hasLead(profileId))
+                  await resolveUser(profileId),
+            ],
     );
   }
 }

@@ -33,6 +33,7 @@ import 'course_projects_screen.dart';
 import 'duel_screen.dart';
 import 'guidebook_screen.dart';
 import 'info_screen.dart';
+import 'new_learner_flow_screen.dart';
 import 'profile_screen.dart';
 import 'round_screen.dart';
 import '../widgets/flag_art.dart';
@@ -322,7 +323,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
               Text(
-                'Build ${AppMetadata.build}, Revision ${AppMetadata.correctiveRevision}',
+                'Phase ${AppMetadata.developmentPhase}, revision ${AppMetadata.correctiveRevision}',
                 style: Theme.of(ctx).textTheme.labelLarge?.copyWith(
                   color: _welcomeDialogForeground,
                 ),
@@ -672,116 +673,23 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _addLearner(BuildContext overlayContext) async {
     if (_addingLearner) return;
     _addingLearner = true;
-    final controller = TextEditingController();
-    String skin = 'medium';
-    String hair = 'dark';
-    final result = await showDialog<(String, String, String)>(
-      context: overlayContext,
-      barrierDismissible: _learners.isNotEmpty,
-      builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setLocalState) => AlertDialog(
-          title: Text(
-            _learners.isEmpty ? 'Welcome to QuisquisLingo' : 'Create profile',
+    try {
+      await Navigator.of(overlayContext).push<LearnerProfile>(
+        MaterialPageRoute(
+          builder: (_) => NewLearnerFlowScreen(
+            profileService: _profiles,
+            canCancel: _learners.isNotEmpty,
           ),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                TextField(
-                  controller: controller,
-                  autofocus: true,
-                  textCapitalization: TextCapitalization.words,
-                  maxLength: 60,
-                  decoration: const InputDecoration(
-                    labelText: 'Name',
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                const Text('Avatar skin color'),
-                const SizedBox(height: 6),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: [
-                    for (final item in const [
-                      ('light', 'Light'),
-                      ('medium', 'Medium'),
-                      ('dark', 'Dark'),
-                    ])
-                      ChoiceChip(
-                        label: Text(item.$2),
-                        selected: skin == item.$1,
-                        onSelected: (_) => setLocalState(() => skin = item.$1),
-                      ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                const Text('Avatar hair color'),
-                const SizedBox(height: 6),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: [
-                    for (final item in const [
-                      ('light', 'Light'),
-                      ('dark', 'Dark'),
-                    ])
-                      ChoiceChip(
-                        label: Text(item.$2),
-                        selected: hair == item.$1,
-                        onSelected: (_) => setLocalState(() => hair = item.$1),
-                      ),
-                  ],
-                ),
-                const SizedBox(height: 14),
-                Center(
-                  child: SizedBox(
-                    width: 72,
-                    height: 82,
-                    child: LearnerAvatar(skinTone: skin, hairTone: hair),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          actions: [
-            if (_learners.isNotEmpty)
-              TextButton(
-                onPressed: () => Navigator.pop(ctx),
-                child: const Text('Cancel'),
-              ),
-            FilledButton(
-              onPressed: () {
-                final name = controller.text.trim();
-                if (name.isNotEmpty) Navigator.pop(ctx, (name, skin, hair));
-              },
-              child: const Text('Create profile'),
-            ),
-          ],
         ),
-      ),
-    );
-    // Let the dialog route finish disposing before changing profile-backed
-    // inherited state. This avoids lifecycle assertions seen on Android after
-    // creating a profile.
-    await Future<void>.delayed(const Duration(milliseconds: 80));
-    controller.dispose();
-    if (result != null) {
-      if (mounted) setState(() => _course = null);
-      await _profiles.addProfile(
-        result.$1,
-        skinTone: result.$2,
-        hairTone: result.$3,
       );
+      if (mounted) setState(() => _course = null);
       if (!mounted) {
-        _addingLearner = false;
         return;
       }
       await _reload();
+    } finally {
+      _addingLearner = false;
     }
-    _addingLearner = false;
   }
 
   Future<void> _switchLearner(String learnerProfileId) async {
@@ -2169,6 +2077,8 @@ class _HomeScreenState extends State<HomeScreen> {
                               await _reload();
                             },
                             onReview: () => _openReview(course),
+                            courseId: course.courseId,
+                            courseCode: CourseService.codeForCourse(course),
                             iddqdMode: _iddqdMode,
                             onIddqdChanged: (value) async {
                               final previous = _iddqdMode;
@@ -2250,7 +2160,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ),
                               );
                             },
-                            courseId: course.courseId,
                           ),
                         ),
                       ],

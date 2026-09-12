@@ -191,9 +191,7 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
       }
       return null;
     }
-    final eligibleTeams = await _teams.teamsForProfile(
-      activeProfile.learnerProfileId,
-    );
+    final availableOwners = await _profiles.getProfileRecords();
     if (!mounted) return null;
     final title = TextEditingController();
     final source = TextEditingController(text: 'English');
@@ -228,7 +226,7 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
     String? flagError;
     var selectedLicense = CourseMetadataOptions.standardLicenses.first;
     var selectedDerivativePolicy = DerivativeWorksPolicy.forbidden;
-    var selectedOwner = 'me';
+    var selectedOwner = activeProfile.learnerProfileId;
 
     final result = await showDialog<Course>(
       context: context,
@@ -290,34 +288,33 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
                       ),
                     ),
                     const SizedBox(height: 8),
-                    if (eligibleTeams.isNotEmpty) ...[
-                      DropdownButtonFormField<String>(
-                        key: const Key('new-course-owner'),
-                        initialValue: selectedOwner,
-                        isExpanded: true,
-                        decoration: const InputDecoration(
-                          border: OutlineInputBorder(),
-                          labelText: 'Owner',
-                          helperText:
-                              'Ownership grants authoring rights. Credits below do not.',
-                        ),
-                        items: [
-                          const DropdownMenuItem(
-                            value: 'me',
-                            child: Text('Me'),
-                          ),
-                          for (final team in eligibleTeams)
-                            DropdownMenuItem(
-                              value: team.teamId,
-                              child: Text(team.displayName),
-                            ),
-                        ],
-                        onChanged: (value) => setDialogState(
-                          () => selectedOwner = value ?? selectedOwner,
-                        ),
+                    DropdownButtonFormField<String>(
+                      key: const Key('new-course-owner'),
+                      initialValue: selectedOwner,
+                      isExpanded: true,
+                      decoration: const InputDecoration(
+                        border: OutlineInputBorder(),
+                        labelText: 'Course Owner',
+                        helperText:
+                            'Choose an individual user. The Creator remains permanent provenance.',
                       ),
-                      const SizedBox(height: 12),
-                    ],
+                      items: [
+                        for (final profile in availableOwners)
+                          DropdownMenuItem(
+                            value: profile.learnerProfileId,
+                            child: Text(
+                              profile.learnerProfileId ==
+                                      activeProfile.learnerProfileId
+                                  ? '${profile.presentationName} (Creator)'
+                                  : profile.presentationName,
+                            ),
+                          ),
+                      ],
+                      onChanged: (value) => setDialogState(
+                        () => selectedOwner = value ?? selectedOwner,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
                     const Align(
                       alignment: Alignment.centerLeft,
                       child: Text(
@@ -887,11 +884,9 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
                           Course(
                             courseId: Course.newCourseId(),
                             creatorProfileId: activeProfile.learnerProfileId,
-                            ownership: selectedOwner == 'me'
-                                ? CourseOwnership.individual(
-                                    activeProfile.learnerProfileId,
-                                  )
-                                : CourseOwnership.team(selectedOwner),
+                            ownership: CourseOwnership.individual(
+                              selectedOwner,
+                            ),
                             publicationState: PublicationState.draft,
                             learningLanguage: tg,
                             interfaceLanguage: s,
@@ -952,7 +947,10 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
       MaterialPageRoute(
         builder: (_) => CourseEditorScreen(
           course: course,
-          access: _capabilities(course),
+          access: CourseAccessPolicy.evaluate(
+            course,
+            profileId: _activeProfileId,
+          ).copyForUnconfirmedCreator(),
           isNewCourse: true,
           editorService: _service,
         ),
@@ -1546,7 +1544,7 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
                     ),
                     title: Text(widget.currentCourse.title),
                     subtitle: const Text(
-                      'Bundled official · read only · Course Model v7',
+                      'Bundled official · read only · Course Model v8',
                     ),
                     trailing: _courseActions(
                       widget.currentCourse,

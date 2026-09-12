@@ -5,6 +5,27 @@ import '../services/profile_service.dart';
 import '../services/team_service.dart';
 import '../widgets/editor_app_bar_actions.dart';
 
+Future<void> _showExperimentalTeamHelp(
+  BuildContext context,
+) => showDialog<void>(
+  context: context,
+  builder: (context) => AlertDialog(
+    key: const Key('experimental-team-help'),
+    title: const Text('Experimental Team model'),
+    content: const SingleChildScrollView(
+      child: Text(
+        'Teams are an experimental QQL collaboration model. Course ownership and Team governance are separate. A Course is always owned by an individual user. Its Owner may assign a Team to manage it and may revoke that assignment.\n\nA Team can manage Courses created and owned by different individuals. Team Leaders govern Team membership and roles under the Team rules; being a Course Owner does not make someone a Team Leader, and being a Team Leader does not make someone a Course Owner.\n\nQQL permissions control behavior inside QQL. They do not by themselves determine copyright ownership, contractual rights, or authority in an external organization.',
+      ),
+    ),
+    actions: [
+      FilledButton(
+        onPressed: () => Navigator.pop(context),
+        child: const Text('OK'),
+      ),
+    ],
+  ),
+);
+
 class TeamManagerScreen extends StatefulWidget {
   const TeamManagerScreen({super.key, this.teamService, this.profileService});
 
@@ -108,7 +129,15 @@ class _TeamManagerScreenState extends State<TeamManagerScreen> {
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(
       title: const Text('Team Manager'),
-      actions: const [EditorAppBarActions()],
+      actions: [
+        IconButton(
+          key: const Key('team-model-help'),
+          tooltip: 'About the experimental Team model',
+          onPressed: () => _showExperimentalTeamHelp(context),
+          icon: const Icon(Icons.info_outline),
+        ),
+        const EditorAppBarActions(),
+      ],
     ),
     floatingActionButton: _active == null
         ? null
@@ -138,7 +167,7 @@ class _TeamManagerScreenState extends State<TeamManagerScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        '${team.memberProfileIds.length} members · ${team.leadProfileIds.length} Team Lead${team.leadProfileIds.length == 1 ? '' : 's'}${team.hasLead(_active!.learnerProfileId) ? ' · You are a Lead' : ''}',
+                        '${team.memberProfileIds.length} members · ${team.leadProfileIds.length} Team Leader${team.leadProfileIds.length == 1 ? '' : 's'}${team.hasLead(_active!.learnerProfileId) ? ' · You are a Team Leader' : ''}',
                       ),
                       EditorInternalIdText(label: 'Team', id: team.teamId),
                     ],
@@ -201,7 +230,7 @@ class _TeamDetailScreenState extends State<TeamDetailScreen> {
       _team!.hasLead(_active!.learnerProfileId);
 
   String _name(String id) =>
-      _profiles[id]?.displayName ?? 'Unavailable local profile';
+      _profiles[id]?.presentationName ?? 'Unavailable local profile';
 
   Future<void> _run(Future<void> Function() action) async {
     try {
@@ -241,7 +270,7 @@ class _TeamDetailScreenState extends State<TeamDetailScreen> {
             SimpleDialogOption(
               key: ValueKey('add-member-${profile.learnerProfileId}'),
               onPressed: () => Navigator.pop(context, profile.learnerProfileId),
-              child: Text(profile.displayName),
+              child: Text(profile.presentationName),
             ),
         ],
       ),
@@ -334,7 +363,7 @@ class _TeamDetailScreenState extends State<TeamDetailScreen> {
           builder: (context) => AlertDialog(
             title: const Text('Leave Team?'),
             content: Text(
-              'Leave “${team.displayName}”? You will lose access to its Team-owned courses unless you join the Team again. Courses, Team data and learner progress will not be deleted.',
+              'Leave “${team.displayName}”? You will lose its assigned-course management access unless you join the Team again. Courses, ownership, Team data and learner progress will not be deleted.',
             ),
             actions: [
               TextButton(
@@ -387,6 +416,12 @@ class _TeamDetailScreenState extends State<TeamDetailScreen> {
               onPressed: _rename,
               icon: const Icon(Icons.edit_outlined),
             ),
+          IconButton(
+            key: const Key('team-model-help'),
+            tooltip: 'About the experimental Team model',
+            onPressed: () => _showExperimentalTeamHelp(context),
+            icon: const Icon(Icons.info_outline),
+          ),
           const EditorAppBarActions(),
         ],
       ),
@@ -403,8 +438,8 @@ class _TeamDetailScreenState extends State<TeamDetailScreen> {
         children: [
           Text(
             _canManage
-                ? 'Team Leads administer membership. Every member can edit and duplicate Team-owned courses.'
-                : 'Every Team member can edit and duplicate Team-owned courses. Only Team Leads administer membership.',
+                ? 'Team Leaders administer membership and roles. Every member can manage Courses assigned to this Team under QQL permissions.'
+                : 'Every Team member can manage Courses assigned to this Team under QQL permissions. Only Team Leaders administer membership and roles.',
           ),
           EditorInternalIdText(
             label: 'Team',
@@ -412,7 +447,7 @@ class _TeamDetailScreenState extends State<TeamDetailScreen> {
             padding: const EdgeInsets.only(top: 6),
           ),
           const SizedBox(height: 16),
-          Text('Team Leads', style: Theme.of(context).textTheme.titleMedium),
+          Text('Team Leaders', style: Theme.of(context).textTheme.titleMedium),
           for (final id in leads) _memberTile(team, id, isLead: true),
           const SizedBox(height: 12),
           Text('Members', style: Theme.of(context).textTheme.titleMedium),
@@ -441,7 +476,7 @@ class _TeamDetailScreenState extends State<TeamDetailScreen> {
       subtitle: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(isLead ? 'Team Lead' : 'Member'),
+          Text(isLead ? 'Team Leader' : 'Member'),
           EditorInternalIdText(label: 'User', id: profileId),
         ],
       ),
@@ -450,7 +485,7 @@ class _TeamDetailScreenState extends State<TeamDetailScreen> {
           : PopupMenuButton<String>(
               key: ValueKey('team-member-actions-$profileId'),
               tooltip: finalLead
-                  ? 'The Team must retain at least one Team Lead'
+                  ? 'The Team must retain at least one Team Leader'
                   : currentOrdinaryMember
                   ? 'Team membership options'
                   : 'Manage member',
@@ -461,7 +496,7 @@ class _TeamDetailScreenState extends State<TeamDetailScreen> {
                 if (_canManage && !isLead)
                   const PopupMenuItem(
                     value: 'promote',
-                    child: Text('Promote to Team Lead'),
+                    child: Text('Promote to Team Leader'),
                   ),
                 if (_canManage && isLead)
                   PopupMenuItem(

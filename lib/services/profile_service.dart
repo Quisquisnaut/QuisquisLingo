@@ -62,15 +62,20 @@ enum LearnerFlagBackgroundMode {
 class LearnerProfile {
   final String learnerProfileId;
   final String displayName;
+  final String? discordHandle;
 
   const LearnerProfile({
     required this.learnerProfileId,
     required this.displayName,
+    this.discordHandle,
   });
+
+  String get presentationName => discordHandle ?? displayName;
 
   String encode() => jsonEncode({
     'learnerProfileId': learnerProfileId,
     'displayName': displayName,
+    if (discordHandle != null) 'discordHandle': discordHandle,
   });
 
   static LearnerProfile? decode(String raw) {
@@ -79,14 +84,22 @@ class LearnerProfile {
       if (value is! Map) return null;
       final id = value['learnerProfileId'];
       final name = value['displayName'];
+      final discord = value['discordHandle'];
       if (id is! String ||
           !ProfileService.isValidLearnerProfileId(id) ||
           name is! String ||
           name.trim().isEmpty ||
-          name.length > ProfileService.maxNameLength) {
+          name.length > ProfileService.maxNameLength ||
+          (discord != null && discord is! String)) {
         return null;
       }
-      return LearnerProfile(learnerProfileId: id, displayName: name);
+      return LearnerProfile(
+        learnerProfileId: id,
+        displayName: name,
+        discordHandle: ProfileService.normalizeDiscordHandle(
+          discord as String?,
+        ),
+      );
     } catch (_) {
       return null;
     }
@@ -111,14 +124,21 @@ class ProfileService {
   static const profilesKey = 'learner_profiles_v2';
   static const activeProfileIdKey = 'active_learner_profile_id';
   static const int maxNameLength = 60;
+  static const int maxDiscordHandleLength = 64;
+  static const skinTones = <String>['light', 'medium', 'dark'];
+  static const hairTones = <String>['light', 'dark'];
   static final RegExp _profileIdPattern = RegExp(
     r'^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$',
   );
 
   final String Function() _idGenerator;
+  final int Function(int upperBound) _randomIndex;
 
-  ProfileService({String Function()? idGenerator})
-    : _idGenerator = idGenerator ?? _generateUuidV4;
+  ProfileService({
+    String Function()? idGenerator,
+    int Function(int upperBound)? randomIndex,
+  }) : _idGenerator = idGenerator ?? _generateUuidV4,
+       _randomIndex = randomIndex ?? Random.secure().nextInt;
 
   static bool isValidLearnerProfileId(String value) =>
       _profileIdPattern.hasMatch(value);
@@ -149,6 +169,29 @@ class ProfileService {
     }
     return clean;
   }
+
+  static String? normalizeDiscordHandle(String? value) {
+    final clean = value?.trim() ?? '';
+    if (clean.isEmpty) return null;
+    final withoutMarker = clean.replaceFirst(RegExp(r'^@+'), '').trim();
+    if (withoutMarker.isEmpty || withoutMarker.contains(RegExp(r'[\r\n]'))) {
+      throw ArgumentError.value(value, 'discordHandle', 'Invalid Discord name');
+    }
+    final normalized = '@$withoutMarker';
+    if (normalized.length > maxDiscordHandleLength) {
+      throw ArgumentError.value(
+        value,
+        'discordHandle',
+        'Discord name exceeds the $maxDiscordHandleLength-character limit',
+      );
+    }
+    return normalized;
+  }
+
+  ProfileAvatarAppearance randomAvatarAppearance() => ProfileAvatarAppearance(
+    skinTone: skinTones[_randomIndex(skinTones.length)],
+    hairTone: hairTones[_randomIndex(hairTones.length)],
+  );
 
   Future<List<LearnerProfile>> getProfileRecords() async {
     final raw = (await SharedPreferences.getInstance()).getStringList(
@@ -226,17 +269,24 @@ class ProfileService {
 
   Future<LearnerProfile> createProfile(
     String displayName, {
-    String skinTone = 'medium',
-    String hairTone = 'dark',
+    String? discordHandle,
+    String? skinTone,
+    String? hairTone,
     String? learnerProfileId,
   }) async {
-    if (!const {'light', 'medium', 'dark'}.contains(skinTone)) {
+    final initialAppearance = skinTone == null || hairTone == null
+        ? randomAvatarAppearance()
+        : null;
+    final initialSkinTone = skinTone ?? initialAppearance!.skinTone;
+    final initialHairTone = hairTone ?? initialAppearance!.hairTone;
+    if (!skinTones.contains(initialSkinTone)) {
       throw ArgumentError('Invalid avatar skin color');
     }
-    if (!const {'light', 'dark'}.contains(hairTone)) {
+    if (!hairTones.contains(initialHairTone)) {
       throw ArgumentError('Invalid avatar hair color');
     }
     final clean = validateDisplayName(displayName);
+    final normalizedDiscord = normalizeDiscordHandle(discordHandle);
     final id = learnerProfileId ?? _idGenerator();
     if (!isValidLearnerProfileId(id)) {
       throw ArgumentError.value(id, 'learnerProfileId', 'Invalid profile ID');
@@ -246,25 +296,35 @@ class ProfileService {
     if (profiles.any((profile) => profile.learnerProfileId == id)) {
       throw ArgumentError.value(id, 'learnerProfileId', 'Profile ID exists');
     }
-    final profile = LearnerProfile(learnerProfileId: id, displayName: clean);
+    final profile = LearnerProfile(
+      learnerProfileId: id,
+      displayName: clean,
+      discordHandle: normalizedDiscord,
+    );
     await prefs.setStringList(
       profilesKey,
       [...profiles, profile].map((value) => value.encode()).toList(),
     );
     await prefs.setString(activeProfileIdKey, id);
     final prefix = prefixForProfileId(id);
-    await prefs.setString('${prefix}skin_tone', skinTone);
-    await prefs.setString('${prefix}hair_tone', hairTone);
+    await prefs.setString('${prefix}skin_tone', initialSkinTone);
+    await prefs.setString('${prefix}hair_tone', initialHairTone);
     LearnerStatusEvents.publish(LearnerStatusInvalidation.activeProfile);
     return profile;
   }
 
   Future<void> addProfile(
     String name, {
-    String skinTone = 'medium',
-    String hairTone = 'dark',
+    String? discordHandle,
+    String? skinTone,
+    String? hairTone,
   }) async {
-    await createProfile(name, skinTone: skinTone, hairTone: hairTone);
+    await createProfile(
+      name,
+      discordHandle: discordHandle,
+      skinTone: skinTone,
+      hairTone: hairTone,
+    );
   }
 
   Future<void> replaceProfileRecord(LearnerProfile replacement) async {
@@ -280,6 +340,7 @@ class ProfileService {
     final value = LearnerProfile(
       learnerProfileId: replacement.learnerProfileId,
       displayName: clean,
+      discordHandle: normalizeDiscordHandle(replacement.discordHandle),
     );
     final updated = [...profiles];
     if (index < 0) {
@@ -382,7 +443,7 @@ class ProfileService {
       if (!team.hasMember(learnerProfileId)) return team;
       if (team.hasLead(learnerProfileId) && team.leadProfileIds.length == 1) {
         throw StateError(
-          'This profile is the final Team Lead of ${team.displayName}. '
+          'This profile is the final Team Leader of ${team.displayName}. '
           'Promote another member before deleting the profile.',
         );
       }

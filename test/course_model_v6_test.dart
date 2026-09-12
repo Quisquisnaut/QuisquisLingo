@@ -19,15 +19,15 @@ void main() {
 
   for (final file in samples) {
     test(
-      '$file is native Course Model v7 with ordered Lesson Guidebooks and Duels',
+      '$file is native Course Model v8 with ordered Lesson Guidebooks and Duels',
       () async {
         final raw = await rootBundle.loadString('assets/courses/$file');
         final json = jsonDecode(raw) as Map<String, dynamic>;
-        expect(json['formatVersion'], 7);
+        expect(json['formatVersion'], 8);
         expect(json.containsKey('topics'), isFalse);
         expect(json.containsKey('chapters'), isFalse);
         final course = Course.fromJson(json);
-        expect(course.formatVersion, 7);
+        expect(course.formatVersion, 8);
         expect(course.lessons, hasLength(9));
         expect(
           course.lessons.map((lesson) => lesson.lessonId).toSet(),
@@ -48,7 +48,7 @@ void main() {
           expect(lesson.duel.id.trim(), isNotEmpty);
         }
         final encoded = course.toJson();
-        expect(encoded['formatVersion'], 7);
+        expect(encoded['formatVersion'], 8);
         expect(encoded.containsKey('chapters'), isFalse);
         expect(
           (encoded['lessons'] as List).map(
@@ -60,7 +60,7 @@ void main() {
     );
   }
 
-  test('Course Model v7 rejects old formats and Chapter structures', () {
+  test('Course Model v8 rejects old formats and Chapter structures', () {
     final base = <String, dynamic>{
       'courseId': 'course',
       'learningLanguage': 'Italian',
@@ -87,7 +87,7 @@ void main() {
     expect(
       () => Course.fromJson({
         ...base,
-        'formatVersion': 7,
+        'formatVersion': 8,
         'chapters': <Object>[],
       }),
       throwsFormatException,

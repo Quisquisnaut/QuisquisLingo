@@ -39,7 +39,7 @@ void main() {
     final restored = Course.fromJson(
       jsonDecode(jsonEncode(original.toJson())) as Map<String, dynamic>,
     );
-    expect(restored.formatVersion, 7);
+    expect(restored.formatVersion, 8);
     expect(restored.courseId, original.courseId);
     expect(restored.lessons.single.lessonId, original.lessons.single.lessonId);
     expect(

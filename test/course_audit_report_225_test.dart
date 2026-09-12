@@ -19,9 +19,9 @@ void main() {
       sortMode: AuditSortMode.lesson,
     );
 
-    expect(report, contains('Version: 2.0.32'));
-    expect(report, contains('Build: 232'));
-    expect(report, contains('Technical version: 2.0.32+232'));
+    expect(report, contains('Version: 2.0.33'));
+    expect(report, contains('Phase: 233.3'));
+    expect(report, contains('Technical version: 2.0.33+233030'));
     expect(report, contains('Generated: 2026-09-03T20:15:30.000'));
     expect(report, contains('Course name: Italian test'));
     expect(report, contains('Course ID: stable_course_id'));

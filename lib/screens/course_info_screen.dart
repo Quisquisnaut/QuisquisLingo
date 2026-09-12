@@ -9,8 +9,8 @@ import '../services/course_language_resolver.dart';
 import '../services/course_owner_resolver.dart';
 import '../services/course_service.dart';
 import '../services/editor_display_preferences.dart';
+import '../widgets/editor_app_bar_actions.dart';
 import '../widgets/flag_art.dart';
-import '../widgets/learner_shell.dart';
 
 class CourseInfoScreen extends StatefulWidget {
   final Course course;
@@ -132,109 +132,93 @@ class CourseInfoScreen extends StatefulWidget {
 
   Widget _build(
     BuildContext context, {
-    required String ownerLabel,
-    required String creatorLabel,
-  }) => LearnerStatusPage(
-    child: Scaffold(
-      appBar: LearnerStatusAppBar(
-        appBar: AppBar(title: const Text('Course Info')),
-      ),
-      body: ListView(
-        padding: const EdgeInsets.fromLTRB(18, 14, 18, 28),
-        children: [
-          Text(
-            course.title,
-            style: Theme.of(
-              context,
-            ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w900),
+    required ResolvedCourseOwnership ownership,
+  }) => Scaffold(
+    appBar: AppBar(title: const Text('Course Info')),
+    body: ListView(
+      padding: const EdgeInsets.fromLTRB(18, 14, 18, 28),
+      children: [
+        Text(
+          course.title,
+          style: Theme.of(
+            context,
+          ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w900),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          '${CourseLanguageResolver.base(course).displayLabel} → '
+          '${CourseLanguageResolver.learning(course).displayLabel}',
+        ),
+        const SizedBox(height: 12),
+        Align(
+          alignment: Alignment.centerLeft,
+          child: CourseFlagBadge(
+            course: course,
+            fallbackCode: CourseService.codeForCourse(course),
+            width: 64,
+            height: 44,
           ),
-          const SizedBox(height: 6),
-          Text(
-            '${CourseLanguageResolver.base(course).displayLabel} → '
-            '${CourseLanguageResolver.learning(course).displayLabel}',
-          ),
-          const SizedBox(height: 12),
-          Align(
-            alignment: Alignment.centerLeft,
-            child: CourseFlagBadge(
-              course: course,
-              fallbackCode: CourseService.codeForCourse(course),
-              width: 64,
-              height: 44,
-            ),
-          ),
-          ValueListenableBuilder<bool>(
-            valueListenable: EditorDisplayPreferences.showInternalIds,
-            builder: (context, showInternalIds, _) => showInternalIds
-                ? _InfoCard(
-                    title: 'Internal course data',
-                    body: 'Course Model: v${course.formatVersion}',
-                  )
-                : const SizedBox.shrink(),
-          ),
-          if (course.courseDescription.trim().isNotEmpty) ...[
-            const SizedBox(height: 16),
-            Text(course.courseDescription.trim()),
-          ],
-          const SizedBox(height: 18),
-          if (course.temporarySample)
-            const _InfoCard(
-              title: 'Temporary Sample',
-              body:
-                  'This course is marked TEMPORARY SAMPLE. The preloaded material is provided only to demonstrate and test the editor. Replace sample material with reviewed content before publishing or distributing the course.',
-            ),
-          _InfoCard(
-            title: 'Ownership and authorization',
-            body: [
-              'Owner: $ownerLabel',
-              'Creator: $creatorLabel',
-              'License: ${course.license.trim().isEmpty ? 'Not specified' : course.license}',
-              'Credits do not grant editing permission.',
-            ].join('\n'),
-          ),
-          _InfoCard(
-            title: 'Authorship and descriptive credits',
-            body: _credits,
-          ),
-          _InfoCard(
-            title: 'Languages',
-            body: [
-              'Learning language: ${CourseLanguageResolver.learning(course).displayLabel}',
-              'Base language: ${CourseLanguageResolver.base(course).displayLabel}',
-            ].join('\n'),
-          ),
-          if (course.forkProvenance != null)
-            CourseForkProvenanceCard(provenance: course.forkProvenance!),
-          _InfoCard(
-            title: 'Course details',
-            body: [
-              ..._originDetails(context),
-              'Content revision: ${course.contentRevision}',
-              if (course.parentCourseId?.isNotEmpty == true)
-                'Derived from Course ID: ${course.parentCourseId}',
-              if (course.derivedFromVersion?.isNotEmpty == true)
-                'Derived from version: ${course.derivedFromVersion}',
-              if (course.lastUpdated.trim().isNotEmpty)
-                'Last updated: ${course.lastUpdated}',
-              'License: ${course.license.trim().isEmpty ? 'Not specified' : course.license}',
-              'Derivative works: ${course.derivativeWorksPolicy.name}',
-              'Lessons: ${course.lessons.length}',
-            ].join('\n'),
-          ),
-          if (course.buyACoffeeUrl.isNotEmpty) ...[
-            const Divider(height: 24),
-            ListTile(
-              key: const Key('course-info-buy-coffee'),
-              contentPadding: EdgeInsets.zero,
-              leading: const Icon(Icons.coffee_outlined),
-              title: const Text('Buy a Coffee'),
-              subtitle: const Text('Support this course\'s authors.'),
-              trailing: const Icon(Icons.open_in_new),
-              onTap: () => _buyCoffee(context),
-            ),
-          ],
+        ),
+        ValueListenableBuilder<bool>(
+          valueListenable: EditorDisplayPreferences.showInternalIds,
+          builder: (context, showInternalIds, _) => showInternalIds
+              ? _InfoCard(
+                  title: 'Internal course data',
+                  body: 'Course Model: v${course.formatVersion}',
+                )
+              : const SizedBox.shrink(),
+        ),
+        if (course.courseDescription.trim().isNotEmpty) ...[
+          const SizedBox(height: 16),
+          Text(course.courseDescription.trim()),
         ],
-      ),
+        const SizedBox(height: 18),
+        if (course.temporarySample)
+          const _InfoCard(
+            title: 'Temporary Sample',
+            body:
+                'This course is marked TEMPORARY SAMPLE. The preloaded material is provided only to demonstrate and test the editor. Replace sample material with reviewed content before publishing or distributing the course.',
+          ),
+        _OwnershipInfoCard(course: course, ownership: ownership),
+        _InfoCard(title: 'Authorship and descriptive credits', body: _credits),
+        _InfoCard(
+          title: 'Languages',
+          body: [
+            'Learning language: ${CourseLanguageResolver.learning(course).displayLabel}',
+            'Base language: ${CourseLanguageResolver.base(course).displayLabel}',
+          ].join('\n'),
+        ),
+        if (course.forkProvenance != null)
+          CourseForkProvenanceCard(provenance: course.forkProvenance!),
+        _InfoCard(
+          title: 'Course details',
+          body: [
+            ..._originDetails(context),
+            'Content revision: ${course.contentRevision}',
+            if (course.parentCourseId?.isNotEmpty == true)
+              'Derived from Course ID: ${course.parentCourseId}',
+            if (course.derivedFromVersion?.isNotEmpty == true)
+              'Derived from version: ${course.derivedFromVersion}',
+            if (course.lastUpdated.trim().isNotEmpty)
+              'Last updated: ${course.lastUpdated}',
+            'License: ${course.license.trim().isEmpty ? 'Not specified' : course.license}',
+            'Derivative works: ${course.derivativeWorksPolicy.name}',
+            'Lessons: ${course.lessons.length}',
+          ].join('\n'),
+        ),
+        if (course.buyACoffeeUrl.isNotEmpty) ...[
+          const Divider(height: 24),
+          ListTile(
+            key: const Key('course-info-buy-coffee'),
+            contentPadding: EdgeInsets.zero,
+            leading: const Icon(Icons.coffee_outlined),
+            title: const Text('Buy a Coffee'),
+            subtitle: const Text('Support this course\'s authors.'),
+            trailing: const Icon(Icons.open_in_new),
+            onTap: () => _buyCoffee(context),
+          ),
+        ],
+      ],
     ),
   );
 }
@@ -244,8 +228,7 @@ class _CourseInfoScreenState extends State<CourseInfoScreen> {
       widget.profileService ?? ProfileService();
   late final TeamService _teams =
       widget.teamService ?? TeamService(profileService: _profiles);
-  String _owner = 'Loading…';
-  String _creator = 'Loading…';
+  ResolvedCourseOwnership? _ownership;
 
   @override
   void initState() {
@@ -261,15 +244,85 @@ class _CourseInfoScreenState extends State<CourseInfoScreen> {
       teamService: _teams,
     ).resolve(course);
     if (!mounted) return;
-    setState(() {
-      _owner = resolved.ownerLabel;
-      _creator = resolved.creatorLabel;
-    });
+    setState(() => _ownership = resolved);
   }
 
   @override
-  Widget build(BuildContext context) =>
-      widget._build(context, ownerLabel: _owner, creatorLabel: _creator);
+  Widget build(BuildContext context) {
+    final ownership = _ownership;
+    if (ownership == null) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+    return widget._build(context, ownership: ownership);
+  }
+}
+
+class _OwnershipInfoCard extends StatelessWidget {
+  const _OwnershipInfoCard({required this.course, required this.ownership});
+
+  final Course course;
+  final ResolvedCourseOwnership ownership;
+
+  @override
+  Widget build(BuildContext context) => Card(
+    margin: const EdgeInsets.only(bottom: 12),
+    child: Padding(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Ownership, Team assignment and authorization',
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
+          ),
+          const SizedBox(height: 8),
+          if (course.originType.isOfficial)
+            SelectableText('Official publisher: ${ownership.creatorLabel}')
+          else ...[
+            SelectableText('Course Owner: ${ownership.ownerLabel}'),
+            if (ownership.ownerId != null)
+              EditorInternalIdText(label: 'User', id: ownership.ownerId!),
+            const SizedBox(height: 8),
+            SelectableText('Course Creator: ${ownership.creatorLabel}'),
+            EditorInternalIdText(label: 'User', id: course.creatorProfileId),
+            const SizedBox(height: 8),
+            SelectableText(
+              'Assigned Team: ${ownership.assignedTeamLabel ?? 'None'}',
+            ),
+            if (ownership.assignedTeamId != null)
+              EditorInternalIdText(
+                label: 'Team',
+                id: ownership.assignedTeamId!,
+              ),
+          ],
+          if (!course.originType.isOfficial &&
+              ownership.assignedTeamId != null) ...[
+            const SizedBox(height: 8),
+            SelectableText(
+              'Team Leaders: ${ownership.teamLeaders.isEmpty ? 'None available' : ownership.teamLeaders.map((value) => value.label).join(', ')}',
+            ),
+            for (final leader in ownership.teamLeaders)
+              EditorInternalIdText(label: 'User', id: leader.profileId),
+            const SizedBox(height: 8),
+            SelectableText(
+              'Team Members: ${ownership.teamMembers.isEmpty ? 'None' : ownership.teamMembers.map((value) => value.label).join(', ')}',
+            ),
+            for (final member in ownership.teamMembers)
+              EditorInternalIdText(label: 'User', id: member.profileId),
+          ],
+          const SizedBox(height: 8),
+          SelectableText(
+            'License: ${course.license.trim().isEmpty ? 'Not specified' : course.license}',
+          ),
+          const SelectableText(
+            'Course ownership and Team governance are separate. Credits do not grant editing permission.',
+          ),
+        ],
+      ),
+    ),
+  );
 }
 
 /// Original attribution is distinct from the fork's editable contributor list.
@@ -310,10 +363,16 @@ class CourseForkProvenanceCard extends StatelessWidget {
         'Based on official version: ${provenance.originalOfficialCourseVersion}',
         'Original official checksum: ${provenance.originalOfficialChecksum}',
         'Forked by: ${provenance.forkCreatedByUsername}',
-        'Fork creator profile ID: ${provenance.forkCreatedByProfileId}',
         'Fork created: $createdLabel',
         'Original authorship and provenance are permanent. Official updates do not change this custom fork.',
       ].join('\n'),
+      children: [
+        EditorInternalIdText(
+          label: 'Fork creator user',
+          id: provenance.forkCreatedByProfileId,
+          padding: const EdgeInsets.only(top: 6),
+        ),
+      ],
     );
   }
 }
@@ -321,8 +380,13 @@ class CourseForkProvenanceCard extends StatelessWidget {
 class _InfoCard extends StatelessWidget {
   final String title;
   final String body;
+  final List<Widget> children;
 
-  const _InfoCard({required this.title, required this.body});
+  const _InfoCard({
+    required this.title,
+    required this.body,
+    this.children = const [],
+  });
 
   @override
   Widget build(BuildContext context) => Card(
@@ -340,6 +404,7 @@ class _InfoCard extends StatelessWidget {
           ),
           const SizedBox(height: 6),
           SelectableText(body),
+          ...children,
         ],
       ),
     ),
