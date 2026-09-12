@@ -122,7 +122,6 @@ Course _course() => Course(
   targetLanguage: 'Italian',
   title: 'Audit save propagation',
   ttsLanguage: 'it-IT',
-  version: '1',
   lessons: [
     Lesson(
       lessonId: 'lesson',

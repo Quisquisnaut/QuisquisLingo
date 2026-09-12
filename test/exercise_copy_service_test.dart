@@ -13,7 +13,6 @@ Course _course({
   targetLanguage: 'Target',
   title: 'Test',
   ttsLanguage: 'xx-XX',
-  version: '1',
   lessons: const [],
 );
 

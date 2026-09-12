@@ -1119,7 +1119,6 @@ Course _course({bool badDraft = true, int badCorrect = 9}) => Course(
   targetLanguage: 'Italian',
   title: 'Indicator course',
   ttsLanguage: 'it-IT',
-  version: '1',
   courseVersion: '3',
   lessons: [
     Lesson(
@@ -1161,7 +1160,6 @@ Course _statusCourse(List<LearningRound> rounds) => Course(
   targetLanguage: 'Italian',
   title: 'Status course',
   ttsLanguage: 'it-IT',
-  version: '1',
   courseVersion: '3',
   lessons: [
     Lesson(
@@ -1253,7 +1251,6 @@ Course _liveAuditCourse() => Course(
   targetLanguage: 'Italian',
   title: 'Live Audit Course',
   ttsLanguage: 'it-IT',
-  version: '1',
   courseVersion: '1',
   lessons: [
     Lesson(

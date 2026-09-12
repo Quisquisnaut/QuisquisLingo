@@ -225,7 +225,6 @@ _Fixture _fixture() {
     targetLanguage: 'Italian',
     title: 'Course',
     ttsLanguage: 'it-IT',
-    version: '1',
     lessons: [lesson],
   );
   return _Fixture(course, lesson, round);

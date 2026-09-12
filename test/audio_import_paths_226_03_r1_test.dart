@@ -185,7 +185,6 @@ Course _audioCourse(String mp3Path) {
     targetLanguage: 'Italian',
     title: 'Audio paths course',
     ttsLanguage: 'it-IT',
-    version: '1.0.0',
     audioMode: 'hybrid',
     audioLibrary: <CourseAudioClip>[
       CourseAudioClip(id: 'clip-1', text: 'Buon giorno', filePath: mp3Path),

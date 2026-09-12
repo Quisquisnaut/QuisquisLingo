@@ -17,7 +17,7 @@ import '../services/course_editor_service.dart';
 import '../services/course_flag_service.dart';
 import '../services/course_language_resolver.dart';
 import '../services/formal_name_policy.dart';
-import '../services/course_owner_resolver.dart';
+import '../services/course_governance_resolver.dart';
 import '../services/course_governance_service.dart';
 import '../services/course_editor_transaction.dart';
 import '../services/course_access_policy.dart';
@@ -489,7 +489,7 @@ class CourseEditorScreen extends StatelessWidget {
         (userCourse && course.originType == CourseOriginType.custom
             ? CourseAccessPolicy.evaluate(
                 course,
-                profileId: course.ownership?.id,
+                profileId: course.maintainer?.profileId,
                 memberTeamIds: course.assignedTeamId != null
                     ? {course.assignedTeamId!}
                     : const {},
@@ -695,7 +695,7 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
   });
 
   Future<void> _editCourseInfo() async {
-    final ownership = await CourseOwnerResolver(
+    final resolvedGovernance = await CourseGovernanceResolver(
       profileService: _profiles,
       teamService: _teams,
     ).resolve(_course);
@@ -704,9 +704,9 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
     final activeProfileId = await _profiles.getActiveProfileId();
     final canGovern =
         _editorMode == CourseEditorMode.edit &&
-        widget.access.canTransferOwnership &&
-        activeProfileId == _course.ownership?.id;
-    var selectedOwnerId = _course.ownership!.id;
+        widget.access.canTransferMaintainership &&
+        activeProfileId == _course.maintainer?.profileId;
+    var selectedMaintainerId = _course.maintainer!.profileId;
     var selectedAssignedTeamId = _course.assignedTeamId;
     final assignedTeamFieldKey = GlobalKey<FormFieldState<String?>>();
     WorldFlagEntity? selectedWorldFlag;
@@ -716,15 +716,7 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
     if (!mounted) return;
     const standardRoles = CourseMetadataOptions.standardRoles;
     const roleDescriptions = CourseMetadataOptions.roleDescriptions;
-    final initialAuthors = _course.authors.isNotEmpty
-        ? _course.authors
-        : [
-            if (_course.author.trim().isNotEmpty)
-              CourseAuthor(
-                name: _course.author.trim(),
-                roles: const ['Course Creator'],
-              ),
-          ];
+    final initialAuthors = _course.authors;
     final names = [
       for (final a in initialAuthors) TextEditingController(text: a.name),
     ];
@@ -743,11 +735,21 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
       selectedRoles.add({'Contributor'});
       customRoles.add(TextEditingController());
     }
+    final rightsHolderNames = [
+      for (final holder in _course.rightsHolders)
+        TextEditingController(text: holder.name),
+    ];
+    final rightsHolderTypes = [
+      for (final holder in _course.rightsHolders) holder.type,
+    ];
+    if (rightsHolderNames.isEmpty) {
+      rightsHolderNames.add(TextEditingController());
+      rightsHolderTypes.add(CourseRightsHolderType.person);
+    }
     final courseTitle = TextEditingController(text: _course.title);
     final variant = TextEditingController(text: _course.languageVariant);
     final startLevel = TextEditingController(text: _course.startLevel);
     final targetLevel = TextEditingController(text: _course.targetLevel);
-    final lastUpdated = TextEditingController(text: _course.lastUpdated);
     final description = TextEditingController(text: _course.courseDescription);
     final buyACoffeeUrl = TextEditingController(text: _course.buyACoffeeUrl);
     final customLicense = TextEditingController(text: _course.license);
@@ -784,7 +786,7 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
       decoration: InputDecoration(
         border: const OutlineInputBorder(),
         labelText: label,
-        helperText: helperText,
+        helper: Text(helperText),
       ),
       child: Text(value.trim().isEmpty ? 'Not specified' : value),
     );
@@ -793,18 +795,18 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
           ({
             String title,
             List<CourseAuthor> authors,
+            List<CourseRightsHolder> rightsHolders,
             String license,
             DerivativeWorksPolicy derivativePolicy,
             String variant,
             String startLevel,
             String targetLevel,
-            String lastUpdated,
             String description,
             String buyACoffeeUrl,
             String flagCode,
             String flagImageBase64,
             String worldFlagId,
-            String ownerProfileId,
+            String maintainerProfileId,
             String? assignedTeamId,
           })
         >(
@@ -831,8 +833,7 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
                         decoration: const InputDecoration(
                           border: OutlineInputBorder(),
                           labelText: 'Course name',
-                          helperText:
-                              'You can rename the course without changing its Course ID.',
+                          helper: Text('Renaming keeps the same Course ID.'),
                         ),
                       ),
                       const SizedBox(height: 8),
@@ -852,49 +853,59 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
                       readOnlyField('Course origin', _course.originType.name),
                       const SizedBox(height: 8),
                       readOnlyField(
-                        'Course Creator',
-                        ownership.creatorLabel,
-                        helperText: 'Permanent provenance · read-only',
+                        'Original Course Creator',
+                        resolvedGovernance.originalCreatorLabel,
+                        helperText:
+                            'The person who originally created this Course. This does not change when maintainership changes or the Course is forked.',
                       ),
                       EditorInternalIdText(
                         label: 'User',
-                        id: _course.creatorProfileId,
+                        id: _course.originalCourseCreator.id,
                         padding: const EdgeInsets.only(top: 6),
                       ),
                       const SizedBox(height: 8),
                       if (canGovern)
                         DropdownButtonFormField<String>(
                           key: const Key('course-info-owner'),
-                          initialValue: selectedOwnerId,
+                          initialValue: selectedMaintainerId,
                           isExpanded: true,
                           decoration: const InputDecoration(
                             border: OutlineInputBorder(),
-                            labelText: 'Course Owner',
-                            helperText:
-                                'Only the current Owner may transfer ownership to another individual user.',
+                            labelText: 'Course Maintainer',
+                            helper: Text(
+                              'The person currently responsible for maintaining this Course.',
+                            ),
                           ),
                           items: [
                             for (final profile in profiles)
                               DropdownMenuItem(
                                 value: profile.learnerProfileId,
-                                child: Text(profile.presentationName),
+                                child: Tooltip(
+                                  message: profile.presentationName,
+                                  child: Text(
+                                    profile.presentationName,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
                               ),
                           ],
                           onChanged: (value) => setLocalState(
-                            () => selectedOwnerId = value ?? selectedOwnerId,
+                            () => selectedMaintainerId =
+                                value ?? selectedMaintainerId,
                           ),
                         )
                       else
                         readOnlyField(
-                          'Course Owner',
-                          ownership.ownerLabel,
+                          'Course Maintainer',
+                          resolvedGovernance.maintainerLabel,
                           helperText: _editorMode == CourseEditorMode.edit
-                              ? 'Only the current Course Owner may change this field.'
+                              ? 'Only the current Course Maintainer may change this field.'
                               : 'Read-only outside Edit mode',
                         ),
                       EditorInternalIdText(
                         label: 'User',
-                        id: selectedOwnerId,
+                        id: selectedMaintainerId,
                         padding: const EdgeInsets.only(top: 6),
                       ),
                       const SizedBox(height: 8),
@@ -908,8 +919,9 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
                             decoration: const InputDecoration(
                               border: OutlineInputBorder(),
                               labelText: 'Assigned Team',
-                              helperText:
-                                  'Assignment grants management access but does not change the Course Owner or Creator.',
+                              helper: Text(
+                                'Grants Team management access; the Course Maintainer and Original Course Creator stay unchanged.',
+                              ),
                             ),
                             items: [
                               const DropdownMenuItem<String?>(
@@ -919,7 +931,14 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
                               for (final team in teams)
                                 DropdownMenuItem<String?>(
                                   value: team.teamId,
-                                  child: Text(team.displayName),
+                                  child: Tooltip(
+                                    message: team.displayName,
+                                    child: Text(
+                                      team.displayName,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
                                 ),
                             ],
                             onChanged: (value) async {
@@ -982,9 +1001,9 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
                       else ...[
                         readOnlyField(
                           'Assigned Team',
-                          ownership.assignedTeamLabel ?? 'None',
+                          resolvedGovernance.assignedTeamLabel ?? 'None',
                           helperText:
-                              'Only the current Course Owner may assign or revoke a Team.',
+                              'Only the current Course Maintainer may assign or revoke a Team.',
                         ),
                       ],
                       if (selectedAssignedTeamId != null)
@@ -1016,21 +1035,22 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
                         ),
                       ...[
                         const SizedBox(height: 8),
-                        readOnlyField('Created by', _course.createdByUsername),
-                        const SizedBox(height: 8),
                         readOnlyField(
-                          'Created',
-                          _localCourseDateTime(ctx, _course.createdAtUtc),
+                          'Original Course Created',
+                          _localCourseDateTime(
+                            ctx,
+                            _course.originalCreatedAtUtc,
+                          ),
                         ),
                         const SizedBox(height: 8),
                         readOnlyField(
-                          'Version author',
-                          _course.lastModifiedByUsername,
+                          'Last Version Editor',
+                          _course.lastVersionEditorDisplayName,
                         ),
                         const SizedBox(height: 8),
                         readOnlyField(
                           'Modified',
-                          _localCourseDateTime(ctx, _course.lastModifiedAtUtc),
+                          _localCourseDateTime(ctx, _course.modifiedAtUtc),
                         ),
                         if (_course.versionNotes.isNotEmpty) ...[
                           const SizedBox(height: 8),
@@ -1393,8 +1413,9 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
                                     decoration: const InputDecoration(
                                       border: OutlineInputBorder(),
                                       labelText: 'Custom role(s)',
-                                      helperText:
-                                          'Optional. Separate multiple custom roles with commas.',
+                                      helper: Text(
+                                        'Optional; separate roles with commas.',
+                                      ),
                                     ),
                                   ),
                                 ],
@@ -1472,47 +1493,12 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
                           ],
                         ),
                       const SizedBox(height: 8),
-                      if (narrowCourseInfo) ...[
-                        readOnlyField(
-                          'Course version',
-                          _course.courseVersion.isEmpty
-                              ? 'Not confirmed yet'
-                              : _course.courseVersion,
-                        ),
-                        const SizedBox(height: 8),
-                        TextField(
-                          controller: lastUpdated,
-                          maxLength: 10,
-                          decoration: const InputDecoration(
-                            border: OutlineInputBorder(),
-                            labelText: 'Last updated (YYYY-MM-DD)',
-                          ),
-                        ),
-                      ] else
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Expanded(
-                              child: readOnlyField(
-                                'Course version',
-                                _course.courseVersion.isEmpty
-                                    ? 'Not confirmed yet'
-                                    : _course.courseVersion,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: TextField(
-                                controller: lastUpdated,
-                                maxLength: 10,
-                                decoration: const InputDecoration(
-                                  border: OutlineInputBorder(),
-                                  labelText: 'Last updated (YYYY-MM-DD)',
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
+                      readOnlyField(
+                        'Course version',
+                        _course.courseVersion.isEmpty
+                            ? 'Not confirmed yet'
+                            : _course.courseVersion,
+                      ),
                       const SizedBox(height: 8),
                       TextField(
                         controller: description,
@@ -1531,9 +1517,13 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
                         decoration: const InputDecoration(
                           border: OutlineInputBorder(),
                           labelText: 'Buy a Coffee URL (optional)',
-                          helperText:
-                              'HTTPS only. Shown in Course Info when provided.',
+                          helper: Text('HTTPS only; shown in Course Info.'),
                         ),
+                      ),
+                      const SizedBox(height: 14),
+                      const Text(
+                        'License / Rights',
+                        style: TextStyle(fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 8),
                       DropdownButtonFormField<String>(
@@ -1579,7 +1569,7 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
                           isExpanded: true,
                           decoration: const InputDecoration(
                             border: OutlineInputBorder(),
-                            labelText: 'Derivative works for non-owners',
+                            labelText: 'Derivative works for other users',
                           ),
                           items: const [
                             DropdownMenuItem(
@@ -1609,6 +1599,109 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
                           ),
                         ),
                       ],
+                      const SizedBox(height: 12),
+                      const Text(
+                        'Rights Holder records rights ownership information. It does not control QQL permissions.',
+                      ),
+                      const SizedBox(height: 8),
+                      for (
+                        var rightsIndex = 0;
+                        rightsIndex < rightsHolderNames.length;
+                        rightsIndex++
+                      )
+                        Card(
+                          child: Padding(
+                            padding: const EdgeInsets.all(10),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        'Rights Holder ${rightsIndex + 1}',
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ),
+                                    IconButton(
+                                      tooltip: 'Remove Rights Holder',
+                                      onPressed: rightsHolderNames.length == 1
+                                          ? null
+                                          : () => setLocalState(() {
+                                              rightsHolderNames
+                                                  .removeAt(rightsIndex)
+                                                  .dispose();
+                                              rightsHolderTypes.removeAt(
+                                                rightsIndex,
+                                              );
+                                            }),
+                                      icon: const Icon(
+                                        Icons.remove_circle_outline,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                DropdownButtonFormField<CourseRightsHolderType>(
+                                  key: ValueKey(
+                                    'course-info-rights-holder-type-$rightsIndex',
+                                  ),
+                                  initialValue: rightsHolderTypes[rightsIndex],
+                                  isExpanded: true,
+                                  decoration: const InputDecoration(
+                                    border: OutlineInputBorder(),
+                                    labelText: 'Rights Holder type',
+                                  ),
+                                  items: const [
+                                    DropdownMenuItem(
+                                      value: CourseRightsHolderType.person,
+                                      child: Text('Person'),
+                                    ),
+                                    DropdownMenuItem(
+                                      value:
+                                          CourseRightsHolderType.organization,
+                                      child: Text('Organization'),
+                                    ),
+                                  ],
+                                  onChanged: (value) => setLocalState(() {
+                                    rightsHolderTypes[rightsIndex] =
+                                        value ?? rightsHolderTypes[rightsIndex];
+                                  }),
+                                ),
+                                const SizedBox(height: 8),
+                                TextField(
+                                  key: ValueKey(
+                                    'course-info-rights-holder-name-$rightsIndex',
+                                  ),
+                                  controller: rightsHolderNames[rightsIndex],
+                                  maxLength: 240,
+                                  decoration: const InputDecoration(
+                                    border: OutlineInputBorder(),
+                                    labelText: 'Rights Holder',
+                                    helper: Text(
+                                      'A person or organization; descriptive only.',
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: TextButton.icon(
+                          key: const Key('course-info-add-rights-holder'),
+                          onPressed: () => setLocalState(() {
+                            rightsHolderNames.add(TextEditingController());
+                            rightsHolderTypes.add(
+                              CourseRightsHolderType.person,
+                            );
+                          }),
+                          icon: const Icon(Icons.add),
+                          label: const Text('Add Rights Holder'),
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -1649,7 +1742,7 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
                       final continueAnyway = await showDialog<bool>(
                         context: ctx,
                         builder: (warningContext) => AlertDialog(
-                          title: const Text('Duplicate Course name'),
+                          title: const Text('Course name already exists'),
                           content: const Text(
                             'A Course with this name already exists.',
                           ),
@@ -1734,10 +1827,22 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
                       if (rr.isEmpty) rr.add('Contributor');
                       aa.add(CourseAuthor(name: n, roles: rr));
                     }
+                    final rightsHolders = <CourseRightsHolder>[];
+                    for (var i = 0; i < rightsHolderNames.length; i++) {
+                      final name = rightsHolderNames[i].text.trim();
+                      if (name.isEmpty) continue;
+                      rightsHolders.add(
+                        CourseRightsHolder(
+                          type: rightsHolderTypes[i],
+                          name: name,
+                        ),
+                      );
+                    }
                     if (!ctx.mounted) return;
                     Navigator.pop(ctx, (
                       title: title,
                       authors: aa,
+                      rightsHolders: rightsHolders,
                       license: license,
                       derivativePolicy: selected == 'Other / Custom license'
                           ? derivativePolicy
@@ -1749,13 +1854,12 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
                       variant: variant.text.trim(),
                       startLevel: startLevel.text.trim(),
                       targetLevel: targetLevel.text.trim(),
-                      lastUpdated: lastUpdated.text.trim(),
                       description: description.text.trim(),
                       buyACoffeeUrl: normalizedBuyACoffeeUrl,
                       flagCode: resultFlagCode,
                       flagImageBase64: resultFlagImageBase64,
                       worldFlagId: resultWorldFlagId,
-                      ownerProfileId: selectedOwnerId,
+                      maintainerProfileId: selectedMaintainerId,
                       assignedTeamId: selectedAssignedTeamId,
                     ));
                   },
@@ -1772,11 +1876,13 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
       for (final c in customRoles) {
         c.dispose();
       }
+      for (final c in rightsHolderNames) {
+        c.dispose();
+      }
       courseTitle.dispose();
       variant.dispose();
       startLevel.dispose();
       targetLevel.dispose();
-      lastUpdated.dispose();
       description.dispose();
       buyACoffeeUrl.dispose();
       customLicense.dispose();
@@ -1796,30 +1902,31 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
         assignmentConfirmed: true,
       );
     }
-    if (governedCourse.ownership!.id != result.ownerProfileId) {
-      governedCourse = await governance.transferOwnership(
+    if (governedCourse.maintainer!.profileId != result.maintainerProfileId) {
+      governedCourse = await governance.transferMaintainer(
         course: governedCourse,
         actorProfileId: activeProfileId!,
-        newOwnerProfileId: result.ownerProfileId,
+        newMaintainerProfileId: result.maintainerProfileId,
         editMode: true,
       );
     }
     final governanceChanged =
-        _course.ownership!.id != governedCourse.ownership!.id ||
+        _course.maintainer!.profileId != governedCourse.maintainer!.profileId ||
         _course.assignedTeamId != governedCourse.assignedTeamId;
     if (governanceChanged) _governanceChangedInEditMode = true;
     _updateDraft(
       Course.fromJson({
         ...governedCourse.toJson(),
         'title': result.title,
-        'author': result.authors.map((author) => author.name).join(', '),
         'authors': result.authors.map((author) => author.toJson()).toList(),
+        'rightsHolders': result.rightsHolders
+            .map((holder) => holder.toJson())
+            .toList(),
         'license': result.license,
         'derivativeWorksPolicy': result.derivativePolicy.name,
         'languageVariant': result.variant,
         'startLevel': result.startLevel,
         'targetLevel': result.targetLevel,
-        'lastUpdated': result.lastUpdated,
         'courseDescription': result.description,
         'buyACoffeeUrl': result.buyACoffeeUrl,
         'flagCode': result.flagCode,
@@ -2335,7 +2442,7 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
     }
   }
 
-  Future<void> _duplicateCustomCourse() async {
+  Future<void> _copyAsNewCourse() async {
     final existingTitles = (await _service.listUserCourses())
         .map((course) => course.title)
         .toSet();
@@ -2344,7 +2451,7 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
     while (existingTitles.contains(title)) {
       title = '${_course.title} copy ${suffix++}';
     }
-    final created = await _service.createDuplicate(
+    final created = await _service.createCopyAsNewCourse(
       source: _course,
       title: title,
     );
@@ -2364,7 +2471,7 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            'Custom duplicate created: ${created.course.title}\n'
+            'New independent Course created: ${created.course.title}\n'
             'Course version: ${created.course.courseVersion}',
           ),
         ),
@@ -2408,7 +2515,7 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
   Widget build(BuildContext context) {
     final hierarchyStatus = AuthoringHierarchyStatus.fromCourse(_course);
     final canExportCourse =
-        widget.access.isInsideOwnershipBoundary &&
+        widget.access.hasOperationalAccess &&
         _course.originType == CourseOriginType.custom;
     return PopScope(
       canPop: _routeMayPop || !_dirty,
@@ -2482,7 +2589,7 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
                               CourseEditorMode.inspection =>
                                 'Open exercises in their read-only technical representation by default.',
                               CourseEditorMode.edit =>
-                                'Allow authoring actions under the existing ownership permissions.',
+                                'Allow authoring actions under the existing Course Maintainer and assigned-Team permissions.',
                             },
                       child: Row(
                         children: [
@@ -2521,7 +2628,7 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
                 subtitle: Text(
                   _course.originType.isOfficial
                       ? 'Bundled and official originals are immutable.'
-                      : 'Only the individual Owner or members of the assigned Team can edit this original.',
+                      : 'Only the Course Maintainer or members of the assigned Team can edit this Course.',
                 ),
               ),
             AuthoringStatusCard(
@@ -2547,7 +2654,7 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
               ),
               title: Text(_canModify ? 'Course Info Editor' : 'Course Info'),
               subtitle: Text(
-                '${_canModify ? 'Edit' : 'Inspect'} course name, credits, license and metadata · ${_course.authors.isEmpty ? (_course.author.trim().isEmpty ? 'Author not specified' : _course.author) : _course.authors.map((a) => '${a.name} (${a.role})').join(', ')}',
+                '${_canModify ? 'Edit' : 'Inspect'} course name, credits, license and metadata · ${_course.authors.isEmpty ? 'Author not specified' : _course.authors.map((a) => '${a.name} (${a.roles.join(', ')})').join(', ')}',
               ),
               trailing: const Icon(Icons.chevron_right),
               onTap: _canModify
@@ -2558,17 +2665,17 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
                       ),
                     ),
             ),
-            if (widget.access.canDuplicate) ...[
+            if (widget.access.canCopyAsNewCourse) ...[
               const Divider(height: 1),
               ListTile(
-                key: const Key('course-editor-duplicate-course'),
+                key: const Key('course-editor-copy-as-new-course'),
                 leading: const Icon(Icons.copy_outlined),
-                title: const Text('Duplicate'),
+                title: const Text('Copy as New Course'),
                 subtitle: const Text(
-                  'Create an independent custom course with fresh IDs.',
+                  'Create a new independent Course using this Course as the starting content.',
                 ),
                 trailing: const Icon(Icons.chevron_right),
-                onTap: _duplicateCustomCourse,
+                onTap: _copyAsNewCourse,
               ),
             ],
             if (widget.access.canFork) ...[
@@ -2578,7 +2685,7 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
                 leading: const Icon(Icons.fork_right_outlined),
                 title: const Text('Fork'),
                 subtitle: const Text(
-                  'Create a licensed editable derivative with fresh IDs.',
+                  'Create a derivative Course that preserves the source Course lineage.',
                 ),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: _forkCourse,
@@ -2624,7 +2731,7 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
               leading: const Icon(Icons.history_outlined),
               title: const Text('Version history'),
               subtitle: Text(
-                'Course version ${_course.courseVersion.isEmpty ? 'not confirmed' : _course.courseVersion} · ${_course.lastModifiedByUsername.isEmpty ? 'No version author yet' : _course.lastModifiedByUsername}',
+                'Course version ${_course.courseVersion.isEmpty ? 'not confirmed' : _course.courseVersion} · ${_course.lastVersionEditorDisplayName.isEmpty ? 'No Last Version Editor yet' : _course.lastVersionEditorDisplayName}',
               ),
               trailing: const Icon(Icons.chevron_right),
               onTap: _openVersionHistory,

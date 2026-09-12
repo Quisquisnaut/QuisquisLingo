@@ -195,7 +195,6 @@ _GeneratorFixture _generatorFixture() {
     targetLanguage: 'Italian',
     title: 'Generator Characterization Course',
     ttsLanguage: 'it-IT',
-    version: '1.0.0',
     lessons: [lesson],
   );
   return _GeneratorFixture(course: course, lesson: lesson);

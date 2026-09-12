@@ -126,11 +126,13 @@ void main() {
       final custom = Course.fromJson({
         ..._englishCourse().toJson(),
         'originType': 'custom',
-        'creatorProfileId': '11111111-1111-4111-8111-111111111111',
-        'ownership': {
-          'type': 'individual',
-          'id': '11111111-1111-4111-8111-111111111111',
-        },
+        'originalCourseCreator': const CourseProvenanceIdentity.qqlUser(
+          profileId: '11111111-1111-4111-8111-111111111111',
+          displayName: 'Course creator',
+        ).toJson(),
+        'maintainer': const CourseMaintainer(
+          '11111111-1111-4111-8111-111111111111',
+        ).toJson(),
         'ttsLanguage': 'und',
         'targetLanguageTag': 'en-US',
       });
@@ -163,11 +165,13 @@ void main() {
     final custom = Course.fromJson({
       ..._italianCourse().toJson(),
       'originType': 'custom',
-      'creatorProfileId': '11111111-1111-4111-8111-111111111111',
-      'ownership': {
-        'type': 'individual',
-        'id': '11111111-1111-4111-8111-111111111111',
-      },
+      'originalCourseCreator': const CourseProvenanceIdentity.qqlUser(
+        profileId: '11111111-1111-4111-8111-111111111111',
+        displayName: 'Course creator',
+      ).toJson(),
+      'maintainer': const CourseMaintainer(
+        '11111111-1111-4111-8111-111111111111',
+      ).toJson(),
       'ttsLanguage': 'und',
       'targetLanguageTag': 'malformed code',
     });
@@ -233,7 +237,6 @@ Course _englishCourse() => Course(
   targetLanguage: 'English',
   title: 'English course',
   ttsLanguage: 'en-GB',
-  version: '1',
   lessons: const [],
 );
 
@@ -245,6 +248,5 @@ Course _italianCourse() => Course(
   targetLanguage: 'Italian',
   title: 'Italian course',
   ttsLanguage: 'it-IT',
-  version: '1',
   lessons: const [],
 );

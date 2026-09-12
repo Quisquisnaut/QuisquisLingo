@@ -557,6 +557,5 @@ Course _hostCourse() => Course(
   targetLanguage: 'Italian',
   title: 'Host course',
   ttsLanguage: 'it-IT',
-  version: '1',
   lessons: const [],
 );

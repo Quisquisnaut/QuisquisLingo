@@ -769,7 +769,6 @@ Course _course() => Course(
   targetLanguage: 'Italian',
   title: 'Italian',
   ttsLanguage: 'it-IT',
-  version: '1.0.0',
   lessons: const [],
 );
 

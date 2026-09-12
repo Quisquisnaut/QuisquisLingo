@@ -245,15 +245,17 @@ void main() {
 
 Course _course() => Course(
   courseId: 'course_editor_224',
-  creatorProfileId: _profileId,
-  ownership: const CourseOwnership.individual(_profileId),
+  originalCourseCreator: CourseProvenanceIdentity.qqlUser(
+    profileId: _profileId,
+    displayName: 'Original Course Creator',
+  ),
+  maintainer: const CourseMaintainer(_profileId),
   learningLanguage: 'Italian',
   interfaceLanguage: 'English',
   sourceLanguage: 'English',
   targetLanguage: 'Italian',
   title: 'Draft Course Metadata',
   ttsLanguage: 'it-IT',
-  version: '1',
   courseDescription: 'Unsaved-looking draft metadata',
   lessons: [
     Lesson(

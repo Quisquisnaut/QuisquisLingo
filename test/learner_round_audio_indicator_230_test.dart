@@ -345,7 +345,6 @@ Course _course({required String audioMode}) => Course(
   sourceLanguage: 'English',
   targetLanguage: 'Italian',
   ttsLanguage: 'it-IT',
-  version: '1',
   audioMode: audioMode,
   createDuels: false,
   useGuidebook: false,

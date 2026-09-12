@@ -506,7 +506,6 @@ Course _course({
   targetLanguage: 'Test language',
   title: 'Flag background test',
   ttsLanguage: 'en-US',
-  version: '1',
   flagCode: flagCode,
   flagImageBase64: flagImageBase64,
   worldFlagId: worldFlagId,

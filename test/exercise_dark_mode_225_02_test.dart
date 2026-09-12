@@ -146,7 +146,6 @@ Future<void> _pumpRound(
     targetLanguage: 'Italian',
     title: 'Renderer',
     ttsLanguage: 'it-IT',
-    version: '1',
     lessons: [lesson],
   );
   final scheme = ColorScheme.fromSeed(

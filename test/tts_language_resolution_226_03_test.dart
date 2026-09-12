@@ -50,11 +50,13 @@ void main() {
         'ttsLanguage': 'und',
         'title': 'My course',
         'originType': 'custom',
-        'creatorProfileId': '12345678-1234-4234-9234-123456789abc',
-        'ownership': {
-          'type': 'individual',
-          'id': '12345678-1234-4234-9234-123456789abc',
-        },
+        'originalCourseCreator': const CourseProvenanceIdentity.qqlUser(
+          profileId: '12345678-1234-4234-9234-123456789abc',
+          displayName: 'Course creator',
+        ).toJson(),
+        'maintainer': const CourseMaintainer(
+          '12345678-1234-4234-9234-123456789abc',
+        ).toJson(),
       };
       final custom = Course.fromJson(customJson);
       final before = jsonEncode(custom.toJson());

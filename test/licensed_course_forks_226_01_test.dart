@@ -77,8 +77,15 @@ void main() {
       expect(fork.originType, CourseOriginType.custom);
       expect(fork.courseId, isNot(official.courseId));
       expect(fork.courseVersion, isEmpty);
-      expect(fork.parentCourseId, official.courseId);
-      expect(fork.derivedFromVersion, '3');
+      expect(fork.forkProvenance!.sourceCourseId, official.courseId);
+      expect(fork.forkProvenance!.sourceCourseVersion, '3');
+      expect(
+        fork.originalCourseCreator.toJson(),
+        official.originalCourseCreator.toJson(),
+      );
+      expect(fork.originalCreatedAtUtc, official.originalCreatedAtUtc);
+      expect(fork.maintainer!.profileId, _profileId);
+      expect(fork.assignedTeamId, isNull);
       expect(fork.officialCourseVersion, isEmpty);
       expect(fork.publisherId, isEmpty);
       expect(fork.license, official.license);
@@ -93,14 +100,18 @@ void main() {
   }
 
   test(
-    'forking needs an active profile and custom duplication stays distinct',
+    'forking needs an active profile and Copy as New Course stays distinct',
     () async {
       final official = _official();
-      expect(official.fork, throwsStateError);
       expect(
-        () => AuthoringDuplicationService().duplicateCourse(
+        () => AuthoringDuplicationService().copyCourseAsNew(
           official,
           title: 'Bypass',
+          originalCourseCreator: const CourseProvenanceIdentity.qqlUser(
+            profileId: _profileId,
+            displayName: 'Fork Creator',
+          ),
+          maintainer: const CourseMaintainer(_profileId),
         ),
         throwsStateError,
       );
@@ -114,17 +125,21 @@ void main() {
         service.forkOfficialCourse(fork),
         throwsFormatException,
       );
-      final copy = AuthoringDuplicationService().duplicateCourse(
-        fork,
-        title: 'Custom duplicate',
-      );
+      final copy = AuthoringDuplicationService(clock: () => _forkTime)
+          .copyCourseAsNew(
+            fork,
+            title: 'Independent Course',
+            originalCourseCreator: const CourseProvenanceIdentity.qqlUser(
+              profileId: _profileId,
+              displayName: 'Fork Creator',
+            ),
+            maintainer: const CourseMaintainer(_profileId),
+          );
       expect(copy.courseId, isNot(fork.courseId));
       expect(copy.originType, CourseOriginType.custom);
-      expect(copy.forkProvenance!.toJson(), fork.forkProvenance!.toJson());
-      expect(
-        fork.fork().forkProvenance!.toJson(),
-        fork.forkProvenance!.toJson(),
-      );
+      expect(copy.originalCourseCreator.id, _profileId);
+      expect(copy.originalCreatedAtUtc, _forkTime.toIso8601String());
+      expect(copy.forkProvenance, isNull);
     },
   );
 
@@ -219,7 +234,7 @@ void main() {
   });
 
   test(
-    'original authors and publisher are immutable snapshots separate from fork creator',
+    'source authors and publisher are immutable snapshots separate from fork creator',
     () async {
       final roles = ['Author', 'Illustrator'];
       final authors = [CourseAuthor(name: 'Original Author', roles: roles)];
@@ -227,25 +242,28 @@ void main() {
       final fork = await service.forkOfficialCourse(official);
       final provenance = fork.forkProvenance!;
       expect(provenance.toJson(), {
-        'originalPublisherId': 'test.publisher',
-        'originalPublisherName': 'Test Publisher',
-        'originalCourseId': 'official-fork-source',
-        'originalOfficialCourseVersion': '3',
-        'originalOfficialChecksum': official.officialChecksum,
-        'originalCourseTitle': 'Official v3',
-        'originalAuthor': 'Legacy Original Author',
-        'originalAuthors': [
+        'sourceCourseId': 'official-fork-source',
+        'sourceCourseTitle': 'Official v3',
+        'sourceCourseVersion': '3',
+        'sourceOriginType': 'externalOfficial',
+        'sourcePublisherId': 'test.publisher',
+        'sourcePublisherName': 'Test Publisher',
+        'sourceOfficialChecksum': official.officialChecksum,
+        'sourceAuthors': [
           {
             'name': 'Original Author',
-            'role': 'Author, Illustrator',
             'roles': ['Author', 'Illustrator'],
           },
         ],
         'forkCreatedByProfileId': _profileId,
-        'forkCreatedByUsername': 'Fork Creator',
+        'forkCreatedByDisplayName': 'Fork Creator',
         'forkCreatedAtUtc': _forkTime.toIso8601String(),
       });
-      expect(fork.author, 'Legacy Original Author');
+      expect(
+        fork.originalCourseCreator.type,
+        CourseProvenanceIdentityType.publisher,
+      );
+      expect(fork.originalCourseCreator.id, 'test.publisher');
       expect(fork.authors.single.name, 'Original Author');
       expect(
         fork.authors.any((author) => author.name == 'Fork Creator'),
@@ -262,13 +280,10 @@ void main() {
 
       official.authors.single.roles.add('Editor');
       official.authors.clear();
-      expect(provenance.originalAuthors.single.roles, [
-        'Author',
-        'Illustrator',
-      ]);
-      expect(() => provenance.originalAuthors.clear(), throwsUnsupportedError);
+      expect(provenance.sourceAuthors.single.roles, ['Author', 'Illustrator']);
+      expect(() => provenance.sourceAuthors.clear(), throwsUnsupportedError);
       expect(
-        () => provenance.originalAuthors.single.roles.clear(),
+        () => provenance.sourceAuthors.single.roles.clear(),
         throwsUnsupportedError,
       );
       final preferences = await SharedPreferences.getInstance();
@@ -276,12 +291,12 @@ void main() {
         ProfileService.activeProfileIdKey,
         _otherProfileId,
       );
-      expect(provenance.forkCreatedByUsername, 'Fork Creator');
+      expect(provenance.forkCreatedByDisplayName, 'Fork Creator');
     },
   );
 
   test(
-    'fork confirmation and owner rename preserve original provenance',
+    'fork confirmation and later editing preserve original provenance',
     () async {
       final official = _official();
       final unconfirmed = await service.forkOfficialCourse(official);
@@ -294,7 +309,11 @@ void main() {
       );
       expect(first.course.courseVersion, '1');
       expect(first.backupPath, isNull);
-      expect(first.course.createdByUsername, 'Fork Creator');
+      expect(
+        first.course.forkProvenance!.forkCreatedByDisplayName,
+        'Fork Creator',
+      );
+      expect(first.course.lastVersionEditorDisplayName, 'Fork Creator');
 
       final preferences = await SharedPreferences.getInstance();
       await preferences.setString(
@@ -307,8 +326,8 @@ void main() {
         title: 'Renamed again',
       );
       expect(second.course.courseVersion, '2');
-      expect(second.course.createdByUsername, 'Fork Creator');
-      expect(second.course.lastModifiedByUsername, 'Fork Creator');
+      expect(second.course.lastVersionEditorDisplayName, 'Fork Creator');
+      expect(second.course.modifiedAtUtc, _forkTime.toIso8601String());
       expect(second.course.forkProvenance!.toJson(), provenance);
       expect(second.course.authors.map((author) => author.name), [
         'Original Author',
@@ -348,7 +367,7 @@ void main() {
       final stored = (await restarted.listUserCourses()).single;
       expect(stored.toJson(), confirmed.course.toJson());
       expect(stored.courseId, confirmed.course.courseId);
-      expect(stored.forkProvenance!.originalCourseId, 'official-fork-source');
+      expect(stored.forkProvenance!.sourceCourseId, 'official-fork-source');
     },
   );
 
@@ -367,29 +386,22 @@ void main() {
         ...saved.toJson(),
         'forkProvenance': {
           ...saved.forkProvenance!.toJson(),
-          'originalCourseTitle': 'False attribution',
+          'sourceCourseTitle': 'False attribution',
         },
       };
-      for (final attempted in [stripped, rewritten]) {
-        final altered = Course.fromJson(attempted);
-        await expectLater(
-          service.saveUserCourse(altered),
-          throwsFormatException,
-        );
-        await expectLater(
-          service.confirmCourseTransaction(
-            originalCourse: saved,
-            workingCourse: altered,
-            languageCode: 'IT',
-            versionNotes: 'must not erase attribution',
-          ),
-          throwsFormatException,
-        );
-        expect(
-          (await service.listUserCourses()).single.toJson(),
-          saved.toJson(),
-        );
-      }
+      expect(() => Course.fromJson(stripped), throwsFormatException);
+      final altered = Course.fromJson(rewritten);
+      await expectLater(service.saveUserCourse(altered), throwsFormatException);
+      await expectLater(
+        service.confirmCourseTransaction(
+          originalCourse: saved,
+          workingCourse: altered,
+          languageCode: 'IT',
+          versionNotes: 'must not erase attribution',
+        ),
+        throwsFormatException,
+      );
+      expect((await service.listUserCourses()).single.toJson(), saved.toJson());
       expect(await backups.listBackups(saved.courseId), isEmpty);
     },
   );
@@ -438,12 +450,7 @@ void main() {
       expect(await backups.listBackups(first.courseId), hasLength(2));
 
       final strippedHistorical = first.toJson()..remove('forkProvenance');
-      final restore = CourseEditorTransaction(result.course);
-      restore.loadHistoricalCourse(Course.fromJson(strippedHistorical));
-      expect(
-        restore.workingCourse.forkProvenance!.toJson(),
-        first.forkProvenance!.toJson(),
-      );
+      expect(() => Course.fromJson(strippedHistorical), throwsFormatException);
     },
   );
 
@@ -488,9 +495,9 @@ void main() {
         (course) => course.courseId == fork.courseId,
       );
       expect(jsonEncode(storedFork.toJson()), forkSnapshot);
-      expect(storedFork.forkProvenance!.originalOfficialCourseVersion, '3');
+      expect(storedFork.forkProvenance!.sourceCourseVersion, '3');
       expect(
-        storedFork.forkProvenance!.originalOfficialChecksum,
+        storedFork.forkProvenance!.sourceOfficialChecksum,
         installed.officialCourse.officialChecksum,
       );
       expect(
@@ -622,8 +629,6 @@ Course _official({
     targetLanguage: 'Italian',
     title: 'Official v$version',
     ttsLanguage: 'it-IT',
-    version: version,
-    author: 'Legacy Original Author',
     authors: authors,
     license: 'Test publisher derivative terms',
     derivativeWorksPolicy: policy,

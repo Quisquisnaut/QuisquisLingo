@@ -911,7 +911,6 @@ Course _courseFixture({required String buyACoffeeUrl}) => Course(
   targetLanguage: 'Italian',
   title: 'Profile Navigation Course',
   ttsLanguage: 'it-IT',
-  version: '1.0.0',
   buyACoffeeUrl: buyACoffeeUrl,
   lessons: const [],
 );

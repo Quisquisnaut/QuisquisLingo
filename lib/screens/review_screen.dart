@@ -82,20 +82,25 @@ class _ReviewScreenState extends State<ReviewScreen> {
       });
       return;
     }
+    final entries = await _vocabulary.eligibleEntries(
+      widget.course,
+      location.lesson,
+    );
+    if (!mounted) return;
     setState(() {
       _location = location;
-      _preEntries = const [];
+      _preEntries = entries;
       _postEntries = const [];
       _stage = _ReviewStage.interReview;
     });
   }
 
-  Future<void> _prepareLocation({bool allEntries = false}) async {
+  Future<void> _prepareLocation({bool refreshEntries = false}) async {
     final location = _location;
     if (location == null) return;
-    final entries = allEntries
-        ? _vocabulary.resolveEntries(widget.course, location.lesson)
-        : await _vocabulary.eligibleEntries(widget.course, location.lesson);
+    final entries = refreshEntries
+        ? await _vocabulary.eligibleEntries(widget.course, location.lesson)
+        : _preEntries;
     if (!mounted || _location?.round.id != location.round.id) return;
     setState(() {
       _preEntries = entries;
@@ -238,8 +243,10 @@ class _ReviewScreenState extends State<ReviewScreen> {
     if (confirmed != true || !mounted) return;
     await _vocabulary.resetCourse(widget.course.courseId);
     if (!mounted) return;
-    if (_stage == _ReviewStage.preVocabulary) {
-      await _prepareLocation(allEntries: true);
+    if (_stage == _ReviewStage.interReview) {
+      await _loadNext();
+    } else if (_stage == _ReviewStage.preVocabulary) {
+      await _prepareLocation(refreshEntries: true);
     } else if (_stage == _ReviewStage.postVocabulary) {
       _hasCompletedReview = true;
       await _loadNext();
@@ -414,7 +421,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
   }
 
   Widget _interReview() {
-    final wordCount = _location?.round.exercises.length;
+    final wordCount = _location == null ? null : _preEntries.length;
     return Center(
       child: SingleChildScrollView(
         padding: const EdgeInsets.all(28),

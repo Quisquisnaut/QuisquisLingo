@@ -6,7 +6,7 @@ import '../models/course_models.dart';
 import '../services/profile_service.dart';
 import '../services/team_service.dart';
 import '../services/course_language_resolver.dart';
-import '../services/course_owner_resolver.dart';
+import '../services/course_governance_resolver.dart';
 import '../services/course_service.dart';
 import '../services/editor_display_preferences.dart';
 import '../widgets/editor_app_bar_actions.dart';
@@ -58,11 +58,7 @@ class CourseInfoScreen extends StatefulWidget {
         .where((name) => name.isNotEmpty)
         .toList(growable: false);
     final lines = <String>[
-      'Author: ${course.author.trim().isNotEmpty
-          ? course.author.trim()
-          : authorNames.isEmpty
-          ? 'Not specified'
-          : authorNames.join(', ')}',
+      'Authors / Contributors: ${authorNames.isEmpty ? 'Not specified' : authorNames.join(', ')}',
     ];
     final peopleByRole = <String, List<String>>{};
     for (final author in structured) {
@@ -85,7 +81,6 @@ class CourseInfoScreen extends StatefulWidget {
       final label = switch (role) {
         'Contributor' => 'Contributors',
         'Illustrator' => 'Illustrators',
-        'Course Creator' => 'Course Creator credit',
         _ => role,
       };
       lines.add('$label: ${people.join(', ')}');
@@ -106,6 +101,10 @@ class CourseInfoScreen extends StatefulWidget {
       return [
         'Origin: ${course.originType == CourseOriginType.bundledOfficial ? 'Bundled official' : 'External official'}',
         'Publisher: ${course.publisherName}',
+        'Original Course Created: ${_localDateTime(context, course.originalCreatedAtUtc)}',
+        if (course.lastVersionEditorDisplayName.isNotEmpty)
+          'Last Version Editor: ${course.lastVersionEditorDisplayName}',
+        'Modified: ${_localDateTime(context, course.modifiedAtUtc)}',
         'Official course version: ${course.officialCourseVersion}',
         'Official release: ${_localDateTime(context, course.officialReleaseDateUtc)}',
         'Distribution channel: ${course.distributionChannel}',
@@ -117,14 +116,12 @@ class CourseInfoScreen extends StatefulWidget {
     return [
       'Origin: Custom course',
       'Course version: ${course.courseVersion.trim().isEmpty ? 'Unconfirmed' : course.courseVersion}',
-      if (course.createdByUsername.isNotEmpty)
-        'Created by: ${course.createdByUsername}',
-      if (course.createdAtUtc.isNotEmpty)
-        'Created: ${_localDateTime(context, course.createdAtUtc)}',
-      if (course.lastModifiedByUsername.isNotEmpty)
-        'Last modified by: ${course.lastModifiedByUsername}',
-      if (course.lastModifiedAtUtc.isNotEmpty)
-        'Modified: ${_localDateTime(context, course.lastModifiedAtUtc)}',
+      if (course.originalCreatedAtUtc.isNotEmpty)
+        'Original Course Created: ${_localDateTime(context, course.originalCreatedAtUtc)}',
+      if (course.lastVersionEditorDisplayName.isNotEmpty)
+        'Last Version Editor: ${course.lastVersionEditorDisplayName}',
+      if (course.modifiedAtUtc.isNotEmpty)
+        'Modified: ${_localDateTime(context, course.modifiedAtUtc)}',
       if (course.versionNotes.isNotEmpty)
         'Version notes:\n${course.versionNotes}',
     ];
@@ -132,7 +129,7 @@ class CourseInfoScreen extends StatefulWidget {
 
   Widget _build(
     BuildContext context, {
-    required ResolvedCourseOwnership ownership,
+    required ResolvedCourseGovernance governance,
   }) => Scaffold(
     appBar: AppBar(title: const Text('Course Info')),
     body: ListView(
@@ -179,7 +176,7 @@ class CourseInfoScreen extends StatefulWidget {
             body:
                 'This course is marked TEMPORARY SAMPLE. The preloaded material is provided only to demonstrate and test the editor. Replace sample material with reviewed content before publishing or distributing the course.',
           ),
-        _OwnershipInfoCard(course: course, ownership: ownership),
+        _GovernanceInfoCard(course: course, governance: governance),
         _InfoCard(
           title: 'Authorship and descriptive credits',
           body: _credits,
@@ -200,18 +197,18 @@ class CourseInfoScreen extends StatefulWidget {
         if (course.forkProvenance != null)
           CourseForkProvenanceCard(provenance: course.forkProvenance!),
         _InfoCard(
+          title: 'License / Rights',
+          body: [
+            'License: ${course.license.trim().isEmpty ? 'Not specified' : course.license}',
+            'Rights Holder: ${course.rightsHolders.isEmpty ? 'Not specified' : course.rightsHolders.map((holder) => '${holder.name} (${holder.type.name})').join(', ')}',
+            'Derivative works: ${course.derivativeWorksPolicy.name}',
+            'Rights Holder is descriptive legal metadata and does not control QQL permissions.',
+          ].join('\n'),
+        ),
+        _InfoCard(
           title: 'Course details',
           body: [
             ..._originDetails(context),
-            'Content revision: ${course.contentRevision}',
-            if (course.parentCourseId?.isNotEmpty == true)
-              'Derived from Course ID: ${course.parentCourseId}',
-            if (course.derivedFromVersion?.isNotEmpty == true)
-              'Derived from version: ${course.derivedFromVersion}',
-            if (course.lastUpdated.trim().isNotEmpty)
-              'Last updated: ${course.lastUpdated}',
-            'License: ${course.license.trim().isEmpty ? 'Not specified' : course.license}',
-            'Derivative works: ${course.derivativeWorksPolicy.name}',
             'Lessons: ${course.lessons.length}',
           ].join('\n'),
         ),
@@ -237,7 +234,7 @@ class _CourseInfoScreenState extends State<CourseInfoScreen> {
       widget.profileService ?? ProfileService();
   late final TeamService _teams =
       widget.teamService ?? TeamService(profileService: _profiles);
-  ResolvedCourseOwnership? _ownership;
+  ResolvedCourseGovernance? _governance;
 
   @override
   void initState() {
@@ -248,29 +245,29 @@ class _CourseInfoScreenState extends State<CourseInfoScreen> {
 
   Future<void> _resolveIdentities() async {
     final course = widget.course;
-    final resolved = await CourseOwnerResolver(
+    final resolved = await CourseGovernanceResolver(
       profileService: _profiles,
       teamService: _teams,
     ).resolve(course);
     if (!mounted) return;
-    setState(() => _ownership = resolved);
+    setState(() => _governance = resolved);
   }
 
   @override
   Widget build(BuildContext context) {
-    final ownership = _ownership;
-    if (ownership == null) {
+    final governance = _governance;
+    if (governance == null) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
-    return widget._build(context, ownership: ownership);
+    return widget._build(context, governance: governance);
   }
 }
 
-class _OwnershipInfoCard extends StatelessWidget {
-  const _OwnershipInfoCard({required this.course, required this.ownership});
+class _GovernanceInfoCard extends StatelessWidget {
+  const _GovernanceInfoCard({required this.course, required this.governance});
 
   final Course course;
-  final ResolvedCourseOwnership ownership;
+  final ResolvedCourseGovernance governance;
 
   @override
   Widget build(BuildContext context) => Card(
@@ -281,52 +278,61 @@ class _OwnershipInfoCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Ownership, Team assignment and authorization',
+            'Course responsibility, Team assignment and authorization',
             style: Theme.of(
               context,
             ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
           ),
           const SizedBox(height: 8),
-          if (course.originType.isOfficial)
-            SelectableText('Official publisher: ${ownership.creatorLabel}')
-          else ...[
-            SelectableText('Course Owner: ${ownership.ownerLabel}'),
-            if (ownership.ownerId != null)
-              EditorInternalIdText(label: 'User', id: ownership.ownerId!),
-            const SizedBox(height: 8),
-            SelectableText('Course Creator: ${ownership.creatorLabel}'),
-            EditorInternalIdText(label: 'User', id: course.creatorProfileId),
+          if (course.originType.isOfficial) ...[
+            SelectableText('Official publisher: ${course.publisherName}'),
             const SizedBox(height: 8),
             SelectableText(
-              'Assigned Team: ${ownership.assignedTeamLabel ?? 'None'}',
+              'Original Course Creator: ${course.originalCourseCreator.displayName}',
             ),
-            if (ownership.assignedTeamId != null)
+          ] else ...[
+            SelectableText('Course Maintainer: ${governance.maintainerLabel}'),
+            if (governance.maintainerProfileId != null)
+              EditorInternalIdText(
+                label: 'User',
+                id: governance.maintainerProfileId!,
+              ),
+            const SizedBox(height: 8),
+            SelectableText(
+              'Original Course Creator: ${governance.originalCreatorLabel}',
+            ),
+            if (governance.originalCreatorProfileId != null)
+              EditorInternalIdText(
+                label: 'User',
+                id: governance.originalCreatorProfileId!,
+              ),
+            const SizedBox(height: 8),
+            SelectableText(
+              'Assigned Team: ${governance.assignedTeamLabel ?? 'None'}',
+            ),
+            if (governance.assignedTeamId != null)
               EditorInternalIdText(
                 label: 'Team',
-                id: ownership.assignedTeamId!,
+                id: governance.assignedTeamId!,
               ),
           ],
           if (!course.originType.isOfficial &&
-              ownership.assignedTeamId != null) ...[
+              governance.assignedTeamId != null) ...[
             const SizedBox(height: 8),
             SelectableText(
-              'Team Leaders: ${ownership.teamLeaders.isEmpty ? 'None available' : ownership.teamLeaders.map((value) => value.label).join(', ')}',
+              'Team Leaders: ${governance.teamLeaders.isEmpty ? 'None available' : governance.teamLeaders.map((value) => value.label).join(', ')}',
             ),
-            for (final leader in ownership.teamLeaders)
+            for (final leader in governance.teamLeaders)
               EditorInternalIdText(label: 'User', id: leader.profileId),
             const SizedBox(height: 8),
             SelectableText(
-              'Team Members: ${ownership.teamMembers.isEmpty ? 'None' : ownership.teamMembers.map((value) => value.label).join(', ')}',
+              'Team Members: ${governance.teamMembers.isEmpty ? 'None' : governance.teamMembers.map((value) => value.label).join(', ')}',
             ),
-            for (final member in ownership.teamMembers)
+            for (final member in governance.teamMembers)
               EditorInternalIdText(label: 'User', id: member.profileId),
           ],
-          const SizedBox(height: 8),
-          SelectableText(
-            'License: ${course.license.trim().isEmpty ? 'Not specified' : course.license}',
-          ),
           const SelectableText(
-            'Course ownership and Team governance are separate. Credits do not grant editing permission.',
+            'Course maintenance and Team governance are separate. Provenance, attribution and rights metadata do not grant editing permission.',
           ),
         ],
       ),
@@ -334,7 +340,7 @@ class _OwnershipInfoCard extends StatelessWidget {
   );
 }
 
-/// Original attribution is distinct from the fork's editable contributor list.
+/// Immediate source attribution is distinct from editable contributor data.
 class CourseForkProvenanceCard extends StatelessWidget {
   const CourseForkProvenanceCard({super.key, required this.provenance});
 
@@ -342,38 +348,37 @@ class CourseForkProvenanceCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final originalAuthors = provenance.originalAuthors.isNotEmpty
-        ? provenance.originalAuthors
+    final sourceAuthors = provenance.sourceAuthors.isNotEmpty
+        ? provenance.sourceAuthors
               .map(
                 (author) => author.roles.isEmpty
                     ? author.name
                     : '${author.name} — ${author.roles.join(', ')}',
               )
               .join('\n')
-        : provenance.originalAuthor.isEmpty
-        ? 'Not specified'
-        : provenance.originalAuthor;
+        : 'Not specified';
     final created = DateTime.tryParse(provenance.forkCreatedAtUtc)?.toLocal();
     final localizations = MaterialLocalizations.of(context);
     final createdLabel = created == null
         ? 'Not recorded'
         : '${localizations.formatFullDate(created)} · ${localizations.formatTimeOfDay(TimeOfDay.fromDateTime(created))}';
     return _InfoCard(
-      title: 'Original course and fork provenance',
+      title: 'Fork provenance',
       body: [
-        'Original course: ${provenance.originalCourseTitle}',
-        'Original publisher: ${provenance.originalPublisherName}',
-        'Original publisher ID: ${provenance.originalPublisherId}',
-        'Original course ID: ${provenance.originalCourseId}',
-        'Original authors:\n$originalAuthors',
-        if (provenance.originalAuthors.isNotEmpty &&
-            provenance.originalAuthor.isNotEmpty)
-          'Original author attribution: ${provenance.originalAuthor}',
-        'Based on official version: ${provenance.originalOfficialCourseVersion}',
-        'Original official checksum: ${provenance.originalOfficialChecksum}',
-        'Forked by: ${provenance.forkCreatedByUsername}',
-        'Fork created: $createdLabel',
-        'Original authorship and provenance are permanent. Official updates do not change this custom fork.',
+        'Forked From Course ID: ${provenance.sourceCourseId}',
+        'Source Course: ${provenance.sourceCourseTitle}',
+        if (provenance.sourceCourseVersion.isNotEmpty)
+          'Source Course version: ${provenance.sourceCourseVersion}',
+        if (provenance.sourcePublisherName.isNotEmpty)
+          'Source publisher: ${provenance.sourcePublisherName}',
+        if (provenance.sourcePublisherId.isNotEmpty)
+          'Source publisher ID: ${provenance.sourcePublisherId}',
+        'Source Authors / Contributors:\n$sourceAuthors',
+        if (provenance.sourceOfficialChecksum.isNotEmpty)
+          'Source official checksum: ${provenance.sourceOfficialChecksum}',
+        'Fork Created By: ${provenance.forkCreatedByDisplayName}',
+        'Fork Created Date: $createdLabel',
+        'Fork provenance is immutable. Rights Holder and attribution metadata remain separate from QQL permissions.',
       ].join('\n'),
       children: [
         EditorInternalIdText(

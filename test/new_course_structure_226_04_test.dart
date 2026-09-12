@@ -463,7 +463,6 @@ Course _course(List<Lesson> lessons) => Course(
   targetLanguage: 'Italian',
   title: 'Structure',
   ttsLanguage: 'it-IT',
-  version: '1',
   lessons: lessons,
 );
 

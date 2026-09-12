@@ -691,7 +691,6 @@ Course _course(Lesson lesson) => Course(
   targetLanguage: 'Italian',
   title: 'Course',
   ttsLanguage: 'it-IT',
-  version: '1',
   lessons: [lesson],
 );
 

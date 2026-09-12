@@ -542,7 +542,6 @@ Course _course(Exercise exercise) => Course(
   targetLanguage: 'Italian',
   title: 'Translation UI course',
   ttsLanguage: 'it-IT',
-  version: '1',
   lessons: [
     Lesson(
       lessonId: 'translation-lesson',

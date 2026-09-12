@@ -147,7 +147,6 @@ Course _officialCourse() {
     targetLanguage: 'Italian',
     title: 'Official course',
     ttsLanguage: 'it-IT',
-    version: '1',
     lessons: [
       Lesson(
         lessonId: 'lesson',

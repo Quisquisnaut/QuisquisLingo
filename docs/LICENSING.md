@@ -20,6 +20,21 @@ separately copyrighted by their respective authors unless the course explicitly
 states another license. They are not automatically covered by the MPL-2.0 merely
 because the MPL-licensed program reads their data files.
 
+Course Model v9 keeps legal and operational metadata separate. `license`
+describes the applicable Course license, while `rightsHolders[]` can identify one
+or more people and/or organizations as descriptive Rights Holder metadata. A
+Rights Holder does not need to be a QQL user, and being named there grants no QQL
+permission, Course maintenance role or Team membership. Original Course Creator,
+Course Maintainer, Assigned Team, structured Authors/Contributors, Fork Created
+By and Last Version Editor each retain their separate provenance, operational,
+attribution or editing meanings.
+
+Forking preserves the source lineage, structured attribution, Rights Holder and
+applicable License; it does not itself transfer rights. Copy as New Course starts
+a new QQL provenance lineage while copying the source attribution, Rights Holder
+and applicable License as descriptive metadata; that operation likewise does not
+establish or transfer copyright, contractual rights or external authority.
+
 ## Media and dependencies
 
 Images, sound effects, recorded audio and third-party software retain their own

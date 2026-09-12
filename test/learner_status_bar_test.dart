@@ -74,7 +74,6 @@ Course _course({String title = 'Italian', String flagCode = 'IT'}) => Course(
   targetLanguage: 'Italian',
   title: title,
   ttsLanguage: 'it-IT',
-  version: '1',
   flagCode: flagCode,
   lessons: [
     Lesson(
@@ -109,7 +108,6 @@ Course _navigationCourse() => Course(
   targetLanguage: 'Italian',
   title: 'Navigation course',
   ttsLanguage: 'it-IT',
-  version: '1',
   lessons: [_lesson],
 );
 

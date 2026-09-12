@@ -139,7 +139,7 @@ void main() {
     'note',
   ]) {
     test(
-      'Copy $id retains v6 metadata and creates independent Draft content',
+      'Copy $id retains v9 metadata and creates independent Draft content',
       () {
         final source = _course();
         final before = jsonEncode(source.toJson());
@@ -489,13 +489,21 @@ void main() {
     test('all transfers reject $origin before touching content', () {
       final json = _course().toJson()..remove('forkProvenance');
       json
-        ..remove('creatorProfileId')
-        ..remove('ownership');
+        ..remove('maintainer')
+        ..remove('assignedTeamId')
+        ..remove('courseVersion')
+        ..remove('versionNotes')
+        ..remove('restoredFromVersion');
       final source = Course.fromJson({
         ...json,
         'originType': origin.name,
         'publisherId': 'test.publisher',
         'publisherName': 'Test publisher',
+        'originalCourseCreator': const CourseProvenanceIdentity.publisher(
+          publisherId: 'test.publisher',
+          displayName: 'Test publisher',
+        ).toJson(),
+        'originalCreatedAtUtc': _originalTime.toIso8601String(),
         'officialCourseVersion': '3',
         'officialReleaseDateUtc': _originalTime.toIso8601String(),
         'officialChecksum': List.filled(64, 'a').join(),
@@ -736,52 +744,46 @@ Set<String> _ownedContentIds(LearningContent content) => {
 
 Course _course({PublicationState state = PublicationState.published}) => Course(
   courseId: 'transfer-course',
-  creatorProfileId: _profileId,
-  ownership: const CourseOwnership.individual(_profileId),
+  originalCourseCreator: const CourseProvenanceIdentity.publisher(
+    publisherId: 'fixture.publisher',
+    displayName: 'Fixture publisher',
+  ),
+  maintainer: const CourseMaintainer(_profileId),
   publicationState: PublicationState.draft,
-  parentCourseId: 'official-parent',
-  derivedFromVersion: '3',
+  originalCreatedAtUtc: _originalTime.toIso8601String(),
+  lastVersionEditorProfileId: _profileId,
+  lastVersionEditorDisplayName: 'Earlier editor',
+  modifiedAtUtc: _originalTime.toIso8601String(),
   learningLanguage: 'Italian',
   interfaceLanguage: 'English',
   sourceLanguage: 'English',
   targetLanguage: 'Italian',
   title: 'Transfer fixture',
   ttsLanguage: 'it-IT',
-  version: '1.2.0',
-  contentRevision: '9',
-  updateSummary: 'Existing summary',
   audioMode: 'hybrid',
-  author: 'Fixture author',
   authors: const [
     CourseAuthor(name: 'Fixture author', roles: ['Author', 'Illustrator']),
   ],
   license: 'Fixture license',
   derivativeWorksPolicy: DerivativeWorksPolicy.allowed,
   forkProvenance: CourseForkProvenance(
-    originalPublisherId: 'fixture.publisher',
-    originalPublisherName: 'Fixture publisher',
-    originalCourseId: 'official-parent',
-    originalOfficialCourseVersion: '3',
-    originalOfficialChecksum: List.filled(64, 'a').join(),
-    originalCourseTitle: 'Original fixture',
-    originalAuthor: 'Original fixture author',
-    originalAuthors: const [
+    sourceCourseId: 'official-parent',
+    sourceCourseTitle: 'Original fixture',
+    sourceCourseVersion: '3',
+    sourceOriginType: CourseOriginType.bundledOfficial,
+    sourcePublisherId: 'fixture.publisher',
+    sourcePublisherName: 'Fixture publisher',
+    sourceOfficialChecksum: List.filled(64, 'a').join(),
+    sourceAuthors: const [
       CourseAuthor(name: 'Original fixture author', roles: ['Author']),
     ],
     forkCreatedByProfileId: _profileId,
-    forkCreatedByUsername: 'Original fork creator',
+    forkCreatedByDisplayName: 'Original fork creator',
     forkCreatedAtUtc: _originalTime.toIso8601String(),
   ),
-  createdByProfileId: _profileId,
-  createdByUsername: 'Original fork creator',
-  createdAtUtc: _originalTime.toIso8601String(),
-  lastModifiedByProfileId: _profileId,
-  lastModifiedByUsername: 'Earlier editor',
-  lastModifiedAtUtc: _originalTime.toIso8601String(),
   versionNotes: 'Existing version notes',
   restoredFromVersion: 2,
   courseVersion: '7',
-  lastUpdated: '2026-09-04',
   courseDescription: 'Existing description',
   sourceLanguageTag: 'en-GB',
   targetLanguageTag: 'it-IT',

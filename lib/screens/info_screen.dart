@@ -127,7 +127,7 @@ class InfoScreen extends StatelessWidget {
         _InfoSection(
           title: 'Course Manager and Course Editor',
           body:
-              'Course Manager is opened from the learner Course Selector rather than Settings. It is the lifecycle hub: official courses provide read-only inspection, licensed Fork, Audit and supported Export; custom courses provide Edit, independent Duplicate, Audit, Export and manager-only Delete. Eligible official inspection also provides Fork, while custom Course Editor provides Duplicate without Delete. For complete authoring instructions, open Editor Help from Course Manager or any Course Editor hierarchy page.',
+              'Course Manager is opened from the learner Course Selector rather than Settings. It is the lifecycle hub: official courses provide read-only inspection, licensed Fork, Audit and supported Export; custom courses provide Edit, Copy as New Course, Audit, Export and manager-only Delete. Eligible official inspection also provides Fork, while custom Course Editor provides Copy as New Course without Delete. Fork preserves the source lineage; Copy as New Course starts an independent Course lineage. For complete authoring instructions, open Editor Help from Course Manager or any Course Editor hierarchy page.',
         ),
         _InfoSection(
           title: 'Course content and AI',

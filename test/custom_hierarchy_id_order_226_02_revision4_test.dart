@@ -173,7 +173,6 @@ Course _customCourse() {
     targetLanguage: 'Italian',
     title: 'Custom course',
     ttsLanguage: 'it-IT',
-    version: '1',
     lessons: [
       Lesson(
         lessonId: 'custom-lesson-with-a-long-stable-internal-identifier',

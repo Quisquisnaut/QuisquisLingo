@@ -1,5 +1,5 @@
 {
-  "formatVersion": 8,
+  "formatVersion": 9,
   "publicationState": "published",
   "lessonNumberingMode": "lesson",
   "defaultLessonIconStyle": "monochrome",
@@ -9,40 +9,41 @@
   "publisherName": "QuisquisLingo",
   "officialCourseVersion": "1.6.1",
   "officialReleaseDateUtc": "2026-09-06T00:00:00.000Z",
-  "officialChecksum": "cc81515de9fbf3ad5633ba42107890c9493424737fba011eecdeb4d77f858726",
+  "officialChecksum": "5b09fb72f8f0b732f3b4aed851862482194e63edb2edaa334bb77e11c1611b22",
   "officialReleaseNotes": "Build 226.02 revision 3 AI-generated sample label update.",
   "distributionChannel": "bundled",
   "publisherVerificationStatus": "verified",
+  "originalCourseCreator": {
+    "type": "publisher",
+    "id": "org.quisquislingo",
+    "displayName": "QuisquisLingo"
+  },
+  "originalCreatedAtUtc": "2026-09-06T00:00:00.000Z",
+  "modifiedAtUtc": "2026-09-06T00:00:00.000Z",
   "learningLanguage": "English",
   "interfaceLanguage": "Spanish",
   "sourceLanguage": "Spanish",
   "targetLanguage": "English",
   "title": "AI-Slop Demo: Inglés para hispanohablantes",
   "ttsLanguage": "en-GB",
-  "version": "1.6.1",
-  "contentRevision": "bundled-v22602-r3-sample-label",
-  "updateSummary": "Explicitly labelled as an AI-generated demonstration course for Build 226.02 revision 3; learning content and stable IDs are unchanged.",
   "audioMode": "tts",
   "authors": [
     {
       "name": "Sample Author Sofia",
       "roles": [
-        "Course Creator"
+        "Author"
       ]
     },
     {
       "name": "Sample Author Taylor",
       "roles": [
-        "Course Creator"
+        "Author"
       ]
     }
   ],
   "license": "All rights reserved",
-  "courseVersion": "1.6.1",
-  "lastUpdated": "2026-09-06",
-  "courseDescription": "TEMPORARY SAMPLE course regenerated for Course Model v8.",
+  "courseDescription": "TEMPORARY SAMPLE course regenerated for Course Model v9.",
   "textDirection": "ltr",
-  "author": "Sample Author Sofia, Sample Author Taylor",
   "temporarySample": true,
   "lessons": [
     {

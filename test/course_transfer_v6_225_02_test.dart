@@ -6,7 +6,7 @@ import 'package:quisquislingo_app/services/custom_course_transfer_service.dart';
 
 void main() {
   test(
-    'v6 course export/import preserves timestamps and every block answer',
+    'v9 Course export/import preserves timestamps and every block answer',
     () async {
       final directory = await Directory.systemTemp.createTemp(
         'qql_v6_transfer_',
@@ -54,7 +54,7 @@ void main() {
           isA<FormatException>().having(
             (error) => error.message,
             'message',
-            contains('formatVersion 8 only'),
+            contains('formatVersion 9 only'),
           ),
         ),
       );
@@ -109,7 +109,6 @@ Course _course() {
     targetLanguage: 'Italian',
     title: 'Transfer v6',
     ttsLanguage: 'it-IT',
-    version: '1',
     lessons: [lesson],
   );
 }

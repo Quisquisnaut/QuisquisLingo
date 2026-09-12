@@ -32,7 +32,7 @@ class CourseBackupRecord {
 /// Durable, course-scoped backups for final Course Editor transactions.
 ///
 /// Backups live outside application storage under the existing resolved
-/// Documents/QuisquisLingo/Exports tree. A manifest contains the complete v7
+/// Documents/QuisquisLingo/Exports tree. A manifest contains the complete v9
 /// course plus SHA-256 integrity data; local course-owned file assets are
 /// copied alongside it when they exist.
 class CourseBackupService {
@@ -45,7 +45,7 @@ class CourseBackupService {
        _fileWriter = fileWriter,
        _uriLauncher = uriLauncher;
 
-  static const backupFormat = 'QuisquisLingo Course Backup v1';
+  static const backupFormat = 'QuisquisLingo Course Backup v9';
   final Future<Directory> Function() _documentsDirectoryProvider;
   final Future<void> Function(File file, List<int> bytes)? _fileWriter;
   final Future<bool> Function(Uri uri)? _uriLauncher;
@@ -54,7 +54,7 @@ class CourseBackupService {
     final documents = await _documentsDirectoryProvider();
     final directory = Directory(
       '${documents.path}${Platform.pathSeparator}QuisquisLingo'
-      '${Platform.pathSeparator}Exports${Platform.pathSeparator}Course Backups',
+      '${Platform.pathSeparator}Exports${Platform.pathSeparator}Course Backups v9',
     );
     if (create) await directory.create(recursive: true);
     return directory;
@@ -232,15 +232,6 @@ class CourseBackupService {
       'courseVersion': course.courseVersion,
       'officialCourseVersion': course.officialCourseVersion,
       'publisherId': course.publisherId,
-      'authorProfileId': course.originType.isOfficial
-          ? course.publisherId
-          : course.lastModifiedByProfileId,
-      'authorUsername': course.originType.isOfficial
-          ? course.publisherName
-          : course.lastModifiedByUsername,
-      'versionCreatedAtUtc': course.originType.isOfficial
-          ? course.officialReleaseDateUtc
-          : course.lastModifiedAtUtc,
       'versionNotes': course.originType.isOfficial
           ? course.officialReleaseNotes
           : course.versionNotes,
@@ -260,6 +251,8 @@ class CourseBackupService {
     File manifestFile, {
     required String expectedCourseId,
   }) async {
+    final directory = await courseBackupDirectory(expectedCourseId);
+    _requireChildPath(directory, manifestFile);
     if (!await manifestFile.exists()) {
       throw const FormatException('The selected course backup is missing.');
     }
@@ -373,8 +366,7 @@ class CourseBackupService {
     return records;
   }
 
-  /// Official history contains publisher sources only. Build 225 local-variant
-  /// manifests are left on disk, without loading or adapting their content.
+  /// Official history contains verified publisher sources only.
   Future<List<CourseBackupRecord>> listOfficialBackups(String courseId) async {
     final directory = await courseBackupDirectory(courseId);
     if (!await directory.exists()) return const [];
@@ -384,35 +376,15 @@ class CourseBackupService {
         continue;
       }
       try {
-        final decoded = jsonDecode(await entity.readAsString());
-        final payload = decoded is Map ? decoded['course'] : null;
-        if (payload is Map &&
-            const {
-              'baseCourseId',
-              'basePublisherId',
-              'baseOfficialCourseVersion',
-              'baseOfficialChecksum',
-              'localCourseVersion',
-              'localAuthorProfileId',
-              'localAuthorUsername',
-              'localModifiedAtUtc',
-              'localVersionNotes',
-            }.any(payload.containsKey)) {
-          continue;
-        }
-        if (payload is! Map) {
-          throw const FormatException(
-            'Official history has no course payload.',
-          );
-        }
-        final source = Course.fromJson(Map<String, dynamic>.from(payload));
+        final record = await loadBackup(entity, expectedCourseId: courseId);
+        final source = record.course;
         if (!source.originType.isOfficial ||
             officialContentChecksum(source) != source.officialChecksum) {
           throw const FormatException(
             'Official history source integrity is invalid.',
           );
         }
-        records.add(await loadBackup(entity, expectedCourseId: courseId));
+        records.add(record);
       } catch (error) {
         throw FormatException(
           'Official Course history contains an unreadable entry at ${entity.path}. The file was preserved. $error',

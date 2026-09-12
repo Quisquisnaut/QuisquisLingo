@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Offline structural validation for bundled Course Model v8 JSON."""
+"""Offline structural validation for bundled Course Model v9 JSON."""
 from __future__ import annotations
 
 import base64
@@ -47,10 +47,6 @@ def _official_checksum(course: dict[str, object]) -> str:
     }
     if canonical.get("derivativeWorksPolicy") in (None, "unspecified"):
         canonical.pop("derivativeWorksPolicy", None)
-    for author in canonical.get("authors", []):
-        roles = author.get("roles", [])
-        if roles:
-            author["role"] = roles[0]
     encoded = json.dumps(
         canonical, ensure_ascii=False, sort_keys=True, separators=(",", ":")
     ).encode("utf-8")
@@ -95,8 +91,8 @@ def validate(path: Path, global_ids: dict[str, str]) -> list[str]:
         else:
             global_ids[value] = path.name
 
-    if data.get("formatVersion") != 8:
-        issues.append("root: formatVersion must be 8; legacy formats are unsupported")
+    if data.get("formatVersion") != 9:
+        issues.append("root: formatVersion must be 9; legacy formats are unsupported")
     if data.get("publicationState") not in PUBLICATION_STATES:
         issues.append("root: invalid publicationState")
     if data.get("lessonNumberingMode") not in LESSON_NUMBERING_MODES:
@@ -117,16 +113,55 @@ def validate(path: Path, global_ids: dict[str, str]) -> list[str]:
         issues.append("root: bundled publisher verification must be verified")
     if data.get("distributionChannel") != "bundled":
         issues.append("root: bundled distributionChannel must be bundled")
-    if data.get("officialCourseVersion") != data.get("version"):
-        issues.append("root: officialCourseVersion must match bundled content version")
+    if not isinstance(data.get("officialCourseVersion"), str) or not data.get("officialCourseVersion"):
+        issues.append("root: officialCourseVersion is required")
     if data.get("officialChecksum") != _official_checksum(data):
         issues.append("root: officialChecksum does not match canonical course content")
     _timestamp(data.get("officialReleaseDateUtc"), "root official release", issues)
+    _timestamp(data.get("originalCreatedAtUtc"), "root original Course creation", issues)
+    _timestamp(data.get("modifiedAtUtc"), "root modification", issues)
+    if data.get("originalCourseCreator") != {
+        "type": "publisher",
+        "id": "org.quisquislingo",
+        "displayName": "QuisquisLingo",
+    }:
+        issues.append("root: bundled originalCourseCreator must identify the publisher")
     if data.get("lessonNumberingMode") == "other" and not str(data.get("customLessonLabel", "")).strip():
         issues.append("root: customLessonLabel is required for Other")
-    for old in ("topics", "chapters", "supportUrl"):
+    for old in (
+        "topics",
+        "chapters",
+        "supportUrl",
+        "creatorProfileId",
+        "ownership",
+        "createdByProfileId",
+        "createdByUsername",
+        "createdAtUtc",
+        "lastModifiedByProfileId",
+        "lastModifiedByUsername",
+        "lastModifiedAtUtc",
+        "lastUpdated",
+        "author",
+        "version",
+        "updateSummary",
+        "contentRevision",
+        "parentCourseId",
+        "derivedFromVersion",
+    ):
         if old in data:
             issues.append(f"root: legacy {old} field is unsupported")
+    authors = data.get("authors", [])
+    if not isinstance(authors, list):
+        issues.append("root: authors must be a list")
+    else:
+        for index, author in enumerate(authors, 1):
+            if not isinstance(author, dict):
+                issues.append(f"root: author {index} must be an object")
+                continue
+            if "role" in author:
+                issues.append(f"root: author {index} uses obsolete scalar role")
+            if not isinstance(author.get("roles"), list):
+                issues.append(f"root: author {index} roles must be a list")
     if not isinstance(data.get("temporarySample"), bool):
         issues.append("root: temporarySample must be a boolean")
     if data.get("ttsLanguage") != EXPECTED_TTS[path.name]:
@@ -367,7 +402,7 @@ def main() -> int:
         print(f"{path.name}: {'OK' if not issues else f'{len(issues)} issue(s)'}")
         for issue in issues:
             print(f"  - {issue}")
-    print(f"Validated {len(files)} bundled Course Model v8 files.")
+    print(f"Validated {len(files)} bundled Course Model v9 files.")
     return 1 if total else 0
 
 

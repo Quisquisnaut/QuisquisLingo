@@ -9,6 +9,7 @@ import 'package:quisquislingo_app/screens/course_editor_screen.dart';
 import 'package:quisquislingo_app/services/course_backup_service.dart';
 import 'package:quisquislingo_app/services/course_editor_service.dart';
 import 'package:quisquislingo_app/services/profile_service.dart';
+import 'package:quisquislingo_app/services/team_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 const _ownerProfileId = '12345678-1234-4234-9234-123456789abc';
@@ -40,6 +41,172 @@ void main() {
     expect(courseInfo.contains('LayoutBuilder('), isFalse);
     expect(courseInfo.contains('for(finalcinnames){'), isTrue);
     expect(courseInfo.contains('for(finalcincustomRoles){'), isTrue);
+  });
+
+  test('Course metadata helper text uses multiline field layouts', () {
+    final createSource = File(
+      'lib/screens/course_projects_screen.dart',
+    ).readAsStringSync();
+    final createDialog = createSource.substring(
+      createSource.indexOf('Future<Course?> _createCourse()'),
+      createSource.indexOf('Future<void> _newCourse()'),
+    );
+    expect(createSource, contains("labelText: 'Course Maintainer'"));
+    expect(createSource, isNot(contains('Choose an individual user.')));
+    expect(createDialog, contains('helper: Text('));
+    expect(createDialog, isNot(contains('helperMaxLines: 3')));
+
+    final editorSource = File(
+      'lib/screens/course_editor_screen.dart',
+    ).readAsStringSync();
+    final infoEditor = editorSource.substring(
+      editorSource.indexOf('final narrowCourseInfo ='),
+      editorSource.indexOf('Future<void> _openLessons()'),
+    );
+    for (final label in [
+      'Course name',
+      'Course Maintainer',
+      'Assigned Team',
+      r'Custom role\(s\)',
+      r'Buy a Coffee URL \(optional\)',
+    ]) {
+      expect(
+        RegExp(
+          "labelText: '$label',[\\s\\S]{0,260}helper: (?:const )?Text\\(",
+        ).hasMatch(infoEditor),
+        isTrue,
+        reason: '$label helper text must wrap instead of clipping',
+      );
+    }
+    expect(
+      RegExp(r'helper: Text\(helperText\)').hasMatch(infoEditor),
+      isTrue,
+      reason: 'read-only metadata helpers must wrap too',
+    );
+    expect(infoEditor, isNot(contains('helperMaxLines: 3')));
+  });
+
+  testWidgets('Course metadata helpers wrap at 320 logical pixels', (
+    tester,
+  ) async {
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(320, 1000);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    addTearDown(tester.view.resetPhysicalSize);
+    const longProfileName = 'Alexandria Montgomery-Worthington 12345';
+    SharedPreferences.setMockInitialValues(
+      _profilePreferences(longProfileName),
+    );
+    final currentCourse = Course(
+      courseId: 'bundled_helper_layout',
+      learningLanguage: 'Italian',
+      interfaceLanguage: 'English',
+      sourceLanguage: 'English',
+      targetLanguage: 'Italian',
+      title: 'Bundled helper layout',
+      ttsLanguage: 'it-IT',
+      lessons: const [],
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(home: CourseProjectsScreen(currentCourse: currentCourse)),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('create-course-icon-action')));
+    await tester.pumpAndSettle();
+
+    final maintainerHelper = find.text(
+      'The person currently responsible for maintaining this Course.',
+      skipOffstage: false,
+    );
+    expect(maintainerHelper, findsOneWidget);
+    expect(tester.widget<Text>(maintainerHelper).maxLines, isNull);
+    expect(tester.takeException(), isNull);
+    await tester.tap(find.widgetWithText(TextButton, 'Cancel'));
+    await tester.pumpAndSettle();
+
+    const teamId = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+    final profiles = ProfileService();
+    final teams = TeamService(
+      profileService: profiles,
+      idGenerator: () => teamId,
+    );
+    await teams.createTeam(
+      creatorProfileId: _ownerProfileId,
+      displayName:
+          'International Collaborative Language Curriculum Team With Long Name',
+    );
+    final custom = Course(
+      courseId: 'custom_helper_layout',
+      originalCourseCreator: const CourseProvenanceIdentity.qqlUser(
+        profileId: _ownerProfileId,
+        displayName: longProfileName,
+      ),
+      maintainer: const CourseMaintainer(_ownerProfileId),
+      assignedTeamId: teamId,
+      originalCreatedAtUtc: '2026-09-12T09:00:00.000Z',
+      lastVersionEditorProfileId: _ownerProfileId,
+      lastVersionEditorDisplayName: longProfileName,
+      modifiedAtUtc: '2026-09-12T09:00:00.000Z',
+      publicationState: PublicationState.draft,
+      learningLanguage: 'Italian',
+      interfaceLanguage: 'English',
+      sourceLanguage: 'English',
+      targetLanguage: 'Italian',
+      title:
+          'A deliberately long Course name that remains readable at narrow widths',
+      ttsLanguage: 'it-IT',
+      authors: const [
+        CourseAuthor(
+          name: 'A Contributor With A Deliberately Long Attribution Name',
+          roles: ['Contributor'],
+        ),
+      ],
+      rightsHolders: const [
+        CourseRightsHolder(
+          type: CourseRightsHolderType.organization,
+          name: 'A Rights Organization With A Deliberately Long Name',
+        ),
+      ],
+      courseVersion: '1',
+      lessons: const [],
+    );
+    await CourseEditorService(profileService: profiles).saveUserCourse(custom);
+    await tester.pumpWidget(
+      MaterialApp(
+        home: CourseEditorScreen(
+          course: custom,
+          userCourse: true,
+          editorService: CourseEditorService(profileService: profiles),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('course-editor-lock')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Edit'));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('Course Info Editor'));
+    await tester.tap(find.text('Course Info Editor'));
+    await tester.pumpAndSettle();
+
+    for (final helper in const [
+      'Renaming keeps the same Course ID.',
+      'The person currently responsible for maintaining this Course.',
+      'Grants Team management access; the Course Maintainer and Original Course Creator stay unchanged.',
+      'Optional; separate roles with commas.',
+      'HTTPS only; shown in Course Info.',
+      'A person or organization; descriptive only.',
+    ]) {
+      final finder = find.text(helper, skipOffstage: false);
+      expect(finder, findsWidgets, reason: helper);
+      expect(
+        tester.widget<Text>(finder.first).maxLines,
+        isNull,
+        reason: helper,
+      );
+    }
+    expect(tester.takeException(), isNull);
   });
 
   test(
@@ -89,7 +256,6 @@ void main() {
         targetLanguage: 'Italian',
         title: 'Bundled test',
         ttsLanguage: 'it-IT',
-        version: '1.0.0',
         lessons: const [],
       );
       await tester.pumpWidget(
@@ -122,6 +288,15 @@ void main() {
 
       await tester.tap(find.byKey(const Key('create-course-icon-action')));
       await tester.pumpAndSettle();
+      expect(find.text('License / Rights'), findsOneWidget);
+      expect(
+        find.byKey(const Key('new-course-rights-holder-name-0')),
+        findsOneWidget,
+      );
+      await tester.enterText(
+        find.byKey(const Key('new-course-rights-holder-name-0')),
+        'Independent Language Foundation',
+      );
       final titleField = find.byWidgetPredicate(
         (widget) =>
             widget is TextField &&
@@ -161,6 +336,12 @@ void main() {
       final created = stored.single;
       expect(created.courseVersion, '1');
       expect(created.publicationState, PublicationState.draft);
+      expect(created.rightsHolders, hasLength(1));
+      expect(
+        created.rightsHolders.single.name,
+        'Independent Language Foundation',
+      );
+      expect(created.rightsHolders.single.type, CourseRightsHolderType.person);
       expect(created.lessons, hasLength(3));
       expect(created.lessons.expand((lesson) => lesson.rounds), hasLength(3));
       for (final lesson in created.lessons) {
@@ -194,8 +375,12 @@ void main() {
     SharedPreferences.setMockInitialValues(_profilePreferences('Menu owner'));
     final custom = Course(
       courseId: 'custom_menu',
-      creatorProfileId: _ownerProfileId,
-      ownership: const CourseOwnership.individual(_ownerProfileId),
+      originalCourseCreator: const CourseProvenanceIdentity.qqlUser(
+        profileId: _ownerProfileId,
+        displayName: 'Menu owner',
+      ),
+      maintainer: const CourseMaintainer(_ownerProfileId),
+      originalCreatedAtUtc: '2026-09-12T09:00:00.000Z',
       publicationState: PublicationState.draft,
       learningLanguage: 'Italian',
       interfaceLanguage: 'English',
@@ -203,7 +388,6 @@ void main() {
       targetLanguage: 'Italian',
       title: 'Menu Course',
       ttsLanguage: 'it-IT',
-      version: '1',
       lessons: const [],
     );
     await CourseEditorService().saveUserCourse(custom);
@@ -218,14 +402,15 @@ void main() {
     await tester.pumpAndSettle();
     for (final label in [
       'Edit',
-      'Duplicate custom course',
+      'Copy as New Course',
       'Audit',
       'Export JSON',
       'Delete course',
     ]) {
       expect(find.text(label), findsOneWidget);
     }
-    await tester.tap(find.text('Duplicate custom course'));
+    expect(find.text('Duplicate custom course'), findsNothing);
+    await tester.tap(find.text('Copy as New Course'));
     await tester.pumpAndSettle();
     expect(find.text('Course Editor'), findsOneWidget);
     expect(await CourseEditorService().listUserCourses(), hasLength(2));
@@ -261,42 +446,45 @@ void main() {
         expect(find.text('Audit'), findsOneWidget);
         expect(find.text('Export JSON'), findsOneWidget);
         expect(
-          find.text('Fork as custom course'),
+          find.text('Fork'),
           policy == DerivativeWorksPolicy.allowed
               ? findsOneWidget
               : findsNothing,
         );
-        expect(find.text('Duplicate custom course'), findsNothing);
+        expect(find.text('Copy as New Course'), findsNothing);
         expect(find.text('Delete course'), findsNothing);
       },
     );
   }
 
   testWidgets(
-    'custom Course Editor exposes Duplicate while Delete stays in Course Manager',
+    'custom Course Editor exposes Copy as New Course while Delete stays in Course Manager',
     (tester) async {
       const profileId = _ownerProfileId;
       SharedPreferences.setMockInitialValues({
         ProfileService.profilesKey: [
           const LearnerProfile(
             learnerProfileId: profileId,
-            displayName: 'Duplicate Author',
+            displayName: 'Copy Author',
           ).encode(),
         ],
         ProfileService.activeProfileIdKey: profileId,
       });
       final custom = Course(
-        courseId: 'editor_duplicate',
-        creatorProfileId: profileId,
-        ownership: const CourseOwnership.individual(profileId),
+        courseId: 'editor_copy_as_new',
+        originalCourseCreator: const CourseProvenanceIdentity.qqlUser(
+          profileId: profileId,
+          displayName: 'Copy Author',
+        ),
+        maintainer: const CourseMaintainer(profileId),
+        originalCreatedAtUtc: '2026-09-12T09:00:00.000Z',
         publicationState: PublicationState.draft,
         learningLanguage: 'Italian',
         interfaceLanguage: 'English',
         sourceLanguage: 'English',
         targetLanguage: 'Italian',
-        title: 'Editor Duplicate',
+        title: 'Editor Copy',
         ttsLanguage: 'it-IT',
-        version: '1',
         lessons: [
           Lesson(lessonId: 'lesson', title: 'Lesson', rounds: const []),
         ],
@@ -308,9 +496,11 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(
-        find.byKey(const Key('course-editor-duplicate-course')),
+        find.byKey(const Key('course-editor-copy-as-new-course')),
         findsOneWidget,
       );
+      expect(find.text('Copy as New Course'), findsOneWidget);
+      expect(find.text('Duplicate'), findsNothing);
       expect(find.text('Delete course'), findsNothing);
       expect(find.byTooltip('Run Course Audit'), findsNothing);
       expect(find.widgetWithText(TextButton, 'Run audit'), findsOneWidget);
@@ -318,6 +508,20 @@ void main() {
       await tester.tap(find.byKey(const Key('course-editor-lock')));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Edit'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Course Info Editor'));
+      await tester.pumpAndSettle();
+      expect(find.text('License / Rights'), findsOneWidget);
+      expect(
+        find.byKey(const Key('course-info-rights-holder-name-0')),
+        findsOneWidget,
+      );
+      await tester.enterText(
+        find.byKey(const Key('course-info-rights-holder-name-0')),
+        'Independent Course Rights Organization',
+      );
+      await tester.ensureVisible(find.byKey(const Key('course-info-save')));
+      await tester.tap(find.byKey(const Key('course-info-save')));
       await tester.pumpAndSettle();
       await tester.tap(
         find.byKey(const Key('course-editor-lessons-navigation')),
@@ -328,17 +532,24 @@ void main() {
       await tester.tap(find.byType(BackButton).last);
       await tester.pumpAndSettle();
 
-      await tester.tap(find.byKey(const Key('course-editor-duplicate-course')));
+      await tester.tap(
+        find.byKey(const Key('course-editor-copy-as-new-course')),
+      );
       await tester.pumpAndSettle();
-      final duplicateEditor = tester.widget<CourseEditorScreen>(
+      final copyEditor = tester.widget<CourseEditorScreen>(
         find.byType(CourseEditorScreen).last,
       );
-      expect(duplicateEditor.isNewCourse, isFalse);
-      expect(duplicateEditor.course.originType, CourseOriginType.custom);
-      expect(duplicateEditor.course.courseId, isNot(custom.courseId));
-      expect(duplicateEditor.course.parentCourseId, custom.courseId);
+      expect(copyEditor.isNewCourse, isFalse);
+      expect(copyEditor.course.originType, CourseOriginType.custom);
+      expect(copyEditor.course.courseId, isNot(custom.courseId));
+      expect(copyEditor.course.forkProvenance, isNull);
+      expect(copyEditor.course.rightsHolders, hasLength(1));
       expect(
-        duplicateEditor.course.lessons.single.lessonId,
+        copyEditor.course.rightsHolders.single.name,
+        'Independent Course Rights Organization',
+      );
+      expect(
+        copyEditor.course.lessons.single.lessonId,
         isNot(custom.lessons.single.lessonId),
       );
       expect(await CourseEditorService().listUserCourses(), hasLength(2));
@@ -370,7 +581,7 @@ void main() {
 
       await tester.tap(find.byKey(const Key('course-manager-actions-current')));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Fork as custom course'));
+      await tester.tap(find.text('Fork'));
       await tester.pumpAndSettle();
 
       final forkEditor = tester.widget<CourseEditorScreen>(
@@ -379,13 +590,12 @@ void main() {
       expect(forkEditor.isNewCourse, isFalse);
       expect(forkEditor.course.originType, CourseOriginType.custom);
       expect(forkEditor.course.courseId, isNot(official.courseId));
-      expect(forkEditor.course.parentCourseId, official.courseId);
       expect(
-        forkEditor.course.forkProvenance?.originalCourseId,
+        forkEditor.course.forkProvenance?.sourceCourseId,
         official.courseId,
       );
       expect(
-        forkEditor.course.forkProvenance?.forkCreatedByUsername,
+        forkEditor.course.forkProvenance?.forkCreatedByDisplayName,
         'Manager Forker',
       );
       expect(official.toJson(), original);
@@ -415,7 +625,6 @@ Course _official(DerivativeWorksPolicy policy) {
     targetLanguage: 'Italian',
     title: 'Official actions',
     ttsLanguage: 'it-IT',
-    version: '1',
     derivativeWorksPolicy: policy,
     lessons: const [],
   );

@@ -84,7 +84,6 @@ Course _course(List<LearningRound> rounds) => Course(
   targetLanguage: 'English',
   title: 'Course',
   ttsLanguage: 'en-US',
-  version: '1',
   lessons: [Lesson(lessonId: 'lesson', title: 'Lesson', rounds: rounds)],
 );
 

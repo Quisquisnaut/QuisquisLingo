@@ -426,7 +426,6 @@ Course _course({bool missingGuidebookSource = false}) => Course(
   targetLanguage: 'Italian',
   title: 'Guidebook status Course',
   ttsLanguage: 'it-IT',
-  version: '1',
   courseVersion: '1',
   lessons: [
     Lesson(

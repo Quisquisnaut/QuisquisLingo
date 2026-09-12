@@ -2,10 +2,11 @@ import '../models/course_models.dart';
 import 'profile_service.dart';
 import 'team_service.dart';
 
-/// Applies Course ownership and Team-assignment rules to an Editor working copy.
+/// Applies Course Maintainer and Team-assignment rules to an Editor working
+/// copy.
 ///
-/// Ownership authorization always uses stable local profile IDs. Team
-/// membership and leadership never confer ownership-transfer powers.
+/// Maintainer authorization always uses stable local profile IDs. Team
+/// membership and leadership never confer Maintainer-transfer powers.
 class CourseGovernanceService {
   CourseGovernanceService({
     ProfileService? profileService,
@@ -16,34 +17,36 @@ class CourseGovernanceService {
            TeamService(profileService: profileService ?? ProfileService());
 
   static const teamAssignmentWarning =
-      'The Course remains owned by its individual Course Owner. The Team '
+      'The Course remains maintained by its individual Course Maintainer. The Team '
       'receives management access under QQL Team permissions. Team membership '
       'and Team Leaders may change over time, so future Members or Leaders may '
-      'participate in managing this Course. The Course Owner can revoke the '
-      'assignment. QQL Team and ownership rules govern permissions inside QQL; '
+      'participate in managing this Course. The Course Maintainer can revoke the '
+      'assignment. QQL Team and Course rules govern permissions inside QQL; '
       'they do not by themselves determine copyright ownership, contractual '
       'rights, or external organizational authority.';
 
   final ProfileService _profiles;
   final TeamService _teams;
 
-  Future<Course> transferOwnership({
+  Future<Course> transferMaintainer({
     required Course course,
     required String actorProfileId,
-    required String newOwnerProfileId,
+    required String newMaintainerProfileId,
     required bool editMode,
   }) async {
-    _requireOwnerInEdit(
+    _requireMaintainerInEdit(
       course: course,
       actorProfileId: actorProfileId,
       editMode: editMode,
     );
-    if (await _profiles.getProfileById(newOwnerProfileId) == null) {
-      throw StateError('The new Course Owner must be an existing local user.');
+    if (await _profiles.getProfileById(newMaintainerProfileId) == null) {
+      throw StateError(
+        'The new Course Maintainer must be an existing local user.',
+      );
     }
     return Course.fromJson({
       ...course.toJson(),
-      'ownership': CourseOwnership.individual(newOwnerProfileId).toJson(),
+      'maintainer': CourseMaintainer(newMaintainerProfileId).toJson(),
     });
   }
 
@@ -54,7 +57,7 @@ class CourseGovernanceService {
     required bool editMode,
     bool assignmentConfirmed = false,
   }) async {
-    _requireOwnerInEdit(
+    _requireMaintainerInEdit(
       course: course,
       actorProfileId: actorProfileId,
       editMode: editMode,
@@ -80,20 +83,20 @@ class CourseGovernanceService {
     return Course.fromJson(json);
   }
 
-  static void _requireOwnerInEdit({
+  static void _requireMaintainerInEdit({
     required Course course,
     required String actorProfileId,
     required bool editMode,
   }) {
     if (!editMode) {
       throw StateError(
-        'Course ownership and Team assignment can change only in Edit mode.',
+        'Course Maintainer and Team assignment can change only in Edit mode.',
       );
     }
     if (course.originType != CourseOriginType.custom ||
-        course.ownership?.id != actorProfileId) {
+        course.maintainer?.profileId != actorProfileId) {
       throw StateError(
-        'Only the current individual Course Owner can change ownership or Team assignment.',
+        'Only the current Course Maintainer can change the Maintainer or Team assignment.',
       );
     }
   }

@@ -434,7 +434,6 @@ Course _course({
   targetLanguage: targetLanguage,
   title: 'Course $id',
   ttsLanguage: 'en',
-  version: '1',
   flagCode: flagCode,
   worldFlagId: worldFlagId,
   flagImageBase64: flagImageBase64,

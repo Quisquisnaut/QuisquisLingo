@@ -128,7 +128,6 @@ Course _course({
   targetLanguage: target,
   title: title,
   ttsLanguage: 'it-IT',
-  version: '1',
   flagCode: flagCode,
   flagImageBase64: flagImageBase64,
   lessons: [

@@ -3,6 +3,29 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  test('first-profile gate owns startup before animation and notices', () {
+    final source = File('lib/main.dart').readAsStringSync();
+    final materialAppHome = source.indexOf('home:');
+    final profileGate = source.indexOf('class _InitialProfileStartupGate');
+    final animationGate = source.indexOf('class _StartupGate');
+
+    expect(materialAppHome, greaterThanOrEqualTo(0));
+    expect(profileGate, greaterThan(materialAppHome));
+    expect(animationGate, greaterThan(profileGate));
+    expect(
+      source.substring(materialAppHome, profileGate),
+      contains('_InitialProfileStartupGate('),
+    );
+    expect(
+      source.substring(materialAppHome, profileGate),
+      contains('normalStartup: const _StartupGate()'),
+    );
+    expect(
+      source.substring(profileGate, animationGate),
+      contains('NewLearnerFlowScreen('),
+    );
+  });
+
   test('startup diagnostic notice is not debug-only', () {
     final source = File('lib/main.dart').readAsStringSync();
     final gateStart = source.indexOf('if (!_show)');

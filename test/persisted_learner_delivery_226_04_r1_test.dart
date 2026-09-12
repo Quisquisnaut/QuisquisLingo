@@ -338,11 +338,11 @@ Future<void> _openFixtureLesson(WidgetTester tester) async {
   expect(find.byType(LessonEditorScreen), findsOneWidget);
 }
 
-// Synthetic v8 storage fixture, deliberately written independently of model
+// Synthetic v9 storage fixture, deliberately written independently of model
 // constructors and toJson. This is not a user's Course or bundled content.
 const _rawDraftLessonCourse = r'''
 {
-  "formatVersion": 8,
+  "formatVersion": 9,
   "publicationState": "published",
   "lessonNumberingMode": "lesson",
   "defaultLessonIconStyle": "monochrome",
@@ -350,17 +350,23 @@ const _rawDraftLessonCourse = r'''
   "useGuidebook": false,
   "courseId": "course_31b11b63-e6d2-4f2a-a731-a71ba236960c",
   "originType": "custom",
-  "creatorProfileId": "12345678-1234-4234-9234-123456789abc",
-  "ownership": {"type": "individual", "id": "12345678-1234-4234-9234-123456789abc"},
+  "originalCourseCreator": {
+    "type": "qqlUser",
+    "id": "12345678-1234-4234-9234-123456789abc",
+    "displayName": "Persisted delivery tester"
+  },
+  "maintainer": {"profileId": "12345678-1234-4234-9234-123456789abc"},
+  "originalCreatedAtUtc": "2026-09-07T10:00:00.000Z",
+  "lastVersionEditorProfileId": "12345678-1234-4234-9234-123456789abc",
+  "lastVersionEditorDisplayName": "Persisted delivery tester",
+  "modifiedAtUtc": "2026-09-07T10:00:00.000Z",
   "learningLanguage": "Italian",
   "interfaceLanguage": "English",
   "sourceLanguage": "English",
   "targetLanguage": "Italian",
   "title": "Persisted published delivery",
   "ttsLanguage": "it-IT",
-  "version": "1",
-  "contentRevision": "1",
-  "updateSummary": "",
+  "courseVersion": "1",
   "audioMode": "tts",
   "license": "All rights reserved",
   "textDirection": "ltr",
@@ -419,7 +425,6 @@ Course _course({required PublicationState lessonState}) => Course(
   targetLanguage: 'Italian',
   title: 'Persisted published delivery',
   ttsLanguage: 'it-IT',
-  version: '1',
   flagCode: 'IT',
   lessons: [
     Lesson(

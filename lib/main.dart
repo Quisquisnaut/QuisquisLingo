@@ -8,6 +8,7 @@ import 'services/app_metadata.dart';
 import 'services/window_setup.dart';
 import 'services/crash_log_service.dart';
 import 'screens/home_screen.dart';
+import 'screens/new_learner_flow_screen.dart';
 import 'services/settings_service.dart';
 import 'services/profile_service.dart';
 import 'services/learner_theme_schedule.dart';
@@ -358,7 +359,93 @@ class _QuisquisLingoAppState extends State<QuisquisLingoApp>
       ),
       themeAnimationDuration: Duration.zero,
       themeMode: _materialThemeMode,
-      home: widget.home ?? const _StartupGate(),
+      home:
+          widget.home ??
+          _InitialProfileStartupGate(
+            profileService: _profiles,
+            normalStartup: const _StartupGate(),
+          ),
+    );
+  }
+}
+
+class _InitialProfileStartupGate extends StatefulWidget {
+  final ProfileService profileService;
+  final Widget normalStartup;
+
+  const _InitialProfileStartupGate({
+    required this.profileService,
+    required this.normalStartup,
+  });
+
+  @override
+  State<_InitialProfileStartupGate> createState() =>
+      _InitialProfileStartupGateState();
+}
+
+class _InitialProfileStartupGateState
+    extends State<_InitialProfileStartupGate> {
+  late Future<bool> _hasProfiles;
+  bool _firstProfileComplete = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _hasProfiles = _loadProfileState();
+  }
+
+  Future<bool> _loadProfileState() => widget.profileService
+      .getProfileRecords()
+      .then((profiles) => profiles.isNotEmpty);
+
+  @override
+  Widget build(BuildContext context) {
+    if (_firstProfileComplete) return widget.normalStartup;
+    return FutureBuilder<bool>(
+      future: _hasProfiles,
+      builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          return Scaffold(
+            body: Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text(
+                      'Unable to load learner profiles.',
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 12),
+                    FilledButton(
+                      key: const Key('startup-profile-retry'),
+                      onPressed: () {
+                        setState(() {
+                          _hasProfiles = _loadProfileState();
+                        });
+                      },
+                      child: const Text('Retry'),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        }
+        if (snapshot.data == true) {
+          return widget.normalStartup;
+        }
+        if (snapshot.data == false) {
+          return NewLearnerFlowScreen(
+            profileService: widget.profileService,
+            canCancel: false,
+            onComplete: (_) {
+              if (mounted) setState(() => _firstProfileComplete = true);
+            },
+          );
+        }
+        return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      },
     );
   }
 }
@@ -416,6 +503,7 @@ class _StartupGateState extends State<_StartupGate>
     }
     StartupDiagnosticService.verboseCheckpointOnce('DART_SPLASH_BUILD');
     return Scaffold(
+      key: const Key('qql-startup-animation'),
       body: Stack(
         fit: StackFit.expand,
         children: [

@@ -113,11 +113,11 @@ void main() {
     },
   );
 
-  test('Korean course loads through the registry with v6 metadata', () async {
+  test('Korean course loads through the registry with v9 metadata', () async {
     SharedPreferences.setMockInitialValues({});
     final course = await CourseService().loadKoreanCourse();
 
-    expect(course.formatVersion, 8);
+    expect(course.formatVersion, 9);
     expect(course.sourceLanguage, 'English');
     expect(course.targetLanguage, 'Korean');
     expect(course.ttsLanguage, 'ko-KR');

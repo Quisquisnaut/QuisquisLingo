@@ -19,15 +19,15 @@ void main() {
 
   for (final file in samples) {
     test(
-      '$file is native Course Model v8 with ordered Lesson Guidebooks and Duels',
+      '$file is native Course Model v9 with ordered Lesson Guidebooks and Duels',
       () async {
         final raw = await rootBundle.loadString('assets/courses/$file');
         final json = jsonDecode(raw) as Map<String, dynamic>;
-        expect(json['formatVersion'], 8);
+        expect(json['formatVersion'], 9);
         expect(json.containsKey('topics'), isFalse);
         expect(json.containsKey('chapters'), isFalse);
         final course = Course.fromJson(json);
-        expect(course.formatVersion, 8);
+        expect(course.formatVersion, 9);
         expect(course.lessons, hasLength(9));
         expect(
           course.lessons.map((lesson) => lesson.lessonId).toSet(),
@@ -48,7 +48,7 @@ void main() {
           expect(lesson.duel.id.trim(), isNotEmpty);
         }
         final encoded = course.toJson();
-        expect(encoded['formatVersion'], 8);
+        expect(encoded['formatVersion'], 9);
         expect(encoded.containsKey('chapters'), isFalse);
         expect(
           (encoded['lessons'] as List).map(
@@ -60,16 +60,26 @@ void main() {
     );
   }
 
-  test('Course Model v8 rejects old formats and Chapter structures', () {
+  test('Course Model v9 rejects old formats and Chapter structures', () {
     final base = <String, dynamic>{
       'courseId': 'course',
+      'originType': 'custom',
+      'originalCourseCreator': {
+        'type': 'qqlUser',
+        'id': '11111111-1111-4111-8111-111111111111',
+        'displayName': 'Creator',
+      },
+      'maintainer': {'profileId': '11111111-1111-4111-8111-111111111111'},
+      'originalCreatedAtUtc': '2026-09-12T08:00:00.000Z',
+      'publicationState': 'published',
+      'lessonNumberingMode': 'lesson',
+      'defaultLessonIconStyle': 'monochrome',
       'learningLanguage': 'Italian',
       'interfaceLanguage': 'English',
       'sourceLanguage': 'English',
       'targetLanguage': 'Italian',
       'title': 'Course',
       'ttsLanguage': 'it-IT',
-      'version': '1',
       'lessons': <Object>[],
     };
     expect(
@@ -87,14 +97,14 @@ void main() {
     expect(
       () => Course.fromJson({
         ...base,
-        'formatVersion': 8,
+        'formatVersion': 9,
         'chapters': <Object>[],
       }),
       throwsFormatException,
     );
   });
 
-  test('Course Model v6 preserves Lesson and Round ordering', () {
+  test('Course Model v9 preserves Lesson and Round ordering', () {
     Lesson lesson(String id, List<String> rounds) => Lesson(
       lessonId: id,
       title: id,
@@ -110,7 +120,6 @@ void main() {
       targetLanguage: 'Italian',
       title: 'Ordered',
       ttsLanguage: 'it-IT',
-      version: '1',
       lessons: [
         lesson('t2', ['r3', 'r1']),
         lesson('t1', ['r2']),
@@ -121,7 +130,7 @@ void main() {
     expect(decoded.lessons.first.rounds.map((round) => round.id), ['r3', 'r1']);
   });
 
-  test('Course Model v6 rejects obsolete Lesson hierarchy fields', () {
+  test('Course Model v9 rejects obsolete Lesson hierarchy fields', () {
     final json = _strictV6Fixture();
     final lesson = (json['lessons'] as List).single as Map<String, dynamic>;
     lesson['role'] = 'learning';
@@ -135,7 +144,7 @@ void main() {
     expect(() => Course.fromJson(json), throwsFormatException);
   });
 
-  test('Course Model v6 rejects unsupported Duel fields', () {
+  test('Course Model v9 rejects unsupported Duel fields', () {
     final json = _strictV6Fixture();
     final lesson = (json['lessons'] as List).single as Map<String, dynamic>;
     final duel = lesson['duel'] as Map<String, dynamic>;
@@ -143,7 +152,7 @@ void main() {
     expect(() => Course.fromJson(json), throwsFormatException);
   });
 
-  test('Course Model v6 requires a supported Round visualType', () {
+  test('Course Model v9 requires a supported Round visualType', () {
     final missing = _strictV6Fixture();
     final missingLesson =
         (missing['lessons'] as List).single as Map<String, dynamic>;
@@ -186,7 +195,7 @@ void main() {
     expect(encoded.containsKey('accepted'), isFalse);
   });
 
-  test('optional course flag metadata round-trips in Course Model v6', () {
+  test('optional Course flag metadata round-trips in Course Model v9', () {
     final course = Course(
       courseId: 'user_flag_test',
       learningLanguage: 'German',
@@ -195,7 +204,6 @@ void main() {
       targetLanguage: 'German',
       title: 'German',
       ttsLanguage: 'de-DE',
-      version: '1',
       flagCode: 'DE',
       flagImageBase64: 'aGVsbG8=',
       lessons: const [],
@@ -205,7 +213,7 @@ void main() {
     expect(decoded.flagImageBase64, 'aGVsbG8=');
   });
 
-  test('Course Model v6 rejects legacy topics and Lesson id fields', () {
+  test('Course Model v9 rejects legacy topics and Lesson id fields', () {
     final canonical = _strictV6Fixture();
     final lessons = canonical.remove('lessons');
     expect(
@@ -219,7 +227,7 @@ void main() {
     expect(() => Course.fromJson(legacyIdentity), throwsFormatException);
   });
 
-  test('Course Model v6 rejects the obsolete Lesson imageAsset field', () {
+  test('Course Model v9 rejects the obsolete Lesson imageAsset field', () {
     final legacyImage = _strictV6Fixture();
     ((legacyImage['lessons'] as List).single as Map)['imageAsset'] =
         'assets/exercise_images/legacy.webp';
@@ -259,7 +267,7 @@ void main() {
     );
   });
 
-  test('v6 requires explicit UTC timestamps at every mutable level', () {
+  test('v9 requires explicit UTC timestamps at every mutable level', () {
     Map<String, dynamic> roundOf(Map<String, dynamic> json) =>
         ((((json['lessons'] as List).single as Map)['rounds'] as List).single
             as Map<String, dynamic>);
@@ -517,7 +525,6 @@ Map<String, dynamic> _strictV6Fixture() => Course(
   targetLanguage: 'Italian',
   title: 'Strict v6',
   ttsLanguage: 'it-IT',
-  version: '1',
   lessons: [
     Lesson(
       lessonId: 'lesson',
@@ -555,7 +562,6 @@ Map<String, dynamic> _strictV6ExerciseFixture() {
     targetLanguage: 'Italian',
     title: 'Strict v6 exercise',
     ttsLanguage: 'it-IT',
-    version: '1',
     lessons: [
       Lesson(
         lessonId: 'lesson',

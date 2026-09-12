@@ -203,7 +203,6 @@ Course _course() => Course(
   targetLanguage: 'Italian',
   title: 'Organization course',
   ttsLanguage: 'it-IT',
-  version: '1',
   lessons: [
     Lesson(lessonId: 'lesson-1', title: 'One', rounds: []),
     Lesson(lessonId: 'lesson-2', title: 'Two', rounds: []),

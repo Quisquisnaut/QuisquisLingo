@@ -15,7 +15,6 @@ Course course({List<Lesson>? lessons, List<String> sections = const []}) =>
       targetLanguage: 'it',
       title: 'Controls',
       ttsLanguage: 'it-IT',
-      version: '1',
       sectionNames: sections,
       lessons:
           lessons ??
@@ -121,10 +120,12 @@ void main() {
       await tester.scrollUntilVisible(
         line,
         200,
-        scrollable: find.descendant(
-          of: find.byKey(const Key('lesson-metadata-controls')),
-          matching: find.byType(Scrollable),
-        ).first,
+        scrollable: find
+            .descendant(
+              of: find.byKey(const Key('lesson-metadata-controls')),
+              matching: find.byType(Scrollable),
+            )
+            .first,
       );
       expect(
         tester.widget<SelectableText>(line).style?.fontFamily,
@@ -172,10 +173,12 @@ void main() {
       await tester.scrollUntilVisible(
         picker(),
         200,
-        scrollable: find.descendant(
-          of: find.byKey(const Key('lesson-metadata-controls')),
-          matching: find.byType(Scrollable),
-        ).first,
+        scrollable: find
+            .descendant(
+              of: find.byKey(const Key('lesson-metadata-controls')),
+              matching: find.byType(Scrollable),
+            )
+            .first,
       );
       await tester.tap(picker());
       await tester.pumpAndSettle();

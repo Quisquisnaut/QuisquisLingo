@@ -6,7 +6,7 @@ Version numbers are provisional. If a task requires more than one build, later i
 
 ## QQL 233 complete: three planned phases
 
-`2.0.33+233030` is presented publicly as Build 233.1 and completes the sequential QQL 233 plan. Internal Phase 233.1 corrects generic Linux release-package recognition without changing Windows or GitHub Releases policy. Internal Phase 233.2 introduces the two-step new-Learner flow, optional display-only Discord handle, new-profile-only random skin/hair initialization and authoritative Status-derived vivid T-shirt colors with all ten levels and accurate progression Help. Internal Phase 233.3 separates individual Course ownership from optional assigned-Team management and Team governance, introduces Course Model v8, adds warning-gated Owner assignment controls, uses Discord/Screen Name presentation with the existing ID toggle, and confines the Learner status bar to the Learner Panel while preserving its approved bottom controls. Release evidence is recorded in [233 validation](233_VALIDATION.md).
+`2.0.33+233030` is presented publicly as Build 233.1 and completes the sequential QQL 233 plan. Internal Phase 233.1 corrects generic Linux release-package recognition without changing Windows or GitHub Releases policy. Internal Phase 233.2 introduces the two-step new-Learner flow, optional display-only Discord handle, new-profile-only random skin/hair initialization and authoritative Status-derived vivid T-shirt colors with all ten levels and accurate progression Help. Internal Phase 233.3 separates individual Course responsibility from optional assigned-Team management and Team governance, adds warning-gated assignment controls, uses Discord/Screen Name presentation with the existing ID toggle, and confines the Learner status bar to the Learner Panel while preserving its approved bottom controls. The same-version QQL 233.03 correction introduces clean Course Model v9 lineage/Maintainer/Rights Holder metadata, distinct Fork and Copy as New Course semantics, and v9-only persistence with no v8 migration or fallback. Release evidence is recorded in [233 validation](233_VALIDATION.md).
 
 ## QQL 232 complete: Integrated Vocabulary Reinforcement in Review
 
@@ -106,8 +106,8 @@ Add direct automated coverage for the collision behavior already implemented.
 - [ ] Same title, different `courseId` -> no identity collision.
 - [ ] `Separate copy` generates a genuinely new `courseId`.
 - [ ] `Separate copy` uses the centralized course-ID generator.
-- [ ] `Separate copy` preserves lineage through `parentCourseId`.
-- [ ] `Separate copy` preserves `derivedFromVersion` where available.
+- [ ] `Separate copy` starts an independent lineage and does not add fork provenance.
+- [ ] `Separate copy` retains appropriate structured attribution, Rights Holder and License metadata.
 - [ ] `Separate copy` does not share course-owned progress with the original.
 - [ ] `Replace/update` preserves the existing course identity.
 - [ ] `Replace/update` preserves existing course-owned progress.

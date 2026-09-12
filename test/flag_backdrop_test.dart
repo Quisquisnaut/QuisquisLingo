@@ -15,7 +15,6 @@ void main() {
         targetLanguage: 'Test language',
         title: 'Flag test',
         ttsLanguage: 'en-US',
-        version: '1.0.0',
         flagCode: flagCode,
         flagImageBase64: flagImageBase64,
         lessons: const [],

@@ -104,8 +104,9 @@ void main() {
 
       final reloaded = (await service.listUserCourses()).single;
       expect(reloaded.courseVersion, '2');
-      expect(reloaded.lastModifiedByProfileId, _profileId);
-      expect(reloaded.lastModifiedByUsername, 'UI Author');
+      expect(reloaded.lastVersionEditorProfileId, _profileId);
+      expect(reloaded.lastVersionEditorDisplayName, 'UI Author');
+      expect(reloaded.modifiedAtUtc, '2026-09-04T17:00:00.000Z');
       expect(reloaded.versionNotes, 'Draft flow\nkeeps line breaks');
       expect(
         reloaded.lessons.single.rounds.single.exercises.first.prompt,
@@ -726,8 +727,12 @@ Finder _editorScroll() => find
 Course _course() => Course(
   courseId: 'transaction_ui_course',
   originType: CourseOriginType.custom,
-  creatorProfileId: _profileId,
-  ownership: const CourseOwnership.individual(_profileId),
+  originalCourseCreator: CourseProvenanceIdentity.qqlUser(
+    profileId: _profileId,
+    displayName: 'Original Course Creator',
+  ),
+  maintainer: const CourseMaintainer(_profileId),
+  originalCreatedAtUtc: '2026-09-01T09:00:00.000Z',
   publicationState: PublicationState.draft,
   learningLanguage: 'Italian',
   interfaceLanguage: 'English',
@@ -735,7 +740,6 @@ Course _course() => Course(
   targetLanguage: 'Italian',
   title: 'Transaction UI',
   ttsLanguage: 'it-IT',
-  version: '1',
   courseVersion: '1',
   lessons: [
     Lesson(

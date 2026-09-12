@@ -456,9 +456,16 @@ void main() {
     () {
       final source = _course();
       final duplicate = AuthoringDuplicationService();
-      final courseCopy = duplicate.duplicateCourse(
+      final courseCopy = duplicate.copyCourseAsNew(
         source,
         title: 'Intentional copy',
+        originalCourseCreator: const CourseProvenanceIdentity.qqlUser(
+          profileId: '11111111-1111-4111-8111-111111111111',
+          displayName: 'Copy creator',
+        ),
+        maintainer: const CourseMaintainer(
+          '11111111-1111-4111-8111-111111111111',
+        ),
       );
       final lessonCopy = duplicate.duplicateLesson(source.lessons.single);
       final roundCopy = duplicate.duplicateRound(
@@ -497,24 +504,23 @@ void main() {
         'derivativeWorksPolicy': 'allowed',
       });
       final provenance = CourseForkProvenance(
-        originalPublisherId: official.publisherId,
-        originalPublisherName: official.publisherName,
-        originalCourseId: official.courseId,
-        originalOfficialCourseVersion: official.officialCourseVersion,
-        originalOfficialChecksum: official.officialChecksum,
-        originalCourseTitle: official.title,
-        originalAuthor: official.author,
-        originalAuthors: official.authors,
+        sourceCourseId: official.courseId,
+        sourceCourseTitle: official.title,
+        sourceCourseVersion: official.officialCourseVersion,
+        sourceOriginType: official.originType,
+        sourcePublisherId: official.publisherId,
+        sourcePublisherName: official.publisherName,
+        sourceOfficialChecksum: official.officialChecksum,
+        sourceAuthors: official.authors,
         forkCreatedByProfileId: '11111111-1111-4111-8111-111111111111',
-        forkCreatedByUsername: 'Fork author',
+        forkCreatedByDisplayName: 'Fork author',
         forkCreatedAtUtc: '2026-09-07T10:00:00.000Z',
       );
       final original = jsonEncode(official.toJson());
       final fork = AuthoringDuplicationService().forkOfficialCourse(
         official,
         provenance: provenance,
-        creatorProfileId: '11111111-1111-4111-8111-111111111111',
-        ownership: const CourseOwnership.individual(
+        maintainer: const CourseMaintainer(
           '11111111-1111-4111-8111-111111111111',
         ),
       );
@@ -670,7 +676,6 @@ Course _course({
   targetLanguage: 'Italian',
   ttsLanguage: 'it-IT',
   title: 'Preserved course',
-  version: '1',
   courseVersion: '7',
   courseDescription: 'Keep this metadata.',
   createDuels: false,

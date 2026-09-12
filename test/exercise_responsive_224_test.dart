@@ -193,7 +193,6 @@ Course _course() {
     targetLanguage: 'Italian',
     title: 'Responsive Course',
     ttsLanguage: 'it-IT',
-    version: '1',
     lessons: [lesson],
   );
 }

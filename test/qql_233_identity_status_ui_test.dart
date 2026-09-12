@@ -22,8 +22,11 @@ const teamId = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
 
 Course assignedCourse() => Course(
   courseId: 'course-qql-233-ui',
-  creatorProfileId: aliceId,
-  ownership: const CourseOwnership.individual(bobId),
+  originalCourseCreator: CourseProvenanceIdentity.qqlUser(
+    profileId: aliceId,
+    displayName: 'Original Course Creator',
+  ),
+  maintainer: const CourseMaintainer(bobId),
   assignedTeamId: teamId,
   publicationState: PublicationState.draft,
   learningLanguage: 'Italian',
@@ -32,7 +35,6 @@ Course assignedCourse() => Course(
   targetLanguage: 'Italian',
   title: 'Assigned Course',
   ttsLanguage: 'it-IT',
-  version: '1.0.0',
   authors: const [
     CourseAuthor(name: 'Descriptive author', roles: ['Team Leader']),
   ],
@@ -114,8 +116,11 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('Course Owner: @bob_owner'), findsOneWidget);
-      expect(find.text('Course Creator: @alice_creator'), findsOneWidget);
+      expect(find.text('Course Maintainer: @bob_owner'), findsOneWidget);
+      expect(
+        find.text('Original Course Creator: @alice_creator'),
+        findsOneWidget,
+      );
       expect(find.text('Assigned Team: Independent Team'), findsOneWidget);
       expect(find.text('Team Leaders: @alice_creator'), findsOneWidget);
       expect(find.text('Team Members: Charlie'), findsOneWidget);
@@ -126,7 +131,7 @@ void main() {
         findsOneWidget,
       );
       expect(
-        find.textContaining('Course Owner: Independent Team'),
+        find.textContaining('Course Maintainer: Independent Team'),
         findsNothing,
       );
       expect(find.textContaining(aliceId), findsNothing);
@@ -163,7 +168,7 @@ void main() {
   });
 
   testWidgets(
-    'Course Owner sees individual transfer and Team assignment controls with warning',
+    'Course Maintainer sees transfer and Team assignment controls with warning',
     (tester) async {
       await setUpPeople();
       final course = assignedCourse();
@@ -233,7 +238,7 @@ void main() {
     },
   );
 
-  testWidgets('assigned Team member gets no owner governance controls', (
+  testWidgets('assigned Team member gets no maintainer governance controls', (
     tester,
   ) async {
     await setUpPeople();
@@ -263,11 +268,13 @@ void main() {
     expect(find.byKey(const Key('course-info-owner')), findsNothing);
     expect(find.byKey(const Key('course-info-assigned-team')), findsNothing);
     expect(
-      find.text('Only the current Course Owner may change this field.'),
+      find.text('Only the current Course Maintainer may change this field.'),
       findsOneWidget,
     );
     expect(
-      find.text('Only the current Course Owner may assign or revoke a Team.'),
+      find.text(
+        'Only the current Course Maintainer may assign or revoke a Team.',
+      ),
       findsOneWidget,
     );
   });
@@ -300,7 +307,7 @@ void main() {
       findsOneWidget,
     );
     expect(
-      find.textContaining('Course is always owned by an individual'),
+      find.textContaining('Course has one individual Maintainer'),
       findsOneWidget,
     );
     expect(find.textContaining('copyright ownership'), findsOneWidget);

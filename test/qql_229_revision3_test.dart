@@ -90,7 +90,7 @@ void main() {
       await teams.leaveTeam(teamId: _teamId);
       final after = await policy.forCurrentProfile(course);
       expect(after.canEditOriginal, isFalse);
-      expect(after.canDuplicate, isFalse);
+      expect(after.canCopyAsNewCourse, isFalse);
       expect(jsonEncode(course.toJson()), courseBefore);
 
       final team = (await teams.teamById(_teamId))!;
@@ -341,8 +341,11 @@ Course _customCourse({
   bool temporarySample = false,
 }) => Course(
   courseId: 'revision-three-custom-course',
-  creatorProfileId: _leadId,
-  ownership: CourseOwnership.individual(ownerId == _teamId ? _leadId : ownerId),
+  originalCourseCreator: CourseProvenanceIdentity.qqlUser(
+    profileId: _leadId,
+    displayName: 'Original Course Creator',
+  ),
+  maintainer: CourseMaintainer(ownerId == _teamId ? _leadId : ownerId),
   assignedTeamId: ownerId == _teamId ? _teamId : null,
   publicationState: PublicationState.published,
   learningLanguage: 'Italian',
@@ -351,7 +354,6 @@ Course _customCourse({
   targetLanguage: 'Italian',
   title: 'Revision three course',
   ttsLanguage: 'it-IT',
-  version: '1',
   courseVersion: '1.0.0',
   license: 'All rights reserved',
   derivativeWorksPolicy: DerivativeWorksPolicy.forbidden,
@@ -383,7 +385,6 @@ Course _officialCourse({
   title:
       'A deliberately very long Course Manager title for narrow layout coverage',
   ttsLanguage: 'it-IT',
-  version: '1',
   temporarySample: temporarySample,
   lessons: [_lesson(hasDraft: hasDraft)],
 );

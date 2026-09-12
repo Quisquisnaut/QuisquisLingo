@@ -327,7 +327,6 @@ Course _course({required List<LearningRound> rounds}) => Course(
   targetLanguage: 'Italian',
   title: 'Audit 225.02',
   ttsLanguage: 'it-IT',
-  version: '1',
   lessons: [
     Lesson(
       lessonId: 'lesson',

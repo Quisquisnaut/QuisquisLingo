@@ -480,30 +480,6 @@ class SettingsService {
         DateTime.now().toIso8601String(),
       );
 
-  Future<bool> shouldShowCourseUpdate(
-    String courseCode,
-    String contentRevision,
-  ) async {
-    final key = await ProfileService().key(
-      'course_update_seen_${courseCode.toUpperCase()}',
-    );
-    final seen = (await SharedPreferences.getInstance()).getString(key);
-    return seen != contentRevision;
-  }
-
-  Future<void> markCourseUpdateSeen(
-    String courseCode,
-    String contentRevision,
-  ) async {
-    final key = await ProfileService().key(
-      'course_update_seen_${courseCode.toUpperCase()}',
-    );
-    await (await SharedPreferences.getInstance()).setString(
-      key,
-      contentRevision,
-    );
-  }
-
   Future<int> getWeeklyXpTarget() async =>
       (await SharedPreferences.getInstance()).getInt('weekly_xp_target') ??
       1000;

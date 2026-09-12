@@ -314,15 +314,17 @@ Course _course({
   List<LearningContent>? content,
 }) => Course(
   courseId: 'container-course',
-  creatorProfileId: _profileId,
-  ownership: const CourseOwnership.individual(_profileId),
+  originalCourseCreator: CourseProvenanceIdentity.qqlUser(
+    profileId: _profileId,
+    displayName: 'Original Course Creator',
+  ),
+  maintainer: const CourseMaintainer(_profileId),
   title: 'Container publication',
   learningLanguage: 'Italian',
   interfaceLanguage: 'English',
   sourceLanguage: 'English',
   targetLanguage: 'Italian',
   ttsLanguage: 'it-IT',
-  version: '1',
   useGuidebook: false,
   createDuels: false,
   lessons: [

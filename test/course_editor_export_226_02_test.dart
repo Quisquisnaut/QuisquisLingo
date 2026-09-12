@@ -74,7 +74,7 @@ void main() {
     await tester.tap(export);
     await tester.pump();
     expect(transfer.exported?.toJson(), before);
-    expect(transfer.exported?.forkProvenance?.originalCourseId, 'official-id');
+    expect(transfer.exported?.forkProvenance?.sourceCourseId, 'official-id');
     expect(transfer.exported?.originType, CourseOriginType.custom);
   });
 
@@ -130,6 +130,17 @@ void _viewport(WidgetTester tester) {
 Course _customCourse({bool fork = false}) => Course(
   courseId: fork ? 'custom-fork' : 'custom-course',
   originType: CourseOriginType.custom,
+  originalCourseCreator: fork
+      ? const CourseProvenanceIdentity.publisher(
+          publisherId: 'publisher-id',
+          displayName: 'Publisher',
+        )
+      : const CourseProvenanceIdentity.qqlUser(
+          profileId: '11111111-1111-4111-8111-111111111111',
+          displayName: 'Course creator',
+        ),
+  maintainer: const CourseMaintainer('11111111-1111-4111-8111-111111111111'),
+  originalCreatedAtUtc: '2026-09-01T10:00:00.000Z',
   publicationState: PublicationState.draft,
   learningLanguage: 'Italian',
   interfaceLanguage: 'English',
@@ -137,27 +148,24 @@ Course _customCourse({bool fork = false}) => Course(
   targetLanguage: 'Italian',
   title: fork ? 'Licensed fork' : 'Custom course',
   ttsLanguage: 'it-IT',
-  version: '1',
   courseVersion: '4',
   license: 'CC BY 4.0',
   derivativeWorksPolicy: DerivativeWorksPolicy.allowed,
-  parentCourseId: fork ? 'official-id' : null,
-  derivedFromVersion: fork ? '12' : null,
   forkProvenance: fork
       ? CourseForkProvenance(
-          originalPublisherId: 'publisher-id',
-          originalPublisherName: 'Publisher',
-          originalCourseId: 'official-id',
-          originalOfficialCourseVersion: '12',
-          originalOfficialChecksum:
+          sourceCourseId: 'official-id',
+          sourceCourseTitle: 'Official course',
+          sourceCourseVersion: '12',
+          sourceOriginType: CourseOriginType.bundledOfficial,
+          sourcePublisherId: 'publisher-id',
+          sourcePublisherName: 'Publisher',
+          sourceOfficialChecksum:
               'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-          originalCourseTitle: 'Official course',
-          originalAuthor: 'Original author',
-          originalAuthors: const [
-            CourseAuthor(name: 'Original author', roles: ['Course Creator']),
+          sourceAuthors: const [
+            CourseAuthor(name: 'Original author', roles: ['Author']),
           ],
-          forkCreatedByProfileId: 'profile-id',
-          forkCreatedByUsername: 'Fork creator',
+          forkCreatedByProfileId: '11111111-1111-4111-8111-111111111111',
+          forkCreatedByDisplayName: 'Fork creator',
           forkCreatedAtUtc: '2026-09-05T10:00:00.000Z',
         )
       : null,
@@ -184,6 +192,5 @@ Course _officialCourse(CourseOriginType origin) => Course(
   targetLanguage: 'Italian',
   title: 'Official course',
   ttsLanguage: 'it-IT',
-  version: '1',
   lessons: const [],
 );

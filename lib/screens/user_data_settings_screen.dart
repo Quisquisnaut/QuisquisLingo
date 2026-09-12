@@ -155,7 +155,7 @@ class _UserDataSettingsScreenState extends State<UserDataSettingsScreen> {
       title: const Text('User Recovery Key Help'),
       content: const SingleChildScrollView(
         child: Text(
-          'A User Recovery Key preserves the same stable QQL identity after reinstalling QQL, after local data loss, or when using another or multiple devices. Because ownership and other relationships use that identity, they can be recognized wherever the same key is imported.\n\nThe key does not restore or force a Screen Name. Course export alone does not prove or transfer Course ownership.\n\nKeep the key private. Someone who possesses it may be able to claim that QQL identity. The key does not contain your Access PIN.',
+          'A User Recovery Key preserves the same stable QQL identity after reinstalling QQL, after local data loss, or when using another or multiple devices. Because Course maintainership and other relationships use that identity, they can be recognized wherever the same key is imported.\n\nThe key does not restore or force a Screen Name. Course export alone does not prove or transfer Course maintainership or legal rights.\n\nKeep the key private. Someone who possesses it may be able to claim that QQL identity. The key does not contain your Access PIN.',
         ),
       ),
       actions: [

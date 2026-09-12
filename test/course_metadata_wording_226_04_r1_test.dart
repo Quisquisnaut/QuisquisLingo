@@ -199,7 +199,6 @@ Course _course() => Course(
   sourceLanguage: 'English',
   targetLanguage: 'Italian',
   ttsLanguage: 'it-IT',
-  version: '1',
   license: 'CC0-1.0',
   publicationState: PublicationState.draft,
   useGuidebook: false,

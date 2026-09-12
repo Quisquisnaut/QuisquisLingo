@@ -385,6 +385,5 @@ Course _customCourse() => Course(
   targetLanguage: 'Esperanto',
   title: 'Preserved custom course',
   ttsLanguage: 'eo',
-  version: '1',
   lessons: const [],
 );

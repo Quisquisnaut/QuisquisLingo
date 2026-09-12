@@ -398,7 +398,6 @@ Course _baseCourse({String worldFlagId = ''}) => Course(
   targetLanguage: 'Italian',
   title: 'Current course',
   ttsLanguage: 'it-IT',
-  version: '1',
   worldFlagId: worldFlagId,
   lessons: const [],
 );

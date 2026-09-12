@@ -17,6 +17,7 @@ void main() {
         'quisquislingo_user_courses_v5_223': legacy,
         'quisquislingo_user_courses_v6_225': legacy,
         'quisquislingo_user_courses_v7_2291': legacy,
+        'quisquislingo_user_courses_v8_233030': legacy,
       });
       final service = CourseEditorService();
 
@@ -25,12 +26,13 @@ void main() {
       expect(prefs.getString('quisquislingo_user_courses_v5_223'), legacy);
       expect(prefs.getString('quisquislingo_user_courses_v6_225'), legacy);
       expect(prefs.getString('quisquislingo_user_courses_v7_2291'), legacy);
-      expect(prefs.getString('quisquislingo_user_courses_v8_233030'), isNull);
+      expect(prefs.getString('quisquislingo_user_courses_v8_233030'), legacy);
+      expect(prefs.getString('quisquislingo_user_courses_v9_233030'), isNull);
     },
   );
 
   test(
-    'unsupported course in v8 storage fails clearly without deletion',
+    'unsupported course in v9 storage fails clearly without deletion',
     () async {
       final legacyCourse = _course().toJson()..['formatVersion'] = 5;
       final stored = jsonEncode({
@@ -40,7 +42,7 @@ void main() {
         },
       });
       SharedPreferences.setMockInitialValues({
-        'quisquislingo_user_courses_v8_233030': stored,
+        'quisquislingo_user_courses_v9_233030': stored,
       });
       final service = CourseEditorService();
 
@@ -61,16 +63,32 @@ void main() {
         ),
       );
       final prefs = await SharedPreferences.getInstance();
-      expect(prefs.getString('quisquislingo_user_courses_v8_233030'), stored);
+      expect(prefs.getString('quisquislingo_user_courses_v9_233030'), stored);
     },
   );
 
+  test('corrupt v8 storage is ignored and left physically unchanged', () async {
+    const corrupt = '[not an object]';
+    SharedPreferences.setMockInitialValues({
+      'quisquislingo_user_courses_v8_233030': corrupt,
+    });
+    final service = CourseEditorService();
+
+    expect(await service.listUserCourses(), isEmpty);
+    final prefs = await SharedPreferences.getInstance();
+    expect(prefs.getString('quisquislingo_user_courses_v8_233030'), corrupt);
+    expect(
+      prefs.getString('quisquislingo_course_editor_corrupt_backup_v9_233030'),
+      isNull,
+    );
+  });
+
   test(
-    'corrupt v8 storage is copied aside and never silently emptied',
+    'corrupt v9 storage is copied aside and never silently emptied',
     () async {
       const corrupt = '[not an object]';
       SharedPreferences.setMockInitialValues({
-        'quisquislingo_user_courses_v8_233030': corrupt,
+        'quisquislingo_user_courses_v9_233030': corrupt,
       });
       final service = CourseEditorService();
 
@@ -85,19 +103,19 @@ void main() {
         ),
       );
       final prefs = await SharedPreferences.getInstance();
-      expect(prefs.getString('quisquislingo_user_courses_v8_233030'), corrupt);
+      expect(prefs.getString('quisquislingo_user_courses_v9_233030'), corrupt);
       expect(
-        prefs.getString('quisquislingo_course_editor_corrupt_backup_v8_233030'),
+        prefs.getString('quisquislingo_course_editor_corrupt_backup_v9_233030'),
         corrupt,
       );
     },
   );
 
-  test('v8 local save/reload preserves canonical timestamp bytes', () async {
+  test('v9 local save/reload preserves canonical timestamp bytes', () async {
     SharedPreferences.setMockInitialValues({});
     final profiles = ProfileService();
     await profiles.createProfile(
-      'Owner',
+      'Maintainer',
       learnerProfileId: '11111111-1111-4111-8111-111111111111',
     );
     final service = CourseEditorService(profileService: profiles);
@@ -131,19 +149,20 @@ Course _course() {
     icons: const [],
   );
   return Course(
-    courseId: 'user_storage_v6',
-    creatorProfileId: '11111111-1111-4111-8111-111111111111',
-    ownership: const CourseOwnership.individual(
-      '11111111-1111-4111-8111-111111111111',
+    courseId: 'user_storage_v9',
+    originalCourseCreator: CourseProvenanceIdentity.qqlUser(
+      profileId: '11111111-1111-4111-8111-111111111111',
+      displayName: 'Original Course Creator',
     ),
+    maintainer: const CourseMaintainer('11111111-1111-4111-8111-111111111111'),
+    originalCreatedAtUtc: '2026-09-04T12:00:00.000Z',
     publicationState: PublicationState.draft,
     learningLanguage: 'Italian',
     interfaceLanguage: 'English',
     sourceLanguage: 'English',
     targetLanguage: 'Italian',
-    title: 'Stored v6',
+    title: 'Stored v9',
     ttsLanguage: 'it-IT',
-    version: '1',
     lessons: [
       Lesson(
         lessonId: 'stored-lesson',

@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Compatibility entry point for the unified Course Model v8 generator.
+"""Compatibility entry point for the unified Course Model v9 generator.
 
 Course Model v5 generation is intentionally unavailable after the Build 225.02
-clean format boundary. The historical filename invokes the v6 pipeline so it
+clean format boundary. The historical filename invokes the v9 pipeline so it
 cannot rewrite production assets into an unsupported format.
 """
 

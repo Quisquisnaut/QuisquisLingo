@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Deterministically regenerate the bundled Course Model v8 assets.
+"""Deterministically regenerate the bundled Course Model v9 assets.
 
 Existing assets contribute only reviewed course metadata and Guidebook material.
 Legacy exercises and their IDs are deliberately discarded rather than migrated.
@@ -41,14 +41,8 @@ def _official_checksum(course: dict[str, object]) -> str:
         for key, value in course.items()
         if key not in excluded
     }
-    # CourseAuthor canonical serialization retains the compatibility-facing
-    # primary role beside the complete roles list.
     if canonical.get("derivativeWorksPolicy") in (None, "unspecified"):
         canonical.pop("derivativeWorksPolicy", None)
-    for author in canonical.get("authors", []):
-        roles = author.get("roles", [])
-        if roles:
-            author["role"] = roles[0]
     encoded = json.dumps(
         canonical,
         ensure_ascii=False,
@@ -88,6 +82,13 @@ def _with_official_provenance(
                     "officialReleaseNotes": release_notes,
                     "distributionChannel": "bundled",
                     "publisherVerificationStatus": "verified",
+                    "originalCourseCreator": {
+                        "type": "publisher",
+                        "id": "org.quisquislingo",
+                        "displayName": "QuisquisLingo",
+                    },
+                    "originalCreatedAtUtc": RELEASE_DATE,
+                    "modifiedAtUtc": RELEASE_DATE,
                 }
             )
     output["officialChecksum"] = _official_checksum(output)
@@ -517,7 +518,7 @@ def _regenerate_existing(code: str, filename: str, course_index: int) -> dict[st
         generated_lessons.append(lesson)
     source.update(
         {
-            "formatVersion": 8,
+            "formatVersion": 9,
             "title": (
                 "AI-Slop Demo: Inglés para hispanohablantes"
                 if source["sourceLanguage"] == "Spanish"
@@ -525,23 +526,15 @@ def _regenerate_existing(code: str, filename: str, course_index: int) -> dict[st
                 else f"AI-Slop Demo: {source['targetLanguage']} for "
                 f"{source['sourceLanguage']} Speakers"
             ),
-            "version": "1.6.1",
-            "courseVersion": "1.6.1",
-            "contentRevision": "bundled-v22602-r3-sample-label",
-            "lastUpdated": "2026-09-06",
-            "updateSummary": (
-                "Explicitly labelled as an AI-generated demonstration course for "
-                "Build 226.02 revision 3; learning content and stable IDs are unchanged."
-            ),
             "courseDescription": (
-                "TEMPORARY SAMPLE course regenerated for Course Model v8."
+                "TEMPORARY SAMPLE course regenerated for Course Model v9."
             ),
             "lessons": generated_lessons,
         }
     )
     return _with_official_provenance(
         source,
-        official_version=str(source["version"]),
+        official_version="1.6.1",
         release_notes="Build 226.02 revision 3 AI-generated sample label update.",
     )
 
@@ -673,7 +666,7 @@ def _korean_course(course_index: int) -> dict[str, object]:
             }
         )
     course = {
-        "formatVersion": 8,
+        "formatVersion": 9,
         "publicationState": "published",
         "lessonNumberingMode": "lesson",
         "defaultLessonIconStyle": "monochrome",
@@ -684,18 +677,12 @@ def _korean_course(course_index: int) -> dict[str, object]:
         "targetLanguage": "Korean",
         "title": "AI-Slop Demo: Korean for English Speakers",
         "ttsLanguage": "ko-KR",
-        "version": "1.0.1",
-        "contentRevision": "bundled-v22602-r3-sample-label",
-        "updateSummary": "Explicitly labelled as an AI-generated demonstration course for Build 226.02 revision 3; learning content and stable IDs are unchanged.",
         "audioMode": "tts",
-        "author": "QuisquisLingo course team",
-        "authors": [{"name": "QuisquisLingo course team", "roles": ["Course Creator"]}],
+        "authors": [{"name": "QuisquisLingo course team", "roles": ["Author"]}],
         "license": "All rights reserved",
         "languageVariant": "Contemporary polite Korean",
         "startLevel": "Beginner",
         "targetLevel": "Beginner",
-        "courseVersion": "1.0.1",
-        "lastUpdated": "2026-09-06",
         "courseDescription": "TEMPORARY SAMPLE beginner Korean course using Hangul and a consistent polite register.",
         "sourceLanguageTag": "en-GB",
         "targetLanguageTag": "ko-KR",

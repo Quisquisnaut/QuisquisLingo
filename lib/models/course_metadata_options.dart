@@ -3,9 +3,9 @@ import 'course_models.dart';
 /// Historical QQL course-credit and content-license vocabulary.
 abstract final class CourseMetadataOptions {
   static const standardRoles = <String>[
+    'Author',
     'Team Leader',
     'Contributor',
-    'Course Creator',
     'Editor',
     'Reviewer',
     'Native Speaker',
@@ -14,8 +14,7 @@ abstract final class CourseMetadataOptions {
   ];
 
   static const roleDescriptions = <String, String>{
-    'Course Creator':
-        'Created the course or designed a substantial part of its original structure and content.',
+    'Author': 'Authored or designed a substantial part of the Course content.',
     'Editor':
         'Maintains or substantially revises existing course content over time.',
     'Contributor':

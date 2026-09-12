@@ -45,7 +45,6 @@ Course _course(Lesson lesson) => Course(
   sourceLanguage: 'English',
   targetLanguage: 'Italian',
   ttsLanguage: 'it-IT',
-  version: '1',
   lessons: [lesson],
 );
 

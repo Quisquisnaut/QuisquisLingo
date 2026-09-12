@@ -164,7 +164,6 @@ void main() {
           targetLanguage: 'Italian',
           title: 'Words',
           ttsLanguage: 'it-IT',
-          version: '1',
           lessons: [lesson],
         );
         final before = jsonEncode(course.toJson());
@@ -342,7 +341,6 @@ Future<void> _showWordPreview(WidgetTester tester, Exercise ex) async {
     targetLanguage: 'French',
     title: 'Words',
     ttsLanguage: 'fr-FR',
-    version: '1',
     lessons: [lesson],
   );
   await tester.pumpWidget(

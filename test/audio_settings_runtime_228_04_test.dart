@@ -637,7 +637,6 @@ _AudioFixture _buildAudioFixture({
     targetLanguage: 'Italian',
     title: 'Audio Course',
     ttsLanguage: 'it-IT',
-    version: '1.0.0',
     audioMode: audioMode,
     audioLibrary: const [
       CourseAudioClip(

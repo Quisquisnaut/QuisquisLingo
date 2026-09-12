@@ -6,7 +6,7 @@ import 'package:crypto/crypto.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/authoring_team.dart';
-import 'course_ownership_guard.dart';
+import 'course_maintainer_guard.dart';
 import 'formal_name_policy.dart';
 import 'learner_status_events.dart';
 
@@ -585,7 +585,7 @@ class ProfileService {
     if (admins.contains(learnerProfileId) && admins.length == 1) {
       throw StateError('QQL must always have at least one admin.');
     }
-    CourseOwnershipGuard.ensureProfileDoesNotOwnCourses(
+    CourseMaintainerGuard.ensureProfileDoesNotMaintainCourses(
       prefs,
       learnerProfileId,
     );

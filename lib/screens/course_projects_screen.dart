@@ -72,7 +72,7 @@ class CourseImportScreen extends StatelessWidget {
         const Text(
           '1. Copy the course JSON to Documents/QuisquisLingo/Imports/import.json.\n'
           '2. Select Import Course JSON. QQL validates the complete file before changing local storage.\n'
-          '3. If the Course ID already exists, choose Replace/update, Separate copy or Cancel.\n'
+          '3. If the Course ID already exists, choose Replace/update, Copy as New Course, Fork or Cancel, as available.\n'
           '4. A successful import appears under Local courses. import.json remains in Imports.',
         ),
       ],
@@ -192,7 +192,7 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
       }
       return null;
     }
-    final availableOwners = await _profiles.getProfileRecords();
+    final availableMaintainers = await _profiles.getProfileRecords();
     if (!mounted) return null;
     final title = TextEditingController();
     final source = TextEditingController(text: 'English');
@@ -201,15 +201,14 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
       TextEditingController(text: activeProfile.displayName),
     ];
     final authorRoles = [
-      <String>{'Course Creator'},
+      <String>{'Author'},
     ];
     final customAuthorRoles = [TextEditingController()];
+    final rightsHolderNames = [TextEditingController()];
+    final rightsHolderTypes = [CourseRightsHolderType.person];
     final variant = TextEditingController();
     final startLevel = TextEditingController();
     final targetLevel = TextEditingController();
-    final lastUpdated = TextEditingController(
-      text: DateTime.now().toIso8601String().substring(0, 10),
-    );
     final description = TextEditingController();
     final buyACoffeeUrl = TextEditingController();
     final customLicense = TextEditingController();
@@ -227,7 +226,7 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
     String? flagError;
     var selectedLicense = CourseMetadataOptions.standardLicenses.first;
     var selectedDerivativePolicy = DerivativeWorksPolicy.forbidden;
-    var selectedOwner = activeProfile.learnerProfileId;
+    var selectedMaintainer = activeProfile.learnerProfileId;
 
     final result = await showDialog<Course>(
       context: context,
@@ -242,10 +241,12 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
           for (final controller in customAuthorRoles) {
             controller.dispose();
           }
+          for (final controller in rightsHolderNames) {
+            controller.dispose();
+          }
           variant.dispose();
           startLevel.dispose();
           targetLevel.dispose();
-          lastUpdated.dispose();
           description.dispose();
           buyACoffeeUrl.dispose();
           customLicense.dispose();
@@ -291,28 +292,38 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
                     const SizedBox(height: 8),
                     DropdownButtonFormField<String>(
                       key: const Key('new-course-owner'),
-                      initialValue: selectedOwner,
+                      initialValue: selectedMaintainer,
                       isExpanded: true,
                       decoration: const InputDecoration(
                         border: OutlineInputBorder(),
-                        labelText: 'Course Owner',
-                        helperText:
-                            'Choose an individual user. The Creator remains permanent provenance.',
+                        labelText: 'Course Maintainer',
+                        helper: Text(
+                          'The person currently responsible for maintaining this Course.',
+                        ),
                       ),
                       items: [
-                        for (final profile in availableOwners)
+                        for (final profile in availableMaintainers)
                           DropdownMenuItem(
                             value: profile.learnerProfileId,
-                            child: Text(
-                              profile.learnerProfileId ==
+                            child: Tooltip(
+                              message:
+                                  profile.learnerProfileId ==
                                       activeProfile.learnerProfileId
-                                  ? '${profile.presentationName} (Creator)'
+                                  ? '${profile.presentationName} (Original Course Creator)'
                                   : profile.presentationName,
+                              child: Text(
+                                profile.learnerProfileId ==
+                                        activeProfile.learnerProfileId
+                                    ? '${profile.presentationName} (Original Course Creator)'
+                                    : profile.presentationName,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
                             ),
                           ),
                       ],
                       onChanged: (value) => setDialogState(
-                        () => selectedOwner = value ?? selectedOwner,
+                        () => selectedMaintainer = value ?? selectedMaintainer,
                       ),
                     ),
                     const SizedBox(height: 12),
@@ -407,8 +418,9 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
                                 decoration: const InputDecoration(
                                   border: OutlineInputBorder(),
                                   labelText: 'Custom role(s)',
-                                  helperText:
-                                      'Optional; separate roles with commas.',
+                                  helper: Text(
+                                    'Optional; separate roles with commas.',
+                                  ),
                                 ),
                               ),
                             ],
@@ -426,6 +438,14 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
                         }),
                         icon: const Icon(Icons.add),
                         label: const Text('Add author or contributor'),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    const Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        'License / Rights',
+                        style: TextStyle(fontWeight: FontWeight.bold),
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -475,7 +495,7 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
                         isExpanded: true,
                         decoration: const InputDecoration(
                           border: OutlineInputBorder(),
-                          labelText: 'Derivative works for non-owners',
+                          labelText: 'Derivative works for other users',
                         ),
                         items: const [
                           DropdownMenuItem(
@@ -506,6 +526,109 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
                         ),
                       ),
                     ],
+                    const SizedBox(height: 12),
+                    const Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        'Rights Holder records rights ownership information. It does not control QQL permissions.',
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    for (
+                      var rightsIndex = 0;
+                      rightsIndex < rightsHolderNames.length;
+                      rightsIndex++
+                    )
+                      Card(
+                        child: Padding(
+                          padding: const EdgeInsets.all(10),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      'Rights Holder ${rightsIndex + 1}',
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ),
+                                  IconButton(
+                                    tooltip: 'Remove Rights Holder',
+                                    onPressed: rightsHolderNames.length == 1
+                                        ? null
+                                        : () => setDialogState(() {
+                                            rightsHolderNames
+                                                .removeAt(rightsIndex)
+                                                .dispose();
+                                            rightsHolderTypes.removeAt(
+                                              rightsIndex,
+                                            );
+                                          }),
+                                    icon: const Icon(
+                                      Icons.remove_circle_outline,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              DropdownButtonFormField<CourseRightsHolderType>(
+                                key: ValueKey(
+                                  'new-course-rights-holder-type-$rightsIndex',
+                                ),
+                                initialValue: rightsHolderTypes[rightsIndex],
+                                isExpanded: true,
+                                decoration: const InputDecoration(
+                                  border: OutlineInputBorder(),
+                                  labelText: 'Rights Holder type',
+                                ),
+                                items: const [
+                                  DropdownMenuItem(
+                                    value: CourseRightsHolderType.person,
+                                    child: Text('Person'),
+                                  ),
+                                  DropdownMenuItem(
+                                    value: CourseRightsHolderType.organization,
+                                    child: Text('Organization'),
+                                  ),
+                                ],
+                                onChanged: (value) => setDialogState(() {
+                                  rightsHolderTypes[rightsIndex] =
+                                      value ?? rightsHolderTypes[rightsIndex];
+                                }),
+                              ),
+                              const SizedBox(height: 8),
+                              TextField(
+                                key: ValueKey(
+                                  'new-course-rights-holder-name-$rightsIndex',
+                                ),
+                                controller: rightsHolderNames[rightsIndex],
+                                maxLength: 240,
+                                decoration: const InputDecoration(
+                                  border: OutlineInputBorder(),
+                                  labelText: 'Rights Holder',
+                                  helper: Text(
+                                    'A person or organization; descriptive only.',
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: TextButton.icon(
+                        key: const Key('new-course-add-rights-holder'),
+                        onPressed: () => setDialogState(() {
+                          rightsHolderNames.add(TextEditingController());
+                          rightsHolderTypes.add(CourseRightsHolderType.person);
+                        }),
+                        icon: const Icon(Icons.add),
+                        label: const Text('Add Rights Holder'),
+                      ),
+                    ),
                     const SizedBox(height: 8),
                     TextField(
                       controller: variant,
@@ -543,16 +666,6 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
                     ),
                     const SizedBox(height: 8),
                     TextField(
-                      key: const Key('new-course-last-updated'),
-                      controller: lastUpdated,
-                      maxLength: 10,
-                      decoration: const InputDecoration(
-                        border: OutlineInputBorder(),
-                        labelText: 'Last updated (YYYY-MM-DD)',
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    TextField(
                       controller: description,
                       minLines: 2,
                       maxLines: 5,
@@ -569,7 +682,7 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
                       decoration: const InputDecoration(
                         border: OutlineInputBorder(),
                         labelText: 'Buy a Coffee URL (optional)',
-                        helperText: 'HTTPS only.',
+                        helper: Text('HTTPS only.'),
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -581,7 +694,7 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
                       decoration: InputDecoration(
                         border: const OutlineInputBorder(),
                         labelText: 'Number of Lessons',
-                        helperText: '1–100. Default: 3.',
+                        helper: const Text('1–100. Default: 3.'),
                         errorText: NewCourseStructure.validateCount(
                           lessonCount.text,
                           maximum: 100,
@@ -597,7 +710,7 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
                       decoration: InputDecoration(
                         border: const OutlineInputBorder(),
                         labelText: 'Rounds per Lesson',
-                        helperText: '1–20. Default: 1.',
+                        helper: const Text('1–20. Default: 1.'),
                         errorText: NewCourseStructure.validateCount(
                           roundsPerLesson.text,
                           maximum: 20,
@@ -690,8 +803,10 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
                     const SizedBox(height: 8),
                     Align(
                       alignment: Alignment.centerLeft,
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
+                      child: Wrap(
+                        spacing: 10,
+                        runSpacing: 8,
+                        crossAxisAlignment: WrapCrossAlignment.center,
                         children: [
                           Container(
                             width: 64,
@@ -730,7 +845,6 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
                                     height: 44,
                                   ),
                           ),
-                          const SizedBox(width: 10),
                           const Text('Flag preview'),
                         ],
                       ),
@@ -842,7 +956,7 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
                           final continueAnyway = await showDialog<bool>(
                             context: ctx,
                             builder: (warningContext) => AlertDialog(
-                              title: const Text('Duplicate Course name'),
+                              title: const Text('Course name already exists'),
                               content: const Text(
                                 'A Course with this name already exists.',
                               ),
@@ -911,6 +1025,21 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
                           if (roles.isEmpty) roles.add('Contributor');
                           credits.add(CourseAuthor(name: name, roles: roles));
                         }
+                        final rightsHolders = <CourseRightsHolder>[];
+                        for (
+                          var index = 0;
+                          index < rightsHolderNames.length;
+                          index++
+                        ) {
+                          final name = rightsHolderNames[index].text.trim();
+                          if (name.isEmpty) continue;
+                          rightsHolders.add(
+                            CourseRightsHolder(
+                              type: rightsHolderTypes[index],
+                              name: name,
+                            ),
+                          );
+                        }
                         final updatedAt = DateTime.now().toUtc();
                         final lessons = NewCourseStructure.create(
                           sourceLanguage: s,
@@ -924,14 +1053,23 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
                         final speechLanguage =
                             CourseLanguageResolver.codeFromMetadata([tg]) ??
                             'und';
+                        final nowUtc = updatedAt.toIso8601String();
                         Navigator.pop(
                           ctx,
                           Course(
                             courseId: Course.newCourseId(),
-                            creatorProfileId: activeProfile.learnerProfileId,
-                            ownership: CourseOwnership.individual(
-                              selectedOwner,
-                            ),
+                            originalCourseCreator:
+                                CourseProvenanceIdentity.qqlUser(
+                                  profileId: activeProfile.learnerProfileId,
+                                  displayName: activeProfile.presentationName,
+                                ),
+                            maintainer: CourseMaintainer(selectedMaintainer),
+                            originalCreatedAtUtc: nowUtc,
+                            lastVersionEditorProfileId:
+                                activeProfile.learnerProfileId,
+                            lastVersionEditorDisplayName:
+                                activeProfile.presentationName,
+                            modifiedAtUtc: nowUtc,
                             publicationState: PublicationState.draft,
                             learningLanguage: tg,
                             interfaceLanguage: s,
@@ -939,15 +1077,11 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
                             targetLanguage: tg,
                             title: t,
                             ttsLanguage: speechLanguage,
-                            version: '1.0.0',
                             originType: CourseOriginType.custom,
                             courseVersion: '',
-                            lastUpdated: lastUpdated.text.trim(),
-                            author: credits
-                                .map((credit) => credit.name)
-                                .join(', '),
                             authors: credits,
                             license: license,
+                            rightsHolders: rightsHolders,
                             derivativeWorksPolicy:
                                 selectedLicense == 'Other / Custom license'
                                 ? selectedDerivativePolicy
@@ -1056,9 +1190,9 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
     return '$sourceTitle copy $suffix';
   }
 
-  Future<void> _duplicateCourse(Course course) async {
+  Future<void> _copyAsNewCourse(Course course) async {
     try {
-      final created = await _service.createDuplicate(
+      final created = await _service.createCopyAsNewCourse(
         source: course,
         title: _nextCopyTitle(course.title),
       );
@@ -1148,7 +1282,7 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
       onSelected: (value) {
         if (value == 'open') onOpen();
         if (value == 'fork') _forkCourse(course);
-        if (value == 'duplicate') _duplicateCourse(course);
+        if (value == 'copy_as_new') _copyAsNewCourse(course);
         if (value == 'audit') _auditCourse(course);
         if (value == 'export') _exportCourse(course);
         if (value == 'delete' && course.originType == CourseOriginType.custom) {
@@ -1172,15 +1306,21 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
             value: 'fork',
             child: ListTile(
               leading: Icon(Icons.fork_right_outlined),
-              title: Text('Fork as custom course'),
+              title: Text('Fork'),
+              subtitle: Text(
+                'Create a derivative Course that preserves the source Course lineage.',
+              ),
             ),
           ),
-        if (access.canDuplicate)
+        if (access.canCopyAsNewCourse)
           const PopupMenuItem(
-            value: 'duplicate',
+            value: 'copy_as_new',
             child: ListTile(
               leading: Icon(Icons.copy_outlined),
-              title: Text('Duplicate custom course'),
+              title: Text('Copy as New Course'),
+              subtitle: Text(
+                'Create a new independent Course using this Course as the starting content.',
+              ),
             ),
           ),
         const PopupMenuItem(
@@ -1190,7 +1330,7 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
             title: Text('Audit'),
           ),
         ),
-        if (course.originType.isOfficial || access.isInsideOwnershipBoundary)
+        if (course.originType.isOfficial || access.hasOperationalAccess)
           const PopupMenuItem(
             value: 'export',
             child: ListTile(
@@ -1342,6 +1482,7 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
       );
       final existing = existingIndex < 0 ? null : _user[existingIndex];
       if (existing != null) {
+        final importedAccess = _capabilities(course);
         final choice =
             await showDialog<String>(
               context: context,
@@ -1349,18 +1490,24 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
                 title: const Text('Matching Course ID'),
                 content: Text(
                   existing.originType.isOfficial
-                      ? 'Official course “${existing.title}” already owns ID “${course.courseId}”. It cannot be replaced by custom content; import a separate copy or cancel.'
-                      : 'A custom course with ID “${course.courseId}” already exists. Replace “${existing.title}” with the imported course?',
+                      ? 'Official Course “${existing.title}” already uses ID “${course.courseId}”. It cannot be replaced by custom content; create an available Copy as New Course or Fork, or cancel.'
+                      : 'A custom Course with ID “${course.courseId}” already exists. Replace “${existing.title}”, create an available Copy as New Course or Fork, or cancel?',
                 ),
                 actions: [
                   TextButton(
                     onPressed: () => Navigator.pop(ctx, 'cancel'),
                     child: const Text('Cancel'),
                   ),
-                  OutlinedButton(
-                    onPressed: () => Navigator.pop(ctx, 'copy'),
-                    child: const Text('Separate copy'),
-                  ),
+                  if (importedAccess.canCopyAsNewCourse)
+                    OutlinedButton(
+                      onPressed: () => Navigator.pop(ctx, 'copy'),
+                      child: const Text('Copy as New Course'),
+                    ),
+                  if (importedAccess.canFork)
+                    OutlinedButton(
+                      onPressed: () => Navigator.pop(ctx, 'fork'),
+                      child: const Text('Fork'),
+                    ),
                   if (!existing.originType.isOfficial &&
                       _capabilities(existing).canEditOriginal)
                     FilledButton(
@@ -1373,17 +1520,28 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
             'cancel';
         if (choice == 'cancel') return;
         if (choice == 'copy') {
-          final access = _capabilities(course);
-          final created = access.canDuplicate
-              ? await _service.createDuplicate(
-                  source: course,
-                  title: _nextCopyTitle(course.title),
-                )
-              : access.canFork
-              ? await _service.createFork(source: course)
-              : throw StateError(
-                  'This course does not permit an owned Duplicate or licensed Fork.',
-                );
+          final created = await _service.createCopyAsNewCourse(
+            source: course,
+            title: _nextCopyTitle(course.title),
+          );
+          await _reload();
+          if (!mounted) return;
+          final result = await Navigator.of(context)
+              .push<CourseConfirmationResult>(
+                MaterialPageRoute(
+                  builder: (_) => CourseEditorScreen(
+                    course: created.course,
+                    access: _capabilities(created.course),
+                    editorService: _service,
+                  ),
+                ),
+              );
+          if (result != null && mounted) _showConfirmationResult(result);
+          await _reload();
+          return;
+        }
+        if (choice == 'fork') {
+          final created = await _service.createFork(source: course);
           await _reload();
           if (!mounted) return;
           final result = await Navigator.of(context)
@@ -1589,7 +1747,7 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
                     ),
                     title: Text(widget.currentCourse.title),
                     subtitle: const Text(
-                      'Bundled official · read only · Course Model v8',
+                      'Bundled official · read only · Course Model v9',
                     ),
                     trailing: _courseActions(
                       widget.currentCourse,

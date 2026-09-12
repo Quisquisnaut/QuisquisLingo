@@ -115,77 +115,126 @@ void main() {
     },
   );
 
-  test('Course duplication remaps every owned ID and preserves metadata', () {
-    final sourceLesson = Lesson(
-      lessonId: 'lesson-source',
-      title: 'Lesson',
-      section: true,
-      sectionName: 'Section',
-      themeIconAsset: 'assets/lesson_icons/home.png',
-      guidebook: Guidebook(
-        content: const [
-          LearningContent(
-            id: 'guide-source',
-            kind: 'vocabulary',
-            role: 'vocabulary',
-            text: 'casa = house',
-          ),
-        ],
-      ),
-      rounds: [
-        LearningRound(
-          id: 'round-source',
-          title: 'Round',
-          content: [
+  test(
+    'Copy as New Course remaps owned IDs and starts an independent lineage',
+    () {
+      const copyProfileId = '11111111-1111-4111-8111-111111111111';
+      final copiedAt = DateTime.utc(2026, 9, 12, 8, 30);
+      final sourceLesson = Lesson(
+        lessonId: 'lesson-source',
+        title: 'Lesson',
+        section: true,
+        sectionName: 'Section',
+        themeIconAsset: 'assets/lesson_icons/home.png',
+        guidebook: Guidebook(
+          content: const [
             LearningContent(
-              id: 'content-source',
-              kind: 'exercise',
-              editorTemplate: 'choice',
-              exercise: _select('exercise-source'),
-              sourceRefs: const ['guide-source'],
+              id: 'guide-source',
+              kind: 'vocabulary',
+              role: 'vocabulary',
+              text: 'casa = house',
             ),
           ],
         ),
-      ],
-      duel: Duel(id: 'duel-source', title: 'Duel'),
-    );
-    final source = Course(
-      courseId: 'course-source',
-      learningLanguage: 'Italian',
-      interfaceLanguage: 'English',
-      sourceLanguage: 'English',
-      targetLanguage: 'Italian',
-      title: 'Original',
-      ttsLanguage: 'it-IT',
-      version: '1',
-      courseDescription: 'Metadata',
-      buyACoffeeUrl: 'https://example.com/coffee',
-      flagCode: 'IT',
-      audioLibrary: const [
-        CourseAudioClip(id: 'audio-source', text: 'ciao', filePath: 'ciao.mp3'),
-      ],
-      lessons: [sourceLesson],
-    );
-    final copy = AuthoringDuplicationService(
-      ids: _SequenceIds(),
-    ).duplicateCourse(source, title: 'Original copy');
+        rounds: [
+          LearningRound(
+            id: 'round-source',
+            title: 'Round',
+            content: [
+              LearningContent(
+                id: 'content-source',
+                kind: 'exercise',
+                editorTemplate: 'choice',
+                exercise: _select('exercise-source'),
+                sourceRefs: const ['guide-source'],
+              ),
+            ],
+          ),
+        ],
+        duel: Duel(id: 'duel-source', title: 'Duel'),
+      );
+      final source = Course(
+        courseId: 'course-source',
+        originalCourseCreator: const CourseProvenanceIdentity.qqlUser(
+          profileId: '22222222-2222-4222-8222-222222222222',
+          displayName: 'Source creator',
+        ),
+        maintainer: const CourseMaintainer(
+          '22222222-2222-4222-8222-222222222222',
+        ),
+        assignedTeamId: '33333333-3333-4333-8333-333333333333',
+        originalCreatedAtUtc: '2026-08-01T00:00:00.000Z',
+        learningLanguage: 'Italian',
+        interfaceLanguage: 'English',
+        sourceLanguage: 'English',
+        targetLanguage: 'Italian',
+        title: 'Original',
+        ttsLanguage: 'it-IT',
+        courseDescription: 'Metadata',
+        authors: const [
+          CourseAuthor(name: 'Source author', roles: ['Author']),
+        ],
+        rightsHolders: const [
+          CourseRightsHolder(
+            type: CourseRightsHolderType.organization,
+            name: 'Source rights organization',
+          ),
+        ],
+        buyACoffeeUrl: 'https://example.com/coffee',
+        flagCode: 'IT',
+        audioLibrary: const [
+          CourseAudioClip(
+            id: 'audio-source',
+            text: 'ciao',
+            filePath: 'ciao.mp3',
+          ),
+        ],
+        lessons: [sourceLesson],
+      );
+      final copy =
+          AuthoringDuplicationService(
+            ids: _SequenceIds(),
+            clock: () => copiedAt,
+          ).copyCourseAsNew(
+            source,
+            title: 'Original copy',
+            originalCourseCreator: const CourseProvenanceIdentity.qqlUser(
+              profileId: copyProfileId,
+              displayName: 'Copy creator',
+            ),
+            maintainer: const CourseMaintainer(copyProfileId),
+          );
 
-    expect(copy.courseId, isNot(source.courseId));
-    expect(copy.parentCourseId, source.courseId);
-    expect(copy.title, 'Original copy');
-    expect(copy.courseDescription, source.courseDescription);
-    expect(copy.buyACoffeeUrl, source.buyACoffeeUrl);
-    expect(copy.flagCode, source.flagCode);
-    expect(copy.audioLibrary.single.id, isNot(source.audioLibrary.single.id));
-    expect(
-      _allIds(copy.lessons.single).intersection(_allIds(sourceLesson)),
-      isEmpty,
-    );
-    expect(
-      copy.lessons.single.rounds.single.content.single.sourceRefs.single,
-      copy.lessons.single.guidebook.content.single.id,
-    );
-  });
+      expect(copy.courseId, isNot(source.courseId));
+      expect(copy.originalCourseCreator.id, copyProfileId);
+      expect(copy.originalCourseCreator.displayName, 'Copy creator');
+      expect(copy.originalCreatedAtUtc, copiedAt.toIso8601String());
+      expect(copy.maintainer!.profileId, copyProfileId);
+      expect(copy.assignedTeamId, isNull);
+      expect(copy.forkProvenance, isNull);
+      expect(copy.lastVersionEditorProfileId, copyProfileId);
+      expect(copy.lastVersionEditorDisplayName, 'Copy creator');
+      expect(copy.modifiedAtUtc, copiedAt.toIso8601String());
+      expect(copy.title, 'Original copy');
+      expect(copy.courseDescription, source.courseDescription);
+      expect(copy.authors.single.toJson(), source.authors.single.toJson());
+      expect(
+        copy.rightsHolders.single.toJson(),
+        source.rightsHolders.single.toJson(),
+      );
+      expect(copy.buyACoffeeUrl, source.buyACoffeeUrl);
+      expect(copy.flagCode, source.flagCode);
+      expect(copy.audioLibrary.single.id, isNot(source.audioLibrary.single.id));
+      expect(
+        _allIds(copy.lessons.single).intersection(_allIds(sourceLesson)),
+        isEmpty,
+      );
+      expect(
+        copy.lessons.single.rounds.single.content.single.sourceRefs.single,
+        copy.lessons.single.guidebook.content.single.id,
+      );
+    },
+  );
 
   test('duplication preserves source modification timestamps', () {
     final lessonTime = DateTime.utc(2026, 9, 1, 8);

@@ -235,7 +235,6 @@ Course _course({
   targetLanguage: 'Italian',
   title: 'Guidebook delivery',
   ttsLanguage: 'it-IT',
-  version: '1',
   lessons: [
     Lesson(
       lessonId: 'delivery-lesson',

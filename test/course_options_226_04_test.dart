@@ -13,35 +13,54 @@ Map<String, dynamic> _bundledJson() =>
     jsonDecode(File('assets/courses/italian_en.json').readAsStringSync())
         as Map<String, dynamic>;
 
-Course _course({bool options = true}) => Course.fromJson({
-  ..._bundledJson(),
-  'originType': 'custom',
-  'creatorProfileId': '11111111-1111-4111-8111-111111111111',
-  'ownership': {
-    'type': 'individual',
-    'id': '11111111-1111-4111-8111-111111111111',
-  },
-  if (options) ...{
-    'createDuels': false,
-    'useGuidebook': false,
-    'sectionNames': [' Planned ', 'Planned', 'Unused'],
-    'worldFlagId': 'italy',
-  },
-});
+Course _course({bool options = true}) {
+  final json = _bundledJson()
+    ..['originType'] = 'custom'
+    ..['originalCourseCreator'] = const CourseProvenanceIdentity.qqlUser(
+      profileId: '11111111-1111-4111-8111-111111111111',
+      displayName: 'Course creator',
+    ).toJson()
+    ..['maintainer'] = const CourseMaintainer(
+      '11111111-1111-4111-8111-111111111111',
+    ).toJson()
+    ..['originalCreatedAtUtc'] = '2026-09-01T00:00:00.000Z';
+  for (final officialField in const [
+    'publisherId',
+    'publisherName',
+    'officialCourseVersion',
+    'officialReleaseDateUtc',
+    'officialChecksum',
+    'officialReleaseNotes',
+    'distributionChannel',
+    'publisherVerificationStatus',
+    'publisherSignature',
+  ]) {
+    json.remove(officialField);
+  }
+  return Course.fromJson({
+    ...json,
+    if (options) ...{
+      'createDuels': false,
+      'useGuidebook': false,
+      'sectionNames': [' Planned ', 'Planned', 'Unused'],
+      'worldFlagId': 'italy',
+    },
+  });
+}
 
 void _expectOptions(Course course) {
   expect(course.createDuels, isFalse);
   expect(course.useGuidebook, isFalse);
   expect(course.sectionNames, ['Planned', 'Unused']);
   expect(course.worldFlagId, 'italy');
-  expect(course.formatVersion, 8);
+  expect(course.formatVersion, 9);
 }
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   test(
-    'legacy v6 defaults omit new fields and retain required Duel identity',
+    'canonical v9 defaults omit optional fields and retain Duel identity',
     () {
       final course = Course.fromJson(_bundledJson());
       expect(course.createDuels, isTrue);
@@ -193,13 +212,23 @@ void main() {
   );
 
   test(
-    'duplicates retain options and allocate fresh Lesson-owned GuideBook identities',
+    'Copy as New Course retains options and allocates fresh GuideBook IDs',
     () {
       final source = _course();
-      final copy = AuthoringDuplicationService().duplicateCourse(
-        source,
-        title: 'Independent copy',
-      );
+      final copy =
+          AuthoringDuplicationService(
+            clock: () => DateTime.utc(2026, 9, 6),
+          ).copyCourseAsNew(
+            source,
+            title: 'Independent copy',
+            originalCourseCreator: const CourseProvenanceIdentity.qqlUser(
+              profileId: '22222222-2222-4222-8222-222222222222',
+              displayName: 'Copy creator',
+            ),
+            maintainer: const CourseMaintainer(
+              '22222222-2222-4222-8222-222222222222',
+            ),
+          );
       _expectOptions(copy);
       expect(copy.courseId, isNot(source.courseId));
       expect(
@@ -229,36 +258,36 @@ void main() {
   test(
     'licensed official fork preserves options and immutable original provenance',
     () {
-      final sourceJson = _course().toJson()
-        ..remove('creatorProfileId')
-        ..remove('ownership');
+      final sourceJson = _bundledJson();
       final source = Course.fromJson({
         ...sourceJson,
-        'originType': 'bundledOfficial',
         'derivativeWorksPolicy': 'allowed',
       });
       final provenance = CourseForkProvenance(
-        originalPublisherId: source.publisherId,
-        originalPublisherName: source.publisherName,
-        originalCourseId: source.courseId,
-        originalOfficialCourseVersion: source.officialCourseVersion,
-        originalOfficialChecksum: source.officialChecksum,
-        originalCourseTitle: source.title,
-        originalAuthor: source.author,
-        originalAuthors: source.authors,
+        sourceCourseId: source.courseId,
+        sourceCourseTitle: source.title,
+        sourceCourseVersion: source.officialCourseVersion,
+        sourceOriginType: source.originType,
+        sourcePublisherId: source.publisherId,
+        sourcePublisherName: source.publisherName,
+        sourceOfficialChecksum: source.officialChecksum,
+        sourceAuthors: source.authors,
         forkCreatedByProfileId: '11111111-1111-4111-8111-111111111111',
-        forkCreatedByUsername: 'Fork author',
+        forkCreatedByDisplayName: 'Fork author',
         forkCreatedAtUtc: '2026-09-06T00:00:00.000Z',
       );
       final fork = AuthoringDuplicationService().forkOfficialCourse(
         source,
         provenance: provenance,
-        creatorProfileId: '11111111-1111-4111-8111-111111111111',
-        ownership: const CourseOwnership.individual(
+        maintainer: const CourseMaintainer(
           '11111111-1111-4111-8111-111111111111',
         ),
       );
-      _expectOptions(fork);
+      expect(fork.createDuels, source.createDuels);
+      expect(fork.useGuidebook, source.useGuidebook);
+      expect(fork.sectionNames, source.sectionNames);
+      expect(fork.worldFlagId, source.worldFlagId);
+      expect(fork.formatVersion, 9);
       expect(fork.forkProvenance!.toJson(), provenance.toJson());
       expect(
         fork.lessons.first.guidebookId,

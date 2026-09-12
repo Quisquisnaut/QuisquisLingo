@@ -133,7 +133,6 @@ Course _course() {
     targetLanguage: 'Italian',
     title: 'Course',
     ttsLanguage: 'it-IT',
-    version: '1',
     lessons: [lesson],
   );
 }

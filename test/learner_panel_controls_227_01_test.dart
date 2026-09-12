@@ -553,7 +553,6 @@ Course _twoLessonCourse() => Course(
   targetLanguage: 'Italian',
   title: 'IDDQD course',
   ttsLanguage: 'it-IT',
-  version: '1.0.0',
   lessons: [
     Lesson(lessonId: 'lesson-1', title: 'First', rounds: const []),
     Lesson(lessonId: 'lesson-2', title: 'Second', rounds: const []),
@@ -572,7 +571,6 @@ Course _flagCourse({
   targetLanguage: 'Test language',
   title: 'Flag course',
   ttsLanguage: 'en-US',
-  version: '1.0.0',
   flagCode: flagCode,
   flagImageBase64: flagImageBase64,
   worldFlagId: worldFlagId,

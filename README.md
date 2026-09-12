@@ -1,15 +1,17 @@
 # QuisquisLingo App
 
-**Current source version: 2.0.33+233030 · Build 233.1 · Course Model v8 (`formatVersion: 8`).**
+**Current source version: 2.0.33+233030 · Build 233.1 · Course Model v9 (`formatVersion: 9`).**
 
 
 **QuisquisLingo 2.0.33 Alpha — QQL 233 Linux Update, Learner Status Avatar, and Course/Team Governance**
 
 Current project version: 2.0.33
 
-QQL 233 is delivered through three planned phases. Phase 233.1 recognizes the actual generic Linux Alpha ZIP while preserving Windows and GitHub Releases policy. Phase 233.2 adds the two-step Learner profile/avatar flow, optional normalized Discord presentation, random initial skin and hair, and the authoritative ten-level Status display whose vivid current-level color drives the avatar T-shirt. Phase 233.3 makes every Course Owner an individual, separates optional Team assignment and Team governance, adds assignment warnings and experimental-model Help, corrects role identity/ID presentation, and keeps the Learner status bar exclusively inside the Learner Panel. Course Model v8 is a clean cut with no legacy custom-course migration. See [QQL 233 validation](docs/233_VALIDATION.md).
+QQL 233 is delivered through three planned phases. Phase 233.1 recognizes the actual generic Linux Alpha ZIP while preserving Windows and GitHub Releases policy. Phase 233.2 adds the two-step Learner profile/avatar flow, optional normalized Discord presentation, random initial skin and hair, and the authoritative ten-level Status display whose vivid current-level color drives the avatar T-shirt. Phase 233.3 separates individual Course responsibility from optional Team assignment and Team governance, adds assignment warnings and experimental-model Help, corrects role identity/ID presentation, and keeps the Learner status bar exclusively inside the Learner Panel. The same-version QQL 233.03 correction makes Course Model v9 a clean cut with no v8 migration or fallback reads. See [QQL 233 validation](docs/233_VALIDATION.md).
 
 The same-version QQL 233 correction keeps `2.0.33+233030` and the existing Alpha expiry unchanged. Review now waits on **Ready for Review** before the first Round; profile identity adds formal naming/Discord warnings, immutable five-digit Screen Name suffixes, admin invariants, optional Access PINs, a descriptive device name and private stable-identity Recovery Keys; and Team/Course names receive the shared safe-label policy. The application identity is the clean-cut `org.quisquislingo.app`, and the single crash log lives under the platform Documents/application-documents `QuisquisLingo/Logs` structure.
+
+Course Model v9 separates immutable lineage (**Original Course Creator**, **Original Course Created**, and fork-specific source/creator/date metadata) from operational responsibility (**Course Maintainer**, **Assigned Team**), structured attribution, descriptive legal metadata (**License**, **Rights Holder**) and current-version metadata (**Last Version Editor**, **Modified**). **Fork** preserves lineage; **Copy as New Course** starts an independent lineage while retaining content, structured attribution, Rights Holder and applicable License. None of the provenance, attribution or legal fields grants QQL permissions. v8 data remains physically untouched and is not read, migrated or used as fallback.
 
 QQL 232 remains the completed Review and Vocabulary reinforcement baseline. See [QQL 232 validation](docs/232_VALIDATION.md).
 
@@ -38,7 +40,7 @@ A Flutter prototype for an offline-first language-learning app.
 
 ## Baseline 200
 
-Version **2.0.0+200** remains the historical Course Model v3 baseline. Current development starts from this Course Model v8 source tree rather than an older archive. Repository-level agent instructions are in `AGENTS.md`.
+Version **2.0.0+200** remains the historical Course Model v3 baseline. Current development starts from this Course Model v9 source tree rather than an older archive. Repository-level agent instructions are in `AGENTS.md`.
 
 ## Project authorship
 
@@ -61,7 +63,7 @@ Course
     - Content / Exercise
   - Duel
 
-Each Lesson has its own GuideBook, ordered Rounds and Lesson-scoped Duel in Course Model v8. The first Content item of a Lesson’s first Round may present a short essential introduction drawn from that GuideBook.
+Each Lesson has its own GuideBook, ordered Rounds and Lesson-scoped Duel in Course Model v9. The first Content item of a Lesson’s first Round may present a short essential introduction drawn from that GuideBook.
 
 The learner page shows a continuous Lesson path, opens the Section picker from the fixed Section selector when real Sections exist, and opens GuideBooks, Rounds and Duels directly. Its Lesson display control cycles through Expanded, Collapse completed and Focused; it never collapses Sections or changes progression. The Course Selector can hide non-active Courses separately for each learner without uninstalling them or changing Course or learner data.
 

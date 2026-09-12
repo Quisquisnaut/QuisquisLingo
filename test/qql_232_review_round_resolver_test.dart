@@ -92,7 +92,6 @@ Course _course() => Course(
   targetLanguage: 'Italian',
   title: 'Resolver course',
   ttsLanguage: 'it-IT',
-  version: '1',
   lessons: [
     Lesson(
       lessonId: 'lesson-a',

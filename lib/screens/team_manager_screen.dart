@@ -15,7 +15,7 @@ Future<void> _showExperimentalTeamHelp(
     title: const Text('Experimental Team model'),
     content: const SingleChildScrollView(
       child: Text(
-        'Teams are an experimental QQL collaboration model. Course ownership and Team governance are separate. A Course is always owned by an individual user. Its Owner may assign a Team to manage it and may revoke that assignment.\n\nA Team can manage Courses created and owned by different individuals. Team Leaders govern Team membership and roles under the Team rules; being a Course Owner does not make someone a Team Leader, and being a Team Leader does not make someone a Course Owner.\n\nQQL permissions control behavior inside QQL. They do not by themselves determine copyright ownership, contractual rights, or authority in an external organization.',
+        'Teams are an experimental QQL collaboration model. Course maintenance and Team governance are separate. A Course has one individual Maintainer, who may assign a Team to manage it and may revoke that assignment.\n\nA Team can manage Courses created or maintained by different individuals. Team Leaders govern Team membership and roles under the Team rules; being a Course Maintainer does not make someone a Team Leader, and being a Team Leader does not make someone a Course Maintainer.\n\nQQL permissions control behavior inside QQL. They do not by themselves determine copyright ownership, contractual rights, or authority in an external organization.',
       ),
     ),
     actions: [
@@ -460,7 +460,7 @@ class _TeamDetailScreenState extends State<TeamDetailScreen> {
           builder: (context) => AlertDialog(
             title: const Text('Leave Team?'),
             content: Text(
-              'Leave “${team.displayName}”? You will lose its assigned-course management access unless you join the Team again. Courses, ownership, Team data and learner progress will not be deleted.',
+              'Leave “${team.displayName}”? You will lose its assigned-Course management access unless you join the Team again. Courses, Course maintainership, Team data and learner progress will not be deleted.',
             ),
             actions: [
               TextButton(

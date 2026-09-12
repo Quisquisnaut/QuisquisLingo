@@ -38,9 +38,12 @@ class CourseEditorTransaction {
       throw StateError('A custom transaction cannot become official.');
     }
     if (jsonEncode(course.forkProvenance?.toJson()) !=
-        jsonEncode(_originalCourse.forkProvenance?.toJson())) {
+            jsonEncode(_originalCourse.forkProvenance?.toJson()) ||
+        jsonEncode(course.originalCourseCreator.toJson()) !=
+            jsonEncode(_originalCourse.originalCourseCreator.toJson()) ||
+        course.originalCreatedAtUtc != _originalCourse.originalCreatedAtUtc) {
       throw const FormatException(
-        'Original fork provenance cannot be changed.',
+        'Original Course and fork provenance cannot be changed.',
       );
     }
     if (course.courseId != _originalCourse.courseId) {
@@ -84,16 +87,14 @@ class CourseEditorTransaction {
       'distributionChannel',
       'publisherVerificationStatus',
       'publisherSignature',
-      'creatorProfileId',
-      'ownership',
+      'originalCourseCreator',
+      'maintainer',
       'assignedTeamId',
       'courseVersion',
-      'createdByProfileId',
-      'createdByUsername',
-      'createdAtUtc',
-      'lastModifiedByProfileId',
-      'lastModifiedByUsername',
-      'lastModifiedAtUtc',
+      'originalCreatedAtUtc',
+      'lastVersionEditorProfileId',
+      'lastVersionEditorDisplayName',
+      'modifiedAtUtc',
       'versionNotes',
     ]) {
       if (active.containsKey(key)) {

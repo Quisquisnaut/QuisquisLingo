@@ -31,7 +31,6 @@ Course sampleCourse(Lesson lesson) => Course(
   targetLanguage: 'Italian',
   title: 'Audit course',
   ttsLanguage: 'it-IT',
-  version: '1',
   lessons: [lesson],
 );
 
@@ -322,7 +321,6 @@ void main() {
       targetLanguage: 'Italian',
       title: 'Scoped audit',
       ttsLanguage: 'it-IT',
-      version: '1',
       lessons: [first, second],
     );
     final service = CourseAuditService();

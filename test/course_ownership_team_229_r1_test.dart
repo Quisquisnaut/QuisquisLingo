@@ -47,15 +47,19 @@ Future<ProfileService> _profiles({bool includeCharlie = true}) async {
 }
 
 Course _custom({
-  String ownerId = aliceId,
+  String maintainerId = aliceId,
   String? assignedTeamId,
   DerivativeWorksPolicy policy = DerivativeWorksPolicy.forbidden,
   String title = 'Owned course',
 }) => Course(
-  courseId: 'course-owned-$ownerId-${assignedTeamId ?? 'individual'}',
-  creatorProfileId: aliceId,
-  ownership: CourseOwnership.individual(ownerId),
+  courseId: 'course-maintained-$maintainerId-${assignedTeamId ?? 'individual'}',
+  originalCourseCreator: CourseProvenanceIdentity.qqlUser(
+    profileId: aliceId,
+    displayName: 'Original Course Creator',
+  ),
+  maintainer: CourseMaintainer(maintainerId),
   assignedTeamId: assignedTeamId,
+  originalCreatedAtUtc: '2026-09-01T00:00:00.000Z',
   publicationState: PublicationState.draft,
   learningLanguage: 'Italian',
   interfaceLanguage: 'English',
@@ -63,9 +67,8 @@ Course _custom({
   targetLanguage: 'Italian',
   title: title,
   ttsLanguage: 'it-IT',
-  version: '1.0.0',
   authors: const [
-    CourseAuthor(name: 'Visible Author', roles: ['Course Creator']),
+    CourseAuthor(name: 'Visible Author', roles: ['Author']),
     CourseAuthor(name: 'Contributor Person', roles: ['Contributor']),
     CourseAuthor(name: 'Illustrator Person', roles: ['Illustrator']),
   ],
@@ -94,10 +97,9 @@ Course _official(DerivativeWorksPolicy policy) {
     targetLanguage: 'Italian',
     title: 'Official course',
     ttsLanguage: 'it-IT',
-    version: '1.0.0',
     derivativeWorksPolicy: policy,
     authors: const [
-      CourseAuthor(name: 'Official Author', roles: ['Course Creator']),
+      CourseAuthor(name: 'Official Author', roles: ['Author']),
     ],
     lessons: const [],
   );
@@ -114,37 +116,44 @@ void main() {
 
   setUp(() => SharedPreferences.setMockInitialValues({}));
 
-  test('Course Model v8 requires explicit custom Creator and Owner JSON', () {
-    final json = _custom().toJson();
-    expect(json['formatVersion'], 8);
-    expect(json['creatorProfileId'], aliceId);
-    expect(json['ownership'], {'type': 'individual', 'id': aliceId});
-    expect(Course.fromJson(json).ownership!.id, aliceId);
+  test(
+    'Course Model v9 requires Original Course Creator and Maintainer JSON',
+    () {
+      final json = _custom().toJson();
+      expect(json['formatVersion'], 9);
+      expect(json['originalCourseCreator'], {
+        'type': 'qqlUser',
+        'id': aliceId,
+        'displayName': 'Original Course Creator',
+      });
+      expect(json['maintainer'], {'profileId': aliceId});
+      expect(Course.fromJson(json).maintainer!.profileId, aliceId);
 
-    expect(
-      () => Course.fromJson({...json}..remove('creatorProfileId')),
-      throwsFormatException,
-    );
-    expect(
-      () => Course.fromJson({...json}..remove('ownership')),
-      throwsFormatException,
-    );
-    expect(
-      () => Course.fromJson({...json, 'formatVersion': 6}),
-      throwsFormatException,
-    );
-  });
+      expect(
+        () => Course.fromJson({...json}..remove('originalCourseCreator')),
+        throwsFormatException,
+      );
+      expect(
+        () => Course.fromJson({...json}..remove('maintainer')),
+        throwsFormatException,
+      );
+      expect(
+        () => Course.fromJson({...json, 'formatVersion': 6}),
+        throwsFormatException,
+      );
+    },
+  );
 
-  test('Owner rights and outsider derivative rights are distinct', () {
+  test('Maintainer access and outsider derivative rights are distinct', () {
     final restricted = _custom();
     final owner = CourseAccessPolicy.evaluate(restricted, profileId: aliceId);
     expect(owner.canEditOriginal, isTrue);
-    expect(owner.canDuplicate, isTrue);
+    expect(owner.canCopyAsNewCourse, isTrue);
     expect(owner.canFork, isFalse);
 
     final outsider = CourseAccessPolicy.evaluate(restricted, profileId: bobId);
     expect(outsider.canEditOriginal, isFalse);
-    expect(outsider.canDuplicate, isFalse);
+    expect(outsider.canCopyAsNewCourse, isFalse);
     expect(outsider.canFork, isFalse);
 
     final permissive = CourseAccessPolicy.evaluate(
@@ -152,7 +161,7 @@ void main() {
       profileId: bobId,
     );
     expect(permissive.canEditOriginal, isFalse);
-    expect(permissive.canDuplicate, isFalse);
+    expect(permissive.canCopyAsNewCourse, isFalse);
     expect(permissive.canFork, isTrue);
   });
 
@@ -166,12 +175,12 @@ void main() {
         memberTeamIds: {teamId},
       );
       expect(member.canEditOriginal, isTrue);
-      expect(member.canDuplicate, isTrue);
+      expect(member.canCopyAsNewCourse, isTrue);
       expect(member.canFork, isFalse);
 
       final removed = CourseAccessPolicy.evaluate(course, profileId: bobId);
       expect(removed.canEditOriginal, isFalse);
-      expect(removed.canDuplicate, isFalse);
+      expect(removed.canCopyAsNewCourse, isFalse);
       expect(removed.canFork, isFalse);
     },
   );
@@ -241,7 +250,7 @@ void main() {
       );
       expect(team.hasMember(aliceId), isFalse);
       expect(team.creatorProfileId, aliceId);
-      expect(teamCourse.ownership!.id, aliceId);
+      expect(teamCourse.maintainer!.profileId, aliceId);
       expect(teamCourse.assignedTeamId, team.teamId);
       expect(
         CourseAccessPolicy.evaluate(
@@ -343,7 +352,7 @@ void main() {
   );
 
   test(
-    'Duplicate and Fork are persisted clean baselines but real edits are dirty',
+    'Copy as New Course and Fork persist clean baselines while edits are dirty',
     () async {
       final profiles = await _profiles(includeCharlie: false);
       final service = CourseEditorService(
@@ -353,41 +362,47 @@ void main() {
       final source = _custom();
       await service.saveUserCourse(source);
 
-      final duplicate = await service.createDuplicate(
+      final copy = await service.createCopyAsNewCourse(
         source: source,
         title: 'Owned course copy',
       );
-      expect(duplicate.course.ownership!.id, aliceId);
-      expect(duplicate.course.creatorProfileId, aliceId);
-      expect(CourseEditorTransaction(duplicate.course).hasChanges, isFalse);
+      expect(copy.course.maintainer!.profileId, aliceId);
+      expect(copy.course.originalCourseCreator.id, aliceId);
+      expect(copy.course.forkProvenance, isNull);
+      expect(copy.course.assignedTeamId, isNull);
+      expect(CourseEditorTransaction(copy.course).hasChanges, isFalse);
 
       final edited = Course.fromJson({
-        ...duplicate.course.toJson(),
+        ...copy.course.toJson(),
         'title': 'A real edit',
       });
-      final transaction = CourseEditorTransaction(duplicate.course)
+      final transaction = CourseEditorTransaction(copy.course)
         ..replaceWorkingCourse(edited);
       expect(transaction.hasChanges, isTrue);
 
       final fork = await service.createFork(
         source: _official(DerivativeWorksPolicy.allowed),
       );
-      expect(fork.course.parentCourseId, 'official-course');
+      expect(fork.course.forkProvenance!.sourceCourseId, 'official-course');
+      expect(
+        fork.course.originalCourseCreator.id,
+        _official(DerivativeWorksPolicy.allowed).originalCourseCreator.id,
+      );
       expect(fork.course.forkProvenance, isNotNull);
       expect(CourseEditorTransaction(fork.course).hasChanges, isFalse);
     },
   );
 
   testWidgets(
-    'persisted Duplicate and Fork close cleanly while a real edit still prompts',
+    'persisted Copy as New Course and Fork close cleanly while edits prompt',
     (tester) async {
       final profiles = await _profiles(includeCharlie: false);
       final service = CourseEditorService(profileService: profiles);
       final source = _custom();
       await service.saveUserCourse(source);
-      final duplicate = (await service.createDuplicate(
+      final copy = (await service.createCopyAsNewCourse(
         source: source,
-        title: 'Clean duplicate',
+        title: 'Clean independent copy',
       )).course;
       final fork = (await service.createFork(
         source: _official(DerivativeWorksPolicy.allowed),
@@ -416,7 +431,7 @@ void main() {
         ),
       );
 
-      for (final course in [duplicate, fork]) {
+      for (final course in [copy, fork]) {
         selected = course;
         await tester.tap(find.byKey(const Key('open-generated-course')));
         await tester.pumpAndSettle();
@@ -429,9 +444,9 @@ void main() {
         expect(find.byKey(const Key('open-generated-course')), findsOneWidget);
       }
 
-      selected = duplicate;
+      selected = copy;
       await SettingsService().setCourseEditorMode(
-        duplicate.courseId,
+        copy.courseId,
         CourseEditorMode.edit,
       );
       await tester.tap(find.byKey(const Key('open-generated-course')));
@@ -455,9 +470,11 @@ void main() {
 
   test('Course metadata survives confirmation and reopen', () async {
     final profiles = await _profiles(includeCharlie: false);
+    final modifiedAt = DateTime.utc(2026, 9, 9, 14);
     final service = CourseEditorService(
       profileService: profiles,
       backupService: _MemoryBackupService(),
+      clock: () => modifiedAt,
     );
     final source = _custom();
     await service.saveUserCourse(source);
@@ -470,13 +487,14 @@ void main() {
     final working = Course.fromJson({
       ...source.toJson(),
       'authors': authors.map((author) => author.toJson()).toList(),
-      'author': 'All Credits',
       'license': 'CC BY-SA 4.0',
+      'rightsHolders': const [
+        {'type': 'organization', 'name': 'Rights Org'},
+      ],
       'derivativeWorksPolicy': DerivativeWorksPolicy.allowed.name,
       'languageVariant': 'Regional variant',
       'startLevel': 'A1',
       'targetLevel': 'B1',
-      'lastUpdated': '2026-09-09',
       'courseDescription': 'Preserved description',
       'buyACoffeeUrl': 'https://example.com/support',
     });
@@ -490,16 +508,19 @@ void main() {
     expect(reopened.license, 'CC BY-SA 4.0');
     expect(reopened.derivativeWorksPolicy, DerivativeWorksPolicy.allowed);
     expect(reopened.authors.single.roles, CourseMetadataOptions.standardRoles);
+    expect(reopened.rightsHolders.single.name, 'Rights Org');
     expect(reopened.languageVariant, 'Regional variant');
     expect(reopened.startLevel, 'A1');
     expect(reopened.targetLevel, 'B1');
-    expect(reopened.lastUpdated, '2026-09-09');
+    expect(reopened.lastVersionEditorProfileId, aliceId);
+    expect(reopened.lastVersionEditorDisplayName, 'Alice');
+    expect(reopened.modifiedAtUtc, modifiedAt.toIso8601String());
     expect(reopened.courseDescription, 'Preserved description');
     expect(reopened.buyACoffeeUrl, 'https://example.com/support');
   });
 
   test(
-    'services prevent Duplicate license bypass and permit licensed Fork',
+    'services prevent Copy as New Course bypass and permit licensed Fork',
     () async {
       final profiles = await _profiles(includeCharlie: false);
       final service = CourseEditorService(profileService: profiles);
@@ -507,7 +528,7 @@ void main() {
       await service.saveUserCourse(restricted);
       await profiles.setActiveProfileById(bobId);
       await expectLater(
-        service.createDuplicate(source: restricted, title: 'Bypass'),
+        service.createCopyAsNewCourse(source: restricted, title: 'Bypass'),
         throwsStateError,
       );
       await expectLater(
@@ -519,14 +540,15 @@ void main() {
         title: 'Licensed source',
       );
       final fork = await service.createFork(source: licensed);
-      expect(fork.course.ownership!.id, bobId);
-      expect(fork.course.creatorProfileId, bobId);
-      expect(fork.course.parentCourseId, licensed.courseId);
+      expect(fork.course.maintainer!.profileId, bobId);
+      expect(fork.course.originalCourseCreator.id, aliceId);
+      expect(fork.course.forkProvenance!.sourceCourseId, licensed.courseId);
+      expect(fork.course.forkProvenance!.forkCreatedByProfileId, bobId);
     },
   );
 
   test(
-    'Team duplicate preserves Owner and Team assignment while creator is duplicator',
+    'Team member Copy as New Course starts independent unassigned lineage',
     () async {
       final profiles = await _profiles(includeCharlie: false);
       final teams = TeamService(
@@ -550,14 +572,14 @@ void main() {
       );
       await aliceStorage.saveUserCourse(source);
       await profiles.setActiveProfileById(bobId);
-      final duplicate = await aliceStorage.createDuplicate(
+      final copy = await aliceStorage.createCopyAsNewCourse(
         source: source,
         title: 'Team copy',
       );
-      expect(duplicate.course.ownership!.type, CourseOwnerType.individual);
-      expect(duplicate.course.ownership!.id, aliceId);
-      expect(duplicate.course.assignedTeamId, teamId);
-      expect(duplicate.course.creatorProfileId, bobId);
+      expect(copy.course.maintainer!.profileId, bobId);
+      expect(copy.course.assignedTeamId, isNull);
+      expect(copy.course.originalCourseCreator.id, bobId);
+      expect(copy.course.forkProvenance, isNull);
 
       await profiles.setActiveProfileById(aliceId);
       await teams.removeMember(
@@ -567,13 +589,67 @@ void main() {
       );
       await profiles.setActiveProfileById(bobId);
       await expectLater(
-        aliceStorage.createDuplicate(source: source, title: 'Blocked copy'),
+        aliceStorage.createCopyAsNewCourse(
+          source: source,
+          title: 'Blocked copy',
+        ),
         throwsStateError,
       );
     },
   );
 
-  testWidgets('Course Info separates Owner, Creator, license and credits', (
+  testWidgets(
+    'Course Info separates Maintainer, provenance, license and credits',
+    (tester) async {
+      final profiles = await _profiles(includeCharlie: false);
+      final teams = TeamService(
+        profileService: profiles,
+        idGenerator: () => teamId,
+        clock: () => DateTime.utc(2026, 9, 9),
+      );
+      await teams.createTeam(
+        creatorProfileId: aliceId,
+        displayName: 'Renamable Team',
+      );
+      final course = _custom(assignedTeamId: teamId);
+      await tester.pumpWidget(
+        MaterialApp(
+          home: CourseInfoScreen(
+            course: course,
+            profileService: profiles,
+            teamService: teams,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.textContaining('Course Maintainer: Alice'), findsOneWidget);
+      expect(
+        find.textContaining('Original Course Creator: Alice'),
+        findsOneWidget,
+      );
+      expect(
+        find.textContaining('Assigned Team: Renamable Team'),
+        findsOneWidget,
+      );
+      expect(find.textContaining('Visible Author'), findsOneWidget);
+      expect(
+        find.textContaining('Contributors: Contributor Person'),
+        findsOneWidget,
+      );
+      expect(
+        find.textContaining('Illustrators: Illustrator Person'),
+        findsOneWidget,
+      );
+      await tester.scrollUntilVisible(
+        find.text('License / Rights'),
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
+      expect(find.textContaining('All rights reserved'), findsWidgets);
+    },
+  );
+
+  testWidgets('New Course metadata offers only individual Maintainer choices', (
     tester,
   ) async {
     final profiles = await _profiles(includeCharlie: false);
@@ -584,83 +660,39 @@ void main() {
     );
     await teams.createTeam(
       creatorProfileId: aliceId,
-      displayName: 'Renamable Team',
+      displayName: 'Creation Team',
     );
-    final course = _custom(assignedTeamId: teamId);
     await tester.pumpWidget(
       MaterialApp(
-        home: CourseInfoScreen(
-          course: course,
-          profileService: profiles,
-          teamService: teams,
+        home: CourseProjectsScreen(
+          currentCourse: _official(DerivativeWorksPolicy.allowed),
         ),
       ),
     );
-    await tester.pumpAndSettle();
-    expect(find.textContaining('Course Owner: Alice'), findsOneWidget);
-    expect(find.textContaining('Course Creator: Alice'), findsOneWidget);
-    expect(
-      find.textContaining('Assigned Team: Renamable Team'),
-      findsOneWidget,
-    );
-    expect(find.textContaining('Visible Author'), findsOneWidget);
-    expect(
-      find.textContaining('Contributors: Contributor Person'),
-      findsOneWidget,
-    );
-    expect(
-      find.textContaining('Illustrators: Illustrator Person'),
-      findsOneWidget,
-    );
-    expect(find.textContaining('All rights reserved'), findsWidgets);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+    await tester.tap(find.byKey(const Key('create-course-icon-action')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+
+    expect(find.byKey(const Key('new-course-license')), findsOneWidget);
+    expect(find.byKey(const Key('new-course-owner')), findsOneWidget);
+    expect(find.textContaining('Original Course Creator'), findsWidgets);
+    for (final role in CourseMetadataOptions.standardRoles) {
+      expect(find.text(role), findsOneWidget);
+    }
+    await tester.ensureVisible(find.byKey(const Key('new-course-owner')));
+    await tester.tap(find.byKey(const Key('new-course-owner')));
+    await tester.pump();
+    expect(find.text('Creation Team'), findsNothing);
+    expect(find.text('Alice (Original Course Creator)'), findsWidgets);
+    expect(find.text('Bob'), findsOneWidget);
+    await tester.tap(find.text('Bob'));
+    await tester.pump();
+    await tester.tap(find.text('Cancel'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
   });
-
-  testWidgets(
-    'New Course restores metadata and offers only individual ownership choices',
-    (tester) async {
-      final profiles = await _profiles(includeCharlie: false);
-      final teams = TeamService(
-        profileService: profiles,
-        idGenerator: () => teamId,
-        clock: () => DateTime.utc(2026, 9, 9),
-      );
-      await teams.createTeam(
-        creatorProfileId: aliceId,
-        displayName: 'Creation Team',
-      );
-      await tester.pumpWidget(
-        MaterialApp(
-          home: CourseProjectsScreen(
-            currentCourse: _official(DerivativeWorksPolicy.allowed),
-          ),
-        ),
-      );
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 100));
-      await tester.tap(find.byKey(const Key('create-course-icon-action')));
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 400));
-
-      expect(find.byKey(const Key('new-course-license')), findsOneWidget);
-      expect(find.byKey(const Key('new-course-owner')), findsOneWidget);
-      expect(find.byKey(const Key('new-course-last-updated')), findsOneWidget);
-      expect(find.text('Course Creator'), findsOneWidget);
-      for (final role in CourseMetadataOptions.standardRoles) {
-        expect(find.text(role), findsOneWidget);
-      }
-      await tester.ensureVisible(find.byKey(const Key('new-course-owner')));
-      await tester.tap(find.byKey(const Key('new-course-owner')));
-      await tester.pump();
-      expect(find.text('Creation Team'), findsNothing);
-      expect(find.text('Alice (Creator)'), findsWidgets);
-      expect(find.text('Bob'), findsOneWidget);
-      await tester.tap(find.text('Bob'));
-      await tester.pump();
-      await tester.tap(find.text('Cancel'));
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 400));
-    },
-  );
 
   testWidgets('unified Editor surface is capability-driven', (tester) async {
     await _profiles(includeCharlie: false);
@@ -707,7 +739,7 @@ void main() {
     );
     expect(find.text('Course Info Editor'), findsOneWidget);
     expect(
-      find.byKey(const Key('course-editor-duplicate-course')),
+      find.byKey(const Key('course-editor-copy-as-new-course')),
       findsOneWidget,
     );
   });

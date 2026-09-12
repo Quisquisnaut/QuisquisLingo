@@ -573,7 +573,6 @@ Course _course({
   sourceLanguage: 'English',
   targetLanguage: 'Italian',
   ttsLanguage: 'it-IT',
-  version: '1',
   createDuels: createDuels,
   useGuidebook: useGuidebook,
   lessons: [

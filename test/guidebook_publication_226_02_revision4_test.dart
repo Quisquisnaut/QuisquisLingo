@@ -39,7 +39,7 @@ void main() {
     final restored = Course.fromJson(
       jsonDecode(jsonEncode(original.toJson())) as Map<String, dynamic>,
     );
-    expect(restored.formatVersion, 8);
+    expect(restored.formatVersion, 9);
     expect(restored.courseId, original.courseId);
     expect(restored.lessons.single.lessonId, original.lessons.single.lessonId);
     expect(
@@ -220,7 +220,17 @@ void main() {
             ids: TimestampAuthoringIdGenerator(seed: 226024),
           );
           final lessonCopy = service.duplicateLesson(original.lessons.single);
-          final courseCopy = service.duplicateCourse(original, title: 'Copy');
+          final courseCopy = service.copyCourseAsNew(
+            original,
+            title: 'Copy',
+            originalCourseCreator: const CourseProvenanceIdentity.qqlUser(
+              profileId: '11111111-1111-4111-8111-111111111111',
+              displayName: 'Copy creator',
+            ),
+            maintainer: const CourseMaintainer(
+              '11111111-1111-4111-8111-111111111111',
+            ),
+          );
           for (final lesson in [lessonCopy, courseCopy.lessons.single]) {
             expect(lesson.publicationState, PublicationState.draft);
             expect(lesson.guidebook.publicationState, PublicationState.draft);
@@ -265,7 +275,6 @@ Course _course(Guidebook guidebook) => Course(
   targetLanguage: 'Italian',
   title: 'Guidebook publication',
   ttsLanguage: 'it-IT',
-  version: '1',
   lessons: [
     Lesson(
       lessonId: 'lesson',

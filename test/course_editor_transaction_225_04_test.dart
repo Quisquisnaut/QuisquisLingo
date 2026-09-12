@@ -90,10 +90,15 @@ void main() {
       );
 
       expect(result.course.courseVersion, '1');
-      expect(result.course.createdByProfileId, _profileId);
-      expect(result.course.createdByUsername, 'Author Ω');
-      expect(result.course.createdAtUtc, _when.toIso8601String());
-      expect(result.course.lastModifiedByUsername, 'Author Ω');
+      expect(result.course.originalCourseCreator.id, _profileId);
+      expect(
+        result.course.originalCourseCreator.displayName,
+        'Original Course Creator',
+      );
+      expect(result.course.originalCreatedAtUtc, _when.toIso8601String());
+      expect(result.course.lastVersionEditorProfileId, _profileId);
+      expect(result.course.lastVersionEditorDisplayName, 'Author Ω');
+      expect(result.course.modifiedAtUtc, _when.toIso8601String());
       expect(result.course.versionNotes, 'First line\nSecond line');
       expect(result.backupPath, isNull);
       expect(await backups.listBackups(source.courseId), isEmpty);
@@ -102,7 +107,7 @@ void main() {
   );
 
   test(
-    'Created stays stable while a saved content change updates Modified',
+    'Original Course Created stays stable while content updates Modified',
     () async {
       final source = _customCourse(title: 'Timestamped', version: '');
       final service = CourseEditorService(
@@ -129,9 +134,12 @@ void main() {
         committedAt: later,
       );
 
-      expect(modified.course.createdAtUtc, created.course.createdAtUtc);
-      expect(modified.course.createdAtUtc, _when.toIso8601String());
-      expect(modified.course.lastModifiedAtUtc, later.toIso8601String());
+      expect(
+        modified.course.originalCreatedAtUtc,
+        created.course.originalCreatedAtUtc,
+      );
+      expect(modified.course.originalCreatedAtUtc, _when.toIso8601String());
+      expect(modified.course.modifiedAtUtc, later.toIso8601String());
     },
   );
 
@@ -187,7 +195,7 @@ void main() {
         result.backupPath,
         contains(
           '${Platform.pathSeparator}QuisquisLingo${Platform.pathSeparator}Exports'
-          '${Platform.pathSeparator}Course Backups${Platform.pathSeparator}'
+          '${Platform.pathSeparator}Course Backups v9${Platform.pathSeparator}'
           '${source.courseId}${Platform.pathSeparator}',
         ),
       );
@@ -208,7 +216,7 @@ void main() {
       final first = _customCourse(title: 'First', version: '2');
       final second = _customCourse(
         title: 'Second',
-        version: '3',
+        version: '2',
         courseId: 'another-course',
       );
       final a = await backups.createBackup(
@@ -426,23 +434,11 @@ void main() {
     },
   );
 
-  test('legacy custom version advances monotonically as an integer', () async {
-    final source = _customCourse(title: 'Legacy version', version: '7.4.2');
-    final service = CourseEditorService(
-      backupService: backups,
-      clock: () => _when,
+  test('noncanonical custom versions are rejected by Course Model v9', () {
+    expect(
+      () => _customCourse(title: 'Invalid version', version: '7.4.2'),
+      throwsFormatException,
     );
-    await service.saveUserCourse(source);
-    final result = await service.confirmCourseTransaction(
-      originalCourse: source,
-      workingCourse: Course.fromJson({
-        ...source.toJson(),
-        'title': 'Next integer version',
-      }),
-      languageCode: 'ZZ',
-      versionNotes: '',
-    );
-    expect(result.course.courseVersion, '8');
   });
 
   test(
@@ -474,6 +470,34 @@ void main() {
       final history = await backups.listBackups(v3.courseId);
       expect(history, hasLength(1));
       expect(history.single.course.toJson(), installed.officialCourse.toJson());
+
+      for (final changedLineage in [
+        {
+          'originalCourseCreator': const CourseProvenanceIdentity.publisher(
+            publisherId: 'team.example',
+            displayName: 'Replacement provenance',
+          ).toJson(),
+        },
+        {'originalCreatedAtUtc': '2026-09-05T12:00:00.000Z'},
+      ]) {
+        final candidateWithoutChecksum = Course.fromJson({
+          ..._officialCourse(
+            origin: CourseOriginType.externalOfficial,
+            officialVersion: '5',
+          ).toJson(),
+          ...changedLineage,
+        });
+        final candidate = Course.fromJson({
+          ...candidateWithoutChecksum.toJson(),
+          'officialChecksum': CourseBackupService.officialContentChecksum(
+            candidateWithoutChecksum,
+          ),
+        });
+        await expectLater(
+          service.installExternalOfficialUpdate(candidate),
+          throwsFormatException,
+        );
+      }
 
       final attacker = _officialCourse(
         origin: CourseOriginType.externalOfficial,
@@ -513,12 +537,15 @@ void main() {
         throwsA(isA<FormatException>()),
       );
 
-      final separate = collidingCustom.fork();
+      final separate = (await service.createCopyAsNewCourse(
+        source: collidingCustom,
+        title: 'Independent copy',
+      )).course;
       expect(separate.originType, CourseOriginType.custom);
       expect(separate.courseId, isNot(official.courseId));
-      expect(separate.parentCourseId, official.courseId);
+      expect(separate.originalCourseCreator.id, _profileId);
+      expect(separate.forkProvenance, isNull);
       expect(separate.publisherId, isEmpty);
-      await service.saveUserCourse(separate);
       expect(await service.listUserCourses(), hasLength(2));
     },
   );
@@ -543,9 +570,15 @@ Course _customCourse({
   String courseId = 'custom-transaction-course',
 }) => Course(
   courseId: courseId,
-  creatorProfileId: _profileId,
-  ownership: const CourseOwnership.individual(_profileId),
+  originalCourseCreator: CourseProvenanceIdentity.qqlUser(
+    profileId: _profileId,
+    displayName: 'Original Course Creator',
+  ),
+  maintainer: const CourseMaintainer(_profileId),
   originType: CourseOriginType.custom,
+  originalCreatedAtUtc: version.isEmpty
+      ? _when.toIso8601String()
+      : '2026-09-01T00:00:00.000Z',
   publicationState: PublicationState.draft,
   learningLanguage: 'Italian',
   interfaceLanguage: 'English',
@@ -553,7 +586,6 @@ Course _customCourse({
   targetLanguage: 'Italian',
   title: title,
   ttsLanguage: 'it-IT',
-  version: '1',
   courseVersion: version,
   lessons: [_lesson()],
 );
@@ -584,7 +616,6 @@ Course _officialCourse({
     targetLanguage: 'Italian',
     title: title,
     ttsLanguage: 'it-IT',
-    version: officialVersion,
     lessons: [_lesson()],
   );
   return Course.fromJson({

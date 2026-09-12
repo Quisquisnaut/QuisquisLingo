@@ -17,7 +17,6 @@ Course _course({List<Lesson>? lessons}) => Course(
   targetLanguage: 'Italian',
   title: 'Test',
   ttsLanguage: 'it-IT',
-  version: '1',
   lessons: lessons ?? [_lesson('t1'), _lesson('t2'), _lesson('t3')],
 );
 

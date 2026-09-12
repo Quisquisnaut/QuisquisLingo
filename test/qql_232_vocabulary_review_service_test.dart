@@ -440,7 +440,6 @@ Course _course({
   targetLanguage: 'Italian',
   title: title,
   ttsLanguage: 'it-IT',
-  version: '1',
   useGuidebook: useGuidebook,
   lessons: [
     Lesson(

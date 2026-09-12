@@ -131,7 +131,7 @@ void main() {
   );
 
   test(
-    'official history skips old local manifests without parsing or deleting them',
+    'official v9 history ignores the old backup directory without deleting it',
     () async {
       SharedPreferences.setMockInitialValues({});
       final official = await CourseService().loadBundledCourse('IT');
@@ -147,10 +147,15 @@ void main() {
         backedUpAt: DateTime.utc(2026, 9, 5),
         reason: 'Official source',
       );
-      final courseDirectory = await backups.courseBackupDirectory(
-        official.courseId,
+      final oldCourseDirectory = Directory(
+        '${directory.path}${Platform.pathSeparator}QuisquisLingo'
+        '${Platform.pathSeparator}Exports${Platform.pathSeparator}Course Backups'
+        '${Platform.pathSeparator}${official.courseId}',
       );
-      final oldManifest = File('${courseDirectory.path}/legacy.json');
+      await oldCourseDirectory.create(recursive: true);
+      final oldManifest = File(
+        '${oldCourseDirectory.path}${Platform.pathSeparator}legacy.json',
+      );
       final raw = jsonEncode({
         'course': {'localCourseVersion': 99, 'title': 'Old local content'},
       });
@@ -163,22 +168,24 @@ void main() {
   );
 
   test(
-    'official checksum covers derivative permission and serialized restore metadata',
+    'official checksum covers derivative permission and rejects custom restore metadata',
     () async {
       SharedPreferences.setMockInitialValues({});
       final source = await CourseService().loadBundledCourse('IT');
       final hash = CourseBackupService.officialContentChecksum(source);
-      for (final change in [
-        {'derivativeWorksPolicy': 'allowed'},
-        {'restoredFromVersion': 7},
-      ]) {
-        expect(
-          CourseBackupService.officialContentChecksum(
-            Course.fromJson({...source.toJson(), ...change}),
-          ),
-          isNot(hash),
-        );
-      }
+      expect(
+        CourseBackupService.officialContentChecksum(
+          Course.fromJson({
+            ...source.toJson(),
+            'derivativeWorksPolicy': 'allowed',
+          }),
+        ),
+        isNot(hash),
+      );
+      expect(
+        () => Course.fromJson({...source.toJson(), 'restoredFromVersion': 7}),
+        throwsFormatException,
+      );
       final metadataOnly = Course.fromJson({
         ...source.toJson(),
         'publisherVerificationStatus': 'unverified',

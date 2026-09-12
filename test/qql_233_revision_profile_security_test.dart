@@ -341,8 +341,11 @@ void main() {
       );
       final course = Course(
         courseId: 'identity-course',
-        creatorProfileId: _aliceId,
-        ownership: const CourseOwnership.individual(_aliceId),
+        originalCourseCreator: CourseProvenanceIdentity.qqlUser(
+          profileId: _aliceId,
+          displayName: 'Original Course Creator',
+        ),
+        maintainer: const CourseMaintainer(_aliceId),
         assignedTeamId: _teamId,
         learningLanguage: 'Italian',
         interfaceLanguage: 'English',
@@ -350,7 +353,6 @@ void main() {
         targetLanguage: 'Italian',
         title: 'Identity Course',
         ttsLanguage: 'it-IT',
-        version: '1',
         lessons: const [],
       );
 
@@ -362,8 +364,8 @@ void main() {
 
       expect(renamed.learnerProfileId, _aliceId);
       expect(renamed.screenNameSuffix, alice.screenNameSuffix);
-      expect(course.creatorProfileId, _aliceId);
-      expect(course.ownership!.id, _aliceId);
+      expect(course.originalCourseCreator.id, _aliceId);
+      expect(course.maintainer!.profileId, _aliceId);
       expect(course.assignedTeamId, _teamId);
       final team = await teams.teamById(_teamId);
       expect(team!.memberProfileIds, contains(_aliceId));

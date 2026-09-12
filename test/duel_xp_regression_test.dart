@@ -183,7 +183,6 @@ _DuelFixture _duelFixture({bool lessonIsFinal = false}) {
     targetLanguage: 'Italian',
     title: 'Duel XP Course',
     ttsLanguage: 'it-IT',
-    version: '1.0.0',
     lessons: lessonIsFinal ? [lesson] : [lesson, followingLesson],
   );
   return _DuelFixture(course: course, lesson: lesson);

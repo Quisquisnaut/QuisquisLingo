@@ -209,7 +209,7 @@ void main() {
     expect(status.lessonHasRoundAuditConcern(lesson), isFalse);
     expect(status.hasLessonsAuditConcern, isFalse);
     expect(status.hasCourseAuditConcern, isFalse);
-    expect(AuditCode.values, hasLength(102));
+    expect(AuditCode.values, hasLength(101));
   });
 
   test(
@@ -247,10 +247,10 @@ void main() {
   test('Course metadata concern does not belong to the Lessons link', () {
     final course = Course.fromJson({
       ..._course().toJson(),
-      'lastUpdated': 'invalid date',
+      'courseDescription': List.filled(5001, 'x').join(),
     });
     final concerns = _concerns(CourseAuditService().auditCourse(course));
-    expect(concerns.map((issue) => issue.code), ['COURSE_DATE_INVALID']);
+    expect(concerns.map((issue) => issue.code), ['COURSE_DESCRIPTION_LONG']);
     final status = AuthoringHierarchyStatus.fromCourse(course);
     expect(status.hasCourseAuditConcern, isTrue);
     expect(status.hasLessonsAuditConcern, isFalse);
@@ -344,7 +344,6 @@ Course _course({
   targetLanguage: 'Italian',
   title: 'Branch ownership',
   ttsLanguage: 'it-IT',
-  version: '1',
   lessons: [
     Lesson(
       lessonId: 'reviewed-lesson',

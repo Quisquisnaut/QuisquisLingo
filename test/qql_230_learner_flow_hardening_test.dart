@@ -275,7 +275,6 @@ Course _course(String courseId, Lesson lesson) => Course(
   targetLanguage: 'Italian',
   title: 'QQL 230 Course',
   ttsLanguage: 'it-IT',
-  version: '1.0.0',
   lessons: [lesson],
 );
 

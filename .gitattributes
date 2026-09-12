@@ -7,3 +7,6 @@
 /assets/world_flags/flags/sami.svg -text
 /assets/world_flags/flags/sardinian.svg -text
 /assets/world_flags/flags/sorbian.svg -text
+/matXpack/*.pdf -text -diff
+/matXpack/*.pdf -text -diff
+/matXpack/*.pdf -text -diff

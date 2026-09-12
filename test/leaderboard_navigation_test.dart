@@ -257,7 +257,6 @@ void main() {
       targetLanguage: 'Italian',
       title: 'Icon slots',
       ttsLanguage: 'it-IT',
-      version: '1',
       flagCode: 'IT',
       lessons: [
         Lesson(
@@ -1622,7 +1621,6 @@ void main() {
         targetLanguage: 'Italian',
         title: 'Custom course before Settings',
         ttsLanguage: 'it-IT',
-        version: '1',
         flagCode: 'IT',
         lessons: [
           Lesson(lessonId: 'reload-lesson', title: 'Lesson', rounds: const []),
@@ -2131,7 +2129,6 @@ void main() {
       targetLanguage: 'Italian',
       title: 'Long Lesson Heading Course',
       ttsLanguage: 'it-IT',
-      version: '1.0.0',
       flagCode: 'IT',
       lessons: [
         Lesson(lessonId: 'first', title: 'First Lesson', rounds: const []),
@@ -2187,7 +2184,6 @@ void main() {
         targetLanguage: 'Italian',
         title: 'Selector Ellipsis Course',
         ttsLanguage: 'it-IT',
-        version: '1.0.0',
         flagCode: 'IT',
         lessons: [
           Lesson(
@@ -2265,7 +2261,6 @@ void main() {
         targetLanguage: 'Italian',
         title: 'Responsive Lesson Metadata',
         ttsLanguage: 'it-IT',
-        version: '1',
         flagCode: 'IT',
         lessons: [
           Lesson(
@@ -3330,7 +3325,6 @@ Course _courseFixture() => Course(
   targetLanguage: 'Italian',
   title: 'Navigation Course',
   ttsLanguage: 'it-IT',
-  version: '1.0.0',
   lessons: const [],
 );
 
@@ -3343,7 +3337,6 @@ Course _publishedCustomCourse() => Course(
   targetLanguage: 'Italian',
   title: 'Selector custom 229',
   ttsLanguage: 'it-IT',
-  version: '1',
   courseVersion: '1',
   lessons: const [],
 );

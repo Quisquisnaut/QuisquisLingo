@@ -17,13 +17,22 @@ const _stamp = '2026-09-11T10:00:00.000Z';
 Course _course({
   String courseId = 'qql231_course',
   CourseOriginType origin = CourseOriginType.custom,
-  CourseOwnership? ownership = const CourseOwnership.individual(ownerId),
+  CourseMaintainer? maintainer = const CourseMaintainer(ownerId),
   String? assignedTeamId,
 }) => Course(
   courseId: courseId,
-  creatorProfileId: origin == CourseOriginType.custom ? ownerId : null,
-  ownership: origin == CourseOriginType.custom ? ownership : null,
+  originalCourseCreator: origin == CourseOriginType.custom
+      ? const CourseProvenanceIdentity.qqlUser(
+          profileId: ownerId,
+          displayName: 'Original Course Creator',
+        )
+      : const CourseProvenanceIdentity.publisher(
+          publisherId: 'org.quisquislingo',
+          displayName: 'QQL',
+        ),
+  maintainer: origin == CourseOriginType.custom ? maintainer : null,
   assignedTeamId: origin == CourseOriginType.custom ? assignedTeamId : null,
+  originalCreatedAtUtc: _stamp,
   originType: origin,
   publisherId: origin.isOfficial ? 'org.quisquislingo' : '',
   publisherName: origin.isOfficial ? 'QQL' : '',
@@ -40,7 +49,6 @@ Course _course({
   targetLanguage: 'Italian',
   title: 'QQL 231 course',
   ttsLanguage: 'it-IT',
-  version: '1',
   lessons: [
     Lesson(
       lessonId: 'lesson_231',
@@ -237,7 +245,7 @@ void main() {
         ),
       );
       expect(editItem.enabled, isFalse);
-      expect(outside.effectiveEditDeniedReason, contains('Owner'));
+      expect(outside.effectiveEditDeniedReason, contains('Maintainer'));
     },
   );
 
@@ -343,7 +351,7 @@ void main() {
     final course = _course(
       courseId: 'official_qql231',
       origin: CourseOriginType.bundledOfficial,
-      ownership: null,
+      maintainer: null,
     );
     final access = CourseAccessPolicy.evaluate(course, profileId: otherId);
     await SettingsService().setCourseEditorMode(

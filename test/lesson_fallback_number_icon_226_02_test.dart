@@ -142,7 +142,6 @@ Course _course(String persisted, {CourseLessonIconAsset? customIcon}) =>
         targetLanguage: 'Italian',
         title: 'Fallback number icons',
         ttsLanguage: 'it-IT',
-        version: '1',
         lessons: [
           Lesson(
             lessonId: 'number-lesson',

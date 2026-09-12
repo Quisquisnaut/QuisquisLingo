@@ -68,6 +68,10 @@ void main() {
       expect(find.byType(CourseInfoScreen), findsOneWidget);
       expect(find.textContaining('Original Publisher'), findsWidgets);
       expect(find.textContaining('Original Author'), findsWidgets);
+      expect(
+        find.textContaining('Original Course Creator: Original Publisher'),
+        findsOneWidget,
+      );
       _expectNoAuthoring();
       await _back(tester);
 
@@ -168,7 +172,7 @@ void main() {
       expect(editor.course.courseId, isNot(official.courseId));
       expect(editor.course.authors.single.name, 'Original Author');
       expect(
-        editor.course.forkProvenance!.forkCreatedByUsername,
+        editor.course.forkProvenance!.forkCreatedByDisplayName,
         'Fork Creator',
       );
       expect(await service.listUserCourses(), hasLength(1));
@@ -180,10 +184,13 @@ void main() {
       await _settle(tester);
       expect(find.byType(CourseForkProvenanceCard), findsOneWidget);
       expect(
-        find.textContaining('Original authors:\nOriginal Author'),
+        find.textContaining('Source Authors / Contributors:\nOriginal Author'),
         findsOneWidget,
       );
-      expect(find.textContaining('Forked by: Fork Creator'), findsOneWidget);
+      expect(
+        find.textContaining('Fork Created By: Fork Creator'),
+        findsOneWidget,
+      );
       final title = find.byKey(const Key('course-info-title'));
       await tester.enterText(title, 'My renamed custom fork');
       await tester.tap(find.byKey(const Key('course-info-save')));
@@ -201,9 +208,9 @@ void main() {
       expect(saved.title, 'My renamed custom fork');
       expect(saved.courseVersion, '2');
       expect(saved.authors.single.name, 'Original Author');
-      expect(saved.forkProvenance!.originalCourseTitle, official.title);
+      expect(saved.forkProvenance!.sourceCourseTitle, official.title);
       expect(
-        saved.forkProvenance!.originalOfficialChecksum,
+        saved.forkProvenance!.sourceOfficialChecksum,
         official.officialChecksum,
       );
       expect(saved.forkProvenance!.forkCreatedByProfileId, _profileId);
@@ -441,9 +448,8 @@ Course _official({
     targetLanguage: 'Italian',
     title: 'Publisher Course',
     ttsLanguage: 'it-IT',
-    version: '1',
     authors: const [
-      CourseAuthor(name: 'Original Author', roles: ['Course Creator']),
+      CourseAuthor(name: 'Original Author', roles: ['Author']),
     ],
     license: 'Publisher content license',
     derivativeWorksPolicy: policy,

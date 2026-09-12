@@ -344,7 +344,6 @@ _LessonFixture _lessonFixture() {
     targetLanguage: 'Italian',
     title: 'Lesson Characterization Course',
     ttsLanguage: 'it-IT',
-    version: '1.0.0',
     lessons: [lesson, unrelatedLesson],
   );
   return _LessonFixture(

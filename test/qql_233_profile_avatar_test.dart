@@ -442,7 +442,6 @@ final _course = Course(
   targetLanguage: 'Italian',
   title: 'QQL 233 Status Course',
   ttsLanguage: 'it-IT',
-  version: '1.0.0',
   lessons: const [],
 );
 

@@ -119,8 +119,7 @@ void main() {
       final original = _customCourse(
         title: 'Original',
         courseVersion: '7',
-        parentCourseId: 'licensed-parent',
-        derivedFromVersion: '3',
+        forkProvenance: _forkProvenance('licensed-parent'),
       );
       await service.installImportedCustomCourse(original);
       final imported = Course.fromJson({
@@ -135,8 +134,8 @@ void main() {
       final stored = (await service.listUserCourses()).single;
       expect(stored.title, 'Imported update');
       expect(stored.courseVersion, '8');
-      expect(stored.parentCourseId, 'licensed-parent');
-      expect(stored.derivedFromVersion, '3');
+      expect(stored.forkProvenance!.sourceCourseId, 'licensed-parent');
+      expect(stored.forkProvenance!.sourceCourseVersion, '3');
       expect(stored.versionNotes, 'Imported replacement');
       final history = await backups.listBackups(original.courseId);
       expect(history, hasLength(1));
@@ -145,7 +144,7 @@ void main() {
     },
   );
 
-  test('same-ID custom import cannot rewrite ownership or lineage', () async {
+  test('same-ID custom import cannot rewrite maintainer or lineage', () async {
     final service = CourseEditorService(
       backupService: backups,
       clock: () => _when,
@@ -153,20 +152,22 @@ void main() {
     final original = _customCourse(
       title: 'Original',
       courseVersion: '4',
-      parentCourseId: 'licensed-parent',
-      derivedFromVersion: '3',
+      forkProvenance: _forkProvenance('licensed-parent'),
     );
     await service.installImportedCustomCourse(original);
 
     final invalidReplacements = [
       Course.fromJson({
         ...original.toJson(),
-        'creatorProfileId': _otherProfileId,
-        'ownership': const CourseOwnership.individual(_otherProfileId).toJson(),
+        'originalCourseCreator': const CourseProvenanceIdentity.qqlUser(
+          profileId: _otherProfileId,
+          displayName: 'Replacement creator',
+        ).toJson(),
+        'maintainer': const CourseMaintainer(_otherProfileId).toJson(),
       }),
       Course.fromJson({
         ...original.toJson(),
-        'parentCourseId': 'different-parent',
+        'forkProvenance': _forkProvenance('different-parent').toJson(),
       }),
     ];
     for (final replacement in invalidReplacements) {
@@ -282,26 +283,44 @@ Course _customCourse({
   String courseId = 'qql-230-custom-course',
   required String title,
   String courseVersion = '1',
-  String? parentCourseId,
-  String? derivedFromVersion,
+  CourseForkProvenance? forkProvenance,
 }) => Course(
   courseId: courseId,
-  creatorProfileId: _profileId,
-  ownership: const CourseOwnership.individual(_profileId),
+  originalCourseCreator: CourseProvenanceIdentity.qqlUser(
+    profileId: _profileId,
+    displayName: 'Original Course Creator',
+  ),
+  maintainer: const CourseMaintainer(_profileId),
   originType: CourseOriginType.custom,
   publicationState: PublicationState.draft,
-  parentCourseId: parentCourseId,
-  derivedFromVersion: derivedFromVersion,
+  originalCreatedAtUtc: '2026-09-01T09:00:00.000Z',
+  lastVersionEditorProfileId: _profileId,
+  lastVersionEditorDisplayName: 'QQL Author',
+  modifiedAtUtc: '2026-09-01T09:00:00.000Z',
+  forkProvenance: forkProvenance,
   learningLanguage: 'Italian',
   interfaceLanguage: 'English',
   sourceLanguage: 'English',
   targetLanguage: 'Italian',
   title: title,
   ttsLanguage: 'it-IT',
-  version: '1',
   courseVersion: courseVersion,
   lessons: const [],
 );
+
+CourseForkProvenance _forkProvenance(String sourceCourseId) =>
+    CourseForkProvenance(
+      sourceCourseId: sourceCourseId,
+      sourceCourseTitle: 'Licensed source',
+      sourceCourseVersion: '3',
+      sourceOriginType: CourseOriginType.custom,
+      sourceAuthors: const [
+        CourseAuthor(name: 'Source author', roles: ['Author']),
+      ],
+      forkCreatedByProfileId: _profileId,
+      forkCreatedByDisplayName: 'QQL Author',
+      forkCreatedAtUtc: '2026-09-01T09:00:00.000Z',
+    );
 
 Course _externalOfficialCourse() {
   final provisional = Course(
@@ -321,7 +340,6 @@ Course _externalOfficialCourse() {
     targetLanguage: 'Italian',
     title: 'External official',
     ttsLanguage: 'it-IT',
-    version: '1',
     lessons: const [],
   );
   return Course.fromJson({

@@ -281,7 +281,6 @@ Course _course() {
     targetLanguage: 'Italian',
     title: 'Italian test',
     ttsLanguage: 'it-IT',
-    version: '1',
     lessons: [lesson],
   );
 }

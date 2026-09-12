@@ -22,7 +22,7 @@ class EditorHelpScreen extends StatelessWidget {
         _HelpSection(
           title: 'Course origin',
           body:
-              'Bundled official courses are verified immutable source copies supplied with QuisquisLingo. External official courses retain their declared publisher identity but are labelled unverified when QQL cannot authenticate that publisher. Custom courses are created locally or imported without official provenance. Both official origins open Official course - read only: inspect Course Info, Audit, Preview, Version History and Lessons/Rounds/Exercises without an authoring transaction. Course Info shows publisher, official version, verification status and checksum. Only an explicit derivativeWorksPolicy of allowed enables Fork as custom course; forbidden or unspecified permission explains why it is unavailable. A fork has fresh IDs and independent custom history, permanently retains original publisher/authors/provenance, and records the fork creator separately. Custom duplication remains a separate action.',
+              'Bundled official courses are verified immutable source copies supplied with QuisquisLingo. External official courses retain their declared publisher identity but are labelled unverified when QQL cannot authenticate that publisher. Custom courses are created locally or imported without official provenance. Both official origins open Official course - read only: inspect Course Info, Audit, Preview, Version History and Lessons/Rounds/Exercises without an authoring transaction. Course Info shows publisher, official version, verification status and checksum. Only an explicit derivativeWorksPolicy of allowed enables Fork; forbidden or unspecified permission explains why it is unavailable. A Fork has fresh IDs and independent custom history while preserving its source lineage. Copy as New Course is a separate action that begins a new independent lineage.',
         ),
         _HelpSection(
           title: 'Temporary sample content',
@@ -32,7 +32,7 @@ class EditorHelpScreen extends StatelessWidget {
         _HelpSection(
           title: 'Course Editor lock and structure',
           body:
-              'The single access control is on the Course Editor root. Locked uses a closed lock, keeps that root visible and blocks entry into Lessons. View only uses an eye, is the default and opens the ordinary Exercise form read-only while allowing Search, Help, Show/Hide IDs, Preview and Audit. Inspection mode uses the code icon and opens Exercises in their read-only technical presentation by default; their local Inspection toggle can show the ordinary form, which remains read-only. Edit uses the pencil and enables authoring only when the current user already has effective Owner or owning-Team permission; the control never grants authorization. Official courses and outsiders offer Locked, View only and Inspection mode, with the Edit authorization reason shown in the Editor. The first View-only entry notice is dismissed per user and Course; Show one-time notices again resets it without changing the access state. For custom courses, Lessons is the first content section. Each Lesson page puts Rounds first, followed by Round / Exercises. A duplicate is inserted after its source with fresh IDs throughout its owned subtree and starts as Draft. Exercise type cannot be changed after creation. Each Lesson retains its GuideBook and stable Lesson-scoped Duel identity.',
+              'The single access control is on the Course Editor root. Locked uses a closed lock, keeps that root visible and blocks entry into Lessons. View only uses an eye, is the default and opens the ordinary Exercise form read-only while allowing Search, Help, Show/Hide IDs, Preview and Audit. Inspection mode uses the code icon and opens Exercises in their read-only technical presentation by default; their local Inspection toggle can show the ordinary form, which remains read-only. Edit uses the pencil and enables authoring only when the current user already has effective Course Maintainer or assigned-Team permission; the control never grants authorization. Official courses and outsiders offer Locked, View only and Inspection mode, with the Edit authorization reason shown in the Editor. The first View-only entry notice is dismissed per user and Course; Show one-time notices again resets it without changing the access state. For custom courses, Lessons is the first content section. Each Lesson page puts Rounds first, followed by Round / Exercises. A duplicate Lesson, Round or Exercise is inserted after its source with fresh IDs throughout its owned subtree and starts as Draft. Exercise type cannot be changed after creation. Each Lesson retains its GuideBook and stable Lesson-scoped Duel identity.',
         ),
         _HelpSection(
           title: 'Course Editor Search',
@@ -72,7 +72,7 @@ class EditorHelpScreen extends StatelessWidget {
         _HelpSection(
           title: 'Local course edits and backups',
           body:
-              'Every confirmed change to an existing custom course first archives the complete currently persisted course under Documents/QuisquisLingo/Exports/Course Backups/<courseId>. Backup manifests include the full v8 course, ownership, optional Team assignment, provenance, versions, author, UTC timestamp displayed locally, optional notes, checksum and referenced managed audio assets. Backups are never pruned automatically. Version History lists the current version and verified backups newest first, with Open backup folder and Export JSON. Only custom history supports Restore into working copy. Official history contains publisher sources only; obsolete local-variant files are not loaded or deleted. A restore is still only a working-copy change until the top-level confirmation succeeds.',
+              'Every confirmed change to an existing custom course first archives the complete currently persisted course under Documents/QuisquisLingo/Exports/Course Backups v9/<courseId>. Backup manifests include the full v9 Course, Course Maintainer, optional Assigned Team, provenance, versions, authors, UTC modification timestamp, optional notes, checksum and referenced managed audio assets. Backups are never pruned automatically. Version History lists the current version and verified backups newest first, with Open backup folder and Export JSON. Only custom history supports Restore into working copy. Official history contains publisher sources only; older backup directories are not loaded or deleted. A restore is still only a working-copy change until the top-level confirmation succeeds.',
         ),
         _HelpSection(
           title: 'Official course updates',
@@ -82,22 +82,22 @@ class EditorHelpScreen extends StatelessWidget {
         _HelpSection(
           title: 'Course Info Editor and license',
           body:
-              'Course Info Editor stores human Author/Credit roles, the content license and optional Buy a Coffee HTTPS link separately from the MPL-2.0 license of the QuisquisLingo software. The historical roles are Team Leader, Contributor, Course Creator, Editor, Reviewer, Native Speaker, Audio Contributor and Illustrator, with custom roles also available. Credits never grant authorization. Choose All rights reserved, CC0 1.0, CC BY 4.0, CC BY-SA 4.0, CC BY-NC 4.0, CC BY-NC-SA 4.0, or Other / Custom license; a custom license also records its outsider derivative policy. Lesson + number, Number only and Title only name the existing numbering choices; Unit, Topic, Module, Skill, Chapter, Stage, Step, Part and a custom label remain available. Official content and provenance are read-only. In a custom fork, original authorship and provenance remain permanently visible alongside separate local creator and version-author credits.',
+              'Course Info Editor stores structured Authors / Contributors, Rights Holder, the content License and an optional Buy a Coffee HTTPS link separately from the MPL-2.0 license of the QuisquisLingo software. Attribution and rights information are descriptive and never grant QQL permissions. Rights Holder may name one or more people or organizations without requiring local user identities. Choose All rights reserved, CC0 1.0, CC BY 4.0, CC BY-SA 4.0, CC BY-NC 4.0, CC BY-NC-SA 4.0, or Other / Custom license; a custom license also records its outsider derivative policy. Official content and provenance remain read-only.',
         ),
         _HelpSection(
-          title: 'Ownership, permissions and Teams',
+          title: 'Course responsibility, permissions and Teams',
           body:
-              'Creator, Owner, Credits, License and provenance are separate. Every v8 custom course has a stable Creator profile ID and one individual Owner. Only the current Owner can transfer ownership to another local individual or assign and revoke a Team for management. An assigned Team never becomes the Course Owner, and Team Leaders cannot self-assign their Team. The individual Owner and every current member of the assigned Team may manage course content under QQL permissions; Team leadership controls Team membership and roles only. Teams are an experimental QQL collaboration model and may manage Courses owned or created by different individuals. The Owner may revoke an assignment. QQL permissions govern behavior inside QQL and do not by themselves determine copyright ownership, contractual rights or external organizational authority. Outsiders cannot mutate or Duplicate the original and can Fork only when derivatives are allowed. Bundled courses use this same Editor surface in read-only mode. Team membership uses stable local profile IDs, supports multiple Team Leaders, and never permits removing or demoting the final Team Leader. Older custom courses are not assigned ownership or Team assignment from author names and are not migrated.',
+              'Original Course Creator, Course Maintainer, Assigned Team, Authors / Contributors, Rights Holder, License and fork provenance are separate. Every v9 custom Course has an immutable Original Course Creator and one individual Course Maintainer. Only the current Course Maintainer can transfer maintainership or assign and revoke a Team for management. The Course Maintainer and every current member of the Assigned Team may manage Course content under QQL permissions; Team leadership controls Team membership and roles only. Teams are an experimental QQL collaboration model and may manage Courses maintained or created by different individuals. QQL permissions govern behavior inside QQL and do not by themselves determine copyright ownership, contractual rights or external organizational authority. Attribution, provenance and Rights Holder metadata never grant permissions. Outsiders cannot mutate or Copy as New Course under the current access policy and can Fork only when derivatives are allowed. Bundled Courses use this same Editor surface in read-only mode.',
         ),
         _HelpSection(
           title: 'Import a custom course',
           body:
-              '1. Copy the Course Model v8 JSON file to Documents/QuisquisLingo/Imports. 2. Rename it exactly import.json. 3. Open Course Manager, select Course Import, and then select Import Course JSON. 4. After parsing and Course Audit validation, the course is copied into QuisquisLingo local storage and appears under Local courses. Audit errors block import; warnings are reported for review but do not block it. An external-official file retains its declared publisher provenance but is marked unverified unless QQL can authenticate it; an ordinary import remains custom. The imported course no longer depends on import.json, and QuisquisLingo leaves import.json in place. Imports must be valid UTF-8 Course Model v8 JSON and may be no larger than 10 MB. A custom file must contain valid Creator and individual Owner identities; older formats are rejected without migration, conversion or deletion. An imported course owned by another profile remains read-only unless the active user is a current member of its separately assigned Team.',
+              '1. Copy the Course Model v9 JSON file to Documents/QuisquisLingo/Imports. 2. Rename it exactly import.json. 3. Open Course Manager, select Course Import, and then select Import Course JSON. 4. After parsing and Course Audit validation, the Course is copied into QuisquisLingo local storage and appears under Local courses. Audit errors block import; warnings are reported for review but do not block it. An external-official file retains its declared publisher provenance but is marked unverified unless QQL can authenticate it; an ordinary import remains custom. The imported Course no longer depends on import.json, and QuisquisLingo leaves import.json in place. Imports must be valid UTF-8 Course Model v9 JSON and may be no larger than 10 MB. Earlier formats are rejected without migration, conversion or deletion.',
         ),
         _HelpSection(
           title: 'Export a custom course',
           body:
-              'Export Course JSON saves the complete Course Model v8 authoring JSON directly in Documents/QuisquisLingo/Exports. Creator/individual Owner identity, optional assigned Team, Credits, License, provenance, Draft/Published state, required UTC modification timestamps, origin and version metadata, optional custom flag data, Buy a Coffee metadata, Lesson numbering and managed custom Lesson icons are included. A licensed fork preserves its original publisher/authorship lineage and fork-creator metadata. Course audio metadata and references are included, but MP3 bytes are not embedded; verified version backups retain their existing referenced-recording copy behavior. There is no Save As dialog. If a filename exists, _2, _3 and later suffixes avoid overwriting it.',
+              'Export Course JSON saves the complete Course Model v9 authoring JSON directly in Documents/QuisquisLingo/Exports. Original Course Creator, Original Course Created, Course Maintainer, optional Assigned Team, Authors / Contributors, Rights Holder, License, fork provenance, Draft/Published state, required UTC modification timestamps, origin and version metadata, optional custom flag data, Buy a Coffee metadata, Lesson numbering and managed custom Lesson icons are included. A Fork preserves its source lineage; Copy as New Course starts an independent lineage. Course audio metadata and references are included, but MP3 bytes are not embedded; verified version backups retain their existing referenced-recording copy behavior. There is no Save As dialog.',
         ),
         _HelpSection(
           title: 'Import a custom flag',
@@ -177,7 +177,7 @@ class EditorHelpScreen extends StatelessWidget {
         _HelpSection(
           title: 'Course metadata and authors',
           body:
-              'Course Info is available in Locked, View only and Inspection mode. Course Info Editor is available only in Edit for users with existing edit permission. It can change the visible Course name without changing the Course ID. Base and Learning language remain read-only and show their authoritative general or regional codes. Created and Modified include the year; opening the editor changes neither date. Automatic Course flag removes an override and uses the language fallback, while Explicit flag stores the selected built-in, World Flag or custom source. Multiple authors can hold multiple roles, including Illustrator; roles describe contributions and never authorization. Creator and individual Owner use separate stable internal IDs. Course Info separately resolves the assigned Team, Team Leaders and Team Members from Team Manager. Internal IDs additionally reveals their stable IDs and the read-only Course Model version. Custom-course metadata records creation and last-modification authors from the active local QQL profile, creation and modification times, internal course version and version notes. Official courses separately retain publisher identity, official version, release notes, channel, checksum and verification. Lesson numbering is set on the Lessons page in Edit. Its selected term is shared by Editor labels, breadcrumbs and learner presentation; stored Lesson titles and IDs remain unchanged. Lessons without an explicit icon use the single theme-colored number circle. These presentation choices never change lessonId, progression or unlocks.',
+              'Course Info is available in Locked, View only and Inspection mode. Course Info Editor is available only in Edit for users with existing edit permission. It can change the visible Course name without changing the Course ID. Base and Learning language remain read-only and show their authoritative general or regional codes. Original Course Created is immutable lineage provenance; Last Version Editor and Modified describe the current Course version and instance. Opening the editor changes none of them. Automatic Course flag removes an override and uses the language fallback, while Explicit flag stores the selected built-in, World Flag or custom source. Structured Authors / Contributors and Rights Holder metadata are descriptive and never authorize access. Original Course Creator and Course Maintainer use separate stable internal identities. Course Info separately resolves the Assigned Team, Team Leaders and Team Members from Team Manager. Internal IDs additionally reveals their stable IDs and the read-only Course Model version. Fork provenance separately identifies who created a particular fork, when, and its immediate source Course. Official Courses retain publisher identity, official version, release notes, channel, checksum and verification. Lesson numbering is set on the Lessons page in Edit. Its selected term is shared by Editor labels, breadcrumbs and learner presentation; stored Lesson titles and IDs remain unchanged. Lessons without an explicit icon use the single theme-colored number circle. These presentation choices never change lessonId, progression or unlocks.',
         ),
         _HelpSection(
           title: 'Audit severity and codes',
@@ -193,7 +193,7 @@ class EditorHelpScreen extends StatelessWidget {
         _HelpSection(
           title: 'Create a new course',
           body:
-              'Course Manager creates an independent Course Model v8 project and opens it in Course Editor. New Course restores the same license, Author/Credit roles, language variant, levels, date, description and support metadata used by Course Info Editor. The active profile becomes Creator. Owner defaults to the Creator, who may instead select another local individual; a Team is never an Owner choice. Number of Lessons defaults to 3 (whole numbers 1–100), and Rounds per Lesson defaults to 1 (whole numbers 1–20). Invalid or missing values show inline errors and disable Create. The complete initial hierarchy is created atomically with fresh stable IDs and untitled Rounds, each with exactly one Draft How do you say? sample Exercise. Review and explicitly save teaching content before publication. The new Not published course remains only a working copy until Confirm course changes creates version 1; cancelling creates no stored course. Custom courses appear under Local courses with actions derived from ownership, separate Team assignment and license. Imported authoring content must state ownership, Draft/Published state and required UTC updatedAt timestamps explicitly; this release does not infer or migrate them.',
+              'Course Manager creates an independent Course Model v9 project and opens it in Course Editor. New Course restores the same License / Rights, Authors / Contributors, language variant, levels, description and support metadata used by Course Info Editor. The active profile becomes the immutable Original Course Creator and defaults as Course Maintainer; another local individual may instead be selected as Maintainer. Assigned Team remains separate and is not selected during creation. Number of Lessons defaults to 3 (whole numbers 1–100), and Rounds per Lesson defaults to 1 (whole numbers 1–20). Invalid or missing values show inline errors and disable Create. The complete initial hierarchy is created atomically with fresh stable IDs and untitled Rounds, each with exactly one Draft How do you say? sample Exercise. Review and explicitly save teaching content before publication. The new Not published Course remains only a working copy until Confirm course changes creates version 1; cancelling creates no stored Course. Imported v9 authoring content must state its provenance, Maintainer, Draft/Published state and required UTC timestamps explicitly; earlier Course Models are neither inferred nor migrated.',
         ),
       ],
     ),
@@ -217,7 +217,7 @@ class _TechnicalLinks extends StatelessWidget {
           ),
           const SizedBox(height: 6),
           const Text(
-            'Work in progress. These pages describe the current Course Model v8 implementation separately from the practical Editor instructions.',
+            'Work in progress. These pages describe the current Course Model v9 implementation separately from the practical Editor instructions.',
           ),
           ListTile(
             contentPadding: EdgeInsets.zero,
@@ -238,7 +238,7 @@ class _TechnicalLinks extends StatelessWidget {
           ),
           ListTile(
             contentPadding: EdgeInsets.zero,
-            title: Text('QuisquisLingo Course Model v8'),
+            title: Text('QuisquisLingo Course Model v9'),
             trailing: Icon(Icons.chevron_right),
             onTap: () => Navigator.of(context).push(
               MaterialPageRoute(
@@ -475,12 +475,12 @@ class CourseModelV4HelpScreen extends StatelessWidget {
   const CourseModelV4HelpScreen({super.key});
   @override
   Widget build(BuildContext context) => _TechnicalPage(
-    title: 'QuisquisLingo Course Model v8',
+    title: 'QuisquisLingo Course Model v9',
     sections: const [
       _HelpSection(
         title: 'Status',
         body:
-            'Work in progress. QuisquisLingo uses formatVersion 8 as its only native course model. Earlier formats are rejected without migration or deletion. Every custom course requires explicit stable Creator and individual Owner identities; an optional assigned Team remains separate from ownership.',
+            'Work in progress. QuisquisLingo uses formatVersion 9 as its only native Course Model. Earlier formats are rejected without migration or deletion. Every custom Course requires an immutable Original Course Creator and one individual Course Maintainer; an optional Assigned Team remains separate.',
       ),
       _HelpSection(
         title: 'Hierarchy',
@@ -525,7 +525,7 @@ class ExercisePrimitivesHelpScreen extends StatelessWidget {
       _HelpSection(
         title: 'Status',
         body:
-            'Work in progress. The current primitive set is the implemented Course Model v8 baseline.',
+            'Work in progress. The current primitive set is the implemented Course Model v9 baseline.',
       ),
       _HelpSection(
         title: 'Exercise anatomy',
@@ -569,12 +569,12 @@ class JsonV4HelpScreen extends StatelessWidget {
     sections: const [
       _HelpSection(
         title: 'Status',
-        body: 'Work in progress. QuisquisLingo writes formatVersion: 8.',
+        body: 'Work in progress. QuisquisLingo writes formatVersion: 9.',
       ),
       _HelpSection(
         title: 'Root',
         body:
-            'The root contains formatVersion, Course metadata and lessons[]. Bundled samples and user-created courses are native v8 files. Custom roots require creatorProfileId and individual ownership; optional assignedTeamId is separate, while Team membership itself remains outside Course JSON.',
+            'The root contains formatVersion, Course metadata and lessons[]. Bundled samples and user-created Courses use the native v9 model. Custom roots require immutable originalCourseCreator provenance and one individual maintainer; optional assignedTeamId is separate, while Team membership itself remains outside Course JSON. Earlier Course Models are not read or migrated.',
       ),
       _HelpSection(
         title: 'Guidebook',
@@ -599,7 +599,7 @@ class JsonV4HelpScreen extends StatelessWidget {
       _HelpSection(
         title: 'Compatibility',
         body:
-            'Bundled and custom courses are native Course Model v8. Every earlier format is unsupported and is not read, migrated, converted or deleted. Visible credit metadata is never used to infer custom-course ownership or Team assignment.',
+            'Bundled and custom Courses are native Course Model v9. Every earlier format is unsupported and is not read, migrated, converted or deleted. Attribution, provenance and Rights Holder metadata never grant Course permissions or infer Team assignment.',
       ),
     ],
   );

@@ -587,7 +587,6 @@ _RoundFixture _roundFixture({
     targetLanguage: 'Italian',
     title: 'Characterization Course',
     ttsLanguage: 'it-IT',
-    version: '1.0.0',
     lessons: [lesson],
   );
   return _RoundFixture(course: course, lesson: lesson, round: round);

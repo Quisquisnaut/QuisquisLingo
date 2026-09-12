@@ -92,8 +92,11 @@ Exercise _scriptExercise() => Exercise.v2(
 Course _course(Exercise exercise, {String courseId = 'qql231_r1_course'}) =>
     Course(
       courseId: courseId,
-      creatorProfileId: _ownerId,
-      ownership: const CourseOwnership.individual(_ownerId),
+      originalCourseCreator: CourseProvenanceIdentity.qqlUser(
+        profileId: _ownerId,
+        displayName: 'Original Course Creator',
+      ),
+      maintainer: const CourseMaintainer(_ownerId),
       originType: CourseOriginType.custom,
       learningLanguage: 'Italian',
       interfaceLanguage: 'English',
@@ -101,7 +104,6 @@ Course _course(Exercise exercise, {String courseId = 'qql231_r1_course'}) =>
       targetLanguage: 'Italian',
       title: 'QQL 231 revision 1',
       ttsLanguage: 'it-IT',
-      version: '1',
       lessons: [
         Lesson(
           lessonId: 'revision1_lesson',

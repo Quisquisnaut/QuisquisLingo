@@ -8,7 +8,7 @@ import 'package:quisquislingo_app/screens/team_manager_screen.dart';
 import 'package:quisquislingo_app/services/course_access_policy.dart';
 import 'package:quisquislingo_app/services/course_flag_service.dart';
 import 'package:quisquislingo_app/services/course_language_resolver.dart';
-import 'package:quisquislingo_app/services/course_owner_resolver.dart';
+import 'package:quisquislingo_app/services/course_governance_resolver.dart';
 import 'package:quisquislingo_app/services/editor_display_preferences.dart';
 import 'package:quisquislingo_app/services/flag_background_palette_service.dart';
 import 'package:quisquislingo_app/services/learner_backup_service.dart';
@@ -91,7 +91,7 @@ void main() {
         ttsLanguage: 'it-IT',
         targetLanguageTag: 'it-IT',
         sourceLanguageTag: 'en-GB',
-        createdAtUtc: '2024-01-02T10:00:00.000Z',
+        originalCreatedAtUtc: '2024-01-02T10:00:00.000Z',
         modifiedAtUtc: '2026-09-09T11:00:00.000Z',
       );
       await tester.pumpWidget(
@@ -120,11 +120,11 @@ void main() {
       );
       expect(find.byType(CourseFlagBadge), findsOneWidget);
       await tester.scrollUntilVisible(
-        find.textContaining('Created:'),
+        find.textContaining('Original Course Created:'),
         300,
         scrollable: find.byType(Scrollable).first,
       );
-      expect(find.textContaining('Created:'), findsOneWidget);
+      expect(find.textContaining('Original Course Created:'), findsOneWidget);
       expect(find.textContaining('2024'), findsOneWidget);
       expect(find.textContaining('Modified:'), findsOneWidget);
       expect(find.textContaining('2026'), findsOneWidget);
@@ -135,13 +135,13 @@ void main() {
         actorProfileId: _aliceId,
         displayName: 'Renamed Team',
       );
-      final renamed = await CourseOwnerResolver(
+      final renamed = await CourseGovernanceResolver(
         profileService: profiles,
         teamService: teams,
       ).resolve(course);
-      expect(renamed.ownerLabel, 'Alice');
+      expect(renamed.maintainerLabel, 'Alice');
       expect(renamed.assignedTeamLabel, 'Renamed Team');
-      expect(course.ownership!.id, _aliceId);
+      expect(course.maintainer!.profileId, _aliceId);
     },
   );
 
@@ -155,7 +155,7 @@ void main() {
         ttsLanguage: 'it-IT',
         targetLanguageTag: 'it-IT',
         sourceLanguageTag: 'en-GB',
-        createdAtUtc: '2024-01-02T10:00:00.000Z',
+        originalCreatedAtUtc: '2024-01-02T10:00:00.000Z',
         modifiedAtUtc: '2026-09-09T11:00:00.000Z',
       );
       await _pumpEditor(tester, course);
@@ -424,7 +424,7 @@ void main() {
     () async {
       await _profiles();
       await SettingsService().setCourseEditorUnlocked(true);
-      final outsiderCourse = _course(ownerId: _bobId);
+      final outsiderCourse = _course(maintainerId: _bobId);
       final access = CourseAccessPolicy.evaluate(
         outsiderCourse,
         profileId: _aliceId,
@@ -432,7 +432,7 @@ void main() {
       );
       expect(await SettingsService().isCourseEditorUnlocked(), isTrue);
       expect(access.canEditOriginal, isFalse);
-      expect(access.canDuplicate, isFalse);
+      expect(access.canCopyAsNewCourse, isFalse);
     },
   );
 }
@@ -527,11 +527,11 @@ Course _course({
   String ttsLanguage = 'it-IT',
   String targetLanguageTag = '',
   String sourceLanguageTag = '',
-  String ownerId = _aliceId,
+  String maintainerId = _aliceId,
   String? assignedTeamId,
   CourseOriginType origin = CourseOriginType.custom,
   String flagCode = '',
-  String createdAtUtc = '',
+  String originalCreatedAtUtc = '',
   String modifiedAtUtc = '',
 }) => Course(
   courseId: 'revision-two-${origin.name}-course',
@@ -545,15 +545,18 @@ Course _course({
   publisherVerificationStatus: origin.isOfficial
       ? PublisherVerificationStatus.verified
       : PublisherVerificationStatus.unverified,
-  creatorProfileId: origin.isOfficial ? null : _aliceId,
-  ownership: origin.isOfficial ? null : CourseOwnership.individual(ownerId),
+  originalCourseCreator: origin.isOfficial
+      ? null
+      : const CourseProvenanceIdentity.qqlUser(
+          profileId: _aliceId,
+          displayName: 'Original Course Creator',
+        ),
+  maintainer: origin.isOfficial ? null : CourseMaintainer(maintainerId),
   assignedTeamId: origin.isOfficial ? null : assignedTeamId,
-  createdByProfileId: origin.isOfficial ? '' : _aliceId,
-  createdByUsername: origin.isOfficial ? '' : 'Alice',
-  createdAtUtc: createdAtUtc,
-  lastModifiedByProfileId: origin.isOfficial ? '' : _aliceId,
-  lastModifiedByUsername: origin.isOfficial ? '' : 'Alice',
-  lastModifiedAtUtc: modifiedAtUtc,
+  originalCreatedAtUtc: originalCreatedAtUtc,
+  lastVersionEditorProfileId: origin.isOfficial ? '' : _aliceId,
+  lastVersionEditorDisplayName: origin.isOfficial ? '' : 'Alice',
+  modifiedAtUtc: modifiedAtUtc,
   publicationState: PublicationState.draft,
   learningLanguage: learning,
   interfaceLanguage: base,
@@ -563,7 +566,6 @@ Course _course({
   targetLanguageTag: targetLanguageTag,
   title: 'Revision two course',
   ttsLanguage: ttsLanguage,
-  version: '1',
   flagCode: flagCode,
   lessons: const [],
 );

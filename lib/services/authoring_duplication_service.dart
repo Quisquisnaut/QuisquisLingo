@@ -21,57 +21,60 @@ class TimestampAuthoringIdGenerator implements AuthoringIdGenerator {
 ///
 /// Asset paths and references outside the duplicated subtree remain shared.
 class AuthoringDuplicationService {
-  AuthoringDuplicationService({AuthoringIdGenerator? ids})
-    : _ids = ids ?? TimestampAuthoringIdGenerator();
+  AuthoringDuplicationService({
+    AuthoringIdGenerator? ids,
+    DateTime Function()? clock,
+  }) : _ids = ids ?? TimestampAuthoringIdGenerator(),
+       _clock = clock ?? DateTime.now;
 
   final AuthoringIdGenerator _ids;
+  final DateTime Function() _clock;
 
-  Course duplicateCourse(
+  /// Starts a new independent Course lineage from existing content.
+  Course copyCourseAsNew(
     Course source, {
     required String title,
-    String? creatorProfileId,
-    CourseOwnership? ownership,
+    required CourseProvenanceIdentity originalCourseCreator,
+    required CourseMaintainer maintainer,
   }) {
     if (source.originType.isOfficial) {
-      throw StateError('Official courses require a licensed custom fork.');
+      throw StateError('Official courses require a licensed Fork.');
     }
-    final resolvedOwnership = ownership ?? source.ownership;
-    final resolvedCreator = creatorProfileId ?? source.creatorProfileId;
-    if (resolvedOwnership == null || resolvedCreator.isEmpty) {
-      throw StateError(
-        'Course Duplicate requires explicit Creator and Owner identities.',
-      );
-    }
+    final createdAtUtc = _clock().toUtc().toIso8601String();
     return _copyCourse(
       source,
       title: title,
-      provenance: source.forkProvenance,
-      creatorProfileId: resolvedCreator,
-      ownership: resolvedOwnership,
-      assignedTeamId: source.assignedTeamId,
+      originalCourseCreator: originalCourseCreator,
+      originalCreatedAtUtc: createdAtUtc,
+      maintainer: maintainer,
+      lastVersionEditorProfileId: originalCourseCreator.id,
+      lastVersionEditorDisplayName: originalCourseCreator.displayName,
+      modifiedAtUtc: createdAtUtc,
     );
   }
 
   Course forkOfficialCourse(
     Course source, {
     required CourseForkProvenance provenance,
-    required String creatorProfileId,
-    required CourseOwnership ownership,
+    required CourseMaintainer maintainer,
   }) {
     if (!source.originType.isOfficial ||
         source.derivativeWorksPolicy != DerivativeWorksPolicy.allowed ||
-        provenance.originalCourseId != source.courseId ||
-        provenance.originalOfficialChecksum != source.officialChecksum) {
+        !_matchesImmediateSource(source, provenance)) {
       throw StateError(
         'An official custom fork requires explicit derivative permission and matching provenance.',
       );
     }
     final fork = _copyCourse(
       source,
-      title: '${source.title} custom copy',
+      title: '${source.title} fork',
       provenance: provenance,
-      creatorProfileId: creatorProfileId,
-      ownership: ownership,
+      originalCourseCreator: source.originalCourseCreator,
+      originalCreatedAtUtc: source.originalCreatedAtUtc,
+      maintainer: maintainer,
+      lastVersionEditorProfileId: provenance.forkCreatedByProfileId,
+      lastVersionEditorDisplayName: provenance.forkCreatedByDisplayName,
+      modifiedAtUtc: provenance.forkCreatedAtUtc,
     );
     // Detach any nested JSON metadata as well as the owned authoring objects.
     return Course.fromJson(
@@ -81,11 +84,12 @@ class AuthoringDuplicationService {
 
   Course forkCustomCourse(
     Course source, {
-    required String creatorProfileId,
-    required CourseOwnership ownership,
+    required CourseForkProvenance provenance,
+    required CourseMaintainer maintainer,
   }) {
     if (source.originType != CourseOriginType.custom ||
-        source.derivativeWorksPolicy != DerivativeWorksPolicy.allowed) {
+        source.derivativeWorksPolicy != DerivativeWorksPolicy.allowed ||
+        !_matchesImmediateSource(source, provenance)) {
       throw StateError(
         'A custom-course fork requires explicit derivative permission.',
       );
@@ -93,19 +97,50 @@ class AuthoringDuplicationService {
     return _copyCourse(
       source,
       title: '${source.title} fork',
-      provenance: source.forkProvenance,
-      creatorProfileId: creatorProfileId,
-      ownership: ownership,
+      provenance: provenance,
+      originalCourseCreator: source.originalCourseCreator,
+      originalCreatedAtUtc: source.originalCreatedAtUtc,
+      maintainer: maintainer,
+      lastVersionEditorProfileId: provenance.forkCreatedByProfileId,
+      lastVersionEditorDisplayName: provenance.forkCreatedByDisplayName,
+      modifiedAtUtc: provenance.forkCreatedAtUtc,
     );
+  }
+
+  static bool _matchesImmediateSource(
+    Course source,
+    CourseForkProvenance provenance,
+  ) {
+    final sourceVersion = source.originType.isOfficial
+        ? source.officialCourseVersion
+        : source.courseVersion;
+    return provenance.sourceCourseId == source.courseId &&
+        provenance.sourceCourseTitle == source.title &&
+        provenance.sourceCourseVersion == sourceVersion &&
+        provenance.sourceOriginType == source.originType &&
+        provenance.sourcePublisherId == source.publisherId &&
+        provenance.sourcePublisherName == source.publisherName &&
+        provenance.sourceOfficialChecksum == source.officialChecksum &&
+        jsonEncode(
+              provenance.sourceAuthors
+                  .map((author) => author.toJson())
+                  .toList(),
+            ) ==
+            jsonEncode(
+              source.authors.map((author) => author.toJson()).toList(),
+            );
   }
 
   Course _copyCourse(
     Course source, {
     required String title,
     CourseForkProvenance? provenance,
-    required String creatorProfileId,
-    required CourseOwnership ownership,
-    String? assignedTeamId,
+    required CourseProvenanceIdentity originalCourseCreator,
+    required String originalCreatedAtUtc,
+    required CourseMaintainer maintainer,
+    required String lastVersionEditorProfileId,
+    required String lastVersionEditorDisplayName,
+    required String modifiedAtUtc,
   }) {
     final newCourseId = Course.newCourseId();
     final remap = <String, String>{source.courseId: newCourseId};
@@ -131,9 +166,12 @@ class AuthoringDuplicationService {
     }
     return Course(
       courseId: newCourseId,
-      creatorProfileId: creatorProfileId,
-      ownership: ownership,
-      assignedTeamId: assignedTeamId,
+      originalCourseCreator: originalCourseCreator,
+      maintainer: maintainer,
+      originalCreatedAtUtc: originalCreatedAtUtc,
+      lastVersionEditorProfileId: lastVersionEditorProfileId,
+      lastVersionEditorDisplayName: lastVersionEditorDisplayName,
+      modifiedAtUtc: modifiedAtUtc,
       publicationState: PublicationState.draft,
       lessonNumberingMode: source.lessonNumberingMode,
       customLessonLabel: source.customLessonLabel,
@@ -141,35 +179,28 @@ class AuthoringDuplicationService {
       createDuels: source.createDuels,
       useGuidebook: source.useGuidebook,
       sectionNames: source.sectionNames,
-      parentCourseId: source.courseId,
-      derivedFromVersion: source.originType.isOfficial
-          ? source.officialCourseVersion
-          : source.courseVersion.isNotEmpty
-          ? source.courseVersion
-          : source.version,
       learningLanguage: source.learningLanguage,
       interfaceLanguage: source.interfaceLanguage,
       sourceLanguage: source.sourceLanguage,
       targetLanguage: source.targetLanguage,
       title: title,
       ttsLanguage: source.ttsLanguage,
-      version: source.version,
-      contentRevision: source.contentRevision,
-      updateSummary: source.updateSummary,
       audioMode: source.audioMode,
-      author: source.author,
       authors: [
         for (final author in source.authors)
           CourseAuthor(name: author.name, roles: [...author.roles]),
       ],
       license: source.license,
+      rightsHolders: [
+        for (final holder in source.rightsHolders)
+          CourseRightsHolder(type: holder.type, name: holder.name),
+      ],
       derivativeWorksPolicy: source.derivativeWorksPolicy,
       forkProvenance: provenance,
       languageVariant: source.languageVariant,
       startLevel: source.startLevel,
       targetLevel: source.targetLevel,
       courseVersion: '',
-      lastUpdated: source.lastUpdated,
       courseDescription: source.courseDescription,
       sourceLanguageTag: source.sourceLanguageTag,
       targetLanguageTag: source.targetLanguageTag,

@@ -13,14 +13,17 @@ const charlieId = '33333333-3333-4333-8333-333333333333';
 const teamId = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
 
 Course course({
-  String creatorId = aliceId,
-  String ownerId = aliceId,
+  String originalCreatorId = aliceId,
+  String maintainerId = aliceId,
   String? assignedTeamId,
   String id = 'course-qql-233',
 }) => Course(
   courseId: id,
-  creatorProfileId: creatorId,
-  ownership: CourseOwnership.individual(ownerId),
+  originalCourseCreator: CourseProvenanceIdentity.qqlUser(
+    profileId: originalCreatorId,
+    displayName: 'Original Course Creator',
+  ),
+  maintainer: CourseMaintainer(maintainerId),
   assignedTeamId: assignedTeamId,
   publicationState: PublicationState.draft,
   learningLanguage: 'Italian',
@@ -29,7 +32,6 @@ Course course({
   targetLanguage: 'Italian',
   title: 'QQL 233 course',
   ttsLanguage: 'it-IT',
-  version: '1.0.0',
   lessons: const [],
 );
 
@@ -65,15 +67,16 @@ void main() {
 
   setUp(() => SharedPreferences.setMockInitialValues({}));
 
-  test('Course Model v8 permits only an individual Owner', () {
+  test('Course Model v9 permits only an individual Maintainer', () {
     final json = course().toJson();
-    expect(json['formatVersion'], 8);
-    expect(json['ownership'], {'type': 'individual', 'id': aliceId});
-    expect(Course.fromJson(json).ownership!.id, aliceId);
+    expect(json['formatVersion'], 9);
+    expect(json['maintainer'], {'profileId': aliceId});
+    expect(json.containsKey('ownership'), isFalse);
+    expect(Course.fromJson(json).maintainer!.profileId, aliceId);
     expect(
       () => Course.fromJson({
         ...json,
-        'ownership': {'type': 'team', 'id': teamId},
+        'maintainer': {'profileId': teamId, 'type': 'team'},
       }),
       throwsFormatException,
     );
@@ -82,19 +85,19 @@ void main() {
   test('Team assignment is separate and survives Course JSON round-trip', () {
     final value = course(assignedTeamId: teamId);
     final json = value.toJson();
-    expect(json['ownership'], {'type': 'individual', 'id': aliceId});
+    expect(json['maintainer'], {'profileId': aliceId});
     expect(json['assignedTeamId'], teamId);
     final restored = Course.fromJson(json);
-    expect(restored.ownership!.id, aliceId);
+    expect(restored.maintainer!.profileId, aliceId);
     expect(restored.assignedTeamId, teamId);
-    expect(restored.creatorProfileId, aliceId);
+    expect(restored.originalCourseCreator.id, aliceId);
   });
 
-  test('Owner and assigned Team management powers stay independent', () {
+  test('Maintainer and assigned Team management powers stay independent', () {
     final value = course(assignedTeamId: teamId);
     final owner = CourseAccessPolicy.evaluate(value, profileId: aliceId);
     expect(owner.canEditOriginal, isTrue);
-    expect(owner.canTransferOwnership, isTrue);
+    expect(owner.canTransferMaintainership, isTrue);
     expect(owner.canAssignTeam, isTrue);
 
     final assignedMember = CourseAccessPolicy.evaluate(
@@ -103,7 +106,7 @@ void main() {
       memberTeamIds: {teamId},
     );
     expect(assignedMember.canEditOriginal, isTrue);
-    expect(assignedMember.canTransferOwnership, isFalse);
+    expect(assignedMember.canTransferMaintainership, isFalse);
     expect(assignedMember.canAssignTeam, isFalse);
 
     final unrelatedTeamLeader = CourseAccessPolicy.evaluate(
@@ -112,23 +115,23 @@ void main() {
       memberTeamIds: {teamId},
     );
     expect(unrelatedTeamLeader.canEditOriginal, isFalse);
-    expect(unrelatedTeamLeader.canTransferOwnership, isFalse);
+    expect(unrelatedTeamLeader.canTransferMaintainership, isFalse);
   });
 
-  test('Owner transfers ownership without changing Creator', () async {
+  test('Maintainer transfer preserves Original Course Creator', () async {
     final people = await localPeople();
     final governance = CourseGovernanceService(
       profileService: people.profiles,
       teamService: people.teams,
     );
-    final transferred = await governance.transferOwnership(
+    final transferred = await governance.transferMaintainer(
       course: course(),
       actorProfileId: aliceId,
-      newOwnerProfileId: bobId,
+      newMaintainerProfileId: bobId,
       editMode: true,
     );
-    expect(transferred.creatorProfileId, aliceId);
-    expect(transferred.ownership!.id, bobId);
+    expect(transferred.originalCourseCreator.id, aliceId);
+    expect(transferred.maintainer!.profileId, bobId);
     expect(
       (await people.profiles.getProfileById(bobId))!.presentationName,
       '@bob_words',
@@ -136,7 +139,7 @@ void main() {
   });
 
   test(
-    'Creator can confirm another individual as initial Course Owner',
+    'Original creator can confirm another individual as initial Maintainer',
     () async {
       final people = await localPeople();
       final service = CourseEditorService(
@@ -144,7 +147,7 @@ void main() {
         teamService: people.teams,
         clock: () => DateTime.utc(2026, 9, 12),
       );
-      final value = course(ownerId: bobId);
+      final value = course(maintainerId: bobId);
 
       await service.confirmCourseTransaction(
         originalCourse: value,
@@ -155,40 +158,42 @@ void main() {
       );
 
       final persisted = (await service.listUserCourses()).single;
-      expect(persisted.creatorProfileId, aliceId);
-      expect(persisted.ownership!.id, bobId);
-      expect(persisted.ownership!.type, CourseOwnerType.individual);
+      expect(persisted.originalCourseCreator.id, aliceId);
+      expect(persisted.maintainer!.profileId, bobId);
     },
   );
 
-  test('non-owner and non-Edit ownership transfers are blocked', () async {
-    final people = await localPeople();
-    final governance = CourseGovernanceService(
-      profileService: people.profiles,
-      teamService: people.teams,
-    );
-    await expectLater(
-      governance.transferOwnership(
-        course: course(),
-        actorProfileId: bobId,
-        newOwnerProfileId: charlieId,
-        editMode: true,
-      ),
-      throwsStateError,
-    );
-    await expectLater(
-      governance.transferOwnership(
-        course: course(),
-        actorProfileId: aliceId,
-        newOwnerProfileId: bobId,
-        editMode: false,
-      ),
-      throwsStateError,
-    );
-  });
+  test(
+    'non-maintainer and non-Edit Maintainer transfers are blocked',
+    () async {
+      final people = await localPeople();
+      final governance = CourseGovernanceService(
+        profileService: people.profiles,
+        teamService: people.teams,
+      );
+      await expectLater(
+        governance.transferMaintainer(
+          course: course(),
+          actorProfileId: bobId,
+          newMaintainerProfileId: charlieId,
+          editMode: true,
+        ),
+        throwsStateError,
+      );
+      await expectLater(
+        governance.transferMaintainer(
+          course: course(),
+          actorProfileId: aliceId,
+          newMaintainerProfileId: bobId,
+          editMode: false,
+        ),
+        throwsStateError,
+      );
+    },
+  );
 
   test(
-    'Team leadership and Course ownership grant no powers over each other',
+    'Team leadership and Course maintenance grant no powers over each other',
     () async {
       final people = await localPeople();
       final governance = CourseGovernanceService(
@@ -198,7 +203,7 @@ void main() {
 
       await expectLater(
         governance.assignTeam(
-          course: course(ownerId: bobId),
+          course: course(maintainerId: bobId),
           actorProfileId: aliceId,
           teamId: teamId,
           editMode: true,
@@ -217,63 +222,72 @@ void main() {
     },
   );
 
-  test('Owner alone assigns and revokes a Team after confirmation', () async {
-    final people = await localPeople();
-    final governance = CourseGovernanceService(
-      profileService: people.profiles,
-      teamService: people.teams,
-    );
-    await expectLater(
-      governance.assignTeam(
+  test(
+    'Maintainer alone assigns and revokes a Team after confirmation',
+    () async {
+      final people = await localPeople();
+      final governance = CourseGovernanceService(
+        profileService: people.profiles,
+        teamService: people.teams,
+      );
+      await expectLater(
+        governance.assignTeam(
+          course: course(),
+          actorProfileId: aliceId,
+          teamId: teamId,
+          editMode: true,
+          assignmentConfirmed: false,
+        ),
+        throwsStateError,
+      );
+      final assigned = await governance.assignTeam(
         course: course(),
         actorProfileId: aliceId,
         teamId: teamId,
         editMode: true,
-        assignmentConfirmed: false,
-      ),
-      throwsStateError,
-    );
-    final assigned = await governance.assignTeam(
-      course: course(),
-      actorProfileId: aliceId,
-      teamId: teamId,
-      editMode: true,
-      assignmentConfirmed: true,
-    );
-    expect(assigned.assignedTeamId, teamId);
-    expect(assigned.ownership!.id, aliceId);
-    expect(assigned.creatorProfileId, aliceId);
-
-    await expectLater(
-      governance.assignTeam(
-        course: course(),
-        actorProfileId: charlieId,
-        teamId: teamId,
-        editMode: true,
         assignmentConfirmed: true,
-      ),
-      throwsStateError,
-    );
-    final revoked = await governance.assignTeam(
-      course: assigned,
-      actorProfileId: aliceId,
-      teamId: null,
-      editMode: true,
-    );
-    expect(revoked.assignedTeamId, isNull);
-    expect(revoked.ownership!.id, aliceId);
-  });
+      );
+      expect(assigned.assignedTeamId, teamId);
+      expect(assigned.maintainer!.profileId, aliceId);
+      expect(assigned.originalCourseCreator.id, aliceId);
 
-  test('one Team can manage Courses with different Creators and Owners', () {
-    final first = course(assignedTeamId: teamId);
-    final second = course(
-      id: 'course-qql-233-two',
-      creatorId: charlieId,
-      ownerId: bobId,
-      assignedTeamId: teamId,
-    );
-    expect(first.assignedTeamId, second.assignedTeamId);
-    expect(first.creatorProfileId, isNot(second.creatorProfileId));
-    expect(first.ownership!.id, isNot(second.ownership!.id));
-  });
+      await expectLater(
+        governance.assignTeam(
+          course: course(),
+          actorProfileId: charlieId,
+          teamId: teamId,
+          editMode: true,
+          assignmentConfirmed: true,
+        ),
+        throwsStateError,
+      );
+      final revoked = await governance.assignTeam(
+        course: assigned,
+        actorProfileId: aliceId,
+        teamId: null,
+        editMode: true,
+      );
+      expect(revoked.assignedTeamId, isNull);
+      expect(revoked.maintainer!.profileId, aliceId);
+    },
+  );
+
+  test(
+    'one Team can manage Courses with different creators and Maintainers',
+    () {
+      final first = course(assignedTeamId: teamId);
+      final second = course(
+        id: 'course-qql-233-two',
+        originalCreatorId: charlieId,
+        maintainerId: bobId,
+        assignedTeamId: teamId,
+      );
+      expect(first.assignedTeamId, second.assignedTeamId);
+      expect(
+        first.originalCourseCreator.id,
+        isNot(second.originalCourseCreator.id),
+      );
+      expect(first.maintainer!.profileId, isNot(second.maintainer!.profileId));
+    },
+  );
 }

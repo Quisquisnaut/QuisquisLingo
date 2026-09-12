@@ -95,7 +95,6 @@ Course _course(int eligibleRounds) => Course(
   targetLanguage: 'Italian',
   title: 'Course name belongs only in the selector',
   ttsLanguage: 'it-IT',
-  version: '1',
   lessons: [
     Lesson(
       lessonId: 'lesson',

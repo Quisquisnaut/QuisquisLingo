@@ -4,46 +4,47 @@ import 'team_service.dart';
 
 class CourseAccessCapabilities {
   final bool canEditOriginal;
-  final bool canDuplicate;
+  final bool canCopyAsNewCourse;
   final bool canFork;
   final bool canDelete;
-  final bool isInsideOwnershipBoundary;
-  final bool canTransferOwnership;
+  final bool hasOperationalAccess;
+  final bool canTransferMaintainership;
   final bool canAssignTeam;
   final String? editDeniedReason;
 
   const CourseAccessCapabilities({
     required this.canEditOriginal,
-    required this.canDuplicate,
+    required this.canCopyAsNewCourse,
     required this.canFork,
     required this.canDelete,
-    required this.isInsideOwnershipBoundary,
-    required this.canTransferOwnership,
+    required this.hasOperationalAccess,
+    required this.canTransferMaintainership,
     required this.canAssignTeam,
     this.editDeniedReason,
   });
 
   bool get readOnly => !canEditOriginal;
 
-  /// Lets a Course Creator finish the one unconfirmed creation transaction
-  /// after selecting a different individual as the initial Owner.
+  /// Lets an Original Course Creator finish the one unconfirmed creation
+  /// transaction after selecting a different initial Course Maintainer.
   CourseAccessCapabilities copyForUnconfirmedCreator() =>
       CourseAccessCapabilities(
         canEditOriginal: true,
-        canDuplicate: false,
+        canCopyAsNewCourse: false,
         canFork: false,
         canDelete: false,
-        isInsideOwnershipBoundary: true,
-        canTransferOwnership: canTransferOwnership,
+        hasOperationalAccess: true,
+        canTransferMaintainership: canTransferMaintainership,
         canAssignTeam: canAssignTeam,
       );
 
   String get effectiveEditDeniedReason =>
       editDeniedReason ??
-      'You do not have permission to edit this course. Only its Owner or a member of its assigned Team can edit the original.';
+      'You do not have permission to edit this Course. Only its Maintainer or a member of its assigned Team can edit it.';
 }
 
-/// One authoritative Owner/assigned-Team-versus-license authorization policy.
+/// One authoritative Maintainer/assigned-Team-versus-license authorization
+/// policy.
 class CourseAccessPolicy {
   CourseAccessPolicy({ProfileService? profileService, TeamService? teamService})
     : _profiles = profileService ?? ProfileService(),
@@ -70,38 +71,39 @@ class CourseAccessPolicy {
     if (course.originType.isOfficial) {
       return CourseAccessCapabilities(
         canEditOriginal: false,
-        canDuplicate: false,
+        canCopyAsNewCourse: false,
         canFork:
             profileId != null &&
             course.derivativeWorksPolicy == DerivativeWorksPolicy.allowed,
         canDelete: false,
-        isInsideOwnershipBoundary: false,
-        canTransferOwnership: false,
+        hasOperationalAccess: false,
+        canTransferMaintainership: false,
         canAssignTeam: false,
         editDeniedReason:
             'Official courses are read-only. Their original content cannot be edited.',
       );
     }
-    final isOwner = profileId != null && course.ownership?.id == profileId;
+    final isMaintainer =
+        profileId != null && course.maintainer?.profileId == profileId;
     final isAssignedTeamMember =
         profileId != null &&
         course.assignedTeamId != null &&
         memberTeamIds.contains(course.assignedTeamId);
-    final inside = isOwner || isAssignedTeamMember;
+    final inside = isMaintainer || isAssignedTeamMember;
     return CourseAccessCapabilities(
       canEditOriginal: inside,
-      canDuplicate: inside,
+      canCopyAsNewCourse: inside,
       canFork:
           !inside &&
           profileId != null &&
           course.derivativeWorksPolicy == DerivativeWorksPolicy.allowed,
       canDelete: inside,
-      isInsideOwnershipBoundary: inside,
-      canTransferOwnership: isOwner,
-      canAssignTeam: isOwner,
+      hasOperationalAccess: inside,
+      canTransferMaintainership: isMaintainer,
+      canAssignTeam: isMaintainer,
       editDeniedReason: inside
           ? null
-          : 'You do not have permission to edit this course. Only its individual Owner or a member of its assigned Team can edit the original.',
+          : 'You do not have permission to edit this Course. Only its Maintainer or a member of its assigned Team can edit it.',
     );
   }
 }

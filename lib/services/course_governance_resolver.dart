@@ -9,21 +9,21 @@ class ResolvedUserIdentity {
   const ResolvedUserIdentity({required this.profileId, required this.label});
 }
 
-class ResolvedCourseOwnership {
-  final String ownerLabel;
-  final String creatorLabel;
-  final String? ownerId;
-  final CourseOwnerType? ownerType;
+class ResolvedCourseGovernance {
+  final String maintainerLabel;
+  final String originalCreatorLabel;
+  final String? maintainerProfileId;
+  final String? originalCreatorProfileId;
   final String? assignedTeamLabel;
   final String? assignedTeamId;
   final List<ResolvedUserIdentity> teamLeaders;
   final List<ResolvedUserIdentity> teamMembers;
 
-  const ResolvedCourseOwnership({
-    required this.ownerLabel,
-    required this.creatorLabel,
-    required this.ownerId,
-    required this.ownerType,
+  const ResolvedCourseGovernance({
+    required this.maintainerLabel,
+    required this.originalCreatorLabel,
+    required this.maintainerProfileId,
+    required this.originalCreatorProfileId,
     required this.assignedTeamLabel,
     required this.assignedTeamId,
     required this.teamLeaders,
@@ -31,14 +31,15 @@ class ResolvedCourseOwnership {
   });
 }
 
-/// Resolves live Owner, Creator and assigned-Team names from authoritative
-/// Profile and Team data. Course JSON retains only stable identities and never
-/// caches presentation names or Team membership.
-class CourseOwnerResolver {
+/// Resolves live QQL identities and assigned-Team names for presentation.
+///
+/// Course JSON stores stable identities and immutable fallback provenance;
+/// authorization remains in [CourseAccessPolicy], not this resolver.
+class CourseGovernanceResolver {
   final ProfileService _profiles;
   final TeamService _teams;
 
-  CourseOwnerResolver({
+  CourseGovernanceResolver({
     ProfileService? profileService,
     TeamService? teamService,
   }) : _profiles = profileService ?? ProfileService(),
@@ -46,15 +47,13 @@ class CourseOwnerResolver {
            teamService ??
            TeamService(profileService: profileService ?? ProfileService());
 
-  Future<ResolvedCourseOwnership> resolve(Course course) async {
+  Future<ResolvedCourseGovernance> resolve(Course course) async {
     if (course.originType.isOfficial) {
-      final publisher = course.publisherName.trim();
-      final label = publisher.isEmpty ? 'Official publisher' : publisher;
-      return ResolvedCourseOwnership(
-        ownerLabel: label,
-        creatorLabel: label,
-        ownerId: course.publisherId.trim().isEmpty ? null : course.publisherId,
-        ownerType: null,
+      return ResolvedCourseGovernance(
+        maintainerLabel: 'Not applicable',
+        originalCreatorLabel: course.originalCourseCreator.displayName,
+        maintainerProfileId: null,
+        originalCreatorProfileId: null,
         assignedTeamLabel: null,
         assignedTeamId: null,
         teamLeaders: const [],
@@ -62,11 +61,14 @@ class CourseOwnerResolver {
       );
     }
 
-    final ownership = course.ownership;
-    final owner = ownership == null
+    final maintainer = course.maintainer == null
         ? null
-        : await _profiles.getProfileById(ownership.id);
-    final creator = await _profiles.getProfileById(course.creatorProfileId);
+        : await _profiles.getProfileById(course.maintainer!.profileId);
+    final originalCreator =
+        course.originalCourseCreator.type ==
+            CourseProvenanceIdentityType.qqlUser
+        ? await _profiles.getProfileById(course.originalCourseCreator.id)
+        : null;
     final assignedTeamId = course.assignedTeamId;
     final assignedTeam = assignedTeamId == null
         ? null
@@ -80,11 +82,18 @@ class CourseOwnerResolver {
       );
     }
 
-    return ResolvedCourseOwnership(
-      ownerLabel: owner?.presentationName ?? 'Unavailable local profile',
-      creatorLabel: creator?.presentationName ?? 'Unavailable local profile',
-      ownerId: ownership?.id,
-      ownerType: ownership?.type,
+    return ResolvedCourseGovernance(
+      maintainerLabel:
+          maintainer?.presentationName ?? 'Unavailable local profile',
+      originalCreatorLabel:
+          originalCreator?.presentationName ??
+          course.originalCourseCreator.displayName,
+      maintainerProfileId: course.maintainer?.profileId,
+      originalCreatorProfileId:
+          course.originalCourseCreator.type ==
+              CourseProvenanceIdentityType.qqlUser
+          ? course.originalCourseCreator.id
+          : null,
       assignedTeamLabel: assignedTeamId == null
           ? null
           : assignedTeam?.displayName ?? 'Unavailable Team',

@@ -61,10 +61,10 @@ class _CourseVersionHistoryScreenState
 
   List<Widget> _details(Course course) {
     final official = course.originType.isOfficial;
-    final author = official ? '' : course.lastModifiedByUsername;
+    final author = official ? '' : course.lastVersionEditorDisplayName;
     final timestamp = official
         ? course.officialReleaseDateUtc
-        : course.lastModifiedAtUtc;
+        : course.modifiedAtUtc;
     final notes = official ? course.officialReleaseNotes : course.versionNotes;
     return [
       if (official) ...[
@@ -76,8 +76,10 @@ class _CourseVersionHistoryScreenState
           'Checksum: ${course.officialChecksum.length > 16 ? '${course.officialChecksum.substring(0, 16)}…' : course.officialChecksum}',
         ),
       ],
-      if (author.isNotEmpty) Text('Author: $author'),
-      Text('Date and time: ${_dateTime(context, timestamp)}'),
+      if (author.isNotEmpty) Text('Last Version Editor: $author'),
+      Text(
+        '${official ? 'Released' : 'Modified'}: ${_dateTime(context, timestamp)}',
+      ),
       if (course.restoredFromVersion != null)
         Text('Restored from version: ${course.restoredFromVersion}'),
       if (notes.isNotEmpty) ...[

@@ -34,7 +34,9 @@ class ReportService {
       ..writeln('App version: $appVersion')
       ..writeln('Platform: ${_platformName()}')
       ..writeln('Course: ${course.title} (${course.courseId})')
-      ..writeln('Course version: ${course.version}')
+      ..writeln(
+        'Course version: ${course.originType.isOfficial ? course.officialCourseVersion : course.courseVersion}',
+      )
       ..writeln('Lesson: ${lesson.lessonId} | ${lesson.title}')
       ..writeln('Round: ${round.id} | $roundTitle')
       ..writeln('Exercise: ${exercise.id}')

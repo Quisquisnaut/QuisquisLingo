@@ -115,15 +115,17 @@ void main() {
       expect(await otherDeviceProfiles.getActiveProfileId(), _identityId);
       final ownedCourse = Course(
         courseId: 'recovered-owner-course',
-        creatorProfileId: _identityId,
-        ownership: const CourseOwnership.individual(_identityId),
+        originalCourseCreator: CourseProvenanceIdentity.qqlUser(
+          profileId: _identityId,
+          displayName: 'Original Course Creator',
+        ),
+        maintainer: const CourseMaintainer(_identityId),
         learningLanguage: 'Italian',
         interfaceLanguage: 'English',
         sourceLanguage: 'English',
         targetLanguage: 'Italian',
         title: 'Recovered ownership',
         ttsLanguage: 'it-IT',
-        version: '1',
         lessons: const [],
       );
       expect(

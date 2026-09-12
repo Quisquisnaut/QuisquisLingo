@@ -87,14 +87,6 @@ enum AuditCode {
     'The description exceeds 5,000 characters.',
     'Shorten the description if the length is unintended.',
   ),
-  courseDateInvalid(
-    'COURSE_DATE_INVALID',
-    AuditSeverity.warning,
-    'Course Info',
-    'Last updated is not a valid calendar date in the expected format.',
-    'A nonempty Last updated value is not an exact valid YYYY-MM-DD date.',
-    'Enter a real date such as 2026-09-05, or leave the optional field empty.',
-  ),
   courseLessonsEmpty(
     'COURSE_LESSONS_EMPTY',
     AuditSeverity.warning,

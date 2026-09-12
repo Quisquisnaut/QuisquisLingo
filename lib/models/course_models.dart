@@ -1,14 +1,14 @@
 import 'dart:convert';
 import 'dart:math';
 
-/// QuisquisLingo Course Model v8.
+/// QuisquisLingo Course Model v9.
 ///
-/// The serialized course format is formatVersion 8. Course content is stored as
+/// The serialized course format is formatVersion 9. Course content is stored as
 /// Course > Lesson > Guidebook + Round > Content. Exercises are one Content kind
 /// and are represented through Prompt + Interaction + Evaluation primitives.
 ///
 /// A few read-only convenience getters expose the author-friendly vocabulary
-/// used by the existing learner/editor widgets. They are derived from the v6
+/// used by the existing learner/editor widgets. They are derived from the v9
 /// primitives and are not a second runtime model.
 
 enum PublicationState {
@@ -39,7 +39,11 @@ enum CourseOriginType {
 
   static CourseOriginType parse(Map<String, dynamic> json) {
     final value = json['originType'];
-    if (value == null) return CourseOriginType.custom;
+    if (value is! String) {
+      throw const FormatException(
+        'course.originType must be custom, bundledOfficial or externalOfficial.',
+      );
+    }
     return CourseOriginType.values.firstWhere(
       (origin) => origin.name == value,
       orElse: () => throw const FormatException(
@@ -51,45 +55,100 @@ enum CourseOriginType {
   bool get isOfficial => this != CourseOriginType.custom;
 }
 
-enum CourseOwnerType {
-  individual;
+final RegExp _stableUuidV4 = RegExp(
+  r'^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$',
+);
 
-  static CourseOwnerType parse(Object? value) => values.firstWhere(
+enum CourseProvenanceIdentityType {
+  qqlUser,
+  publisher;
+
+  static CourseProvenanceIdentityType parse(Object? value) => values.firstWhere(
     (type) => type.name == value,
     orElse: () => throw const FormatException(
-      'course.ownership.type must be individual.',
+      'course.originalCourseCreator.type must be qqlUser or publisher.',
     ),
   );
 }
 
-/// Stable authorization ownership for a custom course.
+/// Immutable identity at the beginning of a Course lineage.
 ///
-/// This is deliberately separate from visible authorship and other credits.
-class CourseOwnership {
-  static final RegExp _uuidV4 = RegExp(
-    r'^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$',
-  );
-
-  final CourseOwnerType type;
+/// This is provenance only. It never grants QQL authorization.
+class CourseProvenanceIdentity {
+  final CourseProvenanceIdentityType type;
   final String id;
+  final String displayName;
 
-  const CourseOwnership({required this.type, required this.id});
+  const CourseProvenanceIdentity({
+    required this.type,
+    required this.id,
+    required this.displayName,
+  });
 
-  const CourseOwnership.individual(String profileId)
-    : type = CourseOwnerType.individual,
-      id = profileId;
+  const CourseProvenanceIdentity.qqlUser({
+    required String profileId,
+    required this.displayName,
+  }) : type = CourseProvenanceIdentityType.qqlUser,
+       id = profileId;
 
-  Map<String, dynamic> toJson() => {'type': type.name, 'id': id};
+  const CourseProvenanceIdentity.publisher({
+    required String publisherId,
+    required this.displayName,
+  }) : type = CourseProvenanceIdentityType.publisher,
+       id = publisherId;
 
-  factory CourseOwnership.fromJson(Map<String, dynamic> json) {
-    final type = CourseOwnerType.parse(json['type']);
-    final id = _requiredString(json, 'id', 'course.ownership');
-    if (!_uuidV4.hasMatch(id)) {
+  Map<String, dynamic> toJson() => {
+    'type': type.name,
+    'id': id,
+    'displayName': displayName,
+  };
+
+  factory CourseProvenanceIdentity.fromJson(Map<String, dynamic> json) {
+    final type = CourseProvenanceIdentityType.parse(json['type']);
+    final id = _requiredString(json, 'id', 'course.originalCourseCreator');
+    final displayName = _requiredString(
+      json,
+      'displayName',
+      'course.originalCourseCreator',
+    );
+    if (type == CourseProvenanceIdentityType.qqlUser &&
+        !_stableUuidV4.hasMatch(id)) {
       throw const FormatException(
-        'course.ownership.id must be a stable UUIDv4 identity.',
+        'course.originalCourseCreator.id must be a stable UUIDv4 QQL identity.',
       );
     }
-    return CourseOwnership(type: type, id: id);
+    return CourseProvenanceIdentity(
+      type: type,
+      id: id,
+      displayName: displayName,
+    );
+  }
+}
+
+/// Stable operational responsibility for one custom Course instance.
+///
+/// Maintainer status is separate from provenance, attribution and legal
+/// rights metadata.
+class CourseMaintainer {
+  final String profileId;
+
+  const CourseMaintainer(this.profileId);
+
+  Map<String, dynamic> toJson() => {'profileId': profileId};
+
+  factory CourseMaintainer.fromJson(Map<String, dynamic> json) {
+    if (json.containsKey('type')) {
+      throw const FormatException(
+        'course.maintainer identifies an individual QQL profile and does not support a type field.',
+      );
+    }
+    final profileId = _requiredString(json, 'profileId', 'course.maintainer');
+    if (!_stableUuidV4.hasMatch(profileId)) {
+      throw const FormatException(
+        'course.maintainer.profileId must be a stable UUIDv4 identity.',
+      );
+    }
+    return CourseMaintainer(profileId);
   }
 }
 
@@ -227,27 +286,65 @@ class CourseAuthor {
   final String name;
   final List<String> roles;
   const CourseAuthor({required this.name, this.roles = const ['Contributor']});
-  String get role => roles.isEmpty ? 'Contributor' : roles.join(', ');
-  Map<String, dynamic> toJson() => {'name': name, 'role': role, 'roles': roles};
+  Map<String, dynamic> toJson() => {'name': name, 'roles': roles};
   factory CourseAuthor.fromJson(Map<String, dynamic> json) {
+    if (json.containsKey('role')) {
+      throw const FormatException(
+        'Course Model v9 uses author.roles and does not support author.role.',
+      );
+    }
     final parsed = <String>[];
     final raw = json['roles'];
-    if (raw is List) {
-      for (final v in raw) {
-        if (v is String && v.trim().isNotEmpty) parsed.add(v.trim());
+    if (raw is! List) {
+      throw const FormatException('author.roles must be a list of strings.');
+    }
+    for (final v in raw) {
+      if (v is String && v.trim().isNotEmpty) {
+        parsed.add(v.trim());
+      } else {
+        throw const FormatException(
+          'author.roles must contain non-empty strings.',
+        );
       }
     }
     if (parsed.isEmpty) {
-      final legacy = _optionalString(json, 'role', '');
-      for (final p in legacy.split(',')) {
-        if (p.trim().isNotEmpty) parsed.add(p.trim());
-      }
+      throw const FormatException(
+        'author.roles must contain at least one role.',
+      );
     }
     return CourseAuthor(
-      name: _optionalString(json, 'name', ''),
-      roles: parsed.isEmpty ? const ['Contributor'] : parsed,
+      name: _requiredString(json, 'name', 'author'),
+      roles: parsed,
     );
   }
+}
+
+enum CourseRightsHolderType {
+  person,
+  organization;
+
+  static CourseRightsHolderType parse(Object? value) => values.firstWhere(
+    (type) => type.name == value,
+    orElse: () => throw const FormatException(
+      'rightsHolder.type must be person or organization.',
+    ),
+  );
+}
+
+/// Descriptive legal metadata. It never grants QQL authorization.
+class CourseRightsHolder {
+  final CourseRightsHolderType type;
+  final String name;
+
+  const CourseRightsHolder({required this.type, required this.name});
+
+  Map<String, dynamic> toJson() => {'type': type.name, 'name': name};
+
+  factory CourseRightsHolder.fromJson(Map<String, dynamic> json) =>
+      CourseRightsHolder(
+        type: CourseRightsHolderType.parse(json['type']),
+        name: _requiredString(json, 'name', 'rightsHolder'),
+      );
 }
 
 enum DerivativeWorksPolicy {
@@ -266,49 +363,48 @@ enum DerivativeWorksPolicy {
   }
 }
 
-/// Permanent source attribution, separate from later custom-course authorship.
+/// Immutable provenance for this specific fork and its immediate source.
 class CourseForkProvenance {
-  final String originalPublisherId;
-  final String originalPublisherName;
-  final String originalCourseId;
-  final String originalOfficialCourseVersion;
-  final String originalOfficialChecksum;
-  final String originalCourseTitle;
-  final String originalAuthor;
-  final List<CourseAuthor> originalAuthors;
+  final String sourceCourseId;
+  final String sourceCourseTitle;
+  final String sourceCourseVersion;
+  final CourseOriginType sourceOriginType;
+  final String sourcePublisherId;
+  final String sourcePublisherName;
+  final String sourceOfficialChecksum;
+  final List<CourseAuthor> sourceAuthors;
   final String forkCreatedByProfileId;
-  final String forkCreatedByUsername;
+  final String forkCreatedByDisplayName;
   final String forkCreatedAtUtc;
 
   CourseForkProvenance({
-    required this.originalPublisherId,
-    required this.originalPublisherName,
-    required this.originalCourseId,
-    required this.originalOfficialCourseVersion,
-    required this.originalOfficialChecksum,
-    required this.originalCourseTitle,
-    required this.originalAuthor,
-    required List<CourseAuthor> originalAuthors,
+    required this.sourceCourseId,
+    required this.sourceCourseTitle,
+    required this.sourceCourseVersion,
+    required this.sourceOriginType,
+    this.sourcePublisherId = '',
+    this.sourcePublisherName = '',
+    this.sourceOfficialChecksum = '',
+    List<CourseAuthor> sourceAuthors = const [],
     required this.forkCreatedByProfileId,
-    required this.forkCreatedByUsername,
+    required this.forkCreatedByDisplayName,
     required this.forkCreatedAtUtc,
-  }) : originalAuthors = List.unmodifiable([
-         for (final author in originalAuthors)
+  }) : sourceAuthors = List.unmodifiable([
+         for (final author in sourceAuthors)
            CourseAuthor(
              name: author.name,
              roles: List.unmodifiable(author.roles),
            ),
        ]) {
     if ([
-          originalPublisherId,
-          originalPublisherName,
-          originalCourseId,
-          originalOfficialCourseVersion,
-          originalCourseTitle,
+          sourceCourseId,
+          sourceCourseTitle,
           forkCreatedByProfileId,
-          forkCreatedByUsername,
+          forkCreatedByDisplayName,
         ].any((value) => value.trim().isEmpty) ||
-        !RegExp(r'^[0-9a-f]{64}$').hasMatch(originalOfficialChecksum) ||
+        !_stableUuidV4.hasMatch(forkCreatedByProfileId) ||
+        (sourceOfficialChecksum.isNotEmpty &&
+            !RegExp(r'^[0-9a-f]{64}$').hasMatch(sourceOfficialChecksum)) ||
         !forkCreatedAtUtc.endsWith('Z') ||
         DateTime.tryParse(forkCreatedAtUtc)?.isUtc != true) {
       throw const FormatException(
@@ -318,61 +414,70 @@ class CourseForkProvenance {
   }
 
   Map<String, dynamic> toJson() => {
-    'originalPublisherId': originalPublisherId,
-    'originalPublisherName': originalPublisherName,
-    'originalCourseId': originalCourseId,
-    'originalOfficialCourseVersion': originalOfficialCourseVersion,
-    'originalOfficialChecksum': originalOfficialChecksum,
-    'originalCourseTitle': originalCourseTitle,
-    'originalAuthor': originalAuthor,
-    'originalAuthors': originalAuthors
-        .map((author) => author.toJson())
-        .toList(),
+    'sourceCourseId': sourceCourseId,
+    'sourceCourseTitle': sourceCourseTitle,
+    if (sourceCourseVersion.isNotEmpty)
+      'sourceCourseVersion': sourceCourseVersion,
+    'sourceOriginType': sourceOriginType.name,
+    if (sourcePublisherId.isNotEmpty) 'sourcePublisherId': sourcePublisherId,
+    if (sourcePublisherName.isNotEmpty)
+      'sourcePublisherName': sourcePublisherName,
+    if (sourceOfficialChecksum.isNotEmpty)
+      'sourceOfficialChecksum': sourceOfficialChecksum,
+    if (sourceAuthors.isNotEmpty)
+      'sourceAuthors': sourceAuthors.map((author) => author.toJson()).toList(),
     'forkCreatedByProfileId': forkCreatedByProfileId,
-    'forkCreatedByUsername': forkCreatedByUsername,
+    'forkCreatedByDisplayName': forkCreatedByDisplayName,
     'forkCreatedAtUtc': forkCreatedAtUtc,
   };
 
   factory CourseForkProvenance.fromJson(Map<String, dynamic> json) {
-    final authors = json['originalAuthors'];
+    for (final removed in const [
+      'originalPublisherId',
+      'originalPublisherName',
+      'originalCourseId',
+      'originalOfficialCourseVersion',
+      'originalOfficialChecksum',
+      'originalCourseTitle',
+      'originalAuthor',
+      'originalAuthors',
+      'forkCreatedByUsername',
+    ]) {
+      if (json.containsKey(removed)) {
+        throw FormatException(
+          'Course Model v9 does not support forkProvenance.$removed.',
+        );
+      }
+    }
+    final authors = json['sourceAuthors'] ?? const <Object>[];
     if (authors is! List || authors.any((author) => author is! Map)) {
       throw const FormatException(
-        'forkProvenance.originalAuthors must be a list of authors.',
+        'forkProvenance.sourceAuthors must be a list of authors.',
       );
     }
+    final sourceOriginType = CourseOriginType.values.firstWhere(
+      (type) => type.name == json['sourceOriginType'],
+      orElse: () => throw const FormatException(
+        'forkProvenance.sourceOriginType is missing or invalid.',
+      ),
+    );
     return CourseForkProvenance(
-      originalPublisherId: _requiredString(
+      sourceCourseId: _requiredString(json, 'sourceCourseId', 'forkProvenance'),
+      sourceCourseTitle: _requiredString(
         json,
-        'originalPublisherId',
+        'sourceCourseTitle',
         'forkProvenance',
       ),
-      originalPublisherName: _requiredString(
+      sourceCourseVersion: _optionalString(json, 'sourceCourseVersion', ''),
+      sourceOriginType: sourceOriginType,
+      sourcePublisherId: _optionalString(json, 'sourcePublisherId', ''),
+      sourcePublisherName: _optionalString(json, 'sourcePublisherName', ''),
+      sourceOfficialChecksum: _optionalString(
         json,
-        'originalPublisherName',
-        'forkProvenance',
+        'sourceOfficialChecksum',
+        '',
       ),
-      originalCourseId: _requiredString(
-        json,
-        'originalCourseId',
-        'forkProvenance',
-      ),
-      originalOfficialCourseVersion: _requiredString(
-        json,
-        'originalOfficialCourseVersion',
-        'forkProvenance',
-      ),
-      originalOfficialChecksum: _requiredString(
-        json,
-        'originalOfficialChecksum',
-        'forkProvenance',
-      ),
-      originalCourseTitle: _requiredString(
-        json,
-        'originalCourseTitle',
-        'forkProvenance',
-      ),
-      originalAuthor: _optionalString(json, 'originalAuthor', ''),
-      originalAuthors: authors
+      sourceAuthors: authors
           .map(
             (author) =>
                 CourseAuthor.fromJson(Map<String, dynamic>.from(author as Map)),
@@ -383,9 +488,9 @@ class CourseForkProvenance {
         'forkCreatedByProfileId',
         'forkProvenance',
       ),
-      forkCreatedByUsername: _requiredString(
+      forkCreatedByDisplayName: _requiredString(
         json,
-        'forkCreatedByUsername',
+        'forkCreatedByDisplayName',
         'forkProvenance',
       ),
       forkCreatedAtUtc: _requiredString(
@@ -398,13 +503,15 @@ class CourseForkProvenance {
 }
 
 class Course {
-  static const int currentFormatVersion = 8;
+  static const int currentFormatVersion = 9;
 
   /// In-memory fixture identity used only by direct Dart constructors.
-  /// Serialized v8 custom JSON must still provide Creator and Owner explicitly,
+  /// Serialized v9 custom JSON must still provide lineage and Maintainer
+  /// metadata explicitly,
   /// and storage authorization never grants this detached identity rights.
   static const String detachedInMemoryProfileId =
       '00000000-0000-4000-8000-000000000000';
+  static const String detachedInMemoryTimestamp = '1970-01-01T00:00:00.000Z';
   final int formatVersion;
   final String courseId;
   final CourseOriginType originType;
@@ -417,15 +524,13 @@ class Course {
   final String distributionChannel;
   final PublisherVerificationStatus publisherVerificationStatus;
   final String publisherSignature;
-  final String creatorProfileId;
-  final CourseOwnership? ownership;
+  final CourseProvenanceIdentity originalCourseCreator;
+  final CourseMaintainer? maintainer;
   final String? assignedTeamId;
-  final String createdByProfileId;
-  final String createdByUsername;
-  final String createdAtUtc;
-  final String lastModifiedByProfileId;
-  final String lastModifiedByUsername;
-  final String lastModifiedAtUtc;
+  final String originalCreatedAtUtc;
+  final String lastVersionEditorProfileId;
+  final String lastVersionEditorDisplayName;
+  final String modifiedAtUtc;
   final String versionNotes;
   final int? restoredFromVersion;
   final PublicationState publicationState;
@@ -437,28 +542,22 @@ class Course {
 
   /// Explicit reusable names; legacy Lesson assignments remain available too.
   final List<String> sectionNames;
-  final String? parentCourseId;
-  final String? derivedFromVersion;
   final String learningLanguage;
   final String interfaceLanguage;
   final String sourceLanguage;
   final String targetLanguage;
   final String title;
   final String ttsLanguage;
-  final String version;
-  final String contentRevision;
-  final String updateSummary;
   final String audioMode;
-  final String author;
   final List<CourseAuthor> authors;
   final String license;
+  final List<CourseRightsHolder> rightsHolders;
   final DerivativeWorksPolicy derivativeWorksPolicy;
   final CourseForkProvenance? forkProvenance;
   final String languageVariant;
   final String startLevel;
   final String targetLevel;
   final String courseVersion;
-  final String lastUpdated;
   final String courseDescription;
   final String sourceLanguageTag;
   final String targetLanguageTag;
@@ -487,15 +586,13 @@ class Course {
     this.distributionChannel = '',
     this.publisherVerificationStatus = PublisherVerificationStatus.unverified,
     this.publisherSignature = '',
-    String? creatorProfileId,
-    CourseOwnership? ownership,
+    CourseProvenanceIdentity? originalCourseCreator,
+    CourseMaintainer? maintainer,
     String? assignedTeamId,
-    this.createdByProfileId = '',
-    this.createdByUsername = '',
-    this.createdAtUtc = '',
-    this.lastModifiedByProfileId = '',
-    this.lastModifiedByUsername = '',
-    this.lastModifiedAtUtc = '',
+    String? originalCreatedAtUtc,
+    String? lastVersionEditorProfileId,
+    String? lastVersionEditorDisplayName,
+    String? modifiedAtUtc,
     this.versionNotes = '',
     this.restoredFromVersion,
     this.publicationState = PublicationState.published,
@@ -505,28 +602,22 @@ class Course {
     this.createDuels = true,
     this.useGuidebook = true,
     List<String> sectionNames = const [],
-    this.parentCourseId,
-    this.derivedFromVersion,
     required this.learningLanguage,
     required this.interfaceLanguage,
     required this.sourceLanguage,
     required this.targetLanguage,
     required this.title,
     required this.ttsLanguage,
-    required this.version,
-    this.contentRevision = '1',
-    this.updateSummary = '',
     this.audioMode = 'tts',
-    this.author = '',
     this.authors = const [],
     this.license = 'All rights reserved',
+    this.rightsHolders = const [],
     this.derivativeWorksPolicy = DerivativeWorksPolicy.unspecified,
     this.forkProvenance,
     this.languageVariant = '',
     this.startLevel = '',
     this.targetLevel = '',
     this.courseVersion = '',
-    this.lastUpdated = '',
     this.courseDescription = '',
     this.sourceLanguageTag = '',
     this.targetLanguageTag = '',
@@ -539,19 +630,45 @@ class Course {
     this.lessonIconAssets = const [],
     this.audioLibrary = const [],
     required this.lessons,
-  }) : creatorProfileId =
-           creatorProfileId ??
+  }) : originalCourseCreator =
+           originalCourseCreator ??
            (originType == CourseOriginType.custom
-               ? detachedInMemoryProfileId
-               : ''),
-       ownership =
-           ownership ??
+               ? const CourseProvenanceIdentity.qqlUser(
+                   profileId: detachedInMemoryProfileId,
+                   displayName: 'Detached in-memory profile',
+                 )
+               : CourseProvenanceIdentity.publisher(
+                   publisherId: publisherId,
+                   displayName: publisherName,
+                 )),
+       maintainer =
+           maintainer ??
            (originType == CourseOriginType.custom
-               ? const CourseOwnership.individual(detachedInMemoryProfileId)
+               ? const CourseMaintainer(detachedInMemoryProfileId)
                : null),
        assignedTeamId = assignedTeamId?.trim().isEmpty == true
            ? null
            : assignedTeamId?.trim(),
+       originalCreatedAtUtc =
+           originalCreatedAtUtc ??
+           (originType == CourseOriginType.custom
+               ? detachedInMemoryTimestamp
+               : officialReleaseDateUtc),
+       lastVersionEditorProfileId =
+           lastVersionEditorProfileId ??
+           (originType == CourseOriginType.custom
+               ? detachedInMemoryProfileId
+               : ''),
+       lastVersionEditorDisplayName =
+           lastVersionEditorDisplayName ??
+           (originType == CourseOriginType.custom
+               ? 'Detached in-memory profile'
+               : ''),
+       modifiedAtUtc =
+           modifiedAtUtc ??
+           (originType == CourseOriginType.custom
+               ? detachedInMemoryTimestamp
+               : officialReleaseDateUtc),
        sectionNames = _normalizeSectionNames(sectionNames),
        worldFlagId = worldFlagId.trim(),
        customLessonLabel = customLessonLabel.trim(),
@@ -562,11 +679,25 @@ class Course {
       );
     }
     if (originType.isOfficial &&
-        (this.creatorProfileId.isNotEmpty ||
-            this.ownership != null ||
-            this.assignedTeamId != null)) {
+        (this.maintainer != null || this.assignedTeamId != null)) {
       throw const FormatException(
-        'Official courses use publisher provenance and cannot have custom-course ownership.',
+        'Official courses use publisher provenance and cannot have a custom Course Maintainer or assigned Team.',
+      );
+    }
+    if (originType.isOfficial &&
+        (this.originalCourseCreator.type !=
+                CourseProvenanceIdentityType.publisher ||
+            this.originalCourseCreator.id != publisherId)) {
+      throw const FormatException(
+        'Official Course lineage must identify its authoritative publisher.',
+      );
+    }
+    if (originType == CourseOriginType.custom &&
+        forkProvenance == null &&
+        this.originalCourseCreator.type !=
+            CourseProvenanceIdentityType.qqlUser) {
+      throw const FormatException(
+        'A non-forked custom Course must begin with a QQL user as Original Course Creator.',
       );
     }
     if (lessonNumberingMode == LessonNumberingMode.other &&
@@ -586,23 +717,62 @@ class Course {
         'Official courses require publisher, official version, release date, checksum and distribution channel provenance.',
       );
     }
-    if (originType == CourseOriginType.custom &&
-        (this.creatorProfileId.isNotEmpty || this.ownership != null)) {
-      if (!CourseOwnership._uuidV4.hasMatch(this.creatorProfileId) ||
-          this.ownership == null ||
-          !CourseOwnership._uuidV4.hasMatch(this.ownership!.id) ||
-          this.ownership!.type != CourseOwnerType.individual ||
+    if (originType == CourseOriginType.custom && this.maintainer != null) {
+      if (!_stableUuidV4.hasMatch(this.maintainer!.profileId) ||
           (this.assignedTeamId != null &&
-              !CourseOwnership._uuidV4.hasMatch(this.assignedTeamId!))) {
+              !_stableUuidV4.hasMatch(this.assignedTeamId!))) {
         throw const FormatException(
-          'Custom-course Creator, individual Owner and assigned Team must use stable UUIDv4 identities.',
+          'A custom Course Maintainer and assigned Team must use stable UUIDv4 identities.',
         );
       }
     }
+    if (originType == CourseOriginType.custom &&
+        (publisherId.isNotEmpty ||
+            publisherName.isNotEmpty ||
+            officialCourseVersion.isNotEmpty ||
+            officialReleaseDateUtc.isNotEmpty ||
+            officialChecksum.isNotEmpty ||
+            officialReleaseNotes.isNotEmpty ||
+            distributionChannel.isNotEmpty ||
+            publisherVerificationStatus !=
+                PublisherVerificationStatus.unverified ||
+            publisherSignature.isNotEmpty)) {
+      throw const FormatException(
+        'Custom courses cannot contain official publisher or release metadata.',
+      );
+    }
+    if (originType.isOfficial &&
+        (courseVersion.isNotEmpty ||
+            versionNotes.isNotEmpty ||
+            restoredFromVersion != null)) {
+      throw const FormatException(
+        'Official courses cannot contain custom Course version or restore metadata.',
+      );
+    }
+    if (this.lastVersionEditorProfileId.isEmpty !=
+        this.lastVersionEditorDisplayName.isEmpty) {
+      throw const FormatException(
+        'Last Version Editor identity and display name must be present together.',
+      );
+    }
+    if (originType == CourseOriginType.custom &&
+        this.lastVersionEditorProfileId.isNotEmpty &&
+        !_stableUuidV4.hasMatch(this.lastVersionEditorProfileId)) {
+      throw const FormatException(
+        'course.lastVersionEditorProfileId must be a stable UUIDv4 identity.',
+      );
+    }
+    if (originType == CourseOriginType.custom &&
+        courseVersion.isNotEmpty &&
+        !RegExp(r'^[1-9][0-9]*$').hasMatch(courseVersion)) {
+      throw const FormatException(
+        'course.courseVersion must be a positive integer stored as a string.',
+      );
+    }
     for (final timestamp in {
       'officialReleaseDateUtc': officialReleaseDateUtc,
-      'createdAtUtc': createdAtUtc,
-      'lastModifiedAtUtc': lastModifiedAtUtc,
+      'originalCreatedAtUtc': this.originalCreatedAtUtc,
+      'modifiedAtUtc': this.modifiedAtUtc,
     }.entries) {
       if (timestamp.value.isEmpty) continue;
       final parsed = DateTime.tryParse(timestamp.value);
@@ -620,7 +790,7 @@ class Course {
     }
   }
 
-  /// Exposes legacy assignments without silently adding fields to old v6 JSON.
+  /// Exposes existing Lesson assignments without adding redundant Course data.
   List<String> get availableSectionNames => _normalizeSectionNames([
     ...sectionNames,
     for (final lesson in lessons)
@@ -682,35 +852,29 @@ class Course {
     if (originType.isOfficial)
       'publisherVerificationStatus': publisherVerificationStatus.name,
     if (publisherSignature.isNotEmpty) 'publisherSignature': publisherSignature,
-    if (creatorProfileId.isNotEmpty) 'creatorProfileId': creatorProfileId,
-    if (ownership != null) 'ownership': ownership!.toJson(),
+    'originalCourseCreator': originalCourseCreator.toJson(),
+    if (maintainer != null) 'maintainer': maintainer!.toJson(),
     if (assignedTeamId != null) 'assignedTeamId': assignedTeamId,
-    if (createdByProfileId.isNotEmpty) 'createdByProfileId': createdByProfileId,
-    if (createdByUsername.isNotEmpty) 'createdByUsername': createdByUsername,
-    if (createdAtUtc.isNotEmpty) 'createdAtUtc': createdAtUtc,
-    if (lastModifiedByProfileId.isNotEmpty)
-      'lastModifiedByProfileId': lastModifiedByProfileId,
-    if (lastModifiedByUsername.isNotEmpty)
-      'lastModifiedByUsername': lastModifiedByUsername,
-    if (lastModifiedAtUtc.isNotEmpty) 'lastModifiedAtUtc': lastModifiedAtUtc,
+    if (originalCreatedAtUtc.isNotEmpty)
+      'originalCreatedAtUtc': originalCreatedAtUtc,
+    if (lastVersionEditorProfileId.isNotEmpty)
+      'lastVersionEditorProfileId': lastVersionEditorProfileId,
+    if (lastVersionEditorDisplayName.isNotEmpty)
+      'lastVersionEditorDisplayName': lastVersionEditorDisplayName,
+    if (modifiedAtUtc.isNotEmpty) 'modifiedAtUtc': modifiedAtUtc,
     if (versionNotes.isNotEmpty) 'versionNotes': versionNotes,
     if (restoredFromVersion != null) 'restoredFromVersion': restoredFromVersion,
-    if (parentCourseId?.isNotEmpty == true) 'parentCourseId': parentCourseId,
-    if (derivedFromVersion?.isNotEmpty == true)
-      'derivedFromVersion': derivedFromVersion,
     'learningLanguage': learningLanguage,
     'interfaceLanguage': interfaceLanguage,
     'sourceLanguage': sourceLanguage,
     'targetLanguage': targetLanguage,
     'title': title,
     'ttsLanguage': ttsLanguage,
-    'version': version,
-    'contentRevision': contentRevision,
-    'updateSummary': updateSummary,
     'audioMode': audioMode,
-    if (author.isNotEmpty) 'author': author,
     if (authors.isNotEmpty) 'authors': authors.map((e) => e.toJson()).toList(),
     'license': license,
+    if (rightsHolders.isNotEmpty)
+      'rightsHolders': rightsHolders.map((holder) => holder.toJson()).toList(),
     if (derivativeWorksPolicy != DerivativeWorksPolicy.unspecified)
       'derivativeWorksPolicy': derivativeWorksPolicy.name,
     if (forkProvenance != null) 'forkProvenance': forkProvenance!.toJson(),
@@ -718,7 +882,6 @@ class Course {
     if (startLevel.isNotEmpty) 'startLevel': startLevel,
     if (targetLevel.isNotEmpty) 'targetLevel': targetLevel,
     if (courseVersion.isNotEmpty) 'courseVersion': courseVersion,
-    if (lastUpdated.isNotEmpty) 'lastUpdated': lastUpdated,
     if (courseDescription.isNotEmpty) 'courseDescription': courseDescription,
     if (sourceLanguageTag.isNotEmpty) 'sourceLanguageTag': sourceLanguageTag,
     if (targetLanguageTag.isNotEmpty) 'targetLanguageTag': targetLanguageTag,
@@ -752,46 +915,139 @@ class Course {
     final fv = json['formatVersion'];
     if (fv != currentFormatVersion) {
       throw FormatException(
-        'Unsupported course formatVersion: $fv. This version of QuisquisLingo supports Course Model formatVersion 8 only. Older course formats are not migrated or partially loaded.',
+        'Unsupported course formatVersion: $fv. This version of QuisquisLingo supports Course Model formatVersion 9 only. Older course formats are not migrated or partially loaded.',
       );
+    }
+    for (final removed in const [
+      'creatorProfileId',
+      'ownership',
+      'createdByProfileId',
+      'createdByUsername',
+      'createdAtUtc',
+      'lastModifiedByProfileId',
+      'lastModifiedByUsername',
+      'lastModifiedAtUtc',
+      'lastUpdated',
+      'author',
+      'version',
+      'updateSummary',
+      'contentRevision',
+      'parentCourseId',
+      'derivedFromVersion',
+    ]) {
+      if (json.containsKey(removed)) {
+        throw FormatException(
+          'Course Model formatVersion 9 does not support the obsolete course.$removed field.',
+        );
+      }
     }
     if (json.containsKey('topics')) {
       throw const FormatException(
-        'Course Model formatVersion 8 does not support the legacy topics field.',
+        'Course Model formatVersion 9 does not support the legacy topics field.',
       );
     }
     if (json.containsKey('chapters')) {
       throw const FormatException(
-        'Course Model formatVersion 8 does not support chapters.',
+        'Course Model formatVersion 9 does not support chapters.',
       );
     }
     if (json.containsKey('supportUrl')) {
       throw const FormatException(
-        'Course Model formatVersion 8 uses buyACoffeeUrl, not supportUrl.',
+        'Course Model formatVersion 9 uses buyACoffeeUrl, not supportUrl.',
       );
     }
     if (json.containsKey('buyACoffeeUrl') && json['buyACoffeeUrl'] is! String) {
       throw const FormatException('course.buyACoffeeUrl must be a string.');
     }
+    for (final key in const ['courseVersion', 'versionNotes']) {
+      if (json.containsKey(key) && json[key] is! String) {
+        throw FormatException('course.$key must be a string.');
+      }
+    }
+    if (json.containsKey('courseVersion') &&
+        !RegExp(r'^[1-9][0-9]*$').hasMatch(json['courseVersion'] as String)) {
+      throw const FormatException(
+        'course.courseVersion must be a positive integer stored as a string.',
+      );
+    }
+    if (json.containsKey('restoredFromVersion') &&
+        (json['restoredFromVersion'] is! int ||
+            (json['restoredFromVersion'] as int) < 1)) {
+      throw const FormatException(
+        'course.restoredFromVersion must be a positive integer.',
+      );
+    }
     final learning = _requiredString(json, 'learningLanguage', 'course');
     final interface = _requiredString(json, 'interfaceLanguage', 'course');
     final originType = CourseOriginType.parse(json);
-    final creatorProfileId = originType == CourseOriginType.custom
-        ? _requiredString(json, 'creatorProfileId', 'course')
-        : _optionalString(json, 'creatorProfileId', '');
-    final ownership = json['ownership'];
+    if (originType == CourseOriginType.custom) {
+      for (final key in const [
+        'publisherId',
+        'publisherName',
+        'officialCourseVersion',
+        'officialReleaseDateUtc',
+        'officialChecksum',
+        'officialReleaseNotes',
+        'distributionChannel',
+        'publisherVerificationStatus',
+        'publisherSignature',
+      ]) {
+        if (json.containsKey(key)) {
+          throw FormatException(
+            'Course Model v9 custom courses do not support course.$key.',
+          );
+        }
+      }
+    } else {
+      for (final key in const [
+        'courseVersion',
+        'versionNotes',
+        'restoredFromVersion',
+      ]) {
+        if (json.containsKey(key)) {
+          throw FormatException(
+            'Course Model v9 official courses do not support course.$key.',
+          );
+        }
+      }
+    }
+    final originalCourseCreator = json['originalCourseCreator'];
+    if (originalCourseCreator is! Map) {
+      throw const FormatException(
+        'Course Model v9 requires course.originalCourseCreator.',
+      );
+    }
+    final maintainer = json['maintainer'];
     if (json.containsKey('assignedTeamId') &&
         json['assignedTeamId'] is! String) {
       throw const FormatException('course.assignedTeamId must be a string.');
     }
-    if (originType == CourseOriginType.custom && ownership is! Map) {
+    if (originType == CourseOriginType.custom && maintainer is! Map) {
       throw const FormatException(
-        'Course Model v8 custom courses require explicit course.ownership.',
+        'Course Model v9 custom courses require an explicit course.maintainer.',
       );
     }
-    if (originType.isOfficial && ownership != null) {
+    if (originType.isOfficial && maintainer != null) {
       throw const FormatException(
-        'Official courses cannot contain custom-course ownership.',
+        'Official courses cannot contain a custom Course Maintainer.',
+      );
+    }
+    final originalCreatedAtUtc = _requiredString(
+      json,
+      'originalCreatedAtUtc',
+      'course',
+    );
+    final modifiedAtUtc = _requiredString(json, 'modifiedAtUtc', 'course');
+    final lastVersionEditorProfileId = originType == CourseOriginType.custom
+        ? _requiredString(json, 'lastVersionEditorProfileId', 'course')
+        : _optionalString(json, 'lastVersionEditorProfileId', '');
+    final lastVersionEditorDisplayName = originType == CourseOriginType.custom
+        ? _requiredString(json, 'lastVersionEditorDisplayName', 'course')
+        : _optionalString(json, 'lastVersionEditorDisplayName', '');
+    if (lastVersionEditorProfileId.isEmpty !=
+        lastVersionEditorDisplayName.isEmpty) {
+      throw const FormatException(
+        'Course Model v9 requires both Last Version Editor identity fields when either is present.',
       );
     }
     return Course(
@@ -811,31 +1067,21 @@ class Course {
       distributionChannel: _optionalString(json, 'distributionChannel', ''),
       publisherVerificationStatus: PublisherVerificationStatus.parse(json),
       publisherSignature: _optionalString(json, 'publisherSignature', ''),
-      creatorProfileId: creatorProfileId,
-      ownership: ownership is Map
-          ? CourseOwnership.fromJson(Map<String, dynamic>.from(ownership))
+      originalCourseCreator: CourseProvenanceIdentity.fromJson(
+        Map<String, dynamic>.from(originalCourseCreator),
+      ),
+      maintainer: maintainer is Map
+          ? CourseMaintainer.fromJson(Map<String, dynamic>.from(maintainer))
           : null,
       assignedTeamId: _optionalString(json, 'assignedTeamId', '').isEmpty
           ? null
           : _optionalString(json, 'assignedTeamId', ''),
-      createdByProfileId: _optionalString(json, 'createdByProfileId', ''),
-      createdByUsername: _optionalString(json, 'createdByUsername', ''),
-      createdAtUtc: _optionalString(json, 'createdAtUtc', ''),
-      lastModifiedByProfileId: _optionalString(
-        json,
-        'lastModifiedByProfileId',
-        '',
-      ),
-      lastModifiedByUsername: _optionalString(
-        json,
-        'lastModifiedByUsername',
-        '',
-      ),
-      lastModifiedAtUtc: _optionalString(json, 'lastModifiedAtUtc', ''),
+      originalCreatedAtUtc: originalCreatedAtUtc,
+      lastVersionEditorProfileId: lastVersionEditorProfileId,
+      lastVersionEditorDisplayName: lastVersionEditorDisplayName,
+      modifiedAtUtc: modifiedAtUtc,
       versionNotes: _optionalString(json, 'versionNotes', ''),
-      restoredFromVersion: json['restoredFromVersion'] is int
-          ? json['restoredFromVersion'] as int
-          : null,
+      restoredFromVersion: json['restoredFromVersion'] as int?,
       publicationState: PublicationState.parseRequired(json, 'course'),
       lessonNumberingMode: LessonNumberingMode.parseRequired(json),
       customLessonLabel: _optionalString(json, 'customLessonLabel', ''),
@@ -843,33 +1089,44 @@ class Course {
       createDuels: json['createDuels'] as bool? ?? true,
       useGuidebook: json['useGuidebook'] as bool? ?? true,
       sectionNames: _stringList(json, 'sectionNames'),
-      parentCourseId: _optionalString(json, 'parentCourseId', '').isEmpty
-          ? null
-          : _optionalString(json, 'parentCourseId', ''),
-      derivedFromVersion:
-          _optionalString(json, 'derivedFromVersion', '').isEmpty
-          ? null
-          : _optionalString(json, 'derivedFromVersion', ''),
       learningLanguage: learning,
       interfaceLanguage: interface,
       sourceLanguage: _optionalString(json, 'sourceLanguage', interface),
       targetLanguage: _optionalString(json, 'targetLanguage', learning),
       title: _requiredString(json, 'title', 'course'),
       ttsLanguage: _requiredString(json, 'ttsLanguage', 'course'),
-      version: _optionalString(json, 'version', '1.0.0'),
-      contentRevision: _optionalString(json, 'contentRevision', '1'),
-      updateSummary: _optionalString(json, 'updateSummary', ''),
       audioMode: const {'tts', 'recorded', 'hybrid'}.contains(json['audioMode'])
           ? json['audioMode'] as String
           : 'tts',
-      author: _optionalString(json, 'author', ''),
-      authors: (json['authors'] is List)
-          ? (json['authors'] as List)
-                .whereType<Map>()
-                .map((e) => CourseAuthor.fromJson(Map<String, dynamic>.from(e)))
-                .toList()
+      authors: json.containsKey('authors')
+          ? json['authors'] is List
+                ? (json['authors'] as List).map((entry) {
+                    if (entry is! Map) {
+                      throw const FormatException(
+                        'course.authors entries must be objects.',
+                      );
+                    }
+                    return CourseAuthor.fromJson(
+                      Map<String, dynamic>.from(entry),
+                    );
+                  }).toList()
+                : throw const FormatException('course.authors must be a list.')
           : const [],
       license: _optionalString(json, 'license', 'All rights reserved'),
+      rightsHolders: (json['rightsHolders'] is List)
+          ? (json['rightsHolders'] as List).map((entry) {
+              if (entry is! Map) {
+                throw const FormatException(
+                  'course.rightsHolders entries must be objects.',
+                );
+              }
+              return CourseRightsHolder.fromJson(
+                Map<String, dynamic>.from(entry),
+              );
+            }).toList()
+          : json.containsKey('rightsHolders')
+          ? throw const FormatException('course.rightsHolders must be a list.')
+          : const [],
       derivativeWorksPolicy: DerivativeWorksPolicy.parse(
         json['derivativeWorksPolicy'],
       ),
@@ -886,7 +1143,6 @@ class Course {
       startLevel: _optionalString(json, 'startLevel', ''),
       targetLevel: _optionalString(json, 'targetLevel', ''),
       courseVersion: _optionalString(json, 'courseVersion', ''),
-      lastUpdated: _optionalString(json, 'lastUpdated', ''),
       courseDescription: _optionalString(json, 'courseDescription', ''),
       sourceLanguageTag: _optionalString(json, 'sourceLanguageTag', ''),
       targetLanguageTag: _optionalString(json, 'targetLanguageTag', ''),
@@ -932,47 +1188,6 @@ class Course {
       (_) => random.nextInt(16).toRadixString(16),
     ).join();
     return 'course_${hex(8)}-${hex(4)}-4${hex(3)}-${(8 + random.nextInt(4)).toRadixString(16)}${hex(3)}-${hex(12)}';
-  }
-
-  Course fork({String? creatorProfileId, CourseOwnership? ownership}) {
-    if (originType.isOfficial) {
-      throw StateError(
-        'Official courses require the licensed Fork as custom course workflow.',
-      );
-    }
-    final json = Map<String, dynamic>.from(toJson())
-      ..['courseId'] = newCourseId()
-      ..['originType'] = CourseOriginType.custom.name
-      ..['publicationState'] = PublicationState.draft.name
-      ..['parentCourseId'] = courseId
-      ..['derivedFromVersion'] = originType.isOfficial
-          ? officialCourseVersion
-          : courseVersion
-      ..['courseVersion'] = '';
-    if (creatorProfileId != null) json['creatorProfileId'] = creatorProfileId;
-    if (ownership != null) json['ownership'] = ownership.toJson();
-    for (final key in const [
-      'publisherId',
-      'publisherName',
-      'officialCourseVersion',
-      'officialReleaseDateUtc',
-      'officialChecksum',
-      'officialReleaseNotes',
-      'distributionChannel',
-      'publisherVerificationStatus',
-      'publisherSignature',
-      'createdByProfileId',
-      'createdByUsername',
-      'createdAtUtc',
-      'lastModifiedByProfileId',
-      'lastModifiedByUsername',
-      'lastModifiedAtUtc',
-      'versionNotes',
-      'restoredFromVersion',
-    ]) {
-      json.remove(key);
-    }
-    return Course.fromJson(json);
   }
 }
 
@@ -1226,12 +1441,12 @@ class Lesson {
     }
     if (j.containsKey('id') || j.containsKey('topicId')) {
       throw const FormatException(
-        'Course Model formatVersion 8 Lessons require lessonId and reject legacy Lesson identity fields.',
+        'Course Model formatVersion 9 Lessons require lessonId and reject legacy Lesson identity fields.',
       );
     }
     if (j.containsKey('role') || j.containsKey('assessment')) {
       throw const FormatException(
-        'Course Model formatVersion 8 Lessons do not support role or assessment fields.',
+        'Course Model formatVersion 9 Lessons do not support role or assessment fields.',
       );
     }
     final rawGuidebook = j['guidebook'];
@@ -1249,7 +1464,7 @@ class Lesson {
     }
     if (j.containsKey('imageAsset')) {
       throw const FormatException(
-        'Course Model formatVersion 8 Lessons do not support the obsolete imageAsset field.',
+        'Course Model formatVersion 9 Lessons do not support the obsolete imageAsset field.',
       );
     }
     if (j.containsKey('sectionName') &&
@@ -1711,19 +1926,19 @@ class ExerciseEvaluation {
   factory ExerciseEvaluation.fromJson(Map<String, dynamic> j) {
     if (j.containsKey('accepted')) {
       throw const FormatException(
-        'Course Model formatVersion 8 uses acceptedAnswers and does not load the legacy accepted field.',
+        'Course Model formatVersion 9 uses acceptedAnswers and does not load the legacy accepted field.',
       );
     }
     if (j.containsKey('correctOrder')) {
       throw const FormatException(
-        'Course Model formatVersion 8 requires correctOrders and does not load the legacy single correctOrder field.',
+        'Course Model formatVersion 9 requires correctOrders and does not load the legacy single correctOrder field.',
       );
     }
     if (j.containsKey('caseSensitive') ||
         j.containsKey('ignorePunctuation') ||
         j.containsKey('ignoreAccents')) {
       throw const FormatException(
-        'Course Model formatVersion 8 requires the normalization object and does not load legacy normalization flags.',
+        'Course Model formatVersion 9 requires the normalization object and does not load legacy normalization flags.',
       );
     }
     final normalization = j['normalization'] is Map

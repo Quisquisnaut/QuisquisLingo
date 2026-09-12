@@ -8,19 +8,32 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 Course _metadataCourse() => Course(
   courseId: 'course_metadata',
-  creatorProfileId: '11111111-1111-4111-8111-111111111111',
-  ownership: const CourseOwnership.individual(
-    '11111111-1111-4111-8111-111111111111',
+  originalCourseCreator: CourseProvenanceIdentity.qqlUser(
+    profileId: '11111111-1111-4111-8111-111111111111',
+    displayName: 'Original Course Creator',
   ),
+  maintainer: const CourseMaintainer('11111111-1111-4111-8111-111111111111'),
+  originalCreatedAtUtc: '2026-09-12T08:00:00.000Z',
+  lastVersionEditorProfileId: '11111111-1111-4111-8111-111111111111',
+  lastVersionEditorDisplayName: 'Original Course Creator',
+  modifiedAtUtc: '2026-09-12T08:00:00.000Z',
   learningLanguage: 'Italian',
   interfaceLanguage: 'English',
   sourceLanguage: 'English',
   targetLanguage: 'Italian',
   title: 'Metadata course',
   ttsLanguage: 'it-IT',
-  version: '1.0.0',
   temporarySample: true,
   buyACoffeeUrl: 'https://example.com/support',
+  authors: const [
+    CourseAuthor(name: 'A', roles: ['Author']),
+  ],
+  rightsHolders: const [
+    CourseRightsHolder(
+      type: CourseRightsHolderType.person,
+      name: 'Rights Holder',
+    ),
+  ],
   lessons: [
     Lesson(
       lessonId: 't1',
@@ -45,19 +58,22 @@ Course _metadataCourse() => Course(
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  test('course author reads legacy role and writes multi-role metadata', () {
-    final legacy = CourseAuthor.fromJson({
-      'name': 'A',
-      'role': 'Course Creator',
-    });
-    expect(legacy.roles, ['Course Creator']);
+  test('Course Model v9 author metadata requires structured roles', () {
+    expect(
+      () => CourseAuthor.fromJson({'name': 'A', 'role': 'Author'}),
+      throwsFormatException,
+    );
+    expect(
+      () => CourseAuthor.fromJson({'name': 'A', 'roles': const []}),
+      throwsFormatException,
+    );
     final author = CourseAuthor(
       name: 'A',
-      roles: const ['Course Creator', 'Team Leader', 'Custom role'],
+      roles: const ['Author', 'Team Leader', 'Custom role'],
     );
     final json = author.toJson();
-    expect(json['roles'], ['Course Creator', 'Team Leader', 'Custom role']);
-    expect(json['role'], 'Course Creator, Team Leader, Custom role');
+    expect(json['roles'], ['Author', 'Team Leader', 'Custom role']);
+    expect(json.containsKey('role'), isFalse);
   });
 
   test('course metadata and Lesson Guidebook round-trip independently', () {
@@ -66,9 +82,64 @@ void main() {
     final decoded = Course.fromJson(json);
     expect(decoded.temporarySample, isTrue);
     expect(decoded.buyACoffeeUrl, 'https://example.com/support');
+    expect(decoded.authors.single.roles, ['Author']);
+    expect(decoded.rightsHolders.single.name, 'Rights Holder');
+    expect(decoded.rightsHolders.single.type, CourseRightsHolderType.person);
     expect(decoded.lessons.single.guidebook.overview, 'Learner text');
     expect(decoded.lessons.single.duel.id, 'd1');
     expect(json.containsKey('chapters'), isFalse);
+  });
+
+  test('v9 serialized Courses require canonical root version metadata', () {
+    final json = _metadataCourse().toJson();
+    for (final field in [
+      'originalCreatedAtUtc',
+      'lastVersionEditorProfileId',
+      'lastVersionEditorDisplayName',
+      'modifiedAtUtc',
+    ]) {
+      final missing = Map<String, dynamic>.from(json)..remove(field);
+      expect(
+        () => Course.fromJson(missing),
+        throwsFormatException,
+        reason: 'missing $field must be rejected',
+      );
+    }
+  });
+
+  test('non-forked custom Course lineage must begin with a QQL user', () {
+    final json = _metadataCourse().toJson();
+    expect(
+      () => Course.fromJson({
+        ...json,
+        'originalCourseCreator': const CourseProvenanceIdentity.publisher(
+          publisherId: 'example.publisher',
+          displayName: 'Example Publisher',
+        ).toJson(),
+      }),
+      throwsFormatException,
+    );
+  });
+
+  test('v9 serialized Authors must be a list of structured objects', () {
+    final json = _metadataCourse().toJson();
+    expect(
+      () => Course.fromJson({...json, 'authors': 'A'}),
+      throwsFormatException,
+    );
+    expect(
+      () => Course.fromJson({
+        ...json,
+        'authors': [
+          {
+            'name': 'A',
+            'roles': ['Author'],
+          },
+          'not an author object',
+        ],
+      }),
+      throwsFormatException,
+    );
   });
 
   test('Buy a Coffee uses only a trimmed optional HTTPS URL', () {
@@ -97,13 +168,13 @@ void main() {
     );
   });
 
-  test('Course Editor uses a clean v8 storage namespace', () async {
+  test('Course Editor uses v9 storage and leaves v8 untouched', () async {
     final course = _metadataCourse();
-    final legacyValue = jsonEncode({
+    final v8Value = jsonEncode({
       course.courseId: {'savedAt': '2026-08-28', 'course': course.toJson()},
     });
     SharedPreferences.setMockInitialValues({
-      'quisquislingo_user_courses_v2_100': legacyValue,
+      'quisquislingo_user_courses_v8_233030': v8Value,
     });
 
     final profiles = ProfileService();
@@ -116,9 +187,9 @@ void main() {
 
     await service.saveUserCourse(course);
     final prefs = await SharedPreferences.getInstance();
-    expect(prefs.getString('quisquislingo_user_courses_v8_233030'), isNotNull);
+    expect(prefs.getString('quisquislingo_user_courses_v9_233030'), isNotNull);
+    expect(prefs.getString('quisquislingo_user_courses_v8_233030'), v8Value);
     expect(prefs.getString('quisquislingo_user_courses_v5_223'), isNull);
     expect(prefs.getString('quisquislingo_user_courses_v4_215'), isNull);
-    expect(prefs.getString('quisquislingo_user_courses_v2_100'), legacyValue);
   });
 }

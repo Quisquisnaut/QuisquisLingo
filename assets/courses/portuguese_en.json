@@ -1,5 +1,5 @@
 {
-  "formatVersion": 8,
+  "formatVersion": 9,
   "publicationState": "published",
   "lessonNumberingMode": "lesson",
   "defaultLessonIconStyle": "monochrome",
@@ -9,40 +9,41 @@
   "publisherName": "QuisquisLingo",
   "officialCourseVersion": "1.6.1",
   "officialReleaseDateUtc": "2026-09-06T00:00:00.000Z",
-  "officialChecksum": "ba6cf91546dea02a6586c7707c08146c22602a2c8805134f82e8d68f831829e3",
+  "officialChecksum": "835df5b649712c8cf91fcfa85aa2a4ea3286d552e6fbff3202524c35e0cb0aac",
   "officialReleaseNotes": "Build 226.02 revision 3 AI-generated sample label update.",
   "distributionChannel": "bundled",
   "publisherVerificationStatus": "verified",
+  "originalCourseCreator": {
+    "type": "publisher",
+    "id": "org.quisquislingo",
+    "displayName": "QuisquisLingo"
+  },
+  "originalCreatedAtUtc": "2026-09-06T00:00:00.000Z",
+  "modifiedAtUtc": "2026-09-06T00:00:00.000Z",
   "learningLanguage": "Portuguese",
   "interfaceLanguage": "English",
   "sourceLanguage": "English",
   "targetLanguage": "Portuguese",
   "title": "AI-Slop Demo: Portuguese for English Speakers",
   "ttsLanguage": "pt-PT",
-  "version": "1.6.1",
-  "contentRevision": "bundled-v22602-r3-sample-label",
-  "updateSummary": "Explicitly labelled as an AI-generated demonstration course for Build 226.02 revision 3; learning content and stable IDs are unchanged.",
   "audioMode": "tts",
   "authors": [
     {
       "name": "Sample Author Ines",
       "roles": [
-        "Course Creator"
+        "Author"
       ]
     },
     {
       "name": "Sample Author Rui",
       "roles": [
-        "Course Creator"
+        "Author"
       ]
     }
   ],
   "license": "All rights reserved",
-  "courseVersion": "1.6.1",
-  "lastUpdated": "2026-09-06",
-  "courseDescription": "TEMPORARY SAMPLE course regenerated for Course Model v8.",
+  "courseDescription": "TEMPORARY SAMPLE course regenerated for Course Model v9.",
   "textDirection": "ltr",
-  "author": "Sample Author Ines, Sample Author Rui",
   "temporarySample": true,
   "lessons": [
     {

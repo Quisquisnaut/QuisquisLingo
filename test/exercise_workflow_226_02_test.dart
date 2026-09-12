@@ -715,7 +715,6 @@ Course exampleCourse(List<Exercise> exercises) => Course(
   sourceLanguage: 'English',
   targetLanguage: 'Italian',
   ttsLanguage: 'it-IT',
-  version: '1',
   courseVersion: '1',
   lessons: [
     Lesson(

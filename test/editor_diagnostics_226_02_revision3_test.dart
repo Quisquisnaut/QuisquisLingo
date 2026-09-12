@@ -355,7 +355,6 @@ Course _course({bool duplicateLessonTitles = false, bool longIds = false}) {
     targetLanguage: 'Italian',
     title: 'Diagnostics course',
     ttsLanguage: 'it-IT',
-    version: '1',
     courseVersion: '1',
     lessons: [
       first,

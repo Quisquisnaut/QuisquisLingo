@@ -392,7 +392,6 @@ Course _course({
   targetLanguage: 'Welsh',
   title: 'World Flag course',
   ttsLanguage: 'cy-GB',
-  version: '1',
   worldFlagId: worldFlagId,
   flagCode: flagCode,
   flagImageBase64: flagImageBase64,

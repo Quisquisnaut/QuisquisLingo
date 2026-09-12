@@ -364,25 +364,6 @@ class CourseAuditService {
         ),
       );
     }
-    if (course.lastUpdated.trim().isNotEmpty) {
-      final raw = course.lastUpdated.trim();
-      final validShape = RegExp(r'^\d{4}-\d{2}-\d{2}$').hasMatch(raw);
-      final parsed = DateTime.tryParse(raw);
-      if (!validShape ||
-          parsed == null ||
-          parsed.year.toString().padLeft(4, '0') != raw.substring(0, 4) ||
-          parsed.month.toString().padLeft(2, '0') != raw.substring(5, 7) ||
-          parsed.day.toString().padLeft(2, '0') != raw.substring(8, 10)) {
-        issues.add(
-          CourseAuditIssue.fromCode(
-            AuditCode.courseDateInvalid,
-            message:
-                'Last updated should be a valid date in YYYY-MM-DD format.',
-            location: 'Course info',
-          ),
-        );
-      }
-    }
     if (course.lessons.isEmpty) {
       issues.add(
         CourseAuditIssue.fromCode(

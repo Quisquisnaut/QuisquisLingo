@@ -82,7 +82,7 @@ class CreditsScreen extends StatelessWidget {
             _CreditCard(
               title: course!.title,
               text:
-                  'Course author(s): ${course!.authors.isNotEmpty ? course!.authors.map((a) => '${a.name} (${a.role})').join(', ') : (course!.author.trim().isEmpty ? 'Not specified' : course!.author.trim())}\nContent license: ${course!.license.trim().isEmpty ? 'Not specified' : course!.license.trim()}',
+                  'Course author(s): ${course!.authors.isNotEmpty ? course!.authors.map((a) => '${a.name} (${a.roles.join(', ')})').join(', ') : 'Not specified'}\nContent license: ${course!.license.trim().isEmpty ? 'Not specified' : course!.license.trim()}',
             ),
             const SizedBox(height: 22),
           ],

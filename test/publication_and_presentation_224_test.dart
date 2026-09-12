@@ -88,9 +88,16 @@ void main() {
       expect(restored.lessons[1].publicationState, PublicationState.draft);
       expect(restored.lessons.first.rounds.last.id, 'draft-round');
 
-      final duplicate = AuthoringDuplicationService().duplicateCourse(
+      final duplicate = AuthoringDuplicationService().copyCourseAsNew(
         source,
         title: 'Copy',
+        originalCourseCreator: const CourseProvenanceIdentity.qqlUser(
+          profileId: '11111111-1111-4111-8111-111111111111',
+          displayName: 'Copy creator',
+        ),
+        maintainer: const CourseMaintainer(
+          '11111111-1111-4111-8111-111111111111',
+        ),
       );
       expect(duplicate.publicationState, PublicationState.draft);
       expect(
@@ -156,7 +163,6 @@ void main() {
       targetLanguage: 'Italian',
       title: 'Course',
       ttsLanguage: 'it-IT',
-      version: '1',
       lessons: [lesson],
     );
 
@@ -207,7 +213,6 @@ Course _course() => Course(
   targetLanguage: 'Italian',
   title: 'Course',
   ttsLanguage: 'it-IT',
-  version: '1',
   lessons: [
     Lesson(
       lessonId: 'a',

@@ -59,16 +59,25 @@ void main() {
     );
   });
 
-  test('Course duplication copies and remaps managed custom icons', () {
+  test('Copy as New Course copies and remaps managed custom icons', () {
     final png = base64Encode(
       File('assets/lesson_icons/home.png').readAsBytesSync(),
     );
     final source = _course(
       CourseLessonIconAsset(assetId: 'custom_home', base64Png: png),
     );
-    final duplicate = AuthoringDuplicationService(
-      ids: _SequenceIds(),
-    ).duplicateCourse(source, title: 'Copy');
+    final duplicate = AuthoringDuplicationService(ids: _SequenceIds())
+        .copyCourseAsNew(
+          source,
+          title: 'Copy',
+          originalCourseCreator: const CourseProvenanceIdentity.qqlUser(
+            profileId: '11111111-1111-4111-8111-111111111111',
+            displayName: 'Copy creator',
+          ),
+          maintainer: const CourseMaintainer(
+            '11111111-1111-4111-8111-111111111111',
+          ),
+        );
 
     expect(duplicate.lessonIconAssets.single.assetId, isNot('custom_home'));
     expect(
@@ -111,7 +120,6 @@ Course _course(CourseLessonIconAsset? asset, {String? icon}) => Course(
   targetLanguage: 'Italian',
   title: 'Course',
   ttsLanguage: 'it-IT',
-  version: '1',
   lessonIconAssets: asset == null ? const [] : [asset],
   lessons: [
     Lesson(

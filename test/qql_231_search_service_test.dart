@@ -71,17 +71,17 @@ Course _inventoryCourse() {
 
 Course _course() => Course(
   courseId: 'search_course',
-  creatorProfileId: '00000000-0000-4000-8000-000000000001',
-  ownership: const CourseOwnership.individual(
-    '00000000-0000-4000-8000-000000000001',
+  originalCourseCreator: CourseProvenanceIdentity.qqlUser(
+    profileId: '00000000-0000-4000-8000-000000000001',
+    displayName: 'Original Course Creator',
   ),
+  maintainer: const CourseMaintainer('00000000-0000-4000-8000-000000000001'),
   learningLanguage: 'Italian',
   interfaceLanguage: 'English',
   sourceLanguage: 'English',
   targetLanguage: 'Italian',
   title: 'Search course',
   ttsLanguage: 'it-IT',
-  version: '1',
   lessons: [
     Lesson(
       lessonId: 'lesson_one',

@@ -69,7 +69,10 @@ void main() {
       expect(find.byType(RoundScreen), findsNothing);
       expect(find.text('Review completed!'), findsNothing);
       expect(find.textContaining('Congratulations'), findsNothing);
-      expect(find.text('1 word to review in the next Review.'), findsOneWidget);
+      expect(
+        find.text('0 words to review in the next Review.'),
+        findsOneWidget,
+      );
       expect(find.byKey(const Key('review-reset-word-list')), findsOneWidget);
       expect(find.byKey(const Key('review-help')), findsOneWidget);
 
@@ -215,6 +218,72 @@ void main() {
           entries.last,
         )).needsReinforcement,
         isTrue,
+      );
+    },
+  );
+
+  testWidgets(
+    'Next Review consumes the exact eligible vocabulary list already counted',
+    (tester) async {
+      final course = _course();
+      final lesson = course.lessons.single;
+      final vocabulary = VocabularyReviewService();
+      final entries = vocabulary.resolveEntries(course, lesson);
+      await _seedReview(course, 'round-high', errors: 4);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: ReviewScreen(course: course, courseCode: 'IT'),
+        ),
+      );
+      await _pumpUntil(
+        tester,
+        find.text('2 words to review in the next Review.'),
+      );
+
+      await vocabulary.markKnown(
+        course.courseId,
+        lesson.lessonId,
+        entries.first,
+      );
+      await _tap(tester, 'Next Review');
+      await _pumpUntil(tester, find.text('Before the Round'));
+
+      expect(find.text('casa'), findsOneWidget);
+      expect(find.text('Word 1 of 2'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'Reset Word List refreshes the cached next Review vocabulary count',
+    (tester) async {
+      final course = _course();
+      final lesson = course.lessons.single;
+      final vocabulary = VocabularyReviewService();
+      final entries = vocabulary.resolveEntries(course, lesson);
+      await vocabulary.markKnown(
+        course.courseId,
+        lesson.lessonId,
+        entries.first,
+      );
+      await _seedReview(course, 'round-high', errors: 4);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: ReviewScreen(course: course, courseCode: 'IT'),
+        ),
+      );
+      await _pumpUntil(
+        tester,
+        find.text('1 word to review in the next Review.'),
+      );
+
+      await tester.tap(find.byKey(const Key('review-reset-word-list')));
+      await tester.pumpAndSettle();
+      await _tap(tester, 'Reset');
+      await _pumpUntil(
+        tester,
+        find.text('2 words to review in the next Review.'),
       );
     },
   );
@@ -378,9 +447,19 @@ void main() {
   testWidgets(
     'inter-review count updates for the next selected Round and Back exits',
     (tester) async {
-      final course = _course(vocabulary: const []);
-      await _seedReview(course, 'round-high', errors: 5);
-      await _seedReview(course, 'round-low', errors: 1);
+      final course = _courseAcrossLessons();
+      await _seedReview(
+        course,
+        'round-high',
+        errors: 5,
+        lessonId: 'priority-lesson',
+      );
+      await _seedReview(
+        course,
+        'round-low',
+        errors: 1,
+        lessonId: 'next-lesson',
+      );
       await tester.pumpWidget(
         MaterialApp(home: _ReviewLauncher(course: course)),
       );
@@ -388,14 +467,15 @@ void main() {
       await _tap(tester, 'Open Review');
       await _pumpUntil(
         tester,
-        find.text('1 word to review in the next Review.'),
+        find.text('0 words to review in the next Review.'),
       );
       await _startNextReview(tester);
       await _completeCurrentRound(tester, 'round-high');
       await _pumpUntil(
         tester,
-        find.text('2 words to review in the next Review.'),
+        find.text('4 words to review in the next Review.'),
       );
+      expect(find.textContaining('7 words'), findsNothing);
 
       await _tap(tester, 'Back to Course');
       await tester.pumpAndSettle();
@@ -405,10 +485,15 @@ void main() {
   );
 }
 
-Future<void> _seedReview(Course course, String roundId, {required int errors}) {
+Future<void> _seedReview(
+  Course course,
+  String roundId, {
+  required int errors,
+  String? lessonId,
+}) {
   return ProgressService().recordRecentRound(
     course.courseId,
-    course.lessons.single.lessonId,
+    lessonId ?? course.lessons.single.lessonId,
     roundId,
     errors: errors,
   );
@@ -473,7 +558,6 @@ Course _course({
     targetLanguage: 'Italian',
     title: courseTitle,
     ttsLanguage: 'it-IT',
-    version: '1',
     lessons: [
       Lesson(
         lessonId: 'review-lesson',
@@ -501,6 +585,57 @@ Course _course({
     ],
   );
 }
+
+Course _courseAcrossLessons() => Course(
+  courseId: 'qql-232-review-across-lessons',
+  learningLanguage: 'Italian',
+  interfaceLanguage: 'English',
+  sourceLanguage: 'English',
+  targetLanguage: 'Italian',
+  title: 'Review across Lessons',
+  ttsLanguage: 'it-IT',
+  lessons: [
+    Lesson(
+      lessonId: 'priority-lesson',
+      title: 'Priority Lesson',
+      guidebook: Guidebook.empty(),
+      rounds: [_round('round-high', 'Higher priority Round')],
+    ),
+    Lesson(
+      lessonId: 'next-lesson',
+      title: 'Next Lesson',
+      guidebook: Guidebook(
+        content: const [
+          LearningContent(
+            id: 'sole',
+            kind: 'vocabulary',
+            role: 'vocabulary',
+            text: 'sole = sun',
+          ),
+          LearningContent(
+            id: 'luna',
+            kind: 'vocabulary',
+            role: 'vocabulary',
+            text: 'luna = moon',
+          ),
+          LearningContent(
+            id: 'stella',
+            kind: 'vocabulary',
+            role: 'vocabulary',
+            text: 'stella = star',
+          ),
+          LearningContent(
+            id: 'cielo',
+            kind: 'vocabulary',
+            role: 'vocabulary',
+            text: 'cielo = sky',
+          ),
+        ],
+      ),
+      rounds: [_round('round-low', 'Lower priority Round')],
+    ),
+  ],
+);
 
 LearningRound _round(String id, String title) => LearningRound(
   id: id,

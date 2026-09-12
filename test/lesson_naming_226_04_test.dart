@@ -302,7 +302,6 @@ Course _course() => Course(
   targetLanguage: 'it',
   title: 'Lesson naming',
   ttsLanguage: 'it-IT',
-  version: '1',
   license: 'CC0-1.0',
   lessons: [
     Lesson(lessonId: 'default-title', title: 'Lesson 1', rounds: []),

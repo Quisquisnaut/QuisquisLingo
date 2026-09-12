@@ -611,7 +611,6 @@ Course _course({bool invalidAnswer = false}) => Course(
   targetLanguage: 'Italian',
   title: 'Transfer UI fixture',
   ttsLanguage: 'it-IT',
-  version: '1',
   courseVersion: '4',
   courseDescription: 'Preserved course metadata',
   lessons: [

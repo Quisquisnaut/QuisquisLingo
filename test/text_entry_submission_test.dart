@@ -165,7 +165,6 @@ Future<void> _openTextRound(
     targetLanguage: 'Italian',
     title: 'Text Entry Course',
     ttsLanguage: 'it-IT',
-    version: '1.0.0',
     lessons: [lesson],
   );
 

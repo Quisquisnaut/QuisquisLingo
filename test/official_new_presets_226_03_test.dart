@@ -268,9 +268,8 @@ Course _official(CourseOriginType origin, String preset) {
     targetLanguage: 'English',
     title: 'Official $preset',
     ttsLanguage: 'en-US',
-    version: '1',
     authors: const [
-      CourseAuthor(name: 'Original Author', roles: ['Course Creator']),
+      CourseAuthor(name: 'Original Author', roles: ['Author']),
     ],
     license: 'Publisher content license',
     derivativeWorksPolicy: DerivativeWorksPolicy.forbidden,

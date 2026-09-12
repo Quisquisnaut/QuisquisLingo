@@ -269,7 +269,6 @@ Course _course({bool provisional = true}) => Course(
   sourceLanguage: 'English',
   targetLanguage: 'Italian',
   ttsLanguage: 'it-IT',
-  version: '1',
   courseVersion: '1',
   useGuidebook: false,
   createDuels: false,
