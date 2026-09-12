@@ -209,6 +209,8 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _addingLearner = false;
   bool _learnerFlowOpen = false;
   List<LearnerProfile> _learners = [];
+  Set<String> _adminProfileIds = const {};
+  String _deviceDisplayName = 'This device';
   Course? _course;
   Set<String> _completedRounds = {};
   Set<String> _completedLessons = {};
@@ -323,7 +325,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
               Text(
-                'Phase ${AppMetadata.developmentPhase}, revision ${AppMetadata.correctiveRevision}',
+                AppMetadata.publicBuildLabel,
                 style: Theme.of(ctx).textTheme.labelLarge?.copyWith(
                   color: _welcomeDialogForeground,
                 ),
@@ -429,6 +431,8 @@ class _HomeScreenState extends State<HomeScreen> {
       final bundledCourseCodes = await _courseService
           .reconcileAvailableBundledCourseCodes();
       final learners = await _profiles.getProfileRecords();
+      final adminProfileIds = await _profiles.getAdminProfileIds();
+      final deviceDisplayName = await _profiles.getDeviceDisplayName();
       final activeProfile = await _profiles.getActiveProfileRecord();
       final active = activeProfile?.displayName;
       final activeId = activeProfile?.learnerProfileId;
@@ -540,6 +544,8 @@ class _HomeScreenState extends State<HomeScreen> {
         _selectedLanguage = selectedLanguage;
         _bundledCourseCodes = bundledCourseCodes;
         _learners = learners;
+        _adminProfileIds = adminProfileIds;
+        _deviceDisplayName = deviceDisplayName;
         _activeLearner = active;
         _activeLearnerId = activeId;
         _completedRounds = rounds;
@@ -693,9 +699,149 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _switchLearner(String learnerProfileId) async {
-    if (mounted) setState(() => _course = null);
-    await _profiles.setActiveProfileById(learnerProfileId);
+    String? pin;
+    if (await _profiles.hasAccessPin(learnerProfileId)) {
+      if (!mounted) return;
+      var enteredPin = '';
+      pin = await showDialog<String>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          title: const Text('Enter Access PIN'),
+          content: TextFormField(
+            key: const Key('profile-access-pin-prompt'),
+            onChanged: (value) => enteredPin = value,
+            autofocus: true,
+            obscureText: true,
+            keyboardType: TextInputType.number,
+            maxLength: 4,
+            decoration: const InputDecoration(labelText: '4-digit Access PIN'),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(dialogContext, enteredPin),
+              child: const Text('Access profile'),
+            ),
+          ],
+        ),
+      );
+      if (pin == null) return;
+    }
+    try {
+      if (mounted) setState(() => _course = null);
+      await _profiles.setActiveProfileById(learnerProfileId, accessPin: pin);
+      await _reload();
+    } on ProfilePinException catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(error.message)));
+      await _reload();
+    }
+  }
+
+  Future<({ProfileAvatarAppearance? appearance, bool hasPin})>
+  _learnerSheetData(LearnerProfile profile) async => (
+    appearance: await _profiles.getAvatarAppearanceForProfile(
+      profile.learnerProfileId,
+    ),
+    hasPin: await _profiles.hasAccessPin(profile.learnerProfileId),
+  );
+
+  Future<void> _changeDeviceDisplayName() async {
+    final actor = _activeLearnerId;
+    if (actor == null || !_adminProfileIds.contains(actor) || !mounted) return;
+    var enteredName = _deviceDisplayName;
+    final value = await showDialog<String>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('QQL device name'),
+        content: TextFormField(
+          key: const Key('qql-device-name-field'),
+          initialValue: _deviceDisplayName,
+          onChanged: (name) => enteredName = name,
+          autofocus: true,
+          maxLength: 60,
+          decoration: const InputDecoration(labelText: 'Device name'),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(dialogContext, enteredName),
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
+    if (value == null) return;
+    try {
+      await _profiles.setDeviceDisplayName(
+        actorProfileId: actor,
+        displayName: value,
+      );
+      await _reload();
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(error.toString().replaceFirst('StateError: ', '')),
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _promoteAdmin(String targetProfileId) async {
+    final actor = _activeLearnerId;
+    if (actor == null) return;
+    await _profiles.promoteToAdmin(
+      actorProfileId: actor,
+      targetProfileId: targetProfileId,
+    );
     await _reload();
+  }
+
+  Future<void> _relinquishAdmin() async {
+    final actor = _activeLearnerId;
+    if (actor == null) return;
+    try {
+      await _profiles.relinquishAdmin(actor);
+      await _reload();
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(error.toString().replaceFirst('StateError: ', '')),
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _resetLearnerPin(String targetProfileId) async {
+    final actor = _activeLearnerId;
+    if (actor == null) return;
+    try {
+      await _profiles.resetAccessPinAsAdmin(
+        actorProfileId: actor,
+        targetProfileId: targetProfileId,
+      );
+      await _reload();
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(error.toString().replaceFirst('StateError: ', '')),
+          ),
+        );
+      }
+    }
   }
 
   Future<void> _deleteLearner(
@@ -723,7 +869,10 @@ class _HomeScreenState extends State<HomeScreen> {
     );
     if (ok == true) {
       try {
-        await _profiles.deleteProfileById(profile.learnerProfileId);
+        await _profiles.deleteProfileById(
+          profile.learnerProfileId,
+          actorProfileId: _activeLearnerId,
+        );
         await _reload();
       } catch (error) {
         if (!mounted) return;
@@ -746,47 +895,118 @@ class _HomeScreenState extends State<HomeScreen> {
           heightFactor: .72,
           child: Column(
             children: [
-              const ListTile(title: Text('Learners')),
+              ListTile(
+                title: Text('Learners on $_deviceDisplayName'),
+                trailing:
+                    _activeLearnerId != null &&
+                        _adminProfileIds.contains(_activeLearnerId)
+                    ? IconButton(
+                        key: const Key('edit-qql-device-name'),
+                        tooltip: 'Change QQL device name',
+                        onPressed: () => Navigator.pop(ctx, 'device-name'),
+                        icon: const Icon(Icons.edit_outlined),
+                      )
+                    : null,
+              ),
               const Divider(height: 1),
               Expanded(
                 child: ListView(
                   children: [
                     ..._learners.map(
-                      (profile) => FutureBuilder<ProfileAvatarAppearance?>(
-                        future: _profiles.getAvatarAppearanceForProfile(
-                          profile.learnerProfileId,
-                        ),
-                        builder: (context, snapshot) {
-                          final appearance = snapshot.data;
-                          return ListTile(
-                            leading: SizedBox(
-                              width: 42,
-                              height: 48,
-                              child: appearance == null
-                                  ? const Icon(Icons.person_outline)
-                                  : LearnerAvatar(
-                                      skinTone: appearance.skinTone,
-                                      hairTone: appearance.hairTone,
-                                    ),
-                            ),
-                            title: Text(profile.displayName),
-                            selected:
-                                profile.learnerProfileId == _activeLearnerId,
-                            onTap: () => Navigator.pop(
-                              ctx,
-                              'switch:${profile.learnerProfileId}',
-                            ),
-                            trailing: IconButton(
-                              tooltip: 'Delete learner',
-                              icon: const Icon(Icons.delete_outline),
-                              onPressed: () => Navigator.pop(
-                                ctx,
-                                'delete:${profile.learnerProfileId}',
-                              ),
-                            ),
-                          );
-                        },
-                      ),
+                      (profile) =>
+                          FutureBuilder<
+                            ({ProfileAvatarAppearance? appearance, bool hasPin})
+                          >(
+                            future: _learnerSheetData(profile),
+                            builder: (context, snapshot) {
+                              final appearance = snapshot.data?.appearance;
+                              final hasPin = snapshot.data?.hasPin == true;
+                              final actorId = _activeLearnerId;
+                              final actorIsAdmin =
+                                  actorId != null &&
+                                  _adminProfileIds.contains(actorId);
+                              final targetIsAdmin = _adminProfileIds.contains(
+                                profile.learnerProfileId,
+                              );
+                              final canDelete =
+                                  actorId != null &&
+                                  (actorId == profile.learnerProfileId ||
+                                      actorIsAdmin);
+                              final hasActions =
+                                  canDelete ||
+                                  (actorIsAdmin && !targetIsAdmin) ||
+                                  (actorId == profile.learnerProfileId &&
+                                      targetIsAdmin &&
+                                      _adminProfileIds.length > 1) ||
+                                  (actorIsAdmin &&
+                                      actorId != profile.learnerProfileId &&
+                                      hasPin);
+                              return ListTile(
+                                leading: SizedBox(
+                                  width: 42,
+                                  height: 48,
+                                  child: appearance == null
+                                      ? const Icon(Icons.person_outline)
+                                      : LearnerAvatar(
+                                          skinTone: appearance.skinTone,
+                                          hairTone: appearance.hairTone,
+                                        ),
+                                ),
+                                title: Text(
+                                  '${profile.displayName}${targetIsAdmin ? ' (admin)' : ''}',
+                                ),
+                                subtitle: profile.discordHandle == null
+                                    ? null
+                                    : Text(
+                                        '${profile.discordHandle} on Discord',
+                                      ),
+                                selected:
+                                    profile.learnerProfileId ==
+                                    _activeLearnerId,
+                                onTap: () => Navigator.pop(
+                                  ctx,
+                                  'switch:${profile.learnerProfileId}',
+                                ),
+                                trailing: hasActions
+                                    ? PopupMenuButton<String>(
+                                        tooltip: 'Learner actions',
+                                        onSelected: (value) => Navigator.pop(
+                                          ctx,
+                                          '$value:${profile.learnerProfileId}',
+                                        ),
+                                        itemBuilder: (context) => [
+                                          if (actorIsAdmin && !targetIsAdmin)
+                                            const PopupMenuItem(
+                                              value: 'promote-admin',
+                                              child: Text('Make admin'),
+                                            ),
+                                          if (actorId ==
+                                                  profile.learnerProfileId &&
+                                              targetIsAdmin &&
+                                              _adminProfileIds.length > 1)
+                                            const PopupMenuItem(
+                                              value: 'relinquish-admin',
+                                              child: Text('Relinquish admin'),
+                                            ),
+                                          if (actorIsAdmin &&
+                                              actorId !=
+                                                  profile.learnerProfileId &&
+                                              hasPin)
+                                            const PopupMenuItem(
+                                              value: 'reset-pin',
+                                              child: Text('Reset PIN'),
+                                            ),
+                                          if (canDelete)
+                                            const PopupMenuItem(
+                                              value: 'delete',
+                                              child: Text('Delete learner'),
+                                            ),
+                                        ],
+                                      )
+                                    : null,
+                              );
+                            },
+                          ),
                     ),
                     ListTile(
                       leading: const Icon(Icons.person_add_alt),
@@ -810,6 +1030,10 @@ class _HomeScreenState extends State<HomeScreen> {
       await _addLearner(overlayContext);
       return;
     }
+    if (action == 'device-name') {
+      await _changeDeviceDisplayName();
+      return;
+    }
     if (action.startsWith('switch:')) {
       await _switchLearner(action.substring(7));
       return;
@@ -824,6 +1048,18 @@ class _HomeScreenState extends State<HomeScreen> {
         }
       }
       if (profile != null) await _deleteLearner(profile, overlayContext);
+      return;
+    }
+    if (action.startsWith('promote-admin:')) {
+      await _promoteAdmin(action.substring('promote-admin:'.length));
+      return;
+    }
+    if (action.startsWith('relinquish-admin:')) {
+      await _relinquishAdmin();
+      return;
+    }
+    if (action.startsWith('reset-pin:')) {
+      await _resetLearnerPin(action.substring('reset-pin:'.length));
     }
   }
 

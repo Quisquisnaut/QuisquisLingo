@@ -845,6 +845,14 @@ void main() {
       final profiles = ProfileService();
       final service = await progress(learner: 'Solo', now: clock.call);
       final prefs = await SharedPreferences.getInstance();
+      final solo = (await profiles.getProfileRecords()).single;
+      await profiles.addProfile('Safety Admin');
+      final safetyAdmin = (await profiles.getProfileRecords()).last;
+      await profiles.setActiveProfileById(solo.learnerProfileId);
+      await profiles.promoteToAdmin(
+        actorProfileId: solo.learnerProfileId,
+        targetProfileId: safetyAdmin.learnerProfileId,
+      );
 
       await service.registerLearningActivity(courseCode: 'IT');
       await service.registerLearningActivity(courseCode: 'DE');
@@ -887,6 +895,10 @@ void main() {
     expect(prefs.getInt('${learnerBPrefix}streak_DE'), 1);
 
     await profiles.setActiveProfile('A');
+    await profiles.promoteToAdmin(
+      actorProfileId: learnerAId,
+      targetProfileId: learnerBId,
+    );
     final exported = await LearnerBackupService().exportActiveProfile();
     final data = Map<String, dynamic>.from(exported['data'] as Map);
 

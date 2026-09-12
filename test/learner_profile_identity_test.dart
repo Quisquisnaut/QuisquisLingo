@@ -19,28 +19,36 @@ void main() {
     SharedPreferences.setMockInitialValues({});
   });
 
-  test('new profiles receive unique stable IDs and duplicate names', () async {
-    final ids = [_idA, _idB].iterator;
-    final profiles = ProfileService(
-      idGenerator: () {
-        ids.moveNext();
-        return ids.current;
-      },
-    );
+  test(
+    'new profiles receive unique IDs and disambiguated Screen Names',
+    () async {
+      final ids = [_idA, _idB].iterator;
+      final suffixes = [11111, 22222].iterator;
+      final profiles = ProfileService(
+        idGenerator: () {
+          ids.moveNext();
+          return ids.current;
+        },
+        numericSuffixGenerator: () {
+          suffixes.moveNext();
+          return suffixes.current;
+        },
+      );
 
-    final first = await profiles.createProfile('Marco');
-    final second = await profiles.createProfile('Marco');
+      final first = await profiles.createProfile('Marco');
+      final second = await profiles.createProfile('Marco');
 
-    expect(first.learnerProfileId, _idA);
-    expect(second.learnerProfileId, _idB);
-    expect(first.learnerProfileId, isNot(second.learnerProfileId));
-    expect(await profiles.getProfiles(), ['Marco', 'Marco']);
-    expect(await profiles.getActiveProfileId(), _idB);
+      expect(first.learnerProfileId, _idA);
+      expect(second.learnerProfileId, _idB);
+      expect(first.learnerProfileId, isNot(second.learnerProfileId));
+      expect(await profiles.getProfiles(), ['Marco 11111', 'Marco 22222']);
+      expect(await profiles.getActiveProfileId(), _idB);
 
-    await profiles.setActiveProfileById(_idA);
-    expect(await profiles.getActiveProfileId(), _idA);
-    expect((await profiles.getProfileById(_idA))?.displayName, 'Marco');
-  });
+      await profiles.setActiveProfileById(_idA);
+      expect(await profiles.getActiveProfileId(), _idA);
+      expect((await profiles.getProfileById(_idA))?.displayName, 'Marco 11111');
+    },
+  );
 
   test(
     'Discord display information is optional and normalized with @',
@@ -226,8 +234,10 @@ void main() {
         return ids.current;
       },
     );
-    await profiles.createProfile('A');
-    await profiles.createProfile('A_B');
+    await profiles.createProfile('AA');
+    await profiles.createProfile('AA_BB');
+    await profiles.setActiveProfileById(_idA);
+    await profiles.promoteToAdmin(actorProfileId: _idA, targetProfileId: _idB);
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(
       '${ProfileService.prefixForProfileId(_idA)}probe',
@@ -321,7 +331,7 @@ void main() {
           return ids.current;
         },
       );
-      await profiles.createProfile('Existing');
+      final existing = await profiles.createProfile('Existing');
       await profiles.createProfile('Active peer');
       final prefs = await SharedPreferences.getInstance();
       final prefix = ProfileService.prefixForProfileId(_idA);
@@ -346,7 +356,10 @@ void main() {
         throwsStateError,
       );
 
-      expect((await profiles.getProfileById(_idA))?.displayName, 'Existing');
+      expect(
+        (await profiles.getProfileById(_idA))?.displayName,
+        existing.displayName,
+      );
       expect(await profiles.getActiveProfileId(), _idB);
       expect(prefs.getString('${prefix}old'), 'preserve');
       expect(prefs.getString('${prefix}new_1'), isNull);
@@ -435,10 +448,15 @@ void main() {
     'separate copy gets a new ID, chosen name, and independent data',
     () async {
       final ids = [_idB, _idC].iterator;
+      final suffixes = [33333, 44444].iterator;
       final profiles = ProfileService(
         idGenerator: () {
           ids.moveNext();
           return ids.current;
+        },
+        numericSuffixGenerator: () {
+          suffixes.moveNext();
+          return suffixes.current;
         },
       );
       final backup = LearnerBackupService(profileService: profiles);
@@ -459,9 +477,9 @@ void main() {
       );
 
       expect(sameNameCopy.learnerProfileId, _idB);
-      expect(sameNameCopy.displayName, 'Marco');
+      expect(sameNameCopy.displayName, 'Marco 33333');
       expect(renamedCopy.learnerProfileId, _idC);
-      expect(renamedCopy.displayName, 'Marco Copy');
+      expect(renamedCopy.displayName, 'Marco Copy 44444');
       expect(_idB, isNot(document.learnerProfileId));
       final prefs = await SharedPreferences.getInstance();
       await prefs.setInt('${ProfileService.prefixForProfileId(_idB)}xp_IT', 99);
@@ -479,7 +497,10 @@ void main() {
   test(
     'backup v1 is rejected and export contains v2 identity fields',
     () async {
-      final profiles = ProfileService(idGenerator: () => _idA);
+      final profiles = ProfileService(
+        idGenerator: () => _idA,
+        numericSuffixGenerator: () => 55555,
+      );
       await profiles.createProfile('Exported', discordHandle: 'exported');
       final backup = LearnerBackupService(profileService: profiles);
 
@@ -494,7 +515,8 @@ void main() {
       final exported = await backup.exportActiveProfile();
       expect(exported['schemaVersion'], 2);
       expect(exported['learnerProfileId'], _idA);
-      expect(exported['displayName'], 'Exported');
+      expect(exported['displayName'], 'Exported 55555');
+      expect(exported['screenNameSuffix'], '55555');
       expect(exported['discordHandle'], '@exported');
     },
   );
@@ -571,7 +593,10 @@ void main() {
     addTearDown(() async {
       if (await documents.exists()) await documents.delete(recursive: true);
     });
-    final profiles = ProfileService(idGenerator: () => _idA);
+    final profiles = ProfileService(
+      idGenerator: () => _idA,
+      numericSuffixGenerator: () => 66666,
+    );
     await profiles.createProfile('Export Name');
     final backup = LearnerBackupService(
       profileService: profiles,
@@ -585,11 +610,11 @@ void main() {
         '${Platform.pathSeparator}Exports';
     expect(
       first,
-      '$exportDirectory${Platform.pathSeparator}quisquislingo_export_name_backup.json',
+      '$exportDirectory${Platform.pathSeparator}quisquislingo_export_name_66666_backup.json',
     );
     expect(
       second,
-      '$exportDirectory${Platform.pathSeparator}quisquislingo_export_name_backup_2.json',
+      '$exportDirectory${Platform.pathSeparator}quisquislingo_export_name_66666_backup_2.json',
     );
     expect(await File(first).exists(), isTrue);
     expect(await File(second).exists(), isTrue);

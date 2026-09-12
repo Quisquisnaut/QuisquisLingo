@@ -33,6 +33,9 @@ Course assignedCourse() => Course(
   title: 'Assigned Course',
   ttsLanguage: 'it-IT',
   version: '1.0.0',
+  authors: const [
+    CourseAuthor(name: 'Descriptive author', roles: ['Team Leader']),
+  ],
   lessons: const [],
 );
 
@@ -42,13 +45,19 @@ Future<({ProfileService profiles, TeamService teams})> setUpPeople() async {
     'Alice',
     learnerProfileId: aliceId,
     discordHandle: 'alice_creator',
+    generateScreenNameSuffix: false,
   );
   await profiles.createProfile(
     'Bob',
     learnerProfileId: bobId,
     discordHandle: '@bob_owner',
+    generateScreenNameSuffix: false,
   );
-  await profiles.createProfile('Charlie', learnerProfileId: charlieId);
+  await profiles.createProfile(
+    'Charlie',
+    learnerProfileId: charlieId,
+    generateScreenNameSuffix: false,
+  );
   final teams = TeamService(
     profileService: profiles,
     idGenerator: () => teamId,
@@ -110,6 +119,12 @@ void main() {
       expect(find.text('Assigned Team: Independent Team'), findsOneWidget);
       expect(find.text('Team Leaders: @alice_creator'), findsOneWidget);
       expect(find.text('Team Members: Charlie'), findsOneWidget);
+      expect(
+        find.byTooltip(
+          'This is descriptive information only. To assign or change Team Leader roles in QQL, use Team Manager.',
+        ),
+        findsOneWidget,
+      );
       expect(
         find.textContaining('Course Owner: Independent Team'),
         findsNothing,
@@ -275,6 +290,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('@alice_creator'), findsOneWidget);
     expect(find.text('Charlie'), findsOneWidget);
+    expect(find.textContaining('(admin)'), findsNothing);
 
     await tester.tap(find.byKey(const Key('team-model-help')));
     await tester.pumpAndSettle();

@@ -34,9 +34,7 @@ class AvatarCustomizationContent extends StatelessWidget {
           ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800),
         ),
         const SizedBox(height: 6),
-        const Text(
-          'Your Status automatically determines the T-shirt color. Skin and hair are your avatar choices.',
-        ),
+        const Text('Skin and hair are your avatar choices.'),
         const SizedBox(height: 12),
         Center(
           child: SizedBox(
@@ -104,7 +102,7 @@ class AvatarCustomizationContent extends StatelessWidget {
             ),
           ],
         ),
-        const Text('Each level has its own vivid avatar T-shirt color.'),
+        const Text('Each level has its own T-shirt color.'),
         const SizedBox(height: 8),
         for (var index = 0; index < StatusService.names.length; index++)
           _StatusLevelRow(index: index, isCurrent: index == safeLevel),

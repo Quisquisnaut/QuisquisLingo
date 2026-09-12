@@ -20,6 +20,7 @@ class LearnerBackupDocument {
   final String learnerProfileId;
   final String displayName;
   final String? discordHandle;
+  final String? screenNameSuffix;
   final Map<String, Object> data;
 
   const LearnerBackupDocument({
@@ -27,6 +28,7 @@ class LearnerBackupDocument {
     required this.learnerProfileId,
     required this.displayName,
     this.discordHandle,
+    this.screenNameSuffix,
     required this.data,
   });
 }
@@ -86,13 +88,17 @@ class LearnerBackupService {
     final prefix = ProfileService.prefixForProfileId(profile.learnerProfileId);
     final data = <String, dynamic>{};
     for (final key in prefs.getKeys().where((key) => key.startsWith(prefix))) {
+      final suffix = key.substring(prefix.length);
+      if (ProfileService.isSensitiveCredentialPreferenceSuffix(suffix)) {
+        continue;
+      }
       final value = prefs.get(key);
       if (value is String ||
           value is bool ||
           value is int ||
           value is double ||
           value is List<String>) {
-        data[key.substring(prefix.length)] = value;
+        data[suffix] = value;
       }
     }
     return {
@@ -101,6 +107,8 @@ class LearnerBackupService {
       'learnerProfileId': profile.learnerProfileId,
       'displayName': profile.displayName,
       if (profile.discordHandle != null) 'discordHandle': profile.discordHandle,
+      if (profile.screenNameSuffix != null)
+        'screenNameSuffix': profile.screenNameSuffix,
       'exportedAt': DateTime.now().toIso8601String(),
       'data': data,
     };
@@ -173,6 +181,8 @@ class LearnerBackupService {
         decoded['displayName'] is! String ||
         (decoded['discordHandle'] != null &&
             decoded['discordHandle'] is! String) ||
+        (decoded['screenNameSuffix'] != null &&
+            decoded['screenNameSuffix'] is! String) ||
         decoded['data'] is! Map) {
       throw const FormatException(
         'Not a supported QuisquisLingo learner backup.',
@@ -183,9 +193,15 @@ class LearnerBackupService {
       throw const FormatException('Backup learner profile ID is invalid.');
     }
     final displayName = decoded['displayName'] as String;
+    final screenNameSuffix = decoded['screenNameSuffix'] as String?;
     String? discordHandle;
     try {
       ProfileService.validateDisplayName(displayName);
+      if (screenNameSuffix != null &&
+          (!RegExp(r'^\d{5}$').hasMatch(screenNameSuffix) ||
+              !displayName.endsWith(' $screenNameSuffix'))) {
+        throw const FormatException('Invalid Screen Name suffix.');
+      }
       discordHandle = ProfileService.normalizeDiscordHandle(
         decoded['discordHandle'] as String?,
       );
@@ -226,6 +242,7 @@ class LearnerBackupService {
       learnerProfileId: learnerProfileId,
       displayName: displayName.trim(),
       discordHandle: discordHandle,
+      screenNameSuffix: screenNameSuffix,
       data: data,
     );
   }
@@ -245,6 +262,7 @@ class LearnerBackupService {
       learnerProfileId: document.learnerProfileId,
       displayName: ProfileService.validateDisplayName(document.displayName),
       discordHandle: document.discordHandle,
+      screenNameSuffix: document.screenNameSuffix,
     );
     final preferences = await SharedPreferences.getInstance();
     final snapshot = _snapshot(preferences, profile.learnerProfileId);
@@ -380,6 +398,9 @@ class LearnerBackupService {
   }) async {
     final prefix = ProfileService.prefixForProfileId(learnerProfileId);
     for (final entry in data.entries) {
+      if (ProfileService.isSensitiveCredentialPreferenceSuffix(entry.key)) {
+        continue;
+      }
       final key = '$prefix${entry.key}';
       final value =
           rewriteImportedProfileId &&

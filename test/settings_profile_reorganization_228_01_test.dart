@@ -115,6 +115,7 @@ void main() {
         .whereType<String>()
         .toList();
     expect(titles, [
+      'Profile identity',
       'Avatar',
       'Learner profiles',
       'Gamification',

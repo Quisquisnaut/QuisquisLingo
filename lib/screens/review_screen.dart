@@ -29,10 +29,10 @@ class ReviewScreen extends StatefulWidget {
 
 enum _ReviewStage {
   loading,
+  interReview,
   preVocabulary,
   openingRound,
   postVocabulary,
-  congratulations,
   empty,
 }
 
@@ -48,6 +48,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
   int _entryIndex = 0;
   bool _answerRevealed = false;
   bool _noMoreRounds = false;
+  bool _hasCompletedReview = false;
   bool _decisionPending = false;
   bool _roundOpeningScheduled = false;
 
@@ -76,13 +77,17 @@ class _ReviewScreenState extends State<ReviewScreen> {
         _location = null;
         _preEntries = const [];
         _postEntries = const [];
-        _stage = initial ? _ReviewStage.empty : _ReviewStage.congratulations;
+        _stage = initial ? _ReviewStage.empty : _ReviewStage.interReview;
         _noMoreRounds = !initial;
       });
       return;
     }
-    _location = location;
-    await _prepareLocation();
+    setState(() {
+      _location = location;
+      _preEntries = const [];
+      _postEntries = const [];
+      _stage = _ReviewStage.interReview;
+    });
   }
 
   Future<void> _prepareLocation({bool allEntries = false}) async {
@@ -136,12 +141,15 @@ class _ReviewScreenState extends State<ReviewScreen> {
       return;
     }
     _reviewedRoundIds.add(location.round.id);
+    if (_postEntries.isEmpty) {
+      _hasCompletedReview = true;
+      await _loadNext();
+      return;
+    }
     setState(() {
       _entryIndex = 0;
       _answerRevealed = false;
-      _stage = _postEntries.isEmpty
-          ? _ReviewStage.congratulations
-          : _ReviewStage.postVocabulary;
+      _stage = _ReviewStage.postVocabulary;
     });
   }
 
@@ -198,10 +206,8 @@ class _ReviewScreenState extends State<ReviewScreen> {
         });
         _scheduleRound();
       } else {
-        setState(() {
-          _stage = _ReviewStage.congratulations;
-          _answerRevealed = false;
-        });
+        _hasCompletedReview = true;
+        await _loadNext();
       }
     } finally {
       _decisionPending = false;
@@ -235,12 +241,8 @@ class _ReviewScreenState extends State<ReviewScreen> {
     if (_stage == _ReviewStage.preVocabulary) {
       await _prepareLocation(allEntries: true);
     } else if (_stage == _ReviewStage.postVocabulary) {
-      setState(() {
-        _postEntries = const [];
-        _entryIndex = 0;
-        _answerRevealed = false;
-        _stage = _ReviewStage.congratulations;
-      });
+      _hasCompletedReview = true;
+      await _loadNext();
     }
   }
 
@@ -250,7 +252,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
       title: const Text('Review Help'),
       content: const SingleChildScrollView(
         child: Text(
-          'Review starts with a completed Round chosen from this course: '
+          'Next Review starts a completed Round chosen from this course: '
           'Rounds with more errors come first, then the oldest attempt.\n\n'
           'Published GuideBook Vocabulary may appear before the Round. Reveal '
           'each answer, then choose I know it or Show it to me again. Only '
@@ -300,9 +302,9 @@ class _ReviewScreenState extends State<ReviewScreen> {
     _ReviewStage.loading || _ReviewStage.openingRound => const Center(
       child: CircularProgressIndicator(),
     ),
+    _ReviewStage.interReview => _interReview(),
     _ReviewStage.preVocabulary => _vocabularyCard(afterRound: false),
     _ReviewStage.postVocabulary => _vocabularyCard(afterRound: true),
-    _ReviewStage.congratulations => _congratulations(),
     _ReviewStage.empty => const Center(
       child: Padding(
         padding: EdgeInsets.all(28),
@@ -411,52 +413,65 @@ class _ReviewScreenState extends State<ReviewScreen> {
     );
   }
 
-  Widget _congratulations() => Center(
-    child: SingleChildScrollView(
-      padding: const EdgeInsets.all(28),
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 520),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Icon(
-              Icons.celebration_outlined,
-              size: 64,
-              color: Theme.of(context).colorScheme.primary,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Review completed!',
-              textAlign: TextAlign.center,
-              style: Theme.of(
-                context,
-              ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800),
-            ),
-            if (_noMoreRounds) ...[
-              const SizedBox(height: 14),
-              const Text(
-                'No more Rounds are available in this Review session.',
+  Widget _interReview() {
+    final wordCount = _location?.round.exercises.length;
+    return Center(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(28),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 520),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Icon(
+                _hasCompletedReview
+                    ? Icons.celebration_outlined
+                    : Icons.menu_book_outlined,
+                size: 64,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                _hasCompletedReview ? 'Review completed!' : 'Ready for Review',
                 textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              if (_noMoreRounds) ...[
+                const SizedBox(height: 14),
+                const Text(
+                  'No more Rounds are available in this Review session.',
+                  textAlign: TextAlign.center,
+                ),
+              ],
+              if (wordCount != null) ...[
+                const SizedBox(height: 14),
+                Text(
+                  '$wordCount ${wordCount == 1 ? 'word' : 'words'} to review in the next Review.',
+                  key: const Key('review-next-word-count'),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+              const SizedBox(height: 24),
+              FilledButton.icon(
+                key: const Key('review-next'),
+                onPressed: _location == null ? null : _prepareLocation,
+                icon: const Icon(Icons.navigate_next),
+                label: const Text('Next Review'),
+              ),
+              const SizedBox(height: 8),
+              OutlinedButton.icon(
+                key: const Key('review-back-to-course'),
+                onPressed: () => Navigator.of(context).maybePop(),
+                icon: const Icon(Icons.arrow_back),
+                label: const Text('Back to Course'),
               ),
             ],
-            const SizedBox(height: 24),
-            FilledButton.icon(
-              key: const Key('review-next'),
-              onPressed: () => _loadNext(),
-              icon: const Icon(Icons.navigate_next),
-              label: const Text('Next Review'),
-            ),
-            const SizedBox(height: 8),
-            OutlinedButton.icon(
-              key: const Key('review-back-to-course'),
-              onPressed: () => Navigator.of(context).maybePop(),
-              icon: const Icon(Icons.arrow_back),
-              label: const Text('Back to course'),
-            ),
-          ],
+          ),
         ),
       ),
-    ),
-  );
+    );
+  }
 }

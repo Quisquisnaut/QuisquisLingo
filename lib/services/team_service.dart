@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/authoring_team.dart';
+import 'formal_name_policy.dart';
 import 'profile_service.dart';
 
 /// Offline authoring-team membership and administration.
@@ -71,6 +72,18 @@ class TeamService {
     return null;
   }
 
+  Future<bool> hasDuplicateTeamName(
+    String displayName, {
+    String? excludingTeamId,
+  }) async {
+    final key = FormalNamePolicy.comparisonKey(displayName);
+    return (await listTeams()).any(
+      (team) =>
+          team.teamId != excludingTeamId &&
+          FormalNamePolicy.comparisonKey(team.displayName) == key,
+    );
+  }
+
   Future<void> _save(List<AuthoringTeam> teams) async {
     final encoded = jsonEncode(teams.map((team) => team.toJson()).toList());
     final prefs = await SharedPreferences.getInstance();
@@ -87,14 +100,10 @@ class TeamService {
     if (await _profiles.getProfileById(creatorProfileId) == null) {
       throw StateError('The Team creator must be an existing local profile.');
     }
-    final name = displayName.trim();
-    if (name.isEmpty || name.length > 120) {
-      throw ArgumentError.value(
-        displayName,
-        'displayName',
-        'Enter a Team name up to 120 characters.',
-      );
-    }
+    final name = FormalNamePolicy.validatePresentationLabel(
+      displayName,
+      parameterName: 'displayName',
+    );
     final teams = await listTeams();
     final teamId = _idGenerator();
     if (teams.any((team) => team.teamId == teamId)) {
@@ -117,14 +126,10 @@ class TeamService {
     required String actorProfileId,
     required String displayName,
   }) async {
-    final name = displayName.trim();
-    if (name.isEmpty || name.length > 120) {
-      throw ArgumentError.value(
-        displayName,
-        'displayName',
-        'Enter a Team name up to 120 characters.',
-      );
-    }
+    final name = FormalNamePolicy.validatePresentationLabel(
+      displayName,
+      parameterName: 'displayName',
+    );
     return _update(
       teamId,
       actorProfileId,

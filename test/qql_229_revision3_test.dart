@@ -28,7 +28,7 @@ void main() {
   test('QQL 233 release metadata uses Phase and revision terminology', () {
     expect(AppMetadata.technicalVersion, '2.0.33+233030');
     expect(AppMetadata.build, '233.3');
-    expect(AppMetadata.displayLabel, 'Version 2.0.33\nPhase 233.3, revision 0');
+    expect(AppMetadata.displayLabel, 'Version 2.0.33\nBuild 233.1');
   });
 
   testWidgets(

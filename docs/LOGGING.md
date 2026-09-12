@@ -24,11 +24,11 @@ The active trace rotates at approximately 1 MiB and keeps at most two previous f
 
 ## Crash Log
 
-The Crash Log is intended for cases where QuisquisLingo crashes or closes unexpectedly, especially startup and runtime crashes. It is an automatic text file created or recreated when the app starts and appended when QuisquisLingo catches an uncaught Flutter/Dart error. **Settings > Debug** shows the actual path. If the file is available after a crash, copy or export it and provide it with the problem report. The file is:
+The Crash Log is intended for cases where QuisquisLingo crashes or closes unexpectedly, especially startup and runtime crashes. It is an automatic text file created or recreated when the app starts and appended when QuisquisLingo catches an uncaught Flutter/Dart error. **Settings > Debug** shows the actual path. On desktop systems, the one authoritative file is:
 
 `Documents/QuisquisLingo/Logs/quisquislingo_crash.log`
 
-QQL 228 does not read, migrate or delete files left in the former crash-log location.
+This uses the platform's native Documents directory. On Android and iOS, the same `QuisquisLingo/Logs/quisquislingo_crash.log` structure is inside the app's private application-documents directory; **Settings > Debug > Share Crash Log** provides access through the platform share UI. QuisquisLingo does not intentionally keep another active crash-log copy in application preferences. Files left in former locations are not read, migrated, copied or deleted.
 
 Each launch appends a session header with the app version, operating system, architecture, locale, Dart runtime and build mode. If a crash-log file is deleted, append mode recreates it at the next launch or diagnostic write. Uncaught Flutter/Dart errors are recorded in all non-web build modes, while detailed action breadcrumbs remain debug-only. Logs remain local and are never uploaded automatically.
 

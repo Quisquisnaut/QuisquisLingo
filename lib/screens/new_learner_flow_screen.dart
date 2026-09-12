@@ -23,6 +23,8 @@ class _NewLearnerFlowScreenState extends State<NewLearnerFlowScreen> {
   late final ProfileService _profiles;
   final TextEditingController _screenName = TextEditingController();
   final TextEditingController _discord = TextEditingController();
+  final TextEditingController _accessPin = TextEditingController();
+  late String _screenNameSuffix;
   LearnerProfile? _profile;
   String _skinTone = 'medium';
   String _hairTone = 'dark';
@@ -33,6 +35,33 @@ class _NewLearnerFlowScreenState extends State<NewLearnerFlowScreen> {
   void initState() {
     super.initState();
     _profiles = widget.profileService ?? ProfileService();
+    _screenNameSuffix = _profiles.newScreenNameSuffixCandidate();
+  }
+
+  Future<bool> _confirmDiscordUsername() async {
+    if (ProfileService.isFormallyValidDiscordUsername(_discord.text)) {
+      return true;
+    }
+    return await showDialog<bool>(
+          context: context,
+          builder: (dialogContext) => AlertDialog(
+            title: const Text('Check Discord username'),
+            content: const Text(
+              'This does not appear to be a valid Discord username.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(dialogContext, false),
+                child: const Text('Edit username'),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.pop(dialogContext, true),
+                child: const Text('Continue anyway'),
+              ),
+            ],
+          ),
+        ) ??
+        false;
   }
 
   Future<void> _continue() async {
@@ -42,9 +71,37 @@ class _NewLearnerFlowScreenState extends State<NewLearnerFlowScreen> {
       _error = null;
     });
     try {
-      final profile = await _profiles.createProfile(
+      final screenName = ProfileService.validateScreenNameText(
         _screenName.text,
+      );
+      final pin = _accessPin.text;
+      if (pin.isNotEmpty && !RegExp(r'^\d{4}$').hasMatch(pin)) {
+        throw ArgumentError('Access PIN must contain exactly 4 digits.');
+      }
+      if (!await _confirmDiscordUsername() || !mounted) {
+        if (mounted) setState(() => _busy = false);
+        return;
+      }
+      if (await _profiles.hasDuplicateScreenName(
+        '$screenName $_screenNameSuffix',
+      )) {
+        final replacement = await _profiles.generateAvailableScreenNameSuffix(
+          screenName,
+        );
+        if (!mounted) return;
+        setState(() {
+          _screenNameSuffix = replacement;
+          _error =
+              'A new five-digit suffix was generated to keep this Screen Name distinct. Review it, then continue.';
+          _busy = false;
+        });
+        return;
+      }
+      final profile = await _profiles.createProfile(
+        screenName,
         discordHandle: _discord.text,
+        screenNameSuffix: _screenNameSuffix,
+        accessPin: pin.isEmpty ? null : pin,
       );
       final appearance = await _profiles.getAvatarAppearanceForProfile(
         profile.learnerProfileId,
@@ -90,6 +147,7 @@ class _NewLearnerFlowScreenState extends State<NewLearnerFlowScreen> {
   void dispose() {
     _screenName.dispose();
     _discord.dispose();
+    _accessPin.dispose();
     super.dispose();
   }
 
@@ -126,21 +184,37 @@ class _NewLearnerFlowScreenState extends State<NewLearnerFlowScreen> {
         controller: _screenName,
         autofocus: true,
         textCapitalization: TextCapitalization.words,
-        maxLength: ProfileService.maxNameLength,
-        decoration: const InputDecoration(
+        maxLength: 32,
+        decoration: InputDecoration(
           labelText: 'Screen Name',
+          suffixText: ' $_screenNameSuffix',
           border: OutlineInputBorder(),
         ),
       ),
       const SizedBox(height: 12),
+      Tooltip(
+        message: 'Enter your Discord username, not your Discord display name.',
+        child: TextField(
+          key: const Key('new-learner-discord'),
+          controller: _discord,
+          maxLength: ProfileService.maxDiscordHandleLength - 1,
+          decoration: const InputDecoration(
+            labelText: 'Discord username (optional)',
+            prefixText: '@',
+            border: OutlineInputBorder(),
+          ),
+        ),
+      ),
+      const SizedBox(height: 12),
       TextField(
-        key: const Key('new-learner-discord'),
-        controller: _discord,
-        maxLength: ProfileService.maxDiscordHandleLength - 1,
+        key: const Key('new-learner-access-pin'),
+        controller: _accessPin,
+        keyboardType: TextInputType.number,
+        obscureText: true,
+        maxLength: 4,
         decoration: const InputDecoration(
-          labelText: 'Discord name (optional)',
-          helperText: 'Enter the name without @. QQL adds it automatically.',
-          prefixText: '@',
+          labelText: 'Access PIN (optional)',
+          helperText: 'Exactly 4 digits when used.',
           border: OutlineInputBorder(),
         ),
       ),

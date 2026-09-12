@@ -10,6 +10,7 @@ import '../services/course_flag_service.dart';
 import '../services/custom_course_transfer_service.dart';
 import '../services/course_service.dart';
 import '../services/course_language_resolver.dart';
+import '../services/formal_name_policy.dart';
 import '../services/settings_service.dart';
 import '../services/course_access_policy.dart';
 import '../services/profile_service.dart';
@@ -812,11 +813,55 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
                             ) !=
                             null
                     ? null
-                    : () {
-                        final t = title.text.trim();
+                    : () async {
+                        String t;
+                        try {
+                          t = FormalNamePolicy.validatePresentationLabel(
+                            title.text,
+                            parameterName: 'courseName',
+                          );
+                        } on ArgumentError catch (error) {
+                          ScaffoldMessenger.of(ctx).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                error.message?.toString() ??
+                                    'Check the Course name.',
+                              ),
+                            ),
+                          );
+                          return;
+                        }
                         final s = source.text.trim();
                         final tg = target.text.trim();
-                        if (t.isEmpty || s.isEmpty || tg.isEmpty) return;
+                        if (s.isEmpty || tg.isEmpty) return;
+                        if (_user.any(
+                          (course) =>
+                              FormalNamePolicy.comparisonKey(course.title) ==
+                              FormalNamePolicy.comparisonKey(t),
+                        )) {
+                          final continueAnyway = await showDialog<bool>(
+                            context: ctx,
+                            builder: (warningContext) => AlertDialog(
+                              title: const Text('Duplicate Course name'),
+                              content: const Text(
+                                'A Course with this name already exists.',
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () =>
+                                      Navigator.pop(warningContext, false),
+                                  child: const Text('Edit name'),
+                                ),
+                                FilledButton(
+                                  onPressed: () =>
+                                      Navigator.pop(warningContext, true),
+                                  child: const Text('Continue anyway'),
+                                ),
+                              ],
+                            ),
+                          );
+                          if (continueAnyway != true || !ctx.mounted) return;
+                        }
                         if ((flagSource == 'World Flags' &&
                                 worldFlag == null) ||
                             (flagSource == 'Custom uploaded flag' &&

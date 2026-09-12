@@ -610,6 +610,7 @@ void main() {
     for (var index = 1; index <= 2; index++) {
       final profile = await profiles.createProfile(
         'Marco',
+        generateScreenNameSuffix: false,
         learnerProfileId:
             '00000000-0000-4000-8000-${index.toString().padLeft(12, '0')}',
         skinTone: index == 1 ? 'light' : 'dark',

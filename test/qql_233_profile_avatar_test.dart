@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:quisquislingo_app/models/course_models.dart';
 import 'package:quisquislingo_app/screens/avatar_settings_screen.dart';
 import 'package:quisquislingo_app/screens/new_learner_flow_screen.dart';
+import 'package:quisquislingo_app/screens/profile_screen.dart';
 import 'package:quisquislingo_app/services/profile_service.dart';
 import 'package:quisquislingo_app/services/learner_status_level_service.dart';
 import 'package:quisquislingo_app/services/progress_service.dart';
@@ -113,6 +114,10 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Current Status: Wanderer'), findsOneWidget);
+      expect(
+        find.text('Each level has its own T-shirt color.'),
+        findsOneWidget,
+      );
       expect(find.byKey(const Key('status-level-current-1')), findsOneWidget);
       expect(find.byType(ChoiceChip), findsNWidgets(5));
       expect(find.text('T-shirt color'), findsNothing);
@@ -134,6 +139,7 @@ void main() {
       final randomValues = [2, 0].iterator;
       final profiles = ProfileService(
         idGenerator: () => _learnerId,
+        numericSuffixGenerator: () => 12345,
         randomIndex: (_) {
           randomValues.moveNext();
           return randomValues.current;
@@ -161,6 +167,10 @@ void main() {
         find.byKey(const Key('new-learner-discord')),
         'stable_handle',
       );
+      await tester.enterText(
+        find.byKey(const Key('new-learner-access-pin')),
+        '2468',
+      );
       await tester.tap(find.widgetWithText(FilledButton, 'Continue'));
       await tester.pumpAndSettle();
 
@@ -175,8 +185,11 @@ void main() {
       final created = await profiles.getProfileRecords();
       expect(created, hasLength(1));
       expect(created.single.learnerProfileId, _learnerId);
-      expect(created.single.displayName, 'Stable learner');
+      expect(created.single.displayName, 'Stable learner 12345');
+      expect(created.single.screenNameSuffix, '12345');
       expect(created.single.discordHandle, '@stable_handle');
+      expect(await profiles.verifyAccessPin(_learnerId, '2468'), isTrue);
+      expect(await profiles.verifyAccessPin(_learnerId, '1357'), isFalse);
       expect(
         await profiles.getAvatarAppearanceForProfile(_learnerId),
         isA<ProfileAvatarAppearance>()
@@ -204,6 +217,221 @@ void main() {
       );
     },
   );
+
+  testWidgets(
+    'Create Profile warns for invalid Discord usernames and can continue',
+    (tester) async {
+      final profiles = ProfileService(
+        idGenerator: () => _learnerId,
+        numericSuffixGenerator: () => 23456,
+        randomIndex: (_) => 0,
+      );
+      await tester.pumpWidget(
+        MaterialApp(
+          home: NewLearnerFlowScreen(
+            profileService: profiles,
+            canCancel: true,
+            onComplete: (_) {},
+          ),
+        ),
+      );
+
+      expect(
+        find.byTooltip(
+          'Enter your Discord username, not your Discord display name.',
+        ),
+        findsOneWidget,
+      );
+      await tester.enterText(
+        find.byKey(const Key('new-learner-screen-name')),
+        'Warning Learner',
+      );
+      await tester.enterText(
+        find.byKey(const Key('new-learner-discord')),
+        'test..test',
+      );
+      await tester.tap(find.widgetWithText(FilledButton, 'Continue'));
+      await tester.pumpAndSettle();
+      expect(
+        find.text('This does not appear to be a valid Discord username.'),
+        findsOneWidget,
+      );
+
+      await tester.tap(find.widgetWithText(TextButton, 'Edit username'));
+      await tester.pumpAndSettle();
+      expect(find.text('Create Profile'), findsWidgets);
+      expect(await profiles.getProfileRecords(), isEmpty);
+
+      await tester.tap(find.widgetWithText(FilledButton, 'Continue'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(FilledButton, 'Continue anyway'));
+      await tester.pumpAndSettle();
+      final created = (await profiles.getProfileRecords()).single;
+      expect(created.displayName, 'Warning Learner 23456');
+      expect(created.discordHandle, '@test..test');
+      expect(find.text('Avatar Customization'), findsOneWidget);
+    },
+  );
+
+  testWidgets('Create Profile visibly replaces a colliding generated suffix', (
+    tester,
+  ) async {
+    var nextId = 0;
+    final suffixes = [12345, 67890].iterator;
+    final profiles = ProfileService(
+      idGenerator: () => [_otherLearnerId, _learnerId][nextId++],
+      numericSuffixGenerator: () {
+        suffixes.moveNext();
+        return suffixes.current;
+      },
+      randomIndex: (_) => 0,
+    );
+    await profiles.addProfile('Collision Learner 12345');
+    await tester.pumpWidget(
+      MaterialApp(
+        home: NewLearnerFlowScreen(
+          profileService: profiles,
+          canCancel: true,
+          onComplete: (_) {},
+        ),
+      ),
+    );
+    await tester.enterText(
+      find.byKey(const Key('new-learner-screen-name')),
+      'Collision Learner',
+    );
+    await tester.tap(find.widgetWithText(FilledButton, 'Continue'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Create Profile'), findsWidgets);
+    expect(
+      find.textContaining('A new five-digit suffix was generated'),
+      findsOneWidget,
+    );
+    expect(find.text(' 67890'), findsOneWidget);
+    expect(await profiles.getProfileRecords(), hasLength(1));
+
+    await tester.tap(find.widgetWithText(FilledButton, 'Continue'));
+    await tester.pumpAndSettle();
+    expect(find.text('Avatar Customization'), findsOneWidget);
+    expect(
+      (await profiles.getProfileById(_learnerId))!.displayName,
+      'Collision Learner 67890',
+    );
+  });
+
+  testWidgets(
+    'Edit Profile warns without blocking and retains its immutable suffix',
+    (tester) async {
+      final profiles = ProfileService(
+        idGenerator: () => _learnerId,
+        numericSuffixGenerator: () => 34567,
+        randomIndex: (_) => 0,
+      );
+      await profiles.createProfile('Original Learner');
+      await tester.pumpWidget(
+        MaterialApp(
+          home: ProfileScreen(
+            course: _course,
+            profileService: profiles,
+            onManageLearners: (_) async {},
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(
+        find.byKey(const Key('profile-identity-link')),
+      );
+      await tester.tap(find.byKey(const Key('profile-identity-link')));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.byTooltip(
+          'Enter your Discord username, not your Discord display name.',
+        ),
+        findsOneWidget,
+      );
+      await tester.enterText(
+        find.byKey(const Key('edit-profile-screen-name')),
+        'Renamed Learner',
+      );
+      await tester.enterText(
+        find.byKey(const Key('edit-profile-discord')),
+        '@@invalid',
+      );
+      await tester.tap(find.widgetWithText(FilledButton, 'Save'));
+      await tester.pumpAndSettle();
+      expect(
+        find.text('This does not appear to be a valid Discord username.'),
+        findsOneWidget,
+      );
+      await tester.tap(find.widgetWithText(FilledButton, 'Continue anyway'));
+      await tester.pumpAndSettle();
+
+      final renamed = await profiles.getProfileById(_learnerId);
+      expect(renamed!.displayName, 'Renamed Learner 34567');
+      expect(renamed.screenNameSuffix, '34567');
+      expect(renamed.discordHandle, '@invalid');
+    },
+  );
+
+  testWidgets('Edit Profile warns but permits a duplicate complete name', (
+    tester,
+  ) async {
+    var nextSuffix = 45678;
+    final profiles = ProfileService(
+      idGenerator: () => (nextSuffix == 45678 ? _learnerId : _otherLearnerId),
+      numericSuffixGenerator: () {
+        final value = nextSuffix;
+        nextSuffix += 11111;
+        return value;
+      },
+      randomIndex: (_) => 0,
+    );
+    final first = await profiles.createProfile('Duplicate Learner');
+    final second = await profiles.createProfile('Other Learner');
+    await profiles.replaceProfileRecord(
+      LearnerProfile(
+        learnerProfileId: second.learnerProfileId,
+        displayName: first.displayName,
+        screenNameSuffix: first.screenNameSuffix,
+      ),
+    );
+    await profiles.setActiveProfileById(first.learnerProfileId);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: ProfileScreen(
+          course: _course,
+          profileService: profiles,
+          onManageLearners: (_) async {},
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.byKey(const Key('profile-identity-link')));
+    await tester.tap(find.byKey(const Key('profile-identity-link')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilledButton, 'Save'));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text('A user with this Screen Name already exists.'),
+      findsOneWidget,
+    );
+    await tester.tap(find.widgetWithText(TextButton, 'Edit name'));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('edit-profile-screen-name')), findsOneWidget);
+
+    await tester.tap(find.widgetWithText(FilledButton, 'Save'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilledButton, 'Continue anyway'));
+    await tester.pumpAndSettle();
+    expect(
+      (await profiles.getProfileById(first.learnerProfileId))!.displayName,
+      first.displayName,
+    );
+  });
 }
 
 final _course = Course(
@@ -217,3 +445,5 @@ final _course = Course(
   version: '1.0.0',
   lessons: const [],
 );
+
+const _otherLearnerId = '22222222-2222-4222-8222-222222222222';

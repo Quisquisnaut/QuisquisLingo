@@ -1,7 +1,11 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import '../models/course_models.dart';
 import '../services/learner_backup_service.dart';
+import '../services/profile_service.dart';
 import '../services/progress_service.dart';
+import '../services/user_recovery_key_service.dart';
 
 class UserDataSettingsScreen extends StatefulWidget {
   final Course course;
@@ -13,7 +17,155 @@ class UserDataSettingsScreen extends StatefulWidget {
 
 class _UserDataSettingsScreenState extends State<UserDataSettingsScreen> {
   final _backup = LearnerBackupService();
+  final _profiles = ProfileService();
+  late final _recovery = UserRecoveryKeyService(profileService: _profiles);
   final _progress = ProgressService();
+
+  Future<void> _exportRecoveryKey() async {
+    try {
+      final path = await _recovery.exportActiveUserRecoveryKey();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          duration: const Duration(seconds: 8),
+          content: Text('User Recovery Key exported to $path'),
+        ),
+      );
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Recovery Key export failed: $error')),
+      );
+    }
+  }
+
+  Future<void> _importRecoveryKey() async {
+    try {
+      final candidates = await _recovery.findImportableUserRecoveryKeys();
+      if (!mounted) return;
+      if (candidates.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('No User Recovery Key is available in Imports.'),
+          ),
+        );
+        return;
+      }
+      UserRecoveryKeyCandidate? selected;
+      if (candidates.length == 1) {
+        selected = candidates.single;
+      } else {
+        selected = await showDialog<UserRecoveryKeyCandidate>(
+          context: context,
+          builder: (dialogContext) => SimpleDialog(
+            title: const Text('Choose User Recovery Key'),
+            children: [
+              for (final candidate in candidates)
+                SimpleDialogOption(
+                  onPressed: () => Navigator.pop(dialogContext, candidate),
+                  child: Text(
+                    candidate.path.split(Platform.pathSeparator).last,
+                  ),
+                ),
+            ],
+          ),
+        );
+      }
+      if (selected == null || !mounted) return;
+      if (await _profiles.getProfileById(selected.document.learnerProfileId) !=
+          null) {
+        throw UserRecoveryIdentityConflict(selected.document.learnerProfileId);
+      }
+      final screenName = await _chooseRecoveryScreenName();
+      if (screenName == null || !mounted) return;
+      final profile = await _recovery.importIdentity(
+        selected.document,
+        screenNameText: screenName,
+      );
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          duration: const Duration(seconds: 8),
+          content: Text(
+            'Recovered the existing QQL identity as ${profile.displayName}.',
+          ),
+        ),
+      );
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          duration: const Duration(seconds: 8),
+          content: Text(
+            'Recovery Key import failed: ${error.toString().replaceFirst('UserRecoveryIdentityConflict: ', '')}',
+          ),
+        ),
+      );
+    }
+  }
+
+  Future<String?> _chooseRecoveryScreenName() async {
+    var screenName = '';
+    String? error;
+    return showDialog<String>(
+      context: context,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (dialogContext, setLocalState) => AlertDialog(
+          title: const Text('Name the recovered profile'),
+          content: TextField(
+            key: const Key('recovery-screen-name'),
+            autofocus: true,
+            maxLength: 32,
+            onChanged: (value) => screenName = value,
+            decoration: InputDecoration(
+              labelText: 'Screen Name',
+              errorText: error,
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () {
+                try {
+                  Navigator.pop(
+                    dialogContext,
+                    ProfileService.validateScreenNameText(screenName),
+                  );
+                } on ArgumentError catch (value) {
+                  setLocalState(
+                    () =>
+                        error = value.message?.toString() ?? 'Check the name.',
+                  );
+                }
+              },
+              child: const Text('Recover identity'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _showRecoveryKeyHelp() => showDialog<void>(
+    context: context,
+    builder: (dialogContext) => AlertDialog(
+      title: const Text('User Recovery Key Help'),
+      content: const SingleChildScrollView(
+        child: Text(
+          'A User Recovery Key preserves the same stable QQL identity after reinstalling QQL, after local data loss, or when using another or multiple devices. Because ownership and other relationships use that identity, they can be recognized wherever the same key is imported.\n\nThe key does not restore or force a Screen Name. Course export alone does not prove or transfer Course ownership.\n\nKeep the key private. Someone who possesses it may be able to claim that QQL identity. The key does not contain your Access PIN.',
+        ),
+      ),
+      actions: [
+        FilledButton(
+          onPressed: () => Navigator.pop(dialogContext),
+          child: const Text('Close'),
+        ),
+      ],
+    ),
+  );
 
   Future<void> _exportLearner() async {
     try {
@@ -266,6 +418,38 @@ class _UserDataSettingsScreenState extends State<UserDataSettingsScreen> {
             ),
             onTap: _importLearner,
           ),
+          const Divider(),
+          const ListTile(
+            title: Text('User Recovery Key'),
+            subtitle: Text(
+              'A private identity credential for disaster recovery and use on multiple devices.',
+            ),
+          ),
+          ListTile(
+            key: const Key('export-user-recovery-key'),
+            leading: const Icon(Icons.key_outlined),
+            title: const Text('Export User Recovery Key'),
+            subtitle: const Text(
+              'Saves directly to Documents/QuisquisLingo/Exports.',
+            ),
+            onTap: _exportRecoveryKey,
+          ),
+          ListTile(
+            key: const Key('import-user-recovery-key'),
+            leading: const Icon(Icons.key),
+            title: const Text('Import User Recovery Key'),
+            subtitle: const Text(
+              'Searches Documents/QuisquisLingo/Imports without a file picker.',
+            ),
+            onTap: _importRecoveryKey,
+          ),
+          ListTile(
+            key: const Key('user-recovery-key-help'),
+            leading: const Icon(Icons.help_outline),
+            title: const Text('User Recovery Key Help'),
+            onTap: _showRecoveryKeyHelp,
+          ),
+          const Divider(),
           ListTile(
             leading: const Icon(Icons.restart_alt),
             title: const Text('Reset current course progress'),

@@ -1,6 +1,6 @@
 # QuisquisLingo Course Manager and Course Editor
 
-Updated for Version 2.0.33, Phase 233.3, revision 0 (technical build 233030) and Course Model v8
+Updated for Version 2.0.33, Build 233.1 (technical build 233030) and Course Model v8
 
 ## Unlocking the editor
 

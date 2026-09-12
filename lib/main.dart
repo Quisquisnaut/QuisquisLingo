@@ -30,6 +30,7 @@ Future<void> main() async {
       StartupDiagnosticService.verboseCheckpoint('DART_ZONE_ENTER');
       StartupDiagnosticService.verboseCheckpoint('DART_BINDING_BEGIN');
       WidgetsFlutterBinding.ensureInitialized();
+      ProfileService.beginAccessSession();
       StartupDiagnosticService.checkpoint('DART_BINDING_OK');
       StartupDiagnosticService.verboseCheckpoint('DART_CRASH_LOG_INIT_BEGIN');
       await CrashLogService.instance.initialise();

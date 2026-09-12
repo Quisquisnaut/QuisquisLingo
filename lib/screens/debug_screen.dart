@@ -1,6 +1,9 @@
 import 'dart:async';
+import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:share_plus/share_plus.dart';
 
 import '../services/crash_log_service.dart';
 import '../services/diagnostic_log_service.dart';
@@ -100,6 +103,42 @@ class _DebugScreenState extends State<DebugScreen> {
     );
   }
 
+  Future<void> _shareCrashLog() async {
+    final path = _crashLogPath;
+    if (path == null || !await File(path).exists()) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          duration: Duration(seconds: 8),
+          content: Text('The Crash Log is not available to share.'),
+        ),
+      );
+      return;
+    }
+    if (!mounted) return;
+    final renderBox = context.findRenderObject() as RenderBox?;
+    final shareOrigin = renderBox == null
+        ? null
+        : renderBox.localToGlobal(Offset.zero) & renderBox.size;
+    try {
+      await SharePlus.instance.share(
+        ShareParams(
+          files: [XFile(path, mimeType: 'text/plain')],
+          subject: 'QuisquisLingo Crash Log',
+          sharePositionOrigin: shareOrigin,
+        ),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          duration: Duration(seconds: 8),
+          content: Text('The Crash Log could not be shared.'),
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -116,6 +155,15 @@ class _DebugScreenState extends State<DebugScreen> {
                     'For cases where QQL crashes or closes unexpectedly. If available after a crash, copy or export this file and provide it with your report. It is primarily useful for startup and runtime crashes.\n'
                     'Saved at: ${_crashLogPath ?? 'Path unavailable on this platform.'}',
                   ),
+                  trailing: !kIsWeb && (Platform.isAndroid || Platform.isIOS)
+                      ? IconButton(
+                          tooltip: 'Share Crash Log',
+                          onPressed: _crashLogPath == null
+                              ? null
+                              : _shareCrashLog,
+                          icon: const Icon(Icons.share_outlined),
+                        )
+                      : null,
                 ),
                 ListTile(
                   leading: const Icon(Icons.bug_report_outlined),

@@ -1,6 +1,6 @@
 # QQL 233 validation
 
-Validated for QuisquisLingo `2.0.33+233030`, Phase 233.3 revision 0, on the QQL 232 baseline.
+Validated for QuisquisLingo `2.0.33+233030`, Build 233.1, on the QQL 232 baseline.
 
 ## Phase 233.1 — Linux updater
 
@@ -32,18 +32,36 @@ The underlying learner-shell composition was corrected: only `home_screen.dart` 
 
 Focused governance and retained QQL 229 coverage exercise individual-only ownership, another initial Owner, Owner-only/Edit-only transfer, immutable Creator, warning confirmation/cancellation, assignment/revocation, no self-assignment, Team/Course authority independence, multi-Course Team assignment, Leader invariants, Discord/Screen Name presentation, ID visibility, Course Info role labels, management-screen status-bar absence and learner-bottom ordering.
 
+## Same-version QQL 233 corrections
+
+This correction remains application version `2.0.33+233030`, user-facing **Build 233.1**, Course Model v8 and the established `2026-10-14 23:59:59` local Alpha expiry. It does not create a new release or reinterpret the three internal development phases as public revisions.
+
+- Review uses the same inter-review screen before the first Round and between completed Rounds. The initial heading is **Ready for Review** and does not say **Congratulations**. Reset, Help, Next Review and Back to Course remain available; the displayed singular/plural word count is recalculated from the next Round chosen by the unchanged authoritative ordering.
+- Screen Names use NFC comparison and a conservative Latin-letter user-name policy. New learners receive a collision-checked immutable five-digit display suffix. Team/Course labels use the shared safe Unicode, whitespace, control/invisible, emoji and problematic-symbol policy without the learner-only digit restriction or suffix. Identical visible labels remain legal after an explicit warning.
+- Discord input is optional username presentation. One optional leading `@` is ignored for validation and accepted values are stored/presented with exactly one leading `@`; formally invalid values use the requested warning-only Edit/Continue flow. Learner Profiles always shows the QQL Screen Name and adds `@username on Discord` only when present.
+- The first local user is an admin, at least one admin must remain, and admins can promote users or relinquish their own role only while another admin remains. Profile deletion is limited to self for ordinary users and any integrity-safe profile for admins. Admin status remains independent from Course and Team roles and appears only in Learner Profiles.
+- Optional four-digit Access PINs use salted SHA-256 verification rather than plaintext storage. A PIN gates profile switching; users can create/change/remove their own PIN and an admin can remove another user's PIN. Device naming is descriptive, initialized from the local computer name and editable only by admins.
+- User Recovery Keys export directly to Exports and import directly from Imports, with zero/one/multiple-file handling and explicit same-installation identity conflict handling. A key carries the stable user UUID plus sensitive recovery secret, never the visible Screen Name, Discord handle or Access PIN. Help describes recovery, multi-device identity, ID-linked ownership recognition and credential privacy.
+- Screen-name renaming retains the immutable suffix and stable ID, Course Creator/Owner references, Team roles, admin/PIN associations, progress and Review state. Course Info's Author Team Leader field is explicitly descriptive and cannot change Team membership, leadership or permissions.
+- The status-bar composition remains exclusive to the Learner Panel, and the approved profile-left/six-controls-right bottom layout remains unchanged. The Status color explanation is exactly: `Each level has its own T-shirt color.`
+- Application identity is a clean cut to `org.quisquislingo.app`; no `com.example` fallback or migration exists. CrashLogService has one active writer and uses the shared Documents/application-documents `QuisquisLingo/Logs/quisquislingo_crash.log` path; mobile Debug UI can share the private-file copy.
+
 ## Version, model and validation evidence
 
-- Application: `2.0.33+233030`; display: `Version 2.0.33`, `Phase 233.3, revision 0`.
+- Application: `2.0.33+233030`; display: `Version 2.0.33`, `Build 233.1`.
 - Course Model: v8 (`formatVersion: 8`).
 - Alpha expiry: `2026-10-14 23:59:59` local time.
-- Focused QQL 233/retained suites: **PASS — 87 tests**.
-- Corrected logout-navigation regressions: **PASS — 2 focused tests**.
-- Full analyzer: **PASS — no issues**.
+- Focused correction suites: **PASS — 119 tests**, plus **56 retained compatibility tests**, **27 Learner/Profile UI tests**, and **2 narrowed fixture regressions**.
+- Full analyzer: **PASS — no issues** (`flutter analyze --no-pub`).
+- Scoped formatter check: **PASS — 38 changed Dart files, 0 changes required**.
 - Bundled Course validator: **PASS — 9 Course Model v8 files and canonical checksums**.
+- Image Bank validator: **PASS — 112 assets, 0 issues**.
 - `git diff --check`: **PASS** (Git emitted only the repository's line-ending conversion warnings).
-- Full Flutter suite: **1,428 passed, 1 unchanged order-dependent TTS test failed**. All QQL 233 and repaired Profile-navigation coverage passed in the full run.
-- Files changed: **86 working-tree entries** — 4 root metadata/docs, 9 bundled Course assets, 8 files under `docs/`, 34 under `lib/`, 28 under `test/`, and 3 under `tools/`; 78 are tracked modifications and 8 are new files.
-- Release actions: none. The working tree remains uncommitted and unstaged, with **0 staged files**.
+- Full Flutter suite: **1,453 passed with 2 non-reproducing failures in the unchanged Lesson-controls area**. The two implicated files passed **24/24** immediately in a targeted rerun; per instruction, the expensive full suite was not launched again.
+- Windows package: **SUCCESS** — `build/packages/quisquislingo_windows_alpha_233030.zip`; repository launcher/unit/integration and ZIP checks passed.
+- Linux package: **SUCCESS** through Ubuntu WSL using native `/home/dex/flutter/bin/flutter`, not the Windows SDK — `build/packages/quisquislingo_linux_alpha_233030.zip`; ZIP integrity passed.
+- Android release APK/AAB and debug APK: **SUCCESS** — `build/app/outputs/flutter-apk/app-release.apk`, `build/app/outputs/bundle/release/app-release.aab`, and `build/app/outputs/flutter-apk/app-debug.apk`. The debug APK declares minSdk 24 and is installable on Android 11 (API 30), subject to normal device requirements.
+- macOS and iOS: **BLOCKED** — this is a Windows/WSL host with no macOS/Xcode environment, so their host-restricted build commands were not run.
+- Release actions: no commit, stage, tag, push, publish, upload or GitHub Release. Generated local packages remain unpublished.
 
-The first sequential full-suite run completed with 1,424 passes and three failures: two legacy Profile-test helpers scrolled a fixed distance that no longer reached the logout control after the requested Profile content was added, and one unchanged TTS voice-resolution test failed only in the full-run ordering. The two helpers now scroll to the keyed control; both focused reruns and both tests inside the final full suite pass. The unchanged TTS file passes 10/10 in isolation but reproduced its single failure only in the final full-run ordering. No TTS production or test file changed in QQL 233, so this is recorded as a pre-existing order-dependent/flaky failure rather than a QQL 233 regression.
+The final full-suite run contained two failures in unchanged Lesson-control tests. Both affected files passed all 24 tests immediately when rerun together, so the failures are recorded as non-reproducing full-run-only results rather than QQL 233 regressions. No second full suite was launched.

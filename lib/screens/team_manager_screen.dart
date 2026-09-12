@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../models/authoring_team.dart';
+import '../services/formal_name_policy.dart';
 import '../services/profile_service.dart';
 import '../services/team_service.dart';
 import '../widgets/editor_app_bar_actions.dart';
@@ -67,45 +68,85 @@ class _TeamManagerScreenState extends State<TeamManagerScreen> {
   Future<void> _create() async {
     final active = _active;
     if (active == null) return;
-    final controller = TextEditingController();
-    final name = await showDialog<String>(
+    var draft = '';
+    while (mounted) {
+      var submitted = draft;
+      if (!mounted) return;
+      final name = await showDialog<String>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Create Team'),
+          content: TextFormField(
+            key: const Key('team-name-field'),
+            initialValue: draft,
+            onChanged: (value) => submitted = value,
+            autofocus: true,
+            maxLength: 120,
+            decoration: const InputDecoration(
+              border: OutlineInputBorder(),
+              labelText: 'Team name',
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              key: const Key('create-team-confirm'),
+              onPressed: () => Navigator.pop(context, submitted),
+              child: const Text('Create'),
+            ),
+          ],
+        ),
+      );
+      if (name == null) return;
+      draft = name;
+      try {
+        FormalNamePolicy.validatePresentationLabel(name);
+        if (await _confirmDuplicateTeamName(name)) continue;
+        await _teams.createTeam(
+          creatorProfileId: active.learnerProfileId,
+          displayName: name,
+        );
+        await _reload();
+        return;
+      } catch (error) {
+        if (mounted) _showError(error);
+      }
+    }
+  }
+
+  /// Returns true when the user chose to edit the name.
+  Future<bool> _confirmDuplicateTeamName(
+    String name, {
+    String? excludingTeamId,
+  }) async {
+    if (!await _teams.hasDuplicateTeamName(
+          name,
+          excludingTeamId: excludingTeamId,
+        ) ||
+        !mounted) {
+      return false;
+    }
+    final continueAnyway = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Create Team'),
-        content: TextField(
-          key: const Key('team-name-field'),
-          controller: controller,
-          autofocus: true,
-          maxLength: 120,
-          decoration: const InputDecoration(
-            border: OutlineInputBorder(),
-            labelText: 'Team name',
-          ),
-        ),
+        title: const Text('Duplicate Team name'),
+        content: const Text('A Team with this name already exists.'),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Edit name'),
           ),
           FilledButton(
-            key: const Key('create-team-confirm'),
-            onPressed: () => Navigator.pop(context, controller.text.trim()),
-            child: const Text('Create'),
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Continue anyway'),
           ),
         ],
       ),
     );
-    controller.dispose();
-    if (name == null || name.isEmpty) return;
-    try {
-      await _teams.createTeam(
-        creatorProfileId: active.learnerProfileId,
-        displayName: name,
-      );
-      await _reload();
-    } catch (error) {
-      if (mounted) _showError(error);
-    }
+    return continueAnyway != true;
   }
 
   void _showError(Object error) => ScaffoldMessenger.of(context).showSnackBar(
@@ -289,34 +330,90 @@ class _TeamDetailScreenState extends State<TeamDetailScreen> {
     final team = _team;
     final active = _active;
     if (team == null || active == null || !_canManage) return;
-    final controller = TextEditingController(text: team.displayName);
-    final value = await showDialog<String>(
+    var draft = team.displayName;
+    while (mounted) {
+      var submitted = draft;
+      if (!mounted) return;
+      final value = await showDialog<String>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Rename Team'),
+          content: TextFormField(
+            initialValue: draft,
+            onChanged: (value) => submitted = value,
+            maxLength: 120,
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(context, submitted),
+              child: const Text('Save'),
+            ),
+          ],
+        ),
+      );
+      if (value == null) return;
+      draft = value;
+      try {
+        FormalNamePolicy.validatePresentationLabel(value);
+        if (await _confirmDuplicateTeamName(
+          value,
+          excludingTeamId: team.teamId,
+        )) {
+          continue;
+        }
+        await _run(() async {
+          await widget.teamService.renameTeam(
+            teamId: team.teamId,
+            actorProfileId: active.learnerProfileId,
+            displayName: value,
+          );
+        });
+        return;
+      } catch (error) {
+        if (mounted) _showError(error);
+      }
+    }
+  }
+
+  /// Returns true when the user chose to edit the name.
+  Future<bool> _confirmDuplicateTeamName(
+    String name, {
+    String? excludingTeamId,
+  }) async {
+    if (!await widget.teamService.hasDuplicateTeamName(
+          name,
+          excludingTeamId: excludingTeamId,
+        ) ||
+        !mounted) {
+      return false;
+    }
+    final continueAnyway = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Rename Team'),
-        content: TextField(controller: controller, maxLength: 120),
+        title: const Text('Duplicate Team name'),
+        content: const Text('A Team with this name already exists.'),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Edit name'),
           ),
           FilledButton(
-            onPressed: () => Navigator.pop(context, controller.text.trim()),
-            child: const Text('Save'),
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Continue anyway'),
           ),
         ],
       ),
     );
-    controller.dispose();
-    if (value == null || value.isEmpty) return;
-    await _run(() async {
-      await widget.teamService.renameTeam(
-        teamId: team.teamId,
-        actorProfileId: active.learnerProfileId,
-        displayName: value,
-      );
-    });
+    return continueAnyway != true;
   }
+
+  void _showError(Object error) => ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(content: Text(error.toString().replaceFirst('StateError: ', ''))),
+  );
 
   Future<void> _memberAction(String action, String profileId) async {
     final team = _team!;

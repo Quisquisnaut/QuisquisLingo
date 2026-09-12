@@ -1,6 +1,6 @@
 # QuisquisLingo App
 
-**Current source version: 2.0.33+233030 · Phase 233.3 · revision 0 · Course Model v8 (`formatVersion: 8`).**
+**Current source version: 2.0.33+233030 · Build 233.1 · Course Model v8 (`formatVersion: 8`).**
 
 
 **QuisquisLingo 2.0.33 Alpha — QQL 233 Linux Update, Learner Status Avatar, and Course/Team Governance**
@@ -8,6 +8,8 @@
 Current project version: 2.0.33
 
 QQL 233 is delivered through three planned phases. Phase 233.1 recognizes the actual generic Linux Alpha ZIP while preserving Windows and GitHub Releases policy. Phase 233.2 adds the two-step Learner profile/avatar flow, optional normalized Discord presentation, random initial skin and hair, and the authoritative ten-level Status display whose vivid current-level color drives the avatar T-shirt. Phase 233.3 makes every Course Owner an individual, separates optional Team assignment and Team governance, adds assignment warnings and experimental-model Help, corrects role identity/ID presentation, and keeps the Learner status bar exclusively inside the Learner Panel. Course Model v8 is a clean cut with no legacy custom-course migration. See [QQL 233 validation](docs/233_VALIDATION.md).
+
+The same-version QQL 233 correction keeps `2.0.33+233030` and the existing Alpha expiry unchanged. Review now waits on **Ready for Review** before the first Round; profile identity adds formal naming/Discord warnings, immutable five-digit Screen Name suffixes, admin invariants, optional Access PINs, a descriptive device name and private stable-identity Recovery Keys; and Team/Course names receive the shared safe-label policy. The application identity is the clean-cut `org.quisquislingo.app`, and the single crash log lives under the platform Documents/application-documents `QuisquisLingo/Logs` structure.
 
 QQL 232 remains the completed Review and Vocabulary reinforcement baseline. See [QQL 232 validation](docs/232_VALIDATION.md).
 
@@ -48,7 +50,7 @@ The MPL-2.0 covers the QuisquisLingo software source. Courses, the Image Bank an
 
 ## Alpha lifecycle
 
-Version 2.0.33 Phase 233.3 revision 0 is a time-limited alpha and refreshes the established expiry to **2026-10-14 23:59:59 local time**. Near expiry it displays reminders. After expiry, learner exercises and Review are blocked until a newer alpha is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when an alpha expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM. Future stable builds can disable alpha expiry.
+Version 2.0.33, Build 233.1 is a time-limited alpha and retains the established expiry of **2026-10-14 23:59:59 local time**. Near expiry it displays reminders. After expiry, learner exercises and Review are blocked until a newer alpha is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when an alpha expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM. Future stable builds can disable alpha expiry.
 
 ## Core logic
 
@@ -270,6 +272,6 @@ The update check is metadata-only and sends no learner or course data. Offline u
 
 ## Windows Alpha diagnostic logging (0.8.1)
 
-Both debug and standalone release Alpha builds display tester instructions at startup. QuisquisLingo creates or re-creates the **Crash Log** at `Documents/QuisquisLingo/Logs/quisquislingo_crash.log`, appends a session snapshot, and records uncaught errors in all non-web build modes; detailed navigation breadcrumbs remain debug-only. The separate **Diagnostic Log** stores application troubleshooting events internally and can be exported from **Settings > Debug** to `Documents/QuisquisLingo/Logs/quisquislingo_diagnostic_log.txt`. Bounded learner-audio lifecycle events use correlation IDs and omit spoken text, answers, course content and full personal file paths.
+Both debug and standalone release Alpha builds display tester instructions at startup. QuisquisLingo creates or re-creates one authoritative **Crash Log** at `Documents/QuisquisLingo/Logs/quisquislingo_crash.log` on desktop, using the platform's native Documents directory. On Android and iOS the same logical `QuisquisLingo/Logs/quisquislingo_crash.log` path is inside the app's private application-documents directory, and **Settings > Debug > Share Crash Log** provides access through the platform share UI. QQL does not write another active crash-log copy in application preferences or migrate an older preferences-folder log. The log appends a session snapshot and records uncaught errors in all non-web build modes; detailed navigation breadcrumbs remain debug-only. The separate **Diagnostic Log** stores application troubleshooting events internally and can be exported from **Settings > Debug** to `Documents/QuisquisLingo/Logs/quisquislingo_diagnostic_log.txt`. Bounded learner-audio lifecycle events use correlation IDs and omit spoken text, answers, course content and full personal file paths.
 
 Alpha builds also keep a privacy-safe **Startup Trace** at `%LOCALAPPDATA%\QuisquisLingo\Logs\quisquislingo_startup_trace.log`, with `%TEMP%\quisquislingo_startup_trace.log` as fallback. Normal lifecycle tracing is enabled by default. Set `QUISQUISLINGO_STARTUP_DIAGNOSTICS=verbose` before launch only when low-level Windows startup detail is needed. The active trace rotates at approximately 1 MiB and retains two previous generations. See [docs/LOGGING.md](docs/LOGGING.md).

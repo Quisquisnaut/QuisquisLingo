@@ -130,6 +130,7 @@ void main() {
         final profile = await profiles.createProfile(
           input.$1,
           learnerProfileId: _id(index + 1),
+          generateScreenNameSuffix: false,
         );
         await profiles.setActiveProfileById(profile.learnerProfileId);
         await service.recordResult(
@@ -153,6 +154,7 @@ void main() {
       final profile = await profiles.createProfile(
         'Marco',
         learnerProfileId: _id(index),
+        generateScreenNameSuffix: false,
       );
       await profiles.setActiveProfileById(profile.learnerProfileId);
       await service.recordResult(

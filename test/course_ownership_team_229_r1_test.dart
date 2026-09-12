@@ -25,10 +25,22 @@ const teamId = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
 
 Future<ProfileService> _profiles({bool includeCharlie = true}) async {
   final profiles = ProfileService();
-  await profiles.createProfile('Alice', learnerProfileId: aliceId);
-  await profiles.createProfile('Bob', learnerProfileId: bobId);
+  await profiles.createProfile(
+    'Alice',
+    learnerProfileId: aliceId,
+    generateScreenNameSuffix: false,
+  );
+  await profiles.createProfile(
+    'Bob',
+    learnerProfileId: bobId,
+    generateScreenNameSuffix: false,
+  );
   if (includeCharlie) {
-    await profiles.createProfile('Charlie', learnerProfileId: charlieId);
+    await profiles.createProfile(
+      'Charlie',
+      learnerProfileId: charlieId,
+      generateScreenNameSuffix: false,
+    );
   }
   await profiles.setActiveProfileById(aliceId);
   return profiles;
@@ -270,6 +282,10 @@ void main() {
     'Profile deletion preserves Team membership and final-Lead invariants',
     () async {
       final profiles = await _profiles(includeCharlie: false);
+      await profiles.promoteToAdmin(
+        actorProfileId: aliceId,
+        targetProfileId: bobId,
+      );
       final teams = TeamService(
         profileService: profiles,
         idGenerator: () => teamId,
@@ -304,6 +320,10 @@ void main() {
     'Profile deletion cannot orphan an individually owned custom course',
     () async {
       final profiles = await _profiles(includeCharlie: false);
+      await profiles.promoteToAdmin(
+        actorProfileId: aliceId,
+        targetProfileId: bobId,
+      );
       final courses = CourseEditorService(profileService: profiles);
       final course = _custom(title: 'Alice owned course');
       await courses.saveUserCourse(course);

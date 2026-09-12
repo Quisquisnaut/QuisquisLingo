@@ -1,6 +1,6 @@
 # Team Manager
 
-Updated for QuisquisLingo 2.0.33, Phase 233.3 revision 0 (technical build 233030).
+Updated for QuisquisLingo 2.0.33, Build 233.1 (technical build 233030).
 
 Team Manager is an offline authoring feature. Open Course Manager and select **Team Manager** to open its separate page. It creates no account, invitation, network, server, email, or online collaboration state.
 

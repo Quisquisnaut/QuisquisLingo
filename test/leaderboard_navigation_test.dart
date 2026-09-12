@@ -1680,8 +1680,8 @@ void main() {
     await tester.tap(find.widgetWithText(ListTile, 'Learner profiles'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Learners'), findsOneWidget);
-    expect(find.text('Navigation Learner'), findsWidgets);
+    expect(find.textContaining('Learners on '), findsOneWidget);
+    expect(find.text('Navigation Learner (admin)'), findsOneWidget);
     expect(find.text('Add learner'), findsOneWidget);
   });
 
@@ -1707,12 +1707,104 @@ void main() {
     await tester.runAsync(
       () => Future<void>.delayed(const Duration(milliseconds: 300)),
     );
-    await _pumpUntil(tester, find.text('Learners'));
+    await _pumpUntil(tester, find.textContaining('Learners on '));
     await _pumpFrames(tester);
 
-    expect(find.text('Navigation Learner'), findsOneWidget);
+    expect(find.text('Navigation Learner (admin)'), findsOneWidget);
     expect(find.text('Add learner'), findsOneWidget);
     expect(await ProfileService().getActiveProfile(), isNull);
+  });
+
+  testWidgets(
+    'Learner Profiles shows admin and Discord while PIN gates switching',
+    (tester) async {
+      final profiles = ProfileService();
+      final pinLearner = await profiles.createProfile(
+        'PIN Learner',
+        discordHandle: 'pin_user',
+        generateScreenNameSuffix: false,
+      );
+      await profiles.setOwnAccessPin(
+        actorProfileId: pinLearner.learnerProfileId,
+        pin: '2468',
+      );
+      await profiles.setActiveProfile('Navigation Learner');
+      await _openHome(tester, scrollToActions: false);
+      await _pumpUntil(
+        tester,
+        find.byKey(const Key('unified-bottom-controls')),
+      );
+      await _openLearnerChooserFromHome(tester);
+
+      expect(find.text('Navigation Learner (admin)'), findsOneWidget);
+      expect(find.text('@pin_user on Discord'), findsOneWidget);
+      await tester.scrollUntilVisible(
+        find.widgetWithText(ListTile, 'PIN Learner'),
+        150,
+        scrollable: find.descendant(
+          of: find.byType(BottomSheet),
+          matching: find.byType(Scrollable),
+        ),
+      );
+      await tester.tap(find.widgetWithText(ListTile, 'PIN Learner'));
+      await _pumpUntil(tester, find.text('Enter Access PIN'));
+      await tester.enterText(
+        find.byKey(const Key('profile-access-pin-prompt')),
+        '0000',
+      );
+      await tester.tap(find.widgetWithText(FilledButton, 'Access profile'));
+      await tester.pumpAndSettle();
+      expect(find.text('The Access PIN is incorrect.'), findsOneWidget);
+      expect(await profiles.getActiveProfile(), 'Navigation Learner');
+
+      await tester.tap(find.widgetWithText(ListTile, 'Learner profiles'));
+      await _pumpUntil(tester, find.textContaining('Learners on '));
+      await tester.pumpAndSettle();
+      await tester.scrollUntilVisible(
+        find.widgetWithText(ListTile, 'PIN Learner'),
+        150,
+        scrollable: find.descendant(
+          of: find.byType(BottomSheet),
+          matching: find.byType(Scrollable),
+        ),
+      );
+      await tester.tap(find.widgetWithText(ListTile, 'PIN Learner'));
+      await _pumpUntil(tester, find.text('Enter Access PIN'));
+      await tester.enterText(
+        find.byKey(const Key('profile-access-pin-prompt')),
+        '2468',
+      );
+      await tester.tap(find.widgetWithText(FilledButton, 'Access profile'));
+      for (var attempt = 0; attempt < 40; attempt++) {
+        await tester.runAsync(
+          () => Future<void>.delayed(const Duration(milliseconds: 50)),
+        );
+        await tester.pump(const Duration(milliseconds: 50));
+        if (await profiles.getActiveProfile() == 'PIN Learner') break;
+      }
+      expect(await profiles.getActiveProfile(), 'PIN Learner');
+    },
+  );
+
+  testWidgets('admin can change the descriptive Learner Profiles device name', (
+    tester,
+  ) async {
+    await _openHome(tester, scrollToActions: false);
+    await _pumpUntil(tester, find.byKey(const Key('unified-bottom-controls')));
+    await _openLearnerChooserFromHome(tester);
+    await tester.tap(find.byKey(const Key('edit-qql-device-name')));
+    await _pumpUntil(tester, find.text('QQL device name'));
+    await tester.enterText(
+      find.byKey(const Key('qql-device-name-field')),
+      'Studio PC',
+    );
+    await tester.tap(find.widgetWithText(FilledButton, 'Save'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(ListTile, 'Learner profiles'));
+    await _pumpUntil(tester, find.textContaining('Learners on '));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Learners on Studio PC'), findsOneWidget);
   });
 
   testWidgets('Top Bar cat logo opens the existing App Info screen', (
@@ -3039,7 +3131,7 @@ void main() {
         (text) =>
             text.data != 'Welcome to QuisquisLingo' &&
             text.data != 'Version 2.0.33' &&
-            text.data != 'Phase 233.3, revision 0' &&
+            text.data != 'Build 233.1' &&
             text.data != 'Continue',
       );
       final welcomeDialog = tester.widget<AlertDialog>(
@@ -3056,7 +3148,7 @@ void main() {
         const Color(0xFF0756DF),
       );
       expect(
-        tester.widget<Text>(find.text('Phase 233.3, revision 0')).style?.color,
+        tester.widget<Text>(find.text('Build 233.1')).style?.color,
         const Color(0xFF0756DF),
       );
       expect(find.textContaining('22621'), findsNothing);
@@ -3158,7 +3250,10 @@ void main() {
         ),
         'IT',
       );
-      final germanLearner = await profiles.createProfile('German Learner');
+      final germanLearner = await profiles.createProfile(
+        'German Learner',
+        generateScreenNameSuffix: false,
+      );
       await prefs.setString(
         profiles.keyForProfileId(
           germanLearner.learnerProfileId,
@@ -3338,7 +3433,7 @@ Future<void> _openLearnerChooserFromHome(WidgetTester tester) async {
   final learnerProfiles = find.widgetWithText(ListTile, 'Learner profiles');
   await tester.ensureVisible(learnerProfiles);
   await tester.tap(learnerProfiles);
-  await _pumpUntil(tester, find.text('Learners'));
+  await _pumpUntil(tester, find.textContaining('Learners on '));
   await tester.pumpAndSettle();
 }
 
@@ -3361,12 +3456,16 @@ Future<void> _logoutToLearnerChooser(WidgetTester tester) async {
   await tester.runAsync(
     () => Future<void>.delayed(const Duration(milliseconds: 300)),
   );
-  await _pumpUntil(tester, find.text('Learners'));
+  await _pumpUntil(tester, find.textContaining('Learners on '));
   await tester.pumpAndSettle();
 }
 
 Future<void> _chooseLearner(WidgetTester tester, String learnerName) async {
-  final learner = find.widgetWithText(ListTile, learnerName);
+  final learner = find.byWidgetPredicate((widget) {
+    if (widget is! ListTile || widget.title is! Text) return false;
+    final title = (widget.title! as Text).data;
+    return title == learnerName || title == '$learnerName (admin)';
+  });
   await tester.ensureVisible(learner);
   await tester.tap(learner);
   await _pumpUntilGone(tester, find.byType(BottomSheet));

@@ -32,10 +32,8 @@ void main() {
       expect(AppMetadata.technicalVersion, '2.0.33+233030');
       expect(AppMetadata.version, AppMetadata.technicalVersion);
       expect(version, AppMetadata.technicalVersion);
-      expect(
-        AppMetadata.displayLabel,
-        'Version 2.0.33\nPhase 233.3, revision 0',
-      );
+      expect(AppMetadata.displayLabel, 'Version 2.0.33\nBuild 233.1');
+      expect(AppMetadata.publicBuildLabel, 'Build 233.1');
     },
   );
 

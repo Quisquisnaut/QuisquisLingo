@@ -374,7 +374,11 @@ void main() {
       await profiles.setActiveProfileById(_aliceId);
       expect(await settings.isCourseEditorUnlocked(), isTrue);
 
-      await profiles.createProfile('Charlie', learnerProfileId: _charlieId);
+      await profiles.createProfile(
+        'Charlie',
+        learnerProfileId: _charlieId,
+        generateScreenNameSuffix: false,
+      );
       expect(await settings.isCourseEditorUnlocked(), isFalse);
       await profiles.setActiveProfileById(_aliceId);
       final backup = await LearnerBackupService(
@@ -393,6 +397,10 @@ void main() {
         'course_editor_unlocked',
       );
       expect((await SharedPreferences.getInstance()).getBool(aliceKey), isTrue);
+      await profiles.promoteToAdmin(
+        actorProfileId: _aliceId,
+        targetProfileId: _bobId,
+      );
       await profiles.deleteProfileById(_aliceId);
       expect(
         (await SharedPreferences.getInstance()).containsKey(aliceKey),
@@ -431,8 +439,16 @@ void main() {
 
 Future<ProfileService> _profiles() async {
   final profiles = ProfileService();
-  await profiles.createProfile('Alice', learnerProfileId: _aliceId);
-  await profiles.createProfile('Bob', learnerProfileId: _bobId);
+  await profiles.createProfile(
+    'Alice',
+    learnerProfileId: _aliceId,
+    generateScreenNameSuffix: false,
+  );
+  await profiles.createProfile(
+    'Bob',
+    learnerProfileId: _bobId,
+    generateScreenNameSuffix: false,
+  );
   await profiles.setActiveProfileById(_aliceId);
   return profiles;
 }

@@ -32,6 +32,7 @@ void main() {
         'Bob' => _bobId,
         _ => throw ArgumentError.value(name, 'name'),
       },
+      generateScreenNameSuffix: false,
     );
   }
 

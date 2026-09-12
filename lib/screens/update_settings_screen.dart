@@ -135,7 +135,7 @@ class _UpdateSettingsScreenState extends State<UpdateSettingsScreen> {
           ListTile(
             leading: const Icon(Icons.info_outline),
             title: const Text('Current version'),
-            subtitle: Text(_currentVersion),
+            subtitle: Text('$_currentVersion\n${AppMetadata.publicBuildLabel}'),
           ),
           ListTile(
             leading: const Icon(Icons.code),

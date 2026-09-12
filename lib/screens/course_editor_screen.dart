@@ -16,6 +16,7 @@ import '../models/exercise_authoring.dart';
 import '../services/course_editor_service.dart';
 import '../services/course_flag_service.dart';
 import '../services/course_language_resolver.dart';
+import '../services/formal_name_policy.dart';
 import '../services/course_owner_resolver.dart';
 import '../services/course_governance_service.dart';
 import '../services/course_editor_transaction.dart';
@@ -1350,18 +1351,25 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
                                     runSpacing: 6,
                                     children: [
                                       for (final role in standardRoles)
-                                        FilterChip(
-                                          label: Text(role),
-                                          selected: selectedRoles[i].contains(
-                                            role,
+                                        Tooltip(
+                                          message: role == 'Team Leader'
+                                              ? 'This is descriptive information only. To assign or change Team Leader roles in QQL, use Team Manager.'
+                                              : roleDescriptions[role] ?? role,
+                                          child: FilterChip(
+                                            label: Text(role),
+                                            selected: selectedRoles[i].contains(
+                                              role,
+                                            ),
+                                            onSelected: (on) => setLocalState(
+                                              () {
+                                                if (on) {
+                                                  selectedRoles[i].add(role);
+                                                } else {
+                                                  selectedRoles[i].remove(role);
+                                                }
+                                              },
+                                            ),
                                           ),
-                                          onSelected: (on) => setLocalState(() {
-                                            if (on) {
-                                              selectedRoles[i].add(role);
-                                            } else {
-                                              selectedRoles[i].remove(role);
-                                            }
-                                          }),
                                         ),
                                     ],
                                   ),
@@ -1612,9 +1620,55 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
                 ),
                 FilledButton(
                   key: const Key('course-info-save'),
-                  onPressed: () {
-                    final title = courseTitle.text.trim();
-                    if (title.isEmpty) return;
+                  onPressed: () async {
+                    String title;
+                    try {
+                      title = FormalNamePolicy.validatePresentationLabel(
+                        courseTitle.text,
+                        parameterName: 'courseName',
+                      );
+                    } on ArgumentError catch (error) {
+                      ScaffoldMessenger.of(ctx).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            error.message?.toString() ??
+                                'Check the Course name.',
+                          ),
+                        ),
+                      );
+                      return;
+                    }
+                    final duplicate = (await _service.listUserCourses()).any(
+                      (course) =>
+                          course.courseId != _course.courseId &&
+                          FormalNamePolicy.comparisonKey(course.title) ==
+                              FormalNamePolicy.comparisonKey(title),
+                    );
+                    if (duplicate) {
+                      if (!ctx.mounted) return;
+                      final continueAnyway = await showDialog<bool>(
+                        context: ctx,
+                        builder: (warningContext) => AlertDialog(
+                          title: const Text('Duplicate Course name'),
+                          content: const Text(
+                            'A Course with this name already exists.',
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () =>
+                                  Navigator.pop(warningContext, false),
+                              child: const Text('Edit name'),
+                            ),
+                            FilledButton(
+                              onPressed: () =>
+                                  Navigator.pop(warningContext, true),
+                              child: const Text('Continue anyway'),
+                            ),
+                          ],
+                        ),
+                      );
+                      if (continueAnyway != true || !ctx.mounted) return;
+                    }
                     final license = selected == 'Other / Custom license'
                         ? customLicense.text.trim()
                         : selected;
@@ -1625,6 +1679,7 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
                         buyACoffeeUrl.text,
                       );
                     } on FormatException catch (error) {
+                      if (!ctx.mounted) return;
                       ScaffoldMessenger.of(
                         ctx,
                       ).showSnackBar(SnackBar(content: Text(error.message)));
@@ -1679,6 +1734,7 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
                       if (rr.isEmpty) rr.add('Contributor');
                       aa.add(CourseAuthor(name: n, roles: rr));
                     }
+                    if (!ctx.mounted) return;
                     Navigator.pop(ctx, (
                       title: title,
                       authors: aa,

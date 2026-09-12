@@ -180,7 +180,16 @@ class CourseInfoScreen extends StatefulWidget {
                 'This course is marked TEMPORARY SAMPLE. The preloaded material is provided only to demonstrate and test the editor. Replace sample material with reviewed content before publishing or distributing the course.',
           ),
         _OwnershipInfoCard(course: course, ownership: ownership),
-        _InfoCard(title: 'Authorship and descriptive credits', body: _credits),
+        _InfoCard(
+          title: 'Authorship and descriptive credits',
+          body: _credits,
+          tooltip:
+              course.authors.any(
+                (author) => author.roles.contains('Team Leader'),
+              )
+              ? 'This is descriptive information only. To assign or change Team Leader roles in QQL, use Team Manager.'
+              : null,
+        ),
         _InfoCard(
           title: 'Languages',
           body: [
@@ -381,11 +390,13 @@ class _InfoCard extends StatelessWidget {
   final String title;
   final String body;
   final List<Widget> children;
+  final String? tooltip;
 
   const _InfoCard({
     required this.title,
     required this.body,
     this.children = const [],
+    this.tooltip,
   });
 
   @override
@@ -403,7 +414,10 @@ class _InfoCard extends StatelessWidget {
             ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
           ),
           const SizedBox(height: 6),
-          SelectableText(body),
+          if (tooltip == null)
+            SelectableText(body)
+          else
+            Tooltip(message: tooltip!, child: SelectableText(body)),
           ...children,
         ],
       ),

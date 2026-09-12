@@ -42,7 +42,7 @@ void main() {
   });
 
   testWidgets(
-    'Review automatically opens the highest-priority resolved Round',
+    'Review waits on the shared inter-review screen before the first Round',
     (tester) async {
       final course = _course(vocabulary: const []);
       final progress = ProgressService();
@@ -64,6 +64,16 @@ void main() {
           home: ReviewScreen(course: course, courseCode: 'IT'),
         ),
       );
+      await _pumpUntil(tester, find.text('Next Review'));
+
+      expect(find.byType(RoundScreen), findsNothing);
+      expect(find.text('Review completed!'), findsNothing);
+      expect(find.textContaining('Congratulations'), findsNothing);
+      expect(find.text('1 word to review in the next Review.'), findsOneWidget);
+      expect(find.byKey(const Key('review-reset-word-list')), findsOneWidget);
+      expect(find.byKey(const Key('review-help')), findsOneWidget);
+
+      await _tap(tester, 'Next Review');
       await _pumpUntil(tester, find.byType(RoundScreen));
 
       final round = tester.widget<RoundScreen>(find.byType(RoundScreen));
@@ -101,6 +111,7 @@ void main() {
         home: ReviewScreen(course: course, courseCode: 'IT'),
       ),
     );
+    await _startNextReview(tester);
     await _pumpUntil(tester, find.text('Correct round-high'));
     await tester.pumpAndSettle();
 
@@ -122,6 +133,7 @@ void main() {
         home: ReviewScreen(course: course, courseCode: 'IT'),
       ),
     );
+    await _startNextReview(tester);
     await _pumpUntil(tester, find.text('Before the Round'));
 
     expect(find.text(course.title), findsOneWidget);
@@ -166,6 +178,7 @@ void main() {
         ),
       );
 
+      await _startNextReview(tester);
       await _pumpUntil(tester, find.text('Before the Round'));
       await _tap(tester, 'Show answer');
       await _tap(tester, 'I know it');
@@ -216,6 +229,7 @@ void main() {
           home: ReviewScreen(course: course, courseCode: 'IT'),
         ),
       );
+      await _startNextReview(tester);
       await _completeCurrentRound(tester, 'round-high');
       await _pumpUntil(tester, find.text('Review completed!'));
 
@@ -248,6 +262,7 @@ void main() {
           home: ReviewScreen(course: course, courseCode: 'IT'),
         ),
       );
+      await _startNextReview(tester);
       await _pumpUntil(tester, find.text('Before the Round'));
       expect(find.text('pane'), findsOneWidget);
       expect(find.text('casa'), findsNothing);
@@ -289,6 +304,7 @@ void main() {
         MaterialApp(home: _ReviewLauncher(course: course)),
       );
       await _tap(tester, 'Open Review');
+      await _startNextReview(tester);
       await _pumpUntil(tester, find.text('Before the Round'));
       await _tap(tester, 'Show answer');
       await _tap(tester, 'I know it');
@@ -303,6 +319,7 @@ void main() {
       expect(find.byType(ReviewScreen), findsNothing);
 
       await _tap(tester, 'Open Review');
+      await _startNextReview(tester);
       await _pumpUntil(tester, find.text('Before the Round'));
       expect(find.text('pane'), findsOneWidget);
       expect(find.text('casa'), findsNothing);
@@ -338,6 +355,7 @@ void main() {
         home: ReviewScreen(course: course, courseCode: 'IT'),
       ),
     );
+    await _startNextReview(tester);
     await _pumpUntil(tester, find.text('Before the Round'));
     await _tap(tester, 'Show answer');
     await _tap(tester, 'I know it');
@@ -356,6 +374,35 @@ void main() {
       hasLength(2),
     );
   });
+
+  testWidgets(
+    'inter-review count updates for the next selected Round and Back exits',
+    (tester) async {
+      final course = _course(vocabulary: const []);
+      await _seedReview(course, 'round-high', errors: 5);
+      await _seedReview(course, 'round-low', errors: 1);
+      await tester.pumpWidget(
+        MaterialApp(home: _ReviewLauncher(course: course)),
+      );
+
+      await _tap(tester, 'Open Review');
+      await _pumpUntil(
+        tester,
+        find.text('1 word to review in the next Review.'),
+      );
+      await _startNextReview(tester);
+      await _completeCurrentRound(tester, 'round-high');
+      await _pumpUntil(
+        tester,
+        find.text('2 words to review in the next Review.'),
+      );
+
+      await _tap(tester, 'Back to Course');
+      await tester.pumpAndSettle();
+      await _pumpUntil(tester, find.text('Course Learner Panel'));
+      expect(find.byType(ReviewScreen), findsNothing);
+    },
+  );
 }
 
 Future<void> _seedReview(Course course, String roundId, {required int errors}) {
@@ -374,6 +421,11 @@ Future<void> _completeCurrentRound(WidgetTester tester, String roundId) async {
   await _pumpUntil(tester, find.text('Round completed'));
   await _tap(tester, 'Continue');
   await tester.pumpAndSettle();
+}
+
+Future<void> _startNextReview(WidgetTester tester) async {
+  await _pumpUntil(tester, find.text('Next Review'));
+  await _tap(tester, 'Next Review');
 }
 
 Future<void> _tap(WidgetTester tester, String text) async {
@@ -469,6 +521,22 @@ LearningRound _round(String id, String title) => LearningRound(
       hint: '',
       icons: const [],
     ),
+    if (id == 'round-low')
+      Exercise(
+        id: '${id}_second_choice',
+        type: 'choice',
+        prompt: 'Choose the second correct answer.',
+        question: '',
+        answers: ['Second correct $id', 'Second wrong $id'],
+        correct: 0,
+        tts: null,
+        accepted: const [],
+        tokens: const [],
+        orderAnswer: const [],
+        pairs: const [],
+        hint: '',
+        icons: const [],
+      ),
   ],
 );
 
