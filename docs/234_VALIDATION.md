@@ -1,9 +1,10 @@
 # QQL 234 validation
 
-Validation target: QuisquisLingo `2.0.34+234000`, displayed as **Build 234,
-Revision 0**, on baseline commit
+Validation target: QuisquisLingo `2.0.34+234001`, displayed as **Build 234,
+Revision 1**, on baseline commit
 `0da59725f32589015bb68dea407c592653fc876e`. Course Model remains v9 and QQL
-234 remains Alpha.
+234 remains Alpha. The correction refreshes the Alpha expiry to
+`2026-10-14 23:59:59` local time.
 
 This document records only checks that actually ran. The final analyzer and
 complete-suite sections remain pending until the production/test tree is
@@ -37,6 +38,25 @@ was validated against its pinned source SHA-1. Renderer normalization is
 limited to the new Aragonese, Livonian, Piedmontese, Sicilian and West Frisian
 assets; the historical Cornish, Corsican and Sardinian SVG bytes and hashes
 remain at baseline.
+
+The QQL 229.2 regression test keeps Course Info language, Team and conditional
+internal-ID coverage independent of the Course flag selector. Its explicit
+flag and Automatic-selection assertions were removed temporarily while the
+QQL 234 selector is being reworked; replacement selector coverage belongs in
+the updated selector test after that work is complete. Its separate read-only
+Course Info assertion was also removed because its legacy official-course
+fixture no longer satisfies the current required provenance fields; read-only
+Course Info coverage should be restored with a current v9 fixture.
+
+Course Entry Animation now requires an explicit valid destination JSON flag.
+Courses without a declared flag return no animation request, so automatic
+language fallback flags remain available to other Course surfaces without
+creating an entry overlay.
+
+The custom-Course Settings-return regression test uses a neutral updated title
+and asserts the observable result directly: after Home reloads, the updated
+Course title appears in the Course selector. It does not require a notification
+or imply a Course Editor refresh action.
 
 ## Pre-pruning focused Flutter evidence
 

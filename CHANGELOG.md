@@ -1,3 +1,8 @@
+# 2.0.34 (Build 234, Revision 1) - Media Asset Audit & Revamp correction - 2026-09-14
+
+- Corrected the platform build metadata to `2.0.34+234001`, displayed as **Build 234, Revision 1**, and refreshed the Alpha expiry to `2026-10-14 23:59:59` local time. The QQL 234 feature set and Course Model v9 remain unchanged.
+- Corrected Course Entry Animation so a destination without an explicit valid JSON flag produces no overlay rather than animating an automatic fallback.
+
 # 2.0.34 (Build 234, Revision 0) - Media Asset Audit & Revamp - 2026-09-13
 
 - Replaced all 92 exercise Image Bank entries identified by the visual audit as split/composite artwork with approved flat 256 × 256 lossless transparent WebPs, in place under their existing stable paths. Preserved IDs and exercise semantics; normalized the transparent outer border of five additional already-correct images.

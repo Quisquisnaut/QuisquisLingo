@@ -1,6 +1,6 @@
 # Bundled sample courses
 
-Updated for Version 2.0.34+234000, Build 234, Revision 0.
+Updated for Version 2.0.34+234001, Build 234, Revision 1.
 
 Bundled courses are locally read-only. Their existing content/license metadata remain unchanged and currently provide no explicit derivative-work permission, so custom forks are unavailable.
 

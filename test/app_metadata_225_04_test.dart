@@ -24,16 +24,16 @@ void main() {
       ).firstMatch(pubspec)?.group(1);
 
       expect(AppMetadata.releaseVersion, '2.0.34');
-      expect(AppMetadata.buildNumber, '234000');
+      expect(AppMetadata.buildNumber, '234001');
       expect(AppMetadata.developmentPhase, '234');
-      expect(AppMetadata.correctiveRevision, 0);
+      expect(AppMetadata.correctiveRevision, 1);
       expect(AppMetadata.build, '234');
-      expect(AppMetadata.platformBuildNumber, '234000');
-      expect(AppMetadata.technicalVersion, '2.0.34+234000');
+      expect(AppMetadata.platformBuildNumber, '234001');
+      expect(AppMetadata.technicalVersion, '2.0.34+234001');
       expect(AppMetadata.version, AppMetadata.technicalVersion);
       expect(version, AppMetadata.technicalVersion);
-      expect(AppMetadata.displayLabel, 'Version 2.0.34\nBuild 234, Revision 0');
-      expect(AppMetadata.publicBuildLabel, 'Build 234, Revision 0');
+      expect(AppMetadata.displayLabel, 'Version 2.0.34\nBuild 234, Revision 1');
+      expect(AppMetadata.publicBuildLabel, 'Build 234, Revision 1');
     },
   );
 
@@ -59,10 +59,12 @@ void main() {
       final target = find.byKey(const Key('settings-version-build-area'));
       await tester.pumpAndSettle();
       await tester.scrollUntilVisible(
-        find.text('Version and Build'),
+        target,
         300,
         scrollable: find.byType(Scrollable),
       );
+      await tester.ensureVisible(target);
+      await tester.pumpAndSettle();
       expect(target, findsOneWidget);
       expect(find.text(AppMetadata.displayLabel), findsOneWidget);
 

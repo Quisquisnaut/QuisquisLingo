@@ -6,7 +6,7 @@ Version numbers are provisional. If a task requires more than one build, later i
 
 ## QQL 234 complete: Media Asset Audit & Revamp
 
-`2.0.34+234000` is Build 234 revision 0 and remains Alpha. It replaces the 92 audited split exercise images in place, normalizes the remaining image-bank border invariant, adds editor-only image tags/search, expands the language-related World Flags set, and shares one searchable language-aware Course flag picker between creation and editing. It also replaces startup olive artwork with the canonical QQL logo, fixes the pre-transition Extended-flag frame by committing the destination Course and its loaded learner settings atomically, retains and hash-locks all 19 existing audio assets, and adds the bundled Italian-to-Neapolitan **AI-Slop Demo** Course. Release evidence is recorded in [234 media audit](234_MEDIA_AUDIT.md) and [234 validation](234_VALIDATION.md).
+`2.0.34+234001` is Build 234 revision 1 and remains Alpha. It preserves the QQL 234 media audit, image-bank border invariant, editor-only image tags/search, language-related World Flags set, shared searchable language-aware Course flag picker, canonical QQL logo, atomic pre-transition Extended-flag loading, locked audio assets and bundled Italian-to-Neapolitan **AI-Slop Demo** Course. Release evidence is recorded in [234 media audit](234_MEDIA_AUDIT.md) and [234 validation](234_VALIDATION.md).
 
 QQL 234 is intended as the final Alpha cleanup release. A first Beta may follow only if the completed audit, analyzer, automated tests and platform validation remain satisfactory; this roadmap does not label QQL 235 as released or guarantee its channel.
 

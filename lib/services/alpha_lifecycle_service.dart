@@ -5,8 +5,8 @@
 /// a future stable build by setting [isAlphaBuild] to false.
 class AlphaLifecycleService {
   static const bool isAlphaBuild = true;
-  // QQL 234 refreshes the established 30-day Alpha lifetime through October 13.
-  static final DateTime expiryDate = DateTime(2026, 10, 13, 23, 59, 59);
+  // QQL 234.1 refreshes the established 30-day Alpha lifetime through October 14.
+  static final DateTime expiryDate = DateTime(2026, 10, 14, 23, 59, 59);
 
   static DateTime _day(DateTime value) =>
       DateTime(value.year, value.month, value.day);

@@ -1,6 +1,6 @@
 # QuisquisLingo Course Manager and Course Editor
 
-Updated for Version 2.0.34, Build 234, Revision 0 (technical build 234000) and Course Model v9
+Updated for Version 2.0.34, Build 234, Revision 1 (technical build 234001) and Course Model v9
 
 ## Unlocking the editor
 
@@ -369,7 +369,7 @@ An author can have multiple roles. The standard set is Author, Team Leader, Cont
 
 ## Alpha expiry and authoring
 
-The current time-limited alpha expires on 2026-10-13 under the established 30-day release policy. Expiry blocks learner exercises and Review but deliberately leaves Course Manager and Course Editor available so authoring work can be inspected, recovered and exported. Expiry never deletes local data.
+The current time-limited alpha expires on 2026-10-14 under the established 30-day release policy. Expiry blocks learner exercises and Review but deliberately leaves Course Manager and Course Editor available so authoring work can be inspected, recovered and exported. Expiry never deletes local data.
 
 
 ## Bundled official and local courses

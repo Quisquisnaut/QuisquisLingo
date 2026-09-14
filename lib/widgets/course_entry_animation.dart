@@ -69,6 +69,10 @@ abstract final class CourseEntryAnimationPolicy {
       return null;
     }
 
+    if (!CourseFlagService.hasExplicitFlag(destination)) {
+      return null;
+    }
+
     final resolved = CourseFlagService.resolve(
       destination,
       fallbackCode: fallbackCode,

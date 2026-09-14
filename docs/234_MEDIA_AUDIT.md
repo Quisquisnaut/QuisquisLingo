@@ -1,6 +1,7 @@
 # QQL 234 media asset audit
 
-QQL 234 (`2.0.34+234000`) is the final planned Alpha cleanup release. This
+QQL 234 Revision 1 (`2.0.34+234001`) is the final planned Alpha cleanup
+correction. This
 audit covers repository media, its runtime/editor consumers, provenance and
 automatic integrity boundaries. It does not declare QQL 234 to be Beta.
 

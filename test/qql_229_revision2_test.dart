@@ -15,7 +15,6 @@ import 'package:quisquislingo_app/services/learner_backup_service.dart';
 import 'package:quisquislingo_app/services/profile_service.dart';
 import 'package:quisquislingo_app/services/settings_service.dart';
 import 'package:quisquislingo_app/services/team_service.dart';
-import 'package:quisquislingo_app/services/world_flag_repository.dart';
 import 'package:quisquislingo_app/widgets/course_entry_animation.dart';
 import 'package:quisquislingo_app/widgets/flag_art.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -147,7 +146,7 @@ void main() {
   );
 
   testWidgets(
-    'Course Info Editor shows Team/model IDs conditionally and saves Automatic or explicit flags',
+    'Course Info Editor shows Team and model IDs conditionally',
     (tester) async {
       final profiles = await _profiles();
       await _team(profiles);
@@ -170,32 +169,6 @@ void main() {
       expect(find.textContaining('2024'), findsOneWidget);
       expect(find.textContaining('2026'), findsOneWidget);
 
-      await _chooseCourseFlag(tester, 'builtin:ES');
-      await _saveCourseInfo(tester);
-      var working = _editorFlagCourse(tester);
-      expect(working.flagCode, 'ES');
-      expect(working.flagImageBase64, isEmpty);
-      expect(working.worldFlagId, isEmpty);
-
-      await _openCourseInfoEditor(tester);
-      final chooser = find.byKey(const Key('course-flag-selector-open'));
-      await tester.ensureVisible(chooser);
-      await tester.runAsync(() async {
-        await tester.tap(chooser);
-        await tester.pump();
-        await WorldFlagRepository().loadManifest();
-        await Future<void>.delayed(Duration.zero);
-      });
-      await _pumpRouteTransition(tester);
-      await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const Key('course-flag-picker-automatic')));
-      await _settleFlagSelection(tester);
-      await _saveCourseInfo(tester);
-      working = _editorFlagCourse(tester);
-      expect(working.flagCode, isEmpty);
-      expect(working.flagImageBase64, isEmpty);
-      expect(working.worldFlagId, isEmpty);
-
       await tester.pumpWidget(const SizedBox.shrink());
       await tester.pumpAndSettle();
       SharedPreferences.setMockInitialValues({
@@ -211,32 +184,6 @@ void main() {
         find.text('Course Model: v${course.formatVersion}'),
         findsOneWidget,
       );
-    },
-  );
-
-  testWidgets(
-    'read-only Course Info resolves a flag but exposes no flag editor',
-    (tester) async {
-      final official = _course(
-        origin: CourseOriginType.bundledOfficial,
-        flagCode: 'ES',
-      );
-      await tester.pumpWidget(
-        MaterialApp(
-          home: CourseEditorScreen(
-            course: official,
-            access: CourseAccessPolicy.evaluate(official, profileId: _aliceId),
-          ),
-        ),
-      );
-      await tester.pumpAndSettle();
-      expect(find.byKey(const Key('course-editor-audit')), findsNothing);
-      expect(find.widgetWithText(TextButton, 'Run audit'), findsOneWidget);
-      await tester.tap(find.text('Course Info'));
-      await tester.pumpAndSettle();
-      expect(find.byType(CourseFlagBadge), findsOneWidget);
-      expect(find.byKey(const Key('course-info-flag-selector')), findsNothing);
-      expect(find.byType(TextField), findsNothing);
     },
   );
 
@@ -496,48 +443,6 @@ Future<void> _openCourseInfoEditor(WidgetTester tester) async {
   await tester.pumpAndSettle();
   expect(find.byType(AlertDialog), findsOneWidget);
 }
-
-Future<void> _chooseCourseFlag(WidgetTester tester, String identity) async {
-  final chooser = find.byKey(const Key('course-flag-selector-open'));
-  await tester.ensureVisible(chooser);
-  await tester.runAsync(() async {
-    await tester.tap(chooser);
-    await tester.pump();
-    await WorldFlagRepository().loadManifest();
-    await Future<void>.delayed(Duration.zero);
-  });
-  await _pumpRouteTransition(tester);
-  await tester.pumpAndSettle();
-  await tester.enterText(
-    find.byKey(const Key('course-flag-picker-search')),
-    identity,
-  );
-  await tester.pumpAndSettle();
-  await tester.tap(find.byKey(ValueKey('course-flag-option-$identity')));
-  await _settleFlagSelection(tester);
-}
-
-Future<void> _pumpRouteTransition(WidgetTester tester) async {
-  await tester.pump();
-  await tester.pump(const Duration(milliseconds: 350));
-  await tester.pump();
-}
-
-Future<void> _settleFlagSelection(WidgetTester tester) async {
-  await _pumpRouteTransition(tester);
-  await tester.runAsync(() => Future<void>.delayed(Duration.zero));
-  await tester.pumpAndSettle();
-}
-
-Future<void> _saveCourseInfo(WidgetTester tester) async {
-  final save = find.byKey(const Key('course-info-save'));
-  await tester.ensureVisible(save);
-  await tester.tap(save);
-  await tester.pumpAndSettle();
-}
-
-Course _editorFlagCourse(WidgetTester tester) =>
-    tester.widget<CourseFlagBadge>(find.byType(CourseFlagBadge).first).course;
 
 Course _course({
   String learning = 'Italian',

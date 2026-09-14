@@ -43,7 +43,7 @@ void main() {
     );
 
     test(
-      'flagless bundled German resolves the established DE fallback',
+      'flagless bundled German skips the entry animation',
       () async {
         final german = await CourseService().loadCourse('DE');
 
@@ -60,8 +60,7 @@ void main() {
           reducedMotion: false,
         );
 
-        expect(request?.kind, CourseEntryFlagKind.builtIn);
-        expect(request?.identifier, 'DE');
+        expect(request, isNull);
       },
     );
 
@@ -121,7 +120,7 @@ void main() {
       expect(request?.worldFlag, same(configured));
     });
 
-    test('a missing JSON flag uses the established course fallback', () async {
+    test('a missing JSON flag skips the entry animation', () async {
       final request = await CourseEntryAnimationPolicy.requestForSwitch(
         currentCourseId: 'course-a',
         destination: _course(id: 'missing'),
@@ -130,8 +129,7 @@ void main() {
         reducedMotion: false,
       );
 
-      expect(request?.kind, CourseEntryFlagKind.builtIn);
-      expect(request?.identifier, 'DE');
+      expect(request, isNull);
     });
 
     test('invalid declared JSON flags never gain a fallback', () async {
@@ -266,7 +264,7 @@ void main() {
         rootBundle.evict(asset);
       }
       SharedPreferences.setMockInitialValues({
-        'one_time_notice_seen_welcome_2.0.34+234000': true,
+        'one_time_notice_seen_welcome_2.0.34+234001': true,
         'sound_effects_enabled': false,
       });
       await ProfileService().addProfile('Course Switch Learner');
@@ -492,7 +490,7 @@ void main() {
     );
 
     testWidgets(
-      'Do Not Disturb suppresses while a missing JSON flag uses fallback',
+      'Do Not Disturb suppresses while a missing JSON flag remains inactive',
       (tester) async {
         _useLargeTestWindow(tester);
         await SettingsService().setAnimationsEnabled(false);
@@ -504,10 +502,8 @@ void main() {
 
         await SettingsService().setAnimationsEnabled(true);
         await _selectBundledCourse(tester, 'DE');
-        await _pumpUntil(
-          tester,
-          find.byKey(const Key('course-entry-built-in-flag-DE')),
-        );
+        await tester.pump(const Duration(milliseconds: 500));
+        expect(find.byKey(const Key('course-entry-animation')), findsNothing);
         expect(_activeCourseId(tester), 'sample_de_en_de');
         expect(await SettingsService().getLastSelectedCourseCode(), 'DE');
       },
