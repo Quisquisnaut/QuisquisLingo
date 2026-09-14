@@ -1,11 +1,13 @@
 # Language-related flag artwork provenance
 
-These nine SVGs are sourced from Wikimedia Commons and are separate from
+These nineteen SVGs are sourced from Wikimedia Commons and are separate from
 the MIT-licensed `lipis/flag-icons` collection. They depict community or
 regional flags associated with languages; QQL does not claim that they are
 universally official language flags.
 
-Each downloaded file is pinned by the SHA-1 shown below. Public-domain and
+Each source download and each exact bundled file are pinned by SHA-1 below.
+5 SVGs are renderer-normalized by the deterministic generator; their
+source and bundled checksums are recorded separately. Public-domain and
 CC0 status, or CC BY-SA attribution terms, are declared on the linked Commons
 file-description page.
 
@@ -18,6 +20,16 @@ file-description page.
 - **Cornish** (`cornish.svg`) — Public domain; author: Jon Harald Søby; [source page](https://commons.wikimedia.org/wiki/File:Flag_of_Cornwall.svg); SHA-1 `013c1beccfadde20546eb86aba7ffa2fd9dcf599`.
 - **Friulian** (`friulian.svg`) — [CC BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0/); author: Ipankonin; [source page](https://commons.wikimedia.org/wiki/File:Friuli_Flag.svg); SHA-1 `81613fb7063b738b2f1fdd2200be7f36189deee5`.
 - **Sardinian** (`sardinian.svg`) — [CC BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0/); author: Angelus; [source page](https://commons.wikimedia.org/wiki/File:Flag_of_Sardinia,_Italy.svg); SHA-1 `593068e1d9b8b1a96010d21ee2be2ba2483a15e9`.
+- **Esperanto** (`esperanto.svg`) — Public domain; author: Richard H. Geoghegan; [source page](https://commons.wikimedia.org/wiki/File:Flag_of_Esperanto.svg); SHA-1 `34ee04852b601831a554f89cc0c54b4a94d887c9`.
+- **Amazigh** (`amazigh.svg`) — Public domain; author: Mysid; [source page](https://commons.wikimedia.org/wiki/File:Berber_flag.svg); SHA-1 `4f3b212566713932ae2c615f84db85bf58148740`.
+- **Ladin** (`ladin.svg`) — Public domain; author: Unknown, recreated by Sebastian Walderich; [source page](https://commons.wikimedia.org/wiki/File:Flag_of_Ladinia.svg); SHA-1 `5f89f33aa13f36cddc8bbf47cb1cdbad4693d9c2`.
+- **Asturian** (`asturian.svg`) — Public domain; author: Banderas; [source page](https://commons.wikimedia.org/wiki/File:Flag_of_Asturias.svg); SHA-1 `caefb74c9ba07d45bc1548887a6d38c5625d0634`.
+- **Sicilian** (`sicilian.svg`) — Public domain; author: Angelo Romano; [source page](https://commons.wikimedia.org/wiki/File:Flag_of_Sicily.svg); source SHA-1 `f1ad00b79b6fe206c749c90990b1bbfaef283464`; renderer-normalized bundled SHA-1 `509bce62d21f59a20af1356feeda68348168e4b5`.
+- **Aragonese** (`aragonese.svg`) — [CC BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0/); author: Willtron; [source page](https://commons.wikimedia.org/wiki/File:Flag_of_Aragon.svg); source SHA-1 `9816b944df1e0ae53b4ce259f9205ef3718d9840`; renderer-normalized bundled SHA-1 `4d95c4c3b104c552b0fd74b2c79d764fe7459e79`.
+- **Livonian** (`livonian.svg`) — Public domain; author: Tasman; [source page](https://commons.wikimedia.org/wiki/File:Flag_of_the_Livonians.svg); source SHA-1 `cbc9caa198419cc1643cb36a1bb2a5c361343b0f`; renderer-normalized bundled SHA-1 `61989bbfe4e065997bbe369af91520641fd2d5a4`.
+- **West Frisian** (`west_frisian.svg`) — Public domain; author: P.H. Wagemakers and Joh. Koopmans; [source page](https://commons.wikimedia.org/wiki/File:Frisian_flag.svg); source SHA-1 `6aa077ea90accf0b74ee70b37a9db8351c9cfbcd`; renderer-normalized bundled SHA-1 `e71aeb2e256d879d444413350eacd9a8f164a165`.
+- **Piedmontese** (`piedmontese.svg`) — Public domain; author: Orzetto; [source page](https://commons.wikimedia.org/wiki/File:Flag_of_Piedmont.svg); source SHA-1 `da5571fdf41da8b673d5f5e0fefb1cb7cf41a1b4`; renderer-normalized bundled SHA-1 `73602befc86ff9c11ba7a1135e85224f802fda54`.
+- **Neapolitan** (`neapolitan.svg`) — Public domain; author: Ninane; [source page](https://commons.wikimedia.org/wiki/File:Flag_of_Naples.svg); SHA-1 `c0cccc11199612fad85e4e540101dd00d8e57640`.
 
 The Wikimedia Commons site text and metadata have their own terms; this
 notice records only the license declared for each redistributed SVG.

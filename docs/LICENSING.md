@@ -6,14 +6,14 @@ The QuisquisLingo program source is licensed under MPL-2.0. See `LICENSE`.
 
 Project and code design: Quisquisnaut (Quisquis on Discord).
 Code generation and software development assistance: ChatGPT.
-AI assistance supports software development. The nine current bundled courses
+AI assistance supports software development. The ten current bundled courses
 titled `AI-Slop Demo` are also AI-generated, unreviewed demonstrations and are
 not reliable learning courses.
 
 ## Course content
 
 Real QuisquisLingo course content remains intended to be authored and reviewed
-by humans. The AI-generated classification applies only to the nine courses
+by humans. The AI-generated classification applies only to the ten courses
 explicitly titled `AI-Slop Demo`, not to other official or custom courses.
 Course text, exercises, translations, Guidebooks and recorded course audio are
 separately copyrighted by their respective authors unless the course explicitly

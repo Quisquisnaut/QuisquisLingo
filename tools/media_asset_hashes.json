@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "audioSha256": {
+    "assets/audio/cy_sample/sample_1.mp3": "36198cf3c5e0f6e65d3dd8eccee63d270dc3bd6f957e06907788ec42f9d17f5a",
+    "assets/audio/cy_sample/sample_2.mp3": "7f8de9cc7255fe4806eb06845a109c4be5c5b9366de7cb539717d1c643eca9d3",
+    "assets/audio/de_sample/sample_1.mp3": "85a6923e14e6741c08e32d0fd894d642777aee2dbe7649cefafb024553a15c57",
+    "assets/audio/de_sample/sample_2.mp3": "fe0b1d08b4569eaa60c38104816f039d0d368e33e5c0d2e45c7d06d5bb15df30",
+    "assets/audio/duel_lost.wav": "594b0619218cd8ab52496619fa103d1cd4126d5bb3efbc88e91b19943c12391b",
+    "assets/audio/duel_suspense.wav": "2f889999a84f74b24a12682b3811fd431042b301166dfb6becd402a7846bacf5",
+    "assets/audio/duel_win.wav": "7ab431c36843acbe2ee1160d3adcfd66a96f48a7c4f2f838c83519eaa0b0f84a",
+    "assets/audio/en_sample/sample_1.mp3": "ac45d05f0dd5d60b67824f9074b5033c32048e87385e3ab31c84065875bccb5f",
+    "assets/audio/en_sample/sample_2.mp3": "3a5e2904567aa1900d0d0d5457673567afc63bd4d3a011ca4c71a82bc308a5bd",
+    "assets/audio/es_sample/sample_1.mp3": "925f9ac7470f67a77e4deb70d63a0c51cfe69e27f09b028394428f2f27bac1bf",
+    "assets/audio/es_sample/sample_2.mp3": "eacd3c4c68b85ee1482360abf9b98248040c0cee59daafdf91a1cdae19cc3682",
+    "assets/audio/fi_sample/sample_1.mp3": "7565e09475acc0c1a66213d4af3b2fd8019bdd3b9dea4e13ec2e603f7eff5c4e",
+    "assets/audio/fi_sample/sample_2.mp3": "af27a8322da6ee265fc265e4c727c2b3528bbb2a5d159675639e6b95047bd640",
+    "assets/audio/it_sample/sample_1.mp3": "0629f1b08f2ed188729d4c3ba5735ef686f2393df250ab9b35aedd15995076e6",
+    "assets/audio/it_sample/sample_2.mp3": "cfcd95b43a6d5645ffb7c1f6ac04b9be6277174d681a6a11f86150c774a28e0b",
+    "assets/audio/nl_sample/sample_1.mp3": "c5d1c005a2926031dcbad39a4dd94f50acab65715cdf8a9a459f8f08226c1243",
+    "assets/audio/nl_sample/sample_2.mp3": "505cc1d899ac162e8ee6f8cf474592b3974879310af6d3c96d98286eb034600a",
+    "assets/audio/pt_sample/sample_1.mp3": "fe50dcc77dcc7d1b2dbdffc6ec776c90341802cdce404c59511f297eefd4e4d9",
+    "assets/audio/pt_sample/sample_2.mp3": "45068cdf7a6bccc00d245ba32aa512093f92dcb4ec37608c9afb8a50ef19da3e"
+  }
+}

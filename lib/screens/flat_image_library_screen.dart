@@ -1,82 +1,70 @@
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
+import '../models/exercise_image_metadata.dart';
+import '../services/exercise_image_metadata_service.dart';
 import '../services/exercise_image_service.dart';
 import '../services/image_bank_service.dart';
+import '../services/profile_service.dart';
 
-class FlatImageAsset {
-  final String id;
-  final String label;
-  final String category;
-  final String assetPath;
-  final List<String> tags;
-  final bool custom;
-  final String? bankId;
-  final String? bankName;
-  final bool missing;
+String _normalizeImageSearchText(String value) => value
+    .trim()
+    .toLowerCase()
+    .replaceAll('_', ' ')
+    .replaceAll(RegExp(r'\s+'), ' ');
 
-  const FlatImageAsset({
-    required this.id,
-    required this.label,
-    required this.category,
-    required this.tags,
-    required this.assetPath,
-    this.custom = false,
-    this.bankId,
-    this.bankName,
-    this.missing = false,
-  });
-
-  factory FlatImageAsset.fromJson(Map<String, dynamic> j) => FlatImageAsset(
-    id: (j['id'] ?? '').toString(),
-    label: (j['label'] ?? j['primary_term'] ?? '').toString(),
-    category: (j['category'] ?? 'other').toString(),
-    tags: ((j['tags'] ?? j['keywords']) as List? ?? const [])
-        .map((e) => e.toString())
-        .toList(),
-    assetPath: (j['assetPath'] ?? j['asset_path'] ?? '').toString(),
-    custom: j['custom'] == true,
-    bankId: j['bankId']?.toString(),
-    bankName: j['bankName']?.toString(),
-    missing: j['missing'] == true,
-  );
-
-  Map<String, dynamic> toJson() => {
-    'id': id,
-    'label': label,
-    'category': category,
-    'tags': tags,
-    'assetPath': assetPath,
-    'custom': custom,
-    if (bankId != null) 'bankId': bankId,
-  };
+bool _matchesImageSearch(ExerciseImageMetadata asset, String normalizedQuery) {
+  if (normalizedQuery.isEmpty) return true;
+  return <String>[
+    asset.label,
+    ...asset.tags,
+    asset.id,
+    asset.category,
+  ].any((value) => _normalizeImageSearchText(value).contains(normalizedQuery));
 }
 
 class FlatImageLibraryScreen extends StatefulWidget {
   final bool selectMode;
   final bool readOnly;
+  final bool metadataEditingEnabled;
+  final String? actorProfileId;
+  final ExerciseImageMetadataService? metadataService;
+  final ExerciseImageService? imageService;
+  final ImageBankService? bankService;
+  final ProfileService? profileService;
+
   const FlatImageLibraryScreen({
     super.key,
     this.selectMode = true,
     this.readOnly = false,
+    this.metadataEditingEnabled = false,
+    this.actorProfileId,
+    this.metadataService,
+    this.imageService,
+    this.bankService,
+    this.profileService,
   });
+
   @override
   State<FlatImageLibraryScreen> createState() => _FlatImageLibraryScreenState();
 }
 
 class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
-  static const _customKey = 'quisquislingo_custom_image_bank_v1';
-  final _imageService = ExerciseImageService();
-  final _bankService = ImageBankService();
+  late final ExerciseImageMetadataService _metadata =
+      widget.metadataService ?? ExerciseImageMetadataService();
+  late final ExerciseImageService _images =
+      widget.imageService ?? ExerciseImageService();
+  late final ImageBankService _banks = widget.bankService ?? ImageBankService();
+  late final ProfileService _profiles =
+      widget.profileService ?? ProfileService();
   final _scroll = ScrollController();
-  List<FlatImageAsset> _all = const [];
+  List<ExerciseImageMetadata> _all = const [];
   String _query = '';
   String? _category;
+  String? _loadError;
   bool _loading = true;
+  bool _canManageMetadata = false;
 
   @override
   void initState() {
@@ -84,248 +72,336 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
     _load();
   }
 
-  Future<void> _load() async {
-    final raw = await rootBundle.loadString(
-      'assets/exercise_images/manifest.json',
-    );
-    final decoded = jsonDecode(raw) as List;
-    final built = decoded
-        .whereType<Map>()
-        .map((e) => FlatImageAsset.fromJson(Map<String, dynamic>.from(e)))
-        .toList();
-    final prefs = await SharedPreferences.getInstance();
-    final custom = <FlatImageAsset>[];
-    for (final line in prefs.getStringList(_customKey) ?? const []) {
-      try {
-        final j = jsonDecode(line) as Map<String, dynamic>;
-        final path = (j['assetPath'] ?? '').toString();
-        custom.add(
-          FlatImageAsset(
-            id: j['id'].toString(),
-            label: j['label'].toString(),
-            category: 'custom',
-            tags: [j['label'].toString()],
-            assetPath: path,
-            custom: true,
-            missing: path.isEmpty || !await File(path).exists(),
-          ),
-        );
-      } catch (_) {}
-    }
-    final imported = (await _bankService.loadImportedEntries())
-        .map(FlatImageAsset.fromJson)
-        .toList();
-    if (!mounted) return;
-    setState(() {
-      _all = [
-        ...built,
-        ...imported,
-        ...custom,
-      ]..sort((a, b) => a.label.toLowerCase().compareTo(b.label.toLowerCase()));
-      _loading = false;
-    });
+  @override
+  void dispose() {
+    _scroll.dispose();
+    super.dispose();
   }
 
-  Future<void> _saveCustom() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setStringList(
-      _customKey,
-      _all.where((e) => e.custom).map((e) => jsonEncode(e.toJson())).toList(),
-    );
+  Future<void> _load() async {
+    try {
+      final records = await _metadata.loadCatalog();
+      final actor = widget.actorProfileId;
+      final canManage =
+          !widget.readOnly &&
+          widget.metadataEditingEnabled &&
+          actor != null &&
+          await _profiles.isAdmin(actor);
+      if (!mounted) return;
+      setState(() {
+        _all = [...records]
+          ..sort(
+            (left, right) =>
+                left.label.toLowerCase().compareTo(right.label.toLowerCase()),
+          );
+        _canManageMetadata = canManage;
+        _loadError = null;
+        _loading = false;
+      });
+    } catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _loadError = error.toString().replaceFirst('FormatException: ', '');
+        _loading = false;
+      });
+    }
   }
 
   Future<void> _importSingle() async {
+    final actor = widget.actorProfileId;
+    if (!_canManageMetadata || actor == null) return;
     String? path;
     try {
-      path = await _imageService.importImage();
-    } catch (e) {
-      if (mounted) {
+      path = await _images.importImage();
+      if (path == null) return;
+      final info = await _images.inspect(path);
+      if (mounted && (info.width > 512 || info.height > 512)) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(duration: Duration(seconds: 8), content: Text('$e')),
+          const SnackBar(
+            duration: Duration(seconds: 8),
+            content: Text(
+              'This image is larger than the recommended 256 × 256 px resolution.',
+            ),
+          ),
         );
       }
-      return;
-    }
-    if (path == null || !mounted) return;
-    final info = await _imageService.inspect(path);
-    if (mounted && (info.width > 512 || info.height > 512)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          duration: Duration(seconds: 8),
-          content: Text(
-            'This image is larger than the recommended 256 × 256 px resolution.',
-          ),
+      final file = File(path);
+      final base = file.uri.pathSegments.last
+          .replaceFirst(RegExp(r'^\d+_'), '')
+          .replaceFirst(RegExp(r'\.[^.]+$'), '')
+          .replaceAll('_', ' ')
+          .trim();
+      final label = base.isEmpty ? 'Imported image' : base;
+      await _metadata.addLocalRecord(
+        actorProfileId: actor,
+        record: ExerciseImageMetadata(
+          id: 'local_${DateTime.now().microsecondsSinceEpoch}',
+          label: label,
+          category: 'other',
+          tags: [label.toLowerCase()],
+          assetPath: path,
+          origin: 'local',
         ),
       );
+      await _load();
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(duration: const Duration(seconds: 8), content: Text('$error')),
+      );
     }
-    final file = File(path);
-    final base = file.uri.pathSegments.last
-        .replaceFirst(RegExp(r'^\d+_'), '')
-        .replaceFirst(RegExp(r'\.[^.]+$'), '')
-        .replaceAll('_', ' ')
-        .trim();
-    final item = FlatImageAsset(
-      id: 'custom_${DateTime.now().microsecondsSinceEpoch}',
-      label: base.isEmpty ? 'Imported image' : base,
-      category: 'custom',
-      tags: [base],
-      assetPath: path,
-      custom: true,
-    );
-    setState(
-      () => _all = [
-        ..._all,
-        item,
-      ]..sort((a, b) => a.label.toLowerCase().compareTo(b.label.toLowerCase())),
-    );
-    await _saveCustom();
   }
 
   Future<void> _importBank() async {
+    final actor = widget.actorProfileId;
+    if (!_canManageMetadata || actor == null) return;
     try {
-      final result = await _bankService.pickAndImportBank(
-        existingIds: _all.map((e) => e.id).toSet(),
+      final result = await _banks.pickAndImportBank(
+        existingIds: _all.map((entry) => entry.id).toSet(),
       );
-      if (result == null || !mounted) return;
+      if (result == null) return;
+      try {
+        await _metadata.addLocalRecords(
+          actorProfileId: actor,
+          records: result.records,
+        );
+      } catch (_) {
+        if (result.records.isNotEmpty) {
+          final bankId = _bankId(result.records.first);
+          if (bankId != null) await _banks.removeBank(bankId);
+        }
+        rethrow;
+      }
       await _load();
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          duration: Duration(seconds: 8),
+          duration: const Duration(seconds: 8),
           content: Text(
             'Imported ${result.imported} images from ${result.bankName}.',
           ),
         ),
       );
-    } catch (e) {
+    } catch (error) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          duration: Duration(seconds: 8),
-          content: Text('Image Bank import failed: $e'),
+          duration: const Duration(seconds: 8),
+          content: Text('Image Bank import failed: $error'),
         ),
       );
     }
   }
 
-  Future<void> _delete(FlatImageAsset item) async {
-    if (!item.custom) return;
-    final ok =
+  Future<void> _deleteLocal(ExerciseImageMetadata item) async {
+    if (item.origin != 'local') return;
+    final actor = widget.actorProfileId;
+    if (!_canManageMetadata || actor == null) return;
+    final confirmed =
         await showDialog<bool>(
           context: context,
-          builder: (ctx) => AlertDialog(
+          builder: (dialogContext) => AlertDialog(
             title: const Text('Delete image?'),
             content: Text(
-              'Delete “${item.label}” from Image Bank? Exercises or lessons already using this file should be changed first.',
+              'Delete “${item.label}” from the Media Library? Existing exercise references must be changed separately.',
             ),
             actions: [
               TextButton(
-                onPressed: () => Navigator.pop(ctx, false),
+                onPressed: () => Navigator.pop(dialogContext, false),
                 child: const Text('Cancel'),
               ),
               FilledButton(
-                onPressed: () => Navigator.pop(ctx, true),
+                onPressed: () => Navigator.pop(dialogContext, true),
                 child: const Text('Delete'),
               ),
             ],
           ),
         ) ??
         false;
-    if (!ok) return;
+    if (!confirmed) return;
+    await _metadata.removeLocalRecords(
+      actorProfileId: actor,
+      imageIds: {item.id},
+    );
     try {
-      final f = File(item.assetPath);
-      if (await f.exists()) await f.delete();
+      final file = File(item.assetPath);
+      if (await file.exists()) await file.delete();
     } catch (_) {}
-    if (!mounted) return;
-    setState(() => _all = _all.where((e) => e.id != item.id).toList());
-    await _saveCustom();
+    await _load();
   }
 
-  Future<void> _removeBank(FlatImageAsset item) async {
-    if (item.bankId == null) return;
-    final ok =
+  Future<void> _removeBank(ExerciseImageMetadata item) async {
+    final bankId = _bankId(item);
+    final actor = widget.actorProfileId;
+    if (bankId == null || !_canManageMetadata || actor == null) return;
+    final confirmed =
         await showDialog<bool>(
           context: context,
-          builder: (ctx) => AlertDialog(
+          builder: (dialogContext) => AlertDialog(
             title: const Text('Remove imported Image Bank?'),
-            content: Text(
-              'Remove “${item.bankName ?? 'this Image Bank'}” and all of its local image files? Any exercise or Lesson using them will show a missing-image warning until another image is assigned.',
+            content: const Text(
+              'Remove this Image Bank and all of its local files? Existing exercise references must be changed separately.',
             ),
             actions: [
               TextButton(
-                onPressed: () => Navigator.pop(ctx, false),
+                onPressed: () => Navigator.pop(dialogContext, false),
                 child: const Text('Cancel'),
               ),
               FilledButton(
-                onPressed: () => Navigator.pop(ctx, true),
+                onPressed: () => Navigator.pop(dialogContext, true),
                 child: const Text('Remove bank'),
               ),
             ],
           ),
         ) ??
         false;
-    if (!ok) return;
-    await _bankService.removeBank(item.bankId!);
+    if (!confirmed) return;
+    final removedIds = await _banks.removeBank(bankId);
+    await _metadata.removeLocalRecords(
+      actorProfileId: actor,
+      imageIds: removedIds,
+    );
     await _load();
   }
 
-  String _initial(String s) {
-    final t = s.trim();
-    return t.isEmpty ? '#' : t[0].toUpperCase();
-  }
-
-  Widget _imageFor(FlatImageAsset item) {
-    if (item.missing) {
-      return const Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.broken_image_outlined),
-            SizedBox(height: 4),
-            Text(
-              'Image file missing',
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 10),
+  Future<void> _editMetadata(ExerciseImageMetadata item) async {
+    final actor = widget.actorProfileId;
+    if (!_canManageMetadata || actor == null) return;
+    var category = item.category;
+    var tagsText = item.tags.join(', ');
+    String? error;
+    final saved = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: Text('Edit metadata · ${item.label}'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const Text('Categories and tags must be written in English.'),
+                const SizedBox(height: 12),
+                DropdownButtonFormField<String>(
+                  key: const Key('exercise-image-category-editor'),
+                  initialValue: category,
+                  decoration: const InputDecoration(
+                    border: OutlineInputBorder(),
+                    labelText: 'Category',
+                  ),
+                  items: [
+                    for (final value
+                        in ExerciseImageMetadataService.categories.toList()
+                          ..sort())
+                      DropdownMenuItem(
+                        value: value,
+                        child: Text(value.replaceAll('_', ' ')),
+                      ),
+                  ],
+                  onChanged: (value) {
+                    if (value != null) category = value;
+                  },
+                ),
+                const SizedBox(height: 12),
+                TextFormField(
+                  key: const Key('exercise-image-tags-editor'),
+                  initialValue: tagsText,
+                  onChanged: (value) => tagsText = value,
+                  minLines: 2,
+                  maxLines: 4,
+                  decoration: const InputDecoration(
+                    border: OutlineInputBorder(),
+                    labelText: 'Tags',
+                    helperText: 'Separate tags with commas.',
+                  ),
+                ),
+                if (error != null) ...[
+                  const SizedBox(height: 8),
+                  Text(
+                    error!,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.error,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              key: const Key('exercise-image-metadata-save'),
+              onPressed: () async {
+                try {
+                  await _metadata.updateMetadata(
+                    actorProfileId: actor,
+                    imageId: item.id,
+                    category: category,
+                    tags: tagsText.split(','),
+                  );
+                  if (dialogContext.mounted) {
+                    Navigator.pop(dialogContext, true);
+                  }
+                } catch (exception) {
+                  setDialogState(
+                    () => error = exception.toString().replaceFirst(
+                      'FormatException: ',
+                      '',
+                    ),
+                  );
+                }
+              },
+              child: const Text('Save'),
             ),
           ],
         ),
+      ),
+    );
+    if (saved == true) await _load();
+  }
+
+  bool _isMissing(ExerciseImageMetadata item) =>
+      !item.assetPath.startsWith('assets/') &&
+      !File(item.assetPath).existsSync();
+
+  Widget _imageFor(ExerciseImageMetadata item) {
+    if (_isMissing(item)) {
+      return const Center(
+        child: Text('Image file missing', textAlign: TextAlign.center),
       );
     }
     if (item.assetPath.startsWith('assets/')) {
       return Image.asset(
         item.assetPath,
         fit: BoxFit.contain,
-        errorBuilder: (_, __, ___) => const Center(
+        errorBuilder: (_, _, _) => const Center(
           child: Text('Image file missing', textAlign: TextAlign.center),
         ),
       );
     }
-    final file = File(item.assetPath);
-    if (!file.existsSync()) {
-      return const Center(
-        child: Text('Image file missing', textAlign: TextAlign.center),
-      );
-    }
     return Image.file(
-      file,
+      File(item.assetPath),
       fit: BoxFit.contain,
-      errorBuilder: (_, __, ___) => const Center(
+      errorBuilder: (_, _, _) => const Center(
         child: Text('Image file unreadable', textAlign: TextAlign.center),
       ),
     );
   }
 
-  Future<void> _preview(FlatImageAsset item) async {
+  Future<void> _preview(ExerciseImageMetadata item) async {
     final size = MediaQuery.sizeOf(context);
-    final dialogWidth = (size.width - 32).clamp(280.0, 620.0).toDouble();
-    final dialogHeight = (size.height * 0.82).clamp(360.0, 760.0).toDouble();
     await showDialog<void>(
       context: context,
-      builder: (ctx) => Dialog(
+      builder: (dialogContext) => Dialog(
         insetPadding: const EdgeInsets.all(16),
-        child: SizedBox(
-          width: dialogWidth,
-          height: dialogHeight,
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxWidth: (size.width - 32).clamp(280.0, 620.0).toDouble(),
+            maxHeight: (size.height - 32).clamp(320.0, 760.0).toDouble(),
+          ),
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: Column(
@@ -336,13 +412,13 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
                     Expanded(
                       child: Text(
                         item.label,
-                        style: Theme.of(ctx).textTheme.titleLarge,
+                        style: Theme.of(dialogContext).textTheme.titleLarge,
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
                     IconButton(
                       tooltip: 'Close preview',
-                      onPressed: () => Navigator.pop(ctx),
+                      onPressed: () => Navigator.pop(dialogContext),
                       icon: const Icon(Icons.close),
                     ),
                   ],
@@ -352,7 +428,9 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
                   child: DecoratedBox(
                     decoration: BoxDecoration(
                       border: Border.all(
-                        color: Theme.of(ctx).colorScheme.outlineVariant,
+                        color: Theme.of(
+                          dialogContext,
+                        ).colorScheme.outlineVariant,
                       ),
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -367,48 +445,42 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
                   ),
                 ),
                 const SizedBox(height: 10),
-                Text(
-                  'File: ${item.assetPath}',
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: Theme.of(ctx).textTheme.bodySmall,
-                ),
-                Text(
-                  'Category: ${item.category.replaceAll('_', ' ')}',
-                  style: Theme.of(ctx).textTheme.bodySmall,
-                ),
-                if (item.tags.isNotEmpty)
-                  Text(
-                    'Keywords: ${item.tags.join(', ')}',
+                Text('Category: ${item.category.replaceAll('_', ' ')}'),
+                Tooltip(
+                  message: 'Tags: ${item.tags.join(', ')}',
+                  child: Text(
+                    'Tags: ${item.tags.join(', ')}',
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: Theme.of(ctx).textTheme.bodySmall,
                   ),
-                if (item.bankName != null)
-                  Text(
-                    'Image Bank: ${item.bankName}',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: Theme.of(ctx).textTheme.bodySmall,
-                  ),
+                ),
                 const SizedBox(height: 10),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
+                Wrap(
+                  alignment: WrapAlignment.end,
+                  spacing: 8,
                   children: [
+                    if (_canManageMetadata)
+                      OutlinedButton.icon(
+                        key: const Key('exercise-image-metadata-edit'),
+                        onPressed: () async {
+                          Navigator.pop(dialogContext);
+                          await _editMetadata(item);
+                        },
+                        icon: const Icon(Icons.edit_outlined),
+                        label: const Text('Edit metadata'),
+                      ),
                     TextButton(
-                      onPressed: () => Navigator.pop(ctx),
+                      onPressed: () => Navigator.pop(dialogContext),
                       child: const Text('Close'),
                     ),
-                    if (widget.selectMode && !item.missing) ...[
-                      const SizedBox(width: 8),
+                    if (widget.selectMode && !_isMissing(item))
                       FilledButton(
                         onPressed: () {
-                          Navigator.pop(ctx);
+                          Navigator.pop(dialogContext);
                           Navigator.pop(context, item.assetPath);
                         },
                         child: const Text('Use image'),
                       ),
-                    ],
                   ],
                 ),
               ],
@@ -421,38 +493,26 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final cats = _all.map((e) => e.category).toSet().toList()..sort();
-    final q = _query.toLowerCase().trim();
-    final items =
-        _all
-            .where(
-              (e) =>
-                  (_category == null || e.category == _category) &&
-                  (q.isEmpty ||
-                      e.label.toLowerCase().contains(q) ||
-                      e.tags.any((t) => t.toLowerCase().contains(q))),
-            )
-            .toList()
-          ..sort(
-            (a, b) => a.label.toLowerCase().compareTo(b.label.toLowerCase()),
-          );
-    final letters =
-        items
-            .map((e) => _initial(e.label))
-            .where((e) => RegExp(r'[A-Z]').hasMatch(e))
-            .toSet()
-            .toList()
-          ..sort();
+    final categories = _all.map((item) => item.category).toSet().toList()
+      ..sort();
+    final normalizedQuery = _normalizeImageSearchText(_query);
+    final items = _all
+        .where(
+          (item) =>
+              (_category == null || item.category == _category) &&
+              _matchesImageSearch(item, normalizedQuery),
+        )
+        .toList();
     return Scaffold(
       appBar: AppBar(
-        title: Text('Image Bank · ${_all.length} assets'),
+        title: Text('Media Library · ${_all.length} images'),
         actions: [
-          if (!widget.readOnly)
+          if (_canManageMetadata)
             PopupMenuButton<String>(
               tooltip: 'Import',
-              onSelected: (v) {
-                if (v == 'bank') _importBank();
-                if (v == 'image') _importSingle();
+              onSelected: (value) {
+                if (value == 'bank') _importBank();
+                if (value == 'image') _importSingle();
               },
               itemBuilder: (_) => const [
                 PopupMenuItem(
@@ -469,57 +529,37 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
       ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
+          : _loadError != null
+          ? Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Text('Media metadata could not be loaded. $_loadError'),
+              ),
+            )
           : Column(
               children: [
-                if (!widget.readOnly)
+                if (_canManageMetadata)
                   const Padding(
                     padding: EdgeInsets.fromLTRB(12, 12, 12, 4),
                     child: Card(
                       child: Padding(
                         padding: EdgeInsets.all(12),
                         child: Text(
-                          'Import files from Documents/QuisquisLingo/Imports/Images. For Import single image, keep exactly one PNG, JPG, JPEG or WEBP image in the folder. For Import Image Bank ZIP, keep exactly one ZIP in the folder. Imported source files are left in place.',
+                          'Admin media management. Categories and tags must be written in English.',
                         ),
                       ),
                     ),
                   ),
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(12, 4, 12, 6),
+                  padding: const EdgeInsets.fromLTRB(12, 8, 12, 6),
                   child: TextField(
-                    onChanged: (v) => setState(() => _query = v),
+                    key: const Key('exercise-image-search'),
+                    onChanged: (value) => setState(() => _query = value),
                     decoration: const InputDecoration(
                       border: OutlineInputBorder(),
                       prefixIcon: Icon(Icons.search),
-                      labelText: 'Search images',
+                      labelText: 'Search images, categories or tags',
                     ),
-                  ),
-                ),
-                SizedBox(
-                  height: 42,
-                  child: ListView(
-                    scrollDirection: Axis.horizontal,
-                    padding: const EdgeInsets.symmetric(horizontal: 10),
-                    children: [
-                      for (final l in letters)
-                        Padding(
-                          padding: const EdgeInsets.only(right: 4),
-                          child: ActionChip(
-                            label: Text(l),
-                            onPressed: () {
-                              final i = items.indexWhere(
-                                (e) => _initial(e.label) == l,
-                              );
-                              if (i >= 0 && _scroll.hasClients) {
-                                _scroll.animateTo(
-                                  (i ~/ 3) * 145.0,
-                                  duration: const Duration(milliseconds: 250),
-                                  curve: Curves.easeOut,
-                                );
-                              }
-                            },
-                          ),
-                        ),
-                    ],
                   ),
                 ),
                 SizedBox(
@@ -534,11 +574,12 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
                         onSelected: (_) => setState(() => _category = null),
                       ),
                       const SizedBox(width: 6),
-                      for (final c in cats) ...[
+                      for (final category in categories) ...[
                         ChoiceChip(
-                          label: Text(c.replaceAll('_', ' ')),
-                          selected: _category == c,
-                          onSelected: (_) => setState(() => _category = c),
+                          label: Text(category.replaceAll('_', ' ')),
+                          selected: _category == category,
+                          onSelected: (_) =>
+                              setState(() => _category = category),
                         ),
                         const SizedBox(width: 6),
                       ],
@@ -549,19 +590,21 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
                   child: items.isEmpty
                       ? const Center(child: Text('No matching images.'))
                       : GridView.builder(
+                          key: const Key('exercise-image-grid'),
                           controller: _scroll,
                           padding: const EdgeInsets.fromLTRB(10, 10, 10, 104),
                           gridDelegate:
                               const SliverGridDelegateWithMaxCrossAxisExtent(
-                                maxCrossAxisExtent: 160,
-                                childAspectRatio: .78,
+                                maxCrossAxisExtent: 170,
+                                childAspectRatio: .74,
                                 crossAxisSpacing: 8,
                                 mainAxisSpacing: 8,
                               ),
                           itemCount: items.length,
-                          itemBuilder: (context, i) {
-                            final item = items[i];
+                          itemBuilder: (context, index) {
+                            final item = items[index];
                             return InkWell(
+                              key: ValueKey('exercise-image-${item.id}'),
                               onTap: () => _preview(item),
                               child: Card(
                                 child: Padding(
@@ -569,10 +612,7 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
                                   child: Column(
                                     children: [
                                       Expanded(
-                                        child: Padding(
-                                          padding: const EdgeInsets.all(2),
-                                          child: Center(child: _imageFor(item)),
-                                        ),
+                                        child: Center(child: _imageFor(item)),
                                       ),
                                       const SizedBox(height: 4),
                                       Text(
@@ -585,33 +625,35 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
                                           fontWeight: FontWeight.w600,
                                         ),
                                       ),
-                                      if (item.missing)
-                                        const Text(
-                                          'Missing asset',
-                                          style: TextStyle(
-                                            fontSize: 9,
-                                            color: Colors.red,
-                                          ),
-                                        ),
-                                      if (item.bankName != null)
-                                        Text(
-                                          item.bankName!,
-                                          maxLines: 1,
+                                      Text(
+                                        item.category.replaceAll('_', ' '),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: const TextStyle(fontSize: 9),
+                                      ),
+                                      Tooltip(
+                                        message:
+                                            'Tags: ${item.tags.join(', ')}',
+                                        child: Text(
+                                          'Tags: ${item.tags.join(', ')}',
+                                          textAlign: TextAlign.center,
+                                          maxLines: 2,
                                           overflow: TextOverflow.ellipsis,
                                           style: const TextStyle(fontSize: 9),
                                         ),
-                                      if (item.custom && !widget.readOnly)
+                                      ),
+                                      if (_canManageMetadata &&
+                                          item.origin == 'local')
                                         IconButton(
                                           tooltip: 'Delete imported image',
-                                          onPressed: () => _delete(item),
+                                          onPressed: () => _deleteLocal(item),
                                           icon: const Icon(
                                             Icons.delete_outline,
                                             size: 18,
                                           ),
                                         ),
-                                      if (!item.custom &&
-                                          item.bankId != null &&
-                                          !widget.readOnly)
+                                      if (_canManageMetadata &&
+                                          _bankId(item) != null)
                                         IconButton(
                                           tooltip: 'Remove this imported bank',
                                           onPressed: () => _removeBank(item),
@@ -630,13 +672,19 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
                 ),
               ],
             ),
-      floatingActionButton: widget.readOnly
-          ? null
-          : FloatingActionButton.extended(
+      floatingActionButton: _canManageMetadata
+          ? FloatingActionButton.extended(
               onPressed: _importBank,
               icon: const Icon(Icons.archive_outlined),
               label: const Text('Import bank'),
-            ),
+            )
+          : null,
     );
   }
+}
+
+String? _bankId(ExerciseImageMetadata item) {
+  if (!item.origin.startsWith('bank:')) return null;
+  final id = item.origin.substring('bank:'.length).trim();
+  return id.isEmpty ? null : id;
 }

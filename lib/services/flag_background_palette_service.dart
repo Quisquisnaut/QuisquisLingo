@@ -198,19 +198,14 @@ class FlagBackgroundPaletteService {
     // each explicit color once so a detailed crest cannot outweigh the flag's
     // field colors merely because it contains many small paths.
     final colors = <int, FlagColorSample>{};
-    final attributes = RegExp(
-      r'''(fill|stroke|stop-color)\s*=\s*["']([^"']+)["']''',
-      caseSensitive: false,
-    );
-    for (final match in attributes.allMatches(svg)) {
-      final color = _parseSvgColor(match.group(2)!);
-      if (color == null) continue;
-      final attribute = match.group(1)!.toLowerCase();
+    void addColor(String attribute, String raw) {
+      final color = _parseSvgColor(raw);
+      if (color == null) return;
       final sample = FlagColorSample(
         color,
-        attribute == 'stroke'
+        attribute.toLowerCase() == 'stroke'
             ? .25
-            : attribute == 'stop-color'
+            : attribute.toLowerCase() == 'stop-color'
             ? .7
             : 1,
       );
@@ -218,6 +213,28 @@ class FlagBackgroundPaletteService {
       final existing = colors[key];
       if (existing == null || sample.weight > existing.weight) {
         colors[key] = sample;
+      }
+    }
+
+    final attributes = RegExp(
+      r'''(fill|stroke|stop-color)\s*=\s*["']([^"']+)["']''',
+      caseSensitive: false,
+    );
+    for (final match in attributes.allMatches(svg)) {
+      addColor(match.group(1)!, match.group(2)!);
+    }
+
+    final styleAttributes = RegExp(
+      r'''style\s*=\s*["']([^"']*)["']''',
+      caseSensitive: false,
+    );
+    final styleDeclarations = RegExp(
+      r'''(?:^|;)\s*(fill|stroke|stop-color)\s*:\s*([^;]+)''',
+      caseSensitive: false,
+    );
+    for (final style in styleAttributes.allMatches(svg)) {
+      for (final declaration in styleDeclarations.allMatches(style.group(1)!)) {
+        addColor(declaration.group(1)!, declaration.group(2)!);
       }
     }
     return List.unmodifiable(colors.values);

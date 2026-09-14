@@ -338,7 +338,6 @@ Future<void> _open(
                   profileId: _profileId,
                 ),
                 editorService: service,
-                courseService: _OfficialSource(course),
               ),
             ),
           ),
@@ -376,13 +375,6 @@ Future<void> _storeSource(Course course) async {
 Future<Map<String, Object?>> _preferences() async {
   final preferences = await SharedPreferences.getInstance();
   return {for (final key in preferences.getKeys()) key: preferences.get(key)};
-}
-
-class _OfficialSource extends CourseService {
-  _OfficialSource(this.course);
-  final Course course;
-  @override
-  Future<Course> loadBundledCourse(String languageCode) async => course;
 }
 
 class _HistoryBackups extends CourseBackupService {

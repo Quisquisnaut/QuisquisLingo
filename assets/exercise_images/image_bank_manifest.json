@@ -3,7 +3,10 @@
     "id": "bread",
     "primary_term": "Bread",
     "keywords": [
-      "bread"
+      "bread",
+      "pane",
+      "loaf",
+      "filone"
     ],
     "category": "food",
     "filename": "bread.webp",
@@ -13,7 +16,10 @@
     "id": "apple",
     "primary_term": "Apple",
     "keywords": [
-      "apple"
+      "apple",
+      "mela",
+      "fruit",
+      "frutta"
     ],
     "category": "food",
     "filename": "apple.webp",
@@ -24,7 +30,9 @@
     "primary_term": "House",
     "keywords": [
       "house",
-      "home"
+      "home",
+      "casa",
+      "abitazione"
     ],
     "category": "home",
     "filename": "house.webp",
@@ -35,7 +43,9 @@
     "primary_term": "Water",
     "keywords": [
       "water",
-      "drink"
+      "drink",
+      "acqua",
+      "bevanda"
     ],
     "category": "food",
     "filename": "water.webp",
@@ -47,7 +57,10 @@
     "keywords": [
       "book",
       "read",
-      "reading"
+      "reading",
+      "libro",
+      "leggere",
+      "lettura"
     ],
     "category": "school_work",
     "filename": "book.webp",
@@ -57,7 +70,10 @@
     "id": "cat",
     "primary_term": "Cat",
     "keywords": [
-      "cat"
+      "cat",
+      "gatto",
+      "pet",
+      "animale domestico"
     ],
     "category": "animals",
     "filename": "cat.webp",
@@ -68,7 +84,9 @@
     "primary_term": "Car",
     "keywords": [
       "car",
-      "automobile"
+      "automobile",
+      "auto",
+      "macchina"
     ],
     "category": "transport",
     "filename": "car.webp",
@@ -79,7 +97,9 @@
     "primary_term": "Chair",
     "keywords": [
       "chair",
-      "seat"
+      "seat",
+      "sedia",
+      "seduta"
     ],
     "category": "home",
     "filename": "chair.webp",
@@ -89,7 +109,10 @@
     "id": "coffee",
     "primary_term": "Coffee",
     "keywords": [
-      "coffee"
+      "coffee",
+      "caffè",
+      "espresso",
+      "bevanda"
     ],
     "category": "food",
     "filename": "coffee.webp",
@@ -99,29 +122,23 @@
     "id": "train",
     "primary_term": "Train",
     "keywords": [
-      "train"
+      "train",
+      "treno",
+      "railway",
+      "ferrovia"
     ],
     "category": "transport",
     "filename": "train.webp",
     "asset_path": "assets/exercise_images/train.webp"
   },
   {
-    "id": "bicycle",
-    "primary_term": "Bicycle",
-    "keywords": [
-      "bicycle",
-      "bike",
-      "cycling"
-    ],
-    "category": "transport",
-    "filename": "bicycle.webp",
-    "asset_path": "assets/exercise_images/bicycle.webp"
-  },
-  {
     "id": "tree",
     "primary_term": "Tree",
     "keywords": [
-      "tree"
+      "tree",
+      "albero",
+      "nature",
+      "natura"
     ],
     "category": "nature",
     "filename": "tree.webp",
@@ -129,11 +146,14 @@
   },
   {
     "id": "people_family_man",
-    "primary_term": "Man",
+    "primary_term": "Uomo",
     "keywords": [
       "man",
       "adult man",
-      "male"
+      "male",
+      "uomo",
+      "adulto",
+      "amico"
     ],
     "category": "people_family",
     "filename": "man.webp",
@@ -145,7 +165,10 @@
     "keywords": [
       "woman",
       "adult woman",
-      "female"
+      "female",
+      "donna",
+      "adulta",
+      "amica"
     ],
     "category": "people_family",
     "filename": "woman.webp",
@@ -155,7 +178,10 @@
     "id": "people_family_boy",
     "primary_term": "Boy",
     "keywords": [
-      "boy"
+      "boy",
+      "child",
+      "ragazzo",
+      "bambino"
     ],
     "category": "people_family",
     "filename": "boy.webp",
@@ -165,7 +191,10 @@
     "id": "people_family_girl",
     "primary_term": "Girl",
     "keywords": [
-      "girl"
+      "girl",
+      "child",
+      "ragazza",
+      "bambina"
     ],
     "category": "people_family",
     "filename": "girl.webp",
@@ -176,7 +205,9 @@
     "primary_term": "Baby",
     "keywords": [
       "baby",
-      "infant"
+      "infant",
+      "neonato",
+      "bebè"
     ],
     "category": "people_family",
     "filename": "baby.webp",
@@ -187,7 +218,9 @@
     "primary_term": "Grandfather",
     "keywords": [
       "grandfather",
-      "grandpa"
+      "grandpa",
+      "nonno",
+      "anziano"
     ],
     "category": "people_family",
     "filename": "grandfather.webp",
@@ -198,7 +231,9 @@
     "primary_term": "Grandmother",
     "keywords": [
       "grandmother",
-      "grandma"
+      "grandma",
+      "nonna",
+      "anziana"
     ],
     "category": "people_family",
     "filename": "grandmother.webp",
@@ -208,7 +243,10 @@
     "id": "body_parts_ear",
     "primary_term": "Ear",
     "keywords": [
-      "ear"
+      "ear",
+      "orecchio",
+      "body part",
+      "parte del corpo"
     ],
     "category": "body_parts",
     "filename": "ear.webp",
@@ -218,7 +256,10 @@
     "id": "body_parts_eye",
     "primary_term": "Eye",
     "keywords": [
-      "eye"
+      "eye",
+      "occhio",
+      "vision",
+      "vista"
     ],
     "category": "body_parts",
     "filename": "eye.webp",
@@ -228,7 +269,10 @@
     "id": "body_parts_nose",
     "primary_term": "Nose",
     "keywords": [
-      "nose"
+      "nose",
+      "naso",
+      "smell",
+      "olfatto"
     ],
     "category": "body_parts",
     "filename": "nose.webp",
@@ -238,7 +282,10 @@
     "id": "body_parts_mouth",
     "primary_term": "Mouth",
     "keywords": [
-      "mouth"
+      "mouth",
+      "bocca",
+      "face",
+      "viso"
     ],
     "category": "body_parts",
     "filename": "mouth.webp",
@@ -248,7 +295,10 @@
     "id": "body_parts_hand",
     "primary_term": "Hand",
     "keywords": [
-      "hand"
+      "hand",
+      "mano",
+      "fingers",
+      "dita"
     ],
     "category": "body_parts",
     "filename": "hand.webp",
@@ -258,7 +308,10 @@
     "id": "body_parts_foot",
     "primary_term": "Foot",
     "keywords": [
-      "foot"
+      "foot",
+      "piede",
+      "toes",
+      "dita del piede"
     ],
     "category": "body_parts",
     "filename": "foot.webp",
@@ -269,7 +322,9 @@
     "primary_term": "T-shirt",
     "keywords": [
       "t-shirt",
-      "tee shirt"
+      "tee shirt",
+      "maglietta",
+      "maglia"
     ],
     "category": "clothing_accessories",
     "filename": "t_shirt.webp",
@@ -280,7 +335,9 @@
     "primary_term": "Pants",
     "keywords": [
       "pants",
-      "trousers"
+      "trousers",
+      "pantaloni",
+      "calzoni"
     ],
     "category": "clothing_accessories",
     "filename": "pants.webp",
@@ -290,7 +347,9 @@
     "id": "clothing_accessories_dress",
     "primary_term": "Dress",
     "keywords": [
-      "dress"
+      "dress",
+      "abito",
+      "vestito"
     ],
     "category": "clothing_accessories",
     "filename": "dress.webp",
@@ -300,7 +359,9 @@
     "id": "clothing_accessories_jacket",
     "primary_term": "Jacket",
     "keywords": [
-      "jacket"
+      "jacket",
+      "giacca",
+      "giubbotto"
     ],
     "category": "clothing_accessories",
     "filename": "jacket.webp",
@@ -310,7 +371,9 @@
     "id": "clothing_accessories_shoes",
     "primary_term": "Shoes",
     "keywords": [
-      "shoes"
+      "shoes",
+      "scarpe",
+      "calzature"
     ],
     "category": "clothing_accessories",
     "filename": "shoes.webp",
@@ -320,7 +383,9 @@
     "id": "clothing_accessories_hat",
     "primary_term": "Hat",
     "keywords": [
-      "hat"
+      "hat",
+      "cappello",
+      "copricapo"
     ],
     "category": "clothing_accessories",
     "filename": "hat.webp",
@@ -331,7 +396,9 @@
     "primary_term": "Glasses",
     "keywords": [
       "glasses",
-      "eyeglasses"
+      "eyeglasses",
+      "occhiali",
+      "lenti"
     ],
     "category": "clothing_accessories",
     "filename": "glasses.webp",
@@ -342,7 +409,9 @@
     "primary_term": "Backpack",
     "keywords": [
       "backpack",
-      "rucksack"
+      "rucksack",
+      "zaino",
+      "cartella"
     ],
     "category": "clothing_accessories",
     "filename": "backpack.webp",
@@ -352,7 +421,10 @@
     "id": "clothing_accessories_umbrella",
     "primary_term": "Umbrella",
     "keywords": [
-      "umbrella"
+      "umbrella",
+      "rain",
+      "ombrello",
+      "pioggia"
     ],
     "category": "clothing_accessories",
     "filename": "umbrella.webp",
@@ -362,7 +434,9 @@
     "id": "clothing_accessories_scarf",
     "primary_term": "Scarf",
     "keywords": [
-      "scarf"
+      "scarf",
+      "sciarpa",
+      "foulard"
     ],
     "category": "clothing_accessories",
     "filename": "scarf.webp",
@@ -372,7 +446,10 @@
     "id": "clothing_accessories_gloves",
     "primary_term": "Gloves",
     "keywords": [
-      "gloves"
+      "gloves",
+      "mittens",
+      "guanti",
+      "muffole"
     ],
     "category": "clothing_accessories",
     "filename": "gloves.webp",
@@ -382,7 +459,9 @@
     "id": "clothing_accessories_shorts",
     "primary_term": "Shorts",
     "keywords": [
-      "shorts"
+      "shorts",
+      "pantaloncini",
+      "bermuda"
     ],
     "category": "clothing_accessories",
     "filename": "shorts.webp",
@@ -392,7 +471,9 @@
     "id": "clothing_accessories_socks",
     "primary_term": "Socks",
     "keywords": [
-      "socks"
+      "socks",
+      "calzini",
+      "calze"
     ],
     "category": "clothing_accessories",
     "filename": "socks.webp",
@@ -403,7 +484,9 @@
     "primary_term": "Watch",
     "keywords": [
       "watch",
-      "wristwatch"
+      "wristwatch",
+      "orologio",
+      "orologio da polso"
     ],
     "category": "clothing_accessories",
     "filename": "watch.webp",
@@ -413,7 +496,10 @@
     "id": "clothing_accessories_ring",
     "primary_term": "Ring",
     "keywords": [
-      "ring"
+      "ring",
+      "jewelry",
+      "anello",
+      "gioiello"
     ],
     "category": "clothing_accessories",
     "filename": "ring.webp",
@@ -423,7 +509,9 @@
     "id": "clothing_accessories_necklace",
     "primary_term": "Necklace",
     "keywords": [
-      "necklace"
+      "necklace",
+      "collana",
+      "girocollo"
     ],
     "category": "clothing_accessories",
     "filename": "necklace.webp",
@@ -433,7 +521,9 @@
     "id": "clothing_accessories_wallet",
     "primary_term": "Wallet",
     "keywords": [
-      "wallet"
+      "wallet",
+      "portafoglio",
+      "portamonete"
     ],
     "category": "clothing_accessories",
     "filename": "wallet.webp",
@@ -444,7 +534,9 @@
     "primary_term": "Walk",
     "keywords": [
       "walk",
-      "walking"
+      "walking",
+      "camminare",
+      "camminata"
     ],
     "category": "actions",
     "filename": "walk.webp",
@@ -455,7 +547,9 @@
     "primary_term": "Run",
     "keywords": [
       "run",
-      "running"
+      "running",
+      "correre",
+      "corsa"
     ],
     "category": "actions",
     "filename": "run.webp",
@@ -463,10 +557,12 @@
   },
   {
     "id": "actions_jump",
-    "primary_term": "Jump",
+    "primary_term": "Saltare",
     "keywords": [
       "jump",
-      "jumping"
+      "jumping",
+      "saltare",
+      "salto"
     ],
     "category": "actions",
     "filename": "jump.webp",
@@ -477,7 +573,9 @@
     "primary_term": "Sit",
     "keywords": [
       "sit",
-      "sitting"
+      "sitting",
+      "sedersi",
+      "seduto"
     ],
     "category": "actions",
     "filename": "sit.webp",
@@ -488,7 +586,9 @@
     "primary_term": "Stand",
     "keywords": [
       "stand",
-      "standing"
+      "standing",
+      "stare in piedi",
+      "in piedi"
     ],
     "category": "actions",
     "filename": "stand.webp",
@@ -499,7 +599,9 @@
     "primary_term": "Write",
     "keywords": [
       "write",
-      "writing"
+      "writing",
+      "scrivere",
+      "scrittura"
     ],
     "category": "actions",
     "filename": "write.webp",
@@ -510,7 +612,9 @@
     "primary_term": "Brush teeth",
     "keywords": [
       "brush teeth",
-      "brushing teeth"
+      "brushing teeth",
+      "lavarsi i denti",
+      "spazzolare i denti"
     ],
     "category": "actions",
     "filename": "brush_teeth.webp",
@@ -521,7 +625,9 @@
     "primary_term": "Sleep",
     "keywords": [
       "sleep",
-      "sleeping"
+      "sleeping",
+      "dormire",
+      "sonno"
     ],
     "category": "actions",
     "filename": "sleep.webp",
@@ -532,7 +638,9 @@
     "primary_term": "Happy",
     "keywords": [
       "happy",
-      "happily"
+      "happily",
+      "felice",
+      "contento"
     ],
     "category": "emotions",
     "filename": "happy.webp",
@@ -543,7 +651,9 @@
     "primary_term": "Sad",
     "keywords": [
       "sad",
-      "sadly"
+      "sadly",
+      "triste",
+      "tristezza"
     ],
     "category": "emotions",
     "filename": "sad.webp",
@@ -554,7 +664,9 @@
     "primary_term": "Angry",
     "keywords": [
       "angry",
-      "angrily"
+      "angrily",
+      "arrabbiato",
+      "rabbia"
     ],
     "category": "emotions",
     "filename": "angry.webp",
@@ -565,7 +677,9 @@
     "primary_term": "Surprised",
     "keywords": [
       "surprised",
-      "surprise"
+      "surprise",
+      "sorpreso",
+      "sorpresa"
     ],
     "category": "emotions",
     "filename": "surprised.webp",
@@ -576,7 +690,9 @@
     "primary_term": "Laugh",
     "keywords": [
       "laugh",
-      "laughing"
+      "laughing",
+      "ridere",
+      "risata"
     ],
     "category": "emotions",
     "filename": "laugh.webp",
@@ -586,7 +702,10 @@
     "id": "food_drinks_orange",
     "primary_term": "Orange",
     "keywords": [
-      "orange"
+      "orange",
+      "fruit",
+      "arancia",
+      "frutta"
     ],
     "category": "food_drinks",
     "filename": "orange.webp",
@@ -597,7 +716,9 @@
     "primary_term": "Bananas",
     "keywords": [
       "bananas",
-      "banana"
+      "banana",
+      "banane",
+      "frutta"
     ],
     "category": "food_drinks",
     "filename": "bananas.webp",
@@ -607,7 +728,10 @@
     "id": "food_drinks_strawberry",
     "primary_term": "Strawberry",
     "keywords": [
-      "strawberry"
+      "strawberry",
+      "berry",
+      "fragola",
+      "bacca"
     ],
     "category": "food_drinks",
     "filename": "strawberry.webp",
@@ -617,7 +741,10 @@
     "id": "food_drinks_carrot",
     "primary_term": "Carrot",
     "keywords": [
-      "carrot"
+      "carrot",
+      "vegetable",
+      "carota",
+      "verdura"
     ],
     "category": "food_drinks",
     "filename": "carrot.webp",
@@ -627,7 +754,10 @@
     "id": "food_drinks_tomato",
     "primary_term": "Tomato",
     "keywords": [
-      "tomato"
+      "tomato",
+      "vegetable",
+      "pomodoro",
+      "verdura"
     ],
     "category": "food_drinks",
     "filename": "tomato.webp",
@@ -637,7 +767,10 @@
     "id": "food_drinks_broccoli",
     "primary_term": "Broccoli",
     "keywords": [
-      "broccoli"
+      "broccoli",
+      "vegetable",
+      "verdura",
+      "ortaggio"
     ],
     "category": "food_drinks",
     "filename": "broccoli.webp",
@@ -647,7 +780,10 @@
     "id": "food_drinks_potato",
     "primary_term": "Potato",
     "keywords": [
-      "potato"
+      "potato",
+      "vegetable",
+      "patata",
+      "verdura"
     ],
     "category": "food_drinks",
     "filename": "potato.webp",
@@ -657,7 +793,10 @@
     "id": "food_drinks_cheese",
     "primary_term": "Cheese",
     "keywords": [
-      "cheese"
+      "cheese",
+      "dairy",
+      "formaggio",
+      "latticino"
     ],
     "category": "food_drinks",
     "filename": "cheese.webp",
@@ -667,7 +806,10 @@
     "id": "food_drinks_egg",
     "primary_term": "Egg",
     "keywords": [
-      "egg"
+      "egg",
+      "food",
+      "uovo",
+      "cibo"
     ],
     "category": "food_drinks",
     "filename": "egg.webp",
@@ -677,7 +819,9 @@
     "id": "food_drinks_burger",
     "primary_term": "Burger",
     "keywords": [
-      "burger"
+      "burger",
+      "hamburger",
+      "panino"
     ],
     "category": "food_drinks",
     "filename": "burger.webp",
@@ -687,7 +831,10 @@
     "id": "food_drinks_pizza",
     "primary_term": "Pizza",
     "keywords": [
-      "pizza"
+      "pizza",
+      "food",
+      "cibo",
+      "pizzeria"
     ],
     "category": "food_drinks",
     "filename": "pizza.webp",
@@ -697,7 +844,10 @@
     "id": "food_drinks_rice",
     "primary_term": "Rice",
     "keywords": [
-      "rice"
+      "rice",
+      "grain",
+      "riso",
+      "cereale"
     ],
     "category": "food_drinks",
     "filename": "rice.webp",
@@ -707,7 +857,9 @@
     "id": "food_drinks_soup",
     "primary_term": "Soup",
     "keywords": [
-      "soup"
+      "soup",
+      "zuppa",
+      "minestra"
     ],
     "category": "food_drinks",
     "filename": "soup.webp",
@@ -717,7 +869,10 @@
     "id": "food_drinks_salad",
     "primary_term": "Salad",
     "keywords": [
-      "salad"
+      "salad",
+      "vegetables",
+      "insalata",
+      "verdure"
     ],
     "category": "food_drinks",
     "filename": "salad.webp",
@@ -727,7 +882,10 @@
     "id": "food_drinks_milk",
     "primary_term": "Milk",
     "keywords": [
-      "milk"
+      "milk",
+      "dairy",
+      "latte",
+      "latticino"
     ],
     "category": "food_drinks",
     "filename": "milk.webp",
@@ -737,7 +895,10 @@
     "id": "food_drinks_juice",
     "primary_term": "Juice",
     "keywords": [
-      "juice"
+      "juice",
+      "fruit juice",
+      "succo",
+      "succo di frutta"
     ],
     "category": "food_drinks",
     "filename": "juice.webp",
@@ -747,7 +908,10 @@
     "id": "food_drinks_tea",
     "primary_term": "Tea",
     "keywords": [
-      "tea"
+      "tea",
+      "drink",
+      "tè",
+      "bevanda"
     ],
     "category": "food_drinks",
     "filename": "tea.webp",
@@ -757,7 +921,10 @@
     "id": "food_drinks_ice_cream",
     "primary_term": "Ice cream",
     "keywords": [
-      "ice cream"
+      "ice cream",
+      "dessert",
+      "gelato",
+      "dolce"
     ],
     "category": "food_drinks",
     "filename": "ice_cream.webp",
@@ -767,7 +934,10 @@
     "id": "food_drinks_chocolate",
     "primary_term": "Chocolate",
     "keywords": [
-      "chocolate"
+      "chocolate",
+      "cocoa",
+      "cioccolato",
+      "cacao"
     ],
     "category": "food_drinks",
     "filename": "chocolate.webp",
@@ -777,7 +947,10 @@
     "id": "food_drinks_cake",
     "primary_term": "Cake",
     "keywords": [
-      "cake"
+      "cake",
+      "dessert",
+      "torta",
+      "dolce"
     ],
     "category": "food_drinks",
     "filename": "cake.webp",
@@ -787,7 +960,10 @@
     "id": "food_drinks_croissant",
     "primary_term": "Croissant",
     "keywords": [
-      "croissant"
+      "croissant",
+      "pastry",
+      "cornetto",
+      "brioche"
     ],
     "category": "food_drinks",
     "filename": "croissant.webp",
@@ -797,7 +973,10 @@
     "id": "animals_dog",
     "primary_term": "Dog",
     "keywords": [
-      "dog"
+      "dog",
+      "pet",
+      "cane",
+      "animale domestico"
     ],
     "category": "animals",
     "filename": "dog.webp",
@@ -807,7 +986,10 @@
     "id": "animals_rabbit",
     "primary_term": "Rabbit",
     "keywords": [
-      "rabbit"
+      "rabbit",
+      "hare",
+      "coniglio",
+      "lepre"
     ],
     "category": "animals",
     "filename": "rabbit.webp",
@@ -817,7 +999,9 @@
     "id": "animals_bird",
     "primary_term": "Bird",
     "keywords": [
-      "bird"
+      "bird",
+      "uccello",
+      "volatile"
     ],
     "category": "animals",
     "filename": "bird.webp",
@@ -827,7 +1011,10 @@
     "id": "animals_fish",
     "primary_term": "Fish",
     "keywords": [
-      "fish"
+      "fish",
+      "animal",
+      "pesce",
+      "animale"
     ],
     "category": "animals",
     "filename": "fish.webp",
@@ -837,7 +1024,10 @@
     "id": "animals_horse",
     "primary_term": "Horse",
     "keywords": [
-      "horse"
+      "horse",
+      "equine",
+      "cavallo",
+      "equino"
     ],
     "category": "animals",
     "filename": "horse.webp",
@@ -847,7 +1037,10 @@
     "id": "animals_cow",
     "primary_term": "Cow",
     "keywords": [
-      "cow"
+      "cow",
+      "bovine",
+      "mucca",
+      "bovino"
     ],
     "category": "animals",
     "filename": "cow.webp",
@@ -857,7 +1050,10 @@
     "id": "animals_pig",
     "primary_term": "Pig",
     "keywords": [
-      "pig"
+      "pig",
+      "swine",
+      "maiale",
+      "suino"
     ],
     "category": "animals",
     "filename": "pig.webp",
@@ -867,7 +1063,10 @@
     "id": "animals_sheep",
     "primary_term": "Sheep",
     "keywords": [
-      "sheep"
+      "sheep",
+      "ovine",
+      "pecora",
+      "ovino"
     ],
     "category": "animals",
     "filename": "sheep.webp",
@@ -877,7 +1076,10 @@
     "id": "animals_duck",
     "primary_term": "Duck",
     "keywords": [
-      "duck"
+      "duck",
+      "waterfowl",
+      "anatra",
+      "uccello acquatico"
     ],
     "category": "animals",
     "filename": "duck.webp",
@@ -887,7 +1089,10 @@
     "id": "home_household_bed",
     "primary_term": "Bed",
     "keywords": [
-      "bed"
+      "bed",
+      "bedroom",
+      "letto",
+      "camera da letto"
     ],
     "category": "home_household",
     "filename": "bed.webp",
@@ -897,7 +1102,10 @@
     "id": "home_household_table",
     "primary_term": "Table",
     "keywords": [
-      "table"
+      "table",
+      "furniture",
+      "tavolo",
+      "mobile"
     ],
     "category": "home_household",
     "filename": "table.webp",
@@ -907,7 +1115,10 @@
     "id": "home_household_lamp",
     "primary_term": "Lamp",
     "keywords": [
-      "lamp"
+      "lamp",
+      "light",
+      "lampada",
+      "luce"
     ],
     "category": "home_household",
     "filename": "lamp.webp",
@@ -917,7 +1128,10 @@
     "id": "home_household_door",
     "primary_term": "Door",
     "keywords": [
-      "door"
+      "door",
+      "entrance",
+      "porta",
+      "ingresso"
     ],
     "category": "home_household",
     "filename": "door.webp",
@@ -927,7 +1141,10 @@
     "id": "home_household_window",
     "primary_term": "Window",
     "keywords": [
-      "window"
+      "window",
+      "glass",
+      "finestra",
+      "vetro"
     ],
     "category": "home_household",
     "filename": "window.webp",
@@ -937,7 +1154,9 @@
     "id": "home_household_sofa",
     "primary_term": "Sofa",
     "keywords": [
-      "sofa"
+      "sofa",
+      "couch",
+      "divano"
     ],
     "category": "home_household",
     "filename": "sofa.webp",
@@ -947,7 +1166,11 @@
     "id": "home_household_toilet",
     "primary_term": "Toilet",
     "keywords": [
-      "toilet"
+      "toilet",
+      "bathroom",
+      "gabinetto",
+      "wc",
+      "bagno"
     ],
     "category": "home_household",
     "filename": "toilet.webp",
@@ -957,7 +1180,10 @@
     "id": "home_household_sink",
     "primary_term": "Sink",
     "keywords": [
-      "sink"
+      "sink",
+      "basin",
+      "lavandino",
+      "lavabo"
     ],
     "category": "home_household",
     "filename": "sink.webp",
@@ -967,7 +1193,10 @@
     "id": "home_household_bathtub",
     "primary_term": "Bathtub",
     "keywords": [
-      "bathtub"
+      "bathtub",
+      "bath",
+      "vasca",
+      "vasca da bagno"
     ],
     "category": "home_household",
     "filename": "bathtub.webp",
@@ -977,7 +1206,10 @@
     "id": "home_household_shower",
     "primary_term": "Shower",
     "keywords": [
-      "shower"
+      "shower",
+      "bath",
+      "doccia",
+      "bagno"
     ],
     "category": "home_household",
     "filename": "shower.webp",
@@ -988,7 +1220,9 @@
     "primary_term": "Refrigerator",
     "keywords": [
       "refrigerator",
-      "fridge"
+      "fridge",
+      "frigorifero",
+      "frigo"
     ],
     "category": "home_household",
     "filename": "refrigerator.webp",
@@ -998,7 +1232,10 @@
     "id": "home_household_oven",
     "primary_term": "Oven",
     "keywords": [
-      "oven"
+      "oven",
+      "cook",
+      "forno",
+      "cucinare"
     ],
     "category": "home_household",
     "filename": "oven.webp",
@@ -1009,7 +1246,9 @@
     "primary_term": "Frying pan",
     "keywords": [
       "frying pan",
-      "pan"
+      "pan",
+      "padella",
+      "tegame"
     ],
     "category": "home_household",
     "filename": "frying_pan.webp",
@@ -1019,7 +1258,9 @@
     "id": "home_household_pot",
     "primary_term": "Pot",
     "keywords": [
-      "pot"
+      "pot",
+      "pentola",
+      "casseruola"
     ],
     "category": "home_household",
     "filename": "pot.webp",
@@ -1029,7 +1270,10 @@
     "id": "home_household_knife",
     "primary_term": "Knife",
     "keywords": [
-      "knife"
+      "knife",
+      "cutlery",
+      "coltello",
+      "posata"
     ],
     "category": "home_household",
     "filename": "knife.webp",
@@ -1039,7 +1283,10 @@
     "id": "home_household_fork",
     "primary_term": "Fork",
     "keywords": [
-      "fork"
+      "fork",
+      "cutlery",
+      "forchetta",
+      "posata"
     ],
     "category": "home_household",
     "filename": "fork.webp",
@@ -1049,7 +1296,10 @@
     "id": "home_household_spoon",
     "primary_term": "Spoon",
     "keywords": [
-      "spoon"
+      "spoon",
+      "cutlery",
+      "cucchiaio",
+      "posata"
     ],
     "category": "home_household",
     "filename": "spoon.webp",
@@ -1059,7 +1309,10 @@
     "id": "home_household_broom",
     "primary_term": "Broom",
     "keywords": [
-      "broom"
+      "broom",
+      "cleaning",
+      "scopa",
+      "pulizia"
     ],
     "category": "home_household",
     "filename": "broom.webp",
@@ -1071,7 +1324,9 @@
     "keywords": [
       "trash can",
       "garbage can",
-      "bin"
+      "bin",
+      "cestino",
+      "pattumiera"
     ],
     "category": "home_household",
     "filename": "trash_can.webp",
@@ -1082,7 +1337,9 @@
     "primary_term": "Vacuum cleaner",
     "keywords": [
       "vacuum cleaner",
-      "vacuum"
+      "vacuum",
+      "aspirapolvere",
+      "pulizia"
     ],
     "category": "home_household",
     "filename": "vacuum_cleaner.webp",
@@ -1092,7 +1349,10 @@
     "id": "technology_laptop",
     "primary_term": "Laptop",
     "keywords": [
-      "laptop"
+      "laptop",
+      "computer",
+      "notebook",
+      "computer portatile"
     ],
     "category": "technology",
     "filename": "laptop.webp",
@@ -1102,7 +1362,11 @@
     "id": "technology_camera",
     "primary_term": "Camera",
     "keywords": [
-      "camera"
+      "camera",
+      "photo",
+      "fotocamera",
+      "macchina fotografica",
+      "foto"
     ],
     "category": "technology",
     "filename": "camera.webp",
@@ -1114,7 +1378,9 @@
     "keywords": [
       "airplane",
       "aeroplane",
-      "plane"
+      "plane",
+      "aereo",
+      "aeroplano"
     ],
     "category": "transport",
     "filename": "airplane.webp",
@@ -1124,7 +1390,10 @@
     "id": "transport_bus",
     "primary_term": "Bus",
     "keywords": [
-      "bus"
+      "bus",
+      "coach",
+      "autobus",
+      "pullman"
     ],
     "category": "transport",
     "filename": "bus.webp",
@@ -1135,7 +1404,9 @@
     "primary_term": "Shop",
     "keywords": [
       "shop",
-      "store"
+      "store",
+      "negozio",
+      "bottega"
     ],
     "category": "city_public_places",
     "filename": "shop.webp",
@@ -1145,7 +1416,10 @@
     "id": "city_public_places_hospital",
     "primary_term": "Hospital",
     "keywords": [
-      "hospital"
+      "hospital",
+      "clinic",
+      "ospedale",
+      "clinica"
     ],
     "category": "city_public_places",
     "filename": "hospital.webp",
@@ -1155,7 +1429,10 @@
     "id": "nature_mountain",
     "primary_term": "Mountain",
     "keywords": [
-      "mountain"
+      "mountain",
+      "peak",
+      "montagna",
+      "vetta"
     ],
     "category": "nature",
     "filename": "mountain.webp",

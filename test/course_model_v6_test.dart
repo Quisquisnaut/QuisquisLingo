@@ -15,6 +15,7 @@ void main() {
     'welsh_en.json',
     'finnish_en.json',
     'korean_en.json',
+    'neapolitan_it.json',
   ];
 
   for (final file in samples) {

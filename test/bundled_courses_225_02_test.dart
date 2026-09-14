@@ -19,9 +19,11 @@ void main() {
     () async {
       final allIds = <String>{};
       final failures = <String>[];
+      final auditSummaries = <String>[];
       var aggregateErrors = 0;
       var aggregateWarnings = 0;
       var aggregateInfo = 0;
+      var expectedEmptyCourseWarnings = 0;
 
       for (final entry in CourseService.courseAssets.entries) {
         final raw = await rootBundle.loadString(entry.value);
@@ -35,14 +37,19 @@ void main() {
         aggregateErrors += errors;
         aggregateWarnings += warnings;
         aggregateInfo += info;
-        // ignore: avoid_print
-        print(
+        auditSummaries.add(
           'BUNDLED_AUDIT ${entry.value} ${course.courseId}: '
           '$errors errors, $warnings warnings, $info info',
         );
         for (final issue in result.issues.where(
           (issue) => issue.severity != AuditSeverity.info,
         )) {
+          if (course.courseId == 'sample_ja_en_ja' &&
+              issue.code == 'COURSE_LESSONS_EMPTY' &&
+              issue.severity == AuditSeverity.warning) {
+            expectedEmptyCourseWarnings++;
+            continue;
+          }
           failures.add(
             '${entry.value} | ${course.courseId} | ${issue.code} | '
             '${issue.location} | ${issue.message}',
@@ -96,19 +103,30 @@ void main() {
         }
       }
 
-      expect(CourseService.courseAssets, hasLength(9));
+      expect(CourseService.courseAssets, hasLength(11));
       expect(CourseService.courseAssets['KO'], 'assets/courses/korean_en.json');
-      expect(aggregateErrors, 0);
-      expect(aggregateWarnings, 0);
-      // ignore: avoid_print
-      print(
-        'BUNDLED_AUDIT aggregate: $aggregateErrors errors, '
-        '$aggregateWarnings warnings, $aggregateInfo info',
+      expect(
+        CourseService.courseAssets['NAP'],
+        'assets/courses/neapolitan_it.json',
       );
+      expect(
+        CourseService.courseAssets['JA'],
+        'assets/courses/japanese_en.json',
+      );
+      final auditReport = <String>[
+        ...auditSummaries,
+        'BUNDLED_AUDIT aggregate: $aggregateErrors errors, '
+            '$aggregateWarnings warnings, $aggregateInfo info',
+      ].join('\n');
+      expect(aggregateErrors, 0, reason: auditReport);
+      expect(aggregateWarnings, 1, reason: auditReport);
+      expect(expectedEmptyCourseWarnings, 1, reason: auditReport);
       expect(
         failures,
         isEmpty,
-        reason: failures.isEmpty ? null : failures.join('\n'),
+        reason: failures.isEmpty
+            ? auditReport
+            : '$auditReport\n${failures.join('\n')}',
       );
     },
   );

@@ -37,3 +37,11 @@ another license.
 
 Bundled images and sounds likewise retain the rights status stated in the in-app
 Credits and `docs/MEDIA_CREDITS.md`.
+
+World-flag artwork includes `lipis/flag-icons` v7.5.0 under the MIT License and
+nineteen separately sourced Wikimedia Commons language-related flags. The
+Aragonese flag by Willtron, Friulian flag by Ipankonin and Sardinian flag by
+Angelus are licensed under CC BY-SA 3.0. The remaining language-related files
+are public domain or CC0. Exact per-file source pages, authors, license links
+and pinned checksums are retained in
+`assets/world_flags/LICENSE-language-related-flags.md`.

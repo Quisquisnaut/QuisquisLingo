@@ -8,13 +8,15 @@ class WorldFlagRepository {
   static const manifestAsset = 'assets/world_flags/manifest.json';
 
   final AssetBundle _bundle;
-  List<WorldFlagEntity>? _cache;
+  WorldFlagManifest? _manifestCache;
   Map<String, WorldFlagEntity>? _byId;
 
   WorldFlagRepository({AssetBundle? bundle}) : _bundle = bundle ?? rootBundle;
 
-  Future<List<WorldFlagEntity>> load() async =>
-      _cache ??= parseManifest(await _bundle.loadString(manifestAsset));
+  Future<WorldFlagManifest> loadManifest() async => _manifestCache ??=
+      parseManifestDocument(await _bundle.loadString(manifestAsset));
+
+  Future<List<WorldFlagEntity>> load() async => (await loadManifest()).entities;
 
   Future<WorldFlagEntity?> findById(String id) async {
     final normalized = id.trim();
@@ -49,6 +51,10 @@ class WorldFlagRepository {
   );
 
   static List<WorldFlagEntity> parseManifest(String raw) {
+    return parseManifestDocument(raw).entities;
+  }
+
+  static WorldFlagManifest parseManifestDocument(String raw) {
     final decoded = jsonDecode(raw);
     if (decoded is! Map || decoded['schemaVersion'] != 1) {
       throw const FormatException('Unsupported world-flag manifest');
@@ -67,8 +73,97 @@ class WorldFlagRepository {
     if (ids.length != entities.length) {
       throw const FormatException('World-flag IDs are not unique');
     }
-    return List.unmodifiable(entities);
+    final rawSuggestions = decoded['languageSuggestions'] ?? const [];
+    if (rawSuggestions is! List) {
+      throw const FormatException(
+        'World-flag manifest language suggestions are invalid',
+      );
+    }
+    final suggestions = rawSuggestions
+        .map(
+          (value) => WorldFlagLanguageSuggestion.fromJson(
+            Map<String, dynamic>.from(value as Map),
+          ),
+        )
+        .toList(growable: false);
+    final normalizedTags = <String>{};
+    final normalizedNames = <String>{};
+    for (final suggestion in suggestions) {
+      final tag = _normalizeLanguageTag(suggestion.languageTag);
+      if (tag.isEmpty || !normalizedTags.add(tag)) {
+        throw const FormatException(
+          'World-flag language suggestion tags must be non-empty and unique',
+        );
+      }
+      if (suggestion.worldFlagIds.isEmpty ||
+          suggestion.worldFlagIds.toSet().length !=
+              suggestion.worldFlagIds.length ||
+          suggestion.worldFlagIds.any((id) => !ids.contains(id))) {
+        throw FormatException(
+          'World-flag language suggestion "$tag" has invalid flag IDs',
+        );
+      }
+      for (final name in suggestion.languageNames) {
+        final normalizedName = _normalizeLanguageName(name);
+        if (normalizedName.isEmpty || !normalizedNames.add(normalizedName)) {
+          throw const FormatException(
+            'World-flag language suggestion names must be non-empty and unique',
+          );
+        }
+      }
+    }
+    return WorldFlagManifest(
+      entities: List.unmodifiable(entities),
+      languageSuggestions: List.unmodifiable(suggestions),
+    );
   }
+
+  static List<WorldFlagEntity> suggestForLanguage(
+    WorldFlagManifest manifest, {
+    String? languageTag,
+    String? languageName,
+  }) {
+    final byTag = <String, WorldFlagLanguageSuggestion>{
+      for (final suggestion in manifest.languageSuggestions)
+        _normalizeLanguageTag(suggestion.languageTag): suggestion,
+    };
+    final byName = <String, WorldFlagLanguageSuggestion>{
+      for (final suggestion in manifest.languageSuggestions)
+        for (final name in suggestion.languageNames)
+          _normalizeLanguageName(name): suggestion,
+    };
+
+    WorldFlagLanguageSuggestion? match;
+    final normalizedTag = _normalizeLanguageTag(languageTag ?? '');
+    if (normalizedTag.isNotEmpty) {
+      match = byTag[normalizedTag];
+      if (match == null) {
+        final baseTag = normalizedTag.split('-').first;
+        match = byTag[baseTag];
+      }
+    }
+    if (match == null) {
+      final normalizedName = _normalizeLanguageName(languageName ?? '');
+      if (normalizedName.isNotEmpty) {
+        match = byName[normalizedName];
+      }
+    }
+    if (match == null) return const [];
+
+    final byId = {for (final entity in manifest.entities) entity.id: entity};
+    return List.unmodifiable(match.worldFlagIds.map((id) => byId[id]!));
+  }
+
+  static String _normalizeLanguageTag(String value) => value
+      .trim()
+      .replaceAll('_', '-')
+      .toLowerCase()
+      .split('-')
+      .where((part) => part.isNotEmpty)
+      .join('-');
+
+  static String _normalizeLanguageName(String value) =>
+      value.trim().toLowerCase().replaceAll(RegExp(r'\s+'), ' ');
 
   static List<WorldFlagEntity> poolFor(
     List<WorldFlagEntity> entities,

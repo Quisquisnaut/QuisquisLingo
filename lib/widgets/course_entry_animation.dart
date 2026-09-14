@@ -53,20 +53,6 @@ class CourseEntryFlagSource {
 abstract final class CourseEntryAnimationPolicy {
   static const duration = Duration(seconds: 2);
 
-  static const _builtInFlagCodes = <String>{
-    'DE',
-    'IT',
-    'ES',
-    'PT',
-    'NL',
-    'FI',
-    'CY',
-    'EN',
-    'UK',
-    'KO',
-    'KR',
-  };
-
   static Future<CourseEntryFlagSource?> requestForSwitch({
     required String? currentCourseId,
     required Course destination,
@@ -106,7 +92,9 @@ abstract final class CourseEntryAnimationPolicy {
     }
 
     if (resolved.kind == ResolvedCourseFlagKind.builtIn) {
-      return _builtInFlagCodes.contains(resolved.identifier)
+      return CourseFlagService.renderableBuiltInCodes.contains(
+            resolved.identifier,
+          )
           ? CourseEntryFlagSource.builtIn(resolved.identifier)
           : null;
     }

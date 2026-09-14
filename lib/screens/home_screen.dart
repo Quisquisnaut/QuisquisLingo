@@ -164,7 +164,11 @@ bool _usesDarkLearnerAppearance(BuildContext context) {
 /// usable on small phone windows, desktop portrait previews and larger text
 /// settings without producing RenderFlex overflows.
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  @visibleForTesting
+  final ProfileService? profileService;
+
+  const HomeScreen({super.key, this.profileService});
+
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
@@ -176,7 +180,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final _duelEligibility = const DuelEligibilityService();
   final _audioAvailability = AudioExerciseAvailabilityService();
   final _progress = ProgressService();
-  final _profiles = ProfileService();
+  late final ProfileService _profiles;
   final _settings = SettingsService();
   final _lessonUnlocks = const LessonUnlockService();
   final _learnerScrollController = ScrollController();
@@ -240,12 +244,14 @@ class _HomeScreenState extends State<HomeScreen> {
   Timer? _lockedLessonTapResetTimer;
   StreamSubscription<LearnerStatusInvalidation>? _appearanceSubscription;
   int _flagBackgroundLoadGeneration = 0;
+  int _reloadGeneration = 0;
   ({int generation, CourseEntryFlagSource flag})? _courseEntryTransition;
   int _courseEntryTransitionGeneration = 0;
 
   @override
   void initState() {
     super.initState();
+    _profiles = widget.profileService ?? ProfileService();
     _appearanceSubscription = LearnerStatusEvents.stream.listen((event) {
       if (event == LearnerStatusInvalidation.flagBackground) {
         _reloadFlagBackgroundMode();
@@ -425,7 +431,15 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Future<void> _reload() async {
+  Future<void> _reload({
+    String? requestedCourseRef,
+    ({String courseId, int generation, CourseEntryFlagSource flag})?
+    pendingCourseEntryTransition,
+    bool replaceCourseEntryTransition = false,
+    int? requestedGeneration,
+  }) async {
+    final reloadGeneration = requestedGeneration ?? ++_reloadGeneration;
+    if (reloadGeneration != _reloadGeneration) return;
     _resetLockedLessonTapSequence();
     try {
       final bundledCourseCodes = await _courseService
@@ -436,9 +450,11 @@ class _HomeScreenState extends State<HomeScreen> {
       final activeProfile = await _profiles.getActiveProfileRecord();
       final active = activeProfile?.displayName;
       final activeId = activeProfile?.learnerProfileId;
-      var selectedRef = active == null
-          ? _selectedCourseRef
-          : (await _settings.getLastSelectedCourseCode() ?? 'IT');
+      var selectedRef =
+          requestedCourseRef ??
+          (active == null
+              ? _selectedCourseRef
+              : (await _settings.getLastSelectedCourseCode() ?? 'IT'));
       var selectedLanguage = _selectedLanguage;
       late Course course;
       if (selectedRef.startsWith('custom:')) {
@@ -459,6 +475,7 @@ class _HomeScreenState extends State<HomeScreen> {
           course = _publication.learnerCourse(
             await _courseService.loadCourse(selectedLanguage),
           )!;
+          if (!mounted || reloadGeneration != _reloadGeneration) return;
           await _settings.setLastSelectedCourseCode(selectedRef);
         }
       } else {
@@ -535,9 +552,18 @@ class _HomeScreenState extends State<HomeScreen> {
           !iddqdMode.bypassesLocks) {
         activeLessonIndex = 0;
       }
-      if (!mounted) return;
+      if (!mounted || reloadGeneration != _reloadGeneration) return;
       final resetFlow =
           _flowCourseId != course.courseId || _flowLearner != activeId;
+      final pendingTransition = pendingCourseEntryTransition;
+      final committedCourseEntryTransition =
+          pendingTransition != null &&
+              pendingTransition.courseId == course.courseId
+          ? (
+              generation: pendingTransition.generation,
+              flag: pendingTransition.flag,
+            )
+          : null;
       setState(() {
         _course = course;
         _selectedCourseRef = selectedRef;
@@ -558,23 +584,31 @@ class _HomeScreenState extends State<HomeScreen> {
         _iddqdMode = iddqdMode;
         _lessonExpansionMode = lessonExpansionMode;
         _flagBackgroundMode = flagBackgroundMode;
+        if (replaceCourseEntryTransition) {
+          _courseEntryTransition = committedCourseEntryTransition;
+        }
         _activeLessonIndex = activeLessonIndex;
         if (resetFlow) {
           _flowCourseId = course.courseId;
           _flowLearner = activeId;
         }
       });
-      if (resetFlow) _scrollToLesson(course, activeLessonIndex);
+      if (resetFlow && reloadGeneration == _reloadGeneration) {
+        _scrollToLesson(course, activeLessonIndex);
+      }
     } on AppException catch (e) {
-      if (mounted) await ErrorPresenter.show(context, e.error);
+      if (mounted && reloadGeneration == _reloadGeneration) {
+        await ErrorPresenter.show(context, e.error);
+      }
     } catch (e, st) {
+      if (!mounted || reloadGeneration != _reloadGeneration) return;
       await DiagnosticLogService().log(
         AppErrorCode.unexpectedError,
         context: 'HomeScreen._reload',
         exception: e,
         stackTrace: st,
       );
-      if (mounted) {
+      if (mounted && reloadGeneration == _reloadGeneration) {
         await ErrorPresenter.show(context, AppErrorCode.unexpectedError);
       }
     }
@@ -593,61 +627,60 @@ class _HomeScreenState extends State<HomeScreen> {
       }
       return;
     }
+    final reloadGeneration = ++_reloadGeneration;
     try {
       final course = _publication.learnerCourse(
         await _courseService.loadCourse(normalized),
       );
-      if (course == null || !mounted) return;
+      if (course == null || !mounted || reloadGeneration != _reloadGeneration) {
+        return;
+      }
       final entryFlag = await _courseEntryFlagForSwitch(course);
-      if (!mounted) return;
+      if (!mounted || reloadGeneration != _reloadGeneration) return;
       final transition = entryFlag == null
           ? null
-          : (generation: ++_courseEntryTransitionGeneration, flag: entryFlag);
-      setState(() {
-        _selectedCourseRef = normalized;
-        _selectedLanguage = normalized;
-        _course = course;
-        _duelEligibilityByLessonId = const {};
-        _roundAudioAvailability = const {};
-        _courseEntryTransition = null;
-      });
+          : (
+              courseId: course.courseId,
+              generation: ++_courseEntryTransitionGeneration,
+              flag: entryFlag,
+            );
       await _settings.setLastSelectedCourseCode(normalized);
-      await _reload();
-      if (transition != null &&
-          mounted &&
-          _course?.courseId == course.courseId) {
-        setState(() => _courseEntryTransition = transition);
-      }
+      if (!mounted || reloadGeneration != _reloadGeneration) return;
+      await _reload(
+        requestedCourseRef: normalized,
+        pendingCourseEntryTransition: transition,
+        replaceCourseEntryTransition: true,
+        requestedGeneration: reloadGeneration,
+      );
     } on AppException catch (e) {
-      if (mounted) await ErrorPresenter.show(context, e.error);
+      if (mounted && reloadGeneration == _reloadGeneration) {
+        await ErrorPresenter.show(context, e.error);
+      }
     }
   }
 
   Future<void> _switchCustomCourse(Course course) async {
     final learnerCourse = _publication.learnerCourse(course);
     if (learnerCourse == null || !mounted) return;
+    final reloadGeneration = ++_reloadGeneration;
     final ref = 'custom:${course.courseId}';
-    final code = CourseService.codeForCourse(course);
     final entryFlag = await _courseEntryFlagForSwitch(learnerCourse);
-    if (!mounted) return;
+    if (!mounted || reloadGeneration != _reloadGeneration) return;
     final transition = entryFlag == null
         ? null
-        : (generation: ++_courseEntryTransitionGeneration, flag: entryFlag);
-    setState(() {
-      _selectedCourseRef = ref;
-      _selectedLanguage = code;
-      _course = learnerCourse;
-      _duelEligibilityByLessonId = const {};
-      _roundAudioAvailability = const {};
-      _courseEntryTransition = null;
-    });
+        : (
+            courseId: learnerCourse.courseId,
+            generation: ++_courseEntryTransitionGeneration,
+            flag: entryFlag,
+          );
     await _settings.setLastSelectedCourseCode(ref);
-    await _reload();
-    if (transition != null &&
-        mounted &&
-        _course?.courseId == learnerCourse.courseId) {
-      setState(() => _courseEntryTransition = transition);
-    }
+    if (!mounted || reloadGeneration != _reloadGeneration) return;
+    await _reload(
+      requestedCourseRef: ref,
+      pendingCourseEntryTransition: transition,
+      replaceCourseEntryTransition: true,
+      requestedGeneration: reloadGeneration,
+    );
   }
 
   Future<CourseEntryFlagSource?> _courseEntryFlagForSwitch(

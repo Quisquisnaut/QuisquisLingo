@@ -74,7 +74,7 @@ void main() {
       buildSignature: '',
     );
     SharedPreferences.setMockInitialValues({
-      'one_time_notice_seen_welcome_2.0.33+233030': true,
+      'one_time_notice_seen_welcome_2.0.34+234000': true,
       'sound_effects_enabled': false,
     });
     await ProfileService().addProfile('Navigation Learner');
@@ -2759,7 +2759,7 @@ void main() {
           350,
           scrollable: list,
         );
-        await tester.pumpAndSettle();
+        await _pumpFrames(tester, count: 8);
       }
 
       await openSelectorAndRevealActions();
@@ -2967,7 +2967,7 @@ void main() {
         await tester.tap(find.byKey(key));
         await tester.pumpAndSettle();
         await tester.tap(find.text('Hide').last);
-        await tester.pumpAndSettle();
+        await _pumpFrames(tester, count: 8);
       }
 
       final germanCourse = await _loadCourse(tester, 'DE');
@@ -3014,7 +3014,7 @@ void main() {
         await tester.tap(find.byKey(Key('hidden-course-actions-$courseId')));
         await tester.pumpAndSettle();
         await tester.tap(find.text('Unhide').last);
-        await tester.pumpAndSettle();
+        await _pumpFrames(tester, count: 8);
       }
 
       await unhide(custom.courseId);
@@ -3125,8 +3125,8 @@ void main() {
       final phrase = dialogTexts.singleWhere(
         (text) =>
             text.data != 'Welcome to QuisquisLingo' &&
-            text.data != 'Version 2.0.33' &&
-            text.data != 'Build 233.1' &&
+            text.data != 'Version 2.0.34' &&
+            text.data != 'Build 234, Revision 0' &&
             text.data != 'Continue',
       );
       final welcomeDialog = tester.widget<AlertDialog>(
@@ -3139,11 +3139,11 @@ void main() {
         const Color(0xFF0756DF),
       );
       expect(
-        tester.widget<Text>(find.text('Version 2.0.33')).style?.color,
+        tester.widget<Text>(find.text('Version 2.0.34')).style?.color,
         const Color(0xFF0756DF),
       );
       expect(
-        tester.widget<Text>(find.text('Build 233.1')).style?.color,
+        tester.widget<Text>(find.text('Build 234, Revision 0')).style?.color,
         const Color(0xFF0756DF),
       );
       expect(find.textContaining('22621'), findsNothing);
@@ -3171,7 +3171,7 @@ void main() {
       final alphaDialog = tester.widget<AlertDialog>(find.byType(AlertDialog));
       expect(alphaDialog.backgroundColor, isNull);
       expect(alphaDialog.surfaceTintColor, isNull);
-      expect(find.textContaining('Expiry date: 2026-10-14.'), findsOneWidget);
+      expect(find.textContaining('Expiry date: 2026-10-13.'), findsOneWidget);
       expect(find.widgetWithText(FilledButton, 'OK'), findsOneWidget);
       expect(
         tester

@@ -166,6 +166,10 @@ class FlagPainter extends CustomPainter {
       case 'KR':
         _paintSouthKorea(c, s);
         break;
+      case 'JA':
+      case 'JP':
+        _paintJapanese(c, s);
+        break;
       default:
         _fill(c, s, const Color(0xFFE9E2CF));
     }
@@ -291,6 +295,14 @@ class FlagPainter extends CustomPainter {
       ..close();
     c.drawPath(dragon, p);
     c.drawCircle(Offset(s.width * .76, s.height * .48), s.height * .035, p);
+  }
+
+  void _paintJapanese(Canvas c, Size s) {
+    _fill(c, s, Colors.white);
+    final sun = Paint()
+      ..style = PaintingStyle.fill
+      ..color = const Color(0xFFBC002D);
+    c.drawCircle(Offset(s.width * .5, s.height * .5), s.height * .29, sun);
   }
 
   @override

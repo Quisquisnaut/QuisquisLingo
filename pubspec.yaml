@@ -1,7 +1,7 @@
 name: quisquislingo_app
 description: Offline-first language learning prototype with lessons, rounds, exercises, streaks, duels, profiles, and optional cross-platform TTS.
 publish_to: "none"
-version: 2.0.33+233030
+version: 2.0.34+234001
 environment:
   sdk: ">=3.9.0 <4.0.0"
 
@@ -34,10 +34,17 @@ flutter:
   assets:
     - assets/courses/
     - assets/branding/
-    - assets/olive_tree.png
     - assets/lesson_plants/
     - assets/lesson_icons/
     - assets/audio/
+    - assets/audio/cy_sample/
+    - assets/audio/de_sample/
+    - assets/audio/en_sample/
+    - assets/audio/es_sample/
+    - assets/audio/fi_sample/
+    - assets/audio/it_sample/
+    - assets/audio/nl_sample/
+    - assets/audio/pt_sample/
     - assets/exercise_images/
     - assets/mascots/
     - assets/world_flags/

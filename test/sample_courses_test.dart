@@ -14,6 +14,7 @@ void main() {
     'welsh_en.json',
     'finnish_en.json',
     'korean_en.json',
+    'neapolitan_it.json',
   ];
   for (final file in files) {
     test('$file has nine direct temporary-sample Lessons', () async {
@@ -37,7 +38,7 @@ void main() {
         expect(lesson['updatedAt'], endsWith('Z'));
         expect(lesson['duel'], {
           'id': '${lesson['lessonId']}_duel',
-          'title': 'Duel',
+          'title': file == 'neapolitan_it.json' ? 'Duello' : 'Duel',
         });
       }
     });

@@ -20,19 +20,14 @@ void main() {
         .where((issue) => issue.severity == AuditSeverity.error)
         .toList(growable: false);
 
-    if (errors.isNotEmpty) {
-      // Keep a failing release gate actionable without duplicating the asset.
-      // ignore: avoid_print
-      print(
+    final auditReport =
         'TOTALS: ${result.count(AuditSeverity.error)} errors, '
         '${result.count(AuditSeverity.warning)} warnings, '
         '${result.count(AuditSeverity.info)} info\n'
         '${result.issues.map((issue) => '${issue.severity.name.toUpperCase()} | ${issue.code} | '
-            '${issue.location} | ${issue.message}').join('\n')}',
-      );
-    }
+            '${issue.location} | ${issue.message}').join('\n')}';
 
-    expect(errors, isEmpty);
+    expect(errors, isEmpty, reason: auditReport);
     for (final lesson in course.lessons) {
       final duel = const DuelEligibilityService().evaluate(lesson);
       expect(

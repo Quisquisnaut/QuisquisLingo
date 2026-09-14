@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-09-02",
+  "generatedAt": "2026-09-13",
   "sources": {
     "isoAuthority": "https://www.iso.org/obp/ui/#iso:code:3166",
     "isoMachineReadableCrossCheck": "https://www.ripe.net/community/internet-governance/internet-technical-community/the-rir-system/list-of-country-codes-and-rirs/",
@@ -11,13 +11,562 @@
     "languageRelatedLicenseNotice": "assets/world_flags/LICENSE-language-related-flags.md"
   },
   "counts": {
-    "entities": 266,
+    "entities": 276,
     "iso": 249,
     "unMembers": 193,
     "isoExtras": 56,
     "shortlist": 8,
-    "languageRelatedFlags": 9
+    "languageRelatedFlags": 19
   },
+  "languageSuggestions": [
+    {
+      "languageTag": "an",
+      "languageNames": [
+        "Aragonese",
+        "Aragonés"
+      ],
+      "worldFlagIds": [
+        "aragonese"
+      ]
+    },
+    {
+      "languageTag": "an-ES",
+      "worldFlagIds": [
+        "aragonese",
+        "spain"
+      ]
+    },
+    {
+      "languageTag": "ast",
+      "languageNames": [
+        "Asturian",
+        "Asturianu"
+      ],
+      "worldFlagIds": [
+        "asturian"
+      ]
+    },
+    {
+      "languageTag": "ast-ES",
+      "worldFlagIds": [
+        "asturian",
+        "spain"
+      ]
+    },
+    {
+      "languageTag": "ber",
+      "languageNames": [
+        "Amazigh",
+        "Berber",
+        "Imazighen",
+        "Tamazight"
+      ],
+      "worldFlagIds": [
+        "amazigh"
+      ]
+    },
+    {
+      "languageTag": "br",
+      "languageNames": [
+        "Breton",
+        "Brezhoneg"
+      ],
+      "worldFlagIds": [
+        "breton"
+      ]
+    },
+    {
+      "languageTag": "br-FR",
+      "worldFlagIds": [
+        "breton",
+        "france"
+      ]
+    },
+    {
+      "languageTag": "co",
+      "languageNames": [
+        "Corsican",
+        "Corsu"
+      ],
+      "worldFlagIds": [
+        "corsican"
+      ]
+    },
+    {
+      "languageTag": "co-FR",
+      "worldFlagIds": [
+        "corsican",
+        "france"
+      ]
+    },
+    {
+      "languageTag": "cy",
+      "languageNames": [
+        "Welsh",
+        "Cymraeg"
+      ],
+      "worldFlagIds": [
+        "wales"
+      ]
+    },
+    {
+      "languageTag": "cy-GB",
+      "worldFlagIds": [
+        "wales",
+        "united_kingdom"
+      ]
+    },
+    {
+      "languageTag": "de",
+      "languageNames": [
+        "German",
+        "Deutsch"
+      ],
+      "worldFlagIds": [
+        "germany"
+      ]
+    },
+    {
+      "languageTag": "de-DE",
+      "worldFlagIds": [
+        "germany"
+      ]
+    },
+    {
+      "languageTag": "dsb",
+      "languageNames": [
+        "Lower Sorbian",
+        "Dolnoserbski"
+      ],
+      "worldFlagIds": [
+        "sorbian"
+      ]
+    },
+    {
+      "languageTag": "dsb-DE",
+      "worldFlagIds": [
+        "sorbian",
+        "germany"
+      ]
+    },
+    {
+      "languageTag": "en",
+      "languageNames": [
+        "English"
+      ],
+      "worldFlagIds": [
+        "united_kingdom"
+      ]
+    },
+    {
+      "languageTag": "en-GB",
+      "worldFlagIds": [
+        "united_kingdom"
+      ]
+    },
+    {
+      "languageTag": "eo",
+      "languageNames": [
+        "Esperanto"
+      ],
+      "worldFlagIds": [
+        "esperanto"
+      ]
+    },
+    {
+      "languageTag": "es",
+      "languageNames": [
+        "Spanish",
+        "Español"
+      ],
+      "worldFlagIds": [
+        "spain"
+      ]
+    },
+    {
+      "languageTag": "es-ES",
+      "worldFlagIds": [
+        "spain"
+      ]
+    },
+    {
+      "languageTag": "fi",
+      "languageNames": [
+        "Finnish",
+        "Suomi"
+      ],
+      "worldFlagIds": [
+        "finland"
+      ]
+    },
+    {
+      "languageTag": "fi-FI",
+      "worldFlagIds": [
+        "finland"
+      ]
+    },
+    {
+      "languageTag": "fur",
+      "languageNames": [
+        "Friulian",
+        "Furlan"
+      ],
+      "worldFlagIds": [
+        "friulian"
+      ]
+    },
+    {
+      "languageTag": "fur-IT",
+      "worldFlagIds": [
+        "friulian",
+        "italy"
+      ]
+    },
+    {
+      "languageTag": "fy",
+      "languageNames": [
+        "West Frisian",
+        "Frisian",
+        "Frysk",
+        "Frisone"
+      ],
+      "worldFlagIds": [
+        "west_frisian"
+      ]
+    },
+    {
+      "languageTag": "fy-NL",
+      "worldFlagIds": [
+        "west_frisian",
+        "netherlands"
+      ]
+    },
+    {
+      "languageTag": "hsb",
+      "languageNames": [
+        "Upper Sorbian",
+        "Hornjoserbsce"
+      ],
+      "worldFlagIds": [
+        "sorbian"
+      ]
+    },
+    {
+      "languageTag": "hsb-DE",
+      "worldFlagIds": [
+        "sorbian",
+        "germany"
+      ]
+    },
+    {
+      "languageTag": "it",
+      "languageNames": [
+        "Italian",
+        "Italiano"
+      ],
+      "worldFlagIds": [
+        "italy"
+      ]
+    },
+    {
+      "languageTag": "it-IT",
+      "worldFlagIds": [
+        "italy"
+      ]
+    },
+    {
+      "languageTag": "kab",
+      "languageNames": [
+        "Kabyle",
+        "Taqbaylit"
+      ],
+      "worldFlagIds": [
+        "amazigh"
+      ]
+    },
+    {
+      "languageTag": "kab-DZ",
+      "worldFlagIds": [
+        "amazigh",
+        "algeria"
+      ]
+    },
+    {
+      "languageTag": "ko",
+      "languageNames": [
+        "Korean",
+        "한국어"
+      ],
+      "worldFlagIds": [
+        "south_korea"
+      ]
+    },
+    {
+      "languageTag": "ko-KR",
+      "worldFlagIds": [
+        "south_korea"
+      ]
+    },
+    {
+      "languageTag": "kw",
+      "languageNames": [
+        "Cornish",
+        "Kernewek"
+      ],
+      "worldFlagIds": [
+        "cornish"
+      ]
+    },
+    {
+      "languageTag": "kw-GB",
+      "worldFlagIds": [
+        "cornish",
+        "united_kingdom"
+      ]
+    },
+    {
+      "languageTag": "liv",
+      "languageNames": [
+        "Livonian",
+        "Līvõ kēļ"
+      ],
+      "worldFlagIds": [
+        "livonian"
+      ]
+    },
+    {
+      "languageTag": "liv-LV",
+      "worldFlagIds": [
+        "livonian",
+        "latvia"
+      ]
+    },
+    {
+      "languageTag": "lld",
+      "languageNames": [
+        "Ladin",
+        "Ladinia"
+      ],
+      "worldFlagIds": [
+        "ladin"
+      ]
+    },
+    {
+      "languageTag": "lld-IT",
+      "worldFlagIds": [
+        "ladin",
+        "italy"
+      ]
+    },
+    {
+      "languageTag": "nap",
+      "languageNames": [
+        "Neapolitan",
+        "Napoletano",
+        "Napulitano"
+      ],
+      "worldFlagIds": [
+        "neapolitan"
+      ]
+    },
+    {
+      "languageTag": "nap-IT",
+      "worldFlagIds": [
+        "neapolitan",
+        "italy"
+      ]
+    },
+    {
+      "languageTag": "nl",
+      "languageNames": [
+        "Dutch",
+        "Nederlands"
+      ],
+      "worldFlagIds": [
+        "netherlands"
+      ]
+    },
+    {
+      "languageTag": "nl-NL",
+      "worldFlagIds": [
+        "netherlands"
+      ]
+    },
+    {
+      "languageTag": "oc",
+      "languageNames": [
+        "Occitan",
+        "Lenga d'òc"
+      ],
+      "worldFlagIds": [
+        "occitan"
+      ]
+    },
+    {
+      "languageTag": "oc-ES",
+      "worldFlagIds": [
+        "occitan",
+        "spain"
+      ]
+    },
+    {
+      "languageTag": "oc-FR",
+      "worldFlagIds": [
+        "occitan",
+        "france"
+      ]
+    },
+    {
+      "languageTag": "pms",
+      "languageNames": [
+        "Piedmontese",
+        "Piemontese",
+        "Piemontèis"
+      ],
+      "worldFlagIds": [
+        "piedmontese"
+      ]
+    },
+    {
+      "languageTag": "pms-IT",
+      "worldFlagIds": [
+        "piedmontese",
+        "italy"
+      ]
+    },
+    {
+      "languageTag": "pt",
+      "languageNames": [
+        "Portuguese",
+        "Português"
+      ],
+      "worldFlagIds": [
+        "portugal"
+      ]
+    },
+    {
+      "languageTag": "pt-PT",
+      "worldFlagIds": [
+        "portugal"
+      ]
+    },
+    {
+      "languageTag": "rom",
+      "languageNames": [
+        "Romani",
+        "Roma language"
+      ],
+      "worldFlagIds": [
+        "roma"
+      ]
+    },
+    {
+      "languageTag": "sc",
+      "languageNames": [
+        "Sardinian",
+        "Sardu"
+      ],
+      "worldFlagIds": [
+        "sardinian"
+      ]
+    },
+    {
+      "languageTag": "sc-IT",
+      "worldFlagIds": [
+        "sardinian",
+        "italy"
+      ]
+    },
+    {
+      "languageTag": "scn",
+      "languageNames": [
+        "Sicilian",
+        "Sicilianu"
+      ],
+      "worldFlagIds": [
+        "sicilian"
+      ]
+    },
+    {
+      "languageTag": "scn-IT",
+      "worldFlagIds": [
+        "sicilian",
+        "italy"
+      ]
+    },
+    {
+      "languageTag": "se",
+      "languageNames": [
+        "Northern Sámi",
+        "Northern Sami",
+        "Davvisámegiella"
+      ],
+      "worldFlagIds": [
+        "sami"
+      ]
+    },
+    {
+      "languageTag": "se-FI",
+      "worldFlagIds": [
+        "sami",
+        "finland"
+      ]
+    },
+    {
+      "languageTag": "se-NO",
+      "worldFlagIds": [
+        "sami",
+        "norway"
+      ]
+    },
+    {
+      "languageTag": "se-SE",
+      "worldFlagIds": [
+        "sami",
+        "sweden"
+      ]
+    },
+    {
+      "languageTag": "smi",
+      "languageNames": [
+        "Sámi",
+        "Sami",
+        "Saami",
+        "Sámi languages",
+        "Sami languages"
+      ],
+      "worldFlagIds": [
+        "sami"
+      ]
+    },
+    {
+      "languageTag": "wen",
+      "languageNames": [
+        "Sorbian",
+        "Sorbs",
+        "Sorbian languages"
+      ],
+      "worldFlagIds": [
+        "sorbian"
+      ]
+    },
+    {
+      "languageTag": "zgh",
+      "languageNames": [
+        "Standard Moroccan Tamazight"
+      ],
+      "worldFlagIds": [
+        "amazigh"
+      ]
+    },
+    {
+      "languageTag": "zgh-MA",
+      "worldFlagIds": [
+        "amazigh",
+        "morocco"
+      ]
+    }
+  ],
   "entities": [
     {
       "id": "afghanistan",
@@ -46,7 +595,8 @@
       "category": "unMember",
       "aliases": [],
       "distractorTags": [
-        "color:white",
+        "color:black",
+        "color:red",
         "rir:ripe_ncc"
       ],
       "avoidAsDistractorWith": []
@@ -60,10 +610,34 @@
       "category": "unMember",
       "aliases": [],
       "distractorTags": [
-        "color:black",
+        "color:green",
         "color:red",
         "color:white",
         "rir:afrinic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "amazigh",
+      "displayNameEn": "Amazigh",
+      "assetPath": "assets/world_flags/flags/amazigh.svg",
+      "category": "communityOrRegionalFlagAssociatedWithLanguage",
+      "aliases": [
+        "Berber",
+        "Imazighen",
+        "Tamazight",
+        "ⴰⵎⴰⵣⵉⵖ"
+      ],
+      "artworkSourcePage": "https://commons.wikimedia.org/wiki/File:Berber_flag.svg",
+      "artworkLicense": "Public domain",
+      "artworkAuthor": "Mysid",
+      "artworkSha1": "4f3b212566713932ae2c615f84db85bf58148740",
+      "distractorTags": [
+        "color:blue",
+        "color:green",
+        "color:red",
+        "color:yellow",
+        "region:africa"
       ],
       "avoidAsDistractorWith": []
     },
@@ -76,7 +650,8 @@
       "category": "isoExtra",
       "aliases": [],
       "distractorTags": [
-        "color:black",
+        "color:blue",
+        "color:gray",
         "color:orange",
         "color:red",
         "color:white",
@@ -93,10 +668,11 @@
       "category": "unMember",
       "aliases": [],
       "distractorTags": [
-        "color:black",
         "color:blue",
         "color:orange",
         "color:red",
+        "color:white",
+        "color:yellow",
         "rir:ripe_ncc"
       ],
       "avoidAsDistractorWith": []
@@ -111,7 +687,7 @@
       "aliases": [],
       "distractorTags": [
         "color:black",
-        "color:white",
+        "color:red",
         "color:yellow",
         "rir:afrinic"
       ],
@@ -126,11 +702,11 @@
       "category": "isoExtra",
       "aliases": [],
       "distractorTags": [
-        "color:black",
         "color:blue",
         "color:orange",
         "color:red",
         "color:white",
+        "color:yellow",
         "rir:arin"
       ],
       "avoidAsDistractorWith": []
@@ -144,8 +720,8 @@
       "category": "isoExtra",
       "aliases": [],
       "distractorTags": [
-        "color:black",
         "color:blue",
+        "color:white",
         "rir:arin"
       ],
       "avoidAsDistractorWith": []
@@ -161,12 +737,42 @@
       "distractorTags": [
         "color:black",
         "color:blue",
-        "color:orange",
         "color:red",
         "color:white",
+        "color:yellow",
         "rir:arin"
       ],
       "avoidAsDistractorWith": []
+    },
+    {
+      "id": "aragonese",
+      "displayNameEn": "Aragonese",
+      "assetPath": "assets/world_flags/flags/aragonese.svg",
+      "category": "communityOrRegionalFlagAssociatedWithLanguage",
+      "aliases": [
+        "Aragon",
+        "Aragón",
+        "Aragonés"
+      ],
+      "artworkSourcePage": "https://commons.wikimedia.org/wiki/File:Flag_of_Aragon.svg",
+      "artworkLicense": "CC BY-SA 3.0",
+      "artworkAuthor": "Willtron",
+      "artworkSourceSha1": "9816b944df1e0ae53b4ce259f9205ef3718d9840",
+      "artworkSha1": "4d95c4c3b104c552b0fd74b2c79d764fe7459e79",
+      "distractorTags": [
+        "color:black",
+        "color:blue",
+        "color:gray",
+        "color:green",
+        "color:orange",
+        "color:red",
+        "color:white",
+        "color:yellow",
+        "region:europe"
+      ],
+      "avoidAsDistractorWith": [
+        "catalonia"
+      ]
     },
     {
       "id": "argentina",
@@ -177,9 +783,9 @@
       "category": "unMember",
       "aliases": [],
       "distractorTags": [
-        "color:black",
         "color:blue",
         "color:orange",
+        "color:white",
         "rir:lacnic"
       ],
       "avoidAsDistractorWith": []
@@ -209,11 +815,32 @@
       "category": "isoExtra",
       "aliases": [],
       "distractorTags": [
-        "color:black",
         "color:blue",
         "color:red",
+        "color:white",
         "color:yellow",
         "rir:lacnic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "asturian",
+      "displayNameEn": "Asturian",
+      "assetPath": "assets/world_flags/flags/asturian.svg",
+      "category": "communityOrRegionalFlagAssociatedWithLanguage",
+      "aliases": [
+        "Asturias",
+        "Asturianu",
+        "Astur-Leonese"
+      ],
+      "artworkSourcePage": "https://commons.wikimedia.org/wiki/File:Flag_of_Asturias.svg",
+      "artworkLicense": "Public domain",
+      "artworkAuthor": "Banderas",
+      "artworkSha1": "caefb74c9ba07d45bc1548887a6d38c5625d0634",
+      "distractorTags": [
+        "color:blue",
+        "color:yellow",
+        "region:europe"
       ],
       "avoidAsDistractorWith": []
     },
@@ -226,8 +853,9 @@
       "category": "unMember",
       "aliases": [],
       "distractorTags": [
-        "color:black",
         "color:blue",
+        "color:red",
+        "color:white",
         "rir:apnic"
       ],
       "avoidAsDistractorWith": []
@@ -241,8 +869,8 @@
       "category": "unMember",
       "aliases": [],
       "distractorTags": [
-        "color:black",
         "color:red",
+        "color:white",
         "rir:ripe_ncc"
       ],
       "avoidAsDistractorWith": []
@@ -256,10 +884,10 @@
       "category": "unMember",
       "aliases": [],
       "distractorTags": [
-        "color:black",
         "color:blue",
         "color:green",
         "color:red",
+        "color:white",
         "rir:ripe_ncc"
       ],
       "avoidAsDistractorWith": []
@@ -275,8 +903,8 @@
       "distractorTags": [
         "color:black",
         "color:blue",
-        "color:orange",
         "color:white",
+        "color:yellow",
         "rir:arin"
       ],
       "avoidAsDistractorWith": []
@@ -290,8 +918,8 @@
       "category": "unMember",
       "aliases": [],
       "distractorTags": [
-        "color:black",
         "color:red",
+        "color:white",
         "rir:ripe_ncc"
       ],
       "avoidAsDistractorWith": []
@@ -305,8 +933,8 @@
       "category": "unMember",
       "aliases": [],
       "distractorTags": [
+        "color:green",
         "color:red",
-        "color:white",
         "rir:apnic"
       ],
       "avoidAsDistractorWith": []
@@ -320,8 +948,9 @@
       "category": "unMember",
       "aliases": [],
       "distractorTags": [
+        "color:black",
+        "color:blue",
         "color:orange",
-        "color:white",
         "rir:arin"
       ],
       "avoidAsDistractorWith": []
@@ -333,9 +962,9 @@
       "category": "shortlist",
       "aliases": [],
       "distractorTags": [
-        "color:black",
         "color:green",
         "color:red",
+        "color:white",
         "region:europe"
       ],
       "avoidAsDistractorWith": []
@@ -349,7 +978,7 @@
       "category": "unMember",
       "aliases": [],
       "distractorTags": [
-        "color:black",
+        "color:green",
         "color:red",
         "color:white",
         "rir:ripe_ncc"
@@ -365,9 +994,9 @@
       "category": "unMember",
       "aliases": [],
       "distractorTags": [
-        "color:orange",
+        "color:black",
         "color:red",
-        "color:white",
+        "color:yellow",
         "rir:ripe_ncc"
       ],
       "avoidAsDistractorWith": []
@@ -383,10 +1012,12 @@
       "distractorTags": [
         "color:black",
         "color:blue",
+        "color:gray",
         "color:green",
         "color:orange",
         "color:red",
         "color:white",
+        "color:yellow",
         "rir:lacnic"
       ],
       "avoidAsDistractorWith": []
@@ -400,9 +1031,10 @@
       "category": "unMember",
       "aliases": [],
       "distractorTags": [
+        "color:gray",
         "color:green",
-        "color:orange",
         "color:red",
+        "color:yellow",
         "rir:afrinic"
       ],
       "avoidAsDistractorWith": []
@@ -422,6 +1054,7 @@
         "color:orange",
         "color:red",
         "color:white",
+        "color:yellow",
         "rir:arin"
       ],
       "avoidAsDistractorWith": []
@@ -436,8 +1069,9 @@
       "aliases": [],
       "distractorTags": [
         "color:black",
-        "color:orange",
         "color:red",
+        "color:white",
+        "color:yellow",
         "rir:apnic"
       ],
       "avoidAsDistractorWith": []
@@ -455,10 +1089,12 @@
       "distractorTags": [
         "color:black",
         "color:blue",
+        "color:gray",
         "color:green",
         "color:orange",
         "color:red",
         "color:white",
+        "color:yellow",
         "rir:lacnic"
       ],
       "avoidAsDistractorWith": []
@@ -472,9 +1108,9 @@
       "category": "isoExtra",
       "aliases": [],
       "distractorTags": [
-        "color:black",
         "color:blue",
         "color:red",
+        "color:white",
         "rir:lacnic"
       ],
       "avoidAsDistractorWith": []
@@ -488,9 +1124,9 @@
       "category": "unMember",
       "aliases": [],
       "distractorTags": [
-        "color:black",
         "color:blue",
-        "color:orange",
+        "color:white",
+        "color:yellow",
         "rir:ripe_ncc"
       ],
       "avoidAsDistractorWith": []
@@ -520,9 +1156,9 @@
       "category": "isoExtra",
       "aliases": [],
       "distractorTags": [
-        "color:black",
         "color:blue",
         "color:red",
+        "color:white",
         "rir:arin"
       ],
       "avoidAsDistractorWith": []
@@ -536,9 +1172,9 @@
       "category": "unMember",
       "aliases": [],
       "distractorTags": [
-        "color:black",
         "color:blue",
         "color:green",
+        "color:white",
         "color:yellow",
         "rir:lacnic"
       ],
@@ -559,6 +1195,7 @@
       "artworkSha1": "74396a0634b69885126907fb21edb6c1c998ad79",
       "distractorTags": [
         "color:black",
+        "color:white",
         "region:europe"
       ],
       "avoidAsDistractorWith": []
@@ -573,6 +1210,9 @@
       "aliases": [],
       "distractorTags": [
         "color:black",
+        "color:blue",
+        "color:gray",
+        "color:green",
         "color:orange",
         "color:red",
         "color:white",
@@ -593,6 +1233,8 @@
       ],
       "distractorTags": [
         "color:black",
+        "color:blue",
+        "color:green",
         "color:orange",
         "color:red",
         "color:white",
@@ -613,9 +1255,9 @@
       ],
       "distractorTags": [
         "color:black",
-        "color:orange",
         "color:red",
         "color:white",
+        "color:yellow",
         "rir:apnic"
       ],
       "avoidAsDistractorWith": []
@@ -629,9 +1271,9 @@
       "category": "unMember",
       "aliases": [],
       "distractorTags": [
-        "color:black",
         "color:green",
         "color:red",
+        "color:white",
         "rir:ripe_ncc"
       ],
       "avoidAsDistractorWith": []
@@ -661,9 +1303,9 @@
       "category": "unMember",
       "aliases": [],
       "distractorTags": [
-        "color:black",
         "color:green",
         "color:red",
+        "color:white",
         "rir:afrinic"
       ],
       "avoidAsDistractorWith": []
@@ -680,6 +1322,7 @@
         "color:black",
         "color:blue",
         "color:red",
+        "color:white",
         "rir:apnic"
       ],
       "avoidAsDistractorWith": []
@@ -693,9 +1336,9 @@
       "category": "unMember",
       "aliases": [],
       "distractorTags": [
-        "color:orange",
+        "color:blue",
         "color:red",
-        "color:white",
+        "color:yellow",
         "rir:afrinic"
       ],
       "avoidAsDistractorWith": []
@@ -709,8 +1352,8 @@
       "category": "unMember",
       "aliases": [],
       "distractorTags": [
-        "color:black",
         "color:red",
+        "color:white",
         "rir:arin"
       ],
       "avoidAsDistractorWith": []
@@ -724,10 +1367,10 @@
       "category": "unMember",
       "aliases": [],
       "distractorTags": [
-        "color:black",
-        "color:orange",
+        "color:blue",
         "color:red",
         "color:white",
+        "color:yellow",
         "rir:afrinic"
       ],
       "avoidAsDistractorWith": []
@@ -739,11 +1382,13 @@
       "category": "shortlist",
       "aliases": [],
       "distractorTags": [
-        "color:orange",
         "color:red",
+        "color:yellow",
         "region:europe"
       ],
-      "avoidAsDistractorWith": []
+      "avoidAsDistractorWith": [
+        "aragonese"
+      ]
     },
     {
       "id": "cayman_islands",
@@ -757,9 +1402,9 @@
         "color:black",
         "color:blue",
         "color:green",
-        "color:orange",
         "color:red",
         "color:white",
+        "color:yellow",
         "rir:arin"
       ],
       "avoidAsDistractorWith": []
@@ -773,9 +1418,10 @@
       "category": "unMember",
       "aliases": [],
       "distractorTags": [
-        "color:black",
         "color:blue",
         "color:green",
+        "color:red",
+        "color:white",
         "color:yellow",
         "rir:afrinic"
       ],
@@ -790,9 +1436,9 @@
       "category": "unMember",
       "aliases": [],
       "distractorTags": [
-        "color:orange",
+        "color:blue",
         "color:red",
-        "color:white",
+        "color:yellow",
         "rir:afrinic"
       ],
       "avoidAsDistractorWith": [
@@ -808,9 +1454,9 @@
       "category": "unMember",
       "aliases": [],
       "distractorTags": [
-        "color:black",
         "color:blue",
         "color:red",
+        "color:white",
         "rir:lacnic"
       ],
       "avoidAsDistractorWith": []
@@ -839,10 +1485,10 @@
       "category": "isoExtra",
       "aliases": [],
       "distractorTags": [
-        "color:black",
         "color:blue",
         "color:green",
         "color:orange",
+        "color:white",
         "rir:apnic"
       ],
       "avoidAsDistractorWith": []
@@ -856,9 +1502,10 @@
       "category": "isoExtra",
       "aliases": [],
       "distractorTags": [
+        "color:green",
         "color:orange",
         "color:red",
-        "color:white",
+        "color:yellow",
         "rir:apnic"
       ],
       "avoidAsDistractorWith": []
@@ -873,8 +1520,8 @@
       "aliases": [],
       "distractorTags": [
         "color:blue",
-        "color:orange",
         "color:red",
+        "color:yellow",
         "rir:lacnic"
       ],
       "avoidAsDistractorWith": []
@@ -888,10 +1535,10 @@
       "category": "unMember",
       "aliases": [],
       "distractorTags": [
-        "color:black",
         "color:blue",
         "color:green",
         "color:red",
+        "color:white",
         "color:yellow",
         "rir:afrinic"
       ],
@@ -906,7 +1553,7 @@
       "category": "isoExtra",
       "aliases": [],
       "distractorTags": [
-        "color:black",
+        "color:blue",
         "color:red",
         "color:white",
         "rir:apnic"
@@ -927,7 +1574,7 @@
       "artworkAuthor": "Jon Harald Søby",
       "artworkSha1": "013c1beccfadde20546eb86aba7ffa2fd9dcf599",
       "distractorTags": [
-        "color:black",
+        "color:white",
         "region:europe"
       ],
       "avoidAsDistractorWith": []
@@ -945,6 +1592,9 @@
       "artworkAuthor": "Patricia.fidi",
       "artworkSha1": "10f049eb79b7a8fa9b79547ea0961c876e4a32a1",
       "distractorTags": [
+        "color:black",
+        "color:blue",
+        "color:white",
         "region:europe"
       ],
       "avoidAsDistractorWith": []
@@ -958,9 +1608,9 @@
       "category": "unMember",
       "aliases": [],
       "distractorTags": [
-        "color:black",
         "color:blue",
         "color:red",
+        "color:white",
         "rir:lacnic"
       ],
       "avoidAsDistractorWith": []
@@ -976,7 +1626,9 @@
       "distractorTags": [
         "color:black",
         "color:blue",
-        "color:orange",
+        "color:red",
+        "color:white",
+        "color:yellow",
         "rir:ripe_ncc"
       ],
       "avoidAsDistractorWith": []
@@ -990,9 +1642,9 @@
       "category": "unMember",
       "aliases": [],
       "distractorTags": [
-        "color:black",
         "color:blue",
         "color:red",
+        "color:white",
         "rir:lacnic"
       ],
       "avoidAsDistractorWith": []
@@ -1006,7 +1658,7 @@
       "category": "isoExtra",
       "aliases": [],
       "distractorTags": [
-        "color:black",
+        "color:blue",
         "color:white",
         "color:yellow",
         "rir:lacnic"
@@ -1022,9 +1674,9 @@
       "category": "unMember",
       "aliases": [],
       "distractorTags": [
-        "color:black",
         "color:green",
         "color:orange",
+        "color:white",
         "rir:ripe_ncc"
       ],
       "avoidAsDistractorWith": []
@@ -1038,9 +1690,9 @@
       "category": "unMember",
       "aliases": [],
       "distractorTags": [
-        "color:black",
         "color:blue",
         "color:red",
+        "color:white",
         "rir:ripe_ncc"
       ],
       "avoidAsDistractorWith": []
@@ -1054,9 +1706,9 @@
       "category": "unMember",
       "aliases": [],
       "distractorTags": [
-        "color:black",
         "color:green",
         "color:orange",
+        "color:white",
         "rir:afrinic"
       ],
       "avoidAsDistractorWith": [
@@ -1075,8 +1727,8 @@
       ],
       "distractorTags": [
         "color:blue",
-        "color:orange",
         "color:red",
+        "color:yellow",
         "rir:afrinic"
       ],
       "avoidAsDistractorWith": []
@@ -1090,8 +1742,8 @@
       "category": "unMember",
       "aliases": [],
       "distractorTags": [
-        "color:black",
         "color:red",
+        "color:white",
         "rir:ripe_ncc"
       ],
       "avoidAsDistractorWith": []
@@ -1142,8 +1794,8 @@
       "aliases": [],
       "distractorTags": [
         "color:black",
+        "color:blue",
         "color:green",
-        "color:orange",
         "color:red",
         "color:white",
         "color:yellow",
@@ -1162,10 +1814,12 @@
       "distractorTags": [
         "color:black",
         "color:blue",
+        "color:gray",
         "color:green",
         "color:orange",
         "color:red",
         "color:white",
+        "color:yellow",
         "rir:lacnic"
       ],
       "avoidAsDistractorWith": []
@@ -1180,9 +1834,9 @@
       "aliases": [],
       "distractorTags": [
         "color:black",
-        "color:orange",
         "color:red",
         "color:white",
+        "color:yellow",
         "rir:afrinic"
       ],
       "avoidAsDistractorWith": []
@@ -1200,6 +1854,7 @@
         "color:blue",
         "color:green",
         "color:orange",
+        "color:purple",
         "color:red",
         "color:white",
         "color:yellow",
@@ -1214,8 +1869,8 @@
       "category": "shortlist",
       "aliases": [],
       "distractorTags": [
-        "color:black",
         "color:red",
+        "color:white",
         "region:europe"
       ],
       "avoidAsDistractorWith": [],
@@ -1235,6 +1890,7 @@
         "color:green",
         "color:orange",
         "color:red",
+        "color:white",
         "rir:afrinic"
       ],
       "avoidAsDistractorWith": []
@@ -1250,9 +1906,30 @@
       "distractorTags": [
         "color:blue",
         "color:green",
-        "color:orange",
         "color:red",
+        "color:yellow",
         "rir:afrinic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "esperanto",
+      "displayNameEn": "Esperanto",
+      "assetPath": "assets/world_flags/flags/esperanto.svg",
+      "category": "communityOrRegionalFlagAssociatedWithLanguage",
+      "aliases": [
+        "Esperantujo",
+        "Esperanto-flago",
+        "Esperanto flag"
+      ],
+      "artworkSourcePage": "https://commons.wikimedia.org/wiki/File:Flag_of_Esperanto.svg",
+      "artworkLicense": "Public domain",
+      "artworkAuthor": "Richard H. Geoghegan",
+      "artworkSha1": "34ee04852b601831a554f89cc0c54b4a94d887c9",
+      "distractorTags": [
+        "color:green",
+        "color:white",
+        "region:global"
       ],
       "avoidAsDistractorWith": []
     },
@@ -1306,6 +1983,7 @@
         "color:orange",
         "color:red",
         "color:white",
+        "color:yellow",
         "rir:lacnic"
       ],
       "avoidAsDistractorWith": []
@@ -1319,9 +1997,9 @@
       "category": "isoExtra",
       "aliases": [],
       "distractorTags": [
-        "color:black",
         "color:blue",
         "color:red",
+        "color:white",
         "rir:ripe_ncc"
       ],
       "avoidAsDistractorWith": []
@@ -1338,7 +2016,6 @@
         "color:black",
         "color:blue",
         "color:green",
-        "color:orange",
         "color:red",
         "color:white",
         "color:yellow",
@@ -1355,7 +2032,7 @@
       "category": "unMember",
       "aliases": [],
       "distractorTags": [
-        "color:black",
+        "color:blue",
         "color:white",
         "rir:ripe_ncc"
       ],
@@ -1370,9 +2047,9 @@
       "category": "unMember",
       "aliases": [],
       "distractorTags": [
-        "color:black",
         "color:blue",
         "color:red",
+        "color:white",
         "rir:ripe_ncc"
       ],
       "avoidAsDistractorWith": []
@@ -1386,9 +2063,9 @@
       "category": "isoExtra",
       "aliases": [],
       "distractorTags": [
-        "color:black",
         "color:blue",
         "color:red",
+        "color:white",
         "rir:lacnic"
       ],
       "avoidAsDistractorWith": []
@@ -1406,6 +2083,7 @@
         "color:blue",
         "color:orange",
         "color:red",
+        "color:white",
         "rir:apnic"
       ],
       "avoidAsDistractorWith": []
@@ -1419,9 +2097,9 @@
       "category": "isoExtra",
       "aliases": [],
       "distractorTags": [
-        "color:black",
         "color:blue",
         "color:red",
+        "color:white",
         "rir:apnic"
       ],
       "avoidAsDistractorWith": []
@@ -1441,8 +2119,10 @@
       "distractorTags": [
         "color:black",
         "color:blue",
-        "color:orange",
+        "color:gray",
         "color:red",
+        "color:white",
+        "color:yellow",
         "region:europe"
       ],
       "avoidAsDistractorWith": []
@@ -1458,7 +2138,7 @@
       "distractorTags": [
         "color:blue",
         "color:green",
-        "color:orange",
+        "color:yellow",
         "rir:afrinic"
       ],
       "avoidAsDistractorWith": []
@@ -1472,8 +2152,10 @@
       "distractorTags": [
         "color:black",
         "color:blue",
-        "color:orange",
+        "color:gray",
         "color:red",
+        "color:white",
+        "color:yellow",
         "region:europe"
       ],
       "avoidAsDistractorWith": []
@@ -1487,9 +2169,10 @@
       "category": "unMember",
       "aliases": [],
       "distractorTags": [
-        "color:black",
         "color:blue",
         "color:green",
+        "color:red",
+        "color:white",
         "rir:afrinic"
       ],
       "avoidAsDistractorWith": []
@@ -1503,7 +2186,8 @@
       "category": "unMember",
       "aliases": [],
       "distractorTags": [
-        "color:black",
+        "color:red",
+        "color:white",
         "rir:ripe_ncc"
       ],
       "avoidAsDistractorWith": []
@@ -1517,8 +2201,9 @@
       "category": "unMember",
       "aliases": [],
       "distractorTags": [
-        "color:orange",
-        "color:white",
+        "color:black",
+        "color:red",
+        "color:yellow",
         "rir:ripe_ncc"
       ],
       "avoidAsDistractorWith": []
@@ -1532,9 +2217,10 @@
       "category": "unMember",
       "aliases": [],
       "distractorTags": [
-        "color:orange",
+        "color:black",
+        "color:green",
         "color:red",
-        "color:white",
+        "color:yellow",
         "rir:afrinic"
       ],
       "avoidAsDistractorWith": []
@@ -1549,9 +2235,9 @@
       "aliases": [],
       "distractorTags": [
         "color:black",
-        "color:orange",
         "color:red",
         "color:white",
+        "color:yellow",
         "rir:ripe_ncc"
       ],
       "avoidAsDistractorWith": []
@@ -1565,8 +2251,8 @@
       "category": "unMember",
       "aliases": [],
       "distractorTags": [
-        "color:black",
         "color:blue",
+        "color:white",
         "rir:ripe_ncc"
       ],
       "avoidAsDistractorWith": []
@@ -1580,8 +2266,8 @@
       "category": "isoExtra",
       "aliases": [],
       "distractorTags": [
-        "color:black",
         "color:red",
+        "color:white",
         "rir:ripe_ncc"
       ],
       "avoidAsDistractorWith": []
@@ -1595,9 +2281,9 @@
       "category": "unMember",
       "aliases": [],
       "distractorTags": [
-        "color:orange",
+        "color:blue",
         "color:red",
-        "color:white",
+        "color:yellow",
         "rir:arin"
       ],
       "avoidAsDistractorWith": []
@@ -1611,9 +2297,9 @@
       "category": "isoExtra",
       "aliases": [],
       "distractorTags": [
-        "color:black",
         "color:blue",
         "color:red",
+        "color:white",
         "rir:arin"
       ],
       "avoidAsDistractorWith": []
@@ -1653,6 +2339,7 @@
         "color:orange",
         "color:red",
         "color:white",
+        "color:yellow",
         "rir:lacnic"
       ],
       "avoidAsDistractorWith": []
@@ -1666,9 +2353,9 @@
       "category": "isoExtra",
       "aliases": [],
       "distractorTags": [
-        "color:black",
-        "color:orange",
         "color:red",
+        "color:white",
+        "color:yellow",
         "rir:ripe_ncc"
       ],
       "avoidAsDistractorWith": []
@@ -1683,6 +2370,7 @@
       "aliases": [],
       "distractorTags": [
         "color:green",
+        "color:red",
         "color:yellow",
         "rir:afrinic"
       ],
@@ -1699,10 +2387,10 @@
       "category": "unMember",
       "aliases": [],
       "distractorTags": [
+        "color:black",
         "color:green",
-        "color:orange",
         "color:red",
-        "color:white",
+        "color:yellow",
         "rir:afrinic"
       ],
       "avoidAsDistractorWith": []
@@ -1718,9 +2406,9 @@
       "distractorTags": [
         "color:black",
         "color:green",
-        "color:orange",
         "color:red",
         "color:white",
+        "color:yellow",
         "rir:lacnic"
       ],
       "avoidAsDistractorWith": []
@@ -1736,6 +2424,7 @@
       "distractorTags": [
         "color:black",
         "color:blue",
+        "color:green",
         "color:orange",
         "color:red",
         "color:white",
@@ -1752,8 +2441,9 @@
       "category": "isoExtra",
       "aliases": [],
       "distractorTags": [
-        "color:black",
         "color:blue",
+        "color:red",
+        "color:white",
         "rir:arin"
       ],
       "avoidAsDistractorWith": []
@@ -1767,8 +2457,8 @@
       "category": "unMember",
       "aliases": [],
       "distractorTags": [
-        "color:black",
         "color:blue",
+        "color:white",
         "rir:lacnic"
       ],
       "avoidAsDistractorWith": []
@@ -1782,8 +2472,8 @@
       "category": "isoExtra",
       "aliases": [],
       "distractorTags": [
-        "color:black",
         "color:red",
+        "color:white",
         "rir:apnic"
       ],
       "avoidAsDistractorWith": []
@@ -1797,9 +2487,9 @@
       "category": "unMember",
       "aliases": [],
       "distractorTags": [
-        "color:black",
         "color:green",
         "color:red",
+        "color:white",
         "rir:ripe_ncc"
       ],
       "avoidAsDistractorWith": []
@@ -1813,9 +2503,9 @@
       "category": "unMember",
       "aliases": [],
       "distractorTags": [
-        "color:black",
         "color:blue",
         "color:red",
+        "color:white",
         "rir:ripe_ncc"
       ],
       "avoidAsDistractorWith": []
@@ -1829,10 +2519,10 @@
       "category": "unMember",
       "aliases": [],
       "distractorTags": [
-        "color:black",
         "color:blue",
         "color:green",
         "color:orange",
+        "color:white",
         "rir:apnic"
       ],
       "avoidAsDistractorWith": []
@@ -1846,8 +2536,8 @@
       "category": "unMember",
       "aliases": [],
       "distractorTags": [
-        "color:black",
         "color:red",
+        "color:white",
         "rir:apnic"
       ],
       "avoidAsDistractorWith": [
@@ -1865,9 +2555,9 @@
         "Iran, Islamic Republic Of"
       ],
       "distractorTags": [
-        "color:black",
         "color:green",
         "color:red",
+        "color:white",
         "rir:ripe_ncc"
       ],
       "avoidAsDistractorWith": []
@@ -1882,6 +2572,7 @@
       "aliases": [],
       "distractorTags": [
         "color:black",
+        "color:green",
         "color:red",
         "color:white",
         "rir:ripe_ncc"
@@ -1897,9 +2588,9 @@
       "category": "unMember",
       "aliases": [],
       "distractorTags": [
-        "color:black",
         "color:green",
         "color:orange",
+        "color:white",
         "rir:ripe_ncc"
       ],
       "avoidAsDistractorWith": [
@@ -1916,8 +2607,8 @@
       "aliases": [],
       "distractorTags": [
         "color:black",
-        "color:orange",
         "color:red",
+        "color:white",
         "color:yellow",
         "rir:ripe_ncc"
       ],
@@ -1932,8 +2623,8 @@
       "category": "unMember",
       "aliases": [],
       "distractorTags": [
-        "color:black",
         "color:blue",
+        "color:white",
         "rir:ripe_ncc"
       ],
       "avoidAsDistractorWith": []
@@ -1947,9 +2638,9 @@
       "category": "unMember",
       "aliases": [],
       "distractorTags": [
-        "color:black",
         "color:green",
         "color:red",
+        "color:white",
         "rir:ripe_ncc"
       ],
       "avoidAsDistractorWith": []
@@ -1963,9 +2654,9 @@
       "category": "unMember",
       "aliases": [],
       "distractorTags": [
+        "color:black",
         "color:green",
-        "color:orange",
-        "color:white",
+        "color:yellow",
         "rir:arin"
       ],
       "avoidAsDistractorWith": []
@@ -1979,8 +2670,8 @@
       "category": "unMember",
       "aliases": [],
       "distractorTags": [
-        "color:black",
         "color:red",
+        "color:white",
         "rir:apnic"
       ],
       "avoidAsDistractorWith": []
@@ -1996,9 +2687,9 @@
       "distractorTags": [
         "color:black",
         "color:blue",
-        "color:orange",
         "color:red",
         "color:white",
+        "color:yellow",
         "rir:ripe_ncc"
       ],
       "avoidAsDistractorWith": []
@@ -2014,6 +2705,7 @@
       "distractorTags": [
         "color:black",
         "color:green",
+        "color:red",
         "color:white",
         "rir:ripe_ncc"
       ],
@@ -2029,7 +2721,7 @@
       "aliases": [],
       "distractorTags": [
         "color:blue",
-        "color:orange",
+        "color:yellow",
         "rir:ripe_ncc"
       ],
       "avoidAsDistractorWith": []
@@ -2044,6 +2736,7 @@
       "aliases": [],
       "distractorTags": [
         "color:black",
+        "color:green",
         "color:red",
         "color:white",
         "rir:afrinic"
@@ -2059,10 +2752,10 @@
       "category": "unMember",
       "aliases": [],
       "distractorTags": [
-        "color:black",
         "color:blue",
         "color:orange",
         "color:red",
+        "color:white",
         "rir:apnic"
       ],
       "avoidAsDistractorWith": []
@@ -2074,9 +2767,9 @@
       "category": "shortlist",
       "aliases": [],
       "distractorTags": [
-        "color:black",
         "color:blue",
         "color:orange",
+        "color:white",
         "region:europe"
       ],
       "avoidAsDistractorWith": []
@@ -2107,8 +2800,30 @@
       "category": "unMember",
       "aliases": [],
       "distractorTags": [
+        "color:red",
         "color:yellow",
         "rir:ripe_ncc"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "ladin",
+      "displayNameEn": "Ladin",
+      "assetPath": "assets/world_flags/flags/ladin.svg",
+      "category": "communityOrRegionalFlagAssociatedWithLanguage",
+      "aliases": [
+        "Ladinia",
+        "Ladino dolomitico"
+      ],
+      "artworkSourcePage": "https://commons.wikimedia.org/wiki/File:Flag_of_Ladinia.svg",
+      "artworkLicense": "Public domain",
+      "artworkAuthor": "Unknown, recreated by Sebastian Walderich",
+      "artworkSha1": "5f89f33aa13f36cddc8bbf47cb1cdbad4693d9c2",
+      "distractorTags": [
+        "color:blue",
+        "color:green",
+        "color:white",
+        "region:europe"
       ],
       "avoidAsDistractorWith": []
     },
@@ -2123,7 +2838,7 @@
         "Lao People'S Democratic Republic"
       ],
       "distractorTags": [
-        "color:black",
+        "color:blue",
         "color:red",
         "color:white",
         "rir:apnic"
@@ -2139,8 +2854,8 @@
       "category": "unMember",
       "aliases": [],
       "distractorTags": [
-        "color:black",
         "color:red",
+        "color:white",
         "rir:ripe_ncc"
       ],
       "avoidAsDistractorWith": []
@@ -2154,9 +2869,9 @@
       "category": "unMember",
       "aliases": [],
       "distractorTags": [
-        "color:black",
         "color:green",
         "color:red",
+        "color:white",
         "rir:ripe_ncc"
       ],
       "avoidAsDistractorWith": []
@@ -2173,6 +2888,7 @@
         "color:black",
         "color:blue",
         "color:green",
+        "color:white",
         "rir:afrinic"
       ],
       "avoidAsDistractorWith": []
@@ -2186,7 +2902,7 @@
       "category": "unMember",
       "aliases": [],
       "distractorTags": [
-        "color:black",
+        "color:blue",
         "color:red",
         "color:white",
         "rir:afrinic"
@@ -2220,9 +2936,9 @@
       "aliases": [],
       "distractorTags": [
         "color:black",
-        "color:orange",
+        "color:blue",
         "color:red",
-        "color:white",
+        "color:yellow",
         "rir:ripe_ncc"
       ],
       "avoidAsDistractorWith": []
@@ -2236,10 +2952,33 @@
       "category": "unMember",
       "aliases": [],
       "distractorTags": [
+        "color:green",
         "color:orange",
         "color:red",
-        "color:white",
         "rir:ripe_ncc"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "livonian",
+      "displayNameEn": "Livonian",
+      "assetPath": "assets/world_flags/flags/livonian.svg",
+      "category": "communityOrRegionalFlagAssociatedWithLanguage",
+      "aliases": [
+        "Livonians",
+        "Livonian people",
+        "Līvõ kēļ"
+      ],
+      "artworkSourcePage": "https://commons.wikimedia.org/wiki/File:Flag_of_the_Livonians.svg",
+      "artworkLicense": "Public domain",
+      "artworkAuthor": "Tasman",
+      "artworkSourceSha1": "cbc9caa198419cc1643cb36a1bb2a5c361343b0f",
+      "artworkSha1": "61989bbfe4e065997bbe369af91520641fd2d5a4",
+      "distractorTags": [
+        "color:blue",
+        "color:green",
+        "color:white",
+        "region:europe"
       ],
       "avoidAsDistractorWith": []
     },
@@ -2252,9 +2991,9 @@
       "category": "unMember",
       "aliases": [],
       "distractorTags": [
-        "color:black",
         "color:blue",
         "color:red",
+        "color:white",
         "rir:ripe_ncc"
       ],
       "avoidAsDistractorWith": [
@@ -2270,9 +3009,9 @@
       "category": "isoExtra",
       "aliases": [],
       "distractorTags": [
-        "color:black",
-        "color:orange",
+        "color:blue",
         "color:white",
+        "color:yellow",
         "rir:apnic"
       ],
       "avoidAsDistractorWith": []
@@ -2286,7 +3025,7 @@
       "category": "unMember",
       "aliases": [],
       "distractorTags": [
-        "color:black",
+        "color:green",
         "color:red",
         "color:white",
         "rir:afrinic"
@@ -2302,9 +3041,9 @@
       "category": "unMember",
       "aliases": [],
       "distractorTags": [
+        "color:black",
         "color:green",
         "color:red",
-        "color:white",
         "rir:afrinic"
       ],
       "avoidAsDistractorWith": []
@@ -2318,10 +3057,10 @@
       "category": "unMember",
       "aliases": [],
       "distractorTags": [
-        "color:black",
-        "color:orange",
+        "color:blue",
         "color:red",
         "color:white",
+        "color:yellow",
         "rir:apnic"
       ],
       "avoidAsDistractorWith": []
@@ -2335,7 +3074,7 @@
       "category": "unMember",
       "aliases": [],
       "distractorTags": [
-        "color:black",
+        "color:green",
         "color:red",
         "color:white",
         "rir:apnic"
@@ -2352,6 +3091,7 @@
       "aliases": [],
       "distractorTags": [
         "color:green",
+        "color:red",
         "color:yellow",
         "rir:afrinic"
       ],
@@ -2370,6 +3110,7 @@
       "distractorTags": [
         "color:black",
         "color:red",
+        "color:white",
         "rir:ripe_ncc"
       ],
       "avoidAsDistractorWith": []
@@ -2383,9 +3124,9 @@
       "category": "unMember",
       "aliases": [],
       "distractorTags": [
-        "color:black",
         "color:blue",
         "color:orange",
+        "color:white",
         "rir:apnic"
       ],
       "avoidAsDistractorWith": []
@@ -2415,9 +3156,9 @@
       "category": "unMember",
       "aliases": [],
       "distractorTags": [
-        "color:orange",
+        "color:green",
         "color:red",
-        "color:white",
+        "color:yellow",
         "rir:afrinic"
       ],
       "avoidAsDistractorWith": []
@@ -2433,8 +3174,8 @@
       "distractorTags": [
         "color:blue",
         "color:green",
-        "color:orange",
         "color:red",
+        "color:yellow",
         "rir:afrinic"
       ],
       "avoidAsDistractorWith": []
@@ -2448,9 +3189,9 @@
       "category": "isoExtra",
       "aliases": [],
       "distractorTags": [
-        "color:black",
         "color:blue",
         "color:red",
+        "color:white",
         "rir:afrinic"
       ],
       "avoidAsDistractorWith": []
@@ -2467,6 +3208,7 @@
         "color:black",
         "color:blue",
         "color:gray",
+        "color:green",
         "color:orange",
         "color:red",
         "color:white",
@@ -2486,8 +3228,8 @@
         "Micronesia, Federated States Of"
       ],
       "distractorTags": [
-        "color:black",
         "color:blue",
+        "color:white",
         "rir:apnic"
       ],
       "avoidAsDistractorWith": []
@@ -2505,6 +3247,7 @@
       "distractorTags": [
         "color:black",
         "color:blue",
+        "color:gray",
         "color:green",
         "color:orange",
         "color:red",
@@ -2522,8 +3265,8 @@
       "category": "unMember",
       "aliases": [],
       "distractorTags": [
-        "color:black",
         "color:red",
+        "color:white",
         "rir:ripe_ncc"
       ],
       "avoidAsDistractorWith": [
@@ -2540,8 +3283,8 @@
       "aliases": [],
       "distractorTags": [
         "color:blue",
-        "color:orange",
         "color:red",
+        "color:yellow",
         "rir:apnic"
       ],
       "avoidAsDistractorWith": []
@@ -2559,6 +3302,7 @@
         "color:green",
         "color:orange",
         "color:red",
+        "color:yellow",
         "rir:ripe_ncc"
       ],
       "avoidAsDistractorWith": []
@@ -2578,6 +3322,7 @@
         "color:orange",
         "color:red",
         "color:white",
+        "color:yellow",
         "rir:arin"
       ],
       "avoidAsDistractorWith": []
@@ -2591,8 +3336,8 @@
       "category": "unMember",
       "aliases": [],
       "distractorTags": [
+        "color:green",
         "color:red",
-        "color:white",
         "rir:afrinic"
       ],
       "avoidAsDistractorWith": []
@@ -2608,8 +3353,9 @@
       "distractorTags": [
         "color:black",
         "color:green",
-        "color:orange",
+        "color:red",
         "color:white",
+        "color:yellow",
         "rir:afrinic"
       ],
       "avoidAsDistractorWith": []
@@ -2623,10 +3369,10 @@
       "category": "unMember",
       "aliases": [],
       "distractorTags": [
-        "color:black",
         "color:green",
-        "color:orange",
         "color:red",
+        "color:white",
+        "color:yellow",
         "rir:apnic"
       ],
       "avoidAsDistractorWith": []
@@ -2640,11 +3386,11 @@
       "category": "unMember",
       "aliases": [],
       "distractorTags": [
-        "color:black",
         "color:blue",
         "color:green",
-        "color:orange",
         "color:red",
+        "color:white",
+        "color:yellow",
         "rir:afrinic"
       ],
       "avoidAsDistractorWith": []
@@ -2658,10 +3404,33 @@
       "category": "unMember",
       "aliases": [],
       "distractorTags": [
-        "color:black",
+        "color:blue",
         "color:orange",
         "color:white",
         "rir:apnic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "neapolitan",
+      "displayNameEn": "Neapolitan",
+      "assetPath": "assets/world_flags/flags/neapolitan.svg",
+      "category": "communityOrRegionalFlagAssociatedWithLanguage",
+      "aliases": [
+        "Naples",
+        "Napoli",
+        "Napoletano",
+        "Napulitano",
+        "Bannera 'e Napule"
+      ],
+      "artworkSourcePage": "https://commons.wikimedia.org/wiki/File:Flag_of_Naples.svg",
+      "artworkLicense": "Public domain",
+      "artworkAuthor": "Ninane",
+      "artworkSha1": "c0cccc11199612fad85e4e540101dd00d8e57640",
+      "distractorTags": [
+        "color:red",
+        "color:yellow",
+        "region:europe"
       ],
       "avoidAsDistractorWith": []
     },
@@ -2674,7 +3443,7 @@
       "category": "unMember",
       "aliases": [],
       "distractorTags": [
-        "color:black",
+        "color:blue",
         "color:red",
         "color:white",
         "rir:apnic"
@@ -2692,9 +3461,9 @@
         "Netherlands, Kingdom Of The"
       ],
       "distractorTags": [
-        "color:black",
         "color:blue",
         "color:red",
+        "color:white",
         "rir:ripe_ncc"
       ],
       "avoidAsDistractorWith": [
@@ -2714,7 +3483,6 @@
         "color:blue",
         "color:green",
         "color:red",
-        "color:white",
         "color:yellow",
         "rir:apnic"
       ],
@@ -2729,7 +3497,7 @@
       "category": "unMember",
       "aliases": [],
       "distractorTags": [
-        "color:black",
+        "color:blue",
         "color:red",
         "color:white",
         "rir:apnic"
@@ -2765,9 +3533,9 @@
       "category": "unMember",
       "aliases": [],
       "distractorTags": [
-        "color:black",
         "color:green",
         "color:orange",
+        "color:white",
         "rir:afrinic"
       ],
       "avoidAsDistractorWith": []
@@ -2781,8 +3549,8 @@
       "category": "unMember",
       "aliases": [],
       "distractorTags": [
-        "color:black",
         "color:green",
+        "color:white",
         "rir:afrinic"
       ],
       "avoidAsDistractorWith": []
@@ -2796,10 +3564,10 @@
       "category": "isoExtra",
       "aliases": [],
       "distractorTags": [
-        "color:black",
-        "color:orange",
+        "color:blue",
         "color:red",
         "color:white",
+        "color:yellow",
         "rir:apnic"
       ],
       "avoidAsDistractorWith": []
@@ -2815,6 +3583,7 @@
       "distractorTags": [
         "color:black",
         "color:green",
+        "color:white",
         "rir:apnic"
       ],
       "avoidAsDistractorWith": []
@@ -2833,6 +3602,7 @@
         "color:black",
         "color:blue",
         "color:red",
+        "color:white",
         "rir:apnic"
       ],
       "avoidAsDistractorWith": []
@@ -2846,8 +3616,8 @@
       "category": "unMember",
       "aliases": [],
       "distractorTags": [
-        "color:orange",
         "color:red",
+        "color:yellow",
         "rir:ripe_ncc"
       ],
       "avoidAsDistractorWith": []
@@ -2861,9 +3631,12 @@
       "distractorTags": [
         "color:black",
         "color:blue",
+        "color:gray",
         "color:green",
         "color:orange",
         "color:red",
+        "color:white",
+        "color:yellow",
         "region:europe"
       ],
       "avoidAsDistractorWith": [],
@@ -2880,10 +3653,13 @@
       "distractorTags": [
         "color:black",
         "color:blue",
+        "color:gray",
+        "color:green",
         "color:orange",
         "color:purple",
         "color:red",
         "color:white",
+        "color:yellow",
         "rir:apnic"
       ],
       "avoidAsDistractorWith": []
@@ -2897,7 +3673,7 @@
       "category": "unMember",
       "aliases": [],
       "distractorTags": [
-        "color:black",
+        "color:blue",
         "color:red",
         "color:white",
         "rir:ripe_ncc"
@@ -2917,6 +3693,8 @@
       "artworkAuthor": "Nimlar",
       "artworkSha1": "99aca283b853ad17c2da2a7384561e7bf551f6d2",
       "distractorTags": [
+        "color:red",
+        "color:yellow",
         "region:europe"
       ],
       "avoidAsDistractorWith": []
@@ -2930,9 +3708,9 @@
       "category": "unMember",
       "aliases": [],
       "distractorTags": [
-        "color:black",
         "color:green",
         "color:red",
+        "color:white",
         "rir:ripe_ncc"
       ],
       "avoidAsDistractorWith": []
@@ -2946,8 +3724,8 @@
       "category": "unMember",
       "aliases": [],
       "distractorTags": [
-        "color:black",
         "color:green",
+        "color:white",
         "rir:apnic"
       ],
       "avoidAsDistractorWith": []
@@ -2962,7 +3740,7 @@
       "aliases": [],
       "distractorTags": [
         "color:blue",
-        "color:orange",
+        "color:yellow",
         "rir:apnic"
       ],
       "avoidAsDistractorWith": []
@@ -2978,9 +3756,9 @@
         "Palestine, State Of"
       ],
       "distractorTags": [
-        "color:black",
         "color:green",
         "color:red",
+        "color:white",
         "rir:ripe_ncc"
       ],
       "avoidAsDistractorWith": []
@@ -2994,9 +3772,9 @@
       "category": "unMember",
       "aliases": [],
       "distractorTags": [
-        "color:black",
         "color:blue",
         "color:red",
+        "color:white",
         "rir:lacnic"
       ],
       "avoidAsDistractorWith": []
@@ -3011,8 +3789,9 @@
       "aliases": [],
       "distractorTags": [
         "color:black",
-        "color:orange",
+        "color:red",
         "color:white",
+        "color:yellow",
         "rir:apnic"
       ],
       "avoidAsDistractorWith": []
@@ -3029,8 +3808,9 @@
         "color:black",
         "color:blue",
         "color:green",
-        "color:orange",
         "color:red",
+        "color:white",
+        "color:yellow",
         "rir:lacnic"
       ],
       "avoidAsDistractorWith": []
@@ -3044,8 +3824,8 @@
       "category": "unMember",
       "aliases": [],
       "distractorTags": [
-        "color:black",
         "color:red",
+        "color:white",
         "rir:lacnic"
       ],
       "avoidAsDistractorWith": []
@@ -3059,11 +3839,36 @@
       "category": "unMember",
       "aliases": [],
       "distractorTags": [
-        "color:black",
         "color:blue",
-        "color:orange",
         "color:red",
+        "color:white",
+        "color:yellow",
         "rir:apnic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "piedmontese",
+      "displayNameEn": "Piedmontese",
+      "assetPath": "assets/world_flags/flags/piedmontese.svg",
+      "category": "communityOrRegionalFlagAssociatedWithLanguage",
+      "aliases": [
+        "Piedmont",
+        "Piemonte",
+        "Piemontese",
+        "Piemontèis",
+        "Ël drapò"
+      ],
+      "artworkSourcePage": "https://commons.wikimedia.org/wiki/File:Flag_of_Piedmont.svg",
+      "artworkLicense": "Public domain",
+      "artworkAuthor": "Orzetto",
+      "artworkSourceSha1": "da5571fdf41da8b673d5f5e0fefb1cb7cf41a1b4",
+      "artworkSha1": "73602befc86ff9c11ba7a1135e85224f802fda54",
+      "distractorTags": [
+        "color:blue",
+        "color:red",
+        "color:white",
+        "region:europe"
       ],
       "avoidAsDistractorWith": []
     },
@@ -3078,10 +3883,11 @@
       "distractorTags": [
         "color:black",
         "color:blue",
+        "color:gray",
         "color:green",
-        "color:orange",
         "color:red",
         "color:white",
+        "color:yellow",
         "rir:apnic"
       ],
       "avoidAsDistractorWith": []
@@ -3095,8 +3901,8 @@
       "category": "unMember",
       "aliases": [],
       "distractorTags": [
-        "color:black",
         "color:red",
+        "color:white",
         "rir:ripe_ncc"
       ],
       "avoidAsDistractorWith": []
@@ -3112,6 +3918,8 @@
       "distractorTags": [
         "color:black",
         "color:blue",
+        "color:green",
+        "color:red",
         "color:white",
         "color:yellow",
         "rir:ripe_ncc"
@@ -3127,9 +3935,9 @@
       "category": "isoExtra",
       "aliases": [],
       "distractorTags": [
-        "color:black",
         "color:blue",
         "color:red",
+        "color:white",
         "rir:arin"
       ],
       "avoidAsDistractorWith": []
@@ -3143,8 +3951,8 @@
       "category": "unMember",
       "aliases": [],
       "distractorTags": [
-        "color:black",
         "color:red",
+        "color:white",
         "rir:ripe_ncc"
       ],
       "avoidAsDistractorWith": []
@@ -3161,6 +3969,7 @@
       ],
       "distractorTags": [
         "color:green",
+        "color:red",
         "color:yellow",
         "rir:afrinic"
       ],
@@ -3175,9 +3984,9 @@
       "category": "isoExtra",
       "aliases": [],
       "distractorTags": [
-        "color:black",
         "color:blue",
         "color:red",
+        "color:white",
         "rir:afrinic"
       ],
       "avoidAsDistractorWith": []
@@ -3212,8 +4021,8 @@
       "aliases": [],
       "distractorTags": [
         "color:blue",
-        "color:orange",
         "color:red",
+        "color:yellow",
         "rir:ripe_ncc"
       ],
       "avoidAsDistractorWith": [
@@ -3231,9 +4040,9 @@
         "Russian Federation"
       ],
       "distractorTags": [
-        "color:black",
         "color:blue",
         "color:red",
+        "color:white",
         "rir:ripe_ncc"
       ],
       "avoidAsDistractorWith": []
@@ -3249,7 +4058,7 @@
       "distractorTags": [
         "color:blue",
         "color:green",
-        "color:orange",
+        "color:yellow",
         "rir:afrinic"
       ],
       "avoidAsDistractorWith": []
@@ -3263,9 +4072,9 @@
       "category": "isoExtra",
       "aliases": [],
       "distractorTags": [
-        "color:black",
         "color:blue",
         "color:red",
+        "color:white",
         "rir:arin"
       ],
       "avoidAsDistractorWith": []
@@ -3279,7 +4088,7 @@
       "category": "isoExtra",
       "aliases": [],
       "distractorTags": [
-        "color:black",
+        "color:blue",
         "color:red",
         "color:white",
         "rir:arin"
@@ -3297,9 +4106,9 @@
       "distractorTags": [
         "color:black",
         "color:green",
-        "color:orange",
         "color:red",
         "color:white",
+        "color:yellow",
         "rir:arin"
       ],
       "avoidAsDistractorWith": []
@@ -3315,8 +4124,8 @@
       "distractorTags": [
         "color:black",
         "color:blue",
-        "color:orange",
         "color:white",
+        "color:yellow",
         "rir:arin"
       ],
       "avoidAsDistractorWith": []
@@ -3330,9 +4139,9 @@
       "category": "isoExtra",
       "aliases": [],
       "distractorTags": [
-        "color:black",
         "color:blue",
         "color:red",
+        "color:white",
         "rir:arin"
       ],
       "avoidAsDistractorWith": []
@@ -3346,9 +4155,9 @@
       "category": "isoExtra",
       "aliases": [],
       "distractorTags": [
-        "color:black",
         "color:blue",
         "color:red",
+        "color:white",
         "rir:arin"
       ],
       "avoidAsDistractorWith": []
@@ -3378,7 +4187,7 @@
       "category": "unMember",
       "aliases": [],
       "distractorTags": [
-        "color:black",
+        "color:blue",
         "color:red",
         "color:white",
         "rir:apnic"
@@ -3396,10 +4205,12 @@
       "distractorTags": [
         "color:black",
         "color:blue",
+        "color:gray",
         "color:green",
         "color:orange",
         "color:red",
         "color:white",
+        "color:yellow",
         "rir:ripe_ncc"
       ],
       "avoidAsDistractorWith": []
@@ -3413,10 +4224,10 @@
       "category": "unMember",
       "aliases": [],
       "distractorTags": [
+        "color:black",
         "color:green",
-        "color:orange",
         "color:red",
-        "color:white",
+        "color:yellow",
         "rir:afrinic"
       ],
       "avoidAsDistractorWith": []
@@ -3436,6 +4247,7 @@
       "distractorTags": [
         "color:black",
         "color:red",
+        "color:white",
         "region:europe"
       ],
       "avoidAsDistractorWith": []
@@ -3449,8 +4261,8 @@
       "category": "unMember",
       "aliases": [],
       "distractorTags": [
-        "color:black",
         "color:green",
+        "color:white",
         "rir:ripe_ncc"
       ],
       "avoidAsDistractorWith": []
@@ -3462,8 +4274,8 @@
       "category": "shortlist",
       "aliases": [],
       "distractorTags": [
-        "color:black",
         "color:blue",
+        "color:white",
         "region:europe"
       ],
       "avoidAsDistractorWith": [],
@@ -3498,6 +4310,7 @@
         "color:blue",
         "color:orange",
         "color:red",
+        "color:white",
         "rir:ripe_ncc"
       ],
       "avoidAsDistractorWith": []
@@ -3511,12 +4324,36 @@
       "category": "unMember",
       "aliases": [],
       "distractorTags": [
-        "color:black",
         "color:blue",
-        "color:orange",
+        "color:green",
         "color:red",
         "color:white",
+        "color:yellow",
         "rir:afrinic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "sicilian",
+      "displayNameEn": "Sicilian",
+      "assetPath": "assets/world_flags/flags/sicilian.svg",
+      "category": "communityOrRegionalFlagAssociatedWithLanguage",
+      "aliases": [
+        "Sicily",
+        "Sicilia",
+        "Sicilianu"
+      ],
+      "artworkSourcePage": "https://commons.wikimedia.org/wiki/File:Flag_of_Sicily.svg",
+      "artworkLicense": "Public domain",
+      "artworkAuthor": "Angelo Romano",
+      "artworkSourceSha1": "f1ad00b79b6fe206c749c90990b1bbfaef283464",
+      "artworkSha1": "509bce62d21f59a20af1356feeda68348168e4b5",
+      "distractorTags": [
+        "color:black",
+        "color:orange",
+        "color:red",
+        "color:yellow",
+        "region:europe"
       ],
       "avoidAsDistractorWith": []
     },
@@ -3529,9 +4366,9 @@
       "category": "unMember",
       "aliases": [],
       "distractorTags": [
-        "color:black",
         "color:blue",
         "color:green",
+        "color:white",
         "rir:afrinic"
       ],
       "avoidAsDistractorWith": []
@@ -3545,8 +4382,8 @@
       "category": "unMember",
       "aliases": [],
       "distractorTags": [
-        "color:black",
         "color:red",
+        "color:white",
         "rir:apnic"
       ],
       "avoidAsDistractorWith": []
@@ -3562,8 +4399,10 @@
       "distractorTags": [
         "color:black",
         "color:blue",
+        "color:gray",
         "color:green",
         "color:red",
+        "color:white",
         "color:yellow",
         "rir:lacnic"
       ],
@@ -3578,9 +4417,9 @@
       "category": "unMember",
       "aliases": [],
       "distractorTags": [
-        "color:black",
         "color:blue",
         "color:red",
+        "color:white",
         "rir:ripe_ncc"
       ],
       "avoidAsDistractorWith": []
@@ -3594,10 +4433,10 @@
       "category": "unMember",
       "aliases": [],
       "distractorTags": [
-        "color:black",
         "color:blue",
-        "color:orange",
         "color:red",
+        "color:white",
+        "color:yellow",
         "rir:ripe_ncc"
       ],
       "avoidAsDistractorWith": []
@@ -3611,10 +4450,10 @@
       "category": "unMember",
       "aliases": [],
       "distractorTags": [
-        "color:black",
         "color:blue",
-        "color:orange",
+        "color:green",
         "color:white",
+        "color:yellow",
         "rir:apnic"
       ],
       "avoidAsDistractorWith": []
@@ -3628,8 +4467,8 @@
       "category": "unMember",
       "aliases": [],
       "distractorTags": [
-        "color:black",
         "color:blue",
+        "color:white",
         "rir:afrinic"
       ],
       "avoidAsDistractorWith": []
@@ -3648,9 +4487,9 @@
       "artworkAuthor": "Mysid",
       "artworkSha1": "d2ba8008939d77e6d2a2b586cc1b8de905299709",
       "distractorTags": [
-        "color:black",
         "color:blue",
         "color:red",
+        "color:white",
         "region:europe"
       ],
       "avoidAsDistractorWith": []
@@ -3666,6 +4505,7 @@
       "distractorTags": [
         "color:black",
         "color:blue",
+        "color:green",
         "color:orange",
         "color:red",
         "color:white",
@@ -3684,6 +4524,7 @@
       "distractorTags": [
         "color:black",
         "color:blue",
+        "color:gray",
         "color:green",
         "color:orange",
         "color:red",
@@ -3724,9 +4565,9 @@
         "color:black",
         "color:blue",
         "color:green",
-        "color:orange",
         "color:red",
         "color:white",
+        "color:yellow",
         "rir:afrinic"
       ],
       "avoidAsDistractorWith": []
@@ -3742,8 +4583,11 @@
       "distractorTags": [
         "color:black",
         "color:blue",
+        "color:gray",
         "color:orange",
         "color:red",
+        "color:white",
+        "color:yellow",
         "rir:ripe_ncc"
       ],
       "avoidAsDistractorWith": []
@@ -3760,7 +4604,6 @@
         "color:black",
         "color:orange",
         "color:red",
-        "color:white",
         "rir:apnic"
       ],
       "avoidAsDistractorWith": []
@@ -3776,6 +4619,7 @@
       "distractorTags": [
         "color:black",
         "color:green",
+        "color:red",
         "color:white",
         "rir:afrinic"
       ],
@@ -3790,10 +4634,10 @@
       "category": "unMember",
       "aliases": [],
       "distractorTags": [
-        "color:black",
         "color:green",
-        "color:orange",
         "color:red",
+        "color:white",
+        "color:yellow",
         "rir:lacnic"
       ],
       "avoidAsDistractorWith": []
@@ -3807,7 +4651,7 @@
       "category": "isoExtra",
       "aliases": [],
       "distractorTags": [
-        "color:black",
+        "color:blue",
         "color:red",
         "color:white",
         "rir:ripe_ncc"
@@ -3825,8 +4669,10 @@
       "distractorTags": [
         "color:black",
         "color:blue",
-        "color:orange",
+        "color:gray",
         "color:red",
+        "color:white",
+        "color:yellow",
         "rir:afrinic"
       ],
       "avoidAsDistractorWith": []
@@ -3841,7 +4687,7 @@
       "aliases": [],
       "distractorTags": [
         "color:blue",
-        "color:orange",
+        "color:yellow",
         "rir:ripe_ncc"
       ],
       "avoidAsDistractorWith": []
@@ -3855,7 +4701,8 @@
       "category": "unMember",
       "aliases": [],
       "distractorTags": [
-        "color:black",
+        "color:red",
+        "color:white",
         "rir:ripe_ncc"
       ],
       "avoidAsDistractorWith": []
@@ -3871,7 +4718,7 @@
         "Syrian Arab Republic"
       ],
       "distractorTags": [
-        "color:black",
+        "color:green",
         "color:red",
         "color:white",
         "rir:ripe_ncc"
@@ -3894,9 +4741,9 @@
       "artworkSha1": "e07bb487ff14695b91fd76a81eb1f697cc4e1049",
       "distractorTags": [
         "color:blue",
-        "color:orange",
+        "color:green",
         "color:red",
-        "color:white",
+        "color:yellow",
         "region:europe"
       ],
       "avoidAsDistractorWith": []
@@ -3912,8 +4759,9 @@
         "Taiwan, Province Of China"
       ],
       "distractorTags": [
-        "color:black",
         "color:blue",
+        "color:red",
+        "color:white",
         "rir:apnic"
       ],
       "avoidAsDistractorWith": []
@@ -3927,10 +4775,10 @@
       "category": "unMember",
       "aliases": [],
       "distractorTags": [
-        "color:black",
-        "color:orange",
+        "color:green",
         "color:red",
         "color:white",
+        "color:yellow",
         "rir:ripe_ncc"
       ],
       "avoidAsDistractorWith": []
@@ -3946,9 +4794,9 @@
         "Tanzania, United Republic Of"
       ],
       "distractorTags": [
+        "color:black",
         "color:blue",
         "color:green",
-        "color:white",
         "color:yellow",
         "rir:afrinic"
       ],
@@ -3965,6 +4813,7 @@
       "distractorTags": [
         "color:blue",
         "color:red",
+        "color:white",
         "rir:apnic"
       ],
       "avoidAsDistractorWith": []
@@ -3979,9 +4828,9 @@
       "aliases": [],
       "distractorTags": [
         "color:black",
-        "color:orange",
         "color:red",
         "color:white",
+        "color:yellow",
         "rir:apnic"
       ],
       "avoidAsDistractorWith": []
@@ -3995,10 +4844,10 @@
       "category": "unMember",
       "aliases": [],
       "distractorTags": [
-        "color:black",
         "color:green",
-        "color:orange",
         "color:red",
+        "color:white",
+        "color:yellow",
         "rir:afrinic"
       ],
       "avoidAsDistractorWith": []
@@ -4012,9 +4861,9 @@
       "category": "isoExtra",
       "aliases": [],
       "distractorTags": [
-        "color:black",
-        "color:orange",
+        "color:blue",
         "color:white",
+        "color:yellow",
         "rir:apnic"
       ],
       "avoidAsDistractorWith": []
@@ -4028,8 +4877,8 @@
       "category": "unMember",
       "aliases": [],
       "distractorTags": [
-        "color:black",
         "color:red",
+        "color:white",
         "rir:apnic"
       ],
       "avoidAsDistractorWith": []
@@ -4059,8 +4908,8 @@
       "category": "unMember",
       "aliases": [],
       "distractorTags": [
-        "color:black",
         "color:red",
+        "color:white",
         "rir:afrinic"
       ],
       "avoidAsDistractorWith": []
@@ -4074,10 +4923,11 @@
       "category": "unMember",
       "aliases": [],
       "distractorTags": [
-        "color:black",
+        "color:gray",
         "color:green",
         "color:orange",
         "color:red",
+        "color:white",
         "rir:ripe_ncc"
       ],
       "avoidAsDistractorWith": []
@@ -4092,10 +4942,12 @@
       "aliases": [],
       "distractorTags": [
         "color:black",
+        "color:blue",
         "color:green",
         "color:orange",
         "color:red",
         "color:white",
+        "color:yellow",
         "rir:arin"
       ],
       "avoidAsDistractorWith": []
@@ -4109,7 +4961,6 @@
       "category": "unMember",
       "aliases": [],
       "distractorTags": [
-        "color:black",
         "color:blue",
         "color:red",
         "color:white",
@@ -4127,8 +4978,8 @@
       "category": "unMember",
       "aliases": [],
       "distractorTags": [
-        "color:black",
         "color:red",
+        "color:white",
         "rir:ripe_ncc"
       ],
       "avoidAsDistractorWith": []
@@ -4164,9 +5015,10 @@
       "aliases": [],
       "distractorTags": [
         "color:black",
-        "color:orange",
+        "color:gray",
         "color:red",
         "color:white",
+        "color:yellow",
         "rir:afrinic"
       ],
       "avoidAsDistractorWith": []
@@ -4195,6 +5047,8 @@
       "aliases": [],
       "distractorTags": [
         "color:black",
+        "color:green",
+        "color:red",
         "color:white",
         "rir:ripe_ncc"
       ],
@@ -4211,7 +5065,7 @@
         "United Kingdom Of Great Britain And Northern Ireland*"
       ],
       "distractorTags": [
-        "color:black",
+        "color:blue",
         "color:red",
         "color:white",
         "rir:ripe_ncc"
@@ -4229,9 +5083,9 @@
         "United States Of America"
       ],
       "distractorTags": [
-        "color:black",
         "color:blue",
         "color:red",
+        "color:white",
         "rir:arin"
       ],
       "avoidAsDistractorWith": []
@@ -4245,9 +5099,9 @@
       "category": "isoExtra",
       "aliases": [],
       "distractorTags": [
-        "color:black",
         "color:blue",
         "color:red",
+        "color:white",
         "rir:arin"
       ],
       "avoidAsDistractorWith": []
@@ -4263,7 +5117,8 @@
       "distractorTags": [
         "color:black",
         "color:blue",
-        "color:orange",
+        "color:white",
+        "color:yellow",
         "rir:lacnic"
       ],
       "avoidAsDistractorWith": []
@@ -4277,10 +5132,10 @@
       "category": "unMember",
       "aliases": [],
       "distractorTags": [
-        "color:black",
         "color:blue",
         "color:green",
         "color:red",
+        "color:white",
         "rir:ripe_ncc"
       ],
       "avoidAsDistractorWith": []
@@ -4296,8 +5151,8 @@
       "distractorTags": [
         "color:black",
         "color:green",
-        "color:orange",
         "color:red",
+        "color:yellow",
         "rir:apnic"
       ],
       "avoidAsDistractorWith": []
@@ -4314,8 +5169,10 @@
       ],
       "distractorTags": [
         "color:black",
-        "color:orange",
+        "color:gray",
         "color:red",
+        "color:white",
+        "color:yellow",
         "rir:ripe_ncc"
       ],
       "avoidAsDistractorWith": []
@@ -4331,10 +5188,10 @@
         "Venezuela, Bolivarian Republic Of"
       ],
       "distractorTags": [
-        "color:black",
-        "color:orange",
+        "color:blue",
         "color:red",
         "color:white",
+        "color:yellow",
         "rir:lacnic"
       ],
       "avoidAsDistractorWith": []
@@ -4364,6 +5221,7 @@
         "color:black",
         "color:green",
         "color:red",
+        "color:white",
         "region:europe"
       ],
       "avoidAsDistractorWith": [],
@@ -4378,10 +5236,37 @@
       "category": "isoExtra",
       "aliases": [],
       "distractorTags": [
-        "color:black",
         "color:blue",
         "color:red",
+        "color:white",
         "rir:apnic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "west_frisian",
+      "displayNameEn": "West Frisian",
+      "assetPath": "assets/world_flags/flags/west_frisian.svg",
+      "category": "communityOrRegionalFlagAssociatedWithLanguage",
+      "aliases": [
+        "Frisian",
+        "Western Frisian",
+        "Friesland",
+        "Fryslân",
+        "Frysk",
+        "Flagge fan Fryslân",
+        "Frisone"
+      ],
+      "artworkSourcePage": "https://commons.wikimedia.org/wiki/File:Frisian_flag.svg",
+      "artworkLicense": "Public domain",
+      "artworkAuthor": "P.H. Wagemakers and Joh. Koopmans",
+      "artworkSourceSha1": "6aa077ea90accf0b74ee70b37a9db8351c9cfbcd",
+      "artworkSha1": "e71aeb2e256d879d444413350eacd9a8f164a165",
+      "distractorTags": [
+        "color:blue",
+        "color:red",
+        "color:white",
+        "region:europe"
       ],
       "avoidAsDistractorWith": []
     },
@@ -4395,6 +5280,7 @@
       "aliases": [],
       "distractorTags": [
         "color:black",
+        "color:green",
         "color:red",
         "color:white",
         "rir:afrinic"
@@ -4430,7 +5316,6 @@
         "color:green",
         "color:orange",
         "color:red",
-        "color:white",
         "rir:afrinic"
       ],
       "avoidAsDistractorWith": []
@@ -4446,9 +5331,10 @@
       "distractorTags": [
         "color:black",
         "color:blue",
-        "color:orange",
+        "color:green",
         "color:red",
         "color:white",
+        "color:yellow",
         "rir:afrinic"
       ],
       "avoidAsDistractorWith": []
@@ -4463,8 +5349,8 @@
       "aliases": [],
       "distractorTags": [
         "color:blue",
-        "color:orange",
         "color:red",
+        "color:yellow",
         "rir:ripe_ncc"
       ],
       "avoidAsDistractorWith": []

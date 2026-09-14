@@ -17,7 +17,7 @@ class CreditsScreen extends StatelessWidget {
           const _CreditCard(
             title: 'QuisquisLingo',
             text:
-                'Project and code design: Quisquisnaut (Quisquis on Discord)\nCode generation and software development assistance: ChatGPT\n\nThe nine bundled courses titled AI-Slop Demo are AI-generated, unreviewed demonstrations and are not reliable learning courses. Real QuisquisLingo course content is intended to be authored and reviewed by humans. This classification does not apply to other official or custom courses.',
+                'Project and code design: Quisquisnaut (Quisquis on Discord)\nCode generation and software development assistance: ChatGPT\n\nThe eleven bundled courses titled AI-Slop Demo are AI-generated, unreviewed demonstrations and are not reliable learning courses. Real QuisquisLingo course content is intended to be authored and reviewed by humans. This classification does not apply to other official or custom courses.',
           ),
           const SizedBox(height: 22),
           Text(
@@ -46,8 +46,10 @@ class CreditsScreen extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           const _CreditCard(
-            title: 'Welsh / Dutch / Portuguese / Finnish / Korean courses',
-            text: 'Course authors: To be added when course content is created.',
+            title:
+                'Welsh / Dutch / Portuguese / Finnish / Korean / Neapolitan courses',
+            text:
+                'Temporary AI-generated sample content; human course authors are still to be added.',
           ),
           const SizedBox(height: 22),
           ListTile(
@@ -107,15 +109,15 @@ class ImageCreditsScreen extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(18, 10, 18, 28),
       children: const [
         _CreditCard(
-          title: 'Olive tree',
+          title: 'Lesson theme icons',
           text:
-              'Olea europaea plate from The North American Sylva (1819), François André Michaux et al. Wikimedia Commons. Public domain / Public Domain Mark.\nhttps://commons.wikimedia.org/wiki/File:NAS-087_Olea_europaea.png',
+              'The flat multicolor Lesson theme icons were generated specifically for QuisquisLingo with OpenAI ImageGen; no third-party source artwork is used. Exercise images remain separate Image Bank content. Only images actually used by the app belong in this list.',
         ),
         SizedBox(height: 8),
         _CreditCard(
-          title: 'Lesson theme icons and decorative plants',
+          title: 'World and language-related flags',
           text:
-              'The flat multicolor Lesson theme icons were generated specifically for QuisquisLingo with OpenAI ImageGen; no third-party source artwork is used. Exercise images remain separate Image Bank content. Only images actually used by the app belong in this list.',
+              'The 249 ISO flags and eight shortlist flags come from lipis/flag-icons v7.5.0 (MIT). Nineteen community or regional flags associated with languages come from Wikimedia Commons.\n\nAttribution-required artwork:\nAragonese: Willtron — CC BY-SA 3.0\nFriulian: Ipankonin — CC BY-SA 3.0\nSardinian: Angelus — CC BY-SA 3.0\n\nThe remaining language-related files are public domain or CC0. Exact source pages, authors, licenses and pinned checksums are recorded in assets/world_flags/LICENSE-language-related-flags.md.',
         ),
         SizedBox(height: 8),
         _CreditCard(

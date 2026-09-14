@@ -49,6 +49,13 @@ class WorldFlagEntity {
   final String? artworkSourcePage;
   final String? artworkLicense;
   final String? artworkAuthor;
+
+  /// Upstream SHA-1 when the bundled SVG is renderer-normalized.
+  ///
+  /// When null, [artworkSha1] also identifies the unmodified source bytes.
+  final String? artworkSourceSha1;
+
+  /// SHA-1 of the exact SVG bytes bundled with the application.
   final String? artworkSha1;
   final Set<String> distractorTags;
   final Set<String> avoidAsDistractorWith;
@@ -65,6 +72,7 @@ class WorldFlagEntity {
     this.artworkSourcePage,
     this.artworkLicense,
     this.artworkAuthor,
+    this.artworkSourceSha1,
     this.artworkSha1,
     this.distractorTags = const {},
     this.avoidAsDistractorWith = const {},
@@ -88,6 +96,7 @@ class WorldFlagEntity {
       artworkSourcePage: json['artworkSourcePage'] as String?,
       artworkLicense: json['artworkLicense'] as String?,
       artworkAuthor: json['artworkAuthor'] as String?,
+      artworkSourceSha1: json['artworkSourceSha1'] as String?,
       artworkSha1: json['artworkSha1'] as String?,
       distractorTags: Set<String>.unmodifiable(
         (json['distractorTags'] as List? ?? const []).cast<String>(),
@@ -97,4 +106,38 @@ class WorldFlagEntity {
       ),
     );
   }
+}
+
+class WorldFlagLanguageSuggestion {
+  final String languageTag;
+  final List<String> languageNames;
+  final List<String> worldFlagIds;
+
+  const WorldFlagLanguageSuggestion({
+    required this.languageTag,
+    required this.worldFlagIds,
+    this.languageNames = const [],
+  });
+
+  factory WorldFlagLanguageSuggestion.fromJson(Map<String, dynamic> json) {
+    return WorldFlagLanguageSuggestion(
+      languageTag: json['languageTag'] as String,
+      languageNames: List<String>.unmodifiable(
+        (json['languageNames'] as List? ?? const []).cast<String>(),
+      ),
+      worldFlagIds: List<String>.unmodifiable(
+        (json['worldFlagIds'] as List? ?? const []).cast<String>(),
+      ),
+    );
+  }
+}
+
+class WorldFlagManifest {
+  final List<WorldFlagEntity> entities;
+  final List<WorldFlagLanguageSuggestion> languageSuggestions;
+
+  const WorldFlagManifest({
+    required this.entities,
+    this.languageSuggestions = const [],
+  });
 }

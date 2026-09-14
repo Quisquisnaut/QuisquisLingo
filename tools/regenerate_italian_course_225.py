@@ -2,7 +2,7 @@
 """Compatibility entry point for the unified Build 225.02 generator.
 
 Italian must not be regenerated independently after the v6 clean cut. Running
-this historical tool name therefore regenerates all nine bundled courses using
+this historical tool name therefore regenerates all eleven bundled courses using
 the one authoritative deterministic pipeline.
 """
 

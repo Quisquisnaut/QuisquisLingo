@@ -132,7 +132,7 @@ class InfoScreen extends StatelessWidget {
         _InfoSection(
           title: 'Course content and AI',
           body:
-              'The nine bundled courses titled AI-Slop Demo are AI-generated, unreviewed demonstrations and are not reliable learning courses. Real QuisquisLingo course content is intended to be authored and reviewed by humans. This classification does not apply to other official or custom courses.',
+              'The eleven bundled courses titled AI-Slop Demo are AI-generated, unreviewed demonstrations and are not reliable learning courses. Real QuisquisLingo course content is intended to be authored and reviewed by humans. This classification does not apply to other official or custom courses.',
         ),
         OutlinedButton.icon(
           onPressed: () => Navigator.of(

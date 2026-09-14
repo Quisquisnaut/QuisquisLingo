@@ -182,6 +182,207 @@ LANGUAGE_RELATED = (
         "license": "CC BY-SA 3.0",
         "author": "Angelus",
     },
+    {
+        "id": "esperanto",
+        "name": "Esperanto",
+        "aliases": ["Esperantujo", "Esperanto-flago", "Esperanto flag"],
+        "url": "https://upload.wikimedia.org/wikipedia/commons/f/f5/Flag_of_Esperanto.svg",
+        "sourcePage": "https://commons.wikimedia.org/wiki/File:Flag_of_Esperanto.svg",
+        "sha1": "34ee04852b601831a554f89cc0c54b4a94d887c9",
+        "license": "Public domain",
+        "author": "Richard H. Geoghegan",
+        "regionTag": "region:global",
+    },
+    {
+        "id": "amazigh",
+        "name": "Amazigh",
+        "aliases": ["Berber", "Imazighen", "Tamazight", "ⴰⵎⴰⵣⵉⵖ"],
+        "url": "https://upload.wikimedia.org/wikipedia/commons/e/ec/Berber_flag.svg",
+        "sourcePage": "https://commons.wikimedia.org/wiki/File:Berber_flag.svg",
+        "sha1": "4f3b212566713932ae2c615f84db85bf58148740",
+        "license": "Public domain",
+        "author": "Mysid",
+        "regionTag": "region:africa",
+    },
+    {
+        "id": "ladin",
+        "name": "Ladin",
+        "aliases": ["Ladinia", "Ladino dolomitico"],
+        "url": "https://upload.wikimedia.org/wikipedia/commons/6/62/Flag_of_Ladinia.svg",
+        "sourcePage": "https://commons.wikimedia.org/wiki/File:Flag_of_Ladinia.svg",
+        "sha1": "5f89f33aa13f36cddc8bbf47cb1cdbad4693d9c2",
+        "license": "Public domain",
+        "author": "Unknown, recreated by Sebastian Walderich",
+    },
+    {
+        "id": "asturian",
+        "name": "Asturian",
+        "aliases": ["Asturias", "Asturianu", "Astur-Leonese"],
+        "url": "https://upload.wikimedia.org/wikipedia/commons/3/3e/Flag_of_Asturias.svg",
+        "sourcePage": "https://commons.wikimedia.org/wiki/File:Flag_of_Asturias.svg",
+        "sha1": "caefb74c9ba07d45bc1548887a6d38c5625d0634",
+        "license": "Public domain",
+        "author": "Banderas",
+    },
+    {
+        "id": "sicilian",
+        "name": "Sicilian",
+        "aliases": ["Sicily", "Sicilia", "Sicilianu"],
+        "url": "https://upload.wikimedia.org/wikipedia/commons/7/7a/Flag_of_Sicily.svg",
+        "sourcePage": "https://commons.wikimedia.org/wiki/File:Flag_of_Sicily.svg",
+        "sha1": "f1ad00b79b6fe206c749c90990b1bbfaef283464",
+        "assetSha1": "509bce62d21f59a20af1356feeda68348168e4b5",
+        "license": "Public domain",
+        "author": "Angelo Romano",
+    },
+    {
+        "id": "aragonese",
+        "name": "Aragonese",
+        "aliases": ["Aragon", "Aragón", "Aragonés"],
+        "url": "https://upload.wikimedia.org/wikipedia/commons/1/18/Flag_of_Aragon.svg",
+        "sourcePage": "https://commons.wikimedia.org/wiki/File:Flag_of_Aragon.svg",
+        "sha1": "9816b944df1e0ae53b4ce259f9205ef3718d9840",
+        "assetSha1": "4d95c4c3b104c552b0fd74b2c79d764fe7459e79",
+        "license": "CC BY-SA 3.0",
+        "author": "Willtron",
+    },
+    {
+        "id": "livonian",
+        "name": "Livonian",
+        "aliases": ["Livonians", "Livonian people", "Līvõ kēļ"],
+        "url": "https://upload.wikimedia.org/wikipedia/commons/4/42/Flag_of_the_Livonians.svg",
+        "sourcePage": "https://commons.wikimedia.org/wiki/File:Flag_of_the_Livonians.svg",
+        "sha1": "cbc9caa198419cc1643cb36a1bb2a5c361343b0f",
+        "assetSha1": "61989bbfe4e065997bbe369af91520641fd2d5a4",
+        "license": "Public domain",
+        "author": "Tasman",
+    },
+    {
+        "id": "west_frisian",
+        "name": "West Frisian",
+        "aliases": [
+            "Frisian",
+            "Western Frisian",
+            "Friesland",
+            "Fryslân",
+            "Frysk",
+            "Flagge fan Fryslân",
+            "Frisone",
+        ],
+        "url": "https://upload.wikimedia.org/wikipedia/commons/c/ca/Frisian_flag.svg",
+        "sourcePage": "https://commons.wikimedia.org/wiki/File:Frisian_flag.svg",
+        "sha1": "6aa077ea90accf0b74ee70b37a9db8351c9cfbcd",
+        "assetSha1": "e71aeb2e256d879d444413350eacd9a8f164a165",
+        "license": "Public domain",
+        "author": "P.H. Wagemakers and Joh. Koopmans",
+    },
+    {
+        "id": "piedmontese",
+        "name": "Piedmontese",
+        "aliases": ["Piedmont", "Piemonte", "Piemontese", "Piemontèis", "Ël drapò"],
+        "url": "https://upload.wikimedia.org/wikipedia/commons/b/b9/Flag_of_Piedmont.svg",
+        "sourcePage": "https://commons.wikimedia.org/wiki/File:Flag_of_Piedmont.svg",
+        "sha1": "da5571fdf41da8b673d5f5e0fefb1cb7cf41a1b4",
+        "assetSha1": "73602befc86ff9c11ba7a1135e85224f802fda54",
+        "license": "Public domain",
+        "author": "Orzetto",
+    },
+    {
+        "id": "neapolitan",
+        "name": "Neapolitan",
+        "aliases": [
+            "Naples",
+            "Napoli",
+            "Napoletano",
+            "Napulitano",
+            "Bannera 'e Napule",
+        ],
+        "url": "https://upload.wikimedia.org/wikipedia/commons/c/ca/Flag_of_Naples.svg",
+        "sourcePage": "https://commons.wikimedia.org/wiki/File:Flag_of_Naples.svg",
+        "sha1": "c0cccc11199612fad85e4e540101dd00d8e57640",
+        "license": "Public domain",
+        "author": "Ninane",
+    },
+)
+
+RENDERER_NORMALIZED_LANGUAGE_IDS = frozenset(
+    {
+        "aragonese",
+        "livonian",
+        "piedmontese",
+        "sicilian",
+        "west_frisian",
+    }
+)
+
+# Suggestions are explicit metadata. The order of ``worldFlagIds`` is the UI
+# ranking order; regional/community associations intentionally precede country
+# flags. A complete BCP-47 tag is matched before its base language tag.
+LANGUAGE_SUGGESTIONS = (
+    {"languageTag": "an", "languageNames": ["Aragonese", "Aragonés"], "worldFlagIds": ["aragonese"]},
+    {"languageTag": "an-ES", "worldFlagIds": ["aragonese", "spain"]},
+    {"languageTag": "ast", "languageNames": ["Asturian", "Asturianu"], "worldFlagIds": ["asturian"]},
+    {"languageTag": "ast-ES", "worldFlagIds": ["asturian", "spain"]},
+    {"languageTag": "ber", "languageNames": ["Amazigh", "Berber", "Imazighen", "Tamazight"], "worldFlagIds": ["amazigh"]},
+    {"languageTag": "br", "languageNames": ["Breton", "Brezhoneg"], "worldFlagIds": ["breton"]},
+    {"languageTag": "br-FR", "worldFlagIds": ["breton", "france"]},
+    {"languageTag": "co", "languageNames": ["Corsican", "Corsu"], "worldFlagIds": ["corsican"]},
+    {"languageTag": "co-FR", "worldFlagIds": ["corsican", "france"]},
+    {"languageTag": "cy", "languageNames": ["Welsh", "Cymraeg"], "worldFlagIds": ["wales"]},
+    {"languageTag": "cy-GB", "worldFlagIds": ["wales", "united_kingdom"]},
+    {"languageTag": "de", "languageNames": ["German", "Deutsch"], "worldFlagIds": ["germany"]},
+    {"languageTag": "de-DE", "worldFlagIds": ["germany"]},
+    {"languageTag": "dsb", "languageNames": ["Lower Sorbian", "Dolnoserbski"], "worldFlagIds": ["sorbian"]},
+    {"languageTag": "dsb-DE", "worldFlagIds": ["sorbian", "germany"]},
+    {"languageTag": "en", "languageNames": ["English"], "worldFlagIds": ["united_kingdom"]},
+    {"languageTag": "en-GB", "worldFlagIds": ["united_kingdom"]},
+    {"languageTag": "eo", "languageNames": ["Esperanto"], "worldFlagIds": ["esperanto"]},
+    {"languageTag": "es", "languageNames": ["Spanish", "Español"], "worldFlagIds": ["spain"]},
+    {"languageTag": "es-ES", "worldFlagIds": ["spain"]},
+    {"languageTag": "fi", "languageNames": ["Finnish", "Suomi"], "worldFlagIds": ["finland"]},
+    {"languageTag": "fi-FI", "worldFlagIds": ["finland"]},
+    {"languageTag": "fur", "languageNames": ["Friulian", "Furlan"], "worldFlagIds": ["friulian"]},
+    {"languageTag": "fur-IT", "worldFlagIds": ["friulian", "italy"]},
+    {"languageTag": "fy", "languageNames": ["West Frisian", "Frisian", "Frysk", "Frisone"], "worldFlagIds": ["west_frisian"]},
+    {"languageTag": "fy-NL", "worldFlagIds": ["west_frisian", "netherlands"]},
+    {"languageTag": "hsb", "languageNames": ["Upper Sorbian", "Hornjoserbsce"], "worldFlagIds": ["sorbian"]},
+    {"languageTag": "hsb-DE", "worldFlagIds": ["sorbian", "germany"]},
+    {"languageTag": "it", "languageNames": ["Italian", "Italiano"], "worldFlagIds": ["italy"]},
+    {"languageTag": "it-IT", "worldFlagIds": ["italy"]},
+    {"languageTag": "kab", "languageNames": ["Kabyle", "Taqbaylit"], "worldFlagIds": ["amazigh"]},
+    {"languageTag": "kab-DZ", "worldFlagIds": ["amazigh", "algeria"]},
+    {"languageTag": "ko", "languageNames": ["Korean", "한국어"], "worldFlagIds": ["south_korea"]},
+    {"languageTag": "ko-KR", "worldFlagIds": ["south_korea"]},
+    {"languageTag": "kw", "languageNames": ["Cornish", "Kernewek"], "worldFlagIds": ["cornish"]},
+    {"languageTag": "kw-GB", "worldFlagIds": ["cornish", "united_kingdom"]},
+    {"languageTag": "liv", "languageNames": ["Livonian", "Līvõ kēļ"], "worldFlagIds": ["livonian"]},
+    {"languageTag": "liv-LV", "worldFlagIds": ["livonian", "latvia"]},
+    {"languageTag": "lld", "languageNames": ["Ladin", "Ladinia"], "worldFlagIds": ["ladin"]},
+    {"languageTag": "lld-IT", "worldFlagIds": ["ladin", "italy"]},
+    {"languageTag": "nap", "languageNames": ["Neapolitan", "Napoletano", "Napulitano"], "worldFlagIds": ["neapolitan"]},
+    {"languageTag": "nap-IT", "worldFlagIds": ["neapolitan", "italy"]},
+    {"languageTag": "nl", "languageNames": ["Dutch", "Nederlands"], "worldFlagIds": ["netherlands"]},
+    {"languageTag": "nl-NL", "worldFlagIds": ["netherlands"]},
+    {"languageTag": "oc", "languageNames": ["Occitan", "Lenga d'òc"], "worldFlagIds": ["occitan"]},
+    {"languageTag": "oc-ES", "worldFlagIds": ["occitan", "spain"]},
+    {"languageTag": "oc-FR", "worldFlagIds": ["occitan", "france"]},
+    {"languageTag": "pms", "languageNames": ["Piedmontese", "Piemontese", "Piemontèis"], "worldFlagIds": ["piedmontese"]},
+    {"languageTag": "pms-IT", "worldFlagIds": ["piedmontese", "italy"]},
+    {"languageTag": "pt", "languageNames": ["Portuguese", "Português"], "worldFlagIds": ["portugal"]},
+    {"languageTag": "pt-PT", "worldFlagIds": ["portugal"]},
+    {"languageTag": "rom", "languageNames": ["Romani", "Roma language"], "worldFlagIds": ["roma"]},
+    {"languageTag": "sc", "languageNames": ["Sardinian", "Sardu"], "worldFlagIds": ["sardinian"]},
+    {"languageTag": "sc-IT", "worldFlagIds": ["sardinian", "italy"]},
+    {"languageTag": "scn", "languageNames": ["Sicilian", "Sicilianu"], "worldFlagIds": ["sicilian"]},
+    {"languageTag": "scn-IT", "worldFlagIds": ["sicilian", "italy"]},
+    {"languageTag": "se", "languageNames": ["Northern Sámi", "Northern Sami", "Davvisámegiella"], "worldFlagIds": ["sami"]},
+    {"languageTag": "se-FI", "worldFlagIds": ["sami", "finland"]},
+    {"languageTag": "se-NO", "worldFlagIds": ["sami", "norway"]},
+    {"languageTag": "se-SE", "worldFlagIds": ["sami", "sweden"]},
+    {"languageTag": "smi", "languageNames": ["Sámi", "Sami", "Saami", "Sámi languages", "Sami languages"], "worldFlagIds": ["sami"]},
+    {"languageTag": "wen", "languageNames": ["Sorbian", "Sorbs", "Sorbian languages"], "worldFlagIds": ["sorbian"]},
+    {"languageTag": "zgh", "languageNames": ["Standard Moroccan Tamazight"], "worldFlagIds": ["amazigh"]},
+    {"languageTag": "zgh-MA", "worldFlagIds": ["amazigh", "morocco"]},
 )
 
 BANNED_PAIRS = (
@@ -190,6 +391,7 @@ BANNED_PAIRS = (
     ("ireland", "cote_d_ivoire"),
     ("mali", "guinea"),
     ("netherlands", "luxembourg"),
+    ("aragonese", "catalonia"),
 )
 
 
@@ -256,17 +458,80 @@ def slug(name: str) -> str:
     return re.sub(r"[^a-z0-9]+", "_", normalized).strip("_")
 
 
+def svg_paint_colors(svg: str) -> list[str]:
+    colors = [
+        match.group(2).strip()
+        for match in re.finditer(
+            r"\b(?:fill|stroke|stop-color)\s*=\s*(['\"])(.*?)\1",
+            svg,
+            re.IGNORECASE,
+        )
+    ]
+    for match in re.finditer(r"\bstyle\s*=\s*(['\"])(.*?)\1", svg, re.IGNORECASE):
+        for declaration in match.group(2).split(";"):
+            property_name, separator, value = declaration.partition(":")
+            if separator and property_name.strip().casefold() in {"fill", "stroke", "stop-color"}:
+                colors.append(value.strip())
+    return colors
+
+
+def parse_svg_color(raw: str) -> tuple[float, float, float] | None:
+    value = raw.strip().casefold()
+    if not value or value in {"none", "transparent", "currentcolor", "inherit"} or value.startswith("url("):
+        return None
+
+    named_colors = {
+        "black": "000000",
+        "blue": "0000ff",
+        "gray": "808080",
+        "green": "008000",
+        "grey": "808080",
+        "maroon": "800000",
+        "olive": "808000",
+        "orange": "ffa500",
+        "purple": "800080",
+        "red": "ff0000",
+        "white": "ffffff",
+        "yellow": "ffff00",
+    }
+    if value in named_colors:
+        value = f"#{named_colors[value]}"
+
+    hex_match = re.fullmatch(r"#([0-9a-f]{3,4}|[0-9a-f]{6}|[0-9a-f]{8})", value)
+    if hex_match:
+        encoded = hex_match.group(1)
+        if len(encoded) in (3, 4):
+            encoded = "".join(char * 2 for char in encoded)
+        if len(encoded) == 8 and int(encoded[6:8], 16) == 0:
+            return None
+        return tuple(int(encoded[index : index + 2], 16) / 255 for index in (0, 2, 4))
+
+    rgb_match = re.fullmatch(
+        r"rgba?\(\s*([0-9]+(?:\.[0-9]+)?%?)\s*,\s*"
+        r"([0-9]+(?:\.[0-9]+)?%?)\s*,\s*"
+        r"([0-9]+(?:\.[0-9]+)?%?)(?:\s*,\s*([0-9]+(?:\.[0-9]+)?%?))?\s*\)",
+        value,
+    )
+    if not rgb_match:
+        return None
+    if rgb_match.group(4) in {"0", "0.0", "0%"}:
+        return None
+
+    def channel(component: str) -> float:
+        if component.endswith("%"):
+            return min(100.0, float(component[:-1])) / 100
+        return min(255.0, float(component)) / 255
+
+    return tuple(channel(rgb_match.group(index)) for index in (1, 2, 3))
+
+
 def color_tags(svg: str) -> list[str]:
-    colors = re.findall(r"#[0-9a-fA-F]{3,8}\b", svg)
     tags = set()
-    for raw in colors:
-        value = raw[1:]
-        if len(value) in (3, 4):
-            value = "".join(char * 2 for char in value[:3])
-        if len(value) < 6:
+    for raw in svg_paint_colors(svg):
+        parsed = parse_svg_color(raw)
+        if parsed is None:
             continue
-        r, g, b = (int(value[index : index + 2], 16) / 255 for index in (0, 2, 4))
-        hue, saturation, lightness = colorsys.rgb_to_hls(r, g, b)
+        hue, lightness, saturation = colorsys.rgb_to_hls(*parsed)
         if lightness >= 0.85 and saturation <= 0.25:
             tags.add("color:white")
         elif lightness <= 0.18:
@@ -277,7 +542,7 @@ def color_tags(svg: str) -> list[str]:
             degrees = hue * 360
             if degrees < 18 or degrees >= 345:
                 tags.add("color:red")
-            elif degrees < 55:
+            elif degrees < 45:
                 tags.add("color:orange")
             elif degrees < 75:
                 tags.add("color:yellow")
@@ -292,6 +557,88 @@ def color_tags(svg: str) -> list[str]:
     return sorted(tags)
 
 
+def renderer_compatible_language_svg(entity_id: str, svg: str) -> str:
+    """Normalize pinned Commons markup that flutter_svg cannot reliably apply."""
+    if entity_id not in RENDERER_NORMALIZED_LANGUAGE_IDS:
+        return svg
+
+    rendered = svg
+    if entity_id == "west_frisian":
+        rendered, count = re.subn(
+            r"  <defs>\n    <style>\n.*?  </defs>\n",
+            "",
+            rendered,
+            count=1,
+            flags=re.DOTALL,
+        )
+        if count != 1:
+            raise RuntimeError("Could not remove West Frisian CSS definitions")
+        replacements = {
+            'class="st2"': 'fill="#244994"',
+            'class="st0"': 'fill="#fff"',
+            'class="st1"': 'fill="#e72326"',
+        }
+        expected_counts = {'class="st2"': 1, 'class="st0"': 3, 'class="st1"': 7}
+        for source, replacement in replacements.items():
+            if rendered.count(source) != expected_counts[source]:
+                raise RuntimeError(f"Unexpected West Frisian selector count: {source}")
+            rendered = rendered.replace(source, replacement)
+    elif entity_id == "livonian":
+        rendered, count = re.subn(
+            r" <defs>\r?\n.*? </defs>\r?\n",
+            "",
+            rendered,
+            count=1,
+            flags=re.DOTALL,
+        )
+        if count != 1:
+            raise RuntimeError("Could not remove Livonian CSS definitions")
+        replacements = {
+            'class="fil0"': 'fill="#16711E"',
+            'class="fil1"': 'fill="white"',
+            'class="fil2"': 'fill="#273983"',
+        }
+        for source, replacement in replacements.items():
+            if rendered.count(source) != 1:
+                raise RuntimeError(f"Unexpected Livonian selector count: {source}")
+            rendered = rendered.replace(source, replacement)
+    elif entity_id == "sicilian":
+        rendered, count = re.subn(
+            r"<style\b.*?</style>",
+            "",
+            rendered,
+            count=1,
+            flags=re.DOTALL | re.IGNORECASE,
+        )
+        if count != 1:
+            raise RuntimeError("Could not remove unused Sicilian CSS definitions")
+
+    non_rendering_patterns = (
+        r"<metadata\b.*?</metadata>",
+        r"<metadata\b[^>]*/>",
+        r"<sodipodi:namedview\b.*?</sodipodi:namedview>",
+        r"<sodipodi:namedview\b[^>]*/>",
+        r"<inkscape:perspective\b[^>]*/>",
+        r"<defs\b[^>]*/>",
+    )
+    for pattern in non_rendering_patterns:
+        rendered = re.sub(pattern, "", rendered, flags=re.DOTALL | re.IGNORECASE)
+    rendered = re.sub(
+        r"<defs\b[^>]*>\s*</defs>",
+        "",
+        rendered,
+        flags=re.DOTALL | re.IGNORECASE,
+    )
+
+    if rendered != svg:
+        rendered = rendered.replace("\r\n", "\n")
+        if not rendered.endswith("\n"):
+            rendered += "\n"
+    if re.search(r"<style\b", rendered, re.IGNORECASE):
+        raise RuntimeError(f"Renderer-incompatible SVG CSS remains in {entity_id}")
+    return rendered
+
+
 def read_language_asset(spec: dict[str, object], cache: Path | None) -> tuple[bytes, str]:
     entity_id = str(spec["id"])
     if cache is not None:
@@ -303,33 +650,51 @@ def read_language_asset(spec: dict[str, object], cache: Path | None) -> tuple[by
         )
         with urllib.request.urlopen(request, timeout=30) as response:
             data = response.read()
-    digest = hashlib.sha1(data).hexdigest()
-    if digest != spec["sha1"]:
+    source_digest = hashlib.sha1(data).hexdigest()
+    if source_digest != spec["sha1"]:
         raise RuntimeError(
-            f"Unexpected SHA-1 for {entity_id}: expected {spec['sha1']}, found {digest}"
+            f"Unexpected source SHA-1 for {entity_id}: "
+            f"expected {spec['sha1']}, found {source_digest}"
         )
     svg = data.decode("utf-8-sig")
+    rendered_svg = renderer_compatible_language_svg(entity_id, svg)
+    asset_data = data if rendered_svg == svg else rendered_svg.encode("utf-8")
+    asset_digest = hashlib.sha1(asset_data).hexdigest()
+    expected_asset_digest = str(spec.get("assetSha1", spec["sha1"]))
+    if asset_digest != expected_asset_digest:
+        raise RuntimeError(
+            f"Unexpected bundled SHA-1 for {entity_id}: "
+            f"expected {expected_asset_digest}, found {asset_digest}"
+        )
     unsafe_patterns = (
         r"<script\b",
         r"<foreignObject\b",
         r"\bon\w+\s*=",
         r"(?:href|src)\s*=\s*['\"]https?://",
     )
-    if "<svg" not in svg or any(re.search(pattern, svg, re.I) for pattern in unsafe_patterns):
+    if "<svg" not in rendered_svg or any(
+        re.search(pattern, rendered_svg, re.I) for pattern in unsafe_patterns
+    ):
         raise RuntimeError(f"Unsafe or invalid SVG markup for {entity_id}")
-    return data, svg
+    return asset_data, rendered_svg
 
 
 def language_license_notice() -> str:
+    normalized_count = sum(
+        spec.get("assetSha1", spec["sha1"]) != spec["sha1"]
+        for spec in LANGUAGE_RELATED
+    )
     lines = [
         "# Language-related flag artwork provenance",
         "",
-        "These nine SVGs are sourced from Wikimedia Commons and are separate from",
+        "These nineteen SVGs are sourced from Wikimedia Commons and are separate from",
         "the MIT-licensed `lipis/flag-icons` collection. They depict community or",
         "regional flags associated with languages; QQL does not claim that they are",
         "universally official language flags.",
         "",
-        "Each downloaded file is pinned by the SHA-1 shown below. Public-domain and",
+        "Each source download and each exact bundled file are pinned by SHA-1 below.",
+        f"{normalized_count} SVGs are renderer-normalized by the deterministic generator; their",
+        "source and bundled checksums are recorded separately. Public-domain and",
         "CC0 status, or CC BY-SA attribution terms, are declared on the linked Commons",
         "file-description page.",
         "",
@@ -344,12 +709,20 @@ def language_license_notice() -> str:
         rendered_license = (
             f"[{license_name}]({license_link})" if license_link else license_name
         )
-        lines.extend(
-            [
-                f"- **{spec['name']}** (`{spec['id']}.svg`) — {rendered_license}; "
-                f"author: {spec['author']}; [source page]({spec['sourcePage']}); "
-                f"SHA-1 `{spec['sha1']}`.",
-            ]
+        source_sha1 = str(spec["sha1"])
+        asset_sha1 = str(spec.get("assetSha1", source_sha1))
+        checksum_note = (
+            f"SHA-1 `{source_sha1}`"
+            if source_sha1 == asset_sha1
+            else (
+                f"source SHA-1 `{source_sha1}`; renderer-normalized bundled "
+                f"SHA-1 `{asset_sha1}`"
+            )
+        )
+        lines.append(
+            f"- **{spec['name']}** (`{spec['id']}.svg`) — {rendered_license}; "
+            f"author: {spec['author']}; [source page]({spec['sourcePage']}); "
+            f"{checksum_note}."
         )
     lines.extend(
         [
@@ -461,6 +834,12 @@ def main() -> None:
         entity_id = str(spec["id"])
         destination = flags_output / f"{entity_id}.svg"
         destination.write_bytes(data)
+        source_sha1 = str(spec["sha1"])
+        asset_sha1 = hashlib.sha1(data).hexdigest()
+        provenance_hashes = {}
+        if source_sha1 != asset_sha1:
+            provenance_hashes["artworkSourceSha1"] = source_sha1
+        provenance_hashes["artworkSha1"] = asset_sha1
         entities.append(
             {
                 "id": entity_id,
@@ -471,8 +850,11 @@ def main() -> None:
                 "artworkSourcePage": spec["sourcePage"],
                 "artworkLicense": spec["license"],
                 "artworkAuthor": spec["author"],
-                "artworkSha1": spec["sha1"],
-                "distractorTags": sorted(set(color_tags(svg)) | {"region:europe"}),
+                **provenance_hashes,
+                "distractorTags": sorted(
+                    set(color_tags(svg))
+                    | {str(spec.get("regionTag", "region:europe"))}
+                ),
                 "avoidAsDistractorWith": [],
             }
         )
@@ -489,10 +871,28 @@ def main() -> None:
         by_id[left]["avoidAsDistractorWith"].append(right)
         by_id[right]["avoidAsDistractorWith"].append(left)
 
+    suggestion_tags = set()
+    suggestion_names = set()
+    for suggestion in LANGUAGE_SUGGESTIONS:
+        language_tag = str(suggestion["languageTag"]).strip().replace("_", "-").casefold()
+        if not language_tag or language_tag in suggestion_tags:
+            raise RuntimeError(f"Duplicate or empty language suggestion tag: {language_tag}")
+        suggestion_tags.add(language_tag)
+        ids = list(suggestion["worldFlagIds"])
+        if not ids or len(set(ids)) != len(ids) or any(entity_id not in by_id for entity_id in ids):
+            raise RuntimeError(f"Invalid language suggestion flag IDs for {language_tag}")
+        for name in suggestion.get("languageNames", []):
+            normalized_name = " ".join(str(name).strip().casefold().split())
+            if not normalized_name or normalized_name in suggestion_names:
+                raise RuntimeError(
+                    f"Duplicate or empty language suggestion name: {normalized_name}"
+                )
+            suggestion_names.add(normalized_name)
+
     entities.sort(key=lambda entity: entity["displayNameEn"].casefold())
     manifest = {
         "schemaVersion": 1,
-        "generatedAt": "2026-09-02",
+        "generatedAt": "2026-09-13",
         "sources": {
             "isoAuthority": ISO_AUTHORITY_URL,
             "isoMachineReadableCrossCheck": RIPE_ISO_URL,
@@ -514,6 +914,7 @@ def main() -> None:
                 for entity in entities
             ),
         },
+        "languageSuggestions": LANGUAGE_SUGGESTIONS,
         "entities": entities,
     }
     output.mkdir(parents=True, exist_ok=True)

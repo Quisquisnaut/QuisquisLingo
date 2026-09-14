@@ -8,6 +8,7 @@ import 'package:path_provider/path_provider.dart';
 import '../models/course_models.dart';
 import '../models/world_flag_entity.dart';
 import 'course_language_resolver.dart';
+import 'language_flag_catalog.dart';
 import 'world_flag_repository.dart';
 
 enum ResolvedCourseFlagKind { worldFlag, customImage, builtIn, neutral }
@@ -47,33 +48,11 @@ class CourseFlagService {
   static const int maxSourceDimension = 8192;
   static const int maxOutputDimension = 256;
 
-  static const Map<String, String> builtInFlags = {
-    'IT': 'Italy',
-    'DE': 'Germany',
-    'ES': 'Spain',
-    'EN': 'United Kingdom / English',
-    'UK': 'United Kingdom',
-    'CY': 'Wales',
-    'NL': 'Netherlands',
-    'PT': 'Portugal',
-    'FI': 'Finland',
-    'KO': 'South Korea / Korean',
-    'KR': 'South Korea',
-  };
+  static Map<String, String> get builtInFlags =>
+      LanguageFlagCatalog.builtInLabelsByPainterCase;
 
-  static const Set<String> renderableBuiltInCodes = {
-    'DE',
-    'IT',
-    'ES',
-    'PT',
-    'NL',
-    'FI',
-    'CY',
-    'EN',
-    'UK',
-    'KO',
-    'KR',
-  };
+  static Set<String> get renderableBuiltInCodes =>
+      LanguageFlagCatalog.renderablePainterCases;
 
   static bool hasExplicitFlag(Course course) =>
       course.worldFlagId.trim().isNotEmpty ||
@@ -119,16 +98,26 @@ class CourseFlagService {
         isExplicit: true,
       );
     }
-    final languageCode =
-        (fallbackCode ?? CourseLanguageResolver.learning(course).code ?? '')
-            .trim()
-            .toUpperCase()
-            .split('-')
-            .first;
-    if (languageCode.isNotEmpty) {
+    final language = CourseLanguageResolver.learning(course);
+    final painterFlag = LanguageFlagCatalog.qqlFlagFor(
+      languageTag: language.code ?? fallbackCode,
+      languageName: language.name,
+    );
+    if (painterFlag != null) {
       return ResolvedCourseFlag(
         kind: ResolvedCourseFlagKind.builtIn,
-        identifier: languageCode,
+        identifier: painterFlag.painterCode,
+        isExplicit: false,
+      );
+    }
+    final automaticWorldFlagId = LanguageFlagCatalog.primaryWorldFlagId(
+      languageTag: language.code ?? fallbackCode,
+      languageName: language.name,
+    );
+    if (automaticWorldFlagId != null) {
+      return ResolvedCourseFlag(
+        kind: ResolvedCourseFlagKind.worldFlag,
+        identifier: automaticWorldFlagId,
         isExplicit: false,
       );
     }
@@ -139,28 +128,8 @@ class CourseFlagService {
     );
   }
 
-  String codeForLanguage(String language) {
-    switch (language.trim().toLowerCase()) {
-      case 'italian':
-        return 'IT';
-      case 'german':
-        return 'DE';
-      case 'spanish':
-        return 'ES';
-      case 'english':
-        return 'EN';
-      case 'welsh':
-        return 'CY';
-      case 'dutch':
-        return 'NL';
-      case 'portuguese':
-        return 'PT';
-      case 'finnish':
-        return 'FI';
-      default:
-        return '';
-    }
-  }
+  String codeForLanguage(String language) =>
+      LanguageFlagCatalog.qqlFlagFor(languageName: language)?.painterCode ?? '';
 
   Future<WorldFlagEntity?> resolveWorldFlag(
     Course course, {

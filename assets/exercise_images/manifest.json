@@ -4,7 +4,10 @@
     "label": "Bread",
     "category": "food",
     "tags": [
-      "bread"
+      "bread",
+      "pane",
+      "loaf",
+      "filone"
     ],
     "assetPath": "assets/exercise_images/bread.webp"
   },
@@ -13,7 +16,10 @@
     "label": "Apple",
     "category": "food",
     "tags": [
-      "apple"
+      "apple",
+      "mela",
+      "fruit",
+      "frutta"
     ],
     "assetPath": "assets/exercise_images/apple.webp"
   },
@@ -23,7 +29,9 @@
     "category": "home",
     "tags": [
       "house",
-      "home"
+      "home",
+      "casa",
+      "abitazione"
     ],
     "assetPath": "assets/exercise_images/house.webp"
   },
@@ -33,7 +41,9 @@
     "category": "food",
     "tags": [
       "water",
-      "drink"
+      "drink",
+      "acqua",
+      "bevanda"
     ],
     "assetPath": "assets/exercise_images/water.webp"
   },
@@ -44,7 +54,10 @@
     "tags": [
       "book",
       "read",
-      "reading"
+      "reading",
+      "libro",
+      "leggere",
+      "lettura"
     ],
     "assetPath": "assets/exercise_images/book.webp"
   },
@@ -53,7 +66,10 @@
     "label": "Cat",
     "category": "animals",
     "tags": [
-      "cat"
+      "cat",
+      "gatto",
+      "pet",
+      "animale domestico"
     ],
     "assetPath": "assets/exercise_images/cat.webp"
   },
@@ -63,7 +79,9 @@
     "category": "transport",
     "tags": [
       "car",
-      "automobile"
+      "automobile",
+      "auto",
+      "macchina"
     ],
     "assetPath": "assets/exercise_images/car.webp"
   },
@@ -73,7 +91,9 @@
     "category": "home",
     "tags": [
       "chair",
-      "seat"
+      "seat",
+      "sedia",
+      "seduta"
     ],
     "assetPath": "assets/exercise_images/chair.webp"
   },
@@ -82,7 +102,10 @@
     "label": "Coffee",
     "category": "food",
     "tags": [
-      "coffee"
+      "coffee",
+      "caffè",
+      "espresso",
+      "bevanda"
     ],
     "assetPath": "assets/exercise_images/coffee.webp"
   },
@@ -91,38 +114,36 @@
     "label": "Train",
     "category": "transport",
     "tags": [
-      "train"
+      "train",
+      "treno",
+      "railway",
+      "ferrovia"
     ],
     "assetPath": "assets/exercise_images/train.webp"
-  },
-  {
-    "id": "bicycle",
-    "label": "Bicycle",
-    "category": "transport",
-    "tags": [
-      "bicycle",
-      "bike",
-      "cycling"
-    ],
-    "assetPath": "assets/exercise_images/bicycle.webp"
   },
   {
     "id": "tree",
     "label": "Tree",
     "category": "nature",
     "tags": [
-      "tree"
+      "tree",
+      "albero",
+      "nature",
+      "natura"
     ],
     "assetPath": "assets/exercise_images/tree.webp"
   },
   {
     "id": "people_family_man",
-    "label": "Man",
+    "label": "Uomo",
     "category": "people_family",
     "tags": [
       "man",
       "adult man",
-      "male"
+      "male",
+      "uomo",
+      "adulto",
+      "amico"
     ],
     "assetPath": "assets/exercise_images/man.webp"
   },
@@ -133,7 +154,10 @@
     "tags": [
       "woman",
       "adult woman",
-      "female"
+      "female",
+      "donna",
+      "adulta",
+      "amica"
     ],
     "assetPath": "assets/exercise_images/woman.webp"
   },
@@ -142,7 +166,10 @@
     "label": "Boy",
     "category": "people_family",
     "tags": [
-      "boy"
+      "boy",
+      "child",
+      "ragazzo",
+      "bambino"
     ],
     "assetPath": "assets/exercise_images/boy.webp"
   },
@@ -151,7 +178,10 @@
     "label": "Girl",
     "category": "people_family",
     "tags": [
-      "girl"
+      "girl",
+      "child",
+      "ragazza",
+      "bambina"
     ],
     "assetPath": "assets/exercise_images/girl.webp"
   },
@@ -161,7 +191,9 @@
     "category": "people_family",
     "tags": [
       "baby",
-      "infant"
+      "infant",
+      "neonato",
+      "bebè"
     ],
     "assetPath": "assets/exercise_images/baby.webp"
   },
@@ -171,7 +203,9 @@
     "category": "people_family",
     "tags": [
       "grandfather",
-      "grandpa"
+      "grandpa",
+      "nonno",
+      "anziano"
     ],
     "assetPath": "assets/exercise_images/grandfather.webp"
   },
@@ -181,7 +215,9 @@
     "category": "people_family",
     "tags": [
       "grandmother",
-      "grandma"
+      "grandma",
+      "nonna",
+      "anziana"
     ],
     "assetPath": "assets/exercise_images/grandmother.webp"
   },
@@ -190,7 +226,10 @@
     "label": "Ear",
     "category": "body_parts",
     "tags": [
-      "ear"
+      "ear",
+      "orecchio",
+      "body part",
+      "parte del corpo"
     ],
     "assetPath": "assets/exercise_images/ear.webp"
   },
@@ -199,7 +238,10 @@
     "label": "Eye",
     "category": "body_parts",
     "tags": [
-      "eye"
+      "eye",
+      "occhio",
+      "vision",
+      "vista"
     ],
     "assetPath": "assets/exercise_images/eye.webp"
   },
@@ -208,7 +250,10 @@
     "label": "Nose",
     "category": "body_parts",
     "tags": [
-      "nose"
+      "nose",
+      "naso",
+      "smell",
+      "olfatto"
     ],
     "assetPath": "assets/exercise_images/nose.webp"
   },
@@ -217,7 +262,10 @@
     "label": "Mouth",
     "category": "body_parts",
     "tags": [
-      "mouth"
+      "mouth",
+      "bocca",
+      "face",
+      "viso"
     ],
     "assetPath": "assets/exercise_images/mouth.webp"
   },
@@ -226,7 +274,10 @@
     "label": "Hand",
     "category": "body_parts",
     "tags": [
-      "hand"
+      "hand",
+      "mano",
+      "fingers",
+      "dita"
     ],
     "assetPath": "assets/exercise_images/hand.webp"
   },
@@ -235,7 +286,10 @@
     "label": "Foot",
     "category": "body_parts",
     "tags": [
-      "foot"
+      "foot",
+      "piede",
+      "toes",
+      "dita del piede"
     ],
     "assetPath": "assets/exercise_images/foot.webp"
   },
@@ -245,7 +299,9 @@
     "category": "clothing_accessories",
     "tags": [
       "t-shirt",
-      "tee shirt"
+      "tee shirt",
+      "maglietta",
+      "maglia"
     ],
     "assetPath": "assets/exercise_images/t_shirt.webp"
   },
@@ -255,7 +311,9 @@
     "category": "clothing_accessories",
     "tags": [
       "pants",
-      "trousers"
+      "trousers",
+      "pantaloni",
+      "calzoni"
     ],
     "assetPath": "assets/exercise_images/pants.webp"
   },
@@ -264,7 +322,9 @@
     "label": "Dress",
     "category": "clothing_accessories",
     "tags": [
-      "dress"
+      "dress",
+      "abito",
+      "vestito"
     ],
     "assetPath": "assets/exercise_images/dress.webp"
   },
@@ -273,7 +333,9 @@
     "label": "Jacket",
     "category": "clothing_accessories",
     "tags": [
-      "jacket"
+      "jacket",
+      "giacca",
+      "giubbotto"
     ],
     "assetPath": "assets/exercise_images/jacket.webp"
   },
@@ -282,7 +344,9 @@
     "label": "Shoes",
     "category": "clothing_accessories",
     "tags": [
-      "shoes"
+      "shoes",
+      "scarpe",
+      "calzature"
     ],
     "assetPath": "assets/exercise_images/shoes.webp"
   },
@@ -291,7 +355,9 @@
     "label": "Hat",
     "category": "clothing_accessories",
     "tags": [
-      "hat"
+      "hat",
+      "cappello",
+      "copricapo"
     ],
     "assetPath": "assets/exercise_images/hat.webp"
   },
@@ -301,7 +367,9 @@
     "category": "clothing_accessories",
     "tags": [
       "glasses",
-      "eyeglasses"
+      "eyeglasses",
+      "occhiali",
+      "lenti"
     ],
     "assetPath": "assets/exercise_images/glasses.webp"
   },
@@ -311,7 +379,9 @@
     "category": "clothing_accessories",
     "tags": [
       "backpack",
-      "rucksack"
+      "rucksack",
+      "zaino",
+      "cartella"
     ],
     "assetPath": "assets/exercise_images/backpack.webp"
   },
@@ -320,7 +390,10 @@
     "label": "Umbrella",
     "category": "clothing_accessories",
     "tags": [
-      "umbrella"
+      "umbrella",
+      "rain",
+      "ombrello",
+      "pioggia"
     ],
     "assetPath": "assets/exercise_images/umbrella.webp"
   },
@@ -329,7 +402,9 @@
     "label": "Scarf",
     "category": "clothing_accessories",
     "tags": [
-      "scarf"
+      "scarf",
+      "sciarpa",
+      "foulard"
     ],
     "assetPath": "assets/exercise_images/scarf.webp"
   },
@@ -338,7 +413,10 @@
     "label": "Gloves",
     "category": "clothing_accessories",
     "tags": [
-      "gloves"
+      "gloves",
+      "mittens",
+      "guanti",
+      "muffole"
     ],
     "assetPath": "assets/exercise_images/gloves.webp"
   },
@@ -347,7 +425,9 @@
     "label": "Shorts",
     "category": "clothing_accessories",
     "tags": [
-      "shorts"
+      "shorts",
+      "pantaloncini",
+      "bermuda"
     ],
     "assetPath": "assets/exercise_images/shorts.webp"
   },
@@ -356,7 +436,9 @@
     "label": "Socks",
     "category": "clothing_accessories",
     "tags": [
-      "socks"
+      "socks",
+      "calzini",
+      "calze"
     ],
     "assetPath": "assets/exercise_images/socks.webp"
   },
@@ -366,7 +448,9 @@
     "category": "clothing_accessories",
     "tags": [
       "watch",
-      "wristwatch"
+      "wristwatch",
+      "orologio",
+      "orologio da polso"
     ],
     "assetPath": "assets/exercise_images/watch.webp"
   },
@@ -375,7 +459,10 @@
     "label": "Ring",
     "category": "clothing_accessories",
     "tags": [
-      "ring"
+      "ring",
+      "jewelry",
+      "anello",
+      "gioiello"
     ],
     "assetPath": "assets/exercise_images/ring.webp"
   },
@@ -384,7 +471,9 @@
     "label": "Necklace",
     "category": "clothing_accessories",
     "tags": [
-      "necklace"
+      "necklace",
+      "collana",
+      "girocollo"
     ],
     "assetPath": "assets/exercise_images/necklace.webp"
   },
@@ -393,7 +482,9 @@
     "label": "Wallet",
     "category": "clothing_accessories",
     "tags": [
-      "wallet"
+      "wallet",
+      "portafoglio",
+      "portamonete"
     ],
     "assetPath": "assets/exercise_images/wallet.webp"
   },
@@ -403,7 +494,9 @@
     "category": "actions",
     "tags": [
       "walk",
-      "walking"
+      "walking",
+      "camminare",
+      "camminata"
     ],
     "assetPath": "assets/exercise_images/walk.webp"
   },
@@ -413,17 +506,21 @@
     "category": "actions",
     "tags": [
       "run",
-      "running"
+      "running",
+      "correre",
+      "corsa"
     ],
     "assetPath": "assets/exercise_images/run.webp"
   },
   {
     "id": "actions_jump",
-    "label": "Jump",
+    "label": "Saltare",
     "category": "actions",
     "tags": [
       "jump",
-      "jumping"
+      "jumping",
+      "saltare",
+      "salto"
     ],
     "assetPath": "assets/exercise_images/jump.webp"
   },
@@ -433,7 +530,9 @@
     "category": "actions",
     "tags": [
       "sit",
-      "sitting"
+      "sitting",
+      "sedersi",
+      "seduto"
     ],
     "assetPath": "assets/exercise_images/sit.webp"
   },
@@ -443,7 +542,9 @@
     "category": "actions",
     "tags": [
       "stand",
-      "standing"
+      "standing",
+      "stare in piedi",
+      "in piedi"
     ],
     "assetPath": "assets/exercise_images/stand.webp"
   },
@@ -453,7 +554,9 @@
     "category": "actions",
     "tags": [
       "write",
-      "writing"
+      "writing",
+      "scrivere",
+      "scrittura"
     ],
     "assetPath": "assets/exercise_images/write.webp"
   },
@@ -463,7 +566,9 @@
     "category": "actions",
     "tags": [
       "brush teeth",
-      "brushing teeth"
+      "brushing teeth",
+      "lavarsi i denti",
+      "spazzolare i denti"
     ],
     "assetPath": "assets/exercise_images/brush_teeth.webp"
   },
@@ -473,7 +578,9 @@
     "category": "actions",
     "tags": [
       "sleep",
-      "sleeping"
+      "sleeping",
+      "dormire",
+      "sonno"
     ],
     "assetPath": "assets/exercise_images/sleep.webp"
   },
@@ -483,7 +590,9 @@
     "category": "emotions",
     "tags": [
       "happy",
-      "happily"
+      "happily",
+      "felice",
+      "contento"
     ],
     "assetPath": "assets/exercise_images/happy.webp"
   },
@@ -493,7 +602,9 @@
     "category": "emotions",
     "tags": [
       "sad",
-      "sadly"
+      "sadly",
+      "triste",
+      "tristezza"
     ],
     "assetPath": "assets/exercise_images/sad.webp"
   },
@@ -503,7 +614,9 @@
     "category": "emotions",
     "tags": [
       "angry",
-      "angrily"
+      "angrily",
+      "arrabbiato",
+      "rabbia"
     ],
     "assetPath": "assets/exercise_images/angry.webp"
   },
@@ -513,7 +626,9 @@
     "category": "emotions",
     "tags": [
       "surprised",
-      "surprise"
+      "surprise",
+      "sorpreso",
+      "sorpresa"
     ],
     "assetPath": "assets/exercise_images/surprised.webp"
   },
@@ -523,7 +638,9 @@
     "category": "emotions",
     "tags": [
       "laugh",
-      "laughing"
+      "laughing",
+      "ridere",
+      "risata"
     ],
     "assetPath": "assets/exercise_images/laugh.webp"
   },
@@ -532,7 +649,10 @@
     "label": "Orange",
     "category": "food_drinks",
     "tags": [
-      "orange"
+      "orange",
+      "fruit",
+      "arancia",
+      "frutta"
     ],
     "assetPath": "assets/exercise_images/orange.webp"
   },
@@ -542,7 +662,9 @@
     "category": "food_drinks",
     "tags": [
       "bananas",
-      "banana"
+      "banana",
+      "banane",
+      "frutta"
     ],
     "assetPath": "assets/exercise_images/bananas.webp"
   },
@@ -551,7 +673,10 @@
     "label": "Strawberry",
     "category": "food_drinks",
     "tags": [
-      "strawberry"
+      "strawberry",
+      "berry",
+      "fragola",
+      "bacca"
     ],
     "assetPath": "assets/exercise_images/strawberry.webp"
   },
@@ -560,7 +685,10 @@
     "label": "Carrot",
     "category": "food_drinks",
     "tags": [
-      "carrot"
+      "carrot",
+      "vegetable",
+      "carota",
+      "verdura"
     ],
     "assetPath": "assets/exercise_images/carrot.webp"
   },
@@ -569,7 +697,10 @@
     "label": "Tomato",
     "category": "food_drinks",
     "tags": [
-      "tomato"
+      "tomato",
+      "vegetable",
+      "pomodoro",
+      "verdura"
     ],
     "assetPath": "assets/exercise_images/tomato.webp"
   },
@@ -578,7 +709,10 @@
     "label": "Broccoli",
     "category": "food_drinks",
     "tags": [
-      "broccoli"
+      "broccoli",
+      "vegetable",
+      "verdura",
+      "ortaggio"
     ],
     "assetPath": "assets/exercise_images/broccoli.webp"
   },
@@ -587,7 +721,10 @@
     "label": "Potato",
     "category": "food_drinks",
     "tags": [
-      "potato"
+      "potato",
+      "vegetable",
+      "patata",
+      "verdura"
     ],
     "assetPath": "assets/exercise_images/potato.webp"
   },
@@ -596,7 +733,10 @@
     "label": "Cheese",
     "category": "food_drinks",
     "tags": [
-      "cheese"
+      "cheese",
+      "dairy",
+      "formaggio",
+      "latticino"
     ],
     "assetPath": "assets/exercise_images/cheese.webp"
   },
@@ -605,7 +745,10 @@
     "label": "Egg",
     "category": "food_drinks",
     "tags": [
-      "egg"
+      "egg",
+      "food",
+      "uovo",
+      "cibo"
     ],
     "assetPath": "assets/exercise_images/egg.webp"
   },
@@ -614,7 +757,9 @@
     "label": "Burger",
     "category": "food_drinks",
     "tags": [
-      "burger"
+      "burger",
+      "hamburger",
+      "panino"
     ],
     "assetPath": "assets/exercise_images/burger.webp"
   },
@@ -623,7 +768,10 @@
     "label": "Pizza",
     "category": "food_drinks",
     "tags": [
-      "pizza"
+      "pizza",
+      "food",
+      "cibo",
+      "pizzeria"
     ],
     "assetPath": "assets/exercise_images/pizza.webp"
   },
@@ -632,7 +780,10 @@
     "label": "Rice",
     "category": "food_drinks",
     "tags": [
-      "rice"
+      "rice",
+      "grain",
+      "riso",
+      "cereale"
     ],
     "assetPath": "assets/exercise_images/rice.webp"
   },
@@ -641,7 +792,9 @@
     "label": "Soup",
     "category": "food_drinks",
     "tags": [
-      "soup"
+      "soup",
+      "zuppa",
+      "minestra"
     ],
     "assetPath": "assets/exercise_images/soup.webp"
   },
@@ -650,7 +803,10 @@
     "label": "Salad",
     "category": "food_drinks",
     "tags": [
-      "salad"
+      "salad",
+      "vegetables",
+      "insalata",
+      "verdure"
     ],
     "assetPath": "assets/exercise_images/salad.webp"
   },
@@ -659,7 +815,10 @@
     "label": "Milk",
     "category": "food_drinks",
     "tags": [
-      "milk"
+      "milk",
+      "dairy",
+      "latte",
+      "latticino"
     ],
     "assetPath": "assets/exercise_images/milk.webp"
   },
@@ -668,7 +827,10 @@
     "label": "Juice",
     "category": "food_drinks",
     "tags": [
-      "juice"
+      "juice",
+      "fruit juice",
+      "succo",
+      "succo di frutta"
     ],
     "assetPath": "assets/exercise_images/juice.webp"
   },
@@ -677,7 +839,10 @@
     "label": "Tea",
     "category": "food_drinks",
     "tags": [
-      "tea"
+      "tea",
+      "drink",
+      "tè",
+      "bevanda"
     ],
     "assetPath": "assets/exercise_images/tea.webp"
   },
@@ -686,7 +851,10 @@
     "label": "Ice cream",
     "category": "food_drinks",
     "tags": [
-      "ice cream"
+      "ice cream",
+      "dessert",
+      "gelato",
+      "dolce"
     ],
     "assetPath": "assets/exercise_images/ice_cream.webp"
   },
@@ -695,7 +863,10 @@
     "label": "Chocolate",
     "category": "food_drinks",
     "tags": [
-      "chocolate"
+      "chocolate",
+      "cocoa",
+      "cioccolato",
+      "cacao"
     ],
     "assetPath": "assets/exercise_images/chocolate.webp"
   },
@@ -704,7 +875,10 @@
     "label": "Cake",
     "category": "food_drinks",
     "tags": [
-      "cake"
+      "cake",
+      "dessert",
+      "torta",
+      "dolce"
     ],
     "assetPath": "assets/exercise_images/cake.webp"
   },
@@ -713,7 +887,10 @@
     "label": "Croissant",
     "category": "food_drinks",
     "tags": [
-      "croissant"
+      "croissant",
+      "pastry",
+      "cornetto",
+      "brioche"
     ],
     "assetPath": "assets/exercise_images/croissant.webp"
   },
@@ -722,7 +899,10 @@
     "label": "Dog",
     "category": "animals",
     "tags": [
-      "dog"
+      "dog",
+      "pet",
+      "cane",
+      "animale domestico"
     ],
     "assetPath": "assets/exercise_images/dog.webp"
   },
@@ -731,7 +911,10 @@
     "label": "Rabbit",
     "category": "animals",
     "tags": [
-      "rabbit"
+      "rabbit",
+      "hare",
+      "coniglio",
+      "lepre"
     ],
     "assetPath": "assets/exercise_images/rabbit.webp"
   },
@@ -740,7 +923,9 @@
     "label": "Bird",
     "category": "animals",
     "tags": [
-      "bird"
+      "bird",
+      "uccello",
+      "volatile"
     ],
     "assetPath": "assets/exercise_images/bird.webp"
   },
@@ -749,7 +934,10 @@
     "label": "Fish",
     "category": "animals",
     "tags": [
-      "fish"
+      "fish",
+      "animal",
+      "pesce",
+      "animale"
     ],
     "assetPath": "assets/exercise_images/fish.webp"
   },
@@ -758,7 +946,10 @@
     "label": "Horse",
     "category": "animals",
     "tags": [
-      "horse"
+      "horse",
+      "equine",
+      "cavallo",
+      "equino"
     ],
     "assetPath": "assets/exercise_images/horse.webp"
   },
@@ -767,7 +958,10 @@
     "label": "Cow",
     "category": "animals",
     "tags": [
-      "cow"
+      "cow",
+      "bovine",
+      "mucca",
+      "bovino"
     ],
     "assetPath": "assets/exercise_images/cow.webp"
   },
@@ -776,7 +970,10 @@
     "label": "Pig",
     "category": "animals",
     "tags": [
-      "pig"
+      "pig",
+      "swine",
+      "maiale",
+      "suino"
     ],
     "assetPath": "assets/exercise_images/pig.webp"
   },
@@ -785,7 +982,10 @@
     "label": "Sheep",
     "category": "animals",
     "tags": [
-      "sheep"
+      "sheep",
+      "ovine",
+      "pecora",
+      "ovino"
     ],
     "assetPath": "assets/exercise_images/sheep.webp"
   },
@@ -794,7 +994,10 @@
     "label": "Duck",
     "category": "animals",
     "tags": [
-      "duck"
+      "duck",
+      "waterfowl",
+      "anatra",
+      "uccello acquatico"
     ],
     "assetPath": "assets/exercise_images/duck.webp"
   },
@@ -803,7 +1006,10 @@
     "label": "Bed",
     "category": "home_household",
     "tags": [
-      "bed"
+      "bed",
+      "bedroom",
+      "letto",
+      "camera da letto"
     ],
     "assetPath": "assets/exercise_images/bed.webp"
   },
@@ -812,7 +1018,10 @@
     "label": "Table",
     "category": "home_household",
     "tags": [
-      "table"
+      "table",
+      "furniture",
+      "tavolo",
+      "mobile"
     ],
     "assetPath": "assets/exercise_images/table.webp"
   },
@@ -821,7 +1030,10 @@
     "label": "Lamp",
     "category": "home_household",
     "tags": [
-      "lamp"
+      "lamp",
+      "light",
+      "lampada",
+      "luce"
     ],
     "assetPath": "assets/exercise_images/lamp.webp"
   },
@@ -830,7 +1042,10 @@
     "label": "Door",
     "category": "home_household",
     "tags": [
-      "door"
+      "door",
+      "entrance",
+      "porta",
+      "ingresso"
     ],
     "assetPath": "assets/exercise_images/door.webp"
   },
@@ -839,7 +1054,10 @@
     "label": "Window",
     "category": "home_household",
     "tags": [
-      "window"
+      "window",
+      "glass",
+      "finestra",
+      "vetro"
     ],
     "assetPath": "assets/exercise_images/window.webp"
   },
@@ -848,7 +1066,9 @@
     "label": "Sofa",
     "category": "home_household",
     "tags": [
-      "sofa"
+      "sofa",
+      "couch",
+      "divano"
     ],
     "assetPath": "assets/exercise_images/sofa.webp"
   },
@@ -857,7 +1077,11 @@
     "label": "Toilet",
     "category": "home_household",
     "tags": [
-      "toilet"
+      "toilet",
+      "bathroom",
+      "gabinetto",
+      "wc",
+      "bagno"
     ],
     "assetPath": "assets/exercise_images/toilet.webp"
   },
@@ -866,7 +1090,10 @@
     "label": "Sink",
     "category": "home_household",
     "tags": [
-      "sink"
+      "sink",
+      "basin",
+      "lavandino",
+      "lavabo"
     ],
     "assetPath": "assets/exercise_images/sink.webp"
   },
@@ -875,7 +1102,10 @@
     "label": "Bathtub",
     "category": "home_household",
     "tags": [
-      "bathtub"
+      "bathtub",
+      "bath",
+      "vasca",
+      "vasca da bagno"
     ],
     "assetPath": "assets/exercise_images/bathtub.webp"
   },
@@ -884,7 +1114,10 @@
     "label": "Shower",
     "category": "home_household",
     "tags": [
-      "shower"
+      "shower",
+      "bath",
+      "doccia",
+      "bagno"
     ],
     "assetPath": "assets/exercise_images/shower.webp"
   },
@@ -894,7 +1127,9 @@
     "category": "home_household",
     "tags": [
       "refrigerator",
-      "fridge"
+      "fridge",
+      "frigorifero",
+      "frigo"
     ],
     "assetPath": "assets/exercise_images/refrigerator.webp"
   },
@@ -903,7 +1138,10 @@
     "label": "Oven",
     "category": "home_household",
     "tags": [
-      "oven"
+      "oven",
+      "cook",
+      "forno",
+      "cucinare"
     ],
     "assetPath": "assets/exercise_images/oven.webp"
   },
@@ -913,7 +1151,9 @@
     "category": "home_household",
     "tags": [
       "frying pan",
-      "pan"
+      "pan",
+      "padella",
+      "tegame"
     ],
     "assetPath": "assets/exercise_images/frying_pan.webp"
   },
@@ -922,7 +1162,9 @@
     "label": "Pot",
     "category": "home_household",
     "tags": [
-      "pot"
+      "pot",
+      "pentola",
+      "casseruola"
     ],
     "assetPath": "assets/exercise_images/pot.webp"
   },
@@ -931,7 +1173,10 @@
     "label": "Knife",
     "category": "home_household",
     "tags": [
-      "knife"
+      "knife",
+      "cutlery",
+      "coltello",
+      "posata"
     ],
     "assetPath": "assets/exercise_images/knife.webp"
   },
@@ -940,7 +1185,10 @@
     "label": "Fork",
     "category": "home_household",
     "tags": [
-      "fork"
+      "fork",
+      "cutlery",
+      "forchetta",
+      "posata"
     ],
     "assetPath": "assets/exercise_images/fork.webp"
   },
@@ -949,7 +1197,10 @@
     "label": "Spoon",
     "category": "home_household",
     "tags": [
-      "spoon"
+      "spoon",
+      "cutlery",
+      "cucchiaio",
+      "posata"
     ],
     "assetPath": "assets/exercise_images/spoon.webp"
   },
@@ -958,7 +1209,10 @@
     "label": "Broom",
     "category": "home_household",
     "tags": [
-      "broom"
+      "broom",
+      "cleaning",
+      "scopa",
+      "pulizia"
     ],
     "assetPath": "assets/exercise_images/broom.webp"
   },
@@ -969,7 +1223,9 @@
     "tags": [
       "trash can",
       "garbage can",
-      "bin"
+      "bin",
+      "cestino",
+      "pattumiera"
     ],
     "assetPath": "assets/exercise_images/trash_can.webp"
   },
@@ -979,7 +1235,9 @@
     "category": "home_household",
     "tags": [
       "vacuum cleaner",
-      "vacuum"
+      "vacuum",
+      "aspirapolvere",
+      "pulizia"
     ],
     "assetPath": "assets/exercise_images/vacuum_cleaner.webp"
   },
@@ -988,7 +1246,10 @@
     "label": "Laptop",
     "category": "technology",
     "tags": [
-      "laptop"
+      "laptop",
+      "computer",
+      "notebook",
+      "computer portatile"
     ],
     "assetPath": "assets/exercise_images/laptop.webp"
   },
@@ -997,7 +1258,11 @@
     "label": "Camera",
     "category": "technology",
     "tags": [
-      "camera"
+      "camera",
+      "photo",
+      "fotocamera",
+      "macchina fotografica",
+      "foto"
     ],
     "assetPath": "assets/exercise_images/camera.webp"
   },
@@ -1008,7 +1273,9 @@
     "tags": [
       "airplane",
       "aeroplane",
-      "plane"
+      "plane",
+      "aereo",
+      "aeroplano"
     ],
     "assetPath": "assets/exercise_images/airplane.webp"
   },
@@ -1017,7 +1284,10 @@
     "label": "Bus",
     "category": "transport",
     "tags": [
-      "bus"
+      "bus",
+      "coach",
+      "autobus",
+      "pullman"
     ],
     "assetPath": "assets/exercise_images/bus.webp"
   },
@@ -1027,7 +1297,9 @@
     "category": "city_public_places",
     "tags": [
       "shop",
-      "store"
+      "store",
+      "negozio",
+      "bottega"
     ],
     "assetPath": "assets/exercise_images/shop.webp"
   },
@@ -1036,7 +1308,10 @@
     "label": "Hospital",
     "category": "city_public_places",
     "tags": [
-      "hospital"
+      "hospital",
+      "clinic",
+      "ospedale",
+      "clinica"
     ],
     "assetPath": "assets/exercise_images/hospital.webp"
   },
@@ -1045,7 +1320,10 @@
     "label": "Mountain",
     "category": "nature",
     "tags": [
-      "mountain"
+      "mountain",
+      "peak",
+      "montagna",
+      "vetta"
     ],
     "assetPath": "assets/exercise_images/mountain.webp"
   }

@@ -55,6 +55,7 @@ class CourseEditorService {
     'sample_pt_en_pt',
     'sample_fi_en_fi',
     'sample_ko_en_ko',
+    'sample_nap_it_nap',
   };
 
   CourseEditorService({

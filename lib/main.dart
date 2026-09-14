@@ -16,7 +16,6 @@ import 'services/learner_status_events.dart';
 import 'services/startup_diagnostic_service.dart';
 import 'services/diagnostic_log_service.dart';
 import 'services/update_service.dart';
-import 'widgets/flag_art.dart';
 import 'widgets/learner_shell.dart';
 import 'widgets/learner_navigation.dart';
 import 'widgets/learner_theme_mode_scope.dart';
@@ -459,8 +458,12 @@ class _StartupGate extends StatefulWidget {
 
 class _StartupGateState extends State<_StartupGate>
     with SingleTickerProviderStateMixin {
+  static const _gateDuration = Duration(milliseconds: 1800);
+  static const _entranceEnd = 600 / 1800;
+
   late final AnimationController _c;
   bool _show = true;
+  bool _showStaticArtwork = false;
 
   @override
   void initState() {
@@ -468,7 +471,8 @@ class _StartupGateState extends State<_StartupGate>
     StartupDiagnosticService.checkpointOnce('DART_STARTUP_GATE_INIT');
     _c = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1800),
+      duration: _gateDuration,
+      animationBehavior: AnimationBehavior.preserve,
     );
     _start();
   }
@@ -481,9 +485,10 @@ class _StartupGateState extends State<_StartupGate>
       'animations_enabled=$enabled',
     );
     if (!mounted) return;
-    if (!enabled || MediaQuery.maybeOf(context)?.disableAnimations == true) {
-      setState(() => _show = false);
-      return;
+    final reducedMotion =
+        MediaQuery.maybeOf(context)?.disableAnimations == true;
+    if (!enabled || reducedMotion) {
+      setState(() => _showStaticArtwork = true);
     }
     await _c.forward();
     if (mounted) setState(() => _show = false);
@@ -504,120 +509,51 @@ class _StartupGateState extends State<_StartupGate>
     StartupDiagnosticService.verboseCheckpointOnce('DART_SPLASH_BUILD');
     return Scaffold(
       key: const Key('qql-startup-animation'),
-      body: Stack(
-        fit: StackFit.expand,
-        children: [
-          Image.asset(
-            'assets/olive_tree.png',
-            fit: BoxFit.cover,
-            opacity: const AlwaysStoppedAnimation(.70),
-          ),
-          const ColoredBox(color: Color(0x3DF7F3E8)),
-          LayoutBuilder(
-            builder: (context, constraints) => AnimatedBuilder(
-              animation: _c,
-              builder: (context, _) => _StartupFlags(
-                progress: Curves.easeOutCubic.transform(_c.value),
-                width: constraints.maxWidth,
-                height: constraints.maxHeight,
-              ),
-            ),
-          ),
-          Center(
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(32),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 540),
             child: FadeTransition(
-              opacity: CurvedAnimation(
-                parent: _c,
-                curve: const Interval(.05, .72, curve: Curves.easeIn),
-              ),
+              key: const Key('qql-startup-logo-fade'),
+              opacity: _showStaticArtwork
+                  ? const AlwaysStoppedAnimation<double>(1)
+                  : CurvedAnimation(
+                      parent: _c,
+                      curve: const Interval(
+                        0,
+                        _entranceEnd,
+                        curve: Curves.easeOutCubic,
+                      ),
+                    ),
               child: ScaleTransition(
-                scale: Tween(begin: .84, end: 1.0).animate(
-                  CurvedAnimation(parent: _c, curve: Curves.easeOutBack),
-                ),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 18,
-                    vertical: 10,
-                  ),
-                  decoration: BoxDecoration(
-                    color: const Color(0x88FFFDF7),
-                    borderRadius: BorderRadius.circular(22),
-                  ),
-                  child: const Text(
-                    'QuisquisLingo',
-                    style: TextStyle(fontSize: 42, fontWeight: FontWeight.w800),
-                  ),
+                key: const Key('qql-startup-logo-scale'),
+                scale: _showStaticArtwork
+                    ? const AlwaysStoppedAnimation<double>(1)
+                    : Tween<double>(begin: .96, end: 1).animate(
+                        CurvedAnimation(
+                          parent: _c,
+                          curve: const Interval(
+                            0,
+                            _entranceEnd,
+                            curve: Curves.easeOutCubic,
+                          ),
+                        ),
+                      ),
+                child: Image.asset(
+                  'assets/branding/quisquislingo_logo.png',
+                  key: const Key('qql-startup-logo'),
+                  fit: BoxFit.contain,
+                  filterQuality: FilterQuality.high,
+                  semanticLabel: 'QuisquisLingo',
                 ),
               ),
             ),
           ),
-        ],
+        ),
       ),
     );
   }
-}
-
-class _StartupFlags extends StatelessWidget {
-  final double progress;
-  final double width;
-  final double height;
-  const _StartupFlags({
-    required this.progress,
-    required this.width,
-    required this.height,
-  });
-
-  static const _codes = ['IT', 'DE', 'ES', 'PT', 'NL', 'CY', 'EN', 'FI', 'KO'];
-
-  @override
-  Widget build(BuildContext context) {
-    final center = Offset(width / 2, height / 2);
-    final radiusX = (width * .38).clamp(110.0, 180.0).toDouble();
-    final radiusY = (height * .30).clamp(150.0, 235.0).toDouble();
-    return Stack(
-      children: List.generate(_codes.length, (i) {
-        final angle = i * 6.28318530718 / _codes.length - 1.5708;
-        final target = Offset(
-          center.dx + radiusX * _cos(angle),
-          center.dy + radiusY * _sin(angle),
-        );
-        final start = Offset(
-          i.isEven ? -60 : width + 60,
-          (height * (i + 1) / (_codes.length + 1))
-              .clamp(20.0, height - 50)
-              .toDouble(),
-        );
-        final p = ((progress - i * .045) / .72).clamp(0.0, 1.0).toDouble();
-        final x = start.dx + (target.dx - start.dx) * p;
-        final y = start.dy + (target.dy - start.dy) * p;
-        return Positioned(
-          left: x - 25,
-          top: y - 18,
-          child: Opacity(
-            opacity: p,
-            child: Transform.rotate(
-              angle: (1 - p) * (i.isEven ? -.18 : .18),
-              child: FlagBadge(_codes[i], width: 50, height: 35),
-            ),
-          ),
-        );
-      }),
-    );
-  }
-
-  // Small polynomial approximations keep this widget dependency-free and are
-  // accurate enough for decorative flag placement around the startup olive.
-  double _sin(double x) {
-    while (x > 3.14159265359) {
-      x -= 6.28318530718;
-    }
-    while (x < -3.14159265359) {
-      x += 6.28318530718;
-    }
-    final x2 = x * x;
-    return x * (1 - x2 / 6 + x2 * x2 / 120 - x2 * x2 * x2 / 5040);
-  }
-
-  double _cos(double x) => _sin(x + 1.57079632679);
 }
 
 class _StartupCrashLogNotice extends StatefulWidget {

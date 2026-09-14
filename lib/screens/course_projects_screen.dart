@@ -1,9 +1,8 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 
+import '../models/course_flag_selection.dart';
 import '../models/course_models.dart';
 import '../models/course_metadata_options.dart';
-import '../models/world_flag_entity.dart';
 import '../services/course_editor_service.dart';
 import '../services/course_audit_service.dart';
 import '../services/course_flag_service.dart';
@@ -17,10 +16,9 @@ import '../services/profile_service.dart';
 import '../services/team_service.dart';
 import '../services/publication_service.dart';
 import '../services/new_course_structure.dart';
-import '../widgets/flag_art.dart';
-import '../widgets/world_flag_art.dart';
-import '../widgets/world_flag_picker.dart';
+import '../widgets/course_flag_picker.dart';
 import '../widgets/editor_app_bar_actions.dart';
+import '../widgets/flag_art.dart';
 import 'course_editor_screen.dart';
 import 'team_manager_screen.dart';
 
@@ -218,12 +216,7 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
     final roundsPerLesson = TextEditingController(
       text: '${NewCourseStructure.defaultRoundsPerLesson}',
     );
-    String selectedFlag = 'AUTO';
-    String flagSource = 'Automatic';
-    WorldFlagEntity? worldFlag;
-    String customFlagBase64 = '';
-    String customFlagLabel = '';
-    String? flagError;
+    var flagSelection = const CourseFlagSelection.automatic();
     var selectedLicense = CourseMetadataOptions.standardLicenses.first;
     var selectedDerivativePolicy = DerivativeWorksPolicy.forbidden;
     var selectedMaintainer = activeProfile.learnerProfileId;
@@ -723,187 +716,14 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
                     ),
                     const Text('Each Round starts with a sample exercise.'),
                     const SizedBox(height: 12),
-                    DropdownButtonFormField<String>(
-                      key: ValueKey('course-flag-source-$flagSource'),
-                      initialValue: flagSource,
-                      isExpanded: true,
-                      decoration: const InputDecoration(
-                        border: OutlineInputBorder(),
-                        labelText: 'Flag source',
-                      ),
-                      items: const [
-                        DropdownMenuItem(
-                          value: 'Automatic',
-                          child: Text('Automatic'),
-                        ),
-                        DropdownMenuItem(
-                          value: 'Existing QQL course flags',
-                          child: Text('Existing QQL course flags'),
-                        ),
-                        DropdownMenuItem(
-                          value: 'World Flags',
-                          child: Text('World Flags'),
-                        ),
-                        DropdownMenuItem(
-                          value: 'Custom uploaded flag',
-                          child: Text('Custom uploaded flag'),
-                        ),
-                      ],
-                      onChanged: (value) => setDialogState(() {
-                        flagSource = value ?? 'Automatic';
-                        if (flagSource == 'Existing QQL course flags' &&
-                            selectedFlag == 'AUTO') {
-                          selectedFlag = 'EN';
-                        }
-                        flagError = null;
-                      }),
-                    ),
-                    if (flagSource == 'Existing QQL course flags') ...[
-                      const SizedBox(height: 8),
-                      DropdownButtonFormField<String>(
-                        initialValue: selectedFlag,
-                        isExpanded: true,
-                        decoration: const InputDecoration(
-                          border: OutlineInputBorder(),
-                          labelText: 'Course flag',
-                        ),
-                        items: [
-                          for (final entry
-                              in CourseFlagService.builtInFlags.entries)
-                            DropdownMenuItem(
-                              value: entry.key,
-                              child: Text('${entry.value} (${entry.key})'),
-                            ),
-                        ],
-                        onChanged: (value) => setDialogState(() {
-                          selectedFlag = value ?? 'AUTO';
-                          customFlagBase64 = '';
-                          customFlagLabel = '';
-                          flagError = null;
-                        }),
-                      ),
-                    ],
-                    if (flagSource == 'World Flags')
-                      OutlinedButton.icon(
-                        key: const Key('choose-world-flag'),
-                        icon: const Icon(Icons.public),
-                        label: Text(
-                          worldFlag?.displayNameEn ?? 'Choose World Flag',
-                        ),
-                        onPressed: () async {
-                          final selected = await showWorldFlagPicker(
-                            context: ctx,
-                            initialWorldFlagId: worldFlag?.id ?? '',
-                          );
-                          if (selected != null && ctx.mounted) {
-                            setDialogState(() => worldFlag = selected);
-                          }
-                        },
-                      ),
-                    const SizedBox(height: 8),
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: Wrap(
-                        spacing: 10,
-                        runSpacing: 8,
-                        crossAxisAlignment: WrapCrossAlignment.center,
-                        children: [
-                          Container(
-                            width: 64,
-                            height: 44,
-                            decoration: BoxDecoration(
-                              border: Border.all(
-                                color: Theme.of(ctx).dividerColor,
-                              ),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            clipBehavior: Clip.antiAlias,
-                            child: flagSource == 'World Flags'
-                                ? worldFlag == null
-                                      ? const Icon(Icons.outlined_flag)
-                                      : WorldFlagArt(entity: worldFlag!)
-                                : flagSource == 'Custom uploaded flag' &&
-                                      customFlagBase64.isEmpty
-                                ? const Icon(Icons.outlined_flag)
-                                : flagSource == 'Custom uploaded flag' &&
-                                      customFlagBase64.isNotEmpty
-                                ? Image.memory(
-                                    base64Decode(customFlagBase64),
-                                    fit: BoxFit.contain,
-                                  )
-                                : FlagBadge(
-                                    flagSource == 'Automatic'
-                                        ? (_flags
-                                                  .codeForLanguage(target.text)
-                                                  .isEmpty
-                                              ? 'EN'
-                                              : _flags.codeForLanguage(
-                                                  target.text,
-                                                ))
-                                        : selectedFlag,
-                                    width: 64,
-                                    height: 44,
-                                  ),
-                          ),
-                          const Text('Flag preview'),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        crossAxisAlignment: WrapCrossAlignment.center,
-                        children: [
-                          OutlinedButton.icon(
-                            icon: const Icon(Icons.upload_file),
-                            label: const Text('Import flag'),
-                            onPressed: () async {
-                              try {
-                                final imported = await _flags
-                                    .importPreparedFlag();
-                                if (!ctx.mounted) return;
-                                setDialogState(() {
-                                  customFlagBase64 = imported.base64Png;
-                                  flagSource = 'Custom uploaded flag';
-                                  customFlagLabel =
-                                      '${imported.sourceWidth}×${imported.sourceHeight} → ${imported.outputWidth}×${imported.outputHeight} PNG';
-                                  flagError = null;
-                                });
-                              } catch (error) {
-                                if (!ctx.mounted) return;
-                                setDialogState(
-                                  () => flagError = error
-                                      .toString()
-                                      .replaceFirst('FormatException: ', ''),
-                                );
-                              }
-                            },
-                          ),
-                          if (customFlagLabel.isNotEmpty) Text(customFlagLabel),
-                        ],
-                      ),
-                    ),
-                    if (flagError != null) ...[
-                      const SizedBox(height: 6),
-                      Align(
-                        alignment: Alignment.centerLeft,
-                        child: Text(
-                          flagError!,
-                          style: TextStyle(
-                            color: Theme.of(ctx).colorScheme.error,
-                          ),
-                        ),
-                      ),
-                    ],
-                    const SizedBox(height: 8),
-                    const Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        'Custom flag: copy flag.png, flag.jpg, or flag.jpeg to Documents/QuisquisLingo/Exports, then press Import flag. Maximum 2 MB, minimum 64×40 px. Large images are resized to at most 256 px on the longest side while preserving proportions.',
-                      ),
+                    CourseFlagSelector(
+                      selection: flagSelection,
+                      languageName: target.text,
+                      languageTag: CourseLanguageResolver.codeFromMetadata([
+                        target.text,
+                      ]),
+                      onChanged: (selection) =>
+                          setDialogState(() => flagSelection = selection),
                     ),
                   ],
                 ),
@@ -975,17 +795,6 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
                             ),
                           );
                           if (continueAnyway != true || !ctx.mounted) return;
-                        }
-                        if ((flagSource == 'World Flags' &&
-                                worldFlag == null) ||
-                            (flagSource == 'Custom uploaded flag' &&
-                                customFlagBase64.isEmpty)) {
-                          setDialogState(
-                            () => flagError = flagSource == 'World Flags'
-                                ? 'Choose a World Flag.'
-                                : 'Import a custom flag first.',
-                          );
-                          return;
                         }
                         final license =
                             selectedLicense == 'Other / Custom license'
@@ -1093,16 +902,9 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
                             targetLevel: targetLevel.text.trim(),
                             courseDescription: description.text.trim(),
                             buyACoffeeUrl: normalizedBuyACoffeeUrl,
-                            flagCode: flagSource == 'Existing QQL course flags'
-                                ? selectedFlag
-                                : '',
-                            flagImageBase64:
-                                flagSource == 'Custom uploaded flag'
-                                ? customFlagBase64
-                                : '',
-                            worldFlagId: flagSource == 'World Flags'
-                                ? worldFlag!.id
-                                : '',
+                            flagCode: flagSelection.flagCode,
+                            flagImageBase64: flagSelection.flagImageBase64,
+                            worldFlagId: flagSelection.selectedWorldFlagId,
                             temporarySample: false,
                             lessons: lessons,
                           ),
@@ -1146,7 +948,6 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
           course: widget.currentCourse,
           access: _capabilities(widget.currentCourse),
           editorService: _service,
-          courseService: _courseService,
         ),
       ),
     );

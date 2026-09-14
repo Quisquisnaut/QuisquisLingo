@@ -188,7 +188,7 @@ void main() {
       await _openHome(tester);
       await tester.tap(find.byKey(const Key('unified-topbar-course-selector')));
       await _pumpUntilWithIo(tester, find.text('Choose course'));
-      await tester.pumpAndSettle();
+      await _pumpIo(tester, frames: 8);
       final selectedTile = find.byKey(
         const ValueKey('local-course-$_courseId'),
       );
@@ -203,7 +203,7 @@ void main() {
             .first,
         maxScrolls: 15,
       );
-      await tester.pumpAndSettle();
+      await tester.pump();
       await tester.tap(selectedTile);
       await _pumpIo(tester, frames: 12);
       final draftTopBar = tester.widget<UnifiedLearnerTopBar>(

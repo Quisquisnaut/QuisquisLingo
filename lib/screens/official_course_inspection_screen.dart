@@ -81,7 +81,6 @@ class _OfficialCourseInspectionScreenState
             course: value.course,
             access: value.access,
             editorService: _service,
-            courseService: _courseService,
             clock: widget.clock,
           );
         },

@@ -81,7 +81,7 @@ void main() {
 
       await _openHome(tester);
       await _openCoursePicker(tester);
-      _expectNineBundledTiles();
+      await _expectElevenBundledTiles(tester);
       final koreanTile = find.byKey(const ValueKey('bundled-course-KO'));
       expect(koreanTile, findsOneWidget);
       expect(
@@ -115,7 +115,8 @@ void main() {
         scrollable: selectorScrollable,
       );
       await tester.drag(selectorScrollable, const Offset(0, -120));
-      await tester.pumpAndSettle();
+      await tester.pump(const Duration(milliseconds: 350));
+      await tester.pump();
       await tester.tap(koreanTile);
       await _pumpIo(tester, frames: 30);
       expect(find.byType(BottomSheet), findsNothing);
@@ -168,7 +169,7 @@ void main() {
       );
       expect(restartedTopBar.course.courseId, 'sample_ko_en_ko');
       await _openCoursePicker(tester);
-      _expectNineBundledTiles();
+      await _expectElevenBundledTiles(tester);
       expect(find.byKey(const ValueKey('bundled-course-KO')), findsOneWidget);
       await _expectCourseTile(
         tester,
@@ -339,7 +340,10 @@ Future<void> _expectCourseTile(
 Future<void> _openCoursePicker(WidgetTester tester) async {
   await tester.tap(find.byKey(const Key('unified-topbar-course-selector')));
   await _pumpUntilWithIo(tester, find.text('Choose course'));
-  await tester.pumpAndSettle();
+  // The Napoletano row resolves its World Flag asynchronously. Complete only
+  // the bottom-sheet transition instead of waiting on that animated loader.
+  await tester.pump(const Duration(milliseconds: 350));
+  await tester.pump();
 }
 
 Future<void> _pumpUntilWithIo(WidgetTester tester, Finder finder) async {
@@ -353,18 +357,17 @@ Future<void> _pumpUntilWithIo(WidgetTester tester, Finder finder) async {
   fail('Timed out waiting for $finder. Visible text: $visibleText');
 }
 
-void _expectNineBundledTiles() {
-  for (final code in CourseService.courseAssets.keys) {
-    expect(find.byKey(ValueKey('bundled-course-$code')), findsOneWidget);
-  }
-  expect(
-    find.byWidgetPredicate(
-      (widget) =>
-          widget.key is ValueKey<String> &&
-          (widget.key! as ValueKey<String>).value.startsWith('bundled-course-'),
-    ),
-    findsNWidgets(9),
+Future<void> _expectElevenBundledTiles(WidgetTester tester) async {
+  expect(CourseService.courseAssets, hasLength(11));
+  final selectorScroll = find.descendant(
+    of: find.byType(BottomSheet),
+    matching: find.byType(Scrollable),
   );
+  for (final code in CourseService.courseAssets.keys) {
+    final tile = find.byKey(ValueKey('bundled-course-$code'));
+    await tester.scrollUntilVisible(tile, 180, scrollable: selectorScroll);
+    expect(tile, findsOneWidget);
+  }
 }
 
 Future<void> _pumpIo(WidgetTester tester, {required int frames}) async {

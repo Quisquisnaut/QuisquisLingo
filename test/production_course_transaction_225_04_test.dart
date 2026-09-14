@@ -541,12 +541,7 @@ void main() {
       final official = (await tester.runAsync(
         () => CourseService().loadBundledCourse('IT'),
       ))!;
-      await _openEditor(
-        tester,
-        official,
-        service,
-        courseService: _StubCourseService(official),
-      );
+      await _openEditor(tester, official, service);
       expect(find.text(official.title), findsWidgets);
       expect(find.text('Read-only course'), findsOneWidget);
       expect(find.text('Restore official version'), findsNothing);
@@ -650,9 +645,8 @@ void main() {
 Future<void> _openEditor(
   WidgetTester tester,
   Course course,
-  CourseEditorService service, {
-  CourseService? courseService,
-}) async {
+  CourseEditorService service,
+) async {
   tester.view.devicePixelRatio = 1;
   tester.view.physicalSize = const Size(1200, 1500);
   addTearDown(tester.view.resetDevicePixelRatio);
@@ -667,7 +661,6 @@ Future<void> _openEditor(
                 course: course,
                 userCourse: true,
                 editorService: service,
-                courseService: courseService,
                 clock: () => DateTime.utc(2026, 9, 4, 17),
               ),
             ),
@@ -884,13 +877,4 @@ class _FailingCourseEditorService extends CourseEditorService {
   }) async {
     throw StateError('simulated persistence failure');
   }
-}
-
-class _StubCourseService extends CourseService {
-  _StubCourseService(this.official);
-
-  final Course official;
-
-  @override
-  Future<Course> loadBundledCourse(String languageCode) async => official;
 }

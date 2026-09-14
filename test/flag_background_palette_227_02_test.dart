@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'dart:math' as math;
 import 'dart:typed_data';
 import 'dart:ui' as ui;
@@ -211,6 +212,8 @@ void main() {
         <path fill="rgb(0, 128, 255)" />
         <path fill="none" stroke="olive" />
         <path fill="url(#paint)" />
+        <path style="fill: #123456; stroke: #abcdef" />
+        <stop style="stop-color: #fedcba" />
       </svg>
     ''');
     expect(colors.map((sample) => sample.color.toARGB32()).toSet(), {
@@ -218,6 +221,9 @@ void main() {
       const Color(0xFFFF0000).toARGB32(),
       const Color(0xFF0080FF).toARGB32(),
       const Color(0xFF808000).toARGB32(),
+      const Color(0xFF123456).toARGB32(),
+      const Color(0xFFABCDEF).toARGB32(),
+      const Color(0xFFFEDCBA).toARGB32(),
     });
     expect(
       colors
@@ -225,6 +231,30 @@ void main() {
           .weight,
       .25,
     );
+  });
+
+  test('minority flag palettes include their representative field colors', () {
+    final expectedColors = <String, Set<int>>{
+      'corsican': {
+        const Color(0xFF000000).toARGB32(),
+        const Color(0xFFFFFFFF).toARGB32(),
+      },
+      'friulian': {
+        const Color(0xFF2828FF).toARGB32(),
+        const Color(0xFFFCD40F).toARGB32(),
+      },
+      'sardinian': {
+        const Color(0xFFD81921).toARGB32(),
+        const Color(0xFFFFFFFF).toARGB32(),
+      },
+    };
+
+    for (final entry in expectedColors.entries) {
+      final colors = FlagBackgroundPaletteService.colorsFromSvg(
+        File('assets/world_flags/flags/${entry.key}.svg').readAsStringSync(),
+      ).map((sample) => sample.color.toARGB32()).toSet();
+      expect(colors, containsAll(entry.value), reason: entry.key);
+    }
   });
 
   testWidgets(

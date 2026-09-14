@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -9,6 +11,7 @@ import 'package:quisquislingo_app/services/course_service.dart';
 import 'package:quisquislingo_app/services/profile_service.dart';
 import 'package:quisquislingo_app/services/settings_service.dart';
 import 'package:quisquislingo_app/widgets/course_entry_animation.dart';
+import 'package:quisquislingo_app/widgets/flag_art.dart';
 import 'package:quisquislingo_app/widgets/unified_learner_top_bar.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -263,7 +266,7 @@ void main() {
         rootBundle.evict(asset);
       }
       SharedPreferences.setMockInitialValues({
-        'one_time_notice_seen_welcome_2.0.33+233030': true,
+        'one_time_notice_seen_welcome_2.0.34+234000': true,
         'sound_effects_enabled': false,
       });
       await ProfileService().addProfile('Course Switch Learner');
@@ -340,6 +343,150 @@ void main() {
 
         await _selectBundledCourse(tester, 'KO');
         await _pumpUntilCourse(tester, 'sample_ko_en_ko');
+        expect(find.byKey(const Key('course-entry-animation')), findsNothing);
+      },
+    );
+
+    testWidgets(
+      'Extended source never paints behind an Off destination during switching',
+      (tester) async {
+        _useLargeTestWindow(tester);
+        await SettingsService().setAnimationsEnabled(false);
+        final courses = await tester.runAsync(
+          () => Future.wait([
+            CourseService().loadCourse('IT'),
+            CourseService().loadCourse('DE'),
+          ]),
+        );
+        final italian = courses![0];
+        final german = courses[1];
+        final profiles = _BlockingFlagBackgroundProfileService();
+        await profiles.setFlagBackgroundMode(
+          italian.courseId,
+          LearnerFlagBackgroundMode.extended,
+        );
+        await profiles.setFlagBackgroundMode(
+          german.courseId,
+          LearnerFlagBackgroundMode.off,
+        );
+        await _openHome(tester, profileService: profiles);
+
+        expect(_activeCourseId(tester), italian.courseId);
+        expect(
+          tester
+              .widget<CourseFlagBackdrop>(
+                find.byKey(const Key('unified-learner-flag-background')),
+              )
+              .course
+              .courseId,
+          italian.courseId,
+        );
+
+        profiles.blockNextFlagReadFor(german.courseId);
+        addTearDown(profiles.releaseFlagRead);
+        await _openCoursePicker(tester);
+        await _tapBundledCourse(tester, 'DE');
+
+        void expectCoherentFrame() {
+          if (find.byType(UnifiedLearnerTopBar).evaluate().isEmpty) return;
+          final activeCourseId = _activeCourseId(tester);
+          final extendedBackdrop = find.byKey(
+            const Key('unified-learner-flag-background'),
+          );
+          if (activeCourseId == german.courseId) {
+            expect(
+              extendedBackdrop,
+              findsNothing,
+              reason:
+                  'The destination Course and its Off background preference '
+                  'must become visible in the same frame.',
+            );
+            return;
+          }
+
+          expect(activeCourseId, italian.courseId);
+          expect(extendedBackdrop, findsOneWidget);
+          expect(
+            tester.widget<CourseFlagBackdrop>(extendedBackdrop).course.courseId,
+            italian.courseId,
+            reason:
+                'While destination state is loading, the source Course and '
+                'its Extended background must remain coherent.',
+          );
+        }
+
+        for (var attempt = 0; attempt < 100; attempt++) {
+          await tester.runAsync(
+            () => Future<void>.delayed(const Duration(milliseconds: 10)),
+          );
+          await tester.pump(const Duration(milliseconds: 10));
+          expectCoherentFrame();
+          if (profiles.flagReadStarted) break;
+        }
+        expect(profiles.flagReadStarted, isTrue);
+        expectCoherentFrame();
+        expect(_activeCourseId(tester), italian.courseId);
+
+        profiles.releaseFlagRead();
+        for (var attempt = 0; attempt < 100; attempt++) {
+          await tester.runAsync(
+            () => Future<void>.delayed(const Duration(milliseconds: 10)),
+          );
+          await tester.pump(const Duration(milliseconds: 10));
+          expectCoherentFrame();
+          if (_activeCourseId(tester) == german.courseId) break;
+        }
+        expect(_activeCourseId(tester), german.courseId);
+        await _pumpUntil(tester, find.byTooltip('Flag background: Off'));
+        expect(find.byTooltip('Flag background: Off'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'a stale slow switch cannot replace the latest selected course',
+      (tester) async {
+        _useLargeTestWindow(tester);
+        await SettingsService().setAnimationsEnabled(false);
+        final courses = await tester.runAsync(
+          () => Future.wait([
+            CourseService().loadCourse('DE'),
+            CourseService().loadCourse('KO'),
+          ]),
+        );
+        final german = courses![0];
+        final korean = courses[1];
+        final profiles = _BlockingFlagBackgroundProfileService();
+        profiles.blockNextFlagReadFor(german.courseId);
+        addTearDown(profiles.releaseFlagRead);
+        await _openHome(tester, profileService: profiles);
+
+        await _selectBundledCourse(tester, 'DE');
+        for (
+          var attempt = 0;
+          attempt < 100 && !profiles.flagReadStarted;
+          attempt++
+        ) {
+          await tester.runAsync(
+            () => Future<void>.delayed(const Duration(milliseconds: 10)),
+          );
+          await tester.pump(const Duration(milliseconds: 10));
+        }
+        expect(profiles.flagReadStarted, isTrue);
+
+        await _selectBundledCourse(tester, 'KO');
+        await _pumpUntilCourse(tester, korean.courseId);
+        expect(await SettingsService().getLastSelectedCourseCode(), 'KO');
+
+        profiles.releaseFlagRead();
+        for (var attempt = 0; attempt < 20; attempt++) {
+          await tester.runAsync(
+            () => Future<void>.delayed(const Duration(milliseconds: 10)),
+          );
+          await tester.pump(const Duration(milliseconds: 10));
+        }
+
+        expect(_activeCourseId(tester), korean.courseId);
+        expect(await SettingsService().getLastSelectedCourseCode(), 'KO');
         expect(find.byKey(const Key('course-entry-animation')), findsNothing);
       },
     );
@@ -440,8 +587,13 @@ Course _course({
   lessons: const [],
 );
 
-Future<void> _openHome(WidgetTester tester) async {
-  await tester.pumpWidget(const MaterialApp(home: HomeScreen()));
+Future<void> _openHome(
+  WidgetTester tester, {
+  ProfileService? profileService,
+}) async {
+  await tester.pumpWidget(
+    MaterialApp(home: HomeScreen(profileService: profileService)),
+  );
   await tester.runAsync(
     () => Future<void>.delayed(const Duration(milliseconds: 250)),
   );
@@ -458,7 +610,12 @@ Future<void> _selectBundledCourse(WidgetTester tester, String code) async {
 Future<void> _openCoursePicker(WidgetTester tester) async {
   await tester.tap(find.byKey(const Key('unified-topbar-course-selector')));
   await _pumpUntil(tester, find.text('Choose course'));
-  await tester.pumpAndSettle();
+  // The bundled Napoletano row resolves its World Flag asynchronously and
+  // legitimately shows an indeterminate progress indicator in the meantime.
+  // Waiting for the whole tree to settle would therefore conflate that asset
+  // load with the bottom-sheet transition under test.
+  await tester.pump(const Duration(milliseconds: 350));
+  await tester.pump();
 }
 
 Future<void> _tapBundledCourse(WidgetTester tester, String code) async {
@@ -529,4 +686,38 @@ Future<void> _pumpUntilAbsent(WidgetTester tester, Finder finder) async {
     if (finder.evaluate().isEmpty) return;
   }
   fail('Timed out waiting for $finder to disappear.');
+}
+
+class _BlockingFlagBackgroundProfileService extends ProfileService {
+  String? _blockedCourseId;
+  Completer<void>? _flagReadStarted;
+  Completer<void>? _releaseFlagRead;
+
+  bool get flagReadStarted => _flagReadStarted?.isCompleted ?? false;
+
+  void blockNextFlagReadFor(String courseId) {
+    _blockedCourseId = courseId;
+    _flagReadStarted = Completer<void>();
+    _releaseFlagRead = Completer<void>();
+  }
+
+  void releaseFlagRead() {
+    final release = _releaseFlagRead;
+    if (release != null && !release.isCompleted) release.complete();
+  }
+
+  @override
+  Future<LearnerFlagBackgroundMode> getFlagBackgroundModeForProfile(
+    String idOrDisplayName,
+    String courseId,
+  ) async {
+    if (_blockedCourseId == courseId) {
+      _blockedCourseId = null;
+      final started = _flagReadStarted;
+      final release = _releaseFlagRead;
+      if (started != null && !started.isCompleted) started.complete();
+      if (release != null) await release.future;
+    }
+    return super.getFlagBackgroundModeForProfile(idOrDisplayName, courseId);
+  }
 }

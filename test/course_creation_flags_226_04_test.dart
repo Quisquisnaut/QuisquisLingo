@@ -5,13 +5,16 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:quisquislingo_app/models/course_flag_selection.dart';
 import 'package:quisquislingo_app/models/course_models.dart';
 import 'package:quisquislingo_app/screens/course_editor_screen.dart';
 import 'package:quisquislingo_app/screens/course_projects_screen.dart';
 import 'package:quisquislingo_app/services/course_editor_service.dart';
+import 'package:quisquislingo_app/services/course_service.dart';
 import 'package:quisquislingo_app/services/custom_course_transfer_service.dart';
 import 'package:quisquislingo_app/services/profile_service.dart';
 import 'package:quisquislingo_app/services/world_flag_repository.dart';
+import 'package:quisquislingo_app/widgets/course_flag_picker.dart';
 import 'package:quisquislingo_app/widgets/flag_art.dart';
 import 'package:quisquislingo_app/widgets/world_flag_art.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -20,22 +23,23 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   testWidgets(
-    'creation offers all sources and Automatic stores no explicit override',
+    'creation shared chooser exposes all sources and Automatic stores no override',
     (tester) async {
       await _pumpManager(tester);
       await _openCreation(tester);
-
-      await _openDropdown(tester, 'Flag source');
-      for (final source in const [
-        'Automatic',
-        'Existing QQL course flags',
-        'World Flags',
-        'Custom uploaded flag',
-      ]) {
-        expect(find.text(source), findsWidgets);
-      }
-      await tester.tap(find.text('Automatic').last);
-      await tester.pumpAndSettle();
+      await _openCourseFlagChooser(tester);
+      expect(find.text('Use Automatic'), findsOneWidget);
+      expect(find.text('Upload custom flag'), findsOneWidget);
+      expect(find.text('Flags from installed QQL courses'), findsNothing);
+      final search = find.byKey(const Key('course-flag-picker-search'));
+      await tester.enterText(search, 'qql-flagpainter-english');
+      await tester.pump();
+      expect(find.text('QQL FlagPainter Flags'), findsOneWidget);
+      await tester.enterText(search, 'world:france');
+      await tester.pump();
+      expect(find.text('WORLD Flags'), findsOneWidget);
+      await tester.tap(find.byKey(const Key('course-flag-picker-automatic')));
+      await _settleFlagSelection(tester);
 
       await _enterBasics(tester, title: 'Automatic flag', target: 'Italian');
       await _create(tester);
@@ -52,12 +56,20 @@ void main() {
   ) async {
     await _pumpManager(tester);
     await _openCreation(tester);
-    await _chooseDropdown(
-      tester,
-      label: 'Flag source',
-      option: 'Existing QQL course flags',
+    await _openCourseFlagChooser(tester);
+    await tester.enterText(
+      find.byKey(const Key('course-flag-picker-search')),
+      'qql-flagpainter-welsh',
     );
-    await _chooseDropdown(tester, label: 'Course flag', option: 'Wales (CY)');
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.byKey(const ValueKey('course-flag-option-qql-flagpainter-welsh')),
+    );
+    await _settleFlagSelection(tester);
+    final selectionPreview = tester.widget<CourseFlagSelectionPreview>(
+      find.byType(CourseFlagSelectionPreview),
+    );
+    expect(selectionPreview.selection.builtInCode, 'CY');
 
     await _enterBasics(tester, title: 'Legacy Welsh flag', target: 'Welsh');
     await _create(tester);
@@ -83,23 +95,9 @@ void main() {
       });
       await _pumpManager(tester);
       await _openCreation(tester);
-      await _chooseDropdown(
-        tester,
-        label: 'Flag source',
-        option: 'World Flags',
-      );
-
-      final chooseWorldFlag = find.byKey(const Key('choose-world-flag'));
-      await tester.ensureVisible(chooseWorldFlag);
-      await tester.pump();
-      await tester.runAsync(() async {
-        await tester.tap(chooseWorldFlag);
-        await tester.pump();
-        await WorldFlagRepository().load();
-      });
-      await _pumpRouteTransition(tester);
+      await _openCourseFlagChooser(tester);
       expect(
-        find.byKey(const Key('world-flag-picker-search')),
+        find.byKey(const Key('course-flag-picker-search')),
         findsOneWidget,
         reason: find
             .byType(Text)
@@ -108,19 +106,29 @@ void main() {
             .join(' | '),
       );
       await tester.enterText(
-        find.byKey(const Key('world-flag-picker-search')),
+        find.byKey(const Key('course-flag-picker-search')),
         'GB-WLS',
       );
-      await tester.pump();
-      await tester.runAsync(() async {
-        await tester.tap(find.byKey(const ValueKey('world-flag-option-wales')));
-        await WorldFlagRepository().load();
-      });
-      await _pumpRouteTransition(tester);
-      expect(find.text('Choose a World Flag'), findsNothing);
-
-      final preview = tester.widget<WorldFlagArt>(find.byType(WorldFlagArt));
-      expect(preview.entity.id, 'wales');
+      await tester.pumpAndSettle();
+      final walesOption = find.byKey(
+        const ValueKey('course-flag-option-world:wales'),
+      );
+      expect(
+        walesOption,
+        findsOneWidget,
+        reason: find
+            .byType(Text)
+            .evaluate()
+            .map((element) => (element.widget as Text).data)
+            .whereType<String>()
+            .join(' | '),
+      );
+      await tester.tap(walesOption);
+      await _settleFlagSelection(tester);
+      final selectionPreview = tester.widget<CourseFlagSelectionPreview>(
+        find.byType(CourseFlagSelectionPreview),
+      );
+      expect(selectionPreview.selection.worldFlagId, 'wales');
       await _enterBasics(tester, title: 'World Wales flag', target: 'Welsh');
       await tester.runAsync(() async {
         await tester.tap(find.widgetWithText(FilledButton, 'Create'));
@@ -172,13 +180,9 @@ void main() {
 
     await _pumpManager(tester);
     await _openCreation(tester);
-    await _chooseDropdown(
-      tester,
-      label: 'Flag source',
-      option: 'Custom uploaded flag',
-    );
+    await _openCourseFlagChooser(tester);
     final importButton = tester.widget<OutlinedButton>(
-      find.widgetWithText(OutlinedButton, 'Import flag'),
+      find.widgetWithText(OutlinedButton, 'Upload custom flag'),
     );
     await tester.runAsync(() async {
       // Image decoding uses the engine's real async codec. Invoke and await the
@@ -187,7 +191,13 @@ void main() {
       if (operation is Future) await operation;
     });
     await tester.pumpAndSettle();
-    expect(find.textContaining('96×64 → 96×64 PNG'), findsOneWidget);
+    final selectionPreview = tester.widget<CourseFlagSelectionPreview>(
+      find.byType(CourseFlagSelectionPreview),
+    );
+    expect(
+      selectionPreview.selection.kind,
+      CourseFlagSelectionKind.customImage,
+    );
 
     await _enterBasics(tester, title: 'Custom image flag', target: 'Custom');
     await _create(tester);
@@ -321,7 +331,17 @@ Future<void> _pumpManager(WidgetTester tester) async {
 }
 
 Future<void> _openCreation(WidgetTester tester) async {
-  await tester.tap(find.byKey(const Key('create-course-icon-action')));
+  await tester.runAsync(() async {
+    await WorldFlagRepository().loadManifest();
+    await tester.tap(find.byKey(const Key('create-course-icon-action')));
+    final service = CourseService();
+    await Future.wait(
+      CourseService.courseAssets.keys.map(service.loadBundledCourse),
+    );
+    // Let the action consume the same cached asset loads and schedule the
+    // dialog route before returning to the widget-test fake clock.
+    await Future<void>.delayed(Duration.zero);
+  });
   await tester.pumpAndSettle();
   expect(find.byType(AlertDialog), findsOneWidget);
   expect(
@@ -331,6 +351,18 @@ Future<void> _openCreation(WidgetTester tester) async {
     ),
     findsOneWidget,
   );
+}
+
+Future<void> _openCourseFlagChooser(WidgetTester tester) async {
+  final button = find.byKey(const Key('course-flag-selector-open'));
+  await tester.ensureVisible(button);
+  await tester.pump();
+  await tester.tap(button);
+  await tester.runAsync(() => Future<void>.delayed(Duration.zero));
+  await _pumpRouteTransition(tester);
+  await tester.pump();
+  expect(find.byKey(const Key('course-flag-picker-search')), findsOneWidget);
+  expect(find.byKey(const Key('course-flag-picker-results')), findsOneWidget);
 }
 
 Future<void> _enterBasics(
@@ -349,9 +381,28 @@ Future<void> _enterBasics(
 }
 
 Future<void> _create(WidgetTester tester) async {
-  await tester.tap(find.widgetWithText(FilledButton, 'Create'));
+  final create = find.widgetWithText(FilledButton, 'Create');
+  await tester.ensureVisible(create);
+  await tester.pump();
+  final button = tester.widget<FilledButton>(create);
+  await tester.runAsync(() async {
+    final operation = (button.onPressed as dynamic)();
+    if (operation is Future) await operation;
+    await Future<void>.delayed(Duration.zero);
+  });
   await tester.pumpAndSettle();
-  expect(find.byType(CourseEditorScreen), findsOneWidget);
+  await _pumpRouteTransition(tester);
+  await tester.pumpAndSettle();
+  expect(
+    find.byType(CourseEditorScreen),
+    findsOneWidget,
+    reason: find
+        .byType(Text)
+        .evaluate()
+        .map((element) => (element.widget as Text).data)
+        .whereType<String>()
+        .join(' | '),
+  );
 }
 
 Future<void> _pumpRouteTransition(WidgetTester tester) async {
@@ -360,32 +411,15 @@ Future<void> _pumpRouteTransition(WidgetTester tester) async {
   await tester.pump();
 }
 
+Future<void> _settleFlagSelection(WidgetTester tester) async {
+  await _pumpRouteTransition(tester);
+  await tester.runAsync(() => Future<void>.delayed(Duration.zero));
+  await tester.pumpAndSettle();
+}
+
 Finder _textField(String label) => find.byWidgetPredicate(
   (widget) => widget is TextField && widget.decoration?.labelText == label,
 );
-
-Future<void> _openDropdown(WidgetTester tester, String label) async {
-  final field = find.byWidgetPredicate(
-    (widget) =>
-        widget is DropdownButtonFormField<String> &&
-        widget.decoration.labelText == label,
-  );
-  expect(field, findsOneWidget);
-  await tester.ensureVisible(field);
-  await tester.pump();
-  await tester.tap(field);
-  await tester.pumpAndSettle();
-}
-
-Future<void> _chooseDropdown(
-  WidgetTester tester, {
-  required String label,
-  required String option,
-}) async {
-  await _openDropdown(tester, label);
-  await tester.tap(find.text(option).last);
-  await tester.pumpAndSettle();
-}
 
 Course _editorCourse(WidgetTester tester) =>
     tester.widget<CourseEditorScreen>(find.byType(CourseEditorScreen)).course;

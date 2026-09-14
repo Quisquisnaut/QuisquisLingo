@@ -25,6 +25,8 @@ class CourseService {
     'PT': 'assets/courses/portuguese_en.json',
     'FI': 'assets/courses/finnish_en.json',
     'KO': 'assets/courses/korean_en.json',
+    'NAP': 'assets/courses/neapolitan_it.json',
+    'JA': 'assets/courses/japanese_en.json',
   };
 
   static const bundledCourseIndexStorageKey =
@@ -40,6 +42,8 @@ class CourseService {
     'PT': 'Portuguese',
     'FI': 'Finnish',
     'KO': 'Korean',
+    'NAP': 'Neapolitan',
+    'JA': 'Japanese',
   };
 
   static const Map<String, String> sourceLabels = {
@@ -52,6 +56,8 @@ class CourseService {
     'PT': 'English',
     'FI': 'English',
     'KO': 'English',
+    'NAP': 'Italian',
+    'JA': 'English',
   };
 
   Future<Course> loadItalianCourse() => loadCourse('IT');
@@ -59,6 +65,8 @@ class CourseService {
   Future<Course> loadSpanishCourse() => loadCourse('ES');
   Future<Course> loadEnglishCourse() => loadCourse('EN');
   Future<Course> loadKoreanCourse() => loadCourse('KO');
+  Future<Course> loadNeapolitanCourse() => loadCourse('NAP');
+  Future<Course> loadJapaneseCourse() => loadCourse('JA');
 
   /// Reconciles the device-local discovery index with the authoritative
   /// bundled registry. This is normal startup initialization: it does not
@@ -88,7 +96,7 @@ class CourseService {
     final resolved = CourseLanguageResolver.learning(course).code;
     if (resolved != null) {
       final canonical = LearningLanguageIdentity.storageId(resolved);
-      if (canonical.length == 2) return canonical;
+      if (_isLanguageCode(canonical)) return canonical;
     }
     for (final candidate in [
       course.learningLanguage,
@@ -96,11 +104,14 @@ class CourseService {
       course.targetLanguage,
     ]) {
       final canonical = LearningLanguageIdentity.storageId(candidate);
-      if (canonical.length == 2) return canonical;
+      if (_isLanguageCode(canonical)) return canonical;
     }
     final raw = course.targetLanguage.trim().toUpperCase();
     return raw.length >= 2 ? raw.substring(0, 2) : raw;
   }
+
+  static bool _isLanguageCode(String value) =>
+      RegExp(r'^[A-Z]{2,3}$').hasMatch(value);
 
   Future<Course> loadCourse(String languageCode) =>
       loadBundledCourse(languageCode);

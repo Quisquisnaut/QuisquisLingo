@@ -10,7 +10,6 @@ import 'package:quisquislingo_app/screens/round_screen.dart';
 import 'package:quisquislingo_app/services/course_access_policy.dart';
 import 'package:quisquislingo_app/services/course_backup_service.dart';
 import 'package:quisquislingo_app/services/course_editor_service.dart';
-import 'package:quisquislingo_app/services/course_service.dart';
 import 'package:quisquislingo_app/services/profile_service.dart';
 import 'package:quisquislingo_app/widgets/script_recognition_editor.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -76,7 +75,6 @@ void main() {
                           profileId: profileId,
                         ),
                         editorService: service,
-                        courseService: _OfficialSource(course),
                       ),
                     ),
                   ),
@@ -293,13 +291,6 @@ Course _official(CourseOriginType origin, String preset) {
     ...course.toJson(),
     'officialChecksum': CourseBackupService.officialContentChecksum(course),
   });
-}
-
-class _OfficialSource extends CourseService {
-  _OfficialSource(this.course);
-  final Course course;
-  @override
-  Future<Course> loadBundledCourse(String languageCode) async => course;
 }
 
 class _ReadOnlyBackups extends CourseBackupService {

@@ -9,9 +9,9 @@ import '../services/portable_exercise_image.dart';
 import '../widgets/script_recognition_editor.dart';
 import 'package:audioplayers/audioplayers.dart';
 
+import '../models/course_flag_selection.dart';
 import '../models/course_models.dart';
 import '../models/course_metadata_options.dart';
-import '../models/world_flag_entity.dart';
 import '../models/exercise_authoring.dart';
 import '../services/course_editor_service.dart';
 import '../services/course_flag_service.dart';
@@ -55,7 +55,7 @@ import '../services/publication_service.dart';
 import '../services/provisional_publication_service.dart';
 import '../services/new_course_structure.dart';
 import '../widgets/flag_art.dart';
-import '../widgets/world_flag_picker.dart';
+import '../widgets/course_flag_picker.dart';
 import '../widgets/lesson_fallback_icon.dart';
 
 String _exerciseCountLabel(int count) =>
@@ -467,7 +467,6 @@ class CourseEditorScreen extends StatelessWidget {
   final bool userCourse;
   final bool isNewCourse;
   final CourseEditorService? editorService;
-  final CourseService? courseService;
   final CustomCourseTransferService? transferService;
   final DateTime Function()? clock;
   final CourseAccessCapabilities? access;
@@ -477,7 +476,6 @@ class CourseEditorScreen extends StatelessWidget {
     this.userCourse = false,
     this.isNewCourse = false,
     this.editorService,
-    this.courseService,
     this.transferService,
     this.clock,
     this.access,
@@ -532,7 +530,6 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
       widget.editorService ?? CourseEditorService();
   final _settings = SettingsService();
   final _profiles = ProfileService();
-  final _flags = CourseFlagService();
   late final _teams = TeamService(profileService: _profiles);
   final _recordedAudio = RecordedAudioService();
   late final CustomCourseTransferService _transfer =
@@ -709,10 +706,6 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
     var selectedMaintainerId = _course.maintainer!.profileId;
     var selectedAssignedTeamId = _course.assignedTeamId;
     final assignedTeamFieldKey = GlobalKey<FormFieldState<String?>>();
-    WorldFlagEntity? selectedWorldFlag;
-    if (_course.worldFlagId.isNotEmpty) {
-      selectedWorldFlag = await _flags.resolveWorldFlag(_course);
-    }
     if (!mounted) return;
     const standardRoles = CourseMetadataOptions.standardRoles;
     const roleDescriptions = CourseMetadataOptions.roleDescriptions;
@@ -758,23 +751,7 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
         ? _course.license
         : 'Other / Custom license';
     var derivativePolicy = _course.derivativeWorksPolicy;
-    var flagChoice = CourseFlagService.hasExplicitFlag(_course)
-        ? 'Explicit flag'
-        : 'Automatic';
-    var explicitFlagSource = _course.worldFlagId.isNotEmpty
-        ? 'World Flag'
-        : _course.flagImageBase64.isNotEmpty
-        ? 'Custom uploaded flag'
-        : 'Built-in flag';
-    var selectedFlag = _course.flagCode.trim().toUpperCase();
-    if (selectedFlag.isEmpty && flagChoice == 'Automatic') {
-      final automatic = CourseService.codeForCourse(_course);
-      if (CourseFlagService.renderableBuiltInCodes.contains(automatic)) {
-        selectedFlag = automatic;
-      }
-    }
-    var customFlagBase64 = _course.flagImageBase64;
-    String? flagError;
+    var flagSelection = CourseFlagSelection.fromCourse(_course);
     final learningLanguage = CourseLanguageResolver.learning(_course);
     final baseLanguage = CourseLanguageResolver.base(_course);
     final narrowCourseInfo = MediaQuery.sizeOf(context).width < 560;
@@ -1109,210 +1086,14 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
                         style: TextStyle(fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 8),
-                      DropdownButtonFormField<String>(
-                        key: const Key('course-info-flag-choice'),
-                        initialValue: flagChoice,
-                        isExpanded: true,
-                        decoration: const InputDecoration(
-                          border: OutlineInputBorder(),
-                          labelText: 'Flag choice',
-                        ),
-                        items: const [
-                          DropdownMenuItem(
-                            value: 'Automatic',
-                            child: Text('Automatic'),
-                          ),
-                          DropdownMenuItem(
-                            value: 'Explicit flag',
-                            child: Text('Explicit flag'),
-                          ),
-                        ],
-                        onChanged: (value) => setLocalState(() {
-                          flagChoice = value ?? 'Automatic';
-                          flagError = null;
-                        }),
+                      CourseFlagSelector(
+                        key: const Key('course-info-flag-selector'),
+                        selection: flagSelection,
+                        languageName: learningLanguage.displayLabel,
+                        languageTag: learningLanguage.code,
+                        onChanged: (selection) =>
+                            setLocalState(() => flagSelection = selection),
                       ),
-                      if (flagChoice == 'Explicit flag') ...[
-                        const SizedBox(height: 8),
-                        DropdownButtonFormField<String>(
-                          key: const Key('course-info-explicit-flag-source'),
-                          initialValue: explicitFlagSource,
-                          isExpanded: true,
-                          decoration: const InputDecoration(
-                            border: OutlineInputBorder(),
-                            labelText: 'Explicit flag source',
-                          ),
-                          items: const [
-                            DropdownMenuItem(
-                              value: 'Built-in flag',
-                              child: Text('Built-in flag'),
-                            ),
-                            DropdownMenuItem(
-                              value: 'World Flag',
-                              child: Text('World Flag'),
-                            ),
-                            DropdownMenuItem(
-                              value: 'Custom uploaded flag',
-                              child: Text('Custom uploaded flag'),
-                            ),
-                          ],
-                          onChanged: (value) => setLocalState(() {
-                            explicitFlagSource = value ?? 'Built-in flag';
-                            flagError = null;
-                          }),
-                        ),
-                        if (explicitFlagSource == 'Built-in flag') ...[
-                          const SizedBox(height: 8),
-                          DropdownButtonFormField<String>(
-                            key: const Key('course-info-built-in-flag'),
-                            initialValue:
-                                CourseFlagService.builtInFlags.containsKey(
-                                  selectedFlag,
-                                )
-                                ? selectedFlag
-                                : null,
-                            isExpanded: true,
-                            decoration: const InputDecoration(
-                              border: OutlineInputBorder(),
-                              labelText: 'Course flag',
-                            ),
-                            items: [
-                              for (final entry
-                                  in CourseFlagService.builtInFlags.entries)
-                                DropdownMenuItem(
-                                  value: entry.key,
-                                  child: Text('${entry.value} (${entry.key})'),
-                                ),
-                            ],
-                            onChanged: (value) => setLocalState(() {
-                              selectedFlag = value ?? '';
-                              flagError = null;
-                            }),
-                          ),
-                        ],
-                        if (explicitFlagSource == 'World Flag') ...[
-                          const SizedBox(height: 8),
-                          OutlinedButton.icon(
-                            key: const Key('course-info-choose-world-flag'),
-                            icon: const Icon(Icons.public),
-                            label: Text(
-                              selectedWorldFlag?.displayNameEn ??
-                                  (_course.worldFlagId.isEmpty
-                                      ? 'Choose World Flag'
-                                      : 'World Flag unavailable'),
-                            ),
-                            onPressed: () async {
-                              final selected = await showWorldFlagPicker(
-                                context: ctx,
-                                initialWorldFlagId:
-                                    selectedWorldFlag?.id ??
-                                    _course.worldFlagId,
-                              );
-                              if (selected != null && ctx.mounted) {
-                                setLocalState(() {
-                                  selectedWorldFlag = selected;
-                                  flagError = null;
-                                });
-                              }
-                            },
-                          ),
-                        ],
-                        if (explicitFlagSource == 'Custom uploaded flag') ...[
-                          const SizedBox(height: 8),
-                          OutlinedButton.icon(
-                            key: const Key('course-info-import-flag'),
-                            icon: const Icon(Icons.upload_file),
-                            label: const Text('Import flag'),
-                            onPressed: () async {
-                              try {
-                                final imported = await _flags
-                                    .importPreparedFlag();
-                                if (!ctx.mounted) return;
-                                setLocalState(() {
-                                  customFlagBase64 = imported.base64Png;
-                                  flagError = null;
-                                });
-                              } catch (error) {
-                                if (!ctx.mounted) return;
-                                setLocalState(
-                                  () => flagError = error
-                                      .toString()
-                                      .replaceFirst('FormatException: ', ''),
-                                );
-                              }
-                            },
-                          ),
-                        ],
-                      ],
-                      const SizedBox(height: 8),
-                      Builder(
-                        builder: (context) {
-                          final hasExplicitSelection =
-                              switch (explicitFlagSource) {
-                                'World Flag' => selectedWorldFlag != null,
-                                'Custom uploaded flag' =>
-                                  customFlagBase64.isNotEmpty,
-                                _ => CourseFlagService.builtInFlags.containsKey(
-                                  selectedFlag,
-                                ),
-                              };
-                          if (flagChoice == 'Explicit flag' &&
-                              !hasExplicitSelection) {
-                            return const Row(
-                              children: [
-                                SizedBox(
-                                  width: 64,
-                                  height: 44,
-                                  child: Icon(Icons.outlined_flag),
-                                ),
-                                SizedBox(width: 10),
-                                Flexible(child: Text('Flag preview')),
-                              ],
-                            );
-                          }
-                          final preview = Course.fromJson({
-                            ..._course.toJson(),
-                            'flagCode':
-                                flagChoice == 'Explicit flag' &&
-                                    explicitFlagSource == 'Built-in flag'
-                                ? selectedFlag
-                                : '',
-                            'flagImageBase64':
-                                flagChoice == 'Explicit flag' &&
-                                    explicitFlagSource == 'Custom uploaded flag'
-                                ? customFlagBase64
-                                : '',
-                            'worldFlagId':
-                                flagChoice == 'Explicit flag' &&
-                                    explicitFlagSource == 'World Flag'
-                                ? selectedWorldFlag!.id
-                                : '',
-                          });
-                          return Row(
-                            children: [
-                              CourseFlagBadge(
-                                course: preview,
-                                fallbackCode: CourseService.codeForCourse(
-                                  preview,
-                                ),
-                                width: 64,
-                                height: 44,
-                              ),
-                              const SizedBox(width: 10),
-                              const Flexible(child: Text('Flag preview')),
-                            ],
-                          );
-                        },
-                      ),
-                      if (flagError != null) ...[
-                        const SizedBox(height: 6),
-                        Text(
-                          flagError!,
-                          style: TextStyle(
-                            color: Theme.of(ctx).colorScheme.error,
-                          ),
-                        ),
-                      ],
                       const SizedBox(height: 14),
                       const Text(
                         'Authors',
@@ -1778,39 +1559,6 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
                       ).showSnackBar(SnackBar(content: Text(error.message)));
                       return;
                     }
-                    var resultFlagCode = '';
-                    var resultFlagImageBase64 = '';
-                    var resultWorldFlagId = '';
-                    if (flagChoice == 'Explicit flag') {
-                      switch (explicitFlagSource) {
-                        case 'World Flag':
-                          if (selectedWorldFlag == null) {
-                            setLocalState(
-                              () => flagError = 'Choose a World Flag.',
-                            );
-                            return;
-                          }
-                          resultWorldFlagId = selectedWorldFlag!.id;
-                        case 'Custom uploaded flag':
-                          if (customFlagBase64.isEmpty) {
-                            setLocalState(
-                              () => flagError = 'Import a custom flag first.',
-                            );
-                            return;
-                          }
-                          resultFlagImageBase64 = customFlagBase64;
-                        default:
-                          if (!CourseFlagService.builtInFlags.containsKey(
-                            selectedFlag,
-                          )) {
-                            setLocalState(
-                              () => flagError = 'Choose a built-in flag.',
-                            );
-                            return;
-                          }
-                          resultFlagCode = selectedFlag;
-                      }
-                    }
                     final aa = <CourseAuthor>[];
                     for (var i = 0; i < names.length; i++) {
                       final n = names[i].text.trim();
@@ -1856,9 +1604,9 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
                       targetLevel: targetLevel.text.trim(),
                       description: description.text.trim(),
                       buyACoffeeUrl: normalizedBuyACoffeeUrl,
-                      flagCode: resultFlagCode,
-                      flagImageBase64: resultFlagImageBase64,
-                      worldFlagId: resultWorldFlagId,
+                      flagCode: flagSelection.flagCode,
+                      flagImageBase64: flagSelection.flagImageBase64,
+                      worldFlagId: flagSelection.selectedWorldFlagId,
                       maintainerProfileId: selectedMaintainerId,
                       assignedTeamId: selectedAssignedTeamId,
                     ));
@@ -2785,8 +2533,10 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
               onTap: _canModify
                   ? () => Navigator.of(context).push(
                       MaterialPageRoute(
-                        builder: (_) =>
-                            const FlatImageLibraryScreen(selectMode: false),
+                        builder: (_) => const FlatImageLibraryScreen(
+                          selectMode: false,
+                          readOnly: true,
+                        ),
                       ),
                     )
                   : null,
@@ -8684,7 +8434,9 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
   Future<void> _chooseFlatImage() async {
     if (widget.readOnly) return;
     final selected = await Navigator.of(context).push<String>(
-      MaterialPageRoute(builder: (_) => const FlatImageLibraryScreen()),
+      MaterialPageRoute(
+        builder: (_) => const FlatImageLibraryScreen(readOnly: true),
+      ),
     );
     if (selected != null && mounted) {
       setState(() {

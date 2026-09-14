@@ -10,6 +10,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 const _firstLearnerId = '00000000-0000-4000-8000-000000000901';
 const _existingLearnerId = '00000000-0000-4000-8000-000000000902';
+const _reducedMotionLearnerId = '00000000-0000-4000-8000-000000000903';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -81,12 +82,48 @@ void main() {
       await tester.tap(find.widgetWithText(FilledButton, 'Done'));
       await _pumpUntil(tester, find.byKey(const Key('qql-startup-animation')));
 
-      expect(find.byKey(const Key('qql-startup-animation')), findsOneWidget);
+      final startup = find.byKey(const Key('qql-startup-animation'));
+      final startupLogo = find.descendant(
+        of: startup,
+        matching: find.byKey(const Key('qql-startup-logo')),
+      );
+      expect(startup, findsOneWidget);
+      expect(startupLogo, findsOneWidget);
+      final logo = tester.widget<Image>(startupLogo);
+      expect(
+        (logo.image as AssetImage).assetName,
+        'assets/branding/quisquislingo_logo.png',
+      );
+      expect(
+        find.image(const AssetImage('assets/olive_tree.png')),
+        findsNothing,
+      );
+      expect(
+        find.descendant(of: startup, matching: find.byType(Image)),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(of: startup, matching: find.byType(Text)),
+        findsNothing,
+      );
       await tester.runAsync(
         () => Future<void>.delayed(const Duration(milliseconds: 20)),
       );
       await tester.pump();
-      await tester.pump(const Duration(milliseconds: 1801));
+      final fade = tester.widget<FadeTransition>(
+        find.byKey(const Key('qql-startup-logo-fade')),
+      );
+      final scale = tester.widget<ScaleTransition>(
+        find.byKey(const Key('qql-startup-logo-scale')),
+      );
+      expect(fade.opacity.value, 0);
+      expect(scale.scale.value, closeTo(.96, .001));
+      await tester.pump(const Duration(milliseconds: 600));
+      expect(fade.opacity.value, 1);
+      expect(scale.scale.value, 1);
+      await tester.pump(const Duration(milliseconds: 1199));
+      expect(startup, findsOneWidget);
+      await tester.pump(const Duration(milliseconds: 2));
       await tester.pump();
       await _pumpUntil(tester, find.text('QuisquisLingo Alpha testing'));
 
@@ -116,10 +153,88 @@ void main() {
       await profiles.createProfile('Existing Learner');
 
       await tester.pumpWidget(QuisquisLingoApp(profileService: profiles));
+      final startup = find.byKey(const Key('qql-startup-animation'));
+      await _pumpUntil(tester, startup);
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 20)),
+      );
+      await tester.pump();
+
+      expect(
+        tester
+            .widget<FadeTransition>(
+              find.byKey(const Key('qql-startup-logo-fade')),
+            )
+            .opacity
+            .value,
+        1,
+      );
+      expect(
+        tester
+            .widget<ScaleTransition>(
+              find.byKey(const Key('qql-startup-logo-scale')),
+            )
+            .scale
+            .value,
+        1,
+      );
+      await tester.pump(const Duration(milliseconds: 1799));
+      expect(startup, findsOneWidget);
+      await tester.pump(const Duration(milliseconds: 2));
       await _pumpUntil(tester, find.text('QuisquisLingo Alpha testing'));
 
       expect(find.text('Create Profile'), findsNothing);
       expect(find.text('QuisquisLingo Alpha testing'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'reduced motion keeps the final logo static for the full startup gate',
+    (tester) async {
+      tester.platformDispatcher.accessibilityFeaturesTestValue =
+          const FakeAccessibilityFeatures(disableAnimations: true);
+      addTearDown(
+        tester.platformDispatcher.clearAccessibilityFeaturesTestValue,
+      );
+      final profiles = ProfileService(
+        idGenerator: () => _reducedMotionLearnerId,
+        numericSuffixGenerator: () => 67890,
+        randomIndex: (_) => 0,
+      );
+      await profiles.createProfile('Reduced Motion Learner');
+      await SettingsService().setAnimationsEnabled(true);
+
+      await tester.pumpWidget(QuisquisLingoApp(profileService: profiles));
+      final startup = find.byKey(const Key('qql-startup-animation'));
+      await _pumpUntil(tester, startup);
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 20)),
+      );
+      await tester.pump();
+
+      expect(find.byKey(const Key('qql-startup-logo')), findsOneWidget);
+      expect(
+        tester
+            .widget<FadeTransition>(
+              find.byKey(const Key('qql-startup-logo-fade')),
+            )
+            .opacity
+            .value,
+        1,
+      );
+      expect(
+        tester
+            .widget<ScaleTransition>(
+              find.byKey(const Key('qql-startup-logo-scale')),
+            )
+            .scale
+            .value,
+        1,
+      );
+      await tester.pump(const Duration(milliseconds: 1799));
+      expect(startup, findsOneWidget);
+      await tester.pump(const Duration(milliseconds: 2));
+      expect(startup, findsNothing);
     },
   );
 
@@ -149,7 +264,12 @@ void main() {
     expect(attemptsBeforeRetry, greaterThanOrEqualTo(1));
 
     await tester.tap(find.byKey(const Key('startup-profile-retry')));
-    await _pumpUntil(tester, find.text('QuisquisLingo Alpha testing'));
+    await _pumpUntil(tester, find.byKey(const Key('qql-startup-animation')));
+    await _finishStartupGate(tester);
+    await _pumpUntilAny(tester, [
+      find.text('QuisquisLingo Alpha testing'),
+      find.text('Welcome to QuisquisLingo'),
+    ]);
 
     expect(profiles.readAttempts, greaterThan(attemptsBeforeRetry));
     expect(find.text('Create Profile'), findsNothing);
@@ -178,5 +298,33 @@ Future<void> _pumpUntil(WidgetTester tester, Finder finder) async {
     await tester.pump(const Duration(milliseconds: 10));
     if (finder.evaluate().isNotEmpty) return;
   }
-  fail('Timed out waiting for $finder.');
+  final visibleText = tester
+      .widgetList<Text>(find.byType(Text))
+      .map((text) => text.data)
+      .whereType<String>()
+      .join(' | ');
+  fail('Timed out waiting for $finder. Visible text: $visibleText');
+}
+
+Future<void> _finishStartupGate(WidgetTester tester) async {
+  final startup = find.byKey(const Key('qql-startup-animation'));
+  for (var attempt = 0; attempt < 40; attempt++) {
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 10)),
+    );
+    await tester.pump(const Duration(milliseconds: 100));
+    if (startup.evaluate().isEmpty) return;
+  }
+  fail('Timed out waiting for the startup gate to finish.');
+}
+
+Future<void> _pumpUntilAny(WidgetTester tester, List<Finder> finders) async {
+  for (var attempt = 0; attempt < 100; attempt++) {
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 10)),
+    );
+    await tester.pump(const Duration(milliseconds: 10));
+    if (finders.any((finder) => finder.evaluate().isNotEmpty)) return;
+  }
+  fail('Timed out waiting for any normal startup notice.');
 }

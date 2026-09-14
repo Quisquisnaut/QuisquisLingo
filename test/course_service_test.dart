@@ -18,6 +18,25 @@ void main() {
     expect(CourseService.courseAssets['EN'], 'assets/courses/english_es.json');
   });
 
+  test('bundled course registry includes Neapolitan from Italian', () {
+    expect(CourseService.hasCourse('NAP'), isTrue);
+    expect(CourseService.hasCourse('nap'), isTrue);
+    expect(
+      CourseService.courseAssets['NAP'],
+      'assets/courses/neapolitan_it.json',
+    );
+    expect(CourseService.sourceLabels['NAP'], 'Italian');
+    expect(CourseService.targetLabels['NAP'], 'Neapolitan');
+  });
+
+  test('bundled course registry includes empty Japanese from English', () {
+    expect(CourseService.hasCourse('JA'), isTrue);
+    expect(CourseService.hasCourse('ja'), isTrue);
+    expect(CourseService.courseAssets['JA'], 'assets/courses/japanese_en.json');
+    expect(CourseService.sourceLabels['JA'], 'English');
+    expect(CourseService.targetLabels['JA'], 'Japanese');
+  });
+
   test('empty authoring course shells are registered explicitly', () {
     expect(CourseService.hasCourse('NL'), isTrue);
     expect(CourseService.hasCourse('CY'), isTrue);
@@ -47,8 +66,10 @@ void main() {
 
       expect(first, CourseService.courseAssets.keys);
       expect(second, first);
-      expect(first, hasLength(9));
+      expect(first, hasLength(11));
       expect(first.where((code) => code == 'KO'), hasLength(1));
+      expect(first.where((code) => code == 'NAP'), hasLength(1));
+      expect(first.where((code) => code == 'JA'), hasLength(1));
       expect(
         preferences.getStringList(CourseService.bundledCourseIndexStorageKey),
         first,

@@ -1,13 +1,21 @@
 import 'package:flutter/material.dart';
 
+import '../models/world_flag_entity.dart';
 import '../services/learning_activity_service.dart';
 import '../services/learning_language_identity.dart';
+import '../services/world_flag_repository.dart';
 import '../widgets/flag_art.dart';
+import '../widgets/world_flag_art.dart';
 
 class StatisticsScreen extends StatefulWidget {
   final LearningActivityService? learningActivityService;
+  final WorldFlagRepository? worldFlagRepository;
 
-  const StatisticsScreen({super.key, this.learningActivityService});
+  const StatisticsScreen({
+    super.key,
+    this.learningActivityService,
+    this.worldFlagRepository,
+  });
 
   @override
   State<StatisticsScreen> createState() => _StatisticsScreenState();
@@ -15,6 +23,7 @@ class StatisticsScreen extends StatefulWidget {
 
 class _StatisticsScreenState extends State<StatisticsScreen> {
   late final LearningActivityService _activity;
+  late final Future<WorldFlagManifest> _worldFlagManifest;
   LearnerStatistics? _statistics;
 
   @override
@@ -23,6 +32,8 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
     _activity =
         widget.learningActivityService ??
         LearningActivityService(now: DateTime.now);
+    _worldFlagManifest = (widget.worldFlagRepository ?? WorldFlagRepository())
+        .loadManifest();
     _load();
   }
 
@@ -61,7 +72,10 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                   )
                 else
                   for (final language in statistics.languages)
-                    _LanguageStatisticsTile(statistics: language),
+                    _LanguageStatisticsTile(
+                      statistics: language,
+                      worldFlagManifest: _worldFlagManifest,
+                    ),
               ],
             ),
     );
@@ -70,8 +84,12 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
 
 class _LanguageStatisticsTile extends StatelessWidget {
   final LanguageLearningStatistics statistics;
+  final Future<WorldFlagManifest> worldFlagManifest;
 
-  const _LanguageStatisticsTile({required this.statistics});
+  const _LanguageStatisticsTile({
+    required this.statistics,
+    required this.worldFlagManifest,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -81,8 +99,10 @@ class _LanguageStatisticsTile extends StatelessWidget {
       child: ListTile(
         key: ValueKey('statistics-language-${statistics.languageId}'),
         isThreeLine: true,
-        leading: FlagBadge(
-          LearningLanguageIdentity.flagCode(statistics.languageId),
+        leading: _LanguageStatisticsFlag(
+          languageId: statistics.languageId,
+          languageName: name,
+          worldFlagManifest: worldFlagManifest,
         ),
         title: Text(name),
         subtitle: Text(
@@ -94,4 +114,42 @@ class _LanguageStatisticsTile extends StatelessWidget {
       ),
     );
   }
+}
+
+class _LanguageStatisticsFlag extends StatelessWidget {
+  final String languageId;
+  final String languageName;
+  final Future<WorldFlagManifest> worldFlagManifest;
+
+  const _LanguageStatisticsFlag({
+    required this.languageId,
+    required this.languageName,
+    required this.worldFlagManifest,
+  });
+
+  @override
+  Widget build(BuildContext context) => FutureBuilder<WorldFlagManifest>(
+    future: worldFlagManifest,
+    builder: (context, snapshot) {
+      final suggestions = snapshot.hasData
+          ? WorldFlagRepository.suggestForLanguage(
+              snapshot.data!,
+              languageTag: languageId,
+              languageName: languageName,
+            )
+          : const <WorldFlagEntity>[];
+      if (suggestions.isNotEmpty) {
+        return SizedBox(
+          width: 44,
+          height: 31,
+          child: WorldFlagArt(
+            key: ValueKey('statistics-world-flag-$languageId'),
+            entity: suggestions.first,
+            semanticsLabel: '$languageName flag',
+          ),
+        );
+      }
+      return FlagBadge(LearningLanguageIdentity.flagCode(languageId));
+    },
+  );
 }

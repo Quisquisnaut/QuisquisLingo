@@ -19,7 +19,9 @@ EXPECTED_TTS = {
     "finnish_en.json": "fi-FI",
     "german_en.json": "de-DE",
     "italian_en.json": "it-IT",
+    "japanese_en.json": "ja-JP",
     "korean_en.json": "ko-KR",
+    "neapolitan_it.json": "nap-IT",
     "portuguese_en.json": "pt-PT",
     "spanish_en.json": "es-ES",
     "welsh_en.json": "cy-GB",
@@ -36,6 +38,23 @@ LESSON_ICON_PATHS = set(re.findall(
     (ROOT / "lib" / "services" / "lesson_icon_catalog.dart").read_text(encoding="utf-8"),
 ))
 UTC_TIMESTAMP = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?Z$")
+NEAPOLITAN_IMAGE_ASSETS = {
+    "assets/exercise_images/airplane.webp",
+    "assets/exercise_images/carrot.webp",
+    "assets/exercise_images/horse.webp",
+    "assets/exercise_images/man.webp",
+    "assets/exercise_images/jump.webp",
+    "assets/exercise_images/table.webp",
+}
+DUEL_SUPPORTED_PRESETS = {
+    "choice",
+    "gap_choice",
+    "dialogue_response",
+    "icon_choice",
+    "listening_choice",
+    "listening_comprehension",
+    "reading_comprehension",
+}
 
 
 def _official_checksum(course: dict[str, object]) -> str:
@@ -77,6 +96,8 @@ def validate(path: Path, global_ids: dict[str, str]) -> list[str]:
     issues: list[str] = []
     ids: set[str] = set()
     pending_refs: list[tuple[str, str]] = []
+    image_assets: set[str] = set()
+    image_asset_references: list[str] = []
 
     def add_id(value: object, where: str) -> None:
         if not isinstance(value, str) or not value.strip():
@@ -171,6 +192,38 @@ def validate(path: Path, global_ids: dict[str, str]) -> list[str]:
             issues.append("root: Korean direction must be English to Korean")
         if data.get("flagCode") != "KR":
             issues.append("root: Korean course must use the South Korean KR flag")
+    if path.name == "neapolitan_it.json":
+        if (
+            data.get("sourceLanguage"),
+            data.get("sourceLanguageTag"),
+            data.get("targetLanguage"),
+            data.get("targetLanguageTag"),
+        ) != ("Italian", "it-IT", "Neapolitan", "nap-IT"):
+            issues.append(
+                "root: Neapolitan direction must be Italian it-IT to "
+                "Neapolitan nap-IT"
+            )
+        if data.get("courseId") != "sample_nap_it_nap":
+            issues.append("root: unexpected Neapolitan bundled Course ID")
+        if data.get("worldFlagId") != "neapolitan":
+            issues.append("root: Neapolitan course must use worldFlagId neapolitan")
+    if path.name == "japanese_en.json":
+        if (
+            data.get("sourceLanguage"),
+            data.get("sourceLanguageTag"),
+            data.get("targetLanguage"),
+            data.get("targetLanguageTag"),
+        ) != ("English", "en-GB", "Japanese", "ja-JP"):
+            issues.append(
+                "root: Japanese direction must be English en-GB to Japanese ja-JP"
+            )
+        if data.get("courseId") != "sample_ja_en_ja":
+            issues.append("root: unexpected Japanese bundled Course ID")
+        if any(
+            str(data.get(field, "")).strip()
+            for field in ("flagCode", "flagImageBase64", "worldFlagId")
+        ):
+            issues.append("root: Japanese course must use automatic Course flag selection")
     add_id(data.get("courseId"), "root")
 
     lesson_icon_assets = data.get("lessonIconAssets", [])
@@ -222,6 +275,36 @@ def validate(path: Path, global_ids: dict[str, str]) -> list[str]:
                 issues.append(f"{where}: exercise payload missing")
                 return
             _timestamp(exercise.get("updatedAt"), f"{where} exercise", issues)
+            prompt = exercise.get("prompt")
+            if not isinstance(prompt, list) or not prompt:
+                issues.append(f"{where}: exercise prompt must be a non-empty list")
+                prompt = []
+            for prompt_index, element in enumerate(prompt, 1):
+                if not isinstance(element, dict):
+                    issues.append(f"{where}: prompt element {prompt_index} must be an object")
+                    continue
+                if element.get("type") == "image":
+                    asset = element.get("asset")
+                    if not isinstance(asset, str) or not asset.startswith(
+                        "assets/exercise_images/"
+                    ):
+                        issues.append(
+                            f"{where}: prompt image {prompt_index} must reference "
+                            "the bundled exercise-image library"
+                        )
+                    elif not (ROOT / asset).is_file():
+                        issues.append(
+                            f"{where}: prompt image {prompt_index} is missing: {asset}"
+                        )
+                    else:
+                        image_assets.add(asset)
+                        image_asset_references.append(asset)
+                    if not isinstance(element.get("text"), str) or not str(
+                        element.get("text", "")
+                    ).strip():
+                        issues.append(
+                            f"{where}: prompt image {prompt_index} needs a text alternative"
+                        )
             interaction = exercise.get("interaction")
             evaluation = exercise.get("evaluation")
             if not isinstance(interaction, dict) or interaction.get("kind") not in INTERACTIONS:
@@ -306,8 +389,12 @@ def validate(path: Path, global_ids: dict[str, str]) -> list[str]:
     lessons = data.get("lessons")
     if not isinstance(lessons, list):
         return issues + ["root: lessons must be a list"]
-    if len(lessons) != 9:
-        issues.append(f"root: bundled course must contain exactly 9 Lessons, found {len(lessons)}")
+    expected_lessons = 0 if path.name == "japanese_en.json" else 9
+    if len(lessons) != expected_lessons:
+        issues.append(
+            f"root: bundled course must contain exactly {expected_lessons} Lessons, "
+            f"found {len(lessons)}"
+        )
     for lesson_index, lesson in enumerate(lessons, 1):
         where_lesson = f"lesson {lesson_index}"
         if not isinstance(lesson, dict):
@@ -385,13 +472,69 @@ def validate(path: Path, global_ids: dict[str, str]) -> list[str]:
     for reference, where in pending_refs:
         if reference not in ids:
             issues.append(f"{where}: sourceRefs references missing Content {reference}")
+    if path.name == "neapolitan_it.json":
+        if (
+            image_assets != NEAPOLITAN_IMAGE_ASSETS
+            or len(image_asset_references) != len(NEAPOLITAN_IMAGE_ASSETS)
+        ):
+            issues.append(
+                "root: Neapolitan image exercises must use each approved pilot "
+                "asset exactly once; found "
+                f"{sorted(image_asset_references)}"
+            )
+        exercise_count = 0
+        round_count = 0
+        for lesson_index, lesson in enumerate(lessons, 1):
+            if not isinstance(lesson, dict):
+                continue
+            non_audio_duel_candidates = 0
+            rounds = lesson.get("rounds", [])
+            if not isinstance(rounds, list):
+                continue
+            round_count += len(rounds)
+            for round_data in rounds:
+                if not isinstance(round_data, dict):
+                    continue
+                content_items = round_data.get("content", [])
+                if not isinstance(content_items, list):
+                    continue
+                for content in content_items:
+                    if not isinstance(content, dict) or content.get("kind") != "exercise":
+                        continue
+                    exercise_count += 1
+                    exercise = content.get("exercise")
+                    if not isinstance(exercise, dict):
+                        continue
+                    prompt = exercise.get("prompt", [])
+                    has_audio = isinstance(prompt, list) and any(
+                        isinstance(element, dict) and element.get("type") == "audio"
+                        for element in prompt
+                    )
+                    if (
+                        content.get("editorTemplate") in DUEL_SUPPORTED_PRESETS
+                        and not has_audio
+                    ):
+                        non_audio_duel_candidates += 1
+            if non_audio_duel_candidates < 25:
+                issues.append(
+                    f"lesson {lesson_index}: Neapolitan course needs at least 25 "
+                    "non-audio Duel candidates, found "
+                    f"{non_audio_duel_candidates}"
+                )
+        if round_count != 36:
+            issues.append(f"root: Neapolitan course must contain 36 Rounds, found {round_count}")
+        if exercise_count != 279:
+            issues.append(
+                "root: Neapolitan course must contain 279 exercises, "
+                f"found {exercise_count}"
+            )
     return issues
 
 
 def main() -> int:
     files = sorted(COURSES.glob("*.json"))
     if {path.name for path in files} != set(EXPECTED_TTS):
-        print(f"Expected exactly these nine bundled files: {sorted(EXPECTED_TTS)}")
+        print(f"Expected exactly these eleven bundled files: {sorted(EXPECTED_TTS)}")
         print(f"Found: {[path.name for path in files]}")
         return 1
     total = 0

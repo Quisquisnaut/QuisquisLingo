@@ -14,7 +14,11 @@ void main() {
       final course = Course.fromJson(json);
       expect(course.formatVersion, Course.currentFormatVersion, reason: asset);
       expect(course.temporarySample, isTrue, reason: asset);
-      expect(course.lessons, isNotEmpty, reason: asset);
+      if (asset.endsWith('japanese_en.json')) {
+        expect(course.lessons, isEmpty, reason: asset);
+      } else {
+        expect(course.lessons, isNotEmpty, reason: asset);
+      }
       expect(
         course.lessons.every(
           (lesson) => lesson.duel.id == '${lesson.lessonId}_duel',

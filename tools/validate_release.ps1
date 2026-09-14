@@ -71,6 +71,10 @@ Run-Step "Image Bank validator" {
     python tools/validate_images.py
 }
 
+Run-Step "Media asset integrity validator" {
+    python tools/validate_media_assets.py
+}
+
 Run-Step "Git diff check" {
     git diff --check
 }

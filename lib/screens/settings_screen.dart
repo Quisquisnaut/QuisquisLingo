@@ -6,6 +6,7 @@ import '../models/course_models.dart';
 import '../services/app_metadata.dart';
 import '../services/settings_service.dart';
 import '../services/sound_effect_service.dart';
+import '../services/profile_service.dart';
 import 'tts_settings_screen.dart';
 import 'do_not_disturb_settings_screen.dart';
 import 'debug_screen.dart';
@@ -13,6 +14,7 @@ import 'info_screen.dart';
 import 'profile_screen.dart';
 import 'update_settings_screen.dart';
 import 'flag_game_screen.dart';
+import 'flat_image_library_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   final Course course;
@@ -33,10 +35,13 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> {
   final _settings = SettingsService();
+  final _profiles = ProfileService();
   late final SoundEffectService _sounds;
   late final bool _ownsSounds;
   bool _loading = true;
   bool _editorUnlocked = false;
+  String? _activeProfileId;
+  bool _isAdmin = false;
   int _versionTapCount = 0;
   int _flagGameTapCount = 0;
   Timer? _flagGameTapResetTimer;
@@ -78,9 +83,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Future<void> _load() async {
     try {
       final editorUnlocked = await _settings.isCourseEditorUnlocked();
+      final activeProfileId = await _profiles.getActiveProfileId();
+      final isAdmin =
+          activeProfileId != null && await _profiles.isAdmin(activeProfileId);
       if (!mounted) return;
       setState(() {
         _editorUnlocked = editorUnlocked;
+        _activeProfileId = activeProfileId;
+        _isAdmin = isAdmin;
         _versionTapCount = 0;
         _loading = false;
       });
@@ -168,6 +178,27 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   },
                 ),
                 const Divider(),
+                if (_isAdmin && _activeProfileId != null) ...[
+                  ListTile(
+                    key: const Key('settings-admin-media-library'),
+                    leading: const Icon(Icons.perm_media_outlined),
+                    title: const Text('Admin Media Library'),
+                    subtitle: const Text(
+                      'Edit global exercise-image categories and tags.',
+                    ),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => FlatImageLibraryScreen(
+                          selectMode: false,
+                          metadataEditingEnabled: true,
+                          actorProfileId: _activeProfileId,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const Divider(),
+                ],
                 ListTile(
                   leading: const Icon(Icons.help_outline),
                   title: const Text('App Info'),

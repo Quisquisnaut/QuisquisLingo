@@ -4,6 +4,12 @@ This roadmap describes planned work after build 204.
 
 Version numbers are provisional. If a task requires more than one build, later items may move forward rather than being compressed into an unsafe release.
 
+## QQL 234 complete: Media Asset Audit & Revamp
+
+`2.0.34+234000` is Build 234 revision 0 and remains Alpha. It replaces the 92 audited split exercise images in place, normalizes the remaining image-bank border invariant, adds editor-only image tags/search, expands the language-related World Flags set, and shares one searchable language-aware Course flag picker between creation and editing. It also replaces startup olive artwork with the canonical QQL logo, fixes the pre-transition Extended-flag frame by committing the destination Course and its loaded learner settings atomically, retains and hash-locks all 19 existing audio assets, and adds the bundled Italian-to-Neapolitan **AI-Slop Demo** Course. Release evidence is recorded in [234 media audit](234_MEDIA_AUDIT.md) and [234 validation](234_VALIDATION.md).
+
+QQL 234 is intended as the final Alpha cleanup release. A first Beta may follow only if the completed audit, analyzer, automated tests and platform validation remain satisfactory; this roadmap does not label QQL 235 as released or guarantee its channel.
+
 ## QQL 233 complete: three planned phases
 
 `2.0.33+233030` is presented publicly as Build 233.1 and completes the sequential QQL 233 plan. Internal Phase 233.1 corrects generic Linux release-package recognition without changing Windows or GitHub Releases policy. Internal Phase 233.2 introduces the two-step new-Learner flow, optional display-only Discord handle, new-profile-only random skin/hair initialization and authoritative Status-derived vivid T-shirt colors with all ten levels and accurate progression Help. Internal Phase 233.3 separates individual Course responsibility from optional assigned-Team management and Team governance, adds warning-gated assignment controls, uses Discord/Screen Name presentation with the existing ID toggle, and confines the Learner status bar to the Learner Panel while preserving its approved bottom controls. The same-version QQL 233.03 correction introduces clean Course Model v9 lineage/Maintainer/Rights Holder metadata, distinct Fork and Copy as New Course semantics, and v9-only persistence with no v8 migration or fallback. Release evidence is recorded in [233 validation](233_VALIDATION.md).

@@ -1,11 +1,14 @@
 # QuisquisLingo App
 
-**Current source version: 2.0.33+233030 · Build 233.1 · Course Model v9 (`formatVersion: 9`).**
+**Current source version: 2.0.34+234000 · Build 234, Revision 0 · Course Model v9 (`formatVersion: 9`).**
 
+**QuisquisLingo 2.0.34 Alpha — QQL 234 Media Asset Audit & Revamp**
+
+Current project version: 2.0.34
+
+QQL 234 is the final planned alpha cleanup release before a possible beta transition. It replaces 92 incorrect split exercise images with 256 × 256 transparent flat WebPs, adds editor-only searchable image tags, expands the World Flag collection with ten documented language-related flags, and introduces one shared searchable visual Course flag picker with language suggestions and portable reuse. Startup now uses the canonical QQL logo; Course switching loads the destination Flag Background atomically before the existing Course Entry Animation, preventing an intermediate Extended frame. All 19 existing audio files—16 language-sample MP3s and three Duel-result WAV tones—are retained byte-for-byte. A real bundled Italian-to-Neapolitan **AI-Slop Demo** Course exercises the new flag and six renewed images. See the [QQL 234 media audit](docs/234_MEDIA_AUDIT.md) and [QQL 234 validation](docs/234_VALIDATION.md).
 
 **QuisquisLingo 2.0.33 Alpha — QQL 233 Linux Update, Learner Status Avatar, and Course/Team Governance**
-
-Current project version: 2.0.33
 
 QQL 233 is delivered through three planned phases. Phase 233.1 recognizes the actual generic Linux Alpha ZIP while preserving Windows and GitHub Releases policy. Phase 233.2 adds the two-step Learner profile/avatar flow, optional normalized Discord presentation, random initial skin and hair, and the authoritative ten-level Status display whose vivid current-level color drives the avatar T-shirt. Phase 233.3 separates individual Course responsibility from optional Team assignment and Team governance, adds assignment warnings and experimental-model Help, corrects role identity/ID presentation, and keeps the Learner status bar exclusively inside the Learner Panel. The same-version QQL 233.03 correction makes Course Model v9 a clean cut with no v8 migration or fallback reads. See [QQL 233 validation](docs/233_VALIDATION.md).
 
@@ -52,7 +55,7 @@ The MPL-2.0 covers the QuisquisLingo software source. Courses, the Image Bank an
 
 ## Alpha lifecycle
 
-Version 2.0.33, Build 233.1 is a time-limited alpha and retains the established expiry of **2026-10-14 23:59:59 local time**. Near expiry it displays reminders. After expiry, learner exercises and Review are blocked until a newer alpha is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when an alpha expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM. Future stable builds can disable alpha expiry.
+Version 2.0.34, Build 234, Revision 0 is a time-limited alpha with an expiry of **2026-10-13 23:59:59 local time**. Near expiry it displays reminders. After expiry, learner exercises and Review are blocked until a newer alpha is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when an alpha expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM. A beta transition is only planned for a later release if QQL 234 validation remains satisfactory.
 
 ## Core logic
 
@@ -83,7 +86,7 @@ All learner data remains on-device.
 - Local daily quest
 - XP
 - Local TTS service with generated-file caching
-- Nine bundled sample courses, including Korean from English
+- Ten bundled sample courses, including Korean from English and Neapolitan from Italian
 - Local authoring Teams with stable profile-ID membership and one or more Team Leaders
 - No account
 - Local offline leaderboard for the previous completed week, based on each participating learner’s XP across all courses
