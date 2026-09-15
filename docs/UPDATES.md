@@ -18,7 +18,9 @@ Only a published GitHub Release is treated as an available packaged application 
 
 - Current version is shown immediately before Update at the bottom of Settings.
 - Manual **Check for updates** is always available.
-- **Check automatically at startup** is off by default.
+- **Check automatically at startup** is on by default. It runs asynchronously
+  after the startup notice is dismissed, so it never delays `runApp` or the
+  first interactive UI.
 - Failed automatic checks are silent and never block offline use.
 - Last checked records the time of the most recent manual or automatic attempt.
 
@@ -39,6 +41,11 @@ A platform is marked **Available in this release** only when the release contain
 
 For reliable asset detection, release asset filenames should include a clear platform marker, for example `windows`, `macos`, `antix`, `android`, `ios`, or `web`, or use a recognized native suffix such as `.msi`, `.exe`, `.dmg`, `.pkg`, `.apk`, `.aab`, or `.ipa`.
 
+The debug Android distribution package is
+`quisquislingo_android_debug_beta_<buildnumber>.zip`. It contains the
+corresponding debug APK and the approved `matXpack` documentation/infographic
+files at the archive root.
+
 ## Security boundary
 
 The checker:
@@ -47,6 +54,8 @@ The checker:
 - sends no learner, progress, course, profile or analytics payload
 - uses no authentication token
 - rejects redirects
+- uses a 6-second connection timeout and 8-second request, response-header,
+  and response-stream timeouts
 - limits the response body to 256 KiB
 - accepts only supported semantic release versions
 - validates GitHub release URLs before opening them

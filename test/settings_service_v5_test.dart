@@ -134,4 +134,17 @@ void main() {
       isTrue,
     );
   });
+
+  test(
+    'automatic update checks default on and retain explicit preference',
+    () async {
+      final settings = SettingsService();
+
+      expect(await settings.isAutomaticUpdateCheckEnabled(), isTrue);
+      await settings.setAutomaticUpdateCheckEnabled(false);
+      expect(await settings.isAutomaticUpdateCheckEnabled(), isFalse);
+      await settings.setAutomaticUpdateCheckEnabled(true);
+      expect(await settings.isAutomaticUpdateCheckEnabled(), isTrue);
+    },
+  );
 }

@@ -11,12 +11,12 @@
     "languageRelatedLicenseNotice": "assets/world_flags/LICENSE-language-related-flags.md"
   },
   "counts": {
-    "entities": 276,
+    "entities": 281,
     "iso": 249,
     "unMembers": 193,
     "isoExtras": 56,
     "shortlist": 8,
-    "languageRelatedFlags": 19
+    "languageRelatedFlags": 24
   },
   "languageSuggestions": [
     {
@@ -3015,7 +3015,7 @@
       "artworkSourcePage": "https://commons.wikimedia.org/wiki/File:Flag_of_Liguria.svg",
       "artworkLicense": "Public domain",
       "artworkAuthor": "F l a n k e r",
-      "artworkSha1": "f628a40a514b97dc03f98fb679376fc5d7b7d01f",
+      "artworkSha1": "4d39d1f0e18c6e627b045d723df6a6537dfc6bda",
       "distractorTags": [
         "color:blue",
         "color:red",
@@ -3074,7 +3074,7 @@
       "artworkSourcePage": "https://commons.wikimedia.org/wiki/File:Flag_of_Lombardy.svg",
       "artworkLicense": "Public domain",
       "artworkAuthor": "F l a n k e r",
-      "artworkSha1": "b1c2c9d5ba5698e5688b0f72b1d4db062808325e",
+      "artworkSha1": "7225fe90f3e3b224bc331b6ddef56bb356145e24",
       "distractorTags": [
         "color:green",
         "color:white",
@@ -3345,7 +3345,7 @@
       "artworkSourcePage": "https://commons.wikimedia.org/wiki/File:Proposed_flag_of_Miranda_de_l_Douro_(MPB).svg",
       "artworkLicense": "CC BY 4.0",
       "artworkAuthor": "ItsGandaM1ke",
-      "artworkSha1": "a4d22bed14f8b5ce44506b85887919882f5b5782",
+      "artworkSha1": "127ea565360ccb2a5c901cdd234a8c833ea54107",
       "distractorTags": [
         "color:blue",
         "color:green",
@@ -4162,7 +4162,7 @@
       "artworkSourcePage": "https://commons.wikimedia.org/wiki/File:CHE_Kanton_Graub%C3%BCnden_Flag.svg",
       "artworkLicense": "Public domain",
       "artworkAuthor": "Kanton Graubünden; Anton Nigg",
-      "artworkSha1": "0a6ac90b85ed1148a2900022165380ae6c98f295",
+      "artworkSha1": "e3a0435656a048515bd1ae175e0a7a18f1c2329f",
       "distractorTags": [
         "color:black",
         "color:white",
@@ -5329,7 +5329,7 @@
       "artworkSourcePage": "https://commons.wikimedia.org/wiki/File:Flag_of_Veneto.svg",
       "artworkLicense": "CC BY-SA 3.0",
       "artworkAuthor": "F l a n k e r",
-      "artworkSha1": "d877bcb78d9834b9d22a2446988137d2b0e8ffa5",
+      "artworkSha1": "28ba1cbb86ea051324975702bb3aeb8979f75925",
       "distractorTags": [
         "color:blue",
         "color:gold",

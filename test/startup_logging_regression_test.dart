@@ -37,7 +37,7 @@ void main() {
     expect(gate.contains('_StartupCrashLogNotice'), isTrue);
   });
 
-  test('Alpha testing popup retains its instructions and start control', () {
+  test('Beta testing popup retains its instructions and start control', () {
     final source = File('lib/main.dart').readAsStringSync();
     final noticeStart = source.indexOf('Future<void> _showInstructions()');
     final noticeEnd = source.indexOf(
@@ -49,12 +49,24 @@ void main() {
 
     final notice = source.substring(noticeStart, noticeEnd);
     expect(notice, contains('barrierDismissible: false'));
-    expect(notice, contains("Text('QuisquisLingo Alpha testing')"));
+    expect(notice, contains("Text('QuisquisLingo Beta testing')"));
     expect(notice, contains('SingleChildScrollView('));
     expect(notice, contains('SelectableText('));
     expect(notice, contains('logPath,'));
     expect(notice, contains('FilledButton('));
     expect(notice, contains("Text('Start testing')"));
+  });
+
+  test('automatic update checks start asynchronously after runApp', () {
+    final source = File('lib/main.dart').readAsStringSync();
+    final runApp = source.indexOf('runApp(const QuisquisLingoApp())');
+    final updateCheck = source.indexOf('unawaited(_checkForUpdateAtStartup())');
+    final updates = File('lib/services/update_service.dart').readAsStringSync();
+
+    expect(runApp, greaterThanOrEqualTo(0));
+    expect(updateCheck, greaterThan(runApp));
+    expect(updates, contains('connectionTimeout = const Duration(seconds: 6)'));
+    expect(updates, contains('.timeout(const Duration(seconds: 8))'));
   });
 
   test(

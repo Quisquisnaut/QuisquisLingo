@@ -1,3 +1,13 @@
+# 2.0.35 (Build 235, Revision 0) - Beta-readiness assessment - 2026-09-15
+
+- Transitioned QuisquisLingo to its first Beta release, `2.0.35+235000`. The existing time-limited expiry boundary remains `2026-10-15 23:59:59` local time; learner-route gating, reminders and data-retention semantics are unchanged, while release-channel user-facing text, lifecycle identifiers, diagnostics and package naming now use Beta.
+- Confirmed the static-analysis baseline is clean: `flutter analyze` reports no errors, warnings, lints or deprecations under the standard `flutter_lints` configuration. No linter rules are disabled and source files contain no analyzer-ignore directives.
+- Updated Windows release artifacts to use `quisquislingo_windows_beta_<buildnumber>`. Current documented source and Linux artifact conventions use the corresponding Beta channel names.
+- Corrected stale Course Model v9 fixtures to provide stable custom provenance/edit metadata and numeric custom versions, retained current Review's explicit **Next Review** transition, and made registry-backed test totals derive from the authoritative Audit Code inventory.
+- Reconciled the Ligurian World Flag's manifest, license inventory and integrity expectation with the checked-in SVG SHA-1.
+- Enabled the metadata-only GitHub Release check by default at startup. It remains asynchronous after the startup notice, uses existing strict 6-second connection and 8-second request/response timeouts, and never downloads, installs or executes updates.
+- Added reproducible Windows and Android package validation for the approved `matXpack` documentation and infographic materials. The Android debug distribution is a ZIP containing its APK and the exact package materials at archive root.
+
 # 2.0.34 (Build 234, Revision 3) - Bundled course and media catalog correction - 2026-09-14
 - Removed the bundled Japanese sample course while retaining the Japanese QQL FlagPainter design, renamed the People Family image label to Man, merged Home into Home Household with persisted legacy-category normalization, and switched startup artwork to the isolated QQL logo. Refreshed metadata to `2.0.34+234003`.
 

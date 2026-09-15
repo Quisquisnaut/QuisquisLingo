@@ -74,7 +74,7 @@ void main() {
       buildSignature: '',
     );
     SharedPreferences.setMockInitialValues({
-      'one_time_notice_seen_welcome_2.0.34+234003': true,
+      'one_time_notice_seen_welcome_2.0.35+235000': true,
       'sound_effects_enabled': false,
     });
     await ProfileService().addProfile('Navigation Learner');
@@ -273,6 +273,9 @@ void main() {
       ],
     );
     await CourseEditorService().saveUserCourse(course);
+    course = (await CourseEditorService().listUserCourses()).singleWhere(
+      (saved) => saved.courseId == course.courseId,
+    );
     await SettingsService().setLastSelectedCourseCode(
       'custom:${course.courseId}',
     );
@@ -2082,8 +2085,8 @@ void main() {
     await tester.runAsync(
       () => Future<void>.delayed(const Duration(milliseconds: 300)),
     );
-    await _pumpUntil(tester, find.text('Alpha expiry'));
-    await _dismissAlphaNotice(tester);
+    await _pumpUntil(tester, find.text('Beta expiry'));
+    await _dismissBetaNotice(tester);
     await _pumpFrames(tester);
 
     expect(find.byType(HomeScreen), findsOneWidget);
@@ -2229,7 +2232,7 @@ void main() {
         await _openHome(
           tester,
           scrollToActions: false,
-          expectAlphaNotice: firstLaunch,
+          expectBetaNotice: firstLaunch,
         );
         firstLaunch = false;
 
@@ -2306,7 +2309,7 @@ void main() {
         await _openHome(
           tester,
           scrollToActions: false,
-          expectAlphaNotice: firstLaunch,
+          expectBetaNotice: firstLaunch,
         );
         firstLaunch = false;
 
@@ -2429,7 +2432,7 @@ void main() {
         await _openHome(
           tester,
           scrollToActions: false,
-          expectAlphaNotice: firstLaunch,
+          expectBetaNotice: firstLaunch,
         );
         firstLaunch = false;
 
@@ -2504,7 +2507,7 @@ void main() {
           await _openHome(
             tester,
             scrollToActions: false,
-            expectAlphaNotice: firstLaunch,
+            expectBetaNotice: firstLaunch,
             flagBackgroundMode: mode,
             flagBackgroundCourseId: course.courseId,
           );
@@ -3111,7 +3114,7 @@ void main() {
   );
 
   testWidgets(
-    'Welcome and Alpha expiry dialogs retain their structure and controls',
+    'Welcome and Beta expiry dialogs retain their structure and controls',
     (tester) async {
       SharedPreferences.setMockInitialValues({'sound_effects_enabled': false});
       await ProfileService().addProfile('Popup Learner');
@@ -3135,8 +3138,8 @@ void main() {
       final phrase = dialogTexts.singleWhere(
         (text) =>
             text.data != 'Welcome to QuisquisLingo' &&
-            text.data != 'Version 2.0.34' &&
-            text.data != 'Build 234, Revision 3' &&
+            text.data != 'Version 2.0.35' &&
+            text.data != 'Build 235, Revision 0' &&
             text.data != 'Continue',
       );
       final welcomeDialog = tester.widget<AlertDialog>(
@@ -3149,11 +3152,11 @@ void main() {
         const Color(0xFF0756DF),
       );
       expect(
-        tester.widget<Text>(find.text('Version 2.0.34')).style?.color,
+        tester.widget<Text>(find.text('Version 2.0.35')).style?.color,
         const Color(0xFF0756DF),
       );
       expect(
-        tester.widget<Text>(find.text('Build 234, Revision 3')).style?.color,
+        tester.widget<Text>(find.text('Build 235, Revision 0')).style?.color,
         const Color(0xFF0756DF),
       );
       expect(find.textContaining('22621'), findsNothing);
@@ -3168,7 +3171,7 @@ void main() {
       );
 
       await tester.tap(find.text('Continue'));
-      await _pumpUntil(tester, find.text('Alpha expiry'));
+      await _pumpUntil(tester, find.text('Beta expiry'));
 
       late bool welcomeSeen;
       await tester.runAsync(() async {
@@ -3178,9 +3181,9 @@ void main() {
       });
       expect(welcomeSeen, isTrue);
       expect(find.byType(AlertDialog), findsOneWidget);
-      final alphaDialog = tester.widget<AlertDialog>(find.byType(AlertDialog));
-      expect(alphaDialog.backgroundColor, isNull);
-      expect(alphaDialog.surfaceTintColor, isNull);
+      final betaDialog = tester.widget<AlertDialog>(find.byType(AlertDialog));
+      expect(betaDialog.backgroundColor, isNull);
+      expect(betaDialog.surfaceTintColor, isNull);
       expect(find.textContaining('Expiry date: 2026-10-15.'), findsOneWidget);
       expect(find.widgetWithText(FilledButton, 'OK'), findsOneWidget);
       expect(
@@ -3379,7 +3382,7 @@ Future<void> _openHome(
   WidgetTester tester, {
   bool scrollToActions = true,
   bool includeLearnerShell = false,
-  bool expectAlphaNotice = true,
+  bool expectBetaNotice = true,
   LearnerFlagBackgroundMode? flagBackgroundMode,
   String? flagBackgroundCourseId,
 }) async {
@@ -3406,9 +3409,9 @@ Future<void> _openHome(
   await tester.runAsync(
     () => Future<void>.delayed(const Duration(milliseconds: 300)),
   );
-  if (expectAlphaNotice) {
-    await _pumpUntil(tester, find.text('Alpha expiry'));
-    await _dismissAlphaNotice(tester);
+  if (expectBetaNotice) {
+    await _pumpUntil(tester, find.text('Beta expiry'));
+    await _dismissBetaNotice(tester);
   }
   for (var frame = 0; frame < 10; frame++) {
     await tester.pump(const Duration(milliseconds: 50));
@@ -3551,8 +3554,8 @@ Color? _buttonBackgroundColor(WidgetTester tester, Finder button) => tester
     ?.backgroundColor
     ?.resolve(const {});
 
-Future<void> _dismissAlphaNotice(WidgetTester tester) async {
-  if (find.text('Alpha expiry').evaluate().isEmpty) return;
+Future<void> _dismissBetaNotice(WidgetTester tester) async {
+  if (find.text('Beta expiry').evaluate().isEmpty) return;
   await tester.tap(find.text('OK'));
   await tester.pump();
 }

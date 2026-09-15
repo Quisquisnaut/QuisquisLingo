@@ -58,9 +58,9 @@ void main() {
 
       expect(find.text('Create Profile'), findsWidgets);
       expect(find.text('QuisquisLingo'), findsNothing);
-      expect(find.text('QuisquisLingo Alpha testing'), findsNothing);
+      expect(find.text('QuisquisLingo Beta testing'), findsNothing);
       expect(find.text('Welcome to QuisquisLingo'), findsNothing);
-      expect(find.text('Alpha expiry'), findsNothing);
+      expect(find.text('Beta expiry'), findsNothing);
       expect(find.byKey(const Key('qql-startup-animation')), findsNothing);
 
       await tester.enterText(
@@ -72,7 +72,7 @@ void main() {
 
       expect(find.text('Avatar Customization'), findsOneWidget);
       expect(find.text('QuisquisLingo'), findsNothing);
-      expect(find.text('QuisquisLingo Alpha testing'), findsNothing);
+      expect(find.text('QuisquisLingo Beta testing'), findsNothing);
 
       await tester.scrollUntilVisible(
         find.widgetWithText(FilledButton, 'Done'),
@@ -125,19 +125,19 @@ void main() {
       expect(startup, findsOneWidget);
       await tester.pump(const Duration(milliseconds: 2));
       await tester.pump();
-      await _pumpUntil(tester, find.text('QuisquisLingo Alpha testing'));
+      await _pumpUntil(tester, find.text('QuisquisLingo Beta testing'));
 
       expect(find.text('Create Profile'), findsNothing);
       expect(find.text('QuisquisLingo'), findsNothing);
-      expect(find.text('QuisquisLingo Alpha testing'), findsOneWidget);
+      expect(find.text('QuisquisLingo Beta testing'), findsOneWidget);
       await tester.pump(const Duration(milliseconds: 200));
-      expect(find.text('QuisquisLingo Alpha testing'), findsOneWidget);
+      expect(find.text('QuisquisLingo Beta testing'), findsOneWidget);
       expect(await profiles.getProfileRecords(), hasLength(1));
 
       await tester.tap(find.widgetWithText(FilledButton, 'Start testing'));
       await tester.pump();
       await tester.pump(const Duration(seconds: 2));
-      expect(find.text('QuisquisLingo Alpha testing'), findsNothing);
+      expect(find.text('QuisquisLingo Beta testing'), findsNothing);
       expect(find.byKey(const Key('qql-startup-animation')), findsNothing);
     },
   );
@@ -181,10 +181,10 @@ void main() {
       await tester.pump(const Duration(milliseconds: 1799));
       expect(startup, findsOneWidget);
       await tester.pump(const Duration(milliseconds: 2));
-      await _pumpUntil(tester, find.text('QuisquisLingo Alpha testing'));
+      await _pumpUntil(tester, find.text('QuisquisLingo Beta testing'));
 
       expect(find.text('Create Profile'), findsNothing);
-      expect(find.text('QuisquisLingo Alpha testing'), findsOneWidget);
+      expect(find.text('QuisquisLingo Beta testing'), findsOneWidget);
     },
   );
 
@@ -258,7 +258,7 @@ void main() {
     await _pumpUntil(tester, find.text('Unable to load learner profiles.'));
 
     expect(find.text('Create Profile'), findsNothing);
-    expect(find.text('QuisquisLingo Alpha testing'), findsNothing);
+    expect(find.text('QuisquisLingo Beta testing'), findsNothing);
     expect(find.byKey(const Key('qql-startup-animation')), findsNothing);
     final attemptsBeforeRetry = profiles.readAttempts;
     expect(attemptsBeforeRetry, greaterThanOrEqualTo(1));
@@ -267,7 +267,7 @@ void main() {
     await _pumpUntil(tester, find.byKey(const Key('qql-startup-animation')));
     await _finishStartupGate(tester);
     await _pumpUntilAny(tester, [
-      find.text('QuisquisLingo Alpha testing'),
+      find.text('QuisquisLingo Beta testing'),
       find.text('Welcome to QuisquisLingo'),
     ]);
 

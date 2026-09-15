@@ -20,7 +20,7 @@ AUDIO_LOCK = ROOT / "tools" / "media_asset_hashes.json"
 WORLD_FLAGS = ASSETS / "world_flags"
 WORLD_FLAG_MANIFEST = WORLD_FLAGS / "manifest.json"
 IMAGE_METADATA = ASSETS / "exercise_images" / "metadata_v2.json"
-BRAND_LOGO = ASSETS / "branding" / "quisquislingo_logo.png"
+BRAND_LOGO = ASSETS / "branding" / "qql_logo_4.png"
 MEDIA_EXTENSIONS = frozenset(
     {".gif", ".jpeg", ".jpg", ".mp3", ".png", ".svg", ".wav", ".webp"}
 )
@@ -282,14 +282,14 @@ def validate_world_flags(issues: list[str]) -> int:
             f"world-flag counts differ: declared {counts}, calculated {calculated_counts}"
         )
     if calculated_counts != {
-        "entities": 276,
+        "entities": 281,
         "iso": 249,
         "unMembers": 193,
         "isoExtras": 56,
         "shortlist": 8,
-        "languageRelatedFlags": 19,
+        "languageRelatedFlags": 24,
     }:
-        issues.append(f"unexpected QQL 234 world-flag dataset: {calculated_counts}")
+        issues.append(f"unexpected QQL 235 world-flag dataset: {calculated_counts}")
     return len(entities)
 
 
@@ -312,7 +312,7 @@ def validate_brand_logo(issues: list[str]) -> None:
     if (compression, filtering, interlace) != (0, 0, 0):
         issues.append("canonical brand logo uses unexpected PNG encoding fields")
     main_source = (ROOT / "lib" / "main.dart").read_text(encoding="utf-8")
-    if "assets/branding/quisquislingo_logo.png" not in main_source:
+    if "assets/branding/qql_logo_4.png" not in main_source:
         issues.append("startup no longer references the canonical brand logo")
 
 

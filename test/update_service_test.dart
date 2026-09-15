@@ -76,19 +76,19 @@ void main() {
 
   group('UpdateService platform asset selection', () {
     const windows = UpdateAsset(
-      name: 'quisquislingo_windows_alpha_232.zip',
+      name: 'quisquislingo_windows_beta_232.zip',
       downloadUrl:
-          'https://github.com/Quisquisnaut/QuisquisLingo/releases/download/v2.0.32%2B232/quisquislingo_windows_alpha_232.zip',
+          'https://github.com/Quisquisnaut/QuisquisLingo/releases/download/v2.0.32%2B232/quisquislingo_windows_beta_232.zip',
     );
     const linux = UpdateAsset(
-      name: 'quisquislingo_linux_alpha_232.zip',
+      name: 'quisquislingo_linux_beta_232.zip',
       downloadUrl:
-          'https://github.com/Quisquisnaut/QuisquisLingo/releases/download/v2.0.32%2B232/quisquislingo_linux_alpha_232.zip',
+          'https://github.com/Quisquisnaut/QuisquisLingo/releases/download/v2.0.32%2B232/quisquislingo_linux_beta_232.zip',
     );
     const source = UpdateAsset(
-      name: 'quisquislingo_alpha_232_source.zip',
+      name: 'quisquislingo_beta_232_source.zip',
       downloadUrl:
-          'https://github.com/Quisquisnaut/QuisquisLingo/releases/download/v2.0.32%2B232/quisquislingo_alpha_232_source.zip',
+          'https://github.com/Quisquisnaut/QuisquisLingo/releases/download/v2.0.32%2B232/quisquislingo_beta_232_source.zip',
     );
 
     UpdateRelease release(List<UpdateAsset> assets) => UpdateRelease(
@@ -164,9 +164,9 @@ void main() {
       final incompatible = release([
         source,
         const UpdateAsset(
-          name: 'quisquislingo_linux_alpha_232.dmg',
+          name: 'quisquislingo_linux_beta_232.dmg',
           downloadUrl:
-              'https://github.com/Quisquisnaut/QuisquisLingo/releases/download/v2.0.32%2B232/quisquislingo_linux_alpha_232.dmg',
+              'https://github.com/Quisquisnaut/QuisquisLingo/releases/download/v2.0.32%2B232/quisquislingo_linux_beta_232.dmg',
         ),
       ]);
 

@@ -42,7 +42,7 @@ Profile names are trimmed and limited to 60 characters. Course titles are author
 
 ## GitHub update checking
 
-The Update screen uses a fixed HTTPS endpoint for the official public repository: `https://api.github.com/repos/Quisquisnaut/QuisquisLingo/releases/latest`. Automatic checks are disabled by default and can be enabled explicitly in Settings > Update. Manual checks are always user initiated.
+The Update screen uses a fixed HTTPS endpoint for the official public repository: `https://api.github.com/repos/Quisquisnaut/QuisquisLingo/releases/latest`. Automatic checks are enabled by default and can be disabled explicitly in Settings > Update. They are scheduled asynchronously after the startup notice is dismissed, so they never delay `runApp` or the first interactive UI. Manual checks are always user initiated.
 
 The update checker is intentionally metadata-only:
 

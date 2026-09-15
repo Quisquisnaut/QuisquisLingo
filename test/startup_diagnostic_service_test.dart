@@ -51,7 +51,7 @@ void main() {
         sessionId: 'session-205',
         startedAtUtc: DateTime.parse(startedAt),
         appVersion: '2.0.5+205',
-        isAlpha: true,
+        isBeta: true,
         buildMode: 'release',
         platform: 'windows',
         architecture: 'x64',
@@ -63,7 +63,7 @@ void main() {
     expect(header, contains('session=session-205'));
     expect(header, contains('start_utc=$startedAt'));
     expect(header, contains('version=2.0.5+205'));
-    expect(header, contains('alpha=true'));
+    expect(header, contains('beta=true'));
     expect(header, contains('build_mode=release'));
     expect(header, contains('platform=windows'));
     expect(header, contains('arch=x64'));
@@ -181,7 +181,7 @@ class _MemoryBackend implements StartupDiagnosticBackend {
          sessionId: 'test-session',
          startedAtUtc: DateTime.utc(2026, 8, 19),
          appVersion: '2.0.5+205',
-         isAlpha: true,
+         isBeta: true,
          buildMode: 'test',
          platform: 'windows',
          architecture: 'x64',

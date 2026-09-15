@@ -4,6 +4,16 @@ This roadmap describes planned work after build 204.
 
 Version numbers are provisional. If a task requires more than one build, later items may move forward rather than being compressed into an unsafe release.
 
+## QQL 235 complete: Beta-readiness assessment
+
+`2.0.35+235000` is Build 235, Revision 0 and the first QuisquisLingo Beta.
+It preserves the completed QQL 234 product behavior and records a clean
+`flutter analyze` baseline: no diagnostics under `flutter_lints`, no
+source-level ignores and no disabled linter rules. The time-limited expiry
+gate remains in place through `2026-10-15 23:59:59` local time, now expressed
+as a Beta lifecycle. Release evidence is recorded in
+[235 validation](235_VALIDATION.md).
+
 ## QQL 234 complete: Media Asset Audit & Revamp
 
 `2.0.34+234001` is Build 234 revision 1 and remains Alpha. It preserves the QQL 234 media audit, image-bank border invariant, editor-only image tags/search, language-related World Flags set, shared searchable language-aware Course flag picker, canonical QQL logo, atomic pre-transition Extended-flag loading, locked audio assets and bundled Italian-to-Neapolitan **AI-Slop Demo** Course. Release evidence is recorded in [234 media audit](234_MEDIA_AUDIT.md) and [234 validation](234_VALIDATION.md).
@@ -62,7 +72,7 @@ For every planned version:
 
 - Start from the latest clean, committed baseline.
 - Increment the app version/build for every delivered app update.
-- Refresh the Alpha expiry according to the established project policy whenever the app version changes.
+- Refresh the Beta expiry according to the established project policy whenever the app version changes.
 - Keep structural refactoring separate from behavior changes whenever practical.
 - Characterize important existing behavior with tests before moving or rewriting it.
 - Prefer business logic outside UI screens.
@@ -654,8 +664,8 @@ For every delivered version:
 ## Version and documentation
 
 - [ ] Increment `pubspec.yaml` version/build.
-- [ ] Refresh Alpha expiry according to the established policy.
-- [ ] Update Alpha lifecycle tests.
+- [ ] Refresh Beta expiry according to the established policy.
+- [ ] Update Beta lifecycle tests.
 - [ ] Update README where the current version/expiry is stated.
 - [ ] Update CHANGELOG.
 - [ ] Update relevant technical/user documentation.
@@ -678,7 +688,7 @@ Never describe a filtered test run as a passing full suite.
 ## Manual regression coverage
 
 - [ ] Exercise preview and Round preview do not persist learner progress.
-- [ ] Alpha expiry blocks learner routes without deleting learner or course data, while Course Editor previews remain usable.
+- [ ] Beta expiry blocks learner routes without deleting learner or course data, while Course Editor previews remain usable.
 - [ ] System TTS, recorded audio and hybrid fallback behave correctly when voices or recordings are unavailable.
 - [ ] Course and media imports reject malformed, oversized and path-traversal inputs without partial registration.
 - [ ] Destructive Course Editor actions require the established confirmations.
@@ -711,8 +721,8 @@ Verify at least:
 
 ## Packaging
 
-- [ ] Windows release package uses `quisquislingo_windows_alpha_<buildnumber>`.
-- [ ] Source package uses `quisquislingo_alpha_<buildnumber>_source`.
+- [ ] Windows release package uses `quisquislingo_windows_beta_<buildnumber>`.
+- [ ] Source package uses `quisquislingo_beta_<buildnumber>_source`.
 - [ ] Source archive contains project files directly at archive root.
 - [ ] No extra wrapper directory.
 - [ ] Keep the previous known-good release available for rollback until the new release is verified.

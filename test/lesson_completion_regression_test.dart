@@ -190,6 +190,8 @@ void main() {
           home: ReviewScreen(course: fixture.course, courseCode: courseCode),
         ),
       );
+      await _pumpUntilText(tester, 'Ready for Review');
+      await _tapAndPump(tester, 'Next Review');
       await _pumpUntilText(tester, 'Correct ${fixture.firstRound.id}');
       expect(
         tester.widget<RoundScreen>(find.byType(RoundScreen)).reviewMode,
@@ -234,6 +236,8 @@ void main() {
         ),
       ),
     );
+    await _pumpUntilText(tester, 'Ready for Review');
+    await _tapAndPump(tester, 'Next Review');
     await _pumpUntilText(tester, 'Correct ${fixture.firstRound.id}');
     expect(
       tester.widget<RoundScreen>(find.byType(RoundScreen)).viewOnlyMode,

@@ -95,7 +95,7 @@ StartupDiagnosticSession _createSession(StartupDiagnosticLevel level) {
           'QUISQUISLINGO_APP_VERSION',
           defaultValue: AppMetadata.technicalVersion,
         ),
-    isAlpha: environment['QUISQUISLINGO_STARTUP_ALPHA'] != 'false',
+    isBeta: environment['QUISQUISLINGO_STARTUP_BETA'] != 'false',
     buildMode:
         environment['QUISQUISLINGO_STARTUP_BUILD_MODE'] ?? _dartBuildMode(),
     platform: Platform.operatingSystem,

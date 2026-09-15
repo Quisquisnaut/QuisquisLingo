@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 
 import '../models/course_models.dart';
-import '../services/alpha_lifecycle_service.dart';
+import '../services/beta_lifecycle_service.dart';
 import '../services/course_language_resolver.dart';
 import '../services/review_round_resolver.dart';
 import '../services/vocabulary_review_service.dart';
-import '../widgets/alpha_expired_view.dart';
+import '../widgets/beta_expired_view.dart';
 import 'round_screen.dart';
 
 class ReviewScreen extends StatefulWidget {
@@ -281,7 +281,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
 
   @override
   Widget build(BuildContext context) {
-    if (AlphaLifecycleService.isExpired()) return const AlphaExpiredView();
+    if (BetaLifecycleService.isExpired()) return const BetaExpiredView();
     if (_stage == _ReviewStage.openingRound) _scheduleRound();
     return Scaffold(
       appBar: AppBar(

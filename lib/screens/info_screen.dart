@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/app_metadata.dart';
-import '../services/alpha_lifecycle_service.dart';
+import '../services/beta_lifecycle_service.dart';
 import '../services/status_service.dart';
 import 'credits_screen.dart';
 
@@ -74,10 +74,10 @@ class InfoScreen extends StatelessWidget {
               'Settings > Audio Settings contains Enable Audio Exercises, Text-to-speech and the existing TTS voice selector with Test Voice, in that order. Enable Audio Exercises and Text-to-speech are stored per learner and initialize Off; TTS voice is also per learner and initializes System. Test Voice opens with an empty field and speaks only the text you enter, using the selected course language for voice resolution. While audio exercises are Off, recorded-MP3, TTS and hybrid exercises are excluded before their source or playback controller is initialized. When On, the Text-to-speech switch controls TTS availability without disabling valid recorded audio. Previous shared and negative audio-setting values remain untouched and unread. Authoring Preview ignores learner Audio Settings and remains no-write. Completing only the available non-audio part of a Round preserves the established leaf-style partial-audio completion behavior rather than awarding a full laurel crown.',
         ),
         _InfoSection(
-          title: 'Alpha expiry',
-          body: AlphaLifecycleService.isAlphaBuild
-              ? 'This is a time-limited alpha build. It expires on ${AlphaLifecycleService.expiryIsoDate}. After expiry, learner exercises and Review are blocked until a newer alpha is installed. Local progress, courses, course edits and settings are not deleted, and Course Editor remains available.'
-              : 'This is not a time-limited alpha build.',
+          title: 'Beta expiry',
+          body: BetaLifecycleService.isBetaBuild
+              ? 'This is a time-limited beta build. It expires on ${BetaLifecycleService.expiryIsoDate}. After expiry, learner exercises and Review are blocked until a newer beta is installed. Local progress, courses, course edits and settings are not deleted, and Course Editor remains available.'
+              : 'This is not a time-limited beta build.',
         ),
         _InfoSection(
           title: 'Status',
@@ -117,7 +117,7 @@ class InfoScreen extends StatelessWidget {
         _InfoSection(
           title: 'Updates',
           body:
-              'At the bottom of Settings, Version and Build are shown immediately before Update. Settings > Update displays the published QuisquisLingo source repository https://github.com/Quisquisnaut/QuisquisLingo, lets you check the latest packaged GitHub Release manually, and can optionally check automatically at startup. If no packaged GitHub Release exists, the page distinguishes that from the published source repository. Automatic checks are off by default. Update checks send no learner data or course data and never download or install software. If a newer release exists, the page shows release information and installation guidance in the fixed order Windows, macOS, Linux, Android, iOS and Web, marking platforms that have no matching published release asset as not currently available.',
+              'At the bottom of Settings, Version and Build are shown immediately before Update. Settings > Update displays the published QuisquisLingo source repository https://github.com/Quisquisnaut/QuisquisLingo, lets you check the latest packaged GitHub Release manually, and can optionally check automatically at startup. If no packaged GitHub Release exists, the page distinguishes that from the published source repository. Automatic checks are on by default. Update checks send no learner data or course data and never download or install software. If a newer release exists, the page shows release information and installation guidance in the fixed order Windows, macOS, Linux, Android, iOS and Web, marking platforms that have no matching published release asset as not currently available.',
         ),
         _InfoSection(
           title: 'Crash Log and Diagnostic Log',

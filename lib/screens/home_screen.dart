@@ -20,7 +20,7 @@ import '../services/profile_service.dart';
 import '../services/lesson_unlock_service.dart';
 import '../services/lesson_expansion_policy.dart';
 import '../services/learner_status_events.dart';
-import '../services/alpha_lifecycle_service.dart';
+import '../services/beta_lifecycle_service.dart';
 import '../services/app_metadata.dart';
 import '../services/app_errors.dart';
 import '../services/error_presenter.dart';
@@ -277,7 +277,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _prepareWelcome() async {
     _appVersion = AppMetadata.technicalVersion;
     await _showWelcome();
-    if (mounted) await _showAlphaLifecycleNotice();
+    if (mounted) await _showBetaLifecycleNotice();
   }
 
   Future<void> _reloadFlagBackgroundMode() async {
@@ -358,18 +358,18 @@ class _HomeScreenState extends State<HomeScreen> {
     await _settings.markOneTimeNoticeSeen(id);
   }
 
-  Future<void> _showAlphaLifecycleNotice() async {
-    if (!AlphaLifecycleService.isAlphaBuild || !mounted) return;
-    if (AlphaLifecycleService.isExpired()) {
+  Future<void> _showBetaLifecycleNotice() async {
+    if (!BetaLifecycleService.isBetaBuild || !mounted) return;
+    if (BetaLifecycleService.isExpired()) {
       await showDialog<void>(
         context: context,
         barrierDismissible: false,
         builder: (ctx) => Theme(
           data: _unifiedLearnerTheme(context),
           child: AlertDialog(
-            title: const Text('Alpha expired'),
+            title: const Text('Beta expired'),
             content: Text(
-              'This QuisquisLingo alpha expired on ${AlphaLifecycleService.expiryIsoDate}. Install a newer alpha to continue learning. Your local data has not been deleted, and Course Editor remains available.',
+              'This QuisquisLingo beta expired on ${BetaLifecycleService.expiryIsoDate}. Install a newer beta to continue learning. Your local data has not been deleted, and Course Editor remains available.',
             ),
             actions: [
               FilledButton(
@@ -382,21 +382,21 @@ class _HomeScreenState extends State<HomeScreen> {
       );
       return;
     }
-    final days = AlphaLifecycleService.daysRemaining();
+    final days = BetaLifecycleService.daysRemaining();
     final message = days == 0
-        ? 'This alpha expires today.'
+        ? 'This beta expires today.'
         : days == 1
-        ? 'This alpha expires tomorrow.'
-        : 'This alpha expires in $days days.';
+        ? 'This beta expires tomorrow.'
+        : 'This beta expires in $days days.';
     await showDialog<void>(
       context: context,
       barrierDismissible: false,
       builder: (ctx) => Theme(
         data: _unifiedLearnerTheme(context),
         child: AlertDialog(
-          title: const Text('Alpha expiry'),
+          title: const Text('Beta expiry'),
           content: Text(
-            '$message Expiry date: ${AlphaLifecycleService.expiryIsoDate}. Install a newer QuisquisLingo alpha before then to continue learning. Updating does not intentionally delete learner data or course-authoring data.',
+            '$message Expiry date: ${BetaLifecycleService.expiryIsoDate}. Install a newer QuisquisLingo beta before then to continue learning. Updating does not intentionally delete learner data or course-authoring data.',
           ),
           actions: [
             FilledButton(
@@ -416,9 +416,9 @@ class _HomeScreenState extends State<HomeScreen> {
       builder: (ctx) => Theme(
         data: _unifiedLearnerTheme(context),
         child: AlertDialog(
-          title: const Text('Alpha expired'),
+          title: const Text('Beta expired'),
           content: Text(
-            'This alpha expired on ${AlphaLifecycleService.expiryIsoDate}. Install a newer alpha to continue learning. Your local data is kept and Course Editor remains available.',
+            'This beta expired on ${BetaLifecycleService.expiryIsoDate}. Install a newer beta to continue learning. Your local data is kept and Course Editor remains available.',
           ),
           actions: [
             FilledButton(
@@ -1585,7 +1585,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<bool> _canOpenLearnerContent() async {
-    if (AlphaLifecycleService.isExpired()) {
+    if (BetaLifecycleService.isExpired()) {
       await _showExpiredLearnerNotice();
       return false;
     }
@@ -2013,7 +2013,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _openReview(Course course) async {
     _resetLockedLessonTapSequence();
-    if (AlphaLifecycleService.isExpired()) {
+    if (BetaLifecycleService.isExpired()) {
       await _showExpiredLearnerNotice();
       return;
     }

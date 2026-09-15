@@ -81,7 +81,7 @@ void main() {
 
       await _openHome(tester);
       await _openCoursePicker(tester);
-      await _expectElevenBundledTiles(tester);
+      await _expectTenBundledTiles(tester);
       final koreanTile = find.byKey(const ValueKey('bundled-course-KO'));
       expect(koreanTile, findsOneWidget);
       expect(
@@ -169,7 +169,7 @@ void main() {
       );
       expect(restartedTopBar.course.courseId, 'sample_ko_en_ko');
       await _openCoursePicker(tester);
-      await _expectElevenBundledTiles(tester);
+      await _expectTenBundledTiles(tester);
       expect(find.byKey(const ValueKey('bundled-course-KO')), findsOneWidget);
       await _expectCourseTile(
         tester,
@@ -295,8 +295,8 @@ Future<void> _openHome(WidgetTester tester, {double width = 1200}) async {
   addTearDown(tester.view.resetDevicePixelRatio);
   addTearDown(tester.view.resetPhysicalSize);
   await tester.pumpWidget(const MaterialApp(home: HomeScreen()));
-  final alphaNotice = find.text('Alpha expiry');
-  await _pumpUntilWithIo(tester, alphaNotice);
+  final betaNotice = find.text('Beta expiry');
+  await _pumpUntilWithIo(tester, betaNotice);
   await tester.tap(find.widgetWithText(FilledButton, 'OK'));
   await _pumpUntilWithIo(tester, find.byType(UnifiedLearnerTopBar));
 }
@@ -357,8 +357,8 @@ Future<void> _pumpUntilWithIo(WidgetTester tester, Finder finder) async {
   fail('Timed out waiting for $finder. Visible text: $visibleText');
 }
 
-Future<void> _expectElevenBundledTiles(WidgetTester tester) async {
-  expect(CourseService.courseAssets, hasLength(11));
+Future<void> _expectTenBundledTiles(WidgetTester tester) async {
+  expect(CourseService.courseAssets, hasLength(10));
   final selectorScroll = find.descendant(
     of: find.byType(BottomSheet),
     matching: find.byType(Scrollable),

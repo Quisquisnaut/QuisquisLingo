@@ -676,7 +676,7 @@ Course _course({
   targetLanguage: 'Italian',
   ttsLanguage: 'it-IT',
   title: 'Preserved course',
-  courseVersion: '7',
+  courseVersion: origin == CourseOriginType.custom ? '7' : '',
   courseDescription: 'Keep this metadata.',
   createDuels: false,
   useGuidebook: useGuidebook,

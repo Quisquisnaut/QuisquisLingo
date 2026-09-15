@@ -392,7 +392,7 @@ void main() {
         buildSignature: '',
       );
       SharedPreferences.setMockInitialValues({
-        'one_time_notice_seen_welcome_2.0.34+234003': true,
+        'one_time_notice_seen_welcome_2.0.35+235000': true,
         'sound_effects_enabled': false,
       });
       await ProfileService().addProfile('Mascot Learner');
@@ -419,12 +419,12 @@ void main() {
       await tester.runAsync(
         () => Future<void>.delayed(const Duration(milliseconds: 300)),
       );
-      final alphaNotice = find.byWidgetPredicate(
+      final betaNotice = find.byWidgetPredicate(
         (widget) =>
             widget is Text &&
-            (widget.data == 'Alpha expiry' || widget.data == 'Alpha expired'),
+            (widget.data == 'Beta expiry' || widget.data == 'Beta expired'),
       );
-      await pumpUntil(alphaNotice);
+      await pumpUntil(betaNotice);
       await tester.tap(find.text('OK'));
       await tester.pump();
 
