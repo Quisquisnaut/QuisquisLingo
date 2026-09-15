@@ -110,6 +110,13 @@ void TestHealthyWindows() {
   }
 }
 
+void TestRequiredComponentsExcludeBuildIntermediates() {
+  for (const auto& component : qql::launcher::RequiredPackageComponents()) {
+    Require(component.relative_path != L"native_assets.json",
+            "build-intermediate native_assets.json is not a package dependency");
+  }
+}
+
 void TestOldNativeWindows() {
   const PreflightResult result = qql::launcher::EvaluatePreflight(
       NativeWindows(6), HealthyPackage());
@@ -325,6 +332,8 @@ void TestChildCreationSuccess() {
 int wmain() {
   const std::vector<std::pair<const char*, std::function<void()>>> tests = {
       {"healthy Windows 10/11", TestHealthyWindows},
+      {"package excludes build intermediates",
+       TestRequiredComponentsExcludeBuildIntermediates},
       {"native Windows below 10", TestOldNativeWindows},
       {"Wine detected", TestWineDetected},
       {"Wine bypasses native version warning", TestWineBypassesWindowsWarning},
