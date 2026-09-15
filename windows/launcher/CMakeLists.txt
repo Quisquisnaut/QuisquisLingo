@@ -47,11 +47,6 @@ target_link_libraries(qql_bootstrap_launcher PRIVATE
   user32.lib
 )
 
-install(TARGETS qql_bootstrap_launcher
-  RUNTIME DESTINATION "${CMAKE_INSTALL_PREFIX}"
-  COMPONENT Runtime
-)
-
 # Native launcher tests are deliberately excluded from normal Flutter builds
 # and packaged output. The packaging script builds and runs them explicitly.
 add_executable(qql_bootstrap_launcher_tests EXCLUDE_FROM_ALL
