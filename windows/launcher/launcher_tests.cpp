@@ -112,7 +112,7 @@ void TestHealthyWindows() {
 
 void TestRequiredComponentsExcludeBuildIntermediates() {
   for (const auto& component : qql::launcher::RequiredPackageComponents()) {
-    Require(component.relative_path != L"native_assets.json",
+    Require(std::wstring(component.relative_path) != L"native_assets.json",
             "build-intermediate native_assets.json is not a package dependency");
   }
 }
