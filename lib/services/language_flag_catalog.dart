@@ -485,7 +485,7 @@ abstract final class LanguageFlagCatalog {
     ),
     LanguageWorldFlagAssociation(
       languageName: 'Japanese',
-      languageAliases: [],
+      languageAliases: ['Nihongo', '日本語'],
       languageCodes: ['ja', 'jpn'],
       worldFlagIds: ['japan'],
     ),

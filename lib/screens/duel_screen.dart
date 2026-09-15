@@ -1,7 +1,7 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
-import '../services/alpha_lifecycle_service.dart';
-import '../widgets/alpha_expired_view.dart';
+import '../services/beta_lifecycle_service.dart';
+import '../widgets/beta_expired_view.dart';
 import '../models/course_models.dart';
 import '../services/duel_eligibility_service.dart';
 import '../services/progress_service.dart';
@@ -395,7 +395,7 @@ class _DuelScreenState extends State<DuelScreen> {
 
   @override
   Widget build(BuildContext context) {
-    if (AlphaLifecycleService.isExpired()) return const AlphaExpiredView();
+    if (BetaLifecycleService.isExpired()) return const BetaExpiredView();
     if (!_ready) {
       return Scaffold(
         appBar: AppBar(title: Text(_screenTitle)),

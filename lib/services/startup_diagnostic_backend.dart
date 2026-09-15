@@ -11,7 +11,7 @@ class StartupDiagnosticSession {
     required this.sessionId,
     required this.startedAtUtc,
     required this.appVersion,
-    required this.isAlpha,
+    required this.isBeta,
     required this.buildMode,
     required this.platform,
     required this.architecture,
@@ -23,7 +23,7 @@ class StartupDiagnosticSession {
   final String sessionId;
   final DateTime startedAtUtc;
   final String appVersion;
-  final bool isAlpha;
+  final bool isBeta;
   final String buildMode;
   final String platform;
   final String architecture;
@@ -45,7 +45,7 @@ class DisabledStartupDiagnosticBackend implements StartupDiagnosticBackend {
         sessionId: 'disabled',
         startedAtUtc: DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
         appVersion: 'unknown',
-        isAlpha: true,
+        isBeta: true,
         buildMode: 'unknown',
         platform: 'unsupported',
         architecture: 'unknown',
@@ -83,7 +83,7 @@ String formatStartupDiagnosticSessionHeader(StartupDiagnosticSession session) {
       'session=${safe(session.sessionId)} '
       'start_utc=${session.startedAtUtc.toUtc().toIso8601String()} '
       'version=${safe(session.appVersion)} '
-      'alpha=${session.isAlpha} '
+      'beta=${session.isBeta} '
       'build_mode=${safe(session.buildMode)} '
       'platform=${safe(session.platform)} '
       'arch=${safe(session.architecture)} '

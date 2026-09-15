@@ -261,7 +261,7 @@ void main() {
         rootBundle.evict(asset);
       }
       SharedPreferences.setMockInitialValues({
-        'one_time_notice_seen_welcome_2.0.34+234003': true,
+        'one_time_notice_seen_welcome_2.0.35+235000': true,
         'sound_effects_enabled': false,
       });
       await ProfileService().addProfile('Course Switch Learner');
@@ -590,7 +590,7 @@ Future<void> _openHome(
   await tester.runAsync(
     () => Future<void>.delayed(const Duration(milliseconds: 250)),
   );
-  await _pumpUntil(tester, find.text('Alpha expiry'));
+  await _pumpUntil(tester, find.text('Beta expiry'));
   await tester.tap(find.widgetWithText(FilledButton, 'OK'));
   await _pumpUntil(tester, find.byType(UnifiedLearnerTopBar));
 }

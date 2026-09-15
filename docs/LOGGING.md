@@ -4,7 +4,7 @@ QuisquisLingo keeps three separate troubleshooting logs with different purposes.
 
 ## Startup Trace
 
-The Startup Trace records concise native and Dart lifecycle boundaries needed to diagnose an application that does not start. Normal tracing is enabled by default in Alpha builds. It includes a session header with the diagnostic schema, a unique session ID, UTC start time, app version/build, Alpha status, build mode, platform, CPU architecture and diagnostic level.
+The Startup Trace records concise native and Dart lifecycle boundaries needed to diagnose an application that does not start. Normal tracing is enabled by default in Beta builds. It includes a session header with the diagnostic schema, a unique session ID, UTC start time, app version/build, Beta status, build mode, platform, CPU architecture and diagnostic level.
 
 On Windows, the active trace is:
 
@@ -32,7 +32,7 @@ This uses the platform's native Documents directory. On Android and iOS, the sam
 
 Each launch appends a session header with the app version, operating system, architecture, locale, Dart runtime and build mode. If a crash-log file is deleted, append mode recreates it at the next launch or diagnostic write. Uncaught Flutter/Dart errors are recorded in all non-web build modes, while detailed action breadcrumbs remain debug-only. Logs remain local and are never uploaded automatically.
 
-The startup Alpha testing popup refers to this Crash Log.
+The startup Beta testing popup refers to this Crash Log.
 
 ## Diagnostic Log
 

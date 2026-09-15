@@ -33,7 +33,7 @@ class CrashLogService {
       _initialised = true;
       // Start every debug session with a system snapshot so even a native
       // process termination leaves useful environment details in the log.
-      // The Alpha log now starts on every launch, including release builds.
+      // The Beta log now starts on every launch, including release builds.
       // FileMode.append creates the file again if a tester deleted it.
       await _recordSessionStart();
     } catch (error, stackTrace) {

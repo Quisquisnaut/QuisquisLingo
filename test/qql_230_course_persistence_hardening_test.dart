@@ -224,33 +224,18 @@ void main() {
     },
   );
 
-  test('custom backup version cannot escape its course directory', () async {
+  test('custom Course rejects backup-path version values', () {
     final versions = <String>[
       '/../../escaped',
       r'\..\..\escaped',
       r'C:\outside\backup',
     ];
 
-    for (var index = 0; index < versions.length; index++) {
-      final course = _customCourse(
-        title: 'Unsafe version $index',
-        courseVersion: versions[index],
-      );
-      final record = await backups.createBackup(
-        course,
-        backedUpAt: _when.add(Duration(seconds: index)),
-        reason: 'path containment',
-      );
-      final expectedDirectory = await backups.courseBackupDirectory(
-        course.courseId,
-      );
-
+    for (final version in versions) {
       expect(
-        record.manifestFile.parent.absolute.path.toLowerCase(),
-        expectedDirectory.absolute.path.toLowerCase(),
+        () => _customCourse(title: 'Unsafe version', courseVersion: version),
+        throwsFormatException,
       );
-      expect(record.manifestFile.uri.pathSegments.last, isNot(contains('/')));
-      expect(record.manifestFile.uri.pathSegments.last, isNot(contains(r'\')));
     }
   });
 

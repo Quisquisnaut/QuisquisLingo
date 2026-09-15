@@ -43,6 +43,7 @@ These are persistent instructions for Codex when working on QuisquisLingo.
 - `2.0.26+22601` makes bundled/external official courses locally read-only and introduces explicitly licensed independent custom forks with permanent original authorship/provenance and a separate fork creator. The pushed `ede21f813a235e8455d2691da4cf3bb43162a39a` Build 225.04 plus 226.00 documentation correction is its immutable parent. Later Build 226 tranches remain deferred.
 - `2.0.26+22602` adds unsaved Exercise Preview, guarded Previous/Next navigation, breadcrumbs, working-copy Move/Copy destinations, shared field help, Draft indicators/counts and the shared Audit Code Registry. Missing Reading-comprehension guidance is removed without changing remaining severities. The pushed `45cf258d707c89d512f7663d9f2fa317adbe5ef0` is its immutable parent; 226.03 and later remain deferred.
 - `2.0.26+226023` completes the 226.02 workflow and diagnostics corrections: shared Help and device-local internal-ID controls throughout Course Manager and its editor hierarchy, hierarchy-wide red/green Audit status with one independent blue Draft badge, explicit AI-generated sample labels, observable Lesson fallback-icon selection and explicit Version/Phase/revision display. Course Model v6, persistence and 226.01 boundaries remain unchanged, and 226.03 remains deferred.
+- `2.0.35+235000` is QQL Build 235, Revision 0 and the first Beta release. It records a clean static-analysis baseline without disabled lint rules or source-level suppressions, retains the existing time-limited learner-route expiry behavior through `2026-10-15 23:59:59` local time, and changes active release-channel wording, diagnostics and artifact names from Alpha to Beta. Course Model v9, persistence, scoring, progression, Review and Duel remain unchanged; see `docs/235_VALIDATION.md`.
 - `2.0.26+226024` is Phase 226.02 revision 4: actual Course titles throughout the learner selector; Lessons-page fallback lesson number icons labeled Theme-colored circle and Four-color circle with unchanged stored behaviors; current canonical Audit findings and shared live ancestor refresh; passive Lesson/Round/Exercise IDs after actionable lines; and explicit GuideBook Draft/Audit status inherited by Lesson and Lessons independently of Rounds. The Audit registry remains at 103 rules, Alpha expiry remains `2026-10-06 23:59:59` local time, and 226.03, GuideBook roadmap, Custom Exercise Templates and Napoletano remain deferred.
 - `2.0.26+226030` is Phase 226.03 revision 0: authoritative 128-variant answer expansion and independent materialization, deterministic similarity-ranked translation feedback, Unicode-first-grapheme Type the missing word, and portable Image to text/Text to image Recognize characters on the existing Input/Select models. Course Model v6 and existing normalization/correctness remain unchanged. Alpha expiry remains `2026-10-06 23:59:59` local time. The known revision-4 Lock-row and GuideBook-ID omissions remain outside this tranche; 226.04, Custom Exercise Templates, future GuideBook work and Napoletano remain deferred.
 - `2.0.26+226040` is Phase 226.04 revision 0: one-time new-course Lesson/Round scaffolding, reusable Section names, consistent Lesson naming, optional Duel and GuideBook paths, authoritative World Flags selection, the upper Lessons Lock icon and passive GuideBook Internal IDs. Course Model remains v6 with explicit backward-compatible defaults; the Audit registry remains at 103 rules. Alpha expiry remains `2026-10-06 23:59:59` local time. Custom Exercise Templates, Napoletano, future GuideBook content and release 227 remain deferred.
@@ -165,16 +166,16 @@ Weekly rollover, streaks, activity timestamps, Review timestamps, and other time
 ## Versioning and release hygiene
 
 - Every delivered app update must increment the app version/build in `pubspec.yaml`.
-- Every app-version update must also refresh the Alpha expiry date in `lib/services/alpha_lifecycle_service.dart`, its tests, README, and current documentation where the current expiry/version is stated.
-- Do not accidentally carry forward the previous release's Alpha expiry.
-- Unless the user explicitly changes the policy, preserve the project's current Alpha lifetime policy.
+- Every app-version update must also refresh the Beta expiry date in `lib/services/beta_lifecycle_service.dart`, its tests, README, and current documentation where the current expiry/version is stated.
+- Do not accidentally carry forward the previous release's Beta expiry.
+- Unless the user explicitly changes the policy, preserve the project's current Beta lifetime policy.
 - Update `CHANGELOG.md` and current validation/release documentation for each delivered version when those files are part of the release process.
 - Preserve existing source comments unless a comment has become factually wrong because of the requested change.
 - Source ZIPs must contain `pubspec.yaml`, `lib/`, `assets/`, `test/`, `tools/`, and other project files directly at archive root. Never add an extra wrapper directory.
 - Package naming:
-  - Windows release/package: `quisquislingo_windows_alpha_<buildnumber>`
-  - Linux release/package: `quisquislingo_linux_alpha_<buildnumber>`
-  - source folder/archive: `quisquislingo_alpha_<buildnumber>_source`
+  - Windows release/package: `quisquislingo_windows_beta_<buildnumber>`
+  - Linux release/package: `quisquislingo_linux_beta_<buildnumber>`
+  - source folder/archive: `quisquislingo_beta_<buildnumber>_source`
 - Use the numeric build number without dots in package names.
 - Keep the previous packaged release as a rollback copy until the new release has been tested successfully.
 

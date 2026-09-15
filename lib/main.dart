@@ -588,14 +588,14 @@ class _StartupCrashLogNoticeState extends State<_StartupCrashLogNotice> {
       context: context,
       barrierDismissible: false,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('QuisquisLingo Alpha testing'),
+        title: const Text('QuisquisLingo Beta testing'),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text(
-                'This Alpha version keeps an automatic local Crash Log to help investigate crashes and other serious technical problems.',
+                'This Beta version keeps an automatic local Crash Log to help investigate crashes and other serious technical problems.',
               ),
               const SizedBox(height: 12),
               const Text(
@@ -631,7 +631,7 @@ class _StartupCrashLogNoticeState extends State<_StartupCrashLogNotice> {
         ],
       ),
     );
-    if (mounted) await _checkForUpdateAtStartup();
+    if (mounted) unawaited(_checkForUpdateAtStartup());
   }
 
   Future<void> _checkForUpdateAtStartup() async {

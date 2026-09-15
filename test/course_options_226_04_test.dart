@@ -23,7 +23,10 @@ Course _course({bool options = true}) {
     ..['maintainer'] = const CourseMaintainer(
       '11111111-1111-4111-8111-111111111111',
     ).toJson()
-    ..['originalCreatedAtUtc'] = '2026-09-01T00:00:00.000Z';
+    ..['originalCreatedAtUtc'] = '2026-09-01T00:00:00.000Z'
+    ..['lastVersionEditorProfileId'] = '11111111-1111-4111-8111-111111111111'
+    ..['lastVersionEditorDisplayName'] = 'Course creator'
+    ..['modifiedAtUtc'] = '2026-09-01T00:00:00.000Z';
   for (final officialField in const [
     'publisherId',
     'publisherName',

@@ -270,7 +270,7 @@ Future<void> _openHome(WidgetTester tester, Course course) async {
     ),
   );
   await _pumpFrames(tester);
-  if (find.text('Alpha expiry').evaluate().isNotEmpty) {
+  if (find.text('Beta expiry').evaluate().isNotEmpty) {
     await tester.tap(find.widgetWithText(FilledButton, 'OK'));
     await _pumpFrames(tester);
   }

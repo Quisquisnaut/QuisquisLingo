@@ -26,9 +26,9 @@ void main() {
   setUp(() => SharedPreferences.setMockInitialValues({}));
 
   test('current release metadata uses Build and revision terminology', () {
-    expect(AppMetadata.technicalVersion, '2.0.34+234003');
+    expect(AppMetadata.technicalVersion, '2.0.35+235000');
     expect(AppMetadata.build, '235');
-    expect(AppMetadata.displayLabel, 'Version 2.0.34\nBuild 234, Revision 3');
+    expect(AppMetadata.displayLabel, 'Version 2.0.35\nBuild 235, Revision 0');
   });
 
   testWidgets(
@@ -354,7 +354,7 @@ Course _customCourse({
   targetLanguage: 'Italian',
   title: 'Revision three course',
   ttsLanguage: 'it-IT',
-  courseVersion: '1.0.0',
+  courseVersion: '1',
   license: 'All rights reserved',
   derivativeWorksPolicy: DerivativeWorksPolicy.forbidden,
   temporarySample: temporarySample,

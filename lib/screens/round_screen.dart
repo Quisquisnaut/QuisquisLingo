@@ -4,8 +4,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import '../services/first_letter_answer_service.dart';
 import '../widgets/portable_exercise_image.dart';
-import '../services/alpha_lifecycle_service.dart';
-import '../widgets/alpha_expired_view.dart';
+import '../services/beta_lifecycle_service.dart';
+import '../widgets/beta_expired_view.dart';
 import '../models/course_models.dart';
 import '../services/progress_service.dart';
 import '../services/learning_completion_service.dart';
@@ -1975,8 +1975,8 @@ class _RoundScreenState extends State<RoundScreen> {
 
   @override
   Widget build(BuildContext context) {
-    if (!widget.previewMode && AlphaLifecycleService.isExpired()) {
-      return const AlphaExpiredView();
+    if (!widget.previewMode && BetaLifecycleService.isExpired()) {
+      return const BetaExpiredView();
     }
     final background = _roundBackground(
       _autumnBackgrounds[widget.roundIndex % _autumnBackgrounds.length],

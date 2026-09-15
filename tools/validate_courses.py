@@ -19,7 +19,6 @@ EXPECTED_TTS = {
     "finnish_en.json": "fi-FI",
     "german_en.json": "de-DE",
     "italian_en.json": "it-IT",
-    "japanese_en.json": "ja-JP",
     "korean_en.json": "ko-KR",
     "neapolitan_it.json": "nap-IT",
     "portuguese_en.json": "pt-PT",
@@ -207,23 +206,6 @@ def validate(path: Path, global_ids: dict[str, str]) -> list[str]:
             issues.append("root: unexpected Neapolitan bundled Course ID")
         if data.get("worldFlagId") != "neapolitan":
             issues.append("root: Neapolitan course must use worldFlagId neapolitan")
-    if path.name == "japanese_en.json":
-        if (
-            data.get("sourceLanguage"),
-            data.get("sourceLanguageTag"),
-            data.get("targetLanguage"),
-            data.get("targetLanguageTag"),
-        ) != ("English", "en-GB", "Japanese", "ja-JP"):
-            issues.append(
-                "root: Japanese direction must be English en-GB to Japanese ja-JP"
-            )
-        if data.get("courseId") != "sample_ja_en_ja":
-            issues.append("root: unexpected Japanese bundled Course ID")
-        if any(
-            str(data.get(field, "")).strip()
-            for field in ("flagCode", "flagImageBase64", "worldFlagId")
-        ):
-            issues.append("root: Japanese course must use automatic Course flag selection")
     add_id(data.get("courseId"), "root")
 
     lesson_icon_assets = data.get("lessonIconAssets", [])
@@ -389,7 +371,7 @@ def validate(path: Path, global_ids: dict[str, str]) -> list[str]:
     lessons = data.get("lessons")
     if not isinstance(lessons, list):
         return issues + ["root: lessons must be a list"]
-    expected_lessons = 0 if path.name == "japanese_en.json" else 9
+    expected_lessons = 9
     if len(lessons) != expected_lessons:
         issues.append(
             f"root: bundled course must contain exactly {expected_lessons} Lessons, "
@@ -534,7 +516,7 @@ def validate(path: Path, global_ids: dict[str, str]) -> list[str]:
 def main() -> int:
     files = sorted(COURSES.glob("*.json"))
     if {path.name for path in files} != set(EXPECTED_TTS):
-        print(f"Expected exactly these eleven bundled files: {sorted(EXPECTED_TTS)}")
+        print(f"Expected exactly these ten bundled files: {sorted(EXPECTED_TTS)}")
         print(f"Found: {[path.name for path in files]}")
         return 1
     total = 0

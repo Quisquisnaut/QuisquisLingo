@@ -57,7 +57,24 @@ void main() {
         'maintainer': const CourseMaintainer(
           '12345678-1234-4234-9234-123456789abc',
         ).toJson(),
+        'originalCreatedAtUtc': '2026-09-01T00:00:00.000Z',
+        'lastVersionEditorProfileId': '12345678-1234-4234-9234-123456789abc',
+        'lastVersionEditorDisplayName': 'Course creator',
+        'modifiedAtUtc': '2026-09-01T00:00:00.000Z',
       };
+      for (final field in const [
+        'publisherId',
+        'publisherName',
+        'officialCourseVersion',
+        'officialReleaseDateUtc',
+        'officialChecksum',
+        'officialReleaseNotes',
+        'distributionChannel',
+        'publisherVerificationStatus',
+        'publisherSignature',
+      ]) {
+        customJson.remove(field);
+      }
       final custom = Course.fromJson(customJson);
       final before = jsonEncode(custom.toJson());
       String? voice(Course course) => TtsLanguageResolver.selectInstalledLocale(

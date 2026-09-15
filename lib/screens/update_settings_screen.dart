@@ -20,7 +20,7 @@ class _UpdateSettingsScreenState extends State<UpdateSettingsScreen> {
   final _diagnosticLog = DiagnosticLogService();
 
   String _currentVersion = AppMetadata.technicalVersion;
-  bool _automatic = false;
+  bool _automatic = true;
   DateTime? _lastChecked;
   bool _checking = false;
   UpdateCheckResult? _result;

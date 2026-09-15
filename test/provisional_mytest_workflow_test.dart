@@ -503,8 +503,8 @@ void _expectHome(
 
 Future<void> _openHome(WidgetTester tester) async {
   await tester.pumpWidget(const MaterialApp(home: HomeScreen()));
-  final alphaNotice = find.text('Alpha expiry');
-  await _pumpUntilWithIo(tester, alphaNotice);
+  final betaNotice = find.text('Beta expiry');
+  await _pumpUntilWithIo(tester, betaNotice);
   await tester.tap(find.widgetWithText(FilledButton, 'OK'));
   await _pumpUntilWithIo(tester, find.byType(UnifiedLearnerTopBar));
 }

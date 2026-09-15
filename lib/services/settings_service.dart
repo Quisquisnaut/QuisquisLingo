@@ -90,7 +90,7 @@ class SettingsService {
       (await SharedPreferences.getInstance()).getBool(
         _automaticUpdateCheckKey,
       ) ??
-      false;
+      true;
   Future<void> setAutomaticUpdateCheckEnabled(bool enabled) async =>
       (await SharedPreferences.getInstance()).setBool(
         _automaticUpdateCheckKey,

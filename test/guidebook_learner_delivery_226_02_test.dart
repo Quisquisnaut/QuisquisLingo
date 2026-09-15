@@ -139,7 +139,7 @@ void main() {
         );
         await tester.pumpWidget(const MaterialApp(home: HomeScreen()));
         await _pumpFrames(tester);
-        if (find.text('Alpha expiry').evaluate().isNotEmpty) {
+        if (find.text('Beta expiry').evaluate().isNotEmpty) {
           await tester.tap(find.widgetWithText(FilledButton, 'OK'));
           await _pumpFrames(tester);
         }

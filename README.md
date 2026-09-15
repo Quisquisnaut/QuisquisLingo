@@ -1,12 +1,12 @@
 # QuisquisLingo App
 
-**Current source version: 2.0.34+234003 · Build 234, Revision 3 · Course Model v9 (`formatVersion: 9`).**
+**Current source version: 2.0.35+235000 · Build 235, Revision 0 · Course Model v9 (`formatVersion: 9`).**
 
-**QuisquisLingo 2.0.34 Alpha — QQL 234 Media Asset Audit & Revamp**
+**QuisquisLingo 2.0.35 Beta — QQL 235 Beta-readiness assessment**
 
-Current project version: 2.0.34
+Current project version: 2.0.35
 
-QQL 234 is the final planned alpha cleanup release before a possible beta transition. It replaces 92 incorrect split exercise images with 256 × 256 transparent flat WebPs, adds editor-only searchable image tags, expands the World Flag collection with ten documented language-related flags, and introduces one shared searchable visual Course flag picker with language suggestions and portable reuse. Startup now uses the canonical QQL logo; Course switching loads the destination Flag Background atomically before the existing Course Entry Animation, preventing an intermediate Extended frame. All 19 existing audio files—16 language-sample MP3s and three Duel-result WAV tones—are retained byte-for-byte. A real bundled Italian-to-Neapolitan **AI-Slop Demo** Course exercises the new flag and six renewed images. See the [QQL 234 media audit](docs/234_MEDIA_AUDIT.md) and [QQL 234 validation](docs/234_VALIDATION.md).
+QQL 235 is the first Beta release and records the Beta-readiness baseline: `flutter analyze` reports no diagnostics under the standard `flutter_lints` rules, with no source-level suppressions or disabled lint rules. The existing service boundaries, lifecycle guards, transaction handling, persistence formats, Course Model v9, learner progression, XP, Review and Duel behavior remain unchanged. The transparent time-limited pre-release gate remains active with its existing expiry boundary and now uses Beta terminology. See the [QQL 235 validation](docs/235_VALIDATION.md).
 
 **QuisquisLingo 2.0.33 Alpha — QQL 233 Linux Update, Learner Status Avatar, and Course/Team Governance**
 
@@ -53,9 +53,9 @@ Code generation and software development assistance: ChatGPT.
 The MPL-2.0 covers the QuisquisLingo software source. Courses, the Image Bank and other content/assets retain their separately stated licenses or rights.
 
 
-## Alpha lifecycle
+## Beta lifecycle
 
-Version 2.0.34, Build 234, Revision 3 is a time-limited alpha with an expiry of **2026-10-15 23:59:59 local time**. Near expiry it displays reminders. After expiry, learner exercises and Review are blocked until a newer alpha is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when an alpha expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM. A beta transition is only planned for a later release if QQL 234 validation remains satisfactory.
+Version 2.0.35, Build 235, Revision 0 is a time-limited Beta with an expiry of **2026-10-15 23:59:59 local time**. Near expiry it displays reminders. After expiry, learner exercises and Review are blocked until a newer Beta is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when a Beta expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM.
 
 ## Core logic
 
@@ -271,12 +271,12 @@ Then use `flutter run -d <device>` for development or the appropriate `flutter b
 
 ## Updates
 
-Settings shows the installed **Current version** immediately before **Update**. The Update subpage links to the published source repository `https://github.com/Quisquisnaut/QuisquisLingo` and checks its GitHub Releases for packaged application updates. If no GitHub Release exists, the status says that the source repository is published but no packaged application release is available. Automatic checks at startup are optional and disabled by default. QuisquisLingo does not download or install updates itself; when a newer packaged release is available, the page links to the official GitHub release and shows installation guidance for Windows, macOS, Linux antiX, Android, iOS and Web, explicitly marking platforms with no matching release asset as not currently available.
+Settings shows the installed **Current version** immediately before **Update**. The Update subpage links to the published source repository `https://github.com/Quisquisnaut/QuisquisLingo` and checks its GitHub Releases for packaged application updates. If no GitHub Release exists, the status says that the source repository is published but no packaged application release is available. Automatic checks at startup are on by default, run asynchronously after the startup notice is dismissed, and use strict connection/request/response timeouts without delaying `runApp` or the first interactive UI. QuisquisLingo does not download or install updates itself; when a newer packaged release is available, the page links to the official GitHub release and shows installation guidance for Windows, macOS, Linux antiX, Android, iOS and Web, explicitly marking platforms with no matching release asset as not currently available.
 
 The update check is metadata-only and sends no learner or course data. Offline use is never blocked by GitHub availability.
 
-## Windows Alpha diagnostic logging (0.8.1)
+## Windows Beta diagnostic logging (0.8.1)
 
-Both debug and standalone release Alpha builds display tester instructions at startup. QuisquisLingo creates or re-creates one authoritative **Crash Log** at `Documents/QuisquisLingo/Logs/quisquislingo_crash.log` on desktop, using the platform's native Documents directory. On Android and iOS the same logical `QuisquisLingo/Logs/quisquislingo_crash.log` path is inside the app's private application-documents directory, and **Settings > Debug > Share Crash Log** provides access through the platform share UI. QQL does not write another active crash-log copy in application preferences or migrate an older preferences-folder log. The log appends a session snapshot and records uncaught errors in all non-web build modes; detailed navigation breadcrumbs remain debug-only. The separate **Diagnostic Log** stores application troubleshooting events internally and can be exported from **Settings > Debug** to `Documents/QuisquisLingo/Logs/quisquislingo_diagnostic_log.txt`. Bounded learner-audio lifecycle events use correlation IDs and omit spoken text, answers, course content and full personal file paths.
+Both debug and standalone release Beta builds display tester instructions at startup. QuisquisLingo creates or re-creates one authoritative **Crash Log** at `Documents/QuisquisLingo/Logs/quisquislingo_crash.log` on desktop, using the platform's native Documents directory. On Android and iOS the same logical `QuisquisLingo/Logs/quisquislingo_crash.log` path is inside the app's private application-documents directory, and **Settings > Debug > Share Crash Log** provides access through the platform share UI. QQL does not write another active crash-log copy in application preferences or migrate an older preferences-folder log. The log appends a session snapshot and records uncaught errors in all non-web build modes; detailed navigation breadcrumbs remain debug-only. The separate **Diagnostic Log** stores application troubleshooting events internally and can be exported from **Settings > Debug** to `Documents/QuisquisLingo/Logs/quisquislingo_diagnostic_log.txt`. Bounded learner-audio lifecycle events use correlation IDs and omit spoken text, answers, course content and full personal file paths.
 
-Alpha builds also keep a privacy-safe **Startup Trace** at `%LOCALAPPDATA%\QuisquisLingo\Logs\quisquislingo_startup_trace.log`, with `%TEMP%\quisquislingo_startup_trace.log` as fallback. Normal lifecycle tracing is enabled by default. Set `QUISQUISLINGO_STARTUP_DIAGNOSTICS=verbose` before launch only when low-level Windows startup detail is needed. The active trace rotates at approximately 1 MiB and retains two previous generations. See [docs/LOGGING.md](docs/LOGGING.md).
+Beta builds also keep a privacy-safe **Startup Trace** at `%LOCALAPPDATA%\QuisquisLingo\Logs\quisquislingo_startup_trace.log`, with `%TEMP%\quisquislingo_startup_trace.log` as fallback. Normal lifecycle tracing is enabled by default. Set `QUISQUISLINGO_STARTUP_DIAGNOSTICS=verbose` before launch only when low-level Windows startup detail is needed. The active trace rotates at approximately 1 MiB and retains two previous generations. See [docs/LOGGING.md](docs/LOGGING.md).

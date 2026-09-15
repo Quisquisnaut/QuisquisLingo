@@ -282,7 +282,7 @@ Future<void> _expectPersistedHome(WidgetTester tester, Course course) async {
     for (var frame = 0; frame < 20; frame++) {
       await tester.pump(const Duration(milliseconds: 50));
     }
-    if (find.text('Alpha expiry').evaluate().isNotEmpty) {
+    if (find.text('Beta expiry').evaluate().isNotEmpty) {
       await tester.tap(find.widgetWithText(FilledButton, 'OK'));
       for (var frame = 0; frame < 20; frame++) {
         await tester.pump(const Duration(milliseconds: 50));

@@ -18,6 +18,9 @@ import 'package:quisquislingo_app/services/progress_service.dart';
 import 'package:quisquislingo_app/services/settings_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+const _optionalPathsProfileId = '00000000-0000-4000-8000-000000000001';
+const _optionalPathsCreatedAtUtc = '2026-01-01T00:00:00.000Z';
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -26,7 +29,11 @@ void main() {
       'sound_effects_enabled': false,
       'one_time_notice_seen_welcome_${AppMetadata.technicalVersion}': true,
     });
-    await ProfileService().addProfile('Optional paths learner');
+    await ProfileService().createProfile(
+      'Optional paths learner',
+      learnerProfileId: _optionalPathsProfileId,
+      generateScreenNameSuffix: false,
+    );
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(
           const MethodChannel('plugins.flutter.io/path_provider'),
@@ -545,7 +552,7 @@ Future<void> _openHome(
     ),
   );
   await _pumpFrames(tester);
-  if (find.text('Alpha expiry').evaluate().isNotEmpty) {
+  if (find.text('Beta expiry').evaluate().isNotEmpty) {
     await tester.tap(find.widgetWithText(FilledButton, 'OK'));
     await _pumpFrames(tester);
   }
@@ -567,6 +574,15 @@ Course _course({
   bool draftGuidebook = false,
 }) => Course(
   courseId: 'optional-paths',
+  originalCourseCreator: const CourseProvenanceIdentity.qqlUser(
+    profileId: _optionalPathsProfileId,
+    displayName: 'Optional paths learner',
+  ),
+  originalCreatedAtUtc: _optionalPathsCreatedAtUtc,
+  maintainer: const CourseMaintainer(_optionalPathsProfileId),
+  lastVersionEditorProfileId: _optionalPathsProfileId,
+  lastVersionEditorDisplayName: 'Optional paths learner',
+  modifiedAtUtc: _optionalPathsCreatedAtUtc,
   title: 'Optional learning paths',
   learningLanguage: 'Italian',
   interfaceLanguage: 'English',

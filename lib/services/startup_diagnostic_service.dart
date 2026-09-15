@@ -7,7 +7,7 @@ export 'startup_diagnostic_backend.dart' show StartupDiagnosticLevel;
 
 /// Permanent, dependency-light startup lifecycle diagnostics.
 ///
-/// Normal checkpoints are enabled by default in Alpha builds. Set the process
+/// Normal checkpoints are enabled by default in Beta builds. Set the process
 /// environment variable `QUISQUISLINGO_STARTUP_DIAGNOSTICS=verbose` before launch
 /// to include low-level diagnostic checkpoints. Logging failures are always
 /// ignored so this service cannot prevent normal application startup.

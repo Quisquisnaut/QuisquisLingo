@@ -240,39 +240,36 @@ void main() {
         sha1: '9d222f1582d5e8c008a31ae877b01cef277be0ee',
       ),
       'ligurian': (
-        source:
-            'https://commons.wikimedia.org/wiki/File:Flag_of_Liguria.svg',
+        source: 'https://commons.wikimedia.org/wiki/File:Flag_of_Liguria.svg',
         license: 'Public domain',
         author: 'F l a n k e r',
-        sha1: 'f628a40a514b97dc03f98fb679376fc5d7b7d01f',
+        sha1: '4d39d1f0e18c6e627b045d723df6a6537dfc6bda',
       ),
       'lombard': (
-        source:
-            'https://commons.wikimedia.org/wiki/File:Flag_of_Lombardy.svg',
+        source: 'https://commons.wikimedia.org/wiki/File:Flag_of_Lombardy.svg',
         license: 'Public domain',
         author: 'F l a n k e r',
-        sha1: 'b1c2c9d5ba5698e5688b0f72b1d4db062808325e',
+        sha1: '7225fe90f3e3b224bc331b6ddef56bb356145e24',
       ),
       'mirandese': (
         source:
             'https://commons.wikimedia.org/wiki/File:Proposed_flag_of_Miranda_de_l_Douro_(MPB).svg',
         license: 'CC BY 4.0',
         author: 'ItsGandaM1ke',
-        sha1: 'a4d22bed14f8b5ce44506b85887919882f5b5782',
+        sha1: '127ea565360ccb2a5c901cdd234a8c833ea54107',
       ),
       'romansh': (
         source:
             'https://commons.wikimedia.org/wiki/File:CHE_Kanton_Graub%C3%BCnden_Flag.svg',
         license: 'Public domain',
         author: 'Kanton Graubünden; Anton Nigg',
-        sha1: '0a6ac90b85ed1148a2900022165380ae6c98f295',
+        sha1: 'e3a0435656a048515bd1ae175e0a7a18f1c2329f',
       ),
       'venetian': (
-        source:
-            'https://commons.wikimedia.org/wiki/File:Flag_of_Veneto.svg',
+        source: 'https://commons.wikimedia.org/wiki/File:Flag_of_Veneto.svg',
         license: 'CC BY-SA 3.0',
         author: 'F l a n k e r',
-        sha1: 'd877bcb78d9834b9d22a2446988137d2b0e8ffa5',
+        sha1: '28ba1cbb86ea051324975702bb3aeb8979f75925',
       ),
     };
     const normalizedAssetSha1 = {
