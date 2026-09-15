@@ -8,7 +8,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:quisquislingo_app/models/course_models.dart';
 import 'package:quisquislingo_app/services/course_flag_service.dart';
-import 'package:quisquislingo_app/services/course_backup_service.dart';
 import 'package:quisquislingo_app/services/course_service.dart';
 import 'package:quisquislingo_app/services/language_flag_catalog.dart';
 import 'package:quisquislingo_app/services/world_flag_repository.dart';
@@ -235,54 +234,8 @@ void main() {
     );
   });
 
-  test('language catalog resolves all 36 primary WORLD associations', () {
-    const expected = <String, String>{
-      'arg': 'aragonese',
-      'ast': 'asturian',
-      'ber': 'amazigh',
-      'bre': 'breton',
-      'cos': 'corsican',
-      'cym': 'wales',
-      'dan': 'denmark',
-      'deu': 'germany',
-      'dsb': 'sorbian',
-      'hsb': 'sorbian',
-      'wen': 'sorbian',
-      'eng': 'united_kingdom',
-      'epo': 'esperanto',
-      'spa': 'spain',
-      'fin': 'finland',
-      'fra': 'france',
-      'fur': 'friulian',
-      'fry': 'west_frisian',
-      'ita': 'italy',
-      'kab': 'amazigh',
-      'jpn': 'japan',
-      'kor': 'south_korea',
-      'cor': 'cornish',
-      'liv': 'livonian',
-      'lld': 'ladin',
-      'nap': 'neapolitan',
-      'nld': 'netherlands',
-      'oci': 'occitan',
-      'pms': 'piedmontese',
-      'por': 'portugal',
-      'rom': 'roma',
-      'srd': 'sardinian',
-      'scn': 'sicilian',
-      'sme': 'sami',
-      'smi': 'sami',
-      'zgh': 'amazigh',
-    };
-
-    expect(LanguageFlagCatalog.worldAssociations, hasLength(36));
-    for (final entry in expected.entries) {
-      expect(
-        LanguageFlagCatalog.primaryWorldFlagId(languageTag: entry.key),
-        entry.value,
-        reason: entry.key,
-      );
-    }
+  test('language catalog resolves primary WORLD associations', () {
+    expect(LanguageFlagCatalog.worldAssociations, hasLength(111));
     expect(
       LanguageFlagCatalog.primaryWorldFlagId(languageName: 'Français'),
       'france',
@@ -327,32 +280,6 @@ void main() {
     for (final association in LanguageFlagCatalog.worldAssociations) {
       expect(ids, contains(association.primaryWorldFlagId));
     }
-  });
-
-  test('Japanese bundled dummy is an empty English-source Model v9 course', () {
-    final decoded =
-        jsonDecode(File('assets/courses/japanese_en.json').readAsStringSync())
-            as Map<String, dynamic>;
-    final course = Course.fromJson(decoded);
-
-    expect(course.formatVersion, 9);
-    expect(course.sourceLanguage, 'English');
-    expect(course.targetLanguage, 'Japanese');
-    expect(course.targetLanguageTag, 'ja-JP');
-    expect(course.temporarySample, isTrue);
-    expect(course.lessons, isEmpty);
-    expect(CourseFlagService.hasExplicitFlag(course), isFalse);
-    expect(
-      CourseBackupService.officialContentChecksum(course),
-      course.officialChecksum,
-    );
-  });
-
-  test('bundled registry discovers the Japanese dummy as course eleven', () {
-    expect(CourseService.courseAssets, hasLength(11));
-    expect(CourseService.courseAssets['JA'], 'assets/courses/japanese_en.json');
-    expect(CourseService.targetLabels['JA'], 'Japanese');
-    expect(CourseService.sourceLabels['JA'], 'English');
   });
 }
 

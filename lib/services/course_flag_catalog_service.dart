@@ -35,9 +35,11 @@ class CourseFlagCatalogService {
 
     final languageSearchTermsByWorldId = <String, Set<String>>{};
     for (final association in LanguageFlagCatalog.worldAssociations) {
-      languageSearchTermsByWorldId
-          .putIfAbsent(association.primaryWorldFlagId, () => <String>{})
-          .addAll(association.searchTerms);
+      for (final worldFlagId in association.worldFlagIds) {
+        languageSearchTermsByWorldId
+            .putIfAbsent(worldFlagId, () => <String>{})
+            .addAll(association.searchTerms);
+      }
     }
     for (final suggestion in loadedManifest.languageSuggestions) {
       for (final worldFlagId in suggestion.worldFlagIds) {

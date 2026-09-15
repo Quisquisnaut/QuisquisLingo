@@ -188,6 +188,9 @@ class _CourseFlagPickerDialogState extends State<CourseFlagPickerDialog> {
   @override
   void initState() {
     super.initState();
+    final searchLanguageName = _searchLanguageName(widget.languageName);
+    _search.text = searchLanguageName;
+    _query = searchLanguageName;
     _flags = widget.flagService ?? CourseFlagService();
     _worldFlags = widget.worldFlagRepository ?? WorldFlagRepository();
     _catalog =
@@ -288,6 +291,9 @@ class _CourseFlagPickerDialogState extends State<CourseFlagPickerDialog> {
 
   Widget _buildScrollableCatalog(CourseFlagCatalog catalog) {
     final sections = catalog.search(_query);
+    final hasFlagPainterResults = sections.any(
+      (section) => section.kind == CourseFlagCatalogSectionKind.qqlFlagPainter,
+    );
     final children = <Widget>[
       _CurrentSelection(
         currentSelection: widget.currentSelection,
@@ -370,9 +376,14 @@ class _CourseFlagPickerDialogState extends State<CourseFlagPickerDialog> {
       if (sections.isEmpty) ...[
         const Padding(
           padding: EdgeInsets.symmetric(vertical: 24),
-          child: Center(child: Text('No flags found')),
+          child: Center(child: Text('No FlagPainter flag found')),
         ),
-      ] else
+      ] else ...[
+        if (!hasFlagPainterResults)
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 12),
+            child: Center(child: Text('No FlagPainter flag found')),
+          ),
         for (final section in sections) ...[
           _SectionHeader(section: section),
           if (section.kind == CourseFlagCatalogSectionKind.qqlFlagPainter)
@@ -389,6 +400,7 @@ class _CourseFlagPickerDialogState extends State<CourseFlagPickerDialog> {
               onTap: () => Navigator.pop(context, candidate.selection),
             ),
         ],
+      ],
       const SizedBox(height: 8),
     ];
 
@@ -617,4 +629,12 @@ String _displayLanguage(String languageName, String? languageTag) {
   if (name.isNotEmpty) return name;
   final tag = languageTag?.trim() ?? '';
   return tag.isEmpty ? 'this language' : tag;
+}
+
+String _searchLanguageName(String languageName) {
+  final name = languageName.trim();
+  return name.replaceFirst(
+    RegExp(r'\s+\(([a-z]{2,3}(?:[-_][a-z0-9]{2,8})*)\)$', caseSensitive: false),
+    '',
+  );
 }

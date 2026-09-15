@@ -48,11 +48,10 @@ void main() {
       await tester.pump(const Duration(milliseconds: 50));
     }
 
+    expect(find.text('Admin media management'), findsOneWidget);
     expect(
-      find.text(
-        'Admin media management. Categories and tags must be written in English.',
-      ),
-      findsOneWidget,
+      find.text('Categories and tags must be written in English.'),
+      findsNothing,
     );
     await tester.enterText(
       find.byKey(const Key('exercise-image-search')),
@@ -74,7 +73,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(
       find.text('Categories and tags must be written in English.'),
-      findsOneWidget,
+      findsNothing,
     );
     await tester.enterText(
       find.byKey(const Key('exercise-image-tags-editor')),
@@ -88,7 +87,7 @@ void main() {
       'colleague',
     );
     await tester.pump();
-    expect(find.text('Uomo'), findsOneWidget);
+    expect(find.text('Man'), findsOneWidget);
     expect(
       (await ExerciseImageMetadataService().metadataFor(
         'people_family_man',

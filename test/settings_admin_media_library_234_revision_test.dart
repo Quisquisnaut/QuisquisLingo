@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:quisquislingo_app/models/course_models.dart';
+import 'package:quisquislingo_app/screens/course_projects_screen.dart';
 import 'package:quisquislingo_app/screens/flat_image_library_screen.dart';
 import 'package:quisquislingo_app/screens/settings_screen.dart';
 import 'package:quisquislingo_app/services/profile_service.dart';
@@ -12,7 +13,7 @@ const _learnerId = '22222222-2222-4222-8222-222222222222';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  testWidgets('Settings exposes global media editing only to an Admin', (
+  testWidgets('Settings does not expose global media editing to an Admin', (
     tester,
   ) async {
     SharedPreferences.setMockInitialValues({
@@ -32,14 +33,30 @@ void main() {
       ),
     );
     await _pumpFrames(tester);
-    expect(
-      find.byKey(const Key('settings-admin-media-library')),
-      findsOneWidget,
-    );
+    expect(find.byKey(const Key('settings-admin-media-library')), findsNothing);
+  });
 
-    final adminMedia = find.byKey(const Key('settings-admin-media-library'));
-    await tester.ensureVisible(adminMedia);
-    await tester.tap(adminMedia);
+  testWidgets('Course Manager exposes global media editing only to an Admin', (
+    tester,
+  ) async {
+    SharedPreferences.setMockInitialValues({
+      ProfileService.profilesKey: [
+        const LearnerProfile(
+          learnerProfileId: _adminId,
+          displayName: 'Admin',
+        ).encode(),
+      ],
+      ProfileService.activeProfileIdKey: _adminId,
+      ProfileService.adminProfileIdsKey: [_adminId],
+    });
+
+    await tester.pumpWidget(
+      MaterialApp(home: CourseProjectsScreen(currentCourse: _course)),
+    );
+    await _pumpFrames(tester);
+    final entry = find.byKey(const Key('admin-media-library-entry'));
+    expect(entry, findsOneWidget);
+    await tester.tap(entry);
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 400));
     expect(find.byType(FlatImageLibraryScreen), findsOneWidget);
@@ -75,6 +92,31 @@ void main() {
     );
     await _pumpFrames(tester);
     expect(find.byKey(const Key('settings-admin-media-library')), findsNothing);
+  });
+
+  testWidgets('Course Manager hides global media editing from a non-Admin', (
+    tester,
+  ) async {
+    SharedPreferences.setMockInitialValues({
+      ProfileService.profilesKey: [
+        const LearnerProfile(
+          learnerProfileId: _adminId,
+          displayName: 'Admin',
+        ).encode(),
+        const LearnerProfile(
+          learnerProfileId: _learnerId,
+          displayName: 'Learner',
+        ).encode(),
+      ],
+      ProfileService.activeProfileIdKey: _learnerId,
+      ProfileService.adminProfileIdsKey: [_adminId],
+    });
+
+    await tester.pumpWidget(
+      MaterialApp(home: CourseProjectsScreen(currentCourse: _course)),
+    );
+    await _pumpFrames(tester);
+    expect(find.byKey(const Key('admin-media-library-entry')), findsNothing);
   });
 }
 

@@ -19,6 +19,13 @@ void main() {
     expect(find.text('Use Automatic'), findsOneWidget);
     expect(find.text('Upload custom flag'), findsOneWidget);
     expect(find.byKey(const Key('course-flag-picker-search')), findsOneWidget);
+    expect(
+      tester
+          .widget<TextField>(find.byKey(const Key('course-flag-picker-search')))
+          .controller!
+          .text,
+      'Japanese',
+    );
     expect(find.text('Suggested WORLD Flag for Japanese'), findsOneWidget);
     expect(find.text('Japan'), findsOneWidget);
     expect(find.text('QQL FlagPainter Flags'), findsOneWidget);
@@ -64,6 +71,11 @@ void main() {
         lessThanOrEqualTo(tester.getTopLeft(actions).dy),
       );
 
+      await tester.enterText(
+        find.byKey(const Key('course-flag-picker-search')),
+        '',
+      );
+      await tester.pumpAndSettle();
       final last = find.byKey(const ValueKey('course-flag-option-world:wales'));
       final scrollable = find.descendant(
         of: results,
@@ -91,8 +103,24 @@ void main() {
         findsOneWidget,
       );
       expect(find.text('Suggested WORLD Flag for French'), findsNothing);
+      expect(find.text('No FlagPainter flag found'), findsOneWidget);
+      expect(find.text('No flags found'), findsNothing);
     },
   );
+
+  testWidgets('search starts with the language name without a language code', (
+    tester,
+  ) async {
+    await _openPicker(tester, languageName: 'Welsh (cy)', languageTag: 'cy');
+
+    expect(
+      tester
+          .widget<TextField>(find.byKey(const Key('course-flag-picker-search')))
+          .controller!
+          .text,
+      'Welsh',
+    );
+  });
 }
 
 Future<void> _openPicker(

@@ -92,7 +92,7 @@ void main() {
       final logo = tester.widget<Image>(startupLogo);
       expect(
         (logo.image as AssetImage).assetName,
-        'assets/branding/quisquislingo_logo.png',
+        'assets/branding/qql_logo_4.png',
       );
       expect(
         find.image(const AssetImage('assets/olive_tree.png')),

@@ -17,9 +17,7 @@ class ExerciseImageMetadataService {
     'city_public_places',
     'clothing_accessories',
     'emotions',
-    'food',
     'food_drinks',
-    'home',
     'home_household',
     'nature',
     'other',
@@ -47,10 +45,33 @@ class ExerciseImageMetadataService {
     final persisted = preferences.getString(preferencesKey);
     if (persisted == null) return bundled;
 
-    final current = _parseDocument(
+    var current = _parseDocument(
       persisted,
       source: 'current exercise-image metadata',
     );
+    var migrated = false;
+    current = current
+        .map((record) {
+          final category = record.category == 'home'
+              ? 'home_household'
+              : record.category;
+          final label =
+              record.id == 'people_family_man' && record.label == 'Uomo'
+              ? 'Man'
+              : record.label;
+          if (category != record.category || label != record.label) {
+            migrated = true;
+          }
+          return ExerciseImageMetadata(
+            id: record.id,
+            label: label,
+            category: category,
+            tags: record.tags,
+            assetPath: record.assetPath,
+            origin: record.origin,
+          );
+        })
+        .toList(growable: false);
     final currentById = {for (final record in current) record.id: record};
     for (final seed in bundled) {
       final record = currentById[seed.id];
@@ -66,6 +87,9 @@ class ExerciseImageMetadataService {
           'Current exercise-image identity fields changed for ${seed.id}.',
         );
       }
+    }
+    if (migrated || _containsLegacyFoodCategory(persisted)) {
+      await _persist(current);
     }
     return current;
   }
@@ -236,13 +260,27 @@ class ExerciseImageMetadataService {
   }
 
   static String _normalizeCategory(Object? value) {
-    final normalized = _requiredText(value, 'category');
+    final raw = _requiredText(value, 'category');
+    final normalized = switch (raw) {
+      'food' => 'food_drinks',
+      'home' => 'home_household',
+      _ => raw,
+    };
     if (!categories.contains(normalized)) {
       throw FormatException(
         'Unsupported exercise-image category: $normalized.',
       );
     }
     return normalized;
+  }
+
+  static bool _containsLegacyFoodCategory(String raw) {
+    final decoded = jsonDecode(raw);
+    final records = decoded is Map ? decoded['records'] : null;
+    return records is List &&
+        records.any(
+          (record) => record is Map && record['category']?.toString() == 'food',
+        );
   }
 
   static List<String> _normalizeTags(List<String> values) {

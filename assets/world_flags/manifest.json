@@ -325,6 +325,15 @@
       ]
     },
     {
+      "languageTag": "lij",
+      "languageNames": [
+        "Ligurian"
+      ],
+      "worldFlagIds": [
+        "ligurian"
+      ]
+    },
+    {
       "languageTag": "liv",
       "languageNames": [
         "Livonian",
@@ -356,6 +365,24 @@
       "worldFlagIds": [
         "ladin",
         "italy"
+      ]
+    },
+    {
+      "languageTag": "lmo",
+      "languageNames": [
+        "Lombard"
+      ],
+      "worldFlagIds": [
+        "lombard"
+      ]
+    },
+    {
+      "languageTag": "mwl",
+      "languageNames": [
+        "Mirandese"
+      ],
+      "worldFlagIds": [
+        "mirandese"
       ]
     },
     {
@@ -451,6 +478,15 @@
       ]
     },
     {
+      "languageTag": "rm",
+      "languageNames": [
+        "Romansh"
+      ],
+      "worldFlagIds": [
+        "romansh"
+      ]
+    },
+    {
       "languageTag": "rom",
       "languageNames": [
         "Romani",
@@ -540,6 +576,15 @@
       ]
     },
     {
+      "languageTag": "vec",
+      "languageNames": [
+        "Venetian"
+      ],
+      "worldFlagIds": [
+        "venetian"
+      ]
+    },
+    {
       "languageTag": "wen",
       "languageNames": [
         "Sorbian",
@@ -583,6 +628,22 @@
         "color:red",
         "color:white",
         "rir:apnic"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "aland_islands",
+      "displayNameEn": "Åland Islands",
+      "assetPath": "assets/world_flags/flags/aland_islands.svg",
+      "isoAlpha2": "AX",
+      "isoAlpha3": "ALA",
+      "category": "isoExtra",
+      "aliases": [],
+      "distractorTags": [
+        "color:blue",
+        "color:red",
+        "color:yellow",
+        "rir:ripe_ncc"
       ],
       "avoidAsDistractorWith": []
     },
@@ -631,7 +692,7 @@
       "artworkSourcePage": "https://commons.wikimedia.org/wiki/File:Berber_flag.svg",
       "artworkLicense": "Public domain",
       "artworkAuthor": "Mysid",
-      "artworkSha1": "4f3b212566713932ae2c615f84db85bf58148740",
+      "artworkSha1": "8be97d4a459f489f59553919068b8a14186d7d20",
       "distractorTags": [
         "color:blue",
         "color:green",
@@ -758,7 +819,7 @@
       "artworkLicense": "CC BY-SA 3.0",
       "artworkAuthor": "Willtron",
       "artworkSourceSha1": "9816b944df1e0ae53b4ce259f9205ef3718d9840",
-      "artworkSha1": "4d95c4c3b104c552b0fd74b2c79d764fe7459e79",
+      "artworkSha1": "628d53c4eb614631a24ba109c8550dda27cb6ef2",
       "distractorTags": [
         "color:black",
         "color:blue",
@@ -1616,6 +1677,24 @@
       "avoidAsDistractorWith": []
     },
     {
+      "id": "cote_d_ivoire",
+      "displayNameEn": "Côte d'Ivoire",
+      "assetPath": "assets/world_flags/flags/cote_d_ivoire.svg",
+      "isoAlpha2": "CI",
+      "isoAlpha3": "CIV",
+      "category": "unMember",
+      "aliases": [],
+      "distractorTags": [
+        "color:green",
+        "color:orange",
+        "color:white",
+        "rir:afrinic"
+      ],
+      "avoidAsDistractorWith": [
+        "ireland"
+      ]
+    },
+    {
       "id": "croatia_local_name_hrvatska",
       "displayNameEn": "Croatia (local Name: Hrvatska)",
       "assetPath": "assets/world_flags/flags/croatia_local_name_hrvatska.svg",
@@ -1696,24 +1775,6 @@
         "rir:ripe_ncc"
       ],
       "avoidAsDistractorWith": []
-    },
-    {
-      "id": "cote_d_ivoire",
-      "displayNameEn": "Côte d'Ivoire",
-      "assetPath": "assets/world_flags/flags/cote_d_ivoire.svg",
-      "isoAlpha2": "CI",
-      "isoAlpha3": "CIV",
-      "category": "unMember",
-      "aliases": [],
-      "distractorTags": [
-        "color:green",
-        "color:orange",
-        "color:white",
-        "rir:afrinic"
-      ],
-      "avoidAsDistractorWith": [
-        "ireland"
-      ]
     },
     {
       "id": "democratic_republic_of_the_congo",
@@ -1925,7 +1986,7 @@
       "artworkSourcePage": "https://commons.wikimedia.org/wiki/File:Flag_of_Esperanto.svg",
       "artworkLicense": "Public domain",
       "artworkAuthor": "Richard H. Geoghegan",
-      "artworkSha1": "34ee04852b601831a554f89cc0c54b4a94d887c9",
+      "artworkSha1": "bbac663a2a7de19187c09474b2e095840858930b",
       "distractorTags": [
         "color:green",
         "color:white",
@@ -2818,7 +2879,7 @@
       "artworkSourcePage": "https://commons.wikimedia.org/wiki/File:Flag_of_Ladinia.svg",
       "artworkLicense": "Public domain",
       "artworkAuthor": "Unknown, recreated by Sebastian Walderich",
-      "artworkSha1": "5f89f33aa13f36cddc8bbf47cb1cdbad4693d9c2",
+      "artworkSha1": "1e3c6dee1f3a05b884ba05b48f45e11e116485f8",
       "distractorTags": [
         "color:blue",
         "color:green",
@@ -2944,6 +3005,26 @@
       "avoidAsDistractorWith": []
     },
     {
+      "id": "ligurian",
+      "displayNameEn": "Ligurian",
+      "assetPath": "assets/world_flags/flags/ligurian.svg",
+      "category": "communityOrRegionalFlagAssociatedWithLanguage",
+      "aliases": [
+        "Liguria"
+      ],
+      "artworkSourcePage": "https://commons.wikimedia.org/wiki/File:Flag_of_Liguria.svg",
+      "artworkLicense": "Public domain",
+      "artworkAuthor": "F l a n k e r",
+      "artworkSha1": "f628a40a514b97dc03f98fb679376fc5d7b7d01f",
+      "distractorTags": [
+        "color:blue",
+        "color:red",
+        "color:white",
+        "region:europe"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
       "id": "lithuania",
       "displayNameEn": "Lithuania",
       "assetPath": "assets/world_flags/flags/lithuania.svg",
@@ -2973,9 +3054,28 @@
       "artworkLicense": "Public domain",
       "artworkAuthor": "Tasman",
       "artworkSourceSha1": "cbc9caa198419cc1643cb36a1bb2a5c361343b0f",
-      "artworkSha1": "61989bbfe4e065997bbe369af91520641fd2d5a4",
+      "artworkSha1": "a03c03e6312dac5dd43304d56bc37b8ed57d528c",
       "distractorTags": [
         "color:blue",
+        "color:green",
+        "color:white",
+        "region:europe"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "lombard",
+      "displayNameEn": "Lombard",
+      "assetPath": "assets/world_flags/flags/lombard.svg",
+      "category": "communityOrRegionalFlagAssociatedWithLanguage",
+      "aliases": [
+        "Lombardy"
+      ],
+      "artworkSourcePage": "https://commons.wikimedia.org/wiki/File:Flag_of_Lombardy.svg",
+      "artworkLicense": "Public domain",
+      "artworkAuthor": "F l a n k e r",
+      "artworkSha1": "b1c2c9d5ba5698e5688b0f72b1d4db062808325e",
+      "distractorTags": [
         "color:green",
         "color:white",
         "region:europe"
@@ -3235,6 +3335,27 @@
       "avoidAsDistractorWith": []
     },
     {
+      "id": "mirandese",
+      "displayNameEn": "Mirandese",
+      "assetPath": "assets/world_flags/flags/mirandese.svg",
+      "category": "communityOrRegionalFlagAssociatedWithLanguage",
+      "aliases": [
+        "Miranda de l Douro"
+      ],
+      "artworkSourcePage": "https://commons.wikimedia.org/wiki/File:Proposed_flag_of_Miranda_de_l_Douro_(MPB).svg",
+      "artworkLicense": "CC BY 4.0",
+      "artworkAuthor": "ItsGandaM1ke",
+      "artworkSha1": "a4d22bed14f8b5ce44506b85887919882f5b5782",
+      "distractorTags": [
+        "color:blue",
+        "color:green",
+        "color:red",
+        "color:white",
+        "region:europe"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
       "id": "moldova",
       "displayNameEn": "Moldova",
       "assetPath": "assets/world_flags/flags/moldova.svg",
@@ -3426,7 +3547,7 @@
       "artworkSourcePage": "https://commons.wikimedia.org/wiki/File:Flag_of_Naples.svg",
       "artworkLicense": "Public domain",
       "artworkAuthor": "Ninane",
-      "artworkSha1": "c0cccc11199612fad85e4e540101dd00d8e57640",
+      "artworkSha1": "9d222f1582d5e8c008a31ae877b01cef277be0ee",
       "distractorTags": [
         "color:red",
         "color:yellow",
@@ -3863,7 +3984,7 @@
       "artworkLicense": "Public domain",
       "artworkAuthor": "Orzetto",
       "artworkSourceSha1": "da5571fdf41da8b673d5f5e0fefb1cb7cf41a1b4",
-      "artworkSha1": "73602befc86ff9c11ba7a1135e85224f802fda54",
+      "artworkSha1": "f6896671a83cf366b3930854da950453f832e9b9",
       "distractorTags": [
         "color:blue",
         "color:red",
@@ -4030,6 +4151,26 @@
       ]
     },
     {
+      "id": "romansh",
+      "displayNameEn": "Romansh",
+      "assetPath": "assets/world_flags/flags/romansh.svg",
+      "category": "communityOrRegionalFlagAssociatedWithLanguage",
+      "aliases": [
+        "Graubünden",
+        "Grisons"
+      ],
+      "artworkSourcePage": "https://commons.wikimedia.org/wiki/File:CHE_Kanton_Graub%C3%BCnden_Flag.svg",
+      "artworkLicense": "Public domain",
+      "artworkAuthor": "Kanton Graubünden; Anton Nigg",
+      "artworkSha1": "0a6ac90b85ed1148a2900022165380ae6c98f295",
+      "distractorTags": [
+        "color:black",
+        "color:white",
+        "region:europe"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
       "id": "russia",
       "displayNameEn": "Russia",
       "assetPath": "assets/world_flags/flags/russia.svg",
@@ -4175,6 +4316,29 @@
         "color:green",
         "color:yellow",
         "rir:arin"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
+      "id": "sami",
+      "displayNameEn": "Sámi",
+      "assetPath": "assets/world_flags/flags/sami.svg",
+      "category": "communityOrRegionalFlagAssociatedWithLanguage",
+      "aliases": [
+        "Sami",
+        "Saami",
+        "Sápmi"
+      ],
+      "artworkSourcePage": "https://commons.wikimedia.org/wiki/File:Sami_flag.svg",
+      "artworkLicense": "Public domain",
+      "artworkAuthor": "Jeltz",
+      "artworkSha1": "e07bb487ff14695b91fd76a81eb1f697cc4e1049",
+      "distractorTags": [
+        "color:blue",
+        "color:green",
+        "color:red",
+        "color:yellow",
+        "region:europe"
       ],
       "avoidAsDistractorWith": []
     },
@@ -4347,7 +4511,7 @@
       "artworkLicense": "Public domain",
       "artworkAuthor": "Angelo Romano",
       "artworkSourceSha1": "f1ad00b79b6fe206c749c90990b1bbfaef283464",
-      "artworkSha1": "509bce62d21f59a20af1356feeda68348168e4b5",
+      "artworkSha1": "ef75025c8b94190dba04f1150b5144ca8bde731c",
       "distractorTags": [
         "color:black",
         "color:orange",
@@ -4726,25 +4890,17 @@
       "avoidAsDistractorWith": []
     },
     {
-      "id": "sami",
-      "displayNameEn": "Sámi",
-      "assetPath": "assets/world_flags/flags/sami.svg",
-      "category": "communityOrRegionalFlagAssociatedWithLanguage",
-      "aliases": [
-        "Sami",
-        "Saami",
-        "Sápmi"
-      ],
-      "artworkSourcePage": "https://commons.wikimedia.org/wiki/File:Sami_flag.svg",
-      "artworkLicense": "Public domain",
-      "artworkAuthor": "Jeltz",
-      "artworkSha1": "e07bb487ff14695b91fd76a81eb1f697cc4e1049",
+      "id": "t_rki_ye",
+      "displayNameEn": "Türki̇ye",
+      "assetPath": "assets/world_flags/flags/t_rki_ye.svg",
+      "isoAlpha2": "TR",
+      "isoAlpha3": "TUR",
+      "category": "unMember",
+      "aliases": [],
       "distractorTags": [
-        "color:blue",
-        "color:green",
         "color:red",
-        "color:yellow",
-        "region:europe"
+        "color:white",
+        "rir:ripe_ncc"
       ],
       "avoidAsDistractorWith": []
     },
@@ -4970,21 +5126,6 @@
       "avoidAsDistractorWith": []
     },
     {
-      "id": "t_rki_ye",
-      "displayNameEn": "Türki̇ye",
-      "assetPath": "assets/world_flags/flags/t_rki_ye.svg",
-      "isoAlpha2": "TR",
-      "isoAlpha3": "TUR",
-      "category": "unMember",
-      "aliases": [],
-      "distractorTags": [
-        "color:red",
-        "color:white",
-        "rir:ripe_ncc"
-      ],
-      "avoidAsDistractorWith": []
-    },
-    {
       "id": "u_s_virgin_islands",
       "displayNameEn": "U.S. Virgin Islands",
       "assetPath": "assets/world_flags/flags/u_s_virgin_islands.svg",
@@ -5178,6 +5319,27 @@
       "avoidAsDistractorWith": []
     },
     {
+      "id": "venetian",
+      "displayNameEn": "Venetian",
+      "assetPath": "assets/world_flags/flags/venetian.svg",
+      "category": "communityOrRegionalFlagAssociatedWithLanguage",
+      "aliases": [
+        "Veneto"
+      ],
+      "artworkSourcePage": "https://commons.wikimedia.org/wiki/File:Flag_of_Veneto.svg",
+      "artworkLicense": "CC BY-SA 3.0",
+      "artworkAuthor": "F l a n k e r",
+      "artworkSha1": "d877bcb78d9834b9d22a2446988137d2b0e8ffa5",
+      "distractorTags": [
+        "color:blue",
+        "color:gold",
+        "color:red",
+        "color:yellow",
+        "region:europe"
+      ],
+      "avoidAsDistractorWith": []
+    },
+    {
       "id": "venezuela",
       "displayNameEn": "Venezuela",
       "assetPath": "assets/world_flags/flags/venezuela.svg",
@@ -5261,7 +5423,7 @@
       "artworkLicense": "Public domain",
       "artworkAuthor": "P.H. Wagemakers and Joh. Koopmans",
       "artworkSourceSha1": "6aa077ea90accf0b74ee70b37a9db8351c9cfbcd",
-      "artworkSha1": "e71aeb2e256d879d444413350eacd9a8f164a165",
+      "artworkSha1": "150adca2efd9a5fae63118f9fd86bd27c456cfed",
       "distractorTags": [
         "color:blue",
         "color:red",
@@ -5336,22 +5498,6 @@
         "color:white",
         "color:yellow",
         "rir:afrinic"
-      ],
-      "avoidAsDistractorWith": []
-    },
-    {
-      "id": "aland_islands",
-      "displayNameEn": "Åland Islands",
-      "assetPath": "assets/world_flags/flags/aland_islands.svg",
-      "isoAlpha2": "AX",
-      "isoAlpha3": "ALA",
-      "category": "isoExtra",
-      "aliases": [],
-      "distractorTags": [
-        "color:blue",
-        "color:red",
-        "color:yellow",
-        "rir:ripe_ncc"
       ],
       "avoidAsDistractorWith": []
     }

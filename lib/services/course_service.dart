@@ -26,7 +26,6 @@ class CourseService {
     'FI': 'assets/courses/finnish_en.json',
     'KO': 'assets/courses/korean_en.json',
     'NAP': 'assets/courses/neapolitan_it.json',
-    'JA': 'assets/courses/japanese_en.json',
   };
 
   static const bundledCourseIndexStorageKey =
@@ -43,7 +42,6 @@ class CourseService {
     'FI': 'Finnish',
     'KO': 'Korean',
     'NAP': 'Neapolitan',
-    'JA': 'Japanese',
   };
 
   static const Map<String, String> sourceLabels = {
@@ -57,7 +55,6 @@ class CourseService {
     'FI': 'English',
     'KO': 'English',
     'NAP': 'Italian',
-    'JA': 'English',
   };
 
   Future<Course> loadItalianCourse() => loadCourse('IT');
@@ -66,7 +63,6 @@ class CourseService {
   Future<Course> loadEnglishCourse() => loadCourse('EN');
   Future<Course> loadKoreanCourse() => loadCourse('KO');
   Future<Course> loadNeapolitanCourse() => loadCourse('NAP');
-  Future<Course> loadJapaneseCourse() => loadCourse('JA');
 
   /// Reconciles the device-local discovery index with the authoritative
   /// bundled registry. This is normal startup initialization: it does not

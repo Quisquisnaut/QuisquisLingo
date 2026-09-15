@@ -21,6 +21,7 @@ import '../widgets/editor_app_bar_actions.dart';
 import '../widgets/flag_art.dart';
 import 'course_editor_screen.dart';
 import 'team_manager_screen.dart';
+import 'flat_image_library_screen.dart';
 
 class _DisposeOnUnmount extends StatefulWidget {
   final Widget child;
@@ -106,6 +107,7 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
   bool _openedInitialCourse = false;
   String? _activeProfileId;
   Set<String> _memberTeamIds = const {};
+  bool _isAdmin = false;
 
   @override
   void initState() {
@@ -123,6 +125,8 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
     try {
       final value = await _service.listUserCourses();
       final activeProfileId = await _profiles.getActiveProfileId();
+      final isAdmin =
+          activeProfileId != null && await _profiles.isAdmin(activeProfileId);
       final memberTeamIds = activeProfileId == null
           ? const <String>{}
           : (await _teams.teamsForProfile(
@@ -140,6 +144,7 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
         _loading = false;
         _activeProfileId = activeProfileId;
         _memberTeamIds = memberTeamIds;
+        _isAdmin = isAdmin;
       });
       if (!_openedInitialCourse && widget.initialCourseIdToOpen != null) {
         _openedInitialCourse = true;
@@ -1527,6 +1532,24 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
                     icon: const Icon(Icons.groups_outlined),
                     label: const Text('Team Manager'),
                   ),
+                  if (_isAdmin && _activeProfileId != null)
+                    OutlinedButton.icon(
+                      key: const Key('admin-media-library-entry'),
+                      onPressed: () async {
+                        await Navigator.of(context).push<void>(
+                          MaterialPageRoute(
+                            builder: (_) => FlatImageLibraryScreen(
+                              selectMode: false,
+                              metadataEditingEnabled: true,
+                              actorProfileId: _activeProfileId,
+                            ),
+                          ),
+                        );
+                        await _reload();
+                      },
+                      icon: const Icon(Icons.perm_media_outlined),
+                      label: const Text('Admin Media Library'),
+                    ),
                 ],
               ),
               if (!_currentCourseIsCustom) ...[

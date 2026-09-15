@@ -1,6 +1,6 @@
 # Media credits
 
-Current for QQL 234.
+Current for QQL 235.
 
 The startup screen uses the repository-owned QuisquisLingo logo from
 `assets/branding/quisquislingo_logo.png`. The former public-domain olive
@@ -23,18 +23,20 @@ therefore not presented as current in-app artwork.
 ## World and language-related flags
 
 The 249 ISO flag files and eight approved shortlist files come from
-`lipis/flag-icons` v7.5.0 under the MIT License. The additional nineteen
+`lipis/flag-icons` v7.5.0 under the MIT License. The additional twenty-four
 community or regional flags associated with languages come from Wikimedia
 Commons. Sixteen are public domain or CC0; the three attribution-required
 files are:
 
 - Aragonese flag — Willtron, CC BY-SA 3.0;
 - Friulian flag — Ipankonin, CC BY-SA 3.0;
-- Sardinian flag — Angelus, CC BY-SA 3.0.
+- Sardinian flag — Angelus, CC BY-SA 3.0;
+- Mirandese proposed cultural-region flag — ItsGandaM1ke, CC BY 4.0;
+- Venetian flag — F l a n k e r, CC BY-SA 3.0.
 
 Exact source pages, license links, authors, source checksums and any distinct
 renderer-normalized bundled checksums are recorded in
-`assets/world_flags/LICENSE-language-related-flags.md`. The same three
+`assets/world_flags/LICENSE-language-related-flags.md`. The same five
 attributions are presented in the in-app Image credits page.
 
 ## Sounds

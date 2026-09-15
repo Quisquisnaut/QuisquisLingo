@@ -509,16 +509,25 @@ class _StartupGateState extends State<_StartupGate>
     StartupDiagnosticService.verboseCheckpointOnce('DART_SPLASH_BUILD');
     return Scaffold(
       key: const Key('qql-startup-animation'),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(32),
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 540),
-            child: FadeTransition(
-              key: const Key('qql-startup-logo-fade'),
-              opacity: _showStaticArtwork
-                  ? const AlwaysStoppedAnimation<double>(1)
-                  : CurvedAnimation(
+      body: SizedBox.expand(
+        child: FadeTransition(
+          key: const Key('qql-startup-logo-fade'),
+          opacity: _showStaticArtwork
+              ? const AlwaysStoppedAnimation<double>(1)
+              : CurvedAnimation(
+                  parent: _c,
+                  curve: const Interval(
+                    0,
+                    _entranceEnd,
+                    curve: Curves.easeOutCubic,
+                  ),
+                ),
+          child: ScaleTransition(
+            key: const Key('qql-startup-logo-scale'),
+            scale: _showStaticArtwork
+                ? const AlwaysStoppedAnimation<double>(1)
+                : Tween<double>(begin: .96, end: 1).animate(
+                    CurvedAnimation(
                       parent: _c,
                       curve: const Interval(
                         0,
@@ -526,28 +535,13 @@ class _StartupGateState extends State<_StartupGate>
                         curve: Curves.easeOutCubic,
                       ),
                     ),
-              child: ScaleTransition(
-                key: const Key('qql-startup-logo-scale'),
-                scale: _showStaticArtwork
-                    ? const AlwaysStoppedAnimation<double>(1)
-                    : Tween<double>(begin: .96, end: 1).animate(
-                        CurvedAnimation(
-                          parent: _c,
-                          curve: const Interval(
-                            0,
-                            _entranceEnd,
-                            curve: Curves.easeOutCubic,
-                          ),
-                        ),
-                      ),
-                child: Image.asset(
-                  'assets/branding/quisquislingo_logo.png',
-                  key: const Key('qql-startup-logo'),
-                  fit: BoxFit.contain,
-                  filterQuality: FilterQuality.high,
-                  semanticLabel: 'QuisquisLingo',
-                ),
-              ),
+                  ),
+            child: Image.asset(
+              'assets/branding/qql_logo_4.png',
+              key: const Key('qql-startup-logo'),
+              fit: BoxFit.contain,
+              filterQuality: FilterQuality.high,
+              semanticLabel: 'QuisquisLingo',
             ),
           ),
         ),

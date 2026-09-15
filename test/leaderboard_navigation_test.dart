@@ -74,7 +74,7 @@ void main() {
       buildSignature: '',
     );
     SharedPreferences.setMockInitialValues({
-      'one_time_notice_seen_welcome_2.0.34+234001': true,
+      'one_time_notice_seen_welcome_2.0.34+234003': true,
       'sound_effects_enabled': false,
     });
     await ProfileService().addProfile('Navigation Learner');
@@ -3136,7 +3136,7 @@ void main() {
         (text) =>
             text.data != 'Welcome to QuisquisLingo' &&
             text.data != 'Version 2.0.34' &&
-            text.data != 'Build 234, Revision 1' &&
+            text.data != 'Build 234, Revision 3' &&
             text.data != 'Continue',
       );
       final welcomeDialog = tester.widget<AlertDialog>(
@@ -3153,7 +3153,7 @@ void main() {
         const Color(0xFF0756DF),
       );
       expect(
-        tester.widget<Text>(find.text('Build 234, Revision 1')).style?.color,
+        tester.widget<Text>(find.text('Build 234, Revision 3')).style?.color,
         const Color(0xFF0756DF),
       );
       expect(find.textContaining('22621'), findsNothing);
@@ -3181,7 +3181,7 @@ void main() {
       final alphaDialog = tester.widget<AlertDialog>(find.byType(AlertDialog));
       expect(alphaDialog.backgroundColor, isNull);
       expect(alphaDialog.surfaceTintColor, isNull);
-      expect(find.textContaining('Expiry date: 2026-10-14.'), findsOneWidget);
+      expect(find.textContaining('Expiry date: 2026-10-15.'), findsOneWidget);
       expect(find.widgetWithText(FilledButton, 'OK'), findsOneWidget);
       expect(
         tester

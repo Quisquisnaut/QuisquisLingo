@@ -4,7 +4,7 @@
     {
       "id": "bread",
       "label": "Bread",
-      "category": "food",
+      "category": "food_drinks",
       "tags": [
         "bread",
         "loaf"
@@ -15,7 +15,7 @@
     {
       "id": "apple",
       "label": "Apple",
-      "category": "food",
+      "category": "food_drinks",
       "tags": [
         "apple",
         "fruit"
@@ -26,7 +26,7 @@
     {
       "id": "house",
       "label": "House",
-      "category": "home",
+      "category": "home_household",
       "tags": [
         "house",
         "home"
@@ -37,7 +37,7 @@
     {
       "id": "water",
       "label": "Water",
-      "category": "food",
+      "category": "food_drinks",
       "tags": [
         "water",
         "drink"
@@ -81,7 +81,7 @@
     {
       "id": "chair",
       "label": "Chair",
-      "category": "home",
+      "category": "home_household",
       "tags": [
         "chair",
         "seat"
@@ -92,7 +92,7 @@
     {
       "id": "coffee",
       "label": "Coffee",
-      "category": "food",
+      "category": "food_drinks",
       "tags": [
         "coffee",
         "espresso"
@@ -124,7 +124,7 @@
     },
     {
       "id": "people_family_man",
-      "label": "Uomo",
+      "label": "Man",
       "category": "people_family",
       "tags": [
         "man",

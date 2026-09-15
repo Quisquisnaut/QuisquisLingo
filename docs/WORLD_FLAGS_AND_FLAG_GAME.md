@@ -14,7 +14,7 @@ Learner backups use schema version 2 and contain the source `learnerProfileId`, 
 
 ## Dataset and provenance
 
-The additive dataset lives in `assets/world_flags/`. Its canonical `manifest.json` has 276 English-named entities: 193 UN Members, 56 other ISO 3166-1 entities, eight Shortlist entries and nineteen language-related community/regional entries. Gameplay pools, reference categories and the World Flag choices/suggestions in the shared Course flag picker derive from these canonical records. The older built-in `flagCode` namespace remains a separate compatibility surface.
+The additive dataset lives in `assets/world_flags/`. Its canonical `manifest.json` has 281 English-named entities: 193 UN Members, 56 other ISO 3166-1 entities, eight Shortlist entries and twenty-four language-related community/regional entries. Gameplay pools, reference categories and the World Flag choices/suggestions in the shared Course flag picker derive from these canonical records. The older built-in `flagCode` namespace remains a separate compatibility surface.
 
 Lists were retrieved or verified on 13 September 2026:
 
@@ -24,7 +24,7 @@ Lists were retrieved or verified on 13 September 2026:
 
 Flag SVGs come from `lipis/flag-icons` v7.5.0, pinned at commit `7aa5b2bdddd570ece62c812c0cb588ccdc099e2e`: <https://github.com/lipis/flag-icons/tree/v7.5.0>. They are redistributed under the MIT license copied to `assets/world_flags/LICENSE-flag-icons.txt`. ISO and UN pages establish entity lists; they are not treated as artwork licenses.
 
-The nineteen language-related SVGs come from individually recorded Wikimedia Commons file pages. QQL 234 adds Esperanto, Amazigh, Ladin, Asturian, Sicilian, Aragonese, Livonian, West Frisian, Piedmontese and Neapolitan associations to the previous nine. Aragonese, Friulian and Sardinian use CC BY-SA 3.0 with named attribution, Corsican uses CC0 1.0, and the other entries are declared Public Domain. Deterministic renderer-compatible markup normalization is limited to the new Aragonese, Livonian, Piedmontese, Sicilian and West Frisian assets; source and bundled SHA-1 values are recorded separately for those five. The historical Cornish, Corsican and Sardinian SVGs retain their baseline bytes and SHA-1 values. Exact source pages, authors, licenses and checksums are stored both on each manifest entity and in `assets/world_flags/LICENSE-language-related-flags.md`. These entries are modeled as `communityOrRegionalFlagAssociatedWithLanguage`; QQL does not describe them as universally official language flags.
+The twenty-four language-related SVGs come from individually recorded Wikimedia Commons file pages. QQL 234 adds Esperanto, Amazigh, Ladin, Asturian, Sicilian, Aragonese, Livonian, West Frisian, Piedmontese and Neapolitan associations to the previous nine. Aragonese, Friulian and Sardinian use CC BY-SA 3.0 with named attribution, Corsican uses CC0 1.0, and the other entries are declared Public Domain. Deterministic renderer-compatible markup normalization is limited to the new Aragonese, Livonian, Piedmontese, Sicilian and West Frisian assets; source and bundled SHA-1 values are recorded separately for those five. The historical Cornish, Corsican and Sardinian SVGs retain their baseline bytes and SHA-1 values. Exact source pages, authors, licenses and checksums are stored both on each manifest entity and in `assets/world_flags/LICENSE-language-related-flags.md`. These entries are modeled as `communityOrRegionalFlagAssociatedWithLanguage`; QQL does not describe them as universally official language flags.
 
 Language-to-flag suggestions are explicit ordered manifest records. Matching normalizes case and underscore-separated BCP-47 tags, checks a complete tag before its base tag, and can match only the language names declared in the manifest. Regional/community artwork ranks before a related country flag where both are explicitly listed; an unknown language produces no inferred suggestion.
 
@@ -41,7 +41,7 @@ The four cumulative gameplay pools are:
 1. UN: the 193 United Nations Member States.
 2. UN + ISO: all 249 ISO 3166-1 entities.
 3. UN + ISO + Shortlist: ISO plus England, Scotland, Wales, Kosovo, Northern Ireland, Catalonia, Basque Country and Galicia (257).
-4. All Flags: the previous pool plus the nineteen language-related community/regional entries (276).
+4. All Flags: the previous pool plus the twenty-four language-related community/regional entries (281).
 
 The four read-only reference sections are non-overlapping layers: UN Members, ISO extras (the 56 ISO entities that are not UN Members), Shortlist, and Language-related flags. Each view is alphabetized by canonical English name, includes its own compact explanation, and supports live case-insensitive search over canonical English names and existing aliases. Search is scoped to the open category and cannot change game state or learner progress.
 

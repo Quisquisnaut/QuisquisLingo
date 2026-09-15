@@ -19,7 +19,7 @@ void main() {
   });
 
   test('canonical dataset has 249 ISO entities and 193 UN members', () {
-    expect(entities, hasLength(276));
+    expect(entities, hasLength(281));
     expect(
       entities.where((entity) => entity.isoAlpha2 != null),
       hasLength(249),
@@ -57,7 +57,7 @@ void main() {
     );
   });
 
-  test('language-related layer contains exactly the approved 19 entries', () {
+  test('language-related layer contains exactly the approved 24 entries', () {
     const expected = {
       'Sámi',
       'Roma',
@@ -78,6 +78,11 @@ void main() {
       'West Frisian',
       'Piedmontese',
       'Neapolitan',
+      'Ligurian',
+      'Lombard',
+      'Mirandese',
+      'Romansh',
+      'Venetian',
     };
     final languageEntries = WorldFlagRepository.referenceFor(
       entities,
@@ -152,7 +157,7 @@ void main() {
     );
     expect(
       WorldFlagRepository.poolFor(entities, FlagGameMode.allFlags),
-      hasLength(276),
+      hasLength(281),
     );
     expect(
       WorldFlagRepository.referenceFor(
@@ -167,7 +172,7 @@ void main() {
             entity.category ==
             WorldFlagCategory.communityOrRegionalFlagAssociatedWithLanguage,
       ),
-      hasLength(19),
+      hasLength(24),
     );
   });
 
@@ -177,19 +182,19 @@ void main() {
         source: 'https://commons.wikimedia.org/wiki/File:Flag_of_Esperanto.svg',
         license: 'Public domain',
         author: 'Richard H. Geoghegan',
-        sha1: '34ee04852b601831a554f89cc0c54b4a94d887c9',
+        sha1: 'bbac663a2a7de19187c09474b2e095840858930b',
       ),
       'amazigh': (
         source: 'https://commons.wikimedia.org/wiki/File:Berber_flag.svg',
         license: 'Public domain',
         author: 'Mysid',
-        sha1: '4f3b212566713932ae2c615f84db85bf58148740',
+        sha1: '8be97d4a459f489f59553919068b8a14186d7d20',
       ),
       'ladin': (
         source: 'https://commons.wikimedia.org/wiki/File:Flag_of_Ladinia.svg',
         license: 'Public domain',
         author: 'Unknown, recreated by Sebastian Walderich',
-        sha1: '5f89f33aa13f36cddc8bbf47cb1cdbad4693d9c2',
+        sha1: '1e3c6dee1f3a05b884ba05b48f45e11e116485f8',
       ),
       'asturian': (
         source: 'https://commons.wikimedia.org/wiki/File:Flag_of_Asturias.svg',
@@ -232,15 +237,50 @@ void main() {
         source: 'https://commons.wikimedia.org/wiki/File:Flag_of_Naples.svg',
         license: 'Public domain',
         author: 'Ninane',
-        sha1: 'c0cccc11199612fad85e4e540101dd00d8e57640',
+        sha1: '9d222f1582d5e8c008a31ae877b01cef277be0ee',
+      ),
+      'ligurian': (
+        source:
+            'https://commons.wikimedia.org/wiki/File:Flag_of_Liguria.svg',
+        license: 'Public domain',
+        author: 'F l a n k e r',
+        sha1: 'f628a40a514b97dc03f98fb679376fc5d7b7d01f',
+      ),
+      'lombard': (
+        source:
+            'https://commons.wikimedia.org/wiki/File:Flag_of_Lombardy.svg',
+        license: 'Public domain',
+        author: 'F l a n k e r',
+        sha1: 'b1c2c9d5ba5698e5688b0f72b1d4db062808325e',
+      ),
+      'mirandese': (
+        source:
+            'https://commons.wikimedia.org/wiki/File:Proposed_flag_of_Miranda_de_l_Douro_(MPB).svg',
+        license: 'CC BY 4.0',
+        author: 'ItsGandaM1ke',
+        sha1: 'a4d22bed14f8b5ce44506b85887919882f5b5782',
+      ),
+      'romansh': (
+        source:
+            'https://commons.wikimedia.org/wiki/File:CHE_Kanton_Graub%C3%BCnden_Flag.svg',
+        license: 'Public domain',
+        author: 'Kanton Graubünden; Anton Nigg',
+        sha1: '0a6ac90b85ed1148a2900022165380ae6c98f295',
+      ),
+      'venetian': (
+        source:
+            'https://commons.wikimedia.org/wiki/File:Flag_of_Veneto.svg',
+        license: 'CC BY-SA 3.0',
+        author: 'F l a n k e r',
+        sha1: 'd877bcb78d9834b9d22a2446988137d2b0e8ffa5',
       ),
     };
     const normalizedAssetSha1 = {
-      'sicilian': '509bce62d21f59a20af1356feeda68348168e4b5',
-      'aragonese': '4d95c4c3b104c552b0fd74b2c79d764fe7459e79',
-      'livonian': '61989bbfe4e065997bbe369af91520641fd2d5a4',
-      'west_frisian': 'e71aeb2e256d879d444413350eacd9a8f164a165',
-      'piedmontese': '73602befc86ff9c11ba7a1135e85224f802fda54',
+      'sicilian': 'ef75025c8b94190dba04f1150b5144ca8bde731c',
+      'aragonese': '628d53c4eb614631a24ba109c8550dda27cb6ef2',
+      'livonian': 'a03c03e6312dac5dd43304d56bc37b8ed57d528c',
+      'west_frisian': '150adca2efd9a5fae63118f9fd86bd27c456cfed',
+      'piedmontese': 'f6896671a83cf366b3930854da950453f832e9b9',
     };
 
     for (final entry in expected.entries) {
@@ -414,11 +454,11 @@ void main() {
       final parsed = WorldFlagRepository.parseManifestDocument(
         jsonEncode(decoded),
       );
-      expect(parsed.entities, hasLength(276));
+      expect(parsed.entities, hasLength(281));
       expect(parsed.languageSuggestions, isEmpty);
       expect(
         WorldFlagRepository.parseManifest(jsonEncode(decoded)),
-        hasLength(276),
+        hasLength(281),
       );
     },
   );

@@ -1,3 +1,6 @@
+# 2.0.34 (Build 234, Revision 3) - Bundled course and media catalog correction - 2026-09-14
+- Removed the bundled Japanese sample course while retaining the Japanese QQL FlagPainter design, renamed the People Family image label to Man, merged Home into Home Household with persisted legacy-category normalization, and switched startup artwork to the isolated QQL logo. Refreshed metadata to `2.0.34+234003`.
+
 # 2.0.34 (Build 234, Revision 1) - Media Asset Audit & Revamp correction - 2026-09-14
 
 - Corrected the platform build metadata to `2.0.34+234001`, displayed as **Build 234, Revision 1**, and refreshed the Alpha expiry to `2026-10-14 23:59:59` local time. The QQL 234 feature set and Course Model v9 remain unchanged.

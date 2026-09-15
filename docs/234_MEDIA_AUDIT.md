@@ -62,7 +62,7 @@ for `fork.webp` and a maximum of 25,494 bytes for `salad.webp`. Resolution is
 uniform, so the minimum, mean and maximum are all 256 × 256 pixels.
 
 Stable filenames, asset paths, IDs and categories remain unchanged for every
-retained entry. The editor-facing label for `man.webp` is **Uomo**, with tags
+retained entry. The editor-facing label for `man.webp` is **Man**, with tags
 including `uomo` and `amico`; `jump.webp` is **Saltare**, with tags including
 `saltare` and `salto`. Every image has reviewed normalized bilingual search
 tags. The Course Editor Media Library displays and searches those tags; learner
@@ -197,7 +197,7 @@ than receiving an invented attribution.
   `bicycle.webp` was removed later by explicit user request, with all three
   manifests updated. Neither removed path has a production or Course consumer.
 - The misleading learner meaning of `man.webp` and `jump.webp` was corrected at
-  the editor-metadata layer (`Uomo` and `Saltare`) while stable filenames and
+  the editor-metadata layer (`Man` and `Saltare`) while stable filenames and
   IDs were deliberately retained to avoid reference churn. No mass aesthetic
   rename or directory move was performed.
 

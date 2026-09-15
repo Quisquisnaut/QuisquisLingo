@@ -42,27 +42,24 @@ void main() {
       },
     );
 
-    test(
-      'flagless bundled German skips the entry animation',
-      () async {
-        final german = await CourseService().loadCourse('DE');
+    test('flagless bundled German skips the entry animation', () async {
+      final german = await CourseService().loadCourse('DE');
 
-        expect(german.toJson().containsKey('flagCode'), isFalse);
-        expect(german.toJson().containsKey('worldFlagId'), isFalse);
-        expect(german.toJson().containsKey('flagImageBase64'), isFalse);
-        expect(CourseService.codeForCourse(german).toUpperCase(), 'DE');
+      expect(german.toJson().containsKey('flagCode'), isFalse);
+      expect(german.toJson().containsKey('worldFlagId'), isFalse);
+      expect(german.toJson().containsKey('flagImageBase64'), isFalse);
+      expect(CourseService.codeForCourse(german).toUpperCase(), 'DE');
 
-        final request = await CourseEntryAnimationPolicy.requestForSwitch(
-          currentCourseId: 'sample_it_en_it',
-          destination: german,
-          fallbackCode: CourseService.codeForCourse(german),
-          animationsEnabled: true,
-          reducedMotion: false,
-        );
+      final request = await CourseEntryAnimationPolicy.requestForSwitch(
+        currentCourseId: 'sample_it_en_it',
+        destination: german,
+        fallbackCode: CourseService.codeForCourse(german),
+        animationsEnabled: true,
+        reducedMotion: false,
+      );
 
-        expect(request, isNull);
-      },
-    );
+      expect(request, isNull);
+    });
 
     test('a real switch uses only the destination JSON flag', () async {
       final destination = _course(
@@ -264,7 +261,7 @@ void main() {
         rootBundle.evict(asset);
       }
       SharedPreferences.setMockInitialValues({
-        'one_time_notice_seen_welcome_2.0.34+234001': true,
+        'one_time_notice_seen_welcome_2.0.34+234003': true,
         'sound_effects_enabled': false,
       });
       await ProfileService().addProfile('Course Switch Learner');

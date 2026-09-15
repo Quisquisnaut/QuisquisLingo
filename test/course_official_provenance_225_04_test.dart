@@ -9,49 +9,45 @@ import 'package:quisquislingo_app/services/course_service.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  test(
-    'all eleven bundled sources have verified immutable provenance',
-    () async {
-      expect(CourseService.courseAssets, hasLength(11));
-      final mismatches = <String, String>{};
-      final titles = <String>{};
-      for (final entry in CourseService.courseAssets.entries) {
-        final raw = jsonDecode(await rootBundle.loadString(entry.value));
-        final course = Course.fromJson(Map<String, dynamic>.from(raw as Map));
-        expect(course.originType, CourseOriginType.bundledOfficial);
-        expect(course.temporarySample, isTrue);
-        expect(course.title, startsWith('AI-Slop Demo: '));
-        titles.add(course.title);
-        expect(course.publisherId, 'org.quisquislingo');
-        expect(
-          course.publisherVerificationStatus,
-          PublisherVerificationStatus.verified,
-        );
-        final calculated = CourseBackupService.officialContentChecksum(course);
-        if (course.officialChecksum != calculated) {
-          mismatches[entry.key] = calculated;
-        }
+  test('all ten bundled sources have verified immutable provenance', () async {
+    expect(CourseService.courseAssets, hasLength(10));
+    final mismatches = <String, String>{};
+    final titles = <String>{};
+    for (final entry in CourseService.courseAssets.entries) {
+      final raw = jsonDecode(await rootBundle.loadString(entry.value));
+      final course = Course.fromJson(Map<String, dynamic>.from(raw as Map));
+      expect(course.originType, CourseOriginType.bundledOfficial);
+      expect(course.temporarySample, isTrue);
+      expect(course.title, startsWith('AI-Slop Demo: '));
+      titles.add(course.title);
+      expect(course.publisherId, 'org.quisquislingo');
+      expect(
+        course.publisherVerificationStatus,
+        PublisherVerificationStatus.verified,
+      );
+      final calculated = CourseBackupService.officialContentChecksum(course);
+      if (course.officialChecksum != calculated) {
+        mismatches[entry.key] = calculated;
       }
-      expect(mismatches, isEmpty, reason: 'bundled checksum mismatches');
-      expect(titles, {
-        'AI-Slop Demo: Dutch for English Speakers',
-        'AI-Slop Demo: Inglés para hispanohablantes',
-        'AI-Slop Demo: Finnish for English Speakers',
-        'AI-Slop Demo: German for English Speakers',
-        'AI-Slop Demo: Italian for English Speakers',
-        'AI-Slop Demo: Japanese for English Speakers',
-        'AI-Slop Demo: Korean for English Speakers',
-        'AI-Slop Demo: Napoletano per italofoni',
-        'AI-Slop Demo: Portuguese for English Speakers',
-        'AI-Slop Demo: Spanish for English Speakers',
-        'AI-Slop Demo: Welsh for English Speakers',
-      });
-      for (final entry in CourseService.courseAssets.entries) {
-        expect(
-          (await CourseService().loadBundledCourse(entry.key)).courseId,
-          isNotEmpty,
-        );
-      }
-    },
-  );
+    }
+    expect(mismatches, isEmpty, reason: 'bundled checksum mismatches');
+    expect(titles, {
+      'AI-Slop Demo: Dutch for English Speakers',
+      'AI-Slop Demo: Inglés para hispanohablantes',
+      'AI-Slop Demo: Finnish for English Speakers',
+      'AI-Slop Demo: German for English Speakers',
+      'AI-Slop Demo: Italian for English Speakers',
+      'AI-Slop Demo: Korean for English Speakers',
+      'AI-Slop Demo: Napoletano per italofoni',
+      'AI-Slop Demo: Portuguese for English Speakers',
+      'AI-Slop Demo: Spanish for English Speakers',
+      'AI-Slop Demo: Welsh for English Speakers',
+    });
+    for (final entry in CourseService.courseAssets.entries) {
+      expect(
+        (await CourseService().loadBundledCourse(entry.key)).courseId,
+        isNotEmpty,
+      );
+    }
+  });
 }

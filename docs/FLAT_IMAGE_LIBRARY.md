@@ -11,7 +11,7 @@ The Course Editor can:
 - change or remove the image assigned to an exercise;
 - preview the selected image before saving.
 
-Tags are authoring metadata only. They appear in the Course Editor Media Library and are never rendered on learner exercise cards. The existing stable paths remain authoritative: `people_family_man` is displayed as **Uomo** and `actions_jump` as **Saltare**, without renaming `man.webp` or `jump.webp` or changing exercise data.
+Tags are authoring metadata only. They appear in the Course Editor Media Library and are never rendered on learner exercise cards. The existing stable paths remain authoritative: `people_family_man` is displayed as **Man** and `actions_jump` as **Saltare**, without renaming `man.webp` or `jump.webp` or changing exercise data.
 
 Bundled assets are referenced by path and are not duplicated when reused. Custom images are copied into the app support directory. `python tools/validate_images.py` checks manifest parity, IDs/paths, exact casing, 256 × 256 lossless WebP encoding, transparency and the final 92-replacement/19-retained audit partition; Flutter integrity coverage also decodes all images and verifies the transparent border.
 

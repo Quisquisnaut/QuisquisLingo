@@ -8,7 +8,7 @@
       "loaf",
       "filone"
     ],
-    "category": "food",
+    "category": "food_drinks",
     "filename": "bread.webp",
     "asset_path": "assets/exercise_images/bread.webp"
   },
@@ -21,7 +21,7 @@
       "fruit",
       "frutta"
     ],
-    "category": "food",
+    "category": "food_drinks",
     "filename": "apple.webp",
     "asset_path": "assets/exercise_images/apple.webp"
   },
@@ -34,7 +34,7 @@
       "casa",
       "abitazione"
     ],
-    "category": "home",
+    "category": "home_household",
     "filename": "house.webp",
     "asset_path": "assets/exercise_images/house.webp"
   },
@@ -47,7 +47,7 @@
       "acqua",
       "bevanda"
     ],
-    "category": "food",
+    "category": "food_drinks",
     "filename": "water.webp",
     "asset_path": "assets/exercise_images/water.webp"
   },
@@ -101,7 +101,7 @@
       "sedia",
       "seduta"
     ],
-    "category": "home",
+    "category": "home_household",
     "filename": "chair.webp",
     "asset_path": "assets/exercise_images/chair.webp"
   },
@@ -114,7 +114,7 @@
       "espresso",
       "bevanda"
     ],
-    "category": "food",
+    "category": "food_drinks",
     "filename": "coffee.webp",
     "asset_path": "assets/exercise_images/coffee.webp"
   },
@@ -146,7 +146,7 @@
   },
   {
     "id": "people_family_man",
-    "primary_term": "Uomo",
+    "primary_term": "Man",
     "keywords": [
       "man",
       "adult man",

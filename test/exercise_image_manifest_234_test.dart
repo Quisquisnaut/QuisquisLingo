@@ -51,7 +51,7 @@ void main() {
     final man = entries.singleWhere(
       (entry) => entry['id'] == 'people_family_man',
     );
-    expect(man['label'], 'Uomo');
+    expect(man['label'], 'Man');
     expect(man['assetPath'], 'assets/exercise_images/man.webp');
     expect(man['tags'], ['man', 'adult man', 'male', 'friend']);
 

@@ -280,7 +280,6 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const Text('Categories and tags must be written in English.'),
                 const SizedBox(height: 12),
                 DropdownButtonFormField<String>(
                   key: const Key('exercise-image-category-editor'),
@@ -544,9 +543,7 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
                     child: Card(
                       child: Padding(
                         padding: EdgeInsets.all(12),
-                        child: Text(
-                          'Admin media management. Categories and tags must be written in English.',
-                        ),
+                        child: Text('Admin media management'),
                       ),
                     ),
                   ),

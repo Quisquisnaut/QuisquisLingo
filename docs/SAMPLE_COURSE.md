@@ -1,6 +1,6 @@
 # Bundled sample courses
 
-Updated for Version 2.0.34+234001, Build 234, Revision 1.
+Updated for Version 2.0.34+234003, Build 234, Revision 3.
 
 Bundled courses are locally read-only. Their existing content/license metadata remain unchanged and currently provide no explicit derivative-work permission, so custom forks are unavailable.
 
@@ -8,7 +8,7 @@ QuisquisLingo bundles ten deterministic Course Model v9 samples. They are AI-gen
 
 Every bundled file uses `formatVersion: 9`, required deterministic Original Course Created and `updatedAt` UTC values, canonical stable Item-ID references, and no compatibility-only fields. Official files record publisher-based Original Course Creator provenance, omit local Course Maintainer/Assigned Team metadata and remain immutable publisher sources. They contain no removed v8 creator/ownership/Created-by/Last-Updated/scalar-author/generic-version/update-summary/content-revision/legacy-fork fields. Every Lesson contains its own structured Guidebook, ordered Rounds and stable Duel identity. The first Content item of Round 1 is a short non-exercise `lesson_intro` containing essential Guidebook information and a reminder to read the Lesson Guidebook for more. Every Lesson has valid Section metadata and a canonical theme icon. Each Lesson has at least 25 actual Duel-eligible exercises, every Round has at least one playable Exercise, and release Audit totals are exactly zero Errors and zero Warnings for all ten Courses.
 
-The Neapolitan sample is a real bundled Italian-to-Neapolitan Course (`it-IT` → `nap-IT`) with stable ID `sample_nap_it_nap`, nine Lessons, 36 Rounds and 279 Exercises. It explicitly selects the `neapolitan` World Flag and uses six renewed flat images—Uomo, Saltare, airplane, carrot, horse and table—without adding Neapolitan recordings or changing the audio architecture.
+The Neapolitan sample is a real bundled Italian-to-Neapolitan Course (`it-IT` → `nap-IT`) with stable ID `sample_nap_it_nap`, nine Lessons, 36 Rounds and 279 Exercises. It explicitly selects the `neapolitan` World Flag and uses six renewed flat images—Man, Saltare, airplane, carrot, horse and table—without adding Neapolitan recordings or changing the audio architecture.
 
 The nine Lessons of each source-English course use the consecutive groups `Foundations`, `Everyday Life` and `Travel`; `english_es.json` uses `Fundamentos`, `Vida cotidiana` and `Viajes`. Korean progresses from Hangul greetings and introductions through family, school, food, home, café language, directions, rail travel and airport/travel language, using polite beginner register and `ko-KR` TTS. Round titles intentionally mix authored names and empty titles so the position-derived `Round N` fallback remains covered without changing identity.
 

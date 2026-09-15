@@ -103,15 +103,11 @@ void main() {
         }
       }
 
-      expect(CourseService.courseAssets, hasLength(11));
+      expect(CourseService.courseAssets, hasLength(10));
       expect(CourseService.courseAssets['KO'], 'assets/courses/korean_en.json');
       expect(
         CourseService.courseAssets['NAP'],
         'assets/courses/neapolitan_it.json',
-      );
-      expect(
-        CourseService.courseAssets['JA'],
-        'assets/courses/japanese_en.json',
       );
       final auditReport = <String>[
         ...auditSummaries,
@@ -119,8 +115,8 @@ void main() {
             '$aggregateWarnings warnings, $aggregateInfo info',
       ].join('\n');
       expect(aggregateErrors, 0, reason: auditReport);
-      expect(aggregateWarnings, 1, reason: auditReport);
-      expect(expectedEmptyCourseWarnings, 1, reason: auditReport);
+      expect(aggregateWarnings, 0, reason: auditReport);
+      expect(expectedEmptyCourseWarnings, 0, reason: auditReport);
       expect(
         failures,
         isEmpty,

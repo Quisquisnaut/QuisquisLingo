@@ -1,6 +1,6 @@
 # QuisquisLingo App
 
-**Current source version: 2.0.34+234001 · Build 234, Revision 1 · Course Model v9 (`formatVersion: 9`).**
+**Current source version: 2.0.34+234003 · Build 234, Revision 3 · Course Model v9 (`formatVersion: 9`).**
 
 **QuisquisLingo 2.0.34 Alpha — QQL 234 Media Asset Audit & Revamp**
 
@@ -55,7 +55,7 @@ The MPL-2.0 covers the QuisquisLingo software source. Courses, the Image Bank an
 
 ## Alpha lifecycle
 
-Version 2.0.34, Build 234, Revision 1 is a time-limited alpha with an expiry of **2026-10-14 23:59:59 local time**. Near expiry it displays reminders. After expiry, learner exercises and Review are blocked until a newer alpha is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when an alpha expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM. A beta transition is only planned for a later release if QQL 234 validation remains satisfactory.
+Version 2.0.34, Build 234, Revision 3 is a time-limited alpha with an expiry of **2026-10-15 23:59:59 local time**. Near expiry it displays reminders. After expiry, learner exercises and Review are blocked until a newer alpha is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when an alpha expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM. A beta transition is only planned for a later release if QQL 234 validation remains satisfactory.
 
 ## Core logic
 

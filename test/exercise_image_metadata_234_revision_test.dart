@@ -84,7 +84,44 @@ void main() {
       expect((record['category'] as String).trim(), isNotEmpty);
       expect((record['tags'] as List), isNotEmpty);
     }
+    expect(records.every((record) => record['category'] != 'food'), isTrue);
   });
+
+  test(
+    'legacy Food category is normalized and persisted as Food Drinks',
+    () async {
+      final service = ExerciseImageMetadataService();
+      final records = await service.loadCatalog();
+      final raw = jsonEncode({
+        'schemaVersion': 1,
+        'records': records.map((record) {
+          final value = record.toJson();
+          if (value['category'] == 'food_drinks') {
+            value['category'] = 'food';
+          } else if (value['category'] == 'home_household') {
+            value['category'] = 'home';
+          }
+          if (value['id'] == 'people_family_man') value['label'] = 'Uomo';
+          return value;
+        }).toList(),
+      });
+      SharedPreferences.setMockInitialValues({
+        ExerciseImageMetadataService.preferencesKey: raw,
+      });
+
+      final migrated = await service.loadCatalog();
+      expect(migrated.every((record) => record.category != 'food'), isTrue);
+      expect(
+        migrated.firstWhere((record) => record.id == 'people_family_man').label,
+        'Man',
+      );
+      expect(migrated.any((record) => record.category == 'home'), isFalse);
+      final persisted = (await SharedPreferences.getInstance()).getString(
+        ExerciseImageMetadataService.preferencesKey,
+      );
+      expect(persisted, isNot(contains('"category":"food"')));
+    },
+  );
 
   test('Admin correction is global and survives a service restart', () async {
     final firstService = ExerciseImageMetadataService();
