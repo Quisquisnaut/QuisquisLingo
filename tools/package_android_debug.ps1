@@ -56,19 +56,29 @@ New-Item -ItemType Directory -Path $stagingDirectory | Out-Null
 
 $apkDestination = Join-Path $stagingDirectory $apkName
 Copy-Item -LiteralPath $apkSource -Destination $apkDestination
+$packagedFiles = @(
+    [pscustomobject]@{
+        Source = $apkSource
+        Destination = $apkDestination
+    }
+)
 foreach ($material in $materialFiles) {
-    Copy-Item -LiteralPath $material.FullName -Destination (Join-Path $stagingDirectory $material.Name)
+    $destination = Join-Path $stagingDirectory $material.Name
+    Copy-Item -LiteralPath $material.FullName -Destination $destination
+    $packagedFiles += [pscustomobject]@{
+        Source = $material.FullName
+        Destination = $destination
+    }
 }
 
-foreach ($source in @($apkSource) + @($materialFiles.FullName)) {
-    $destination = Join-Path $stagingDirectory (Split-Path -Leaf $source)
-    if (-not (Test-Path -LiteralPath $destination -PathType Leaf)) {
-        throw "Required package file is missing: $(Split-Path -Leaf $source)"
+foreach ($packageFile in $packagedFiles) {
+    if (-not (Test-Path -LiteralPath $packageFile.Destination -PathType Leaf)) {
+        throw "Required package file is missing: $(Split-Path -Leaf $packageFile.Destination)"
     }
-    $sourceHash = (Get-FileHash -Algorithm SHA256 -LiteralPath $source).Hash
-    $destinationHash = (Get-FileHash -Algorithm SHA256 -LiteralPath $destination).Hash
+    $sourceHash = (Get-FileHash -Algorithm SHA256 -LiteralPath $packageFile.Source).Hash
+    $destinationHash = (Get-FileHash -Algorithm SHA256 -LiteralPath $packageFile.Destination).Hash
     if ($sourceHash -cne $destinationHash) {
-        throw "Packaged file differs from its source: $(Split-Path -Leaf $source)"
+        throw "Packaged file differs from its source: $(Split-Path -Leaf $packageFile.Destination)"
     }
 }
 
