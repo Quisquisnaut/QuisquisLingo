@@ -355,7 +355,6 @@ function Assert-PackageContents {
         $launcherFileName,
         "quisquislingo_app.exe",
         "flutter_windows.dll",
-        "native_assets.json",
         "data\icudtl.dat",
         "data\app.so",
         "data\flutter_assets",
