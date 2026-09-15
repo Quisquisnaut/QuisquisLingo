@@ -32,9 +32,14 @@ remain unchanged.
 - focused lifecycle, metadata, startup, package naming and update tests —
   PASS (45 tests)
 - `flutter analyze` — PASS (0 issues)
-- `flutter test`
+- `flutter test --concurrency=1` — PASS (1,554 tests)
 - `git diff --check`
 
-The complete suite remains blocked by nine unrelated pre-existing fixture
-failures: one stale bundled-Course count and eight Course v9 provenance
-fixtures that save custom Courses without required immutable provenance.
+## Windows package correction
+
+- The bootstrap launcher no longer treats Flutter's empty build-intermediate
+  `native_assets.json` as a distribution dependency.
+- The packaged `data/flutter_assets/NativeAssetsManifest.json` remains inside
+  Flutter's assets directory.
+- The launcher has no CMake install target; it is built solely for copying into
+  the Windows distribution package root.

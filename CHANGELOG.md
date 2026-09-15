@@ -7,6 +7,7 @@
 - Reconciled the Ligurian World Flag's manifest, license inventory and integrity expectation with the checked-in SVG SHA-1.
 - Enabled the metadata-only GitHub Release check by default at startup. It remains asynchronous after the startup notice, uses existing strict 6-second connection and 8-second request/response timeouts, and never downloads, installs or executes updates.
 - Added reproducible Windows and Android package validation for the approved `matXpack` documentation and infographic materials. The Android debug distribution is a ZIP containing its APK and the exact package materials at archive root.
+- Corrected the Windows bootstrap launcher so it does not report Flutter's empty build-intermediate `native_assets.json` as missing. The packaged `data/flutter_assets/NativeAssetsManifest.json` remains authoritative, and the launcher never installs to `Program Files`.
 
 # 2.0.34 (Build 234, Revision 3) - Bundled course and media catalog correction - 2026-09-14
 - Removed the bundled Japanese sample course while retaining the Japanese QQL FlagPainter design, renamed the People Family image label to Man, merged Home into Home Household with persisted legacy-category normalization, and switched startup artwork to the isolated QQL logo. Refreshed metadata to `2.0.34+234003`.

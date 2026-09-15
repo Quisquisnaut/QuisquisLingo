@@ -65,7 +65,6 @@ RequiredPackageComponents() {
       {L"screen_retriever_windows_plugin.dll", false},
       {L"url_launcher_windows_plugin.dll", false},
       {L"window_manager_plugin.dll", false},
-      {L"native_assets.json", false},
       {L"data\\icudtl.dat", false},
       {L"data\\app.so", false},
       {L"data\\flutter_assets", true},
