@@ -1,3 +1,10 @@
+# 2.0.36 (Build 236, Revision 0) - Animation and Course Manager refinements - 2026-09-16
+
+- Extended the startup logo entrance to 1,000 ms with opacity 0% to 100% and scale 60% to 100%, followed by an 800 ms static hold. The 1,800 ms gate, no-exit-fade replacement and static disabled/reduced-motion behavior are unchanged.
+- Enabled the existing Course-entry fade for automatic as well as explicit FlagPainter and World Flags through the shared flag resolver. Explicit custom images remain supported; invalid explicit flags, same-Course selection, normal startup, disabled Animations and reduced motion retain their existing behavior.
+- Removed only the internal-ID toggle from Course Manager. Help and the shared persisted ID preference and controls in subordinate Editor/Team screens remain unchanged.
+- Updated the version to `2.0.36+236000`, Build 236, Revision 0, and refreshed the 30-day Beta expiry to `2026-10-16 23:59:59` local time. Course Model v9, authored data, persistence, scoring, progression, Review and Duel are unchanged.
+
 # 2.0.35 (Build 235, Revision 0) - Beta-readiness assessment - 2026-09-15
 
 - Transitioned QuisquisLingo to its first Beta release, `2.0.35+235000`. The existing time-limited expiry boundary remains `2026-10-15 23:59:59` local time; learner-route gating, reminders and data-retention semantics are unchanged, while release-channel user-facing text, lifecycle identifiers, diagnostics and package naming now use Beta.

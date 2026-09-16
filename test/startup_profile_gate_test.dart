@@ -117,11 +117,18 @@ void main() {
         find.byKey(const Key('qql-startup-logo-scale')),
       );
       expect(fade.opacity.value, 0);
-      expect(scale.scale.value, closeTo(.96, .001));
+      expect(scale.scale.value, closeTo(.60, .001));
       await tester.pump(const Duration(milliseconds: 600));
+      expect(fade.opacity.value, greaterThan(0));
+      expect(fade.opacity.value, lessThan(1));
+      expect(scale.scale.value, greaterThan(.60));
+      expect(scale.scale.value, lessThan(1));
+      await tester.pump(const Duration(milliseconds: 400));
       expect(fade.opacity.value, 1);
       expect(scale.scale.value, 1);
-      await tester.pump(const Duration(milliseconds: 1199));
+      await tester.pump(const Duration(milliseconds: 799));
+      expect(fade.opacity.value, 1);
+      expect(scale.scale.value, 1);
       expect(startup, findsOneWidget);
       await tester.pump(const Duration(milliseconds: 2));
       await tester.pump();

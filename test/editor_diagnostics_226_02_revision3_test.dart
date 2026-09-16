@@ -15,7 +15,7 @@ void main() {
     EditorDisplayPreferences.resetForTesting();
   });
 
-  testWidgets('Editor Help and direct ID controls cover every editor level', (
+  testWidgets('Editor Help covers every level; Manager omits the ID toggle', (
     tester,
   ) async {
     await _wide(tester);
@@ -50,10 +50,43 @@ void main() {
       expect(find.byTooltip('Editor Help'), findsOneWidget, reason: '$page');
       expect(
         find.byTooltip('Internal IDs hidden. Tap to show'),
-        findsOneWidget,
+        page is CourseProjectsScreen ? findsNothing : findsOneWidget,
         reason: '$page',
       );
     }
+  });
+
+  testWidgets('Course Manager preserves an enabled shared ID preference', (
+    tester,
+  ) async {
+    await _wide(tester);
+    SharedPreferences.setMockInitialValues({
+      EditorDisplayPreferences.showInternalIdsKey: true,
+    });
+    final course = _course();
+    await tester.pumpWidget(
+      MaterialApp(home: CourseProjectsScreen(currentCourse: course)),
+    );
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('editor-internal-ids-toggle')), findsNothing);
+    expect(find.byTooltip('Editor Help'), findsOneWidget);
+    expect(find.byTooltip('Course Import'), findsOneWidget);
+    expect(find.byTooltip('Create new course'), findsOneWidget);
+    expect(EditorDisplayPreferences.showInternalIds.value, isTrue);
+    final preferences = await SharedPreferences.getInstance();
+    expect(
+      preferences.getBool(EditorDisplayPreferences.showInternalIdsKey),
+      isTrue,
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: LessonManagementScreen(course: course, initiallyLocked: false),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.byTooltip('Internal IDs shown. Tap to hide'), findsOneWidget);
+    expect(find.text('Lesson ID: lesson-one'), findsOneWidget);
   });
 
   testWidgets(

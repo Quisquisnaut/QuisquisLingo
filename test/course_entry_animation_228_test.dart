@@ -13,6 +13,7 @@ import 'package:quisquislingo_app/services/settings_service.dart';
 import 'package:quisquislingo_app/widgets/course_entry_animation.dart';
 import 'package:quisquislingo_app/widgets/flag_art.dart';
 import 'package:quisquislingo_app/widgets/unified_learner_top_bar.dart';
+import 'package:quisquislingo_app/widgets/world_flag_art.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
@@ -42,24 +43,28 @@ void main() {
       },
     );
 
-    test('flagless bundled German skips the entry animation', () async {
-      final german = await CourseService().loadCourse('DE');
+    test(
+      'flagless bundled German uses its automatic FlagPainter flag',
+      () async {
+        final german = await CourseService().loadCourse('DE');
 
-      expect(german.toJson().containsKey('flagCode'), isFalse);
-      expect(german.toJson().containsKey('worldFlagId'), isFalse);
-      expect(german.toJson().containsKey('flagImageBase64'), isFalse);
-      expect(CourseService.codeForCourse(german).toUpperCase(), 'DE');
+        expect(german.toJson().containsKey('flagCode'), isFalse);
+        expect(german.toJson().containsKey('worldFlagId'), isFalse);
+        expect(german.toJson().containsKey('flagImageBase64'), isFalse);
+        expect(CourseService.codeForCourse(german).toUpperCase(), 'DE');
 
-      final request = await CourseEntryAnimationPolicy.requestForSwitch(
-        currentCourseId: 'sample_it_en_it',
-        destination: german,
-        fallbackCode: CourseService.codeForCourse(german),
-        animationsEnabled: true,
-        reducedMotion: false,
-      );
+        final request = await CourseEntryAnimationPolicy.requestForSwitch(
+          currentCourseId: 'sample_it_en_it',
+          destination: german,
+          fallbackCode: CourseService.codeForCourse(german),
+          animationsEnabled: true,
+          reducedMotion: false,
+        );
 
-      expect(request, isNull);
-    });
+        expect(request?.kind, CourseEntryFlagKind.builtIn);
+        expect(request?.identifier, 'DE');
+      },
+    );
 
     test('a real switch uses only the destination JSON flag', () async {
       final destination = _course(
@@ -117,17 +122,62 @@ void main() {
       expect(request?.worldFlag, same(configured));
     });
 
-    test('a missing JSON flag skips the entry animation', () async {
+    test(
+      'a missing JSON flag uses the automatic course language flag',
+      () async {
+        final request = await CourseEntryAnimationPolicy.requestForSwitch(
+          currentCourseId: 'course-a',
+          destination: _course(id: 'missing'),
+          fallbackCode: 'DE',
+          animationsEnabled: true,
+          reducedMotion: false,
+        );
+
+        expect(request?.kind, CourseEntryFlagKind.builtIn);
+        expect(request?.identifier, 'EN');
+      },
+    );
+
+    test('automatic World Flag uses the real language association', () async {
       final request = await CourseEntryAnimationPolicy.requestForSwitch(
         currentCourseId: 'course-a',
-        destination: _course(id: 'missing'),
-        fallbackCode: 'DE',
+        destination: _course(
+          id: 'automatic-neapolitan',
+          learningLanguage: 'Neapolitan',
+          targetLanguage: 'Neapolitan',
+        ),
+        fallbackCode: 'NAP',
         animationsEnabled: true,
         reducedMotion: false,
       );
 
-      expect(request, isNull);
+      expect(request?.kind, CourseEntryFlagKind.worldFlag);
+      expect(request?.identifier, 'neapolitan');
+      expect(
+        request?.worldFlag?.assetPath,
+        'assets/world_flags/flags/neapolitan.svg',
+      );
     });
+
+    test(
+      'a course without any resolvable flag still skips animation',
+      () async {
+        final request = await CourseEntryAnimationPolicy.requestForSwitch(
+          currentCourseId: 'course-a',
+          destination: _course(
+            id: 'unknown-language',
+            learningLanguage: 'Unknown language',
+            targetLanguage: 'Unknown language',
+            ttsLanguage: '',
+          ),
+          fallbackCode: '',
+          animationsEnabled: true,
+          reducedMotion: false,
+        );
+
+        expect(request, isNull);
+      },
+    );
 
     test('invalid declared JSON flags never gain a fallback', () async {
       for (final destination in [
@@ -261,7 +311,7 @@ void main() {
         rootBundle.evict(asset);
       }
       SharedPreferences.setMockInitialValues({
-        'one_time_notice_seen_welcome_2.0.35+235000': true,
+        'one_time_notice_seen_welcome_2.0.36+236000': true,
         'sound_effects_enabled': false,
       });
       await ProfileService().addProfile('Course Switch Learner');
@@ -487,7 +537,7 @@ void main() {
     );
 
     testWidgets(
-      'Do Not Disturb suppresses while a missing JSON flag remains inactive',
+      'Do Not Disturb suppresses; enabling animations allows automatic flags',
       (tester) async {
         _useLargeTestWindow(tester);
         await SettingsService().setAnimationsEnabled(false);
@@ -499,12 +549,58 @@ void main() {
 
         await SettingsService().setAnimationsEnabled(true);
         await _selectBundledCourse(tester, 'DE');
-        await tester.pump(const Duration(milliseconds: 500));
-        expect(find.byKey(const Key('course-entry-animation')), findsNothing);
+        await _pumpUntil(
+          tester,
+          find.byKey(const Key('course-entry-built-in-flag-DE')),
+        );
         expect(_activeCourseId(tester), 'sample_de_en_de');
         expect(await SettingsService().getLastSelectedCourseCode(), 'DE');
       },
     );
+
+    for (final explicit in [false, true]) {
+      testWidgets(
+        '${explicit ? 'explicit' : 'automatic'} World Flag renders on a real course switch',
+        (tester) async {
+          _useLargeTestWindow(tester);
+          await SettingsService().setAnimationsEnabled(true);
+          final custom = Course.fromJson({
+            ..._course(
+              id: 'world-flag-$explicit',
+              learningLanguage: 'Neapolitan',
+              targetLanguage: 'Neapolitan',
+              worldFlagId: explicit ? 'neapolitan' : '',
+            ).toJson(),
+            'publicationState': PublicationState.published.name,
+          });
+          await CourseEditorService().saveUserCourse(custom);
+          await _openHome(tester);
+          await _selectCustomCourse(tester, custom.courseId);
+          final flag = find.byKey(
+            const Key('course-entry-world-flag-neapolitan'),
+          );
+          await _pumpUntil(tester, flag);
+          expect(find.text('Choose course'), findsNothing);
+          expect(_activeCourseId(tester), custom.courseId);
+          expect(
+            tester.widget<WorldFlagArt>(flag).entity.assetPath,
+            'assets/world_flags/flags/neapolitan.svg',
+          );
+          await _pumpUntilAbsent(
+            tester,
+            find.descendant(
+              of: flag,
+              matching: find.byType(CircularProgressIndicator),
+            ),
+          );
+          expect(flag, findsOneWidget);
+          expect(tester.takeException(), isNull);
+          await tester.pump(CourseEntryAnimationPolicy.duration);
+          await tester.pump();
+          expect(find.byKey(const Key('course-entry-animation')), findsNothing);
+        },
+      );
+    }
 
     testWidgets(
       'an explicitly invalid flag switches course without using its fallback',
@@ -566,6 +662,7 @@ Course _course({
   String flagCode = '',
   String worldFlagId = '',
   String flagImageBase64 = '',
+  String ttsLanguage = 'en',
 }) => Course(
   courseId: id,
   learningLanguage: learningLanguage,
@@ -573,7 +670,7 @@ Course _course({
   sourceLanguage: 'English',
   targetLanguage: targetLanguage,
   title: 'Course $id',
-  ttsLanguage: 'en',
+  ttsLanguage: ttsLanguage,
   flagCode: flagCode,
   worldFlagId: worldFlagId,
   flagImageBase64: flagImageBase64,

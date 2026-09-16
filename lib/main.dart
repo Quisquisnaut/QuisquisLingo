@@ -459,7 +459,7 @@ class _StartupGate extends StatefulWidget {
 class _StartupGateState extends State<_StartupGate>
     with SingleTickerProviderStateMixin {
   static const _gateDuration = Duration(milliseconds: 1800);
-  static const _entranceEnd = 600 / 1800;
+  static const _entranceEnd = 1000 / 1800;
 
   late final AnimationController _c;
   bool _show = true;
@@ -526,7 +526,7 @@ class _StartupGateState extends State<_StartupGate>
             key: const Key('qql-startup-logo-scale'),
             scale: _showStaticArtwork
                 ? const AlwaysStoppedAnimation<double>(1)
-                : Tween<double>(begin: .96, end: 1).animate(
+                : Tween<double>(begin: .60, end: 1).animate(
                     CurvedAnimation(
                       parent: _c,
                       curve: const Interval(

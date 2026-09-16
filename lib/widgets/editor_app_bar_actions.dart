@@ -3,9 +3,11 @@ import 'package:flutter/material.dart';
 import '../screens/editor_help_screen.dart';
 import '../services/editor_display_preferences.dart';
 
-/// The shared Help and internal-ID controls used by every Editor hierarchy page.
+/// Shared Help and optional internal-ID controls for Editor hierarchy pages.
 class EditorAppBarActions extends StatefulWidget {
-  const EditorAppBarActions({super.key});
+  const EditorAppBarActions({super.key, this.showInternalIdsToggle = true});
+
+  final bool showInternalIdsToggle;
 
   @override
   State<EditorAppBarActions> createState() => _EditorAppBarActionsState();
@@ -30,19 +32,20 @@ class _EditorAppBarActionsState extends State<EditorAppBarActions> {
         ),
         icon: const Icon(Icons.help_outline),
       ),
-      ValueListenableBuilder<bool>(
-        valueListenable: EditorDisplayPreferences.showInternalIds,
-        builder: (context, visible, _) => IconButton(
-          key: const Key('editor-internal-ids-toggle'),
-          tooltip: visible
-              ? 'Internal IDs shown. Tap to hide'
-              : 'Internal IDs hidden. Tap to show',
-          isSelected: visible,
-          color: visible ? Theme.of(context).colorScheme.primary : null,
-          onPressed: EditorDisplayPreferences.toggleInternalIds,
-          icon: Icon(visible ? Icons.badge : Icons.badge_outlined),
+      if (widget.showInternalIdsToggle)
+        ValueListenableBuilder<bool>(
+          valueListenable: EditorDisplayPreferences.showInternalIds,
+          builder: (context, visible, _) => IconButton(
+            key: const Key('editor-internal-ids-toggle'),
+            tooltip: visible
+                ? 'Internal IDs shown. Tap to hide'
+                : 'Internal IDs hidden. Tap to show',
+            isSelected: visible,
+            color: visible ? Theme.of(context).colorScheme.primary : null,
+            onPressed: EditorDisplayPreferences.toggleInternalIds,
+            icon: Icon(visible ? Icons.badge : Icons.badge_outlined),
+          ),
         ),
-      ),
     ],
   );
 }

@@ -1478,7 +1478,7 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
           onPressed: _newCourse,
           icon: const Icon(Icons.add),
         ),
-        const EditorAppBarActions(),
+        const EditorAppBarActions(showInternalIdsToggle: false),
       ],
     ),
     body: _loading

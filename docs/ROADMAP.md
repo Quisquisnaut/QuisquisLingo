@@ -4,6 +4,17 @@ This roadmap describes planned work after build 204.
 
 Version numbers are provisional. If a task requires more than one build, later items may move forward rather than being compressed into an unsafe release.
 
+## QQL 236: Animation and Course Manager refinements
+
+`2.0.36+236000` is Build 236, Revision 0. The startup logo enters over
+1,000 ms from transparent/60% scale to opaque/100%, then holds for 800 ms.
+Course entry uses automatic or explicit FlagPainter and World Flags with
+the existing two-second fade and suppression rules. Course Manager omits
+only its internal-ID toggle; subordinate controls and the shared preference
+remain intact. The 30-day Beta expires on `2026-10-16 23:59:59` local time.
+Course Model v9, authored data and learner behavior are unchanged.
+See [236 validation](236_VALIDATION.md).
+
 ## QQL 235 complete: Beta-readiness assessment
 
 `2.0.35+235000` is Build 235, Revision 0 and the first QuisquisLingo Beta.
