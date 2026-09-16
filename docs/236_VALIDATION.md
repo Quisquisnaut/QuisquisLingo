@@ -53,4 +53,24 @@ formatting were finished; no production or test files changed afterward.
 Flutter's four generated macOS/Windows registrant files are byte-identical
 to HEAD and contain no meaningful changes.
 
-No package, device-level visual check, commit or push was performed.
+## Release packages
+
+- `tools\package_android_debug.ps1` — PASS. Built the Android Debug APK and
+  verified the copied APK plus all 11 approved `matXpack` materials before
+  archive creation. The release asset is
+  `quisquislingo_android_debug_beta_236000.zip` (12 files, 96,167,737 bytes,
+  SHA-256 `155C5C54134521F68F2132010F483DE6D7C00D2F9F06EF08A9BB5A547830A4EE`).
+  Its APK is `quisquislingo_android_debug_beta_236000.apk`.
+- `tools\package_windows_release.ps1 -RebuildFlutterApplication` — PASS.
+  Built the frozen `2.0.36+236000` application, verified 477 application
+  files / 54,537,516 bytes, passed all 24 launcher unit tests and all four
+  packaged-launcher integration tests, and verified launcher dependencies
+  in the staged tree and ZIP. The release asset is
+  `quisquislingo_windows_beta_236000.zip` (492 files, 27,816,256 bytes,
+  SHA-256 `70E0E1DECC2D47730E3100D61B0D99E292D7AAD3529E75070E3F02C20CA99725`).
+  The package entry point is `QuisquisLingo.exe`.
+
+The Android Gradle build emitted upstream Java restricted-method and
+Flutter-plugin Kotlin compatibility warnings, but completed successfully.
+No full Flutter suite was rerun after packaging because the scripts made no
+source changes.
