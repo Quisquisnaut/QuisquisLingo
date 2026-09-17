@@ -1,12 +1,12 @@
 # QuisquisLingo App
 
-**Current source version: 2.0.36+236000 · Build 236, Revision 0 · Course Model v9 (`formatVersion: 9`).**
+**Current source version: 2.0.37+237004 · Build 237, Revision 4 · Course Models v9/v10 (`formatVersion: 9`/`10`).**
 
-**QuisquisLingo 2.0.36 Beta — QQL 236 animation and Course Manager refinements**
+**QuisquisLingo 2.0.37 Beta — QQL 237 Course Merge**
 
-Current project version: 2.0.36
+Current project version: 2.0.37
 
-QQL 236 makes the startup logo fade from transparent to opaque and scale from 60% to 100% over 1,000 ms, then hold for 800 ms before replacement without an exit fade. Disabled Animations and reduced motion retain the static 1,800 ms logo. Course entry uses the existing two-second fade for either automatic or explicitly selected flags, including FlagPainter and World Flags; invalid explicit flags still receive no automatic substitution. Course Manager retains Help but omits the internal-ID toggle, which remains unchanged in the Editor hierarchy. Course Model v9, course data, learner progression, XP, Review and Duel behavior remain unchanged. See the [QQL 236 validation](docs/236_VALIDATION.md).
+QQL 237 adds authorized custom Course Merge from Course Manager. The selected Course and `Documents/QuisquisLingo/Merges/merge.json` must have matching identity, rights, language and media information; users choose the left or right source for each included Lesson and permitted differing Course settings. The result is a third independent Course with fresh authoring IDs, preserved selected publication state, no transferred learner state, and immutable v10 merge provenance for both immediate sources. Existing v9 Courses remain readable without migration; only merged Courses use Course Model v10. See the [QQL 237 validation](docs/237_VALIDATION.md).
 
 **QuisquisLingo 2.0.33 Alpha — QQL 233 Linux Update, Learner Status Avatar, and Course/Team Governance**
 
@@ -55,7 +55,7 @@ The MPL-2.0 covers the QuisquisLingo software source. Courses, the Image Bank an
 
 ## Beta lifecycle
 
-Version 2.0.36, Build 236, Revision 0 is a time-limited Beta with an expiry of **2026-10-16 23:59:59 local time**. Near expiry it displays reminders. After expiry, learner exercises and Review are blocked until a newer Beta is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when a Beta expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM.
+Version 2.0.37, Build 237, Revision 4 is a time-limited Beta with an expiry of **2026-10-17 23:59:59 local time**. Near expiry it displays reminders. After expiry, learner exercises and Review are blocked until a newer Beta is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when a Beta expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM.
 
 ## Core logic
 

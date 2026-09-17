@@ -45,6 +45,7 @@ import '../widgets/learner_bottom_actions.dart';
 import '../widgets/learner_shell.dart';
 import '../widgets/unified_learner_top_bar.dart';
 import '../widgets/learner_theme_mode_scope.dart';
+import '../widgets/welcome_wizard_dialog.dart';
 
 const _learnerLightPageBackground = Color(0xFFF7F3E8);
 const _learnerDarkPageBackground = Color(0xFF080B09);
@@ -276,8 +277,17 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _prepareWelcome() async {
     _appVersion = AppMetadata.technicalVersion;
+    await _showWelcomeWizard();
+    if (!mounted) return;
     await _showWelcome();
     if (mounted) await _showBetaLifecycleNotice();
+  }
+
+  Future<void> _showWelcomeWizard() async {
+    if (await _profiles.getActiveProfileId() == null || !mounted) return;
+    if (await _settings.hasCompletedWelcomeWizard() || !mounted) return;
+    final completed = await showWelcomeWizard(context);
+    if (completed == true) await _settings.completeWelcomeWizard();
   }
 
   Future<void> _reloadFlagBackgroundMode() async {
@@ -726,6 +736,7 @@ class _HomeScreenState extends State<HomeScreen> {
         return;
       }
       await _reload();
+      await _showWelcomeWizard();
     } finally {
       _addingLearner = false;
     }
@@ -767,6 +778,7 @@ class _HomeScreenState extends State<HomeScreen> {
       if (mounted) setState(() => _course = null);
       await _profiles.setActiveProfileById(learnerProfileId, accessPin: pin);
       await _reload();
+      await _showWelcomeWizard();
     } on ProfilePinException catch (error) {
       if (!mounted) return;
       ScaffoldMessenger.of(

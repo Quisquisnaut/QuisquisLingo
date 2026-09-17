@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../models/course_flag_selection.dart';
@@ -9,10 +11,12 @@ import '../services/course_flag_service.dart';
 import '../services/custom_course_transfer_service.dart';
 import '../services/course_service.dart';
 import '../services/course_language_resolver.dart';
+import '../services/course_merge_service.dart';
 import '../services/formal_name_policy.dart';
 import '../services/settings_service.dart';
 import '../services/course_access_policy.dart';
 import '../services/profile_service.dart';
+import '../services/sound_effect_service.dart';
 import '../services/team_service.dart';
 import '../services/publication_service.dart';
 import '../services/new_course_structure.dart';
@@ -79,6 +83,471 @@ class CourseImportScreen extends StatelessWidget {
   );
 }
 
+class CourseMergeScreen extends StatefulWidget {
+  const CourseMergeScreen({
+    super.key,
+    required this.leftCourse,
+    required this.onMerge,
+    this.mergeService,
+  });
+
+  final Course leftCourse;
+  final Future<void> Function(
+    Course right,
+    List<LessonMergeChoice> choices,
+    CourseMergeOptions options,
+  )
+  onMerge;
+  final CourseMergeService? mergeService;
+
+  @override
+  State<CourseMergeScreen> createState() => _CourseMergeScreenState();
+}
+
+class _CourseMergeScreenState extends State<CourseMergeScreen> {
+  late final CourseMergeService _merge =
+      widget.mergeService ?? CourseMergeService();
+  Course? _rightCourse;
+  List<LessonMergeChoice> _choices = const [];
+  CourseMergeSide _createDuelsSide = CourseMergeSide.left;
+  CourseMergeSide _useGuidebookSide = CourseMergeSide.left;
+  CourseMergeSide _lessonNumberingSide = CourseMergeSide.left;
+  CourseMergeSide _sectionNamesSide = CourseMergeSide.left;
+  CourseMergeSide _titleSide = CourseMergeSide.left;
+  CourseMergeSide _buyACoffeeSide = CourseMergeSide.left;
+  CourseMergeSide _descriptionSide = CourseMergeSide.left;
+  CourseMergeSide _flagSide = CourseMergeSide.left;
+  CourseMergeSide _startLevelSide = CourseMergeSide.left;
+  CourseMergeSide _targetLevelSide = CourseMergeSide.left;
+  bool _showInternalIds = false;
+  bool _loading = false;
+  final _sounds = SoundEffectService();
+
+  Future<void> _loadMergeCourse() async {
+    setState(() => _loading = true);
+    try {
+      final right = await _merge.readMergeCourse();
+      _merge.validateCompatibility(widget.leftCourse, right);
+      if (!mounted) return;
+      setState(() {
+        _rightCourse = right;
+        _choices = List.filled(
+          [
+            widget.leftCourse.lessons.length,
+            right.lessons.length,
+          ].reduce((a, b) => a > b ? a : b),
+          LessonMergeChoice.exclude,
+        );
+        _createDuelsSide = CourseMergeSide.left;
+        _useGuidebookSide = CourseMergeSide.left;
+        _lessonNumberingSide = CourseMergeSide.left;
+        _sectionNamesSide = CourseMergeSide.left;
+        _titleSide = CourseMergeSide.left;
+        _buyACoffeeSide = CourseMergeSide.left;
+        _descriptionSide = CourseMergeSide.left;
+        _flagSide = CourseMergeSide.left;
+        _startLevelSide = CourseMergeSide.left;
+        _targetLevelSide = CourseMergeSide.left;
+      });
+    } catch (error) {
+      unawaited(_sounds.playDefeat());
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Course merge could not start: $error')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  @override
+  void dispose() {
+    unawaited(_sounds.dispose());
+    super.dispose();
+  }
+
+  void _selectAll(LessonMergeChoice choice) {
+    final right = _rightCourse;
+    if (right == null) return;
+    setState(() {
+      _choices = List.generate(_choices.length, (index) {
+        final available = choice == LessonMergeChoice.left
+            ? index < widget.leftCourse.lessons.length
+            : index < right.lessons.length;
+        return available ? choice : LessonMergeChoice.exclude;
+      });
+    });
+  }
+
+  void _showHelp() {
+    showDialog<void>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Course Merge Help'),
+        content: const SingleChildScrollView(
+          child: Text(
+            'The Course Merge tool is not intended for merging two completely different courses. '
+            'A typical usage case would be two team members working on the same course: while team member, John, edits, say, lessons 1 to 5, another team member, Jane, edits lessons 6 to 8. The Merge Tool allows them, or a third member, to assemble the two sets of lessons into one unified course. Another usage case would be the same editor who wants to merge two versions of the course they are working at: let’s say they want to use lessons 1, 3, and 7 from the first version, and lessons 2, 4, 5, and 6 from the second version.\n\n'
+            'Copy the second Course JSON to Documents/QuisquisLingo/Merges/merge.json. '
+            'Both Courses must be custom. Matching Course IDs are allowed only '
+            'when the Course versions differ.\n\n'
+            'Author, Maintainer, source/target language, Original Course '
+            'Creator, Assigned Team, authors and roles, Rights Holders, license/'
+            'derivative policy, language tags/text direction/TTS language, language '
+            'variant, custom Lesson icons, and audio configuration/library must match. '
+            'Title, Publication state, Create Duels, Use GuideBooks, Lesson numbering/custom '
+            'label, Section names, Buy a Coffee metadata, description, Flag and language '
+            'levels may differ. '
+            'The merge lets you choose Left or Right for each differing setting; either '
+            'unpublished source makes the result unpublished.\n\n'
+            'Course ID, original-created/modified dates, Course version/version notes, '
+            'restore metadata, Last Version Editor details, merge provenance and Lessons '
+            'may differ. Lessons are the merge payload. Check each selected Lesson '
+            'carefully before merging.\n\n'
+            'The new Course gets a fresh ID and “ merged” title suffix. It retains the '
+            'earliest Original Course Created date, records the merge-time Modified date '
+            'and active Last Version Editor, starts at version 1, and records both source '
+            'Course IDs and versions. Learner progress is never merged.',
+          ),
+        ),
+        actions: [
+          FilledButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final right = _rightCourse;
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Course Merge'),
+        actions: [
+          IconButton(
+            key: const Key('course-merge-help'),
+            tooltip: 'Merge Help',
+            onPressed: _showHelp,
+            icon: const Icon(Icons.help_outline),
+          ),
+          IconButton(
+            key: const Key('course-merge-internal-ids'),
+            tooltip: _showInternalIds
+                ? 'Hide internal IDs'
+                : 'Show internal IDs',
+            onPressed: () =>
+                setState(() => _showInternalIds = !_showInternalIds),
+            isSelected: _showInternalIds,
+            color: _showInternalIds
+                ? Theme.of(context).colorScheme.primary
+                : null,
+            icon: Icon(_showInternalIds ? Icons.badge : Icons.badge_outlined),
+          ),
+        ],
+      ),
+      body: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          if (right == null) ...[
+            FilledButton.icon(
+              key: const Key('merge-course-json-primary'),
+              onPressed: _loading ? null : _loadMergeCourse,
+              icon: const Icon(Icons.merge_type_outlined),
+              label: const Text('Merge JSON Course'),
+            ),
+            const SizedBox(height: 20),
+            Text(
+              'Merge instructions',
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              '1. Copy the compatible Course JSON to Documents/QuisquisLingo/Merges/merge.json.\n'
+              '2. Select Merge JSON Course. QQL validates both Course information blocks before changing local storage.\n'
+              '3. Choose the origin of every Lesson you want to include, then check the selections carefully.\n'
+              '4. DO MERGE! creates a third independent Course and leaves both sources and merge.json unchanged.\n'
+              '5. The new merged Course will be available in Course Manager.',
+            ),
+          ] else ...[
+            Text(
+              'Left Course: ${widget.leftCourse.title} · Version ${widget.leftCourse.courseVersion} · Last edited ${widget.leftCourse.modifiedAtUtc}',
+            ),
+            Text(
+              'Right Course: ${right.title} · Version ${right.courseVersion} · Last edited ${right.modifiedAtUtc}',
+            ),
+            if (_showInternalIds) ...[
+              Text('Left Course ID: ${widget.leftCourse.courseId}'),
+              Text('Right Course ID: ${right.courseId}'),
+            ],
+            const SizedBox(height: 12),
+            Text(
+              'Select Lessons carefully',
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+            ),
+            const Text(
+              'Choose the left or right source for each Lesson. An unchecked row is omitted; a Lesson cannot come from both Courses.',
+            ),
+            ..._optionChoices(right),
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 8,
+              children: [
+                OutlinedButton(
+                  onPressed: () => _selectAll(LessonMergeChoice.left),
+                  child: const Text('Select all Left'),
+                ),
+                OutlinedButton(
+                  onPressed: () => _selectAll(LessonMergeChoice.right),
+                  child: const Text('Select all Right'),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            _lessonChoiceTable(right),
+            const SizedBox(height: 16),
+            FilledButton(
+              onPressed:
+                  _choices.every(
+                    (choice) => choice == LessonMergeChoice.exclude,
+                  )
+                  ? null
+                  : () => widget.onMerge(right, _choices, _options(right)),
+              child: const Text('DO MERGE!'),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  CourseMergeOptions _options(Course right) {
+    final createDuels = _createDuelsSide == CourseMergeSide.left
+        ? widget.leftCourse
+        : right;
+    final useGuidebook = _useGuidebookSide == CourseMergeSide.left
+        ? widget.leftCourse
+        : right;
+    final numbering = _lessonNumberingSide == CourseMergeSide.left
+        ? widget.leftCourse
+        : right;
+    final sections = _sectionNamesSide == CourseMergeSide.left
+        ? widget.leftCourse
+        : right;
+    final title = _titleSide == CourseMergeSide.left
+        ? widget.leftCourse
+        : right;
+    final buyACoffee = _buyACoffeeSide == CourseMergeSide.left
+        ? widget.leftCourse
+        : right;
+    final description = _descriptionSide == CourseMergeSide.left
+        ? widget.leftCourse
+        : right;
+    final flag = _flagSide == CourseMergeSide.left ? widget.leftCourse : right;
+    final startLevel = _startLevelSide == CourseMergeSide.left
+        ? widget.leftCourse
+        : right;
+    final targetLevel = _targetLevelSide == CourseMergeSide.left
+        ? widget.leftCourse
+        : right;
+    return CourseMergeOptions(
+      title: title.title,
+      createDuels: createDuels.createDuels,
+      useGuidebook: useGuidebook.useGuidebook,
+      lessonNumberingMode: numbering.lessonNumberingMode,
+      customLessonLabel: numbering.customLessonLabel,
+      sectionNames: sections.sectionNames,
+      buyACoffeeUrl: buyACoffee.buyACoffeeUrl,
+      courseDescription: description.courseDescription,
+      startLevel: startLevel.startLevel,
+      targetLevel: targetLevel.targetLevel,
+      flagCode: flag.flagCode,
+      worldFlagId: flag.worldFlagId,
+      flagImageBase64: flag.flagImageBase64,
+    );
+  }
+
+  List<Widget> _optionChoices(Course right) => [
+    if (widget.leftCourse.title != right.title)
+      _sideChoice(
+        label: 'Course title',
+        value: _titleSide,
+        onChanged: (side) => setState(() => _titleSide = side),
+      ),
+    if (widget.leftCourse.createDuels != right.createDuels)
+      _sideChoice(
+        label: 'Create Duels',
+        value: _createDuelsSide,
+        onChanged: (side) => setState(() => _createDuelsSide = side),
+      ),
+    if (widget.leftCourse.useGuidebook != right.useGuidebook)
+      _sideChoice(
+        label: 'Use GuideBooks',
+        value: _useGuidebookSide,
+        onChanged: (side) => setState(() => _useGuidebookSide = side),
+      ),
+    if (widget.leftCourse.lessonNumberingMode != right.lessonNumberingMode ||
+        widget.leftCourse.customLessonLabel != right.customLessonLabel)
+      _sideChoice(
+        label: 'Lesson numbering',
+        value: _lessonNumberingSide,
+        onChanged: (side) => setState(() => _lessonNumberingSide = side),
+      ),
+    if (widget.leftCourse.sectionNames.join('\u0000') !=
+        right.sectionNames.join('\u0000'))
+      _sideChoice(
+        label: 'Section names',
+        value: _sectionNamesSide,
+        onChanged: (side) => setState(() => _sectionNamesSide = side),
+      ),
+    if (widget.leftCourse.buyACoffeeUrl != right.buyACoffeeUrl)
+      _sideChoice(
+        label: 'Buy a Coffee',
+        value: _buyACoffeeSide,
+        onChanged: (side) => setState(() => _buyACoffeeSide = side),
+      ),
+    if (widget.leftCourse.courseDescription != right.courseDescription)
+      _sideChoice(
+        label: 'Course description',
+        value: _descriptionSide,
+        onChanged: (side) => setState(() => _descriptionSide = side),
+      ),
+    if (widget.leftCourse.flagCode != right.flagCode ||
+        widget.leftCourse.worldFlagId != right.worldFlagId ||
+        widget.leftCourse.flagImageBase64 != right.flagImageBase64)
+      _sideChoice(
+        label: 'Course flag',
+        value: _flagSide,
+        onChanged: (side) => setState(() => _flagSide = side),
+      ),
+    if (widget.leftCourse.startLevel != right.startLevel)
+      _sideChoice(
+        label: 'Start level',
+        value: _startLevelSide,
+        onChanged: (side) => setState(() => _startLevelSide = side),
+      ),
+    if (widget.leftCourse.targetLevel != right.targetLevel)
+      _sideChoice(
+        label: 'Target level',
+        value: _targetLevelSide,
+        onChanged: (side) => setState(() => _targetLevelSide = side),
+      ),
+  ];
+
+  Widget _sideChoice({
+    required String label,
+    required CourseMergeSide value,
+    required ValueChanged<CourseMergeSide> onChanged,
+  }) => Padding(
+    padding: const EdgeInsets.only(bottom: 8),
+    child: DropdownButtonFormField<CourseMergeSide>(
+      key: ValueKey('$label-$value'),
+      initialValue: value,
+      decoration: InputDecoration(
+        border: const OutlineInputBorder(),
+        labelText: '$label source',
+      ),
+      items: const [
+        DropdownMenuItem(value: CourseMergeSide.left, child: Text('Use Left')),
+        DropdownMenuItem(
+          value: CourseMergeSide.right,
+          child: Text('Use Right'),
+        ),
+      ],
+      onChanged: (side) {
+        if (side != null) onChanged(side);
+      },
+    ),
+  );
+
+  Widget _lessonChoiceTable(Course right) => Table(
+    defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+    columnWidths: const {
+      0: FixedColumnWidth(30),
+      1: FlexColumnWidth(),
+      2: FlexColumnWidth(),
+    },
+    border: TableBorder.symmetric(
+      inside: BorderSide(color: Theme.of(context).dividerColor),
+    ),
+    children: [
+      const TableRow(
+        children: [
+          Padding(padding: EdgeInsets.all(2), child: Text('#')),
+          Padding(padding: EdgeInsets.all(2), child: Text('Left')),
+          Padding(padding: EdgeInsets.all(2), child: Text('Right')),
+        ],
+      ),
+      for (var index = 0; index < _choices.length; index++)
+        TableRow(
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 4),
+              child: Text('${index + 1}'),
+            ),
+            _lessonChoiceCell(
+              index: index,
+              choice: LessonMergeChoice.left,
+              lesson: index < widget.leftCourse.lessons.length
+                  ? widget.leftCourse.lessons[index]
+                  : null,
+            ),
+            _lessonChoiceCell(
+              index: index,
+              choice: LessonMergeChoice.right,
+              lesson: index < right.lessons.length
+                  ? right.lessons[index]
+                  : null,
+            ),
+          ],
+        ),
+    ],
+  );
+
+  Widget _lessonChoiceCell({
+    required int index,
+    required LessonMergeChoice choice,
+    required Lesson? lesson,
+  }) => Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 4),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(
+          height: 30,
+          child: Checkbox(
+            value: _choices[index] == choice,
+            onChanged: lesson == null
+                ? null
+                : (selected) => setState(
+                    () => _choices[index] = selected!
+                        ? choice
+                        : LessonMergeChoice.exclude,
+                  ),
+          ),
+        ),
+        Text(
+          lesson == null
+              ? 'Not available'
+              : _showInternalIds
+              ? '${lesson.title}\n${lesson.lessonId}'
+              : lesson.title,
+          maxLines: _showInternalIds ? 3 : 2,
+          overflow: TextOverflow.ellipsis,
+          style: Theme.of(context).textTheme.bodySmall,
+        ),
+      ],
+    ),
+  );
+}
+
 class CourseProjectsScreen extends StatefulWidget {
   final Course currentCourse;
   final String? initialCourseIdToOpen;
@@ -97,8 +566,10 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
   final _courseService = CourseService();
   final _flags = CourseFlagService();
   final _transfer = CustomCourseTransferService();
+  final _merge = CourseMergeService();
   final _settings = SettingsService();
   final _profiles = ProfileService();
+  final _sounds = SoundEffectService();
   late final _teams = TeamService(profileService: _profiles);
   List<Course> _user = [];
   bool _loading = true;
@@ -182,6 +653,97 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
       builder: (_) => CourseImportScreen(onImport: _importCourse),
     ),
   );
+
+  Future<void> _openCourseMerge(Course course) => Navigator.of(context)
+      .push<void>(
+        MaterialPageRoute(
+          builder: (_) => CourseMergeScreen(
+            leftCourse: course,
+            onMerge: (right, choices, options) =>
+                _completeMerge(course, right, choices, options),
+          ),
+        ),
+      )
+      .then((_) => _reload());
+
+  Future<void> _completeMerge(
+    Course left,
+    Course right,
+    List<LessonMergeChoice> choices,
+    CourseMergeOptions options,
+  ) async {
+    try {
+      final outputTitle = _nextMergeTitle('${options.title} merged');
+      final merged = await _merge.createMergedCourse(
+        left: left,
+        right: right,
+        choices: choices,
+        options: CourseMergeOptions(
+          title: options.title,
+          outputTitle: outputTitle,
+          createDuels: options.createDuels,
+          useGuidebook: options.useGuidebook,
+          lessonNumberingMode: options.lessonNumberingMode,
+          customLessonLabel: options.customLessonLabel,
+          sectionNames: options.sectionNames,
+          buyACoffeeUrl: options.buyACoffeeUrl,
+          courseDescription: options.courseDescription,
+          startLevel: options.startLevel,
+          targetLevel: options.targetLevel,
+          flagCode: options.flagCode,
+          worldFlagId: options.worldFlagId,
+          flagImageBase64: options.flagImageBase64,
+        ),
+      );
+      if (!mounted) return;
+      final audit = CourseAuditService().auditCourse(merged);
+      final errors = audit.issues
+          .where((issue) => issue.severity == AuditSeverity.error)
+          .toList();
+      if (errors.isNotEmpty) {
+        throw StateError(
+          'Course Audit found ${errors.length} error${errors.length == 1 ? '' : 's'}. Fix the source Course content before merging.',
+        );
+      }
+      if (audit.issues.any(
+        (issue) => issue.severity == AuditSeverity.warning,
+      )) {
+        await showDialog<void>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Course Audit warnings'),
+            content: const Text(
+              'The merged Course has Audit warnings. Review the generated Course before publication.',
+            ),
+            actions: [
+              FilledButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Continue'),
+              ),
+            ],
+          ),
+        );
+        if (!mounted) return;
+      }
+      final result = await _service.confirmCourseTransaction(
+        originalCourse: merged,
+        workingCourse: merged,
+        languageCode: merged.targetLanguageTag,
+        versionNotes: merged.versionNotes,
+        isNewCourse: true,
+      );
+      if (!mounted) return;
+      Navigator.of(context).pop();
+      _showConfirmationResult(result);
+    } catch (error) {
+      unawaited(_sounds.playDefeat());
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Course merge failed: $error')));
+      }
+    }
+  }
 
   Future<Course?> _createCourse() async {
     final activeProfile = await _profiles.getActiveProfileRecord();
@@ -986,14 +1548,17 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
   }
 
   String _nextCopyTitle(String sourceTitle) {
-    final existing = _user.map((course) => course.title).toSet();
-    final first = '$sourceTitle copy';
-    if (!existing.contains(first)) return first;
-    var suffix = 2;
-    while (existing.contains('$sourceTitle copy $suffix')) {
-      suffix++;
-    }
-    return '$sourceTitle copy $suffix';
+    return CourseMergeService.nextAvailableTitle(
+      '$sourceTitle copy',
+      _user.map((course) => course.title),
+    );
+  }
+
+  String _nextMergeTitle(String sourceTitle) {
+    return CourseMergeService.nextAvailableTitle(
+      sourceTitle,
+      _user.map((course) => course.title),
+    );
   }
 
   Future<void> _copyAsNewCourse(Course course) async {
@@ -1089,6 +1654,7 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
         if (value == 'open') onOpen();
         if (value == 'fork') _forkCourse(course);
         if (value == 'copy_as_new') _copyAsNewCourse(course);
+        if (value == 'merge') _openCourseMerge(course);
         if (value == 'audit') _auditCourse(course);
         if (value == 'export') _exportCourse(course);
         if (value == 'delete' && course.originType == CourseOriginType.custom) {
@@ -1127,6 +1693,16 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
               subtitle: Text(
                 'Create a new independent Course using this Course as the starting content.',
               ),
+            ),
+          ),
+        if (course.originType == CourseOriginType.custom &&
+            access.hasOperationalAccess)
+          const PopupMenuItem(
+            value: 'merge',
+            child: ListTile(
+              leading: Icon(Icons.merge_type_outlined),
+              title: Text('Merge'),
+              subtitle: Text('Create a third Course from selected Lessons.'),
             ),
           ),
         const PopupMenuItem(
@@ -1379,6 +1955,7 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
         ),
       );
     } catch (error) {
+      unawaited(_sounds.playDefeat());
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

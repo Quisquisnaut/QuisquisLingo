@@ -253,7 +253,10 @@ class AuthoringDuplicationService {
     return _copyRound(source, remap);
   }
 
-  Lesson duplicateLesson(Lesson source) {
+  Lesson duplicateLesson(
+    Lesson source, {
+    bool preservePublicationState = false,
+  }) {
     final remap = <String, String>{
       source.lessonId: _ids.next('lesson'),
       source.duel.id: _ids.next('duel'),
@@ -267,23 +270,40 @@ class AuthoringDuplicationService {
         _allocateContent(content, remap);
       }
     }
-    return _copyLesson(source, remap);
+    return _copyLesson(
+      source,
+      remap,
+      preservePublicationState: preservePublicationState,
+    );
   }
 
   Lesson _copyLesson(
     Lesson source,
     Map<String, String> remap, {
     Map<String, String> iconRemap = const {},
+    bool preservePublicationState = false,
   }) {
     final managedIconId = source.themeIconAsset == null
         ? null
         : CourseLessonIconAsset.assetIdFromReference(source.themeIconAsset!);
     return Lesson(
       lessonId: remap[source.lessonId]!,
-      publicationState: PublicationState.draft,
+      publicationState: preservePublicationState
+          ? source.publicationState
+          : PublicationState.draft,
+      provisionalDraft: preservePublicationState
+          ? source.provisionalDraft
+          : false,
       updatedAt: source.updatedAt,
       title: source.title,
-      rounds: [for (final round in source.rounds) _copyRound(round, remap)],
+      rounds: [
+        for (final round in source.rounds)
+          _copyRound(
+            round,
+            remap,
+            preservePublicationState: preservePublicationState,
+          ),
+      ],
       section: source.section,
       sectionName: source.sectionName,
       themeIconAsset: managedIconId == null
@@ -293,11 +313,17 @@ class AuthoringDuplicationService {
               base64Png: '',
             ).reference,
       guidebook: Guidebook(
-        publicationState: PublicationState.draft,
+        publicationState: preservePublicationState
+            ? source.guidebook.publicationState
+            : PublicationState.draft,
         insights: source.guidebook.insights,
         content: [
           for (final content in source.guidebook.content)
-            _copyContent(content, remap),
+            _copyContent(
+              content,
+              remap,
+              preservePublicationState: preservePublicationState,
+            ),
         ],
       ),
       duel: Duel(id: remap[source.duel.id]!, title: source.duel.title),
@@ -324,31 +350,48 @@ class AuthoringDuplicationService {
     }
   }
 
-  LearningRound _copyRound(LearningRound source, Map<String, String> remap) =>
-      LearningRound(
-        id: remap[source.id]!,
-        publicationState: PublicationState.draft,
-        updatedAt: source.updatedAt,
-        title: source.title,
-        visualType: source.visualType,
-        content: [
-          for (final content in source.content) _copyContent(content, remap),
-        ],
-      );
+  LearningRound _copyRound(
+    LearningRound source,
+    Map<String, String> remap, {
+    bool preservePublicationState = false,
+  }) => LearningRound(
+    id: remap[source.id]!,
+    publicationState: preservePublicationState
+        ? source.publicationState
+        : PublicationState.draft,
+    updatedAt: source.updatedAt,
+    title: source.title,
+    visualType: source.visualType,
+    content: [
+      for (final content in source.content)
+        _copyContent(
+          content,
+          remap,
+          preservePublicationState: preservePublicationState,
+        ),
+    ],
+  );
 
   LearningContent _copyContent(
     LearningContent source,
-    Map<String, String> remap,
-  ) => LearningContent(
+    Map<String, String> remap, {
+    bool preservePublicationState = false,
+  }) => LearningContent(
     id: remap[source.id]!,
-    publicationState: PublicationState.draft,
+    publicationState: preservePublicationState
+        ? source.publicationState
+        : PublicationState.draft,
     kind: source.kind,
     required: source.required,
     editorTemplate: source.editorTemplate,
     role: source.role,
     exercise: source.exercise == null
         ? null
-        : _copyExercise(source.exercise!, remap),
+        : _copyExercise(
+            source.exercise!,
+            remap,
+            preservePublicationState: preservePublicationState,
+          ),
     presentation: source.presentation == null
         ? null
         : Presentation(
@@ -364,11 +407,17 @@ class AuthoringDuplicationService {
     ],
   );
 
-  Exercise _copyExercise(Exercise source, Map<String, String> remap) {
+  Exercise _copyExercise(
+    Exercise source,
+    Map<String, String> remap, {
+    bool preservePublicationState = false,
+  }) {
     String mapped(String id) => remap[id] ?? id;
     return Exercise.v2(
       id: mapped(source.id),
-      publicationState: PublicationState.draft,
+      publicationState: preservePublicationState
+          ? source.publicationState
+          : PublicationState.draft,
       updatedAt: source.updatedAt,
       editorTemplate: source.editorTemplate,
       promptElements: [

@@ -76,6 +76,7 @@ class SettingsService {
   static const _startupAnimationKey =
       'startup_animation_enabled'; // Legacy key retained for compatibility.
   static const _oneTimeNoticePrefix = 'one_time_notice_seen_';
+  static const _welcomeWizardNoticeId = 'welcome_wizard_237';
   static const _courseEditorUnlockedKey = 'course_editor_unlocked';
   static const _courseEditorModeKeyPrefix = 'course_editor_mode_';
   static const _audioOrphanCheckKey = 'audio_orphan_check_last_';
@@ -411,6 +412,32 @@ class SettingsService {
             .toList()) {
       await prefs.remove(key);
     }
+  }
+
+  Future<bool> hasCompletedWelcomeWizard() async {
+    final profiles = ProfileService();
+    final activeId = await profiles.getActiveProfileId();
+    if (activeId == null) return false;
+    return (await SharedPreferences.getInstance()).getBool(
+          profiles.keyForProfileId(
+            activeId,
+            '$_oneTimeNoticePrefix$_welcomeWizardNoticeId',
+          ),
+        ) ??
+        false;
+  }
+
+  Future<void> completeWelcomeWizard() async {
+    final profiles = ProfileService();
+    final activeId = await profiles.getActiveProfileId();
+    if (activeId == null) return;
+    await (await SharedPreferences.getInstance()).setBool(
+      profiles.keyForProfileId(
+        activeId,
+        '$_oneTimeNoticePrefix$_welcomeWizardNoticeId',
+      ),
+      true,
+    );
   }
 
   String _courseEditorViewNoticeId(String courseId) =>

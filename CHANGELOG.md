@@ -1,3 +1,16 @@
+# 2.0.37 (Build 237, Revision 4) - Course Merge - 2026-09-17
+
+- Added authorized custom Course Merge from each eligible Course Manager row. QQL reads the second source only from `Documents/QuisquisLingo/Merges/merge.json`, validates bounded UTF-8 Course JSON, and leaves both sources and the input file untouched.
+- Merge accepts two saved versions of the same Course identity when their Course versions differ, recording both ID/version pairs; only the exact same Course ID and version is rejected as self-merge.
+- Merge requires matching Course information while allowing distinct Course IDs, creation/modification dates, version/version notes, restore metadata, Last Version Editor details and Lesson payloads. The merge screen provides dedicated help, Select all Left/Right controls, mutually exclusive per-Lesson choices, optional longer-source Lessons and a final selection warning.
+- A successful merge creates a third independent custom Course with fresh owned identities, preserved selected Draft/Published state, no learner-state transfer, title suffix ` merged`, earliest source Original Course Created, merge-time Modified/Last Version Editor metadata, initial version 1 and immutable immediate-source provenance.
+- Added Course Model v10 solely for merged custom Courses and its required `mergeProvenance` block. Existing Course Model v9 courses remain readable without migration; v9 rejects merge provenance and v10 is never silently converted.
+- Updated the version to `2.0.37+237004`, Build 237, Revision 4, and retained the 30-day Beta expiry at `2026-10-17 23:59:59` local time.
+- Revision 1 adds compact Left/Right Course identification and Lesson comparison, the shared Editor Show/Hide IDs badge control, practical Merge Help, and selectable Title, Buy a Coffee URL, description, flag, Section names and language-level differences.
+- Revision 2 makes merged titles unique using the existing progressive-copy naming rule, adds failure sound feedback for invalid or missing import/merge JSON, and adds Debug Help plus the current course-type reference.
+- Revision 3 moves bulk Lesson selectors after Course settings, permits same-ID/same-version sources only when their Last edited timestamps differ, records those source timestamps in merge provenance, and introduces the per-learner Welcome Wizard.
+- Revision 4 defers the Welcome Wizard for PIN-protected profiles until successful unlock, makes Beta testing acknowledgement resettable and one-time, and refines the Wizard into concise colored steps.
+
 # 2.0.36 (Build 236, Revision 0) - Animation and Course Manager refinements - 2026-09-16
 
 - Extended the startup logo entrance to 1,000 ms with opacity 0% to 100% and scale 60% to 100%, followed by an 800 ms static hold. The 1,800 ms gate, no-exit-fade replacement and static disabled/reduced-motion behavior are unchanged.

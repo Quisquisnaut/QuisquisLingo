@@ -71,6 +71,7 @@ void main() {
       'audio_orphan_check_last_IT': DateTime.now().toIso8601String(),
     });
     await ProfileService().addProfile(_profileName);
+    await SettingsService().completeWelcomeWizard();
     await SettingsService().setAudioExercisesEnabled(false);
   });
 

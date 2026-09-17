@@ -62,6 +62,7 @@ void main() {
       ],
     });
     await ProfileService().addProfile('Existing Korean tester');
+    await SettingsService().completeWelcomeWizard();
     await SettingsService().setAudioExercisesEnabled(false);
   });
 
