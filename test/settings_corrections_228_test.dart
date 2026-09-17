@@ -3,6 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:quisquislingo_app/screens/do_not_disturb_settings_screen.dart';
 import 'package:quisquislingo_app/screens/update_settings_screen.dart';
 import 'package:quisquislingo_app/services/update_service.dart';
+import 'package:quisquislingo_app/services/profile_service.dart';
+import 'package:quisquislingo_app/services/settings_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
@@ -57,6 +59,7 @@ void main() {
           ),
         ),
       );
+
       await tester.pumpAndSettle();
 
       await tester.tap(find.widgetWithText(FilledButton, 'Check for updates'));
@@ -71,6 +74,38 @@ void main() {
         findsOneWidget,
       );
       expect(find.text(UpdateService.repositoryUrl), findsOneWidget);
+    },
+  );
+
+  test(
+    'Welcome Wizard completion is per learner and reset with notices',
+    () async {
+      SharedPreferences.setMockInitialValues({});
+      final profiles = ProfileService();
+      await profiles.createProfile(
+        'Wizard Learner',
+        learnerProfileId: '11111111-1111-4111-8111-111111111111',
+      );
+      final settings = SettingsService();
+
+      expect(await settings.hasCompletedWelcomeWizard(), isFalse);
+      await settings.completeWelcomeWizard();
+      expect(await settings.hasCompletedWelcomeWizard(), isTrue);
+      await settings.markOneTimeNoticeSeen('beta_testing');
+      expect(await settings.hasSeenOneTimeNotice('beta_testing'), isTrue);
+
+      await profiles.createProfile(
+        'Other Learner',
+        learnerProfileId: '22222222-2222-4222-8222-222222222222',
+      );
+      expect(await settings.hasCompletedWelcomeWizard(), isFalse);
+      await profiles.setActiveProfileById(
+        '11111111-1111-4111-8111-111111111111',
+      );
+
+      await settings.resetOneTimeNotices();
+      expect(await settings.hasCompletedWelcomeWizard(), isFalse);
+      expect(await settings.hasSeenOneTimeNotice('beta_testing'), isFalse);
     },
   );
 }

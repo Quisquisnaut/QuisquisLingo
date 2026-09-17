@@ -242,6 +242,7 @@ void main() {
 
 Future<void> _expectPersistedHome(WidgetTester tester, Course course) async {
   await ProfileService().addProfile('Numbering learner');
+  await SettingsService().completeWelcomeWizard();
   await CourseEditorService().saveUserCourse(course);
   final saved = (await CourseEditorService().listUserCourses()).single;
   expect(saved.lessonNumberingMode, LessonNumberingMode.module);

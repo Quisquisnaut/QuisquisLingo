@@ -14,6 +14,7 @@ class EditorHelpScreen extends StatelessWidget {
       children: [
         const _TechnicalLinks(),
         const SizedBox(height: 12),
+        const _CourseTypesHelpSection(),
         _HelpSection(
           title: 'Courses in learner mode',
           body:
@@ -72,7 +73,7 @@ class EditorHelpScreen extends StatelessWidget {
         _HelpSection(
           title: 'Local course edits and backups',
           body:
-              'Every confirmed change to an existing custom course first archives the complete currently persisted course under Documents/QuisquisLingo/Exports/Course Backups v9/<courseId>. Backup manifests include the full v9 Course, Course Maintainer, optional Assigned Team, provenance, versions, authors, UTC modification timestamp, optional notes, checksum and referenced managed audio assets. Backups are never pruned automatically. Version History lists the current version and verified backups newest first, with Open backup folder and Export JSON. Only custom history supports Restore into working copy. Official history contains publisher sources only; older backup directories are not loaded or deleted. A restore is still only a working-copy change until the top-level confirmation succeeds.',
+              'Every confirmed change to an existing custom course first archives the complete currently persisted course under Documents/QuisquisLingo/Exports/Course Backups v9/<courseId>. Backup manifests include the full v9 or v10 Course, Course Maintainer, optional Assigned Team, provenance, versions, authors, UTC modification timestamp, optional notes, checksum and referenced managed audio assets. Backups are never pruned automatically. Version History lists the current version and verified backups newest first, with Open backup folder and Export JSON. Only custom history supports Restore into working copy. Official history contains publisher sources only; older backup directories are not loaded or deleted. A restore is still only a working-copy change until the top-level confirmation succeeds.',
         ),
         _HelpSection(
           title: 'Official course updates',
@@ -87,17 +88,17 @@ class EditorHelpScreen extends StatelessWidget {
         _HelpSection(
           title: 'Course responsibility, permissions and Teams',
           body:
-              'Original Course Creator, Course Maintainer, Assigned Team, Authors / Contributors, Rights Holder, License and fork provenance are separate. Every v9 custom Course has an immutable Original Course Creator and one individual Course Maintainer. Only the current Course Maintainer can transfer maintainership or assign and revoke a Team for management. The Course Maintainer and every current member of the Assigned Team may manage Course content under QQL permissions; Team leadership controls Team membership and roles only. Teams are an experimental QQL collaboration model and may manage Courses maintained or created by different individuals. QQL permissions govern behavior inside QQL and do not by themselves determine copyright ownership, contractual rights or external organizational authority. Attribution, provenance and Rights Holder metadata never grant permissions. Outsiders cannot mutate or Copy as New Course under the current access policy and can Fork only when derivatives are allowed. Bundled Courses use this same Editor surface in read-only mode.',
+              'Original Course Creator, Course Maintainer, Assigned Team, Authors / Contributors, Rights Holder, License and fork/merge provenance are separate. Every v9 or v10 custom Course has an immutable Original Course Creator and one individual Course Maintainer. Only the current Course Maintainer can transfer maintainership or assign and revoke a Team for management. The Course Maintainer and every current member of the Assigned Team may manage Course content under QQL permissions; Team leadership controls Team membership and roles only. Teams are an experimental QQL collaboration model and may manage Courses maintained or created by different individuals. QQL permissions govern behavior inside QQL and do not by themselves determine copyright ownership, contractual rights or external organizational authority. Attribution, provenance and Rights Holder metadata never grant permissions. Outsiders cannot mutate or Copy as New Course under the current access policy and can Fork only when derivatives are allowed. Bundled Courses use this same Editor surface in read-only mode.',
         ),
         _HelpSection(
           title: 'Import a custom course',
           body:
-              '1. Copy the Course Model v9 JSON file to Documents/QuisquisLingo/Imports. 2. Rename it exactly import.json. 3. Open Course Manager, select Course Import, and then select Import Course JSON. 4. After parsing and Course Audit validation, the Course is copied into QuisquisLingo local storage and appears under Local courses. Audit errors block import; warnings are reported for review but do not block it. An external-official file retains its declared publisher provenance but is marked unverified unless QQL can authenticate it; an ordinary import remains custom. The imported Course no longer depends on import.json, and QuisquisLingo leaves import.json in place. Imports must be valid UTF-8 Course Model v9 JSON and may be no larger than 10 MB. Earlier formats are rejected without migration, conversion or deletion.',
+              '1. Copy a supported Course Model v9 or v10 JSON file to Documents/QuisquisLingo/Imports. 2. Rename it exactly import.json. 3. Open Course Manager, select Course Import, and then select Import Course JSON. 4. After parsing and Course Audit validation, the Course is copied into QuisquisLingo local storage and appears under Local courses. Audit errors block import; warnings are reported for review but do not block it. An external-official file retains its declared publisher provenance but is marked unverified unless QQL can authenticate it; an ordinary import remains custom. The imported Course no longer depends on import.json, and QuisquisLingo leaves import.json in place. Imports must be valid UTF-8 Course Model JSON and may be no larger than 10 MB. Earlier formats are rejected without migration, conversion or deletion.',
         ),
         _HelpSection(
           title: 'Export a custom course',
           body:
-              'Export Course JSON saves the complete Course Model v9 authoring JSON directly in Documents/QuisquisLingo/Exports. Original Course Creator, Original Course Created, Course Maintainer, optional Assigned Team, Authors / Contributors, Rights Holder, License, fork provenance, Draft/Published state, required UTC modification timestamps, origin and version metadata, optional custom flag data, Buy a Coffee metadata, Lesson numbering and managed custom Lesson icons are included. A Fork preserves its source lineage; Copy as New Course starts an independent lineage. Course audio metadata and references are included, but MP3 bytes are not embedded; verified version backups retain their existing referenced-recording copy behavior. There is no Save As dialog.',
+              'Export Course JSON saves the complete Course Model v9 or v10 authoring JSON directly in Documents/QuisquisLingo/Exports. Original Course Creator, Original Course Created, Course Maintainer, optional Assigned Team, Authors / Contributors, Rights Holder, License, fork/merge provenance, Draft/Published state, required UTC modification timestamps, origin and version metadata, optional custom flag data, Buy a Coffee metadata, Lesson numbering and managed custom Lesson icons are included. A Fork preserves its source lineage; Copy as New Course starts an independent lineage. Course audio metadata and references are included, but MP3 bytes are not embedded; verified version backups retain their existing referenced-recording copy behavior. There is no Save As dialog.',
         ),
         _HelpSection(
           title: 'Import a custom flag',
@@ -193,9 +194,194 @@ class EditorHelpScreen extends StatelessWidget {
         _HelpSection(
           title: 'Create a new course',
           body:
-              'Course Manager creates an independent Course Model v9 project and opens it in Course Editor. New Course restores the same License / Rights, Authors / Contributors, language variant, levels, description and support metadata used by Course Info Editor. The active profile becomes the immutable Original Course Creator and defaults as Course Maintainer; another local individual may instead be selected as Maintainer. Assigned Team remains separate and is not selected during creation. Number of Lessons defaults to 3 (whole numbers 1–100), and Rounds per Lesson defaults to 1 (whole numbers 1–20). Invalid or missing values show inline errors and disable Create. The complete initial hierarchy is created atomically with fresh stable IDs and untitled Rounds, each with exactly one Draft How do you say? sample Exercise. Review and explicitly save teaching content before publication. The new Not published Course remains only a working copy until Confirm course changes creates version 1; cancelling creates no stored Course. Imported v9 authoring content must state its provenance, Maintainer, Draft/Published state and required UTC timestamps explicitly; earlier Course Models are neither inferred nor migrated.',
+              'Course Manager creates an independent Course Model v9 project and opens it in Course Editor. New Course restores the same License / Rights, Authors / Contributors, language variant, levels, description and support metadata used by Course Info Editor. The active profile becomes the immutable Original Course Creator and defaults as Course Maintainer; another local individual may instead be selected as Maintainer. Assigned Team remains separate and is not selected during creation. Number of Lessons defaults to 3 (whole numbers 1–100), and Rounds per Lesson defaults to 1 (whole numbers 1–20). Invalid or missing values show inline errors and disable Create. The complete initial hierarchy is created atomically with fresh stable IDs and untitled Rounds, each with exactly one Draft How do you say? sample Exercise. Review and explicitly save teaching content before publication. The new Not published Course remains only a working copy until Confirm course changes creates version 1; cancelling creates no stored Course. Imported v9/v10 authoring content must state its provenance, Maintainer, Draft/Published state and required UTC timestamps explicitly; earlier Course Models are neither inferred nor migrated.',
         ),
       ],
+    ),
+  );
+}
+
+class _CourseTypesHelpSection extends StatelessWidget {
+  const _CourseTypesHelpSection();
+
+  @override
+  Widget build(BuildContext context) => Card(
+    child: Padding(
+      padding: const EdgeInsets.all(12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Course types',
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 8),
+          const Text('In QQL, there are two course types:'),
+          const SizedBox(height: 8),
+          const Text(
+            '1. Official Bundled Course: distributed as part of the app and treated as official content.',
+          ),
+          const SizedBox(height: 4),
+          const Text('2. Custom Course: created or imported by users.'),
+          const SizedBox(height: 12),
+          Table(
+            columnWidths: {
+              0: FlexColumnWidth(2),
+              1: FlexColumnWidth(3),
+              2: FlexColumnWidth(3),
+            },
+            defaultVerticalAlignment: TableCellVerticalAlignment.top,
+            children: [
+              TableRow(
+                children: [
+                  _CourseTypeTableCell('Aspect', bold: true),
+                  _CourseTypeTableCell('Official Course', bold: true),
+                  _CourseTypeTableCell('Custom Course', bold: true),
+                ],
+              ),
+              TableRow(
+                children: [
+                  _CourseTypeTableCell('Origin'),
+                  _CourseTypeTableCell('Shipped or distributed by QQL'),
+                  _CourseTypeTableCell(
+                    'Created, imported, copied, forked, or merged by users',
+                  ),
+                ],
+              ),
+              TableRow(
+                children: [
+                  _CourseTypeTableCell('Status'),
+                  _CourseTypeTableCell(
+                    'Part of the official QQL course collection',
+                  ),
+                  _CourseTypeTableCell('User-created content'),
+                ],
+              ),
+              TableRow(
+                children: [
+                  _CourseTypeTableCell('Editing'),
+                  _CourseTypeTableCell(
+                    'Not normally edited directly as a user-owned course',
+                  ),
+                  _CourseTypeTableCell('Editable by its authorized users'),
+                ],
+              ),
+              TableRow(
+                children: [
+                  _CourseTypeTableCell('Copying'),
+                  _CourseTypeTableCell(
+                    'Can be used as the source for a new Custom Course, subject to QQL rules',
+                  ),
+                  _CourseTypeTableCell(
+                    'Can be copied to create another Custom Course',
+                  ),
+                ],
+              ),
+              TableRow(
+                children: [
+                  _CourseTypeTableCell('Forking'),
+                  _CourseTypeTableCell(
+                    'Can be forked when the applicable licence permits it',
+                  ),
+                  _CourseTypeTableCell(
+                    'Can be forked when the licence permits it',
+                  ),
+                ],
+              ),
+              TableRow(
+                children: [
+                  _CourseTypeTableCell('Merging'),
+                  _CourseTypeTableCell('Not itself the result of a user merge'),
+                  _CourseTypeTableCell(
+                    'Two similar Custom Courses can be merged to create a third Custom Course; the user selects which Lessons to take from each source course',
+                  ),
+                ],
+              ),
+              TableRow(
+                children: [
+                  _CourseTypeTableCell('Ownership / maintenance'),
+                  _CourseTypeTableCell(
+                    'Managed as QQL-distributed content rather than ordinary user-owned content',
+                  ),
+                  _CourseTypeTableCell(
+                    'Has an Original Course Creator and Course Maintainer, with the associated user/team permissions',
+                  ),
+                ],
+              ),
+              TableRow(
+                children: [
+                  _CourseTypeTableCell('Publication'),
+                  _CourseTypeTableCell('Distributed as official content'),
+                  _CourseTypeTableCell(
+                    'Can exist as published or unpublished user content',
+                  ),
+                ],
+              ),
+              TableRow(
+                children: [
+                  _CourseTypeTableCell('Deletion'),
+                  _CourseTypeTableCell(
+                    'Not treated like an ordinary deletable user course',
+                  ),
+                  _CourseTypeTableCell(
+                    'Can be deleted through Course Manager by authorized users',
+                  ),
+                ],
+              ),
+              TableRow(
+                children: [
+                  _CourseTypeTableCell('Updates'),
+                  _CourseTypeTableCell(
+                    'May be replaced or updated with a QQL release',
+                  ),
+                  _CourseTypeTableCell(
+                    'Evolves independently after creation, import, copy, fork, or merge',
+                  ),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          const Text(
+            'A Copy is a new independent Custom Course derived from another course. It does not maintain a conceptual lineage that matters for licensing or history in the same way as a fork.',
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            'A Fork is also a Custom Course, but explicitly records derivation from the original course and is subject to the original course\'s licence terms.',
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            'A Merge creates a third Custom Course from two similar Custom Courses. The user chooses which Lessons to take from each source course. The two source courses remain separate and unchanged.',
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            'So the course type remains essentially:\n\nOfficial\nor\nCustom\n\nwhile created from scratch / imported / copied / forked / merged describes the Custom Course\'s origin, not its type.',
+          ),
+          const SizedBox(height: 12),
+          const Text(
+            'If you think your course deserves to become a bundled course distributed with the QQL app, please contact the QQL team.',
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+class _CourseTypeTableCell extends StatelessWidget {
+  const _CourseTypeTableCell(this.text, {this.bold = false});
+
+  final String text;
+  final bool bold;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.all(4),
+    child: Text(
+      text,
+      style: bold ? const TextStyle(fontWeight: FontWeight.bold) : null,
     ),
   );
 }
@@ -217,7 +403,7 @@ class _TechnicalLinks extends StatelessWidget {
           ),
           const SizedBox(height: 6),
           const Text(
-            'Work in progress. These pages describe the current Course Model v9 implementation separately from the practical Editor instructions.',
+            'Work in progress. These pages describe the current Course Models v9/v10 implementation separately from the practical Editor instructions.',
           ),
           ListTile(
             contentPadding: EdgeInsets.zero,
@@ -238,7 +424,7 @@ class _TechnicalLinks extends StatelessWidget {
           ),
           ListTile(
             contentPadding: EdgeInsets.zero,
-            title: Text('QuisquisLingo Course Model v9'),
+            title: Text('QuisquisLingo Course Models v9/v10'),
             trailing: Icon(Icons.chevron_right),
             onTap: () => Navigator.of(context).push(
               MaterialPageRoute(
@@ -475,7 +661,7 @@ class CourseModelV4HelpScreen extends StatelessWidget {
   const CourseModelV4HelpScreen({super.key});
   @override
   Widget build(BuildContext context) => _TechnicalPage(
-    title: 'QuisquisLingo Course Model v9',
+    title: 'QuisquisLingo Course Models v9/v10',
     sections: const [
       _HelpSection(
         title: 'Status',
@@ -525,7 +711,7 @@ class ExercisePrimitivesHelpScreen extends StatelessWidget {
       _HelpSection(
         title: 'Status',
         body:
-            'Work in progress. The current primitive set is the implemented Course Model v9 baseline.',
+            'Work in progress. The current primitive set is the implemented Course Models v9/v10 baseline.',
       ),
       _HelpSection(
         title: 'Exercise anatomy',
@@ -574,7 +760,7 @@ class JsonV4HelpScreen extends StatelessWidget {
       _HelpSection(
         title: 'Root',
         body:
-            'The root contains formatVersion, Course metadata and lessons[]. Bundled samples and user-created Courses use the native v9 model. Custom roots require immutable originalCourseCreator provenance and one individual maintainer; optional assignedTeamId is separate, while Team membership itself remains outside Course JSON. Earlier Course Models are not read or migrated.',
+            'The root contains formatVersion, Course metadata and lessons[]. Bundled samples use the native v9 model; custom Courses use v9 or, for merged Courses, v10. Custom roots require immutable originalCourseCreator provenance and one individual maintainer; optional assignedTeamId is separate, while Team membership itself remains outside Course JSON. Earlier Course Models are not read or migrated.',
       ),
       _HelpSection(
         title: 'Guidebook',
@@ -599,7 +785,7 @@ class JsonV4HelpScreen extends StatelessWidget {
       _HelpSection(
         title: 'Compatibility',
         body:
-            'Bundled and custom Courses are native Course Model v9. Every earlier format is unsupported and is not read, migrated, converted or deleted. Attribution, provenance and Rights Holder metadata never grant Course permissions or infer Team assignment.',
+            'Bundled Courses are native Course Model v9; custom Courses are native v9 or v10. Every earlier format is unsupported and is not read, migrated, converted or deleted. Attribution, provenance and Rights Holder metadata never grant Course permissions or infer Team assignment.',
       ),
     ],
   );

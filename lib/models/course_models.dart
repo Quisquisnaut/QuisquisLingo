@@ -502,8 +502,96 @@ class CourseForkProvenance {
   }
 }
 
+/// Immutable references to the two immediate sources of a merged Course.
+class CourseMergeProvenance {
+  final String leftSourceCourseId;
+  final String leftSourceCourseVersion;
+  final String leftSourceModifiedAtUtc;
+  final String rightSourceCourseId;
+  final String rightSourceCourseVersion;
+  final String rightSourceModifiedAtUtc;
+  final String mergedAtUtc;
+
+  const CourseMergeProvenance({
+    required this.leftSourceCourseId,
+    required this.leftSourceCourseVersion,
+    required this.leftSourceModifiedAtUtc,
+    required this.rightSourceCourseId,
+    required this.rightSourceCourseVersion,
+    required this.rightSourceModifiedAtUtc,
+    required this.mergedAtUtc,
+  });
+
+  Map<String, dynamic> toJson() => {
+    'leftSourceCourseId': leftSourceCourseId,
+    'leftSourceCourseVersion': leftSourceCourseVersion,
+    'leftSourceModifiedAtUtc': leftSourceModifiedAtUtc,
+    'rightSourceCourseId': rightSourceCourseId,
+    'rightSourceCourseVersion': rightSourceCourseVersion,
+    'rightSourceModifiedAtUtc': rightSourceModifiedAtUtc,
+    'mergedAtUtc': mergedAtUtc,
+  };
+
+  factory CourseMergeProvenance.fromJson(Map<String, dynamic> json) {
+    final provenance = CourseMergeProvenance(
+      leftSourceCourseId: _requiredString(
+        json,
+        'leftSourceCourseId',
+        'mergeProvenance',
+      ),
+      leftSourceCourseVersion: _requiredString(
+        json,
+        'leftSourceCourseVersion',
+        'mergeProvenance',
+      ),
+      leftSourceModifiedAtUtc: _optionalString(
+        json,
+        'leftSourceModifiedAtUtc',
+        '',
+      ),
+      rightSourceCourseId: _requiredString(
+        json,
+        'rightSourceCourseId',
+        'mergeProvenance',
+      ),
+      rightSourceCourseVersion: _requiredString(
+        json,
+        'rightSourceCourseVersion',
+        'mergeProvenance',
+      ),
+      rightSourceModifiedAtUtc: _optionalString(
+        json,
+        'rightSourceModifiedAtUtc',
+        '',
+      ),
+      mergedAtUtc: _requiredString(json, 'mergedAtUtc', 'mergeProvenance'),
+    );
+    final sameCourseRevision =
+        provenance.leftSourceCourseId == provenance.rightSourceCourseId &&
+        provenance.leftSourceCourseVersion ==
+            provenance.rightSourceCourseVersion;
+    final sourceTimestampsAreValid =
+        provenance.leftSourceModifiedAtUtc.isNotEmpty &&
+        provenance.rightSourceModifiedAtUtc.isNotEmpty &&
+        provenance.leftSourceModifiedAtUtc.endsWith('Z') &&
+        provenance.rightSourceModifiedAtUtc.endsWith('Z') &&
+        DateTime.tryParse(provenance.leftSourceModifiedAtUtc)?.isUtc == true &&
+        DateTime.tryParse(provenance.rightSourceModifiedAtUtc)?.isUtc == true;
+    if ((sameCourseRevision &&
+            (!sourceTimestampsAreValid ||
+                provenance.leftSourceModifiedAtUtc ==
+                    provenance.rightSourceModifiedAtUtc)) ||
+        !provenance.mergedAtUtc.endsWith('Z') ||
+        DateTime.tryParse(provenance.mergedAtUtc)?.isUtc != true) {
+      throw const FormatException('Course merge provenance is invalid.');
+    }
+    return provenance;
+  }
+}
+
 class Course {
   static const int currentFormatVersion = 9;
+  static const int mergedFormatVersion = 10;
 
   /// In-memory fixture identity used only by direct Dart constructors.
   /// Serialized v9 custom JSON must still provide lineage and Maintainer
@@ -554,6 +642,7 @@ class Course {
   final List<CourseRightsHolder> rightsHolders;
   final DerivativeWorksPolicy derivativeWorksPolicy;
   final CourseForkProvenance? forkProvenance;
+  final CourseMergeProvenance? mergeProvenance;
   final String languageVariant;
   final String startLevel;
   final String targetLevel;
@@ -614,6 +703,7 @@ class Course {
     this.rightsHolders = const [],
     this.derivativeWorksPolicy = DerivativeWorksPolicy.unspecified,
     this.forkProvenance,
+    this.mergeProvenance,
     this.languageVariant = '',
     this.startLevel = '',
     this.targetLevel = '',
@@ -673,6 +763,23 @@ class Course {
        worldFlagId = worldFlagId.trim(),
        customLessonLabel = customLessonLabel.trim(),
        buyACoffeeUrl = normalizeBuyACoffeeUrl(buyACoffeeUrl) {
+    if (formatVersion != currentFormatVersion &&
+        formatVersion != mergedFormatVersion) {
+      throw FormatException(
+        'Unsupported course formatVersion: $formatVersion.',
+      );
+    }
+    if (formatVersion == currentFormatVersion && mergeProvenance != null) {
+      throw const FormatException(
+        'Course Model v9 does not support mergeProvenance.',
+      );
+    }
+    if (formatVersion == mergedFormatVersion &&
+        (originType != CourseOriginType.custom || mergeProvenance == null)) {
+      throw const FormatException(
+        'Course Model v10 is reserved for merged custom Courses.',
+      );
+    }
     if (originType.isOfficial && forkProvenance != null) {
       throw const FormatException(
         'Only custom courses can have fork provenance.',
@@ -827,7 +934,7 @@ class Course {
   }
 
   Map<String, dynamic> toJson() => {
-    'formatVersion': currentFormatVersion,
+    'formatVersion': formatVersion,
     'publicationState': publicationState.name,
     'lessonNumberingMode': lessonNumberingMode.name,
     if (lessonNumberingMode == LessonNumberingMode.other)
@@ -878,6 +985,7 @@ class Course {
     if (derivativeWorksPolicy != DerivativeWorksPolicy.unspecified)
       'derivativeWorksPolicy': derivativeWorksPolicy.name,
     if (forkProvenance != null) 'forkProvenance': forkProvenance!.toJson(),
+    if (mergeProvenance != null) 'mergeProvenance': mergeProvenance!.toJson(),
     if (languageVariant.isNotEmpty) 'languageVariant': languageVariant,
     if (startLevel.isNotEmpty) 'startLevel': startLevel,
     if (targetLevel.isNotEmpty) 'targetLevel': targetLevel,
@@ -913,9 +1021,21 @@ class Course {
       );
     }
     final fv = json['formatVersion'];
-    if (fv != currentFormatVersion) {
+    if (fv != currentFormatVersion && fv != mergedFormatVersion) {
       throw FormatException(
-        'Unsupported course formatVersion: $fv. This version of QuisquisLingo supports Course Model formatVersion 9 only. Older course formats are not migrated or partially loaded.',
+        'Unsupported course formatVersion: $fv. This version of QuisquisLingo supports Course Model formats 9 and 10 only. Older course formats are not migrated or partially loaded.',
+      );
+    }
+    if (fv == currentFormatVersion && json.containsKey('mergeProvenance')) {
+      throw const FormatException(
+        'Course Model v9 does not support course.mergeProvenance.',
+      );
+    }
+    if (fv == mergedFormatVersion &&
+        (json['mergeProvenance'] is! Map ||
+            CourseOriginType.parse(json) != CourseOriginType.custom)) {
+      throw const FormatException(
+        'Course Model v10 requires course.mergeProvenance for a custom Course.',
       );
     }
     for (final removed in const [
@@ -1051,7 +1171,7 @@ class Course {
       );
     }
     return Course(
-      formatVersion: currentFormatVersion,
+      formatVersion: fv as int,
       courseId: _requiredString(json, 'courseId', 'course'),
       originType: originType,
       publisherId: _optionalString(json, 'publisherId', ''),
@@ -1138,6 +1258,11 @@ class Course {
                 : throw const FormatException(
                     'course.forkProvenance must be an object.',
                   )
+          : null,
+      mergeProvenance: json.containsKey('mergeProvenance')
+          ? CourseMergeProvenance.fromJson(
+              Map<String, dynamic>.from(json['mergeProvenance'] as Map),
+            )
           : null,
       languageVariant: _optionalString(json, 'languageVariant', ''),
       startLevel: _optionalString(json, 'startLevel', ''),

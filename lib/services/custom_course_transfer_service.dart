@@ -11,12 +11,15 @@ class CustomCourseTransferService {
   CustomCourseTransferService({
     Future<Directory> Function()? directory,
     Future<Directory> Function()? importDirectory,
+    Future<Directory> Function()? mergeDirectory,
   }) : _directory = directory,
-       _importDirectory = importDirectory ?? directory;
+       _importDirectory = importDirectory ?? directory,
+       _mergeDirectory = mergeDirectory ?? directory;
 
   static const int maxJsonBytes = 10 * 1024 * 1024;
   final Future<Directory> Function()? _directory;
   final Future<Directory> Function()? _importDirectory;
+  final Future<Directory> Function()? _mergeDirectory;
 
   Future<Directory> transferDirectory() async {
     final testDirectory = _directory;
@@ -49,12 +52,33 @@ class CustomCourseTransferService {
     return directory;
   }
 
-  Future<Course> importCourse() async {
-    final path = await importFilePath();
+  Future<String> mergeFilePath() async {
+    final directory = await mergeDirectory();
+    return '${directory.path}${Platform.pathSeparator}merge.json';
+  }
+
+  Future<Directory> mergeDirectory() async {
+    final injected = _mergeDirectory;
+    final directory = injected != null
+        ? await injected()
+        : Directory(
+            '${(await getApplicationDocumentsDirectory()).path}${Platform.pathSeparator}QuisquisLingo${Platform.pathSeparator}Merges',
+          );
+    await directory.create(recursive: true);
+    return directory;
+  }
+
+  Future<Course> importCourse() async =>
+      _readCourse(await importFilePath(), 'import.json');
+
+  Future<Course> mergeCourse() async =>
+      _readCourse(await mergeFilePath(), 'merge.json');
+
+  Future<Course> _readCourse(String path, String fileName) async {
     final file = File(path);
     if (!await file.exists()) {
       throw FormatException(
-        'No import.json found. Copy the course file to $path, then press Import Course JSON again.',
+        'No $fileName found. Copy the course file to $path, then try again.',
       );
     }
     if (await file.length() > maxJsonBytes) {
@@ -68,14 +92,14 @@ class CustomCourseTransferService {
     try {
       raw = utf8.decode(bytes);
     } catch (_) {
-      throw const FormatException('import.json must be valid UTF-8 text.');
+      throw FormatException('$fileName must be valid UTF-8 text.');
     }
 
     dynamic decoded;
     try {
       decoded = jsonDecode(raw);
     } catch (_) {
-      throw const FormatException('import.json is not valid JSON.');
+      throw FormatException('$fileName is not valid JSON.');
     }
     if (decoded is! Map) {
       throw const FormatException('Course JSON root must be an object.');

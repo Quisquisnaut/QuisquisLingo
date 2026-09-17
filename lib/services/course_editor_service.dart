@@ -359,11 +359,13 @@ class CourseEditorService {
   static void _requirePreservedProvenance(Course original, Course candidate) {
     if (jsonEncode(original.forkProvenance?.toJson()) !=
             jsonEncode(candidate.forkProvenance?.toJson()) ||
+        jsonEncode(original.mergeProvenance?.toJson()) !=
+            jsonEncode(candidate.mergeProvenance?.toJson()) ||
         jsonEncode(original.originalCourseCreator.toJson()) !=
             jsonEncode(candidate.originalCourseCreator.toJson()) ||
         original.originalCreatedAtUtc != candidate.originalCreatedAtUtc) {
       throw const FormatException(
-        'Original Course and fork provenance cannot be changed or removed.',
+        'Original Course, fork and merge provenance cannot be changed or removed.',
       );
     }
   }

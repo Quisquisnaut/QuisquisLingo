@@ -157,6 +157,7 @@ void main() {
         numericSuffixGenerator: () => 54321,
         randomIndex: (_) => 0,
       );
+
       await profiles.createProfile('Existing Learner');
 
       await tester.pumpWidget(QuisquisLingoApp(profileService: profiles));
@@ -194,6 +195,29 @@ void main() {
       expect(find.text('QuisquisLingo Beta testing'), findsOneWidget);
     },
   );
+
+  testWidgets('Beta testing acknowledgement is shown only once', (
+    tester,
+  ) async {
+    SharedPreferences.setMockInitialValues({
+      'startup_animation_enabled': false,
+      'automatic_update_check_enabled': false,
+      'one_time_notice_seen_beta_testing': true,
+    });
+    final profiles = ProfileService(
+      idGenerator: () => _existingLearnerId,
+      numericSuffixGenerator: () => 54321,
+      randomIndex: (_) => 0,
+    );
+    await profiles.createProfile('Existing Learner');
+
+    await tester.pumpWidget(QuisquisLingoApp(profileService: profiles));
+    await _pumpUntil(tester, find.byKey(const Key('qql-startup-animation')));
+    await _finishStartupGate(tester);
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(find.text('QuisquisLingo Beta testing'), findsNothing);
+  });
 
   testWidgets(
     'reduced motion keeps the final logo static for the full startup gate',

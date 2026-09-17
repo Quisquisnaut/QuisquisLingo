@@ -115,6 +115,7 @@ class _DebugScreenState extends State<DebugScreen> {
       );
       return;
     }
+
     if (!mounted) return;
     final renderBox = context.findRenderObject() as RenderBox?;
     final shareOrigin = renderBox == null
@@ -139,10 +140,26 @@ class _DebugScreenState extends State<DebugScreen> {
     }
   }
 
+  void _showHelp() {
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (_) => const DebugHelpScreen()));
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Debug')),
+      appBar: AppBar(
+        title: const Text('Debug'),
+        actions: [
+          IconButton(
+            key: const Key('debug-help'),
+            tooltip: 'Debug Help',
+            onPressed: _showHelp,
+            icon: const Icon(Icons.help_outline),
+          ),
+        ],
+      ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : ListView(
@@ -200,4 +217,64 @@ class _DebugScreenState extends State<DebugScreen> {
             ),
     );
   }
+}
+
+class DebugHelpScreen extends StatelessWidget {
+  const DebugHelpScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+    appBar: AppBar(title: const Text('Debug Help')),
+    body: ListView(
+      padding: const EdgeInsets.all(16),
+      children: const [
+        _DebugHelpSection(
+          title: 'Crash Log',
+          body:
+              'This Beta version keeps an automatic local Crash Log to help investigate crashes and other serious technical problems.\n\n'
+              'For cases where QQL crashes or closes unexpectedly. If available after a crash, copy or export this file and provide it with your report. It is primarily useful for startup and runtime crashes.\n\n'
+              'Please use the app normally and reproduce the crash. After the app closes, reopen it if necessary. When you send the Crash Log, also say what you clicked immediately before the crash. Please send the whole log file, not a screenshot of it.\n\n'
+              'The Crash Log contains technical system information, session starts, uncaught errors and stack traces. It does not intentionally record learner names, exercise answers or course content.\n\n'
+              'If the Crash Log file is deleted, QuisquisLingo recreates it automatically at the next app start or crash write.',
+        ),
+        _DebugHelpSection(
+          title: 'Diagnostic Log',
+          body:
+              'For problems that do not necessarily crash QQL, including audio, TTS, Recorded MP3, unexpected playback, source-resolution problems, and other runtime anomalies. When possible, reproduce the problem and export this log shortly afterward. To isolate one specific reproducible problem, you may clear it first; clearing is optional. For intermittent or difficult-to-reproduce problems, export the current Diagnostic Log before clearing to preserve existing evidence.',
+        ),
+        _DebugHelpSection(
+          title: 'Privacy',
+          body:
+              'Learner audio diagnostics are designed to avoid recording spoken text, answers, course content, or full personal file paths.',
+        ),
+      ],
+    ),
+  );
+}
+
+class _DebugHelpSection extends StatelessWidget {
+  const _DebugHelpSection({required this.title, required this.body});
+
+  final String title;
+  final String body;
+
+  @override
+  Widget build(BuildContext context) => Card(
+    child: Padding(
+      padding: const EdgeInsets.all(12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 8),
+          Text(body),
+        ],
+      ),
+    ),
+  );
 }

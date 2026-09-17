@@ -74,10 +74,11 @@ void main() {
       buildSignature: '',
     );
     SharedPreferences.setMockInitialValues({
-      'one_time_notice_seen_welcome_2.0.36+236000': true,
+      'one_time_notice_seen_welcome_2.0.37+237004': true,
       'sound_effects_enabled': false,
     });
     await ProfileService().addProfile('Navigation Learner');
+    await SettingsService().completeWelcomeWizard();
   });
 
   test(
@@ -1794,6 +1795,10 @@ void main() {
         if (await profiles.getActiveProfile() == 'PIN Learner') break;
       }
       expect(await profiles.getActiveProfile(), 'PIN Learner');
+      await _pumpUntil(tester, find.byKey(const Key('welcome-wizard')));
+      await tester.tap(find.byKey(const Key('welcome-wizard-skip')));
+      await tester.pumpAndSettle();
+      expect(await SettingsService().hasCompletedWelcomeWizard(), isTrue);
     },
   );
 
@@ -3118,6 +3123,7 @@ void main() {
     (tester) async {
       SharedPreferences.setMockInitialValues({'sound_effects_enabled': false});
       await ProfileService().addProfile('Popup Learner');
+      await SettingsService().completeWelcomeWizard();
 
       await tester.pumpWidget(const MaterialApp(home: HomeScreen()));
       await tester.runAsync(
@@ -3138,8 +3144,8 @@ void main() {
       final phrase = dialogTexts.singleWhere(
         (text) =>
             text.data != 'Welcome to QuisquisLingo' &&
-            text.data != 'Version 2.0.36' &&
-            text.data != 'Build 236, Revision 0' &&
+            text.data != 'Version 2.0.37' &&
+            text.data != 'Build 237, Revision 4' &&
             text.data != 'Continue',
       );
       final welcomeDialog = tester.widget<AlertDialog>(
@@ -3152,11 +3158,11 @@ void main() {
         const Color(0xFF0756DF),
       );
       expect(
-        tester.widget<Text>(find.text('Version 2.0.36')).style?.color,
+        tester.widget<Text>(find.text('Version 2.0.37')).style?.color,
         const Color(0xFF0756DF),
       );
       expect(
-        tester.widget<Text>(find.text('Build 236, Revision 0')).style?.color,
+        tester.widget<Text>(find.text('Build 237, Revision 4')).style?.color,
         const Color(0xFF0756DF),
       );
       expect(find.textContaining('22621'), findsNothing);
@@ -3184,7 +3190,7 @@ void main() {
       final betaDialog = tester.widget<AlertDialog>(find.byType(AlertDialog));
       expect(betaDialog.backgroundColor, isNull);
       expect(betaDialog.surfaceTintColor, isNull);
-      expect(find.textContaining('Expiry date: 2026-10-16.'), findsOneWidget);
+      expect(find.textContaining('Expiry date: 2026-10-17.'), findsOneWidget);
       expect(find.widgetWithText(FilledButton, 'OK'), findsOneWidget);
       expect(
         tester
@@ -3212,6 +3218,7 @@ void main() {
     addTearDown(dispatcher.clearPlatformBrightnessTestValue);
     SharedPreferences.setMockInitialValues({'sound_effects_enabled': false});
     await ProfileService().addProfile('Dark Popup Learner');
+    await SettingsService().completeWelcomeWizard();
 
     await tester.pumpWidget(const MaterialApp(home: HomeScreen()));
     await tester.runAsync(
@@ -3262,6 +3269,7 @@ void main() {
         'German Learner',
         generateScreenNameSuffix: false,
       );
+      await SettingsService().completeWelcomeWizard();
       await prefs.setString(
         profiles.keyForProfileId(
           germanLearner.learnerProfileId,

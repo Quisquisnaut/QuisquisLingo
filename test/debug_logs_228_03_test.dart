@@ -83,5 +83,15 @@ void main() {
     );
     expect(find.textContaining('spoken text'), findsOneWidget);
     expect(find.textContaining('full personal file paths'), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('debug-help')));
+    await tester.pumpAndSettle();
+
+    expect(find.widgetWithText(AppBar, 'Debug Help'), findsOneWidget);
+    expect(find.textContaining('automatic local Crash Log'), findsOneWidget);
+    await tester.drag(find.byType(Scrollable).last, const Offset(0, -500));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('unexpected playback'), findsOneWidget);
+    expect(find.textContaining('full personal file paths'), findsOneWidget);
   });
 }

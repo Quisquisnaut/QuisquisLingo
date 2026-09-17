@@ -23,6 +23,7 @@ void main() {
       'one_time_notice_seen_welcome_${AppMetadata.technicalVersion}': true,
     });
     await ProfileService().addProfile('Round audio indicator learner');
+    await SettingsService().completeWelcomeWizard();
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(
           const MethodChannel('plugins.flutter.io/path_provider'),

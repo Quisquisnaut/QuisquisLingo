@@ -560,6 +560,7 @@ class _StartupCrashLogNotice extends StatefulWidget {
 }
 
 class _StartupCrashLogNoticeState extends State<_StartupCrashLogNotice> {
+  static const _betaTestingNoticeId = 'beta_testing';
   bool _shown = false;
 
   @override
@@ -573,6 +574,10 @@ class _StartupCrashLogNoticeState extends State<_StartupCrashLogNotice> {
   }
 
   Future<void> _showInstructions() async {
+    final settings = SettingsService();
+    if (await settings.hasSeenOneTimeNotice(_betaTestingNoticeId) || !mounted) {
+      return;
+    }
     // Show the diagnostic path actually used on the current platform.
     final logPath =
         CrashLogService.instance.crashLogPath ??
@@ -612,14 +617,6 @@ class _StartupCrashLogNoticeState extends State<_StartupCrashLogNotice> {
               const Text(
                 'When you send it, also say what you clicked immediately before the crash. Please send the whole log file, not a screenshot of it.',
               ),
-              const SizedBox(height: 12),
-              const Text(
-                'The Crash Log contains technical system information, session starts, uncaught errors and stack traces. It does not intentionally record learner names, exercise answers or course content.',
-              ),
-              const SizedBox(height: 12),
-              const Text(
-                'If the Crash Log file is deleted, QuisquisLingo recreates it automatically at the next app start or crash write.',
-              ),
             ],
           ),
         ),
@@ -631,6 +628,7 @@ class _StartupCrashLogNoticeState extends State<_StartupCrashLogNotice> {
         ],
       ),
     );
+    await settings.markOneTimeNoticeSeen(_betaTestingNoticeId);
     if (mounted) unawaited(_checkForUpdateAtStartup());
   }
 

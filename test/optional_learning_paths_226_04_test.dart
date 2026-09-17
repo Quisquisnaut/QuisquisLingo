@@ -34,6 +34,7 @@ void main() {
       learnerProfileId: _optionalPathsProfileId,
       generateScreenNameSuffix: false,
     );
+    await SettingsService().completeWelcomeWizard();
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(
           const MethodChannel('plugins.flutter.io/path_provider'),

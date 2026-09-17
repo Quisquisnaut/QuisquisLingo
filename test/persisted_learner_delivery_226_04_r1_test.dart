@@ -86,6 +86,7 @@ void main() {
       'Persisted delivery tester',
       learnerProfileId: _profileId,
     );
+    await SettingsService().completeWelcomeWizard();
     await SettingsService().setAudioExercisesEnabled(false);
     editor = CourseEditorService(
       backupService: CourseBackupService(
