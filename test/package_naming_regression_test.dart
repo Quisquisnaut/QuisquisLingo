@@ -23,7 +23,10 @@ void main() {
         '\$packageName = "quisquislingo_android_debug_beta_\${buildNumber}"',
       ),
     );
-    expect(androidPackagingScript, contains('flutter build apk --debug --no-pub'));
+    expect(
+      androidPackagingScript,
+      contains('flutter build apk --debug --no-pub'),
+    );
     expect(androidPackagingScript, contains('matXpack'));
     expect(
       agentInstructions,

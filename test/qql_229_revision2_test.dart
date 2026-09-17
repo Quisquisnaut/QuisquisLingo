@@ -145,47 +145,43 @@ void main() {
     },
   );
 
-  testWidgets(
-    'Course Info Editor shows Team and model IDs conditionally',
-    (tester) async {
-      final profiles = await _profiles();
-      await _team(profiles);
-      final course = _course(
-        assignedTeamId: _teamId,
-        ttsLanguage: 'it-IT',
-        targetLanguageTag: 'it-IT',
-        sourceLanguageTag: 'en-GB',
-        originalCreatedAtUtc: '2024-01-02T10:00:00.000Z',
-        modifiedAtUtc: '2026-09-09T11:00:00.000Z',
-      );
-      await _pumpEditor(tester, course);
-      await _openCourseInfoEditor(tester);
+  testWidgets('Course Info Editor shows Team and model IDs conditionally', (
+    tester,
+  ) async {
+    final profiles = await _profiles();
+    await _team(profiles);
+    final course = _course(
+      assignedTeamId: _teamId,
+      ttsLanguage: 'it-IT',
+      targetLanguageTag: 'it-IT',
+      sourceLanguageTag: 'en-GB',
+      originalCreatedAtUtc: '2024-01-02T10:00:00.000Z',
+      modifiedAtUtc: '2026-09-09T11:00:00.000Z',
+    );
+    await _pumpEditor(tester, course);
+    await _openCourseInfoEditor(tester);
 
-      expect(find.text('Revision Two Team'), findsWidgets);
-      expect(find.textContaining(_teamId), findsNothing);
-      expect(find.byKey(const Key('course-info-model-version')), findsNothing);
-      expect(find.text('Italian (it-IT)'), findsOneWidget);
-      expect(find.text('English (en-GB)'), findsOneWidget);
-      expect(find.textContaining('2024'), findsOneWidget);
-      expect(find.textContaining('2026'), findsOneWidget);
+    expect(find.text('Revision Two Team'), findsWidgets);
+    expect(find.textContaining(_teamId), findsNothing);
+    expect(find.byKey(const Key('course-info-model-version')), findsNothing);
+    expect(find.text('Italian (it-IT)'), findsOneWidget);
+    expect(find.text('English (en-GB)'), findsOneWidget);
+    expect(find.textContaining('2024'), findsOneWidget);
+    expect(find.textContaining('2026'), findsOneWidget);
 
-      await tester.pumpWidget(const SizedBox.shrink());
-      await tester.pumpAndSettle();
-      SharedPreferences.setMockInitialValues({
-        EditorDisplayPreferences.showInternalIdsKey: true,
-      });
-      EditorDisplayPreferences.resetForTesting();
-      await _profiles();
-      await _team(ProfileService());
-      await _pumpEditor(tester, course);
-      await _openCourseInfoEditor(tester);
-      expect(find.textContaining('Team ID: $_teamId'), findsOneWidget);
-      expect(
-        find.text('Course Model: v${course.formatVersion}'),
-        findsOneWidget,
-      );
-    },
-  );
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pumpAndSettle();
+    SharedPreferences.setMockInitialValues({
+      EditorDisplayPreferences.showInternalIdsKey: true,
+    });
+    EditorDisplayPreferences.resetForTesting();
+    await _profiles();
+    await _team(ProfileService());
+    await _pumpEditor(tester, course);
+    await _openCourseInfoEditor(tester);
+    expect(find.textContaining('Team ID: $_teamId'), findsOneWidget);
+    expect(find.text('Course Model: v${course.formatVersion}'), findsOneWidget);
+  });
 
   test(
     'one flag resolution is shared by badge, backdrop, palette and entry',

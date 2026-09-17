@@ -3345,7 +3345,8 @@
       "artworkSourcePage": "https://commons.wikimedia.org/wiki/File:Proposed_flag_of_Miranda_de_l_Douro_(MPB).svg",
       "artworkLicense": "CC BY 4.0",
       "artworkAuthor": "ItsGandaM1ke",
-      "artworkSha1": "127ea565360ccb2a5c901cdd234a8c833ea54107",
+      "artworkSourceSha1": "127ea565360ccb2a5c901cdd234a8c833ea54107",
+      "artworkSha1": "9105681c62f43ea80d4c7b24a00118cf47ad3ff9",
       "distractorTags": [
         "color:blue",
         "color:green",
@@ -4162,7 +4163,8 @@
       "artworkSourcePage": "https://commons.wikimedia.org/wiki/File:CHE_Kanton_Graub%C3%BCnden_Flag.svg",
       "artworkLicense": "Public domain",
       "artworkAuthor": "Kanton Graubünden; Anton Nigg",
-      "artworkSha1": "e3a0435656a048515bd1ae175e0a7a18f1c2329f",
+      "artworkSourceSha1": "e3a0435656a048515bd1ae175e0a7a18f1c2329f",
+      "artworkSha1": "f8155f5694bb08239c344f9ae1f7eb0e17f11c09",
       "distractorTags": [
         "color:black",
         "color:white",
@@ -4407,7 +4409,8 @@
       "artworkSourcePage": "https://commons.wikimedia.org/wiki/File:Flag_of_Sardinia,_Italy.svg",
       "artworkLicense": "CC BY-SA 3.0",
       "artworkAuthor": "Angelus",
-      "artworkSha1": "593068e1d9b8b1a96010d21ee2be2ba2483a15e9",
+      "artworkSourceSha1": "593068e1d9b8b1a96010d21ee2be2ba2483a15e9",
+      "artworkSha1": "112ea2aae498ddde2bfe7b124958ce38d8c3adaf",
       "distractorTags": [
         "color:black",
         "color:red",
@@ -5329,7 +5332,8 @@
       "artworkSourcePage": "https://commons.wikimedia.org/wiki/File:Flag_of_Veneto.svg",
       "artworkLicense": "CC BY-SA 3.0",
       "artworkAuthor": "F l a n k e r",
-      "artworkSha1": "28ba1cbb86ea051324975702bb3aeb8979f75925",
+      "artworkSourceSha1": "28ba1cbb86ea051324975702bb3aeb8979f75925",
+      "artworkSha1": "06058557d4abb46ca40f7d9314510b3689b7d457",
       "distractorTags": [
         "color:blue",
         "color:gold",

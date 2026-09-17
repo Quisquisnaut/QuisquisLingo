@@ -64,7 +64,10 @@ void main() {
       model.indexOf('class LearningRound {'),
     );
     expect(lessonModel, isNot(contains('final String? imageAsset;')));
-    expect(lessonModel, isNot(contains("if (imageAsset != null) 'imageAsset'")));
+    expect(
+      lessonModel,
+      isNot(contains("if (imageAsset != null) 'imageAsset'")),
+    );
     expect(lessonModel, contains("j.containsKey('imageAsset')"));
     expect(model, contains('String get imageAsset =>'));
     expect(editor, isNot(contains("title: const Text('Lesson image')")));

@@ -81,6 +81,11 @@ void main() {
         400,
         scrollable: find.byType(Scrollable).last,
       );
+      await tester.pumpAndSettle();
+      // Nudge to the very bottom of the form so the button's tap target is
+      // fully inside the fixed test viewport, not merely present in the tree.
+      await tester.drag(find.byType(Scrollable).last, const Offset(0, -600));
+      await tester.pumpAndSettle();
       await tester.tap(find.byKey(const Key('exercise-save-draft')));
       await tester.pumpAndSettle();
 

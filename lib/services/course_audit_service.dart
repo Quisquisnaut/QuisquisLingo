@@ -979,6 +979,57 @@ class CourseAuditService {
     return hit;
   }
 
+  /// Validates a gap-based Arrange exercise: its inline layout must declare
+  /// at least one gap, every declared gap must have exactly one assignment
+  /// referencing an available block, and the same 0-2 distractor allowance
+  /// as the whole-sentence Arrange exercises applies to unused blocks.
+  void _auditArrangeGapFill(
+    Exercise ex,
+    Set<String> itemIdSet,
+    void Function(AuditCode, String) add,
+  ) {
+    final gapIds = <String>[];
+    for (final element in ex.arrangeLayout) {
+      if (element.type != 'gap') continue;
+      if (element.text.trim().isEmpty) {
+        add(
+          AuditCode.wordBlockDataRequired,
+          'A gap in the Arrange layout has no gap ID.',
+        );
+        continue;
+      }
+      gapIds.add(element.text);
+    }
+    if (gapIds.isEmpty || gapIds.toSet().length != gapIds.length) {
+      add(
+        AuditCode.wordBlockDataRequired,
+        'Gap-fill Arrange exercise needs one or more uniquely identified gaps in its layout.',
+      );
+    }
+    final assignments = ex.arrangeGapAssignments;
+    final assignedGapIds = assignments.keys.toSet();
+    if (assignedGapIds.length != gapIds.toSet().length ||
+        !assignedGapIds.containsAll(gapIds)) {
+      add(
+        AuditCode.buildTranslationInvalidSequence,
+        'Every gap in the layout needs exactly one required block assignment.',
+      );
+    }
+    if (assignments.values.any((id) => !itemIdSet.contains(id))) {
+      add(
+        AuditCode.buildTranslationInvalidSequence,
+        'A gap assignment refers to a block that is not available on this exercise.',
+      );
+    }
+    final extraCount = itemIdSet.difference(assignments.values.toSet()).length;
+    if (extraCount < 0 || extraCount > 2) {
+      add(
+        AuditCode.wordBlockDistractorCount,
+        'Gap-fill Arrange exercise may contain 0, 1 or 2 extra distractor blocks; found $extraCount.',
+      );
+    }
+  }
+
   /// High-confidence Word Block language check. It deliberately reports only
   /// cases where both the answer and the distractor contain unambiguous common
   /// words from different supported languages; ambiguous vocabulary is left to
@@ -1497,7 +1548,10 @@ class CourseAuditService {
         );
       }
     }
-    if (const {
+    if (const {'word_order', 'build_translation'}.contains(ex.type) &&
+        ex.hasArrangeGaps) {
+      _auditArrangeGapFill(ex, itemIdSet, add);
+    } else if (const {
       'word_order',
       'image_word',
       'build_translation',

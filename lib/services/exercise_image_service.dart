@@ -26,32 +26,48 @@ class ExerciseImageService {
           return const {'png', 'jpg', 'jpeg', 'webp'}.contains(ext);
         })
         .toList();
-    candidates.sort((a, b) => a.path.toLowerCase().compareTo(b.path.toLowerCase()));
+    candidates.sort(
+      (a, b) => a.path.toLowerCase().compareTo(b.path.toLowerCase()),
+    );
     if (candidates.isEmpty) {
-      throw StateError('No image found in ${importDir.path}. Copy one PNG, JPG, JPEG or WEBP image there and try again.');
+      throw StateError(
+        'No image found in ${importDir.path}. Copy one PNG, JPG, JPEG or WEBP image there and try again.',
+      );
     }
     if (candidates.length > 1) {
-      throw StateError('More than one image was found in ${importDir.path}. Keep only the image you want to import, then try again.');
+      throw StateError(
+        'More than one image was found in ${importDir.path}. Keep only the image you want to import, then try again.',
+      );
     }
     final source = candidates.single;
     if (await source.length() > maxImageBytes) {
-      throw StateError('Image is larger than the 50 KB maximum. Compress or resize it before importing.');
+      throw StateError(
+        'Image is larger than the 50 KB maximum. Compress or resize it before importing.',
+      );
     }
-    final dir=Directory('${(await getApplicationSupportDirectory()).path}${Platform.pathSeparator}exercise_images');
-    await dir.create(recursive:true);
+    final dir = Directory(
+      '${(await getApplicationSupportDirectory()).path}${Platform.pathSeparator}exercise_images',
+    );
+    await dir.create(recursive: true);
     final pickedName = source.uri.pathSegments.last;
-    final safe=pickedName.replaceAll(RegExp(r'[^A-Za-z0-9._-]'),'_');
-    final target=File('${dir.path}${Platform.pathSeparator}${DateTime.now().microsecondsSinceEpoch}_$safe');
+    final safe = pickedName.replaceAll(RegExp(r'[^A-Za-z0-9._-]'), '_');
+    final target = File(
+      '${dir.path}${Platform.pathSeparator}${DateTime.now().microsecondsSinceEpoch}_$safe',
+    );
     await source.copy(target.path);
     return target.path;
   }
 
-  Future<({int width,int height,int bytes})> inspect(String path) async {
+  Future<({int width, int height, int bytes})> inspect(String path) async {
     final file = File(path);
     final bytes = await file.readAsBytes();
     final codec = await ui.instantiateImageCodec(bytes);
     final frame = await codec.getNextFrame();
-    final result = (width: frame.image.width, height: frame.image.height, bytes: bytes.length);
+    final result = (
+      width: frame.image.width,
+      height: frame.image.height,
+      bytes: bytes.length,
+    );
     frame.image.dispose();
     codec.dispose();
     return result;

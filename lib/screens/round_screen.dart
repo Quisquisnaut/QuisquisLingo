@@ -150,6 +150,14 @@ class _RoundScreenState extends State<RoundScreen> {
   List<_MatchOption> _matchingRightOptions = [];
   List<_MatchPairView> _matchingLeftPairs = [];
 
+  // Gap-based Arrange state. `_gapFill` maps each gap ID from the exercise's
+  // layout to the item ID currently placed there (or null when empty).
+  // `_armedGapId` is the gap most recently tapped by its own tile, awaiting a
+  // second tap on a destination gap to move/swap it, or a re-tap to cancel.
+  final Map<String, String?> _gapFill = {};
+  String? _armedGapId;
+  List<String> _gapTileOrder = [];
+
   static const _autumnBackgrounds = <Color>[
     Color(0xFFF4EBDD), // warm cream
     Color(0xFFE7E1CF), // oat
@@ -390,6 +398,16 @@ class _RoundScreenState extends State<RoundScreen> {
         List.generate(ex.missingWords.length, (_) => TextEditingController()),
       );
     _matchingSelections.clear();
+    _gapFill.clear();
+    _armedGapId = null;
+    _gapTileOrder = ex.hasArrangeGaps
+        ? _shuffledItemIds(ex.interaction.items)
+        : const [];
+    if (ex.hasArrangeGaps) {
+      for (final element in ex.arrangeLayout) {
+        if (element.type == 'gap') _gapFill[element.text] = null;
+      }
+    }
 
     if (const {
       'fill_blank',
@@ -604,6 +622,14 @@ class _RoundScreenState extends State<RoundScreen> {
     return tokens;
   }
 
+  List<String> _shuffledItemIds(List<ExerciseItem> items) {
+    final ids = items.map((item) => item.id).toList();
+    if (ids.length < 2) return ids;
+    // A valid random shuffle may legitimately reproduce the source order.
+    ids.shuffle(_random);
+    return ids;
+  }
+
   Future<void> _prepareTts() async {
     final text = _exercise.tts;
     if (text == null || text.isEmpty) return;
@@ -685,9 +711,11 @@ class _RoundScreenState extends State<RoundScreen> {
         if (ex.accepted.isNotEmpty) return ex.accepted.first;
         break;
       case 'word_order':
+        if (ex.hasArrangeGaps) return _arrangeGapAnswerText(ex);
         if (ex.orderAnswer.isNotEmpty) return ex.orderAnswer.join(' ');
         break;
       case 'build_translation':
+        if (ex.hasArrangeGaps) return _arrangeGapAnswerText(ex);
         if (ex.correctTranslationTexts.isNotEmpty) {
           return ex.correctTranslationTexts.join(' / ');
         }
@@ -711,6 +739,24 @@ class _RoundScreenState extends State<RoundScreen> {
     return 'See the course answer.';
   }
 
+  String _itemValue(Exercise ex, String? itemId) {
+    if (itemId == null) return '';
+    return ex.interaction.items
+            .where((item) => item.id == itemId)
+            .map((item) => item.value)
+            .firstOrNull ??
+        '';
+  }
+
+  String _arrangeGapAnswerText(Exercise ex) {
+    final assignments = ex.arrangeGapAssignments;
+    if (assignments.isEmpty) return 'See the course answer.';
+    return assignments.entries
+        .map((entry) => _itemValue(ex, entry.value))
+        .where((value) => value.isNotEmpty)
+        .join(' ');
+  }
+
   String _answerState() {
     if (_selected != null && _selected! < _choiceOptions.length) {
       return 'Selected choice ${_selected! + 1}: ${_choiceOptions[_selected!].text}';
@@ -719,6 +765,9 @@ class _RoundScreenState extends State<RoundScreen> {
       return 'Typed answer: ${_textController.text.trim()}';
     }
     if (_builtOrder.isNotEmpty) return 'Word order: ${_builtOrder.join(' ')}';
+    if (_gapFill.values.any((itemId) => itemId != null)) {
+      return 'Gaps: ${_gapFill.entries.map((e) => '${e.key}=${_itemValue(_exercise, e.value)}').join(' | ')}';
+    }
     if (_missingWordControllers.any((c) => c.text.trim().isNotEmpty)) {
       return 'Missing words: ${_missingWordControllers.map((c) => c.text.trim()).join(' | ')}';
     }
@@ -1348,6 +1397,192 @@ class _RoundScreenState extends State<RoundScreen> {
     );
   }
 
+  void _onGapTileTap(String itemId) {
+    if (_answered) return;
+    setState(() {
+      final armed = _armedGapId;
+      if (armed != null && _gapFill[armed] == null) {
+        // A tile tap while an empty gap is armed fills that specific gap.
+        _gapFill[armed] = itemId;
+        _armedGapId = null;
+        return;
+      }
+      // Otherwise fill the first empty gap in layout order.
+      final target = _gapFill.entries
+          .firstWhere(
+            (entry) => entry.value == null,
+            orElse: () => const MapEntry('', ''),
+          )
+          .key;
+      if (target.isEmpty) return;
+      _gapFill[target] = itemId;
+    });
+  }
+
+  void _onGapSlotTap(String gapId) {
+    if (_answered) return;
+    setState(() {
+      final armed = _armedGapId;
+      if (armed == null) {
+        // Arm this gap. An empty gap awaits a bank tile; a filled gap awaits
+        // a destination gap to move/swap its tile into.
+        _armedGapId = gapId;
+        return;
+      }
+      if (armed == gapId) {
+        // Tapping the armed gap again cancels the pending action.
+        _armedGapId = null;
+        return;
+      }
+      if (_gapFill[armed] == null) {
+        // The armed gap is empty; re-arm to the newly tapped gap instead.
+        _armedGapId = gapId;
+        return;
+      }
+      // Move (or swap) the armed gap's tile into the tapped gap.
+      final movingItemId = _gapFill[armed];
+      final displacedItemId = _gapFill[gapId];
+      _gapFill[gapId] = movingItemId;
+      _gapFill[armed] = displacedItemId;
+      _armedGapId = null;
+    });
+  }
+
+  void _removeGapTile(String gapId) {
+    if (_answered) return;
+    setState(() {
+      _gapFill[gapId] = null;
+      if (_armedGapId == gapId) _armedGapId = null;
+    });
+  }
+
+  void _submitArrangeGaps() {
+    final assignments = _exercise.arrangeGapAssignments;
+    if (assignments.isEmpty || _gapFill.values.any((v) => v == null)) {
+      _mark(false);
+      return;
+    }
+    final correct = assignments.entries.every(
+      (entry) => _gapFill[entry.key] == entry.value,
+    );
+    _mark(correct);
+  }
+
+  Widget _arrangeGapFillExercise(Exercise ex) {
+    final placed = _gapFill.values.whereType<String>().toSet();
+    final available = _gapTileOrder.where((id) => !placed.contains(id));
+    final itemById = {for (final item in ex.interaction.items) item.id: item};
+    final allGapsFilled = _gapFill.values.every((v) => v != null);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if ((ex.tts ?? '').trim().isNotEmpty) ...[
+          Align(
+            alignment: Alignment.centerLeft,
+            child: FilledButton.tonalIcon(
+              onPressed: () => _speakText(ex.tts!),
+              icon: const Icon(Icons.volume_up_outlined),
+              label: const Text('Play audio'),
+            ),
+          ),
+          const SizedBox(height: 14),
+        ],
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: _exercisePanelColor,
+            borderRadius: BorderRadius.circular(14),
+          ),
+          child: Wrap(
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 6,
+            runSpacing: 8,
+            children: [
+              for (final segment in ex.arrangeLayout)
+                if (segment.type == 'text')
+                  Text(
+                    segment.text,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  )
+                else
+                  _gapSlot(
+                    gapId: segment.text,
+                    label: itemById[_gapFill[segment.text]]?.value,
+                    armed: _armedGapId == segment.text,
+                  ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            for (final itemId in available)
+              ActionChip(
+                key: Key('arrange-tile-$itemId'),
+                label: Text(itemById[itemId]?.value ?? ''),
+                onPressed: _answered ? null : () => _onGapTileTap(itemId),
+              ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        FilledButton(
+          onPressed: _answered || !allGapsFilled ? null : _submitArrangeGaps,
+          child: const Text('Check'),
+        ),
+      ],
+    );
+  }
+
+  Widget _gapSlot({
+    required String gapId,
+    required String? label,
+    required bool armed,
+  }) {
+    final scheme = Theme.of(context).colorScheme;
+    return Container(
+      constraints: const BoxConstraints(minWidth: 56),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: label == null
+            ? scheme.surfaceContainerHighest
+            : scheme.primaryContainer,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: armed ? scheme.primary : Colors.transparent,
+          width: 2,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // A sibling (not nested) tap target arms the gap for a move/swap,
+          // or fills it from an armed empty gap.
+          GestureDetector(
+            key: Key('gap-slot-$gapId'),
+            behavior: HitTestBehavior.opaque,
+            onTap: _answered ? null : () => _onGapSlotTap(gapId),
+            child: Text(
+              label ?? '___',
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+          ),
+          if (label != null) ...[
+            const SizedBox(width: 4),
+            // A separate sibling tap target removes the placed tile.
+            GestureDetector(
+              key: Key('gap-remove-$gapId'),
+              behavior: HitTestBehavior.opaque,
+              onTap: _answered ? null : () => _removeGapTile(gapId),
+              child: const Icon(Icons.close, size: 16),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
   Widget _imageWordExercise(Exercise ex) {
     final available = List<String>.from(_tokenOptions);
     for (final token in _builtOrder) {
@@ -1936,7 +2171,9 @@ class _RoundScreenState extends State<RoundScreen> {
         return _fillBlankExercise(ex);
       case 'word_order':
       case 'build_translation':
-        return _wordOrderExercise(ex);
+        return ex.hasArrangeGaps
+            ? _arrangeGapFillExercise(ex)
+            : _wordOrderExercise(ex);
       case 'image_word':
         return _imageWordExercise(ex);
       case 'matching':

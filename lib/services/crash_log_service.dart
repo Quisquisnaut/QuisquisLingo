@@ -21,9 +21,15 @@ class CrashLogService {
 
   File? _file;
   bool _initialised = false;
+  // Once a persistent-storage attempt fails (for example the widget-test
+  // harness, which has no real Documents directory), retrying on every
+  // subsequent record*() call cannot succeed and only repeats the same
+  // platform exception and warning. Remember the failure and stop retrying
+  // for the remainder of this process/session.
+  bool _initialisationFailed = false;
 
   Future<void> initialise() async {
-    if (_initialised || kIsWeb) return;
+    if (_initialised || _initialisationFailed || kIsWeb) return;
     try {
       final directory = await DiagnosticLogService.logsDirectory(create: true);
       if (directory == null) return;
@@ -38,6 +44,7 @@ class CrashLogService {
       await _recordSessionStart();
     } catch (error, stackTrace) {
       // Logging must never be able to crash the application itself.
+      _initialisationFailed = true;
       debugPrint('Crash logger initialisation failed: $error\n$stackTrace');
     }
   }

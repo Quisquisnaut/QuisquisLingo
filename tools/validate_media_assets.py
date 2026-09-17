@@ -50,6 +50,9 @@ UNSAFE_SVG = re.compile(
 QQL234_RENDERER_NORMALIZED_FLAG_IDS = frozenset(
     {"aragonese", "livonian", "piedmontese", "sicilian", "west_frisian"}
 )
+QQL238_RENDERER_NORMALIZED_FLAG_IDS = frozenset(
+    {"mirandese", "romansh", "sardinian", "venetian"}
+)
 QQL234_RENDERER_INCOMPATIBLE_SVG = re.compile(
     r"<style\b|"
     r"<metadata\b|<sodipodi:namedview\b|<inkscape:perspective\b|"
@@ -210,11 +213,12 @@ def validate_world_flags(issues: list[str]) -> int:
         if "<svg" not in svg or UNSAFE_SVG.search(svg):
             issues.append(f"unsafe or renderer-incompatible SVG: {asset_path}")
         if (
-            entity_id in QQL234_RENDERER_NORMALIZED_FLAG_IDS
+            entity_id
+            in (QQL234_RENDERER_NORMALIZED_FLAG_IDS | QQL238_RENDERER_NORMALIZED_FLAG_IDS)
             and QQL234_RENDERER_INCOMPATIBLE_SVG.search(svg)
         ):
             issues.append(
-                f"QQL 234 renderer-normalized SVG still has incompatible markup: {asset_path}"
+                f"renderer-normalized SVG still has incompatible markup: {asset_path}"
             )
 
         if entity.get("category") == "communityOrRegionalFlagAssociatedWithLanguage":

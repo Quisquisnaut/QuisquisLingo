@@ -278,6 +278,10 @@ void main() {
       'livonian': 'a03c03e6312dac5dd43304d56bc37b8ed57d528c',
       'west_frisian': '150adca2efd9a5fae63118f9fd86bd27c456cfed',
       'piedmontese': 'f6896671a83cf366b3930854da950453f832e9b9',
+      'mirandese': '9105681c62f43ea80d4c7b24a00118cf47ad3ff9',
+      'romansh': 'f8155f5694bb08239c344f9ae1f7eb0e17f11c09',
+      'sardinian': '112ea2aae498ddde2bfe7b124958ce38d8c3adaf',
+      'venetian': '06058557d4abb46ca40f7d9314510b3689b7d457',
     };
 
     for (final entry in expected.entries) {
