@@ -39,7 +39,13 @@ void main() {
         'scriptImageOptions',
         'scriptCorrect',
       ],
-      'build_translation': ['prompt', 'tokens', 'correctTranslation'],
+      'build_translation': [
+        'prompt',
+        'tokens',
+        'correctTranslation',
+        'gapLayout',
+        'tts',
+      ],
       'fill_blank': ['question', 'accepted', 'hint', 'tts'],
       'listening_spelling': ['prompt', 'tts', 'missingWords'],
       'missing_word': ['prompt', 'tts', 'missingWords'],
@@ -47,7 +53,7 @@ void main() {
       'word_match': ['prompt', 'pairs'],
       'super_match': ['prompt', 'pairs'],
       'audio_match': ['prompt', 'pairs'],
-      'word_order': ['prompt', 'tokens', 'order'],
+      'word_order': ['prompt', 'gapLayout', 'tokens', 'order', 'tts'],
       'image_word': ['prompt', 'tokens', 'order'],
       'flashcard': ['prompt', 'question', 'tts', 'answers'],
     };

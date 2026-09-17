@@ -1,10 +1,14 @@
 # QuisquisLingo App
 
-**Current source version: 2.0.37+237004 · Build 237, Revision 4 · Course Models v9/v10 (`formatVersion: 9`/`10`).**
+**Current source version: 2.0.38+238000 · Build 238, Revision 0 · Course Models v9/v10 (`formatVersion: 9`/`10`).**
+
+**QuisquisLingo 2.0.38 Beta — QQL 238 Arrange gap-fill (in progress)**
+
+Current project version: 2.0.38
+
+QQL 238 Phase 1 extends the existing Arrange primitive (word_order, build_translation) with inline gap-fill authoring: the fixed sentence is typed once, with each gap's literal answer written directly inside braces (`I {am} going {to} London.`), optional extra distractor blocks, and clear validation when braces are unbalanced or empty. Existing whole-sentence Arrange exercises are unaffected. Phase 2 (extending Select) has not started yet.
 
 **QuisquisLingo 2.0.37 Beta — QQL 237 Course Merge**
-
-Current project version: 2.0.37
 
 QQL 237 adds authorized custom Course Merge from Course Manager. The selected Course and `Documents/QuisquisLingo/Merges/merge.json` must have matching identity, rights, language and media information; users choose the left or right source for each included Lesson and permitted differing Course settings. The result is a third independent Course with fresh authoring IDs, preserved selected publication state, no transferred learner state, and immutable v10 merge provenance for both immediate sources. Existing v9 Courses remain readable without migration; only merged Courses use Course Model v10. See the [QQL 237 validation](docs/237_VALIDATION.md).
 
@@ -55,7 +59,7 @@ The MPL-2.0 covers the QuisquisLingo software source. Courses, the Image Bank an
 
 ## Beta lifecycle
 
-Version 2.0.37, Build 237, Revision 4 is a time-limited Beta with an expiry of **2026-10-17 23:59:59 local time**. Near expiry it displays reminders. After expiry, learner exercises and Review are blocked until a newer Beta is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when a Beta expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM.
+Version 2.0.38, Build 238, Revision 0 is a time-limited Beta with an expiry of **2026-10-17 23:59:59 local time**. Near expiry it displays reminders. After expiry, learner exercises and Review are blocked until a newer Beta is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when a Beta expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM.
 
 ## Core logic
 

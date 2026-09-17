@@ -1,3 +1,11 @@
+# 2.0.38 (Build 238, Revision 0) - Arrange gap-fill authoring (in progress) - 2026-09-17
+
+- Phase 1 extends the existing Arrange primitive (word_order, build_translation) with inline gap-fill authoring: the fixed sentence is typed once, with each gap's literal answer embedded directly inside braces (`I {am} going {to} London.`) instead of a literal `{gap}` marker plus a separate "Correct answers" field.
+- Added optional "Extra distractor blocks" for gap-fill exercises, plus validation for missing gaps, empty `{}` gaps and unbalanced/nested braces, with matching Course Editor Help text.
+- Existing whole-sentence Arrange authoring and previously published exercises are unaffected when Inline gaps stays off.
+- Updated the version to `2.0.38+238000`, Build 238, Revision 0, and refreshed the 30-day Beta expiry to `2026-10-17 23:59:59` local time.
+- Phase 2 (extending Select with single/multiple selection, required-selection counts, set-based correctness and linked-gap answer sets) has not started yet.
+
 # 2.0.37 (Build 237, Revision 4) - Course Merge - 2026-09-17
 
 - Added authorized custom Course Merge from each eligible Course Manager row. QQL reads the second source only from `Documents/QuisquisLingo/Merges/merge.json`, validates bounded UTF-8 Course JSON, and leaves both sources and the input file untouched.
