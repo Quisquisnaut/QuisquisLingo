@@ -61,6 +61,8 @@ void main() {
       expect(category.presetIds.toSet(), {
         'type_translation',
         'build_translation',
+        'translation_choice_to_target',
+        'translation_choice_to_source',
       });
 
       final selected = planner.create(

@@ -21,6 +21,7 @@ import '../services/crash_log_service.dart';
 import '../services/answer_engine.dart';
 import '../services/audio_exercise_availability_service.dart';
 import '../services/audio_diagnostic_service.dart';
+import '../services/translation_choice_service.dart';
 import 'guidebook_screen.dart';
 
 class RoundScreen extends StatefulWidget {
@@ -119,6 +120,7 @@ class _RoundScreenState extends State<RoundScreen> {
   bool _initializationFailed = false;
   bool _ttsWasSkipped = false;
   bool _audioExercisesEnabled = false;
+  bool _optionalAudioEnabled = false;
   bool _wasCompleted = false;
   AudioDiagnosticLifecycle? _preparedAudioDiagnostic;
   Future<void> _preparedAudioPreparation = Future<void>.value();
@@ -295,6 +297,9 @@ class _RoundScreenState extends State<RoundScreen> {
         }
       }
       _audioExercisesEnabled = audioExercisesEnabled;
+      _optionalAudioEnabled =
+          audioExercisesEnabled &&
+          (ttsEnabled || widget.course.audioMode != 'tts');
       _ttsWasSkipped = filtered.length != valid.length;
       _queue = filtered;
       _evaluableExerciseCount = valid
@@ -326,7 +331,8 @@ class _RoundScreenState extends State<RoundScreen> {
             first.type == 'listening_comprehension' ||
             first.type == 'reading_comprehension' ||
             first.type == 'dialogue_response' ||
-            first.type == 'contextual_comprehension';
+            first.type == 'contextual_comprehension' ||
+            TranslationChoice.isTranslationChoice(first.type);
         if (needsChoices &&
             first.answers.isNotEmpty &&
             _choiceOptions.isEmpty) {
@@ -711,6 +717,8 @@ class _RoundScreenState extends State<RoundScreen> {
       case 'reading_comprehension':
       case 'dialogue_response':
       case 'contextual_comprehension':
+      case 'translation_choice_to_target':
+      case 'translation_choice_to_source':
       case 'icon_choice':
         if (ex.hasSelectGaps) return _arrangeGapAnswerText(ex);
         if (ex.isMultiSelect) return _selectMultiAnswerText(ex);
@@ -1210,6 +1218,78 @@ class _RoundScreenState extends State<RoundScreen> {
         ),
       );
     }
+  }
+
+  /// Optional audio control for the Pick the translation types. It is
+  /// always visible when it applies, and greyed out (never hiding or skipping
+  /// the exercise) when the learner turned audio or TTS off.
+  Widget _translationAudioButton(String text) => IconButton.filledTonal(
+    key: const Key('translation-choice-audio'),
+    tooltip: _optionalAudioEnabled ? 'Play audio' : 'Audio unavailable',
+    onPressed: _optionalAudioEnabled ? () => _speakText(text) : null,
+    icon: const Icon(Icons.volume_up_outlined),
+  );
+
+  Widget _translationAudioUnavailableNote() => Padding(
+    padding: const EdgeInsets.only(bottom: 12),
+    child: Text(
+      'Audio is turned off or unavailable. The exercise still works.',
+      key: const Key('translation-choice-audio-note'),
+      style: Theme.of(context).textTheme.bodySmall,
+    ),
+  );
+
+  /// To-target only: after answering, the learner may hear the correct
+  /// (target-language) answer. Nothing is spoken automatically.
+  List<Widget> _translationFeedbackAudio(Exercise ex) {
+    if (ex.type != TranslationChoice.toTarget) return const [];
+    final spoken = TranslationChoice.spokenText(ex, answered: _answered);
+    if (spoken == null) return const [];
+    return [
+      const SizedBox(height: 8),
+      Row(
+        children: [
+          const Expanded(child: Text('Listen to the answer')),
+          _translationAudioButton(spoken),
+        ],
+      ),
+      if (!_optionalAudioEnabled) _translationAudioUnavailableNote(),
+    ];
+  }
+
+  Widget _translationChoiceExercise(Exercise ex) {
+    final spoken = ex.type == TranslationChoice.toSource
+        ? TranslationChoice.spokenText(ex, answered: _answered)
+        : null;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (ex.question.trim().isNotEmpty) ...[
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  ex.question,
+                  key: const Key('translation-choice-text'),
+                  style: Theme.of(context).textTheme.headlineSmall,
+                ),
+              ),
+              if (spoken != null) _translationAudioButton(spoken),
+            ],
+          ),
+          if (spoken != null && !_optionalAudioEnabled) ...[
+            const SizedBox(height: 8),
+            _translationAudioUnavailableNote(),
+          ],
+          const SizedBox(height: 16),
+        ],
+        if (ex.imageAsset.isNotEmpty) ...[
+          _exerciseImage(ex),
+          const SizedBox(height: 14),
+        ],
+        _choiceExercise(ex),
+      ],
+    );
   }
 
   Widget _choiceExercise(Exercise ex) {
@@ -2427,6 +2507,9 @@ class _RoundScreenState extends State<RoundScreen> {
             _choiceExercise(ex),
           ],
         );
+      case 'translation_choice_to_target':
+      case 'translation_choice_to_source':
+        return _translationChoiceExercise(ex);
       case 'contextual_comprehension':
         return _contextualComprehensionExercise(ex);
       case 'script_recognition':
@@ -2687,21 +2770,34 @@ class _RoundScreenState extends State<RoundScreen> {
                   style: Theme.of(context).textTheme.labelLarge,
                 ),
               ),
-            Text(
-              ExerciseCopyService.typeLabel(widget.course, ex.type),
-              style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                fontWeight: FontWeight.w900,
-                letterSpacing: .7,
+            if (TranslationChoice.isTranslationChoice(ex.type))
+              // The single learner-facing instruction: no type label, no
+              // authored prompt and no fallback text for these types.
+              Text(
+                TranslationChoice.instruction(widget.course, ex.type),
+                key: const Key('translation-choice-instruction'),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+              )
+            else ...[
+              Text(
+                ExerciseCopyService.typeLabel(widget.course, ex.type),
+                style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: .7,
+                ),
               ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              ExerciseCopyService.instructionForExercise(widget.course, ex),
-              style: Theme.of(
-                context,
-              ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
-            ),
-            if (ex.type != 'reading_comprehension' &&
+              const SizedBox(height: 4),
+              Text(
+                ExerciseCopyService.instructionForExercise(widget.course, ex),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+              ),
+            ],
+            if (!TranslationChoice.isTranslationChoice(ex.type) &&
+                ex.type != 'reading_comprehension' &&
                 ex.type != 'contextual_comprehension' &&
                 ex.type != 'flashcard' &&
                 ex.type != 'missing_word' &&
@@ -2720,7 +2816,8 @@ class _RoundScreenState extends State<RoundScreen> {
             // windows or larger system text sizes this prevents a RenderFlex
             // overflow at the bottom while preserving normal phone behavior.
             if (ex.imageAsset.isNotEmpty &&
-                ex.type != 'script_recognition') ...[
+                ex.type != 'script_recognition' &&
+                !TranslationChoice.isTranslationChoice(ex.type)) ...[
               _exerciseImage(ex),
               const SizedBox(height: 14),
             ] else
@@ -2745,6 +2842,7 @@ class _RoundScreenState extends State<RoundScreen> {
                       _feedback,
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
+                    ..._translationFeedbackAudio(ex),
                     if (ex.type == 'build_translation' &&
                         ex.correctTranslationTexts.isNotEmpty) ...[
                       const SizedBox(height: 8),

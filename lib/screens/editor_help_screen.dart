@@ -194,7 +194,7 @@ class EditorHelpScreen extends StatelessWidget {
         _HelpSection(
           title: 'Create a new course',
           body:
-              'Course Manager creates an independent Course Model v9 project and opens it in Course Editor. New Course restores the same License / Rights, Authors / Contributors, language variant, levels, description and support metadata used by Course Info Editor. The active profile becomes the immutable Original Course Creator and defaults as Course Maintainer; another local individual may instead be selected as Maintainer. Assigned Team remains separate and is not selected during creation. Number of Lessons defaults to 3 (whole numbers 1–100), and Rounds per Lesson defaults to 1 (whole numbers 1–20). Invalid or missing values show inline errors and disable Create. The complete initial hierarchy is created atomically with fresh stable IDs and untitled Rounds, each with exactly one Draft Choose sample Exercise. Review and explicitly save teaching content before publication. The new Not published Course remains only a working copy until Confirm course changes creates version 1; cancelling creates no stored Course. Imported v9/v10 authoring content must state its provenance, Maintainer, Draft/Published state and required UTC timestamps explicitly; earlier Course Models are neither inferred nor migrated.',
+              'Course Manager creates an independent Course Model v9 project and opens it in Course Editor. New Course restores the same License / Rights, Authors / Contributors, language variant, levels, description and support metadata used by Course Info Editor. The active profile becomes the immutable Original Course Creator and defaults as Course Maintainer; another local individual may instead be selected as Maintainer. Assigned Team remains separate and is not selected during creation. Number of Lessons defaults to 3 (whole numbers 1–100), and Rounds per Lesson defaults to 1 (whole numbers 1–20). Invalid or missing values show inline errors and disable Create. The complete initial hierarchy is created atomically with fresh stable IDs and untitled Rounds, each with exactly one Draft Pick the translation (to target) sample Exercise. Review and explicitly save teaching content before publication. The new Not published Course remains only a working copy until Confirm course changes creates version 1; cancelling creates no stored Course. Imported v9/v10 authoring content must state its provenance, Maintainer, Draft/Published state and required UTC timestamps explicitly; earlier Course Models are neither inferred nor migrated.',
         ),
       ],
     ),
@@ -457,18 +457,22 @@ class _TechnicalLinks extends StatelessWidget {
 }
 
 class ExerciseHelpScreen extends StatefulWidget {
-  const ExerciseHelpScreen({super.key});
+  /// [initialQuery] pre-fills the search box so the Help opens directly on the
+  /// matching chapter (for example the name of the exercise being edited).
+  const ExerciseHelpScreen({super.key, this.initialQuery = ''});
+
+  final String initialQuery;
 
   @override
   State<ExerciseHelpScreen> createState() => _ExerciseHelpScreenState();
 }
 
 class _ExerciseHelpScreenState extends State<ExerciseHelpScreen> {
-  final _search = TextEditingController();
+  late final _search = TextEditingController(text: widget.initialQuery);
   final _scroll = ScrollController();
   final _searchFocus = FocusNode();
   final _resultsFocus = FocusNode();
-  String _query = '';
+  late String _query = widget.initialQuery.trim().toLowerCase();
   double _unfilteredOffset = 0;
 
   @override

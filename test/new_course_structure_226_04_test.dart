@@ -104,12 +104,9 @@ void main() {
       });
       final reloaded = Course.fromJson(jsonDecode(jsonEncode(course.toJson())));
       final sample = reloaded.lessons.single.rounds.single.exercises.single;
-      expect(sample.editorTemplate, 'choice');
+      expect(sample.editorTemplate, 'translation_choice_to_target');
       expect(sample.interaction.kind, 'select');
-      expect(
-        sample.prompt,
-        'Write a ${languages.$1} instruction to translate into ${languages.$2}.',
-      );
+      expect(sample.prompt, isEmpty);
       expect(sample.question, 'Text in ${languages.$1}');
       expect(sample.answers, [
         'Translation in ${languages.$2}',
@@ -245,10 +242,7 @@ void main() {
         .toList();
     expect(samples, hasLength(3));
     for (final sample in samples) {
-      expect(
-        sample.prompt,
-        'Write a Spanish instruction to translate into German.',
-      );
+      expect(sample.prompt, isEmpty);
       expect(sample.question, 'Text in Spanish');
       expect(sample.answers, ['Translation in German', 'Wrong Answer']);
       expect(sample.publicationState, PublicationState.draft);
@@ -364,12 +358,13 @@ void main() {
     expect(course.lessons.first.rounds, hasLength(22));
     expect(course.lessons.first.rounds.last.exercises, hasLength(1));
     final sample = course.lessons.first.rounds.last.exercises.single;
-    expect(sample.type, 'choice');
+    expect(sample.type, 'translation_choice_to_target');
     expect(sample.publicationState, PublicationState.draft);
     expect(sample.answers, contains('Wrong Answer'));
     expect(existingExerciseIds, isNot(contains(sample.id)));
-    expect(sample.prompt, contains(course.sourceLanguage));
-    expect(sample.prompt, contains(course.learningLanguage));
+    expect(sample.prompt, isEmpty);
+    expect(sample.question, contains(course.sourceLanguage));
+    expect(sample.answers.first, contains(course.learningLanguage));
     expect(course.lessons.first.rounds.first.exercises, isEmpty);
     expect(Course.fromJson(course.toJson()).lessons, hasLength(102));
   });
@@ -440,7 +435,7 @@ void _expectStructure(List<Lesson> lessons, int lessonCount, int roundCount) {
       expect(value.content, hasLength(1));
       expect(value.exercises, hasLength(1));
       final sample = value.exercises.single;
-      expect(sample.editorTemplate, 'choice');
+      expect(sample.editorTemplate, 'translation_choice_to_target');
       expect(sample.answers, ['Translation in Italian', 'Wrong Answer']);
       expect(sample.publicationState, PublicationState.draft);
       expect(value.content.single.publicationState, PublicationState.draft);

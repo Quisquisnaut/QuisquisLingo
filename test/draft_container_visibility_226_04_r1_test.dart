@@ -186,6 +186,8 @@ void main() {
           tester,
           'lesson-guidebook-status-indicator',
           draft: false,
+          // GuideBook is off for this Course: no colored border at all.
+          auditConcern: null,
         );
         await _mount(
           tester,
@@ -262,7 +264,7 @@ void _expectStatus(
   WidgetTester tester,
   String key, {
   required bool draft,
-  bool auditConcern = false,
+  bool? auditConcern = false,
 }) {
   final statuses = tester.widgetList<AuthoringStatusCard>(
     find.byWidgetPredicate(
@@ -288,10 +290,16 @@ void _expectStatus(
     final card = tester.widget<Card>(
       find.descendant(of: instance, matching: find.byType(Card)).first,
     );
-    expect(
-      (card.shape! as RoundedRectangleBorder).side.color,
-      auditConcern ? const Color(0xFFC90000) : const Color(0xFF00A83B),
-    );
+    final side = (card.shape! as RoundedRectangleBorder).side;
+    if (auditConcern == null) {
+      // No status: no colored border at all.
+      expect(side, BorderSide.none);
+    } else {
+      expect(
+        side.color,
+        auditConcern ? const Color(0xFFC90000) : const Color(0xFF00A83B),
+      );
+    }
   }
 }
 

@@ -15,6 +15,16 @@ const _formFields = <String, Map<String, String>>{
     'Answers': 'answers',
     'Correct answer number': 'correct',
   },
+  'translation_choice_to_target': {
+    'Text to translate': 'question',
+    'Answer options': 'answers',
+    'Correct answer number': 'correct',
+  },
+  'translation_choice_to_source': {
+    'Text to translate': 'question',
+    'Answer options': 'answers',
+    'Correct answer number': 'correct',
+  },
   'gap_choice': {
     'Target-language sentence with one gap': 'question',
     'Answer blocks': 'answers',

@@ -43,6 +43,7 @@ import 'guidebook_screen.dart';
 import 'course_editor_search_screen.dart';
 import '../services/exercise_image_service.dart';
 import '../services/course_authoring_transfer_service.dart';
+import '../services/translation_choice_service.dart';
 import '../services/exercise_field_help.dart';
 import '../widgets/editor_breadcrumbs.dart';
 import '../widgets/authoring_destination_dialog.dart';
@@ -146,14 +147,22 @@ class AuthoringHierarchyStatus {
       !lesson.publicationState.isPublished ||
       lessonGuidebookHasDraft(lesson) ||
       lessonHasRoundDraft(lesson);
+
+  /// A turned-off GuideBook never shows a Draft badge and never counts in the
+  /// Lesson or Course badge, whatever its stored state.
   bool lessonGuidebookHasDraft(Lesson lesson) =>
-      !lesson.guidebook.publicationState.isPublished ||
-      lesson.guidebook.content.any(
-        (content) => !content.publicationState.isPublished,
-      );
+      course.useGuidebook &&
+      (!lesson.guidebook.publicationState.isPublished ||
+          lesson.guidebook.content.any(
+            (content) => !content.publicationState.isPublished,
+          ));
   bool lessonHasRoundDraft(Lesson lesson) => lesson.rounds.any(roundHasDraft);
   bool lessonHasAuditConcern(Lesson lesson) =>
       lessonAuditConcernIds.contains(lesson.lessonId);
+
+  /// The Guidebook card border: no color at all while GuideBook is off.
+  bool? lessonGuidebookAuditStatus(Lesson lesson) =>
+      course.useGuidebook ? lessonGuidebookHasAuditConcern(lesson) : null;
   bool lessonGuidebookHasAuditConcern(Lesson lesson) =>
       lessonGuidebookAuditConcernIds.contains(lesson.lessonId);
   bool lessonHasRoundAuditConcern(Lesson lesson) =>
@@ -181,6 +190,8 @@ class AuthoringStatusCard extends StatelessWidget {
     this.cardMargin,
     this.hasUnpublished = false,
     this.unpublishedIndicatorKey,
+    this.neutralAuditMessage =
+        'Audit status is not current; no red or green border is shown.',
   });
 
   final Key indicatorKey;
@@ -191,6 +202,9 @@ class AuthoringStatusCard extends StatelessWidget {
   final EdgeInsetsGeometry? cardMargin;
   final bool hasUnpublished;
   final Key? unpublishedIndicatorKey;
+
+  /// Tooltip text used when [hasAuditConcern] is null (no border color).
+  final String neutralAuditMessage;
 
   @override
   Widget build(BuildContext context) {
@@ -204,7 +218,7 @@ class AuthoringStatusCard extends StatelessWidget {
       true => 'Red border: this branch has an Audit Error or Warning.',
       false =>
         'Green border: this branch has no Audit Error or Warning. Info guidance may remain.',
-      null => 'Audit status is not current; no red or green border is shown.',
+      null => neutralAuditMessage,
     };
     return Tooltip(
       message:
@@ -583,6 +597,7 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
       const ProvisionalPublicationService().reconcile(
         value,
         updatedAt: _clock(),
+        previous: _course,
       ),
     );
     _auditOutdated = true;
@@ -2618,6 +2633,7 @@ class _LessonManagementScreenState extends State<LessonManagementScreen> {
     course = const ProvisionalPublicationService().reconcile(
       course,
       updatedAt: _clock(),
+      previous: _course,
     );
     setState(() => _course = course);
     widget.onCourseChanged?.call(course);
@@ -3772,6 +3788,7 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
     course = const ProvisionalPublicationService().reconcile(
       course,
       updatedAt: _clock(),
+      previous: _course,
     );
     final lesson = course.lessons.firstWhere(
       (candidate) => candidate.lessonId == _lesson.lessonId,
@@ -4557,9 +4574,11 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
               indicatorKey: const Key('lesson-guidebook-status-indicator'),
               draftIndicatorKey: const Key('lesson-guidebook-draft-indicator'),
               hasDraft: hierarchyStatus.lessonGuidebookHasDraft(_lesson),
-              hasAuditConcern: hierarchyStatus.lessonGuidebookHasAuditConcern(
+              hasAuditConcern: hierarchyStatus.lessonGuidebookAuditStatus(
                 _lesson,
               ),
+              neutralAuditMessage:
+                  'No colored border: GuideBook is turned off for this Course.',
               cardMargin: EdgeInsets.zero,
               child: ListTile(
                 key: const Key('lesson-guidebook-navigation'),
@@ -5163,6 +5182,7 @@ class _LessonRoundsScreenState extends State<LessonRoundsScreen> {
     course = const ProvisionalPublicationService().reconcile(
       course,
       updatedAt: _clock(),
+      previous: _course,
     );
     setState(() {
       _course = course;
@@ -5924,11 +5944,15 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
   void _mutateRound(VoidCallback mutation) {
     if (!mounted) return;
     late Course course;
+    // The working copy before this change lets a parent Draft be promoted when
+    // its last Draft child is saved as Published.
+    final before = _workingCourse;
     setState(() {
       mutation();
       course = const ProvisionalPublicationService().reconcile(
         _workingCourse,
         updatedAt: _clock(),
+        previous: before,
       );
       _course = course;
       _lesson = course.lessons.firstWhere(
@@ -5992,7 +6016,7 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
     final e = await Navigator.of(context).push<Exercise>(
       MaterialPageRoute(
         builder: (_) => ExerciseEditorScreen(
-          exercise: _blankExerciseForPreset('choice', _ids),
+          exercise: _blankExerciseForPreset(TranslationChoice.toTarget, _ids),
           title: 'New exercise',
           isNew: true,
           course: _workingCourse,
@@ -7599,7 +7623,9 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
     _correct = TextEditingController(
       text: e.isMultiSelect
           ? _multiSelectCorrectNumbersText(e)
-          : (e.correct == null ? '' : '${e.correct! + 1}'),
+          : (e.correct == null
+                ? (TranslationChoice.isTranslationChoice(e.type) ? '1' : '')
+                : '${e.correct! + 1}'),
     );
     _requiredSelections = TextEditingController(
       text: e.isMultiSelect ? '${e.requiredSelectionCount}' : '',
@@ -7950,6 +7976,8 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
     'reading_comprehension',
     'dialogue_response',
     'contextual_comprehension',
+    'translation_choice_to_target',
+    'translation_choice_to_source',
   }.contains(_type);
   String _fieldKey(TextEditingController controller) => {
     _prompt: 'prompt',
@@ -8567,6 +8595,47 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
                 'One word or expression per line. Each must occur in the passage.',
           ),
         ];
+      case 'translation_choice_to_target':
+      case 'translation_choice_to_source':
+        final toTarget = _type == 'translation_choice_to_target';
+        return [
+          _field(
+            _question,
+            'Text to translate',
+            lines: 2,
+            helper: toTarget
+                ? 'One word, phrase or sentence in the course source '
+                      'language. Do not write an instruction: QQL shows '
+                      '“Pick the correct [Target language] translation” '
+                      'automatically.'
+                : 'One word, phrase or sentence in the course target '
+                      'language. The learner can play it with '
+                      'text-to-speech when available. Do not write an '
+                      'instruction: QQL shows “Pick the correct [Source '
+                      'language] translation” automatically.',
+          ),
+          _field(
+            _answers,
+            'Answer options',
+            lines: 4,
+            helper: toTarget
+                ? 'One complete target-language translation per line, from 2 '
+                      'to 5 options, each a different phrase. Blank lines '
+                      'are ignored. The learner sees the options in random '
+                      'order.'
+                : 'One complete source-language translation per line, from 2 '
+                      'to 5 options, each a different phrase. Blank lines '
+                      'are ignored. The learner sees the options in random '
+                      'order.',
+          ),
+          _field(
+            _correct,
+            'Correct answer number',
+            helper:
+                'Number of the correct option, counting non-empty lines '
+                'from 1.',
+          ),
+        ];
       case 'choice':
         return [
           _field(_prompt, 'Prompt / instruction', lines: 2),
@@ -8880,6 +8949,11 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
           _useMultiSelect = false;
         }
         _type = selected;
+        // Pick the translation always starts with the first option correct.
+        if (TranslationChoice.isTranslationChoice(selected) &&
+            _correct.text.trim().isEmpty) {
+          _correct.text = '1';
+        }
         _dirty = true;
       });
     }
@@ -8901,6 +8975,18 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
     }
     if (_type == 'choice' && _useMultiSelect) {
       return _buildSelectMultiCandidate(publicationState);
+    }
+    if (TranslationChoice.isTranslationChoice(_type)) {
+      final problem = TranslationChoice.answersProblem(_lines(_answers));
+      if (problem != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            duration: const Duration(seconds: 8),
+            content: Text(problem),
+          ),
+        );
+        return null;
+      }
     }
     if (_type == 'type_translation' || _type == 'type_missing_word') {
       final accepted = _lines(_accepted);
@@ -9153,6 +9239,8 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
               'choice',
               'gap_choice',
               'dialogue_response',
+              'translation_choice_to_target',
+              'translation_choice_to_source',
             }.contains(_type)
             ? _question.text.trim()
             : '',
@@ -9844,7 +9932,9 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
         _useMultiSelect = e.isMultiSelect;
         _correct.text = e.isMultiSelect
             ? _multiSelectCorrectNumbersText(e)
-            : (e.correct == null ? '' : '${e.correct! + 1}');
+            : (e.correct == null
+                  ? (TranslationChoice.isTranslationChoice(e.type) ? '1' : '')
+                  : '${e.correct! + 1}');
         _requiredSelections.text = e.isMultiSelect
             ? '${e.requiredSelectionCount}'
             : '';
@@ -10007,7 +10097,15 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
               alignment: Alignment.centerLeft,
               child: TextButton.icon(
                 onPressed: () => Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => const ExerciseHelpScreen()),
+                  MaterialPageRoute(
+                    builder: (_) => ExerciseHelpScreen(
+                      // Pick the translation opens straight on its own
+                      // chapter by pre-filling the search with its name.
+                      initialQuery: TranslationChoice.isTranslationChoice(_type)
+                          ? labelForType(_type)
+                          : '',
+                    ),
+                  ),
                 ),
                 icon: const Icon(Icons.help_outline),
                 label: const Text('Exercise Help'),

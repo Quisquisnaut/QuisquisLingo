@@ -49,6 +49,14 @@ abstract final class ExerciseSearchRegistry {
   static const definitions = <ExerciseTypeSearchDefinition>[
     ExerciseTypeSearchDefinition(presetId: 'choice', fields: [_prompt, _items]),
     ExerciseTypeSearchDefinition(
+      presetId: 'translation_choice_to_target',
+      fields: [_prompt, _items],
+    ),
+    ExerciseTypeSearchDefinition(
+      presetId: 'translation_choice_to_source',
+      fields: [_prompt, _items],
+    ),
+    ExerciseTypeSearchDefinition(
       presetId: 'gap_choice',
       fields: [_prompt, _items, _hint],
     ),

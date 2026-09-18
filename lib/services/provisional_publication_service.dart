@@ -2,23 +2,62 @@ import '../models/course_models.dart';
 import 'course_audit_service.dart';
 import 'publication_service.dart';
 
-/// Reconciles only automatically created parent Drafts after an author Save.
-/// Explicit/legacy Drafts and the Course's delivery choice are never changed.
+/// Reconciles parent Drafts after an author Save.
+///
+/// A parent Draft is promoted to Published in two cases only:
+///  * it was created automatically (`provisionalDraft`) and is now ready; or
+///  * its last Draft child was just saved as Published. This needs [previous],
+///    the course before the Save, so an explicit "Save as draft" on a Round or
+///    Lesson whose children were already all Published is never undone.
+/// Explicit/legacy Drafts and the Course's delivery choice are otherwise never
+/// changed.
 class ProvisionalPublicationService {
   const ProvisionalPublicationService();
 
-  Course reconcile(Course source, {required DateTime updatedAt}) {
-    if (source.originType.isOfficial ||
-        !source.lessons.any(
-          (lesson) =>
-              (lesson.provisionalDraft &&
-                  !lesson.publicationState.isPublished) ||
-              lesson.rounds.any(
-                (round) =>
-                    round.provisionalDraft &&
-                    !round.publicationState.isPublished,
-              ),
-        )) {
+  Course reconcile(
+    Course source, {
+    required DateTime updatedAt,
+    Course? previous,
+  }) {
+    if (source.originType.isOfficial) return source;
+
+    final previousRounds = <String, LearningRound>{
+      for (final lesson in previous?.lessons ?? const <Lesson>[])
+        for (final round in lesson.rounds) round.id: round,
+    };
+    final previousLessons = <String, Lesson>{
+      for (final lesson in previous?.lessons ?? const <Lesson>[])
+        lesson.lessonId: lesson,
+    };
+    bool exercisesDone(LearningRound round) =>
+        round.exercises.isNotEmpty &&
+        round.exercises.every(
+          (exercise) => exercise.publicationState.isPublished,
+        );
+    bool roundsDone(Iterable<LearningRound> rounds) =>
+        rounds.isNotEmpty &&
+        rounds.every((round) => round.publicationState.isPublished);
+    bool roundJustCompleted(LearningRound round) {
+      final before = previousRounds[round.id];
+      return before != null && !exercisesDone(before) && exercisesDone(round);
+    }
+
+    bool lessonJustCompleted(Lesson lesson, Iterable<LearningRound> rounds) {
+      final before = previousLessons[lesson.lessonId];
+      return before != null && !roundsDone(before.rounds) && roundsDone(rounds);
+    }
+
+    if (!source.lessons.any(
+      (lesson) =>
+          (lesson.provisionalDraft && !lesson.publicationState.isPublished) ||
+          (!lesson.publicationState.isPublished &&
+              lessonJustCompleted(lesson, lesson.rounds)) ||
+          lesson.rounds.any(
+            (round) =>
+                !round.publicationState.isPublished &&
+                (round.provisionalDraft || roundJustCompleted(round)),
+          ),
+    )) {
       return source;
     }
 
@@ -87,7 +126,7 @@ class ProvisionalPublicationService {
       var roundChanged = false;
       final rounds = <LearningRound>[];
       for (final round in lesson.rounds) {
-        if (round.provisionalDraft &&
+        if ((round.provisionalDraft || roundJustCompleted(round)) &&
             !round.publicationState.isPublished &&
             roundReady(round)) {
           rounds.add(
@@ -112,7 +151,7 @@ class ProvisionalPublicationService {
                     !content.required || content.publicationState.isPublished,
               ));
       final publishLesson =
-          lesson.provisionalDraft &&
+          (lesson.provisionalDraft || lessonJustCompleted(lesson, rounds)) &&
           !lesson.publicationState.isPublished &&
           rounds.isNotEmpty &&
           rounds.every(

@@ -122,7 +122,7 @@ void main() {
 
   for (final explicitOwner in ['Round', 'Lesson', 'legacy']) {
     testWidgets(
-      '$explicitOwner Draft intent survives a complete non-Draft Exercise Save',
+      '$explicitOwner Draft is promoted when its last Draft Exercise is saved as Published',
       (tester) async {
         final original = _course(provisional: explicitOwner != 'legacy');
         final changes = <Course>[];
@@ -159,22 +159,19 @@ void main() {
           round.exercises.single.publicationState,
           PublicationState.published,
         );
-        expect(lesson.publicationState, PublicationState.draft);
-        expect(lesson.provisionalDraft, explicitOwner == 'Round');
-        expect(
-          round.publicationState,
-          explicitOwner == 'Lesson'
-              ? PublicationState.published
-              : PublicationState.draft,
-        );
+        // Saving the last Draft Exercise as Published promotes its Round, and
+        // the Round in turn promotes its Lesson, even after an explicit Save
+        // as draft (or for a legacy Draft without the provisional marker).
+        expect(lesson.publicationState, PublicationState.published);
+        expect(lesson.provisionalDraft, isFalse);
+        expect(round.publicationState, PublicationState.published);
         expect(round.provisionalDraft, isFalse);
         expect(changes.last.publicationState, PublicationState.draft);
         for (var level = 0; level < 3; level++) {
           await tester.pageBack();
           await tester.pumpAndSettle();
           if (explicitOwner == 'Lesson' && level == 1) {
-            // A later Guidebook save must respect the same explicit Lesson
-            // Draft decision as the Exercise save, even with valid content.
+            // A later Guidebook save keeps the Lesson Published.
             await workflow.tapKey(tester, 'lesson-guidebook-navigation');
             await tester.enterText(
               workflow.field('Overview'),
@@ -187,7 +184,7 @@ void main() {
             );
             expect(
               changes.last.lessons.single.publicationState,
-              PublicationState.draft,
+              PublicationState.published,
             );
             expect(changes.last.lessons.single.provisionalDraft, isFalse);
           }
@@ -195,12 +192,9 @@ void main() {
         expect(find.byType(LessonManagementScreen), findsOneWidget);
         expect(
           changes.last.lessons.single.publicationState,
-          PublicationState.draft,
+          PublicationState.published,
         );
-        expect(
-          changes.last.lessons.single.provisionalDraft,
-          explicitOwner == 'Round',
-        );
+        expect(changes.last.lessons.single.provisionalDraft, isFalse);
         expect(await workflow.preferences(), beforePreferences);
         expect(tester.takeException(), isNull);
       },
