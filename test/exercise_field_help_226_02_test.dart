@@ -13,7 +13,16 @@ void main() {
     // Inventory of the real form values, including fields visible only in one
     // context mode. Widget tests separately check their direct Help controls.
     const fieldsByPreset = <String, List<String>>{
-      'choice': ['prompt', 'question', 'answers', 'correct'],
+      'choice': [
+        'prompt',
+        'question',
+        'answers',
+        'correct',
+        'requiredSelections',
+        'gapLayout',
+        'tokens',
+        'tts',
+      ],
       'gap_choice': ['question', 'answers', 'correct', 'hint'],
       'icon_choice': ['question', 'answers', 'correct', 'icons'],
       'listening_choice': ['tts', 'question', 'answers', 'correct'],

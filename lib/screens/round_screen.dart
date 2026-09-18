@@ -158,6 +158,19 @@ class _RoundScreenState extends State<RoundScreen> {
   String? _armedGapId;
   List<String> _gapTileOrder = [];
 
+  // Multi-select Select state: indices into `_choiceOptions` currently
+  // selected by the learner. Only used when the exercise's `maxSelections`
+  // is greater than 1; single-select exercises keep using `_selected`.
+  final Set<int> _multiSelected = {};
+
+  // Linked-gap Select state: maps each gap ID from the exercise's layout to
+  // the item ID currently filling it (or null when empty), mirroring
+  // Arrange's `_gapFill`/`_armedGapId`. Unlike Arrange, options are never
+  // consumed from the option list, since the same option may need to fill
+  // several gaps.
+  final Map<String, String?> _selectGapFill = {};
+  String? _selectArmedGapId;
+
   static const _autumnBackgrounds = <Color>[
     Color(0xFFF4EBDD), // warm cream
     Color(0xFFE7E1CF), // oat
@@ -319,7 +332,11 @@ class _RoundScreenState extends State<RoundScreen> {
             _choiceOptions.isEmpty) {
           _choiceOptions = List<_ChoiceOption>.generate(
             first.answers.length,
-            (i) => _ChoiceOption(first.answers[i], i == first.correct),
+            (i) => _ChoiceOption(
+              first.answers[i],
+              first.correctItemIdSet.contains(first.interaction.items[i].id),
+              item: first.interaction.items[i],
+            ),
           );
           _shuffleDifferentChoices(_choiceOptions);
           await CrashLogService.instance.recordDebugEvent(
@@ -400,12 +417,20 @@ class _RoundScreenState extends State<RoundScreen> {
     _matchingSelections.clear();
     _gapFill.clear();
     _armedGapId = null;
+    _multiSelected.clear();
+    _selectGapFill.clear();
+    _selectArmedGapId = null;
     _gapTileOrder = ex.hasArrangeGaps
         ? _shuffledItemIds(ex.interaction.items)
         : const [];
     if (ex.hasArrangeGaps) {
       for (final element in ex.arrangeLayout) {
         if (element.type == 'gap') _gapFill[element.text] = null;
+      }
+    }
+    if (ex.hasSelectGaps) {
+      for (final element in ex.arrangeLayout) {
+        if (element.type == 'gap') _selectGapFill[element.text] = null;
       }
     }
 
@@ -424,8 +449,8 @@ class _RoundScreenState extends State<RoundScreen> {
       ex.answers.length,
       (i) => _ChoiceOption(
         ex.answers[i],
-        i == ex.correct,
-        item: ex.type == 'script_recognition' ? ex.interaction.items[i] : null,
+        ex.correctItemIdSet.contains(ex.interaction.items[i].id),
+        item: ex.interaction.items[i],
       ),
     );
     _shuffleDifferentChoices(_choiceOptions);
@@ -687,6 +712,8 @@ class _RoundScreenState extends State<RoundScreen> {
       case 'dialogue_response':
       case 'contextual_comprehension':
       case 'icon_choice':
+        if (ex.hasSelectGaps) return _arrangeGapAnswerText(ex);
+        if (ex.isMultiSelect) return _selectMultiAnswerText(ex);
         if (ex.correct != null &&
             ex.correct! >= 0 &&
             ex.correct! < ex.answers.length) {
@@ -757,9 +784,25 @@ class _RoundScreenState extends State<RoundScreen> {
         .join(' ');
   }
 
+  String _selectMultiAnswerText(Exercise ex) {
+    final correctIds = ex.correctItemIdSet;
+    final values = ex.interaction.items
+        .where((item) => correctIds.contains(item.id))
+        .map((item) => item.value)
+        .where((value) => value.isNotEmpty)
+        .toList();
+    return values.isEmpty ? 'See the course answer.' : values.join(' / ');
+  }
+
   String _answerState() {
     if (_selected != null && _selected! < _choiceOptions.length) {
       return 'Selected choice ${_selected! + 1}: ${_choiceOptions[_selected!].text}';
+    }
+    if (_multiSelected.isNotEmpty) {
+      return 'Selected choices: ${_multiSelected.map((i) => _choiceOptions[i].text).join(' | ')}';
+    }
+    if (_selectGapFill.values.any((itemId) => itemId != null)) {
+      return 'Gaps: ${_selectGapFill.entries.map((e) => '${e.key}=${_itemValue(_exercise, e.value)}').join(' | ')}';
     }
     if (_textController.text.trim().isNotEmpty) {
       return 'Typed answer: ${_textController.text.trim()}';
@@ -1170,6 +1213,8 @@ class _RoundScreenState extends State<RoundScreen> {
   }
 
   Widget _choiceExercise(Exercise ex) {
+    if (ex.hasSelectGaps) return _selectGapFillExercise(ex);
+    if (ex.isMultiSelect) return _multiSelectChoiceExercise(ex);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: List.generate(_choiceOptions.length, (i) {
@@ -1187,6 +1232,200 @@ class _RoundScreenState extends State<RoundScreen> {
           ),
         );
       }),
+    );
+  }
+
+  void _toggleMultiChoice(int index) {
+    if (_answered) return;
+    setState(() {
+      if (_multiSelected.contains(index)) {
+        _multiSelected.remove(index);
+      } else if (_multiSelected.length < _exercise.maxSelectionCount) {
+        _multiSelected.add(index);
+      }
+    });
+  }
+
+  void _submitMultiChoice(Exercise ex) {
+    final selectedIds = _multiSelected
+        .map((i) => _choiceOptions[i].item!.id)
+        .toSet();
+    final correctIds = ex.correctItemIdSet;
+    _mark(
+      selectedIds.length == correctIds.length &&
+          selectedIds.containsAll(correctIds),
+    );
+  }
+
+  Widget _multiSelectChoiceExercise(Exercise ex) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        for (var i = 0; i < _choiceOptions.length; i++)
+          CheckboxListTile(
+            key: Key('multi-select-option-$i'),
+            title: Text(_choiceOptions[i].text),
+            value: _multiSelected.contains(i),
+            onChanged: _answered ? null : (_) => _toggleMultiChoice(i),
+          ),
+        const SizedBox(height: 16),
+        FilledButton(
+          onPressed:
+              _answered || _multiSelected.length < ex.requiredSelectionCount
+              ? null
+              : () => _submitMultiChoice(ex),
+          child: const Text('Check'),
+        ),
+      ],
+    );
+  }
+
+  /// Tapping an option always targets a specific gap, exactly like tapping a
+  /// tile in gap-based Arrange: a gap armed by [_onSelectGapSlotTap] is
+  /// filled first; otherwise the option fills the first remaining empty gap
+  /// in layout order, whether or not that option is actually the correct
+  /// answer for that gap — placement never depends on correctness, only on
+  /// gap order, so a wrong option can occupy a gap and be checked exactly
+  /// like a correct one. Unlike Arrange, an option is never removed from
+  /// this list once placed, since the same option may need to fill more
+  /// than one gap (tap it again to place it in the next empty gap).
+  void _onSelectGapOptionTap(Exercise ex, String itemId) {
+    if (_answered) return;
+    setState(() {
+      final armed = _selectArmedGapId;
+      if (armed != null && _selectGapFill[armed] == null) {
+        _selectGapFill[armed] = itemId;
+        _selectArmedGapId = null;
+        return;
+      }
+      final target = ex.arrangeLayout
+          .where(
+            (segment) =>
+                segment.type == 'gap' && _selectGapFill[segment.text] == null,
+          )
+          .map((segment) => segment.text)
+          .firstOrNull;
+      if (target == null) return;
+      _selectGapFill[target] = itemId;
+    });
+  }
+
+  void _onSelectGapSlotTap(String gapId) {
+    if (_answered) return;
+    setState(() {
+      final armed = _selectArmedGapId;
+      if (armed == null) {
+        // Arm this gap. An empty gap awaits an option tap; a filled gap
+        // awaits a destination gap to move/swap its option into.
+        _selectArmedGapId = gapId;
+        return;
+      }
+      if (armed == gapId) {
+        // Tapping the armed gap again cancels the pending action.
+        _selectArmedGapId = null;
+        return;
+      }
+      if (_selectGapFill[armed] == null) {
+        // The armed gap is empty; re-arm to the newly tapped gap instead.
+        _selectArmedGapId = gapId;
+        return;
+      }
+      // Move (or swap) the armed gap's option into the tapped gap.
+      final movingItemId = _selectGapFill[armed];
+      final displacedItemId = _selectGapFill[gapId];
+      _selectGapFill[gapId] = movingItemId;
+      _selectGapFill[armed] = displacedItemId;
+      _selectArmedGapId = null;
+    });
+  }
+
+  void _removeSelectGapFill(String gapId) {
+    if (_answered) return;
+    setState(() {
+      _selectGapFill[gapId] = null;
+      if (_selectArmedGapId == gapId) _selectArmedGapId = null;
+    });
+  }
+
+  void _submitSelectGaps(Exercise ex) {
+    final assignments = ex.arrangeGapAssignments;
+    if (assignments.isEmpty || _selectGapFill.values.any((v) => v == null)) {
+      _mark(false);
+      return;
+    }
+    final correct = assignments.entries.every(
+      (entry) => _selectGapFill[entry.key] == entry.value,
+    );
+    _mark(correct);
+  }
+
+  Widget _selectGapFillExercise(Exercise ex) {
+    final allGapsFilled = _selectGapFill.values.every((v) => v != null);
+    final itemById = {for (final item in ex.interaction.items) item.id: item};
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if ((ex.tts ?? '').trim().isNotEmpty) ...[
+          Align(
+            alignment: Alignment.centerLeft,
+            child: FilledButton.tonalIcon(
+              onPressed: () => _speakText(ex.tts!),
+              icon: const Icon(Icons.volume_up_outlined),
+              label: const Text('Play audio'),
+            ),
+          ),
+          const SizedBox(height: 14),
+        ],
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: _exercisePanelColor,
+            borderRadius: BorderRadius.circular(14),
+          ),
+          child: Wrap(
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 6,
+            runSpacing: 8,
+            children: [
+              for (final segment in ex.arrangeLayout)
+                if (segment.type == 'text')
+                  Text(
+                    segment.text,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  )
+                else
+                  _selectGapSlot(
+                    gapId: segment.text,
+                    label: itemById[_selectGapFill[segment.text]]?.value,
+                    armed: _selectArmedGapId == segment.text,
+                  ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            for (final item in ex.interaction.items)
+              FilterChip(
+                key: Key('select-gap-option-${item.id}'),
+                label: Text(item.value),
+                selected: _selectGapFill.values.contains(item.id),
+                onSelected: _answered
+                    ? null
+                    : (_) => _onSelectGapOptionTap(ex, item.id),
+              ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        FilledButton(
+          onPressed: _answered || !allGapsFilled
+              ? null
+              : () => _submitSelectGaps(ex),
+          child: const Text('Check'),
+        ),
+      ],
     );
   }
 
@@ -1575,6 +1814,57 @@ class _RoundScreenState extends State<RoundScreen> {
               key: Key('gap-remove-$gapId'),
               behavior: HitTestBehavior.opaque,
               onTap: _answered ? null : () => _removeGapTile(gapId),
+              child: const Icon(Icons.close, size: 16),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  /// A read-only gap slot for linked-gap Select: unlike Arrange's `_gapSlot`,
+  /// it has no tap-to-arm or remove affordance, since filling and clearing a
+  /// gap in Select happens by toggling its linked option chip instead.
+  Widget _selectGapSlot({
+    required String gapId,
+    required String? label,
+    required bool armed,
+  }) {
+    final scheme = Theme.of(context).colorScheme;
+    return Container(
+      constraints: const BoxConstraints(minWidth: 56),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: label == null
+            ? scheme.surfaceContainerHighest
+            : scheme.primaryContainer,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: armed ? scheme.primary : Colors.transparent,
+          width: 2,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // A sibling (not nested) tap target arms the gap for a move/swap,
+          // or fills it from an armed empty gap.
+          GestureDetector(
+            key: Key('select-gap-slot-$gapId'),
+            behavior: HitTestBehavior.opaque,
+            onTap: _answered ? null : () => _onSelectGapSlotTap(gapId),
+            child: Text(
+              label ?? '___',
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+          ),
+          if (label != null) ...[
+            const SizedBox(width: 4),
+            // A separate sibling tap target removes the placed option.
+            GestureDetector(
+              key: Key('select-gap-remove-$gapId'),
+              behavior: HitTestBehavior.opaque,
+              onTap: _answered ? null : () => _removeSelectGapFill(gapId),
               child: const Icon(Icons.close, size: 16),
             ),
           ],
@@ -2119,7 +2409,7 @@ class _RoundScreenState extends State<RoundScreen> {
               ),
               const SizedBox(height: 16),
             ],
-            if (ex.question.isNotEmpty) ...[
+            if (ex.question.isNotEmpty && !ex.hasSelectGaps) ...[
               Text(
                 ex.question,
                 style: Theme.of(context).textTheme.headlineSmall,

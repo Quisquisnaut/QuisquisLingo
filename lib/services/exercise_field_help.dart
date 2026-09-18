@@ -46,6 +46,7 @@ enum ExerciseAuthoringField {
   scriptImageOptions,
   scriptCorrect,
   gapLayout,
+  selectRequiredSelections,
 }
 
 class ExerciseFieldHelp {
@@ -93,7 +94,16 @@ abstract final class ExerciseFieldHelpRegistry {
   /// Shared Help search uses this inventory rather than indexing unrelated fields.
   static List<String> editorFieldKeys(String presetId) {
     const fields = <String, List<String>>{
-      'choice': ['prompt', 'question', 'answers', 'correct'],
+      'choice': [
+        'prompt',
+        'question',
+        'answers',
+        'correct',
+        'requiredSelections',
+        'gapLayout',
+        'tokens',
+        'tts',
+      ],
       'gap_choice': ['question', 'answers', 'correct', 'hint'],
       'icon_choice': ['question', 'answers', 'correct', 'icons'],
       'listening_choice': ['tts', 'question', 'answers', 'correct'],
@@ -185,6 +195,58 @@ abstract final class ExerciseFieldHelpRegistry {
         example: 'Buongiorno, come stai?',
       );
     }
+    if (presetId == 'choice' && fieldKey == 'correct') {
+      return const ExerciseFieldHelp(
+        title: 'Correct answer number',
+        purpose:
+            'Identifies the correct option or options from the answer list.',
+        entryRules:
+            'Enter one whole number, counting non-empty answer lines from '
+            '1. When Multiple correct answers is enabled, enter every '
+            'correct number separated by commas, e.g. 1, 3.',
+        validation:
+            'Every number must be between 1 and the number of answers. '
+            'Recheck it after reordering or deleting answer lines.',
+        example: '2 selects the second non-empty answer line.',
+      );
+    }
+    if (presetId == 'choice' && fieldKey == 'gapLayout') {
+      return const ExerciseFieldHelp(
+        title: 'Sentence with gaps',
+        purpose:
+            'Shows the fixed sentence with one or more inline blanks the '
+            'learner fills, in order, by tapping options from a list.',
+        entryRules:
+            'Write the sentence and put each answer word or phrase '
+            'directly inside braces: {answer}. Example: I {am} going {to} '
+            'London. Each tap fills the first remaining empty blank, '
+            'whichever option is tapped — placement does not check '
+            'correctness, so the right words in the wrong blanks are '
+            'still marked incorrect. If the same word answers more than '
+            'one gap, write it inside each of those braces: {Was} she '
+            'happy? {Was} he late? — the learner taps it once per blank '
+            'it needs to fill. Extra options that are not the answer to '
+            'any gap go in Distractor options (optional).',
+        validation:
+            'At least one {…} gap is required, and every gap must contain '
+            'non-empty text. Literal { or } characters cannot appear '
+            'anywhere else in the sentence.',
+        example: 'I {am} going {to} London.',
+      );
+    }
+    if (presetId == 'choice' && fieldKey == 'tokens') {
+      return const ExerciseFieldHelp(
+        title: 'Distractor options (optional)',
+        purpose:
+            'Adds options the learner can select that are not the answer '
+            'to any gap.',
+        entryRules:
+            'One extra option per line. Include 0, 1 or at most 2 '
+            'distractors.',
+        validation: 'Distractor options must not repeat any gap answer text.',
+        example: 'perhaps',
+      );
+    }
     if (presetId == 'type_missing_word' &&
         const {'prompt', 'accepted'}.contains(fieldKey)) {
       return const ExerciseFieldHelp(
@@ -250,6 +312,7 @@ abstract final class ExerciseFieldHelpRegistry {
           : ExerciseAuthoringField.correctBlockOrder,
     'correctTranslation' => ExerciseAuthoringField.correctTranslation,
     'gapLayout' => ExerciseAuthoringField.gapLayout,
+    'requiredSelections' => ExerciseAuthoringField.selectRequiredSelections,
     'pairs' => switch (presetId) {
       'word_match' => ExerciseAuthoringField.translationPairs,
       'super_match' => ExerciseAuthoringField.relatedPairs,
@@ -582,6 +645,16 @@ abstract final class ExerciseFieldHelpRegistry {
       validation:
           'At least one {…} gap is required, and every gap must contain non-empty text. Literal { or } characters cannot appear anywhere else in the sentence — every { must be paired with a matching } directly around one answer. Existing whole-sentence Arrange exercises are unaffected unless Inline gaps is enabled.',
       example: 'I {am} going {to} London.',
+    ),
+    ExerciseAuthoringField.selectRequiredSelections => const ExerciseFieldHelp(
+      title: 'Required selections',
+      purpose:
+          'Sets the minimum number of options the learner must select before checking a multiple-selection Choice exercise.',
+      entryRules:
+          'Enter a whole number between 1 and the number of answers, or leave blank to default to the number of correct answers.',
+      validation:
+          'The Check button stays disabled until at least this many options are selected. This does not cap how many options may be selected; correctness always requires an exact match of the selected set to the correct set.',
+      example: '2',
     ),
     ExerciseAuthoringField.correctTranslation => const ExerciseFieldHelp(
       title: 'Correct translation',

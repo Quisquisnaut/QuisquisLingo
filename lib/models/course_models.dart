@@ -2332,6 +2332,36 @@ class Exercise {
   bool get hasArrangeGaps =>
       interaction.kind == 'arrange' &&
       arrangeLayout.any((element) => element.type == 'gap');
+
+  /// Whether this Select exercise allows choosing more than one option.
+  /// False (single-selection) for every existing Select exercise, which
+  /// keeps default single-select behavior unchanged.
+  bool get isMultiSelect =>
+      interaction.kind == 'select' && interaction.maxSelections > 1;
+
+  /// The minimum number of options a multi-select Select exercise requires
+  /// before it can be submitted. Meaningless for single-select exercises.
+  int get requiredSelectionCount =>
+      interaction.minSelections < 1 ? 1 : interaction.minSelections;
+
+  /// The maximum number of options a multi-select Select exercise allows to
+  /// be selected at once. 1 for every existing single-select exercise.
+  int get maxSelectionCount =>
+      interaction.maxSelections < 1 ? 1 : interaction.maxSelections;
+
+  /// The full set of correct item IDs, used for set-based exact-match
+  /// correctness on multi-select Select exercises. A single-element set for
+  /// every existing single-select exercise.
+  Set<String> get correctItemIdSet => evaluation.correctItemIds.toSet();
+
+  /// Whether this Select exercise embeds inline gaps whose values are filled
+  /// by selecting linked options: one option can be the required answer for
+  /// (and therefore fill) more than one gap at once. Reuses the same
+  /// layout/gapAssignments primitives as gap-based Arrange. False for every
+  /// existing Select exercise.
+  bool get hasSelectGaps =>
+      interaction.kind == 'select' &&
+      arrangeLayout.any((element) => element.type == 'gap');
   List<String> get orderAnswer =>
       evaluation.correctOrders.firstOrNull?.itemIds
           .map((id) {

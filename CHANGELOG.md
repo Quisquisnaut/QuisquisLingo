@@ -1,10 +1,12 @@
-# 2.0.38 (Build 238, Revision 0) - Arrange gap-fill authoring (in progress) - 2026-09-17
+# 2.0.38 (Build 238, Revision 1) - Arrange & Select gap-fill authoring - 2026-09-18
 
 - Phase 1 extends the existing Arrange primitive (word_order, build_translation) with inline gap-fill authoring: the fixed sentence is typed once, with each gap's literal answer embedded directly inside braces (`I {am} going {to} London.`) instead of a literal `{gap}` marker plus a separate "Correct answers" field.
 - Added optional "Extra distractor blocks" for gap-fill exercises, plus validation for missing gaps, empty `{}` gaps and unbalanced/nested braces, with matching Course Editor Help text.
 - Existing whole-sentence Arrange authoring and previously published exercises are unaffected when Inline gaps stays off.
 - Updated the version to `2.0.38+238000`, Build 238, Revision 0, and refreshed the 30-day Beta expiry to `2026-10-17 23:59:59` local time.
-- Phase 2 (extending Select with single/multiple selection, required-selection counts, set-based correctness and linked-gap answer sets) has not started yet.
+- Revision 1 extends the existing Select primitive (`choice`) with the same inline gap-fill authoring as Arrange (an option can answer more than one gap; tapping it again fills the next gap it is needed for), plus multiple-selection mode with an optional required-selection count and set-based exact-match correctness. Existing single-select `choice` exercises, and every other Select-based preset (`gap_choice`, `icon_choice`, `listening_choice`, `script_recognition`, `listening_comprehension`, `reading_comprehension`, `dialogue_response`, `contextual_comprehension`), are unaffected.
+- Revision 1 also fixes a defect found during manual review of the initial Select gap-fill implementation: a gap could previously only ever be filled by its correct option, so an incorrect attempt could never be submitted. Placement is now purely positional — the first tapped option always fills the first remaining empty blank (or an explicitly armed one), regardless of whether it is actually correct there — so the right answers in the wrong blanks are checked and marked incorrect, matching gap-based Arrange's existing behavior. Several authoring field labels and Help texts for Select gap-fill were also clarified based on that review.
+- Updated the version to `2.0.38+238001`, Build 238, Revision 1. The 30-day Beta expiry remains unchanged at `2026-10-17 23:59:59` local time.
 
 # 2.0.37 (Build 237, Revision 4) - Course Merge - 2026-09-17
 

@@ -7558,6 +7558,7 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
   String? _correctTranslationError;
   late String _imageAsset;
   bool _useInlineGaps = false;
+  bool _useMultiSelect = false;
   static List<String> get _types =>
       ExercisePresetRegistry.presets.map((preset) => preset.id).toList();
   static String labelForType(String type) =>
@@ -7578,7 +7579,8 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
       _icons,
       _missingWords,
       _context,
-      _dialogue;
+      _dialogue,
+      _requiredSelections;
   @override
   void initState() {
     super.initState();
@@ -7593,13 +7595,19 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
     _tts = TextEditingController(text: e.tts ?? '');
     _hint = TextEditingController(text: e.hint);
     _answers = TextEditingController(text: e.answers.join('\n'));
+    _useMultiSelect = e.isMultiSelect;
     _correct = TextEditingController(
-      text: e.correct == null ? '' : '${e.correct! + 1}',
+      text: e.isMultiSelect
+          ? _multiSelectCorrectNumbersText(e)
+          : (e.correct == null ? '' : '${e.correct! + 1}'),
+    );
+    _requiredSelections = TextEditingController(
+      text: e.isMultiSelect ? '${e.requiredSelectionCount}' : '',
     );
     _accepted = TextEditingController(text: e.accepted.join('\n'));
-    _useInlineGaps = e.hasArrangeGaps;
+    _useInlineGaps = e.hasArrangeGaps || e.hasSelectGaps;
     _tokens = TextEditingController(
-      text: e.hasArrangeGaps
+      text: (e.hasArrangeGaps || e.hasSelectGaps)
           ? _distractorTexts(e).join('\n')
           : e.tokens.join('\n'),
     );
@@ -7647,6 +7655,7 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
       _missingWords,
       _context,
       _dialogue,
+      _requiredSelections,
     ]) {
       _watchText(controller);
     }
@@ -7705,6 +7714,7 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
       _missingWords,
       _context,
       _dialogue,
+      _requiredSelections,
     ]) {
       c.dispose();
     }
@@ -7873,6 +7883,18 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
         .join(' ');
   }
 
+  /// Reconstructs the 1-based, comma-separated "Correct answer numbers" text
+  /// for a multi-select Select exercise from its correct item IDs, for
+  /// display when reopening it in the Editor.
+  String _multiSelectCorrectNumbersText(Exercise e) {
+    final correctIds = e.correctItemIdSet;
+    final numbers = <int>[];
+    for (var i = 0; i < e.interaction.items.length; i++) {
+      if (correctIds.contains(e.interaction.items[i].id)) numbers.add(i + 1);
+    }
+    return numbers.join(', ');
+  }
+
   /// The blocks that are not used to fill any gap (optional distractors),
   /// for display in the "Extra distractor blocks" field.
   List<String> _distractorTexts(Exercise e) {
@@ -7945,6 +7967,7 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
     _missingWords: 'missingWords',
     _context: 'context',
     _dialogue: 'dialogue',
+    _requiredSelections: 'requiredSelections',
   }[controller]!;
 
   Future<void> _showFieldHelp(String fieldKey, {String? title}) {
@@ -8544,6 +8567,98 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
                 'One word or expression per line. Each must occur in the passage.',
           ),
         ];
+      case 'choice':
+        return [
+          _field(_prompt, 'Prompt / instruction', lines: 2),
+          SwitchListTile(
+            key: const Key('choice-use-inline-gaps'),
+            title: const Text('Inline gaps'),
+            subtitle: const Text(
+              'Fill one or more blanks inside a fixed question by tapping '
+              'options in order instead of choosing one whole answer. Each '
+              'tap fills the first empty blank; the same option can be '
+              'tapped again for another blank. Disables multiple correct '
+              'answers.',
+            ),
+            value: _useInlineGaps,
+            onChanged: widget.readOnly
+                ? null
+                : (value) => setState(() {
+                    _useInlineGaps = value;
+                    if (value) _useMultiSelect = false;
+                    _dirty = true;
+                  }),
+          ),
+          if (_useInlineGaps) ...[
+            _field(
+              _gapLayout,
+              'Sentence with gaps',
+              lines: 3,
+              helper:
+                  'Write the sentence and put each answer word or phrase '
+                  'directly inside braces: {answer}. Example: I {am} going '
+                  '{to} London. Each blank is filled in order by the '
+                  'options the learner taps, so a wrong choice can land in '
+                  'the wrong blank. If the same word answers more than one '
+                  'gap, write it inside each of those braces — the '
+                  'learner taps it once per blank it needs to fill: '
+                  '{Was} she happy? {Was} he late? Literal { or } '
+                  'characters can\'t appear anywhere else.',
+            ),
+            _field(
+              _tokens,
+              'Distractor options (optional)',
+              lines: 3,
+              helper:
+                  'One extra option per line that is not the answer to any '
+                  'gap. Include 0, 1 or at most 2 distractors.',
+            ),
+            _field(
+              _tts,
+              'Spoken prompt (optional)',
+              lines: 2,
+              helper:
+                  'Optional audio played before the learner fills the gaps.',
+            ),
+          ] else ...[
+            _field(_question, 'Question', lines: 2),
+            _field(_answers, 'Answers', lines: 4),
+            SwitchListTile(
+              key: const Key('choice-use-multi-select'),
+              title: const Text('Multiple correct answers'),
+              subtitle: const Text(
+                'Let the learner select more than one option. The answer '
+                'counts as correct only when the selected options exactly '
+                'match the correct set.',
+              ),
+              value: _useMultiSelect,
+              onChanged: widget.readOnly
+                  ? null
+                  : (value) => setState(() {
+                      _useMultiSelect = value;
+                      _dirty = true;
+                    }),
+            ),
+            if (_useMultiSelect) ...[
+              _field(
+                _correct,
+                'Correct answer numbers',
+                helper:
+                    'Numbers of every correct answer, starting at 1, '
+                    'separated by commas. Example: 1, 3',
+              ),
+              _field(
+                _requiredSelections,
+                'Required selections (optional)',
+                helper:
+                    'Minimum number of options the learner must select '
+                    'before checking. Leave blank to default to the number '
+                    'of correct answers.',
+              ),
+            ] else
+              _field(_correct, 'Correct answer number'),
+          ],
+        ];
       default:
         return [
           _field(_prompt, 'Prompt / instruction', lines: 2),
@@ -8754,7 +8869,16 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
     );
     WidgetsBinding.instance.addPostFrameCallback((_) => search.dispose());
     if (selected != null && mounted) {
+      final previousType = _type;
       setState(() {
+        const arrangeFamily = {'word_order', 'build_translation'};
+        final staySameFamily =
+            arrangeFamily.contains(previousType) &&
+            arrangeFamily.contains(selected);
+        if (!staySameFamily) {
+          _useInlineGaps = false;
+          _useMultiSelect = false;
+        }
         _type = selected;
         _dirty = true;
       });
@@ -8771,6 +8895,12 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
     if (const {'word_order', 'build_translation'}.contains(_type) &&
         _useInlineGaps) {
       return _buildArrangeGapCandidate(publicationState);
+    }
+    if (_type == 'choice' && _useInlineGaps) {
+      return _buildSelectGapCandidate(publicationState);
+    }
+    if (_type == 'choice' && _useMultiSelect) {
+      return _buildSelectMultiCandidate(publicationState);
     }
     if (_type == 'type_translation' || _type == 'type_missing_word') {
       final accepted = _lines(_accepted);
@@ -9204,6 +9334,207 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
     );
   }
 
+  /// Builds the multiple-selection Select candidate for `choice` when
+  /// Multiple correct answers is enabled. Correctness is set-based: the
+  /// learner's selected options must exactly match `correctItemIds`.
+  Exercise? _buildSelectMultiCandidate(PublicationState publicationState) {
+    final answerLines = _lines(_answers);
+    if (answerLines.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Answers: add at least one answer.')),
+      );
+      return null;
+    }
+    final numberTexts = _correct.text
+        .split(RegExp(r'[,\n]'))
+        .map((value) => value.trim())
+        .where((value) => value.isNotEmpty)
+        .toList();
+    final correctIndexes = <int>{};
+    for (final numberText in numberTexts) {
+      final parsed = int.tryParse(numberText);
+      if (parsed == null || parsed < 1 || parsed > answerLines.length) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            duration: Duration(seconds: 8),
+            content: Text(
+              'Correct answer numbers: enter the numbers of existing '
+              'answers, starting at 1, separated by commas.',
+            ),
+          ),
+        );
+        return null;
+      }
+      correctIndexes.add(parsed - 1);
+    }
+    if (correctIndexes.isEmpty && publicationState.isPublished) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Correct answer numbers: enter at least one correct answer '
+            'number to publish.',
+          ),
+        ),
+      );
+      return null;
+    }
+    final requiredText = _requiredSelections.text.trim();
+    final required = requiredText.isEmpty
+        ? (correctIndexes.isEmpty ? 1 : correctIndexes.length)
+        : int.tryParse(requiredText);
+    if (required == null || required < 1 || required > answerLines.length) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Required selections: enter a number between 1 and the number '
+            'of answers, or leave blank.',
+          ),
+        ),
+      );
+      return null;
+    }
+    final items = [
+      for (var i = 0; i < answerLines.length; i++)
+        ExerciseItem(
+          id: 'item_$i',
+          content: [PromptElement(type: 'text', text: answerLines[i])],
+        ),
+    ];
+    return Exercise.v2(
+      id: _exercise.id,
+      publicationState: publicationState,
+      updatedAt: _exercise.updatedAt,
+      editorTemplate: _type,
+      promptElements: Exercise.legacyPromptElements(
+        _type,
+        _prompt.text.trim(),
+        _question.text.trim(),
+        null,
+        _imageAsset,
+      ),
+      interaction: ExerciseInteraction(
+        kind: 'select',
+        items: items,
+        minSelections: required,
+        maxSelections: items.length,
+      ),
+      evaluation: ExerciseEvaluation(
+        kind: 'selected_items',
+        correctItemIds: [for (final i in correctIndexes) items[i].id],
+      ),
+      hint: '',
+      feedback: _exercise.feedback,
+      missingWords: _exercise.missingWords,
+    );
+  }
+
+  /// Builds the linked-gap Select candidate for `choice` when Inline gaps is
+  /// enabled. Unlike gap-based Arrange, the same option can be the required
+  /// answer for more than one gap, so answer text is deduplicated into one
+  /// shared option: the learner can tap it again to fill a later gap that
+  /// also needs it, instead of needing a separate tile per occurrence.
+  Exercise? _buildSelectGapCandidate(PublicationState publicationState) {
+    final text = _gapLayout.text;
+    if (text.contains('{') && !_gapBraceCountsBalance(text)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Sentence with gaps: every { must have a matching } directly '
+            'around one answer option, e.g. {answer}. Literal { or } '
+            "characters can't be used elsewhere in the sentence.",
+          ),
+        ),
+      );
+      return null;
+    }
+    final matches = _gapBracePattern.allMatches(text).toList();
+    if (matches.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Sentence with gaps: add at least one gap, e.g. {answer}.',
+          ),
+        ),
+      );
+      return null;
+    }
+    final gapAnswers = <String>[];
+    for (final match in matches) {
+      final answer = (match.group(1) ?? '').trim();
+      if (answer.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Sentence with gaps: each {…} gap must contain the answer '
+              'text, e.g. {answer}, not an empty {}.',
+            ),
+          ),
+        );
+        return null;
+      }
+      gapAnswers.add(answer);
+    }
+    final distractors = _lines(_tokens);
+    final optionTexts = <String>[];
+    for (final answer in [...gapAnswers, ...distractors]) {
+      if (!optionTexts.contains(answer)) optionTexts.add(answer);
+    }
+    final idByText = {
+      for (var i = 0; i < optionTexts.length; i++) optionTexts[i]: 'item_$i',
+    };
+    final gapIds = [for (var i = 0; i < gapAnswers.length; i++) 'gap_${i + 1}'];
+    final layout = <PromptElement>[];
+    var cursor = 0;
+    for (var i = 0; i < matches.length; i++) {
+      final match = matches[i];
+      final fixedText = text.substring(cursor, match.start).trim();
+      if (fixedText.isNotEmpty) {
+        layout.add(PromptElement(type: 'text', text: fixedText));
+      }
+      layout.add(PromptElement(type: 'gap', text: gapIds[i]));
+      cursor = match.end;
+    }
+    final trailingText = text.substring(cursor).trim();
+    if (trailingText.isNotEmpty) {
+      layout.add(PromptElement(type: 'text', text: trailingText));
+    }
+    final items = [
+      for (final optionText in optionTexts)
+        ExerciseItem(
+          id: idByText[optionText]!,
+          content: [PromptElement(type: 'text', text: optionText)],
+        ),
+    ];
+    return Exercise.v2(
+      id: _exercise.id,
+      publicationState: publicationState,
+      updatedAt: _exercise.updatedAt,
+      editorTemplate: _type,
+      promptElements: Exercise.legacyPromptElements(
+        _type,
+        _prompt.text.trim(),
+        '',
+        _tts.text.trim().isEmpty ? null : _tts.text.trim(),
+        _imageAsset,
+      ),
+      interaction: ExerciseInteraction(
+        kind: 'select',
+        items: items,
+        layout: layout,
+      ),
+      evaluation: ExerciseEvaluation(
+        kind: 'selected_items',
+        gapAssignments: {
+          for (var i = 0; i < gapIds.length; i++)
+            gapIds[i]: idByText[gapAnswers[i]]!,
+        },
+      ),
+      hint: '',
+      feedback: _exercise.feedback,
+      missingWords: _exercise.missingWords,
+    );
+  }
+
   Future<bool> _validateScriptImages(Exercise candidate) async {
     if (candidate.type != 'script_recognition') return true;
     final assets = {
@@ -9510,10 +9841,16 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
         _tts.text = e.tts ?? '';
         _hint.text = e.hint;
         _answers.text = e.answers.join('\n');
-        _correct.text = e.correct == null ? '' : '${e.correct! + 1}';
+        _useMultiSelect = e.isMultiSelect;
+        _correct.text = e.isMultiSelect
+            ? _multiSelectCorrectNumbersText(e)
+            : (e.correct == null ? '' : '${e.correct! + 1}');
+        _requiredSelections.text = e.isMultiSelect
+            ? '${e.requiredSelectionCount}'
+            : '';
         _accepted.text = e.accepted.join('\n');
-        _useInlineGaps = e.hasArrangeGaps;
-        _tokens.text = e.hasArrangeGaps
+        _useInlineGaps = e.hasArrangeGaps || e.hasSelectGaps;
+        _tokens.text = (e.hasArrangeGaps || e.hasSelectGaps)
             ? _distractorTexts(e).join('\n')
             : e.tokens.join('\n');
         _order.text = e.orderAnswer.join('\n');
