@@ -437,6 +437,9 @@ class AuthoringDuplicationService {
               ],
             ),
         ],
+        layout: [
+          for (final element in source.interaction.layout) _copyPrompt(element),
+        ],
       ),
       evaluation: ExerciseEvaluation(
         kind: source.evaluation.kind,
@@ -456,6 +459,10 @@ class AuthoringDuplicationService {
         normalization: Map<String, dynamic>.from(
           jsonDecode(jsonEncode(source.evaluation.normalization)) as Map,
         ),
+        gapAssignments: {
+          for (final entry in source.evaluation.gapAssignments.entries)
+            entry.key: mapped(entry.value),
+        },
       ),
       hint: source.hint,
       feedback: {...source.feedback},

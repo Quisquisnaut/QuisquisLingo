@@ -2,10 +2,7 @@ import 'package:flutter/material.dart';
 import 'app_errors.dart';
 
 class ErrorPresenter {
-  static Future<void> show(
-    BuildContext context,
-    AppErrorCode error,
-  ) async {
+  static Future<void> show(BuildContext context, AppErrorCode error) async {
     if (!context.mounted) return;
 
     await showDialog<void>(

@@ -10,10 +10,12 @@ class GamificationSettingsScreen extends StatefulWidget {
   const GamificationSettingsScreen({super.key});
 
   @override
-  State<GamificationSettingsScreen> createState() => _GamificationSettingsScreenState();
+  State<GamificationSettingsScreen> createState() =>
+      _GamificationSettingsScreenState();
 }
 
-class _GamificationSettingsScreenState extends State<GamificationSettingsScreen> {
+class _GamificationSettingsScreenState
+    extends State<GamificationSettingsScreen> {
   final _settings = SettingsService();
   final _progress = ProgressService();
   final _profiles = ProfileService();
@@ -40,7 +42,8 @@ class _GamificationSettingsScreenState extends State<GamificationSettingsScreen>
     final lastWeekXp = await _progress.getLastWeekXp();
     final byCourse = await _progress.getLastWeekXpByCourse();
     final leaderboard = await _progress.getLastWeekLocalLeaderboard();
-    final participates = await _progress.isLocalLeaderboardParticipationEnabled();
+    final participates = await _progress
+        .isLocalLeaderboardParticipationEnabled();
     final activeId = await _profiles.getActiveProfileId();
     final names = <String, String>{};
 
@@ -87,7 +90,10 @@ class _GamificationSettingsScreenState extends State<GamificationSettingsScreen>
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
           FilledButton(
             onPressed: () => Navigator.pop(ctx, int.tryParse(controller.text)),
             child: const Text('Save'),
@@ -106,7 +112,9 @@ class _GamificationSettingsScreenState extends State<GamificationSettingsScreen>
       ..sort((a, b) {
         final byXp = b.value.compareTo(a.value);
         if (byXp != 0) return byXp;
-        return (_courseNames[a.key] ?? a.key).compareTo(_courseNames[b.key] ?? b.key);
+        return (_courseNames[a.key] ?? a.key).compareTo(
+          _courseNames[b.key] ?? b.key,
+        );
       });
     await showDialog<void>(
       context: context,
@@ -115,7 +123,9 @@ class _GamificationSettingsScreenState extends State<GamificationSettingsScreen>
         content: SizedBox(
           width: 420,
           child: entries.isEmpty
-              ? const Text('No XP were recorded for the previous completed week.')
+              ? const Text(
+                  'No XP were recorded for the previous completed week.',
+                )
               : ListView.separated(
                   shrinkWrap: true,
                   itemCount: entries.length,
@@ -125,12 +135,20 @@ class _GamificationSettingsScreenState extends State<GamificationSettingsScreen>
                     return ListTile(
                       contentPadding: EdgeInsets.zero,
                       title: Text(_courseNames[entry.key] ?? entry.key),
-                      trailing: Text('${entry.value} XP', style: const TextStyle(fontWeight: FontWeight.bold)),
+                      trailing: Text(
+                        '${entry.value} XP',
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
                     );
                   },
                 ),
         ),
-        actions: [FilledButton(onPressed: () => Navigator.pop(ctx), child: const Text('Close'))],
+        actions: [
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Close'),
+          ),
+        ],
       ),
     );
   }
@@ -153,7 +171,9 @@ class _GamificationSettingsScreenState extends State<GamificationSettingsScreen>
                   child: ListTile(
                     leading: const Icon(Icons.flag_outlined),
                     title: const Text('Weekly XP Target · All courses'),
-                    subtitle: Text('$_target XP · current week · total across every course'),
+                    subtitle: Text(
+                      '$_target XP · current week · total across every course',
+                    ),
                     trailing: const Icon(Icons.edit_outlined),
                     onTap: _editTarget,
                   ),
@@ -162,8 +182,15 @@ class _GamificationSettingsScreenState extends State<GamificationSettingsScreen>
                   child: ListTile(
                     leading: const Icon(Icons.history_outlined),
                     title: const Text('Last Week XP · All courses'),
-                    subtitle: const Text('Previous completed week. Tap your score to see XP for each course.'),
-                    trailing: Text('$_lastWeekXp XP', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                    subtitle: const Text(
+                      'Previous completed week. Tap your score to see XP for each course.',
+                    ),
+                    trailing: Text(
+                      '$_lastWeekXp XP',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                     onTap: _showLastWeekBreakdown,
                   ),
                 ),
@@ -174,9 +201,15 @@ class _GamificationSettingsScreenState extends State<GamificationSettingsScreen>
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Local leaderboard · All courses', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                        Text(
+                          'Local leaderboard · All courses',
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(fontWeight: FontWeight.bold),
+                        ),
                         const SizedBox(height: 4),
-                        const Text('Previous completed week. Each score is that learner’s total XP earned across all courses.'),
+                        const Text(
+                          'Previous completed week. Each score is that learner’s total XP earned across all courses.',
+                        ),
                         const SizedBox(height: 12),
                         if (_leaderboard.isEmpty)
                           const Text('No participating local learners yet.')
@@ -245,7 +278,9 @@ class _GamificationSettingsScreenState extends State<GamificationSettingsScreen>
                         SwitchListTile(
                           contentPadding: EdgeInsets.zero,
                           title: const Text('Participate in local leaderboard'),
-                          subtitle: const Text('Turn this off to keep your profile out of the local ranking. Your XP and Last Week XP are still recorded for you.'),
+                          subtitle: const Text(
+                            'Turn this off to keep your profile out of the local ranking. Your XP and Last Week XP are still recorded for you.',
+                          ),
                           value: _participates,
                           onChanged: _setParticipation,
                         ),

@@ -48,7 +48,7 @@ void main() {
       await tester.pumpWidget(const MaterialApp(home: ExerciseHelpScreen()));
       await tester.pumpAndSettle();
       expect(find.byKey(const Key('exercise-help-list')), findsOneWidget);
-      expect(find.text('How do you say'), findsOneWidget);
+      expect(find.text('Choose'), findsOneWidget);
       final helpScrollable = find.descendant(
         of: find.byKey(const Key('exercise-help-list')),
         matching: find.byType(Scrollable),

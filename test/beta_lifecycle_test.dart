@@ -2,7 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:quisquislingo_app/services/beta_lifecycle_service.dart';
 
 void main() {
-  test('QQL 237 refreshes Beta expiry and includes the expiry day', () {
+  test('QQL 238 refreshes Beta expiry and includes the expiry day', () {
     expect(BetaLifecycleService.expiryIsoDate, '2026-10-17');
     expect(BetaLifecycleService.daysRemaining(DateTime(2026, 9, 17)), 30);
     expect(BetaLifecycleService.isExpired(DateTime(2026, 10, 17, 12)), isFalse);

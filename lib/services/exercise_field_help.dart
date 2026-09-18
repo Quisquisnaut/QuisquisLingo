@@ -45,6 +45,8 @@ enum ExerciseAuthoringField {
   scriptTextOptions,
   scriptImageOptions,
   scriptCorrect,
+  gapLayout,
+  selectRequiredSelections,
 }
 
 class ExerciseFieldHelp {
@@ -92,7 +94,16 @@ abstract final class ExerciseFieldHelpRegistry {
   /// Shared Help search uses this inventory rather than indexing unrelated fields.
   static List<String> editorFieldKeys(String presetId) {
     const fields = <String, List<String>>{
-      'choice': ['prompt', 'question', 'answers', 'correct'],
+      'choice': [
+        'prompt',
+        'question',
+        'answers',
+        'correct',
+        'requiredSelections',
+        'gapLayout',
+        'tokens',
+        'tts',
+      ],
       'gap_choice': ['question', 'answers', 'correct', 'hint'],
       'icon_choice': ['question', 'answers', 'correct', 'icons'],
       'listening_choice': ['tts', 'question', 'answers', 'correct'],
@@ -118,7 +129,13 @@ abstract final class ExerciseFieldHelpRegistry {
         'scriptImageOptions',
         'scriptCorrect',
       ],
-      'build_translation': ['prompt', 'tokens', 'correctTranslation'],
+      'build_translation': [
+        'prompt',
+        'tokens',
+        'correctTranslation',
+        'gapLayout',
+        'tts',
+      ],
       'fill_blank': ['question', 'accepted', 'hint', 'tts'],
       'listening_spelling': ['prompt', 'tts', 'missingWords'],
       'missing_word': ['prompt', 'tts', 'missingWords'],
@@ -126,7 +143,7 @@ abstract final class ExerciseFieldHelpRegistry {
       'word_match': ['prompt', 'pairs'],
       'super_match': ['prompt', 'pairs'],
       'audio_match': ['prompt', 'pairs'],
-      'word_order': ['prompt', 'tokens', 'order'],
+      'word_order': ['prompt', 'gapLayout', 'tokens', 'order', 'tts'],
       'image_word': ['prompt', 'tokens', 'order'],
       'flashcard': ['prompt', 'question', 'tts', 'answers'],
     };
@@ -176,6 +193,58 @@ abstract final class ExerciseFieldHelpRegistry {
         validation:
             'Recordings are stored physically by learning language; metadata and references belong to the Course. Verified Course backups copy referenced recordings. Course JSON does not contain MP3 bytes and JSON alone does not transfer recordings.',
         example: 'Buongiorno, come stai?',
+      );
+    }
+    if (presetId == 'choice' && fieldKey == 'correct') {
+      return const ExerciseFieldHelp(
+        title: 'Correct answer number',
+        purpose:
+            'Identifies the correct option or options from the answer list.',
+        entryRules:
+            'Enter one whole number, counting non-empty answer lines from '
+            '1. When Multiple correct answers is enabled, enter every '
+            'correct number separated by commas, e.g. 1, 3.',
+        validation:
+            'Every number must be between 1 and the number of answers. '
+            'Recheck it after reordering or deleting answer lines.',
+        example: '2 selects the second non-empty answer line.',
+      );
+    }
+    if (presetId == 'choice' && fieldKey == 'gapLayout') {
+      return const ExerciseFieldHelp(
+        title: 'Sentence with gaps',
+        purpose:
+            'Shows the fixed sentence with one or more inline blanks the '
+            'learner fills, in order, by tapping options from a list.',
+        entryRules:
+            'Write the sentence and put each answer word or phrase '
+            'directly inside braces: {answer}. Example: I {am} going {to} '
+            'London. Each tap fills the first remaining empty blank, '
+            'whichever option is tapped — placement does not check '
+            'correctness, so the right words in the wrong blanks are '
+            'still marked incorrect. If the same word answers more than '
+            'one gap, write it inside each of those braces: {Was} she '
+            'happy? {Was} he late? — the learner taps it once per blank '
+            'it needs to fill. Extra options that are not the answer to '
+            'any gap go in Distractor options (optional).',
+        validation:
+            'At least one {…} gap is required, and every gap must contain '
+            'non-empty text. Literal { or } characters cannot appear '
+            'anywhere else in the sentence.',
+        example: 'I {am} going {to} London.',
+      );
+    }
+    if (presetId == 'choice' && fieldKey == 'tokens') {
+      return const ExerciseFieldHelp(
+        title: 'Distractor options (optional)',
+        purpose:
+            'Adds options the learner can select that are not the answer '
+            'to any gap.',
+        entryRules:
+            'One extra option per line. Include 0, 1 or at most 2 '
+            'distractors.',
+        validation: 'Distractor options must not repeat any gap answer text.',
+        example: 'perhaps',
       );
     }
     if (presetId == 'type_missing_word' &&
@@ -242,6 +311,8 @@ abstract final class ExerciseFieldHelpRegistry {
           ? ExerciseAuthoringField.correctWordOrder
           : ExerciseAuthoringField.correctBlockOrder,
     'correctTranslation' => ExerciseAuthoringField.correctTranslation,
+    'gapLayout' => ExerciseAuthoringField.gapLayout,
+    'requiredSelections' => ExerciseAuthoringField.selectRequiredSelections,
     'pairs' => switch (presetId) {
       'word_match' => ExerciseAuthoringField.translationPairs,
       'super_match' => ExerciseAuthoringField.relatedPairs,
@@ -337,7 +408,7 @@ abstract final class ExerciseFieldHelpRegistry {
           'Enter one instruction or prompt as plain text. Line breaks remain part of that text; they do not create separate answers. Use the course source language for operational instructions.',
       validation:
           'Keep it consistent with the selected exercise and the separately entered question, pairs or blocks. For Match related words, state the relationship in the target language.',
-      example: 'Translate into Italian.',
+      example: 'Build the sentence.',
     ),
     ExerciseAuthoringField.sourceText => const ExerciseFieldHelp(
       title: 'Source text',
@@ -523,7 +594,7 @@ abstract final class ExerciseFieldHelpRegistry {
       title: 'Available word blocks',
       purpose: 'Supplies the blocks the learner puts into sentence order.',
       entryRules:
-          'Enter one literal target-language block per line. Blank lines are ignored. Repeat a line when the answer needs another occurrence of that word or block.',
+          'Enter one literal target-language block per line. Blank lines are ignored. Repeat a line when the answer needs another occurrence of that word or block. When Inline gaps is enabled, this field is relabeled Extra distractor blocks: the gap answers themselves come from the {answer} braces in Sentence with gaps, and this field only adds optional unused distractors.',
       validation:
           'Include every block occurrence used in Correct sentence. You may add 0, 1 or at most 2 unused distractor blocks. Keep block spelling and internal punctuation consistent with the correct order.',
       example: 'Io\nbevo\nun\ncaffè\ntè',
@@ -533,7 +604,7 @@ abstract final class ExerciseFieldHelpRegistry {
       purpose:
           'Supplies the blocks used to construct the configured correct translations.',
       entryRules:
-          'Enter one literal block per line. Blank lines are ignored. Include enough distinct occurrences to construct every correct translation; repeated words require repeated lines.',
+          'Enter one literal block per line. Blank lines are ignored. Include enough distinct occurrences to construct every correct translation; repeated words require repeated lines. When Inline gaps is enabled, this field is relabeled Extra distractor blocks: the gap answers themselves come from the {answer} braces in Target sentence with gaps, and this field only adds optional unused distractors.',
       validation:
           'Every correct translation must be constructible from these blocks. At most 2 blocks may be unused by every correct translation. A block used by any configured answer is not an unused distractor. Answer-expression syntax is not expanded.',
       example: 'Io\nprendo\nvorrei\nun\ncaffè',
@@ -551,7 +622,7 @@ abstract final class ExerciseFieldHelpRegistry {
       title: 'Correct sentence',
       purpose: 'Defines the required order of the available word blocks.',
       entryRules:
-          'Enter one block per line in the correct order, not the whole sentence on one line. Blocks are joined with spaces. Blank lines are ignored.',
+          'Enter one block per line in the correct order, not the whole sentence on one line. Blocks are joined with spaces. Blank lines are ignored. Not used when Inline gaps is enabled: gap answers are written directly inside braces in Sentence with gaps instead.',
       validation:
           'Each line must match an available block occurrence. Repeated words need separate available occurrences. This is one literal order; compact answer syntax is not expanded.',
       example: 'Io\nbevo\nun\ncaffè',
@@ -564,6 +635,26 @@ abstract final class ExerciseFieldHelpRegistry {
       validation:
           'Use each required available occurrence once, leave no distractors and supply the matching Exercise image.',
       example: 'ca\nsa\nThese pieces form casa.',
+    ),
+    ExerciseAuthoringField.gapLayout => const ExerciseFieldHelp(
+      title: 'Sentence with gaps',
+      purpose:
+          'Shows the fixed sentence text with one or more inline blanks the learner fills with word or phrase tiles.',
+      entryRules:
+          'Write the fixed sentence and put each answer word or phrase directly inside braces: {answer}. Example: I {am} going {to} London. Each {…} segment is both the gap and its correct answer, so no separate Correct answers / Correct sentence field is needed in this mode. Extra distractor blocks that are not used by any gap still go in Available word blocks / Extra distractor blocks (optional).',
+      validation:
+          'At least one {…} gap is required, and every gap must contain non-empty text. Literal { or } characters cannot appear anywhere else in the sentence — every { must be paired with a matching } directly around one answer. Existing whole-sentence Arrange exercises are unaffected unless Inline gaps is enabled.',
+      example: 'I {am} going {to} London.',
+    ),
+    ExerciseAuthoringField.selectRequiredSelections => const ExerciseFieldHelp(
+      title: 'Required selections',
+      purpose:
+          'Sets the minimum number of options the learner must select before checking a multiple-selection Choice exercise.',
+      entryRules:
+          'Enter a whole number between 1 and the number of answers, or leave blank to default to the number of correct answers.',
+      validation:
+          'The Check button stays disabled until at least this many options are selected. This does not cap how many options may be selected; correctness always requires an exact match of the selected set to the correct set.',
+      example: '2',
     ),
     ExerciseAuthoringField.correctTranslation => const ExerciseFieldHelp(
       title: 'Correct translation',

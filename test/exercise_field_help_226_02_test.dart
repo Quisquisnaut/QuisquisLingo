@@ -13,7 +13,16 @@ void main() {
     // Inventory of the real form values, including fields visible only in one
     // context mode. Widget tests separately check their direct Help controls.
     const fieldsByPreset = <String, List<String>>{
-      'choice': ['prompt', 'question', 'answers', 'correct'],
+      'choice': [
+        'prompt',
+        'question',
+        'answers',
+        'correct',
+        'requiredSelections',
+        'gapLayout',
+        'tokens',
+        'tts',
+      ],
       'gap_choice': ['question', 'answers', 'correct', 'hint'],
       'icon_choice': ['question', 'answers', 'correct', 'icons'],
       'listening_choice': ['tts', 'question', 'answers', 'correct'],
@@ -39,7 +48,13 @@ void main() {
         'scriptImageOptions',
         'scriptCorrect',
       ],
-      'build_translation': ['prompt', 'tokens', 'correctTranslation'],
+      'build_translation': [
+        'prompt',
+        'tokens',
+        'correctTranslation',
+        'gapLayout',
+        'tts',
+      ],
       'fill_blank': ['question', 'accepted', 'hint', 'tts'],
       'listening_spelling': ['prompt', 'tts', 'missingWords'],
       'missing_word': ['prompt', 'tts', 'missingWords'],
@@ -47,7 +62,7 @@ void main() {
       'word_match': ['prompt', 'pairs'],
       'super_match': ['prompt', 'pairs'],
       'audio_match': ['prompt', 'pairs'],
-      'word_order': ['prompt', 'tokens', 'order'],
+      'word_order': ['prompt', 'gapLayout', 'tokens', 'order', 'tts'],
       'image_word': ['prompt', 'tokens', 'order'],
       'flashcard': ['prompt', 'question', 'tts', 'answers'],
     };

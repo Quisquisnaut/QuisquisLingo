@@ -1982,12 +1982,21 @@ class ExerciseInteraction {
   final int minSelections;
   final int maxSelections;
   final List<ExerciseItem> items;
+
+  /// Optional ordered fixed-text/gap layout used by Arrange (and, later,
+  /// linked-gap Select) exercises to embed one or more inline gaps inside
+  /// otherwise fixed text. Each element is either `type: 'text'` (a fixed,
+  /// non-editable run of text) or `type: 'gap'` (a fillable slot whose
+  /// `text` is a stable gap ID). Empty by default, which preserves every
+  /// existing Arrange exercise's whole-sentence, gap-free behavior.
+  final List<PromptElement> layout;
   const ExerciseInteraction({
     required this.kind,
     this.inputType = 'text',
     this.minSelections = 1,
     this.maxSelections = 1,
     this.items = const [],
+    this.layout = const [],
   });
   Map<String, dynamic> toJson() => {
     'kind': kind,
@@ -1995,6 +2004,7 @@ class ExerciseInteraction {
     if (kind == 'select') 'minSelections': minSelections,
     if (kind == 'select') 'maxSelections': maxSelections,
     if (items.isNotEmpty) 'items': items.map((e) => e.toJson()).toList(),
+    if (layout.isNotEmpty) 'layout': layout.map((e) => e.toJson()).toList(),
   };
   factory ExerciseInteraction.fromJson(Map<String, dynamic> j) =>
       ExerciseInteraction(
@@ -2004,6 +2014,9 @@ class ExerciseInteraction {
         maxSelections: _optionalInt(j, 'maxSelections', 1),
         items: (j['items'] is List)
             ? _mapList(j, 'items', 'interaction', ExerciseItem.fromJson)
+            : const [],
+        layout: (j['layout'] is List)
+            ? _mapList(j, 'layout', 'interaction', PromptElement.fromJson)
             : const [],
       );
 }
@@ -2031,6 +2044,12 @@ class ExerciseEvaluation {
   final List<OrderedAnswer> correctOrders;
   final List<List<String>> pairs;
   final Map<String, dynamic> normalization;
+
+  /// Optional gap ID -> required item ID map used by gap-based Arrange (and,
+  /// later, linked-gap Select) exercises. Empty by default, which preserves
+  /// every existing Arrange exercise's whole-sentence `correctOrders`
+  /// evaluation unchanged.
+  final Map<String, String> gapAssignments;
   const ExerciseEvaluation({
     required this.kind,
     this.correctItemIds = const [],
@@ -2038,6 +2057,7 @@ class ExerciseEvaluation {
     this.correctOrders = const [],
     this.pairs = const [],
     this.normalization = const {},
+    this.gapAssignments = const {},
   });
   Map<String, dynamic> toJson() => {
     'kind': kind,
@@ -2047,6 +2067,7 @@ class ExerciseEvaluation {
       'correctOrders': correctOrders.map((answer) => answer.toJson()).toList(),
     if (pairs.isNotEmpty) 'pairs': pairs,
     if (normalization.isNotEmpty) 'normalization': normalization,
+    if (gapAssignments.isNotEmpty) 'gapAssignments': gapAssignments,
   };
   factory ExerciseEvaluation.fromJson(Map<String, dynamic> j) {
     if (j.containsKey('accepted')) {
@@ -2078,6 +2099,13 @@ class ExerciseEvaluation {
           : _mapList(j, 'correctOrders', 'evaluation', OrderedAnswer.fromJson),
       pairs: _pairList(j, 'pairs'),
       normalization: normalization,
+      gapAssignments: j['gapAssignments'] is Map
+          ? Map<String, String>.from(
+              (j['gapAssignments'] as Map).map(
+                (k, v) => MapEntry(k.toString(), v.toString()),
+              ),
+            )
+          : const {},
     );
   }
 }
@@ -2173,6 +2201,25 @@ class Exercise {
     hint: '',
     icons: const [],
   );
+
+  /// Exposes the existing token/authored-order resolution used by the
+  /// legacy whole-sentence Arrange builder so Editor authoring for the
+  /// inline-gap Arrange mode can reuse the identical block-matching rules.
+  static List<String> resolveOrderedItemIds(
+    List<String> tokens,
+    List<String> authoredOrder,
+  ) => _resolveOrderedItemIds(tokens, authoredOrder);
+
+  /// Exposes the existing legacy prompt-role mapping (clue/primary/passage/
+  /// context) so Editor authoring for the inline-gap Arrange mode builds
+  /// prompt elements identical to the whole-sentence Arrange builder.
+  static List<PromptElement> legacyPromptElements(
+    String type,
+    String prompt,
+    String question,
+    String? tts,
+    String imageAsset,
+  ) => _legacyPrompt(type, prompt, question, tts, imageAsset);
 
   Map<String, dynamic> toV2Json() => {
     'updatedAt': _timestampToJson(updatedAt),
@@ -2270,6 +2317,51 @@ class Exercise {
   List<String> get accepted => evaluation.accepted;
   List<String> get tokens =>
       interaction.items.map((e) => e.value).where((e) => e.isNotEmpty).toList();
+
+  /// The fixed-text/gap layout for an Arrange exercise that embeds one or
+  /// more inline gaps inside otherwise fixed text. Empty for every existing
+  /// whole-sentence Arrange exercise.
+  List<PromptElement> get arrangeLayout => interaction.layout;
+
+  /// Gap ID -> required item ID for a gap-based Arrange exercise. Empty for
+  /// every existing whole-sentence Arrange exercise.
+  Map<String, String> get arrangeGapAssignments => evaluation.gapAssignments;
+
+  /// Whether this Arrange exercise uses the inline-gap layout instead of the
+  /// original whole-sentence tile builder.
+  bool get hasArrangeGaps =>
+      interaction.kind == 'arrange' &&
+      arrangeLayout.any((element) => element.type == 'gap');
+
+  /// Whether this Select exercise allows choosing more than one option.
+  /// False (single-selection) for every existing Select exercise, which
+  /// keeps default single-select behavior unchanged.
+  bool get isMultiSelect =>
+      interaction.kind == 'select' && interaction.maxSelections > 1;
+
+  /// The minimum number of options a multi-select Select exercise requires
+  /// before it can be submitted. Meaningless for single-select exercises.
+  int get requiredSelectionCount =>
+      interaction.minSelections < 1 ? 1 : interaction.minSelections;
+
+  /// The maximum number of options a multi-select Select exercise allows to
+  /// be selected at once. 1 for every existing single-select exercise.
+  int get maxSelectionCount =>
+      interaction.maxSelections < 1 ? 1 : interaction.maxSelections;
+
+  /// The full set of correct item IDs, used for set-based exact-match
+  /// correctness on multi-select Select exercises. A single-element set for
+  /// every existing single-select exercise.
+  Set<String> get correctItemIdSet => evaluation.correctItemIds.toSet();
+
+  /// Whether this Select exercise embeds inline gaps whose values are filled
+  /// by selecting linked options: one option can be the required answer for
+  /// (and therefore fill) more than one gap at once. Reuses the same
+  /// layout/gapAssignments primitives as gap-based Arrange. False for every
+  /// existing Select exercise.
+  bool get hasSelectGaps =>
+      interaction.kind == 'select' &&
+      arrangeLayout.any((element) => element.type == 'gap');
   List<String> get orderAnswer =>
       evaluation.correctOrders.firstOrNull?.itemIds
           .map((id) {

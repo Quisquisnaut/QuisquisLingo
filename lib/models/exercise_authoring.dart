@@ -36,7 +36,7 @@ abstract final class ExercisePresetRegistry {
   static const presets = <ExercisePreset>[
     ExercisePreset(
       id: 'choice',
-      name: 'How do you say',
+      name: 'Choose',
       description: 'Learner chooses the correct translation from alternatives.',
       category: ExerciseCategory.multipleChoice,
       model: CanonicalExerciseModel.select,
