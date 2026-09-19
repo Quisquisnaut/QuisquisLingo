@@ -392,7 +392,7 @@ void main() {
         buildSignature: '',
       );
       SharedPreferences.setMockInitialValues({
-        'one_time_notice_seen_welcome_2.0.39+239004': true,
+        'one_time_notice_seen_welcome_2.0.39+239005': true,
         'sound_effects_enabled': false,
       });
       await ProfileService().addProfile('Mascot Learner');

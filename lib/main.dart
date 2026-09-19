@@ -15,6 +15,7 @@ import 'services/learner_theme_schedule.dart';
 import 'services/learner_status_events.dart';
 import 'services/startup_diagnostic_service.dart';
 import 'services/diagnostic_log_service.dart';
+import 'services/update_notice_service.dart';
 import 'services/update_service.dart';
 import 'widgets/app_restart_scope.dart';
 import 'widgets/learner_shell.dart';
@@ -582,8 +583,15 @@ class _StartupCrashLogNoticeState extends State<_StartupCrashLogNotice> {
     if (_shown) return;
     _shown = true;
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) unawaited(_showInstructions());
+      if (mounted) unawaited(_startupSequence());
     });
+  }
+
+  /// The Beta notice is shown once per device; the update check must run on
+  /// every launch whether or not the notice was needed.
+  Future<void> _startupSequence() async {
+    await _showInstructions();
+    if (mounted) unawaited(_checkForUpdateAtStartup());
   }
 
   Future<void> _showInstructions() async {
@@ -642,7 +650,6 @@ class _StartupCrashLogNoticeState extends State<_StartupCrashLogNotice> {
       ),
     );
     await settings.markOneTimeNoticeSeen(_betaTestingNoticeId);
-    if (mounted) unawaited(_checkForUpdateAtStartup());
   }
 
   Future<void> _checkForUpdateAtStartup() async {
@@ -664,30 +671,9 @@ class _StartupCrashLogNoticeState extends State<_StartupCrashLogNotice> {
           release == null) {
         return;
       }
-      await showDialog<void>(
-        context: context,
-        builder: (dialogContext) => AlertDialog(
-          title: const Text('QuisquisLingo update available'),
-          content: Text(
-            'Version ${release.version} is available. '
-            'Open Settings > Update for release notes and installation instructions, '
-            'or open the official GitHub release page now.',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(dialogContext),
-              child: const Text('Not now'),
-            ),
-            FilledButton(
-              onPressed: () async {
-                Navigator.pop(dialogContext);
-                await updates.openRelease(release);
-              },
-              child: const Text('Open GitHub release'),
-            ),
-          ],
-        ),
-      );
+      // The notice is shown by the Home screen to each learner separately
+      // (once a day), not here where no learner is known yet.
+      UpdateNoticeService.setPending(release);
     } on UpdateCheckException catch (error) {
       // Automatic checks fail silently so offline use is never interrupted.
       await diagnostics.logInfo(

@@ -73,6 +73,13 @@ class DeviceAdministrationHelpScreen extends StatelessWidget {
                 ],
               ),
               _Section(
+                title: 'Updates',
+                paragraphs: [
+                  'The Update entry opens the same page every learner can reach in Settings > Update: it checks GitHub for a newer release and shows the installation instructions. Only an admin can change “Check automatically at startup”, because it applies to the whole device.',
+                  'When a newer version is found at startup, each learner is told about it once a day: the popup offers “Not today”, and reminds that learner again the next day. Other learners on the device are still told.',
+                ],
+              ),
+              _Section(
                 title: 'Ask who is learning at startup',
                 paragraphs: [
                   'Off (default): QQL opens directly as the learner who used it last. This suits a device used by one person.',

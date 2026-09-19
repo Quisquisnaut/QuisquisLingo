@@ -1,6 +1,6 @@
 # QuisquisLingo App
 
-**Current source version: 2.0.39+239004 · Build 239, Revision 4 · Course Models v9/v10 (`formatVersion: 9`/`10`).**
+**Current source version: 2.0.39+239005 · Build 239, Revision 5 · Course Models v9/v10 (`formatVersion: 9`/`10`).**
 
 **QuisquisLingo 2.0.39 Beta — QQL 239 Pick the translation (Select)**
 
@@ -63,7 +63,7 @@ The MPL-2.0 covers the QuisquisLingo software source. Courses, the Image Bank an
 
 ## Beta lifecycle
 
-Version 2.0.39, Build 239, Revision 4 is a time-limited Beta with an expiry of **2026-10-19 23:59:59 local time**. Near expiry it displays reminders. After expiry, learner exercises and Review are blocked until a newer Beta is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when a Beta expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM.
+Version 2.0.39, Build 239, Revision 5 is a time-limited Beta with an expiry of **2026-10-19 23:59:59 local time**. Near expiry it displays reminders. After expiry, learner exercises and Review are blocked until a newer Beta is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when a Beta expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM.
 
 ## Core logic
 

@@ -6,6 +6,7 @@ import '../services/profile_service.dart';
 import '../widgets/app_restart_scope.dart';
 import 'flat_image_library_screen.dart';
 import 'inventory_screen.dart';
+import 'update_settings_screen.dart';
 import 'device_administration_help_screen.dart';
 import 'user_data_settings_screen.dart';
 
@@ -258,6 +259,17 @@ class _DeviceAdministrationScreenState
                     padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
                     children: [
                       const _Intro(),
+                      _sectionTitle('Updates'),
+                      ListTile(
+                        key: const Key('admin-update'),
+                        leading: const Icon(Icons.system_update_alt),
+                        title: const Text('Update'),
+                        subtitle: const Text(
+                          'Check GitHub for a newer QuisquisLingo release, read the installation instructions, and choose whether QQL checks automatically at startup (a setting for the whole device that only admins can change). The same page is available to every learner in Settings.',
+                        ),
+                        trailing: const Icon(Icons.chevron_right),
+                        onTap: () => _push(const UpdateSettingsScreen()),
+                      ),
                       _sectionTitle('Learners'),
                       ListTile(
                         key: const Key('admin-manage-learners'),

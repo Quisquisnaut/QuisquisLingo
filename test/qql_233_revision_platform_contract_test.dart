@@ -9,10 +9,10 @@ void main() {
     () {
       final pubspec = File('pubspec.yaml').readAsStringSync();
 
-      expect(AppMetadata.technicalVersion, '2.0.39+239004');
-      expect(AppMetadata.publicBuildLabel, 'Build 239, Revision 4');
-      expect(AppMetadata.displayLabel, 'Version 2.0.39\nBuild 239, Revision 4');
-      expect(pubspec, contains('version: 2.0.39+239004'));
+      expect(AppMetadata.technicalVersion, '2.0.39+239005');
+      expect(AppMetadata.publicBuildLabel, 'Build 239, Revision 5');
+      expect(AppMetadata.displayLabel, 'Version 2.0.39\nBuild 239, Revision 5');
+      expect(pubspec, contains('version: 2.0.39+239005'));
     },
   );
 

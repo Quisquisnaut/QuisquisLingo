@@ -24,6 +24,8 @@ import 'package:quisquislingo_app/services/progress_service.dart';
 import 'package:quisquislingo_app/services/settings_service.dart';
 import 'package:quisquislingo_app/services/xp_service.dart';
 import 'package:quisquislingo_app/widgets/flag_art.dart';
+import 'package:quisquislingo_app/services/update_notice_service.dart';
+import 'package:quisquislingo_app/services/update_service.dart';
 import 'package:quisquislingo_app/widgets/learner_bottom_actions.dart';
 import 'package:quisquislingo_app/widgets/learner_navigation.dart';
 import 'package:quisquislingo_app/widgets/learner_shell.dart';
@@ -74,7 +76,7 @@ void main() {
       buildSignature: '',
     );
     SharedPreferences.setMockInitialValues({
-      'one_time_notice_seen_welcome_2.0.39+239004': true,
+      'one_time_notice_seen_welcome_2.0.39+239005': true,
       'sound_effects_enabled': false,
     });
     await ProfileService().addProfile('Navigation Learner');
@@ -1712,6 +1714,38 @@ void main() {
     expect(find.text('Delete learner?'), findsNothing);
   });
 
+  testWidgets('Home tells the learner about an update once a day', (
+    tester,
+  ) async {
+    UpdateNoticeService.setPending(
+      const UpdateRelease(
+        tagName: 'v9.9.9',
+        version: '9.9.9',
+        title: 'Release 9.9.9',
+        notes: '',
+        htmlUrl: 'https://github.com/example/releases/tag/v9.9.9',
+        assets: [],
+      ),
+    );
+    addTearDown(() => UpdateNoticeService.setPending(null));
+
+    await _openHome(tester, scrollToActions: false);
+    await _pumpUntil(tester, find.text('QuisquisLingo update available'));
+    expect(find.text('Not today'), findsOneWidget);
+    expect(find.textContaining('9.9.9'), findsWidgets);
+    await tester.tap(find.byKey(const Key('update-notice-not-today')));
+    await tester.pumpAndSettle();
+    expect(find.text('QuisquisLingo update available'), findsNothing);
+
+    // The same learner opening Home again the same day is not asked again.
+    await tester.pumpWidget(const SizedBox());
+    await _openHome(tester, scrollToActions: false, expectBetaNotice: false);
+    for (var i = 0; i < 20; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+    expect(find.text('QuisquisLingo update available'), findsNothing);
+  });
+
   testWidgets('Profile logout returns Home to learner selection', (
     tester,
   ) async {
@@ -3160,7 +3194,7 @@ void main() {
         (text) =>
             text.data != 'Welcome to QuisquisLingo' &&
             text.data != 'Version 2.0.39' &&
-            text.data != 'Build 239, Revision 4' &&
+            text.data != 'Build 239, Revision 5' &&
             text.data != 'Continue',
       );
       final welcomeDialog = tester.widget<AlertDialog>(
@@ -3177,7 +3211,7 @@ void main() {
         const Color(0xFF0756DF),
       );
       expect(
-        tester.widget<Text>(find.text('Build 239, Revision 4')).style?.color,
+        tester.widget<Text>(find.text('Build 239, Revision 5')).style?.color,
         const Color(0xFF0756DF),
       );
       expect(find.textContaining('22621'), findsNothing);

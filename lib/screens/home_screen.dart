@@ -7,6 +7,8 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import '../controllers/learner_status_controller.dart';
 import '../services/settings_service.dart';
+import '../services/update_notice_service.dart';
+import '../services/update_service.dart';
 import '../models/course_models.dart';
 import '../services/course_language_resolver.dart';
 import '../services/course_service.dart';
@@ -258,12 +260,45 @@ class _HomeScreenState extends State<HomeScreen> {
         _reloadFlagBackgroundMode();
       }
     });
+    UpdateNoticeService.changes.addListener(_scheduleUpdateNotice);
     _reload();
     WidgetsBinding.instance.addPostFrameCallback((_) => _prepareWelcome());
   }
 
+  bool _updateNoticeBusy = false;
+
+  void _scheduleUpdateNotice() {
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) => unawaited(_maybeShowUpdateNotice()),
+    );
+  }
+
+  /// Tells the active learner about a newer release, at most once a day.
+  Future<void> _maybeShowUpdateNotice() async {
+    if (_updateNoticeBusy || !mounted || _activeLearnerId == null) return;
+    if (UpdateNoticeService.pending == null) return;
+    // Another page or dialog is on top: wait. The Home start-up dialogs ask
+    // again when they finish (see _prepareWelcome).
+    if (ModalRoute.of(context)?.isCurrent != true) return;
+    _updateNoticeBusy = true;
+    try {
+      final notices = UpdateNoticeService(profiles: _profiles);
+      final release = await notices.dueForActiveLearner();
+      if (release == null || !mounted) return;
+      // Record first so a crash or an outside tap never repeats it today.
+      await notices.markShown(release);
+      if (!mounted) return;
+      await UpdateNoticeService.show(context, release, UpdateService());
+    } catch (_) {
+      // The notice is optional and must never disturb the Home screen.
+    } finally {
+      _updateNoticeBusy = false;
+    }
+  }
+
   @override
   void dispose() {
+    UpdateNoticeService.changes.removeListener(_scheduleUpdateNotice);
     _resetLockedLessonTapSequence();
     _appearanceSubscription?.cancel();
     _learnerScrollController.dispose();
@@ -281,6 +316,8 @@ class _HomeScreenState extends State<HomeScreen> {
     if (!mounted) return;
     await _showWelcome();
     if (mounted) await _showBetaLifecycleNotice();
+    // The start-up dialogs come first; the update notice follows them.
+    if (mounted) _scheduleUpdateNotice();
   }
 
   Future<void> _showWelcomeWizard() async {
@@ -606,6 +643,7 @@ class _HomeScreenState extends State<HomeScreen> {
       if (resetFlow && reloadGeneration == _reloadGeneration) {
         _scrollToLesson(course, activeLessonIndex);
       }
+      if (activeId != null) _scheduleUpdateNotice();
     } on AppException catch (e) {
       if (mounted && reloadGeneration == _reloadGeneration) {
         await ErrorPresenter.show(context, e.error);
