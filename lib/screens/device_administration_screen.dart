@@ -5,7 +5,7 @@ import '../services/app_reset_service.dart';
 import '../services/profile_service.dart';
 import '../widgets/app_restart_scope.dart';
 import 'flat_image_library_screen.dart';
-import 'team_manager_screen.dart';
+import 'device_administration_help_screen.dart';
 import 'user_data_settings_screen.dart';
 
 /// Admin-only page that gathers the device-level administration features.
@@ -222,7 +222,21 @@ class _DeviceAdministrationScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Device Administration')),
+      appBar: AppBar(
+        title: const Text('Device Administration'),
+        actions: [
+          IconButton(
+            key: const Key('admin-help'),
+            tooltip: 'Device Administration Help',
+            icon: const Icon(Icons.help_outline),
+            onPressed: () => Navigator.of(context).push<void>(
+              MaterialPageRoute(
+                builder: (_) => const DeviceAdministrationHelpScreen(),
+              ),
+            ),
+          ),
+        ],
+      ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : !_isAdmin
@@ -277,7 +291,7 @@ class _DeviceAdministrationScreenState
                         trailing: const Icon(Icons.edit_outlined),
                         onTap: _editDeviceName,
                       ),
-                      _sectionTitle('Media and teams'),
+                      _sectionTitle('Media'),
                       ListTile(
                         key: const Key('admin-media-library'),
                         leading: const Icon(Icons.perm_media_outlined),
@@ -293,16 +307,6 @@ class _DeviceAdministrationScreenState
                             actorProfileId: _actorId,
                           ),
                         ),
-                      ),
-                      ListTile(
-                        key: const Key('admin-team-manager'),
-                        leading: const Icon(Icons.groups_outlined),
-                        title: const Text('Team Manager'),
-                        subtitle: const Text(
-                          'Create authoring Teams and manage their members and Leads. The same manager is available from Course Manager.',
-                        ),
-                        trailing: const Icon(Icons.chevron_right),
-                        onTap: () => _push(const TeamManagerScreen()),
                       ),
                       _sectionTitle('Reset'),
                       _ResetSection(

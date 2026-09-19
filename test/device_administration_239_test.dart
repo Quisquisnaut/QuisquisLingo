@@ -134,7 +134,13 @@ void main() {
     expect(find.text('Keeps'), findsNWidgets(AppResetScope.values.length));
     expect(find.text('Wipe out everything (NUKE EVERYTHING!)'), findsOneWidget);
     // The explanations are ordinary text, not tooltips, so they show on touch.
-    expect(find.byType(Tooltip), findsNothing);
+    expect(
+      find.descendant(
+        of: find.byType(ListView),
+        matching: find.byType(Tooltip),
+      ),
+      findsNothing,
+    );
   });
 
   testWidgets('the layout stays usable on a narrow phone', (tester) async {
@@ -147,6 +153,39 @@ void main() {
     );
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets(
+    'the help button opens a help page that lists admin powers and limits',
+    (tester) async {
+      await open(tester);
+      expect(find.byKey(const Key('admin-team-manager')), findsNothing);
+      expect(find.text('Team Manager'), findsNothing);
+
+      await tester.tap(find.byKey(const Key('admin-help')));
+      await tester.pumpAndSettle();
+      expect(find.text('Device Administration Help'), findsOneWidget);
+      for (final title in const [
+        'What admins CAN do',
+        'What admins CANNOT do',
+        'The reset options',
+        'Forgotten PIN',
+      ]) {
+        await tester.scrollUntilVisible(
+          find.text(title),
+          300,
+          scrollable: find.byType(Scrollable).first,
+        );
+        expect(find.text(title), findsOneWidget);
+      }
+      expect(
+        find.descendant(
+          of: find.byType(ListView),
+          matching: find.byType(Tooltip),
+        ),
+        findsNothing,
+      );
+    },
+  );
 
   testWidgets('the startup mode toggle is saved and explained', (tester) async {
     await open(tester);
