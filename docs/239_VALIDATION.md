@@ -27,7 +27,9 @@ The 30-day Beta expiry is `2026-10-19 23:59:59` local time (30 days from
 | `flutter analyze` | No issues found |
 | `flutter test --no-pub --concurrency=1` (full suite) | 1738 tests, all passed |
 | `git diff --check` | No whitespace errors |
-| `tools/validate_courses.py`, `validate_images.py`, `validate_media_assets.py` | Not run: Python is not installed on the validating machine. No file under `assets/` was changed in this release. |
+| `tools/validate_courses.py` | Validated 10 bundled Course Model v9 files, all OK |
+| `tools/validate_images.py` | Image Bank: 111 assets, 0 issues |
+| `tools/validate_media_assets.py` | 443 files, 19 locked audio, 281 world flags, 0 issues |
 
 ## Manual visual checks still recommended
 
