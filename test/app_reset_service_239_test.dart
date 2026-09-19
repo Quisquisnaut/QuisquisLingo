@@ -1,6 +1,8 @@
 import 'dart:io';
 
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:quisquislingo_app/services/exercise_image_metadata_service.dart';
 import 'package:quisquislingo_app/services/app_reset_service.dart';
 import 'package:quisquislingo_app/services/course_editor_storage.dart';
 import 'package:quisquislingo_app/services/profile_service.dart';
@@ -164,6 +166,32 @@ void main() {
       isFalse,
     );
     expect(other.existsSync(), isTrue);
+  });
+
+  test('imported media never touches the media bundled with the app', () async {
+    final prefs = await SharedPreferences.getInstance();
+    // A stored copy of the catalog (the admin's edits) is removed, and the
+    // built-in catalog from the app assets is what remains.
+    await prefs.setString(
+      'quisquislingo_exercise_image_metadata_v2',
+      '{"unused":true}',
+    );
+    await service.reset(
+      AppResetScope.importedMedia,
+      actorProfileId: adminId,
+      pin: '4321',
+    );
+    expect(
+      prefs.containsKey('quisquislingo_exercise_image_metadata_v2'),
+      isFalse,
+    );
+    final catalog = await ExerciseImageMetadataService().loadCatalog();
+    expect(catalog, isNotEmpty);
+    expect(catalog.every((record) => record.origin == 'bundled'), isTrue);
+    // Bundled files are Flutter assets inside the app package and are still
+    // loadable after the reset.
+    final asset = catalog.first.assetPath;
+    expect(await rootBundle.load(asset), isNotNull);
   });
 
   test('custom courses removes courses and teams but keeps learners', () async {

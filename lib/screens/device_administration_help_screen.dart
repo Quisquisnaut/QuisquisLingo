@@ -72,7 +72,7 @@ class DeviceAdministrationHelpScreen extends StatelessWidget {
                 bullets: [
                   'Reset learner progress: clears XP, streaks and completed lessons for every learner. Learners, PINs, settings and courses stay.',
                   'Remove all learners except admins: deletes every non-admin learner and their data, and removes the Team list if it names any of them.',
-                  'Remove imported media: deletes the images and MP3 recordings QQL copied into its own storage. Your original files are not touched.',
+                  'Remove imported media: deletes the images and MP3 recordings QQL copied into its own storage. Media that comes with QQL itself (the built-in image library, flags, icons and the bundled courses’ recordings) is part of the app and is never removed; edits to the shared image library’s tags and labels go back to the defaults. Your original files are not touched.',
                   'Remove custom courses: deletes all custom and installed courses, all Teams and imported media. Learners stay.',
                   'Wipe out everything: returns QQL to a brand-new installation, including all learners and admins. You can keep the Exports and Logs folders.',
                 ],

@@ -32,6 +32,7 @@ Everything else under the prefix (identity, avatar, theme, PIN verifier, recover
 The text-to-speech engine keeps no on-disk cache of its own.
 
 ## Notes
+- Media bundled with the app (`assets/`: image library, flags, lesson icons, mascots, bundled course audio) lives inside the app package, is read-only, and is never touched by any reset. The stored image-metadata key holds the admin's edited copy of the catalog; removing it makes QQL fall back to the built-in catalog.
 - *Everything* clears all SharedPreferences (`clear()`), so it is complete by construction; only its file list needs upkeep.
 - The application support directory can also hold the preferences file itself, so it is never deleted as a whole: only the folders listed above.
 - Course-scoped progress of a removed custom course is not removed by *custom courses*; it is orphaned but harmless and is removed by *learner progress* or *everything*.

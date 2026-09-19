@@ -408,8 +408,10 @@ const _plans = <_ResetPlan>[
     removes: [
       'Imported exercise images and image banks',
       'Imported recorded MP3 files, with their descriptions',
+      'Any tag, label or category edits made to the shared image library, which then returns to its built-in defaults',
     ],
     keeps: [
+      'The media that comes with QQL itself: the built-in image library, flags, lesson icons, mascots and the recordings of the bundled courses',
       'Learners and progress',
       'Courses (which may then show missing media until it is imported again)',
       'The original files you placed in the Imports folder, backups and logs',
