@@ -708,6 +708,11 @@ class _ResetSection extends StatelessWidget {
     var removeImages = false;
     var removeAudio = false;
     final isMedia = plan.scope == AppResetScope.importedMedia;
+    // A kind with nothing stored cannot be ticked. Images also count the
+    // settings records that the reset clears even without image files.
+    final noImages =
+        preview.imageFileCount == 0 && !preview.hasImageLibraryRecords;
+    final noAudio = preview.audioFileCount == 0;
     return showDialog<_ResetChoices>(
       context: context,
       builder: (dialogContext) => StatefulBuilder(
@@ -764,13 +769,27 @@ class _ResetSection extends StatelessWidget {
                   'Choose what to remove. Nothing is ticked at first; tick at least one to continue.',
                   style: TextStyle(fontWeight: FontWeight.w600),
                 ),
+                if (noImages && noAudio)
+                  const Padding(
+                    padding: EdgeInsets.only(top: 4),
+                    child: Text(
+                      'There is no imported media to remove.',
+                      key: Key('admin-media-nothing'),
+                    ),
+                  ),
                 CheckboxListTile(
                   key: const Key('admin-media-remove-images'),
                   contentPadding: EdgeInsets.zero,
                   controlAffinity: ListTileControlAffinity.leading,
                   value: removeImages,
-                  onChanged: (v) => setLocal(() => removeImages = v ?? false),
-                  title: Text('Images (${preview.imageFileCount} file(s))'),
+                  onChanged: noImages
+                      ? null
+                      : (v) => setLocal(() => removeImages = v ?? false),
+                  title: Text(
+                    noImages
+                        ? 'Images (0 files): nothing to remove'
+                        : 'Images (${preview.imageFileCount} file(s)${preview.imageFileCount == 0 ? ', library edits or image-bank list stored' : ''})',
+                  ),
                   subtitle: const Text(
                     'Imported exercise images and image banks, and any edits to the shared image library, which returns to its built-in defaults.',
                   ),
@@ -780,9 +799,13 @@ class _ResetSection extends StatelessWidget {
                   contentPadding: EdgeInsets.zero,
                   controlAffinity: ListTileControlAffinity.leading,
                   value: removeAudio,
-                  onChanged: (v) => setLocal(() => removeAudio = v ?? false),
+                  onChanged: noAudio
+                      ? null
+                      : (v) => setLocal(() => removeAudio = v ?? false),
                   title: Text(
-                    'Audio files (${preview.audioFileCount} file(s))',
+                    noAudio
+                        ? 'Audio files (0 files): nothing to remove'
+                        : 'Audio files (${preview.audioFileCount} file(s))',
                   ),
                   subtitle: const Text(
                     'Imported recorded MP3 files. Exercises that use them will play no recording.',

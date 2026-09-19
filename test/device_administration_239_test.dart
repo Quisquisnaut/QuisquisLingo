@@ -303,6 +303,9 @@ void main() {
     'the admin User Data link is offered only where admin data is deleted',
     (tester) async {
       await profiles.setOwnAccessPin(actorProfileId: adminId, pin: '1234');
+      File('${root.path}/support/exercise_images/a.png')
+        ..createSync(recursive: true)
+        ..writeAsStringSync('x');
       await open(tester);
       final expectLink = <AppResetScope, bool>{
         AppResetScope.learnerProgress: true,
@@ -427,6 +430,84 @@ void main() {
 
     expect(audio.existsSync(), isFalse);
     expect(image.existsSync(), isTrue);
+  });
+
+  testWidgets('a kind of media with nothing stored is greyed out', (
+    tester,
+  ) async {
+    await profiles.setOwnAccessPin(actorProfileId: adminId, pin: '1234');
+    File('${root.path}/support/quisquislingo_audio/c/a.mp3')
+      ..createSync(recursive: true)
+      ..writeAsStringSync('x');
+    await open(tester);
+    await tester.ensureVisible(
+      find.byKey(const Key('admin-reset-button-importedMedia')),
+    );
+    await tester.pump();
+    await tester.tap(find.byKey(const Key('admin-reset-button-importedMedia')));
+    await settle(tester);
+
+    final images = find.byKey(const Key('admin-media-remove-images'));
+    final audio = find.byKey(const Key('admin-media-remove-audio'));
+    expect(tester.widget<CheckboxListTile>(images).onChanged, isNull);
+    expect(find.text('Images (0 files): nothing to remove'), findsOneWidget);
+    expect(tester.widget<CheckboxListTile>(audio).onChanged, isNotNull);
+    expect(find.byKey(const Key('admin-media-nothing')), findsNothing);
+  });
+
+  testWidgets('with no media at all the dialog says so and cannot continue', (
+    tester,
+  ) async {
+    await profiles.setOwnAccessPin(actorProfileId: adminId, pin: '1234');
+    await open(tester);
+    await tester.ensureVisible(
+      find.byKey(const Key('admin-reset-button-importedMedia')),
+    );
+    await tester.pump();
+    await tester.tap(find.byKey(const Key('admin-reset-button-importedMedia')));
+    await settle(tester);
+
+    expect(find.byKey(const Key('admin-media-nothing')), findsOneWidget);
+    expect(
+      tester
+          .widget<CheckboxListTile>(
+            find.byKey(const Key('admin-media-remove-images')),
+          )
+          .onChanged,
+      isNull,
+    );
+    expect(
+      tester
+          .widget<FilledButton>(find.byKey(const Key('admin-reset-continue')))
+          .onPressed,
+      isNull,
+    );
+  });
+
+  testWidgets('images stay tickable when only library edits are stored', (
+    tester,
+  ) async {
+    await profiles.setOwnAccessPin(actorProfileId: adminId, pin: '1234');
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('quisquislingo_exercise_image_metadata_v2', '{}');
+    await open(tester);
+    await tester.ensureVisible(
+      find.byKey(const Key('admin-reset-button-importedMedia')),
+    );
+    await tester.pump();
+    await tester.tap(find.byKey(const Key('admin-reset-button-importedMedia')));
+    await settle(tester);
+
+    final images = find.byKey(const Key('admin-media-remove-images'));
+    expect(tester.widget<CheckboxListTile>(images).onChanged, isNotNull);
+    expect(
+      find.textContaining('library edits or image-bank list stored'),
+      findsOneWidget,
+    );
+    expect(
+      find.text('Audio files (0 files): nothing to remove'),
+      findsOneWidget,
+    );
   });
 
   testWidgets('remove custom courses names images and audio files', (

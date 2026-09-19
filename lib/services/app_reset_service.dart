@@ -32,6 +32,11 @@ class AppResetPreview {
   final int audioFileCount;
   final bool hasCustomCourses;
 
+  /// True when QQL's settings hold an image-bank list or edits to the
+  /// shared image library, which "Remove images" also clears even when no
+  /// image file exists.
+  final bool hasImageLibraryRecords;
+
   int get mediaFileCount => imageFileCount + audioFileCount;
 
   const AppResetPreview({
@@ -40,6 +45,7 @@ class AppResetPreview {
     required this.imageFileCount,
     required this.audioFileCount,
     required this.hasCustomCourses,
+    required this.hasImageLibraryRecords,
   });
 }
 
@@ -126,6 +132,7 @@ class AppResetService {
       imageFileCount: images,
       audioFileCount: audio,
       hasCustomCourses: _courseKeys.any(prefs.containsKey),
+      hasImageLibraryRecords: _mediaKeys.any(prefs.containsKey),
     );
   }
 
