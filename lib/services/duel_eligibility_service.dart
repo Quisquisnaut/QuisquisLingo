@@ -34,6 +34,8 @@ class DuelEligibilityService {
     'listening_choice',
     'listening_comprehension',
     'reading_comprehension',
+    'translation_choice_to_target',
+    'translation_choice_to_source',
   };
 
   const DuelEligibilityService();

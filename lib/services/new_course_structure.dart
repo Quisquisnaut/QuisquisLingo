@@ -69,8 +69,9 @@ class NewCourseStructure {
     ];
   }
 
-  /// Creates the shared Draft authoring example used by new Courses and by
-  /// manually created Rounds.
+  /// Creates the shared Draft authoring example (Pick the translation, to
+  /// target: the instruction is generated, so it has no authored prompt) used
+  /// by new Courses and by manually created Rounds.
   static LearningContent sampleExercise(
     AuthoringIdGenerator ids, {
     required String sourceLanguage,
@@ -87,13 +88,8 @@ class NewCourseStructure {
         id: exerciseId,
         publicationState: PublicationState.draft,
         updatedAt: updatedAt,
-        editorTemplate: 'choice',
+        editorTemplate: 'translation_choice_to_target',
         promptElements: [
-          PromptElement(
-            type: 'text',
-            text:
-                'Write a $sourceLanguage instruction to translate into $learningLanguage.',
-          ),
           PromptElement(
             role: 'question',
             type: 'text',

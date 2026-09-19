@@ -1,10 +1,14 @@
 # QuisquisLingo App
 
-**Current source version: 2.0.38+238001 · Build 238, Revision 1 · Course Models v9/v10 (`formatVersion: 9`/`10`).**
+**Current source version: 2.0.39+239005 · Build 239, Revision 5 · Course Models v9/v10 (`formatVersion: 9`/`10`).**
+
+**QuisquisLingo 2.0.39 Beta — QQL 239 Pick the translation (Select)**
+
+Current project version: 2.0.39
+
+QQL 239 adds two Select-based exercise types to the Translation category: **Pick the translation (to target)** and **Pick the translation (to source)**. Each shows one generated learner instruction (`Pick the correct [language] translation`), the text to translate, an optional illustration and answer options; a tap is validated immediately and a wrong answer reveals the correct one. An optional audio button speaks target-language text only and is greyed out, never skipping the exercise, when audio or TTS is off. Existing exercise types, including the older translation choice, are unchanged.
 
 **QuisquisLingo 2.0.38 Beta — QQL 238 Arrange & Select gap-fill authoring**
-
-Current project version: 2.0.38
 
 QQL 238 extends both the existing Arrange and Select primitives with inline gap-fill authoring: the fixed sentence/question is typed once, with each gap's literal answer written directly inside braces (`I {am} going {to} London.`), optional extra distractor blocks/options, and clear validation when braces are unbalanced or empty. Existing whole-sentence Arrange and single-select Select exercises are unaffected. Select also gains multiple-selection mode with optional required-selection count and set-based exact-match correctness. In both primitives, filling a gap out of order (the right answer in the wrong blank) is checked per gap and marked incorrect; Select's linked-gap options are never consumed, so the same option can be tapped again to fill a later gap that needs it. Revision 1 fixes a Revision 0 defect where a gap-based Select exercise could only ever be filled by its correct option, making an incorrect attempt impossible to submit, and improves several authoring labels/Help texts based on manual review.
 
@@ -59,7 +63,7 @@ The MPL-2.0 covers the QuisquisLingo software source. Courses, the Image Bank an
 
 ## Beta lifecycle
 
-Version 2.0.38, Build 238, Revision 1 is a time-limited Beta with an expiry of **2026-10-17 23:59:59 local time**. Near expiry it displays reminders. After expiry, learner exercises and Review are blocked until a newer Beta is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when a Beta expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM.
+Version 2.0.39, Build 239, Revision 5 is a time-limited Beta with an expiry of **2026-10-19 23:59:59 local time**. Near expiry it displays reminders. After expiry, learner exercises and Review are blocked until a newer Beta is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when a Beta expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM.
 
 ## Core logic
 

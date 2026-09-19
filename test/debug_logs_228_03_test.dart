@@ -58,6 +58,11 @@ void main() {
   testWidgets('228.03 Debug page owns both existing log entries', (
     tester,
   ) async {
+    // The lazy ListView only builds what fits; a tall fixed surface keeps the
+    // lower entries built regardless of the (variable-length) log paths.
+    tester.view.physicalSize = const Size(800, 3000);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
     await tester.pumpWidget(const MaterialApp(home: DebugScreen()));
     await tester.pumpAndSettle();
 

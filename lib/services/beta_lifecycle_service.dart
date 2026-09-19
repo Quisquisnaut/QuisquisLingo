@@ -5,8 +5,8 @@
 /// a future stable build by setting [isBetaBuild] to false.
 class BetaLifecycleService {
   static const bool isBetaBuild = true;
-  // QQL 237 preserves the 30-day Beta lifetime through October 17.
-  static final DateTime expiryDate = DateTime(2026, 10, 17, 23, 59, 59);
+  // QQL 239 Revision 4 refreshes the 30-day Beta lifetime through October 19.
+  static final DateTime expiryDate = DateTime(2026, 10, 19, 23, 59, 59);
 
   static DateTime _day(DateTime value) =>
       DateTime(value.year, value.month, value.day);

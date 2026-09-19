@@ -116,6 +116,22 @@ abstract final class ExercisePresetRegistry {
       model: CanonicalExerciseModel.arrange,
     ),
     ExercisePreset(
+      id: 'translation_choice_to_target',
+      name: 'Pick the translation (to target)',
+      description:
+          'Select: learner sees source-language text and picks its target-language translation.',
+      category: ExerciseCategory.translation,
+      model: CanonicalExerciseModel.select,
+    ),
+    ExercisePreset(
+      id: 'translation_choice_to_source',
+      name: 'Pick the translation (to source)',
+      description:
+          'Select: learner sees target-language text and picks its source-language translation.',
+      category: ExerciseCategory.translation,
+      model: CanonicalExerciseModel.select,
+    ),
+    ExercisePreset(
       id: 'fill_blank',
       name: 'Type a missing word',
       description: 'Learner types the text missing from a word or phrase.',
@@ -236,6 +252,10 @@ abstract final class ExercisePresetRegistry {
         'The learner sees source text and freely types a target-language translation. Provide the source, one or more complete accepted translations, and an optional hint. Use lowercase except for proper names. Accepted lines may use optional {}, independent [a|b], linked [*:a|b] groups with equal counts, and valid <> reorder scopes. Expand answers opens a selectable, copyable preview without changing content. Use expanded answers adds independent explicit lines; editing or deleting the source expression never changes them. Equivalent explicit answers are not added twice, and overflow beyond 128 answers is rejected without partial changes. Wrong feedback shows up to three valid translations ranked by existing similarity; correct feedback shows up to two other translations, excluding the matched canonical answer. Ties keep author order. Ranking never changes acceptance. One omitted or duplicated repeated letter is tolerated conservatively, but substitutions and missing or extra words are not.',
     'build_translation':
         'The learner sees source text and constructs its target-language translation from word blocks. Provide source text, available literal blocks and one or more complete literal correct translations. Answers can be added, removed and reordered; each must be constructible from distinct block occurrences. Repeated words require repeated blocks, and no more than two blocks may remain unused. Type-the-translation syntax, typo tolerance and similarity matching do not apply.',
+    'translation_choice_to_target':
+        'Select · single answer, checked immediately. Direction, languages and the learner instruction are set by this type.\n\nThe learner sees source-language text and picks its correct target-language translation. QQL generates the only learner instruction, “Pick the correct [Target language] translation”, from the course languages, so you never write it. Provide the text to translate, two to five different target-language answers and one correct answer. Text is supported, with an optional image. A wrong choice reveals the correct answer. After answering, the learner can play the correct answer with text-to-speech when it is available; the exercise never depends on audio. Keep distractors plausible but unambiguously wrong. Example (for an English → Italian course): “I am going to London” with Vado a Londra. / Sono andato a Londra. / Vengo da Londra.',
+    'translation_choice_to_source':
+        'Select · single answer, checked immediately. Direction, languages and the learner instruction are set by this type.\n\nThe learner sees target-language text and picks its correct source-language translation. QQL generates the only learner instruction, “Pick the correct [Source language] translation”, from the course languages, so you never write it. Provide the text to translate, two to five different source-language answers and one correct answer. Text is supported, with an optional image. A wrong choice reveals the correct answer. The learner can play the target-language text with text-to-speech when it is available; the exercise never depends on audio. Keep distractors plausible but unambiguously wrong. Example (for an English → Italian course): “Vado a Londra.” with I am going to London. / I went to London. / I am coming from London.',
     'fill_blank':
         'The learner sees an incomplete word or phrase and types the missing text. Provide the prompt, one or more accepted answers, an optional non-revealing hint and optional complete-phrase audio. Text and audio are supported. Accepted lines may use answer variants.',
     'listening_spelling':

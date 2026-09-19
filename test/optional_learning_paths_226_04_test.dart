@@ -212,7 +212,13 @@ void main() {
         status.lessonGuidebookHasAuditConcern(disabled.lessons.single),
         isTrue,
       );
-      expect(status.lessonGuidebookHasDraft(disabled.lessons.single), isTrue);
+      // The stored Draft state is preserved, but a turned-off GuideBook shows
+      // no Draft badge and does not count in the Lesson or Course badge.
+      expect(
+        disabled.lessons.single.guidebook.publicationState.isPublished,
+        isFalse,
+      );
+      expect(status.lessonGuidebookHasDraft(disabled.lessons.single), isFalse);
       expect(status.hasLessonsAuditConcern, isTrue);
       expect(disabled.lessons.single.toJson(), enabled.lessons.single.toJson());
     },

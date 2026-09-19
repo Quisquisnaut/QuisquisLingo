@@ -20,6 +20,9 @@ class CrashLogService {
   static final CrashLogService instance = CrashLogService._();
 
   File? _file;
+  File? _markerFile;
+  bool _cleanShutdownMarked = false;
+  final DateTime _sessionStarted = DateTime.now();
   bool _initialised = false;
   // Once a persistent-storage attempt fails (for example the widget-test
   // harness, which has no real Documents directory), retrying on every
@@ -36,12 +39,22 @@ class CrashLogService {
       _file = File(
         '${directory.path}${Platform.pathSeparator}quisquislingo_crash.log',
       );
+      // Only desktop close paths are hooked (see window_setup_io.dart), so
+      // detection is limited there to avoid false alarms on mobile, where the
+      // OS may end a session without any notification.
+      if (Platform.isWindows || Platform.isLinux) {
+        _markerFile = File(
+          '${directory.path}${Platform.pathSeparator}quisquislingo_session.marker',
+        );
+      }
       _initialised = true;
       // Start every debug session with a system snapshot so even a native
       // process termination leaves useful environment details in the log.
       // The Beta log now starts on every launch, including release builds.
       // FileMode.append creates the file again if a tester deleted it.
+      await _recordPreviousSessionOutcome();
       await _recordSessionStart();
+      await _writeMarker('started');
     } catch (error, stackTrace) {
       // Logging must never be able to crash the application itself.
       _initialisationFailed = true;
@@ -82,6 +95,88 @@ class CrashLogService {
       await _appendToLogs(buffer.toString());
     } catch (loggingError, loggingStackTrace) {
       debugPrint('Writing crash log failed: $loggingError\n$loggingStackTrace');
+    }
+  }
+
+  /// A marker file exists only while a session is running and is deleted on
+  /// every clean shutdown. Finding one at startup therefore means the previous
+  /// session was terminated without shutting down (native crash, force-kill,
+  /// power loss), which no Dart error handler can observe.
+  Future<void> _recordPreviousSessionOutcome() async {
+    final marker = _markerFile;
+    if (marker == null) return;
+    try {
+      if (!await marker.exists()) return;
+      final previous = (await marker.readAsString()).trim();
+      final buffer = StringBuffer()
+        ..writeln(
+          '============================================================',
+        )
+        ..writeln('QuisquisLingo abnormal termination detected')
+        ..writeln('Time: ${DateTime.now().toIso8601String()}')
+        ..writeln(
+          'The previous session did not shut down cleanly. It may have '
+          'crashed natively, been force-closed, or lost power.',
+        )
+        ..writeln('Previous session marker:')
+        ..writeln(previous.isEmpty ? '(empty)' : previous)
+        ..writeln();
+      await _appendToLogs(buffer.toString());
+    } catch (error, stackTrace) {
+      debugPrint('Reading session marker failed: $error\n$stackTrace');
+    }
+  }
+
+  Future<void> _writeMarker(String state) async {
+    final marker = _markerFile;
+    if (marker == null) return;
+    try {
+      await marker.writeAsString(
+        'Started: ${_sessionStarted.toIso8601String()}\n'
+        'Version: ${AppMetadata.technicalVersion}\n'
+        'Build mode: ${_buildMode()}\n'
+        'Last state: $state at ${DateTime.now().toIso8601String()}\n',
+        flush: true,
+      );
+    } catch (error, stackTrace) {
+      debugPrint('Writing session marker failed: $error\n$stackTrace');
+    }
+  }
+
+  /// Records the latest lifecycle state so an abnormal-termination report
+  /// says what the app was doing last.
+  Future<void> recordLifecycleState(String state) async {
+    if (_markerFile == null || _cleanShutdownMarked) return;
+    await _writeMarker(state);
+  }
+
+  /// Call on every clean exit path. Synchronous so it can finish while the
+  /// process is already shutting down.
+  void markCleanShutdown() {
+    if (_cleanShutdownMarked) return;
+    _cleanShutdownMarked = true;
+    // The log line is only history; the marker file alone drives detection, so
+    // a failure here must not stop the marker from being removed.
+    try {
+      final file = _file;
+      if (file != null) {
+        file.writeAsStringSync(
+          '------------------------------------------------------------\n'
+          'QuisquisLingo session ended cleanly\n'
+          'Time: ${DateTime.now().toIso8601String()}\n'
+          'Started: ${_sessionStarted.toIso8601String()}\n\n',
+          mode: FileMode.append,
+          flush: true,
+        );
+      }
+    } catch (error, stackTrace) {
+      debugPrint('Writing clean shutdown entry failed: $error\n$stackTrace');
+    }
+    try {
+      final marker = _markerFile;
+      if (marker != null && marker.existsSync()) marker.deleteSync();
+    } catch (error, stackTrace) {
+      debugPrint('Removing session marker failed: $error\n$stackTrace');
     }
   }
 

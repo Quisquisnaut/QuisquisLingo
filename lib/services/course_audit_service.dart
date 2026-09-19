@@ -6,6 +6,7 @@ import 'portable_exercise_image.dart';
 import 'audit_code_registry.dart';
 import 'duel_eligibility_service.dart';
 import 'lesson_icon_catalog.dart';
+import 'translation_choice_service.dart';
 
 export 'audit_code_registry.dart' show AuditSeverity;
 
@@ -167,6 +168,8 @@ class CourseAuditService {
     'type_translation',
     'build_translation',
     'contextual_comprehension',
+    'translation_choice_to_target',
+    'translation_choice_to_source',
   };
   static const choiceTypes = {
     'script_recognition',
@@ -178,6 +181,8 @@ class CourseAuditService {
     'reading_comprehension',
     'dialogue_response',
     'contextual_comprehension',
+    'translation_choice_to_target',
+    'translation_choice_to_source',
   };
 
   String _courseSourceCode(Course course) {
@@ -1349,6 +1354,28 @@ class CourseAuditService {
     if (ex.type == 'choice' && ex.hasSelectGaps) {
       _auditSelectGapFill(ex, itemIdSet, add);
     }
+    if (TranslationChoice.isTranslationChoice(ex.type)) {
+      if (ex.question.trim().isEmpty) {
+        add(
+          AuditCode.translationChoiceTextRequired,
+          'Pick the translation needs the text to translate.',
+        );
+      }
+      if (ex.isMultiSelect || ex.hasSelectGaps) {
+        add(
+          AuditCode.presetCanonicalMismatch,
+          'Pick the translation requires single-answer Select without inline gaps or multiple selection.',
+        );
+      }
+      if (ex.answers.length > TranslationChoice.maxAnswers) {
+        add(
+          AuditCode.translationChoiceTooManyAnswers,
+          'Pick the translation accepts at most ${TranslationChoice.maxAnswers} answer options.',
+        );
+      }
+      unexpected(ex.prompt.trim().isNotEmpty, 'prompt');
+      unexpected((ex.tts ?? '').trim().isNotEmpty, 'spoken text');
+    }
     if (choiceTypes.contains(ex.type) &&
         !(ex.type == 'choice' && ex.hasSelectGaps)) {
       if (ex.isMultiSelect) {
@@ -1401,8 +1428,11 @@ class CourseAuditService {
       if (ex.answers.any((e) => e.trim().isEmpty)) {
         add(AuditCode.choiceAnswerEmpty, 'Answer options cannot be blank.');
       }
-      if (ex.answers.map((e) => e.trim().toLowerCase()).toSet().length !=
-          ex.answers.length) {
+      final repeated = TranslationChoice.isTranslationChoice(ex.type)
+          ? TranslationChoice.hasRepeatedAnswers(ex.answers)
+          : ex.answers.map((e) => e.trim().toLowerCase()).toSet().length !=
+                ex.answers.length;
+      if (repeated) {
         add(
           AuditCode.choiceAnswerDuplicate,
           'Answer options contain duplicates.',

@@ -7,6 +7,8 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import '../controllers/learner_status_controller.dart';
 import '../services/settings_service.dart';
+import '../services/update_notice_service.dart';
+import '../services/update_service.dart';
 import '../models/course_models.dart';
 import '../services/course_language_resolver.dart';
 import '../services/course_service.dart';
@@ -258,12 +260,45 @@ class _HomeScreenState extends State<HomeScreen> {
         _reloadFlagBackgroundMode();
       }
     });
+    UpdateNoticeService.changes.addListener(_scheduleUpdateNotice);
     _reload();
     WidgetsBinding.instance.addPostFrameCallback((_) => _prepareWelcome());
   }
 
+  bool _updateNoticeBusy = false;
+
+  void _scheduleUpdateNotice() {
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) => unawaited(_maybeShowUpdateNotice()),
+    );
+  }
+
+  /// Tells the active learner about a newer release, at most once a day.
+  Future<void> _maybeShowUpdateNotice() async {
+    if (_updateNoticeBusy || !mounted || _activeLearnerId == null) return;
+    if (UpdateNoticeService.pending == null) return;
+    // Another page or dialog is on top: wait. The Home start-up dialogs ask
+    // again when they finish (see _prepareWelcome).
+    if (ModalRoute.of(context)?.isCurrent != true) return;
+    _updateNoticeBusy = true;
+    try {
+      final notices = UpdateNoticeService(profiles: _profiles);
+      final release = await notices.dueForActiveLearner();
+      if (release == null || !mounted) return;
+      // Record first so a crash or an outside tap never repeats it today.
+      await notices.markShown(release);
+      if (!mounted) return;
+      await UpdateNoticeService.show(context, release, UpdateService());
+    } catch (_) {
+      // The notice is optional and must never disturb the Home screen.
+    } finally {
+      _updateNoticeBusy = false;
+    }
+  }
+
   @override
   void dispose() {
+    UpdateNoticeService.changes.removeListener(_scheduleUpdateNotice);
     _resetLockedLessonTapSequence();
     _appearanceSubscription?.cancel();
     _learnerScrollController.dispose();
@@ -281,6 +316,8 @@ class _HomeScreenState extends State<HomeScreen> {
     if (!mounted) return;
     await _showWelcome();
     if (mounted) await _showBetaLifecycleNotice();
+    // The start-up dialogs come first; the update notice follows them.
+    if (mounted) _scheduleUpdateNotice();
   }
 
   Future<void> _showWelcomeWizard() async {
@@ -606,6 +643,7 @@ class _HomeScreenState extends State<HomeScreen> {
       if (resetFlow && reloadGeneration == _reloadGeneration) {
         _scrollToLesson(course, activeLessonIndex);
       }
+      if (activeId != null) _scheduleUpdateNotice();
     } on AppException catch (e) {
       if (mounted && reloadGeneration == _reloadGeneration) {
         await ErrorPresenter.show(context, e.error);
@@ -958,100 +996,125 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: ListView(
                   children: [
                     ..._learners.map(
-                      (profile) =>
-                          FutureBuilder<
-                            ({ProfileAvatarAppearance? appearance, bool hasPin})
-                          >(
-                            future: _learnerSheetData(profile),
-                            builder: (context, snapshot) {
-                              final appearance = snapshot.data?.appearance;
-                              final hasPin = snapshot.data?.hasPin == true;
-                              final actorId = _activeLearnerId;
-                              final actorIsAdmin =
-                                  actorId != null &&
-                                  _adminProfileIds.contains(actorId);
-                              final targetIsAdmin = _adminProfileIds.contains(
-                                profile.learnerProfileId,
-                              );
-                              final canDelete =
-                                  actorId != null &&
-                                  (actorId == profile.learnerProfileId ||
-                                      actorIsAdmin);
-                              final hasActions =
-                                  canDelete ||
-                                  (actorIsAdmin && !targetIsAdmin) ||
-                                  (actorId == profile.learnerProfileId &&
-                                      targetIsAdmin &&
-                                      _adminProfileIds.length > 1) ||
-                                  (actorIsAdmin &&
-                                      actorId != profile.learnerProfileId &&
-                                      hasPin);
-                              return ListTile(
-                                leading: SizedBox(
-                                  width: 42,
-                                  height: 48,
-                                  child: appearance == null
-                                      ? const Icon(Icons.person_outline)
-                                      : LearnerAvatar(
-                                          skinTone: appearance.skinTone,
-                                          hairTone: appearance.hairTone,
+                      (
+                        profile,
+                      ) => FutureBuilder<({ProfileAvatarAppearance? appearance, bool hasPin})>(
+                        future: _learnerSheetData(profile),
+                        builder: (context, snapshot) {
+                          final appearance = snapshot.data?.appearance;
+                          final hasPin = snapshot.data?.hasPin == true;
+                          final actorId = _activeLearnerId;
+                          final actorIsAdmin =
+                              actorId != null &&
+                              _adminProfileIds.contains(actorId);
+                          final targetIsAdmin = _adminProfileIds.contains(
+                            profile.learnerProfileId,
+                          );
+                          final canDelete =
+                              actorId != null &&
+                              (actorId == profile.learnerProfileId ||
+                                  actorIsAdmin);
+                          final isSoleAdmin =
+                              targetIsAdmin && _adminProfileIds.length == 1;
+                          final hasActions =
+                              canDelete ||
+                              (actorIsAdmin && !targetIsAdmin) ||
+                              (actorId == profile.learnerProfileId &&
+                                  targetIsAdmin &&
+                                  _adminProfileIds.length > 1) ||
+                              (actorIsAdmin &&
+                                  actorId != profile.learnerProfileId &&
+                                  hasPin);
+                          return ListTile(
+                            leading: SizedBox(
+                              width: 42,
+                              height: 48,
+                              child: appearance == null
+                                  ? const Icon(Icons.person_outline)
+                                  : LearnerAvatar(
+                                      skinTone: appearance.skinTone,
+                                      hairTone: appearance.hairTone,
+                                    ),
+                            ),
+                            title: Text(
+                              '${profile.displayName}${targetIsAdmin ? ' (admin)' : ''}',
+                            ),
+                            subtitle: profile.discordHandle == null
+                                ? null
+                                : Text('${profile.discordHandle} on Discord'),
+                            selected:
+                                profile.learnerProfileId == _activeLearnerId,
+                            onTap: () => Navigator.pop(
+                              ctx,
+                              'switch:${profile.learnerProfileId}',
+                            ),
+                            trailing: hasActions
+                                ? PopupMenuButton<String>(
+                                    tooltip: 'Learner actions',
+                                    onSelected: (value) => Navigator.pop(
+                                      ctx,
+                                      '$value:${profile.learnerProfileId}',
+                                    ),
+                                    itemBuilder: (context) => [
+                                      if (actorIsAdmin && !targetIsAdmin)
+                                        const PopupMenuItem(
+                                          value: 'promote-admin',
+                                          child: Text('Make admin'),
                                         ),
-                                ),
-                                title: Text(
-                                  '${profile.displayName}${targetIsAdmin ? ' (admin)' : ''}',
-                                ),
-                                subtitle: profile.discordHandle == null
-                                    ? null
-                                    : Text(
-                                        '${profile.discordHandle} on Discord',
-                                      ),
-                                selected:
-                                    profile.learnerProfileId ==
-                                    _activeLearnerId,
-                                onTap: () => Navigator.pop(
-                                  ctx,
-                                  'switch:${profile.learnerProfileId}',
-                                ),
-                                trailing: hasActions
-                                    ? PopupMenuButton<String>(
-                                        tooltip: 'Learner actions',
-                                        onSelected: (value) => Navigator.pop(
-                                          ctx,
-                                          '$value:${profile.learnerProfileId}',
+                                      if (actorId == profile.learnerProfileId &&
+                                          targetIsAdmin &&
+                                          _adminProfileIds.length > 1)
+                                        const PopupMenuItem(
+                                          value: 'relinquish-admin',
+                                          child: Text('Relinquish admin'),
                                         ),
-                                        itemBuilder: (context) => [
-                                          if (actorIsAdmin && !targetIsAdmin)
-                                            const PopupMenuItem(
-                                              value: 'promote-admin',
-                                              child: Text('Make admin'),
-                                            ),
-                                          if (actorId ==
-                                                  profile.learnerProfileId &&
-                                              targetIsAdmin &&
-                                              _adminProfileIds.length > 1)
-                                            const PopupMenuItem(
-                                              value: 'relinquish-admin',
-                                              child: Text('Relinquish admin'),
-                                            ),
-                                          if (actorIsAdmin &&
-                                              actorId !=
-                                                  profile.learnerProfileId &&
-                                              hasPin)
-                                            const PopupMenuItem(
-                                              value: 'reset-pin',
-                                              child: Text('Reset PIN'),
-                                            ),
-                                          if (canDelete)
-                                            const PopupMenuItem(
-                                              value: 'delete',
-                                              child: Text('Delete learner'),
-                                            ),
-                                        ],
-                                      )
-                                    : null,
-                              );
-                            },
-                          ),
+                                      if (actorIsAdmin &&
+                                          actorId != profile.learnerProfileId &&
+                                          hasPin)
+                                        const PopupMenuItem(
+                                          value: 'reset-pin',
+                                          child: Text('Reset PIN'),
+                                        ),
+                                      if (canDelete)
+                                        PopupMenuItem(
+                                          value: 'delete',
+                                          enabled: !isSoleAdmin,
+                                          child: isSoleAdmin
+                                              ? ConstrainedBox(
+                                                  constraints:
+                                                      const BoxConstraints(
+                                                        maxWidth: 260,
+                                                      ),
+                                                  child: Column(
+                                                    crossAxisAlignment:
+                                                        CrossAxisAlignment
+                                                            .start,
+                                                    mainAxisSize:
+                                                        MainAxisSize.min,
+                                                    children: [
+                                                      const Text(
+                                                        'Delete learner (only admin)',
+                                                      ),
+                                                      Text(
+                                                        'The only admin cannot be deleted. However, you can make another user admin. As last resort, you can reset QQL.',
+                                                        key: const Key(
+                                                          'sole-admin-delete-note',
+                                                        ),
+                                                        style: Theme.of(
+                                                          context,
+                                                        ).textTheme.bodySmall,
+                                                      ),
+                                                    ],
+                                                  ),
+                                                )
+                                              : const Text('Delete learner'),
+                                        ),
+                                    ],
+                                  )
+                                : null,
+                          );
+                        },
+                      ),
                     ),
                     ListTile(
                       leading: const Icon(Icons.person_add_alt),

@@ -1,3 +1,5 @@
+import 'translation_choice_service.dart';
+
 /// Shared meanings for the fields that the current Exercise Editor exposes.
 /// These definitions describe authoring; they do not implement validation.
 enum ExerciseAuthoringField {
@@ -104,6 +106,8 @@ abstract final class ExerciseFieldHelpRegistry {
         'tokens',
         'tts',
       ],
+      'translation_choice_to_target': ['question', 'answers', 'correct'],
+      'translation_choice_to_source': ['question', 'answers', 'correct'],
       'gap_choice': ['question', 'answers', 'correct', 'hint'],
       'icon_choice': ['question', 'answers', 'correct', 'icons'],
       'listening_choice': ['tts', 'question', 'answers', 'correct'],
@@ -246,6 +250,63 @@ abstract final class ExerciseFieldHelpRegistry {
         validation: 'Distractor options must not repeat any gap answer text.',
         example: 'perhaps',
       );
+    }
+    if (presetId == 'translation_choice_to_target' ||
+        presetId == 'translation_choice_to_source') {
+      final toTarget = presetId == 'translation_choice_to_target';
+      final textLanguage = toTarget ? 'source' : 'target';
+      final answerLanguage = toTarget ? 'target' : 'source';
+      final languageLabel = toTarget ? 'Target' : 'Source';
+      switch (fieldKey) {
+        case 'question':
+          return ExerciseFieldHelp(
+            title: 'Text to translate',
+            purpose:
+                'The $textLanguage-language word or phrase the learner translates.',
+            entryRules:
+                'Enter one $textLanguage-language word, phrase or sentence. '
+                'Do not write an instruction: QQL adds “Pick the correct '
+                '[$languageLabel language] translation” automatically. '
+                '${toTarget ? 'Line breaks stay part of the same text.' : 'The learner can play this text with text-to-speech when it is available; the exercise stays fully solvable without audio.'}',
+            validation:
+                'Required. Provide $answerLanguage-language answer options and '
+                'mark exactly one correct.',
+          );
+        case 'answers':
+          return ExerciseFieldHelp(
+            title: 'Answer options',
+            purpose:
+                'The $answerLanguage-language translations the learner chooses from.',
+            entryRules:
+                'Enter one complete $answerLanguage-language translation per '
+                'line, from 2 to ${TranslationChoice.maxAnswers} options. '
+                'Blank lines are ignored. Options are shown in random order.',
+            validation:
+                'Between 2 and ${TranslationChoice.maxAnswers} options, none '
+                'blank and no phrase repeated (ignoring case, extra spaces '
+                'and final punctuation), and exactly one correct. Keep '
+                'distractors plausible but clearly wrong.',
+          );
+        case 'correct':
+          return const ExerciseFieldHelp(
+            title: 'Correct answer number',
+            purpose: 'Identifies the one correct option.',
+            entryRules:
+                'Enter one whole number, counting non-empty answer lines '
+                'from 1.',
+            validation:
+                'Must be between 1 and the number of answers. Recheck it '
+                'after reordering or deleting lines.',
+          );
+        case 'image':
+          final base = forField(ExerciseAuthoringField.image);
+          return ExerciseFieldHelp(
+            title: base.title,
+            purpose: base.purpose,
+            entryRules: base.entryRules,
+            validation: base.validation,
+          );
+      }
     }
     if (presetId == 'type_missing_word' &&
         const {'prompt', 'accepted'}.contains(fieldKey)) {

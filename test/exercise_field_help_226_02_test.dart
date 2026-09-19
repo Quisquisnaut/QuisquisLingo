@@ -23,6 +23,8 @@ void main() {
         'tokens',
         'tts',
       ],
+      'translation_choice_to_target': ['question', 'answers', 'correct'],
+      'translation_choice_to_source': ['question', 'answers', 'correct'],
       'gap_choice': ['question', 'answers', 'correct', 'hint'],
       'icon_choice': ['question', 'answers', 'correct', 'icons'],
       'listening_choice': ['tts', 'question', 'answers', 'correct'],

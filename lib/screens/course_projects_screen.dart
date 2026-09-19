@@ -18,7 +18,6 @@ import '../services/course_access_policy.dart';
 import '../services/profile_service.dart';
 import '../services/sound_effect_service.dart';
 import '../services/team_service.dart';
-import '../services/publication_service.dart';
 import '../services/new_course_structure.dart';
 import '../widgets/course_flag_picker.dart';
 import '../widgets/editor_app_bar_actions.dart';
@@ -1760,9 +1759,10 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
           'Bundled official courses are installed only with QuisquisLingo application builds.',
         );
       }
-      final course = imported.originType == CourseOriginType.externalOfficial
-          ? imported
-          : const PublicationService().asDraftAuthoringTree(imported);
+      // Import keeps every publication state stored in the file (Course,
+      // Lessons, GuideBooks, Rounds and Exercises); it never asks and never
+      // changes them.
+      final course = imported;
       final audit = CourseAuditService().auditCourse(course);
       final errors = audit.issues
           .where((issue) => issue.severity == AuditSeverity.error)
@@ -1949,8 +1949,8 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
           duration: const Duration(seconds: 8),
           content: Text(
             warnings.isEmpty
-                ? 'Imported “${course.title}” as Draft.'
-                : 'Imported “${course.title}” as Draft with ${warnings.length} Course Audit warning${warnings.length == 1 ? '' : 's'}. Review Course Audit before making it learner-visible.',
+                ? 'Imported “${course.title}”.'
+                : 'Imported “${course.title}” with ${warnings.length} Course Audit warning${warnings.length == 1 ? '' : 's'}. Review Course Audit.',
           ),
         ),
       );

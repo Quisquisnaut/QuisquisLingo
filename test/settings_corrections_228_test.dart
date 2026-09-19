@@ -62,7 +62,11 @@ void main() {
 
       await tester.pumpAndSettle();
 
-      await tester.tap(find.widgetWithText(FilledButton, 'Check for updates'));
+      final check = find.widgetWithText(FilledButton, 'Check for updates');
+      // The startup-check explanation is longer now, so scroll to the button.
+      await tester.ensureVisible(check);
+      await tester.pumpAndSettle();
+      await tester.tap(check);
       await tester.pumpAndSettle();
 
       expect(find.text('No published release'), findsNothing);

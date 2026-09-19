@@ -824,14 +824,11 @@ void main() {
       await tester.drag(find.byType(ListView), const Offset(0, -260));
       await tester.pumpAndSettle();
 
-      expect(find.text('This is a local profile only.'), findsOneWidget);
-      expect(
-        find.text('Logging out does not contact any remote server.'),
-        findsOneWidget,
-      );
       expect(
         find.text(
-          'Your learner profile and progress remain stored on this device.',
+          'This is a local profile only. Logging out does not contact any '
+          'remote server. Your learner profile and progress remain stored on '
+          'this device.',
         ),
         findsOneWidget,
       );

@@ -284,7 +284,7 @@ enum AuditCode {
     AuditSeverity.error,
     'Exercise',
     'The response configuration does not match the selected preset.',
-    'A non-Presentation preset has an interaction kind different from its canonical model.',
+    'A non-Presentation preset has an interaction kind different from its canonical model, or a Pick the translation exercise uses multiple selection or inline gaps.',
     'Use the response fields belonging to the selected preset; repair inconsistent imported data.',
   ),
   promptMediaUnsupported(
@@ -324,7 +324,7 @@ enum AuditCode {
     AuditSeverity.warning,
     'Exercise',
     'Independent stored data do not belong to the selected preset.',
-    'Correct options, accepted answers, orders, pairs, hints, missing words or icons remain where the runtime preset does not expect that field.',
+    'Correct options, accepted answers, orders, pairs, hints, missing words, icons, or (for Pick the translation) a prompt or spoken text remain where the runtime preset does not expect that field.',
     'Review the named field and remove only unintended stale data.',
   ),
   choiceAnswersRequired(
@@ -380,7 +380,7 @@ enum AuditCode {
     AuditSeverity.warning,
     'Exercise: Select',
     'Answer options repeat.',
-    'Options are duplicated after trimming and ignoring case.',
+    'Options are duplicated after trimming and ignoring case (for Pick the translation, also ignoring extra spaces and final punctuation).',
     'Use distinct options or review any intentional equivalence.',
   ),
   placeholderAnswer(
@@ -486,6 +486,22 @@ enum AuditCode {
     'There is no source text to translate.',
     'The source prompt is blank.',
     'Enter the source-language word or sentence.',
+  ),
+  translationChoiceTextRequired(
+    'TRANSLATION_CHOICE_TEXT_REQUIRED',
+    AuditSeverity.error,
+    'Exercise: Pick the translation',
+    'There is no text to translate.',
+    'The text to translate is blank.',
+    'Enter the word, phrase or sentence the learner translates.',
+  ),
+  translationChoiceTooManyAnswers(
+    'TRANSLATION_CHOICE_TOO_MANY_ANSWERS',
+    AuditSeverity.error,
+    'Exercise: Pick the translation',
+    'The learner has too many answer options.',
+    'The exercise has more than 5 answer options.',
+    'Keep at most 5 answer options, each a different phrase.',
   ),
   translationAnswerRequired(
     'TRANSLATION_ANSWER_REQUIRED',

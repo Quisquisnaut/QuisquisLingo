@@ -2498,6 +2498,8 @@ ExerciseInteraction _legacyInteraction(
     'reading_comprehension',
     'dialogue_response',
     'contextual_comprehension',
+    'translation_choice_to_target',
+    'translation_choice_to_source',
   }.contains(type)) {
     final items = <ExerciseItem>[];
     for (var i = 0; i < answers.length; i++) {
@@ -2589,6 +2591,8 @@ ExerciseEvaluation _legacyEvaluation(
     'reading_comprehension',
     'dialogue_response',
     'contextual_comprehension',
+    'translation_choice_to_target',
+    'translation_choice_to_source',
   }.contains(type)) {
     return ExerciseEvaluation(
       kind: 'selected_items',

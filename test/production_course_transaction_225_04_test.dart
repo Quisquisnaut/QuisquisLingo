@@ -443,9 +443,9 @@ void main() {
 
       await tester.tap(find.byKey(const Key('new-exercise')));
       await _settle(tester);
-      await tester.enterText(_field('Prompt / instruction'), 'Created draft');
-      await tester.enterText(_field('Question'), 'Choose.');
-      await tester.enterText(_field('Answers'), 'Yes\nNo');
+      // New exercise starts as Pick the translation (to target).
+      await tester.enterText(_field('Text to translate'), 'Created draft');
+      await tester.enterText(_field('Answer options'), 'Yes\nNo');
       await tester.enterText(_field('Correct answer number'), '1');
       await tester.scrollUntilVisible(
         find.byKey(const Key('exercise-save-draft')),
@@ -461,6 +461,16 @@ void main() {
       await _settle(tester);
       await tester.tap(find.byKey(const Key('round-save-draft')));
       await _settle(tester);
+      // The Round was promoted when its last Draft Exercise was saved as
+      // Published, so moving it back to Draft asks for confirmation.
+      final confirmDraft = find.descendant(
+        of: find.byType(AlertDialog),
+        matching: find.text('Save as draft'),
+      );
+      if (confirmDraft.evaluate().isNotEmpty) {
+        await tester.tap(confirmDraft);
+        await _settle(tester);
+      }
 
       await _nestedBack(tester, LessonEditorScreen);
       await _nestedBack(tester, LessonManagementScreen);
@@ -523,7 +533,7 @@ void main() {
       expect(
         editedRound.exercises.any(
           (item) =>
-              item.prompt == 'Created draft' &&
+              item.question == 'Created draft' &&
               item.publicationState == PublicationState.draft,
         ),
         isTrue,

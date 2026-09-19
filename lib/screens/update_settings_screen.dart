@@ -2,13 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../services/app_metadata.dart';
 import '../services/diagnostic_log_service.dart';
+import '../services/profile_service.dart';
 import '../services/settings_service.dart';
 import '../services/update_service.dart';
 
 class UpdateSettingsScreen extends StatefulWidget {
   final UpdateService? updateService;
+  final ProfileService? profileService;
 
-  const UpdateSettingsScreen({super.key, this.updateService});
+  const UpdateSettingsScreen({
+    super.key,
+    this.updateService,
+    this.profileService,
+  });
 
   @override
   State<UpdateSettingsScreen> createState() => _UpdateSettingsScreenState();
@@ -21,6 +27,7 @@ class _UpdateSettingsScreenState extends State<UpdateSettingsScreen> {
 
   String _currentVersion = AppMetadata.technicalVersion;
   bool _automatic = true;
+  bool _isAdmin = false;
   DateTime? _lastChecked;
   bool _checking = false;
   UpdateCheckResult? _result;
@@ -37,10 +44,14 @@ class _UpdateSettingsScreenState extends State<UpdateSettingsScreen> {
     try {
       final automatic = await _settings.isAutomaticUpdateCheckEnabled();
       final lastChecked = await _settings.getUpdateLastCheckedAt();
+      final profiles = widget.profileService ?? ProfileService();
+      final activeId = await profiles.getActiveProfileId();
+      final isAdmin = activeId != null && await profiles.isAdmin(activeId);
       if (!mounted) return;
       setState(() {
         _currentVersion = AppMetadata.technicalVersion;
         _automatic = automatic;
+        _isAdmin = isAdmin;
         _lastChecked = lastChecked;
       });
     } catch (_) {
@@ -156,12 +167,14 @@ class _UpdateSettingsScreenState extends State<UpdateSettingsScreen> {
           const Divider(),
           SwitchListTile(
             title: const Text('Check automatically at startup'),
-            subtitle: const Text(
+            subtitle: Text(
               'When enabled, QuisquisLingo contacts only the official GitHub Releases API at startup. '
-              'No learner data, course data, credentials or analytics are sent.',
+              'No learner data, course data, credentials or analytics are sent. '
+              'Each learner is reminded about a new version at most once a day.'
+              '${_isAdmin ? '' : '\n\nThis setting applies to the whole device and can be changed only by an admin (Settings > Device Administration).'}',
             ),
             value: _automatic,
-            onChanged: _setAutomatic,
+            onChanged: _isAdmin ? _setAutomatic : null,
           ),
           ListTile(
             leading: const Icon(Icons.schedule_outlined),

@@ -191,12 +191,10 @@ void main() {
             .isNew,
         isFalse,
       );
-      await tester.enterText(
-        _field('Prompt / instruction'),
-        'Choose the correct Italian translation.',
-      );
-      await tester.enterText(_field('Question'), 'hello');
-      await tester.enterText(_field('Answers'), 'ciao\narrivederci');
+      // The New Course sample is Pick the translation (to target): it has no
+      // authored prompt, only the text to translate and its answer options.
+      await tester.enterText(_field('Text to translate'), 'hello');
+      await tester.enterText(_field('Answer options'), 'ciao\narrivederci');
       await tester.enterText(_field('Correct answer number'), '1');
       final exerciseSave = find.byKey(const Key('exercise-save'));
       await tester.scrollUntilVisible(
@@ -414,7 +412,8 @@ void _expectFinalAuthoringTree(
   final edited = course.lessons.first.rounds.single.exercises.single;
   expect(edited.id, sampleIds.first);
   expect(edited.publicationState, PublicationState.published);
-  expect(edited.prompt, 'Choose the correct Italian translation.');
+  expect(edited.type, 'translation_choice_to_target');
+  expect(edited.prompt, isEmpty);
   expect(edited.question, 'hello');
   expect(edited.answers, ['ciao', 'arrivederci']);
   for (var index = 1; index < course.lessons.length; index++) {

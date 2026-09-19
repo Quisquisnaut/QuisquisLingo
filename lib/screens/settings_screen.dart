@@ -9,6 +9,8 @@ import '../services/sound_effect_service.dart';
 import 'tts_settings_screen.dart';
 import 'do_not_disturb_settings_screen.dart';
 import 'debug_screen.dart';
+import 'device_administration_screen.dart';
+import '../services/profile_service.dart';
 import 'info_screen.dart';
 import 'profile_screen.dart';
 import 'update_settings_screen.dart';
@@ -37,6 +39,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   late final bool _ownsSounds;
   bool _loading = true;
   bool _editorUnlocked = false;
+  bool _isAdmin = false;
   int _versionTapCount = 0;
   int _flagGameTapCount = 0;
   Timer? _flagGameTapResetTimer;
@@ -66,7 +69,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
       return;
     }
     _flagGameTapCount = 0;
-    await _sounds.playSuspense();
+    // Optional sound must never delay or endanger opening the game.
+    unawaited(_sounds.playSuspense().catchError((Object _) {}));
     if (!mounted) return;
     await Navigator.of(context).push(
       MaterialPageRoute(
@@ -78,9 +82,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Future<void> _load() async {
     try {
       final editorUnlocked = await _settings.isCourseEditorUnlocked();
+      final profiles = ProfileService();
+      final activeId = await profiles.getActiveProfileId();
+      final isAdmin = activeId != null && await profiles.isAdmin(activeId);
       if (!mounted) return;
       setState(() {
         _editorUnlocked = editorUnlocked;
+        _isAdmin = isAdmin;
         _versionTapCount = 0;
         _loading = false;
       });
@@ -107,18 +115,40 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Future<void> _tapVersion() async {
     // Deliberately no timeout: ten taps may be made at a normal pace.
     _versionTapCount++;
-    if (_versionTapCount >= 10 && !_editorUnlocked) {
+    if (_versionTapCount < 10 || _editorUnlocked) return;
+    _versionTapCount = 0;
+    try {
       await _settings.setCourseEditorUnlocked(true);
-      final playSound = await _settings.areSoundEffectsEnabled();
-      if (playSound) await _sounds.playDuelWin();
+    } catch (_) {
       if (!mounted) return;
-      setState(() => _editorUnlocked = true);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           duration: Duration(seconds: 8),
-          content: Text('Course Manager unlocked.'),
+          content: Text('Course Manager could not be unlocked. Try again.'),
         ),
       );
+      return;
+    }
+    if (!mounted) return;
+    setState(() => _editorUnlocked = true);
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        duration: Duration(seconds: 8),
+        content: Text('Course Manager unlocked.'),
+      ),
+    );
+    // The unlock is complete and shown before the optional sound starts, so an
+    // audio backend problem on a given PC can never interfere with it.
+    unawaited(_playUnlockSound());
+  }
+
+  Future<void> _playUnlockSound() async {
+    try {
+      await WidgetsBinding.instance.endOfFrame;
+      if (!mounted || !await _settings.areSoundEffectsEnabled()) return;
+      await _sounds.playDuelWin();
+    } catch (_) {
+      // Sound effects are optional.
     }
   }
 
@@ -167,6 +197,24 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     if (mounted) await _load();
                   },
                 ),
+                if (_isAdmin)
+                  ListTile(
+                    key: const Key('settings-device-administration'),
+                    leading: const Icon(Icons.admin_panel_settings_outlined),
+                    title: const Text('Device Administration'),
+                    subtitle: const Text(
+                      'Admins only: learners, startup behavior, device name, media, Teams and reset options.',
+                    ),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => DeviceAdministrationScreen(
+                          course: widget.course,
+                          onManageLearners: widget.onManageLearners,
+                        ),
+                      ),
+                    ),
+                  ),
                 const Divider(),
                 ListTile(
                   leading: const Icon(Icons.help_outline),
@@ -218,12 +266,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                 ),
                 const Divider(),
-                ListTile(
-                  key: const Key('settings-version-build-area'),
-                  leading: const Icon(Icons.info_outline),
-                  title: const Text('Version and Build'),
-                  subtitle: const Text(AppMetadata.displayLabel),
-                  onTap: _tapVersion,
+                Tooltip(
+                  message: _editorUnlocked
+                      ? 'Course Manager unlocked'
+                      : 'Tap x 10 times to unlock Course Manager',
+                  child: ListTile(
+                    key: const Key('settings-version-build-area'),
+                    leading: const Icon(Icons.info_outline),
+                    title: const Text('Version and Build'),
+                    subtitle: const Text(AppMetadata.displayLabel),
+                    onTap: _tapVersion,
+                  ),
                 ),
                 ListTile(
                   leading: const Icon(Icons.system_update_alt),
@@ -288,7 +341,7 @@ class _WavingFlagIconState extends State<_WavingFlagIcon>
   @override
   Widget build(BuildContext context) {
     return Tooltip(
-      message: 'Tap tap... Flag Game',
+      message: 'Tap tap tap tap tap... Flag Game',
       child: MouseRegion(
         onEnter: _startWaving,
         onExit: _stopWaving,

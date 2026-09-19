@@ -12,6 +12,8 @@ import '../services/course_service.dart';
 import '../services/settings_service.dart';
 import '../services/recorded_audio_service.dart';
 import '../services/audio_exercise_availability_service.dart';
+import '../services/translation_choice_service.dart';
+import '../widgets/portable_exercise_image.dart';
 
 class DuelScreen extends StatefulWidget {
   final Course course;
@@ -59,6 +61,7 @@ class _DuelScreenState extends State<DuelScreen> {
   final _recordedAudio = RecordedAudioService();
   final _eligibility = const DuelEligibilityService();
   late final AudioExerciseAvailabilityService _audioAvailability;
+  bool _optionalAudioEnabled = false;
   final _random = Random();
   int _index = 0;
   List<_DuelItem> _items = const [];
@@ -76,6 +79,25 @@ class _DuelScreenState extends State<DuelScreen> {
     Color(0xFFDDE5D5),
     Color(0xFFE9DFC7),
   ];
+
+  /// The bright autumn backgrounds only suit the light theme. In dark mode the
+  /// background is taken from the theme surface (as in Round), so the theme's
+  /// light text and icons stay readable.
+  Color _duelBackground(Color lightBackground) {
+    final theme = Theme.of(context);
+    if (theme.brightness == Brightness.light) return lightBackground;
+    return Color.alphaBlend(
+      lightBackground.withValues(alpha: 0.08),
+      theme.colorScheme.surface,
+    );
+  }
+
+  Color get _feedbackPanelColor {
+    final theme = Theme.of(context);
+    return theme.brightness == Brightness.dark
+        ? theme.colorScheme.surfaceContainerHigh
+        : Colors.white.withValues(alpha: 0.62);
+  }
 
   bool get _isFinalLesson =>
       widget.course.lessons.isNotEmpty &&
@@ -123,6 +145,9 @@ class _DuelScreenState extends State<DuelScreen> {
         _items = candidates
             .take(DuelEligibilityService.requiredQuestionCount)
             .toList();
+        _optionalAudioEnabled =
+            audioExercisesEnabled &&
+            (ttsEnabled || widget.course.audioMode != 'tts');
         _ready = true;
       });
       _prepareCurrent();
@@ -178,18 +203,36 @@ class _DuelScreenState extends State<DuelScreen> {
     values.shuffle(_random);
   }
 
-  Future<void> _speak(Exercise ex) async {
-    if (ex.tts == null || ex.tts!.isEmpty) return;
+  Future<void> _speak(Exercise ex) => _speakText(ex.tts ?? '');
+
+  Widget _translationAudioButton(String text) => IconButton.filledTonal(
+    key: const Key('translation-choice-audio'),
+    tooltip: _optionalAudioEnabled ? 'Play audio' : 'Audio unavailable',
+    onPressed: _optionalAudioEnabled ? () => _speakText(text) : null,
+    icon: const Icon(Icons.volume_up_outlined),
+  );
+
+  Widget _translationAudioUnavailableNote() => Padding(
+    padding: const EdgeInsets.only(top: 8),
+    child: Text(
+      'Audio is turned off or unavailable. The exercise still works.',
+      key: const Key('translation-choice-audio-note'),
+      style: Theme.of(context).textTheme.bodySmall,
+    ),
+  );
+
+  Future<void> _speakText(String text) async {
+    if (text.isEmpty) return;
     var ok = false;
     if (widget.course.audioMode != 'tts') {
       ok = await _recordedAudio.playConcatenated(
-        ex.tts!,
+        text,
         widget.course.audioLibrary,
       );
     }
     if (!ok && widget.course.audioMode != 'recorded') {
       ok = await _tts.speak(
-        text: ex.tts!,
+        text: text,
         language: widget.ttsLanguage,
         learningLanguage: widget.course.learningLanguage,
         targetLanguage: widget.course.targetLanguage,
@@ -422,7 +465,9 @@ class _DuelScreenState extends State<DuelScreen> {
 
     final item = items[_index];
     final ex = item.exercise;
-    final background = _backgrounds[_index % _backgrounds.length];
+    final background = _duelBackground(
+      _backgrounds[_index % _backgrounds.length],
+    );
 
     return Scaffold(
       backgroundColor: background,
@@ -490,14 +535,56 @@ class _DuelScreenState extends State<DuelScreen> {
                   ),
                   const SizedBox(height: 14),
                 ],
-                Text(ex.prompt, style: Theme.of(context).textTheme.titleMedium),
-                const SizedBox(height: 8),
-                Text(
-                  ex.question.isEmpty
-                      ? 'Listen and choose the meaning.'
-                      : ex.question,
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
+                if (TranslationChoice.isTranslationChoice(ex.type)) ...[
+                  // Single learner-facing instruction: no prompt, no
+                  // fallback text and no editor-only type name.
+                  Text(
+                    TranslationChoice.instruction(widget.course, ex.type),
+                    key: const Key('translation-choice-instruction'),
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          ex.question,
+                          key: const Key('translation-choice-text'),
+                          style: Theme.of(context).textTheme.titleLarge,
+                        ),
+                      ),
+                      if (ex.type == TranslationChoice.toSource &&
+                          ex.question.trim().isNotEmpty)
+                        _translationAudioButton(ex.question.trim()),
+                    ],
+                  ),
+                  if (ex.type == TranslationChoice.toSource &&
+                      !_optionalAudioEnabled)
+                    _translationAudioUnavailableNote(),
+                  if (ex.imageAsset.isNotEmpty) ...[
+                    const SizedBox(height: 14),
+                    Center(
+                      child: PortableExerciseImage(
+                        asset: ex.imageAsset,
+                        height: 200,
+                      ),
+                    ),
+                  ],
+                ] else ...[
+                  Text(
+                    ex.prompt,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    ex.question.isEmpty
+                        ? 'Listen and choose the meaning.'
+                        : ex.question,
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                ],
                 const SizedBox(height: 18),
                 ...List.generate(
                   _choices.length,
@@ -515,7 +602,7 @@ class _DuelScreenState extends State<DuelScreen> {
                   Container(
                     padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.62),
+                      color: _feedbackPanelColor,
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: Column(
@@ -528,6 +615,19 @@ class _DuelScreenState extends State<DuelScreen> {
                         if (!_answerCorrect) ...[
                           const SizedBox(height: 5),
                           Text('Correct answer: ${_correctAnswer(ex)}'),
+                        ],
+                        if (ex.type == TranslationChoice.toTarget) ...[
+                          const SizedBox(height: 8),
+                          Row(
+                            children: [
+                              const Expanded(
+                                child: Text('Listen to the answer'),
+                              ),
+                              _translationAudioButton(_correctAnswer(ex)),
+                            ],
+                          ),
+                          if (!_optionalAudioEnabled)
+                            _translationAudioUnavailableNote(),
                         ],
                       ],
                     ),

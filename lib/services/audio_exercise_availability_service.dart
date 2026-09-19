@@ -1,5 +1,6 @@
 import '../models/course_models.dart';
 import 'recorded_audio_service.dart';
+import 'translation_choice_service.dart';
 
 enum EffectiveRoundAudioAvailability {
   none,
@@ -17,6 +18,9 @@ class AudioExerciseAvailabilityService {
     : _recordedAudio = recordedAudio ?? RecordedAudioService();
 
   bool isAudioExercise(Exercise exercise) {
+    // Audio is optional for Pick the translation: the exercise is
+    // fully solvable without it and must never be skipped for lack of TTS.
+    if (TranslationChoice.isTranslationChoice(exercise.type)) return false;
     final spokenText = exercise.tts?.trim() ?? '';
     return exercise.type == 'audio_match' ||
         exercise.type == 'listening_choice' ||
