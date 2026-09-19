@@ -997,6 +997,26 @@ class _ResetSection extends StatelessWidget {
                 Text(
                   'Last step. Enter your admin PIN to run "${plan.title}". Nothing has been deleted so far.',
                 ),
+                if (plan.scope == AppResetScope.importedMedia) ...[
+                  const SizedBox(height: 8),
+                  Text(
+                    choices.removeImages
+                        ? 'Images: will be REMOVED.'
+                        : 'Images: kept.',
+                    key: const Key('admin-pin-reminder-images'),
+                    style: const TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                  Text(
+                    choices.removeAudio
+                        ? 'Audio files: will be REMOVED.'
+                        : 'Audio files: kept.',
+                    key: const Key('admin-pin-reminder-audio'),
+                    style: const TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                  const Text(
+                    'To change this, cancel and start the reset again.',
+                  ),
+                ],
                 const SizedBox(height: 8),
                 TextField(
                   key: const Key('admin-reset-pin'),

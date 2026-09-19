@@ -419,6 +419,8 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('admin-reset-skip-backup')));
     await tester.pumpAndSettle();
+    expect(find.text('Audio files: will be REMOVED.'), findsOneWidget);
+    expect(find.text('Images: kept.'), findsOneWidget);
     await tester.enterText(find.byKey(const Key('admin-reset-pin')), '1234');
     await tester.tap(find.byKey(const Key('admin-reset-run')));
     await settle(tester);
