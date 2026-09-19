@@ -475,12 +475,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   onTap: _openUserData,
                 ),
                 const Divider(height: 32),
-                const Text('This is a local profile only.'),
-                const SizedBox(height: 4),
-                const Text('Logging out does not contact any remote server.'),
-                const SizedBox(height: 4),
                 const Text(
-                  'Your learner profile and progress remain stored on this device.',
+                  'This is a local profile only. Logging out does not contact any remote server. Your learner profile and progress remain stored on this device.',
                 ),
                 const SizedBox(height: 16),
                 Align(

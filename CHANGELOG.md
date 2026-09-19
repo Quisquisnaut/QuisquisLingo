@@ -4,6 +4,7 @@
 - Flag Game trigger (5 taps on the Settings title): the optional suspense sound no longer delays or blocks opening the game. The tooltip now reads `Tap tap tap tap tap... Flag Game`.
 - Version and Build in Settings has a tooltip: `Tap x 10 times to unlock Course Manager`, or `Course Manager unlocked` once unlocked.
 - Abnormal-termination detection (Windows and Linux): a `quisquislingo_session.marker` file exists while a session runs and is deleted on clean shutdown (window close or the detached lifecycle state). If it is found at startup, the Crash Log records `abnormal termination detected` with the previous session's start time and last lifecycle state. A clean shutdown also appends `session ended cleanly` to the Crash Log; detection relies only on the marker.
+- Profile: the log-out explanation is one continuous paragraph instead of three separate lines.
 - Learners list: deleting the only admin is disabled, labelled `Delete learner (only admin)`, with a second line explaining that another user can be made admin or, as a last resort, QQL can be reset; it no longer fails after confirmation.
 - Test fix: `228.03 Debug page owns both existing log entries` no longer depends on the length of the temporary log path.
 - Updated the version to `2.0.39+239003`, Build 239, Revision 3. The 30-day Beta expiry remains unchanged at `2026-10-17 23:59:59` local time. Course Model v9/v10 is unchanged.
