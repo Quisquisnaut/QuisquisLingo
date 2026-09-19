@@ -331,6 +331,46 @@ void main() {
     },
   );
 
+  testWidgets(
+    'the keep options are in the first dialog and reminded in the last',
+    (tester) async {
+      await profiles.setOwnAccessPin(actorProfileId: adminId, pin: '1234');
+      await open(tester);
+      await tester.ensureVisible(
+        find.byKey(const Key('admin-reset-button-everything')),
+      );
+      await tester.pump();
+      await tester.tap(find.byKey(const Key('admin-reset-button-everything')));
+      await settle(tester);
+
+      // Visible at once, without scrolling to the bottom of the dialog.
+      final exports = find.byKey(const Key('admin-nuke-keep-exports'));
+      final logs = find.byKey(const Key('admin-nuke-keep-logs'));
+      expect(exports, findsOneWidget);
+      expect(logs, findsOneWidget);
+      final view = tester.view.physicalSize / tester.view.devicePixelRatio;
+      expect(tester.getTopLeft(exports).dy, lessThan(view.height));
+      expect(tester.widget<CheckboxListTile>(exports).value, isTrue);
+      expect(tester.widget<CheckboxListTile>(logs).value, isTrue);
+
+      await tester.tap(exports);
+      await tester.pump();
+      await tester.tap(find.byKey(const Key('admin-reset-continue')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('admin-reset-skip-backup')));
+      await tester.pumpAndSettle();
+
+      // The last dialog only reminds; it has no checkboxes of its own.
+      expect(find.byKey(const Key('admin-nuke-keep-exports')), findsNothing);
+      expect(
+        find.text('Exports folder: will be DELETED with everything else.'),
+        findsOneWidget,
+      );
+      expect(find.text('Logs folder: kept.'), findsOneWidget);
+      expect(find.textContaining('NUKE EVERYTHING'), findsWidgets);
+    },
+  );
+
   testWidgets('NUKE needs the typed phrase, the PIN, and restarts the app', (
     tester,
   ) async {
@@ -371,10 +411,25 @@ void main() {
 
     final proceed = find.byKey(const Key('admin-nuke-continue'));
     expect(tester.widget<FilledButton>(proceed).onPressed, isNull);
-    await tester.enterText(find.byKey(const Key('admin-nuke-phrase')), 'nuke');
-    await tester.pump();
-    expect(tester.widget<FilledButton>(proceed).onPressed, isNull);
-    await tester.enterText(find.byKey(const Key('admin-nuke-phrase')), 'NUKE');
+    for (final wrong in [
+      'nuke',
+      'NUKE',
+      'nuke everything',
+      'NUKEEVERYTHING',
+      'NUKE  EVERYTHING',
+    ]) {
+      await tester.enterText(find.byKey(const Key('admin-nuke-phrase')), wrong);
+      await tester.pump();
+      expect(
+        tester.widget<FilledButton>(proceed).onPressed,
+        isNull,
+        reason: wrong,
+      );
+    }
+    await tester.enterText(
+      find.byKey(const Key('admin-nuke-phrase')),
+      'NUKE EVERYTHING',
+    );
     await tester.pump();
     await tester.tap(proceed);
     await tester.pumpAndSettle();

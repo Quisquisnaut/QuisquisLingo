@@ -449,7 +449,7 @@ const _plans = <_ResetPlan>[
       'Every other file QQL stored, except what you choose to keep',
     ],
     keeps: [
-      'Only the Exports and Logs folders, if you leave them ticked',
+      'Only the Exports and Logs folders, unless you untick them in the first step',
       'The bundled official courses (part of the app)',
     ],
     warning:
@@ -589,29 +589,26 @@ class _ResetSection extends StatelessWidget {
               .toList()
         : others;
 
-    // Step 1: explanation with the real numbers for this device.
-    if (!await _confirm(
-      context,
-      title: plan.title,
-      confirmLabel: 'I understand, continue',
-      body: _explanation(plan, preview, affected),
-    )) {
-      return;
-    }
-    if (!context.mounted) return;
+    // Step 1: explanation with the real numbers for this device. For the
+    // full wipe it also holds the choice of what to keep, near the top.
+    final explained = await _explainDialog(context, plan, preview, affected);
+    if (explained == null || !context.mounted) return;
+    final keepExports = explained.keepExports;
+    final keepLogs = explained.keepLogs;
 
     // Step 2: backup offer.
     final backup = await _backupOffer(context, plan, affected);
     if (backup != true || !context.mounted) return;
 
-    // Step 3 (everything only): what to keep, and a typed confirmation.
-    var keepExports = true;
-    var keepLogs = true;
+    // Step 3 (everything only): a reminder of what is included, and the
+    // typed confirmation.
     if (plan.scope == AppResetScope.everything) {
-      final choice = await _nukeConfirmation(context);
-      if (choice == null || !context.mounted) return;
-      keepExports = choice.keepExports;
-      keepLogs = choice.keepLogs;
+      final typed = await _nukeConfirmation(
+        context,
+        keepExports: keepExports,
+        keepLogs: keepLogs,
+      );
+      if (typed != true || !context.mounted) return;
     }
 
     // Step 4: PIN, checked by the service itself.
@@ -637,14 +634,16 @@ class _ResetSection extends StatelessWidget {
   Widget _explanation(
     _ResetPlan plan,
     AppResetPreview preview,
-    List<String> affectedLearners,
-  ) {
+    List<String> affectedLearners, {
+    Widget? afterSummary,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
         Text(plan.summary),
         const SizedBox(height: 8),
+        if (afterSummary != null) ...[afterSummary, const SizedBox(height: 8)],
         _Bullets(heading: 'This will remove', items: plan.removes),
         const SizedBox(height: 4),
         _Bullets(heading: 'This will keep', items: plan.keeps),
@@ -677,31 +676,79 @@ class _ResetSection extends StatelessWidget {
     );
   }
 
-  Future<bool> _confirm(
-    BuildContext context, {
-    required String title,
-    required Widget body,
-    required String confirmLabel,
-  }) async {
-    return await showDialog<bool>(
-          context: context,
-          builder: (dialogContext) => AlertDialog(
-            title: Text(title),
-            content: SingleChildScrollView(child: body),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(dialogContext, false),
-                child: const Text('Cancel'),
-              ),
-              FilledButton(
-                key: const Key('admin-reset-continue'),
-                onPressed: () => Navigator.pop(dialogContext, true),
-                child: Text(confirmLabel),
-              ),
-            ],
+  Future<({bool keepExports, bool keepLogs})?> _explainDialog(
+    BuildContext context,
+    _ResetPlan plan,
+    AppResetPreview preview,
+    List<String> affected,
+  ) async {
+    var keepExports = true;
+    var keepLogs = true;
+    final choice = await showDialog<({bool keepExports, bool keepLogs})>(
+      context: context,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (context, setLocal) => AlertDialog(
+          title: Text(plan.title),
+          content: SingleChildScrollView(
+            child: _explanation(
+              plan,
+              preview,
+              affected,
+              afterSummary: plan.scope != AppResetScope.everything
+                  ? null
+                  : Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Choose what to keep. Both are kept unless you untick them, and the choice is used only if you finish every step.',
+                          style: TextStyle(fontWeight: FontWeight.w600),
+                        ),
+                        CheckboxListTile(
+                          key: const Key('admin-nuke-keep-exports'),
+                          contentPadding: EdgeInsets.zero,
+                          controlAffinity: ListTileControlAffinity.leading,
+                          value: keepExports,
+                          onChanged: (v) =>
+                              setLocal(() => keepExports = v ?? true),
+                          title: const Text('Keep the Exports folder'),
+                          subtitle: const Text(
+                            'Your learner and course backups. Untick to delete them permanently.',
+                          ),
+                        ),
+                        CheckboxListTile(
+                          key: const Key('admin-nuke-keep-logs'),
+                          contentPadding: EdgeInsets.zero,
+                          controlAffinity: ListTileControlAffinity.leading,
+                          value: keepLogs,
+                          onChanged: (v) =>
+                              setLocal(() => keepLogs = v ?? true),
+                          title: const Text('Keep the Logs folder'),
+                          subtitle: const Text(
+                            'Crash and diagnostic logs, useful when reporting a problem. Untick to delete them.',
+                          ),
+                        ),
+                      ],
+                    ),
+            ),
           ),
-        ) ??
-        false;
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              key: const Key('admin-reset-continue'),
+              onPressed: () => Navigator.pop(dialogContext, (
+                keepExports: keepExports,
+                keepLogs: keepLogs,
+              )),
+              child: const Text('I understand, continue'),
+            ),
+          ],
+        ),
+      ),
+    );
+    return choice;
   }
 
   /// The admin's own User Data is affected only by these two resets, so only
@@ -786,13 +833,15 @@ class _ResetSection extends StatelessWidget {
     );
   }
 
-  Future<({bool keepExports, bool keepLogs})?> _nukeConfirmation(
-    BuildContext context,
-  ) {
-    var keepExports = true;
-    var keepLogs = true;
+  static const _nukePhrase = 'NUKE EVERYTHING';
+
+  Future<bool?> _nukeConfirmation(
+    BuildContext context, {
+    required bool keepExports,
+    required bool keepLogs,
+  }) {
     final typed = TextEditingController();
-    return showDialog<({bool keepExports, bool keepLogs})>(
+    return showDialog<bool>(
       context: context,
       builder: (dialogContext) => StatefulBuilder(
         builder: (context, setLocal) => AlertDialog(
@@ -803,58 +852,57 @@ class _ResetSection extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  'Everything QQL stored on this device will be deleted, including every learner and admin. Choose which folders to keep. Tick both to keep your backups and the diagnostic logs (recommended).',
-                ),
-                CheckboxListTile(
-                  key: const Key('admin-nuke-keep-exports'),
-                  contentPadding: EdgeInsets.zero,
-                  value: keepExports,
-                  onChanged: (v) => setLocal(() => keepExports = v ?? true),
-                  title: const Text('Keep the Exports folder'),
-                  subtitle: const Text(
-                    'Your learner and course backups. Untick to delete them permanently.',
-                  ),
-                ),
-                CheckboxListTile(
-                  key: const Key('admin-nuke-keep-logs'),
-                  contentPadding: EdgeInsets.zero,
-                  value: keepLogs,
-                  onChanged: (v) => setLocal(() => keepLogs = v ?? true),
-                  title: const Text('Keep the Logs folder'),
-                  subtitle: const Text(
-                    'Crash and diagnostic logs, useful when reporting a problem. Untick to delete them.',
-                  ),
+                  'Everything QQL stored on this device will be deleted, including every learner and admin.',
                 ),
                 const SizedBox(height: 8),
-                const Text('To continue, type NUKE in capital letters:'),
+                Text(
+                  keepExports
+                      ? 'Exports folder: kept.'
+                      : 'Exports folder: will be DELETED with everything else.',
+                  key: const Key('admin-nuke-reminder-exports'),
+                  style: const TextStyle(fontWeight: FontWeight.w600),
+                ),
+                Text(
+                  keepLogs
+                      ? 'Logs folder: kept.'
+                      : 'Logs folder: will be DELETED with everything else.',
+                  key: const Key('admin-nuke-reminder-logs'),
+                  style: const TextStyle(fontWeight: FontWeight.w600),
+                ),
+                const SizedBox(height: 4),
+                const Text('To change this, cancel and start the reset again.'),
+                const SizedBox(height: 12),
+                Text(
+                  'To continue, type $_nukePhrase exactly, in capital letters, with a space between the two words:',
+                ),
                 TextField(
                   key: const Key('admin-nuke-phrase'),
                   controller: typed,
                   onChanged: (_) => setLocal(() {}),
-                  decoration: const InputDecoration(labelText: 'Type NUKE'),
+                  decoration: InputDecoration(labelText: 'Type $_nukePhrase'),
                 ),
               ],
             ),
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.pop(dialogContext),
+              onPressed: () => Navigator.pop(dialogContext, false),
               child: const Text('Cancel'),
             ),
             FilledButton(
               key: const Key('admin-nuke-continue'),
-              onPressed: typed.text == 'NUKE'
-                  ? () => Navigator.pop(dialogContext, (
-                      keepExports: keepExports,
-                      keepLogs: keepLogs,
-                    ))
+              onPressed: typed.text == _nukePhrase
+                  ? () => Navigator.pop(dialogContext, true)
                   : null,
               child: const Text('Continue to PIN'),
             ),
           ],
         ),
       ),
-    );
+    ).whenComplete(() async {
+      await Future<void>.delayed(const Duration(milliseconds: 250));
+      typed.dispose();
+    });
   }
 
   Future<bool?> _askPinAndRun(

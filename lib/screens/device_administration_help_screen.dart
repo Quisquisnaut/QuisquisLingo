@@ -67,7 +67,7 @@ class DeviceAdministrationHelpScreen extends StatelessWidget {
               _Section(
                 title: 'The reset options',
                 paragraphs: [
-                  'Resets delete data permanently. For that reason the Reset section is locked until you set your own 4-digit PIN. Each reset then walks you through: an explanation with the real numbers for this device, an offer to back up first, and finally your PIN. Nothing is deleted until you have finished every step. The full wipe also asks you to type NUKE.',
+                  'Resets delete data permanently. For that reason the Reset section is locked until you set your own 4-digit PIN. Each reset then walks you through: an explanation with the real numbers for this device, an offer to back up first, and finally your PIN. Nothing is deleted until you have finished every step. The full wipe lets you choose in the first step whether to keep the Exports and Logs folders, and asks you to type NUKE EVERYTHING, exactly, before the PIN.',
                 ],
                 bullets: [
                   'Reset learner progress: clears XP, streaks and completed lessons for every learner. Learners, PINs, settings and courses stay.',
