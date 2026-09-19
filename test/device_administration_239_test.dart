@@ -273,6 +273,64 @@ void main() {
     expect(find.text('Open my User Data to back up'), findsOneWidget);
   });
 
+  testWidgets(
+    'removing other learners suggests they back up and offers no admin User Data link',
+    (tester) async {
+      await profiles.setOwnAccessPin(actorProfileId: adminId, pin: '1234');
+      await profiles.createProfile('Learner Two');
+      await profiles.setActiveProfileById(adminId, accessPin: '1234');
+      await open(tester);
+
+      await tester.tap(
+        find.byKey(const Key('admin-reset-button-nonAdminLearners')),
+      );
+      await settle(tester);
+      await tester.tap(find.byKey(const Key('admin-reset-continue')));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Back up first?'), findsOneWidget);
+      expect(find.byKey(const Key('admin-reset-open-backup')), findsNothing);
+      expect(find.textContaining('ask each of them to log in'), findsOneWidget);
+      expect(
+        find.textContaining('does not delete your own data'),
+        findsOneWidget,
+      );
+      expect(find.textContaining('Learner Two'), findsWidgets);
+    },
+  );
+
+  testWidgets(
+    'the admin User Data link is offered only where admin data is deleted',
+    (tester) async {
+      await profiles.setOwnAccessPin(actorProfileId: adminId, pin: '1234');
+      await open(tester);
+      final expectLink = <AppResetScope, bool>{
+        AppResetScope.learnerProgress: true,
+        AppResetScope.importedMedia: false,
+        AppResetScope.customCourses: false,
+      };
+      for (final entry in expectLink.entries) {
+        await tester.ensureVisible(
+          find.byKey(Key('admin-reset-button-${entry.key.name}')),
+        );
+        await tester.pump();
+        await tester.tap(
+          find.byKey(Key('admin-reset-button-${entry.key.name}')),
+        );
+        await settle(tester);
+        await tester.tap(find.byKey(const Key('admin-reset-continue')));
+        await tester.pumpAndSettle();
+        expect(
+          find.byKey(const Key('admin-reset-open-backup')),
+          entry.value ? findsOneWidget : findsNothing,
+          reason: entry.key.name,
+        );
+        await tester.tap(find.text('Cancel reset'));
+        await tester.pumpAndSettle();
+      }
+    },
+  );
+
   testWidgets('NUKE needs the typed phrase, the PIN, and restarts the app', (
     tester,
   ) async {

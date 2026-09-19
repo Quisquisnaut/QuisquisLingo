@@ -599,7 +599,7 @@ class _ResetSection extends StatelessWidget {
     if (!context.mounted) return;
 
     // Step 2: backup offer.
-    final backup = await _backupOffer(context, plan, others);
+    final backup = await _backupOffer(context, plan, affected);
     if (backup != true || !context.mounted) return;
 
     // Step 3 (everything only): what to keep, and a typed confirmation.
@@ -702,21 +702,32 @@ class _ResetSection extends StatelessWidget {
         false;
   }
 
-  String _backupText(_ResetPlan plan, List<String> others) {
-    final touchesLearners =
-        plan.scope == AppResetScope.learnerProgress ||
-        plan.scope == AppResetScope.nonAdminLearners ||
-        plan.scope == AppResetScope.everything;
+  /// The admin's own User Data is affected only by these two resets, so only
+  /// they offer the shortcut to it.
+  bool _affectsAdminData(_ResetPlan plan) =>
+      plan.scope == AppResetScope.learnerProgress ||
+      plan.scope == AppResetScope.everything;
+
+  String _backupText(_ResetPlan plan, List<String> affectedOthers) {
     final buffer = StringBuffer(
       'A backup lets you restore what you are about to delete. Backups are saved in the QuisquisLingo/Exports folder, which a full wipe keeps unless you untick it.\n\n',
     );
+    final touchesLearners =
+        _affectsAdminData(plan) || plan.scope == AppResetScope.nonAdminLearners;
     if (touchesLearners) {
       buffer.write(
-        'Learner backups are personal. "Open my User Data" backs up only YOUR OWN data, as the admin who is logged in now. An admin cannot export another learner’s data.',
+        'Learner backups are personal. An admin cannot export another learner’s data.',
       );
-      if (others.isNotEmpty) {
+      if (_affectsAdminData(plan)) {
         buffer.write(
-          ' To let the other learners keep a backup, ask each of them to log in and use Profile → User Data → Export my data before you continue: ${others.join(', ')}.',
+          ' "Open my User Data" backs up only YOUR OWN data, as the admin who is logged in now.',
+        );
+      } else {
+        buffer.write(' This reset does not delete your own data.');
+      }
+      if (affectedOthers.isNotEmpty) {
+        buffer.write(
+          ' To let the other learners keep a backup, ask each of them to log in and use Profile → User Data → Export my data before you continue: ${affectedOthers.join(', ')}.',
         );
       }
       buffer.write('\n\n');
@@ -728,7 +739,9 @@ class _ResetSection extends StatelessWidget {
       );
     }
     buffer.write(
-      'You can open User Data now, make your backup, and then start this reset again.',
+      _affectsAdminData(plan)
+          ? 'You can open User Data now, make your backup, and then start this reset again.'
+          : 'Make any backups first, then start this reset again.',
     );
     return buffer.toString();
   }
@@ -748,18 +761,19 @@ class _ResetSection extends StatelessWidget {
             onPressed: () => Navigator.pop(dialogContext, false),
             child: const Text('Cancel reset'),
           ),
-          OutlinedButton(
-            key: const Key('admin-reset-open-backup'),
-            onPressed: () async {
-              Navigator.pop(dialogContext, false);
-              await Navigator.of(context).push<void>(
-                MaterialPageRoute(
-                  builder: (_) => UserDataSettingsScreen(course: course),
-                ),
-              );
-            },
-            child: const Text('Open my User Data to back up'),
-          ),
+          if (_affectsAdminData(plan))
+            OutlinedButton(
+              key: const Key('admin-reset-open-backup'),
+              onPressed: () async {
+                Navigator.pop(dialogContext, false);
+                await Navigator.of(context).push<void>(
+                  MaterialPageRoute(
+                    builder: (_) => UserDataSettingsScreen(course: course),
+                  ),
+                );
+              },
+              child: const Text('Open my User Data to back up'),
+            ),
           FilledButton(
             key: const Key('admin-reset-skip-backup'),
             onPressed: () => Navigator.pop(dialogContext, true),
