@@ -9,6 +9,8 @@ import '../services/sound_effect_service.dart';
 import 'tts_settings_screen.dart';
 import 'do_not_disturb_settings_screen.dart';
 import 'debug_screen.dart';
+import 'device_administration_screen.dart';
+import '../services/profile_service.dart';
 import 'info_screen.dart';
 import 'profile_screen.dart';
 import 'update_settings_screen.dart';
@@ -37,6 +39,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   late final bool _ownsSounds;
   bool _loading = true;
   bool _editorUnlocked = false;
+  bool _isAdmin = false;
   int _versionTapCount = 0;
   int _flagGameTapCount = 0;
   Timer? _flagGameTapResetTimer;
@@ -79,9 +82,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Future<void> _load() async {
     try {
       final editorUnlocked = await _settings.isCourseEditorUnlocked();
+      final profiles = ProfileService();
+      final activeId = await profiles.getActiveProfileId();
+      final isAdmin = activeId != null && await profiles.isAdmin(activeId);
       if (!mounted) return;
       setState(() {
         _editorUnlocked = editorUnlocked;
+        _isAdmin = isAdmin;
         _versionTapCount = 0;
         _loading = false;
       });
@@ -190,6 +197,24 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     if (mounted) await _load();
                   },
                 ),
+                if (_isAdmin)
+                  ListTile(
+                    key: const Key('settings-device-administration'),
+                    leading: const Icon(Icons.admin_panel_settings_outlined),
+                    title: const Text('Device Administration'),
+                    subtitle: const Text(
+                      'Admins only: learners, startup behavior, device name, media, Teams and reset options.',
+                    ),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => DeviceAdministrationScreen(
+                          course: widget.course,
+                          onManageLearners: widget.onManageLearners,
+                        ),
+                      ),
+                    ),
+                  ),
                 const Divider(),
                 ListTile(
                   leading: const Icon(Icons.help_outline),

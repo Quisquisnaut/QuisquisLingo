@@ -16,6 +16,7 @@ import 'services/learner_status_events.dart';
 import 'services/startup_diagnostic_service.dart';
 import 'services/diagnostic_log_service.dart';
 import 'services/update_service.dart';
+import 'widgets/app_restart_scope.dart';
 import 'widgets/learner_shell.dart';
 import 'widgets/learner_navigation.dart';
 import 'widgets/learner_theme_mode_scope.dart';
@@ -35,6 +36,11 @@ Future<void> main() async {
       StartupDiagnosticService.verboseCheckpoint('DART_CRASH_LOG_INIT_BEGIN');
       await CrashLogService.instance.initialise();
       StartupDiagnosticService.checkpoint('DART_CRASH_LOG_INIT_RETURNED');
+      try {
+        await ProfileService().applyStartupProfilePolicy();
+      } catch (_) {
+        // A failure here only means the previous learner is resumed.
+      }
       CrashLogService.instance.installFlutterHandler();
       _installStartupDiagnosticErrorHandlers();
       StartupDiagnosticService.checkpoint('DART_ERROR_HANDLERS_INSTALLED');
@@ -207,168 +213,170 @@ class _QuisquisLingoAppState extends State<QuisquisLingoApp>
     StartupDiagnosticService.verboseCheckpointOnce('DART_APP_BUILD');
     const olive = Color(0xFF4F622D);
     const cream = Color(0xFFF7F3E8);
-    return MaterialApp(
-      title: 'QuisquisLingo',
-      scrollBehavior: const MaterialScrollBehavior().copyWith(
-        dragDevices: {
-          PointerDeviceKind.touch,
-          PointerDeviceKind.mouse,
-          PointerDeviceKind.trackpad,
-          PointerDeviceKind.stylus,
+    return AppRestartScope(
+      child: MaterialApp(
+        title: 'QuisquisLingo',
+        scrollBehavior: const MaterialScrollBehavior().copyWith(
+          dragDevices: {
+            PointerDeviceKind.touch,
+            PointerDeviceKind.mouse,
+            PointerDeviceKind.trackpad,
+            PointerDeviceKind.stylus,
+          },
+        ),
+        debugShowCheckedModeBanner: false,
+        navigatorKey: learnerNavigatorKey,
+        navigatorObservers: [learnerStatusRouteObserver],
+        builder: (context, child) {
+          final content = child == null
+              ? const SizedBox.shrink()
+              : LearnerShell(child: child);
+          final scopedContent = LearnerThemeModeScope(
+            mode: _themeMode,
+            child: content,
+          );
+          final portraitDesktop =
+              !kIsWeb &&
+              (defaultTargetPlatform == TargetPlatform.windows ||
+                  defaultTargetPlatform == TargetPlatform.linux ||
+                  defaultTargetPlatform == TargetPlatform.macOS);
+          if (!portraitDesktop) {
+            return scopedContent;
+          }
+          return ColoredBox(
+            color: const Color(0xFFE7E1CF),
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 430),
+                child: scopedContent,
+              ),
+            ),
+          );
         },
-      ),
-      debugShowCheckedModeBanner: false,
-      navigatorKey: learnerNavigatorKey,
-      navigatorObservers: [learnerStatusRouteObserver],
-      builder: (context, child) {
-        final content = child == null
-            ? const SizedBox.shrink()
-            : LearnerShell(child: child);
-        final scopedContent = LearnerThemeModeScope(
-          mode: _themeMode,
-          child: content,
-        );
-        final portraitDesktop =
-            !kIsWeb &&
-            (defaultTargetPlatform == TargetPlatform.windows ||
-                defaultTargetPlatform == TargetPlatform.linux ||
-                defaultTargetPlatform == TargetPlatform.macOS);
-        if (!portraitDesktop) {
-          return scopedContent;
-        }
-        return ColoredBox(
-          color: const Color(0xFFE7E1CF),
-          child: Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 430),
-              child: scopedContent,
+        theme: ThemeData(
+          useMaterial3: true,
+          scaffoldBackgroundColor: cream,
+          colorScheme: ColorScheme.fromSeed(
+            seedColor: olive,
+            brightness: Brightness.light,
+            surface: cream,
+          ),
+          // Desktop users should get an unmistakable hover response on every
+          // Material button without requiring each screen to define its own
+          // MouseRegion or local style. The stronger hover is visual only and
+          // does not alter button enabled/disabled behaviour.
+          hoverColor: olive.withValues(alpha: .18),
+          focusColor: olive.withValues(alpha: .12),
+          filledButtonTheme: FilledButtonThemeData(
+            style: ButtonStyle(
+              overlayColor: WidgetStateProperty.resolveWith<Color?>((states) {
+                if (states.contains(WidgetState.pressed)) {
+                  return olive.withValues(alpha: .24);
+                }
+                if (states.contains(WidgetState.hovered)) {
+                  return olive.withValues(alpha: .20);
+                }
+                if (states.contains(WidgetState.focused)) {
+                  return olive.withValues(alpha: .14);
+                }
+                return null;
+              }),
             ),
           ),
-        );
-      },
-      theme: ThemeData(
-        useMaterial3: true,
-        scaffoldBackgroundColor: cream,
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: olive,
-          brightness: Brightness.light,
-          surface: cream,
-        ),
-        // Desktop users should get an unmistakable hover response on every
-        // Material button without requiring each screen to define its own
-        // MouseRegion or local style. The stronger hover is visual only and
-        // does not alter button enabled/disabled behaviour.
-        hoverColor: olive.withValues(alpha: .18),
-        focusColor: olive.withValues(alpha: .12),
-        filledButtonTheme: FilledButtonThemeData(
-          style: ButtonStyle(
-            overlayColor: WidgetStateProperty.resolveWith<Color?>((states) {
-              if (states.contains(WidgetState.pressed)) {
-                return olive.withValues(alpha: .24);
-              }
-              if (states.contains(WidgetState.hovered)) {
-                return olive.withValues(alpha: .20);
-              }
-              if (states.contains(WidgetState.focused)) {
-                return olive.withValues(alpha: .14);
-              }
-              return null;
-            }),
+          elevatedButtonTheme: ElevatedButtonThemeData(
+            style: ButtonStyle(
+              overlayColor: WidgetStateProperty.resolveWith<Color?>((states) {
+                if (states.contains(WidgetState.pressed)) {
+                  return olive.withValues(alpha: .24);
+                }
+                if (states.contains(WidgetState.hovered)) {
+                  return olive.withValues(alpha: .20);
+                }
+                if (states.contains(WidgetState.focused)) {
+                  return olive.withValues(alpha: .14);
+                }
+                return null;
+              }),
+            ),
+          ),
+          outlinedButtonTheme: OutlinedButtonThemeData(
+            style: ButtonStyle(
+              overlayColor: WidgetStateProperty.resolveWith<Color?>((states) {
+                if (states.contains(WidgetState.pressed)) {
+                  return olive.withValues(alpha: .24);
+                }
+                if (states.contains(WidgetState.hovered)) {
+                  return olive.withValues(alpha: .20);
+                }
+                if (states.contains(WidgetState.focused)) {
+                  return olive.withValues(alpha: .14);
+                }
+                return null;
+              }),
+            ),
+          ),
+          textButtonTheme: TextButtonThemeData(
+            style: ButtonStyle(
+              overlayColor: WidgetStateProperty.resolveWith<Color?>((states) {
+                if (states.contains(WidgetState.pressed)) {
+                  return olive.withValues(alpha: .24);
+                }
+                if (states.contains(WidgetState.hovered)) {
+                  return olive.withValues(alpha: .20);
+                }
+                if (states.contains(WidgetState.focused)) {
+                  return olive.withValues(alpha: .14);
+                }
+                return null;
+              }),
+            ),
+          ),
+          iconButtonTheme: IconButtonThemeData(
+            style: ButtonStyle(
+              overlayColor: WidgetStateProperty.resolveWith<Color?>((states) {
+                if (states.contains(WidgetState.pressed)) {
+                  return olive.withValues(alpha: .24);
+                }
+                if (states.contains(WidgetState.hovered)) {
+                  return olive.withValues(alpha: .20);
+                }
+                if (states.contains(WidgetState.focused)) {
+                  return olive.withValues(alpha: .14);
+                }
+                return null;
+              }),
+            ),
+          ),
+          cardTheme: const CardThemeData(
+            elevation: 0,
+            margin: EdgeInsets.zero,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.all(Radius.circular(18)),
+              side: BorderSide(color: Color(0x1F4F622D)),
+            ),
           ),
         ),
-        elevatedButtonTheme: ElevatedButtonThemeData(
-          style: ButtonStyle(
-            overlayColor: WidgetStateProperty.resolveWith<Color?>((states) {
-              if (states.contains(WidgetState.pressed)) {
-                return olive.withValues(alpha: .24);
-              }
-              if (states.contains(WidgetState.hovered)) {
-                return olive.withValues(alpha: .20);
-              }
-              if (states.contains(WidgetState.focused)) {
-                return olive.withValues(alpha: .14);
-              }
-              return null;
-            }),
+        darkTheme: ThemeData.dark(useMaterial3: true).copyWith(
+          scaffoldBackgroundColor: const Color(0xFF080B09),
+          colorScheme: ColorScheme.fromSeed(
+            seedColor: const Color(0xFF54D8FF),
+            brightness: Brightness.dark,
+            surface: const Color(0xFF151A17),
+          ),
+          cardTheme: const CardThemeData(
+            color: Color(0xFF151A17),
+            surfaceTintColor: Colors.transparent,
           ),
         ),
-        outlinedButtonTheme: OutlinedButtonThemeData(
-          style: ButtonStyle(
-            overlayColor: WidgetStateProperty.resolveWith<Color?>((states) {
-              if (states.contains(WidgetState.pressed)) {
-                return olive.withValues(alpha: .24);
-              }
-              if (states.contains(WidgetState.hovered)) {
-                return olive.withValues(alpha: .20);
-              }
-              if (states.contains(WidgetState.focused)) {
-                return olive.withValues(alpha: .14);
-              }
-              return null;
-            }),
-          ),
-        ),
-        textButtonTheme: TextButtonThemeData(
-          style: ButtonStyle(
-            overlayColor: WidgetStateProperty.resolveWith<Color?>((states) {
-              if (states.contains(WidgetState.pressed)) {
-                return olive.withValues(alpha: .24);
-              }
-              if (states.contains(WidgetState.hovered)) {
-                return olive.withValues(alpha: .20);
-              }
-              if (states.contains(WidgetState.focused)) {
-                return olive.withValues(alpha: .14);
-              }
-              return null;
-            }),
-          ),
-        ),
-        iconButtonTheme: IconButtonThemeData(
-          style: ButtonStyle(
-            overlayColor: WidgetStateProperty.resolveWith<Color?>((states) {
-              if (states.contains(WidgetState.pressed)) {
-                return olive.withValues(alpha: .24);
-              }
-              if (states.contains(WidgetState.hovered)) {
-                return olive.withValues(alpha: .20);
-              }
-              if (states.contains(WidgetState.focused)) {
-                return olive.withValues(alpha: .14);
-              }
-              return null;
-            }),
-          ),
-        ),
-        cardTheme: const CardThemeData(
-          elevation: 0,
-          margin: EdgeInsets.zero,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.all(Radius.circular(18)),
-            side: BorderSide(color: Color(0x1F4F622D)),
-          ),
-        ),
+        themeAnimationDuration: Duration.zero,
+        themeMode: _materialThemeMode,
+        home:
+            widget.home ??
+            _InitialProfileStartupGate(
+              profileService: _profiles,
+              normalStartup: const _StartupGate(),
+            ),
       ),
-      darkTheme: ThemeData.dark(useMaterial3: true).copyWith(
-        scaffoldBackgroundColor: const Color(0xFF080B09),
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF54D8FF),
-          brightness: Brightness.dark,
-          surface: const Color(0xFF151A17),
-        ),
-        cardTheme: const CardThemeData(
-          color: Color(0xFF151A17),
-          surfaceTintColor: Colors.transparent,
-        ),
-      ),
-      themeAnimationDuration: Duration.zero,
-      themeMode: _materialThemeMode,
-      home:
-          widget.home ??
-          _InitialProfileStartupGate(
-            profileService: _profiles,
-            normalStartup: const _StartupGate(),
-          ),
     );
   }
 }

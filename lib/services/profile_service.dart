@@ -149,6 +149,7 @@ class ProfileService {
   static const activeProfileIdKey = 'active_learner_profile_id';
   static const adminProfileIdsKey = 'local_admin_profile_ids_v1';
   static const deviceDisplayNameKey = 'qql_device_display_name_v1';
+  static const startupModeKey = 'qql_startup_profile_mode_v1';
   static const int maxNameLength = 60;
   static const int maxDiscordHandleLength = 33;
   static const String _accessPinKeyBase = 'access_pin_verifier_v1';
@@ -609,6 +610,7 @@ class ProfileService {
     _sessionUnlockedProfileIds.remove(learnerProfileId);
     if (prefs.getString(activeProfileIdKey) == learnerProfileId) {
       if (remaining.isEmpty ||
+          await asksWhichLearnerAtStartup() ||
           prefs.containsKey(
             keyForProfileId(
               remaining.first.learnerProfileId,
@@ -795,6 +797,40 @@ class ProfileService {
       keyForProfileId(learnerProfileId, _accessPinKeyBase),
       'v1:$encodedSalt:$digest',
     );
+  }
+
+  /// Device-wide choice of what happens at startup. It is read before any
+  /// learner is chosen, so it is deliberately not a per-learner setting.
+  Future<bool> asksWhichLearnerAtStartup() async =>
+      (await SharedPreferences.getInstance()).getString(startupModeKey) ==
+      'choose_learner';
+
+  Future<void> setAsksWhichLearnerAtStartup({
+    required String actorProfileId,
+    required bool enabled,
+  }) async {
+    if (!await isAdmin(actorProfileId)) {
+      throw StateError('Only an admin may change the startup behavior.');
+    }
+    final prefs = await SharedPreferences.getInstance();
+    if (enabled) {
+      await prefs.setString(startupModeKey, 'choose_learner');
+    } else {
+      await prefs.remove(startupModeKey);
+    }
+  }
+
+  /// Called once at launch. When the device is set to ask which learner is
+  /// studying, and more than one learner exists, no learner is resumed, so
+  /// the existing learner selection is shown. With a single learner the
+  /// question is pointless and the learner is resumed as usual.
+  Future<void> applyStartupProfilePolicy() async {
+    if (!await asksWhichLearnerAtStartup()) return;
+    if ((await getProfileRecords()).length < 2) return;
+    final prefs = await SharedPreferences.getInstance();
+    if (prefs.containsKey(activeProfileIdKey)) {
+      await prefs.remove(activeProfileIdKey);
+    }
   }
 
   Future<String> getDeviceDisplayName() async {
