@@ -67,14 +67,14 @@ class DeviceAdministrationHelpScreen extends StatelessWidget {
               _Section(
                 title: 'The reset options',
                 paragraphs: [
-                  'Resets delete data permanently. For that reason the Reset section is locked until you set your own 4-digit PIN. Each reset then walks you through: an explanation with the real numbers for this device, an offer to back up first, and finally your PIN. Nothing is deleted until you have finished every step. The full wipe lets you choose in the first step whether to keep the Exports and Logs folders, and asks you to type NUKE EVERYTHING, exactly, before the PIN.',
+                  'Resets delete data permanently. For that reason the Reset section is locked until you set your own 4-digit PIN. Each reset then walks you through: an explanation with the real numbers for this device, an offer to back up first, and finally your PIN. Nothing is deleted until you have finished every step. Remove imported media and the full wipe let you choose in the first step (see below), and the full wipe asks you to type NUKE EVERYTHING, exactly, before the PIN.',
                 ],
                 bullets: [
                   'Reset learner progress: clears XP, streaks and completed lessons for every learner. Learners, PINs, settings and courses stay.',
                   'Remove all learners except admins: deletes every non-admin learner and their data, and removes the Team list if it names any of them.',
-                  'Remove imported media: deletes the images and MP3 recordings QQL copied into its own storage. Media that comes with QQL itself (the built-in image library, flags, icons and the bundled courses’ recordings) is part of the app and is never removed; edits to the shared image library’s tags and labels go back to the defaults. Your original files are not touched.',
-                  'Remove custom courses: deletes all custom and installed courses, all Teams and imported media. Learners stay.',
-                  'Wipe out everything: returns QQL to a brand-new installation, including all learners and admins. You can keep the Exports and Logs folders.',
+                  'Remove imported media: you choose whether to remove the imported images, the imported audio files (recorded MP3 files), or both; nothing is ticked at first. It deletes only the copies QQL made in its own storage. Media that comes with QQL itself (the built-in image library, flags, icons and the bundled courses’ recordings) is part of the app and is never removed; edits to the shared image library’s tags and labels go back to the defaults. Your original files are not touched.',
+                  'Remove custom courses: deletes all custom and installed courses, all Teams and all imported media, meaning every imported image and every imported recorded MP3 audio file. Learners stay.',
+                  'Wipe out everything: returns QQL to a brand-new installation, including all learners and admins. You can keep the Exports, Logs and Imports folders; all three are kept unless you untick them in the first step. Imports holds the original files you copied there yourself.',
                 ],
               ),
               _Section(

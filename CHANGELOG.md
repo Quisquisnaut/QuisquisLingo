@@ -1,4 +1,4 @@
-# 2.0.39 (Build 239, Revision 3) - Reliability and administration fixes - 2026-09-19
+# 2.0.39 (Build 239, Revision 4) - Reliability and administration fixes - 2026-09-19
 
 - Course Manager unlock (10 taps on Version and Build in Settings): the unlock is now saved and shown before the optional win sound starts, the sound runs afterwards without being awaited, and the sound service discards a failed player. This hardens the path suspected in a reported crash on one Windows PC (not reproduced; cause unconfirmed).
 - Flag Game trigger (5 taps on the Settings title): the optional suspense sound no longer delays or blocks opening the game. The tooltip now reads `Tap tap tap tap tap... Flag Game`.
@@ -14,7 +14,8 @@
 - Reset fixes: only a full wipe now ends the access session, so after any smaller reset the admin stays logged in instead of seeing "available only to admins" (no extra data was ever removed; the PIN-protected admin only looked logged out). The backup step now states that "Open my User Data" backs up only the logged-in admin, that admins cannot export other learners' data, and names the learners who should export their own first.
 - Startup setting: `Ask who is learning at startup` (default Off, which resumes the last learner as before). When On and the device has more than one learner, QQL starts at the learner selection; with one learner nothing changes. Deleting the active learner in this mode no longer auto-selects another learner.
 - Reset section: five separately confirmed resets - learner progress, remove non-admin learners, remove imported media, remove custom courses, and Wipe out everything. Each states what it removes and keeps with real counts, offers a backup, and finally asks for the admin PIN; the full wipe lets the admin untick keeping the Exports and Logs folders in the first dialog, reminds them in the last, and needs `NUKE EVERYTHING` typed exactly. Reset options stay locked until the admin has set a PIN, and the PIN is verified again inside the reset service. After a full wipe QQL returns to the first-run setup. Storage inventory: `docs/239_RESET_STORAGE_INVENTORY.md`.
-- Updated the version to `2.0.39+239003`, Build 239, Revision 3. The 30-day Beta expiry remains unchanged at `2026-10-17 23:59:59` local time. Course Model v9/v10 is unchanged.
+- Remove imported media is now granular: the first dialog offers Images and Audio files tick boxes (with file counts, nothing ticked at first, at least one required); only what is ticked is removed. Remove custom courses now states that its imported media means every imported image and every imported recorded MP3 audio file. Wipe out everything gains a third keep option, the Imports folder (your original files), kept by default and reminded in the last dialog, which also requires typing `NUKE EVERYTHING`.
+- Updated the version to `2.0.39+239004`, Build 239, Revision 4, and refreshed the 30-day Beta expiry to `2026-10-19 23:59:59` local time. Course Model v9/v10 is unchanged.
 
 # 2.0.39 (Build 239, Revision 2) - Pick the translation (Select) - 2026-09-19
 

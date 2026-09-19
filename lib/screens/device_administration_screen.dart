@@ -404,11 +404,10 @@ const _plans = <_ResetPlan>[
     title: 'Remove imported media',
     buttonLabel: 'Remove media…',
     summary:
-        'Deletes the media files QQL copied into its own storage when you imported them.',
+        'Deletes the media files QQL copied into its own storage when you imported them. You choose in the first step whether to remove the imported images, the imported audio files, or both.',
     removes: [
-      'Imported exercise images and image banks',
-      'Imported recorded MP3 files, with their descriptions',
-      'Any tag, label or category edits made to the shared image library, which then returns to its built-in defaults',
+      'Imported images, if you tick Images: exercise images and image banks, plus any tag, label or category edits made to the shared image library, which then returns to its built-in defaults',
+      'Imported audio files, if you tick Audio files: the recorded MP3 files, with their descriptions',
     ],
     keeps: [
       'The media that comes with QQL itself: the built-in image library, flags, lesson icons, mascots and the recordings of the bundled courses',
@@ -426,7 +425,7 @@ const _plans = <_ResetPlan>[
     removes: [
       'All custom and installed external courses, and the course recovery copy',
       'All authoring Teams',
-      'Imported media (see "Remove imported media")',
+      'All imported media: every imported image (exercise images and image banks) and every imported recorded MP3 audio file',
     ],
     keeps: [
       'Learners, PINs and settings',
@@ -444,18 +443,36 @@ const _plans = <_ResetPlan>[
         'Returns QQL to the state of a brand-new installation on this device.',
     removes: [
       'All learners, admins, PINs, progress and settings, including yours',
-      'All custom courses, Teams and imported media',
+      'All custom courses, Teams and imported media (images and MP3 audio files)',
       'The device name and all other saved preferences',
       'Every other file QQL stored, except what you choose to keep',
     ],
     keeps: [
-      'Only the Exports and Logs folders, unless you untick them in the first step',
+      'Only the Exports, Logs and Imports folders, unless you untick them in the first step. Imports holds the original files you copied there yourself.',
       'The bundled official courses (part of the app)',
     ],
     warning:
         'This cannot be undone. The next person who opens QQL will see the first-run setup.',
   ),
 ];
+
+/// What the admin chose in the first dialog. Keep options apply to the full
+/// wipe; remove options apply to "Remove imported media".
+class _ResetChoices {
+  final bool keepExports;
+  final bool keepLogs;
+  final bool keepImports;
+  final bool removeImages;
+  final bool removeAudio;
+
+  const _ResetChoices({
+    this.keepExports = true,
+    this.keepLogs = true,
+    this.keepImports = true,
+    this.removeImages = true,
+    this.removeAudio = true,
+  });
+}
 
 class _ResetSection extends StatelessWidget {
   final bool hasPin;
@@ -591,10 +608,8 @@ class _ResetSection extends StatelessWidget {
 
     // Step 1: explanation with the real numbers for this device. For the
     // full wipe it also holds the choice of what to keep, near the top.
-    final explained = await _explainDialog(context, plan, preview, affected);
-    if (explained == null || !context.mounted) return;
-    final keepExports = explained.keepExports;
-    final keepLogs = explained.keepLogs;
+    final choices = await _explainDialog(context, plan, preview, affected);
+    if (choices == null || !context.mounted) return;
 
     // Step 2: backup offer.
     final backup = await _backupOffer(context, plan, affected);
@@ -603,21 +618,12 @@ class _ResetSection extends StatelessWidget {
     // Step 3 (everything only): a reminder of what is included, and the
     // typed confirmation.
     if (plan.scope == AppResetScope.everything) {
-      final typed = await _nukeConfirmation(
-        context,
-        keepExports: keepExports,
-        keepLogs: keepLogs,
-      );
+      final typed = await _nukeConfirmation(context, choices);
       if (typed != true || !context.mounted) return;
     }
 
     // Step 4: PIN, checked by the service itself.
-    final done = await _askPinAndRun(
-      context,
-      plan,
-      keepExports: keepExports,
-      keepLogs: keepLogs,
-    );
+    final done = await _askPinAndRun(context, plan, choices);
     if (done != true || !context.mounted) return;
     if (plan.scope == AppResetScope.everything) {
       Navigator.of(context).popUntil((route) => route.isFirst);
@@ -650,7 +656,8 @@ class _ResetSection extends StatelessWidget {
         const SizedBox(height: 8),
         Text(
           'On this device right now: ${preview.learnerCount} learner(s), '
-          '${preview.mediaFileCount} imported media file(s), '
+          '${preview.imageFileCount} imported image file(s), '
+          '${preview.audioFileCount} imported audio file(s), '
           '${preview.hasCustomCourses ? 'custom courses or Teams are stored' : 'no custom courses or Teams'}.',
         ),
         if (affectedLearners.isNotEmpty) ...[
@@ -676,7 +683,7 @@ class _ResetSection extends StatelessWidget {
     );
   }
 
-  Future<({bool keepExports, bool keepLogs})?> _explainDialog(
+  Future<_ResetChoices?> _explainDialog(
     BuildContext context,
     _ResetPlan plan,
     AppResetPreview preview,
@@ -684,71 +691,131 @@ class _ResetSection extends StatelessWidget {
   ) async {
     var keepExports = true;
     var keepLogs = true;
-    final choice = await showDialog<({bool keepExports, bool keepLogs})>(
+    var keepImports = true;
+    // Removing media asks the admin to opt in: nothing is ticked at first.
+    var removeImages = false;
+    var removeAudio = false;
+    final isMedia = plan.scope == AppResetScope.importedMedia;
+    return showDialog<_ResetChoices>(
       context: context,
       builder: (dialogContext) => StatefulBuilder(
-        builder: (context, setLocal) => AlertDialog(
-          title: Text(plan.title),
-          content: SingleChildScrollView(
-            child: _explanation(
-              plan,
-              preview,
-              affected,
-              afterSummary: plan.scope != AppResetScope.everything
-                  ? null
-                  : Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Choose what to keep. Both are kept unless you untick them, and the choice is used only if you finish every step.',
-                          style: TextStyle(fontWeight: FontWeight.w600),
-                        ),
-                        CheckboxListTile(
-                          key: const Key('admin-nuke-keep-exports'),
-                          contentPadding: EdgeInsets.zero,
-                          controlAffinity: ListTileControlAffinity.leading,
-                          value: keepExports,
-                          onChanged: (v) =>
-                              setLocal(() => keepExports = v ?? true),
-                          title: const Text('Keep the Exports folder'),
-                          subtitle: const Text(
-                            'Your learner and course backups. Untick to delete them permanently.',
-                          ),
-                        ),
-                        CheckboxListTile(
-                          key: const Key('admin-nuke-keep-logs'),
-                          contentPadding: EdgeInsets.zero,
-                          controlAffinity: ListTileControlAffinity.leading,
-                          value: keepLogs,
-                          onChanged: (v) =>
-                              setLocal(() => keepLogs = v ?? true),
-                          title: const Text('Keep the Logs folder'),
-                          subtitle: const Text(
-                            'Crash and diagnostic logs, useful when reporting a problem. Untick to delete them.',
-                          ),
-                        ),
-                      ],
-                    ),
+        builder: (context, setLocal) {
+          Widget? choiceBlock;
+          if (plan.scope == AppResetScope.everything) {
+            choiceBlock = Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Choose what to keep. All three are kept unless you untick them, and the choice is used only if you finish every step.',
+                  style: TextStyle(fontWeight: FontWeight.w600),
+                ),
+                CheckboxListTile(
+                  key: const Key('admin-nuke-keep-exports'),
+                  contentPadding: EdgeInsets.zero,
+                  controlAffinity: ListTileControlAffinity.leading,
+                  value: keepExports,
+                  onChanged: (v) => setLocal(() => keepExports = v ?? true),
+                  title: const Text('Keep the Exports folder'),
+                  subtitle: const Text(
+                    'Your learner and course backups. Untick to delete them permanently.',
+                  ),
+                ),
+                CheckboxListTile(
+                  key: const Key('admin-nuke-keep-logs'),
+                  contentPadding: EdgeInsets.zero,
+                  controlAffinity: ListTileControlAffinity.leading,
+                  value: keepLogs,
+                  onChanged: (v) => setLocal(() => keepLogs = v ?? true),
+                  title: const Text('Keep the Logs folder'),
+                  subtitle: const Text(
+                    'Crash and diagnostic logs, useful when reporting a problem. Untick to delete them.',
+                  ),
+                ),
+                CheckboxListTile(
+                  key: const Key('admin-nuke-keep-imports'),
+                  contentPadding: EdgeInsets.zero,
+                  controlAffinity: ListTileControlAffinity.leading,
+                  value: keepImports,
+                  onChanged: (v) => setLocal(() => keepImports = v ?? true),
+                  title: const Text('Keep the Imports folder'),
+                  subtitle: const Text(
+                    'The original images, audio files and course files you copied into QuisquisLingo/Imports yourself. Untick to delete them.',
+                  ),
+                ),
+              ],
+            );
+          } else if (isMedia) {
+            choiceBlock = Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Choose what to remove. Nothing is ticked at first; tick at least one to continue.',
+                  style: TextStyle(fontWeight: FontWeight.w600),
+                ),
+                CheckboxListTile(
+                  key: const Key('admin-media-remove-images'),
+                  contentPadding: EdgeInsets.zero,
+                  controlAffinity: ListTileControlAffinity.leading,
+                  value: removeImages,
+                  onChanged: (v) => setLocal(() => removeImages = v ?? false),
+                  title: Text('Images (${preview.imageFileCount} file(s))'),
+                  subtitle: const Text(
+                    'Imported exercise images and image banks, and any edits to the shared image library, which returns to its built-in defaults.',
+                  ),
+                ),
+                CheckboxListTile(
+                  key: const Key('admin-media-remove-audio'),
+                  contentPadding: EdgeInsets.zero,
+                  controlAffinity: ListTileControlAffinity.leading,
+                  value: removeAudio,
+                  onChanged: (v) => setLocal(() => removeAudio = v ?? false),
+                  title: Text(
+                    'Audio files (${preview.audioFileCount} file(s))',
+                  ),
+                  subtitle: const Text(
+                    'Imported recorded MP3 files. Exercises that use them will play no recording.',
+                  ),
+                ),
+              ],
+            );
+          }
+          final canContinue = !isMedia || removeImages || removeAudio;
+          return AlertDialog(
+            title: Text(plan.title),
+            content: SingleChildScrollView(
+              child: _explanation(
+                plan,
+                preview,
+                affected,
+                afterSummary: choiceBlock,
+              ),
             ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(dialogContext),
-              child: const Text('Cancel'),
-            ),
-            FilledButton(
-              key: const Key('admin-reset-continue'),
-              onPressed: () => Navigator.pop(dialogContext, (
-                keepExports: keepExports,
-                keepLogs: keepLogs,
-              )),
-              child: const Text('I understand, continue'),
-            ),
-          ],
-        ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(dialogContext),
+                child: const Text('Cancel'),
+              ),
+              FilledButton(
+                key: const Key('admin-reset-continue'),
+                onPressed: canContinue
+                    ? () => Navigator.pop(
+                        dialogContext,
+                        _ResetChoices(
+                          keepExports: keepExports,
+                          keepLogs: keepLogs,
+                          keepImports: keepImports,
+                          removeImages: removeImages,
+                          removeAudio: removeAudio,
+                        ),
+                      )
+                    : null,
+                child: const Text('I understand, continue'),
+              ),
+            ],
+          );
+        },
       ),
     );
-    return choice;
   }
 
   /// The admin's own User Data is affected only by these two resets, so only
@@ -835,11 +902,7 @@ class _ResetSection extends StatelessWidget {
 
   static const _nukePhrase = 'NUKE EVERYTHING';
 
-  Future<bool?> _nukeConfirmation(
-    BuildContext context, {
-    required bool keepExports,
-    required bool keepLogs,
-  }) {
+  Future<bool?> _nukeConfirmation(BuildContext context, _ResetChoices choices) {
     final typed = TextEditingController();
     return showDialog<bool>(
       context: context,
@@ -856,17 +919,24 @@ class _ResetSection extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  keepExports
+                  choices.keepExports
                       ? 'Exports folder: kept.'
                       : 'Exports folder: will be DELETED with everything else.',
                   key: const Key('admin-nuke-reminder-exports'),
                   style: const TextStyle(fontWeight: FontWeight.w600),
                 ),
                 Text(
-                  keepLogs
+                  choices.keepLogs
                       ? 'Logs folder: kept.'
                       : 'Logs folder: will be DELETED with everything else.',
                   key: const Key('admin-nuke-reminder-logs'),
+                  style: const TextStyle(fontWeight: FontWeight.w600),
+                ),
+                Text(
+                  choices.keepImports
+                      ? 'Imports folder: kept.'
+                      : 'Imports folder: will be DELETED with everything else.',
+                  key: const Key('admin-nuke-reminder-imports'),
                   style: const TextStyle(fontWeight: FontWeight.w600),
                 ),
                 const SizedBox(height: 4),
@@ -907,10 +977,9 @@ class _ResetSection extends StatelessWidget {
 
   Future<bool?> _askPinAndRun(
     BuildContext context,
-    _ResetPlan plan, {
-    required bool keepExports,
-    required bool keepLogs,
-  }) {
+    _ResetPlan plan,
+    _ResetChoices choices,
+  ) {
     final pin = TextEditingController();
     String? error;
     var running = false;
@@ -971,8 +1040,11 @@ class _ResetSection extends StatelessWidget {
                           plan.scope,
                           actorProfileId: actorId,
                           pin: pin.text,
-                          keepExports: keepExports,
-                          keepLogs: keepLogs,
+                          keepExports: choices.keepExports,
+                          keepLogs: choices.keepLogs,
+                          keepImports: choices.keepImports,
+                          removeImages: choices.removeImages,
+                          removeAudio: choices.removeAudio,
                         );
                         if (dialogContext.mounted) {
                           Navigator.pop(dialogContext, true);

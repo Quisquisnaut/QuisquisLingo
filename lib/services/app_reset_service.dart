@@ -28,13 +28,17 @@ class AppResetException implements Exception {
 class AppResetPreview {
   final int learnerCount;
   final int nonAdminLearnerCount;
-  final int mediaFileCount;
+  final int imageFileCount;
+  final int audioFileCount;
   final bool hasCustomCourses;
+
+  int get mediaFileCount => imageFileCount + audioFileCount;
 
   const AppResetPreview({
     required this.learnerCount,
     required this.nonAdminLearnerCount,
-    required this.mediaFileCount,
+    required this.imageFileCount,
+    required this.audioFileCount,
     required this.hasCustomCourses,
   });
 }
@@ -69,11 +73,8 @@ class AppResetService {
     'quisquislingo_exercise_image_metadata_v2',
   ];
 
-  static const _mediaFolders = <String>[
-    'exercise_images',
-    'image_banks',
-    'quisquislingo_audio',
-  ];
+  static const _imageFolders = <String>['exercise_images', 'image_banks'];
+  static const _audioFolders = <String>['quisquislingo_audio'];
 
   final ProfileService _profiles;
   final Future<Directory> Function() _documents;
@@ -91,57 +92,77 @@ class AppResetService {
     '${(await _documents()).path}${Platform.pathSeparator}QuisquisLingo',
   );
 
-  Future<List<Directory>> _mediaDirectories() async {
+  Future<List<Directory>> _directories(List<String> names) async {
     final support = (await _support()).path;
     return [
-      for (final name in _mediaFolders)
+      for (final name in names)
         Directory('$support${Platform.pathSeparator}$name'),
     ];
   }
 
-  Future<AppResetPreview> preview() async {
-    final prefs = await SharedPreferences.getInstance();
-    final learners = await _profiles.getProfileRecords();
-    final admins = await _profiles.getAdminProfileIds();
+  Future<int> _countFiles(List<Directory> directories) async {
     var files = 0;
-    for (final directory in await _mediaDirectories()) {
+    for (final directory in directories) {
       if (!await directory.exists()) continue;
       files += await directory
           .list(recursive: true, followLinks: false)
           .where((entity) => entity is File)
           .length;
     }
+    return files;
+  }
+
+  Future<AppResetPreview> preview() async {
+    final prefs = await SharedPreferences.getInstance();
+    final learners = await _profiles.getProfileRecords();
+    final admins = await _profiles.getAdminProfileIds();
+    final images = await _countFiles(await _directories(_imageFolders));
+    final audio = await _countFiles(await _directories(_audioFolders));
     return AppResetPreview(
       learnerCount: learners.length,
       nonAdminLearnerCount: learners
           .where((learner) => !admins.contains(learner.learnerProfileId))
           .length,
-      mediaFileCount: files,
+      imageFileCount: images,
+      audioFileCount: audio,
       hasCustomCourses: _courseKeys.any(prefs.containsKey),
     );
   }
 
-  /// Resets [scope]. [keepExports] and [keepLogs] apply only to
-  /// [AppResetScope.everything].
+  /// Resets [scope]. [keepExports], [keepLogs] and [keepImports] apply only to
+  /// [AppResetScope.everything]. [removeImages] and [removeAudio] choose what
+  /// [AppResetScope.importedMedia] removes; at least one must be true.
   Future<void> reset(
     AppResetScope scope, {
     required String actorProfileId,
     required String pin,
     bool keepExports = true,
     bool keepLogs = true,
+    bool keepImports = true,
+    bool removeImages = true,
+    bool removeAudio = true,
   }) async {
     await _authorize(actorProfileId, pin);
+    if (scope == AppResetScope.importedMedia && !removeImages && !removeAudio) {
+      throw const AppResetException(
+        'Choose at least one kind of media to remove.',
+      );
+    }
     switch (scope) {
       case AppResetScope.learnerProgress:
         await _resetLearnerProgress();
       case AppResetScope.nonAdminLearners:
         await _removeNonAdminLearners();
       case AppResetScope.importedMedia:
-        await _removeImportedMedia();
+        await _removeImportedMedia(images: removeImages, audio: removeAudio);
       case AppResetScope.customCourses:
         await _removeCustomCourses();
       case AppResetScope.everything:
-        await _wipeEverything(keepExports: keepExports, keepLogs: keepLogs);
+        await _wipeEverything(
+          keepExports: keepExports,
+          keepLogs: keepLogs,
+          keepImports: keepImports,
+        );
     }
     // Only a full wipe ends the session. Any other reset must leave the admin
     // unlocked, otherwise their own PIN-protected profile would look logged out.
@@ -211,13 +232,22 @@ class AppResetService {
     }
   }
 
-  Future<void> _removeImportedMedia() async {
-    for (final directory in await _mediaDirectories()) {
+  Future<void> _removeImportedMedia({
+    bool images = true,
+    bool audio = true,
+  }) async {
+    final directories = [
+      if (images) ...await _directories(_imageFolders),
+      if (audio) ...await _directories(_audioFolders),
+    ];
+    for (final directory in directories) {
       if (await directory.exists()) await directory.delete(recursive: true);
     }
-    final prefs = await SharedPreferences.getInstance();
-    for (final key in _mediaKeys) {
-      await prefs.remove(key);
+    if (images) {
+      final prefs = await SharedPreferences.getInstance();
+      for (final key in _mediaKeys) {
+        await prefs.remove(key);
+      }
     }
   }
 
@@ -232,15 +262,18 @@ class AppResetService {
   Future<void> _wipeEverything({
     required bool keepExports,
     required bool keepLogs,
+    required bool keepImports,
   }) async {
     // Files first and preferences last: the reset is idempotent, so if the app
     // dies part-way the admin (and the PIN) still exist and can run it again.
-    for (final directory in await _mediaDirectories()) {
-      if (await directory.exists()) await directory.delete(recursive: true);
-    }
+    await _removeImportedMedia();
     final root = await _qqlDocuments();
     if (await root.exists()) {
-      final kept = <String>{if (keepExports) 'exports', if (keepLogs) 'logs'};
+      final kept = <String>{
+        if (keepExports) 'exports',
+        if (keepLogs) 'logs',
+        if (keepImports) 'imports',
+      };
       await for (final entity in root.list(followLinks: false)) {
         final name = entity.uri.pathSegments
             .lastWhere((segment) => segment.isNotEmpty)

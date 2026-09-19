@@ -194,6 +194,78 @@ void main() {
     expect(await rootBundle.load(asset), isNotNull);
   });
 
+  test('imported media can remove only images or only audio', () async {
+    File images() => File('${support.path}${sep}exercise_images${sep}a.png');
+    File banks() => File('${support.path}${sep}image_banks${sep}b${sep}m.json');
+    File audio() =>
+        File('${support.path}${sep}quisquislingo_audio${sep}c${sep}a.mp3');
+    void seed() {
+      touch(images().path);
+      touch(banks().path);
+      touch(audio().path);
+    }
+
+    seed();
+    await service.reset(
+      AppResetScope.importedMedia,
+      actorProfileId: adminId,
+      pin: '4321',
+      removeImages: true,
+      removeAudio: false,
+    );
+    expect(images().existsSync(), isFalse);
+    expect(banks().existsSync(), isFalse);
+    expect(audio().existsSync(), isTrue);
+
+    seed();
+    await service.reset(
+      AppResetScope.importedMedia,
+      actorProfileId: adminId,
+      pin: '4321',
+      removeImages: false,
+      removeAudio: true,
+    );
+    expect(audio().existsSync(), isFalse);
+    expect(images().existsSync(), isTrue);
+    expect(banks().existsSync(), isTrue);
+  });
+
+  test('imported media with nothing chosen is refused', () async {
+    touch('${support.path}${sep}exercise_images${sep}a.png');
+    await expectLater(
+      service.reset(
+        AppResetScope.importedMedia,
+        actorProfileId: adminId,
+        pin: '4321',
+        removeImages: false,
+        removeAudio: false,
+      ),
+      throwsA(isA<AppResetException>()),
+    );
+    expect(
+      File('${support.path}${sep}exercise_images${sep}a.png').existsSync(),
+      isTrue,
+    );
+  });
+
+  test('custom courses also removes imported images and audio', () async {
+    touch('${support.path}${sep}exercise_images${sep}a.png');
+    touch('${support.path}${sep}quisquislingo_audio${sep}c${sep}a.mp3');
+    await service.reset(
+      AppResetScope.customCourses,
+      actorProfileId: adminId,
+      pin: '4321',
+    );
+    expect(
+      Directory('${support.path}${sep}exercise_images').existsSync(),
+      isFalse,
+    );
+    expect(
+      Directory('${support.path}${sep}quisquislingo_audio').existsSync(),
+      isFalse,
+    );
+  });
+
   test('custom courses removes courses and teams but keeps learners', () async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(CourseEditorStorage.userCoursesKey, '[]');
@@ -223,7 +295,11 @@ void main() {
       final qql = '${documents.path}${sep}QuisquisLingo$sep';
       expect(File('${qql}Exports${sep}b.json').existsSync(), isTrue);
       expect(File('${qql}Logs${sep}crash.log').existsSync(), isTrue);
-      expect(Directory('${qql}Imports').existsSync(), isFalse);
+      expect(
+        File('${qql}Imports${sep}i.json').existsSync(),
+        isTrue,
+        reason: 'Imports is kept by default',
+      );
       expect(
         Directory('${support.path}${sep}image_banks').existsSync(),
         isFalse,
@@ -233,19 +309,24 @@ void main() {
     },
   );
 
-  test('everything can also remove exports and logs when asked', () async {
-    touch('${documents.path}${sep}QuisquisLingo${sep}Exports${sep}b.json');
-    touch('${documents.path}${sep}QuisquisLingo${sep}Logs${sep}crash.log');
-    await service.reset(
-      AppResetScope.everything,
-      actorProfileId: adminId,
-      pin: '4321',
-      keepExports: false,
-      keepLogs: false,
-    );
-    final qql = Directory('${documents.path}${sep}QuisquisLingo');
-    expect(qql.listSync(), isEmpty);
-  });
+  test(
+    'everything can also remove exports, logs and imports when asked',
+    () async {
+      touch('${documents.path}${sep}QuisquisLingo${sep}Imports${sep}i.json');
+      touch('${documents.path}${sep}QuisquisLingo${sep}Exports${sep}b.json');
+      touch('${documents.path}${sep}QuisquisLingo${sep}Logs${sep}crash.log');
+      await service.reset(
+        AppResetScope.everything,
+        actorProfileId: adminId,
+        pin: '4321',
+        keepExports: false,
+        keepLogs: false,
+        keepImports: false,
+      );
+      final qql = Directory('${documents.path}${sep}QuisquisLingo');
+      expect(qql.listSync(), isEmpty);
+    },
+  );
 
   test('preview counts learners, media files and courses', () async {
     touch('${support.path}${sep}exercise_images${sep}a.png');
@@ -254,6 +335,8 @@ void main() {
     final preview = await service.preview();
     expect(preview.learnerCount, 2);
     expect(preview.nonAdminLearnerCount, 1);
+    expect(preview.imageFileCount, 1);
+    expect(preview.audioFileCount, 0);
     expect(preview.mediaFileCount, 1);
     expect(preview.hasCustomCourses, isTrue);
   });

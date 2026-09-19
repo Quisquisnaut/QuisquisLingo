@@ -26,8 +26,9 @@ Everything else under the prefix (identity, avatar, theme, PIN verifier, recover
 |---|---|---|
 | `Documents/QuisquisLingo/Exports` | learner and course backups, exports | everything, only when the admin unticks "keep" |
 | `Documents/QuisquisLingo/Logs` | crash log, session marker, diagnostic export | everything, only when the admin unticks "keep" |
-| `Documents/QuisquisLingo/Imports`, `Merges` and other files | user staging folders and files | everything |
-| `<AppSupport>/exercise_images`, `<AppSupport>/image_banks`, `<AppSupport>/quisquislingo_audio` | imported exercise images, image banks, recorded MP3 files | imported media, custom courses, everything |
+| `Documents/QuisquisLingo/Imports` | the original images, audio and course files the user copied there | everything, only when the admin unticks "keep" |
+| `Documents/QuisquisLingo/Merges` and other files | merge input and other user files | everything |
+| `<AppSupport>/exercise_images`, `<AppSupport>/image_banks`, `<AppSupport>/quisquislingo_audio` | imported exercise images, image banks, recorded MP3 files | imported media (images or audio, chosen separately), custom courses (both), everything |
 
 The text-to-speech engine keeps no on-disk cache of its own.
 

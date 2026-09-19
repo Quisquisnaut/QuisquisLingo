@@ -318,6 +318,10 @@ void main() {
           find.byKey(Key('admin-reset-button-${entry.key.name}')),
         );
         await settle(tester);
+        if (entry.key == AppResetScope.importedMedia) {
+          await tester.tap(find.byKey(const Key('admin-media-remove-images')));
+          await tester.pump();
+        }
         await tester.tap(find.byKey(const Key('admin-reset-continue')));
         await tester.pumpAndSettle();
         expect(
@@ -352,6 +356,10 @@ void main() {
       expect(tester.getTopLeft(exports).dy, lessThan(view.height));
       expect(tester.widget<CheckboxListTile>(exports).value, isTrue);
       expect(tester.widget<CheckboxListTile>(logs).value, isTrue);
+      final imports = find.byKey(const Key('admin-nuke-keep-imports'));
+      expect(imports, findsOneWidget);
+      expect(tester.getTopLeft(imports).dy, lessThan(view.height));
+      expect(tester.widget<CheckboxListTile>(imports).value, isTrue);
 
       await tester.tap(exports);
       await tester.pump();
@@ -367,9 +375,70 @@ void main() {
         findsOneWidget,
       );
       expect(find.text('Logs folder: kept.'), findsOneWidget);
+      expect(find.text('Imports folder: kept.'), findsOneWidget);
       expect(find.textContaining('NUKE EVERYTHING'), findsWidgets);
     },
   );
+
+  testWidgets('remove media asks what to remove and needs a choice', (
+    tester,
+  ) async {
+    await profiles.setOwnAccessPin(actorProfileId: adminId, pin: '1234');
+    File touch(String path) {
+      final file = File(path);
+      file.createSync(recursive: true);
+      file.writeAsStringSync('x');
+      return file;
+    }
+
+    final image = touch('${root.path}/support/exercise_images/a.png');
+    final audio = touch('${root.path}/support/quisquislingo_audio/c/a.mp3');
+    await open(tester);
+    await tester.ensureVisible(
+      find.byKey(const Key('admin-reset-button-importedMedia')),
+    );
+    await tester.pump();
+    await tester.tap(find.byKey(const Key('admin-reset-button-importedMedia')));
+    await settle(tester);
+
+    final images = find.byKey(const Key('admin-media-remove-images'));
+    final audios = find.byKey(const Key('admin-media-remove-audio'));
+    final proceed = find.byKey(const Key('admin-reset-continue'));
+    final view = tester.view.physicalSize / tester.view.devicePixelRatio;
+    expect(tester.getTopLeft(images).dy, lessThan(view.height));
+    expect(tester.widget<CheckboxListTile>(images).value, isFalse);
+    expect(tester.widget<CheckboxListTile>(audios).value, isFalse);
+    expect(tester.widget<FilledButton>(proceed).onPressed, isNull);
+    expect(find.textContaining('Images (1 file(s))'), findsOneWidget);
+    expect(find.textContaining('Audio files (1 file(s))'), findsOneWidget);
+
+    await tester.tap(audios);
+    await tester.pump();
+    expect(tester.widget<FilledButton>(proceed).onPressed, isNotNull);
+    await tester.tap(proceed);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('admin-reset-skip-backup')));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byKey(const Key('admin-reset-pin')), '1234');
+    await tester.tap(find.byKey(const Key('admin-reset-run')));
+    await settle(tester);
+
+    expect(audio.existsSync(), isFalse);
+    expect(image.existsSync(), isTrue);
+  });
+
+  testWidgets('remove custom courses names images and audio files', (
+    tester,
+  ) async {
+    await profiles.setOwnAccessPin(actorProfileId: adminId, pin: '1234');
+    await open(tester);
+    expect(
+      find.textContaining(
+        'every imported image (exercise images and image banks) and every imported recorded MP3 audio file',
+      ),
+      findsOneWidget,
+    );
+  });
 
   testWidgets('NUKE needs the typed phrase, the PIN, and restarts the app', (
     tester,
