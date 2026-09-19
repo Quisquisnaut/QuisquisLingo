@@ -11,6 +11,7 @@ Where QuisquisLingo keeps data, and which reset scope removes it.
 | `quisquislingo_authoring_teams_v1_2291` | authoring teams | custom courses, everything |
 | `quisquislingo_imported_image_banks_v2`, `quisquislingo_exercise_image_metadata_v2` | imported image bank index and image metadata | imported media, everything |
 | `quisquislingo_diagnostic_log` | diagnostic log text | everything |
+| `qql_file_dialog_downloads_offered_v1` (QQL 240) | flag: the first Save to… / Open from… dialog already started in Downloads | everything |
 | `flag_game_best_*`, `editor_show_internal_ids_v1`, welcome/one-time notice keys, update-check keys | device settings and notices | everything |
 
 ## SharedPreferences (per learner, prefix `learner_<id>_`)
@@ -33,6 +34,7 @@ Everything else under the prefix (identity, avatar, theme, PIN verifier, recover
 The text-to-speech engine keeps no on-disk cache of its own.
 
 ## Notes
+- QQL 240 (`Save to…` / `Open from…`): imports through the system file dialog store data in exactly the same places as the fixed-folder imports above, so no scope changes. Files saved with `Save to…` go to a location the user chooses, outside QQL, and are never tracked or removed by a reset. Custom lesson theme icons and "portable" images are embedded in the Course record, not stored as files. See `docs/240_FILE_DIALOGS_PLAN.md` §8.3 for known orphan cases (MP3 and exercise-image files left behind when a clip, exercise or Course is removed; only the bulk media reset removes them).
 - Media bundled with the app (`assets/`: image library, flags, lesson icons, mascots, bundled course audio) lives inside the app package, is read-only, and is never touched by any reset. The stored image-metadata key holds the admin's edited copy of the catalog; removing it makes QQL fall back to the built-in catalog.
 - *Everything* clears all SharedPreferences (`clear()`), so it is complete by construction; only its file list needs upkeep.
 - The application support directory can also hold the preferences file itself, so it is never deleted as a whole: only the folders listed above.

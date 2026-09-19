@@ -55,6 +55,7 @@ import '../services/guidebook_round_generator.dart';
 import '../services/publication_service.dart';
 import '../services/provisional_publication_service.dart';
 import '../services/new_course_structure.dart';
+import '../widgets/file_dialog_feedback.dart';
 import '../widgets/flag_art.dart';
 import '../widgets/course_flag_picker.dart';
 import '../widgets/lesson_fallback_icon.dart';
@@ -2205,6 +2206,29 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
     }
   }
 
+  Future<void> _saveCustomCourseTo() async {
+    try {
+      final result = await _transfer.exportCourseTo(_course);
+      if (!mounted) return;
+      showFileDialogFeedback(
+        context,
+        result,
+        saving: true,
+        savedMessage: 'Saved “${_course.title}” as ${result.displayName}.',
+        fallbackHint: exportFallbackHint,
+      );
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          duration: const Duration(seconds: 8),
+          content: Text(error.toString().replaceFirst('FormatException: ', '')),
+          backgroundColor: Theme.of(context).colorScheme.error,
+        ),
+      );
+    }
+  }
+
   Future<void> _copyAsNewCourse() async {
     final existingTitles = (await _service.listUserCourses())
         .map((course) => course.title)
@@ -2538,11 +2562,11 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
             ListTile(
               leading: const Icon(Icons.image_outlined),
               title: const Text(
-                'Image Bank',
+                'Shared Image Library',
                 style: TextStyle(fontWeight: FontWeight.w800),
               ),
               subtitle: const Text(
-                'Browse, import and manage reusable exercise images.',
+                'Browse the images shared by every course on this device. Only admins add to or change this library. To use your own picture in one exercise, use Import custom image in that exercise.',
               ),
               trailing: const Icon(Icons.chevron_right),
               onTap: _canModify
@@ -2571,6 +2595,21 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
                 trailing: const Icon(Icons.chevron_right),
                 onTap: _exportCustomCourse,
               ),
+              if (_transfer.fileDialogsAvailable)
+                ListTile(
+                  key: const Key('course-editor-save-json-to'),
+                  leading: const Icon(Icons.save_alt_outlined),
+                  title: const Text(
+                    'Save Course JSON to…',
+                    style: _hierarchyLinkStyle,
+                  ),
+                  subtitle: Text(
+                    'The same export, saved wherever you choose with the system file dialog.\n'
+                    '${cloudFolderHelpText()}',
+                  ),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: _saveCustomCourseTo,
+                ),
             ],
           ],
         ),
@@ -3753,6 +3792,7 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
   String? _themeIconAsset;
   late List<CourseLessonIconAsset> _lessonIconAssets;
   late final DateTime Function() _clock = widget.clock ?? DateTime.now;
+  final _lessonIcons = LessonIconService();
   bool _routeMayPop = false;
 
   Course get _courseWithIcons => Course.fromJson({
@@ -4211,18 +4251,135 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
     }
   }
 
+  /// The Lessons that use a custom icon: every other Lesson's saved icon, and
+  /// this Lesson's saved icon or current unsaved choice.
+  List<String> _lessonsUsingIcon(CourseLessonIconAsset asset) {
+    final users = <String>[];
+    for (var index = 0; index < _course.lessons.length; index++) {
+      final lesson = _course.lessons[index];
+      final isThis = lesson.lessonId == _lesson.lessonId;
+      final uses = isThis
+          ? _themeIconAsset == asset.reference ||
+                _lesson.themeIconAsset == asset.reference
+          : lesson.themeIconAsset == asset.reference;
+      if (uses) {
+        users.add(
+          isThis
+              ? 'this Lesson'
+              : (lesson.title.trim().isEmpty
+                    ? 'Lesson ${index + 1}'
+                    : lesson.title.trim()),
+        );
+      }
+    }
+    return users;
+  }
+
+  /// Removes a custom icon from the Course's icon list. It is a working-copy
+  /// change like every other edit: it is kept when the Lesson is saved and the
+  /// Course confirmed, and Cancel restores it. An icon a Lesson still uses is
+  /// never removed, so no Lesson can end up pointing at a missing icon.
+  Future<void> _deleteCustomIcon(String assetId) async {
+    if (widget.readOnly) return;
+    final asset = _lessonIconAssets
+        .where((candidate) => candidate.assetId == assetId)
+        .firstOrNull;
+    if (asset == null) return;
+    final users = _lessonsUsingIcon(asset);
+    if (users.isNotEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          duration: const Duration(seconds: 8),
+          content: Text(
+            'This icon is still used by ${users.join(', ')}. Choose another icon (or none) for ${users.length == 1 ? 'it' : 'them'}, save, then delete this icon.',
+          ),
+        ),
+      );
+      return;
+    }
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Delete custom icon?'),
+        content: const Text(
+          'The icon is removed from this Course when you save the Lesson and confirm the Course. Cancel undoes it. No Lesson uses it.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            key: const Key('confirm-delete-custom-lesson-icon'),
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: const Text('Delete icon'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+    setState(() {
+      _lessonIconAssets = [
+        for (final candidate in _lessonIconAssets)
+          if (candidate.assetId != assetId) candidate,
+      ];
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text(
+          'Custom icon deleted. Save the Lesson to keep the change.',
+        ),
+      ),
+    );
+  }
+
+  /// The preinstalled option currently chosen, or null (Numbers or a custom icon).
+  LessonIconOption? get _selectedPreinstalledOption {
+    for (final option in LessonIconCatalog.options) {
+      if (option.assetPath == _themeIconAsset) return option;
+    }
+    return null;
+  }
+
+  // Collapsed Preinstalled row: the chosen preinstalled icon, or Numbers when
+  // no icon is chosen; nothing when a custom icon is chosen.
+  String _preinstalledChoiceLabel() =>
+      _selectedPreinstalledOption?.label ??
+      (_themeIconAsset == null ? 'Numbers' : 'Preinstalled icons');
+
+  Widget? _preinstalledChoicePreview() {
+    final option = _selectedPreinstalledOption;
+    if (option != null) {
+      return SizedBox(
+        width: 48,
+        height: 48,
+        child: Image.asset(option.assetPath, fit: BoxFit.contain),
+      );
+    }
+    if (_themeIconAsset == null) {
+      return SizedBox(
+        width: 48,
+        height: 48,
+        child: LessonFallbackIcon(number: _lessonNumber, size: 44),
+      );
+    }
+    return null;
+  }
+
   Future<void> _chooseThemeIcon() async {
     if (widget.readOnly) return;
     const none = '__none__';
     const import = '__import__';
+    const importFrom = '__import_from__';
+    const deleteIconPrefix = '__delete_icon__:';
     final selected = await showModalBottomSheet<String>(
       context: context,
       showDragHandle: true,
       isScrollControlled: true,
       builder: (context) => SafeArea(
-        child: FractionallySizedBox(
-          heightFactor: .76,
+        child: SingleChildScrollView(
           child: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
               Padding(
                 padding: const EdgeInsets.fromLTRB(20, 4, 20, 8),
@@ -4236,91 +4393,109 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
                       'Lesson theme icon',
                       style: Theme.of(context).textTheme.titleLarge,
                     ),
-                    TextButton.icon(
-                      key: const Key('import-custom-lesson-icon'),
-                      onPressed: () => Navigator.pop(context, import),
-                      icon: const Icon(Icons.add_photo_alternate_outlined),
-                      label: const Text('Import custom icon'),
+                    Wrap(
+                      children: [
+                        IconButton(
+                          key: const Key('import-custom-lesson-icon'),
+                          tooltip: 'Import custom icon',
+                          onPressed: () => Navigator.pop(context, import),
+                          icon: const Icon(Icons.add_photo_alternate_outlined),
+                        ),
+                        if (_lessonIcons.fileDialogsAvailable)
+                          IconButton(
+                            key: const Key('open-custom-lesson-icon-from'),
+                            tooltip: 'Open custom icon from…',
+                            onPressed: () => Navigator.pop(context, importFrom),
+                            icon: const Icon(Icons.folder_open_outlined),
+                          ),
+                      ],
                     ),
                   ],
                 ),
               ),
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16),
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text('Preinstalled'),
-                ),
-              ),
-              Expanded(
-                child: GridView.builder(
-                  key: const Key('lesson-theme-icon-grid'),
-                  padding: const EdgeInsets.fromLTRB(12, 0, 12, 20),
-                  gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                    maxCrossAxisExtent: 132,
-                    mainAxisExtent: 126,
-                    crossAxisSpacing: 8,
-                    mainAxisSpacing: 8,
-                  ),
-                  itemCount: LessonIconCatalog.options.length + 1,
-                  itemBuilder: (context, index) {
-                    final option = index == 0
-                        ? null
-                        : LessonIconCatalog.options[index - 1];
-                    final value = option?.assetPath;
-                    final selected = value == _themeIconAsset;
-                    return Semantics(
-                      selected: selected,
-                      label: option?.label ?? 'None',
-                      child: Card(
-                        key: ValueKey(
-                          'lesson-theme-icon-option-${option?.id ?? 'none'}',
+              // Shows only the current choice; opens to show every preinstalled
+              // icon.
+              ExpansionTile(
+                key: const Key('lesson-theme-icon-preinstalled-toggle'),
+                shape: const Border(),
+                collapsedShape: const Border(),
+                tilePadding: const EdgeInsets.symmetric(horizontal: 16),
+                leading: _preinstalledChoicePreview(),
+                title: Text(_preinstalledChoiceLabel()),
+                subtitle: const Text('Preinstalled icons · tap to show all'),
+                children: [
+                  GridView.builder(
+                    key: const Key('lesson-theme-icon-grid'),
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+                    gridDelegate:
+                        const SliverGridDelegateWithMaxCrossAxisExtent(
+                          maxCrossAxisExtent: 132,
+                          mainAxisExtent: 126,
+                          crossAxisSpacing: 8,
+                          mainAxisSpacing: 8,
                         ),
-                        color: selected
-                            ? Theme.of(context).colorScheme.secondaryContainer
-                            : null,
-                        clipBehavior: Clip.antiAlias,
-                        child: InkWell(
-                          onTap: () => Navigator.pop(
-                            context,
-                            option == null ? none : option.assetPath,
+                    itemCount: LessonIconCatalog.options.length + 1,
+                    itemBuilder: (context, index) {
+                      final option = index == 0
+                          ? null
+                          : LessonIconCatalog.options[index - 1];
+                      final value = option?.assetPath;
+                      final selected = value == _themeIconAsset;
+                      return Semantics(
+                        selected: selected,
+                        label: option?.label ?? 'Numbers',
+                        child: Card(
+                          key: ValueKey(
+                            'lesson-theme-icon-option-${option?.id ?? 'none'}',
                           ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(8),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                SizedBox(
-                                  width: 64,
-                                  height: 64,
-                                  child: option == null
-                                      ? LessonFallbackIcon(
-                                          number: _lessonNumber,
-                                          size: 54,
-                                        )
-                                      : Image.asset(
-                                          option.assetPath,
-                                          fit: BoxFit.contain,
-                                        ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  option?.label ?? 'None',
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                  textAlign: TextAlign.center,
-                                  style: Theme.of(
-                                    context,
-                                  ).textTheme.labelMedium,
-                                ),
-                              ],
+                          color: selected
+                              ? Theme.of(context).colorScheme.secondaryContainer
+                              : null,
+                          clipBehavior: Clip.antiAlias,
+                          child: InkWell(
+                            onTap: () => Navigator.pop(
+                              context,
+                              option == null ? none : option.assetPath,
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.all(8),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  SizedBox(
+                                    width: 64,
+                                    height: 64,
+                                    child: option == null
+                                        ? LessonFallbackIcon(
+                                            number: _lessonNumber,
+                                            size: 54,
+                                          )
+                                        : Image.asset(
+                                            option.assetPath,
+                                            fit: BoxFit.contain,
+                                          ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    option?.label ?? 'Numbers',
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                    textAlign: TextAlign.center,
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.labelMedium,
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                    );
-                  },
-                ),
+                      );
+                    },
+                  ),
+                ],
               ),
               const Divider(height: 1),
               const Padding(
@@ -4364,19 +4539,40 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
                                   Navigator.pop(context, asset.reference),
                               child: SizedBox(
                                 width: 96,
-                                child: Padding(
-                                  padding: const EdgeInsets.all(8),
-                                  child: Column(
-                                    children: [
-                                      Expanded(
-                                        child: Image.memory(
-                                          base64Decode(asset.base64Png),
-                                          fit: BoxFit.contain,
-                                        ),
+                                child: Stack(
+                                  children: [
+                                    Padding(
+                                      padding: const EdgeInsets.all(8),
+                                      child: Column(
+                                        children: [
+                                          Expanded(
+                                            child: Image.memory(
+                                              base64Decode(asset.base64Png),
+                                              fit: BoxFit.contain,
+                                            ),
+                                          ),
+                                          const Text('Custom'),
+                                        ],
                                       ),
-                                      const Text('Custom'),
-                                    ],
-                                  ),
+                                    ),
+                                    Positioned(
+                                      top: 0,
+                                      right: 0,
+                                      child: IconButton(
+                                        key: ValueKey(
+                                          'delete-custom-lesson-icon-${asset.assetId}',
+                                        ),
+                                        tooltip: 'Delete this custom icon',
+                                        visualDensity: VisualDensity.compact,
+                                        iconSize: 18,
+                                        onPressed: () => Navigator.pop(
+                                          context,
+                                          '$deleteIconPrefix${asset.assetId}',
+                                        ),
+                                        icon: const Icon(Icons.delete_outline),
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
                             ),
@@ -4390,9 +4586,33 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
       ),
     );
     if (selected == null || !mounted) return;
-    if (selected == import) {
+    if (selected.startsWith(deleteIconPrefix)) {
+      await _deleteCustomIcon(selected.substring(deleteIconPrefix.length));
+      // Reopen so the list shows the result.
+      if (mounted) await _chooseThemeIcon();
+      return;
+    }
+    if (selected == import || selected == importFrom) {
       try {
-        final imported = await LessonIconService().importPreparedIcon();
+        final ImportedLessonIcon imported;
+        if (selected == importFrom) {
+          // Open from…: same normalization as the fixed-folder import.
+          final picked = await _lessonIcons.importPreparedIconFromDialog();
+          if (!mounted) return;
+          final opened = picked.icon;
+          if (opened == null) {
+            showFileDialogFeedback(
+              context,
+              picked.dialog,
+              saving: false,
+              fallbackHint: lessonIconFallbackHint,
+            );
+            return;
+          }
+          imported = opened;
+        } else {
+          imported = await _lessonIcons.importPreparedIcon();
+        }
         if (!mounted) return;
         setState(() {
           _lessonIconAssets = [..._lessonIconAssets, imported.asset];
@@ -8753,13 +8973,32 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
     }
   }
 
-  Future<void> _importCustomImage() async {
+  Future<void> _importCustomImage({bool fromDialog = false}) async {
     if (widget.readOnly) return;
     try {
-      final selected = await _imageService.importImage();
-      if (selected != null && mounted) {
+      final String? selected;
+      if (fromDialog) {
+        // Open from…: same checks and storage as the fixed-folder import.
+        final picked = await _imageService.importImageFromDialog();
+        if (!mounted) return;
+        final path = picked.path;
+        if (path == null) {
+          showFileDialogFeedback(
+            context,
+            picked.dialog,
+            saving: false,
+            fallbackHint: exerciseImageFallbackHint,
+          );
+          return;
+        }
+        selected = path;
+      } else {
+        selected = await _imageService.importImage();
+      }
+      final chosen = selected;
+      if (chosen != null && mounted) {
         setState(() {
-          _imageAsset = selected;
+          _imageAsset = chosen;
           _dirty = true;
         });
       }
@@ -8839,6 +9078,15 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
                   icon: const Icon(Icons.upload_file_outlined),
                   label: const Text('Import custom image'),
                 ),
+                if (_imageService.fileDialogsAvailable)
+                  IconButton.outlined(
+                    key: const Key('open-custom-image-from'),
+                    tooltip: 'Open image from…',
+                    onPressed: widget.readOnly
+                        ? null
+                        : () => _importCustomImage(fromDialog: true),
+                    icon: const Icon(Icons.folder_open_outlined),
+                  ),
                 if (_imageAsset.isNotEmpty)
                   TextButton.icon(
                     onPressed: widget.readOnly
@@ -8854,7 +9102,7 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
             ),
             const SizedBox(height: 4),
             const Text(
-              'The built-in Image Bank contains lightweight flat images. For Import custom image, place exactly one PNG, JPG, JPEG or WEBP file in Documents/QuisquisLingo/Imports/Images. Image-prompt ordering requires an image; otherwise it is optional and can be changed at any time.',
+              'The shared image library (admin-managed) has lightweight flat images. For Import custom image, place exactly one PNG, JPG, JPEG or WEBP file in Documents/QuisquisLingo/Imports/Images. Image-prompt ordering requires an image; otherwise it is optional and can be changed at any time.',
               style: TextStyle(fontSize: 12),
             ),
           ],
@@ -10196,6 +10444,37 @@ class _AudioLibraryScreenState extends State<AudioLibraryScreen> {
             .map((clip) => clip.toJson())
             .toList(),
       });
+  Future<void> _importFromDialog() async {
+    try {
+      // Open from…: one MP3, stored exactly like a folder import.
+      final picked = await _audio.importMp3FromDialog(_course.courseId);
+      if (!mounted) return;
+      final clip = picked.clip;
+      if (clip == null) {
+        showFileDialogFeedback(
+          context,
+          picked.dialog,
+          saving: false,
+          fallbackHint: mp3FallbackHint,
+        );
+        return;
+      }
+      setState(() => _course = _copy(clips: [..._course.audioLibrary, clip]));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          duration: const Duration(seconds: 8),
+          content: Text('Imported MP3 file ${picked.dialog.displayName}.'),
+        ),
+      );
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(duration: const Duration(seconds: 8), content: Text('$e')),
+        );
+      }
+    }
+  }
+
   Future<void> _import() async {
     try {
       final clips = await _audio.importMp3Files(_course.courseId);
@@ -10483,6 +10762,13 @@ class _AudioLibraryScreenState extends State<AudioLibraryScreen> {
       appBar: AppBar(
         title: const Text('Audio Library'),
         actions: [
+          if (_audio.fileDialogsAvailable)
+            IconButton(
+              key: const Key('open-mp3-from'),
+              tooltip: 'Open MP3 from…',
+              onPressed: _importFromDialog,
+              icon: const Icon(Icons.folder_open_outlined),
+            ),
           TextButton(
             onPressed: () => Navigator.pop(context, _course),
             child: const Text('Save'),

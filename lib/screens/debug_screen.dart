@@ -7,6 +7,8 @@ import 'package:share_plus/share_plus.dart';
 
 import '../services/crash_log_service.dart';
 import '../services/diagnostic_log_service.dart';
+import '../services/file_dialog_service.dart';
+import '../widgets/file_dialog_feedback.dart';
 
 class DebugScreen extends StatefulWidget {
   const DebugScreen({super.key});
@@ -17,6 +19,7 @@ class DebugScreen extends StatefulWidget {
 
 class _DebugScreenState extends State<DebugScreen> {
   final _logs = DiagnosticLogService();
+  final _dialogs = FileDialogService();
   bool _loading = true;
   bool _hasDiagnosticLog = false;
   String? _diagnosticExportPath;
@@ -103,6 +106,87 @@ class _DebugScreenState extends State<DebugScreen> {
     );
   }
 
+  Future<void> _saveDiagnosticLogCopyTo() async {
+    try {
+      final bytes = await _logs.exportBytes();
+      if (!mounted) return;
+      if (bytes == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            duration: Duration(seconds: 8),
+            content: Text('The Diagnostic Log is empty.'),
+          ),
+        );
+        return;
+      }
+      final result = await _dialogs.saveBytes(
+        bytes: bytes,
+        suggestedName: DiagnosticLogService.exportFileName,
+        extensions: const ['txt'],
+        artifact: 'diagnostic-log',
+      );
+      if (!mounted) return;
+      showFileDialogFeedback(
+        context,
+        result,
+        saving: true,
+        savedMessage: 'Diagnostic Log copy saved as ${result.displayName}.',
+        fallbackHint:
+            'You can use Export Diagnostic Log instead; it saves to Documents/QuisquisLingo/Logs.',
+      );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          duration: Duration(seconds: 8),
+          content: Text('The Diagnostic Log copy could not be saved.'),
+        ),
+      );
+    }
+  }
+
+  /// Saves a copy of the live Crash Log. The live file is only read: it is
+  /// never moved, opened for editing or changed.
+  Future<void> _saveCrashLogCopyTo() async {
+    final path = _crashLogPath;
+    try {
+      if (path == null || !await File(path).exists()) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            duration: Duration(seconds: 8),
+            content: Text('The Crash Log is not available to save.'),
+          ),
+        );
+        return;
+      }
+      final bytes = await File(path).readAsBytes();
+      final result = await _dialogs.saveBytes(
+        bytes: bytes,
+        suggestedName: path.split(RegExp(r'[\\/]')).last,
+        extensions: const ['txt', 'log'],
+        artifact: 'crash-log',
+      );
+      if (!mounted) return;
+      showFileDialogFeedback(
+        context,
+        result,
+        saving: true,
+        savedMessage: 'Crash Log copy saved as ${result.displayName}.',
+        fallbackHint:
+            'The Crash Log stays at the location shown here; you can copy it from there.',
+      );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          duration: Duration(seconds: 8),
+          content: Text('The Crash Log copy could not be saved.'),
+        ),
+      );
+    }
+  }
+
   Future<void> _shareCrashLog() async {
     final path = _crashLogPath;
     if (path == null || !await File(path).exists()) {
@@ -172,15 +256,28 @@ class _DebugScreenState extends State<DebugScreen> {
                     'For cases where QQL crashes or closes unexpectedly. If available after a crash, copy or export this file and provide it with your report. It is primarily useful for startup and runtime crashes.\n'
                     'Saved at: ${_crashLogPath ?? 'Path unavailable on this platform.'}',
                   ),
-                  trailing: !kIsWeb && (Platform.isAndroid || Platform.isIOS)
-                      ? IconButton(
+                  trailing: Wrap(
+                    spacing: 2,
+                    children: [
+                      if (_dialogs.isAvailable)
+                        IconButton(
+                          key: const Key('save-crash-log-copy-to'),
+                          tooltip: 'Save log copy to…',
+                          onPressed: _crashLogPath == null
+                              ? null
+                              : _saveCrashLogCopyTo,
+                          icon: const Icon(Icons.save_alt_outlined),
+                        ),
+                      if (!kIsWeb && (Platform.isAndroid || Platform.isIOS))
+                        IconButton(
                           tooltip: 'Share Crash Log',
                           onPressed: _crashLogPath == null
                               ? null
                               : _shareCrashLog,
                           icon: const Icon(Icons.share_outlined),
-                        )
-                      : null,
+                        ),
+                    ],
+                  ),
                 ),
                 ListTile(
                   leading: const Icon(Icons.bug_report_outlined),
@@ -199,6 +296,15 @@ class _DebugScreenState extends State<DebugScreen> {
                             : null,
                         icon: const Icon(Icons.file_download_outlined),
                       ),
+                      if (_dialogs.isAvailable)
+                        IconButton(
+                          key: const Key('save-diagnostic-log-copy-to'),
+                          tooltip: 'Save log copy to…',
+                          onPressed: _hasDiagnosticLog
+                              ? _saveDiagnosticLogCopyTo
+                              : null,
+                          icon: const Icon(Icons.save_alt_outlined),
+                        ),
                       IconButton(
                         tooltip: 'Clear Diagnostic Log',
                         onPressed: _hasDiagnosticLog ? _clearLog : null,

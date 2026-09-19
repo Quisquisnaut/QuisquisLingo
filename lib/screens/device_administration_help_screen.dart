@@ -38,7 +38,7 @@ class DeviceAdministrationHelpScreen extends StatelessWidget {
                   'Reset another learner’s PIN. This removes the PIN so the learner can choose a new one. Note that until a new PIN is set, anyone can open that profile.',
                   'Change the QQL device name shown in the Learner Profiles list.',
                   'Choose whether QQL asks who is learning each time it starts.',
-                  'Manage the shared image library and its descriptive metadata (Admin Media Library).',
+                  'Manage the shared image library and its descriptive metadata (Shared Image Library). It holds the images available to every course on this device, and only admins can add to or change it. Anyone who can edit a course can still add their own image to an exercise with Import custom image; that image is not added to the shared library.',
                   'Run the reset options on this page, after setting an admin PIN and entering it for each reset.',
                 ],
               ),

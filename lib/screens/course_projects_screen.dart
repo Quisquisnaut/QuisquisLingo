@@ -21,6 +21,7 @@ import '../services/team_service.dart';
 import '../services/new_course_structure.dart';
 import '../widgets/course_flag_picker.dart';
 import '../widgets/editor_app_bar_actions.dart';
+import '../widgets/file_dialog_feedback.dart';
 import '../widgets/flag_art.dart';
 import 'course_editor_screen.dart';
 import 'team_manager_screen.dart';
@@ -49,7 +50,14 @@ class _DisposeOnUnmountState extends State<_DisposeOnUnmount> {
 class CourseImportScreen extends StatelessWidget {
   final Future<void> Function() onImport;
 
-  const CourseImportScreen({super.key, required this.onImport});
+  /// Null hides the button (no system dialog on this platform).
+  final Future<void> Function()? onOpenFrom;
+
+  const CourseImportScreen({
+    super.key,
+    required this.onImport,
+    this.onOpenFrom,
+  });
 
   @override
   Widget build(BuildContext context) => Scaffold(
@@ -63,6 +71,26 @@ class CourseImportScreen extends StatelessWidget {
           icon: const Icon(Icons.file_open_outlined),
           label: const Text('Import Course JSON'),
         ),
+        if (onOpenFrom != null) ...[
+          const SizedBox(height: 12),
+          OutlinedButton.icon(
+            key: const Key('open-course-json-from'),
+            onPressed: onOpenFrom,
+            icon: const Icon(Icons.folder_open_outlined),
+            label: const Text('Open from…'),
+          ),
+          const SizedBox(height: 4),
+          const Text(
+            'Choose a course JSON file anywhere with the system file dialog. '
+            'It is checked exactly like an ordinary import.',
+          ),
+          const SizedBox(height: 8),
+          Text(
+            cloudFolderHelpText(),
+            key: const Key('cloud-folder-help'),
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+        ],
         const SizedBox(height: 20),
         Text(
           'Import instructions',
@@ -122,10 +150,29 @@ class _CourseMergeScreenState extends State<CourseMergeScreen> {
   bool _loading = false;
   final _sounds = SoundEffectService();
 
-  Future<void> _loadMergeCourse() async {
+  Future<void> _loadMergeCourse({bool fromDialog = false}) async {
     setState(() => _loading = true);
     try {
-      final right = await _merge.readMergeCourse();
+      final Course right;
+      if (fromDialog) {
+        // Merge From…: same validation as merge.json, then the same
+        // compatibility check below.
+        final picked = await _merge.readMergeCourseFromDialog();
+        if (!mounted) return;
+        final opened = picked.course;
+        if (opened == null) {
+          showFileDialogFeedback(
+            context,
+            picked.dialog,
+            saving: false,
+            fallbackHint: mergeImportFallbackHint,
+          );
+          return;
+        }
+        right = opened;
+      } else {
+        right = await _merge.readMergeCourse();
+      }
       _merge.validateCompatibility(widget.leftCourse, right);
       if (!mounted) return;
       setState(() {
@@ -258,6 +305,27 @@ class _CourseMergeScreenState extends State<CourseMergeScreen> {
               icon: const Icon(Icons.merge_type_outlined),
               label: const Text('Merge JSON Course'),
             ),
+            if (_merge.fileDialogsAvailable) ...[
+              const SizedBox(height: 12),
+              OutlinedButton.icon(
+                key: const Key('merge-course-json-from'),
+                onPressed: _loading
+                    ? null
+                    : () => _loadMergeCourse(fromDialog: true),
+                icon: const Icon(Icons.folder_open_outlined),
+                label: const Text('Merge From…'),
+              ),
+              const SizedBox(height: 4),
+              const Text(
+                'Choose the second Course JSON anywhere with the system file dialog. '
+                'It is checked exactly like merge.json.',
+              ),
+              const SizedBox(height: 8),
+              Text(
+                cloudFolderHelpText(),
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+            ],
             const SizedBox(height: 20),
             Text(
               'Merge instructions',
@@ -649,7 +717,12 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
 
   Future<void> _openCourseImport() => Navigator.of(context).push<void>(
     MaterialPageRoute(
-      builder: (_) => CourseImportScreen(onImport: _importCourse),
+      builder: (_) => CourseImportScreen(
+        onImport: _importCourse,
+        onOpenFrom: _transfer.fileDialogsAvailable
+            ? _importCourseFromDialog
+            : null,
+      ),
     ),
   );
 
@@ -1656,6 +1729,7 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
         if (value == 'merge') _openCourseMerge(course);
         if (value == 'audit') _auditCourse(course);
         if (value == 'export') _exportCourse(course);
+        if (value == 'save_to') _saveCourseTo(course);
         if (value == 'delete' && course.originType == CourseOriginType.custom) {
           _delete(course);
         }
@@ -1719,6 +1793,15 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
               title: Text('Export JSON'),
             ),
           ),
+        if ((course.originType.isOfficial || access.hasOperationalAccess) &&
+            _transfer.fileDialogsAvailable)
+          const PopupMenuItem(
+            value: 'save_to',
+            child: ListTile(
+              leading: Icon(Icons.save_alt_outlined),
+              title: Text('Save to…'),
+            ),
+          ),
         if (access.canDelete)
           const PopupMenuItem(
             value: 'delete',
@@ -1751,9 +1834,30 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
     );
   }
 
-  Future<void> _importCourse() async {
+  Future<void> _importCourseFromDialog() => _importCourse(fromDialog: true);
+
+  Future<void> _importCourse({bool fromDialog = false}) async {
     try {
-      final imported = await _transfer.importCourse();
+      final Course imported;
+      if (fromDialog) {
+        // Open from…: same validation as the fixed-folder import, then the
+        // identical audit / collision flow below.
+        final picked = await _transfer.importCourseFromDialog();
+        if (!mounted) return;
+        final opened = picked.course;
+        if (opened == null) {
+          showFileDialogFeedback(
+            context,
+            picked.dialog,
+            saving: false,
+            fallbackHint: courseImportFallbackHint,
+          );
+          return;
+        }
+        imported = opened;
+      } else {
+        imported = await _transfer.importCourse();
+      }
       if (imported.originType == CourseOriginType.bundledOfficial) {
         throw const FormatException(
           'Bundled official courses are installed only with QuisquisLingo application builds.',
@@ -1989,6 +2093,29 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
     }
   }
 
+  Future<void> _saveCourseTo(Course course) async {
+    try {
+      final result = await _transfer.exportCourseTo(course);
+      if (!mounted) return;
+      showFileDialogFeedback(
+        context,
+        result,
+        saving: true,
+        savedMessage: 'Saved “${course.title}” as ${result.displayName}.',
+        fallbackHint: exportFallbackHint,
+      );
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          duration: const Duration(seconds: 8),
+          content: Text(error.toString().replaceFirst('FormatException: ', '')),
+          backgroundColor: Theme.of(context).colorScheme.error,
+        ),
+      );
+    }
+  }
+
   Future<void> _delete(Course course) async {
     final first =
         await showDialog<bool>(
@@ -2125,7 +2252,7 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
                         await _reload();
                       },
                       icon: const Icon(Icons.perm_media_outlined),
-                      label: const Text('Admin Media Library'),
+                      label: const Text('Shared Image Library (admin)'),
                     ),
                 ],
               ),

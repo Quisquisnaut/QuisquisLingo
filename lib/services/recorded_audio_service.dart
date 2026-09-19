@@ -6,12 +6,31 @@ import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 import '../models/course_models.dart';
 import 'audio_diagnostic_service.dart';
+import 'file_dialog_service.dart';
 
 /// Manages creator-supplied recorded speech. Imported MP3 files are copied into
 /// app-owned storage so moving or deleting the creator's original file does not
 /// break the local course. Course packaging can later export this directory as
 /// an optional audio pack.
 class RecordedAudioService {
+  RecordedAudioService({
+    FileDialogService? fileDialogs,
+    Future<Directory> Function()? supportDirectory,
+  }) : _fileDialogs = fileDialogs ?? FileDialogService(),
+       _supportDirectory = supportDirectory ?? getApplicationSupportDirectory;
+
+  static const int maxMp3Bytes = 50 * 1024 * 1024;
+
+  // Memory guard for Open from… only; larger files reach the ordinary 50 MB
+  // check and get its standard message.
+  static const int _dialogReadCap = 128 * 1024 * 1024;
+
+  final FileDialogService _fileDialogs;
+  final Future<Directory> Function() _supportDirectory;
+
+  /// False when the system dialog is unsupported; hide Open from….
+  bool get fileDialogsAvailable => _fileDialogs.isAvailable;
+
   static final RegExp _nonWordBoundary = RegExp(
     r'^[^\p{L}\p{M}\p{N}]+|[^\p{L}\p{M}\p{N}]+$',
     unicode: true,
@@ -56,35 +75,90 @@ class RecordedAudioService {
         'No MP3 files found in ${importDir.path}. Copy the MP3 files you want to import there and try again.',
       );
     }
-    final root = await getApplicationSupportDirectory();
-    final dir = Directory(
-      '${root.path}${Platform.pathSeparator}quisquislingo_audio${Platform.pathSeparator}${storageDirectoryForCourseId(courseId)}',
-    );
-    await dir.create(recursive: true);
+    final dir = await _courseAudioDirectory(courseId);
     final out = <CourseAudioClip>[];
     final batchStamp = DateTime.now().microsecondsSinceEpoch;
     for (var index = 0; index < sources.length; index++) {
       final source = sources[index];
       final size = await source.length();
-      if (size > 50 * 1024 * 1024) {
-        throw StateError('MP3 files larger than 50 MB are not accepted.');
-      }
-      final sourceName = source.uri.pathSegments.last;
-      final safeName = sourceName.replaceAll(RegExp(r'[^A-Za-z0-9._-]'), '_');
-      final baseClipId = 'audio_${batchStamp}_$index';
-      var clipId = baseClipId;
-      var destination =
-          '${dir.path}${Platform.pathSeparator}${clipId}_$safeName';
-      var collision = 2;
-      while (await File(destination).exists()) {
-        clipId = '${baseClipId}_$collision';
-        destination = '${dir.path}${Platform.pathSeparator}${clipId}_$safeName';
-        collision += 1;
-      }
-      await source.copy(destination);
-      out.add(CourseAudioClip(id: clipId, text: '', filePath: destination));
+      if (size > maxMp3Bytes) throw StateError(_tooLarge);
+      final reserved = await _reserveClip(
+        dir,
+        batchStamp,
+        index,
+        source.uri.pathSegments.last,
+      );
+      await source.copy(reserved.path);
+      out.add(
+        CourseAudioClip(id: reserved.id, text: '', filePath: reserved.path),
+      );
     }
     return out;
+  }
+
+  /// Open from…: pick one MP3 in the system dialog and store it exactly as
+  /// [importMp3Files] stores a folder file (same 50 MB check, same course
+  /// audio folder, same clip naming). The clip is null when the user cancelled
+  /// or the dialog failed; see the dialog result. Import one file at a time.
+  Future<({FileDialogResult dialog, CourseAudioClip? clip})>
+  importMp3FromDialog(String courseId) async {
+    final picked = await _fileDialogs.openBytes(
+      extensions: const ['mp3'],
+      maxBytes: _dialogReadCap,
+      artifact: 'mp3',
+    );
+    if (picked.outcome != FileDialogOutcome.opened) {
+      return (dialog: picked, clip: null);
+    }
+    final name = picked.displayName!;
+    if (!name.toLowerCase().endsWith('.mp3')) {
+      throw StateError('Choose an MP3 file.');
+    }
+    final bytes = picked.bytes!;
+    if (bytes.length > maxMp3Bytes) throw StateError(_tooLarge);
+    final dir = await _courseAudioDirectory(courseId);
+    final reserved = await _reserveClip(
+      dir,
+      DateTime.now().microsecondsSinceEpoch,
+      0,
+      name,
+    );
+    await File(reserved.path).writeAsBytes(bytes, flush: true);
+    return (
+      dialog: picked,
+      clip: CourseAudioClip(id: reserved.id, text: '', filePath: reserved.path),
+    );
+  }
+
+  static const String _tooLarge =
+      'MP3 files larger than 50 MB are not accepted.';
+
+  Future<Directory> _courseAudioDirectory(String courseId) async {
+    final root = await _supportDirectory();
+    final dir = Directory(
+      '${root.path}${Platform.pathSeparator}quisquislingo_audio${Platform.pathSeparator}${storageDirectoryForCourseId(courseId)}',
+    );
+    await dir.create(recursive: true);
+    return dir;
+  }
+
+  Future<({String id, String path})> _reserveClip(
+    Directory dir,
+    int batchStamp,
+    int index,
+    String sourceName,
+  ) async {
+    final safeName = sourceName.replaceAll(RegExp(r'[^A-Za-z0-9._-]'), '_');
+    final baseClipId = 'audio_${batchStamp}_$index';
+    var clipId = baseClipId;
+    var destination = '${dir.path}${Platform.pathSeparator}${clipId}_$safeName';
+    var collision = 2;
+    while (await File(destination).exists()) {
+      clipId = '${baseClipId}_$collision';
+      destination = '${dir.path}${Platform.pathSeparator}${clipId}_$safeName';
+      collision += 1;
+    }
+    return (id: clipId, path: destination);
   }
 
   List<CourseAudioClip> orphaned(Course course) =>

@@ -3,6 +3,7 @@ import 'dart:convert';
 import '../models/course_models.dart';
 import 'authoring_duplication_service.dart';
 import 'custom_course_transfer_service.dart';
+import 'file_dialog_service.dart';
 import 'profile_service.dart';
 
 enum LessonMergeChoice { left, right, exclude }
@@ -76,6 +77,14 @@ class CourseMergeService {
   final DateTime Function() _clock;
 
   Future<Course> readMergeCourse() => _transfer.mergeCourse();
+
+  /// Merge From…: the second Course chosen in the system file dialog,
+  /// validated exactly like `Merges/merge.json`. The Course is null when the
+  /// user cancelled or the dialog failed; see the dialog result.
+  Future<({FileDialogResult dialog, Course? course})>
+  readMergeCourseFromDialog() => _transfer.mergeCourseFromDialog();
+
+  bool get fileDialogsAvailable => _transfer.fileDialogsAvailable;
 
   void validateCompatibility(Course left, Course right) {
     if (left.originType != CourseOriginType.custom ||

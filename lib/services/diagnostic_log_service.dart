@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
@@ -86,14 +87,25 @@ class DiagnosticLogService {
     }
   }
 
+  static const exportFileName = 'quisquislingo_diagnostic_log.txt';
+
   Future<String?> exportPath() async {
     try {
       final directory = await logsDirectory();
       if (directory == null) return null;
-      return '${directory.path}${Platform.pathSeparator}quisquislingo_diagnostic_log.txt';
+      return '${directory.path}${Platform.pathSeparator}$exportFileName';
     } catch (_) {
       return null;
     }
+  }
+
+  /// A snapshot of the log text as UTF-8 bytes, or null when the log is empty.
+  /// The internal log is untouched. Used by Save log copy to….
+  Future<Uint8List?> exportBytes() async {
+    final prefs = await SharedPreferences.getInstance();
+    final log = prefs.getString(_logKey) ?? '';
+    if (log.trim().isEmpty) return null;
+    return Uint8List.fromList(utf8.encode(log));
   }
 
   /// Exports a snapshot of the internal diagnostic-event log to a predictable

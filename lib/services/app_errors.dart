@@ -20,6 +20,12 @@ enum AppErrorCode {
     'Local progress data appears to be invalid.',
   ),
 
+  fileDialogFailed('FILE-001', 'The system file dialog could not finish.'),
+  fileDialogUnavailable(
+    'FILE-002',
+    'The system file dialog is not available on this device.',
+  ),
+
   unexpectedError('APP-001', 'An unexpected internal error occurred.');
 
   final String code;

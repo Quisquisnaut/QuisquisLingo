@@ -1,10 +1,14 @@
 # QuisquisLingo App
 
-**Current source version: 2.0.39+239005 · Build 239, Revision 5 · Course Models v9/v10 (`formatVersion: 9`/`10`).**
+**Current source version: 2.0.40+240000 · Build 240, Revision 0 · Course Models v9/v10 (`formatVersion: 9`/`10`).**
+
+**QuisquisLingo 2.0.40 Beta — QQL 240 native file dialogs (Save to… / Open from…)**
+
+Current project version: 2.0.40
+
+QQL 240 adds the operating system's Save and Open dialogs next to the existing fixed-folder Export and Import (which are unchanged): `Save to…` for Course JSON, my data, the User Recovery Key and copies of the Crash and Diagnostic Logs, and `Open from…` for Course import, Merge From…, Image Bank ZIPs, single images, custom Lesson icons, recorded MP3s, my data and the User Recovery Key. Cloud folders such as Google Drive appear only if the device already shows them; QQL does not sign in to any cloud service. A failed or unavailable dialog explains how to use the fixed-folder route and is logged. Windows, macOS and Linux are supported; Android's picker is not wired yet (the buttons stay hidden) and iOS is not supported. See `docs/240_FILE_DIALOGS_PLAN.md`, `docs/240_VALIDATION.md` and `CHANGELOG.md`.
 
 **QuisquisLingo 2.0.39 Beta — QQL 239 Pick the translation (Select)**
-
-Current project version: 2.0.39
 
 QQL 239 adds two Select-based exercise types to the Translation category: **Pick the translation (to target)** and **Pick the translation (to source)**. Each shows one generated learner instruction (`Pick the correct [language] translation`), the text to translate, an optional illustration and answer options; a tap is validated immediately and a wrong answer reveals the correct one. An optional audio button speaks target-language text only and is greyed out, never skipping the exercise, when audio or TTS is off. Existing exercise types, including the older translation choice, are unchanged.
 
@@ -63,7 +67,7 @@ The MPL-2.0 covers the QuisquisLingo software source. Courses, the Image Bank an
 
 ## Beta lifecycle
 
-Version 2.0.39, Build 239, Revision 5 is a time-limited Beta with an expiry of **2026-10-19 23:59:59 local time**. Near expiry it displays reminders. After expiry, learner exercises and Review are blocked until a newer Beta is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when a Beta expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM.
+Version 2.0.40, Build 240, Revision 0 is a time-limited Beta with an expiry of **2026-10-19 23:59:59 local time** (unchanged from QQL 239 by owner decision). Near expiry it displays reminders. After expiry, learner exercises and Review are blocked until a newer Beta is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when a Beta expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM.
 
 ## Core logic
 

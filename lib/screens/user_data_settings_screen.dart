@@ -6,6 +6,7 @@ import '../services/learner_backup_service.dart';
 import '../services/profile_service.dart';
 import '../services/progress_service.dart';
 import '../services/user_recovery_key_service.dart';
+import '../widgets/file_dialog_feedback.dart';
 
 class UserDataSettingsScreen extends StatefulWidget {
   final Course course;
@@ -39,37 +40,57 @@ class _UserDataSettingsScreenState extends State<UserDataSettingsScreen> {
     }
   }
 
-  Future<void> _importRecoveryKey() async {
+  Future<void> _importRecoveryKeyFromDialog() =>
+      _importRecoveryKey(fromDialog: true);
+
+  Future<void> _importRecoveryKey({bool fromDialog = false}) async {
     try {
-      final candidates = await _recovery.findImportableUserRecoveryKeys();
-      if (!mounted) return;
-      if (candidates.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('No User Recovery Key is available in Imports.'),
-          ),
-        );
-        return;
-      }
       UserRecoveryKeyCandidate? selected;
-      if (candidates.length == 1) {
-        selected = candidates.single;
+      if (fromDialog) {
+        // Open from…: same decoding, identity-conflict check and naming flow
+        // as the fixed-folder import below.
+        final picked = await _recovery.openUserRecoveryKeyFromDialog();
+        if (!mounted) return;
+        selected = picked.candidate;
+        if (selected == null) {
+          showFileDialogFeedback(
+            context,
+            picked.dialog,
+            saving: false,
+            fallbackHint: recoveryKeyImportFallbackHint,
+          );
+          return;
+        }
       } else {
-        selected = await showDialog<UserRecoveryKeyCandidate>(
-          context: context,
-          builder: (dialogContext) => SimpleDialog(
-            title: const Text('Choose User Recovery Key'),
-            children: [
-              for (final candidate in candidates)
-                SimpleDialogOption(
-                  onPressed: () => Navigator.pop(dialogContext, candidate),
-                  child: Text(
-                    candidate.path.split(Platform.pathSeparator).last,
+        final candidates = await _recovery.findImportableUserRecoveryKeys();
+        if (!mounted) return;
+        if (candidates.isEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('No User Recovery Key is available in Imports.'),
+            ),
+          );
+          return;
+        }
+        if (candidates.length == 1) {
+          selected = candidates.single;
+        } else {
+          selected = await showDialog<UserRecoveryKeyCandidate>(
+            context: context,
+            builder: (dialogContext) => SimpleDialog(
+              title: const Text('Choose User Recovery Key'),
+              children: [
+                for (final candidate in candidates)
+                  SimpleDialogOption(
+                    onPressed: () => Navigator.pop(dialogContext, candidate),
+                    child: Text(
+                      candidate.path.split(Platform.pathSeparator).last,
+                    ),
                   ),
-                ),
-            ],
-          ),
-        );
+              ],
+            ),
+          );
+        }
       }
       if (selected == null || !mounted) return;
       if (await _profiles.getProfileById(selected.document.learnerProfileId) !=
@@ -167,6 +188,72 @@ class _UserDataSettingsScreenState extends State<UserDataSettingsScreen> {
     ),
   );
 
+  Future<void> _saveLearnerTo() async {
+    try {
+      final result = await _backup.saveActiveProfileTo();
+      if (!mounted) return;
+      showFileDialogFeedback(
+        context,
+        result,
+        saving: true,
+        savedMessage: 'Learner backup saved as ${result.displayName}.',
+        fallbackHint: exportFallbackHint,
+      );
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          duration: const Duration(seconds: 8),
+          content: Text('Export failed: $error'),
+        ),
+      );
+    }
+  }
+
+  Future<void> _saveRecoveryKeyTo() async {
+    // The key is a secret and the chosen folder (Downloads, a cloud folder)
+    // may sync or be shared, so ask first.
+    final proceed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Save Recovery Key to…'),
+        content: const Text(
+          'The User Recovery Key is a private credential. Someone who has it may be able to claim your QQL identity. '
+          'A folder you choose, such as Downloads or a cloud folder, may be synced or shared with other people or devices. '
+          'Choose a private location.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: const Text('Choose location'),
+          ),
+        ],
+      ),
+    );
+    if (proceed != true || !mounted) return;
+    try {
+      final result = await _recovery.exportActiveUserRecoveryKeyTo();
+      if (!mounted) return;
+      showFileDialogFeedback(
+        context,
+        result,
+        saving: true,
+        savedMessage: 'User Recovery Key saved as ${result.displayName}.',
+        fallbackHint:
+            'You can use Export User Recovery Key instead; it saves to Documents/QuisquisLingo/Exports.',
+      );
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Recovery Key export failed: $error')),
+      );
+    }
+  }
+
   Future<void> _exportLearner() async {
     try {
       final path = await _backup.saveActiveProfile();
@@ -188,9 +275,30 @@ class _UserDataSettingsScreenState extends State<UserDataSettingsScreen> {
     }
   }
 
-  Future<void> _importLearner() async {
+  Future<void> _importLearnerFromDialog() => _importLearner(fromDialog: true);
+
+  Future<void> _importLearner({bool fromDialog = false}) async {
     try {
-      final document = await _backup.readImportFile();
+      final LearnerBackupDocument document;
+      if (fromDialog) {
+        // Open from…: same decoding as the fixed-folder import, then the
+        // identical restore / collision flow below.
+        final picked = await _backup.readImportFromDialog();
+        if (!mounted) return;
+        final opened = picked.document;
+        if (opened == null) {
+          showFileDialogFeedback(
+            context,
+            picked.dialog,
+            saving: false,
+            fallbackHint: userDataImportFallbackHint,
+          );
+          return;
+        }
+        document = opened;
+      } else {
+        document = await _backup.readImportFile();
+      }
       if (!mounted) return;
       var action = await _chooseImportAction(document.displayName);
       if (action == null || !mounted) return;
@@ -406,10 +514,20 @@ class _UserDataSettingsScreenState extends State<UserDataSettingsScreen> {
             leading: const Icon(Icons.upload_file_outlined),
             title: const Text('Export my data'),
             subtitle: const Text(
-              'Saves directly to Documents/QuisquisLingo/Exports. No Save As dialog.',
+              'Saves directly to Documents/QuisquisLingo/Exports.',
             ),
             onTap: _exportLearner,
           ),
+          if (_backup.fileDialogsAvailable)
+            ListTile(
+              key: const Key('save-user-data-to'),
+              leading: const Icon(Icons.save_alt_outlined),
+              title: const Text('Save my data to…'),
+              subtitle: Text(
+                'The same backup, saved wherever you choose with the system file dialog.\n${cloudFolderHelpText()}',
+              ),
+              onTap: _saveLearnerTo,
+            ),
           ListTile(
             leading: const Icon(Icons.download_outlined),
             title: const Text('Import my data'),
@@ -418,6 +536,16 @@ class _UserDataSettingsScreenState extends State<UserDataSettingsScreen> {
             ),
             onTap: _importLearner,
           ),
+          if (_backup.fileDialogsAvailable)
+            ListTile(
+              key: const Key('open-user-data-from'),
+              leading: const Icon(Icons.folder_open_outlined),
+              title: const Text('Open my data from…'),
+              subtitle: const Text(
+                'Choose a learner backup anywhere with the system file dialog. It is checked exactly like an ordinary import.',
+              ),
+              onTap: _importLearnerFromDialog,
+            ),
           const Divider(),
           const ListTile(
             title: Text('User Recovery Key'),
@@ -434,15 +562,33 @@ class _UserDataSettingsScreenState extends State<UserDataSettingsScreen> {
             ),
             onTap: _exportRecoveryKey,
           ),
+          if (_recovery.fileDialogsAvailable)
+            ListTile(
+              key: const Key('save-user-recovery-key-to'),
+              leading: const Icon(Icons.save_alt_outlined),
+              title: const Text('Save Recovery Key to…'),
+              subtitle: const Text(
+                'The same key file, saved wherever you choose. Keep it private: you will be reminded first.',
+              ),
+              onTap: _saveRecoveryKeyTo,
+            ),
           ListTile(
             key: const Key('import-user-recovery-key'),
             leading: const Icon(Icons.key),
             title: const Text('Import User Recovery Key'),
-            subtitle: const Text(
-              'Searches Documents/QuisquisLingo/Imports without a file picker.',
-            ),
+            subtitle: const Text('Searches Documents/QuisquisLingo/Imports.'),
             onTap: _importRecoveryKey,
           ),
+          if (_recovery.fileDialogsAvailable)
+            ListTile(
+              key: const Key('open-user-recovery-key-from'),
+              leading: const Icon(Icons.folder_open_outlined),
+              title: const Text('Open Recovery Key from…'),
+              subtitle: const Text(
+                'Choose one Recovery Key file anywhere with the system file dialog. It is checked exactly like an ordinary import.',
+              ),
+              onTap: _importRecoveryKeyFromDialog,
+            ),
           ListTile(
             key: const Key('user-recovery-key-help'),
             leading: const Icon(Icons.help_outline),

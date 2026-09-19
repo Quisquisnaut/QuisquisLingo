@@ -39,7 +39,16 @@ void main() {
       final list = tester.widget<ListView>(find.byType(ListView));
       final children =
           (list.childrenDelegate as SliverChildListDelegate).children;
-      expect(children.last.key, const Key('course-editor-export-json'));
+      // Export stays the last existing entry. Only the additive Save to…
+      // tile (QQL 240; hidden where no system dialog exists) may follow it.
+      final keys = children.map((child) => child.key).toList();
+      final exportIndex = keys.indexOf(const Key('course-editor-export-json'));
+      expect(exportIndex, greaterThanOrEqualTo(0));
+      final trailing = keys.sublist(exportIndex + 1);
+      expect(
+        trailing,
+        anyOf(isEmpty, [const Key('course-editor-save-json-to')]),
+      );
 
       await tester.tap(export);
       await tester.pump();

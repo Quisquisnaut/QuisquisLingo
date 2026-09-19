@@ -6,6 +6,7 @@ import 'dart:ui' as ui;
 import 'package:path_provider/path_provider.dart';
 
 import '../models/course_models.dart';
+import 'file_dialog_service.dart';
 
 class ImportedLessonIcon {
   final CourseLessonIconAsset asset;
@@ -20,9 +21,21 @@ class ImportedLessonIcon {
 }
 
 class LessonIconService {
+  LessonIconService({FileDialogService? fileDialogs})
+    : _fileDialogs = fileDialogs ?? FileDialogService();
+
   static const int canvasSize = 256;
   static const int maxInputBytes = 2 * 1024 * 1024;
   static const int maxSourceDimension = 8192;
+
+  // Memory guard for Open from… only; larger files reach prepareIcon and get
+  // its standard 2 MB message.
+  static const int _dialogReadCap = 16 * 1024 * 1024;
+
+  final FileDialogService _fileDialogs;
+
+  /// False when the system dialog is unsupported; hide Open from….
+  bool get fileDialogsAvailable => _fileDialogs.isAvailable;
 
   static ui.Rect containDestination(int sourceWidth, int sourceHeight) {
     final scale =
@@ -81,6 +94,27 @@ class LessonIconService {
       await file.readAsBytes(),
       assetId: 'custom_${DateTime.now().microsecondsSinceEpoch}',
     );
+  }
+
+  /// Open from…: pick one icon image in the system dialog. It goes through
+  /// the same [prepareIcon] (2 MB limit, decoding, 256 x 256 PNG) as the
+  /// fixed-folder import; the icon is null when the user cancelled or the
+  /// dialog failed.
+  Future<({FileDialogResult dialog, ImportedLessonIcon? icon})>
+  importPreparedIconFromDialog() async {
+    final picked = await _fileDialogs.openBytes(
+      extensions: const ['png', 'jpg', 'jpeg', 'webp'],
+      maxBytes: _dialogReadCap,
+      artifact: 'lesson-icon',
+    );
+    if (picked.outcome != FileDialogOutcome.opened) {
+      return (dialog: picked, icon: null);
+    }
+    final icon = await prepareIcon(
+      picked.bytes!,
+      assetId: 'custom_${DateTime.now().microsecondsSinceEpoch}',
+    );
+    return (dialog: picked, icon: icon);
   }
 
   Future<ImportedLessonIcon> prepareIcon(

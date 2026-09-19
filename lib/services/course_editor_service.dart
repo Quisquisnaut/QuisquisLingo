@@ -10,6 +10,7 @@ import 'learner_status_events.dart';
 import 'profile_service.dart';
 import 'authoring_duplication_service.dart';
 import 'course_access_policy.dart';
+import 'managed_media_cleanup.dart';
 import 'team_service.dart';
 
 class CourseConfirmationResult {
@@ -65,7 +66,9 @@ class CourseEditorService {
     TeamService? teamService,
     CourseAccessPolicy? accessPolicy,
     DateTime Function()? clock,
+    ManagedAudioCleanup? audioCleanup,
   }) : _preferenceWriter = preferenceWriter,
+       _audioCleanup = audioCleanup ?? ManagedAudioCleanup(),
        backupService = backupService ?? CourseBackupService(),
        _profiles = profileService ?? ProfileService(),
        _teams = teamService ?? TeamService(profileService: profileService),
@@ -78,6 +81,7 @@ class CourseEditorService {
        _clock = clock ?? DateTime.now;
 
   final CourseEditorPreferenceWriter? _preferenceWriter;
+  final ManagedAudioCleanup _audioCleanup;
   final CourseBackupService backupService;
   final ProfileService _profiles;
   final TeamService _teams;
@@ -86,6 +90,26 @@ class CourseEditorService {
 
   Future<CourseAccessCapabilities> capabilitiesFor(Course course) =>
       _access.forCurrentProfile(course);
+
+  /// Deletes managed MP3 files that a confirmed change or a Course deletion
+  /// left unreferenced. Runs only after the change is persisted and verified,
+  /// checks every stored Course (Duplicate/Fork copies share file paths), and is
+  /// best effort: it never fails a save or a delete, and deletes nothing when
+  /// the stored data cannot be read completely. Backups hold their own copies of
+  /// clips, so they do not need the originals.
+  Future<void> _removeUnusedAudio(Iterable<String> candidates) async {
+    if (candidates.isEmpty) return;
+    try {
+      final stores = <Object?>[];
+      for (final key in [userCoursesStorageKey, externalOfficialStorageKey]) {
+        stores.add((await _loadKey(key)).values.toList());
+      }
+      await _audioCleanup.deleteUnreferenced(
+        candidates,
+        MediaReferenceIndex.fromStoredJson(stores),
+      );
+    } catch (_) {}
+  }
 
   Future<Map<String, dynamic>> _loadKey(String key) async {
     final preferences = await SharedPreferences.getInstance();
@@ -315,6 +339,7 @@ class CourseEditorService {
     }
     custom.remove(courseId);
     await _saveKey(userCoursesStorageKey, custom);
+    await _removeUnusedAudio(MediaReferenceIndex.audioPaths(course));
     LearnerStatusEvents.publish(LearnerStatusInvalidation.courseMetadata);
   }
 
@@ -681,6 +706,13 @@ class CourseEditorService {
     final verified = _courseFromEntry((await _loadKey(storageKey))[storageId]);
     if (jsonEncode(verified.toJson()) != jsonEncode(committed.toJson())) {
       throw StateError('Course persistence verification failed.');
+    }
+    if (current != null) {
+      await _removeUnusedAudio(
+        MediaReferenceIndex.audioPaths(
+          current,
+        ).difference(MediaReferenceIndex.audioPaths(verified)),
+      );
     }
     LearnerStatusEvents.publish(LearnerStatusInvalidation.courseMetadata);
     return CourseConfirmationResult(

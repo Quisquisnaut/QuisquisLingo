@@ -4,6 +4,9 @@ import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'dart:typed_data';
+
+import 'file_dialog_service.dart';
 import 'learner_status_events.dart';
 import 'profile_service.dart';
 import 'flag_game_score_service.dart';
@@ -51,15 +54,25 @@ class LearnerBackupService {
   final ProfileService _profiles;
   final Future<Directory> Function() _documentsDirectoryProvider;
   final LearnerBackupPreferenceWriter? _preferenceWriter;
+  final FileDialogService _fileDialogs;
+
+  // Memory guard for Open from… only; larger files reach the ordinary 10 MB
+  // check and get its standard message.
+  static const int _dialogReadCap = 64 * 1024 * 1024;
 
   LearnerBackupService({
     ProfileService? profileService,
     Future<Directory> Function()? documentsDirectoryProvider,
     LearnerBackupPreferenceWriter? preferenceWriter,
+    FileDialogService? fileDialogs,
   }) : _profiles = profileService ?? ProfileService(),
        _documentsDirectoryProvider =
            documentsDirectoryProvider ?? getApplicationDocumentsDirectory,
-       _preferenceWriter = preferenceWriter;
+       _preferenceWriter = preferenceWriter,
+       _fileDialogs = fileDialogs ?? FileDialogService();
+
+  /// False when the system dialog is unsupported; hide Save to… / Open from….
+  bool get fileDialogsAvailable => _fileDialogs.isAvailable;
 
   Future<Directory> transferDirectory() async {
     final documents = await _documentsDirectoryProvider();
@@ -114,11 +127,14 @@ class LearnerBackupService {
     };
   }
 
-  Future<String> saveActiveProfile() async {
+  /// The exact bytes and base file name of the active learner's backup,
+  /// shared by [saveActiveProfile] and [saveActiveProfileTo].
+  Future<({Uint8List bytes, String baseName})>
+  buildActiveProfileExport() async {
     final payload = const JsonEncoder.withIndent(
       '  ',
     ).convert(await exportActiveProfile());
-    final bytes = utf8.encode(payload);
+    final bytes = Uint8List.fromList(utf8.encode(payload));
     if (bytes.length > maxBackupBytes) {
       throw const FormatException(
         'Learner backup exceeds the 10 MB export safety limit.',
@@ -130,8 +146,26 @@ class LearnerBackupService {
     final profileName = profile.displayName
         .replaceAll(RegExp(r'[^A-Za-z0-9_-]'), '_')
         .toLowerCase();
+    return (bytes: bytes, baseName: 'quisquislingo_${profileName}_backup');
+  }
+
+  /// Save to…: the same backup as [saveActiveProfile], written wherever the
+  /// user chooses in the system dialog.
+  Future<FileDialogResult> saveActiveProfileTo() async {
+    final export = await buildActiveProfileExport();
+    return _fileDialogs.saveBytes(
+      bytes: export.bytes,
+      suggestedName: '${export.baseName}.json',
+      extensions: const ['json'],
+      artifact: 'user-data',
+    );
+  }
+
+  Future<String> saveActiveProfile() async {
+    final export = await buildActiveProfileExport();
+    final bytes = export.bytes;
+    final baseName = export.baseName;
     final directory = await transferDirectory();
-    final baseName = 'quisquislingo_${profileName}_backup';
     var path = '${directory.path}${Platform.pathSeparator}$baseName.json';
     var suffix = 2;
     while (await File(path).exists()) {
@@ -157,6 +191,28 @@ class LearnerBackupService {
       );
     }
     return decodeDocument(await file.readAsBytes());
+  }
+
+  /// Open from…: pick a learner backup in the system dialog. The document is
+  /// decoded by the same [decodeDocument] as the fixed-folder import and is
+  /// null when the user cancelled or the dialog failed.
+  Future<({FileDialogResult dialog, LearnerBackupDocument? document})>
+  readImportFromDialog() async {
+    final picked = await _fileDialogs.openBytes(
+      extensions: const ['json'],
+      maxBytes: _dialogReadCap,
+      artifact: 'user-data',
+    );
+    if (picked.outcome != FileDialogOutcome.opened) {
+      return (dialog: picked, document: null);
+    }
+    final bytes = picked.bytes!;
+    if (bytes.length > maxBackupBytes) {
+      throw const FormatException(
+        'Learner backup is larger than the 10 MB safety limit.',
+      );
+    }
+    return (dialog: picked, document: decodeDocument(bytes));
   }
 
   LearnerBackupDocument decodeDocument(List<int> bytes) {

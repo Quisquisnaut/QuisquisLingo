@@ -7,6 +7,7 @@ import '../services/exercise_image_metadata_service.dart';
 import '../services/exercise_image_service.dart';
 import '../services/image_bank_service.dart';
 import '../services/profile_service.dart';
+import '../widgets/file_dialog_feedback.dart';
 
 String _normalizeImageSearchText(String value) => value
     .trim()
@@ -107,12 +108,31 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
     }
   }
 
-  Future<void> _importSingle() async {
+  Future<void> _importSingleFromDialog() => _importSingle(fromDialog: true);
+
+  Future<void> _importSingle({bool fromDialog = false}) async {
     final actor = widget.actorProfileId;
     if (!_canManageMetadata || actor == null) return;
     String? path;
     try {
-      path = await _images.importImage();
+      if (fromDialog) {
+        // Open from…: same checks and storage as the fixed-folder import,
+        // then the identical size hint and metadata steps below.
+        final picked = await _images.importImageFromDialog();
+        if (!mounted) return;
+        path = picked.path;
+        if (path == null) {
+          showFileDialogFeedback(
+            context,
+            picked.dialog,
+            saving: false,
+            fallbackHint: exerciseImageFallbackHint,
+          );
+          return;
+        }
+      } else {
+        path = await _images.importImage();
+      }
       if (path == null) return;
       final info = await _images.inspect(path);
       if (mounted && (info.width > 512 || info.height > 512)) {
@@ -152,13 +172,33 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
     }
   }
 
-  Future<void> _importBank() async {
+  Future<void> _importBankFromDialog() => _importBank(fromDialog: true);
+
+  Future<void> _importBank({bool fromDialog = false}) async {
     final actor = widget.actorProfileId;
     if (!_canManageMetadata || actor == null) return;
     try {
-      final result = await _banks.pickAndImportBank(
-        existingIds: _all.map((entry) => entry.id).toSet(),
-      );
+      final ImageBankImportResult? result;
+      final existingIds = _all.map((entry) => entry.id).toSet();
+      if (fromDialog) {
+        // Open from…: the same importer and the same metadata steps below.
+        final picked = await _banks.importBankZipFromDialog(
+          existingIds: existingIds,
+        );
+        if (!mounted) return;
+        result = picked.result;
+        if (result == null) {
+          showFileDialogFeedback(
+            context,
+            picked.dialog,
+            saving: false,
+            fallbackHint: imageBankFallbackHint,
+          );
+          return;
+        }
+      } else {
+        result = await _banks.pickAndImportBank(existingIds: existingIds);
+      }
       if (result == null) return;
       try {
         await _metadata.addLocalRecords(
@@ -203,7 +243,7 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
           builder: (dialogContext) => AlertDialog(
             title: const Text('Delete image?'),
             content: Text(
-              'Delete “${item.label}” from the Media Library? Existing exercise references must be changed separately.',
+              'Delete “${item.label}” from the Shared Image Library? Existing exercise references must be changed separately.',
             ),
             actions: [
               TextButton(
@@ -504,24 +544,36 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
         .toList();
     return Scaffold(
       appBar: AppBar(
-        title: Text('Media Library · ${_all.length} images'),
+        title: Text('Shared Image Library · ${_all.length} images'),
         actions: [
           if (_canManageMetadata)
             PopupMenuButton<String>(
               tooltip: 'Import',
               onSelected: (value) {
                 if (value == 'bank') _importBank();
+                if (value == 'bank_from') _importBankFromDialog();
                 if (value == 'image') _importSingle();
+                if (value == 'image_from') _importSingleFromDialog();
               },
-              itemBuilder: (_) => const [
-                PopupMenuItem(
+              itemBuilder: (_) => [
+                const PopupMenuItem(
                   value: 'bank',
                   child: Text('Import Image Bank ZIP'),
                 ),
-                PopupMenuItem(
+                if (_banks.fileDialogsAvailable)
+                  const PopupMenuItem(
+                    value: 'bank_from',
+                    child: Text('Open Image Bank ZIP from…'),
+                  ),
+                const PopupMenuItem(
                   value: 'image',
                   child: Text('Import single image'),
                 ),
+                if (_images.fileDialogsAvailable)
+                  const PopupMenuItem(
+                    value: 'image_from',
+                    child: Text('Open single image from…'),
+                  ),
               ],
             ),
         ],

@@ -64,7 +64,15 @@ abstract final class PortableExerciseImageService {
     if (await source.length() > maxImageBytes) {
       throw const FormatException('Exercise images must not exceed 50 KB.');
     }
-    final bytes = await source.readAsBytes();
+    return fromBytes(await source.readAsBytes());
+  }
+
+  /// The one authoritative check for a picked image, shared by the fixed-folder
+  /// import ([fromFile]) and Open from….
+  static Future<String> fromBytes(Uint8List bytes) async {
+    if (bytes.length > maxImageBytes) {
+      throw const FormatException('Exercise images must not exceed 50 KB.');
+    }
     final mime = _mime(bytes);
     if (mime == null) {
       throw const FormatException('Choose a readable PNG, JPEG or WEBP image.');

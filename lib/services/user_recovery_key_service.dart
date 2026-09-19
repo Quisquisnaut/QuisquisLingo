@@ -1,10 +1,12 @@
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
+import 'dart:typed_data';
 
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'file_dialog_service.dart';
 import 'profile_service.dart';
 
 class UserRecoveryKeyDocument {
@@ -43,13 +45,16 @@ class UserRecoveryKeyService {
   final Future<Directory> Function() _exportsDirectoryProvider;
   final Future<Directory> Function() _importsDirectoryProvider;
   final List<int> Function(int length) _secureBytes;
+  final FileDialogService _fileDialogs;
 
   UserRecoveryKeyService({
     ProfileService? profileService,
     Future<Directory> Function()? exportsDirectoryProvider,
     Future<Directory> Function()? importsDirectoryProvider,
     List<int> Function(int length)? secureBytes,
+    FileDialogService? fileDialogs,
   }) : _profiles = profileService ?? ProfileService(),
+       _fileDialogs = fileDialogs ?? FileDialogService(),
        _exportsDirectoryProvider =
            exportsDirectoryProvider ?? (() => _qqlDirectory('Exports')),
        _importsDirectoryProvider =
@@ -69,7 +74,50 @@ class UserRecoveryKeyService {
     return directory;
   }
 
-  Future<String> exportActiveUserRecoveryKey() async {
+  /// False when the system dialog is unsupported; hide Save to… / Open from….
+  bool get fileDialogsAvailable => _fileDialogs.isAvailable;
+
+  /// Save to…: the same key file as [exportActiveUserRecoveryKey], written
+  /// wherever the user chooses. The key is a secret: callers must warn the
+  /// user before the dialog opens.
+  Future<FileDialogResult> exportActiveUserRecoveryKeyTo() async {
+    final export = await _buildActiveKeyExport();
+    return _fileDialogs.saveBytes(
+      bytes: export.bytes,
+      suggestedName: '${export.stem}.json',
+      extensions: const ['json'],
+      artifact: 'user-recovery-key',
+    );
+  }
+
+  /// Open from…: pick one Recovery Key file in the system dialog. Decoded by
+  /// the same [decodeDocument] as the fixed-folder scan; the candidate is null
+  /// when the user cancelled or the dialog failed. Its `path` is the file
+  /// name only.
+  Future<({FileDialogResult dialog, UserRecoveryKeyCandidate? candidate})>
+  openUserRecoveryKeyFromDialog() async {
+    final picked = await _fileDialogs.openBytes(
+      extensions: const ['json'],
+      maxBytes: _maximumKeyBytes + 1,
+      artifact: 'user-recovery-key',
+    );
+    if (picked.outcome != FileDialogOutcome.opened) {
+      return (dialog: picked, candidate: null);
+    }
+    final bytes = picked.bytes!;
+    if (bytes.length > _maximumKeyBytes) {
+      throw const FormatException('A User Recovery Key is too large.');
+    }
+    return (
+      dialog: picked,
+      candidate: UserRecoveryKeyCandidate(
+        path: picked.displayName!,
+        document: decodeDocument(bytes),
+      ),
+    );
+  }
+
+  Future<({Uint8List bytes, String stem})> _buildActiveKeyExport() async {
     final profile = await _profiles.getActiveProfileRecord();
     if (profile == null) {
       throw StateError('No active learner profile to export.');
@@ -90,9 +138,17 @@ class UserRecoveryKeyService {
       'learnerProfileId': profile.learnerProfileId,
       'secret': secret,
     });
+    return (
+      bytes: Uint8List.fromList(utf8.encode(payload)),
+      stem: 'quisquislingo_${profile.learnerProfileId}.user-recovery-key',
+    );
+  }
+
+  Future<String> exportActiveUserRecoveryKey() async {
+    final export = await _buildActiveKeyExport();
+    final stem = export.stem;
     final directory = await _exportsDirectoryProvider();
     await directory.create(recursive: true);
-    final stem = 'quisquislingo_${profile.learnerProfileId}.user-recovery-key';
     var file = File('${directory.path}${Platform.pathSeparator}$stem.json');
     var suffix = 2;
     while (await file.exists()) {
@@ -101,7 +157,7 @@ class UserRecoveryKeyService {
       );
       suffix++;
     }
-    await file.writeAsString(payload, flush: true);
+    await file.writeAsBytes(export.bytes, flush: true);
     return file.path;
   }
 

@@ -6,8 +6,13 @@ import '../models/course_models.dart';
 import '../screens/flat_image_library_screen.dart';
 import '../services/exercise_image_service.dart';
 import '../services/exercise_field_help.dart';
+import '../services/file_dialog_service.dart';
 import '../services/portable_exercise_image.dart';
+import 'file_dialog_feedback.dart';
 import 'portable_exercise_image.dart';
+
+// The editor is a const StatelessWidget, so its dialog service is shared.
+final FileDialogService _dialogs = FileDialogService();
 
 enum ScriptRecognitionMode { imageToText, textToImage }
 
@@ -306,6 +311,12 @@ class ScriptRecognitionEditor extends StatelessWidget {
             onPressed: () => Navigator.pop(context, 'import'),
             child: const Text('Import portable image'),
           ),
+          if (_dialogs.isAvailable)
+            SimpleDialogOption(
+              key: const Key('open-portable-image-from'),
+              onPressed: () => Navigator.pop(context, 'open_from'),
+              child: const Text('Open portable image from…'),
+            ),
         ],
       ),
     );
@@ -321,6 +332,27 @@ class ScriptRecognitionEditor extends StatelessWidget {
         if (PortableExerciseImageService.isPortable(asset)) return asset;
         // Existing locally imported bank images become course-owned bytes.
         return await PortableExerciseImageService.fromFile(File(asset));
+      }
+      if (source == 'open_from') {
+        // Open from…: same bytes check as the fixed-folder import below.
+        final picked = await _dialogs.openBytes(
+          extensions: const ['png', 'jpg', 'jpeg', 'webp'],
+          maxBytes: 8 * 1024 * 1024,
+          artifact: 'portable-image',
+        );
+        if (picked.outcome != FileDialogOutcome.opened) {
+          if (context.mounted) {
+            showFileDialogFeedback(
+              context,
+              picked,
+              saving: false,
+              fallbackHint:
+                  'Copy the image to Documents/QuisquisLingo/Imports/Images and use Import portable image instead.',
+            );
+          }
+          return null;
+        }
+        return await PortableExerciseImageService.fromBytes(picked.bytes!);
       }
       final directory = await ExerciseImageService().fixedImportDirectory();
       final files = await directory

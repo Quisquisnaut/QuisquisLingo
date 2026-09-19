@@ -6,6 +6,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/exercise_image_metadata.dart';
+import 'file_dialog_service.dart';
 
 class ImportedImageBank {
   final String id;
@@ -47,6 +48,53 @@ class ImageBankService {
   static const int maxImportedImages = 2500;
   static const int maxTotalImageBytes = 50 * 1024 * 1024;
   static const banksKey = 'quisquislingo_imported_image_banks_v2';
+
+  // Memory guard for Open from…; larger files than maxZipBytes reach the
+  // ordinary check in importBankZip and get its standard message.
+  static const int _dialogReadCap = 128 * 1024 * 1024;
+
+  ImageBankService({
+    FileDialogService? fileDialogs,
+    Future<Directory> Function()? temporaryDirectory,
+  }) : _fileDialogs = fileDialogs ?? FileDialogService(),
+       _temporaryDirectory = temporaryDirectory ?? getTemporaryDirectory;
+
+  final FileDialogService _fileDialogs;
+  final Future<Directory> Function() _temporaryDirectory;
+
+  /// False when the system dialog is unsupported; hide Open from….
+  bool get fileDialogsAvailable => _fileDialogs.isAvailable;
+
+  /// Open from…: pick one Image Bank ZIP in the system dialog. The picked
+  /// bytes are staged as a temporary file (keeping the ZIP's own name, which
+  /// names the bank) and go through the ordinary [importBankZip]; the temporary
+  /// copy is always deleted. The result is null when the user cancelled or the
+  /// dialog failed; see the dialog result.
+  Future<({FileDialogResult dialog, ImageBankImportResult? result})>
+  importBankZipFromDialog({Set<String> existingIds = const {}}) async {
+    final picked = await _fileDialogs.openBytes(
+      extensions: const ['zip'],
+      maxBytes: _dialogReadCap,
+      artifact: 'image-bank',
+    );
+    if (picked.outcome != FileDialogOutcome.opened) {
+      return (dialog: picked, result: null);
+    }
+    final staging = await (await _temporaryDirectory()).createTemp(
+      'qql_image_bank_',
+    );
+    try {
+      final name = picked.displayName!.replaceAll(RegExp(r'[\\/:*?"<>|]'), '_');
+      final file = File('${staging.path}${Platform.pathSeparator}$name');
+      await file.writeAsBytes(picked.bytes!, flush: true);
+      final result = await importBankZip(file, existingIds: existingIds);
+      return (dialog: picked, result: result);
+    } finally {
+      try {
+        await staging.delete(recursive: true);
+      } catch (_) {}
+    }
+  }
 
   Future<List<ImportedImageBank>> banks() async {
     final prefs = await SharedPreferences.getInstance();

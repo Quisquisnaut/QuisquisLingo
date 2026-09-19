@@ -110,6 +110,7 @@ void main() {
     await _pumpFrames(tester);
     await tester.tap(find.byKey(const Key('lesson-theme-icon-field')));
     await _pumpFrames(tester);
+    await _expandPreinstalled(tester);
 
     final gridFinder = find.byKey(const Key('lesson-theme-icon-grid'));
     final grid = tester.widget<GridView>(gridFinder);
@@ -193,8 +194,9 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const Key('lesson-theme-icon-field')));
       await _pumpFrames(tester);
+      await _expandPreinstalled(tester);
       expect(find.byKey(const Key('lesson-theme-icon-grid')), findsOneWidget);
-      expect(find.text('None'), findsWidgets);
+      expect(find.text('Numbers'), findsWidgets);
       await tester.drag(
         find.byKey(const Key('lesson-theme-icon-grid')),
         const Offset(0, -240),
@@ -271,6 +273,7 @@ void main() {
     expect(find.byKey(const Key('lesson-theme-icon-preview')), findsOneWidget);
     await tester.tap(find.byKey(const Key('lesson-theme-icon-field')));
     await _pumpFrames(tester);
+    await _expandPreinstalled(tester);
     await tester.tap(
       find.byKey(const ValueKey('lesson-theme-icon-option-none')),
     );
@@ -698,4 +701,11 @@ Future<void> _pumpFrames(WidgetTester tester) async {
   for (var frame = 0; frame < 8; frame++) {
     await tester.pump(const Duration(milliseconds: 75));
   }
+}
+
+Future<void> _expandPreinstalled(WidgetTester tester) async {
+  await tester.tap(
+    find.byKey(const Key('lesson-theme-icon-preinstalled-toggle')),
+  );
+  await _pumpFrames(tester);
 }

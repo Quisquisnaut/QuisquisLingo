@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../models/course_models.dart';
 import '../services/course_backup_service.dart';
 import '../services/custom_course_transfer_service.dart';
+import '../widgets/file_dialog_feedback.dart';
 
 class CourseHistorySelection {
   final Course course;
@@ -99,6 +100,25 @@ class _CourseVersionHistoryScreenState
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Historical course exported to $path')),
+      );
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Historical export failed: $error')),
+      );
+    }
+  }
+
+  Future<void> _saveHistoricalTo(Course course) async {
+    try {
+      final result = await _transfer.exportCourseTo(course);
+      if (!mounted) return;
+      showFileDialogFeedback(
+        context,
+        result,
+        saving: true,
+        savedMessage: 'Historical course saved as ${result.displayName}.',
+        fallbackHint: exportFallbackHint,
       );
     } catch (error) {
       if (!mounted) return;
@@ -227,6 +247,11 @@ class _CourseVersionHistoryScreenState
                             onPressed: () => _exportHistorical(record.course),
                             child: const Text('Export historical version'),
                           ),
+                          if (_transfer.fileDialogsAvailable)
+                            OutlinedButton(
+                              onPressed: () => _saveHistoricalTo(record.course),
+                              child: const Text('Save historical version to…'),
+                            ),
                         ],
                       ),
                     ],

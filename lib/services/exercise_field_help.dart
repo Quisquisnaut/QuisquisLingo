@@ -827,7 +827,7 @@ abstract final class ExerciseFieldHelpRegistry {
       title: 'Exercise image',
       purpose: 'Adds one image to the exercise prompt or context.',
       entryRules:
-          'Choose a flat image, or place exactly one PNG, JPG, JPEG or WebP file in Documents/QuisquisLingo/Imports/Images and press Import custom image. Import copies the original bytes to local app storage; it does not resize, crop or change transparency.',
+          'Choose a flat image from the shared image library (managed by admins), or place exactly one PNG, JPG, JPEG or WebP file in Documents/QuisquisLingo/Imports/Images and press Import custom image. Any course editor can import a custom image; it is not added to the shared library. Import copies the original bytes to local app storage; it does not resize, crop or change transparency.',
       validation:
           'Maximum 50 KB (51,200 bytes). 256 × 256 pixels and 15 KB or less are recommendations, not enforced dimensions. Image-prompt ordering requires an image; other current presets may omit it. Missing or multiple source files and oversized files are rejected. Preview checks that the image displays. Course JSON stores the image path, not these image bytes, so custom exercise images are not portable through course JSON alone.',
       example:

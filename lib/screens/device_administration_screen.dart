@@ -308,9 +308,9 @@ class _DeviceAdministrationScreenState
                       ListTile(
                         key: const Key('admin-media-library'),
                         leading: const Icon(Icons.perm_media_outlined),
-                        title: const Text('Admin Media Library'),
+                        title: const Text('Shared Image Library (admin)'),
                         subtitle: const Text(
-                          'Manage the shared image library and its descriptive metadata. The same library is available from Course Manager.',
+                          'Manage the images shared by every course and learner on this device, and their descriptive metadata. Only admins can add to or change this library. Anyone who edits a course can still add their own image to an exercise. The same library is available from Course Manager.',
                         ),
                         trailing: const Icon(Icons.chevron_right),
                         onTap: () => _push(
