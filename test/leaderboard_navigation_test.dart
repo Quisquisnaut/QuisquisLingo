@@ -1695,6 +1695,21 @@ void main() {
     expect(find.textContaining('Learners on '), findsOneWidget);
     expect(find.text('Navigation Learner (admin)'), findsOneWidget);
     expect(find.text('Add learner'), findsOneWidget);
+
+    // The only admin cannot be deleted: the item is disabled and explained.
+    await tester.tap(find.byTooltip('Learner actions'));
+    await tester.pumpAndSettle();
+    expect(find.text('Delete learner (only admin)'), findsOneWidget);
+    expect(
+      find.text(
+        'The only admin cannot be deleted. However, you can make another '
+        'user admin. As last resort, you can reset QQL.',
+      ),
+      findsOneWidget,
+    );
+    await tester.tap(find.text('Delete learner (only admin)'));
+    await tester.pumpAndSettle();
+    expect(find.text('Delete learner?'), findsNothing);
   });
 
   testWidgets('Profile logout returns Home to learner selection', (

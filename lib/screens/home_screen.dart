@@ -958,112 +958,125 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: ListView(
                   children: [
                     ..._learners.map(
-                      (profile) =>
-                          FutureBuilder<
-                            ({ProfileAvatarAppearance? appearance, bool hasPin})
-                          >(
-                            future: _learnerSheetData(profile),
-                            builder: (context, snapshot) {
-                              final appearance = snapshot.data?.appearance;
-                              final hasPin = snapshot.data?.hasPin == true;
-                              final actorId = _activeLearnerId;
-                              final actorIsAdmin =
-                                  actorId != null &&
-                                  _adminProfileIds.contains(actorId);
-                              final targetIsAdmin = _adminProfileIds.contains(
-                                profile.learnerProfileId,
-                              );
-                              final canDelete =
-                                  actorId != null &&
-                                  (actorId == profile.learnerProfileId ||
-                                      actorIsAdmin);
-                              final isSoleAdmin =
-                                  targetIsAdmin && _adminProfileIds.length == 1;
-                              final hasActions =
-                                  canDelete ||
-                                  (actorIsAdmin && !targetIsAdmin) ||
-                                  (actorId == profile.learnerProfileId &&
-                                      targetIsAdmin &&
-                                      _adminProfileIds.length > 1) ||
-                                  (actorIsAdmin &&
-                                      actorId != profile.learnerProfileId &&
-                                      hasPin);
-                              return ListTile(
-                                leading: SizedBox(
-                                  width: 42,
-                                  height: 48,
-                                  child: appearance == null
-                                      ? const Icon(Icons.person_outline)
-                                      : LearnerAvatar(
-                                          skinTone: appearance.skinTone,
-                                          hairTone: appearance.hairTone,
+                      (
+                        profile,
+                      ) => FutureBuilder<({ProfileAvatarAppearance? appearance, bool hasPin})>(
+                        future: _learnerSheetData(profile),
+                        builder: (context, snapshot) {
+                          final appearance = snapshot.data?.appearance;
+                          final hasPin = snapshot.data?.hasPin == true;
+                          final actorId = _activeLearnerId;
+                          final actorIsAdmin =
+                              actorId != null &&
+                              _adminProfileIds.contains(actorId);
+                          final targetIsAdmin = _adminProfileIds.contains(
+                            profile.learnerProfileId,
+                          );
+                          final canDelete =
+                              actorId != null &&
+                              (actorId == profile.learnerProfileId ||
+                                  actorIsAdmin);
+                          final isSoleAdmin =
+                              targetIsAdmin && _adminProfileIds.length == 1;
+                          final hasActions =
+                              canDelete ||
+                              (actorIsAdmin && !targetIsAdmin) ||
+                              (actorId == profile.learnerProfileId &&
+                                  targetIsAdmin &&
+                                  _adminProfileIds.length > 1) ||
+                              (actorIsAdmin &&
+                                  actorId != profile.learnerProfileId &&
+                                  hasPin);
+                          return ListTile(
+                            leading: SizedBox(
+                              width: 42,
+                              height: 48,
+                              child: appearance == null
+                                  ? const Icon(Icons.person_outline)
+                                  : LearnerAvatar(
+                                      skinTone: appearance.skinTone,
+                                      hairTone: appearance.hairTone,
+                                    ),
+                            ),
+                            title: Text(
+                              '${profile.displayName}${targetIsAdmin ? ' (admin)' : ''}',
+                            ),
+                            subtitle: profile.discordHandle == null
+                                ? null
+                                : Text('${profile.discordHandle} on Discord'),
+                            selected:
+                                profile.learnerProfileId == _activeLearnerId,
+                            onTap: () => Navigator.pop(
+                              ctx,
+                              'switch:${profile.learnerProfileId}',
+                            ),
+                            trailing: hasActions
+                                ? PopupMenuButton<String>(
+                                    tooltip: 'Learner actions',
+                                    onSelected: (value) => Navigator.pop(
+                                      ctx,
+                                      '$value:${profile.learnerProfileId}',
+                                    ),
+                                    itemBuilder: (context) => [
+                                      if (actorIsAdmin && !targetIsAdmin)
+                                        const PopupMenuItem(
+                                          value: 'promote-admin',
+                                          child: Text('Make admin'),
                                         ),
-                                ),
-                                title: Text(
-                                  '${profile.displayName}${targetIsAdmin ? ' (admin)' : ''}',
-                                ),
-                                subtitle: profile.discordHandle == null
-                                    ? null
-                                    : Text(
-                                        '${profile.discordHandle} on Discord',
-                                      ),
-                                selected:
-                                    profile.learnerProfileId ==
-                                    _activeLearnerId,
-                                onTap: () => Navigator.pop(
-                                  ctx,
-                                  'switch:${profile.learnerProfileId}',
-                                ),
-                                trailing: hasActions
-                                    ? PopupMenuButton<String>(
-                                        tooltip: 'Learner actions',
-                                        onSelected: (value) => Navigator.pop(
-                                          ctx,
-                                          '$value:${profile.learnerProfileId}',
+                                      if (actorId == profile.learnerProfileId &&
+                                          targetIsAdmin &&
+                                          _adminProfileIds.length > 1)
+                                        const PopupMenuItem(
+                                          value: 'relinquish-admin',
+                                          child: Text('Relinquish admin'),
                                         ),
-                                        itemBuilder: (context) => [
-                                          if (actorIsAdmin && !targetIsAdmin)
-                                            const PopupMenuItem(
-                                              value: 'promote-admin',
-                                              child: Text('Make admin'),
-                                            ),
-                                          if (actorId ==
-                                                  profile.learnerProfileId &&
-                                              targetIsAdmin &&
-                                              _adminProfileIds.length > 1)
-                                            const PopupMenuItem(
-                                              value: 'relinquish-admin',
-                                              child: Text('Relinquish admin'),
-                                            ),
-                                          if (actorIsAdmin &&
-                                              actorId !=
-                                                  profile.learnerProfileId &&
-                                              hasPin)
-                                            const PopupMenuItem(
-                                              value: 'reset-pin',
-                                              child: Text('Reset PIN'),
-                                            ),
-                                          if (canDelete)
-                                            PopupMenuItem(
-                                              value: 'delete',
-                                              enabled: !isSoleAdmin,
-                                              child: Tooltip(
-                                                message: isSoleAdmin
-                                                    ? 'The only admin cannot be deleted. Use Device Administration to reset QQL instead.'
-                                                    : 'Delete learner',
-                                                child: Text(
-                                                  isSoleAdmin
-                                                      ? 'Delete learner (only admin)'
-                                                      : 'Delete learner',
-                                                ),
-                                              ),
-                                            ),
-                                        ],
-                                      )
-                                    : null,
-                              );
-                            },
-                          ),
+                                      if (actorIsAdmin &&
+                                          actorId != profile.learnerProfileId &&
+                                          hasPin)
+                                        const PopupMenuItem(
+                                          value: 'reset-pin',
+                                          child: Text('Reset PIN'),
+                                        ),
+                                      if (canDelete)
+                                        PopupMenuItem(
+                                          value: 'delete',
+                                          enabled: !isSoleAdmin,
+                                          child: isSoleAdmin
+                                              ? ConstrainedBox(
+                                                  constraints:
+                                                      const BoxConstraints(
+                                                        maxWidth: 260,
+                                                      ),
+                                                  child: Column(
+                                                    crossAxisAlignment:
+                                                        CrossAxisAlignment
+                                                            .start,
+                                                    mainAxisSize:
+                                                        MainAxisSize.min,
+                                                    children: [
+                                                      const Text(
+                                                        'Delete learner (only admin)',
+                                                      ),
+                                                      Text(
+                                                        'The only admin cannot be deleted. However, you can make another user admin. As last resort, you can reset QQL.',
+                                                        key: const Key(
+                                                          'sole-admin-delete-note',
+                                                        ),
+                                                        style: Theme.of(
+                                                          context,
+                                                        ).textTheme.bodySmall,
+                                                      ),
+                                                    ],
+                                                  ),
+                                                )
+                                              : const Text('Delete learner'),
+                                        ),
+                                    ],
+                                  )
+                                : null,
+                          );
+                        },
+                      ),
                     ),
                     ListTile(
                       leading: const Icon(Icons.person_add_alt),
