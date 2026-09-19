@@ -80,7 +80,7 @@ class DeviceAdministrationHelpScreen extends StatelessWidget {
               _Section(
                 title: 'Before you reset: backups',
                 paragraphs: [
-                  'Learner data is exported from Profile → User Data. Courses are exported one at a time from Course Manager. Exports are saved in the QuisquisLingo/Exports folder, which the full wipe keeps unless you untick it.',
+                  'Learner data is exported from Profile → User Data, and each backup covers only the learner who is logged in: an admin cannot export other learners’ data, so before a reset that affects other learners, ask each of them to export their own. Courses are exported one at a time from Course Manager. Exports are saved in the QuisquisLingo/Exports folder, which the full wipe keeps unless you untick it.',
                 ],
               ),
               _Section(

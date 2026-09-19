@@ -238,6 +238,39 @@ void main() {
     await tester.tap(find.byKey(const Key('admin-reset-run')));
     await settle(tester);
     expect(prefs.containsKey(key), isFalse);
+
+    // Regression: the admin must stay logged in and see the page afterwards.
+    expect(
+      find.text('Device Administration is available only to admins.'),
+      findsNothing,
+    );
+    expect(await profiles.getActiveProfileId(), adminId);
+    expect(await profiles.hasAccessPin(adminId), isTrue);
+    expect(
+      find.byKey(const Key('admin-reset-button-everything')),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('the backup step is honest that it covers only the admin', (
+    tester,
+  ) async {
+    await profiles.setOwnAccessPin(actorProfileId: adminId, pin: '1234');
+    await profiles.createProfile('Learner Two');
+    await profiles.setActiveProfileById(adminId, accessPin: '1234');
+    await open(tester);
+
+    await tester.tap(
+      find.byKey(const Key('admin-reset-button-learnerProgress')),
+    );
+    await settle(tester);
+    await tester.tap(find.byKey(const Key('admin-reset-continue')));
+    await tester.pumpAndSettle();
+    expect(find.text('Back up first?'), findsOneWidget);
+    expect(find.textContaining('only YOUR OWN data'), findsOneWidget);
+    expect(find.textContaining('ask each of them to log in'), findsOneWidget);
+    expect(find.textContaining('Learner Two'), findsWidgets);
+    expect(find.text('Open my User Data to back up'), findsOneWidget);
   });
 
   testWidgets('NUKE needs the typed phrase, the PIN, and restarts the app', (

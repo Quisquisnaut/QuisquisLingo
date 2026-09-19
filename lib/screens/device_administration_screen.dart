@@ -599,7 +599,7 @@ class _ResetSection extends StatelessWidget {
     if (!context.mounted) return;
 
     // Step 2: backup offer.
-    final backup = await _backupOffer(context);
+    final backup = await _backupOffer(context, plan, others);
     if (backup != true || !context.mounted) return;
 
     // Step 3 (everything only): what to keep, and a typed confirmation.
@@ -702,16 +702,47 @@ class _ResetSection extends StatelessWidget {
         false;
   }
 
-  Future<bool?> _backupOffer(BuildContext context) {
+  String _backupText(_ResetPlan plan, List<String> others) {
+    final touchesLearners =
+        plan.scope == AppResetScope.learnerProgress ||
+        plan.scope == AppResetScope.nonAdminLearners ||
+        plan.scope == AppResetScope.everything;
+    final buffer = StringBuffer(
+      'A backup lets you restore what you are about to delete. Backups are saved in the QuisquisLingo/Exports folder, which a full wipe keeps unless you untick it.\n\n',
+    );
+    if (touchesLearners) {
+      buffer.write(
+        'Learner backups are personal. "Open my User Data" backs up only YOUR OWN data, as the admin who is logged in now. An admin cannot export another learner’s data.',
+      );
+      if (others.isNotEmpty) {
+        buffer.write(
+          ' To let the other learners keep a backup, ask each of them to log in and use Profile → User Data → Export my data before you continue: ${others.join(', ')}.',
+        );
+      }
+      buffer.write('\n\n');
+    }
+    if (plan.scope == AppResetScope.customCourses ||
+        plan.scope == AppResetScope.everything) {
+      buffer.write(
+        'Courses are exported one at a time from Course Manager.\n\n',
+      );
+    }
+    buffer.write(
+      'You can open User Data now, make your backup, and then start this reset again.',
+    );
+    return buffer.toString();
+  }
+
+  Future<bool?> _backupOffer(
+    BuildContext context,
+    _ResetPlan plan,
+    List<String> others,
+  ) {
     return showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: const Text('Back up first?'),
-        content: const SingleChildScrollView(
-          child: Text(
-            'A backup lets you restore what you are about to delete. Learner data is exported from Profile → User Data. Courses are exported one by one from Course Manager. Exports are saved in the QuisquisLingo/Exports folder, which is kept by default even if you wipe everything.\n\nYou can open User Data now, make your backup, and then come back and start this reset again.',
-          ),
-        ),
+        content: SingleChildScrollView(child: Text(_backupText(plan, others))),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext, false),
@@ -727,7 +758,7 @@ class _ResetSection extends StatelessWidget {
                 ),
               );
             },
-            child: const Text('Open User Data to back up'),
+            child: const Text('Open my User Data to back up'),
           ),
           FilledButton(
             key: const Key('admin-reset-skip-backup'),

@@ -143,7 +143,9 @@ class AppResetService {
       case AppResetScope.everything:
         await _wipeEverything(keepExports: keepExports, keepLogs: keepLogs);
     }
-    ProfileService.beginAccessSession();
+    // Only a full wipe ends the session. Any other reset must leave the admin
+    // unlocked, otherwise their own PIN-protected profile would look logged out.
+    if (scope == AppResetScope.everything) ProfileService.beginAccessSession();
     LearnerStatusEvents.publish(LearnerStatusInvalidation.activeProfile);
   }
 

@@ -114,6 +114,23 @@ void main() {
     },
   );
 
+  test('a non-everything reset leaves the admin logged in', () async {
+    for (final scope in [
+      AppResetScope.learnerProgress,
+      AppResetScope.nonAdminLearners,
+      AppResetScope.importedMedia,
+      AppResetScope.customCourses,
+    ]) {
+      await profiles.setActiveProfileById(adminId, accessPin: '4321');
+      await service.reset(scope, actorProfileId: adminId, pin: '4321');
+      expect(
+        await profiles.getActiveProfileId(),
+        adminId,
+        reason: '$scope must not log the admin out',
+      );
+    }
+  });
+
   test('non-admin learners are removed and admins are kept', () async {
     await seedProgress(learnerId);
     await service.reset(
