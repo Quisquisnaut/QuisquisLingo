@@ -72,7 +72,7 @@ void main() {
     );
     await _pumpFrames(tester);
 
-    expect(find.byTooltip('Tap tap... Flag Game'), findsOneWidget);
+    expect(find.byTooltip('Tap tap tap tap tap... Flag Game'), findsOneWidget);
     final flag = find.byKey(const Key('settings-flag-wave'));
     final initialTurns = tester.widget<RotationTransition>(flag).turns.value;
     final mouse = await tester.createGesture(kind: PointerDeviceKind.mouse);

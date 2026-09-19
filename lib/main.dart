@@ -176,6 +176,11 @@ class _QuisquisLingoAppState extends State<QuisquisLingoApp>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.detached) {
+      CrashLogService.instance.markCleanShutdown();
+    } else {
+      unawaited(CrashLogService.instance.recordLifecycleState(state.name));
+    }
     if (state == AppLifecycleState.resumed) _refreshDayNightTheme();
   }
 

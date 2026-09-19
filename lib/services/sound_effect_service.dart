@@ -15,11 +15,21 @@ class SoundEffectService {
   Future<void> _play(String assetPath) async {
     if (!await _settings.areSoundEffectsEnabled()) return;
     try {
-      final player = _player ??= AudioPlayer();
-      await player.stop();
+      var player = _player;
+      if (player == null) {
+        player = _player = AudioPlayer();
+      } else {
+        await player.stop();
+      }
       await player.play(AssetSource(assetPath));
     } catch (_) {
       // Sound effects are optional and must never block the learning flow.
+      // Drop a possibly broken backend player so the next attempt starts clean.
+      final broken = _player;
+      _player = null;
+      try {
+        await broken?.dispose();
+      } catch (_) {}
     }
   }
 

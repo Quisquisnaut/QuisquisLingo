@@ -977,6 +977,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                   actorId != null &&
                                   (actorId == profile.learnerProfileId ||
                                       actorIsAdmin);
+                              final isSoleAdmin =
+                                  targetIsAdmin && _adminProfileIds.length == 1;
                               final hasActions =
                                   canDelete ||
                                   (actorIsAdmin && !targetIsAdmin) ||
@@ -1042,9 +1044,19 @@ class _HomeScreenState extends State<HomeScreen> {
                                               child: Text('Reset PIN'),
                                             ),
                                           if (canDelete)
-                                            const PopupMenuItem(
+                                            PopupMenuItem(
                                               value: 'delete',
-                                              child: Text('Delete learner'),
+                                              enabled: !isSoleAdmin,
+                                              child: Tooltip(
+                                                message: isSoleAdmin
+                                                    ? 'The only admin cannot be deleted. Use Device Administration to reset QQL instead.'
+                                                    : 'Delete learner',
+                                                child: Text(
+                                                  isSoleAdmin
+                                                      ? 'Delete learner (only admin)'
+                                                      : 'Delete learner',
+                                                ),
+                                              ),
                                             ),
                                         ],
                                       )

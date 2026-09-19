@@ -66,7 +66,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
       return;
     }
     _flagGameTapCount = 0;
-    await _sounds.playSuspense();
+    // Optional sound must never delay or endanger opening the game.
+    unawaited(_sounds.playSuspense().catchError((Object _) {}));
     if (!mounted) return;
     await Navigator.of(context).push(
       MaterialPageRoute(
@@ -107,18 +108,40 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Future<void> _tapVersion() async {
     // Deliberately no timeout: ten taps may be made at a normal pace.
     _versionTapCount++;
-    if (_versionTapCount >= 10 && !_editorUnlocked) {
+    if (_versionTapCount < 10 || _editorUnlocked) return;
+    _versionTapCount = 0;
+    try {
       await _settings.setCourseEditorUnlocked(true);
-      final playSound = await _settings.areSoundEffectsEnabled();
-      if (playSound) await _sounds.playDuelWin();
+    } catch (_) {
       if (!mounted) return;
-      setState(() => _editorUnlocked = true);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           duration: Duration(seconds: 8),
-          content: Text('Course Manager unlocked.'),
+          content: Text('Course Manager could not be unlocked. Try again.'),
         ),
       );
+      return;
+    }
+    if (!mounted) return;
+    setState(() => _editorUnlocked = true);
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        duration: Duration(seconds: 8),
+        content: Text('Course Manager unlocked.'),
+      ),
+    );
+    // The unlock is complete and shown before the optional sound starts, so an
+    // audio backend problem on a given PC can never interfere with it.
+    unawaited(_playUnlockSound());
+  }
+
+  Future<void> _playUnlockSound() async {
+    try {
+      await WidgetsBinding.instance.endOfFrame;
+      if (!mounted || !await _settings.areSoundEffectsEnabled()) return;
+      await _sounds.playDuelWin();
+    } catch (_) {
+      // Sound effects are optional.
     }
   }
 
@@ -218,12 +241,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                 ),
                 const Divider(),
-                ListTile(
-                  key: const Key('settings-version-build-area'),
-                  leading: const Icon(Icons.info_outline),
-                  title: const Text('Version and Build'),
-                  subtitle: const Text(AppMetadata.displayLabel),
-                  onTap: _tapVersion,
+                Tooltip(
+                  message: _editorUnlocked
+                      ? 'Course Manager unlocked'
+                      : 'Tap x 10 times to unlock Course Manager',
+                  child: ListTile(
+                    key: const Key('settings-version-build-area'),
+                    leading: const Icon(Icons.info_outline),
+                    title: const Text('Version and Build'),
+                    subtitle: const Text(AppMetadata.displayLabel),
+                    onTap: _tapVersion,
+                  ),
                 ),
                 ListTile(
                   leading: const Icon(Icons.system_update_alt),
@@ -288,7 +316,7 @@ class _WavingFlagIconState extends State<_WavingFlagIcon>
   @override
   Widget build(BuildContext context) {
     return Tooltip(
-      message: 'Tap tap... Flag Game',
+      message: 'Tap tap tap tap tap... Flag Game',
       child: MouseRegion(
         onEnter: _startWaving,
         onExit: _stopWaving,
