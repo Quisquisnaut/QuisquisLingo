@@ -5,6 +5,7 @@ import '../services/app_reset_service.dart';
 import '../services/profile_service.dart';
 import '../widgets/app_restart_scope.dart';
 import 'flat_image_library_screen.dart';
+import 'inventory_screen.dart';
 import 'device_administration_help_screen.dart';
 import 'user_data_settings_screen.dart';
 
@@ -307,6 +308,17 @@ class _DeviceAdministrationScreenState
                             actorProfileId: _actorId,
                           ),
                         ),
+                      ),
+                      _sectionTitle('Inventory'),
+                      ListTile(
+                        key: const Key('admin-inventory'),
+                        leading: const Icon(Icons.inventory_2_outlined),
+                        title: const Text('Inventory'),
+                        subtitle: const Text(
+                          'Lists everything QQL has stored because of what people did, with its location, size, date and the learner it belongs to: learners, custom courses, imported images and audio files, imports, exports, automatic course backups and logs, including files added to the QQL folders from outside the app.',
+                        ),
+                        trailing: const Icon(Icons.chevron_right),
+                        onTap: () => _push(const InventoryScreen()),
                       ),
                       _sectionTitle('Reset'),
                       _ResetSection(

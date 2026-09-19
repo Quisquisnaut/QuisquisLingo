@@ -58,6 +58,21 @@ class DeviceAdministrationHelpScreen extends StatelessWidget {
                 ],
               ),
               _Section(
+                title: 'Inventory',
+                paragraphs: [
+                  'The Inventory button lists everything QQL has stored because of what people did, so you know what a reset would remove and where your files are. For every file it shows the full location (which you can select and copy), the size, the date it was last changed and, when it can be determined, the learner it belongs to.',
+                ],
+                bullets: [
+                  'Learners and custom courses are kept inside QQL’s own settings, not as files, so they show no path. Each course shows its maintainer or creator.',
+                  'Exports and backups: learner backups, User Recovery Keys, course exports, and the course backups the Course Editor makes automatically before saving a change.',
+                  'Imports and Merges: files you copied into those folders from outside QQL.',
+                  'Imported images, image banks and imported audio (MP3) files: the copies QQL made in its own storage. Audio shows the course it belongs to.',
+                  'Logs: the crash log, diagnostic export and session marker.',
+                  'Other files in the QQL folder: anything added directly to the QuisquisLingo folder with the operating system, which QQL did not create and does not use.',
+                  'Media and files that come with the app itself are not listed. Very large lists show the 500 most recent files per section.',
+                ],
+              ),
+              _Section(
                 title: 'Ask who is learning at startup',
                 paragraphs: [
                   'Off (default): QQL opens directly as the learner who used it last. This suits a device used by one person.',
