@@ -1,3 +1,4 @@
+import 'support/pump_file_io.dart';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -399,14 +400,18 @@ void main() {
       final profiles = await _profiles(includeCharlie: false);
       final service = CourseEditorService(profileService: profiles);
       final source = _custom();
-      await service.saveUserCourse(source);
-      final copy = (await service.createCopyAsNewCourse(
-        source: source,
-        title: 'Clean independent copy',
-      )).course;
-      final fork = (await service.createFork(
-        source: _official(DerivativeWorksPolicy.allowed),
-      )).course;
+      await tester.runAsync(() => service.saveUserCourse(source));
+      final copy = ((await tester.runAsync(
+        () => service.createCopyAsNewCourse(
+          source: source,
+          title: 'Clean independent copy',
+        ),
+      ))!).course;
+      final fork = ((await tester.runAsync(
+        () => service.createFork(
+          source: _official(DerivativeWorksPolicy.allowed),
+        ),
+      ))!).course;
       late Course selected;
       await tester.pumpWidget(
         MaterialApp(
@@ -458,7 +463,9 @@ void main() {
         'Actually edited',
       );
       await tester.tap(find.byKey(const Key('course-info-save')));
-      await tester.pumpAndSettle();
+      await tester.pumpUntilFileIoState(
+        () => find.byKey(const Key('course-info-save')).evaluate().isEmpty,
+      );
       await tester.tap(find.byType(BackButton));
       await tester.pumpAndSettle();
       expect(
@@ -755,8 +762,9 @@ void main() {
         ),
       ),
     );
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 100));
+    await tester.pumpUntilFileIoState(
+      () => find.byKey(const Key('team-manager-entry')).evaluate().isNotEmpty,
+    );
     await tester.tap(find.byKey(const Key('team-manager-entry')));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 100));

@@ -1,8 +1,10 @@
 import 'dart:io';
+import 'support/pump_file_io.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:quisquislingo_app/services/app_metadata.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:quisquislingo_app/models/course_models.dart';
 import 'package:quisquislingo_app/screens/home_screen.dart';
@@ -392,7 +394,7 @@ void main() {
         buildSignature: '',
       );
       SharedPreferences.setMockInitialValues({
-        'one_time_notice_seen_welcome_2.0.40+240000': true,
+        'one_time_notice_seen_welcome_${AppMetadata.technicalVersion}': true,
         'sound_effects_enabled': false,
       });
       await ProfileService().addProfile('Mascot Learner');
@@ -409,11 +411,7 @@ void main() {
       expect(discovered.length, greaterThan(1));
 
       Future<void> pumpUntil(Finder finder) async {
-        for (var frame = 0; frame < 120; frame++) {
-          await tester.pump(const Duration(milliseconds: 50));
-          if (finder.evaluate().isNotEmpty) return;
-        }
-        fail('Timed out waiting for $finder');
+        await tester.pumpUntilFileIoState(() => finder.evaluate().isNotEmpty);
       }
 
       await tester.pumpWidget(const MaterialApp(home: HomeScreen()));

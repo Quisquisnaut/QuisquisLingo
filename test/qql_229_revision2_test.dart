@@ -1,3 +1,4 @@
+import 'support/pump_file_io.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:quisquislingo_app/models/course_models.dart';
@@ -238,7 +239,9 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(home: CourseProjectsScreen(currentCourse: _course())),
     );
-    await tester.pumpAndSettle();
+    await tester.pumpUntilFileIoState(
+      () => find.text('Bundled Courses').evaluate().isNotEmpty,
+    );
     expect(find.byKey(const Key('course-import-icon-action')), findsOneWidget);
     expect(find.byKey(const Key('create-course-icon-action')), findsOneWidget);
     expect(find.byKey(const Key('course-import-entry')), findsNothing);

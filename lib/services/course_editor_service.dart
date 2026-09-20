@@ -1,7 +1,9 @@
+import 'course_library_service.dart';
 import 'dart:convert';
 import 'course_flag_service.dart';
 import 'course_editor_storage.dart';
 import 'course_file_store.dart';
+import 'publisher_verification_service.dart';
 
 import '../models/course_models.dart';
 import 'course_backup_service.dart';
@@ -64,9 +66,14 @@ class CourseEditorService {
     CourseAccessPolicy? accessPolicy,
     DateTime Function()? clock,
     ManagedAudioCleanup? audioCleanup,
+    PublisherVerificationService? publisherVerification,
   }) : _store = courseStore ?? CourseFileStore(),
        _audioCleanup = audioCleanup ?? ManagedAudioCleanup(),
-       backupService = backupService ?? CourseBackupService(),
+       _publisherVerification =
+           publisherVerification ?? PublisherVerificationService(),
+       backupService =
+           backupService ??
+           CourseBackupService(publisherVerification: publisherVerification),
        _profiles = profileService ?? ProfileService(),
        _teams = teamService ?? TeamService(profileService: profileService),
        _access =
@@ -78,6 +85,7 @@ class CourseEditorService {
        _clock = clock ?? DateTime.now;
 
   final CourseFileStore _store;
+  final PublisherVerificationService _publisherVerification;
   final ManagedAudioCleanup _audioCleanup;
   final CourseBackupService backupService;
   final ProfileService _profiles;
@@ -184,6 +192,7 @@ class CourseEditorService {
     }
     all[course.courseId] = _entry(course, _clock());
     await _saveKey(userCoursesStorageKey, all);
+    if (existing == null) await _addToImporterLibrary(course);
     LearnerStatusEvents.publish(LearnerStatusInvalidation.courseMetadata);
   }
 
@@ -229,6 +238,7 @@ class CourseEditorService {
     }
     all[course.courseId] = _entry(course, _clock());
     await _replaceKeyAtomically(userCoursesStorageKey, all);
+    await _addToImporterLibrary(course);
     LearnerStatusEvents.publish(LearnerStatusInvalidation.courseMetadata);
   }
 
@@ -255,14 +265,13 @@ class CourseEditorService {
       final source = Course.fromJson(
         Map<String, dynamic>.from(record['source'] as Map),
       );
-      _validateOfficialSource(source);
       if (source.courseId != item.key ||
           source.originType != CourseOriginType.externalOfficial) {
         throw const FormatException(
           'Stored official source identity is invalid.',
         );
       }
-      out.add(source);
+      out.add(await _publisherVerification.assessStored(source));
     }
     out.sort((a, b) => a.title.toLowerCase().compareTo(b.title.toLowerCase()));
     return out;
@@ -279,6 +288,50 @@ class CourseEditorService {
       )).containsKey(course.courseId);
     }
     return (await _loadKey(userCoursesStorageKey)).containsKey(course.courseId);
+  }
+
+  Future<void> _addToImporterLibrary(Course course) async {
+    if (await _profiles.getActiveProfileId() != null) {
+      await CourseLibraryService(profileService: _profiles).add(course);
+    }
+  }
+
+  Future<void> removePublisherCourseFromDevice(Course course) async {
+    final actor = await _profiles.getActiveProfileId();
+    if (actor == null || !await _profiles.isAdmin(actor)) {
+      throw StateError(
+        'Only an admin may remove a Publisher Course from this device.',
+      );
+    }
+    if (course.originType != CourseOriginType.externalOfficial) {
+      throw StateError('Only Publisher Courses can be uninstalled here.');
+    }
+    final record = (await _loadKey(
+      externalOfficialStorageKey,
+    ))[course.courseId];
+    if (record == null) return;
+    if (record is! Map || record['source'] is! Map) {
+      throw const FormatException('Invalid stored publisher source.');
+    }
+    final stored = Course.fromJson(
+      Map<String, dynamic>.from(record['source'] as Map),
+    );
+    if (stored.courseId != course.courseId ||
+        stored.originType != CourseOriginType.externalOfficial) {
+      throw const FormatException('Invalid stored publisher identity.');
+    }
+    final library = CourseLibraryService(profileService: _profiles);
+    for (final profile in await _profiles.getProfileRecords()) {
+      if (profile.learnerProfileId != actor &&
+          await library.contains(stored, profileId: profile.learnerProfileId)) {
+        throw StateError(
+          'Another profile still has this course in My courses. Nothing was removed.',
+        );
+      }
+    }
+    await _store.remove(CourseStoreKind.externalOfficial, course.courseId);
+    // Keep membership, progress, media and backups for future reinstallation.
+    LearnerStatusEvents.publish(LearnerStatusInvalidation.courseMetadata);
   }
 
   Future<void> deleteUserCourse(String courseId) async {
@@ -315,7 +368,11 @@ class CourseEditorService {
       }
     }
     if (source != null) {
-      _validateOfficialSource(source);
+      if (source.originType == CourseOriginType.externalOfficial) {
+        source = await _publisherVerification.assessStored(source);
+      } else {
+        _validateOfficialSource(source);
+      }
       if (source.courseId != course.courseId ||
           source.originType != course.originType ||
           source.publisherId != course.publisherId) {
@@ -454,6 +511,9 @@ class CourseEditorService {
     required Course source,
     CourseMaintainer? maintainer,
   }) async {
+    if (source.originType == CourseOriginType.externalOfficial) {
+      source = await _publisherVerification.requireVerified(source);
+    }
     if (source.originType.isOfficial) {
       _validateOfficialSource(source);
     }
@@ -657,6 +717,7 @@ class CourseEditorService {
     next[storageId] = _entry(committed, when);
     await _replaceKeyAtomically(storageKey, next);
 
+    if (current == null) await _addToImporterLibrary(committed);
     final verified = _courseFromEntry((await _loadKey(storageKey))[storageId]);
     if (jsonEncode(verified.toJson()) != jsonEncode(committed.toJson())) {
       throw StateError('Course persistence verification failed.');
@@ -736,17 +797,15 @@ class CourseEditorService {
   }
 
   Future<OfficialCourseUpdateResult> installExternalOfficialUpdate(
-    Course update,
-  ) async {
+    Course update, {
+    bool confirmUnverifiedAssociation = false,
+  }) async {
     if (update.originType != CourseOriginType.externalOfficial) {
       throw ArgumentError('The package is not an external official course.');
     }
-    _validateOfficialSource(update);
-    final normalizedUpdate = Course.fromJson({
-      ...update.toJson(),
-      'publisherVerificationStatus':
-          PublisherVerificationStatus.unverified.name,
-    });
+    final normalizedUpdate = await _publisherVerification.requireVerified(
+      update,
+    );
     final all = await _loadKey(externalOfficialStorageKey);
     final raw = all[normalizedUpdate.courseId];
     if (raw == null) {
@@ -764,6 +823,7 @@ class CourseEditorService {
         'savedAt': _clock().toUtc().toIso8601String(),
       };
       await _replaceKeyAtomically(externalOfficialStorageKey, next);
+      await _addToImporterLibrary(normalizedUpdate);
       LearnerStatusEvents.publish(LearnerStatusInvalidation.courseMetadata);
       return OfficialCourseUpdateResult(
         officialCourse: normalizedUpdate,
@@ -777,7 +837,16 @@ class CourseEditorService {
     final previousSource = Course.fromJson(
       Map<String, dynamic>.from(record['source'] as Map),
     );
-    _validateOfficialSource(previousSource);
+    final assessedPrevious = await _publisherVerification.assessStored(
+      previousSource,
+    );
+    if (assessedPrevious.publisherVerificationStatus !=
+            PublisherVerificationStatus.verified &&
+        !confirmUnverifiedAssociation) {
+      throw const FormatException(
+        'Verification required: explicitly confirm association with the existing unverified course before replacing it.',
+      );
+    }
     if (previousSource.courseId != normalizedUpdate.courseId ||
         previousSource.originType != CourseOriginType.externalOfficial ||
         previousSource.publisherId != normalizedUpdate.publisherId) {
@@ -810,6 +879,7 @@ class CourseEditorService {
       'savedAt': _clock().toUtc().toIso8601String(),
     };
     await _replaceKeyAtomically(externalOfficialStorageKey, next);
+    await _addToImporterLibrary(normalizedUpdate);
     LearnerStatusEvents.publish(LearnerStatusInvalidation.courseMetadata);
     return OfficialCourseUpdateResult(
       officialCourse: normalizedUpdate,

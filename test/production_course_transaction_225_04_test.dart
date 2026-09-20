@@ -1,3 +1,4 @@
+import 'support/pump_file_io.dart';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -78,7 +79,9 @@ void main() {
       await _nestedBack(tester, LessonManagementScreen);
       await _nestedBack(tester, CourseEditorScreen);
 
-      final beforeConfirm = (await service.listUserCourses()).single;
+      final beforeConfirm = ((await tester.runAsync(
+        () => service.listUserCourses(),
+      ))!).single;
       expect(
         beforeConfirm.lessons.single.rounds.single.exercises.first.prompt,
         'Original prompt',
@@ -99,10 +102,14 @@ void main() {
         'Draft flow\nkeeps line breaks',
       );
       await tester.tap(find.byKey(const Key('confirm-course-changes')));
-      await _settle(tester, frames: 24);
+      await tester.pumpUntilFileIoState(
+        () => find.byType(CourseEditorScreen).evaluate().isEmpty,
+      );
       expect(find.byType(CourseEditorScreen), findsNothing);
 
-      final reloaded = (await service.listUserCourses()).single;
+      final reloaded = ((await tester.runAsync(
+        () => service.listUserCourses(),
+      ))!).single;
       expect(reloaded.courseVersion, '2');
       expect(reloaded.lastVersionEditorProfileId, _profileId);
       expect(reloaded.lastVersionEditorDisplayName, 'UI Author');
@@ -128,7 +135,9 @@ void main() {
     await _settle(tester);
     await tester.enterText(_field('Course name'), 'Cancelled title');
     await tester.tap(find.widgetWithText(FilledButton, 'Save'));
-    await _settle(tester);
+    await tester.pumpUntilFileIoState(
+      () => find.byKey(const Key('course-info-save')).evaluate().isEmpty,
+    );
     expect(find.byType(CourseEditorScreen), findsOneWidget);
     expect(find.text('Cancelled title'), findsWidgets);
 
@@ -145,7 +154,9 @@ void main() {
     await tester.tap(find.byKey(const Key('cancel-course-changes')));
     await _settle(tester);
 
-    final reloaded = (await service.listUserCourses()).single;
+    final reloaded = ((await tester.runAsync(
+      () => service.listUserCourses(),
+    ))!).single;
     expect(reloaded.title, 'Transaction UI');
     expect(reloaded.courseVersion, '1');
     expect(reloaded.versionNotes, isEmpty);
@@ -212,9 +223,13 @@ void main() {
       findsOneWidget,
     );
     await tester.tap(find.byKey(const Key('confirm-course-changes')));
-    await _settle(tester, frames: 24);
+    await tester.pumpUntilFileIoState(
+      () => find.byType(CourseEditorScreen).evaluate().isEmpty,
+    );
 
-    final reloaded = (await service.listUserCourses()).single;
+    final reloaded = ((await tester.runAsync(
+      () => service.listUserCourses(),
+    ))!).single;
     final exercise = reloaded.lessons.single.rounds.single.exercises.single;
     expect(exercise.prompt, 'Published working-copy prompt');
     expect(exercise.publicationState, PublicationState.published);
@@ -230,12 +245,16 @@ void main() {
     await _settle(tester);
     await tester.enterText(_field('Course name'), 'Temporary title');
     await tester.tap(find.widgetWithText(FilledButton, 'Save'));
-    await _settle(tester);
+    await tester.pumpUntilFileIoState(
+      () => find.byKey(const Key('course-info-save')).evaluate().isEmpty,
+    );
     await tester.tap(find.text('Course Info Editor'));
     await _settle(tester);
     await tester.enterText(_field('Course name'), course.title);
     await tester.tap(find.widgetWithText(FilledButton, 'Save'));
-    await _settle(tester);
+    await tester.pumpUntilFileIoState(
+      () => find.byKey(const Key('course-info-save')).evaluate().isEmpty,
+    );
 
     await tester.tap(find.byType(BackButton).last);
     await _settle(tester);
@@ -244,7 +263,12 @@ void main() {
       find.byKey(const Key('course-transaction-confirmation')),
       findsNothing,
     );
-    expect((await service.listUserCourses()).single.courseVersion, '1');
+    expect(
+      ((await tester.runAsync(
+        () => service.listUserCourses(),
+      ))!).single.courseVersion,
+      '1',
+    );
     expect(await backups.listBackups(course.courseId), isEmpty);
   });
 
@@ -257,7 +281,9 @@ void main() {
     await _settle(tester);
     await tester.enterText(_field('Course name'), 'Still editable');
     await tester.tap(find.widgetWithText(FilledButton, 'Save'));
-    await _settle(tester);
+    await tester.pumpUntilFileIoState(
+      () => find.byKey(const Key('course-info-save')).evaluate().isEmpty,
+    );
 
     await tester.tap(find.byType(BackButton).last);
     await _settle(tester);
@@ -278,7 +304,9 @@ void main() {
     expect(notes.initialValue, 'keep these notes');
     await tester.tap(find.byKey(const Key('cancel-course-changes')));
     await _settle(tester);
-    final live = (await service.listUserCourses()).single;
+    final live = ((await tester.runAsync(
+      () => service.listUserCourses(),
+    ))!).single;
     expect(live.title, course.title);
     expect(live.courseVersion, '1');
   });
@@ -294,7 +322,12 @@ void main() {
       find.byKey(const Key('course-transaction-confirmation')),
       findsNothing,
     );
-    expect((await service.listUserCourses()).single.courseVersion, '1');
+    expect(
+      ((await tester.runAsync(
+        () => service.listUserCourses(),
+      ))!).single.courseVersion,
+      '1',
+    );
     expect(await backups.listBackups(course.courseId), isEmpty);
   });
 
@@ -302,14 +335,16 @@ void main() {
     'mixed real-screen mutations stage once, audit the working copy and persist once',
     (tester) async {
       final mixed = _mixedCourse();
-      await service.saveUserCourse(mixed);
+      (await tester.runAsync(() => service.saveUserCourse(mixed)));
       await _openEditor(tester, mixed, service);
 
       await tester.tap(find.text('Course Info Editor'));
       await _settle(tester);
       await tester.enterText(_field('Course name'), 'Mixed transaction');
       await tester.tap(find.widgetWithText(FilledButton, 'Save'));
-      await _settle(tester);
+      await tester.pumpUntilFileIoState(
+        () => find.byKey(const Key('course-info-save')).evaluate().isEmpty,
+      );
       expect(
         find.byKey(const Key('course-transaction-confirmation')),
         findsNothing,
@@ -331,7 +366,9 @@ void main() {
       await _settle(tester);
       await tester.enterText(find.byType(TextField), 'Renamed lesson');
       await tester.tap(find.widgetWithText(FilledButton, 'Save'));
-      await _settle(tester);
+      await tester.pumpUntilFileIoState(
+        () => find.byKey(const Key('course-info-save')).evaluate().isEmpty,
+      );
 
       await tester.tap(find.byKey(const ValueKey('lesson-actions-lesson_b')));
       await _settle(tester);
@@ -391,7 +428,9 @@ void main() {
       await _settle(tester);
       await tester.enterText(find.byType(TextFormField), 'Created round');
       await tester.tap(find.widgetWithText(FilledButton, 'Save'));
-      await _settle(tester);
+      await tester.pumpUntilFileIoState(
+        () => find.byKey(const Key('course-info-save')).evaluate().isEmpty,
+      );
 
       await tester.tap(find.byKey(const ValueKey('round-actions-round')));
       await _settle(tester);
@@ -399,7 +438,9 @@ void main() {
       await _settle(tester);
       await tester.enterText(find.byType(TextFormField), 'Renamed round');
       await tester.tap(find.widgetWithText(FilledButton, 'Save'));
-      await _settle(tester);
+      await tester.pumpUntilFileIoState(
+        () => find.byKey(const Key('course-info-save')).evaluate().isEmpty,
+      );
 
       await tester.tap(find.byKey(const ValueKey('round-actions-round_b')));
       await _settle(tester);
@@ -501,9 +542,13 @@ void main() {
         'mixed transaction note',
       );
       await tester.tap(find.byKey(const Key('confirm-course-changes')));
-      await _settle(tester, frames: 24);
+      await tester.pumpUntilFileIoState(
+        () => find.byType(CourseEditorScreen).evaluate().isEmpty,
+      );
 
-      final reloaded = (await service.listUserCourses()).single;
+      final reloaded = ((await tester.runAsync(
+        () => service.listUserCourses(),
+      ))!).single;
       expect(reloaded.courseVersion, '2');
       expect(reloaded.title, 'Mixed transaction');
       expect(reloaded.versionNotes, 'mixed transaction note');
@@ -545,9 +590,9 @@ void main() {
   testWidgets(
     'official inspection closes without a working-copy confirmation or backup',
     (tester) async {
-      final customBefore = (await service.listUserCourses())
-          .map((course) => course.toJson())
-          .toList();
+      final customBefore = ((await tester.runAsync(
+        () => service.listUserCourses(),
+      ))!).map((course) => course.toJson()).toList();
       final official = (await tester.runAsync(
         () => CourseService().loadBundledCourse('IT'),
       ))!;
@@ -567,9 +612,9 @@ void main() {
       );
       expect(find.text('Open Editor'), findsOneWidget);
       expect(
-        (await service.listUserCourses())
-            .map((course) => course.toJson())
-            .toList(),
+        ((await tester.runAsync(
+          () => service.listUserCourses(),
+        ))!).map((course) => course.toJson()).toList(),
         customBefore,
       );
       expect(await backups.listBackups(official.courseId), isEmpty);
@@ -584,14 +629,16 @@ void main() {
     tester,
   ) async {
     final mixed = _mixedCourse();
-    await service.saveUserCourse(mixed);
+    (await tester.runAsync(() => service.saveUserCourse(mixed)));
     await _openEditor(tester, mixed, service);
 
     await tester.tap(find.text('Course Info Editor'));
     await _settle(tester);
     await tester.enterText(_field('Course name'), 'Cancel mixed title');
     await tester.tap(find.widgetWithText(FilledButton, 'Save'));
-    await _settle(tester);
+    await tester.pumpUntilFileIoState(
+      () => find.byKey(const Key('course-info-save')).evaluate().isEmpty,
+    );
 
     await tester.tap(find.byKey(const Key('course-editor-lessons-navigation')));
     await _settle(tester);
@@ -610,7 +657,9 @@ void main() {
     await _settle(tester);
     await tester.enterText(find.byType(TextFormField), 'Cancelled round');
     await tester.tap(find.widgetWithText(FilledButton, 'Save'));
-    await _settle(tester);
+    await tester.pumpUntilFileIoState(
+      () => find.byKey(const Key('course-info-save')).evaluate().isEmpty,
+    );
     await tester.tap(find.byKey(const ValueKey('round')));
     await _settle(tester);
     await tester.tap(find.byKey(const ValueKey('exercise-actions-exercise')));
@@ -646,7 +695,9 @@ void main() {
     await tester.tap(find.byKey(const Key('cancel-course-changes')));
     await _settle(tester);
 
-    final reloaded = (await service.listUserCourses()).single;
+    final reloaded = ((await tester.runAsync(
+      () => service.listUserCourses(),
+    ))!).single;
     expect(reloaded.toJson(), mixed.toJson());
     expect(await backups.listBackups(mixed.courseId), isEmpty);
   });

@@ -1,0 +1,2096 @@
+{
+  "formatVersion": 9,
+  "publicationState": "published",
+  "lessonNumberingMode": "lesson",
+  "defaultLessonIconStyle": "monochrome",
+  "courseId": "qql-dummy-signature-course",
+  "originType": "externalOfficial",
+  "publisherId": "org.quisquislingo.test.dummy",
+  "publisherName": "Dummy Publisher — TEST ONLY",
+  "officialCourseVersion": "1",
+  "officialReleaseDateUtc": "2026-09-06T00:00:00.000Z",
+  "officialChecksum": "aa24f655d3b041ee405c464d6a697a297c540d16ad11ba7c47d11ea406952d95",
+  "officialReleaseNotes": "Build 226.02 revision 3 AI-generated sample label update.",
+  "distributionChannel": "test-fixture",
+  "publisherVerificationStatus": "unverified",
+  "originalCourseCreator": {
+    "type": "publisher",
+    "id": "org.quisquislingo.test.dummy",
+    "displayName": "Dummy Publisher — TEST ONLY"
+  },
+  "originalCreatedAtUtc": "2026-09-06T00:00:00.000Z",
+  "modifiedAtUtc": "2026-09-06T00:00:00.000Z",
+  "learningLanguage": "Italian",
+  "interfaceLanguage": "English",
+  "sourceLanguage": "English",
+  "targetLanguage": "Italian",
+  "title": "Dummy signed course — TEST ONLY",
+  "ttsLanguage": "it-IT",
+  "audioMode": "tts",
+  "authors": [
+    {
+      "name": "Sample Author Ada",
+      "roles": [
+        "Author"
+      ]
+    },
+    {
+      "name": "Sample Author Bruno",
+      "roles": [
+        "Author"
+      ]
+    }
+  ],
+  "license": "All rights reserved",
+  "derivativeWorksPolicy": "allowed",
+  "courseDescription": "TEST ONLY. QQL sample content used to exercise publisher signatures. Not a production publisher.",
+  "textDirection": "ltr",
+  "temporarySample": true,
+  "lessons": [
+    {
+      "lessonId": "qql_it_l01",
+      "publicationState": "published",
+      "updatedAt": "2026-09-04T08:00:00.000Z",
+      "title": "Hello and thanks",
+      "section": true,
+      "sectionName": "Foundations",
+      "themeIconAsset": "assets/lesson_icons/speech_bubbles.png",
+      "guidebook": {
+        "content": [
+          {
+            "id": "qql_it_l01_g01",
+            "publicationState": "published",
+            "kind": "explanation",
+            "required": false,
+            "role": "overview",
+            "text": "Hello and thanks: practise ciao, grazie, sì, no."
+          },
+          {
+            "id": "qql_it_l01_g02",
+            "publicationState": "published",
+            "kind": "text",
+            "required": false,
+            "role": "goal",
+            "text": "Recognise and use the main vocabulary in this Lesson."
+          },
+          {
+            "id": "qql_it_l01_g03",
+            "publicationState": "published",
+            "kind": "vocabulary",
+            "required": false,
+            "role": "vocabulary",
+            "text": "ciao = hello"
+          },
+          {
+            "id": "qql_it_l01_g04",
+            "publicationState": "published",
+            "kind": "vocabulary",
+            "required": false,
+            "role": "vocabulary",
+            "text": "grazie = thank you"
+          },
+          {
+            "id": "qql_it_l01_g05",
+            "publicationState": "published",
+            "kind": "vocabulary",
+            "required": false,
+            "role": "vocabulary",
+            "text": "sì = yes"
+          },
+          {
+            "id": "qql_it_l01_g06",
+            "publicationState": "published",
+            "kind": "vocabulary",
+            "required": false,
+            "role": "vocabulary",
+            "text": "no = no"
+          },
+          {
+            "id": "qql_it_l01_g07",
+            "publicationState": "published",
+            "kind": "example",
+            "required": false,
+            "role": "example",
+            "text": "Ciao!"
+          },
+          {
+            "id": "qql_it_l01_g08",
+            "publicationState": "published",
+            "kind": "example",
+            "required": false,
+            "role": "example",
+            "text": "Grazie mille."
+          }
+        ]
+      },
+      "rounds": [
+        {
+          "id": "qql_it_l01_r01",
+          "publicationState": "published",
+          "updatedAt": "2026-09-04T08:00:00.000Z",
+          "title": "First steps",
+          "visualType": "generic",
+          "content": [
+            {
+              "id": "qql_it_l01_r01_intro",
+              "publicationState": "published",
+              "kind": "text",
+              "required": false,
+              "role": "lesson_intro",
+              "text": "Hello and thanks: practise ciao, grazie, sì, no."
+            },
+            {
+              "id": "qql_it_l01_r01_e02",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "editorTemplate": "choice",
+              "exercise": {
+                "updatedAt": "2026-09-04T08:02:00.000Z",
+                "prompt": [
+                  {
+                    "role": "primary",
+                    "type": "text",
+                    "text": "How do you say “hello” in Italian?"
+                  }
+                ],
+                "interaction": {
+                  "kind": "select",
+                  "minSelections": 1,
+                  "maxSelections": 1,
+                  "items": [
+                    {
+                      "id": "qql_it_l01_r01_e02_i1",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "ciao"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_it_l01_r01_e02_i2",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "grazie"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_it_l01_r01_e02_i3",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "sì"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "evaluation": {
+                  "kind": "selected_items",
+                  "correctItemIds": [
+                    "qql_it_l01_r01_e02_i1"
+                  ]
+                }
+              }
+            },
+            {
+              "id": "qql_it_l01_r01_e03",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "editorTemplate": "choice",
+              "exercise": {
+                "updatedAt": "2026-09-04T08:03:00.000Z",
+                "prompt": [
+                  {
+                    "role": "primary",
+                    "type": "text",
+                    "text": "How do you say “thank you” in Italian?"
+                  }
+                ],
+                "interaction": {
+                  "kind": "select",
+                  "minSelections": 1,
+                  "maxSelections": 1,
+                  "items": [
+                    {
+                      "id": "qql_it_l01_r01_e03_i1",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "grazie"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_it_l01_r01_e03_i2",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "sì"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_it_l01_r01_e03_i3",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "no"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "evaluation": {
+                  "kind": "selected_items",
+                  "correctItemIds": [
+                    "qql_it_l01_r01_e03_i1"
+                  ]
+                }
+              }
+            },
+            {
+              "id": "qql_it_l01_r01_e04",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "editorTemplate": "listening_choice",
+              "exercise": {
+                "updatedAt": "2026-09-04T08:04:00.000Z",
+                "prompt": [
+                  {
+                    "role": "primary",
+                    "type": "audio",
+                    "text": "sì"
+                  },
+                  {
+                    "role": "question",
+                    "type": "text",
+                    "text": "Which expression do you hear?"
+                  }
+                ],
+                "interaction": {
+                  "kind": "select",
+                  "minSelections": 1,
+                  "maxSelections": 1,
+                  "items": [
+                    {
+                      "id": "qql_it_l01_r01_e04_i1",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "sì"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_it_l01_r01_e04_i2",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "no"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_it_l01_r01_e04_i3",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "ciao"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "evaluation": {
+                  "kind": "selected_items",
+                  "correctItemIds": [
+                    "qql_it_l01_r01_e04_i1"
+                  ]
+                }
+              }
+            },
+            {
+              "id": "qql_it_l01_r01_e05",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "editorTemplate": "listening_comprehension",
+              "exercise": {
+                "updatedAt": "2026-09-04T08:05:00.000Z",
+                "prompt": [
+                  {
+                    "role": "passage",
+                    "type": "audio",
+                    "text": "Ascolta bene: oggi usiamo insieme l’espressione no."
+                  },
+                  {
+                    "role": "question",
+                    "type": "text",
+                    "text": "Which expression is being practised?"
+                  }
+                ],
+                "interaction": {
+                  "kind": "select",
+                  "minSelections": 1,
+                  "maxSelections": 1,
+                  "items": [
+                    {
+                      "id": "qql_it_l01_r01_e05_i1",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "no"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_it_l01_r01_e05_i2",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "ciao"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_it_l01_r01_e05_i3",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "grazie"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "evaluation": {
+                  "kind": "selected_items",
+                  "correctItemIds": [
+                    "qql_it_l01_r01_e05_i1"
+                  ]
+                }
+              }
+            },
+            {
+              "id": "qql_it_l01_r01_e06",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "editorTemplate": "reading_comprehension",
+              "exercise": {
+                "updatedAt": "2026-09-04T08:06:00.000Z",
+                "prompt": [
+                  {
+                    "role": "passage",
+                    "type": "text",
+                    "text": "Oggi ripassiamo insieme l’espressione «ciao» durante la lezione."
+                  },
+                  {
+                    "role": "question",
+                    "type": "text",
+                    "text": "Which expression is being practised?"
+                  }
+                ],
+                "interaction": {
+                  "kind": "select",
+                  "minSelections": 1,
+                  "maxSelections": 1,
+                  "items": [
+                    {
+                      "id": "qql_it_l01_r01_e06_i1",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "ciao"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_it_l01_r01_e06_i2",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "grazie"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_it_l01_r01_e06_i3",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "sì"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "evaluation": {
+                  "kind": "selected_items",
+                  "correctItemIds": [
+                    "qql_it_l01_r01_e06_i1"
+                  ]
+                }
+              }
+            },
+            {
+              "id": "qql_it_l01_r01_e07",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "editorTemplate": "dialogue_response",
+              "exercise": {
+                "updatedAt": "2026-09-04T08:07:00.000Z",
+                "prompt": [
+                  {
+                    "role": "passage",
+                    "type": "text",
+                    "text": "L’insegnante dice: «grazie»."
+                  },
+                  {
+                    "role": "question",
+                    "type": "text",
+                    "text": "Quale risposta mostra che hai capito?"
+                  }
+                ],
+                "interaction": {
+                  "kind": "select",
+                  "minSelections": 1,
+                  "maxSelections": 1,
+                  "items": [
+                    {
+                      "id": "qql_it_l01_r01_e07_i1",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "Ho capito."
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_it_l01_r01_e07_i2",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "Non sto ascoltando."
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "evaluation": {
+                  "kind": "selected_items",
+                  "correctItemIds": [
+                    "qql_it_l01_r01_e07_i1"
+                  ]
+                }
+              }
+            },
+            {
+              "id": "qql_it_l01_r01_e08",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "editorTemplate": "contextual_comprehension",
+              "exercise": {
+                "updatedAt": "2026-09-04T08:08:00.000Z",
+                "prompt": [
+                  {
+                    "role": "context",
+                    "type": "text",
+                    "text": "Oggi ripassiamo insieme l’espressione «sì» durante la lezione."
+                  },
+                  {
+                    "role": "question",
+                    "type": "text",
+                    "text": "What does the highlighted expression mean?"
+                  }
+                ],
+                "interaction": {
+                  "kind": "select",
+                  "minSelections": 1,
+                  "maxSelections": 1,
+                  "items": [
+                    {
+                      "id": "qql_it_l01_r01_e08_i1",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "yes"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_it_l01_r01_e08_i2",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "no"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_it_l01_r01_e08_i3",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "hello"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "evaluation": {
+                  "kind": "selected_items",
+                  "correctItemIds": [
+                    "qql_it_l01_r01_e08_i1"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "qql_it_l01_r02",
+          "publicationState": "published",
+          "updatedAt": "2026-09-04T08:12:00.000Z",
+          "visualType": "listening",
+          "content": [
+            {
+              "id": "qql_it_l01_r02_e01",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "editorTemplate": "choice",
+              "exercise": {
+                "updatedAt": "2026-09-04T08:13:00.000Z",
+                "prompt": [
+                  {
+                    "role": "primary",
+                    "type": "text",
+                    "text": "How do you say “thank you” in Italian?"
+                  }
+                ],
+                "interaction": {
+                  "kind": "select",
+                  "minSelections": 1,
+                  "maxSelections": 1,
+                  "items": [
+                    {
+                      "id": "qql_it_l01_r02_e01_i1",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "grazie"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_it_l01_r02_e01_i2",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "sì"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_it_l01_r02_e01_i3",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "no"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "evaluation": {
+                  "kind": "selected_items",
+                  "correctItemIds": [
+                    "qql_it_l01_r02_e01_i1"
+                  ]
+                }
+              }
+            },
+            {
+              "id": "qql_it_l01_r02_e02",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "editorTemplate": "choice",
+              "exercise": {
+                "updatedAt": "2026-09-04T08:14:00.000Z",
+                "prompt": [
+                  {
+                    "role": "primary",
+                    "type": "text",
+                    "text": "How do you say “yes” in Italian?"
+                  }
+                ],
+                "interaction": {
+                  "kind": "select",
+                  "minSelections": 1,
+                  "maxSelections": 1,
+                  "items": [
+                    {
+                      "id": "qql_it_l01_r02_e02_i1",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "sì"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_it_l01_r02_e02_i2",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "no"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_it_l01_r02_e02_i3",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "ciao"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "evaluation": {
+                  "kind": "selected_items",
+                  "correctItemIds": [
+                    "qql_it_l01_r02_e02_i1"
+                  ]
+                }
+              }
+            },
+            {
+              "id": "qql_it_l01_r02_e03",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "editorTemplate": "listening_choice",
+              "exercise": {
+                "updatedAt": "2026-09-04T08:15:00.000Z",
+                "prompt": [
+                  {
+                    "role": "primary",
+                    "type": "audio",
+                    "text": "no"
+                  },
+                  {
+                    "role": "question",
+                    "type": "text",
+                    "text": "Which expression do you hear?"
+                  }
+                ],
+                "interaction": {
+                  "kind": "select",
+                  "minSelections": 1,
+                  "maxSelections": 1,
+                  "items": [
+                    {
+                      "id": "qql_it_l01_r02_e03_i1",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "no"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_it_l01_r02_e03_i2",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "ciao"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_it_l01_r02_e03_i3",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "grazie"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "evaluation": {
+                  "kind": "selected_items",
+                  "correctItemIds": [
+                    "qql_it_l01_r02_e03_i1"
+                  ]
+                }
+              }
+            },
+            {
+              "id": "qql_it_l01_r02_e04",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "editorTemplate": "listening_comprehension",
+              "exercise": {
+                "updatedAt": "2026-09-04T08:16:00.000Z",
+                "prompt": [
+                  {
+                    "role": "passage",
+                    "type": "audio",
+                    "text": "Ascolta bene: oggi usiamo insieme l’espressione ciao."
+                  },
+                  {
+                    "role": "question",
+                    "type": "text",
+                    "text": "Which expression is being practised?"
+                  }
+                ],
+                "interaction": {
+                  "kind": "select",
+                  "minSelections": 1,
+                  "maxSelections": 1,
+                  "items": [
+                    {
+                      "id": "qql_it_l01_r02_e04_i1",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "ciao"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_it_l01_r02_e04_i2",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "grazie"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_it_l01_r02_e04_i3",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "sì"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "evaluation": {
+                  "kind": "selected_items",
+                  "correctItemIds": [
+                    "qql_it_l01_r02_e04_i1"
+                  ]
+                }
+              }
+            },
+            {
+              "id": "qql_it_l01_r02_e05",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "editorTemplate": "reading_comprehension",
+              "exercise": {
+                "updatedAt": "2026-09-04T08:17:00.000Z",
+                "prompt": [
+                  {
+                    "role": "passage",
+                    "type": "text",
+                    "text": "Oggi ripassiamo insieme l’espressione «grazie» durante la lezione."
+                  },
+                  {
+                    "role": "question",
+                    "type": "text",
+                    "text": "Which expression is being practised?"
+                  }
+                ],
+                "interaction": {
+                  "kind": "select",
+                  "minSelections": 1,
+                  "maxSelections": 1,
+                  "items": [
+                    {
+                      "id": "qql_it_l01_r02_e05_i1",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "grazie"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_it_l01_r02_e05_i2",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "sì"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_it_l01_r02_e05_i3",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "no"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "evaluation": {
+                  "kind": "selected_items",
+                  "correctItemIds": [
+                    "qql_it_l01_r02_e05_i1"
+                  ]
+                }
+              }
+            },
+            {
+              "id": "qql_it_l01_r02_e06",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "editorTemplate": "dialogue_response",
+              "exercise": {
+                "updatedAt": "2026-09-04T08:18:00.000Z",
+                "prompt": [
+                  {
+                    "role": "passage",
+                    "type": "text",
+                    "text": "L’insegnante dice: «sì»."
+                  },
+                  {
+                    "role": "question",
+                    "type": "text",
+                    "text": "Quale risposta mostra che hai capito?"
+                  }
+                ],
+                "interaction": {
+                  "kind": "select",
+                  "minSelections": 1,
+                  "maxSelections": 1,
+                  "items": [
+                    {
+                      "id": "qql_it_l01_r02_e06_i1",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "Ho capito."
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_it_l01_r02_e06_i2",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "Non sto ascoltando."
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "evaluation": {
+                  "kind": "selected_items",
+                  "correctItemIds": [
+                    "qql_it_l01_r02_e06_i1"
+                  ]
+                }
+              }
+            },
+            {
+              "id": "qql_it_l01_r02_e07",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "editorTemplate": "contextual_comprehension",
+              "exercise": {
+                "updatedAt": "2026-09-04T08:19:00.000Z",
+                "prompt": [
+                  {
+                    "role": "context",
+                    "type": "text",
+                    "text": "Oggi ripassiamo insieme l’espressione «no» durante la lezione."
+                  },
+                  {
+                    "role": "question",
+                    "type": "text",
+                    "text": "What does the highlighted expression mean?"
+                  }
+                ],
+                "interaction": {
+                  "kind": "select",
+                  "minSelections": 1,
+                  "maxSelections": 1,
+                  "items": [
+                    {
+                      "id": "qql_it_l01_r02_e07_i1",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "no"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_it_l01_r02_e07_i2",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "hello"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_it_l01_r02_e07_i3",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "thank you"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "evaluation": {
+                  "kind": "selected_items",
+                  "correctItemIds": [
+                    "qql_it_l01_r02_e07_i1"
+                  ]
+                }
+              }
+            },
+            {
+              "id": "qql_it_l01_r02_e08",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "editorTemplate": "gap_choice",
+              "exercise": {
+                "updatedAt": "2026-09-04T08:20:00.000Z",
+                "prompt": [
+                  {
+                    "role": "question",
+                    "type": "text",
+                    "text": "Oggi usiamo l’espressione ___ durante la lezione."
+                  }
+                ],
+                "interaction": {
+                  "kind": "select",
+                  "minSelections": 1,
+                  "maxSelections": 1,
+                  "items": [
+                    {
+                      "id": "qql_it_l01_r02_e08_i1",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "ciao"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_it_l01_r02_e08_i2",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "grazie"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_it_l01_r02_e08_i3",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "sì"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "evaluation": {
+                  "kind": "selected_items",
+                  "correctItemIds": [
+                    "qql_it_l01_r02_e08_i1"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "qql_it_l01_r03",
+          "publicationState": "published",
+          "updatedAt": "2026-09-04T08:24:00.000Z",
+          "title": "Comprehension",
+          "visualType": "story",
+          "content": [
+            {
+              "id": "qql_it_l01_r03_e01",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "editorTemplate": "choice",
+              "exercise": {
+                "updatedAt": "2026-09-04T08:25:00.000Z",
+                "prompt": [
+                  {
+                    "role": "primary",
+                    "type": "text",
+                    "text": "How do you say “yes” in Italian?"
+                  }
+                ],
+                "interaction": {
+                  "kind": "select",
+                  "minSelections": 1,
+                  "maxSelections": 1,
+                  "items": [
+                    {
+                      "id": "qql_it_l01_r03_e01_i1",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "sì"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_it_l01_r03_e01_i2",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "no"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_it_l01_r03_e01_i3",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "ciao"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "evaluation": {
+                  "kind": "selected_items",
+                  "correctItemIds": [
+                    "qql_it_l01_r03_e01_i1"
+                  ]
+                }
+              }
+            },
+            {
+              "id": "qql_it_l01_r03_e02",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "editorTemplate": "choice",
+              "exercise": {
+                "updatedAt": "2026-09-04T08:26:00.000Z",
+                "prompt": [
+                  {
+                    "role": "primary",
+                    "type": "text",
+                    "text": "How do you say “no” in Italian?"
+                  }
+                ],
+                "interaction": {
+                  "kind": "select",
+                  "minSelections": 1,
+                  "maxSelections": 1,
+                  "items": [
+                    {
+                      "id": "qql_it_l01_r03_e02_i1",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "no"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_it_l01_r03_e02_i2",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "ciao"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_it_l01_r03_e02_i3",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "grazie"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "evaluation": {
+                  "kind": "selected_items",
+                  "correctItemIds": [
+                    "qql_it_l01_r03_e02_i1"
+                  ]
+                }
+              }
+            },
+            {
+              "id": "qql_it_l01_r03_e03",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "editorTemplate": "listening_choice",
+              "exercise": {
+                "updatedAt": "2026-09-04T08:27:00.000Z",
+                "prompt": [
+                  {
+                    "role": "primary",
+                    "type": "audio",
+                    "text": "ciao"
+                  },
+                  {
+                    "role": "question",
+                    "type": "text",
+                    "text": "Which expression do you hear?"
+                  }
+                ],
+                "interaction": {
+                  "kind": "select",
+                  "minSelections": 1,
+                  "maxSelections": 1,
+                  "items": [
+                    {
+                      "id": "qql_it_l01_r03_e03_i1",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "ciao"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_it_l01_r03_e03_i2",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "grazie"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_it_l01_r03_e03_i3",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "sì"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "evaluation": {
+                  "kind": "selected_items",
+                  "correctItemIds": [
+                    "qql_it_l01_r03_e03_i1"
+                  ]
+                }
+              }
+            },
+            {
+              "id": "qql_it_l01_r03_e04",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "editorTemplate": "listening_comprehension",
+              "exercise": {
+                "updatedAt": "2026-09-04T08:28:00.000Z",
+                "prompt": [
+                  {
+                    "role": "passage",
+                    "type": "audio",
+                    "text": "Ascolta bene: oggi usiamo insieme l’espressione grazie."
+                  },
+                  {
+                    "role": "question",
+                    "type": "text",
+                    "text": "Which expression is being practised?"
+                  }
+                ],
+                "interaction": {
+                  "kind": "select",
+                  "minSelections": 1,
+                  "maxSelections": 1,
+                  "items": [
+                    {
+                      "id": "qql_it_l01_r03_e04_i1",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "grazie"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_it_l01_r03_e04_i2",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "sì"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_it_l01_r03_e04_i3",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "no"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "evaluation": {
+                  "kind": "selected_items",
+                  "correctItemIds": [
+                    "qql_it_l01_r03_e04_i1"
+                  ]
+                }
+              }
+            },
+            {
+              "id": "qql_it_l01_r03_e05",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "editorTemplate": "reading_comprehension",
+              "exercise": {
+                "updatedAt": "2026-09-04T08:29:00.000Z",
+                "prompt": [
+                  {
+                    "role": "passage",
+                    "type": "text",
+                    "text": "Oggi ripassiamo insieme l’espressione «sì» durante la lezione."
+                  },
+                  {
+                    "role": "question",
+                    "type": "text",
+                    "text": "Which expression is being practised?"
+                  }
+                ],
+                "interaction": {
+                  "kind": "select",
+                  "minSelections": 1,
+                  "maxSelections": 1,
+                  "items": [
+                    {
+                      "id": "qql_it_l01_r03_e05_i1",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "sì"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_it_l01_r03_e05_i2",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "no"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_it_l01_r03_e05_i3",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "ciao"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "evaluation": {
+                  "kind": "selected_items",
+                  "correctItemIds": [
+                    "qql_it_l01_r03_e05_i1"
+                  ]
+                }
+              }
+            },
+            {
+              "id": "qql_it_l01_r03_e06",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "editorTemplate": "dialogue_response",
+              "exercise": {
+                "updatedAt": "2026-09-04T08:30:00.000Z",
+                "prompt": [
+                  {
+                    "role": "passage",
+                    "type": "text",
+                    "text": "L’insegnante dice: «no»."
+                  },
+                  {
+                    "role": "question",
+                    "type": "text",
+                    "text": "Quale risposta mostra che hai capito?"
+                  }
+                ],
+                "interaction": {
+                  "kind": "select",
+                  "minSelections": 1,
+                  "maxSelections": 1,
+                  "items": [
+                    {
+                      "id": "qql_it_l01_r03_e06_i1",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "Ho capito."
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_it_l01_r03_e06_i2",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "Non sto ascoltando."
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "evaluation": {
+                  "kind": "selected_items",
+                  "correctItemIds": [
+                    "qql_it_l01_r03_e06_i1"
+                  ]
+                }
+              }
+            },
+            {
+              "id": "qql_it_l01_r03_e07",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "editorTemplate": "contextual_comprehension",
+              "exercise": {
+                "updatedAt": "2026-09-04T08:31:00.000Z",
+                "prompt": [
+                  {
+                    "role": "context",
+                    "type": "text",
+                    "text": "Oggi ripassiamo insieme l’espressione «ciao» durante la lezione."
+                  },
+                  {
+                    "role": "question",
+                    "type": "text",
+                    "text": "What does the highlighted expression mean?"
+                  }
+                ],
+                "interaction": {
+                  "kind": "select",
+                  "minSelections": 1,
+                  "maxSelections": 1,
+                  "items": [
+                    {
+                      "id": "qql_it_l01_r03_e07_i1",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "hello"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_it_l01_r03_e07_i2",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "thank you"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_it_l01_r03_e07_i3",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "yes"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "evaluation": {
+                  "kind": "selected_items",
+                  "correctItemIds": [
+                    "qql_it_l01_r03_e07_i1"
+                  ]
+                }
+              }
+            },
+            {
+              "id": "qql_it_l01_r03_e08",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "editorTemplate": "gap_choice",
+              "exercise": {
+                "updatedAt": "2026-09-04T08:32:00.000Z",
+                "prompt": [
+                  {
+                    "role": "question",
+                    "type": "text",
+                    "text": "Oggi usiamo l’espressione ___ durante la lezione."
+                  }
+                ],
+                "interaction": {
+                  "kind": "select",
+                  "minSelections": 1,
+                  "maxSelections": 1,
+                  "items": [
+                    {
+                      "id": "qql_it_l01_r03_e08_i1",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "grazie"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_it_l01_r03_e08_i2",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "sì"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_it_l01_r03_e08_i3",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "no"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "evaluation": {
+                  "kind": "selected_items",
+                  "correctItemIds": [
+                    "qql_it_l01_r03_e08_i1"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "qql_it_l01_r04",
+          "publicationState": "published",
+          "updatedAt": "2026-09-04T08:36:00.000Z",
+          "visualType": "test",
+          "content": [
+            {
+              "id": "qql_it_l01_r04_e01",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "editorTemplate": "choice",
+              "exercise": {
+                "updatedAt": "2026-09-04T08:37:00.000Z",
+                "prompt": [
+                  {
+                    "role": "primary",
+                    "type": "text",
+                    "text": "How do you say “no” in Italian?"
+                  }
+                ],
+                "interaction": {
+                  "kind": "select",
+                  "minSelections": 1,
+                  "maxSelections": 1,
+                  "items": [
+                    {
+                      "id": "qql_it_l01_r04_e01_i1",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "no"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_it_l01_r04_e01_i2",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "ciao"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_it_l01_r04_e01_i3",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "grazie"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "evaluation": {
+                  "kind": "selected_items",
+                  "correctItemIds": [
+                    "qql_it_l01_r04_e01_i1"
+                  ]
+                }
+              }
+            },
+            {
+              "id": "qql_it_l01_r04_e02",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "editorTemplate": "choice",
+              "exercise": {
+                "updatedAt": "2026-09-04T08:38:00.000Z",
+                "prompt": [
+                  {
+                    "role": "primary",
+                    "type": "text",
+                    "text": "How do you say “hello” in Italian?"
+                  }
+                ],
+                "interaction": {
+                  "kind": "select",
+                  "minSelections": 1,
+                  "maxSelections": 1,
+                  "items": [
+                    {
+                      "id": "qql_it_l01_r04_e02_i1",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "ciao"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_it_l01_r04_e02_i2",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "grazie"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_it_l01_r04_e02_i3",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "sì"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "evaluation": {
+                  "kind": "selected_items",
+                  "correctItemIds": [
+                    "qql_it_l01_r04_e02_i1"
+                  ]
+                }
+              }
+            },
+            {
+              "id": "qql_it_l01_r04_e03",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "editorTemplate": "listening_choice",
+              "exercise": {
+                "updatedAt": "2026-09-04T08:39:00.000Z",
+                "prompt": [
+                  {
+                    "role": "primary",
+                    "type": "audio",
+                    "text": "grazie"
+                  },
+                  {
+                    "role": "question",
+                    "type": "text",
+                    "text": "Which expression do you hear?"
+                  }
+                ],
+                "interaction": {
+                  "kind": "select",
+                  "minSelections": 1,
+                  "maxSelections": 1,
+                  "items": [
+                    {
+                      "id": "qql_it_l01_r04_e03_i1",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "grazie"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_it_l01_r04_e03_i2",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "sì"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_it_l01_r04_e03_i3",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "no"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "evaluation": {
+                  "kind": "selected_items",
+                  "correctItemIds": [
+                    "qql_it_l01_r04_e03_i1"
+                  ]
+                }
+              }
+            },
+            {
+              "id": "qql_it_l01_r04_e04",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "editorTemplate": "listening_comprehension",
+              "exercise": {
+                "updatedAt": "2026-09-04T08:40:00.000Z",
+                "prompt": [
+                  {
+                    "role": "passage",
+                    "type": "audio",
+                    "text": "Ascolta bene: oggi usiamo insieme l’espressione sì."
+                  },
+                  {
+                    "role": "question",
+                    "type": "text",
+                    "text": "Which expression is being practised?"
+                  }
+                ],
+                "interaction": {
+                  "kind": "select",
+                  "minSelections": 1,
+                  "maxSelections": 1,
+                  "items": [
+                    {
+                      "id": "qql_it_l01_r04_e04_i1",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "sì"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_it_l01_r04_e04_i2",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "no"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_it_l01_r04_e04_i3",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "ciao"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "evaluation": {
+                  "kind": "selected_items",
+                  "correctItemIds": [
+                    "qql_it_l01_r04_e04_i1"
+                  ]
+                }
+              }
+            },
+            {
+              "id": "qql_it_l01_r04_e05",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "editorTemplate": "reading_comprehension",
+              "exercise": {
+                "updatedAt": "2026-09-04T08:41:00.000Z",
+                "prompt": [
+                  {
+                    "role": "passage",
+                    "type": "text",
+                    "text": "Oggi ripassiamo insieme l’espressione «no» durante la lezione."
+                  },
+                  {
+                    "role": "question",
+                    "type": "text",
+                    "text": "Which expression is being practised?"
+                  }
+                ],
+                "interaction": {
+                  "kind": "select",
+                  "minSelections": 1,
+                  "maxSelections": 1,
+                  "items": [
+                    {
+                      "id": "qql_it_l01_r04_e05_i1",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "no"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_it_l01_r04_e05_i2",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "ciao"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_it_l01_r04_e05_i3",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "grazie"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "evaluation": {
+                  "kind": "selected_items",
+                  "correctItemIds": [
+                    "qql_it_l01_r04_e05_i1"
+                  ]
+                }
+              }
+            },
+            {
+              "id": "qql_it_l01_r04_e06",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "editorTemplate": "dialogue_response",
+              "exercise": {
+                "updatedAt": "2026-09-04T08:42:00.000Z",
+                "prompt": [
+                  {
+                    "role": "passage",
+                    "type": "text",
+                    "text": "L’insegnante dice: «ciao»."
+                  },
+                  {
+                    "role": "question",
+                    "type": "text",
+                    "text": "Quale risposta mostra che hai capito?"
+                  }
+                ],
+                "interaction": {
+                  "kind": "select",
+                  "minSelections": 1,
+                  "maxSelections": 1,
+                  "items": [
+                    {
+                      "id": "qql_it_l01_r04_e06_i1",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "Ho capito."
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_it_l01_r04_e06_i2",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "Non sto ascoltando."
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "evaluation": {
+                  "kind": "selected_items",
+                  "correctItemIds": [
+                    "qql_it_l01_r04_e06_i1"
+                  ]
+                }
+              }
+            },
+            {
+              "id": "qql_it_l01_r04_e07",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "editorTemplate": "contextual_comprehension",
+              "exercise": {
+                "updatedAt": "2026-09-04T08:43:00.000Z",
+                "prompt": [
+                  {
+                    "role": "context",
+                    "type": "text",
+                    "text": "Oggi ripassiamo insieme l’espressione «grazie» durante la lezione."
+                  },
+                  {
+                    "role": "question",
+                    "type": "text",
+                    "text": "What does the highlighted expression mean?"
+                  }
+                ],
+                "interaction": {
+                  "kind": "select",
+                  "minSelections": 1,
+                  "maxSelections": 1,
+                  "items": [
+                    {
+                      "id": "qql_it_l01_r04_e07_i1",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "thank you"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_it_l01_r04_e07_i2",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "yes"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_it_l01_r04_e07_i3",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "no"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "evaluation": {
+                  "kind": "selected_items",
+                  "correctItemIds": [
+                    "qql_it_l01_r04_e07_i1"
+                  ]
+                }
+              }
+            },
+            {
+              "id": "qql_it_l01_r04_e08",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "editorTemplate": "gap_choice",
+              "exercise": {
+                "updatedAt": "2026-09-04T08:44:00.000Z",
+                "prompt": [
+                  {
+                    "role": "question",
+                    "type": "text",
+                    "text": "Oggi usiamo l’espressione ___ durante la lezione."
+                  }
+                ],
+                "interaction": {
+                  "kind": "select",
+                  "minSelections": 1,
+                  "maxSelections": 1,
+                  "items": [
+                    {
+                      "id": "qql_it_l01_r04_e08_i1",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "sì"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_it_l01_r04_e08_i2",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "no"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_it_l01_r04_e08_i3",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "ciao"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "evaluation": {
+                  "kind": "selected_items",
+                  "correctItemIds": [
+                    "qql_it_l01_r04_e08_i1"
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "duel": {
+        "id": "qql_it_l01_duel",
+        "title": "Duel"
+      }
+    }
+  ]
+}

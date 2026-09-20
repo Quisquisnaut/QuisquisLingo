@@ -15,7 +15,7 @@ import 'statistics_screen.dart';
 import 'user_data_settings_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
-  final Course course;
+  final Course? course;
   final Future<void> Function(BuildContext context) onManageLearners;
   final ProfileService? profileService;
 
@@ -66,11 +66,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
             profile.learnerProfileId,
           );
     StatusRank? statusRank;
-    if (profile != null) {
+    final course = widget.course;
+    if (profile != null && course != null) {
       try {
         statusRank = await _statusLevels.rankForActiveLearner(
-          courseId: widget.course.courseId,
-          courseCode: CourseService.codeForCourse(widget.course),
+          courseId: course.courseId,
+          courseCode: CourseService.codeForCourse(course),
         );
       } catch (_) {
         // Profile remains usable if one progression projection cannot load.

@@ -1,3 +1,4 @@
+import 'services/trusted_publishers.dart';
 import 'dart:async';
 import 'dart:ui' as ui;
 
@@ -234,7 +235,13 @@ class _QuisquisLingoAppState extends State<QuisquisLingoApp>
               : LearnerShell(child: child);
           final scopedContent = LearnerThemeModeScope(
             mode: _themeMode,
-            child: content,
+            child: TrustedPublishers.dummyEnabled
+                ? Banner(
+                    message: 'TEST ONLY',
+                    location: BannerLocation.topEnd,
+                    child: content,
+                  )
+                : content,
           );
           final portraitDesktop =
               !kIsWeb &&

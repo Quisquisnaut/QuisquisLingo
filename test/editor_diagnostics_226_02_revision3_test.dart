@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'support/pump_file_io.dart';
 import 'package:quisquislingo_app/models/course_models.dart';
 import 'package:quisquislingo_app/screens/course_editor_screen.dart';
 import 'package:quisquislingo_app/screens/course_projects_screen.dart';
@@ -46,7 +47,13 @@ void main() {
     ];
     for (final page in pages) {
       await tester.pumpWidget(MaterialApp(home: page));
-      await tester.pumpAndSettle();
+      if (page is CourseProjectsScreen) {
+        await tester.pumpUntilFileIoState(
+          () => find.text('Bundled Courses').evaluate().isNotEmpty,
+        );
+      } else {
+        await tester.pumpAndSettle();
+      }
       expect(find.byTooltip('Editor Help'), findsOneWidget, reason: '$page');
       expect(
         find.byTooltip('Internal IDs hidden. Tap to show'),
@@ -67,7 +74,9 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(home: CourseProjectsScreen(currentCourse: course)),
     );
-    await tester.pumpAndSettle();
+    await tester.pumpUntilFileIoState(
+      () => find.text('Bundled Courses').evaluate().isNotEmpty,
+    );
     expect(find.byKey(const Key('editor-internal-ids-toggle')), findsNothing);
     expect(find.byTooltip('Editor Help'), findsOneWidget);
     expect(find.byTooltip('Course Import'), findsOneWidget);

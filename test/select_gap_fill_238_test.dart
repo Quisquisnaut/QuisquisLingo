@@ -1,3 +1,4 @@
+import 'support/test_directories.dart';
 // QQL Build 238 Phase 2: focused tests for the linked-gap extension of the
 // existing Select primitive. Tapping an option always fills the first
 // remaining empty gap in layout order (or an explicitly armed gap),
@@ -255,7 +256,12 @@ void main() {
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(
             const MethodChannel('plugins.flutter.io/path_provider'),
-            (_) async => throw PlatformException(code: 'test-storage'),
+            (call) async {
+              if (call.method == 'getApplicationSupportDirectory') {
+                return testSupportDirectory.path;
+              }
+              throw PlatformException(code: 'test-storage');
+            },
           );
     });
 

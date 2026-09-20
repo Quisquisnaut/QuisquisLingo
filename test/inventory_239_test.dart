@@ -7,6 +7,7 @@ import 'package:quisquislingo_app/models/course_models.dart';
 import 'package:quisquislingo_app/screens/device_administration_screen.dart';
 import 'package:quisquislingo_app/screens/inventory_screen.dart';
 import 'package:quisquislingo_app/services/inventory_service.dart';
+import 'package:quisquislingo_app/services/course_file_store.dart';
 import 'package:quisquislingo_app/services/profile_service.dart';
 import 'package:quisquislingo_app/services/recorded_audio_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -73,18 +74,55 @@ void main() {
   InventorySection sectionOf(List<InventorySection> all, String title) =>
       all.firstWhere((s) => s.title == title);
 
-  test('lists learners and courses as records without a file path', () async {
-    final all = await service.load();
-    final learners = sectionOf(all, 'Learners');
-    expect(learners.items.single.name, 'Admin One');
-    expect(learners.items.single.owner, 'Admin One (admin)');
-    expect(learners.items.single.path, isNull);
+  test(
+    'lists learners as records and courses with their actual files',
+    () async {
+      final store = CourseFileStore(supportDirectory: () async => support);
+      await store.write(CourseStoreKind.custom, _course.courseId, {
+        'course': _course.toJson(),
+      });
+      final all = await service.load();
+      final learners = sectionOf(all, 'Learners');
+      expect(learners.items.single.name, 'Admin One');
+      expect(learners.items.single.owner, 'Admin One (admin)');
+      expect(learners.items.single.path, isNull);
 
-    final courses = sectionOf(all, 'Custom and installed courses');
-    expect(courses.items.single.name, 'Inventory Course');
-    expect(courses.items.single.path, isNull);
-    expect(courses.items.single.owner, isNotNull);
-  });
+      final courses = sectionOf(all, 'Custom and installed courses');
+      expect(courses.items.single.name, 'Inventory Course');
+      final item = courses.items.single;
+      expect(item.path, isNotNull);
+      final file = File(item.path!);
+      expect(file.existsSync(), isTrue);
+      expect(item.sizeBytes, file.lengthSync());
+      expect(item.modified, file.statSync().modified);
+      expect(courses.totalBytes, file.lengthSync());
+      expect(courses.location, endsWith('qql_courses_v1'));
+      expect(courses.items.single.owner, isNotNull);
+    },
+  );
+
+  test(
+    'inventory lists unreadable course files without altering them',
+    () async {
+      final file = touch(
+        '${support.path}${sep}qql_courses_v1${sep}custom${sep}broken.json',
+        'broken-json',
+      );
+      final actual = InventoryService(
+        profiles: profiles,
+        documentsDirectory: () async => documents,
+        supportDirectory: () async => support,
+      );
+      final courses = sectionOf(
+        await actual.load(),
+        'Custom and installed courses',
+      );
+      expect(courses.items.single.path, file.path);
+      expect(courses.items.single.sizeBytes, file.lengthSync());
+      expect(courses.description, contains('could not be read'));
+      expect(file.readAsStringSync(), 'broken-json');
+    },
+  );
 
   test(
     'finds exports, imports, logs, media and outside files with owners',

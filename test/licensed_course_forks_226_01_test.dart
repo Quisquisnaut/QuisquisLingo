@@ -1,7 +1,9 @@
+import 'support/publisher_fixtures.dart';
 import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:quisquislingo_app/services/course_file_store.dart';
 import 'package:quisquislingo_app/models/course_models.dart';
 import 'package:quisquislingo_app/services/authoring_duplication_service.dart';
 import 'package:quisquislingo_app/services/course_backup_service.dart';
@@ -24,9 +26,17 @@ void main() {
   setUp(() async {
     documents = await Directory.systemTemp.createTemp('qql_forks_22601_');
     backups = CourseBackupService(
+      publisherVerification: fixtureVerifier(
+        'test.publisher',
+        'Test Publisher',
+      ),
       documentsDirectoryProvider: () async => documents,
     );
     service = CourseEditorService(
+      publisherVerification: fixtureVerifier(
+        'test.publisher',
+        'Test Publisher',
+      ),
       backupService: backups,
       clock: () => _forkTime,
     );
@@ -361,6 +371,10 @@ void main() {
       _seedProfiles();
       await service.saveUserCourse(imported);
       final restarted = CourseEditorService(
+        publisherVerification: fixtureVerifier(
+          'test.publisher',
+          'Test Publisher',
+        ),
         backupService: backups,
         clock: () => _forkTime,
       );
@@ -458,7 +472,7 @@ void main() {
     'publisher v4 replaces only official source while the v3 custom fork remains byte-identical',
     () async {
       final installed = await service.installExternalOfficialUpdate(
-        _official(),
+        await signFixture(_official()),
       );
       final unconfirmed = await service.forkOfficialCourse(
         installed.officialCourse,
@@ -470,25 +484,28 @@ void main() {
         isNewCourse: true,
       )).course;
       final forkSnapshot = jsonEncode(fork.toJson());
-      final preferences = await SharedPreferences.getInstance();
-      final customStorage = preferences.getString(
-        CourseEditorService.userCoursesStorageKey,
+      final customStorage = await CourseFileStore().readAll(
+        CourseStoreKind.custom,
       );
 
       final updated = await service.installExternalOfficialUpdate(
-        _official(version: '4'),
+        await signFixture(_official(version: '4')),
       );
       expect(updated.officialCourse.officialCourseVersion, '4');
       expect(
         updated.officialCourse.publisherVerificationStatus,
-        PublisherVerificationStatus.unverified,
+        PublisherVerificationStatus.verified,
       );
       expect(updated.backupPath, isNotNull);
       expect(
-        preferences.getString(CourseEditorService.userCoursesStorageKey),
+        await CourseFileStore().readAll(CourseStoreKind.custom),
         customStorage,
       );
       final courses = await CourseEditorService(
+        publisherVerification: fixtureVerifier(
+          'test.publisher',
+          'Test Publisher',
+        ),
         backupService: backups,
       ).listUserCourses();
       final storedFork = courses.singleWhere(
@@ -519,7 +536,7 @@ void main() {
     'official updates reject checksum, same or older version, publisher and custom identity collisions',
     () async {
       final installed = await service.installExternalOfficialUpdate(
-        _official(),
+        await signFixture(_official()),
       );
       final invalidChecksum = Course.fromJson({
         ..._official(version: '4').toJson(),
@@ -532,7 +549,11 @@ void main() {
         _official(version: '4', publisherId: 'other.publisher'),
       ]) {
         await expectLater(
-          service.installExternalOfficialUpdate(update),
+          service.installExternalOfficialUpdate(
+            identical(update, invalidChecksum)
+                ? update
+                : await signFixture(update),
+          ),
           throwsFormatException,
         );
         expect(
@@ -553,13 +574,15 @@ void main() {
       )).course;
       await expectLater(
         service.installExternalOfficialUpdate(
-          _official(courseId: custom.courseId, version: '4'),
+          await signFixture(_official(courseId: custom.courseId, version: '4')),
         ),
         throwsFormatException,
       );
       await expectLater(
         service.installExternalOfficialUpdate(
-          _official(courseId: 'sample_it_en_it', version: '4'),
+          await signFixture(
+            _official(courseId: 'sample_it_en_it', version: '4'),
+          ),
         ),
         throwsFormatException,
       );

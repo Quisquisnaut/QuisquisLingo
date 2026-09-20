@@ -1,7 +1,9 @@
+import 'support/publisher_fixtures.dart';
 import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:quisquislingo_app/services/course_file_store.dart';
 import 'package:quisquislingo_app/models/course_models.dart';
 import 'package:quisquislingo_app/services/course_backup_service.dart';
 import 'package:quisquislingo_app/services/course_editor_service.dart';
@@ -83,25 +85,33 @@ void main() {
       }
 
       final original = package('1');
-      final preferences = await SharedPreferences.getInstance();
       const legacy = {
         'localCourseVersion': 99,
         'course': 'unsupported obsolete payload',
       };
-      await preferences.setString(
-        CourseEditorService.externalOfficialStorageKey,
-        jsonEncode({
-          original.courseId: {'source': original.toJson(), 'override': legacy},
-        }),
+      await CourseFileStore().write(
+        CourseStoreKind.externalOfficial,
+        original.courseId,
+        {'source': original.toJson(), 'override': legacy},
       );
       final directory = await Directory.systemTemp.createTemp(
         'qql22601_sources_',
       );
       addTearDown(() => directory.delete(recursive: true));
       final backups = CourseBackupService(
+        publisherVerification: fixtureVerifier(
+          'org.quisquislingo',
+          'QuisquisLingo',
+        ),
         documentsDirectoryProvider: () async => directory,
       );
-      final editor = CourseEditorService(backupService: backups);
+      final editor = CourseEditorService(
+        publisherVerification: fixtureVerifier(
+          'org.quisquislingo',
+          'QuisquisLingo',
+        ),
+        backupService: backups,
+      );
       expect(
         (await editor.listUserCourses()).single.toJson(),
         original.toJson(),
@@ -111,10 +121,17 @@ void main() {
         original.toJson(),
       );
       final next = package('2');
-      await editor.installExternalOfficialUpdate(next);
-      expect((await editor.listUserCourses()).single.toJson(), next.toJson());
-      final stored = jsonDecode(
-        preferences.getString(CourseEditorService.externalOfficialStorageKey)!,
+      final signedNext = await signFixture(next);
+      final installed = await editor.installExternalOfficialUpdate(
+        signedNext,
+        confirmUnverifiedAssociation: true,
+      );
+      expect(
+        (await editor.listUserCourses()).single.toJson(),
+        installed.officialCourse.toJson(),
+      );
+      final stored = await CourseFileStore().readAll(
+        CourseStoreKind.externalOfficial,
       );
       expect(stored[original.courseId]['override'], legacy);
       expect(
@@ -123,10 +140,7 @@ void main() {
         )).single.course.toJson(),
         original.toJson(),
       );
-      expect(
-        preferences.getString(CourseEditorService.userCoursesStorageKey),
-        isNull,
-      );
+      expect(await CourseFileStore().readAll(CourseStoreKind.custom), isEmpty);
     },
   );
 
@@ -140,6 +154,10 @@ void main() {
       );
       addTearDown(() => directory.delete(recursive: true));
       final backups = CourseBackupService(
+        publisherVerification: fixtureVerifier(
+          'org.quisquislingo',
+          'QuisquisLingo',
+        ),
         documentsDirectoryProvider: () async => directory,
       );
       await backups.createBackup(
@@ -224,6 +242,10 @@ void main() {
         ),
       });
       final backups = CourseBackupService(
+        publisherVerification: fixtureVerifier(
+          'org.quisquislingo',
+          'QuisquisLingo',
+        ),
         documentsDirectoryProvider: () async => directory,
       );
       final record = await backups.createBackup(

@@ -1,3 +1,5 @@
+import 'support/publisher_fixtures.dart';
+import 'support/pump_file_io.dart';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -6,6 +8,7 @@ import 'package:quisquislingo_app/models/course_models.dart';
 import 'package:quisquislingo_app/screens/course_projects_screen.dart';
 import 'package:quisquislingo_app/services/course_backup_service.dart';
 import 'package:quisquislingo_app/services/course_editor_service.dart';
+import 'package:quisquislingo_app/services/course_file_store.dart';
 import 'package:quisquislingo_app/services/profile_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -22,6 +25,10 @@ void main() {
   setUp(() async {
     documents = await Directory.systemTemp.createTemp('qql_230_course_');
     backups = CourseBackupService(
+      publisherVerification: fixtureVerifier(
+        'publisher.qql230',
+        'QQL 230 Publisher',
+      ),
       documentsDirectoryProvider: () async => documents,
     );
     SharedPreferences.setMockInitialValues({
@@ -41,6 +48,10 @@ void main() {
 
   test('custom import cannot take a bundled official identity', () async {
     final service = CourseEditorService(
+      publisherVerification: fixtureVerifier(
+        'publisher.qql230',
+        'QQL 230 Publisher',
+      ),
       backupService: backups,
       clock: () => _when,
     );
@@ -52,20 +63,20 @@ void main() {
       throwsFormatException,
     );
 
-    final preferences = await SharedPreferences.getInstance();
-    expect(
-      preferences.getString(CourseEditorService.userCoursesStorageKey),
-      isNull,
-    );
+    expect(await CourseFileStore().readAll(CourseStoreKind.custom), isEmpty);
   });
 
   test('custom import cannot take an external official identity', () async {
     final service = CourseEditorService(
+      publisherVerification: fixtureVerifier(
+        'publisher.qql230',
+        'QQL 230 Publisher',
+      ),
       backupService: backups,
       clock: () => _when,
     );
     final official = _externalOfficialCourse();
-    await service.installExternalOfficialUpdate(official);
+    await service.installExternalOfficialUpdate(await signFixture(official));
 
     await expectLater(
       service.installImportedCustomCourse(
@@ -74,45 +85,57 @@ void main() {
       throwsFormatException,
     );
 
-    final preferences = await SharedPreferences.getInstance();
-    expect(
-      preferences.getString(CourseEditorService.userCoursesStorageKey),
-      isNull,
-    );
+    expect(await CourseFileStore().readAll(CourseStoreKind.custom), isEmpty);
     expect(
       (await service.listUserCourses()).single.originType.isOfficial,
       isTrue,
     );
   });
 
-  test('new custom import rolls back a failed verified write', () async {
-    final service = CourseEditorService(
-      backupService: backups,
-      clock: () => _when,
-      preferenceWriter: (preferences, key, value) async {
-        await preferences.setString(key, value);
-        return false;
-      },
-    );
-    final course = _customCourse(title: 'Never partially installed');
+  test(
+    'new custom import leaves no course after a partial file write fails',
+    () async {
+      final service = CourseEditorService(
+        publisherVerification: fixtureVerifier(
+          'publisher.qql230',
+          'QQL 230 Publisher',
+        ),
+        backupService: backups,
+        clock: () => _when,
+        courseStore: CourseFileStore(
+          supportDirectory: () async => documents,
+          fileWriter: (file, contents) async {
+            await file.writeAsString(
+              contents.substring(0, contents.length ~/ 2),
+            );
+            throw FileSystemException('disk full');
+          },
+        ),
+      );
+      final course = _customCourse(title: 'Never partially installed');
 
-    await expectLater(
-      service.installImportedCustomCourse(course),
-      throwsStateError,
-    );
+      await expectLater(
+        service.installImportedCustomCourse(course),
+        throwsA(isA<FileSystemException>()),
+      );
 
-    final preferences = await SharedPreferences.getInstance();
-    expect(
-      preferences.getString(CourseEditorService.userCoursesStorageKey),
-      isNull,
-    );
-    expect(await backups.listBackups(course.courseId), isEmpty);
-  });
+      expect(await service.listUserCourses(), isEmpty);
+      final directory = await CourseFileStore(
+        supportDirectory: () async => documents,
+      ).directoryFor(CourseStoreKind.custom);
+      expect(await directory.list().toList(), isEmpty);
+      expect(await backups.listBackups(course.courseId), isEmpty);
+    },
+  );
 
   test(
     'same-ID custom import backs up and advances the persisted version once',
     () async {
       final service = CourseEditorService(
+        publisherVerification: fixtureVerifier(
+          'publisher.qql230',
+          'QQL 230 Publisher',
+        ),
         backupService: backups,
         clock: () => _when,
       );
@@ -146,6 +169,10 @@ void main() {
 
   test('same-ID custom import cannot rewrite maintainer or lineage', () async {
     final service = CourseEditorService(
+      publisherVerification: fixtureVerifier(
+        'publisher.qql230',
+        'QQL 230 Publisher',
+      ),
       backupService: backups,
       clock: () => _when,
     );
@@ -183,38 +210,52 @@ void main() {
   });
 
   test(
-    'same-ID replacement restores exact storage after write failure',
+    'same-ID replacement preserves exact file bytes after write failure',
     () async {
+      final store = CourseFileStore(supportDirectory: () async => documents);
       final seed = CourseEditorService(
+        publisherVerification: fixtureVerifier(
+          'publisher.qql230',
+          'QQL 230 Publisher',
+        ),
+        courseStore: store,
         backupService: backups,
         clock: () => _when,
       );
       final original = _customCourse(title: 'Keep me', courseVersion: '5');
       await seed.installImportedCustomCourse(original);
-      final preferences = await SharedPreferences.getInstance();
-      final before = preferences.getString(
-        CourseEditorService.userCoursesStorageKey,
-      );
+      final directory = await store.directoryFor(CourseStoreKind.custom);
+      final file = (await directory.list().toList()).single as File;
+      final before = await file.readAsBytes();
       final failing = CourseEditorService(
+        publisherVerification: fixtureVerifier(
+          'publisher.qql230',
+          'QQL 230 Publisher',
+        ),
         backupService: backups,
         clock: () => _when.add(const Duration(hours: 1)),
-        preferenceWriter: (preferences, key, value) async {
-          await preferences.setString(key, value);
-          return false;
-        },
+        courseStore: CourseFileStore(
+          supportDirectory: () async => documents,
+          fileWriter: (file, contents) async {
+            await file.writeAsString(
+              contents.substring(0, contents.length ~/ 2),
+            );
+            throw FileSystemException('disk full');
+          },
+        ),
       );
 
       await expectLater(
         failing.installImportedCustomCourse(
           Course.fromJson({...original.toJson(), 'title': 'Do not retain'}),
         ),
-        throwsStateError,
+        throwsA(isA<FileSystemException>()),
       );
 
-      expect(
-        preferences.getString(CourseEditorService.userCoursesStorageKey),
-        before,
-      );
+      expect(await file.readAsBytes(), before);
+      expect((await directory.list().toList()).map((entry) => entry.path), [
+        file.path,
+      ]);
       final stored = (await seed.listUserCourses()).single;
       expect(stored.title, 'Keep me');
       expect(stored.courseVersion, '5');
@@ -242,11 +283,13 @@ void main() {
   testWidgets('Course Manager surfaces corrupt storage instead of spinning', (
     tester,
   ) async {
-    final preferences = await SharedPreferences.getInstance();
-    await preferences.setString(
-      CourseEditorService.userCoursesStorageKey,
-      'not-json',
-    );
+    await tester.runAsync(() async {
+      final directory = await CourseFileStore().directoryFor(
+        CourseStoreKind.custom,
+        create: true,
+      );
+      await File('${directory.path}/broken.json').writeAsString('not-json');
+    });
 
     await tester.pumpWidget(
       MaterialApp(
@@ -255,11 +298,16 @@ void main() {
         ),
       ),
     );
-    await tester.pumpAndSettle();
+    await tester.pumpUntilFileIoState(
+      () => find
+          .byKey(const Key('course-manager-load-error'))
+          .evaluate()
+          .isNotEmpty,
+    );
 
     expect(find.byKey(const Key('course-manager-load-error')), findsOneWidget);
     expect(find.byType(CircularProgressIndicator), findsNothing);
-    expect(find.textContaining('were preserved'), findsOneWidget);
+    expect(find.textContaining('was preserved'), findsOneWidget);
     expect(find.widgetWithText(OutlinedButton, 'Retry'), findsOneWidget);
   });
 }

@@ -1,3 +1,4 @@
+import 'support/publisher_fixtures.dart';
 import 'dart:convert';
 import 'dart:io';
 
@@ -5,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:quisquislingo_app/models/course_models.dart';
 import 'package:quisquislingo_app/services/course_backup_service.dart';
 import 'package:quisquislingo_app/services/course_editor_service.dart';
+import 'package:quisquislingo_app/services/course_file_store.dart';
 import 'package:quisquislingo_app/services/course_editor_transaction.dart';
 import 'package:quisquislingo_app/services/profile_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -21,6 +23,7 @@ void main() {
   setUp(() async {
     documents = await Directory.systemTemp.createTemp('qql_22504_');
     backups = CourseBackupService(
+      publisherVerification: fixtureVerifier('team.example', 'Team Example'),
       documentsDirectoryProvider: () async => documents,
     );
     SharedPreferences.setMockInitialValues({
@@ -75,6 +78,7 @@ void main() {
     () async {
       final source = _customCourse(title: 'New', version: '');
       final service = CourseEditorService(
+        publisherVerification: fixtureVerifier('team.example', 'Team Example'),
         backupService: backups,
         clock: () => _when,
       );
@@ -111,6 +115,7 @@ void main() {
     () async {
       final source = _customCourse(title: 'Timestamped', version: '');
       final service = CourseEditorService(
+        publisherVerification: fixtureVerifier('team.example', 'Team Example'),
         backupService: backups,
         clock: () => _when,
       );
@@ -146,6 +151,7 @@ void main() {
   test('confirmation is blocked without an active local QQL profile', () async {
     SharedPreferences.setMockInitialValues({});
     final blocked = CourseEditorService(
+      publisherVerification: fixtureVerifier('team.example', 'Team Example'),
       backupService: backups,
       clock: () => _when,
     );
@@ -173,6 +179,7 @@ void main() {
     () async {
       final source = _customCourse(title: 'Version one', version: '1');
       final service = CourseEditorService(
+        publisherVerification: fixtureVerifier('team.example', 'Team Example'),
         backupService: backups,
         clock: () => _when,
       );
@@ -289,6 +296,7 @@ void main() {
         ],
       });
       final service = CourseEditorService(
+        publisherVerification: fixtureVerifier('team.example', 'Team Example'),
         backupService: backups,
         clock: () => _when,
       );
@@ -347,14 +355,23 @@ void main() {
     'backup failure and persistence failure leave original live course unchanged',
     () async {
       final source = _customCourse(title: 'Original', version: '1');
+      final store = CourseFileStore(supportDirectory: () async => documents);
       final seed = CourseEditorService(
+        publisherVerification: fixtureVerifier('team.example', 'Team Example'),
+        courseStore: store,
         backupService: backups,
         clock: () => _when,
       );
       await seed.saveUserCourse(source);
 
       final failingBackup = CourseEditorService(
+        publisherVerification: fixtureVerifier('team.example', 'Team Example'),
+        courseStore: store,
         backupService: CourseBackupService(
+          publisherVerification: fixtureVerifier(
+            'team.example',
+            'Team Example',
+          ),
           documentsDirectoryProvider: () async => documents,
           fileWriter: (_, _) async => throw FileSystemException('disk full'),
         ),
@@ -375,9 +392,12 @@ void main() {
       expect((await seed.listUserCourses()).single.title, 'Original');
 
       final failingPersistence = CourseEditorService(
+        publisherVerification: fixtureVerifier('team.example', 'Team Example'),
         backupService: backups,
-        preferenceWriter: (_, key, _) async =>
-            key != CourseEditorService.userCoursesStorageKey,
+        courseStore: CourseFileStore(
+          supportDirectory: () async => documents,
+          fileWriter: (_, _) async => throw FileSystemException('disk full'),
+        ),
         clock: () => _when,
       );
       await expectLater(
@@ -390,9 +410,9 @@ void main() {
           languageCode: 'ZZ',
           versionNotes: 'kept by UI',
         ),
-        throwsA(isA<StateError>()),
+        throwsA(isA<FileSystemException>()),
       );
-      expect((await seed.listUserCourses()).single.title, 'Original');
+      expect((await seed.listUserCourses()).single.toJson(), source.toJson());
       expect(await backups.listBackups(source.courseId), isNotEmpty);
     },
   );
@@ -401,6 +421,7 @@ void main() {
     'official courses cannot enter a local confirmation transaction',
     () async {
       final service = CourseEditorService(
+        publisherVerification: fixtureVerifier('team.example', 'Team Example'),
         backupService: backups,
         clock: () => _when,
       );
@@ -445,6 +466,7 @@ void main() {
     'external official update preserves the prior source and refuses publisher collision',
     () async {
       final service = CourseEditorService(
+        publisherVerification: fixtureVerifier('team.example', 'Team Example'),
         backupService: backups,
         clock: () => _when,
       );
@@ -452,17 +474,21 @@ void main() {
         origin: CourseOriginType.externalOfficial,
         officialVersion: '3',
       );
-      final installed = await service.installExternalOfficialUpdate(v3);
+      final installed = await service.installExternalOfficialUpdate(
+        await signFixture(v3),
+      );
       expect(
         installed.officialCourse.publisherVerificationStatus,
-        PublisherVerificationStatus.unverified,
+        PublisherVerificationStatus.verified,
       );
       final v4 = _officialCourse(
         origin: CourseOriginType.externalOfficial,
         officialVersion: '4',
         title: 'Official v4',
       );
-      final updated = await service.installExternalOfficialUpdate(v4);
+      final updated = await service.installExternalOfficialUpdate(
+        await signFixture(v4),
+      );
       expect(updated.backupPath, isNotNull);
       final active = (await service.listUserCourses()).single;
       expect(active.title, 'Official v4');
@@ -494,7 +520,7 @@ void main() {
           ),
         });
         await expectLater(
-          service.installExternalOfficialUpdate(candidate),
+          service.installExternalOfficialUpdate(await signFixture(candidate)),
           throwsFormatException,
         );
       }
@@ -505,7 +531,7 @@ void main() {
         publisherId: 'different.publisher',
       );
       await expectLater(
-        service.installExternalOfficialUpdate(attacker),
+        service.installExternalOfficialUpdate(await signFixture(attacker)),
         throwsA(isA<FormatException>()),
       );
       expect(
@@ -519,6 +545,7 @@ void main() {
     'origin collisions require a genuinely separate custom identity',
     () async {
       final service = CourseEditorService(
+        publisherVerification: fixtureVerifier('team.example', 'Team Example'),
         backupService: backups,
         clock: () => _when,
       );
@@ -526,7 +553,7 @@ void main() {
         origin: CourseOriginType.externalOfficial,
         officialVersion: '1',
       );
-      await service.installExternalOfficialUpdate(official);
+      await service.installExternalOfficialUpdate(await signFixture(official));
       final collidingCustom = _customCourse(
         title: 'Collision',
         version: '1',

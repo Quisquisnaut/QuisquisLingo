@@ -1,3 +1,5 @@
+import 'support/test_directories.dart';
+import 'support/pump_file_io.dart';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -38,8 +40,12 @@ void main() {
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(
           const MethodChannel('plugins.flutter.io/path_provider'),
-          (_) async =>
-              throw PlatformException(code: 'test_storage_unavailable'),
+          (call) async {
+            if (call.method == 'getApplicationSupportDirectory') {
+              return testSupportDirectory.path;
+            }
+            throw PlatformException(code: 'test_storage_unavailable');
+          },
         );
   });
 
@@ -318,7 +324,10 @@ void main() {
         tester.widget<AuthoringStatusCard>(ancestor).hasAuditConcern,
         isTrue,
       );
-      expect(await CourseEditorService().listUserCourses(), isEmpty);
+      expect(
+        (await tester.runAsync(() => CourseEditorService().listUserCourses()))!,
+        isEmpty,
+      );
     },
   );
 
@@ -548,7 +557,7 @@ Future<void> _openHome(
 }) async {
   await tester.binding.setSurfaceSize(const Size(430, 1000));
   addTearDown(() => tester.binding.setSurfaceSize(null));
-  await CourseEditorService().saveUserCourse(course);
+  await tester.runAsync(() => CourseEditorService().saveUserCourse(course));
   await SettingsService().setLastSelectedCourseCode(
     'custom:${course.courseId}',
   );
@@ -558,7 +567,12 @@ Future<void> _openHome(
       home: const HomeScreen(),
     ),
   );
-  await _pumpFrames(tester);
+  await tester.pumpUntilFileIoState(
+    () => find
+        .byKey(const Key('unified-topbar-course-selector'))
+        .evaluate()
+        .isNotEmpty,
+  );
   if (find.text('Beta expiry').evaluate().isNotEmpty) {
     await tester.tap(find.widgetWithText(FilledButton, 'OK'));
     await _pumpFrames(tester);

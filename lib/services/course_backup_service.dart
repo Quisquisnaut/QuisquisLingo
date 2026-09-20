@@ -1,6 +1,7 @@
+import 'course_checksums.dart';
+import 'publisher_verification_service.dart';
 import 'dart:convert';
 import 'dart:io';
-import 'dart:collection';
 
 import 'package:crypto/crypto.dart';
 import 'package:path_provider/path_provider.dart';
@@ -40,10 +41,15 @@ class CourseBackupService {
     Future<Directory> Function()? documentsDirectoryProvider,
     Future<void> Function(File file, List<int> bytes)? fileWriter,
     Future<bool> Function(Uri uri)? uriLauncher,
+    PublisherVerificationService? publisherVerification,
   }) : _documentsDirectoryProvider =
            documentsDirectoryProvider ?? getApplicationDocumentsDirectory,
        _fileWriter = fileWriter,
-       _uriLauncher = uriLauncher;
+       _uriLauncher = uriLauncher,
+       _publisherVerification =
+           publisherVerification ?? PublisherVerificationService();
+
+  final PublisherVerificationService _publisherVerification;
 
   static const backupFormat = 'QuisquisLingo Course Backup v9';
   final Future<Directory> Function() _documentsDirectoryProvider;
@@ -88,35 +94,10 @@ class CourseBackupService {
     return directory;
   }
 
-  static String courseChecksum(Course course) =>
-      sha256.convert(utf8.encode(_canonicalJson(course.toJson()))).toString();
+  static String courseChecksum(Course course) => CourseChecksums.whole(course);
 
-  /// Publisher checksum of the immutable official payload. The digest and
-  /// authenticity metadata are separate from the authenticated content.
-  static String officialContentChecksum(Course course) {
-    final value = Map<String, dynamic>.from(course.toJson())
-      ..remove('officialChecksum')
-      ..remove('publisherVerificationStatus')
-      ..remove('publisherSignature');
-    return sha256.convert(utf8.encode(_canonicalJson(value))).toString();
-  }
-
-  static String _canonicalJson(Object? value) =>
-      jsonEncode(_canonicalValue(value));
-
-  static SplayTreeMap<String, Object?> _canonicalMap(Map value) {
-    final output = SplayTreeMap<String, Object?>();
-    for (final entry in value.entries) {
-      output[entry.key.toString()] = _canonicalValue(entry.value);
-    }
-    return output;
-  }
-
-  static Object? _canonicalValue(Object? value) => switch (value) {
-    Map() => _canonicalMap(value),
-    List() => value.map(_canonicalValue).toList(growable: false),
-    _ => value,
-  };
+  static String officialContentChecksum(Course course) =>
+      CourseChecksums.official(course);
 
   static String _filenameStamp(DateTime value) => value
       .toUtc()
@@ -338,7 +319,7 @@ class CourseBackupService {
           });
     return CourseBackupRecord(
       manifestFile: manifestFile,
-      course: restoredCourse,
+      course: await _publisherVerification.assessStored(restoredCourse),
       checksum: checksum,
       backedUpAtUtc: backedUpAt,
       reason: '${manifest['reason'] ?? ''}',
@@ -366,7 +347,7 @@ class CourseBackupService {
     return records;
   }
 
-  /// Official history contains verified publisher sources only.
+  /// History preserves publisher sources; authenticity is re-evaluated on read.
   Future<List<CourseBackupRecord>> listOfficialBackups(String courseId) async {
     final directory = await courseBackupDirectory(courseId);
     if (!await directory.exists()) return const [];

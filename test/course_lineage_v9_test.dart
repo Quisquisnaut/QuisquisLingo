@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:quisquislingo_app/services/course_file_store.dart';
 import 'package:quisquislingo_app/models/course_models.dart';
 import 'package:quisquislingo_app/services/authoring_duplication_service.dart';
 import 'package:quisquislingo_app/services/course_access_policy.dart';
@@ -147,8 +148,11 @@ void main() {
       await service.saveUserCourse(ownCourse);
 
       expect(
-        preferences.getString(CourseEditorStorage.userCoursesKey),
-        isNotNull,
+        await CourseFileStore().contains(
+          CourseStoreKind.custom,
+          ownCourse.courseId,
+        ),
+        isTrue,
       );
       expect(
         preferences.getString('quisquislingo_user_courses_v8_233030'),

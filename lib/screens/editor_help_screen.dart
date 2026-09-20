@@ -5,6 +5,7 @@ import '../services/exercise_field_help.dart';
 import '../widgets/help_language_toggle.dart';
 import 'audit_codes_screen.dart';
 import 'editor_help_content.dart';
+import 'publisher_signing_help_screen.dart';
 
 class EditorHelpScreen extends StatefulWidget {
   const EditorHelpScreen({super.key});
@@ -71,10 +72,12 @@ class _CourseTypesHelpSection extends StatelessWidget {
             ],
             const SizedBox(height: 12),
             Table(
+              key: const Key('editor-help-course-types-table'),
               columnWidths: const {
                 0: FlexColumnWidth(2),
                 1: FlexColumnWidth(3),
                 2: FlexColumnWidth(3),
+                3: FlexColumnWidth(3),
               },
               defaultVerticalAlignment: TableCellVerticalAlignment.top,
               children: [
@@ -114,7 +117,11 @@ class _CourseTypeTableCell extends StatelessWidget {
     padding: const EdgeInsets.all(4),
     child: Text(
       text,
-      style: bold ? const TextStyle(fontWeight: FontWeight.bold) : null,
+      style: TextStyle(
+        fontSize: 12,
+        height: 1.3,
+        fontWeight: bold ? FontWeight.bold : FontWeight.normal,
+      ),
     ),
   );
 }
@@ -192,6 +199,20 @@ class _TechnicalLinks extends StatelessWidget {
             onTap: () => Navigator.of(
               context,
             ).push(MaterialPageRoute(builder: (_) => const JsonV4HelpScreen())),
+          ),
+          ListTile(
+            key: const Key('editor-help-publisher-signing'),
+            contentPadding: EdgeInsets.zero,
+            title: const Text('Publisher signing and approval'),
+            subtitle: const Text(
+              'English · Signing, approval and verification',
+            ),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => const PublisherSigningHelpScreen(),
+              ),
+            ),
           ),
         ],
       ),

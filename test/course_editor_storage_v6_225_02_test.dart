@@ -1,4 +1,5 @@
-import 'dart:convert';
+import 'dart:io';
+import 'package:quisquislingo_app/services/course_file_store.dart';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:quisquislingo_app/models/course_models.dart';
@@ -18,6 +19,7 @@ void main() {
         'quisquislingo_user_courses_v6_225': legacy,
         'quisquislingo_user_courses_v7_2291': legacy,
         'quisquislingo_user_courses_v8_233030': legacy,
+        'quisquislingo_user_courses_v9_233030': legacy,
       });
       final service = CourseEditorService();
 
@@ -27,7 +29,7 @@ void main() {
       expect(prefs.getString('quisquislingo_user_courses_v6_225'), legacy);
       expect(prefs.getString('quisquislingo_user_courses_v7_2291'), legacy);
       expect(prefs.getString('quisquislingo_user_courses_v8_233030'), legacy);
-      expect(prefs.getString('quisquislingo_user_courses_v9_233030'), isNull);
+      expect(prefs.getString('quisquislingo_user_courses_v9_233030'), legacy);
     },
   );
 
@@ -35,15 +37,14 @@ void main() {
     'unsupported course in v9 storage fails clearly without deletion',
     () async {
       final legacyCourse = _course().toJson()..['formatVersion'] = 5;
-      final stored = jsonEncode({
-        'legacy-course': {
-          'savedAt': '2026-09-04T12:00:00.000Z',
-          'course': legacyCourse,
-        },
+      final store = CourseFileStore();
+      await store.write(CourseStoreKind.custom, 'legacy-course', {
+        'savedAt': '2026-09-04T12:00:00.000Z',
+        'course': legacyCourse,
       });
-      SharedPreferences.setMockInitialValues({
-        'quisquislingo_user_courses_v9_233030': stored,
-      });
+      final directory = await store.directoryFor(CourseStoreKind.custom);
+      final file = (await directory.list().toList()).single as File;
+      final stored = await file.readAsBytes();
       final service = CourseEditorService();
 
       await expectLater(
@@ -62,8 +63,7 @@ void main() {
               ),
         ),
       );
-      final prefs = await SharedPreferences.getInstance();
-      expect(prefs.getString('quisquislingo_user_courses_v9_233030'), stored);
+      expect(await file.readAsBytes(), stored);
     },
   );
 
@@ -84,12 +84,15 @@ void main() {
   });
 
   test(
-    'corrupt v9 storage is copied aside and never silently emptied',
+    'corrupt course file is preserved in place and never silently emptied',
     () async {
       const corrupt = '[not an object]';
-      SharedPreferences.setMockInitialValues({
-        'quisquislingo_user_courses_v9_233030': corrupt,
-      });
+      final directory = await CourseFileStore().directoryFor(
+        CourseStoreKind.custom,
+        create: true,
+      );
+      final file = File('${directory.path}/broken.json');
+      await file.writeAsString(corrupt);
       final service = CourseEditorService();
 
       await expectLater(
@@ -102,12 +105,8 @@ void main() {
           ),
         ),
       );
-      final prefs = await SharedPreferences.getInstance();
-      expect(prefs.getString('quisquislingo_user_courses_v9_233030'), corrupt);
-      expect(
-        prefs.getString('quisquislingo_course_editor_corrupt_backup_v9_233030'),
-        corrupt,
-      );
+      expect(await file.readAsString(), corrupt);
+      expect((await directory.list().toList()).length, 1);
     },
   );
 

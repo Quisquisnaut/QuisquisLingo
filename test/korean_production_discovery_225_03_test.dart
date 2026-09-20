@@ -1,3 +1,4 @@
+import 'support/test_directories.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -27,7 +28,12 @@ void main() {
         TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
     messenger.setMockMethodCallHandler(
       const MethodChannel('plugins.flutter.io/path_provider'),
-      (_) async => throw PlatformException(code: 'test-storage'),
+      (call) async {
+        if (call.method == 'getApplicationSupportDirectory') {
+          return testSupportDirectory.path;
+        }
+        throw PlatformException(code: 'test-storage');
+      },
     );
     messenger.setMockMethodCallHandler(
       const MethodChannel('xyz.luan/audioplayers.global'),
@@ -72,7 +78,9 @@ void main() {
       await SettingsService().setAudioExercisesEnabled(true);
       await SettingsService().setTtsEnabled(true);
       final custom = _customCourse();
-      await CourseEditorService().saveUserCourse(custom);
+      (await tester.runAsync(
+        () => CourseEditorService().saveUserCourse(custom),
+      ));
       final progress = ProgressService();
       await progress.completeRound(
         'preserved-round',
@@ -186,9 +194,9 @@ void main() {
       expect(reconciled, CourseService.courseAssets.keys);
       expect(reconciled!.where((code) => code == 'KO'), hasLength(1));
       expect(
-        (await CourseEditorService().listUserCourses()).map(
-          (course) => course.courseId,
-        ),
+        ((await tester.runAsync(
+          () => CourseEditorService().listUserCourses(),
+        ))!).map((course) => course.courseId),
         contains(custom.courseId),
       );
       expect(
@@ -210,8 +218,8 @@ void main() {
             'title': 'A custom course title that is longer than Esperanto',
           });
           final editor = CourseEditorService();
-          await editor.saveUserCourse(custom);
-          await editor.saveUserCourse(otherCustom);
+          (await tester.runAsync(() => editor.saveUserCourse(custom)));
+          (await tester.runAsync(() => editor.saveUserCourse(otherCustom)));
           final settings = SettingsService();
           for (final ref in [
             'custom:${otherCustom.courseId}',

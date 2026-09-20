@@ -1,3 +1,5 @@
+import 'package:quisquislingo_app/services/course_library_service.dart';
+import 'package:quisquislingo_app/services/course_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:quisquislingo_app/models/course_models.dart';
 import 'package:quisquislingo_app/services/lesson_expansion_policy.dart';
@@ -27,34 +29,22 @@ void main() {
   });
 
   test(
-    'Hide is isolated by learner and course and Unhide restores visibility',
+    'retired visibility flags do not remove personal course membership',
     () async {
-      final profiles = ProfileService();
-      final settings = SettingsService();
-
-      expect(
-        await settings.getHiddenCourseIds(['official', 'custom']),
-        isEmpty,
+      final course = await CourseService().loadCourse('IT');
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool(
+        ProfileService().keyForProfileId(
+          _learnerA,
+          'course_hidden_${course.courseId}',
+        ),
+        true,
       );
-      await settings.setCourseHidden('official', true);
-      expect(await settings.isCourseHidden('official'), isTrue);
-      expect(await settings.getHiddenCourseIds(['official', 'custom']), {
-        'official',
-      });
-
-      await profiles.setActiveProfileById(_learnerB);
-      expect(await settings.isCourseHidden('official'), isFalse);
-      await settings.setCourseHidden('custom', true);
-      expect(await settings.getHiddenCourseIds(['official', 'custom']), {
-        'custom',
-      });
-
-      await profiles.setActiveProfileById(_learnerA);
-      expect(await settings.getHiddenCourseIds(['official', 'custom']), {
-        'official',
-      });
-      await settings.setCourseHidden('official', false);
-      expect(await SettingsService().isCourseHidden('official'), isFalse);
+      expect(await CourseLibraryService().contains(course), isTrue);
+      expect(
+        await CourseLibraryService().contains(course, profileId: _learnerB),
+        isTrue,
+      );
     },
   );
 

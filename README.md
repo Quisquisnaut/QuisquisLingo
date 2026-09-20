@@ -1,10 +1,14 @@
 # QuisquisLingo App
 
-**Current source version: 2.0.40+240000 · Build 240, Revision 0 · Course Models v9/v10 (`formatVersion: 9`/`10`).**
+**Current source version: 2.0.41+241002 · Build 241, Revision 2 · Course Models v9/v10 (`formatVersion: 9`/`10`).**
+
+**QuisquisLingo 2.0.41 Beta — QQL 241 course file storage and publisher signatures**
+
+Current project version: 2.0.41
+
+QQL 241 completes the course file-store integration: custom and installed official courses use individual files under application support, Reset removes those files for the appropriate scopes, and Inventory reports their real paths and sizes. Tests use isolated directories and explicit save/UI completion conditions. Old course preference blobs are not migrated. Final validation passed (1,879 full-suite tests, plus 8 focused tests for the final Publisher title color); see `docs/241_VALIDATION.md`.
 
 **QuisquisLingo 2.0.40 Beta — QQL 240 native file dialogs (Save to… / Open from…)**
-
-Current project version: 2.0.40
 
 QQL 240 adds the operating system's Save and Open dialogs next to the existing fixed-folder Export and Import (which are unchanged): `Save to…` for Course JSON, my data, the User Recovery Key and copies of the Crash and Diagnostic Logs, and `Open from…` for Course import, Merge From…, Image Bank ZIPs, single images, custom Lesson icons, recorded MP3s, my data and the User Recovery Key. Cloud folders such as Google Drive appear only if the device already shows them; QQL does not sign in to any cloud service. A failed or unavailable dialog explains how to use the fixed-folder route and is logged. Windows, macOS and Linux are supported; Android's picker is not wired yet (the buttons stay hidden) and iOS is not supported. See `docs/240_FILE_DIALOGS_PLAN.md`, `docs/240_VALIDATION.md` and `CHANGELOG.md`.
 
@@ -67,7 +71,7 @@ The MPL-2.0 covers the QuisquisLingo software source. Courses, the Image Bank an
 
 ## Beta lifecycle
 
-Version 2.0.40, Build 240, Revision 0 is a time-limited Beta with an expiry of **2026-10-19 23:59:59 local time** (unchanged from QQL 239 by owner decision). Near expiry it displays reminders. After expiry, learner exercises and Review are blocked until a newer Beta is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when a Beta expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM.
+Version 2.0.41, Build 241, Revision 2 is a time-limited Beta with an expiry of **2026-10-20 23:59:59 local time** (30 days from September 20, 2026). Near expiry it displays reminders. After expiry, learner exercises and Review are blocked until a newer Beta is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when a Beta expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM.
 
 ## Core logic
 
@@ -294,3 +298,19 @@ The update check is metadata-only and sends no learner or course data. Offline u
 Both debug and standalone release Beta builds display tester instructions at startup. QuisquisLingo creates or re-creates one authoritative **Crash Log** at `Documents/QuisquisLingo/Logs/quisquislingo_crash.log` on desktop, using the platform's native Documents directory. On Android and iOS the same logical `QuisquisLingo/Logs/quisquislingo_crash.log` path is inside the app's private application-documents directory, and **Settings > Debug > Share Crash Log** provides access through the platform share UI. QQL does not write another active crash-log copy in application preferences or migrate an older preferences-folder log. The log appends a session snapshot and records uncaught errors in all non-web build modes; detailed navigation breadcrumbs remain debug-only. The separate **Diagnostic Log** stores application troubleshooting events internally and can be exported from **Settings > Debug** to `Documents/QuisquisLingo/Logs/quisquislingo_diagnostic_log.txt`. Bounded learner-audio lifecycle events use correlation IDs and omit spoken text, answers, course content and full personal file paths.
 
 Beta builds also keep a privacy-safe **Startup Trace** at `%LOCALAPPDATA%\QuisquisLingo\Logs\quisquislingo_startup_trace.log`, with `%TEMP%\quisquislingo_startup_trace.log` as fallback. Normal lifecycle tracing is enabled by default. Set `QUISQUISLINGO_STARTUP_DIAGNOSTICS=verbose` before launch only when low-level Windows startup detail is needed. The active trace rotates at approximately 1 MiB and retains two previous generations. See [docs/LOGGING.md](docs/LOGGING.md).
+
+
+### Publisher signatures (Build 241 working tree)
+
+External official imports require an approved Ed25519 publisher key. See
+[Publisher signing and approval](docs/PUBLISHER_SIGNING_GUIDE.md) for approval,
+signing commands and manual Dummy tests. The normal registry has no approved
+external publishers yet. Dummy is trusted only with the explicit compile-time
+`QQL_ENABLE_DUMMY_PUBLISHER=true` flag and a TEST ONLY banner; this is also
+available for release-mode **test** builds. Never distribute that configuration
+as a public production release. Bundled courses and unsigned custom courses
+retain their distinct trust rules. Course Model remains v9/v10.
+
+Final Build 241 Revision 2 validation passed; see the report for full-suite and final focused evidence.
+
+Manual inspection: [Build 241 Revision 2 visual checklist (Italian)](docs/241_REVISION_2_VISUAL_CHECKLIST_IT.md).

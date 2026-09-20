@@ -47,7 +47,7 @@ void main() {
     'Guidebook Draft save updates live ancestors independently of Audit and survives confirmation and reload',
     (tester) async {
       final course = _course();
-      await service.saveUserCourse(course);
+      (await tester.runAsync(() => service.saveUserCourse(course)));
       expect(
         _concerns(CourseAuditService().auditLesson(course, _lessonId)),
         isEmpty,
@@ -60,12 +60,9 @@ void main() {
       _expectBranches(tester, draft: true, guidebookConcern: false);
       // Nested saves still belong to the one Course working-copy transaction.
       expect(
-        (await service.listUserCourses())
-            .single
-            .lessons
-            .single
-            .guidebook
-            .publicationState,
+        ((await tester.runAsync(
+          () => service.listUserCourses(),
+        ))!).single.lessons.single.guidebook.publicationState,
         PublicationState.published,
       );
       await _openGuidebook(tester);
@@ -77,7 +74,9 @@ void main() {
       await _back(tester);
       await _confirmCourse(tester);
 
-      final drafted = (await service.listUserCourses()).single;
+      final drafted = ((await tester.runAsync(
+        () => service.listUserCourses(),
+      ))!).single;
       expect(
         drafted.lessons.single.guidebook.publicationState,
         PublicationState.draft,
@@ -93,7 +92,9 @@ void main() {
       _expectBranches(tester, draft: false, guidebookConcern: false);
       await _confirmCourse(tester);
 
-      final published = (await service.listUserCourses()).single;
+      final published = ((await tester.runAsync(
+        () => service.listUserCourses(),
+      ))!).single;
       expect(
         published.lessons.single.guidebook.publicationState,
         PublicationState.published,
@@ -114,7 +115,7 @@ void main() {
     'empty Guidebook saved as Draft is red and blue through Lesson and Lessons while Rounds stays green',
     (tester) async {
       final course = _course();
-      await service.saveUserCourse(course);
+      (await tester.runAsync(() => service.saveUserCourse(course)));
       await _openLesson(tester, course, service);
       await _openGuidebook(tester);
       await tester.enterText(_field('Overview'), '');
@@ -122,7 +123,9 @@ void main() {
       _expectBranches(tester, draft: true, guidebookConcern: true);
       await _confirmCourse(tester);
 
-      final reloaded = (await service.listUserCourses()).single;
+      final reloaded = ((await tester.runAsync(
+        () => service.listUserCourses(),
+      ))!).single;
       final guidebook = reloaded.lessons.single.guidebook;
       expect(guidebook.content, isEmpty);
       expect(guidebook.publicationState, PublicationState.draft);
@@ -149,7 +152,7 @@ void main() {
         _concerns(audit.auditRound(course, 'guidebook-status-round')),
         isEmpty,
       );
-      await service.saveUserCourse(course);
+      (await tester.runAsync(() => service.saveUserCourse(course)));
       await _openLesson(tester, course, service);
       _expectBranches(tester, draft: false, guidebookConcern: true);
       await _openGuidebook(tester);
@@ -168,7 +171,7 @@ void main() {
     'Published Lesson can be saved while its Round retains provenance to a Draft Guidebook',
     (tester) async {
       final course = _courseWithPublishedGuidebookRefs();
-      await service.saveUserCourse(course);
+      (await tester.runAsync(() => service.saveUserCourse(course)));
       await _openLesson(tester, course, service);
       await _openGuidebook(tester);
       await _saveGuidebook(tester, draft: true);
@@ -198,7 +201,9 @@ void main() {
       }
       await tester.pumpAndSettle();
 
-      final reloaded = (await service.listUserCourses()).single;
+      final reloaded = ((await tester.runAsync(
+        () => service.listUserCourses(),
+      ))!).single;
       expect(reloaded.lessons.single.publicationState.isPublished, isTrue);
       expect(
         reloaded.lessons.single.guidebook.publicationState,

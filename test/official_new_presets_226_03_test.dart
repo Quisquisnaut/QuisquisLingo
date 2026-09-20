@@ -1,9 +1,11 @@
+import 'support/test_directories.dart';
 import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:quisquislingo_app/services/course_file_store.dart';
 import 'package:quisquislingo_app/models/course_models.dart';
 import 'package:quisquislingo_app/screens/course_editor_screen.dart';
 import 'package:quisquislingo_app/screens/round_screen.dart';
@@ -25,8 +27,12 @@ void main() {
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(
           const MethodChannel('plugins.flutter.io/path_provider'),
-          (_) async =>
-              throw PlatformException(code: 'test_storage_unavailable'),
+          (call) async {
+            if (call.method == 'getApplicationSupportDirectory') {
+              return testSupportDirectory.path;
+            }
+            throw PlatformException(code: 'test_storage_unavailable');
+          },
         );
   });
 
@@ -49,12 +55,12 @@ void main() {
           final course = _official(origin, preset);
           final profileId = await ProfileService().getActiveProfileId();
           if (origin == CourseOriginType.externalOfficial) {
-            final prefs = await SharedPreferences.getInstance();
-            await prefs.setString(
-              CourseEditorService.externalOfficialStorageKey,
-              jsonEncode({
-                course.courseId: {'source': course.toJson()},
-              }),
+            await tester.runAsync(
+              () => CourseFileStore().write(
+                CourseStoreKind.externalOfficial,
+                course.courseId,
+                {'source': course.toJson()},
+              ),
             );
           }
           var beforePrefs = await workflow.preferences();
@@ -137,7 +143,7 @@ void main() {
           expect(await workflow.preferences(), beforePrefs);
           expect(jsonEncode(course.toJson()), beforeCourse);
           expect(
-            await service.listUserCourses(),
+            (await tester.runAsync(() => service.listUserCourses()))!,
             origin == CourseOriginType.externalOfficial
                 ? hasLength(1)
                 : isEmpty,

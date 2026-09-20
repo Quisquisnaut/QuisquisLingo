@@ -7,7 +7,7 @@ import '../services/settings_service.dart';
 import '../services/tts_cache_service.dart';
 
 class TtsSettingsScreen extends StatefulWidget {
-  final Course course;
+  final Course? course;
   final TtsCacheService? ttsService;
 
   const TtsSettingsScreen({super.key, required this.course, this.ttsService});
@@ -82,17 +82,19 @@ class _TtsSettingsScreenState extends State<TtsSettingsScreen> {
   }
 
   Future<void> _testVoice() async {
+    final course = widget.course;
+    if (course == null) return;
     final text = await showDialog<String>(
       context: context,
       builder: (_) => const _TtsVoiceTestDialog(),
     );
     if (text == null || text.trim().isEmpty || !mounted) return;
-    final language = CourseLanguageResolver.learning(widget.course);
+    final language = CourseLanguageResolver.learning(course);
     final ok = await _tts.speak(
       text: text,
       language: language.code ?? '',
-      learningLanguage: widget.course.learningLanguage,
-      targetLanguage: widget.course.targetLanguage,
+      learningLanguage: course.learningLanguage,
+      targetLanguage: course.targetLanguage,
     );
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
@@ -102,7 +104,7 @@ class _TtsSettingsScreenState extends State<TtsSettingsScreen> {
           ok
               ? 'TTS test started.'
               : _tts.lastFailureDescription ??
-                    'No compatible voice could be played for ${widget.course.targetLanguage}.',
+                    'No compatible voice could be played for ${course.targetLanguage}.',
         ),
       ),
     );
@@ -110,7 +112,10 @@ class _TtsSettingsScreenState extends State<TtsSettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final language = CourseLanguageResolver.learning(widget.course);
+    final course = widget.course;
+    final language = course == null
+        ? null
+        : CourseLanguageResolver.learning(course);
     return Scaffold(
       appBar: AppBar(title: const Text('Audio Settings')),
       body: _loading
@@ -167,8 +172,11 @@ class _TtsSettingsScreenState extends State<TtsSettingsScreen> {
                 ListTile(
                   leading: const Icon(Icons.record_voice_over_outlined),
                   title: const Text('Test Voice'),
-                  subtitle: Text(language.displayLabel),
-                  onTap: _ttsEnabled ? _testVoice : null,
+                  subtitle: Text(
+                    language?.displayLabel ??
+                        'Select a course to test its voice.',
+                  ),
+                  onTap: _ttsEnabled && course != null ? _testVoice : null,
                 ),
               ],
             ),

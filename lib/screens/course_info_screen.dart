@@ -99,7 +99,7 @@ class CourseInfoScreen extends StatefulWidget {
   List<String> _originDetails(BuildContext context) {
     if (course.originType.isOfficial) {
       return [
-        'Origin: ${course.originType == CourseOriginType.bundledOfficial ? 'Bundled official' : 'External official'}',
+        'Origin: ${course.originType == CourseOriginType.bundledOfficial ? 'Bundled official' : 'Publisher Course'}',
         'Publisher: ${course.publisherName}',
         'Original Course Created: ${_localDateTime(context, course.originalCreatedAtUtc)}',
         if (course.lastVersionEditorDisplayName.isNotEmpty)
@@ -109,6 +109,14 @@ class CourseInfoScreen extends StatefulWidget {
         'Official release: ${_localDateTime(context, course.officialReleaseDateUtc)}',
         'Distribution channel: ${course.distributionChannel}',
         'Publisher verification: ${course.publisherVerificationStatus.name}',
+        if (course.originType == CourseOriginType.externalOfficial &&
+            course.publisherVerificationStatus !=
+                PublisherVerificationStatus.verified)
+          'Verification required. The stored course and progress are preserved. Import a verified publisher release to reactivate it.',
+        if (course.originType == CourseOriginType.externalOfficial &&
+            course.publisherVerificationStatus ==
+                PublisherVerificationStatus.verified)
+          'Signature covers the course JSON. Separate media files are not authenticated by this signature.',
         'Official checksum: ${course.officialChecksum}',
         'Official course - read only',
       ];

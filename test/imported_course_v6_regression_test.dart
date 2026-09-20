@@ -115,14 +115,15 @@ void main() {
     expect(source.contains("labelText: 'Your answer'"), isTrue);
   });
 
-  test('Course Editor uses persisted custom selection origin', () {
+  test('Course Manager classifies its current course by declared origin', () {
     final source = File(
       'lib/screens/course_projects_screen.dart',
     ).readAsStringSync();
     expect(
-      source.contains(
-        "selectedRef == 'custom:\${widget.currentCourse.courseId}'",
-      ),
+      RegExp(
+        r'if\s*\(widget\.currentCourse\?\.originType\s*==\s*'
+        r'CourseOriginType\.bundledOfficial\)\s*widget\.currentCourse!',
+      ).hasMatch(source),
       isTrue,
     );
     expect(

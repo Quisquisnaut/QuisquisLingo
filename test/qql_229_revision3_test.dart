@@ -1,3 +1,4 @@
+import 'support/pump_file_io.dart';
 import 'dart:convert';
 import 'dart:io';
 
@@ -26,9 +27,9 @@ void main() {
   setUp(() => SharedPreferences.setMockInitialValues({}));
 
   test('current release metadata uses Build and revision terminology', () {
-    expect(AppMetadata.technicalVersion, '2.0.40+240000');
-    expect(AppMetadata.build, '240');
-    expect(AppMetadata.displayLabel, 'Version 2.0.40\nBuild 240, Revision 0');
+    expect(AppMetadata.technicalVersion, '2.0.41+241002');
+    expect(AppMetadata.build, '241');
+    expect(AppMetadata.displayLabel, 'Version 2.0.41\nBuild 241, Revision 2');
   });
 
   testWidgets(
@@ -182,7 +183,7 @@ void main() {
       final save = find.byKey(const Key('course-info-save'));
       await tester.ensureVisible(save);
       await tester.tap(save);
-      await tester.pumpAndSettle();
+      await tester.pumpUntilFileIoState(() => save.evaluate().isEmpty);
       final export = find.byKey(const Key('course-editor-export-json'));
       await tester.scrollUntilVisible(
         export,
@@ -431,7 +432,9 @@ Future<void> _pumpManager(
       home: CourseProjectsScreen(currentCourse: course),
     ),
   );
-  await tester.pumpAndSettle();
+  await tester.pumpUntilFileIoState(
+    () => find.text('Bundled Courses').evaluate().isNotEmpty,
+  );
 }
 
 class _RecordingTransferService extends CustomCourseTransferService {

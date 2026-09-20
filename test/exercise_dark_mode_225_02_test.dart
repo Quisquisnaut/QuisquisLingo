@@ -1,3 +1,4 @@
+import 'support/test_directories.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -18,7 +19,12 @@ void main() {
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(
           const MethodChannel('plugins.flutter.io/path_provider'),
-          (_) async => throw PlatformException(code: 'test-storage'),
+          (call) async {
+            if (call.method == 'getApplicationSupportDirectory') {
+              return testSupportDirectory.path;
+            }
+            throw PlatformException(code: 'test-storage');
+          },
         );
   });
 

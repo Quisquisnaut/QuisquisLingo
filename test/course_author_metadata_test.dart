@@ -1,3 +1,4 @@
+import 'package:quisquislingo_app/services/course_file_store.dart';
 import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -187,7 +188,11 @@ void main() {
 
     await service.saveUserCourse(course);
     final prefs = await SharedPreferences.getInstance();
-    expect(prefs.getString('quisquislingo_user_courses_v9_233030'), isNotNull);
+    expect(
+      await CourseFileStore().contains(CourseStoreKind.custom, course.courseId),
+      isTrue,
+    );
+    expect(prefs.getString('quisquislingo_user_courses_v9_233030'), isNull);
     expect(prefs.getString('quisquislingo_user_courses_v8_233030'), v8Value);
     expect(prefs.getString('quisquislingo_user_courses_v5_223'), isNull);
     expect(prefs.getString('quisquislingo_user_courses_v4_215'), isNull);

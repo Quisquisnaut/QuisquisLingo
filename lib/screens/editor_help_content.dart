@@ -37,12 +37,12 @@ const _english = <EditorHelpSection>[
   (
     title: 'Courses in learner mode',
     body:
-        'Change course lists every Published course: the bundled official courses included with QuisquisLingo and Published courses under Local courses. Courses that are Not published stay available for authoring but cannot become the active learner Course. Selecting a Published course makes it current. The learner page resumes the active Published Lesson for that learner and course. When a course has real Sections, the fixed Section selector opens its ordered consecutive Published Section blocks and jumps to each block\'s first Lesson.',
+        'Available on this device, at the bottom of Course Selector, lists Bundled Courses, Publisher Courses, My Custom Courses and Other Custom Courses. Add to my courses adds a shared course to your Selector and Manager without granting editing rights. Remove from my courses removes it from both for your profile only; progress is kept unless you explicitly choose Reset my progress. Even with reset selected, all XP (including Weekly XP), total and per-language study days and streak remain; XP earned from this course is not subtracted. Only an admin can Remove Publisher Course from device, and only if no other profile includes it. Progress and version backups survive uninstall. With no playable courses, Home keeps Settings and Course Manager when activated; no course flag is displayed. The device page has its own Help, alphabetic sections, Maintainer labels and an Added · Remove action. Import Course in the Selector returns directly to study; it does not activate Course Manager. Continue to Editor prepares a new course; it is saved only with Confirm course changes. Change course lists Published courses in your personal library: the bundled official courses included with QuisquisLingo and Published courses under Local courses. Courses that are Not published stay available for authoring but cannot become the active learner Course. Selecting a Published course makes it current. The learner page resumes the active Published Lesson for that learner and course. When a course has real Sections, the fixed Section selector opens its ordered consecutive Published Section blocks and jumps to each block\'s first Lesson.',
   ),
   (
     title: 'Course origin',
     body:
-        'Bundled official courses are verified immutable source copies supplied with QuisquisLingo. External official courses retain their declared publisher identity but are labelled unverified when QQL cannot authenticate that publisher. Custom courses are created locally or imported without official provenance. Both official origins open Official course - read only: inspect Course Info, Audit, Preview, Version History and Lessons/Rounds/Exercises without an authoring transaction. Course Info shows publisher, official version, verification status and checksum. Only an explicit derivativeWorksPolicy of allowed enables Fork; forbidden or unspecified permission explains why it is unavailable. A Fork has fresh IDs and independent custom history while preserving its source lineage. Copy as New Course is a separate action that begins a new independent lineage.',
+        'Bundled official courses are verified immutable source copies supplied with QuisquisLingo. Publisher Course imports require a valid Ed25519 signature from an approved publisher. Stored external courses that cannot be verified are preserved with Verification required and are excluded from learner delivery. Custom courses are created locally or imported without official provenance. Both official origins open Official course - read only: inspect Course Info, Audit, Preview, Version History and Lessons/Rounds/Exercises without an authoring transaction. Course Info shows publisher, official version, verification status and checksum. Only an explicit derivativeWorksPolicy of allowed enables Fork; forbidden or unspecified permission explains why it is unavailable. A Fork has fresh IDs and independent custom history while preserving its source lineage. Copy as New Course is a separate action that begins a new independent lineage.',
   ),
   (
     title: 'Temporary sample content',
@@ -102,7 +102,7 @@ const _english = <EditorHelpSection>[
   (
     title: 'Official course updates',
     body:
-        'A newer verified official course update is accepted only for the same courseId and publisher and only when its checksum is valid. Before replacement, QuisquisLingo archives the previous official source. The new source becomes current. Existing custom forks and their histories stay unchanged, with no merge or rebase. Old Build 225 official overrides are not used, converted or deleted. If publisher authenticity cannot be verified, the course is clearly marked External official — unverified and installation requires an explicit warning confirmation.',
+        'A newer verified official course update is accepted only for the same courseId and publisher and only when its checksum is valid. Before replacement, QuisquisLingo archives the previous official source. The new source becomes current. Existing custom forks and their histories stay unchanged, with no merge or rebase. Old Build 225 official overrides are not used, converted or deleted. If the publisher signature cannot be verified, import is blocked. An existing unverified course is preserved and requires explicit association with a newer signed release before reactivation.',
   ),
   (
     title: 'Course Info Editor and license',
@@ -117,7 +117,7 @@ const _english = <EditorHelpSection>[
   (
     title: 'Import a custom course',
     body:
-        '1. Copy a supported Course Model v9 or v10 JSON file to Documents/QuisquisLingo/Imports. 2. Rename it exactly import.json. 3. Open Course Manager, select Course Import, and then select Import Course JSON. 4. After parsing and Course Audit validation, the Course is copied into QuisquisLingo local storage and appears under Local courses. Audit errors block import; warnings are reported for review but do not block it. An external-official file retains its declared publisher provenance but is marked unverified unless QQL can authenticate it; an ordinary import remains custom. The imported Course no longer depends on import.json, and QuisquisLingo leaves import.json in place. Imports must be valid UTF-8 Course Model JSON and may be no larger than 10 MB. Earlier formats are rejected without migration, conversion or deletion.',
+        '1. Copy a supported Course Model v9 or v10 JSON file to Documents/QuisquisLingo/Imports. 2. Rename it exactly import.json. 3. Open Course Manager, select Course Import, and then select Import Course JSON. 4. After parsing and Course Audit validation, the Course is copied into QuisquisLingo local storage and appears under Local courses. Audit errors block import; warnings are reported for review but do not block it. An external-official file requires a valid signature from an approved publisher; an ordinary custom import remains custom. The imported Course no longer depends on import.json, and QuisquisLingo leaves import.json in place. Imports must be valid UTF-8 Course Model JSON and may be no larger than 10 MB. Earlier formats are rejected without migration, conversion or deletion.',
   ),
   (
     title: 'Export a custom course',
@@ -226,12 +226,12 @@ const _italian = <EditorHelpSection>[
   (
     title: 'I corsi in modalità studente',
     body:
-        'Change course elenca tutti i corsi Published: quelli ufficiali inclusi in QuisquisLingo e i corsi Published che stanno sotto Local courses. I corsi Not published restano disponibili per l’authoring, ma non possono diventare il corso attivo dello studente. Se selezioni un corso Published, quello diventa il corso corrente. La pagina di studio riprende dalla Lesson Published attiva per quello studente e quel corso. Se il corso ha delle Section vere, il Section selector fisso apre i blocchi di Section Published in ordine consecutivo e salta alla prima Lesson di ogni blocco.',
+        'Available on this device, in fondo al Course Selector, elenca Bundled Courses, Publisher Courses, My Custom Courses e Other Custom Courses. Add to my courses aggiunge il corso condiviso al tuo Selector e Manager senza concedere permessi di modifica. Remove from my courses lo rimuove da entrambi solo per il tuo profilo; i progressi restano salvo scelta esplicita di Reset my progress. Anche scegliendo il reset, restano tutti gli XP (compresi quelli settimanali), i giorni di studio totali e per lingua e la streak; gli XP ottenuti con questo corso non vengono sottratti. Solo un admin può usare Remove Publisher Course from device, purché nessun altro profilo includa il corso. Progressi e backup delle versioni restano dopo la disinstallazione. Senza corsi disponibili per lo studio, Home conserva Settings e Course Manager se attivato; non mostra una bandiera di corso. La pagina del dispositivo ha un proprio Help, sezioni alfabetiche, riga Maintainer e azione Added · Remove. Import Course nel Selector torna direttamente allo studio senza attivare Course Manager. Continue to Editor prepara il nuovo corso, salvato solo con Confirm course changes. Change course elenca i corsi Published della tua libreria personale: quelli ufficiali inclusi in QuisquisLingo e i corsi Published che stanno sotto Local courses. I corsi Not published restano disponibili per l’authoring, ma non possono diventare il corso attivo dello studente. Se selezioni un corso Published, quello diventa il corso corrente. La pagina di studio riprende dalla Lesson Published attiva per quello studente e quel corso. Se il corso ha delle Section vere, il Section selector fisso apre i blocchi di Section Published in ordine consecutivo e salta alla prima Lesson di ogni blocco.',
   ),
   (
     title: 'Origine del corso',
     body:
-        'I corsi ufficiali inclusi nell’app sono copie sorgente verificate e immutabili, distribuite insieme a QuisquisLingo. I corsi External official mantengono l’identità dell’editore che dichiarano, ma vengono etichettati come unverified quando QQL non riesce ad autenticare quell’editore. I corsi custom nascono in locale oppure vengono importati senza provenienza ufficiale. Entrambe le origini ufficiali si aprono come Official course - read only: puoi consultare Course Info, Audit, Preview, Version History e Lessons/Rounds/Exercises senza aprire nessuna transazione di authoring. Course Info mostra editore, versione ufficiale, stato di verifica e checksum. Solo un derivativeWorksPolicy esplicitamente allowed abilita il Fork; se il permesso è forbidden o non è indicato, la pagina spiega perché non è disponibile. Un Fork ha ID nuovi e una storia custom indipendente, ma conserva la discendenza dalla sorgente. Copy as New Course è invece un’azione separata, che fa partire una discendenza nuova e indipendente.',
+        'I corsi ufficiali inclusi nell’app sono copie sorgente verificate e immutabili, distribuite insieme a QuisquisLingo. Gli import Publisher Course richiedono una firma Ed25519 valida di un editore approvato. I corsi già salvati non verificabili vengono conservati con Verification required ed esclusi dallo studio. I corsi custom nascono in locale oppure vengono importati senza provenienza ufficiale. Entrambe le origini ufficiali si aprono come Official course - read only: puoi consultare Course Info, Audit, Preview, Version History e Lessons/Rounds/Exercises senza aprire nessuna transazione di authoring. Course Info mostra editore, versione ufficiale, stato di verifica e checksum. Solo un derivativeWorksPolicy esplicitamente allowed abilita il Fork; se il permesso è forbidden o non è indicato, la pagina spiega perché non è disponibile. Un Fork ha ID nuovi e una storia custom indipendente, ma conserva la discendenza dalla sorgente. Copy as New Course è invece un’azione separata, che fa partire una discendenza nuova e indipendente.',
   ),
   (
     title: 'Contenuti di esempio temporanei',
@@ -291,7 +291,7 @@ const _italian = <EditorHelpSection>[
   (
     title: 'Aggiornamenti dei corsi ufficiali',
     body:
-        'Un aggiornamento ufficiale più recente viene accettato solo per lo stesso courseId e lo stesso editore, e solo se il checksum è valido. Prima di sostituire, QuisquisLingo archivia la sorgente ufficiale precedente. La nuova sorgente diventa quella corrente. I fork custom già esistenti e la loro storia restano come sono: non c’è nessun merge e nessun rebase. Le vecchie sostituzioni ufficiali della Build 225 non vengono usate, convertite o cancellate. Se l’autenticità dell’editore non è verificabile, il corso viene marcato chiaramente come External official — unverified e per installarlo serve una conferma esplicita con avviso.',
+        'Un aggiornamento ufficiale più recente viene accettato solo per lo stesso courseId e lo stesso editore, e solo se il checksum è valido. Prima di sostituire, QuisquisLingo archivia la sorgente ufficiale precedente. La nuova sorgente diventa quella corrente. I fork custom già esistenti e la loro storia restano come sono: non c’è nessun merge e nessun rebase. Le vecchie sostituzioni ufficiali della Build 225 non vengono usate, convertite o cancellate. Se la firma dell’editore non è verificabile, l’import viene bloccato. Un corso esistente non verificato viene conservato e richiede l’associazione esplicita a una release firmata più recente per essere riattivato.',
   ),
   (
     title: 'Course Info Editor e licenza',
@@ -306,7 +306,7 @@ const _italian = <EditorHelpSection>[
   (
     title: 'Importare un corso personalizzato',
     body:
-        '1. Copia un file JSON Course Model v9 o v10 supportato in Documents/QuisquisLingo/Imports. 2. Rinominalo esattamente import.json. 3. Apri Course Manager, scegli Course Import e poi Import Course JSON. 4. Dopo la lettura e la validazione del Course Audit, il corso viene copiato nella memoria locale di QuisquisLingo e compare sotto Local courses. Gli errori dell’Audit bloccano l’importazione; gli avvisi vengono segnalati per la revisione ma non la bloccano. Un file external-official conserva la provenienza dell’editore che dichiara, ma resta marcato unverified se QQL non riesce ad autenticarlo; un’importazione ordinaria resta custom. Una volta importato, il corso non dipende più da import.json, e QuisquisLingo lascia import.json dov’è. I file importati devono essere JSON Course Model validi in UTF-8 e non possono superare i 10 MB. I formati precedenti vengono rifiutati, senza migrazione, conversione o cancellazione.',
+        '1. Copia un file JSON Course Model v9 o v10 supportato in Documents/QuisquisLingo/Imports. 2. Rinominalo esattamente import.json. 3. Apri Course Manager, scegli Course Import e poi Import Course JSON. 4. Dopo la lettura e la validazione del Course Audit, il corso viene copiato nella memoria locale di QuisquisLingo e compare sotto Local courses. Gli errori dell’Audit bloccano l’importazione; gli avvisi vengono segnalati per la revisione ma non la bloccano. Un file external-official richiede una firma valida di un editore approvato; un normale import custom resta custom. Una volta importato, il corso non dipende più da import.json, e QuisquisLingo lascia import.json dov’è. I file importati devono essere JSON Course Model validi in UTF-8 e non possono superare i 10 MB. I formati precedenti vengono rifiutati, senza migrazione, conversione o cancellazione.',
   ),
   (
     title: 'Esportare un corso personalizzato',
@@ -410,7 +410,7 @@ const _italian = <EditorHelpSection>[
   ),
 ];
 
-/// The Course types card: heading, the two type definitions, the comparison
+/// The Course types card: heading, the three type definitions, the comparison
 /// table and the closing notes.
 ({
   String title,
@@ -425,141 +425,158 @@ editorHelpCourseTypes(HelpLanguage language) => language == HelpLanguage.italian
     : _courseTypesEnglish;
 
 const _courseTypesEnglish = (
-  title: 'Course types',
-  intro: 'In QQL, there are two course types:',
+  title: "Course types",
+  intro: "In QQL, there are three course types:",
   types: [
-    '1. Official Bundled Course: distributed as part of the app and treated as official content.',
-    '2. Custom Course: created or imported by users.',
+    "1. Official Bundled Course: supplied with the QQL app; trusted through the app distribution.",
+    "2. Publisher Course: distributed separately by a publisher and imported into QQL. Publisher verification is a separate status.",
+    "3. Custom Course: created or imported by users, including copies, forks and merges.",
   ],
   rows: [
-    ['Aspect', 'Official Course', 'Custom Course'],
+    ["Aspect", "Official Bundled", "Publisher Course", "Custom"],
     [
-      'Origin',
-      'Shipped or distributed by QQL',
-      'Created, imported, copied, forked, or merged by users',
+      "Origin",
+      "Included in QQL",
+      "Imported publisher release",
+      "Created or imported by users",
     ],
     [
-      'Status',
-      'Part of the official QQL course collection',
-      'User-created content',
+      "Trust",
+      "App distribution",
+      "Valid signature from an approved publisher",
+      "No official publisher verification",
+    ],
+    ["Editing", "Read only", "Read only", "Authorized Maintainer / Team"],
+    [
+      "Copying",
+      "Use a licensed Fork",
+      "Use a licensed Fork",
+      "Copy as New Course, if authorized",
     ],
     [
-      'Editing',
-      'Not normally edited directly as a user-owned course',
-      'Editable by its authorized users',
+      "Forking",
+      "Only if derivatives are allowed",
+      "Only if derivatives are allowed",
+      "Only if derivatives are allowed",
     ],
     [
-      'Copying',
-      'Can be used as the source for a new Custom Course, subject to QQL rules',
-      'Can be copied to create another Custom Course',
+      "Merging",
+      "Not a custom merge source",
+      "Not a custom merge source",
+      "Two custom sources; new custom result",
     ],
     [
-      'Forking',
-      'Can be forked when the applicable licence permits it',
-      'Can be forked when the licence permits it',
+      "Maintenance",
+      "QQL publisher",
+      "External publisher",
+      "Course Maintainer / Assigned Team",
     ],
     [
-      'Merging',
-      'Not itself the result of a user merge',
-      'Two similar Custom Courses can be merged to create a third Custom Course; the user selects which Lessons to take from each source course',
+      "Publication",
+      "Included in app releases",
+      "Distributed by the publisher",
+      "Published or unpublished",
     ],
     [
-      'Ownership / maintenance',
-      'Managed as QQL-distributed content rather than ordinary user-owned content',
-      'Has an Original Course Creator and Course Maintainer, with the associated user/team permissions',
+      "Deletion",
+      "Personal removal only",
+      "Personal removal; admin-only uninstall if unused by others",
+      "Authorized deletion in Course Manager",
     ],
     [
-      'Publication',
-      'Distributed as official content',
-      'Can exist as published or unpublished user content',
-    ],
-    [
-      'Deletion',
-      'Not treated like an ordinary deletable user course',
-      'Can be deleted through Course Manager by authorized users',
-    ],
-    [
-      'Updates',
-      'May be replaced or updated with a QQL release',
-      'Evolves independently after creation, import, copy, fork, or merge',
+      "Updates",
+      "New QQL app release",
+      "Newer release, same course ID and publisher",
+      "Independent custom versions",
     ],
   ],
   notes: [
-    'A Copy is a new independent Custom Course derived from another course. It does not maintain a conceptual lineage that matters for licensing or history in the same way as a fork.',
-    'A Fork is also a Custom Course, but explicitly records derivation from the original course and is subject to the original course\'s licence terms.',
-    'A Merge creates a third Custom Course from two similar Custom Courses. The user chooses which Lessons to take from each source course. The two source courses remain separate and unchanged.',
-    'So the course type remains essentially:\n\nOfficial\nor\nCustom\n\nwhile created from scratch / imported / copied / forked / merged describes the Custom Course\'s origin, not its type.',
+    "Publisher Course imports require a verified publisher signature. Unverifiable stored courses and their progress are preserved with Verification required. See Publisher signing and approval in Technical reference.",
+    "Bundled and External are two official origins; verified / unverified describes authenticity, not a fourth course type. An unverified file is not accepted as a new Publisher Course.",
+    "A Copy creates an independent Custom Course. A Fork is also custom, preserves its source provenance and remains subject to the original licence. Neither becomes official because its source was official.",
+    "A Merge creates a new Custom Course from two custom sources, which remain unchanged. Created, imported, copied, forked and merged describe how a custom course originated, not additional course types.",
   ],
   contact:
-      'If you think your course deserves to become a bundled course distributed with the QQL app, please contact the QQL team.',
+      "For bundled distribution or approval as an external publisher, contact the QQL team. The publisher signing guide explains the approval procedure.",
 );
 
 const _courseTypesItalian = (
-  title: 'Tipi di corso',
-  intro: 'In QQL i tipi di corso sono due:',
+  title: "Tipi di corso",
+  intro: "In QQL i tipi di corso sono tre:",
   types: [
-    '1. Official Bundled Course: distribuito insieme all’app e trattato come contenuto ufficiale.',
-    '2. Custom Course: creato o importato dagli utenti.',
+    "1. Official Bundled Course: distribuito insieme all’app QQL; la fiducia deriva dalla distribuzione dell’app.",
+    "2. Publisher Course: distribuito separatamente da un editore e importato in QQL. La verifica dell’editore è uno stato distinto.",
+    "3. Custom Course: creato o importato dagli utenti, comprese copie, fork e merge.",
   ],
   rows: [
-    ['Aspetto', 'Official Course', 'Custom Course'],
+    ["Aspetto", "Official Bundled", "Publisher Course", "Custom"],
     [
-      'Origine',
-      'Distribuito da QQL insieme all’app',
-      'Creato, importato, copiato, forkato o unito dagli utenti',
+      "Origine",
+      "Incluso in QQL",
+      "Release importata di un editore",
+      "Creato o importato dagli utenti",
     ],
     [
-      'Stato',
-      'Fa parte della raccolta ufficiale di corsi QQL',
-      'Contenuto creato dagli utenti',
+      "Autenticità",
+      "Distribuzione dell’app",
+      "Firma valida di un editore approvato",
+      "Nessuna verifica come editore ufficiale",
     ],
     [
-      'Modifica',
-      'Di norma non si modifica direttamente come un corso di proprietà dell’utente',
-      'Modificabile dagli utenti autorizzati',
+      "Modifica",
+      "Sola lettura",
+      "Sola lettura",
+      "Maintainer / Team autorizzati",
     ],
     [
-      'Copia',
-      'Può fare da sorgente per un nuovo Custom Course, secondo le regole QQL',
-      'Si può copiare per ottenere un altro Custom Course',
+      "Copia",
+      "Usare Fork se consentito",
+      "Usare Fork se consentito",
+      "Copy as New Course, se autorizzati",
     ],
     [
-      'Fork',
-      'Si può forkare quando la licenza applicabile lo consente',
-      'Si può forkare quando la licenza lo consente',
+      "Fork",
+      "Solo se i derivati sono consentiti",
+      "Solo se i derivati sono consentiti",
+      "Solo se i derivati sono consentiti",
     ],
     [
-      'Merge',
-      'Non nasce mai da un merge fatto da un utente',
-      'Due Custom Course simili si possono unire per ottenerne un terzo; sei tu a scegliere quali Lesson prendere da ciascuno dei due',
+      "Merge",
+      "Non è una sorgente custom",
+      "Non è una sorgente custom",
+      "Due sorgenti custom; nuovo corso custom",
     ],
     [
-      'Proprietà e manutenzione',
-      'Gestito come contenuto distribuito da QQL, non come contenuto di un utente',
-      'Ha un Original Course Creator e un Course Maintainer, con i permessi di utente e Team collegati',
+      "Manutenzione",
+      "Editore QQL",
+      "Editore esterno",
+      "Course Maintainer / Assigned Team",
     ],
     [
-      'Pubblicazione',
-      'Distribuito come contenuto ufficiale',
-      'Può essere pubblicato o non pubblicato',
+      "Pubblicazione",
+      "Release dell’app",
+      "Distribuzione dell’editore",
+      "Pubblicato o non pubblicato",
     ],
     [
-      'Eliminazione',
-      'Non si elimina come un normale corso di un utente',
-      'Gli utenti autorizzati lo possono eliminare da Course Manager',
+      "Eliminazione",
+      "Solo rimozione personale",
+      "Rimozione personale; disinstallazione admin se non usato da altri",
+      "Da Course Manager, se autorizzati",
     ],
     [
-      'Aggiornamenti',
-      'Può essere sostituito o aggiornato con una nuova versione di QQL',
-      'Dopo creazione, importazione, copia, fork o merge va avanti per conto suo',
+      "Aggiornamenti",
+      "Nuova release di QQL",
+      "Release più recente, stesso ID e editore",
+      "Versioni custom indipendenti",
     ],
   ],
   notes: [
-    'Una copia è un nuovo Custom Course indipendente, ricavato da un altro corso. Non conserva una discendenza che conti per la licenza o per la storia, come invece fa un fork.',
-    'Anche un fork è un Custom Course, ma registra esplicitamente da quale corso deriva ed è soggetto ai termini di licenza del corso originale.',
-    'Un merge crea un terzo Custom Course a partire da due Custom Course simili. Sei tu a scegliere quali Lesson prendere da ciascuno. I due corsi di partenza restano separati e non vengono toccati.',
-    'Quindi il tipo di corso resta sostanzialmente:\n\nOfficial\noppure\nCustom\n\nmentre creato da zero / importato / copiato / forkato / unito descrive da dove viene un Custom Course, non che tipo è.',
+    "Gli import ufficiali esterni richiedono una firma verificata dell’editore. I corsi già salvati non verificabili e i loro progressi vengono conservati con Verification required. Vedi Publisher signing and approval nel Riferimento tecnico.",
+    "Bundled ed External distinguono due origini ufficiali; verified / unverified indica l’autenticità, non un quarto tipo di corso. Un file non verificato non è accettato come nuovo Publisher Course.",
+    "Una copia crea un Custom Course indipendente. Anche un fork è custom, conserva la provenienza ed è soggetto alla licenza originale. Una sorgente ufficiale non rende ufficiali la copia o il fork.",
+    "Un merge crea un nuovo Custom Course da due sorgenti custom, che restano invariate. Creato, importato, copiato, forkato e unito descrivono l’origine di un custom, non altri tipi di corso.",
   ],
   contact:
-      'Se pensi che il tuo corso meriti di diventare un corso distribuito insieme all’app QQL, scrivi al team di QQL.',
+      "Per la distribuzione insieme all’app o l’approvazione come editore esterno, contatta il team QQL. La guida sulle firme descrive la procedura di approvazione.",
 );

@@ -1,3 +1,4 @@
+import 'support/test_directories.dart';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -23,17 +24,17 @@ void main() {
         multiLine: true,
       ).firstMatch(pubspec)?.group(1);
 
-      expect(AppMetadata.releaseVersion, '2.0.40');
-      expect(AppMetadata.buildNumber, '240000');
-      expect(AppMetadata.developmentPhase, '240');
-      expect(AppMetadata.correctiveRevision, 0);
-      expect(AppMetadata.build, '240');
-      expect(AppMetadata.platformBuildNumber, '240000');
-      expect(AppMetadata.technicalVersion, '2.0.40+240000');
+      expect(AppMetadata.releaseVersion, '2.0.41');
+      expect(AppMetadata.buildNumber, '241002');
+      expect(AppMetadata.developmentPhase, '241');
+      expect(AppMetadata.correctiveRevision, 2);
+      expect(AppMetadata.build, '241');
+      expect(AppMetadata.platformBuildNumber, '241002');
+      expect(AppMetadata.technicalVersion, '2.0.41+241002');
       expect(AppMetadata.version, AppMetadata.technicalVersion);
       expect(version, AppMetadata.technicalVersion);
-      expect(AppMetadata.displayLabel, 'Version 2.0.40\nBuild 240, Revision 0');
-      expect(AppMetadata.publicBuildLabel, 'Build 240, Revision 0');
+      expect(AppMetadata.displayLabel, 'Version 2.0.41\nBuild 241, Revision 2');
+      expect(AppMetadata.publicBuildLabel, 'Build 241, Revision 2');
     },
   );
 
@@ -45,7 +46,12 @@ void main() {
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(
             const MethodChannel('plugins.flutter.io/path_provider'),
-            (_) async => throw PlatformException(code: 'test-storage'),
+            (call) async {
+              if (call.method == 'getApplicationSupportDirectory') {
+                return testSupportDirectory.path;
+              }
+              throw PlatformException(code: 'test-storage');
+            },
           );
       await tester.pumpWidget(
         MaterialApp(

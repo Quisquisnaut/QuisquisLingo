@@ -1,3 +1,5 @@
+import 'support/test_directories.dart';
+import 'support/pump_file_io.dart';
 import 'dart:math';
 import 'dart:ui' show SemanticsAction;
 
@@ -45,10 +47,15 @@ void main() {
         TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
     messenger.setMockMethodCallHandler(
       const MethodChannel('plugins.flutter.io/path_provider'),
-      (_) async => throw PlatformException(
-        code: 'test_storage_unavailable',
-        message: 'Persistent logging is unavailable in widget tests.',
-      ),
+      (call) async {
+        if (call.method == 'getApplicationSupportDirectory') {
+          return testSupportDirectory.path;
+        }
+        throw PlatformException(
+          code: 'test_storage_unavailable',
+          message: 'Persistent logging is unavailable in widget tests.',
+        );
+      },
     );
     messenger.setMockMethodCallHandler(
       const MethodChannel('xyz.luan/audioplayers.global'),
@@ -76,7 +83,7 @@ void main() {
       buildSignature: '',
     );
     SharedPreferences.setMockInitialValues({
-      'one_time_notice_seen_welcome_2.0.40+240000': true,
+      'one_time_notice_seen_welcome_${AppMetadata.technicalVersion}': true,
       'sound_effects_enabled': false,
     });
     await ProfileService().addProfile('Navigation Learner');
@@ -275,10 +282,11 @@ void main() {
         ),
       ],
     );
-    await CourseEditorService().saveUserCourse(course);
-    course = (await CourseEditorService().listUserCourses()).singleWhere(
-      (saved) => saved.courseId == course.courseId,
-    );
+    (await tester.runAsync(() => CourseEditorService().saveUserCourse(course)));
+    expect(tester.takeException(), isNull, reason: 'initial icon course save');
+    course = ((await tester.runAsync(
+      () => CourseEditorService().listUserCourses(),
+    ))!).singleWhere((saved) => saved.courseId == course.courseId);
     await SettingsService().setLastSelectedCourseCode(
       'custom:${course.courseId}',
     );
@@ -347,7 +355,8 @@ void main() {
       ...course.toJson(),
       'defaultLessonIconStyle': 'coloredLessonNumbers',
     });
-    await CourseEditorService().saveUserCourse(course);
+    await tester.runAsync(() => CourseEditorService().saveUserCourse(course));
+    expect(tester.takeException(), isNull, reason: 'updated icon course save');
     await tester.pumpWidget(const SizedBox.shrink());
     await tester.pumpAndSettle();
     await _openHome(tester, scrollToActions: false);
@@ -1642,7 +1651,9 @@ void main() {
           Lesson(lessonId: 'reload-lesson', title: 'Lesson', rounds: const []),
         ],
       );
-      await CourseEditorService().saveUserCourse(course);
+      (await tester.runAsync(
+        () => CourseEditorService().saveUserCourse(course),
+      ));
       await SettingsService().setLastSelectedCourseCode(
         'custom:${course.courseId}',
       );
@@ -2141,7 +2152,7 @@ void main() {
     );
     await _pumpUntil(tester, find.text('Beta expiry'));
     await _dismissBetaNotice(tester);
-    await _pumpFrames(tester);
+    await _pumpUntil(tester, find.byKey(const Key('unified-learner-page')));
 
     expect(find.byType(HomeScreen), findsOneWidget);
     final pageWidth = tester
@@ -2202,7 +2213,7 @@ void main() {
         Lesson(lessonId: 'long', title: longTitle, rounds: const []),
       ],
     );
-    await CourseEditorService().saveUserCourse(course);
+    (await tester.runAsync(() => CourseEditorService().saveUserCourse(course)));
     await SettingsService().setLastSelectedCourseCode(
       'custom:${course.courseId}',
     );
@@ -2269,7 +2280,9 @@ void main() {
           ),
         ],
       );
-      await CourseEditorService().saveUserCourse(course);
+      (await tester.runAsync(
+        () => CourseEditorService().saveUserCourse(course),
+      ));
       await SettingsService().setLastSelectedCourseCode(
         'custom:${course.courseId}',
       );
@@ -2347,7 +2360,9 @@ void main() {
           ),
         ],
       );
-      await CourseEditorService().saveUserCourse(course);
+      (await tester.runAsync(
+        () => CourseEditorService().saveUserCourse(course),
+      ));
       await SettingsService().setLastSelectedCourseCode(
         'custom:${course.courseId}',
       );
@@ -2837,7 +2852,11 @@ void main() {
       expect(tester.getRect(edit).top, lessThan(tester.getRect(manager).top));
 
       await tester.tap(manager);
-      await tester.pumpAndSettle();
+      await tester.pumpUntilFileIoState(
+        () =>
+            find.byType(CourseProjectsScreen).evaluate().isNotEmpty &&
+            find.byType(CircularProgressIndicator).evaluate().isEmpty,
+      );
       expect(find.byType(CourseProjectsScreen), findsOneWidget);
       expect(await settings.getLastSelectedCourseCode(), selectedBefore);
       await tester.tap(find.byType(BackButton).last);
@@ -2952,163 +2971,62 @@ void main() {
   );
 
   testWidgets(
-    'course selector Hide is learner-only, active-safe, reversible, and storage-neutral',
+    'retired visibility flags are ignored; selector offers personal removal and direct import',
     (tester) async {
       final italianCourse = await _loadItalianCourse(tester);
-      final custom = _publishedCustomCourse();
-      final editor = CourseEditorService();
-      final progress = ProgressService();
-      final settings = SettingsService();
-      await editor.saveUserCourse(custom);
-      await progress.completeRound(
-        'preserved-round',
-        courseId: custom.courseId,
-        courseCode: 'IT',
+      final profiles = ProfileService();
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool(
+        profiles.keyForProfileId(
+          (await profiles.getActiveProfileId())!,
+          'course_hidden_${italianCourse.courseId}',
+        ),
+        true,
       );
-      await settings.setLastSelectedCourseCode('DE');
-      await settings.setLastSelectedCourseCode('IT');
-      final courseBefore = (await editor.listUserCourses())
-          .singleWhere((course) => course.courseId == custom.courseId)
-          .toJson();
-      final progressBefore = await progress.getCompletedRounds(
-        courseId: custom.courseId,
-      );
-      final selectedBefore = await settings.getLastSelectedCourseCode();
-
       await _openHome(tester, scrollToActions: false);
       await _pumpUntilWithIo(
         tester,
         find.byType(UnifiedLearnerTopBar),
-        failureMessage: 'Timed out loading Home for Course visibility.',
+        failureMessage: 'Home did not load',
       );
       await tester.tap(find.byKey(const Key('unified-topbar-course-selector')));
       await _pumpUntilWithIo(
         tester,
         find.text('Choose course'),
-        failureMessage: 'Timed out opening the Course Selector.',
+        failureMessage: 'Selector did not open',
       );
-      final selectorScroll = find.descendant(
-        of: find.byType(BottomSheet),
-        matching: find.byType(Scrollable),
-      );
-
       await tester.tap(
         find.byKey(const Key('course-selector-actions-current')),
       );
-      await tester.pumpAndSettle();
-      final activeHide = tester.widget<PopupMenuItem<String>>(
-        find.byWidgetPredicate(
-          (widget) => widget is PopupMenuItem<String> && widget.value == 'hide',
+      await tester.pump(const Duration(milliseconds: 350));
+      expect(find.text('Hide'), findsNothing);
+      expect(find.text('Unhide'), findsNothing);
+      expect(find.text('Remove from my courses'), findsOneWidget);
+      await tester.tapAt(const Offset(4, 4));
+      await tester.pump(const Duration(milliseconds: 350));
+      await tester.scrollUntilVisible(
+        find.byKey(const Key('course-selector-import')),
+        400,
+        scrollable: find.descendant(
+          of: find.byType(BottomSheet),
+          matching: find.byType(Scrollable),
         ),
       );
-      expect(activeHide.enabled, isFalse);
-      expect(find.text('The current course cannot be hidden.'), findsOneWidget);
-      await tester.tapAt(const Offset(4, 4));
-      await tester.pumpAndSettle();
-      await tester.tap(
-        find.byKey(const Key('course-selector-actions-current')),
+      await tester.tap(find.byKey(const Key('course-selector-import')));
+      await _pumpUntilWithIo(
+        tester,
+        find.byKey(const Key('import-course-json-primary')),
+        failureMessage: 'Direct import did not load',
       );
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Course Info').last);
-      await tester.pumpAndSettle();
-      expect(
-        tester
-            .widget<CourseInfoScreen>(find.byType(CourseInfoScreen))
-            .course
-            .courseId,
-        italianCourse.courseId,
-      );
+      expect(find.text('Course Manager'), findsNothing);
       await tester.tap(find.byType(BackButton).last);
-      await tester.pumpAndSettle();
-      expect(await settings.getLastSelectedCourseCode(), selectedBefore);
-      expect(await settings.isCourseHidden(italianCourse.courseId), isFalse);
-
-      Future<void> hideFromRow(Key key) async {
-        await tester.scrollUntilVisible(
-          find.byKey(key),
-          260,
-          scrollable: selectorScroll,
-        );
-        await tester.ensureVisible(find.byKey(key));
-        await tester.pumpAndSettle();
-        await tester.tap(find.byKey(key));
-        await tester.pumpAndSettle();
-        await tester.tap(find.text('Hide').last);
-        await _pumpFrames(tester, count: 8);
-      }
-
-      final germanCourse = await _loadCourse(tester, 'DE');
-      expect(find.byKey(const Key('recent-course-DE')), findsOneWidget);
-      await hideFromRow(const Key('course-selector-actions-bundled-DE'));
-      expect(find.byKey(const Key('bundled-course-DE')), findsNothing);
-      expect(find.byKey(const Key('recent-course-DE')), findsNothing);
-
-      await hideFromRow(
-        Key('course-selector-actions-local-${custom.courseId}'),
+      await _pumpUntilWithIo(
+        tester,
+        find.byType(UnifiedLearnerTopBar),
+        failureMessage: 'Home did not load',
       );
-      expect(
-        find.byKey(ValueKey('local-course-${custom.courseId}')),
-        findsNothing,
-      );
-      expect(await settings.getLastSelectedCourseCode(), selectedBefore);
-      expect(await settings.isCourseHidden(germanCourse.courseId), isTrue);
-      expect(await settings.isCourseHidden(custom.courseId), isTrue);
-      expect(
-        (await editor.listUserCourses())
-            .singleWhere((course) => course.courseId == custom.courseId)
-            .toJson(),
-        courseBefore,
-      );
-      expect(
-        await progress.getCompletedRounds(courseId: custom.courseId),
-        progressBefore,
-      );
-
-      await tester.scrollUntilVisible(
-        find.byKey(const Key('course-selector-hidden-courses')),
-        260,
-        scrollable: selectorScroll,
-      );
-      await tester.tap(find.byKey(const Key('course-selector-hidden-courses')));
-      await tester.pumpAndSettle();
-      expect(find.text('Hidden courses (2)'), findsWidgets);
-      expect(
-        find.byKey(ValueKey('hidden-course-${custom.courseId}')),
-        findsOneWidget,
-      );
-
-      Future<void> unhide(String courseId) async {
-        await tester.tap(find.byKey(Key('hidden-course-actions-$courseId')));
-        await tester.pumpAndSettle();
-        await tester.tap(find.text('Unhide').last);
-        await _pumpFrames(tester, count: 8);
-      }
-
-      await unhide(custom.courseId);
-      expect(find.text('Hidden courses (1)'), findsWidgets);
-      await unhide(germanCourse.courseId);
-      expect(find.text('Hidden courses (0)'), findsOneWidget);
-      await tester.tap(find.text('Close'));
-      await tester.pumpAndSettle();
-
-      expect(find.textContaining('Hidden courses ('), findsNothing);
-      await tester.scrollUntilVisible(
-        find.byKey(ValueKey('local-course-${custom.courseId}')),
-        260,
-        scrollable: selectorScroll,
-      );
-      expect(
-        find.byKey(ValueKey('local-course-${custom.courseId}')),
-        findsOneWidget,
-      );
-      await tester.scrollUntilVisible(
-        find.byKey(const Key('bundled-course-DE')),
-        -260,
-        scrollable: selectorScroll,
-      );
-      expect(find.byKey(const Key('bundled-course-DE')), findsOneWidget);
-      expect(await settings.isCourseHidden(custom.courseId), isFalse);
-      expect(await settings.isCourseHidden(germanCourse.courseId), isFalse);
+      expect(find.text('Course Manager'), findsNothing);
+      expect(await SettingsService().isCourseEditorUnlocked(), isFalse);
     },
   );
 
@@ -3193,8 +3111,8 @@ void main() {
       final phrase = dialogTexts.singleWhere(
         (text) =>
             text.data != 'Welcome to QuisquisLingo' &&
-            text.data != 'Version 2.0.40' &&
-            text.data != 'Build 240, Revision 0' &&
+            text.data != 'Version ${AppMetadata.releaseVersion}' &&
+            text.data != AppMetadata.publicBuildLabel &&
             text.data != 'Continue',
       );
       final welcomeDialog = tester.widget<AlertDialog>(
@@ -3207,11 +3125,17 @@ void main() {
         const Color(0xFF0756DF),
       );
       expect(
-        tester.widget<Text>(find.text('Version 2.0.40')).style?.color,
+        tester
+            .widget<Text>(find.text('Version ${AppMetadata.releaseVersion}'))
+            .style
+            ?.color,
         const Color(0xFF0756DF),
       );
       expect(
-        tester.widget<Text>(find.text('Build 240, Revision 0')).style?.color,
+        tester
+            .widget<Text>(find.text(AppMetadata.publicBuildLabel))
+            .style
+            ?.color,
         const Color(0xFF0756DF),
       );
       expect(find.textContaining('22621'), findsNothing);
@@ -3239,7 +3163,7 @@ void main() {
       final betaDialog = tester.widget<AlertDialog>(find.byType(AlertDialog));
       expect(betaDialog.backgroundColor, isNull);
       expect(betaDialog.surfaceTintColor, isNull);
-      expect(find.textContaining('Expiry date: 2026-10-19.'), findsOneWidget);
+      expect(find.textContaining('Expiry date: 2026-10-20.'), findsOneWidget);
       expect(find.widgetWithText(FilledButton, 'OK'), findsOneWidget);
       expect(
         tester
@@ -3249,12 +3173,12 @@ void main() {
       );
 
       await tester.tap(find.widgetWithText(FilledButton, 'OK'));
-      await tester.pumpAndSettle();
+      await _pumpUntil(tester, find.byKey(const Key('unified-learner-page')));
       await tester.pumpWidget(const MaterialApp(home: HomeScreen()));
       await tester.runAsync(
         () => Future<void>.delayed(const Duration(milliseconds: 300)),
       );
-      await tester.pumpAndSettle();
+      await _pumpUntil(tester, find.byKey(const Key('unified-learner-page')));
       expect(find.text('Welcome to QuisquisLingo'), findsNothing);
     },
   );
@@ -3398,19 +3322,6 @@ Course _courseFixture() => Course(
   lessons: const [],
 );
 
-Course _publishedCustomCourse() => Course(
-  courseId: 'selector_custom_229',
-  publicationState: PublicationState.published,
-  learningLanguage: 'Italian',
-  interfaceLanguage: 'English',
-  sourceLanguage: 'English',
-  targetLanguage: 'Italian',
-  title: 'Selector custom 229',
-  ttsLanguage: 'it-IT',
-  courseVersion: '1',
-  lessons: const [],
-);
-
 Future<Course> _loadItalianCourse(
   WidgetTester tester, {
   bool enableIddqd = true,
@@ -3463,16 +3374,18 @@ Future<void> _openHome(
       home: const HomeScreen(),
     ),
   );
-  await tester.runAsync(
-    () => Future<void>.delayed(const Duration(milliseconds: 300)),
-  );
   if (expectBetaNotice) {
-    await _pumpUntil(tester, find.text('Beta expiry'));
+    await tester.pumpUntilFileIoState(
+      () => find.text('Beta expiry').evaluate().isNotEmpty,
+    );
     await _dismissBetaNotice(tester);
   }
-  for (var frame = 0; frame < 10; frame++) {
-    await tester.pump(const Duration(milliseconds: 50));
-  }
+  await tester.pumpUntilFileIoState(() {
+    final topBar = find.byType(UnifiedLearnerTopBar);
+    if (topBar.evaluate().isEmpty) return false;
+    final widget = tester.widget<UnifiedLearnerTopBar>(topBar);
+    return widget.controller.state.course?.courseId == widget.course.courseId;
+  });
   if (scrollToActions) {
     await tester.ensureVisible(
       find.byKey(const Key('unified-bottom-controls')),
@@ -3624,16 +3537,7 @@ Future<void> _pumpFrames(WidgetTester tester, {int count = 16}) async {
 }
 
 Future<void> _pumpUntil(WidgetTester tester, Finder finder) async {
-  for (var frame = 0; frame < 120; frame++) {
-    await tester.pump(const Duration(milliseconds: 50));
-    if (finder.evaluate().isNotEmpty) return;
-  }
-  final visibleText = tester
-      .widgetList<Text>(find.byType(Text))
-      .map((widget) => widget.data)
-      .whereType<String>()
-      .toList();
-  fail('Timed out waiting for the requested widget. Text: $visibleText');
+  await tester.pumpUntilFileIoState(() => finder.evaluate().isNotEmpty);
 }
 
 Future<void> _pumpUntilGone(WidgetTester tester, Finder finder) async {

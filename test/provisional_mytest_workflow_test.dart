@@ -1,9 +1,11 @@
+import 'support/pump_file_io.dart';
 import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:quisquislingo_app/services/course_file_store.dart';
 import 'package:quisquislingo_app/models/course_models.dart';
 import 'package:quisquislingo_app/screens/course_editor_screen.dart';
 import 'package:quisquislingo_app/screens/course_projects_screen.dart';
@@ -100,7 +102,9 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(home: CourseProjectsScreen(currentCourse: _hostCourse())),
       );
-      await tester.pumpAndSettle();
+      await tester.pumpUntilFileIoState(
+        () => find.byType(CircularProgressIndicator).evaluate().isEmpty,
+      );
 
       await tester.tap(find.byKey(const Key('create-course-icon-action')));
       await tester.pumpAndSettle();
@@ -120,7 +124,7 @@ void main() {
             .text,
         '1',
       );
-      await tester.tap(find.widgetWithText(FilledButton, 'Create'));
+      await tester.tap(find.widgetWithText(FilledButton, 'Continue to Editor'));
       await tester.pumpAndSettle();
 
       final created = tester
@@ -165,7 +169,10 @@ void main() {
           PublicationState.draft,
         );
       }
-      expect(await CourseEditorService().listUserCourses(), isEmpty);
+      expect(
+        (await tester.runAsync(() => CourseEditorService().listUserCourses()))!,
+        isEmpty,
+      );
 
       await tester.tap(find.byKey(const Key('course-editor-lock')));
       await tester.pumpAndSettle();
@@ -265,7 +272,10 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.byType(LessonEditorScreen), findsOneWidget);
       expect(find.byKey(const Key('lesson-own-draft-indicator')), findsNothing);
-      expect(await CourseEditorService().listUserCourses(), isEmpty);
+      expect(
+        (await tester.runAsync(() => CourseEditorService().listUserCourses()))!,
+        isEmpty,
+      );
 
       await tester.tap(find.byType(BackButton).last);
       await tester.pumpAndSettle();
@@ -314,7 +324,9 @@ void main() {
       await tester.tap(find.byKey(const Key('confirm-course-changes')));
       await _pumpUntilWithIo(tester, find.byType(CourseProjectsScreen));
 
-      final storedCourses = await CourseEditorService().listUserCourses();
+      final storedCourses = (await tester.runAsync(
+        () => CourseEditorService().listUserCourses(),
+      ))!;
       expect(storedCourses, hasLength(1));
       final stored = storedCourses.single;
       _expectFinalAuthoringTree(
@@ -328,12 +340,14 @@ void main() {
         Course.fromJson(jsonDecode(jsonEncode(stored.toJson()))).toJson(),
         stored.toJson(),
       );
-      await _expectRawTree(
-        courseId: courseId,
-        lessonIds: lessonIds,
-        roundIds: roundIds,
-        sampleIds: sampleIds,
-      );
+      (await tester.runAsync(
+        () => _expectRawTree(
+          courseId: courseId,
+          lessonIds: lessonIds,
+          roundIds: roundIds,
+          sampleIds: sampleIds,
+        ),
+      ));
 
       await SettingsService().setLastSelectedCourseCode('custom:$courseId');
       await _openHome(tester);
@@ -435,13 +449,7 @@ Future<void> _expectRawTree({
   required List<String> roundIds,
   required List<String> sampleIds,
 }) async {
-  final preferences = await SharedPreferences.getInstance();
-  final root = Map<String, dynamic>.from(
-    jsonDecode(
-          preferences.getString(CourseEditorService.userCoursesStorageKey)!,
-        )
-        as Map,
-  );
+  final root = await CourseFileStore().readAll(CourseStoreKind.custom);
   expect(root.keys, [courseId]);
   final envelope = Map<String, dynamic>.from(root[courseId] as Map);
   expect(envelope['savedAt'], isA<String>());

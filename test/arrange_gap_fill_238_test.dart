@@ -1,3 +1,4 @@
+import 'support/test_directories.dart';
 // QQL Build 238 Phase 1: focused tests for the gap-fill extension of the
 // existing Arrange primitive (inline gaps, word/phrase tiles, distractors,
 // tile removal, tile move-between-gaps and an optional audio prompt).
@@ -186,7 +187,12 @@ void main() {
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(
             const MethodChannel('plugins.flutter.io/path_provider'),
-            (_) async => throw PlatformException(code: 'test-storage'),
+            (call) async {
+              if (call.method == 'getApplicationSupportDirectory') {
+                return testSupportDirectory.path;
+              }
+              throw PlatformException(code: 'test-storage');
+            },
           );
     });
 

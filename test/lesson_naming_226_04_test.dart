@@ -1,3 +1,5 @@
+import 'support/test_directories.dart';
+import 'support/pump_file_io.dart';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -243,8 +245,10 @@ void main() {
 Future<void> _expectPersistedHome(WidgetTester tester, Course course) async {
   await ProfileService().addProfile('Numbering learner');
   await SettingsService().completeWelcomeWizard();
-  await CourseEditorService().saveUserCourse(course);
-  final saved = (await CourseEditorService().listUserCourses()).single;
+  await tester.runAsync(() => CourseEditorService().saveUserCourse(course));
+  final saved = (await tester.runAsync(
+    () => CourseEditorService().listUserCourses(),
+  ))!.single;
   expect(saved.lessonNumberingMode, LessonNumberingMode.module);
   expect(saved.lessons.map((lesson) => lesson.title), [
     'Lesson 1',
@@ -262,7 +266,12 @@ Future<void> _expectPersistedHome(WidgetTester tester, Course course) async {
   TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
       .setMockMethodCallHandler(
         const MethodChannel('plugins.flutter.io/path_provider'),
-        (_) async => throw PlatformException(code: 'test_storage_unavailable'),
+        (call) async {
+          if (call.method == 'getApplicationSupportDirectory') {
+            return testSupportDirectory.path;
+          }
+          throw PlatformException(code: 'test_storage_unavailable');
+        },
       );
   addTearDown(() {
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
@@ -280,9 +289,9 @@ Future<void> _expectPersistedHome(WidgetTester tester, Course course) async {
         home: const HomeScreen(),
       ),
     );
-    for (var frame = 0; frame < 20; frame++) {
-      await tester.pump(const Duration(milliseconds: 50));
-    }
+    await tester.pumpUntilFileIoState(
+      () => find.text('Module 1', findRichText: true).evaluate().isNotEmpty,
+    );
     if (find.text('Beta expiry').evaluate().isNotEmpty) {
       await tester.tap(find.widgetWithText(FilledButton, 'OK'));
       for (var frame = 0; frame < 20; frame++) {

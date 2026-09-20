@@ -4,6 +4,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'course_editor_storage.dart';
+import 'course_file_store.dart';
 import 'learner_status_events.dart';
 import 'profile_service.dart';
 
@@ -131,7 +132,12 @@ class AppResetService {
           .length,
       imageFileCount: images,
       audioFileCount: audio,
-      hasCustomCourses: _courseKeys.any(prefs.containsKey),
+      hasCustomCourses:
+          _courseKeys.any(prefs.containsKey) ||
+          await _countFiles(
+                await _directories([CourseFileStore.rootDirectoryName]),
+              ) >
+              0,
       hasImageLibraryRecords: _mediaKeys.any(prefs.containsKey),
     );
   }
@@ -189,6 +195,8 @@ class AppResetService {
     }
   }
 
+  // Personal course membership is a setting, not progress: keep it here.
+  // Profile removal and full reset clear it with all other profile keys.
   Future<void> _resetLearnerProgress() async {
     final prefs = await SharedPreferences.getInstance();
     for (final learner in await _profiles.getProfileRecords()) {
@@ -258,7 +266,15 @@ class AppResetService {
     }
   }
 
+  Future<void> _removeCourseFiles() async {
+    final directory = await CourseFileStore(
+      supportDirectory: _support,
+    ).rootDirectory();
+    if (await directory.exists()) await directory.delete(recursive: true);
+  }
+
   Future<void> _removeCustomCourses() async {
+    await _removeCourseFiles();
     final prefs = await SharedPreferences.getInstance();
     for (final key in _courseKeys) {
       await prefs.remove(key);
@@ -273,6 +289,7 @@ class AppResetService {
   }) async {
     // Files first and preferences last: the reset is idempotent, so if the app
     // dies part-way the admin (and the PIN) still exist and can run it again.
+    await _removeCourseFiles();
     await _removeImportedMedia();
     final root = await _qqlDocuments();
     if (await root.exists()) {

@@ -1,3 +1,4 @@
+import 'support/pump_file_io.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:quisquislingo_app/models/course_models.dart';
@@ -53,7 +54,9 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(home: CourseProjectsScreen(currentCourse: _course)),
     );
-    await _pumpFrames(tester);
+    await tester.pumpUntilFileIoState(
+      () => find.text('Bundled Courses').evaluate().isNotEmpty,
+    );
     final entry = find.byKey(const Key('admin-media-library-entry'));
     expect(entry, findsOneWidget);
     await tester.tap(entry);
@@ -115,7 +118,9 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(home: CourseProjectsScreen(currentCourse: _course)),
     );
-    await _pumpFrames(tester);
+    await tester.pumpUntilFileIoState(
+      () => find.text('Bundled Courses').evaluate().isNotEmpty,
+    );
     expect(find.byKey(const Key('admin-media-library-entry')), findsNothing);
   });
 }

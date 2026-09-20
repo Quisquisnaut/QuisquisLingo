@@ -82,7 +82,6 @@ class SettingsService {
   static const _audioOrphanCheckKey = 'audio_orphan_check_last_';
   static const _lastSelectedCourseKeyBase = 'last_selected_course_code';
   static const _recentCourseRefsKey = 'recent_course_refs';
-  static const _hiddenCourseKeyPrefix = 'course_hidden_';
   static const _lessonExpansionModeKeyPrefix = 'lesson_expansion_mode_';
   static const _automaticUpdateCheckKey = 'automatic_update_check_enabled';
   static const _updateLastCheckedKey = 'update_last_checked_at';
@@ -153,54 +152,6 @@ class SettingsService {
 
   static String _coursePreferenceKey(String prefix, String courseId) =>
       '$prefix${Uri.encodeComponent(courseId.trim())}';
-
-  Future<bool> isCourseHidden(String courseId) async {
-    final profiles = ProfileService();
-    final activeId = await profiles.getActiveProfileId();
-    if (activeId == null) return false;
-    return (await SharedPreferences.getInstance()).getBool(
-          profiles.keyForProfileId(
-            activeId,
-            _coursePreferenceKey(_hiddenCourseKeyPrefix, courseId),
-          ),
-        ) ??
-        false;
-  }
-
-  Future<Set<String>> getHiddenCourseIds(Iterable<String> courseIds) async {
-    final profiles = ProfileService();
-    final activeId = await profiles.getActiveProfileId();
-    if (activeId == null) return const <String>{};
-    final preferences = await SharedPreferences.getInstance();
-    return {
-      for (final courseId in courseIds.map((id) => id.trim()).toSet())
-        if (courseId.isNotEmpty &&
-            (preferences.getBool(
-                  profiles.keyForProfileId(
-                    activeId,
-                    _coursePreferenceKey(_hiddenCourseKeyPrefix, courseId),
-                  ),
-                ) ??
-                false))
-          courseId,
-    };
-  }
-
-  Future<void> setCourseHidden(String courseId, bool hidden) async {
-    final profiles = ProfileService();
-    final activeId = await profiles.getActiveProfileId();
-    if (activeId == null) return;
-    final preferences = await SharedPreferences.getInstance();
-    final key = profiles.keyForProfileId(
-      activeId,
-      _coursePreferenceKey(_hiddenCourseKeyPrefix, courseId),
-    );
-    if (hidden) {
-      await preferences.setBool(key, true);
-    } else {
-      await preferences.remove(key);
-    }
-  }
 
   Future<LearnerLessonExpansionMode> getLessonExpansionMode(
     String courseId,

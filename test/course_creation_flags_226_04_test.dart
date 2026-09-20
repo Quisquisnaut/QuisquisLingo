@@ -1,5 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
+
+import 'support/pump_file_io.dart';
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
@@ -10,6 +12,7 @@ import 'package:quisquislingo_app/models/course_models.dart';
 import 'package:quisquislingo_app/screens/course_editor_screen.dart';
 import 'package:quisquislingo_app/screens/course_projects_screen.dart';
 import 'package:quisquislingo_app/services/course_editor_service.dart';
+import 'package:quisquislingo_app/services/course_file_store.dart';
 import 'package:quisquislingo_app/services/course_service.dart';
 import 'package:quisquislingo_app/services/custom_course_transfer_service.dart';
 import 'package:quisquislingo_app/services/profile_service.dart';
@@ -131,7 +134,9 @@ void main() {
       expect(selectionPreview.selection.worldFlagId, 'wales');
       await _enterBasics(tester, title: 'World Wales flag', target: 'Welsh');
       await tester.runAsync(() async {
-        await tester.tap(find.widgetWithText(FilledButton, 'Create'));
+        await tester.tap(
+          find.widgetWithText(FilledButton, 'Continue to Editor'),
+        );
         await tester.pump();
         await WorldFlagRepository().load();
       });
@@ -229,7 +234,10 @@ void main() {
 
     expect(find.text('Course Manager'), findsOneWidget);
     expect(find.byType(CourseEditorScreen), findsNothing);
-    expect(await CourseEditorService().listUserCourses(), isEmpty);
+    expect(
+      (await tester.runAsync(() => CourseEditorService().listUserCourses()))!,
+      isEmpty,
+    );
   });
 
   test(
@@ -270,16 +278,20 @@ void main() {
   test(
     'confirmation rejects an unavailable World Flag before profile or writes',
     () async {
-      const storedBefore = '{}';
-      SharedPreferences.setMockInitialValues({
-        CourseEditorService.userCoursesStorageKey: storedBefore,
-      });
+      final directory = await Directory.systemTemp.createTemp(
+        'qql_flag_write_',
+      );
+      addTearDown(() => directory.delete(recursive: true));
+      SharedPreferences.setMockInitialValues({});
       var writes = 0;
       final service = CourseEditorService(
-        preferenceWriter: (preferences, key, value) async {
-          writes++;
-          return preferences.setString(key, value);
-        },
+        courseStore: CourseFileStore(
+          supportDirectory: () async => directory,
+          fileWriter: (file, contents) async {
+            writes++;
+            await file.writeAsString(contents, flush: true);
+          },
+        ),
       );
       final original = _baseCourse();
       final working = Course.fromJson({
@@ -303,12 +315,9 @@ void main() {
           ),
         ),
       );
-      final preferences = await SharedPreferences.getInstance();
       expect(writes, 0);
-      expect(
-        preferences.getString(CourseEditorService.userCoursesStorageKey),
-        storedBefore,
-      );
+      expect(await service.listUserCourses(), isEmpty);
+      expect(await directory.list().toList(), isEmpty);
     },
   );
 }
@@ -327,10 +336,19 @@ Future<void> _pumpManager(WidgetTester tester) async {
   await tester.pumpWidget(
     MaterialApp(home: CourseProjectsScreen(currentCourse: _baseCourse())),
   );
-  await tester.pumpAndSettle();
+  await tester.pumpUntilFileIoState(
+    () =>
+        find
+            .byKey(const Key('create-course-icon-action'))
+            .evaluate()
+            .isNotEmpty &&
+        find.byType(CircularProgressIndicator).evaluate().isEmpty,
+  );
 }
 
 Future<void> _openCreation(WidgetTester tester) async {
+  // Reload assets in the real async zone used by this dialog setup.
+  rootBundle.clear();
   await tester.runAsync(() async {
     await WorldFlagRepository().loadManifest();
     await tester.tap(find.byKey(const Key('create-course-icon-action')));
@@ -381,7 +399,7 @@ Future<void> _enterBasics(
 }
 
 Future<void> _create(WidgetTester tester) async {
-  final create = find.widgetWithText(FilledButton, 'Create');
+  final create = find.widgetWithText(FilledButton, 'Continue to Editor');
   await tester.ensureVisible(create);
   await tester.pump();
   final button = tester.widget<FilledButton>(create);

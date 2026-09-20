@@ -15,7 +15,7 @@ import 'user_data_settings_screen.dart';
 /// All explanatory text is shown inline (never only as a tooltip) so it is
 /// readable on touch devices, and every block wraps to the available width.
 class DeviceAdministrationScreen extends StatefulWidget {
-  final Course course;
+  final Course? course;
   final Future<void> Function(BuildContext context) onManageLearners;
   final ProfileService? profileService;
   final AppResetService? resetService;
@@ -501,7 +501,7 @@ class _ResetChoices {
 class _ResetSection extends StatelessWidget {
   final bool hasPin;
   final String actorId;
-  final Course course;
+  final Course? course;
   final ProfileService profiles;
   final AppResetService service;
   final Future<void> Function() onSetPin;

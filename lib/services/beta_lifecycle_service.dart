@@ -7,8 +7,8 @@ import 'package:flutter/foundation.dart';
 /// a future stable build by setting [isBetaBuild] to false.
 class BetaLifecycleService {
   static const bool isBetaBuild = true;
-  // QQL 239 Revision 4 refreshes the 30-day Beta lifetime through October 19.
-  static final DateTime expiryDate = DateTime(2026, 10, 19, 23, 59, 59);
+  // QQL 241 Revision 2 refreshes the 30-day Beta lifetime through October 20.
+  static final DateTime expiryDate = DateTime(2026, 10, 20, 23, 59, 59);
 
   /// The clock the no-argument lifecycle checks read.
   ///

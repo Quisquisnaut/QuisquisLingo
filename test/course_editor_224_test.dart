@@ -1,3 +1,4 @@
+import 'support/test_directories.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -26,8 +27,12 @@ void main() {
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(
           const MethodChannel('plugins.flutter.io/path_provider'),
-          (_) async =>
-              throw PlatformException(code: 'test_storage_unavailable'),
+          (call) async {
+            if (call.method == 'getApplicationSupportDirectory') {
+              return testSupportDirectory.path;
+            }
+            throw PlatformException(code: 'test_storage_unavailable');
+          },
         );
   });
 
@@ -124,7 +129,7 @@ void main() {
     tester,
   ) async {
     final course = _course();
-    await CourseEditorService().saveUserCourse(course);
+    (await tester.runAsync(() => CourseEditorService().saveUserCourse(course)));
     final routeResults = <Course?>[];
     await tester.pumpWidget(
       MaterialApp(
@@ -160,7 +165,9 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Lesson 3: Third Lesson'), findsOneWidget);
-    final saved = (await CourseEditorService().listUserCourses()).single;
+    final saved = ((await tester.runAsync(
+      () => CourseEditorService().listUserCourses(),
+    ))!).single;
     expect(saved.title, 'Draft Course Metadata');
     expect(saved.courseDescription, 'Unsaved-looking draft metadata');
     expect(

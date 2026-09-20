@@ -74,6 +74,9 @@ class CourseAccessPolicy {
         canCopyAsNewCourse: false,
         canFork:
             profileId != null &&
+            (course.originType != CourseOriginType.externalOfficial ||
+                course.publisherVerificationStatus ==
+                    PublisherVerificationStatus.verified) &&
             course.derivativeWorksPolicy == DerivativeWorksPolicy.allowed,
         canDelete: false,
         hasOperationalAccess: false,

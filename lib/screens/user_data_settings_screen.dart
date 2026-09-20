@@ -9,7 +9,7 @@ import '../services/user_recovery_key_service.dart';
 import '../widgets/file_dialog_feedback.dart';
 
 class UserDataSettingsScreen extends StatefulWidget {
-  final Course course;
+  final Course? course;
   const UserDataSettingsScreen({super.key, required this.course});
 
   @override
@@ -442,9 +442,11 @@ class _UserDataSettingsScreenState extends State<UserDataSettingsScreen> {
   }
 
   Future<void> _resetCurrentCourse() async {
-    final courseName = widget.course.title.trim().isEmpty
-        ? widget.course.targetLanguage
-        : widget.course.title;
+    final course = widget.course;
+    if (course == null) return;
+    final courseName = course.title.trim().isEmpty
+        ? course.targetLanguage
+        : course.title;
     final first = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -487,7 +489,7 @@ class _UserDataSettingsScreenState extends State<UserDataSettingsScreen> {
     );
     if (second != true) return;
 
-    await _progress.resetCourse(widget.course.courseId);
+    await _progress.resetCourse(course.courseId);
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -600,9 +602,11 @@ class _UserDataSettingsScreenState extends State<UserDataSettingsScreen> {
             leading: const Icon(Icons.restart_alt),
             title: const Text('Reset current course progress'),
             subtitle: Text(
-              'Resets only this learner’s progress for ${widget.course.title}. Other courses and Course Editor changes are kept.',
+              widget.course == null
+                  ? 'Select a course to reset its progress.'
+                  : 'Resets only this learner’s progress for ${widget.course!.title}. Other courses and Course Editor changes are kept.',
             ),
-            onTap: _resetCurrentCourse,
+            onTap: widget.course == null ? null : _resetCurrentCourse,
           ),
         ],
       ),

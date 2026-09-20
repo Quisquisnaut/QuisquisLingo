@@ -1,3 +1,4 @@
+import 'support/test_directories.dart';
 // QQL Build 239: focused tests for the two Select-based translation choice
 // presets, "Pick the translation (to target)" and "(to source)".
 import 'package:flutter/material.dart';
@@ -123,7 +124,12 @@ void _installPluginMocks() {
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
   messenger.setMockMethodCallHandler(
     const MethodChannel('plugins.flutter.io/path_provider'),
-    (_) async => throw PlatformException(code: 'test_storage_unavailable'),
+    (call) async {
+      if (call.method == 'getApplicationSupportDirectory') {
+        return testSupportDirectory.path;
+      }
+      throw PlatformException(code: 'test_storage_unavailable');
+    },
   );
   messenger.setMockMethodCallHandler(
     const MethodChannel('xyz.luan/audioplayers.global'),

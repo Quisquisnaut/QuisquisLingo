@@ -6,6 +6,8 @@ import 'package:path_provider/path_provider.dart';
 import '../models/authoring_team.dart';
 import '../models/course_models.dart';
 import 'course_editor_service.dart';
+import 'course_file_store.dart';
+import 'course_backup_service.dart';
 import 'profile_service.dart';
 import 'recorded_audio_service.dart';
 import 'team_service.dart';
@@ -79,7 +81,11 @@ class InventoryService {
   }) : _profiles = profiles ?? ProfileService(),
        _documents = documentsDirectory ?? getApplicationDocumentsDirectory,
        _support = supportDirectory ?? getApplicationSupportDirectory,
-       _courses = courses ?? (() => CourseEditorService().listUserCourses()),
+       _courses =
+           courses ??
+           (() => CourseEditorService(
+             courseStore: CourseFileStore(supportDirectory: supportDirectory),
+           ).listUserCourses()),
        _teams = teams ?? (() => TeamService().listTeams());
 
   static const _knownTopLevel = <String>{
@@ -139,7 +145,7 @@ class InventoryService {
       InventorySection(
         title: 'Learners',
         description:
-            'Learner profiles and their progress and settings. These are stored inside QQL’s own settings storage, so they have no file of their own.',
+            'Learner profiles, personal course membership, progress and settings. These are stored inside QQL’s own settings storage, so they have no file of their own.',
         items: [
           for (final learner in learners)
             InventoryItem(
@@ -148,26 +154,6 @@ class InventoryService {
                   ? '${learner.displayName} (admin)'
                   : learner.displayName,
               note: 'Stored inside QQL settings (no file).',
-            ),
-        ],
-      ),
-    );
-
-    sections.add(
-      InventorySection(
-        title: 'Custom and installed courses',
-        description:
-            'Courses created or installed on this device. They are stored inside QQL’s own settings storage, so they have no file of their own. Export a course from Course Manager to get a file.',
-        items: [
-          if (courseProblem != null)
-            InventoryItem(name: 'Stored courses', note: courseProblem),
-          for (final course in courses)
-            InventoryItem(
-              name: course.title.isEmpty ? course.courseId : course.title,
-              owner: ownerOf(course),
-              modified: DateTime.tryParse(course.modifiedAtUtc)?.toLocal(),
-              note:
-                  '${course.originType == CourseOriginType.custom ? 'Custom course' : 'Installed external course'} · ID ${course.courseId} · stored inside QQL settings (no file).',
             ),
         ],
       ),
@@ -252,6 +238,39 @@ class InventoryService {
       }
       return null;
     }
+
+    final courseByFile = <String, Course>{
+      for (final course in courses)
+        '${course.originType == CourseOriginType.custom ? CourseStoreKind.custom.directoryName : CourseStoreKind.externalOfficial.directoryName}$sep${CourseBackupService.sanitizedCourseId(course.courseId)}.json':
+            course,
+    };
+    sections.add(
+      await folder(
+        title: 'Custom and installed courses',
+        description:
+            'Courses created or installed on this device, stored as one file per course. Export a course from Course Manager to share it.'
+            '${courseProblem == null ? '' : ' $courseProblem'}',
+        directory: Directory(
+          '$supportRoot$sep${CourseFileStore.rootDirectoryName}',
+        ),
+        describe: (file, root) async {
+          final course = courseByFile[_relative(file, root)];
+          final stat = await file.stat();
+          return InventoryItem(
+            name: course == null
+                ? _relative(file, root)
+                : (course.title.isEmpty ? course.courseId : course.title),
+            path: file.path,
+            sizeBytes: stat.size,
+            modified: stat.modified,
+            owner: course == null ? null : ownerOf(course),
+            note: course == null
+                ? 'Stored course file; course metadata unavailable.'
+                : '${course.originType == CourseOriginType.custom ? 'Custom course' : 'Installed external course'} · ID ${course.courseId}',
+          );
+        },
+      ),
+    );
 
     sections.add(
       await folder(

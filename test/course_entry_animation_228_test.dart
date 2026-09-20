@@ -1,8 +1,10 @@
+import 'support/test_directories.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:quisquislingo_app/services/app_metadata.dart';
 import 'package:quisquislingo_app/models/course_models.dart';
 import 'package:quisquislingo_app/models/world_flag_entity.dart';
 import 'package:quisquislingo_app/screens/home_screen.dart';
@@ -311,7 +313,7 @@ void main() {
         rootBundle.evict(asset);
       }
       SharedPreferences.setMockInitialValues({
-        'one_time_notice_seen_welcome_2.0.40+240000': true,
+        'one_time_notice_seen_welcome_${AppMetadata.technicalVersion}': true,
         'sound_effects_enabled': false,
       });
       await ProfileService().addProfile('Course Switch Learner');
@@ -320,10 +322,15 @@ void main() {
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(
             const MethodChannel('plugins.flutter.io/path_provider'),
-            (_) async => throw PlatformException(
-              code: 'test_storage_unavailable',
-              message: 'Persistent storage is unavailable in widget tests.',
-            ),
+            (call) async {
+              if (call.method == 'getApplicationSupportDirectory') {
+                return testSupportDirectory.path;
+              }
+              throw PlatformException(
+                code: 'test_storage_unavailable',
+                message: 'Persistent storage is unavailable in widget tests.',
+              );
+            },
           );
     });
 
@@ -344,7 +351,9 @@ void main() {
           ..._course(id: 'explicit-custom', flagCode: 'KR').toJson(),
           'publicationState': PublicationState.published.name,
         });
-        await CourseEditorService().saveUserCourse(custom);
+        (await tester.runAsync(
+          () => CourseEditorService().saveUserCourse(custom),
+        ));
         await _openHome(tester);
         await _openCoursePicker(tester);
 
@@ -574,7 +583,9 @@ void main() {
             ).toJson(),
             'publicationState': PublicationState.published.name,
           });
-          await CourseEditorService().saveUserCourse(custom);
+          (await tester.runAsync(
+            () => CourseEditorService().saveUserCourse(custom),
+          ));
           await _openHome(tester);
           await _selectCustomCourse(tester, custom.courseId);
           final flag = find.byKey(
@@ -617,7 +628,9 @@ void main() {
           'publicationState': PublicationState.published.name,
         });
         expect(CourseService.codeForCourse(invalid).toUpperCase(), 'EN');
-        await CourseEditorService().saveUserCourse(invalid);
+        (await tester.runAsync(
+          () => CourseEditorService().saveUserCourse(invalid),
+        ));
         await _openHome(tester);
 
         await _selectCustomCourse(tester, invalid.courseId);

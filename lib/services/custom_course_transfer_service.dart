@@ -7,6 +7,7 @@ import 'package:path_provider/path_provider.dart';
 
 import '../models/course_models.dart';
 import 'file_dialog_service.dart';
+import 'publisher_verification_service.dart';
 
 /// The exact bytes and base file name a course export produces, shared by the
 /// fixed-folder Export and the dialog-based Save to…
@@ -27,10 +28,15 @@ class CustomCourseTransferService {
     Future<Directory> Function()? importDirectory,
     Future<Directory> Function()? mergeDirectory,
     FileDialogService? fileDialogs,
+    PublisherVerificationService? publisherVerification,
   }) : _directory = directory,
        _importDirectory = importDirectory ?? directory,
        _mergeDirectory = mergeDirectory ?? directory,
-       _fileDialogs = fileDialogs ?? FileDialogService();
+       _fileDialogs = fileDialogs ?? FileDialogService(),
+       _publisherVerification =
+           publisherVerification ?? PublisherVerificationService();
+
+  final PublisherVerificationService _publisherVerification;
 
   static const int maxJsonBytes = 10 * 1024 * 1024;
 
@@ -156,7 +162,14 @@ class CustomCourseTransferService {
         );
       }
     }
-    return course;
+    if (course.originType == CourseOriginType.bundledOfficial) {
+      throw const FormatException(
+        'Bundled official courses are installed only with QuisquisLingo application builds.',
+      );
+    }
+    return course.originType == CourseOriginType.externalOfficial
+        ? _publisherVerification.requireVerified(course)
+        : course;
   }
 
   /// Builds the export bytes and base name. Shared by [exportCourse] and

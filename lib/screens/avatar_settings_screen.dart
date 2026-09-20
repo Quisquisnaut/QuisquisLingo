@@ -10,7 +10,7 @@ import '../services/profile_service.dart';
 import '../widgets/avatar_customization_content.dart';
 
 class AvatarSettingsScreen extends StatefulWidget {
-  final Course course;
+  final Course? course;
   final ProfileService? profileService;
   final LearnerStatusLevelService? statusLevelService;
 
@@ -58,11 +58,14 @@ class _AvatarSettingsScreenState extends State<AvatarSettingsScreen> {
     final skinTone = await _profiles.getSkinTone();
     final hairTone = await _profiles.getHairTone();
     var currentLevel = 0;
+    final course = widget.course;
     try {
-      currentLevel = (await _statusLevels.rankForActiveLearner(
-        courseId: widget.course.courseId,
-        courseCode: CourseService.codeForCourse(widget.course),
-      )).index;
+      if (course != null) {
+        currentLevel = (await _statusLevels.rankForActiveLearner(
+          courseId: course.courseId,
+          courseCode: CourseService.codeForCourse(course),
+        )).index;
+      }
     } catch (_) {
       // A missing learner has the same initial presentation as zero progress.
     }

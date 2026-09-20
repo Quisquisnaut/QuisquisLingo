@@ -1,9 +1,11 @@
-import 'dart:convert';
+import 'support/pump_file_io.dart';
+import 'support/test_directories.dart';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:quisquislingo_app/services/course_file_store.dart';
 import 'package:quisquislingo_app/models/course_models.dart';
 import 'package:quisquislingo_app/screens/course_editor_screen.dart';
 import 'package:quisquislingo_app/screens/course_info_screen.dart';
@@ -38,8 +40,12 @@ void main() {
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(
           const MethodChannel('plugins.flutter.io/path_provider'),
-          (_) async =>
-              throw PlatformException(code: 'test_storage_unavailable'),
+          (call) async {
+            if (call.method == 'getApplicationSupportDirectory') {
+              return testSupportDirectory.path;
+            }
+            throw PlatformException(code: 'test_storage_unavailable');
+          },
         );
     backups = _HistoryBackups();
     service = CourseEditorService(
@@ -56,7 +62,7 @@ void main() {
       tester,
     ) async {
       final official = _official(origin: origin);
-      await _storeSource(official);
+      (await tester.runAsync(() => _storeSource(official)));
       var before = await _preferences();
       await _open(tester, official, service);
       expect(find.byType(CourseEditorScreen), findsOneWidget);
@@ -138,7 +144,7 @@ void main() {
       expect(find.text('Publisher prompt'), findsOneWidget);
       expect(await _preferences(), before);
       expect(
-        await service.listUserCourses(),
+        (await tester.runAsync(() => service.listUserCourses()))!,
         origin == CourseOriginType.externalOfficial ? hasLength(1) : isEmpty,
       );
     });
@@ -152,7 +158,10 @@ void main() {
       final official = _official(policy: policy);
       await _open(tester, official, service);
       expect(find.byKey(const Key('course-editor-fork-course')), findsNothing);
-      expect(await service.listUserCourses(), isEmpty);
+      expect(
+        (await tester.runAsync(() => service.listUserCourses()))!,
+        isEmpty,
+      );
     });
   }
 
@@ -163,7 +172,16 @@ void main() {
       final original = official.toJson();
       await _open(tester, official, service);
       await tester.tap(find.byKey(const Key('course-editor-fork-course')));
-      await _settle(tester);
+      await tester.pumpUntilFileIoState(
+        () =>
+            tester
+                .widget<CourseEditorScreen>(
+                  find.byType(CourseEditorScreen).last,
+                )
+                .course
+                .originType ==
+            CourseOriginType.custom,
+      );
       final editor = tester.widget<CourseEditorScreen>(
         find.byType(CourseEditorScreen).last,
       );
@@ -175,7 +193,10 @@ void main() {
         editor.course.forkProvenance!.forkCreatedByDisplayName,
         'Fork Creator',
       );
-      expect(await service.listUserCourses(), hasLength(1));
+      expect(
+        (await tester.runAsync(() => service.listUserCourses()))!,
+        hasLength(1),
+      );
       await tester.tap(find.byKey(const Key('course-editor-lock')));
       await _settle(tester);
       await tester.tap(find.text('Edit'));
@@ -194,7 +215,9 @@ void main() {
       final title = find.byKey(const Key('course-info-title'));
       await tester.enterText(title, 'My renamed custom fork');
       await tester.tap(find.byKey(const Key('course-info-save')));
-      await _settle(tester);
+      await tester.pumpUntilFileIoState(
+        () => find.byKey(const Key('course-info-save')).evaluate().isEmpty,
+      );
       expect(find.text('My renamed custom fork'), findsOneWidget);
       await _back(tester);
       expect(
@@ -202,9 +225,20 @@ void main() {
         findsOneWidget,
       );
       await tester.tap(find.byKey(const Key('confirm-course-changes')));
-      await _settle(tester);
+      await tester.pumpUntilFileIoState(
+        () =>
+            tester
+                .widget<CourseEditorScreen>(
+                  find.byType(CourseEditorScreen).last,
+                )
+                .course
+                .courseId ==
+            official.courseId,
+      );
       expect(find.byType(CourseEditorScreen), findsOneWidget);
-      final saved = (await service.listUserCourses()).single;
+      final saved = ((await tester.runAsync(
+        () => service.listUserCourses(),
+      ))!).single;
       expect(saved.title, 'My renamed custom fork');
       expect(saved.courseVersion, '2');
       expect(saved.authors.single.name, 'Original Author');
@@ -232,7 +266,12 @@ void main() {
           ),
         ),
       );
-      await _settle(tester);
+      await tester.pumpUntilFileIoState(
+        () => find
+            .textContaining('immutable official source is unavailable')
+            .evaluate()
+            .isNotEmpty,
+      );
       expect(
         find.textContaining('immutable official source is unavailable'),
         findsOneWidget,
@@ -363,12 +402,10 @@ Future<void> _back(WidgetTester tester) async {
 
 Future<void> _storeSource(Course course) async {
   if (course.originType != CourseOriginType.externalOfficial) return;
-  final preferences = await SharedPreferences.getInstance();
-  await preferences.setString(
-    CourseEditorService.externalOfficialStorageKey,
-    jsonEncode({
-      course.courseId: {'source': course.toJson()},
-    }),
+  await CourseFileStore().write(
+    CourseStoreKind.externalOfficial,
+    course.courseId,
+    {'source': course.toJson()},
   );
 }
 

@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'support/pump_file_io.dart';
 import 'package:quisquislingo_app/models/course_models.dart';
 import 'package:quisquislingo_app/screens/course_editor_screen.dart';
 import 'package:quisquislingo_app/screens/course_info_screen.dart';
@@ -41,7 +42,7 @@ void main() {
           matching: find.widgetWithText(FilledButton, 'Save'),
         ),
       );
-      await tester.pumpAndSettle();
+      await tester.pumpUntilFileIoState(() => dialog.evaluate().isEmpty);
       expect(dialog, findsNothing);
       final working = await _workingCourse(tester);
       expect(working.title, 'Renamed metadata');

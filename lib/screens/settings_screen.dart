@@ -17,7 +17,7 @@ import 'update_settings_screen.dart';
 import 'flag_game_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
-  final Course course;
+  final Course? course;
   final Future<void> Function(BuildContext context) onManageLearners;
   final SoundEffectService? soundEffectService;
   final WidgetBuilder? flagGameBuilder;

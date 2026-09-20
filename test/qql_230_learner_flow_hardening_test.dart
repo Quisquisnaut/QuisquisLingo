@@ -1,3 +1,4 @@
+import 'support/test_directories.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -154,10 +155,15 @@ void _installDesktopPluginMocks() {
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
   messenger.setMockMethodCallHandler(
     const MethodChannel('plugins.flutter.io/path_provider'),
-    (_) async => throw PlatformException(
-      code: 'test_storage_unavailable',
-      message: 'Persistent crash logging is unavailable in widget tests.',
-    ),
+    (call) async {
+      if (call.method == 'getApplicationSupportDirectory') {
+        return testSupportDirectory.path;
+      }
+      throw PlatformException(
+        code: 'test_storage_unavailable',
+        message: 'Persistent crash logging is unavailable in widget tests.',
+      );
+    },
   );
   messenger.setMockMethodCallHandler(
     const MethodChannel('xyz.luan/audioplayers.global'),

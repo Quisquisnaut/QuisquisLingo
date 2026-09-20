@@ -1,3 +1,27 @@
+# 2.0.41 (Build 241, Revision 2) - Personal course libraries - 2026-09-20
+
+- Platform version `2.0.41+241002`; Beta expiry **2026-10-20 23:59:59 local time**. Includes the file-store and publisher-signature work described below.
+- Rename the user-visible external category to Publisher Course; retain the internal origin identifier. Unsigned Publisher imports explain that a signature is required.
+- Add per-profile course membership and Available on this device with four alphabetical sections, Maintainer labels, Add/Remove controls and dedicated Help. Adding another author's Custom course does not grant editing rights.
+- Remove from my courses affects only the active profile. Optional progress reset preserves all XP, including Weekly XP earned from that course, total/per-language study days and streak. Confirmation and English/Italian Help explain this explicitly.
+- Only an admin can physically uninstall a Publisher Course, and only when no other profile includes it. Progress, media and version backups survive uninstall.
+- Remove Hide/Unhide; ignore retired visibility preferences. Direct Selector import returns to study without activating Course Manager.
+- Empty libraries retain Settings and Course Manager when activated. Settings, profiles, backups and administration work without a current course; current-course reset and Test Voice explain when a course is required.
+- Course creation uses Continue to Editor; persistence still occurs at Confirm course changes. Device-name edits appear immediately after saving.
+- Final validation: 1,879 full-suite tests passed, followed by 8 focused tests and clean analysis for the owner-requested purple Publisher titles. Fresh results are recorded in `docs/241_VALIDATION.md`.
+
+# 2.0.41 (Build 241, Revision 1) - Course file-store integration - 2026-09-20
+
+- Revision 1 aligns the public label and platform build with `2.0.41+241001`, includes publisher-signature verification and the three-type Editor Help comparison. The 30-day expiry remains October 20, 2026 because this revision is prepared on September 20, 2026. Final validation remains pending owner approval.
+- Complete the existing WIP integration of `CourseFileStore` with course editing and profile-maintainer checks. Custom and installed official courses reside in separate files under `<AppSupport>/qql_courses_v1`; obsolete course preference blobs remain unread and are not migrated.
+- Reset preview detects real course files. Custom-course and full resets remove the store, including interrupted or malformed files; other scopes preserve it. Inventory shows actual file paths, byte sizes and modification times, including unreadable records.
+- Update storage fixtures and failure-injection tests, isolate support directories per test, and await save completion or specific UI states. No blanket `pumpAndSettle` replacement, increased test timeouts, or skipped assertions.
+- Refresh the 30-day Beta expiry to **2026-10-20 23:59:59 local time**. Version metadata and welcome-notice fixtures are aligned.
+- External official imports now require an Ed25519 signature from the bundled trusted-publisher registry. Verification is repeated at storage and on read; unverifiable existing sources/progress are preserved, learner delivery is withheld and signed reactivation requires explicit association.
+- Added an opt-in Dummy test publisher (`QQL_ENABLE_DUMMY_PUBLISHER=true`, including release-mode test builds) with a TEST ONLY banner, OpenSSL fixtures and a developer payload/signature tool. Normal builds do not trust Dummy; no real external publisher has been approved yet.
+- Updated the English publisher signing/approval guide with executable steps. Editor Help now compares Official Bundled, Official External and Custom in four columns using 12-point text, in English and Italian. The signature covers normalized course JSON, not separate media bytes.
+- **Validation status:** diagnostic failures corrected and checked in focused runs. Final analysis, complete-suite validation and release builds remain pending the owner’s OK; see `docs/241_VALIDATION.md`.
+
 # 2.0.40 (Build 240, Revision 0) - Native file dialogs (Save to… / Open from…) - 2026-09-20
 
 - **New, additive:** QQL can use the operating system's own Save and Open dialogs wherever it exports or imports a file. The existing fixed-folder buttons (`Documents/QuisquisLingo/Exports`, `Imports`, `Merges`, `Logs`) and automatic backups are unchanged; every dialog route uses the same builder/validator as its fixed-folder route. Files can be saved to or opened from any location the system dialog shows, including Google Drive or other cloud folders that the device already exposes. QQL does not sign in to any cloud service and adds no cloud API; each screen explains this and how to make a cloud folder appear on the current platform.

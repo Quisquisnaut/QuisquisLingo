@@ -1,3 +1,4 @@
+import 'support/test_directories.dart';
 // QQL Build 238 Phase 2: focused tests for Course Editor authoring support
 // of the Select primitive extensions (`choice`: multiple correct answers,
 // required-selection count, and linked-gap options). Existing single-select
@@ -31,8 +32,12 @@ void main() {
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(
           const MethodChannel('plugins.flutter.io/path_provider'),
-          (_) async =>
-              throw PlatformException(code: 'test_storage_unavailable'),
+          (call) async {
+            if (call.method == 'getApplicationSupportDirectory') {
+              return testSupportDirectory.path;
+            }
+            throw PlatformException(code: 'test_storage_unavailable');
+          },
         );
   });
 

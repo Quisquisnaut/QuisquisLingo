@@ -111,7 +111,7 @@ void main() {
       ).map((section) => section.body).join('\n');
       for (final label in const [
         'Course Selector',
-        'Course Info / Hide',
+        'Remove from my courses',
         'Profile > Statistics',
         'Settings > Audio Settings',
         'Course Manager',

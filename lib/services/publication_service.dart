@@ -8,6 +8,7 @@ class PublicationService {
   const PublicationService();
 
   Course? learnerCourse(Course source) {
+    if (requiresPublisherVerification(source)) return null;
     if (!source.publicationState.isPublished) return null;
     final courseJson = source.toJson();
     courseJson['lessons'] = [
@@ -16,6 +17,11 @@ class PublicationService {
     ];
     return Course.fromJson(courseJson);
   }
+
+  static bool requiresPublisherVerification(Course course) =>
+      course.originType == CourseOriginType.externalOfficial &&
+      course.publisherVerificationStatus !=
+          PublisherVerificationStatus.verified;
 
   /// Returns the learner-safe embedded Guidebook branch.
   ///

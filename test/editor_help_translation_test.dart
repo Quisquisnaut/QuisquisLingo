@@ -8,6 +8,47 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   group('Course Editor Help translation', () {
+    for (final italian in [false, true]) {
+      testWidgets(
+        'four columns fit a narrow ${italian ? 'Italian' : 'English'} Help page',
+        (tester) async {
+          tester.view.physicalSize = const Size(320, 700);
+          tester.view.devicePixelRatio = 1;
+          addTearDown(tester.view.resetPhysicalSize);
+          addTearDown(tester.view.resetDevicePixelRatio);
+          await tester.pumpWidget(const MaterialApp(home: EditorHelpScreen()));
+          if (italian) {
+            await tester.tap(
+              find.byKey(const Key('editor-help-language-toggle')),
+            );
+            await tester.pump();
+          }
+          final table = find.byKey(const Key('editor-help-course-types-table'));
+          await tester.scrollUntilVisible(table, 250);
+          await tester.pump();
+          final bounds = tester.getRect(table);
+          expect(bounds.left, greaterThanOrEqualTo(0));
+          expect(bounds.right, lessThanOrEqualTo(320));
+          for (final label in [
+            'Official Bundled',
+            'Publisher Course',
+            'Custom',
+          ]) {
+            final header = find.descendant(
+              of: table,
+              matching: find.text(label),
+            );
+            expect(header, findsOneWidget);
+            final cell = tester.getRect(header);
+            expect(cell.left, greaterThanOrEqualTo(bounds.left));
+            expect(cell.right, lessThanOrEqualTo(bounds.right));
+            expect(tester.widget<Text>(header).style?.fontSize, 12);
+          }
+          expect(tester.takeException(), isNull);
+        },
+      );
+    }
+
     test('both languages carry the same sections in the same order', () {
       final english = editorHelpSections(HelpLanguage.english);
       final italian = editorHelpSections(HelpLanguage.italian);
@@ -34,18 +75,22 @@ void main() {
 
       expect(italian.rows, hasLength(english.rows.length));
       expect(italian.types, hasLength(english.types.length));
+      expect(english.types, hasLength(3));
       expect(italian.notes, hasLength(english.notes.length));
       for (var row = 0; row < english.rows.length; row++) {
         expect(
           italian.rows[row],
-          hasLength(3),
-          reason: 'Italian row $row is not three columns',
+          hasLength(4),
+          reason: 'Italian row $row is not four columns',
         );
-        expect(english.rows[row], hasLength(3));
+        expect(english.rows[row], hasLength(4));
       }
-      // The two course-type names are product terms, not prose.
-      expect(italian.rows.first, contains('Official Course'));
-      expect(italian.rows.first, contains('Custom Course'));
+      // Course-type names are product terms, not translated prose.
+      expect(italian.rows.first.skip(1), [
+        'Official Bundled',
+        'Publisher Course',
+        'Custom',
+      ]);
     });
 
     test('the Technical reference card warns that its links are English', () {
@@ -92,6 +137,8 @@ void main() {
 
       expect(find.text('Guida all’Editor'), findsOneWidget);
       expect(find.text('Riferimento tecnico'), findsOneWidget);
+      await tester.scrollUntilVisible(find.text('Tipi di corso'), 200);
+      await tester.pump();
       expect(find.text('Tipi di corso'), findsOneWidget);
       expect(find.text('English'), findsOneWidget);
       expect(find.text('Editor Help'), findsNothing);

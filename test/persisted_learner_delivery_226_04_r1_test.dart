@@ -1,9 +1,12 @@
+import 'support/pump_file_io.dart';
+import 'support/test_directories.dart';
 import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:quisquislingo_app/services/course_file_store.dart';
 import 'package:quisquislingo_app/models/course_models.dart';
 import 'package:quisquislingo_app/screens/course_editor_screen.dart';
 import 'package:quisquislingo_app/screens/home_screen.dart';
@@ -47,7 +50,12 @@ void main() {
         TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
     messenger.setMockMethodCallHandler(
       const MethodChannel('plugins.flutter.io/path_provider'),
-      (_) async => throw PlatformException(code: 'test-storage'),
+      (call) async {
+        if (call.method == 'getApplicationSupportDirectory') {
+          return testSupportDirectory.path;
+        }
+        throw PlatformException(code: 'test-storage');
+      },
     );
     messenger.setMockMethodCallHandler(
       const MethodChannel('xyz.luan/audioplayers.global'),
@@ -105,18 +113,22 @@ void main() {
       expect(audit.count(AuditSeverity.error), 0);
       expect(audit.count(AuditSeverity.warning), 0);
 
-      final confirmation = await editor.confirmCourseTransaction(
-        originalCourse: authored,
-        workingCourse: authored,
-        languageCode: 'IT',
-        versionNotes: 'Initial published learner-delivery fixture.',
-        isNewCourse: true,
-        committedAt: DateTime.utc(2026, 9, 7, 12),
-      );
+      final confirmation = (await tester.runAsync(
+        () => editor.confirmCourseTransaction(
+          originalCourse: authored,
+          workingCourse: authored,
+          languageCode: 'IT',
+          versionNotes: 'Initial published learner-delivery fixture.',
+          isNewCourse: true,
+          committedAt: DateTime.utc(2026, 9, 7, 12),
+        ),
+      ))!;
       await settings.setLastSelectedCourseCode('custom:$_courseId');
 
-      _expectPersistedPublishedTree(await editor.listUserCourses());
-      await _expectRawPublishedTree();
+      _expectPersistedPublishedTree(
+        (await tester.runAsync(() => editor.listUserCourses()))!,
+      );
+      (await tester.runAsync(() => _expectRawPublishedTree()));
       expect(confirmation.course.courseId, _courseId);
       expect(await settings.getLastSelectedCourseCode(), 'custom:$_courseId');
 
@@ -144,18 +156,19 @@ void main() {
         'courseId': otherId,
         'lessons': <Object>[],
       };
-      final preferences = await SharedPreferences.getInstance();
-      await preferences.setString(
-        CourseEditorService.userCoursesStorageKey,
-        jsonEncode({
-          otherId: {'savedAt': '2026-09-07T10:00:00.000Z', 'course': rawOther},
-          _courseId: {
-            'savedAt': '2026-09-07T10:00:00.000Z',
-            'course': rawCourse,
-          },
+      (await tester.runAsync(
+        () => CourseFileStore().write(CourseStoreKind.custom, otherId, {
+          'savedAt': '2026-09-07T10:00:00.000Z',
+          'course': rawOther,
         }),
-      );
-      final decoded = await editor.listUserCourses();
+      ));
+      (await tester.runAsync(
+        () => CourseFileStore().write(CourseStoreKind.custom, _courseId, {
+          'savedAt': '2026-09-07T10:00:00.000Z',
+          'course': rawCourse,
+        }),
+      ));
+      final decoded = (await tester.runAsync(() => editor.listUserCourses()))!;
       expect(decoded, hasLength(2));
       expect(decoded.map((course) => course.title).toSet(), hasLength(1));
       final persistedDraft = decoded.singleWhere(
@@ -206,7 +219,17 @@ void main() {
       );
       await tester.pump();
       await tester.tap(selectedTile);
-      await _pumpIo(tester, frames: 12);
+      await tester.pumpUntilFileIoState(
+        () =>
+            find.byType(UnifiedLearnerTopBar).evaluate().isNotEmpty &&
+            tester
+                    .widget<UnifiedLearnerTopBar>(
+                      find.byType(UnifiedLearnerTopBar),
+                    )
+                    .course
+                    .courseId ==
+                _courseId,
+      );
       final draftTopBar = tester.widget<UnifiedLearnerTopBar>(
         find.byType(UnifiedLearnerTopBar),
       );
@@ -277,7 +300,7 @@ void main() {
       // Nested Save updates the working copy only. Confirm the complete
       // immutable result through the normal course transaction boundary.
       expect(
-        (await editor.listUserCourses())
+        ((await tester.runAsync(() => editor.listUserCourses()))!)
             .singleWhere((course) => course.courseId == _courseId)
             .lessons
             .single
@@ -305,15 +328,17 @@ void main() {
         confirmed.course.lessons.single.publicationState,
         PublicationState.published,
       );
-      _expectPersistedPublishedTree(await editor.listUserCourses());
-      await _expectRawPublishedTree();
+      _expectPersistedPublishedTree(
+        (await tester.runAsync(() => editor.listUserCourses()))!,
+      );
+      (await tester.runAsync(() => _expectRawPublishedTree()));
       final finalAudit = CourseAuditService().auditCourse(confirmed.course);
       expect(finalAudit.count(AuditSeverity.error), 0);
       expect(finalAudit.count(AuditSeverity.warning), 0);
       expect(
-        (await editor.listUserCourses())
-            .singleWhere((course) => course.courseId == otherId)
-            .lessons,
+        ((await tester.runAsync(
+          () => editor.listUserCourses(),
+        ))!).singleWhere((course) => course.courseId == otherId).lessons,
         isEmpty,
       );
 
@@ -483,11 +508,7 @@ void _expectPersistedPublishedTree(List<Course> courses) {
 }
 
 Future<void> _expectRawPublishedTree() async {
-  final prefs = await SharedPreferences.getInstance();
-  final root = Map<String, dynamic>.from(
-    jsonDecode(prefs.getString(CourseEditorService.userCoursesStorageKey)!)
-        as Map,
-  );
+  final root = await CourseFileStore().readAll(CourseStoreKind.custom);
   final entry = Map<String, dynamic>.from(root[_courseId] as Map);
   final course = Map<String, dynamic>.from(entry['course'] as Map);
   final lesson = Map<String, dynamic>.from(

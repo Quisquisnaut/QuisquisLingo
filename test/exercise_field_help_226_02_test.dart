@@ -1,6 +1,8 @@
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:quisquislingo_app/screens/editor_help_content.dart';
+import 'package:quisquislingo_app/widgets/help_language_toggle.dart';
 import 'package:quisquislingo_app/models/exercise_authoring.dart';
 import 'package:quisquislingo_app/services/answer_engine.dart';
 import 'package:quisquislingo_app/services/exercise_field_help.dart';
@@ -360,11 +362,15 @@ void main() {
   );
 
   test('MP3 Help distinguishes file storage from Course ownership', () {
-    for (final path in [
-      'lib/screens/editor_help_screen.dart',
-      'docs/COURSE_EDITOR.md',
-    ]) {
-      final text = File(path).readAsStringSync();
+    final helpText = editorHelpSections(
+      HelpLanguage.english,
+    ).singleWhere((section) => section.title == 'Audio Library').body;
+    for (final entry in {
+      'Audio Library Help': helpText,
+      'docs/COURSE_EDITOR.md': File('docs/COURSE_EDITOR.md').readAsStringSync(),
+    }.entries) {
+      final path = entry.key;
+      final text = entry.value;
       expect(text, contains('derived from the stable Course ID'), reason: path);
       expect(
         text,

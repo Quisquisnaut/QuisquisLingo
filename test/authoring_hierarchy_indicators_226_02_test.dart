@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'support/pump_file_io.dart';
 import 'package:quisquislingo_app/models/course_models.dart';
 import 'package:quisquislingo_app/screens/course_editor_screen.dart';
 import 'package:quisquislingo_app/screens/course_projects_screen.dart';
 import 'package:quisquislingo_app/services/course_audit_service.dart';
 import 'package:quisquislingo_app/services/course_authoring_transfer_service.dart';
+import 'package:quisquislingo_app/services/course_editor_service.dart';
+import 'package:quisquislingo_app/services/profile_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
@@ -634,10 +637,23 @@ void main() {
         AuditSeverity.info,
       );
 
+      await tester.runAsync(() async {
+        final profiles = ProfileService();
+        final owner = await profiles.createProfile('Status course owner');
+        await profiles.setActiveProfileById(owner.learnerProfileId);
+        await CourseEditorService().saveUserCourse(course);
+      });
       await tester.pumpWidget(
         MaterialApp(home: CourseProjectsScreen(currentCourse: course)),
       );
-      await tester.pumpAndSettle();
+      await tester.pumpUntilFileIoState(
+        () => find.text('Bundled Courses').evaluate().isNotEmpty,
+      );
+      await tester.scrollUntilVisible(
+        find.byKey(const ValueKey('course-manager-status-status-course')),
+        300,
+        scrollable: find.byType(Scrollable).first,
+      );
       _expectIndicator(
         tester,
         const ValueKey('course-manager-status-status-course'),

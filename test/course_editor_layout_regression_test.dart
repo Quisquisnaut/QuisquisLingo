@@ -1,5 +1,7 @@
-import 'dart:convert';
+import 'support/publisher_fixtures.dart';
 import 'dart:io';
+
+import 'support/pump_file_io.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -111,9 +113,18 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(home: CourseProjectsScreen(currentCourse: currentCourse)),
     );
-    await tester.pumpAndSettle();
+    await tester.pumpUntilFileIoState(
+      () =>
+          find
+              .byKey(const Key('create-course-icon-action'))
+              .evaluate()
+              .isNotEmpty &&
+          find.byType(CircularProgressIndicator).evaluate().isEmpty,
+    );
     await tester.tap(find.byKey(const Key('create-course-icon-action')));
-    await tester.pumpAndSettle();
+    await tester.pumpUntilFileIoState(
+      () => find.byType(AlertDialog).evaluate().isNotEmpty,
+    );
 
     final maintainerHelper = find.text(
       'The person currently responsible for maintaining this Course.',
@@ -171,7 +182,10 @@ void main() {
       courseVersion: '1',
       lessons: const [],
     );
-    await CourseEditorService(profileService: profiles).saveUserCourse(custom);
+    (await tester.runAsync(
+      () =>
+          CourseEditorService(profileService: profiles).saveUserCourse(custom),
+    ));
     await tester.pumpWidget(
       MaterialApp(
         home: CourseEditorScreen(
@@ -261,7 +275,14 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(home: CourseProjectsScreen(currentCourse: currentCourse)),
       );
-      await tester.pumpAndSettle();
+      await tester.pumpUntilFileIoState(
+        () =>
+            find
+                .byKey(const Key('create-course-icon-action'))
+                .evaluate()
+                .isNotEmpty &&
+            find.byType(CircularProgressIndicator).evaluate().isEmpty,
+      );
       expect(find.text('Course Manager'), findsOneWidget);
       expect(find.text('Course Editor'), findsNothing);
       expect(find.text('Course Import'), findsNothing);
@@ -287,7 +308,9 @@ void main() {
       await tester.pumpAndSettle();
 
       await tester.tap(find.byKey(const Key('create-course-icon-action')));
-      await tester.pumpAndSettle();
+      await tester.pumpUntilFileIoState(
+        () => find.byType(AlertDialog).evaluate().isNotEmpty,
+      );
       expect(find.text('License / Rights'), findsOneWidget);
       expect(
         find.byKey(const Key('new-course-rights-holder-name-0')),
@@ -309,14 +332,20 @@ void main() {
       );
       await tester.enterText(titleField, 'Direct Lessons');
       await tester.enterText(targetField, 'Italian');
-      await tester.tap(find.widgetWithText(FilledButton, 'Create'));
+      await tester.tap(find.widgetWithText(FilledButton, 'Continue to Editor'));
       await tester.pumpAndSettle();
 
-      expect(await CourseEditorService().listUserCourses(), isEmpty);
+      expect(
+        (await tester.runAsync(() => CourseEditorService().listUserCourses()))!,
+        isEmpty,
+      );
       await tester.tap(find.byKey(const Key('course-editor-lock')));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Edit'));
       await tester.pumpAndSettle();
+      await tester.ensureVisible(
+        find.byKey(const Key('course-editor-lessons-navigation')),
+      );
       await tester.tap(
         find.byKey(const Key('course-editor-lessons-navigation')),
       );
@@ -329,9 +358,13 @@ void main() {
       await tester.tap(find.byType(BackButton).last);
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const Key('confirm-course-changes')));
-      await tester.pumpAndSettle();
+      await tester.pumpUntilFileIoState(
+        () => find.byType(CourseEditorScreen).evaluate().isEmpty,
+      );
 
-      final stored = await CourseEditorService().listUserCourses();
+      final stored = (await tester.runAsync(
+        () => CourseEditorService().listUserCourses(),
+      ))!;
       expect(stored, hasLength(1));
       final created = stored.single;
       expect(created.courseVersion, '1');
@@ -390,16 +423,29 @@ void main() {
       ttsLanguage: 'it-IT',
       lessons: const [],
     );
-    await CourseEditorService().saveUserCourse(custom);
+    (await tester.runAsync(() => CourseEditorService().saveUserCourse(custom)));
     await tester.pumpWidget(
       MaterialApp(home: CourseProjectsScreen(currentCourse: custom)),
     );
-    await tester.pumpAndSettle();
+    await tester.pumpUntilFileIoState(
+      () =>
+          find
+              .byKey(const Key('create-course-icon-action'))
+              .evaluate()
+              .isNotEmpty &&
+          find.byType(CircularProgressIndicator).evaluate().isEmpty,
+    );
 
+    await tester.scrollUntilVisible(
+      find.byKey(const Key('course-manager-actions-custom_menu')),
+      400,
+    );
     await tester.tap(
       find.byKey(const Key('course-manager-actions-custom_menu')),
     );
-    await tester.pumpAndSettle();
+    await tester.pumpUntilFileIoState(
+      () => find.text('Edit').evaluate().isNotEmpty,
+    );
     for (final label in [
       'Edit',
       'Copy as New Course',
@@ -411,13 +457,23 @@ void main() {
     }
     expect(find.text('Duplicate custom course'), findsNothing);
     await tester.tap(find.text('Copy as New Course'));
-    await tester.pumpAndSettle();
+    await tester.pumpUntilFileIoState(
+      () => find.byType(CourseEditorScreen).evaluate().isNotEmpty,
+    );
     expect(find.text('Course Editor'), findsOneWidget);
-    expect(await CourseEditorService().listUserCourses(), hasLength(2));
+    expect(
+      (await tester.runAsync(() => CourseEditorService().listUserCourses()))!,
+      hasLength(2),
+    );
     await tester.tap(find.byType(BackButton).last);
-    await tester.pumpAndSettle();
+    await tester.pumpUntilFileIoState(
+      () => find.text('Bundled Courses').evaluate().isNotEmpty,
+    );
     expect(find.byKey(const Key('cancel-course-changes')), findsNothing);
-    expect(await CourseEditorService().listUserCourses(), hasLength(2));
+    expect(
+      (await tester.runAsync(() => CourseEditorService().listUserCourses()))!,
+      hasLength(2),
+    );
   });
 
   for (final policy in [
@@ -431,17 +487,36 @@ void main() {
         SharedPreferences.setMockInitialValues(
           _profilePreferences('Official inspector'),
         );
-        await tester.pumpWidget(
-          MaterialApp(
-            home: CourseProjectsScreen(currentCourse: _official(policy)),
+        final editor = CourseEditorService(
+          publisherVerification: fixtureVerifier('publisher', 'Publisher'),
+        );
+        final installed = await tester.runAsync(
+          () async => editor.installExternalOfficialUpdate(
+            await signFixture(_official(policy)),
           ),
         );
-        await tester.pumpAndSettle();
-
-        await tester.tap(
-          find.byKey(const Key('course-manager-actions-current')),
+        await tester.pumpWidget(
+          MaterialApp(
+            home: CourseProjectsScreen(
+              currentCourse: installed!.officialCourse,
+              editorService: editor,
+            ),
+          ),
         );
-        await tester.pumpAndSettle();
+        await tester.pumpUntilFileIoState(
+          () => find.text('Bundled Courses').evaluate().isNotEmpty,
+        );
+
+        await tester.scrollUntilVisible(
+          find.byKey(const Key('course-manager-actions-official-actions')),
+          400,
+        );
+        await tester.tap(
+          find.byKey(const Key('course-manager-actions-official-actions')),
+        );
+        await tester.pumpUntilFileIoState(
+          () => find.text('View (read only)').evaluate().isNotEmpty,
+        );
         expect(find.text('View (read only)'), findsOneWidget);
         expect(find.text('Audit'), findsOneWidget);
         expect(find.text('Export JSON'), findsOneWidget);
@@ -489,7 +564,9 @@ void main() {
           Lesson(lessonId: 'lesson', title: 'Lesson', rounds: const []),
         ],
       );
-      await CourseEditorService().saveUserCourse(custom);
+      (await tester.runAsync(
+        () => CourseEditorService().saveUserCourse(custom),
+      ));
       await tester.pumpWidget(
         MaterialApp(home: CourseEditorScreen(course: custom, userCourse: true)),
       );
@@ -522,7 +599,12 @@ void main() {
       );
       await tester.ensureVisible(find.byKey(const Key('course-info-save')));
       await tester.tap(find.byKey(const Key('course-info-save')));
-      await tester.pumpAndSettle();
+      await tester.pumpUntilFileIoState(
+        () => find.byKey(const Key('course-info-save')).evaluate().isEmpty,
+      );
+      await tester.ensureVisible(
+        find.byKey(const Key('course-editor-lessons-navigation')),
+      );
       await tester.tap(
         find.byKey(const Key('course-editor-lessons-navigation')),
       );
@@ -535,7 +617,16 @@ void main() {
       await tester.tap(
         find.byKey(const Key('course-editor-copy-as-new-course')),
       );
-      await tester.pumpAndSettle();
+      await tester.pumpUntilFileIoState(
+        () =>
+            tester
+                .widget<CourseEditorScreen>(
+                  find.byType(CourseEditorScreen).last,
+                )
+                .course
+                .courseId !=
+            custom.courseId,
+      );
       final copyEditor = tester.widget<CourseEditorScreen>(
         find.byType(CourseEditorScreen).last,
       );
@@ -552,7 +643,10 @@ void main() {
         copyEditor.course.lessons.single.lessonId,
         isNot(custom.lessons.single.lessonId),
       );
-      expect(await CourseEditorService().listUserCourses(), hasLength(2));
+      expect(
+        (await tester.runAsync(() => CourseEditorService().listUserCourses()))!,
+        hasLength(2),
+      );
     },
   );
 
@@ -560,7 +654,10 @@ void main() {
     'Course Manager Fork uses licensed provenance and fresh identity semantics',
     (tester) async {
       const profileId = _ownerProfileId;
-      final official = _official(DerivativeWorksPolicy.allowed);
+      late Course official;
+      final editor = CourseEditorService(
+        publisherVerification: fixtureVerifier('publisher', 'Publisher'),
+      );
       SharedPreferences.setMockInitialValues({
         ProfileService.profilesKey: [
           const LearnerProfile(
@@ -569,20 +666,44 @@ void main() {
           ).encode(),
         ],
         ProfileService.activeProfileIdKey: profileId,
-        CourseEditorService.externalOfficialStorageKey: jsonEncode({
-          official.courseId: {'source': official.toJson()},
-        }),
+      });
+      await tester.runAsync(() async {
+        official = (await editor.installExternalOfficialUpdate(
+          await signFixture(_official(DerivativeWorksPolicy.allowed)),
+        )).officialCourse;
       });
       final original = official.toJson();
       await tester.pumpWidget(
-        MaterialApp(home: CourseProjectsScreen(currentCourse: official)),
+        MaterialApp(
+          home: CourseProjectsScreen(
+            currentCourse: official,
+            editorService: editor,
+          ),
+        ),
       );
-      await tester.pumpAndSettle();
+      await tester.pumpUntilFileIoState(
+        () =>
+            find
+                .byKey(const Key('create-course-icon-action'))
+                .evaluate()
+                .isNotEmpty &&
+            find.byType(CircularProgressIndicator).evaluate().isEmpty,
+      );
 
-      await tester.tap(find.byKey(const Key('course-manager-actions-current')));
-      await tester.pumpAndSettle();
+      await tester.scrollUntilVisible(
+        find.byKey(const Key('course-manager-actions-official-actions')),
+        400,
+      );
+      await tester.tap(
+        find.byKey(const Key('course-manager-actions-official-actions')),
+      );
+      await tester.pumpUntilFileIoState(
+        () => find.text('Fork').evaluate().isNotEmpty,
+      );
       await tester.tap(find.text('Fork'));
-      await tester.pumpAndSettle();
+      await tester.pumpUntilFileIoState(
+        () => find.byType(CourseEditorScreen).evaluate().isNotEmpty,
+      );
 
       final forkEditor = tester.widget<CourseEditorScreen>(
         find.byType(CourseEditorScreen).last,
@@ -599,7 +720,9 @@ void main() {
         'Manager Forker',
       );
       expect(official.toJson(), original);
-      final stored = await CourseEditorService().listUserCourses();
+      final stored = (await tester.runAsync(
+        () => CourseEditorService().listUserCourses(),
+      ))!;
       final customCourses = stored
           .where((course) => course.originType == CourseOriginType.custom)
           .toList();

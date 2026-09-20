@@ -7,6 +7,7 @@ import 'package:quisquislingo_app/services/authoring_duplication_service.dart';
 import 'package:quisquislingo_app/services/course_authoring_transfer_service.dart';
 import 'package:quisquislingo_app/services/course_backup_service.dart';
 import 'package:quisquislingo_app/services/course_editor_service.dart';
+import 'package:quisquislingo_app/services/course_file_store.dart';
 import 'package:quisquislingo_app/services/course_editor_transaction.dart';
 import 'package:quisquislingo_app/services/profile_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -581,10 +582,13 @@ void main() {
       final storage = CourseEditorService(
         backupService: backups,
         clock: () => _editTime,
-        preferenceWriter: (preferences, key, value) async {
-          writes++;
-          return preferences.setString(key, value);
-        },
+        courseStore: CourseFileStore(
+          supportDirectory: () async => directory,
+          fileWriter: (file, contents) async {
+            writes++;
+            await file.writeAsString(contents, flush: true);
+          },
+        ),
       );
       final source = _course();
       await storage.saveUserCourse(source);

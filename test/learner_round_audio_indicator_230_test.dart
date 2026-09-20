@@ -1,3 +1,5 @@
+import 'support/test_directories.dart';
+import 'support/pump_file_io.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -27,7 +29,12 @@ void main() {
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(
           const MethodChannel('plugins.flutter.io/path_provider'),
-          (_) async => throw PlatformException(code: 'test-storage'),
+          (call) async {
+            if (call.method == 'getApplicationSupportDirectory') {
+              return testSupportDirectory.path;
+            }
+            throw PlatformException(code: 'test-storage');
+          },
         );
   });
 
@@ -260,7 +267,7 @@ Future<void> _pumpRoundPath(
 Future<void> _openHome(WidgetTester tester, Course course) async {
   await tester.binding.setSurfaceSize(const Size(430, 1000));
   addTearDown(() => tester.binding.setSurfaceSize(null));
-  await CourseEditorService().saveUserCourse(course);
+  await tester.runAsync(() => CourseEditorService().saveUserCourse(course));
   await SettingsService().setLastSelectedCourseCode(
     'custom:${course.courseId}',
   );
@@ -270,7 +277,10 @@ Future<void> _openHome(WidgetTester tester, Course course) async {
       home: const HomeScreen(),
     ),
   );
-  await _pumpFrames(tester);
+  await tester.pumpUntilFileIoState(
+    () =>
+        find.byKey(const Key('unified-topbar-settings')).evaluate().isNotEmpty,
+  );
   if (find.text('Beta expiry').evaluate().isNotEmpty) {
     await tester.tap(find.widgetWithText(FilledButton, 'OK'));
     await _pumpFrames(tester);
@@ -294,8 +304,17 @@ Future<void> _setAudioPreference(
   Navigator.of(tester.element(find.byType(TtsSettingsScreen))).pop();
   await _pumpUntil(tester, find.byType(SettingsScreen));
   Navigator.of(tester.element(find.byType(SettingsScreen))).pop();
-  await _pumpUntil(tester, _audioIcon(_ttsRound.id));
-  await _pumpFrames(tester);
+  await tester.pumpUntilFileIoState(() {
+    if (value) {
+      final icon = _audioIcon(_ttsRound.id);
+      return icon.evaluate().isNotEmpty &&
+          tester.widget<Icon>(icon).color == const Color(0xFF1657D9);
+    }
+    final tooltip = title == 'Enable Audio Exercises'
+        ? 'Audio exercises are turned off in Audio Settings.'
+        : 'Text-to-speech is turned off in Audio Settings.';
+    return find.byTooltip(tooltip).evaluate().isNotEmpty;
+  });
 }
 
 Future<void> _pumpUntil(

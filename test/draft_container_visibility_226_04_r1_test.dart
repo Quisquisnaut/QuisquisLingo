@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'support/pump_file_io.dart';
 import 'package:quisquislingo_app/models/course_models.dart';
 import 'package:quisquislingo_app/screens/course_editor_screen.dart';
 import 'package:quisquislingo_app/screens/course_projects_screen.dart';
@@ -140,7 +141,9 @@ void main() {
           audit.issues.where((issue) => issue.severity != AuditSeverity.info),
           isEmpty,
         );
-        await CourseEditorService().saveUserCourse(course);
+        (await tester.runAsync(
+          () => CourseEditorService().saveUserCourse(course),
+        ));
         await SettingsService().setLastSelectedCourseCode(
           'custom:${course.courseId}',
         );
@@ -306,7 +309,18 @@ void _expectStatus(
 Future<void> _mount(WidgetTester tester, Widget screen) async {
   await tester.pumpWidget(const SizedBox.shrink());
   await tester.pumpWidget(MaterialApp(home: screen));
-  await tester.pumpAndSettle();
+  if (screen is CourseProjectsScreen) {
+    await tester.pumpUntilFileIoState(
+      () => find
+          .byKey(
+            ValueKey('course-manager-status-${screen.currentCourse!.courseId}'),
+          )
+          .evaluate()
+          .isNotEmpty,
+    );
+  } else {
+    await tester.pumpAndSettle();
+  }
 }
 
 void _viewport(WidgetTester tester) {

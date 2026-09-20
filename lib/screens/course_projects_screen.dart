@@ -1,3 +1,6 @@
+import '../services/settings_service.dart';
+import '../services/course_library_service.dart';
+import 'available_courses_screen.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -13,7 +16,6 @@ import '../services/course_service.dart';
 import '../services/course_language_resolver.dart';
 import '../services/course_merge_service.dart';
 import '../services/formal_name_policy.dart';
-import '../services/settings_service.dart';
 import '../services/course_access_policy.dart';
 import '../services/profile_service.dart';
 import '../services/sound_effect_service.dart';
@@ -103,7 +105,7 @@ class CourseImportScreen extends StatelessWidget {
           '1. Copy the course JSON to Documents/QuisquisLingo/Imports/import.json.\n'
           '2. Select Import Course JSON. QQL validates the complete file before changing local storage.\n'
           '3. If the Course ID already exists, choose Replace/update, Copy as New Course, Fork or Cancel, as available.\n'
-          '4. A successful import appears under Local courses. import.json remains in Imports.',
+          '4. A successful import is added to your courses. Only published courses are available for study. import.json remains in Imports.',
         ),
       ],
     ),
@@ -616,12 +618,18 @@ class _CourseMergeScreenState extends State<CourseMergeScreen> {
 }
 
 class CourseProjectsScreen extends StatefulWidget {
-  final Course currentCourse;
+  final Course? currentCourse;
+  final bool importOnly;
   final String? initialCourseIdToOpen;
+  final CourseEditorService? editorService;
+  final CustomCourseTransferService? transferService;
   const CourseProjectsScreen({
     super.key,
     required this.currentCourse,
+    this.importOnly = false,
     this.initialCourseIdToOpen,
+    this.editorService,
+    this.transferService,
   });
 
   @override
@@ -629,28 +637,35 @@ class CourseProjectsScreen extends StatefulWidget {
 }
 
 class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
-  final _service = CourseEditorService();
+  late final _service = widget.editorService ?? CourseEditorService();
   final _courseService = CourseService();
   final _flags = CourseFlagService();
-  final _transfer = CustomCourseTransferService();
+  late final _transfer =
+      widget.transferService ?? CustomCourseTransferService();
   final _merge = CourseMergeService();
-  final _settings = SettingsService();
   final _profiles = ProfileService();
   final _sounds = SoundEffectService();
   late final _teams = TeamService(profileService: _profiles);
   List<Course> _user = [];
   bool _loading = true;
   String? _loadError;
-  bool _currentCourseIsCustom = false;
   bool _openedInitialCourse = false;
   String? _activeProfileId;
   Set<String> _memberTeamIds = const {};
   bool _isAdmin = false;
+  bool _importAuthoringEnabled = false;
+  List<Course> _includedBundled = [];
 
   @override
   void initState() {
     super.initState();
     _reload();
+  }
+
+  @override
+  void didUpdateWidget(covariant CourseProjectsScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.currentCourse != widget.currentCourse) _reload();
   }
 
   Future<void> _reload() async {
@@ -661,7 +676,28 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
       });
     }
     try {
-      final value = await _service.listUserCourses();
+      final value = await CourseLibraryService().included(
+        await _service.listUserCourses(),
+      );
+      final bundled = <Course>[
+        if (!widget.importOnly)
+          for (final code in CourseService.courseAssets.keys)
+            await _courseService.loadCourse(code),
+      ];
+      final includedBundled = await CourseLibraryService().included([
+        if (widget.currentCourse?.originType ==
+            CourseOriginType.bundledOfficial)
+          widget.currentCourse!,
+        ...bundled.where(
+          (c) =>
+              c.courseId != widget.currentCourse?.courseId ||
+              widget.currentCourse?.originType !=
+                  CourseOriginType.bundledOfficial,
+        ),
+      ]);
+      final importAuthoringEnabled =
+          !widget.importOnly ||
+          await SettingsService().isCourseEditorUnlocked();
       final activeProfileId = await _profiles.getActiveProfileId();
       final isAdmin =
           activeProfileId != null && await _profiles.isAdmin(activeProfileId);
@@ -670,15 +706,11 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
           : (await _teams.teamsForProfile(
               activeProfileId,
             )).map((team) => team.teamId).toSet();
-      final selectedRef = await _settings.getLastSelectedCourseCode();
       if (!mounted) return;
       setState(() {
         _user = value;
-        // The persisted selection reference carries the actual course origin.
-        // Do not infer bundled/custom status from title or courseId because a
-        // custom course is allowed to reuse either without becoming bundled.
-        _currentCourseIsCustom =
-            selectedRef == 'custom:${widget.currentCourse.courseId}';
+        _importAuthoringEnabled = importAuthoringEnabled;
+        _includedBundled = includedBundled;
         _loading = false;
         _activeProfileId = activeProfileId;
         _memberTeamIds = memberTeamIds;
@@ -712,7 +744,7 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
         return;
       }
     }
-    if (widget.currentCourse.courseId == courseId) await _openBundled();
+    if (widget.currentCourse?.courseId == courseId) await _openBundled();
   }
 
   Future<void> _openCourseImport() => Navigator.of(context).push<void>(
@@ -894,6 +926,10 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
+                    const Text(
+                      'Continue to Editor to prepare this course. It is saved only when you confirm the course changes in the editor.',
+                    ),
+                    const SizedBox(height: 12),
                     TextField(
                       controller: title,
                       maxLength: 120,
@@ -1549,7 +1585,7 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
                           ),
                         );
                       },
-                child: const Text('Create'),
+                child: const Text('Continue to Editor'),
               ),
             ],
           ),
@@ -1581,11 +1617,13 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
   }
 
   Future<void> _openBundled() async {
+    final course = widget.currentCourse;
+    if (course == null) return;
     final result = await Navigator.of(context).push<CourseConfirmationResult>(
       MaterialPageRoute(
         builder: (_) => CourseEditorScreen(
-          course: widget.currentCourse,
-          access: _capabilities(widget.currentCourse),
+          course: course,
+          access: _capabilities(course),
           editorService: _service,
         ),
       ),
@@ -1724,6 +1762,8 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
       tooltip: 'Course actions',
       onSelected: (value) {
         if (value == 'open') onOpen();
+        if (value == 'remove_personal') _removePersonal(course);
+        if (value == 'uninstall_publisher') _uninstallPublisher(course);
         if (value == 'fork') _forkCourse(course);
         if (value == 'copy_as_new') _copyAsNewCourse(course);
         if (value == 'merge') _openCourseMerge(course);
@@ -1735,6 +1775,15 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
         }
       },
       itemBuilder: (_) => [
+        const PopupMenuItem(
+          value: 'remove_personal',
+          child: Text('Remove from my courses'),
+        ),
+        if (_isAdmin && course.originType == CourseOriginType.externalOfficial)
+          const PopupMenuItem(
+            value: 'uninstall_publisher',
+            child: Text('Remove Publisher Course from device'),
+          ),
         PopupMenuItem(
           value: 'open',
           child: ListTile(
@@ -1867,6 +1916,7 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
       // Lessons, GuideBooks, Rounds and Exercises); it never asks and never
       // changes them.
       final course = imported;
+      final installedCourses = await _service.listUserCourses();
       final audit = CourseAuditService().auditCourse(course);
       final errors = audit.issues
           .where((issue) => issue.severity == AuditSeverity.error)
@@ -1912,7 +1962,7 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
         return;
       }
       if (course.originType == CourseOriginType.externalOfficial) {
-        final existing = _user
+        final existing = installedCourses
             .where((candidate) => candidate.courseId == course.courseId)
             .firstOrNull;
         final proceed = await showDialog<bool>(
@@ -1920,12 +1970,15 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
           builder: (context) => AlertDialog(
             title: Text(
               existing == null
-                  ? 'Install unverified official course?'
-                  : 'Install unverified official course update?',
+                  ? 'Install verified Publisher Course?'
+                  : 'Install verified Publisher Course update?',
             ),
-            content: Text(
-              'QQL can verify the file checksum but cannot authenticate the declared publisher. '
-              'The course will be visibly labelled External official — unverified. Official courses are read only. Any existing custom forks remain unchanged.',
+            content: SingleChildScrollView(
+              child: Text(
+                'Verified publisher: ${course.publisherName}.\nCourse ID: ${course.courseId}\nVersion: ${course.officialCourseVersion}.\n'
+                'The signature authenticates the course JSON, not separate media files. Official courses remain read only; custom forks remain unchanged.'
+                '${existing != null && existing.publisherVerificationStatus != PublisherVerificationStatus.verified ? '\n\nVerification required for the existing version ${existing.officialCourseVersion} from ${existing.publisherName}. Confirm association with this signed release to reactivate this course and retain its progress.' : ''}',
+              ),
             ),
             actions: [
               TextButton(
@@ -1936,37 +1989,45 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
                 onPressed: () => Navigator.pop(context, true),
                 child: Text(
                   existing == null
-                      ? 'Install as unverified'
-                      : 'Install unverified update',
+                      ? 'Install verified course'
+                      : 'Confirm signed update',
                 ),
               ),
             ],
           ),
         );
         if (proceed != true) return;
-        final result = await _service.installExternalOfficialUpdate(course);
+        final result = await _service.installExternalOfficialUpdate(
+          course,
+          confirmUnverifiedAssociation:
+              existing != null &&
+              existing.publisherVerificationStatus !=
+                  PublisherVerificationStatus.verified,
+        );
         await _reload();
         if (!mounted) return;
         final verification =
             result.officialCourse.publisherVerificationStatus ==
                 PublisherVerificationStatus.verified
-            ? 'verified publisher metadata'
+            ? 'verified publisher signature'
             : 'UNVERIFIED publisher metadata';
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             duration: const Duration(seconds: 12),
             content: Text(
-              'Installed official version ${course.officialCourseVersion} from ${course.publisherName} ($verification).'
+              'Installed Publisher Course version ${course.officialCourseVersion} from ${course.publisherName} ($verification).'
               '${result.backupPath == null ? '' : '\nBacked up previous official source: ${result.backupPath}'}',
             ),
           ),
         );
         return;
       }
-      final existingIndex = _user.indexWhere(
+      final existingIndex = installedCourses.indexWhere(
         (c) => c.courseId == course.courseId,
       );
-      final existing = existingIndex < 0 ? null : _user[existingIndex];
+      final existing = existingIndex < 0
+          ? null
+          : installedCourses[existingIndex];
       if (existing != null) {
         final importedAccess = _capabilities(course);
         final choice =
@@ -1984,12 +2045,13 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
                     onPressed: () => Navigator.pop(ctx, 'cancel'),
                     child: const Text('Cancel'),
                   ),
-                  if (importedAccess.canCopyAsNewCourse)
+                  if (_importAuthoringEnabled &&
+                      importedAccess.canCopyAsNewCourse)
                     OutlinedButton(
                       onPressed: () => Navigator.pop(ctx, 'copy'),
                       child: const Text('Copy as New Course'),
                     ),
-                  if (importedAccess.canFork)
+                  if (_importAuthoringEnabled && importedAccess.canFork)
                     OutlinedButton(
                       onPressed: () => Navigator.pop(ctx, 'fork'),
                       child: const Text('Fork'),
@@ -2123,6 +2185,43 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
     }
   }
 
+  Future<void> _removePersonal(Course course) async {
+    if (await removeFromMyCourses(context, course)) await _reload();
+  }
+
+  Future<void> _uninstallPublisher(Course course) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Remove Publisher Course from device?'),
+        content: Text(
+          'Uninstall “${course.title}” for this device? This is blocked while another profile has the course in My courses. Progress and version backups are kept for reinstallation.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Remove from device'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    try {
+      await _service.removePublisherCourseFromDevice(course);
+      await _reload();
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('$error')));
+      }
+    }
+  }
+
   Future<void> _delete(Course course) async {
     final first =
         await showDialog<bool>(
@@ -2173,163 +2272,189 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
   }
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(
-      title: const Text('Course Manager'),
-      actions: [
-        IconButton(
-          key: const Key('course-import-icon-action'),
-          tooltip: 'Course Import',
-          onPressed: _openCourseImport,
-          icon: const Icon(Icons.file_open_outlined),
-        ),
-        IconButton(
-          key: const Key('create-course-icon-action'),
-          tooltip: 'Create new course',
-          onPressed: _newCourse,
-          icon: const Icon(Icons.add),
-        ),
-        const EditorAppBarActions(showInternalIdsToggle: false),
-      ],
-    ),
-    body: _loading
-        ? const Center(child: CircularProgressIndicator())
-        : _loadError != null
-        ? Center(
-            key: const Key('course-manager-load-error'),
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(Icons.error_outline, size: 40),
-                  const SizedBox(height: 12),
-                  const Text(
-                    'Course Manager could not load local course data.',
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(_loadError!, textAlign: TextAlign.center),
-                  const SizedBox(height: 16),
-                  OutlinedButton.icon(
-                    onPressed: _reload,
-                    icon: const Icon(Icons.refresh),
-                    label: const Text('Retry'),
-                  ),
-                ],
-              ),
-            ),
-          )
-        : ListView(
-            padding: const EdgeInsets.all(16),
-            children: [
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  OutlinedButton.icon(
-                    key: const Key('team-manager-entry'),
-                    onPressed: () async {
-                      await Navigator.of(context).push<void>(
-                        MaterialPageRoute(
-                          builder: (_) => TeamManagerScreen(
-                            teamService: _teams,
-                            profileService: _profiles,
-                          ),
-                        ),
-                      );
-                      await _reload();
-                    },
-                    icon: const Icon(Icons.groups_outlined),
-                    label: const Text('Team Manager'),
-                  ),
-                  if (_isAdmin && _activeProfileId != null)
-                    OutlinedButton.icon(
-                      key: const Key('admin-media-library-entry'),
-                      onPressed: () async {
-                        await Navigator.of(context).push<void>(
-                          MaterialPageRoute(
-                            builder: (_) => FlatImageLibraryScreen(
-                              selectMode: false,
-                              metadataEditingEnabled: true,
-                              actorProfileId: _activeProfileId,
+  Widget build(BuildContext context) => widget.importOnly
+      ? (_loading || _loadError != null
+            ? Scaffold(
+                appBar: AppBar(title: const Text('Course Import')),
+                body: Center(
+                  child: _loadError == null
+                      ? const CircularProgressIndicator()
+                      : Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(_loadError!),
+                            TextButton(
+                              onPressed: _reload,
+                              child: const Text('Retry'),
                             ),
-                          ),
-                        );
-                        await _reload();
-                      },
-                      icon: const Icon(Icons.perm_media_outlined),
-                      label: const Text('Shared Image Library (admin)'),
-                    ),
-                ],
+                          ],
+                        ),
+                ),
+              )
+            : CourseImportScreen(
+                onImport: _importCourse,
+                onOpenFrom: _transfer.fileDialogsAvailable
+                    ? _importCourseFromDialog
+                    : null,
+              ))
+      : Scaffold(
+          appBar: AppBar(
+            title: const Text('Course Manager'),
+            actions: [
+              IconButton(
+                key: const Key('course-import-icon-action'),
+                tooltip: 'Course Import',
+                onPressed: _openCourseImport,
+                icon: const Icon(Icons.file_open_outlined),
               ),
-              if (!_currentCourseIsCustom) ...[
-                const SizedBox(height: 18),
-                Text(
-                  'Current bundled course',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                _courseStatusCard(
-                  widget.currentCourse,
-                  ListTile(
-                    leading: CourseFlagBadge(
-                      course: widget.currentCourse,
-                      fallbackCode: CourseService.codeForCourse(
-                        widget.currentCourse,
-                      ),
-                    ),
-                    title: Text(widget.currentCourse.title),
-                    subtitle: const Text(
-                      'Bundled official · read only · Course Model v9',
-                    ),
-                    trailing: _courseActions(
-                      widget.currentCourse,
-                      key: const Key('course-manager-actions-current'),
-                      onOpen: _openBundled,
-                    ),
-                    onTap: _openBundled,
-                  ),
-                ),
-              ],
-              const SizedBox(height: 18),
-              Text(
-                'Local courses',
-                style: Theme.of(
-                  context,
-                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+              IconButton(
+                key: const Key('create-course-icon-action'),
+                tooltip: 'Create new course',
+                onPressed: _newCourse,
+                icon: const Icon(Icons.add),
               ),
-              if (_user.isEmpty)
-                const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 16),
-                  child: Text('No local courses yet.'),
-                ),
-              for (final course in _user)
-                _courseStatusCard(
-                  course,
-                  ListTile(
-                    leading: CourseFlagBadge(
-                      course: course,
-                      fallbackCode: CourseService.codeForCourse(course),
-                    ),
-                    title: Text(course.title),
-                    subtitle: Text(
-                      '${course.sourceLanguage} → ${course.targetLanguage} · ${course.originType.isOfficial ? '${course.publisherName} official ${course.officialCourseVersion} · read only' : 'custom version ${course.courseVersion.isEmpty ? 'unconfirmed' : course.courseVersion}'}',
-                    ),
-                    onTap: () => _openUser(course),
-                    trailing: _courseActions(
-                      course,
-                      key: ValueKey(
-                        'course-manager-actions-${course.courseId}',
-                      ),
-                      onOpen: () => _openUser(course),
-                    ),
-                  ),
-                ),
+              const EditorAppBarActions(showInternalIdsToggle: false),
             ],
           ),
-  );
+          body: _loading
+              ? const Center(child: CircularProgressIndicator())
+              : _loadError != null
+              ? Center(
+                  key: const Key('course-manager-load-error'),
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.error_outline, size: 40),
+                        const SizedBox(height: 12),
+                        const Text(
+                          'Course Manager could not load local course data.',
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 8),
+                        Text(_loadError!, textAlign: TextAlign.center),
+                        const SizedBox(height: 16),
+                        OutlinedButton.icon(
+                          onPressed: _reload,
+                          icon: const Icon(Icons.refresh),
+                          label: const Text('Retry'),
+                        ),
+                      ],
+                    ),
+                  ),
+                )
+              : ListView(
+                  padding: const EdgeInsets.all(16),
+                  children: [
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        OutlinedButton.icon(
+                          key: const Key('team-manager-entry'),
+                          onPressed: () async {
+                            await Navigator.of(context).push<void>(
+                              MaterialPageRoute(
+                                builder: (_) => TeamManagerScreen(
+                                  teamService: _teams,
+                                  profileService: _profiles,
+                                ),
+                              ),
+                            );
+                            await _reload();
+                          },
+                          icon: const Icon(Icons.groups_outlined),
+                          label: const Text('Team Manager'),
+                        ),
+                        if (_isAdmin && _activeProfileId != null)
+                          OutlinedButton.icon(
+                            key: const Key('admin-media-library-entry'),
+                            onPressed: () async {
+                              await Navigator.of(context).push<void>(
+                                MaterialPageRoute(
+                                  builder: (_) => FlatImageLibraryScreen(
+                                    selectMode: false,
+                                    metadataEditingEnabled: true,
+                                    actorProfileId: _activeProfileId,
+                                  ),
+                                ),
+                              );
+                              await _reload();
+                            },
+                            icon: const Icon(Icons.perm_media_outlined),
+                            label: const Text('Shared Image Library (admin)'),
+                          ),
+                      ],
+                    ),
+                    if (_includedBundled.isNotEmpty) ...[
+                      const SizedBox(height: 18),
+                      Text(
+                        'Bundled Courses',
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                      for (final course in _includedBundled)
+                        _courseStatusCard(
+                          course,
+                          ListTile(
+                            leading: CourseFlagBadge(
+                              course: course,
+                              fallbackCode: CourseService.codeForCourse(course),
+                            ),
+                            title: Text(course.title),
+                            subtitle: const Text('Bundled Course · read only'),
+                            onTap: () => _openUser(course),
+                            trailing: _courseActions(
+                              course,
+                              key:
+                                  course.courseId ==
+                                      widget.currentCourse?.courseId
+                                  ? const Key('course-manager-actions-current')
+                                  : ValueKey(
+                                      'course-manager-actions-${course.courseId}',
+                                    ),
+                              onOpen: () => _openUser(course),
+                            ),
+                          ),
+                        ),
+                    ],
+                    const SizedBox(height: 18),
+                    Text(
+                      'Local courses',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    if (_user.isEmpty)
+                      const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 16),
+                        child: Text('No local courses yet.'),
+                      ),
+                    for (final course in _user)
+                      _courseStatusCard(
+                        course,
+                        ListTile(
+                          leading: CourseFlagBadge(
+                            course: course,
+                            fallbackCode: CourseService.codeForCourse(course),
+                          ),
+                          title: Text(course.title),
+                          subtitle: Text(
+                            '${course.sourceLanguage} → ${course.targetLanguage} · ${course.originType.isOfficial ? 'Publisher Course · ${course.publisherName} ${course.officialCourseVersion} · read only${course.originType == CourseOriginType.externalOfficial && course.publisherVerificationStatus != PublisherVerificationStatus.verified ? ' · Verification required' : ''}' : 'custom version ${course.courseVersion.isEmpty ? 'unconfirmed' : course.courseVersion}'}',
+                          ),
+                          onTap: () => _openUser(course),
+                          trailing: _courseActions(
+                            course,
+                            key: ValueKey(
+                              'course-manager-actions-${course.courseId}',
+                            ),
+                            onOpen: () => _openUser(course),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+        );
 }
 
 Widget _courseStatusCard(Course course, Widget child) {

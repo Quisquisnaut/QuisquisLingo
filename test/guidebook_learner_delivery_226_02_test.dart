@@ -1,8 +1,10 @@
+import 'support/test_directories.dart';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'support/pump_file_io.dart';
 import 'package:quisquislingo_app/models/course_models.dart';
 import 'package:quisquislingo_app/screens/guidebook_screen.dart';
 import 'package:quisquislingo_app/screens/home_screen.dart';
@@ -46,8 +48,12 @@ void main() {
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(
           const MethodChannel('plugins.flutter.io/path_provider'),
-          (_) async =>
-              throw PlatformException(code: 'test_storage_unavailable'),
+          (call) async {
+            if (call.method == 'getApplicationSupportDirectory') {
+              return testSupportDirectory.path;
+            }
+            throw PlatformException(code: 'test_storage_unavailable');
+          },
         );
   });
 
@@ -134,12 +140,23 @@ void main() {
         await tester.binding.setSurfaceSize(const Size(430, 1000));
         addTearDown(() => tester.binding.setSurfaceSize(null));
         final course = _course(guidebookState: state);
-        await CourseEditorService().saveUserCourse(course);
+        (await tester.runAsync(
+          () => CourseEditorService().saveUserCourse(course),
+        ));
         await SettingsService().setLastSelectedCourseCode(
           'custom:${course.courseId}',
         );
         await tester.pumpWidget(const MaterialApp(home: HomeScreen()));
-        await _pumpFrames(tester);
+        await tester.pumpUntilFileIoState(
+          () => find
+              .byKey(
+                const ValueKey(
+                  'unified-guidebook-lesson-title-delivery-lesson',
+                ),
+              )
+              .evaluate()
+              .isNotEmpty,
+        );
         if (find.text('Beta expiry').evaluate().isNotEmpty) {
           await tester.tap(find.widgetWithText(FilledButton, 'OK'));
           await _pumpFrames(tester);

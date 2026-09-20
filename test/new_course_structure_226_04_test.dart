@@ -1,3 +1,4 @@
+import 'support/pump_file_io.dart';
 import 'dart:convert';
 import 'dart:io';
 
@@ -189,7 +190,10 @@ void main() {
           .widget<CourseEditorScreen>(find.byType(CourseEditorScreen))
           .course;
       _expectStructure(course.lessons, 3, 1);
-      expect(await CourseEditorService().listUserCourses(), isEmpty);
+      expect(
+        (await tester.runAsync(() => CourseEditorService().listUserCourses()))!,
+        isEmpty,
+      );
     },
   );
 
@@ -209,7 +213,12 @@ void main() {
           counts.$1,
           counts.$2,
         );
-        expect(await CourseEditorService().listUserCourses(), isEmpty);
+        expect(
+          (await tester.runAsync(
+            () => CourseEditorService().listUserCourses(),
+          ))!,
+          isEmpty,
+        );
       },
     );
   }
@@ -248,7 +257,10 @@ void main() {
       expect(sample.publicationState, PublicationState.draft);
     }
     expect(samples.map((sample) => sample.id).toSet(), hasLength(3));
-    expect(await CourseEditorService().listUserCourses(), isEmpty);
+    expect(
+      (await tester.runAsync(() => CourseEditorService().listUserCourses()))!,
+      isEmpty,
+    );
   });
 
   testWidgets(
@@ -274,7 +286,12 @@ void main() {
           );
           expect(tester.widget<FilledButton>(_createButton).onPressed, isNull);
           expect(find.byType(CourseEditorScreen), findsNothing);
-          expect(await CourseEditorService().listUserCourses(), isEmpty);
+          expect(
+            (await tester.runAsync(
+              () => CourseEditorService().listUserCourses(),
+            ))!,
+            isEmpty,
+          );
         }
         await _enter(tester, field, '1');
         expect(tester.widget<TextField>(field).decoration!.errorText, isNull);
@@ -283,7 +300,10 @@ void main() {
       await tester.tap(find.widgetWithText(TextButton, 'Cancel'));
       await tester.pumpAndSettle();
       expect(find.byType(CourseEditorScreen), findsNothing);
-      expect(await CourseEditorService().listUserCourses(), isEmpty);
+      expect(
+        (await tester.runAsync(() => CourseEditorService().listUserCourses()))!,
+        isEmpty,
+      );
       await tester.tap(find.byKey(const Key('create-course-icon-action')));
       await tester.pumpAndSettle();
       expect(tester.widget<TextField>(_lessons).controller!.text, '3');
@@ -372,7 +392,7 @@ void main() {
 
 final _lessons = find.byKey(const Key('new-course-lesson-count'));
 final _rounds = find.byKey(const Key('new-course-round-count'));
-final _createButton = find.widgetWithText(FilledButton, 'Create');
+final _createButton = find.widgetWithText(FilledButton, 'Continue to Editor');
 
 Future<void> _open(WidgetTester tester) async {
   const profile = '12345678-1234-4234-9234-123456789abc';
@@ -388,7 +408,9 @@ Future<void> _open(WidgetTester tester) async {
   await tester.pumpWidget(
     MaterialApp(home: CourseProjectsScreen(currentCourse: _course([]))),
   );
-  await tester.pumpAndSettle();
+  await tester.pumpUntilFileIoState(
+    () => find.text('Bundled Courses').evaluate().isNotEmpty,
+  );
   await tester.tap(find.byKey(const Key('create-course-icon-action')));
   await tester.pumpAndSettle();
   await _enter(
