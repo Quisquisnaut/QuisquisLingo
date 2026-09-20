@@ -4,6 +4,41 @@ Updated for the current alpha
 
 QuisquisLingo is an offline-first prototype. It does not implement remote accounts, HTTP course downloads, WebViews, cloud synchronization, analytics, advertising or remote code execution. The only application network feature is the optional read-only update check against the fixed official GitHub Releases API for `Quisquisnaut/QuisquisLingo`.
 
+## Android device backup
+
+This is a deliberate product decision, recorded here so it is not "corrected" later by someone reading `allowBackup="true"` as an oversight.
+
+`android:allowBackup` is **true**. QuisquisLingo has no account and no server, so the platform's own Auto Backup is the only mechanism by which a learner survives a lost, broken or replaced phone. Turning it off would mean that losing the device always means losing every streak, every completed Lesson and every locally authored Course. That trade is not worth making for an offline learning app.
+
+What is backed up, on purpose:
+
+- learner profiles and the active learner
+- progress, XP, streaks, study days, Review history, Duel state
+- local course edits, authoring Teams and the image/media index
+- device settings and one-time notice state
+- the Access PIN verifier and the User Recovery Key credential
+
+The Access PIN is in that list knowingly. It is a casual-access guard for a shared family device — it stops a sibling opening the wrong learner profile — and it is **not** a security boundary. It is a salted single-pass SHA-256 hash of four digits, so it does not resist anyone with file access, and the project has never claimed otherwise. Excluding it from backup would not make it stronger; it would only mean a restored learner silently loses their PIN. The same reasoning applies to the User Recovery Key credential: it is the learner's stable identity, and restoring it is the point of the backup.
+
+What is excluded, and why:
+
+| Excluded from cloud backup | Reason |
+| --- | --- |
+| `image_banks/` | Android's Auto Backup quota is 25 MB per app. One Image Bank import alone is capped at 50 MB. |
+| `exercise_images/` | Same quota. |
+| `quisquislingo_audio/` | Same quota; recorded MP3s grow without a practical bound. |
+
+The reason is the **quota, not privacy**. An app whose data exceeds 25 MB does not get a partial backup — the platform silently stops backing that app up at all. One media import would therefore cost the learner every backup of their progress, without any warning. Bulk media is re-importable from the user's own files; progress is not. This is the same set of folders `AppResetService` treats as bulk media (`_imageFolders`, `_audioFolders`), and it lives under `getApplicationSupportDirectory()`, which is `getFilesDir()` on Android, hence `domain="file"`.
+
+Direct **device-to-device transfer is deliberately not restricted**. It has no 25 MB quota, so a phone-to-phone migration carries the media across as well. `<device-transfer>` is therefore omitted from the rules file rather than left empty.
+
+Two files express this, and they must be changed together:
+
+- `android/app/src/main/res/xml/data_extraction_rules.xml` — API 31 and above
+- `android/app/src/main/res/xml/backup_rules.xml` — API 30 and below, because `android:dataExtractionRules` is ignored there
+
+Whether Auto Backup runs at all is an Android setting owned by the device owner, not by QuisquisLingo. The app neither enables nor disables it, and still uploads nothing itself: Export, `Save to…` and the User Recovery Key remain the only deliberate ways a user moves their own data.
+
 ## Local data
 
 Learner profiles, progress, Status, streaks, Review history and local course edits use SharedPreferences. These values are not encrypted and must not be used for passwords, authentication tokens, private documents or other secrets.

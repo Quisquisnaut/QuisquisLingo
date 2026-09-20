@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 import 'dart:ui' as ui;
 
 import 'package:flutter_test/flutter_test.dart';
@@ -7,6 +8,8 @@ import 'package:quisquislingo_app/models/course_models.dart';
 import 'package:quisquislingo_app/services/authoring_duplication_service.dart';
 import 'package:quisquislingo_app/services/course_audit_service.dart';
 import 'package:quisquislingo_app/services/lesson_icon_service.dart';
+
+import 'support/forged_png.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -37,6 +40,45 @@ void main() {
       );
     },
   );
+
+  testWidgets('an oversized declared size is rejected before rasterizing', (
+    tester,
+  ) async {
+    await tester.runAsync(() async {
+      // prepareIcon genuinely needs the decoded pixels for drawImageRect, so
+      // it cannot skip rasterizing — but the limit must be enforced against
+      // the header, before a 20000 x 20000 frame is ever allocated.
+      await expectLater(
+        LessonIconService().prepareIcon(
+          await pngDeclaringDimensions(width: 20000, height: 20000),
+          assetId: 'oversized_declared',
+        ),
+        throwsA(
+          isA<FormatException>().having(
+            (error) => error.message,
+            'message',
+            contains('between 1 and 8192 pixels'),
+          ),
+        ),
+      );
+
+      // An unparseable file still reports the unsupported-image message, not
+      // the dimension one.
+      await expectLater(
+        LessonIconService().prepareIcon(
+          Uint8List.fromList(const [1, 2, 3, 4]),
+          assetId: 'not_an_image',
+        ),
+        throwsA(
+          isA<FormatException>().having(
+            (error) => error.message,
+            'message',
+            contains('not a supported image'),
+          ),
+        ),
+      );
+    });
+  });
 
   test('managed icon survives Course JSON export and import', () {
     final png = base64Encode(

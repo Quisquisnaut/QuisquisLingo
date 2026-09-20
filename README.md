@@ -84,7 +84,9 @@ The learner page shows a continuous Lesson path, opens the Section picker from t
 
 The next Lesson unlocks when the current Lesson is completed or its Duel is won. A Duel remains unavailable when its effective eligible pool has fewer than the required 25 exercises after the learner's Audio Exercises setting and runtime audio availability are applied; Home and Duel entry use the same calculation. Round count is not used to decide availability.
 
-All learner data remains on-device.
+All learner data stays on the device and on any backup the device itself makes. QuisquisLingo has no account, no server and no synchronization of its own, and never uploads anything.
+
+On Android, the platform's own Auto Backup is deliberately left enabled, because without a server it is the only way a learner keeps progress through a lost or replaced phone. It covers learner profiles, progress, XP, streaks, Review history, local course edits, settings and the Access PIN verifier. Imported Image Banks, exercise images and recorded MP3s are excluded from cloud backup only because Android's 25 MB backup quota is smaller than a single Image Bank import, and an app that exceeds the quota has its backup silently switched off altogether; that media is re-importable from the user's own files, while progress is not. A direct phone-to-phone transfer has no such quota and still carries the media. Whether Auto Backup runs at all remains an Android setting the device owner controls. See `docs/SECURITY_AND_ROBUSTNESS.md`.
 
 ## Included in this prototype
 

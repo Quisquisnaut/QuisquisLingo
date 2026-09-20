@@ -2186,12 +2186,16 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
 
   Future<void> _exportCustomCourse() async {
     try {
+      final notice = CourseAuditService().auditCourse(_course).exportNotice;
       final path = await _transfer.exportCourse(_course);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          duration: Duration(seconds: 8),
-          content: Text('Exported “${_course.title}” to $path'),
+          duration: const Duration(seconds: 12),
+          content: Text(
+            'Exported “${_course.title}” to $path'
+            '${notice == null ? '' : ' $notice'}',
+          ),
         ),
       );
     } catch (error) {
@@ -2208,13 +2212,16 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
 
   Future<void> _saveCustomCourseTo() async {
     try {
+      final notice = CourseAuditService().auditCourse(_course).exportNotice;
       final result = await _transfer.exportCourseTo(_course);
       if (!mounted) return;
       showFileDialogFeedback(
         context,
         result,
         saving: true,
-        savedMessage: 'Saved “${_course.title}” as ${result.displayName}.',
+        savedMessage:
+            'Saved “${_course.title}” as ${result.displayName}.'
+            '${notice == null ? '' : ' $notice'}',
         fallbackHint: exportFallbackHint,
       );
     } catch (error) {

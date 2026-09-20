@@ -108,18 +108,27 @@ class ExerciseImageService {
     );
   }
 
+  /// Reports an image's dimensions and byte length without rasterizing it.
+  ///
+  /// The header carries the dimensions, so decoding pixels only to read them
+  /// and throw them away would allocate width × height × 4 bytes for nothing:
+  /// a 50 KB PNG can declare 30,000 × 30,000 and cost gigabytes.
   Future<({int width, int height, int bytes})> inspect(String path) async {
     final file = File(path);
     final bytes = await file.readAsBytes();
-    final codec = await ui.instantiateImageCodec(bytes);
-    final frame = await codec.getNextFrame();
-    final result = (
-      width: frame.image.width,
-      height: frame.image.height,
-      bytes: bytes.length,
-    );
-    frame.image.dispose();
-    codec.dispose();
-    return result;
+    ui.ImmutableBuffer? buffer;
+    ui.ImageDescriptor? descriptor;
+    try {
+      buffer = await ui.ImmutableBuffer.fromUint8List(bytes);
+      descriptor = await ui.ImageDescriptor.encoded(buffer);
+      return (
+        width: descriptor.width,
+        height: descriptor.height,
+        bytes: bytes.length,
+      );
+    } finally {
+      descriptor?.dispose();
+      buffer?.dispose();
+    }
   }
 }

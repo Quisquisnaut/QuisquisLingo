@@ -19,6 +19,26 @@ void main() {
     },
   );
 
+  test('no-argument lifecycle checks follow the injectable clock', () {
+    final pinned = BetaLifecycleService.clock;
+    addTearDown(() => BetaLifecycleService.clock = pinned);
+
+    // The suite-wide pin in test/flutter_test_config.dart must always leave the
+    // Beta unexpired and unwarned, otherwise learner screens across the suite
+    // would render BetaExpiredView instead of the screen under test.
+    expect(BetaLifecycleService.isExpired(), isFalse);
+    expect(BetaLifecycleService.warningStage(), isNull);
+    expect(BetaLifecycleService.daysRemaining(), 15);
+
+    BetaLifecycleService.clock = () => DateTime(2026, 10, 20);
+    expect(BetaLifecycleService.isExpired(), isTrue);
+
+    BetaLifecycleService.clock = () => DateTime(2026, 10, 18);
+    expect(BetaLifecycleService.isExpired(), isFalse);
+    expect(BetaLifecycleService.daysRemaining(), 1);
+    expect(BetaLifecycleService.warningStage(), 1);
+  });
+
   test('warning milestones are stable', () {
     expect(BetaLifecycleService.warningStage(DateTime(2026, 10, 12)), 7);
     expect(BetaLifecycleService.warningStage(DateTime(2026, 10, 16)), 3);

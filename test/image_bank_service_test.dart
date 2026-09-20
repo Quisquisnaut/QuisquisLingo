@@ -1,6 +1,9 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
+import 'package:archive/archive.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:quisquislingo_app/services/image_bank_service.dart';
 
@@ -54,6 +57,8 @@ Future<void> _expectFormat(
 }
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   test('rejects ZIP without manifest', () async {
     await _expectFormat(_missingManifest, 'no image_bank_manifest.json');
   });
@@ -96,6 +101,80 @@ void main() {
 
   test('rejects duplicate basenames in ZIP', () async {
     await _expectFormat(_duplicateBasename, 'duplicate filenames');
+  });
+
+  test('rejects an entry that understates its uncompressed size', () async {
+    // A ZIP's declared uncompressed size is attacker-controlled: ZipDecoder
+    // reports whatever the headers claim, while readBytes() inflates the real
+    // payload. Checking only the declared size would let a small claim carry an
+    // arbitrarily large image past both the per-image and the total limit.
+    final payload = Uint8List.fromList(
+      List<int>.filled(ImageBankService.maxImageBytes * 4, 65),
+    );
+    final archive = Archive()
+      ..addFile(
+        ArchiveFile(
+          'image_bank_manifest.json',
+          0,
+          utf8.encode(
+            jsonEncode([
+              {'id': 'bomb', 'primary_term': 'Bomb', 'filename': 'bomb.png'},
+            ]),
+          ),
+        ),
+      )
+      ..addFile(ArchiveFile('bomb.png', payload.length, payload));
+    final zipped = Uint8List.fromList(ZipEncoder().encode(archive));
+
+    // Understate every declared uncompressed size, local and central.
+    final view = ByteData.sublistView(zipped);
+    for (var i = 0; i + 30 < zipped.length; i++) {
+      final signature = view.getUint32(i, Endian.little);
+      if (signature == 0x02014b50) {
+        view.setUint32(i + 24, 500, Endian.little);
+      } else if (signature == 0x04034b50) {
+        view.setUint32(i + 22, 500, Endian.little);
+      }
+    }
+
+    final dir = await Directory.systemTemp.createTemp(
+      'quisquislingo_image_bank_bomb_',
+    );
+    // The inflated-size check runs after the app-support directory is
+    // resolved, so path_provider has to answer in the test environment.
+    const pathProviderChannel = MethodChannel(
+      'plugins.flutter.io/path_provider',
+    );
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(
+          pathProviderChannel,
+          (MethodCall call) async => dir.path,
+        );
+    addTearDown(() async {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(pathProviderChannel, null);
+      if (await dir.exists()) await dir.delete(recursive: true);
+    });
+    final file = File('${dir.path}${Platform.pathSeparator}bank.zip');
+    await file.writeAsBytes(zipped, flush: true);
+
+    // The declared size passes the pre-flight check, so this can only be
+    // caught after inflation.
+    final decoded = ZipDecoder().decodeBytes(zipped);
+    final entry = decoded.files.firstWhere((f) => f.name == 'bomb.png');
+    expect(entry.size, lessThan(ImageBankService.maxImageBytes));
+    expect(entry.readBytes()!.length, payload.length);
+
+    await expectLater(
+      ImageBankService().importBankZip(file),
+      throwsA(
+        isA<FormatException>().having(
+          (e) => e.message,
+          'message',
+          contains('exceeds the 50 KB maximum'),
+        ),
+      ),
+    );
   });
 
   test('security limits remain bounded', () {

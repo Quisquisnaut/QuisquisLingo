@@ -14,6 +14,20 @@ String? linuxTtsVoiceForLanguage(String language) {
   return base == 'en' ? 'en-gb' : base;
 }
 
+/// Builds the eSpeak argument list.
+///
+/// The `--` matters: eSpeak parses options with `getopt_long`, which scans every
+/// argument, not just the leading ones. Without an end-of-options marker, course
+/// text beginning with `-` is consumed as options rather than spoken, and
+/// `-w <path>` would make eSpeak write a file of the author's choosing. There is
+/// no shell involved either way; this closes the separate argv-parsing hole.
+List<String> espeakArguments({
+  required String voice,
+  required int wordsPerMinute,
+  required String wavPath,
+  required String text,
+}) => ['-v', voice, '-s', '$wordsPerMinute', '-w', wavPath, '--', text];
+
 /// Resolve an executable by inspecting PATH directly. This deliberately avoids
 /// `sh -c`, so no shell parser is involved in TTS command discovery.
 Future<String?> _findExecutable(List<String> names) async {
@@ -46,16 +60,17 @@ Future<bool> speakWithLinuxTts({
   final wav = File('${tempDir.path}/speech.wav');
   try {
     // User/course text is passed as a separate Process argument, never
-    // interpolated into a shell command.
-    final synth = await Process.run(command, [
-      '-v',
-      voice,
-      '-s',
-      '$wordsPerMinute',
-      '-w',
-      wav.path,
-      text,
-    ]);
+    // interpolated into a shell command, and always after `--` so eSpeak
+    // cannot mistake it for options.
+    final synth = await Process.run(
+      command,
+      espeakArguments(
+        voice: voice,
+        wordsPerMinute: wordsPerMinute,
+        wavPath: wav.path,
+        text: text,
+      ),
+    );
     if (synth.exitCode != 0 || !await wav.exists() || await wav.length() == 0) {
       return false;
     }

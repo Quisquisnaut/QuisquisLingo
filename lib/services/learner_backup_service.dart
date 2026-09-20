@@ -437,13 +437,31 @@ class LearnerBackupService {
     }
   }
 
+  /// Replaces the learner's stored content while keeping the learner's
+  /// credentials.
+  ///
+  /// A backup file never carries the Access PIN verifier or the User Recovery
+  /// Key secret: [exportActiveProfile] skips them and [_writeNamespace] refuses
+  /// to write them back. Removing the whole namespace would therefore destroy
+  /// both — silently un-protecting a PIN-locked learner and losing the stable
+  /// identity secret. A restore replaces learner content, not the credentials
+  /// guarding it, so they are carried across the replacement here.
   Future<void> _replaceNamespace(
     SharedPreferences preferences,
     String learnerProfileId,
     Map<String, Object> data,
   ) async {
+    final prefix = ProfileService.prefixForProfileId(learnerProfileId);
+    final preserved = <String, Object>{};
+    for (final suffix in ProfileService.sensitiveCredentialPreferenceSuffixes) {
+      final value = preferences.getString('$prefix$suffix');
+      if (value != null) preserved['$prefix$suffix'] = value;
+    }
     await _removeNamespace(preferences, learnerProfileId);
     await _writeNamespace(preferences, learnerProfileId, data);
+    for (final entry in preserved.entries) {
+      await _writeDirectVerified(preferences, entry.key, entry.value);
+    }
   }
 
   Future<void> _writeNamespace(

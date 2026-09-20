@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../models/course_models.dart';
 import '../services/course_backup_service.dart';
+import '../services/course_audit_service.dart';
 import '../services/custom_course_transfer_service.dart';
 import '../widgets/file_dialog_feedback.dart';
 
@@ -96,10 +97,17 @@ class _CourseVersionHistoryScreenState
 
   Future<void> _exportHistorical(Course course) async {
     try {
+      final notice = CourseAuditService().auditCourse(course).exportNotice;
       final path = await _transfer.exportCourse(course);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Historical course exported to $path')),
+        SnackBar(
+          duration: const Duration(seconds: 12),
+          content: Text(
+            'Historical course exported to $path'
+            '${notice == null ? '' : ' $notice'}',
+          ),
+        ),
       );
     } catch (error) {
       if (!mounted) return;
@@ -111,13 +119,16 @@ class _CourseVersionHistoryScreenState
 
   Future<void> _saveHistoricalTo(Course course) async {
     try {
+      final notice = CourseAuditService().auditCourse(course).exportNotice;
       final result = await _transfer.exportCourseTo(course);
       if (!mounted) return;
       showFileDialogFeedback(
         context,
         result,
         saving: true,
-        savedMessage: 'Historical course saved as ${result.displayName}.',
+        savedMessage:
+            'Historical course saved as ${result.displayName}.'
+            '${notice == null ? '' : ' $notice'}',
         fallbackHint: exportFallbackHint,
       );
     } catch (error) {

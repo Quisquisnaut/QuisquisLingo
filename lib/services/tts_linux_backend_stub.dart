@@ -7,6 +7,13 @@ String? linuxTtsVoiceForLanguage(String language) {
   return base == 'en' ? 'en-gb' : base;
 }
 
+List<String> espeakArguments({
+  required String voice,
+  required int wordsPerMinute,
+  required String wavPath,
+  required String text,
+}) => ['-v', voice, '-s', '$wordsPerMinute', '-w', wavPath, '--', text];
+
 Future<bool> speakWithLinuxTts({
   required String text,
   required String language,

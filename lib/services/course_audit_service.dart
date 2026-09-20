@@ -67,6 +67,31 @@ class CourseAuditResult {
   CourseAuditResult(this.issues) : runAt = DateTime.now();
   int count(AuditSeverity s) => issues.where((i) => i.severity == s).length;
 
+  /// A sentence to append to an export confirmation, or null when the Course
+  /// is clean.
+  ///
+  /// Export deliberately does not gate on Audit: an unfinished Course must stay
+  /// movable between machines, and Draft content is audited by the same rules
+  /// as finished content. Import, however, refuses any Course carrying an Audit
+  /// Error. Without this notice an author can export a file that this same
+  /// application will then decline to read back, with nothing said at the point
+  /// the file was created.
+  String? get exportNotice {
+    final errors = count(AuditSeverity.error);
+    if (errors > 0) {
+      return 'Course Audit found $errors '
+          '${errors == 1 ? 'error' : 'errors'}: importing this file will be '
+          'refused until they are fixed.';
+    }
+    final warnings = count(AuditSeverity.warning);
+    if (warnings > 0) {
+      return 'Course Audit found $warnings '
+          '${warnings == 1 ? 'warning' : 'warnings'}: the file imports, but '
+          'review them before sharing it.';
+    }
+    return null;
+  }
+
   List<CourseAuditIssue> sorted(AuditSortMode mode) {
     final indexed = issues.indexed.toList();
     indexed.sort((a, b) {

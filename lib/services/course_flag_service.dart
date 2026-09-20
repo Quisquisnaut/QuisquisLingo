@@ -215,20 +215,28 @@ class CourseFlagService {
       );
     }
 
-    ui.Codec sourceCodec;
+    // Read the declared dimensions from the header instead of rasterizing the
+    // source. The full-size frame was only ever used to learn width and height
+    // before being disposed, and the real decode below already asks for the
+    // scaled target, so decoding twice risked an allocation the size checks
+    // exist to prevent.
+    int width;
+    int height;
+    ui.ImmutableBuffer? buffer;
+    ui.ImageDescriptor? descriptor;
     try {
-      sourceCodec = await ui.instantiateImageCodec(bytes);
+      buffer = await ui.ImmutableBuffer.fromUint8List(bytes);
+      descriptor = await ui.ImageDescriptor.encoded(buffer);
+      width = descriptor.width;
+      height = descriptor.height;
     } catch (_) {
       throw const FormatException(
         'The selected file is not a supported PNG or JPEG image.',
       );
+    } finally {
+      descriptor?.dispose();
+      buffer?.dispose();
     }
-    final sourceFrame = await sourceCodec.getNextFrame();
-    final source = sourceFrame.image;
-    final width = source.width;
-    final height = source.height;
-    source.dispose();
-    sourceCodec.dispose();
 
     if (width < minWidth || height < minHeight) {
       throw FormatException(

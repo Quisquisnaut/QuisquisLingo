@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Android Auto Backup rules for API 30 and below.
+
+    This file exists because android:dataExtractionRules is ignored below
+    API 31. It must keep the same exclusions as data_extraction_rules.xml:
+    change both together or older devices silently get different behavior.
+
+    Only bulk media is excluded, because of the 25 MB Auto Backup quota rather
+    than privacy. An app that exceeds the quota has its backup silently
+    disabled, which would cost learners their progress. See
+    data_extraction_rules.xml for the full reasoning.
+-->
+<full-backup-content>
+    <exclude domain="file" path="image_banks/" />
+    <exclude domain="file" path="exercise_images/" />
+    <exclude domain="file" path="quisquislingo_audio/" />
+</full-backup-content>

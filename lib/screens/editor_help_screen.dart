@@ -2,372 +2,105 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../models/exercise_authoring.dart';
 import '../services/exercise_field_help.dart';
+import '../widgets/help_language_toggle.dart';
 import 'audit_codes_screen.dart';
+import 'editor_help_content.dart';
 
-class EditorHelpScreen extends StatelessWidget {
+class EditorHelpScreen extends StatefulWidget {
   const EditorHelpScreen({super.key});
+
+  @override
+  State<EditorHelpScreen> createState() => _EditorHelpScreenState();
+}
+
+class _EditorHelpScreenState extends State<EditorHelpScreen> {
+  HelpLanguage _language = HelpLanguage.english;
+
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('Editor Help')),
+    appBar: AppBar(
+      title: Text(
+        _language == HelpLanguage.italian ? 'Guida all’Editor' : 'Editor Help',
+      ),
+      actions: [
+        HelpLanguageToggle(
+          key: const Key('editor-help-language-toggle'),
+          language: _language,
+          onChanged: (value) => setState(() => _language = value),
+        ),
+      ],
+    ),
     body: ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        const _TechnicalLinks(),
+        _TechnicalLinks(language: _language),
         const SizedBox(height: 12),
-        const _CourseTypesHelpSection(),
-        _HelpSection(
-          title: 'Courses in learner mode',
-          body:
-              'Change course lists every Published course: the bundled official courses included with QuisquisLingo and Published courses under Local courses. Courses that are Not published stay available for authoring but cannot become the active learner Course. Selecting a Published course makes it current. The learner page resumes the active Published Lesson for that learner and course. When a course has real Sections, the fixed Section selector opens its ordered consecutive Published Section blocks and jumps to each block\'s first Lesson.',
-        ),
-        _HelpSection(
-          title: 'Course origin',
-          body:
-              'Bundled official courses are verified immutable source copies supplied with QuisquisLingo. External official courses retain their declared publisher identity but are labelled unverified when QQL cannot authenticate that publisher. Custom courses are created locally or imported without official provenance. Both official origins open Official course - read only: inspect Course Info, Audit, Preview, Version History and Lessons/Rounds/Exercises without an authoring transaction. Course Info shows publisher, official version, verification status and checksum. Only an explicit derivativeWorksPolicy of allowed enables Fork; forbidden or unspecified permission explains why it is unavailable. A Fork has fresh IDs and independent custom history while preserving its source lineage. Copy as New Course is a separate action that begins a new independent lineage.',
-        ),
-        _HelpSection(
-          title: 'Temporary sample content',
-          body:
-              'Course Editor starts in View only for a course with no saved access choice. Choose Edit only for the course you intend to change. A course may be marked TEMPORARY SAMPLE while it contains development or demonstration material. View Course Info retains that description; the main Course Editor does not repeat it. Replace sample material with reviewed educational content before distribution.',
-        ),
-        _HelpSection(
-          title: 'Course Editor lock and structure',
-          body:
-              'The single access control is on the Course Editor root. Locked uses a closed lock, keeps that root visible and blocks entry into Lessons. View only uses an eye, is the default and opens the ordinary Exercise form read-only while allowing Search, Help, Show/Hide IDs, Preview and Audit. Inspection mode uses the code icon and opens Exercises in their read-only technical presentation by default; their local Inspection toggle can show the ordinary form, which remains read-only. Edit uses the pencil and enables authoring only when the current user already has effective Course Maintainer or assigned-Team permission; the control never grants authorization. Official courses and outsiders offer Locked, View only and Inspection mode, with the Edit authorization reason shown in the Editor. The first View-only entry notice is dismissed per user and Course; Show one-time notices again resets it without changing the access state. For custom courses, Lessons is the first content section. Each Lesson page puts Rounds first, followed by Round / Exercises. A duplicate Lesson, Round or Exercise is inserted after its source with fresh IDs throughout its owned subtree and starts as Draft. Exercise type cannot be changed after creation. Each Lesson retains its GuideBook and stable Lesson-scoped Duel identity.',
-        ),
-        _HelpSection(
-          title: 'Course Editor Search',
-          body:
-              'The Search icon appears on Lessons, Lesson, Rounds and Round while the Course Editor is unlocked. Lessons searches the whole Course; Lesson and Rounds search their current Lesson; Round searches only that Round. Search accepts complete words, contiguous multi-word phrases and exact or partial Exercise IDs. Text matching ignores case and diacritics. An optional Exercise Type filter defaults to All exercise types. Results show Lesson, Round, friendly Exercise type, a matching excerpt and, while Internal IDs are shown, the Exercise ID. View only opens a result in the ordinary read-only Exercise form, Inspection mode opens its read-only technical presentation, and Edit opens the ordinary editable form. Locked exposes no Search. Search reads the shared exercise-type field inventory and never modifies a Course.',
-        ),
-        _HelpSection(
-          title: 'Optional Lesson learning paths',
-          body:
-              'Use GuideBook and Create Duels are on the Lessons page and both default ON. Use GuideBook OFF preserves all GuideBook content, Draft state and source references. The learner still sees the Lesson identity and book artwork, but no GuideBook tooltip, click or action semantics; the Round introduction also omits its GuideBook action, including in Preview. Only LESSON_GUIDEBOOK_EMPTY is suppressed; malformed existing content still receives canonical findings. Reenabling updates the current canonical Audit and ancestor borders. Create Duels ON uses the shared pool of 25 actual eligible, deduplicated Exercises. Disabled or insufficient Duels have no learner card or reserved Duel spacing. DUEL_UNAVAILABLE is Info only while Create Duels is ON. Neither switch erases content, existing Duel victories, completion or XP.',
-        ),
-        _HelpSection(
-          title: 'Section assignments and names',
-          body:
-              'The Lesson Section selector offers No section, existing names, Add new section... and Manage sections.... New names are trimmed and must not be blank. The reusable course catalog also discovers existing Lesson assignments. Removing an assigned name is blocked with its Lesson usage count; change those assignments first. A name selected in the unsaved Lesson is protected too. New Lessons default to the immediately preceding Lesson\'s Section, or No section if none applies. Selecting No section explicitly clears this Lesson assignment. Consecutive assignments still determine visual Section blocks; Sections own no IDs, progress or unlocks.',
-        ),
-        _HelpSection(
-          title: 'Course flag sources',
-          body:
-              'Create new course and Course Info Editor use the same searchable visual flag chooser. It identifies the current source as a QQL FlagPainter Flag, WORLD Flag or Custom Flag, then offers Upload custom flag, the permanent QQL FlagPainter Flags catalog and the complete WORLD Flags catalog. Search includes names, aliases, stable IDs, language codes and territorial codes. QQL FlagPainter Flags are programmatic graphical reinterpretations associated with languages and never depend on installed Courses. Opening, searching or cancelling changes nothing; only choosing a result, Use Automatic or Upload custom flag changes the current working selection. Use Automatic prefers the associated QQL FlagPainter Flag, then the primary associated WORLD Flag, and otherwise leaves no automatic flag. WORLD Flags store only their stable worldFlagId, QQL FlagPainter Flags store flagCode and custom flags store validated normalized PNG bytes in flagImageBase64.',
-        ),
-        _HelpSection(
-          title: 'One Course Editor transaction',
-          body:
-              'Opening a custom course maintains a working copy beside an immutable snapshot of the persisted course. View only and Inspection mode never change that working copy. In Edit, every Course Info Editor, Lesson, Round, Exercise, GuideBook, generator and reorder operation changes only the working copy. Course delivery status is Published or Not published; publishing the Course preserves independent descendant Draft states. Nested Save stores a normal item in the working copy; Save as draft stores a Draft item there. Neither action changes the learner-visible course, creates a backup or increments the course version. Leaving an Exercise with unsaved form changes offers Keep editing, Discard changes, Save as draft or Save. Discard affects only that form; earlier working-copy changes remain. Switching away from Edit with unapplied course changes uses the same authoritative confirm/cancel protection rather than silently discarding them. Other nested pages retain their established Back behavior. Navigation among nested pages never shows the final course confirmation.',
-        ),
-        _HelpSection(
-          title: 'Provisional and explicit parent Drafts',
-          body:
-              'Automatically created Lesson and Round Drafts can be provisional. Their blue Draft badges include the container itself, even when every child has a green Audit border. Saving reviewed Exercises as normal content makes a provisional Round eligible to become Published when its complete required content is ready and normal Save validation passes. A provisional Lesson also needs ready Published Rounds and, while Use GuideBook is ON, a Published nonempty GuideBook with its required content ready. Nonblocking Audit guidance remains visible. This reconciliation follows normal working-copy changes, including GuideBook changes, the Use GuideBook switch, deletion and Move; it never publishes an Exercise or GuideBook for you. Explicit Save as draft clears provisional eligibility, even if the container was already Draft. An explicitly Draft Lesson or Round and older Drafts without this eligibility stay Draft until their own normal Save. Imported authoring trees, copies and licensed forks also remain review Drafts. Course delivery stays an explicit Published or Not published choice, and no working-copy change reaches learners until Confirm course changes succeeds.',
-        ),
-        _HelpSection(
-          title: 'Confirm or cancel the complete course',
-          body:
-              'Leaving the top-level Course Editor compares the complete working copy with the original course. If they are semantically identical, the Editor closes directly. Otherwise exactly one dialog offers Confirm course changes or Cancel course changes and an optional multiline version note. Confirm first creates and verifies a complete backup, then increments the separate internal course version by exactly one and atomically applies the whole working copy. Cancel discards the entire working copy without a backup or version increment. A failed backup or persistence keeps the working copy open and leaves the persisted course unchanged.',
-        ),
-        _HelpSection(
-          title: 'Local course edits and backups',
-          body:
-              'Every confirmed change to an existing custom course first archives the complete currently persisted course under Documents/QuisquisLingo/Exports/Course Backups v9/<courseId>. Backup manifests include the full v9 or v10 Course, Course Maintainer, optional Assigned Team, provenance, versions, authors, UTC modification timestamp, optional notes, checksum and referenced managed audio assets. Backups are never pruned automatically. Version History lists the current version and verified backups newest first, with Open backup folder and Export JSON. Only custom history supports Restore into working copy. Official history contains publisher sources only; older backup directories are not loaded or deleted. A restore is still only a working-copy change until the top-level confirmation succeeds.',
-        ),
-        _HelpSection(
-          title: 'Official course updates',
-          body:
-              'A newer verified official course update is accepted only for the same courseId and publisher and only when its checksum is valid. Before replacement, QuisquisLingo archives the previous official source. The new source becomes current. Existing custom forks and their histories stay unchanged, with no merge or rebase. Old Build 225 official overrides are not used, converted or deleted. If publisher authenticity cannot be verified, the course is clearly marked External official — unverified and installation requires an explicit warning confirmation.',
-        ),
-        _HelpSection(
-          title: 'Course Info Editor and license',
-          body:
-              'Course Info Editor stores structured Authors / Contributors, Rights Holder, the content License and an optional Buy a Coffee HTTPS link separately from the MPL-2.0 license of the QuisquisLingo software. Attribution and rights information are descriptive and never grant QQL permissions. Rights Holder may name one or more people or organizations without requiring local user identities. Choose All rights reserved, CC0 1.0, CC BY 4.0, CC BY-SA 4.0, CC BY-NC 4.0, CC BY-NC-SA 4.0, or Other / Custom license; a custom license also records its outsider derivative policy. Official content and provenance remain read-only.',
-        ),
-        _HelpSection(
-          title: 'Course responsibility, permissions and Teams',
-          body:
-              'Original Course Creator, Course Maintainer, Assigned Team, Authors / Contributors, Rights Holder, License and fork/merge provenance are separate. Every v9 or v10 custom Course has an immutable Original Course Creator and one individual Course Maintainer. Only the current Course Maintainer can transfer maintainership or assign and revoke a Team for management. The Course Maintainer and every current member of the Assigned Team may manage Course content under QQL permissions; Team leadership controls Team membership and roles only. Teams are an experimental QQL collaboration model and may manage Courses maintained or created by different individuals. QQL permissions govern behavior inside QQL and do not by themselves determine copyright ownership, contractual rights or external organizational authority. Attribution, provenance and Rights Holder metadata never grant permissions. Outsiders cannot mutate or Copy as New Course under the current access policy and can Fork only when derivatives are allowed. Bundled Courses use this same Editor surface in read-only mode.',
-        ),
-        _HelpSection(
-          title: 'Import a custom course',
-          body:
-              '1. Copy a supported Course Model v9 or v10 JSON file to Documents/QuisquisLingo/Imports. 2. Rename it exactly import.json. 3. Open Course Manager, select Course Import, and then select Import Course JSON. 4. After parsing and Course Audit validation, the Course is copied into QuisquisLingo local storage and appears under Local courses. Audit errors block import; warnings are reported for review but do not block it. An external-official file retains its declared publisher provenance but is marked unverified unless QQL can authenticate it; an ordinary import remains custom. The imported Course no longer depends on import.json, and QuisquisLingo leaves import.json in place. Imports must be valid UTF-8 Course Model JSON and may be no larger than 10 MB. Earlier formats are rejected without migration, conversion or deletion.',
-        ),
-        _HelpSection(
-          title: 'Export a custom course',
-          body:
-              'Export Course JSON saves the complete Course Model v9 or v10 authoring JSON directly in Documents/QuisquisLingo/Exports. Original Course Creator, Original Course Created, Course Maintainer, optional Assigned Team, Authors / Contributors, Rights Holder, License, fork/merge provenance, Draft/Published state, required UTC modification timestamps, origin and version metadata, optional custom flag data, Buy a Coffee metadata, Lesson numbering and managed custom Lesson icons are included. A Fork preserves its source lineage; Copy as New Course starts an independent lineage. Course audio metadata and references are included, but MP3 bytes are not embedded; verified version backups retain their existing referenced-recording copy behavior. There is no Save As dialog.',
-        ),
-        _HelpSection(
-          title: 'Import a custom flag',
-          body:
-              'Copy a valid PNG or JPEG to Documents/QuisquisLingo/Exports as flag.png, flag.jpg or flag.jpeg, open the shared Course flag chooser and press Upload custom flag. If several names exist, QQL uses the first in that order. Maximum input: 2 MB (2,097,152 bytes). Minimum dimensions: 64 × 40 pixels; maximum: 8192 pixels on either side. QQL checks the actual PNG/JPEG signature and decodes the image. Images larger than 256 pixels on their longest side are reduced proportionally; smaller accepted images are not enlarged. The first image frame becomes PNG without cropping or a square canvas. Existing PNG transparency is retained; JPEG does not acquire a transparent background. PNG data are embedded in the Course and survive course JSON export/import and duplication. The transfer source is left in place and is no longer needed. Missing, unreadable, unsupported, oversized, too-small or over-resolution input produces an error; failed PNG conversion also stops import.',
-        ),
-        _HelpSection(
-          title: 'Generate Rounds from Lesson GuideBook',
-          body:
-              'Open a Lesson and choose Generate Rounds from GuideBook. The generator uses only vocabulary pairs and examples in that Lesson GuideBook; at least three usable target/source pairs are required. Choose 1–12 Rounds and 1–15 Exercises per Round (defaults: 6 and 8). Review the count, total, normalized progressive-difficulty curve and planned registry presets before generation. Early drafts emphasize guided recognition with fewer distractors, middle drafts add construction and context, and later drafts add freer production. Generated Rounds remain drafts: edit, preview, delete or regenerate them, then explicitly approve them to append fresh-ID copies after existing Rounds. Generation cannot guarantee pedagogical correctness, so every Round and Exercise requires human review.',
-        ),
-        _HelpSection(
-          title: 'Exercise Creation Wizard',
-          body:
-              'In a Round, Creation Wizard sits beside New exercise. Choose 1–30 Exercises and select Balanced mix, Random mix, one or more categories, exact exercise types, or an ordered repeating pattern. The reviewed plan creates no Exercise objects. After confirmation, each planned step opens the ordinary preset-specific Exercise editor. Save validates and stays on the step; Preview returns to the same draft without copying or advancing; Next validates and advances one step; Finish returns the created Exercises in plan order. If you cancel after explicitly saving work, confirm whether to keep only those valid saved Exercises. Future and invalid placeholders are never inserted.',
-        ),
-        _HelpSection(
-          title: 'Duplicate, Copy and Move exercises',
-          body:
-              'Duplicate inserts an independent fresh-ID copy immediately after the source. Move Exercise to… and Copy Exercise to… choose an explicit Course > Lesson > Round destination within the current course working copy. Move Round to… and Copy Round to… choose a Lesson there. Move preserves stable identity, content and Draft/Published state and removes the source from its previous parent. Copy allocates fresh IDs throughout the owned subtree and remaps internal references. Following the existing duplication policy, copies and their owned descendants start as Draft. Shared immutable image/audio paths remain references. These actions affect only the working copy until Confirm course changes.',
-        ),
-        _HelpSection(
-          title: 'Exercise Preview and navigation',
-          body:
-              'Preview beside Inspection and Save uses the complete current unsaved Exercise form, including a new or Draft Exercise. It uses learner rendering without saving content, changing Draft/Published state, creating versions/backups or writing learner progress, XP, Weekly XP, streak, Laurel, Review or Duel state. Inspection is a local presentation toggle only: it shows or hides the technical representation without changing Course Editor access, saving, discarding or creating dirty state. Turning it off returns to the normal form; that form is editable only while the root state remains Edit and the user has actual permission. Existing unsaved Edit values remain intact through the presentation round trip. Insufficient runtime data produces a validation message without losing edits. Returning restores the same field values. Previous and Next follow the current Round order and stop at its boundaries. Back, sibling navigation and safe breadcrumb navigation protect unsaved Exercise changes with Keep editing, Discard changes, Save as draft or Save. Saving here affects only the course working copy. Breadcrumbs show readable Course, Lesson, Round and Exercise context.',
-        ),
-        _HelpSection(
-          title: 'Field Help and untitled Rounds',
-          body:
-              'Use the Help control beside an Exercise field for its purpose, entry count, line rules, format, validation and examples. Context mode, each correct-translation entry and Exercise image have their own Help. Broad Exercise Help remains available beside the preset. Typed answers support the existing answer-expression syntax; Arrange answers and listening gap lists are literal. An empty Round title is intentionally supported in Create and Edit Round. Follow the untitled guidance to keep it blank; its displayed Round N label follows its position without creating a stored title.',
-        ),
-        _HelpSection(
-          title: 'Audio Library',
-          body:
-              'Choose System TTS, Recorded MP3 or Hybrid. Copy MP3 files to Documents/QuisquisLingo/Imports/Audio and press Import MP3 in Audio Library. Every .mp3 file there is copied to a traversal-safe local support directory derived from the stable Course ID, with a maximum of 50 MB (52,428,800 bytes) per file. The metadata and references belong to the Course. No MP3 files or an oversized file produces an error. Import does not re-encode recordings or enforce a duration, bitrate or sample-rate rule; preview each recording to check playback. Source files remain in place, so move them out after successful import to avoid importing them again. Associate each recording with the exact word or expression it contains. Recorded playback uses longest-match segmentation and concatenates compatible clips. Hybrid falls back to TTS when a complete recorded sequence cannot be assembled. Course JSON stores clip metadata and local paths, not MP3 bytes; JSON alone does not transfer these recordings to another device. Verified course-version backups copy referenced recordings. Export my data is a separate learner backup and does not include course media; a distributable Audio Pack exporter is not currently available.',
-        ),
-        _HelpSection(
-          title: 'Image Bank',
-          body:
-              'Images and Image Bank ZIPs use Documents/QuisquisLingo/Imports/Images without a file picker. Keep exactly one supported image for a single-image import, or exactly one ZIP for Import Image Bank ZIP. A bank needs image_bank_manifest.json containing a JSON list; every entry needs a unique id, primary_term or label, and a safe filename referring to a PNG, JPG/JPEG or WebP in the archive. Limits: 50 MB ZIP, 2 MB manifest, 5000 archive entries, 2500 image entries, 50 KB per image and 50 MB total decompressed image bytes. Missing assets, duplicate/colliding IDs, duplicate filenames, unsafe paths, unsupported extensions and exceeded limits stop import. Image bytes are copied unchanged to local app storage with a local manifest; they are not resized or made transparent. Source ZIPs remain in place. Preview images before selection. Keep the original bank package separately: course JSON contains image paths and does not embed bank images or make local paths portable.',
-        ),
-        _HelpSection(
-          title: 'Lesson theme icons and Preview',
-          body:
-              'Each Lesson can select a Preinstalled icon, a Custom Course icon, or Numbers. The Preinstalled icons show only the current choice until you tap them. For Import custom icon, keep exactly one PNG, JPG/JPEG or WebP in Documents/QuisquisLingo/Imports/Lesson Icons. Maximum input: 2 MB (2,097,152 bytes); each dimension must be 1–8192 pixels. QQL decodes the first frame and scales it up or down proportionally, centered on a transparent 256 × 256 PNG canvas without cropping or distortion. Existing transparency is preserved; an opaque source background is not removed. Missing/multiple files, empty or unsupported images, exceeded size/dimensions and failed PNG conversion stop import. The source remains in place. The managed Course-owned asset stores embedded PNG data; its reference survives course JSON export/import and Course duplication, with no external source path required. Lesson duplication within the Course reuses the immutable asset. When a Lesson has no explicit icon, QQL uses the single theme-colored Lesson-number circle in Editor and learner views. Legacy fallback-style values still load but no longer alter this rendering. Explicitly selected icons remain unchanged. Every option uses the established 84 × 84 learner footprint. Preview writes no learner progress.',
-        ),
-        _HelpSection(
-          title: 'Exercise image specifications',
-          body:
-              'For Import custom image, keep exactly one PNG, JPG/JPEG or WebP in Documents/QuisquisLingo/Imports/Images. Maximum: 50 KB (51,200 bytes). A 256 × 256 resolution and 15 KB or less are recommendations; this importer imposes no pixel-dimension rule and performs no resizing, cropping or transparency conversion. It checks the filename extension, file count and byte size, then copies the bytes unchanged to local app storage. The source stays in place. Missing/multiple sources or an oversized image stops import; Preview reports missing or unreadable images. Course JSON stores the local image path, not the file bytes, so importing that JSON elsewhere does not transfer custom exercise images. Built-in asset paths refer to images supplied with QQL. An Exercise image is optional except for Image-prompt ordering.',
-        ),
-        _HelpSection(
-          title: 'New exercise types',
-          body:
-              'Missing Word plays audio while showing its transcript with one or more words removed. Image Word shows an image and asks the learner to build the corresponding target-language word from letter or syllable blocks. Dialogue Response contains a target-language context sentence, a target-language question and exactly two target-language response options; their display order is randomized. Word Match uses exactly three source-to-target translation pairs. Super Match uses exactly three target-language pairs and an explicit relationship such as synonyms or opposites. Audio Match uses three target-language audio items with exactly three matching texts and no distractors; the matching text may be in the target language or a translation. Listening Spelling / Type what you hear plays target-language audio and requires keyboard input; its prompt is displayed as entered and Return/Enter submits. Sentence Word Order exercises may use 0, 1 or at most 2 distractors. Image Word letter/syllable composition never uses distractors: include only the blocks required for the answer. Gap Choice shows a target-language sentence with one missing element and asks the learner to choose the single block that is correct in both meaning and grammar.',
-        ),
-        _HelpSection(
-          title: 'Language Duel',
-          body:
-              'Each Lesson owns its Duel. The Duel attached to the final Lesson is presented as Final Duel, with the tooltip Final challenge for the last Lesson. It retains the same mechanics and never claims to unlock another Lesson. A standard Duel selects 25 unique eligible exercises from that Lesson and starts with 4 lives. Each incorrect answer costs one life. There is no score or pass threshold: completing all 25 questions before all four lives are lost wins. Availability is determined from the actual eligible exercise pool, not from the number of Rounds or the total theoretical exercise count. If fewer than 25 eligible exercises exist, the Duel is simply unavailable for that Lesson; this is normal supported behavior, not a course error.',
-        ),
-        _HelpSection(
-          title: 'Course creation rules',
-          body:
-              'A Lesson should normally contain at least 6 Rounds, which in typical content may mean roughly 48 exercises. This is author guidance only: it is not a validity requirement and never determines Duel availability. The standard Round contains 15 exercises. Avoid accidental duplicate content inside one Round. Isolated words should normally be lowercase unless the language requires capitalization, as with German nouns or proper names. Opposite exercises belong in later Rounds, after the learner has already met the vocabulary. Sentence Word Order may use 0, 1 or at most 2 distractors; use fewer distractors early in a Lesson and more later. Distractors should be plausible but unambiguously wrong. Learner-facing operational instructions must use the course source language. Early Rounds should introduce and consolidate material; later Rounds can demand harder discrimination and combinations.',
-        ),
-        _HelpSection(
-          title: 'Listening Spelling',
-          body:
-              'Type what you hear uses Audio text for playback and the Missing word field for accepted typed answers, one complete word or passage per line. Passage transcript is displayed as entered; this preset does not automatically remove the accepted word from it. Preview the visible prompt so it does not reveal the answer. For automatically hidden words in a complete transcript, the existing Listen for missing words preset supplies that workflow.',
-        ),
-        _HelpSection(
-          title: 'Lesson Guidebook',
-          body:
-              'Each Lesson has its own Guidebook, available to learners when published and Use GuideBook is ON. Its primary authoring fields are Overview, Usage examples, Vocabulary and Grammar, in that order. Insights opens a second authoring page for ordered Title and Text sections; changes remain in the current GuideBook working copy until Save Guidebook or Save Guidebook as draft, and removing a section requires confirmation. Save Guidebook as draft keeps it out of learner delivery and shows one blue Draft badge on the Guidebook and its visible ancestors. The badge is independent from Audit: an empty Guidebook has a red border while Use GuideBook is ON; any other canonical Guidebook Error or Warning stays red regardless of that preference. A clean Draft Guidebook remains green with its blue badge. The editor can use its vocabulary and examples to propose new exercises.',
-        ),
-        _HelpSection(
-          title: 'Course metadata and authors',
-          body:
-              'Course Info is available in Locked, View only and Inspection mode. Course Info Editor is available only in Edit for users with existing edit permission. It can change the visible Course name without changing the Course ID. Base and Learning language remain read-only and show their authoritative general or regional codes. Original Course Created is immutable lineage provenance; Last Version Editor and Modified describe the current Course version and instance. Opening the editor changes none of them. Automatic Course flag removes every explicit override and uses the language fallback; choosing a built-in, World Flag, uploaded flag or authorized reusable installed-course flag stores only its portable value. Structured Authors / Contributors and Rights Holder metadata are descriptive and never authorize access. Original Course Creator and Course Maintainer use separate stable internal identities. Course Info separately resolves the Assigned Team, Team Leaders and Team Members from Team Manager. Internal IDs additionally reveals their stable IDs and the read-only Course Model version. Fork provenance separately identifies who created a particular fork, when, and its immediate source Course. Official Courses retain publisher identity, official version, release notes, channel, checksum and verification. Lesson numbering is set on the Lessons page in Edit. Its selected term is shared by Editor labels, breadcrumbs and learner presentation; stored Lesson titles and IDs remain unchanged. Lessons without an explicit icon use the single theme-colored number circle. These presentation choices never change lessonId, progression or unlocks.',
-        ),
-        _HelpSection(
-          title: 'Audit severity and codes',
-          body:
-              'Course Audit reports Errors, Warnings and Info. Error blocks publication or import because content is structurally or functionally invalid. Warning marks a likely authoring problem that needs review. Info is guidance or a neutral fact and never blocks publication by itself. Audit can sort by Lesson, friendly Exercise type or Recently modified and can be opened for a whole Course, one Lesson or one Round. Recent order uses updatedAt descending with deterministic ties; findings are numbered progressively inside each severity group after filtering. A red border marks an Audit Error or Warning and propagates through its represented branch. A luminous green border means the current branch has no Error or Warning; Info guidance may remain. One blue Draft indicator independently includes a Lesson or Round\'s own Draft state and follows Draft Guidebooks and Content through their visible ancestors. A green Audit border does not mean the item is Published. An explicitly Draft Lesson or Round keeps Published children hidden until that container is saved. A Guidebook concern affects its Lesson and Lessons hierarchy, but not the separate Rounds branch. Fewer than 3 Rounds is Info; fewer than 25 eligible Duel Exercises is Info only when Create Duels is ON. Missing Reading- or Listening-comprehension coverage produces no finding; malformed existing comprehension content still receives validation. Drafts are included for author review without making unrelated Published learner content invalid. Technical reference > Audit Codes displays the shared 102-rule registry in Errors, Warnings, Info order. All three independently selectable categories start enabled, and text search applies within the selected categories.',
-        ),
-        _HelpSection(
-          title: 'Course Audit',
-          body:
-              'Course Audit checks structural and authoring problems such as invalid exercise fields, duplicate IDs, Word Block problems, missing audio mappings and Missing Word errors. An empty Reading passage is an Error; one or two Unicode/apostrophe-aware lexical words produce READING_PASSAGE_TOO_SHORT, while three or more do not. HINT_REPEATS_PROMPT is a Warning and revealing any canonical correct answer remains an Error. It does not certify grammar, translation accuracy or pedagogical quality.',
-        ),
-
-        _HelpSection(
-          title: 'Create a new course',
-          body:
-              'Course Manager creates an independent Course Model v9 project and opens it in Course Editor. New Course restores the same License / Rights, Authors / Contributors, language variant, levels, description and support metadata used by Course Info Editor. The active profile becomes the immutable Original Course Creator and defaults as Course Maintainer; another local individual may instead be selected as Maintainer. Assigned Team remains separate and is not selected during creation. Number of Lessons defaults to 3 (whole numbers 1–100), and Rounds per Lesson defaults to 1 (whole numbers 1–20). Invalid or missing values show inline errors and disable Create. The complete initial hierarchy is created atomically with fresh stable IDs and untitled Rounds, each with exactly one Draft Pick the translation (to target) sample Exercise. Review and explicitly save teaching content before publication. The new Not published Course remains only a working copy until Confirm course changes creates version 1; cancelling creates no stored Course. Imported v9/v10 authoring content must state its provenance, Maintainer, Draft/Published state and required UTC timestamps explicitly; earlier Course Models are neither inferred nor migrated.',
-        ),
+        _CourseTypesHelpSection(language: _language),
+        for (final section in editorHelpSections(_language))
+          _HelpSection(title: section.title, body: section.body),
       ],
     ),
   );
 }
 
 class _CourseTypesHelpSection extends StatelessWidget {
-  const _CourseTypesHelpSection();
+  const _CourseTypesHelpSection({required this.language});
+
+  final HelpLanguage language;
 
   @override
-  Widget build(BuildContext context) => Card(
-    child: Padding(
-      padding: const EdgeInsets.all(12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Course types',
-            style: Theme.of(
-              context,
-            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 8),
-          const Text('In QQL, there are two course types:'),
-          const SizedBox(height: 8),
-          const Text(
-            '1. Official Bundled Course: distributed as part of the app and treated as official content.',
-          ),
-          const SizedBox(height: 4),
-          const Text('2. Custom Course: created or imported by users.'),
-          const SizedBox(height: 12),
-          Table(
-            columnWidths: {
-              0: FlexColumnWidth(2),
-              1: FlexColumnWidth(3),
-              2: FlexColumnWidth(3),
-            },
-            defaultVerticalAlignment: TableCellVerticalAlignment.top,
-            children: [
-              TableRow(
-                children: [
-                  _CourseTypeTableCell('Aspect', bold: true),
-                  _CourseTypeTableCell('Official Course', bold: true),
-                  _CourseTypeTableCell('Custom Course', bold: true),
-                ],
-              ),
-              TableRow(
-                children: [
-                  _CourseTypeTableCell('Origin'),
-                  _CourseTypeTableCell('Shipped or distributed by QQL'),
-                  _CourseTypeTableCell(
-                    'Created, imported, copied, forked, or merged by users',
-                  ),
-                ],
-              ),
-              TableRow(
-                children: [
-                  _CourseTypeTableCell('Status'),
-                  _CourseTypeTableCell(
-                    'Part of the official QQL course collection',
-                  ),
-                  _CourseTypeTableCell('User-created content'),
-                ],
-              ),
-              TableRow(
-                children: [
-                  _CourseTypeTableCell('Editing'),
-                  _CourseTypeTableCell(
-                    'Not normally edited directly as a user-owned course',
-                  ),
-                  _CourseTypeTableCell('Editable by its authorized users'),
-                ],
-              ),
-              TableRow(
-                children: [
-                  _CourseTypeTableCell('Copying'),
-                  _CourseTypeTableCell(
-                    'Can be used as the source for a new Custom Course, subject to QQL rules',
-                  ),
-                  _CourseTypeTableCell(
-                    'Can be copied to create another Custom Course',
-                  ),
-                ],
-              ),
-              TableRow(
-                children: [
-                  _CourseTypeTableCell('Forking'),
-                  _CourseTypeTableCell(
-                    'Can be forked when the applicable licence permits it',
-                  ),
-                  _CourseTypeTableCell(
-                    'Can be forked when the licence permits it',
-                  ),
-                ],
-              ),
-              TableRow(
-                children: [
-                  _CourseTypeTableCell('Merging'),
-                  _CourseTypeTableCell('Not itself the result of a user merge'),
-                  _CourseTypeTableCell(
-                    'Two similar Custom Courses can be merged to create a third Custom Course; the user selects which Lessons to take from each source course',
-                  ),
-                ],
-              ),
-              TableRow(
-                children: [
-                  _CourseTypeTableCell('Ownership / maintenance'),
-                  _CourseTypeTableCell(
-                    'Managed as QQL-distributed content rather than ordinary user-owned content',
-                  ),
-                  _CourseTypeTableCell(
-                    'Has an Original Course Creator and Course Maintainer, with the associated user/team permissions',
-                  ),
-                ],
-              ),
-              TableRow(
-                children: [
-                  _CourseTypeTableCell('Publication'),
-                  _CourseTypeTableCell('Distributed as official content'),
-                  _CourseTypeTableCell(
-                    'Can exist as published or unpublished user content',
-                  ),
-                ],
-              ),
-              TableRow(
-                children: [
-                  _CourseTypeTableCell('Deletion'),
-                  _CourseTypeTableCell(
-                    'Not treated like an ordinary deletable user course',
-                  ),
-                  _CourseTypeTableCell(
-                    'Can be deleted through Course Manager by authorized users',
-                  ),
-                ],
-              ),
-              TableRow(
-                children: [
-                  _CourseTypeTableCell('Updates'),
-                  _CourseTypeTableCell(
-                    'May be replaced or updated with a QQL release',
-                  ),
-                  _CourseTypeTableCell(
-                    'Evolves independently after creation, import, copy, fork, or merge',
-                  ),
-                ],
-              ),
+  Widget build(BuildContext context) {
+    final content = editorHelpCourseTypes(language);
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              content.title,
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            Text(content.intro),
+            for (final type in content.types) ...[
+              const SizedBox(height: 8),
+              Text(type),
             ],
-          ),
-          const SizedBox(height: 12),
-          const Text(
-            'A Copy is a new independent Custom Course derived from another course. It does not maintain a conceptual lineage that matters for licensing or history in the same way as a fork.',
-          ),
-          const SizedBox(height: 8),
-          const Text(
-            'A Fork is also a Custom Course, but explicitly records derivation from the original course and is subject to the original course\'s licence terms.',
-          ),
-          const SizedBox(height: 8),
-          const Text(
-            'A Merge creates a third Custom Course from two similar Custom Courses. The user chooses which Lessons to take from each source course. The two source courses remain separate and unchanged.',
-          ),
-          const SizedBox(height: 8),
-          const Text(
-            'So the course type remains essentially:\n\nOfficial\nor\nCustom\n\nwhile created from scratch / imported / copied / forked / merged describes the Custom Course\'s origin, not its type.',
-          ),
-          const SizedBox(height: 12),
-          const Text(
-            'If you think your course deserves to become a bundled course distributed with the QQL app, please contact the QQL team.',
-            style: TextStyle(fontWeight: FontWeight.bold),
-          ),
-        ],
+            const SizedBox(height: 12),
+            Table(
+              columnWidths: const {
+                0: FlexColumnWidth(2),
+                1: FlexColumnWidth(3),
+                2: FlexColumnWidth(3),
+              },
+              defaultVerticalAlignment: TableCellVerticalAlignment.top,
+              children: [
+                for (final (index, row) in content.rows.indexed)
+                  TableRow(
+                    children: [
+                      for (final cell in row)
+                        _CourseTypeTableCell(cell, bold: index == 0),
+                    ],
+                  ),
+              ],
+            ),
+            for (final note in content.notes) ...[
+              const SizedBox(height: 8),
+              Text(note),
+            ],
+            const SizedBox(height: 12),
+            Text(
+              content.contact,
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
       ),
-    ),
-  );
+    );
+  }
 }
 
 class _CourseTypeTableCell extends StatelessWidget {
@@ -387,7 +120,10 @@ class _CourseTypeTableCell extends StatelessWidget {
 }
 
 class _TechnicalLinks extends StatelessWidget {
-  const _TechnicalLinks();
+  const _TechnicalLinks({required this.language});
+
+  final HelpLanguage language;
+
   @override
   Widget build(BuildContext context) => Card(
     child: Padding(
@@ -396,15 +132,22 @@ class _TechnicalLinks extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            'Technical reference',
+            editorHelpTechnicalIntro(language).title,
             style: Theme.of(
               context,
             ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
           ),
           const SizedBox(height: 6),
-          const Text(
-            'Work in progress. These pages describe the current Course Models v9/v10 implementation separately from the practical Editor instructions.',
-          ),
+          Text(editorHelpTechnicalIntro(language).body),
+          // The linked pages below are English only; say so rather than let an
+          // Italian reader discover it by tapping.
+          if (editorHelpTechnicalIntro(language).note.isNotEmpty) ...[
+            const SizedBox(height: 6),
+            Text(
+              editorHelpTechnicalIntro(language).note,
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          ],
           ListTile(
             contentPadding: EdgeInsets.zero,
             title: Text('Exercise types'),

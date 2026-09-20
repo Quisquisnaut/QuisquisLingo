@@ -1,8 +1,7 @@
 import 'dart:convert';
 import 'course_flag_service.dart';
 import 'course_editor_storage.dart';
-
-import 'package:shared_preferences/shared_preferences.dart';
+import 'course_file_store.dart';
 
 import '../models/course_models.dart';
 import 'course_backup_service.dart';
@@ -44,8 +43,6 @@ class CourseEditorService {
   static const userCoursesStorageKey = CourseEditorStorage.userCoursesKey;
   static const externalOfficialStorageKey =
       CourseEditorStorage.externalOfficialCoursesKey;
-  static const _corruptBackupKey = CourseEditorStorage.corruptBackupKey;
-  static const _maxBytes = 8 * 1024 * 1024;
   static const _bundledOfficialCourseIds = {
     'sample_it_en_it',
     'sample_de_en_de',
@@ -60,14 +57,14 @@ class CourseEditorService {
   };
 
   CourseEditorService({
-    CourseEditorPreferenceWriter? preferenceWriter,
+    CourseFileStore? courseStore,
     CourseBackupService? backupService,
     ProfileService? profileService,
     TeamService? teamService,
     CourseAccessPolicy? accessPolicy,
     DateTime Function()? clock,
     ManagedAudioCleanup? audioCleanup,
-  }) : _preferenceWriter = preferenceWriter,
+  }) : _store = courseStore ?? CourseFileStore(),
        _audioCleanup = audioCleanup ?? ManagedAudioCleanup(),
        backupService = backupService ?? CourseBackupService(),
        _profiles = profileService ?? ProfileService(),
@@ -80,7 +77,7 @@ class CourseEditorService {
            ),
        _clock = clock ?? DateTime.now;
 
-  final CourseEditorPreferenceWriter? _preferenceWriter;
+  final CourseFileStore _store;
   final ManagedAudioCleanup _audioCleanup;
   final CourseBackupService backupService;
   final ProfileService _profiles;
@@ -111,82 +108,39 @@ class CourseEditorService {
     } catch (_) {}
   }
 
-  Future<Map<String, dynamic>> _loadKey(String key) async {
-    final preferences = await SharedPreferences.getInstance();
-    final raw = preferences.getString(key);
-    if (raw == null || raw.trim().isEmpty) return <String, dynamic>{};
-    try {
-      final decoded = jsonDecode(raw);
-      if (decoded is! Map) {
-        throw const FormatException('Stored authoring root must be an object.');
-      }
-      return Map<String, dynamic>.from(decoded);
-    } catch (error) {
-      await preferences.setString(_corruptBackupKey, raw);
-      throw FormatException(
-        'Stored Course Model v9 authoring data are invalid or unsupported. '
-        'The original data were preserved and were not loaded. $error',
-      );
-    }
-  }
+  /// Which store a legacy storage-key constant refers to.
+  ///
+  /// The call sites below still speak in whole-store maps, so only the medium
+  /// changed: each Course is now its own file (see [CourseFileStore]).
+  static CourseStoreKind _kindFor(String key) => key == userCoursesStorageKey
+      ? CourseStoreKind.custom
+      : CourseStoreKind.externalOfficial;
 
-  String _encodeKey(Map<String, dynamic> data) {
-    final encoded = jsonEncode(data);
-    if (utf8.encode(encoded).length > _maxBytes) {
-      throw StateError(
-        'Local course authoring data exceed the 8 MB safety limit. Export or simplify courses before saving more content.',
-      );
-    }
-    return encoded;
-  }
+  Future<Map<String, dynamic>> _loadKey(String key) =>
+      _store.readAll(_kindFor(key));
 
-  Future<bool> _writePreference(
-    SharedPreferences preferences,
-    String key,
-    String value,
-  ) =>
-      _preferenceWriter?.call(preferences, key, value) ??
-      preferences.setString(key, value);
-
-  Future<void> _writeVerified(
-    SharedPreferences preferences,
-    String key,
-    String encoded,
-  ) async {
-    final saved = await _writePreference(preferences, key, encoded);
-    if (!saved || preferences.getString(key) != encoded) {
-      throw StateError('Verified local Course Editor storage write failed.');
-    }
-  }
-
+  /// Applies [data] as the complete contents of a store by writing only what
+  /// actually changed. A save therefore costs one Course, not the whole corpus.
   Future<void> _saveKey(String key, Map<String, dynamic> data) async {
-    final preferences = await SharedPreferences.getInstance();
-    await _writeVerified(preferences, key, _encodeKey(data));
-  }
-
-  Future<void> _replaceKeyAtomically(
-    String key,
-    Map<String, dynamic> data,
-  ) async {
-    final encoded = _encodeKey(data);
-    final preferences = await SharedPreferences.getInstance();
-    final previous = preferences.getString(key);
-    try {
-      await _writeVerified(preferences, key, encoded);
-    } catch (error) {
-      if (preferences.getString(key) != previous) {
-        final restored = previous == null
-            ? await preferences.remove(key)
-            : await preferences.setString(key, previous);
-        if (!restored || preferences.getString(key) != previous) {
-          throw StateError(
-            'Course transaction failed and the previous storage value could not be verified: $error',
-          );
-        }
+    final kind = _kindFor(key);
+    final current = await _store.readAll(kind);
+    for (final entry in data.entries) {
+      if (jsonEncode(current[entry.key]) == jsonEncode(entry.value)) continue;
+      await _store.write(kind, entry.key, entry.value);
+    }
+    for (final courseId in current.keys) {
+      if (!data.containsKey(courseId)) {
+        await _store.remove(kind, courseId);
       }
-      rethrow;
     }
   }
+
+  /// Kept as a distinct name because callers document a transaction boundary
+  /// here. Each Course file is written temp-then-rename, so a failed write
+  /// leaves the previously stored Course exactly as it was; there is no whole
+  /// store value left to roll back.
+  Future<void> _replaceKeyAtomically(String key, Map<String, dynamic> data) =>
+      _saveKey(key, data);
 
   static Course _courseFromEntry(Object? entry) {
     if (entry is! Map || entry['course'] is! Map) {
@@ -878,10 +832,3 @@ class CourseEditorService {
     return 0;
   }
 }
-
-typedef CourseEditorPreferenceWriter =
-    Future<bool> Function(
-      SharedPreferences preferences,
-      String key,
-      String value,
-    );

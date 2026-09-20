@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Android Auto Backup rules for API 31 and above.
+    Below API 31 the platform ignores this file and reads backup_rules.xml
+    instead, so the two files must keep the same exclusions.
+
+    QuisquisLingo has no server, so a device backup is the only way a learner
+    keeps progress across a phone change. Learner profiles, progress, XP,
+    streaks, Review history, local course edits, settings and the Access PIN
+    verifier are therefore backed up deliberately. The Access PIN is a casual
+    access guard for a shared family device, not a security boundary.
+
+    Only bulk media is excluded, and the reason is the 25 MB Auto Backup quota,
+    not privacy: a single Image Bank import can reach 50 MB on its own, and an
+    app that exceeds the quota has its backup silently disabled entirely. Losing
+    progress that way would be far worse than re-importing media.
+
+    These three folders live under getApplicationSupportDirectory(), which is
+    getFilesDir() on Android, so they belong to domain="file". They are the same
+    folders AppResetService treats as bulk media (_imageFolders, _audioFolders).
+    Media is re-importable from the user's own files; progress is not.
+
+    device-transfer is deliberately omitted so that a direct phone-to-phone
+    transfer, which has no such quota, still carries the media across.
+-->
+<data-extraction-rules>
+    <cloud-backup>
+        <exclude domain="file" path="image_banks/" />
+        <exclude domain="file" path="exercise_images/" />
+        <exclude domain="file" path="quisquislingo_audio/" />
+    </cloud-backup>
+</data-extraction-rules>

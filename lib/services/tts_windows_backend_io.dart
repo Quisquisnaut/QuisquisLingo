@@ -2,6 +2,27 @@ import 'dart:convert';
 import 'dart:io';
 import 'tts_language_resolver.dart';
 
+/// PowerShell executables to try, most trustworthy first.
+///
+/// A bare `powershell.exe` is resolved by `CreateProcess`, which searches the
+/// application directory and the working directory before PATH. A file dropped
+/// next to the QuisquisLingo executable would then run with the user's rights,
+/// so the absolute path under the real system root is tried first and the bare
+/// name remains only as a fallback for unusual installations.
+///
+/// The list stays two entries long: each candidate that actually starts can
+/// cost the full synthesis timeout, so the worst-case wait is unchanged.
+/// `powershell` without the extension is dropped because PATHEXT already
+/// resolves it to the same executable as `powershell.exe`.
+List<String> windowsPowerShellCandidates({String? systemRoot}) {
+  final root = (systemRoot ?? Platform.environment['SystemRoot'] ?? '').trim();
+  return <String>[
+    if (root.isNotEmpty)
+      '$root\\System32\\WindowsPowerShell\\v1.0\\powershell.exe',
+    'powershell.exe',
+  ];
+}
+
 /// Windows TTS backend based on System.Speech.
 ///
 /// QuisquisLingo intentionally bypasses flutter_tts on Windows because recent
@@ -55,7 +76,7 @@ Write-Output ($voice.Name + '|' + $voice.Culture.Name + '|' + $voice.Gender)
 exit 0
 ''';
 
-  final candidates = <String>['powershell.exe', 'powershell'];
+  final candidates = windowsPowerShellCandidates();
   for (final executable in candidates) {
     Process? process;
     try {

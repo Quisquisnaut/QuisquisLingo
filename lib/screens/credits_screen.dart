@@ -17,7 +17,7 @@ class CreditsScreen extends StatelessWidget {
           const _CreditCard(
             title: 'QuisquisLingo',
             text:
-                'Project and code design: Quisquisnaut (Quisquis on Discord)\nCode generation and software development assistance: ChatGPT\n\nThe eleven bundled courses titled AI-Slop Demo are AI-generated, unreviewed demonstrations and are not reliable learning courses. Real QuisquisLingo course content is intended to be authored and reviewed by humans. This classification does not apply to other official or custom courses.',
+                'Project and code design: Quisquisnaut (Quisquis on Discord)\nCode generation and software development assistance: ChatGPT\n\nThe bundled courses titled AI-Slop Demo are AI-generated, unreviewed demonstrations and are not reliable learning courses. Real QuisquisLingo course content is intended to be authored and reviewed by humans. This classification does not apply to other official or custom courses.',
           ),
           const SizedBox(height: 22),
           Text(

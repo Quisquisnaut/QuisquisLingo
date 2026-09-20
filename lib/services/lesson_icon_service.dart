@@ -126,28 +126,40 @@ class LessonIconService {
         'Lesson icon must be a readable image no larger than 2 MB.',
       );
     }
-    ui.Codec codec;
+    // The decoded image is needed below for drawImageRect, so this cannot skip
+    // rasterizing entirely — but the dimension limit is checked against the
+    // header first, so an image that declares more than maxSourceDimension is
+    // rejected before any pixels are allocated.
+    ui.ImmutableBuffer? buffer;
+    ui.ImageDescriptor? descriptor;
+    ui.Codec? codec;
+    final ui.Image source;
     try {
-      codec = await ui.instantiateImageCodec(bytes);
+      buffer = await ui.ImmutableBuffer.fromUint8List(bytes);
+      descriptor = await ui.ImageDescriptor.encoded(buffer);
+      if (descriptor.width <= 0 ||
+          descriptor.height <= 0 ||
+          descriptor.width > maxSourceDimension ||
+          descriptor.height > maxSourceDimension) {
+        throw const FormatException(
+          'Lesson icon dimensions must be between 1 and 8192 pixels.',
+        );
+      }
+      codec = await descriptor.instantiateCodec();
+      source = (await codec.getNextFrame()).image;
+    } on FormatException {
+      rethrow;
     } catch (_) {
       throw const FormatException(
         'The selected Lesson icon is not a supported image.',
       );
+    } finally {
+      codec?.dispose();
+      descriptor?.dispose();
+      buffer?.dispose();
     }
-    final frame = await codec.getNextFrame();
-    final source = frame.image;
-    codec.dispose();
     final sourceWidth = source.width;
     final sourceHeight = source.height;
-    if (sourceWidth <= 0 ||
-        sourceHeight <= 0 ||
-        sourceWidth > maxSourceDimension ||
-        sourceHeight > maxSourceDimension) {
-      source.dispose();
-      throw const FormatException(
-        'Lesson icon dimensions must be between 1 and 8192 pixels.',
-      );
-    }
 
     final destination = containDestination(sourceWidth, sourceHeight);
     final recorder = ui.PictureRecorder();

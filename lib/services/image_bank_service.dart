@@ -246,7 +246,12 @@ class ImageBankService {
       }
       byBasename[name] = file;
     }
-    var totalImageBytes = 0;
+    // Cheap pre-flight against the sizes the archive declares. This rejects an
+    // obviously oversized bank before any directory is created, but it is not
+    // the authoritative check: `size` comes from the ZIP's own header and an
+    // archive is free to understate it. The real limits are enforced against
+    // the inflated bytes in the write loop below.
+    var declaredImageBytes = 0;
     for (final item in entries) {
       final filename = item['filename'].toString();
       final source = byBasename[filename];
@@ -258,8 +263,8 @@ class ImageBankService {
           'Image asset exceeds the 50 KB maximum: $filename (${source.size} bytes)',
         );
       }
-      totalImageBytes += source.size.toInt();
-      if (totalImageBytes > maxTotalImageBytes) {
+      declaredImageBytes += source.size.toInt();
+      if (declaredImageBytes > maxTotalImageBytes) {
         throw const FormatException(
           'Image Bank decompressed image data exceeds the 50 MB safety limit.',
         );
@@ -282,6 +287,11 @@ class ImageBankService {
 
       final normalizedManifest = <Map<String, dynamic>>[];
       final records = <ExerciseImageMetadata>[];
+      // Authoritative size accounting, measured after inflation. The declared
+      // sizes checked above cannot be trusted: a ZIP may claim an entry is
+      // 500 bytes and inflate to megabytes, which would otherwise slip past
+      // both the per-image and the total limit.
+      var inflatedImageBytes = 0;
       for (final item in entries) {
         final filename = item['filename'].toString();
         final source = byBasename[filename]!;
@@ -292,6 +302,18 @@ class ImageBankService {
         if (sourceBytes == null) {
           throw FormatException(
             'Image asset could not be read from ZIP: $filename',
+          );
+        }
+        if (sourceBytes.length > maxImageBytes) {
+          throw FormatException(
+            'Image asset exceeds the 50 KB maximum: $filename '
+            '(${sourceBytes.length} bytes)',
+          );
+        }
+        inflatedImageBytes += sourceBytes.length;
+        if (inflatedImageBytes > maxTotalImageBytes) {
+          throw const FormatException(
+            'Image Bank decompressed image data exceeds the 50 MB safety limit.',
           );
         }
         await target.writeAsBytes(sourceBytes, flush: true);

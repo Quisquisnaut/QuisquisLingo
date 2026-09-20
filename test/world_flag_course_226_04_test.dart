@@ -12,6 +12,8 @@ import 'package:quisquislingo_app/widgets/flag_art.dart';
 import 'package:quisquislingo_app/widgets/world_flag_art.dart';
 import 'package:quisquislingo_app/widgets/world_flag_picker.dart';
 
+import 'support/forged_png.dart';
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -343,6 +345,22 @@ void main() {
                 (error) => error.message,
                 'message',
                 contains('2 MB safety limit'),
+              ),
+            ),
+          );
+          // A decompression bomb: a tiny file whose header declares far more
+          // pixels than it carries. The byte-size limit cannot catch this, so
+          // the dimensions must be read from the header and rejected before
+          // anything tries to allocate 20000 x 20000 x 4 bytes.
+          await expectLater(
+            service.prepareFlag(
+              await pngDeclaringDimensions(width: 20000, height: 20000),
+            ),
+            throwsA(
+              isA<FormatException>().having(
+                (error) => error.message,
+                'message',
+                contains('Maximum source dimension: 8192'),
               ),
             ),
           );

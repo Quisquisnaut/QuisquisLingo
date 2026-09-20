@@ -321,6 +321,48 @@ void main() {
     );
   });
 
+  test('replace restore keeps the Access PIN and User Recovery Key', () async {
+    final profiles = ProfileService(idGenerator: () => _idA);
+    await profiles.createProfile('Existing', accessPin: '4321');
+    final prefs = await SharedPreferences.getInstance();
+    final recoveryKey = profiles.keyForProfileId(
+      _idA,
+      ProfileService.recoveryCredentialKeyBase,
+    );
+    await prefs.setString(recoveryKey, 'stable-identity-secret');
+    final pinVerifier = prefs.getString(
+      profiles.keyForProfileId(_idA, 'access_pin_verifier_v1'),
+    );
+    expect(pinVerifier, isNotNull);
+    expect(await profiles.hasAccessPin(_idA), isTrue);
+
+    final backup = LearnerBackupService(profileService: profiles);
+    // A hostile backup cannot plant credentials either: both suffixes are
+    // refused on import, so the stored originals must survive untouched.
+    final document = LearnerBackupDocument(
+      schemaVersion: LearnerBackupService.schemaVersion,
+      learnerProfileId: _idA,
+      displayName: 'Backup name',
+      data: const {
+        'xp_IT': 7,
+        'access_pin_verifier_v1': 'v1:planted:planted',
+        'user_recovery_secret_v1': 'planted-secret',
+      },
+    );
+
+    await backup.restorePreservingIdentity(document, replaceExisting: true);
+
+    expect(await profiles.hasAccessPin(_idA), isTrue);
+    expect(await profiles.verifyAccessPin(_idA, '4321'), isTrue);
+    expect(await profiles.verifyAccessPin(_idA, '0000'), isFalse);
+    expect(
+      prefs.getString(profiles.keyForProfileId(_idA, 'access_pin_verifier_v1')),
+      pinVerifier,
+    );
+    expect(prefs.getString(recoveryKey), 'stable-identity-secret');
+    expect(prefs.getInt('${ProfileService.prefixForProfileId(_idA)}xp_IT'), 7);
+  });
+
   test(
     'replace restore rolls back profile, active learner, and namespace when a verified write fails',
     () async {

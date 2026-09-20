@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 /// Lifecycle policy for time-limited beta builds.
 ///
 /// This is intentionally a transparent beta-expiry mechanism rather than DRM.
@@ -8,18 +10,28 @@ class BetaLifecycleService {
   // QQL 239 Revision 4 refreshes the 30-day Beta lifetime through October 19.
   static final DateTime expiryDate = DateTime(2026, 10, 19, 23, 59, 59);
 
+  /// The clock the no-argument lifecycle checks read.
+  ///
+  /// Learner screens call [isExpired] and [daysRemaining] without an argument,
+  /// so without this seam every widget test would silently start failing once
+  /// the real date passed [expiryDate]. `test/flutter_test_config.dart` pins it
+  /// relative to [expiryDate] for the whole suite; production keeps the local
+  /// device clock.
+  @visibleForTesting
+  static DateTime Function() clock = DateTime.now;
+
   static DateTime _day(DateTime value) =>
       DateTime(value.year, value.month, value.day);
 
   static bool isExpired([DateTime? now]) {
     if (!isBetaBuild) return false;
-    final value = now ?? DateTime.now();
+    final value = now ?? clock();
     return value.isAfter(expiryDate);
   }
 
   static int daysRemaining([DateTime? now]) {
     if (!isBetaBuild) return 1 << 20;
-    final value = _day(now ?? DateTime.now());
+    final value = _day(now ?? clock());
     final expiry = _day(expiryDate);
     return expiry.difference(value).inDays;
   }

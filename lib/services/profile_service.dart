@@ -186,8 +186,16 @@ class ProfileService {
 
   static void beginAccessSession() => _sessionUnlockedProfileIds.clear();
 
+  /// Per-learner credentials that are never carried in a backup file: they are
+  /// excluded from export, refused on import, and preserved across a restore
+  /// that replaces the rest of the learner's namespace.
+  static const List<String> sensitiveCredentialPreferenceSuffixes = [
+    _accessPinKeyBase,
+    recoveryCredentialKeyBase,
+  ];
+
   static bool isSensitiveCredentialPreferenceSuffix(String suffix) =>
-      suffix == _accessPinKeyBase || suffix == recoveryCredentialKeyBase;
+      sensitiveCredentialPreferenceSuffixes.contains(suffix);
 
   static bool isValidLearnerProfileId(String value) =>
       _profileIdPattern.hasMatch(value);
@@ -586,8 +594,7 @@ class ProfileService {
     if (admins.contains(learnerProfileId) && admins.length == 1) {
       throw StateError('QQL must always have at least one admin.');
     }
-    CourseMaintainerGuard.ensureProfileDoesNotMaintainCourses(
-      prefs,
+    await CourseMaintainerGuard.ensureProfileDoesNotMaintainCourses(
       learnerProfileId,
     );
     await _removeProfileFromAuthoringTeams(prefs, learnerProfileId);
