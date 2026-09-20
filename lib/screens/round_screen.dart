@@ -2429,16 +2429,27 @@ class _RoundScreenState extends State<RoundScreen> {
         !File(ex.imageAsset).existsSync()) {
       return _missingImageNotice(ex.imageAsset);
     }
+    // Decode at the size actually shown. Nothing bounds the pixel dimensions
+    // of a path-based exercise image: a 50 KB PNG may declare 30,000 × 30,000
+    // and cost gigabytes to rasterize. The portable path already enforces
+    // 4096; this bounds the decode for the rest without rejecting images an
+    // author has already used.
+    const decodeWidth = 840;
+    const decodeHeight = 560;
     final image = ex.imageAsset.startsWith('assets/')
         ? Image.asset(
             ex.imageAsset,
             fit: BoxFit.contain,
+            cacheWidth: decodeWidth,
+            cacheHeight: decodeHeight,
             semanticLabel: 'Exercise illustration',
             errorBuilder: (_, __, ___) => _missingImageNotice(ex.imageAsset),
           )
         : Image.file(
             File(ex.imageAsset),
             fit: BoxFit.contain,
+            cacheWidth: decodeWidth,
+            cacheHeight: decodeHeight,
             semanticLabel: 'Exercise illustration',
             errorBuilder: (_, __, ___) => _missingImageNotice(ex.imageAsset),
           );

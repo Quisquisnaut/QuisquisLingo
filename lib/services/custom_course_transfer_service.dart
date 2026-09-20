@@ -167,9 +167,40 @@ class CustomCourseTransferService {
         'Bundled official courses are installed only with QuisquisLingo application builds.',
       );
     }
-    return course.originType == CourseOriginType.externalOfficial
-        ? _publisherVerification.requireVerified(course)
-        : course;
+    if (course.originType == CourseOriginType.externalOfficial) {
+      rejectUnreachablePublisherRecordings(course);
+      return _publisherVerification.requireVerified(course);
+    }
+    return course;
+  }
+
+  /// Refuses a Publisher Course whose Audio Library points at files that can
+  /// never exist on this device.
+  ///
+  /// A Course file carries clip paths, never MP3 bytes, so a publisher's
+  /// recordings stay on the publisher's machine. For a custom course the
+  /// author can repair the references; for a Publisher Course they are inside
+  /// the signed payload and therefore permanent, so the course would be
+  /// installed silently broken and could never be fixed. Bundled `assets/`
+  /// recordings ship with the application and remain valid.
+  ///
+  /// This is an import/install policy, deliberately kept out of signature
+  /// verification: a Publisher Course already stored by an older build keeps
+  /// its files and its `Verification required` treatment rather than starting
+  /// to throw when it is read.
+  static void rejectUnreachablePublisherRecordings(Course course) {
+    final unreachable = course.audioLibrary.where(
+      (clip) =>
+          clip.filePath.trim().isNotEmpty &&
+          !clip.filePath.startsWith('assets/'),
+    );
+    if (unreachable.isEmpty) return;
+    throw const FormatException(
+      'This Publisher Course refers to recordings stored on the publisher\'s '
+      'own device, which cannot be delivered inside a Course file. Ask the '
+      'publisher for a release that uses text-to-speech or recordings bundled '
+      'with the application.',
+    );
   }
 
   /// Builds the export bytes and base name. Shared by [exportCourse] and

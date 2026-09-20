@@ -268,6 +268,17 @@ reported `No issues found`; there are no remaining Dart `ignore` or
 - The sixteen intentional sample MP3 files remain byte-locked and usable, but
   their original per-file authorship/source records are absent from the
   repository; this provenance uncertainty is unresolved.
+
+  Re-examined during the Build 242 media audit: they are declared in
+  `pubspec.yaml`, hash-locked in `tools/media_asset_hashes.json` and validated
+  on every release, yet **no bundled course and no code references them** — all
+  ten bundled courses are `audioMode: tts` with an empty Audio Library. The
+  owner decided to **keep** them (78.8 KB in total) rather than remove them,
+  because they are the only ready material for a future bundled-recordings or
+  shared Audio Library feature, and removing them would have to be undone to
+  build it. They are retained deliberately, not by oversight. Their unresolved
+  provenance must be settled before they are ever presented to a learner or
+  offered to course authors.
 - No duplicate, broken media reference, case mismatch, schema change,
   persistence-key change or severe media blocker remains identified. QQL 234
   nevertheless remains Alpha until the complete release gate is recorded.

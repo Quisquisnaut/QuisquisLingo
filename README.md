@@ -1,12 +1,12 @@
 # QuisquisLingo App
 
-**Current source version: 2.0.41+241002 · Build 241, Revision 2 · Course Models v9/v10 (`formatVersion: 9`/`10`).**
+**Current source version: 2.0.42+242000 · Build 242, Revision 0 · Course Models v9/v10 (`formatVersion: 9`/`10`).**
 
-**QuisquisLingo 2.0.41 Beta — QQL 241 course file storage and publisher signatures**
+**QuisquisLingo 2.0.42 Beta — QQL 242 media audit, media credits and the recording-save fix**
 
-Current project version: 2.0.41
+Current project version: 2.0.42
 
-See the [complete Build 241 Revision 2 change summary](docs/241_CHANGE_SUMMARY.md), including the initial Claude WIP, subsequent implementation, validation and delivery limits.
+See the [Build 242 change summary](docs/242_CHANGE_SUMMARY.md) for the media audit, the media-credit field and the corrections it delivers, and the [complete Build 241 Revision 2 change summary](docs/241_CHANGE_SUMMARY.md) for the previous release.
 
 QQL 241 completes the course file-store integration: custom and installed official courses use individual files under application support, Reset removes those files for the appropriate scopes, and Inventory reports their real paths and sizes. Tests use isolated directories and explicit save/UI completion conditions. Old course preference blobs are not migrated. Final validation passed (1,879 full-suite tests, plus 8 focused tests for the final Publisher title color); see `docs/241_VALIDATION.md`.
 
@@ -73,7 +73,7 @@ The MPL-2.0 covers the QuisquisLingo software source. Courses, the Image Bank an
 
 ## Beta lifecycle
 
-Version 2.0.41, Build 241, Revision 2 is a time-limited Beta with an expiry of **2026-10-20 23:59:59 local time** (30 days from September 20, 2026). Near expiry it displays reminders. After expiry, learner exercises and Review are blocked until a newer Beta is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when a Beta expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM.
+Version 2.0.42, Build 242, Revision 0 is a time-limited Beta with an expiry of **2026-10-20 23:59:59 local time** (30 days from September 20, 2026, its own release date). Near expiry it displays reminders. After expiry, learner exercises and Review are blocked until a newer Beta is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when a Beta expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM.
 
 ## Core logic
 
@@ -313,6 +313,6 @@ available for release-mode **test** builds. Never distribute that configuration
 as a public production release. Bundled courses and unsigned custom courses
 retain their distinct trust rules. Course Model remains v9/v10.
 
-Final Build 241 Revision 2 validation passed; see the report for full-suite and final focused evidence.
+Final Build 241 Revision 2 validation passed; see the report for full-suite and final focused evidence. Build 242 evidence is in [242 validation](docs/242_VALIDATION.md).
 
-Manual inspection: [Build 241 Revision 2 visual checklist (Italian)](docs/241_REVISION_2_VISUAL_CHECKLIST_IT.md).
+Manual inspection: [Build 242 visual checklist (Italian)](docs/242_VISUAL_CHECKLIST_IT.md), and the previous [Build 241 Revision 2 checklist](docs/241_REVISION_2_VISUAL_CHECKLIST_IT.md).

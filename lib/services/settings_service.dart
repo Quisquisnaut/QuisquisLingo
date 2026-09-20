@@ -1,4 +1,5 @@
 import 'package:shared_preferences/shared_preferences.dart';
+import 'app_reset_service.dart';
 import 'profile_service.dart';
 import 'learner_status_events.dart';
 
@@ -79,7 +80,7 @@ class SettingsService {
   static const _welcomeWizardNoticeId = 'welcome_wizard_237';
   static const _courseEditorUnlockedKey = 'course_editor_unlocked';
   static const _courseEditorModeKeyPrefix = 'course_editor_mode_';
-  static const _audioOrphanCheckKey = 'audio_orphan_check_last_';
+  static const _audioOrphanCheckKey = AppResetService.audioOrphanCheckKeyPrefix;
   static const _lastSelectedCourseKeyBase = 'last_selected_course_code';
   static const _recentCourseRefsKey = 'recent_course_refs';
   static const _lessonExpansionModeKeyPrefix = 'lesson_expansion_mode_';

@@ -347,6 +347,144 @@ class CourseRightsHolder {
       );
 }
 
+/// Credit for third-party media a Course carries or references: images a
+/// creator imported, recordings someone else performed, an embedded Lesson
+/// icon or custom flag.
+///
+/// Descriptive metadata only. Like [CourseRightsHolder] and [CourseAuthor] it
+/// never grants QQL authorization, and QQL never checks a licence for the
+/// creator — it only gives the credit somewhere to live and travel.
+///
+/// The Course-level list is omitted from JSON when empty, so a Course that
+/// records no attribution serialises and checksums exactly as before.
+class CourseMediaAttribution {
+  static const maxEntries = 200;
+  static const _maxShortField = 200;
+  static const _maxSourceField = 500;
+
+  /// Who must be credited.
+  final String author;
+
+  /// The licence the work is used under, as the creator states it.
+  final String license;
+
+  /// The work's own name, when it has one.
+  final String title;
+
+  /// Where it came from: a page reference or a URL. Held and shown as plain
+  /// text, never as a tappable link — it can arrive inside an imported Course,
+  /// and QQL stays offline-first.
+  final String source;
+
+  /// Which media in this Course the credit covers.
+  final String appliesTo;
+
+  const CourseMediaAttribution({
+    required this.author,
+    required this.license,
+    this.title = '',
+    this.source = '',
+    this.appliesTo = '',
+  });
+
+  Map<String, dynamic> toJson() => {
+    'author': author,
+    'license': license,
+    if (title.isNotEmpty) 'title': title,
+    if (source.isNotEmpty) 'source': source,
+    if (appliesTo.isNotEmpty) 'appliesTo': appliesTo,
+  };
+
+  factory CourseMediaAttribution.fromJson(Map<String, dynamic> json) =>
+      CourseMediaAttribution(
+        author: _mediaAttributionField(
+          json['author'],
+          'author',
+          required: true,
+        ),
+        license: _mediaAttributionField(
+          json['license'],
+          'license',
+          required: true,
+        ),
+        title: _mediaAttributionField(json['title'], 'title'),
+        source: _mediaAttributionField(
+          json['source'],
+          'source',
+          limit: _maxSourceField,
+        ),
+        appliesTo: _mediaAttributionField(json['appliesTo'], 'appliesTo'),
+      );
+
+  /// Equality by content, so duplicate entries can be rejected.
+  @override
+  bool operator ==(Object other) =>
+      other is CourseMediaAttribution &&
+      other.author == author &&
+      other.license == license &&
+      other.title == title &&
+      other.source == source &&
+      other.appliesTo == appliesTo;
+
+  @override
+  int get hashCode => Object.hash(author, license, title, source, appliesTo);
+
+  static String _mediaAttributionField(
+    Object? value,
+    String field, {
+    bool required = false,
+    int limit = _maxShortField,
+  }) {
+    final normalized = (value ?? '').toString().trim().replaceAll(
+      RegExp(r'\s+'),
+      ' ',
+    );
+    if (normalized.isEmpty) {
+      if (required) {
+        throw FormatException('mediaAttribution.$field must not be empty.');
+      }
+      return '';
+    }
+    if (normalized.length > limit) {
+      throw FormatException(
+        'mediaAttribution.$field must not exceed $limit characters.',
+      );
+    }
+    return normalized;
+  }
+
+  /// Parses and validates the whole Course-level list.
+  static List<CourseMediaAttribution> parseList(Object? raw) {
+    if (raw == null) return const [];
+    if (raw is! List) {
+      throw const FormatException('course.mediaAttributions must be a list.');
+    }
+    if (raw.length > maxEntries) {
+      throw const FormatException(
+        'course.mediaAttributions must not exceed $maxEntries entries.',
+      );
+    }
+    final parsed = <CourseMediaAttribution>[];
+    for (final entry in raw) {
+      if (entry is! Map) {
+        throw const FormatException(
+          'course.mediaAttributions entries must be objects.',
+        );
+      }
+      final attribution = CourseMediaAttribution.fromJson(
+        Map<String, dynamic>.from(entry),
+      );
+      if (parsed.contains(attribution)) {
+        throw const FormatException(
+          'course.mediaAttributions must not repeat an identical entry.',
+        );
+      }
+      parsed.add(attribution);
+    }
+    return List.unmodifiable(parsed);
+  }
+}
+
 enum DerivativeWorksPolicy {
   allowed,
   forbidden,
@@ -640,6 +778,10 @@ class Course {
   final List<CourseAuthor> authors;
   final String license;
   final List<CourseRightsHolder> rightsHolders;
+
+  /// Credit for third-party media this Course carries or references.
+  /// Descriptive only; it never grants QQL authorization.
+  final List<CourseMediaAttribution> mediaAttributions;
   final DerivativeWorksPolicy derivativeWorksPolicy;
   final CourseForkProvenance? forkProvenance;
   final CourseMergeProvenance? mergeProvenance;
@@ -701,6 +843,7 @@ class Course {
     this.authors = const [],
     this.license = 'All rights reserved',
     this.rightsHolders = const [],
+    this.mediaAttributions = const [],
     this.derivativeWorksPolicy = DerivativeWorksPolicy.unspecified,
     this.forkProvenance,
     this.mergeProvenance,
@@ -982,6 +1125,13 @@ class Course {
     'license': license,
     if (rightsHolders.isNotEmpty)
       'rightsHolders': rightsHolders.map((holder) => holder.toJson()).toList(),
+    // Omitted when empty: a Course that records no media attribution keeps
+    // exactly the JSON and the checksum it had before this field existed,
+    // including every signed Publisher course.
+    if (mediaAttributions.isNotEmpty)
+      'mediaAttributions': mediaAttributions
+          .map((attribution) => attribution.toJson())
+          .toList(),
     if (derivativeWorksPolicy != DerivativeWorksPolicy.unspecified)
       'derivativeWorksPolicy': derivativeWorksPolicy.name,
     if (forkProvenance != null) 'forkProvenance': forkProvenance!.toJson(),
@@ -1247,6 +1397,9 @@ class Course {
           : json.containsKey('rightsHolders')
           ? throw const FormatException('course.rightsHolders must be a list.')
           : const [],
+      mediaAttributions: CourseMediaAttribution.parseList(
+        json['mediaAttributions'],
+      ),
       derivativeWorksPolicy: DerivativeWorksPolicy.parse(
         json['derivativeWorksPolicy'],
       ),

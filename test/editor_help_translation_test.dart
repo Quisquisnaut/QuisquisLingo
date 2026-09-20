@@ -69,6 +69,40 @@ void main() {
       }
     });
 
+    test('media Help describes both import routes in both languages', () {
+      // Build 240 added the system file dialog next to the fixed folder, but
+      // the media Help entries kept claiming there was no file picker. Assert
+      // the dialog route is documented so the two cannot drift apart again.
+      for (final language in HelpLanguage.values) {
+        final sections = editorHelpSections(language);
+        for (final title in const ['Audio Library', 'Image Bank']) {
+          final body = sections
+              .firstWhere((section) => section.title == title)
+              .body;
+          expect(
+            body,
+            contains('from…'),
+            reason: '$title ($language) does not mention Open from…',
+          );
+          expect(
+            body,
+            contains('Documents/QuisquisLingo/Imports/'),
+            reason: '$title ($language) dropped the fixed-folder route',
+          );
+          expect(
+            body,
+            isNot(contains('without a file picker')),
+            reason: '$title ($language) still denies the file picker',
+          );
+          expect(
+            body,
+            isNot(contains('senza finestra di selezione file')),
+            reason: '$title ($language) still denies the file picker',
+          );
+        }
+      }
+    });
+
     test('the Course types table keeps its shape in both languages', () {
       final english = editorHelpCourseTypes(HelpLanguage.english);
       final italian = editorHelpCourseTypes(HelpLanguage.italian);

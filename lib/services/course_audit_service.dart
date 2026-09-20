@@ -439,6 +439,17 @@ class CourseAuditService {
       );
     }
 
+    if (course.mediaAttributions.isEmpty && _carriesOwnMedia(course)) {
+      issues.add(
+        CourseAuditIssue.fromCode(
+          AuditCode.mediaAttributionMissing,
+          message:
+              'This course uses images or recordings that did not come with QuisquisLingo, but records no media credit.',
+          location: 'Course Info',
+        ),
+      );
+    }
+
     final lessonIconIds = <String>{};
     for (final asset in course.lessonIconAssets) {
       if (!lessonIconIds.add(asset.assetId)) {
@@ -715,6 +726,46 @@ class CourseAuditService {
       }
     }
     return CourseAuditResult(_attachContentTimestamps(course, issues));
+  }
+
+  /// Whether the Course uses any image or recording that did not ship inside
+  /// the application.
+  ///
+  /// Anything under `assets/` is QQL's own media, credited on the app's own
+  /// Credits page, so it never needs a Course-level entry. Everything else is
+  /// either embedded in the Course (an `assets/`-less Lesson icon, a custom
+  /// flag, a `data:` image) or imported by a creator and referenced by path.
+  static bool _carriesOwnMedia(Course course) {
+    bool isOwnMedia(String asset) {
+      final value = asset.trim();
+      return value.isNotEmpty && !value.startsWith('assets/');
+    }
+
+    if (course.lessonIconAssets.isNotEmpty) return true;
+    if (course.flagImageBase64.trim().isNotEmpty) return true;
+    for (final clip in course.audioLibrary) {
+      if (isOwnMedia(clip.filePath)) return true;
+    }
+    for (final lesson in course.lessons) {
+      for (final round in lesson.rounds) {
+        for (final exercise in round.exercises) {
+          if (isOwnMedia(exercise.imageAsset)) return true;
+          for (final element in exercise.promptElements) {
+            if (element.type == 'image' && isOwnMedia(element.asset)) {
+              return true;
+            }
+          }
+          for (final item in exercise.interaction.items) {
+            for (final element in item.content) {
+              if (element.type == 'image' && isOwnMedia(element.asset)) {
+                return true;
+              }
+            }
+          }
+        }
+      }
+    }
+    return false;
   }
 
   List<CourseAuditIssue> _attachContentTimestamps(

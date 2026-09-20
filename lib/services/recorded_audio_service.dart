@@ -164,15 +164,6 @@ class RecordedAudioService {
   List<CourseAudioClip> orphaned(Course course) =>
       course.audioLibrary.where((c) => c.text.trim().isEmpty).toList();
 
-  Future<void> deleteFiles(Iterable<CourseAudioClip> clips) async {
-    for (final clip in clips) {
-      try {
-        final f = File(clip.filePath);
-        if (await f.exists()) await f.delete();
-      } catch (_) {}
-    }
-  }
-
   /// Longest-match segmentation prevents a single-word recording from taking
   /// precedence over an available multi-word expression.
   List<CourseAudioClip>? segment(String text, List<CourseAudioClip> library) {

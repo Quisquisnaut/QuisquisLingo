@@ -6,6 +6,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/exercise_image_metadata.dart';
+import 'exercise_image_service.dart';
 import 'file_dialog_service.dart';
 
 class ImportedImageBank {
@@ -110,14 +111,10 @@ class ImageBankService {
     return out;
   }
 
-  Future<Directory> fixedImportDirectory() async {
-    final documents = await getApplicationDocumentsDirectory();
-    final dir = Directory(
-      '${documents.path}${Platform.pathSeparator}QuisquisLingo${Platform.pathSeparator}Imports${Platform.pathSeparator}Images',
-    );
-    await dir.create(recursive: true);
-    return dir;
-  }
+  /// Image Banks and single images share one fixed import folder; the folder
+  /// is defined once, by [ExerciseImageService.fixedImportDirectory].
+  Future<Directory> fixedImportDirectory() =>
+      ExerciseImageService().fixedImportDirectory();
 
   Future<ImageBankImportResult?> pickAndImportBank({
     Set<String> existingIds = const {},

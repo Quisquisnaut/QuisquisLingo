@@ -439,6 +439,8 @@ const _plans = <_ResetPlan>[
       'Courses (which may then show missing media until it is imported again)',
       'The original files you placed in the Imports folder, backups and logs',
     ],
+    warning:
+        'A course that used removed recordings shows them as File missing in Course Editor > Audio Library. Delete those recordings there to remove their references, then confirm the course.',
   ),
   _ResetPlan(
     scope: AppResetScope.customCourses,

@@ -361,6 +361,8 @@ class CourseAuthoringTransferService {
     authors: source.authors,
     license: source.license,
     rightsHolders: source.rightsHolders,
+    // The copy carries the same media, so the credit for it must travel too.
+    mediaAttributions: source.mediaAttributions,
     derivativeWorksPolicy: source.derivativeWorksPolicy,
     forkProvenance: source.forkProvenance,
     languageVariant: source.languageVariant,

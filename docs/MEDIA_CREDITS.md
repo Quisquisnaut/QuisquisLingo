@@ -25,7 +25,7 @@ therefore not presented as current in-app artwork.
 The 249 ISO flag files and eight approved shortlist files come from
 `lipis/flag-icons` v7.5.0 under the MIT License. The additional twenty-four
 community or regional flags associated with languages come from Wikimedia
-Commons. Sixteen are public domain or CC0; the three attribution-required
+Commons. Nineteen are public domain or CC0; the five attribution-required
 files are:
 
 - Aragonese flag — Willtron, CC BY-SA 3.0;

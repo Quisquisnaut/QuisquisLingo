@@ -195,6 +195,8 @@ class AuthoringDuplicationService {
         for (final holder in source.rightsHolders)
           CourseRightsHolder(type: holder.type, name: holder.name),
       ],
+      // The fork carries the same media, so the credit for it must travel too.
+      mediaAttributions: [...source.mediaAttributions],
       derivativeWorksPolicy: source.derivativeWorksPolicy,
       forkProvenance: provenance,
       languageVariant: source.languageVariant,

@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'course_flag_service.dart';
 import 'course_editor_storage.dart';
 import 'course_file_store.dart';
+import 'custom_course_transfer_service.dart';
 import 'publisher_verification_service.dart';
 
 import '../models/course_models.dart';
@@ -803,6 +804,9 @@ class CourseEditorService {
     if (update.originType != CourseOriginType.externalOfficial) {
       throw ArgumentError('The package is not an external official course.');
     }
+    // Second gate, as the signing guide describes: storage checks again, so a
+    // caller that did not come through the file importer is covered too.
+    CustomCourseTransferService.rejectUnreachablePublisherRecordings(update);
     final normalizedUpdate = await _publisherVerification.requireVerified(
       update,
     );

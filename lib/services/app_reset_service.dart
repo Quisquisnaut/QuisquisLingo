@@ -80,6 +80,11 @@ class AppResetService {
     'quisquislingo_exercise_image_metadata_v2',
   ];
 
+  /// Device-level prefix, one key per Course code, holding the date the
+  /// Audio Library orphan check last ran. Removing the recordings makes the
+  /// stored date meaningless, so the audio reset clears it too.
+  static const audioOrphanCheckKeyPrefix = 'audio_orphan_check_last_';
+
   static const _imageFolders = <String>['exercise_images', 'image_banks'];
   static const _audioFolders = <String>['quisquislingo_audio'];
 
@@ -258,9 +263,16 @@ class AppResetService {
     for (final directory in directories) {
       if (await directory.exists()) await directory.delete(recursive: true);
     }
+    final prefs = await SharedPreferences.getInstance();
     if (images) {
-      final prefs = await SharedPreferences.getInstance();
       for (final key in _mediaKeys) {
+        await prefs.remove(key);
+      }
+    }
+    if (audio) {
+      for (final key in prefs.getKeys().where(
+        (key) => key.startsWith(audioOrphanCheckKeyPrefix),
+      )) {
         await prefs.remove(key);
       }
     }

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
@@ -755,6 +756,37 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
       rightsHolderNames.add(TextEditingController());
       rightsHolderTypes.add(CourseRightsHolderType.person);
     }
+    // Media credits: one controller set per entry. Blank rows are dropped on
+    // Save, so an empty starting row costs the author nothing.
+    final mediaAuthors = [
+      for (final credit in _course.mediaAttributions)
+        TextEditingController(text: credit.author),
+    ];
+    final mediaLicenses = [
+      for (final credit in _course.mediaAttributions)
+        TextEditingController(text: credit.license),
+    ];
+    final mediaTitles = [
+      for (final credit in _course.mediaAttributions)
+        TextEditingController(text: credit.title),
+    ];
+    final mediaSources = [
+      for (final credit in _course.mediaAttributions)
+        TextEditingController(text: credit.source),
+    ];
+    final mediaAppliesTo = [
+      for (final credit in _course.mediaAttributions)
+        TextEditingController(text: credit.appliesTo),
+    ];
+    void addMediaCreditRow() {
+      mediaAuthors.add(TextEditingController());
+      mediaLicenses.add(TextEditingController());
+      mediaTitles.add(TextEditingController());
+      mediaSources.add(TextEditingController());
+      mediaAppliesTo.add(TextEditingController());
+    }
+
+    if (mediaAuthors.isEmpty) addMediaCreditRow();
     final courseTitle = TextEditingController(text: _course.title);
     final variant = TextEditingController(text: _course.languageVariant);
     final startLevel = TextEditingController(text: _course.startLevel);
@@ -767,6 +799,7 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
         ? _course.license
         : 'Other / Custom license';
     var derivativePolicy = _course.derivativeWorksPolicy;
+    String? mediaCreditError;
     var flagSelection = CourseFlagSelection.fromCourse(_course);
     final learningLanguage = CourseLanguageResolver.learning(_course);
     final baseLanguage = CourseLanguageResolver.base(_course);
@@ -789,6 +822,7 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
             String title,
             List<CourseAuthor> authors,
             List<CourseRightsHolder> rightsHolders,
+            List<CourseMediaAttribution> mediaAttributions,
             String license,
             DerivativeWorksPolicy derivativePolicy,
             String variant,
@@ -1499,6 +1533,159 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
                           label: const Text('Add Rights Holder'),
                         ),
                       ),
+                      const SizedBox(height: 12),
+                      const Text(
+                        'Media credits',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 8),
+                      const Text(
+                        'Credit images and recordings made by someone else: an imported picture, a recording another person performed, a custom Lesson icon or course flag. Media that came with QuisquisLingo is already credited in App Info and needs no entry here. These credits travel inside the Course file even when the media files themselves do not. They are descriptive only and do not control QQL permissions.',
+                      ),
+                      const SizedBox(height: 8),
+                      for (
+                        var creditIndex = 0;
+                        creditIndex < mediaAuthors.length;
+                        creditIndex++
+                      )
+                        Card(
+                          child: Padding(
+                            padding: const EdgeInsets.all(10),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        'Media credit ${creditIndex + 1}',
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ),
+                                    IconButton(
+                                      tooltip: 'Remove media credit',
+                                      onPressed: mediaAuthors.length == 1
+                                          ? null
+                                          : () => setLocalState(() {
+                                              mediaAuthors
+                                                  .removeAt(creditIndex)
+                                                  .dispose();
+                                              mediaLicenses
+                                                  .removeAt(creditIndex)
+                                                  .dispose();
+                                              mediaTitles
+                                                  .removeAt(creditIndex)
+                                                  .dispose();
+                                              mediaSources
+                                                  .removeAt(creditIndex)
+                                                  .dispose();
+                                              mediaAppliesTo
+                                                  .removeAt(creditIndex)
+                                                  .dispose();
+                                              mediaCreditError = null;
+                                            }),
+                                      icon: const Icon(
+                                        Icons.remove_circle_outline,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                TextField(
+                                  key: ValueKey(
+                                    'course-info-media-author-$creditIndex',
+                                  ),
+                                  controller: mediaAuthors[creditIndex],
+                                  maxLength: 200,
+                                  decoration: const InputDecoration(
+                                    border: OutlineInputBorder(),
+                                    labelText: 'Author',
+                                    helper: Text('Who must be credited.'),
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                TextField(
+                                  key: ValueKey(
+                                    'course-info-media-license-$creditIndex',
+                                  ),
+                                  controller: mediaLicenses[creditIndex],
+                                  maxLength: 200,
+                                  decoration: const InputDecoration(
+                                    border: OutlineInputBorder(),
+                                    labelText: 'Licence',
+                                    helper: Text(
+                                      'As the creator states it, for example CC BY-SA 4.0.',
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                TextField(
+                                  key: ValueKey(
+                                    'course-info-media-title-$creditIndex',
+                                  ),
+                                  controller: mediaTitles[creditIndex],
+                                  maxLength: 200,
+                                  decoration: const InputDecoration(
+                                    border: OutlineInputBorder(),
+                                    labelText: 'Title (optional)',
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                TextField(
+                                  key: ValueKey(
+                                    'course-info-media-source-$creditIndex',
+                                  ),
+                                  controller: mediaSources[creditIndex],
+                                  maxLength: 500,
+                                  decoration: const InputDecoration(
+                                    border: OutlineInputBorder(),
+                                    labelText: 'Source (optional)',
+                                    helper: Text(
+                                      'A page reference or address. Shown as plain text, never opened.',
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                TextField(
+                                  key: ValueKey(
+                                    'course-info-media-applies-to-$creditIndex',
+                                  ),
+                                  controller: mediaAppliesTo[creditIndex],
+                                  maxLength: 200,
+                                  decoration: const InputDecoration(
+                                    border: OutlineInputBorder(),
+                                    labelText: 'Applies to (optional)',
+                                    helper: Text(
+                                      'Which media in this course it covers.',
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      if (mediaCreditError != null)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 4, bottom: 4),
+                          child: Text(
+                            mediaCreditError!,
+                            key: const Key('course-info-media-credit-error'),
+                            style: TextStyle(
+                              color: Theme.of(ctx).colorScheme.error,
+                            ),
+                          ),
+                        ),
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: TextButton.icon(
+                          key: const Key('course-info-add-media-credit'),
+                          onPressed: () =>
+                              setLocalState(() => addMediaCreditRow()),
+                          icon: const Icon(Icons.add),
+                          label: const Text('Add media credit'),
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -1602,11 +1789,43 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
                         ),
                       );
                     }
+                    final mediaAttributions = <CourseMediaAttribution>[];
+                    for (var i = 0; i < mediaAuthors.length; i++) {
+                      final author = mediaAuthors[i].text.trim();
+                      final license = mediaLicenses[i].text.trim();
+                      // Both identifying fields are required; a row with
+                      // neither is an untouched blank and is simply dropped.
+                      if (author.isEmpty && license.isEmpty) continue;
+                      if (author.isEmpty || license.isEmpty) {
+                        setLocalState(
+                          () => mediaCreditError =
+                              'Each media credit needs both an author and a licence. '
+                              'Complete row ${i + 1} or clear it.',
+                        );
+                        return;
+                      }
+                      final candidate = CourseMediaAttribution(
+                        author: author,
+                        license: license,
+                        title: mediaTitles[i].text.trim(),
+                        source: mediaSources[i].text.trim(),
+                        appliesTo: mediaAppliesTo[i].text.trim(),
+                      );
+                      if (mediaAttributions.contains(candidate)) {
+                        setLocalState(
+                          () => mediaCreditError =
+                              'Row ${i + 1} repeats an identical media credit.',
+                        );
+                        return;
+                      }
+                      mediaAttributions.add(candidate);
+                    }
                     if (!ctx.mounted) return;
                     Navigator.pop(ctx, (
                       title: title,
                       authors: aa,
                       rightsHolders: rightsHolders,
+                      mediaAttributions: mediaAttributions,
                       license: license,
                       derivativePolicy: selected == 'Other / Custom license'
                           ? derivativePolicy
@@ -1642,6 +1861,17 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
       }
       for (final c in rightsHolderNames) {
         c.dispose();
+      }
+      for (final list in [
+        mediaAuthors,
+        mediaLicenses,
+        mediaTitles,
+        mediaSources,
+        mediaAppliesTo,
+      ]) {
+        for (final c in list) {
+          c.dispose();
+        }
       }
       courseTitle.dispose();
       variant.dispose();
@@ -1685,6 +1915,9 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
         'authors': result.authors.map((author) => author.toJson()).toList(),
         'rightsHolders': result.rightsHolders
             .map((holder) => holder.toJson())
+            .toList(),
+        'mediaAttributions': result.mediaAttributions
+            .map((credit) => credit.toJson())
             .toList(),
         'license': result.license,
         'derivativeWorksPolicy': result.derivativePolicy.name,
@@ -9030,6 +9263,8 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
         _imageAsset,
         height: 150,
         fit: BoxFit.contain,
+        // Bound the decode: nothing limits a path-based image's pixels.
+        cacheHeight: 300,
         errorBuilder: (_, __, ___) => const SizedBox(
           height: 120,
           child: Center(child: Text('Image asset file is missing.')),
@@ -9045,6 +9280,7 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
         File(_imageAsset),
         height: 150,
         fit: BoxFit.contain,
+        cacheHeight: 300,
         errorBuilder: (_, __, ___) => const SizedBox(
           height: 120,
           child: Center(child: Text('Image asset file is unreadable.')),
@@ -10428,6 +10664,11 @@ class _AudioLibraryScreenState extends State<AudioLibraryScreen> {
   String? _playingId;
   final Map<String, GlobalKey> _letterKeys = {};
 
+  /// Clips whose file no longer resolves. A clip that still carries its word
+  /// is not an orphan, so the orphan tool never reports it; without this the
+  /// only sign would be a failed preview.
+  Set<String> _missingClipIds = const {};
+
   @override
   void initState() {
     super.initState();
@@ -10435,6 +10676,16 @@ class _AudioLibraryScreenState extends State<AudioLibraryScreen> {
     _previewPlayer.onPlayerComplete.listen((_) {
       if (mounted) setState(() => _playingId = null);
     });
+    _refreshMissingClips();
+  }
+
+  Future<void> _refreshMissingClips() async {
+    final missing = <String>{};
+    for (final clip in _course.audioLibrary) {
+      if (await _audio.resolveSourceForClip(clip) == null) missing.add(clip.id);
+    }
+    if (!mounted) return;
+    setState(() => _missingClipIds = Set.unmodifiable(missing));
   }
 
   @override
@@ -10467,6 +10718,7 @@ class _AudioLibraryScreenState extends State<AudioLibraryScreen> {
         return;
       }
       setState(() => _course = _copy(clips: [..._course.audioLibrary, clip]));
+      unawaited(_refreshMissingClips());
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           duration: const Duration(seconds: 8),
@@ -10489,6 +10741,7 @@ class _AudioLibraryScreenState extends State<AudioLibraryScreen> {
         setState(
           () => _course = _copy(clips: [..._course.audioLibrary, ...clips]),
         );
+        unawaited(_refreshMissingClips());
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             duration: Duration(seconds: 8),
@@ -10557,6 +10810,7 @@ class _AudioLibraryScreenState extends State<AudioLibraryScreen> {
     }
     final list = [..._course.audioLibrary]..removeAt(i);
     setState(() => _course = _copy(clips: list));
+    unawaited(_refreshMissingClips());
   }
 
   Future<void> _preview(CourseAudioClip clip) async {
@@ -10615,6 +10869,7 @@ class _AudioLibraryScreenState extends State<AudioLibraryScreen> {
                         .toList(),
                   ),
                 );
+                unawaited(_refreshMissingClips());
               },
               child: const Text('Remove references'),
             ),
@@ -10751,11 +11006,27 @@ class _AudioLibraryScreenState extends State<AudioLibraryScreen> {
             title: Text(
               clip.text.trim().isEmpty ? 'Unassigned MP3' : clip.text,
             ),
-            subtitle: Text(
-              clip.filePath,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
+            subtitle: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  clip.filePath,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                if (_missingClipIds.contains(clip.id))
+                  Text(
+                    'File missing. Delete this recording to remove its '
+                    'reference, then confirm the Course.',
+                    key: Key('audio-clip-missing-${clip.id}'),
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.error,
+                    ),
+                  ),
+              ],
             ),
+            isThreeLine: _missingClipIds.contains(clip.id),
             onTap: () => _editById(clip.id),
             trailing: IconButton(
               icon: const Icon(Icons.delete_outline),

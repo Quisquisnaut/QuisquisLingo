@@ -9,7 +9,8 @@ Where QuisquisLingo keeps data, and which reset scope removes it.
 | `qql_device_display_name_v1` | device name | everything |
 | `quisquislingo_user_courses_v9_233030`, `quisquislingo_external_official_courses_v9_233030`, `quisquislingo_course_editor_corrupt_backup_v9_233030` | obsolete course blobs and corrupt-course backup; no longer read or migrated by the file store | custom courses, everything |
 | `quisquislingo_authoring_teams_v1_2291` | authoring teams | custom courses, everything |
-| `quisquislingo_imported_image_banks_v2`, `quisquislingo_exercise_image_metadata_v2` | imported image bank index and image metadata | imported media, everything |
+| `quisquislingo_imported_image_banks_v2`, `quisquislingo_exercise_image_metadata_v2` | imported image bank index and image metadata | imported media (images), custom courses, everything |
+| `audio_orphan_check_last_<COURSECODE>` | device-level date the Audio Library orphan check last ran for that Course code | imported media (audio), custom courses, everything |
 | `quisquislingo_diagnostic_log` | diagnostic log text | everything |
 | `qql_file_dialog_downloads_offered_v1` (QQL 240) | flag: the first Save to… / Open from… dialog already started in Downloads | everything |
 | `flag_game_best_*`, `editor_show_internal_ids_v1`, welcome/one-time notice keys, update-check keys | device settings and notices | everything |

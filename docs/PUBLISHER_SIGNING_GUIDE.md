@@ -159,9 +159,25 @@ Import course-signed.json in a QQL version containing your approved key. Check t
 
 The signature covers the normalized course JSON, including embedded data. For separate media files or URLs, it authenticates only the reference, not the external bytes. Do not advertise those attachments as authenticated. A media-hash manifest and an in-app publishing interface are not implemented.
 
+### Media a Publisher Course can and cannot carry
+
+A Course file is a single JSON document. There is no course package and no audio pack, so media either travels inside the JSON or does not travel at all.
+
+Carried inside the file, and therefore covered by the signature: custom Lesson icons, a custom course flag, and Recognize characters images, all stored as embedded data. References to media shipped with the application under assets/ also work everywhere, because the application supplies those files.
+
+Not carried: recorded MP3 files and ordinary exercise images added with Import custom image. The JSON stores a path on the machine that authored it, never the bytes.
+
+Recorded MP3 files are therefore refused. A Publisher Course whose Audio Library points at anything outside assets/ is rejected at import and again at installation, because the path is inside the signed payload, cannot be repaired by the learner, and would install a course whose audio never plays. Use text-to-speech, or recordings shipped with the application. This restriction applies to Publisher Courses only; a custom author can still import their own recordings and repair the references themselves.
+
+Ordinary exercise images behave the same way but are not currently refused: check before release that every image in your course is either an assets/ path or an embedded Recognize characters image, or learners will see a missing-image notice.
+
+### Media credits
+
+Record the author and licence of any third-party image or recording in Course Info Editor, under License / Rights. The entries are stored in the course's mediaAttributions and are therefore inside the signed payload, so they are tamper-evident and they travel with the file even when the media bytes do not. Course Audit raises a warning when a course carries media of its own and records no credit; the warning does not block export or import. Media supplied with QuisquisLingo is already credited in the application and needs no entry.
+
 ## 8. Import policy and existing courses
 
-New externalOfficial imports require a valid signature from an active approved key. Missing, malformed, invalid, revoked or unknown signatures are blocked before storage. The app computes verification status; a serialized verified flag is never proof. A lower/equal official version or another publisher cannot replace an installed official course. Unsigned imports cannot downgrade verified courses.
+New externalOfficial imports require a valid signature from an active approved key. Missing, malformed, invalid, revoked or unknown signatures are blocked before storage. A Publisher Course that declares recorded MP3 files outside assets/ is refused before the signature is even checked, for the reasons in section 7. The app computes verification status; a serialized verified flag is never proof. A lower/equal official version or another publisher cannot replace an installed official course. Unsigned imports cannot downgrade verified courses.
 
 Custom courses remain unsigned and subject to ordinary import validation. Unverified official files are not automatically converted to custom. Existing Publisher Course files that cannot be verified remain on disk and in Course Manager with Verification required; their progress is preserved and they are excluded from learner delivery. To reactivate, import a newer valid signed release with matching identity/provenance and explicitly confirm association with the existing course.
 
@@ -189,7 +205,7 @@ The checksum is SHA-256 over model-normalized Course.toJson() after excluding of
 
 Publisher checklist: protected key/backup; approved identity and key; completed audit and licenses; prepared payload; signed bytes; attached signature; import/update checked on a trusted-registry app; distribute the tested artifact.
 
-Owner checklist: independent identity check; fingerprint and one-use challenge checked; decision recorded; registry entry reviewed; valid/invalid import tests passed; publisher informed of the supported app version. Keep the normal build free of the Dummy test opt-in.
+Owner checklist: independent identity check; fingerprint and one-use challenge checked; decision recorded; registry entry reviewed; valid/invalid import tests passed; media limits respected and third-party media credited in mediaAttributions; publisher informed of the supported app version. Keep the normal build free of the Dummy test opt-in.
 
 References:
 https://docs.openssl.org/3.0/man1/openssl-genpkey/

@@ -213,6 +213,23 @@ class CourseInfoScreen extends StatefulWidget {
             'Rights Holder is descriptive legal metadata and does not control QQL permissions.',
           ].join('\n'),
         ),
+        if (course.mediaAttributions.isNotEmpty)
+          _InfoCard(
+            key: const Key('course-info-media-credits'),
+            title: 'Media credits',
+            body: [
+              for (final credit in course.mediaAttributions)
+                [
+                  if (credit.title.isNotEmpty) '${credit.title} — ',
+                  credit.author,
+                  ', ',
+                  credit.license,
+                  if (credit.appliesTo.isNotEmpty) ' (${credit.appliesTo})',
+                  if (credit.source.isNotEmpty) '\n  Source: ${credit.source}',
+                ].join(),
+              'Media credits are descriptive and do not control QQL permissions.',
+            ].join('\n'),
+          ),
         _InfoCard(
           title: 'Course details',
           body: [
@@ -406,6 +423,7 @@ class _InfoCard extends StatelessWidget {
   final String? tooltip;
 
   const _InfoCard({
+    super.key,
     required this.title,
     required this.body,
     this.children = const [],

@@ -82,9 +82,26 @@ class CreditsScreen extends StatelessWidget {
             ),
             const SizedBox(height: 6),
             _CreditCard(
+              key: const Key('credits-current-course'),
               title: course!.title,
-              text:
-                  'Course author(s): ${course!.authors.isNotEmpty ? course!.authors.map((a) => '${a.name} (${a.roles.join(', ')})').join(', ') : 'Not specified'}\nContent license: ${course!.license.trim().isEmpty ? 'Not specified' : course!.license.trim()}',
+              text: [
+                'Course author(s): ${course!.authors.isNotEmpty ? course!.authors.map((a) => '${a.name} (${a.roles.join(', ')})').join(', ') : 'Not specified'}',
+                'Content license: ${course!.license.trim().isEmpty ? 'Not specified' : course!.license.trim()}',
+                // The course's own media credits belong where a learner looks
+                // for credits, not only inside the authoring editor.
+                if (course!.mediaAttributions.isNotEmpty) ...[
+                  'Media credits:',
+                  for (final credit in course!.mediaAttributions)
+                    [
+                      '  ',
+                      if (credit.title.isNotEmpty) '${credit.title} — ',
+                      credit.author,
+                      ', ',
+                      credit.license,
+                      if (credit.appliesTo.isNotEmpty) ' (${credit.appliesTo})',
+                    ].join(),
+                ],
+              ].join('\n'),
             ),
             const SizedBox(height: 22),
           ],
@@ -117,7 +134,7 @@ class ImageCreditsScreen extends StatelessWidget {
         _CreditCard(
           title: 'World and language-related flags',
           text:
-              'The 249 ISO flags and eight shortlist flags come from lipis/flag-icons v7.5.0 (MIT). Nineteen community or regional flags associated with languages come from Wikimedia Commons.\n\nAttribution-required artwork:\nAragonese: Willtron — CC BY-SA 3.0\nFriulian: Ipankonin — CC BY-SA 3.0\nSardinian: Angelus — CC BY-SA 3.0\n\nThe remaining language-related files are public domain or CC0. Exact source pages, authors, licenses and pinned checksums are recorded in assets/world_flags/LICENSE-language-related-flags.md.',
+              'The 249 ISO flags and eight shortlist flags come from lipis/flag-icons v7.5.0 (MIT). Twenty-four community or regional flags associated with languages come from Wikimedia Commons.\n\nAttribution-required artwork:\nAragonese: Willtron — CC BY-SA 3.0\nFriulian: Ipankonin — CC BY-SA 3.0\nMirandese: ItsGandaM1ke — CC BY 4.0\nSardinian: Angelus — CC BY-SA 3.0\nVenetian: F l a n k e r — CC BY-SA 3.0\n\nThe other nineteen language-related files are public domain or CC0. Exact source pages, authors, licenses and pinned checksums are recorded in assets/world_flags/LICENSE-language-related-flags.md.',
         ),
         SizedBox(height: 8),
         _CreditCard(
@@ -139,7 +156,7 @@ class ImageCreditsScreen extends StatelessWidget {
 class _CreditCard extends StatelessWidget {
   final String title;
   final String text;
-  const _CreditCard({required this.title, required this.text});
+  const _CreditCard({super.key, required this.title, required this.text});
 
   @override
   Widget build(BuildContext context) => Card(

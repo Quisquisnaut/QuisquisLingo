@@ -172,9 +172,18 @@ class CourseBackupService {
       for (final sourcePath in localPaths) {
         final source = File(sourcePath);
         if (!await source.exists()) {
-          throw StateError(
-            'Course-owned backup asset is missing: ${source.absolute.path}',
-          );
+          // A file that is already gone cannot be lost by the change this
+          // backup precedes, so refusing to back anything up would protect
+          // nothing while making the Course permanently unsaveable: the
+          // pre-change backup reads the persisted Course, so even the edit
+          // that removes the broken reference could never be confirmed.
+          // Record the gap instead; `loadBackup` skips these records and
+          // leaves the clip's stored path untouched on restore.
+          assetRecords.add({
+            'originalPath': source.absolute.path,
+            'missing': 'true',
+          });
+          continue;
         }
         final bytes = await source.readAsBytes();
         final sourceName = source.uri.pathSegments.isEmpty
@@ -275,6 +284,16 @@ class CourseBackupService {
     if (rawAssets is List) {
       for (final raw in rawAssets.whereType<Map>()) {
         final record = raw.map((key, value) => MapEntry('$key', '$value'));
+        // A recorded gap: the file was already missing when the backup was
+        // taken, so there is nothing to validate and nothing to remap. It
+        // must declare neither a path nor a checksum, so this cannot be used
+        // to smuggle an unvalidated asset past the checks below.
+        if (record['missing'] == 'true' &&
+            record['backupRelativePath'] == null &&
+            record['sha256'] == null) {
+          assets.add(record);
+          continue;
+        }
         final relative = record['backupRelativePath'];
         final expected = record['sha256'];
         if (relative == null ||
