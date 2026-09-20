@@ -111,6 +111,14 @@ diventava **impossibile da salvare per sempre**.
       di file.
 - [ ] Ripeti in italiano: stesse informazioni, e non deve comparire "senza
       finestra di selezione file".
+- [ ] Apri la guida tecnica Publisher dall'Help: le sezioni **7a. Media a
+      Publisher Course can and cannot carry** e **7b. Media credits** spiegano
+      i limiti del JSON, il rifiuto delle registrazioni Publisher fuori da
+      `assets/` e i crediti. Verifica apertura, scorrimento e leggibilità su
+      schermo stretto, in tema chiaro e scuro.
+- [ ] Ripeti i controlli di layout su Android. I nuovi pulsanti dei dialoghi
+      nativi **Open from… / Save to…** restano nascosti su Android, dove il
+      backend non è ancora implementato; su Windows devono essere disponibili.
 
 ## 7. Libreria immagini condivisa
 
@@ -173,6 +181,8 @@ C:\QQL\flutter\bin\flutter.bat build windows --release --dart-define=QQL_ENABLE_
       decodifica: le immagini devono restare nitide come prima.
 - [ ] Review e, dove disponibile, Duel funzionano.
 - [ ] Preview dall'Editor non registra progressi.
+- [ ] Aprendo due corsi diversi, **Audio Library** mostra le registrazioni del
+      corso aperto: resta una libreria per corso.
 
 ## Cosa segnalare
 

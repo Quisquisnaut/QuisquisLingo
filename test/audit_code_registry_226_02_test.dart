@@ -27,7 +27,7 @@ void main() {
         definitions
             .where((rule) => rule.severity == AuditSeverity.warning)
             .length,
-        26,
+        27,
       );
       expect(
         definitions.where((rule) => rule.severity == AuditSeverity.info).length,

@@ -41,7 +41,11 @@ the tester to run.
 - The imported-media reset now warns that courses using removed recordings will
   need repairing.
 
-No test asserted the old throw, so no tested contract changed.
+The existing transaction regression in
+`test/course_editor_transaction_225_04_test.dart` asserted the old throw. It now
+checks that removing a missing recording succeeds, increments the Course version
+once, and preserves the original Course and the recorded gap in a verified
+pre-change backup. Real backup-write and persistence failures remain blocking.
 
 ## Media credits
 
@@ -106,10 +110,13 @@ Course can and cannot carry.
 
 - **Three obsolete manifests** deleted from `assets/exercise_images/`:
   `manifest.json`, `manifest_external.json` and `image_bank_manifest.json`,
-  about 92 KB shipped in every build. They were read by nothing, two were
+  about 92 KB shipped in every build. Runtime code did not read them, two were
   byte-identical, and all three carried a superseded bilingual tag set that no
   longer matched the live catalogue. A test added in QQL 234 already forbade
   runtime code from reading them; the files themselves were never removed.
+  Two image-integrity tests still read `manifest.json`; the Build 242 follow-up
+  points them at the authoritative `metadata_v2.json` catalogue while retaining
+  the asset-count, dimensions and transparent-border checks.
 - One of them was also the **only Image Bank example in the repository**, and it
   could never be imported: every ID in it belongs to the bundled catalogue, and
   the importer refuses IDs the application already has. A genuine importable

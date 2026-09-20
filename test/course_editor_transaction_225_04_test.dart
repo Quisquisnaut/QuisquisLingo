@@ -283,7 +283,7 @@ void main() {
   });
 
   test(
-    'missing course-owned audio blocks the backup and transaction',
+    'missing course-owned audio is backed up as a gap and can be removed',
     () async {
       final source = Course.fromJson({
         ..._customCourse(title: 'Missing audio', version: '2').toJson(),
@@ -302,19 +302,36 @@ void main() {
       );
       await service.saveUserCourse(source);
 
-      await expectLater(
-        service.confirmCourseTransaction(
-          originalCourse: source,
-          workingCourse: Course.fromJson({
-            ...source.toJson(),
-            'title': 'Must not persist',
-          }),
-          languageCode: 'ZZ',
-          versionNotes: 'blocked with the working copy',
-        ),
-        throwsA(isA<StateError>()),
+      final result = await service.confirmCourseTransaction(
+        originalCourse: source,
+        workingCourse: Course.fromJson({
+          ...source.toJson(),
+          'title': 'Repaired audio',
+          'audioLibrary': <Map<String, dynamic>>[],
+        }),
+        languageCode: 'ZZ',
+        versionNotes: 'Removed missing recording',
       );
-      expect((await service.listUserCourses()).single.title, 'Missing audio');
+      final saved = (await service.listUserCourses()).single;
+      expect(saved.toJson(), result.course.toJson());
+      expect(saved.title, 'Repaired audio');
+      expect(saved.courseVersion, '3');
+      expect(saved.versionNotes, 'Removed missing recording');
+      expect(saved.audioLibrary, isEmpty);
+
+      final history = await backups.listBackups(source.courseId);
+      expect(history, hasLength(1));
+      final backup = history.single;
+      expect(result.backupPath, backup.manifestFile.path);
+      expect(backup.course.toJson(), source.toJson());
+      expect(backup.assets, [
+        {
+          'originalPath': File(
+            source.audioLibrary.single.filePath,
+          ).absolute.path,
+          'missing': 'true',
+        },
+      ]);
     },
   );
 

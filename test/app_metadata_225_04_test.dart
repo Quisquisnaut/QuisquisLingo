@@ -26,9 +26,9 @@ void main() {
 
       expect(AppMetadata.releaseVersion, '2.0.42');
       expect(AppMetadata.buildNumber, '242000');
-      expect(AppMetadata.developmentPhase, '241');
-      expect(AppMetadata.correctiveRevision, 2);
-      expect(AppMetadata.build, '241');
+      expect(AppMetadata.developmentPhase, '242');
+      expect(AppMetadata.correctiveRevision, 0);
+      expect(AppMetadata.build, '242');
       expect(AppMetadata.platformBuildNumber, '242000');
       expect(AppMetadata.technicalVersion, '2.0.42+242000');
       expect(AppMetadata.version, AppMetadata.technicalVersion);

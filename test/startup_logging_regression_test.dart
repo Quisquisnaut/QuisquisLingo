@@ -1,6 +1,9 @@
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:quisquislingo_app/services/exercise_image_service.dart';
+import 'package:quisquislingo_app/services/image_bank_service.dart';
 
 void main() {
   test('first-profile gate owns startup before animation and notices', () {
@@ -119,7 +122,7 @@ void main() {
     );
   });
 
-  test('user-facing filesystem locations use QuisquisLingo branding', () {
+  test('user-facing filesystem locations use QuisquisLingo branding', () async {
     final expectedByFile = <String, List<String>>{
       'lib/services/custom_course_transfer_service.dart': [
         'QuisquisLingo',
@@ -130,7 +133,6 @@ void main() {
         'quisquislingo_',
       ],
       'lib/services/course_flag_service.dart': ['QuisquisLingo'],
-      'lib/services/image_bank_service.dart': ['QuisquisLingo'],
       'lib/services/exercise_image_service.dart': ['QuisquisLingo'],
       'lib/services/recorded_audio_service.dart': [
         'QuisquisLingo',
@@ -145,5 +147,15 @@ void main() {
         expect(source.contains(expected), isTrue, reason: entry.key);
       }
     }
+
+    final documents = await getApplicationDocumentsDirectory();
+    final expectedImageDirectory =
+        '${documents.path}${Platform.pathSeparator}QuisquisLingo'
+        '${Platform.pathSeparator}Imports${Platform.pathSeparator}Images';
+    final imageDirectory = await ExerciseImageService().fixedImportDirectory();
+    final bankDirectory = await ImageBankService().fixedImportDirectory();
+    expect(imageDirectory.path, expectedImageDirectory);
+    expect(bankDirectory.path, expectedImageDirectory);
+    expect(await bankDirectory.exists(), isTrue);
   });
 }

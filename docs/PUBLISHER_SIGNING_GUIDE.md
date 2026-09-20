@@ -159,7 +159,7 @@ Import course-signed.json in a QQL version containing your approved key. Check t
 
 The signature covers the normalized course JSON, including embedded data. For separate media files or URLs, it authenticates only the reference, not the external bytes. Do not advertise those attachments as authenticated. A media-hash manifest and an in-app publishing interface are not implemented.
 
-### Media a Publisher Course can and cannot carry
+## 7a. Media a Publisher Course can and cannot carry
 
 A Course file is a single JSON document. There is no course package and no audio pack, so media either travels inside the JSON or does not travel at all.
 
@@ -171,7 +171,7 @@ Recorded MP3 files are therefore refused. A Publisher Course whose Audio Library
 
 Ordinary exercise images behave the same way but are not currently refused: check before release that every image in your course is either an assets/ path or an embedded Recognize characters image, or learners will see a missing-image notice.
 
-### Media credits
+## 7b. Media credits
 
 Record the author and licence of any third-party image or recording in Course Info Editor, under License / Rights. The entries are stored in the course's mediaAttributions and are therefore inside the signed payload, so they are tamper-evident and they travel with the file even when the media bytes do not. Course Audit raises a warning when a course carries media of its own and records no credit; the warning does not block export or import. Media supplied with QuisquisLingo is already credited in the application and needs no entry.
 

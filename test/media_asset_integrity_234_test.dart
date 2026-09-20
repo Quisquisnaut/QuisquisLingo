@@ -5,6 +5,7 @@ import 'dart:ui' as ui;
 import 'package:crypto/crypto.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:quisquislingo_app/services/exercise_image_metadata_service.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -18,6 +19,20 @@ void main() {
 
   Uint8List bytesFromBundle(ByteData data) =>
       data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);
+
+  List<String> bundledImagePaths() {
+    final catalog =
+        jsonDecode(
+              File(
+                ExerciseImageMetadataService.bundledCatalogAsset,
+              ).readAsStringSync(),
+            )
+            as Map<String, dynamic>;
+    expect(catalog['schemaVersion'], 1);
+    final records = (catalog['records'] as List).cast<Map<String, dynamic>>();
+    expect(records, hasLength(111));
+    return records.map((entry) => entry['assetPath'] as String).toList();
+  }
 
   test('all 19 existing audio assets are exact, hash-locked files', () {
     final expected = lockedAudioHashes();
@@ -89,17 +104,8 @@ void main() {
       'hat.webp',
       'hospital.webp',
     };
-    final manifest =
-        jsonDecode(
-              File('assets/exercise_images/manifest.json').readAsStringSync(),
-            )
-            as List<dynamic>;
-    final filenames = manifest
-        .map(
-          (entry) => File(
-            (entry as Map<String, dynamic>)['assetPath'] as String,
-          ).uri.pathSegments.last,
-        )
+    final filenames = bundledImagePaths()
+        .map((assetPath) => File(assetPath).uri.pathSegments.last)
         .toSet();
 
     // The 92 non-clean audit entries are semantic replacements. Five of the
@@ -113,15 +119,7 @@ void main() {
   });
 
   test('every exercise image has a fully transparent outer border', () async {
-    final manifest =
-        jsonDecode(
-              File('assets/exercise_images/manifest.json').readAsStringSync(),
-            )
-            as List<dynamic>;
-
-    for (final rawEntry in manifest) {
-      final entry = Map<String, dynamic>.from(rawEntry as Map);
-      final assetPath = entry['assetPath'] as String;
+    for (final assetPath in bundledImagePaths()) {
       final buffer = await ui.ImmutableBuffer.fromUint8List(
         File(assetPath).readAsBytesSync(),
       );

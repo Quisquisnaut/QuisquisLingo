@@ -453,11 +453,14 @@ because `AGENTS.md` requires the check to be made explicitly.
 - **C7 (F8).** Delete `assets/exercise_images/manifest.json`,
   `manifest_external.json` and `image_bank_manifest.json`.
 
-  **Cost: three file deletions, nothing else.** Verified: neither
+  **Cost: three file deletions and updating two image-integrity tests.** Neither
   `tools/validate_images.py` nor `tools/validate_media_assets.py` reads them —
   the `manifest.json` the latter loads is `assets/world_flags/manifest.json`, a
   different file. `exercise_image_manifest_234_test.dart` asserts on source-code
-  text, not file existence, so it is unaffected. Git history keeps the files if
+  text, not file existence, so it is unaffected. The subsequent full-suite
+  diagnosis found two tests in `media_asset_integrity_234_test.dart` still reading
+  `manifest.json`; they must use the authoritative `metadata_v2.json` catalogue.
+  Git history keeps the files if
   they are ever wanted back.
 
   Rationale: anything under `assets/` is packed into the app and shipped to every
