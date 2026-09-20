@@ -6,6 +6,8 @@
 
 Current project version: 2.0.41
 
+See the [complete Build 241 Revision 2 change summary](docs/241_CHANGE_SUMMARY.md), including the initial Claude WIP, subsequent implementation, validation and delivery limits.
+
 QQL 241 completes the course file-store integration: custom and installed official courses use individual files under application support, Reset removes those files for the appropriate scopes, and Inventory reports their real paths and sizes. Tests use isolated directories and explicit save/UI completion conditions. Old course preference blobs are not migrated. Final validation passed (1,879 full-suite tests, plus 8 focused tests for the final Publisher title color); see `docs/241_VALIDATION.md`.
 
 **QuisquisLingo 2.0.40 Beta — QQL 240 native file dialogs (Save to… / Open from…)**

@@ -1,5 +1,7 @@
 # 2.0.41 (Build 241, Revision 2) - Personal course libraries - 2026-09-20
 
+Complete scope, including Claude's initial file-store, backup, TTS, image-validation and Help work: [Build 241 Revision 2 change summary](docs/241_CHANGE_SUMMARY.md).
+
 - Platform version `2.0.41+241002`; Beta expiry **2026-10-20 23:59:59 local time**. Includes the file-store and publisher-signature work described below.
 - Rename the user-visible external category to Publisher Course; retain the internal origin identifier. Unsigned Publisher imports explain that a signature is required.
 - Add per-profile course membership and Available on this device with four alphabetical sections, Maintainer labels, Add/Remove controls and dedicated Help. Adding another author's Custom course does not grant editing rights.
