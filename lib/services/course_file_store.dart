@@ -38,8 +38,11 @@ class CourseFileStore {
   }) : _supportDirectory = supportDirectory ?? getApplicationSupportDirectory,
        _fileWriter = fileWriter;
 
-  /// Versioned so a later storage change can be another clean cut.
-  static const rootDirectoryName = 'qql_courses_v1';
+  /// Versioned so a later storage change can be another clean cut. `v2`
+  /// arrived with Course Model v11: the `qql_courses_v1` tree holds v9/v10
+  /// Courses, is left on disk untouched and is never read, so one unreadable
+  /// old Course cannot block every Course list.
+  static const rootDirectoryName = 'qql_courses_v2';
 
   /// Per Course, replacing the old 8 MB cap on all courses combined. It matches
   /// the import limit, so anything importable is storable.

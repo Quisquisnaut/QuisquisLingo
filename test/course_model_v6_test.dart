@@ -24,11 +24,11 @@ void main() {
       () async {
         final raw = await rootBundle.loadString('assets/courses/$file');
         final json = jsonDecode(raw) as Map<String, dynamic>;
-        expect(json['formatVersion'], 9);
+        expect(json['formatVersion'], 11);
         expect(json.containsKey('topics'), isFalse);
         expect(json.containsKey('chapters'), isFalse);
         final course = Course.fromJson(json);
-        expect(course.formatVersion, 9);
+        expect(course.formatVersion, 11);
         expect(course.lessons, hasLength(9));
         expect(
           course.lessons.map((lesson) => lesson.lessonId).toSet(),
@@ -49,7 +49,7 @@ void main() {
           expect(lesson.duel.id.trim(), isNotEmpty);
         }
         final encoded = course.toJson();
-        expect(encoded['formatVersion'], 9);
+        expect(encoded['formatVersion'], 11);
         expect(encoded.containsKey('chapters'), isFalse);
         expect(
           (encoded['lessons'] as List).map(
@@ -98,7 +98,7 @@ void main() {
     expect(
       () => Course.fromJson({
         ...base,
-        'formatVersion': 9,
+        'formatVersion': 11,
         'chapters': <Object>[],
       }),
       throwsFormatException,

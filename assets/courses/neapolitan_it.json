@@ -1,5 +1,5 @@
 {
-  "formatVersion": 9,
+  "formatVersion": 11,
   "publicationState": "published",
   "lessonNumberingMode": "lesson",
   "defaultLessonIconStyle": "monochrome",
@@ -7,9 +7,9 @@
   "originType": "bundledOfficial",
   "publisherId": "org.quisquislingo",
   "publisherName": "QuisquisLingo",
-  "officialCourseVersion": "1.0.0",
+  "officialCourseVersion": "1.1.0",
   "officialReleaseDateUtc": "2026-09-13T00:00:00.000Z",
-  "officialChecksum": "e83fa7f37f5d1cf474c42858ac880a969609424393f39858b1daa2832514b745",
+  "officialChecksum": "9bae6b2682ae7d013e8c731b20a2b9e2febccec46387ad25df7a7fdbfeddb4bc",
   "officialReleaseNotes": "QQL 234 bundled Italian-to-Neapolitan AI-Slop Demo.",
   "distributionChannel": "bundled",
   "publisherVerificationStatus": "verified",

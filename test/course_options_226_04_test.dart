@@ -56,7 +56,7 @@ void _expectOptions(Course course) {
   expect(course.useGuidebook, isFalse);
   expect(course.sectionNames, ['Planned', 'Unused']);
   expect(course.worldFlagId, 'italy');
-  expect(course.formatVersion, 9);
+  expect(course.formatVersion, 11);
 }
 
 void main() {
@@ -290,7 +290,7 @@ void main() {
       expect(fork.useGuidebook, source.useGuidebook);
       expect(fork.sectionNames, source.sectionNames);
       expect(fork.worldFlagId, source.worldFlagId);
-      expect(fork.formatVersion, 9);
+      expect(fork.formatVersion, 11);
       expect(fork.forkProvenance!.toJson(), provenance.toJson());
       expect(
         fork.lessons.first.guidebookId,

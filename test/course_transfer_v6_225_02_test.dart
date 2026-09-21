@@ -54,7 +54,7 @@ void main() {
           isA<FormatException>().having(
             (error) => error.message,
             'message',
-            contains('formats 9 and 10 only'),
+            contains('format 11 only'),
           ),
         ),
       );

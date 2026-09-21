@@ -793,6 +793,20 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
     final targetLevel = TextEditingController(text: _course.targetLevel);
     final description = TextEditingController(text: _course.courseDescription);
     final buyACoffeeUrl = TextEditingController(text: _course.buyACoffeeUrl);
+    final estimatedHours = TextEditingController(
+      text: _course.estimatedStudyHours?.toString() ?? '',
+    );
+    var minimumAge = _course.minimumAge;
+    final keywords = TextEditingController(text: _course.keywords.join(', '));
+    final contactWebsite = TextEditingController(
+      text: _course.publisherContact?.websiteUrl ?? '',
+    );
+    final contactEmail = TextEditingController(
+      text: _course.publisherContact?.email ?? '',
+    );
+    final minimumAppBuild = TextEditingController(
+      text: _course.minimumAppBuild?.toString() ?? '',
+    );
     final customLicense = TextEditingController(text: _course.license);
     const standardLicenses = CourseMetadataOptions.standardLicenses;
     var selected = standardLicenses.contains(_course.license)
@@ -830,6 +844,11 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
             String targetLevel,
             String description,
             String buyACoffeeUrl,
+            int? estimatedStudyHours,
+            int? minimumAge,
+            List<String> keywords,
+            CoursePublisherContact? publisherContact,
+            int? minimumAppBuild,
             String flagCode,
             String flagImageBase64,
             String worldFlagId,
@@ -1351,6 +1370,100 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
                           helper: Text('HTTPS only; shown in Course Info.'),
                         ),
                       ),
+                      const SizedBox(height: 8),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: TextField(
+                              key: const Key('course-info-estimated-hours'),
+                              controller: estimatedHours,
+                              keyboardType: TextInputType.number,
+                              decoration: const InputDecoration(
+                                border: OutlineInputBorder(),
+                                labelText: 'Estimated study hours (optional)',
+                                helper: Text('Whole number, 1–1000.'),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: DropdownButtonFormField<int?>(
+                              key: const Key('course-info-minimum-age'),
+                              initialValue: minimumAge,
+                              isExpanded: true,
+                              decoration: const InputDecoration(
+                                border: OutlineInputBorder(),
+                                labelText: 'Minimum age',
+                                helper: Text('App Store age classes.'),
+                              ),
+                              items: [
+                                const DropdownMenuItem<int?>(
+                                  value: null,
+                                  child: Text('Not specified'),
+                                ),
+                                for (final age in Course.minimumAgeClasses)
+                                  DropdownMenuItem<int?>(
+                                    value: age,
+                                    child: Text('$age+'),
+                                  ),
+                              ],
+                              onChanged: (value) =>
+                                  setLocalState(() => minimumAge = value),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      TextField(
+                        key: const Key('course-info-keywords'),
+                        controller: keywords,
+                        decoration: const InputDecoration(
+                          border: OutlineInputBorder(),
+                          labelText: 'Keywords (optional)',
+                          helper: Text(
+                            'Separate with commas. Up to 20 keywords of up to 32 characters each.',
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      TextField(
+                        key: const Key('course-info-contact-website'),
+                        controller: contactWebsite,
+                        maxLength: 500,
+                        decoration: const InputDecoration(
+                          border: OutlineInputBorder(),
+                          labelText: 'Publisher website (optional)',
+                          helper: Text(
+                            'HTTPS only; shown as plain text in Course Info.',
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      TextField(
+                        key: const Key('course-info-contact-email'),
+                        controller: contactEmail,
+                        maxLength: 254,
+                        keyboardType: TextInputType.emailAddress,
+                        decoration: const InputDecoration(
+                          border: OutlineInputBorder(),
+                          labelText: 'Publisher email (optional)',
+                          helper: Text('Shown as plain text in Course Info.'),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      TextField(
+                        key: const Key('course-info-minimum-app-build'),
+                        controller: minimumAppBuild,
+                        keyboardType: TextInputType.number,
+                        decoration: InputDecoration(
+                          border: const OutlineInputBorder(),
+                          labelText: 'Minimum QuisquisLingo build (optional)',
+                          helper: Text(
+                            'Older builds refuse this Course. Leave empty unless it needs a recent feature. This is build ${Course.appBuildNumber}.',
+                          ),
+                        ),
+                      ),
                       const SizedBox(height: 14),
                       const Text(
                         'License / Rights',
@@ -1751,9 +1864,47 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
                         : selected;
                     if (license.isEmpty) return;
                     String normalizedBuyACoffeeUrl;
+                    int? parsedHours;
+                    int? parsedMinimumBuild;
+                    List<String> parsedKeywords;
+                    CoursePublisherContact? parsedContact;
                     try {
                       normalizedBuyACoffeeUrl = Course.normalizeBuyACoffeeUrl(
                         buyACoffeeUrl.text,
+                      );
+                      int? wholeNumber(String text, String label) {
+                        final value = text.trim();
+                        if (value.isEmpty) return null;
+                        final parsed = int.tryParse(value);
+                        if (parsed == null) {
+                          throw FormatException(
+                            '$label must be a whole number.',
+                          );
+                        }
+                        return parsed;
+                      }
+
+                      parsedHours = wholeNumber(
+                        estimatedHours.text,
+                        'Estimated study hours',
+                      );
+                      parsedMinimumBuild = wholeNumber(
+                        minimumAppBuild.text,
+                        'Minimum QuisquisLingo build',
+                      );
+                      parsedKeywords = Course.normalizeKeywords(
+                        keywords.text.split(','),
+                      );
+                      parsedContact = CoursePublisherContact.fromFields(
+                        contactWebsite.text,
+                        contactEmail.text,
+                      );
+                      // The model is the one authority on the limits.
+                      Course.validateDescriptiveMetadata(
+                        minimumAppBuild: parsedMinimumBuild,
+                        estimatedStudyHours: parsedHours,
+                        minimumAge: minimumAge,
+                        keywords: parsedKeywords,
                       );
                     } on FormatException catch (error) {
                       if (!ctx.mounted) return;
@@ -1839,6 +1990,11 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
                       targetLevel: targetLevel.text.trim(),
                       description: description.text.trim(),
                       buyACoffeeUrl: normalizedBuyACoffeeUrl,
+                      estimatedStudyHours: parsedHours,
+                      minimumAge: minimumAge,
+                      keywords: parsedKeywords,
+                      publisherContact: parsedContact,
+                      minimumAppBuild: parsedMinimumBuild,
                       flagCode: flagSelection.flagCode,
                       flagImageBase64: flagSelection.flagImageBase64,
                       worldFlagId: flagSelection.selectedWorldFlagId,
@@ -1879,6 +2035,11 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
       targetLevel.dispose();
       description.dispose();
       buyACoffeeUrl.dispose();
+      estimatedHours.dispose();
+      keywords.dispose();
+      contactWebsite.dispose();
+      contactEmail.dispose();
+      minimumAppBuild.dispose();
       customLicense.dispose();
     });
     if (result == null || !mounted) return;
@@ -1908,9 +2069,20 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
         _course.maintainer!.profileId != governedCourse.maintainer!.profileId ||
         _course.assignedTeamId != governedCourse.assignedTeamId;
     if (governanceChanged) _governanceChangedInEditMode = true;
+    final descriptive = <String, Object?>{
+      'estimatedStudyHours': result.estimatedStudyHours,
+      'minimumAge': result.minimumAge,
+      'keywords': result.keywords.isEmpty ? null : result.keywords,
+      'publisherContact': result.publisherContact?.toJson(),
+      'minimumAppBuild': result.minimumAppBuild,
+    };
     _updateDraft(
       Course.fromJson({
-        ...governedCourse.toJson(),
+        // Cleared optional fields are omitted, never stored as null.
+        ...governedCourse.toJson()
+          ..removeWhere((key, _) => descriptive.containsKey(key)),
+        for (final entry in descriptive.entries)
+          if (entry.value != null) entry.key: entry.value,
         'title': result.title,
         'authors': result.authors.map((author) => author.toJson()).toList(),
         'rightsHolders': result.rightsHolders

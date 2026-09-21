@@ -1,5 +1,5 @@
 {
-  "formatVersion": 9,
+  "formatVersion": 11,
   "publicationState": "published",
   "lessonNumberingMode": "lesson",
   "defaultLessonIconStyle": "monochrome",
@@ -9,11 +9,11 @@
   "publisherName": "Dummy Publisher — TEST ONLY",
   "officialCourseVersion": "2",
   "officialReleaseDateUtc": "2026-09-06T00:00:00.000Z",
-  "officialChecksum": "3a91d03590232381bc7a04d5140738d6ba0b2f1fce99a647afc903c2dbfc8ae3",
+  "officialChecksum": "1019d2c793dee1f3fefbc1f56270d042d2059598b6b6abc6aeff32992c5c16b2",
   "officialReleaseNotes": "Build 226.02 revision 3 AI-generated sample label update.",
   "distributionChannel": "test-fixture",
   "publisherVerificationStatus": "unverified",
-  "publisherSignature": "qql-ed25519-v1:dummy-1:nYeA+5wNnBrDpdD4OjTcqUTUN78xsQLM9gaaYDL1/jNCFj9R0vEZCXp7cGT73+tTxhfjmQ+VZIxgXSAfaOMgBw==",
+  "publisherSignature": "qql-ed25519-v1:dummy-1:xVMLP0D3DKqyxaT3szjOoerVT1WtYyT2zux79JtOcclgBP6332NB3Qs66BSGAjtR1HER/naCNL2IZZtmzj72Aw==",
   "originalCourseCreator": {
     "type": "publisher",
     "id": "org.quisquislingo.test.dummy",

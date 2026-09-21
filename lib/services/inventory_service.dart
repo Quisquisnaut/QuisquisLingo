@@ -276,14 +276,14 @@ class InventoryService {
       await folder(
         title: 'Exports and backups',
         description:
-            'Learner backups, User Recovery Keys, course exports and the course backups the Course Editor makes automatically before saving changes (in "Course Backups v9").',
+            'Learner backups, User Recovery Keys, course exports and the course backups the Course Editor makes automatically before saving changes (in "Course Backups v11"; an older "Course Backups v9" folder is kept but no longer read).',
         directory: Directory('${documentsRoot.path}${sep}Exports'),
         describe: (file, root) async {
           final rel = _relative(file, root);
           final lower = rel.toLowerCase();
           String kind;
           String? reason;
-          if (lower.contains('course backups v9')) {
+          if (RegExp(r'course backups v\d+').hasMatch(lower)) {
             kind = 'Course backup';
             try {
               if (lower.endsWith('.json') &&

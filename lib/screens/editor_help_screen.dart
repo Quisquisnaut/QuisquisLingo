@@ -174,7 +174,7 @@ class _TechnicalLinks extends StatelessWidget {
           ),
           ListTile(
             contentPadding: EdgeInsets.zero,
-            title: Text('QuisquisLingo Course Models v9/v10'),
+            title: Text('QuisquisLingo Course Model v11'),
             trailing: Icon(Icons.chevron_right),
             onTap: () => Navigator.of(context).push(
               MaterialPageRoute(
@@ -429,12 +429,12 @@ class CourseModelV4HelpScreen extends StatelessWidget {
   const CourseModelV4HelpScreen({super.key});
   @override
   Widget build(BuildContext context) => _TechnicalPage(
-    title: 'QuisquisLingo Course Models v9/v10',
+    title: 'QuisquisLingo Course Model v11',
     sections: const [
       _HelpSection(
         title: 'Status',
         body:
-            'Work in progress. QuisquisLingo uses formatVersion 9 as its only native Course Model. Earlier formats are rejected without migration or deletion. Every custom Course requires an immutable Original Course Creator and one individual Course Maintainer; an optional Assigned Team remains separate.',
+            'Work in progress. QuisquisLingo uses formatVersion 11 as its only native Course Model. Earlier formats are rejected without migration or deletion. Every custom Course requires an immutable Original Course Creator and one individual Course Maintainer; an optional Assigned Team remains separate.',
       ),
       _HelpSection(
         title: 'Hierarchy',
@@ -479,7 +479,7 @@ class ExercisePrimitivesHelpScreen extends StatelessWidget {
       _HelpSection(
         title: 'Status',
         body:
-            'Work in progress. The current primitive set is the implemented Course Models v9/v10 baseline.',
+            'Work in progress. The current primitive set is the implemented Course Model v11 baseline.',
       ),
       _HelpSection(
         title: 'Exercise anatomy',
@@ -528,7 +528,7 @@ class JsonV4HelpScreen extends StatelessWidget {
       _HelpSection(
         title: 'Root',
         body:
-            'The root contains formatVersion, Course metadata and lessons[]. Bundled samples use the native v9 model; custom Courses use v9 or, for merged Courses, v10. Custom roots require immutable originalCourseCreator provenance and one individual maintainer; optional assignedTeamId is separate, while Team membership itself remains outside Course JSON. Earlier Course Models are not read or migrated.',
+            'The root contains formatVersion, Course metadata and lessons[]. Bundled samples and custom Courses use the native v11 model; a merged Course also carries mergeProvenance. Custom roots require immutable originalCourseCreator provenance and one individual maintainer; optional assignedTeamId is separate, while Team membership itself remains outside Course JSON. Earlier Course Models are not read or migrated.',
       ),
       _HelpSection(
         title: 'Guidebook',
@@ -553,7 +553,7 @@ class JsonV4HelpScreen extends StatelessWidget {
       _HelpSection(
         title: 'Compatibility',
         body:
-            'Bundled Courses are native Course Model v9; custom Courses are native v9 or v10. Every earlier format is unsupported and is not read, migrated, converted or deleted. Attribution, provenance and Rights Holder metadata never grant Course permissions or infer Team assignment.',
+            'Bundled Courses are native Course Model v11, and so are custom Courses. Every earlier format is unsupported and is not read, migrated, converted or deleted. Attribution, provenance and Rights Holder metadata never grant Course permissions or infer Team assignment.',
       ),
     ],
   );

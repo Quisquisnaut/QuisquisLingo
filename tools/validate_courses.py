@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Offline structural validation for bundled Course Model v9 JSON."""
+"""Offline structural validation for bundled Course Model v11 JSON."""
 from __future__ import annotations
 
 import base64
@@ -111,8 +111,8 @@ def validate(path: Path, global_ids: dict[str, str]) -> list[str]:
         else:
             global_ids[value] = path.name
 
-    if data.get("formatVersion") != 9:
-        issues.append("root: formatVersion must be 9; legacy formats are unsupported")
+    if data.get("formatVersion") != 11:
+        issues.append("root: formatVersion must be 11; legacy formats are unsupported")
     if data.get("publicationState") not in PUBLICATION_STATES:
         issues.append("root: invalid publicationState")
     if data.get("lessonNumberingMode") not in LESSON_NUMBERING_MODES:
@@ -527,7 +527,7 @@ def main() -> int:
         print(f"{path.name}: {'OK' if not issues else f'{len(issues)} issue(s)'}")
         for issue in issues:
             print(f"  - {issue}")
-    print(f"Validated {len(files)} bundled Course Model v9 files.")
+    print(f"Validated {len(files)} bundled Course Model v11 files.")
     return 1 if total else 0
 
 

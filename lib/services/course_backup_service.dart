@@ -33,7 +33,7 @@ class CourseBackupRecord {
 /// Durable, course-scoped backups for final Course Editor transactions.
 ///
 /// Backups live outside application storage under the existing resolved
-/// Documents/QuisquisLingo/Exports tree. A manifest contains the complete v9
+/// Documents/QuisquisLingo/Exports tree. A manifest contains the complete v11
 /// course plus SHA-256 integrity data; local course-owned file assets are
 /// copied alongside it when they exist.
 class CourseBackupService {
@@ -51,7 +51,9 @@ class CourseBackupService {
 
   final PublisherVerificationService _publisherVerification;
 
-  static const backupFormat = 'QuisquisLingo Course Backup v9';
+  // v11 clean cut: `Course Backups v9` holds v9/v10 Courses and is left
+  // untouched and unread, so an old backup cannot block Version History.
+  static const backupFormat = 'QuisquisLingo Course Backup v11';
   final Future<Directory> Function() _documentsDirectoryProvider;
   final Future<void> Function(File file, List<int> bytes)? _fileWriter;
   final Future<bool> Function(Uri uri)? _uriLauncher;
@@ -60,7 +62,7 @@ class CourseBackupService {
     final documents = await _documentsDirectoryProvider();
     final directory = Directory(
       '${documents.path}${Platform.pathSeparator}QuisquisLingo'
-      '${Platform.pathSeparator}Exports${Platform.pathSeparator}Course Backups v9',
+      '${Platform.pathSeparator}Exports${Platform.pathSeparator}Course Backups v11',
     );
     if (create) await directory.create(recursive: true);
     return directory;

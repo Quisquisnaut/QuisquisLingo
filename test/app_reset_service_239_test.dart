@@ -268,7 +268,7 @@ void main() {
 
   for (final scope in AppResetScope.values) {
     test('course files follow the ${scope.name} reset scope', () async {
-      final courseRoot = '${support.path}${sep}qql_courses_v1';
+      final courseRoot = '${support.path}${sep}qql_courses_v2';
       touch('$courseRoot${sep}custom${sep}draft.json');
       touch('$courseRoot${sep}external_official${sep}official.json');
       touch('$courseRoot${sep}custom${sep}interrupted.json.tmp');
@@ -286,7 +286,7 @@ void main() {
   test('preview detects course files without preference records', () async {
     expect((await service.preview()).hasCustomCourses, isFalse);
     touch(
-      '${support.path}${sep}qql_courses_v1${sep}external_official${sep}broken.json',
+      '${support.path}${sep}qql_courses_v2${sep}external_official${sep}broken.json',
     );
     expect((await service.preview()).hasCustomCourses, isTrue);
   });

@@ -6,7 +6,7 @@ Build 241 now verifies Ed25519 publisher signatures for Publisher Course imports
 
 Publisher approval is a manual owner process. The owner maintains the public-key registry in lib/services/trusted_publishers.dart and distributes changes with an app update. There is no approval portal or in-app signing button. A developer command and OpenSSL provide course signing outside the app.
 
-Course Model v9/v10 is unchanged. The signature protocol is qql-ed25519-v1. Focused verification does not constitute final release validation; Build 241 still awaits the owner's final validation approval.
+The Course Model is v11 (Build 243); v9/v10 Publisher Courses must be converted with tools/convert_course_to_v11.dart and signed again. The signature protocol is qql-ed25519-v1. Focused verification does not constitute final release validation; Build 241 still awaits the owner's final validation approval.
 
 ## 1. Roles and tools
 
@@ -132,7 +132,7 @@ Approval authenticates the publisher identity, not ownership of every course ID 
 
 ## 7. Publisher: sign and distribute a course
 
-Start with a valid externalOfficial JSON for Course Model v9/v10, with your exact approved publisherId and publisherName, publisher lineage, stable courseId and release metadata. For an update retain the course ID/provenance and increase officialCourseVersion. Resolve blocking Course Audit errors and check content/media licenses. The tool does not convert custom courses or invent publisher metadata.
+Start with a valid externalOfficial JSON for Course Model v11, with your exact approved publisherId and publisherName, publisher lineage, stable courseId and release metadata. For an update retain the course ID/provenance and increase officialCourseVersion. Resolve blocking Course Audit errors and check content/media licenses. The tool does not convert custom courses or invent publisher metadata.
 
 Run from the QQL repository. Replace dummy-1 with your approved keyId and use your actual input/output/key paths. The examples use a separate working folder named C:/QQL-Publisher:
 

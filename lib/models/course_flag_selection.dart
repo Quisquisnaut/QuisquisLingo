@@ -6,7 +6,7 @@ enum CourseFlagSelectionKind { automatic, builtIn, worldFlag, customImage }
 /// A self-contained Course flag value.
 ///
 /// It deliberately carries no source-Course identity. Applying a selection
-/// writes only the existing Course Model v9 flag fields.
+/// writes only the existing Course Model v11 flag fields.
 class CourseFlagSelection {
   final CourseFlagSelectionKind kind;
   final String builtInCode;

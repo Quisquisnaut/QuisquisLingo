@@ -202,7 +202,7 @@ void main() {
         result.backupPath,
         contains(
           '${Platform.pathSeparator}QuisquisLingo${Platform.pathSeparator}Exports'
-          '${Platform.pathSeparator}Course Backups v9${Platform.pathSeparator}'
+          '${Platform.pathSeparator}Course Backups v11${Platform.pathSeparator}'
           '${source.courseId}${Platform.pathSeparator}',
         ),
       );

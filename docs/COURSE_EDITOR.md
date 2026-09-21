@@ -232,7 +232,7 @@ QQL 233.03 uses clean Course Model v9/build-233030 namespaces for custom Courses
 
 Each successful confirmation of an existing custom course first writes a verified backup below:
 
-`Documents/QuisquisLingo/Exports/Course Backups v9/<sanitized courseId>`
+`Documents/QuisquisLingo/Exports/Course Backups v11/<sanitized courseId>` (Build 243; the former `Course Backups v9` folder of v9/v10 Courses is kept but no longer read)
 
 The manifest contains the complete Course Model v9 JSON, Original Course Creator/Created and fork provenance, individual Maintainer, optional Team assignment, structured attribution, License/Rights Holder metadata, custom or official versions, Last Version Editor, Modified timestamp, reason, optional version notes, SHA-256 integrity data and referenced managed audio. Timestamps are displayed in local date and time. Asset copies are verified before persistence begins. Backups are never pruned or silently deleted.
 

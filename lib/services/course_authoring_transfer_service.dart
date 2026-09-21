@@ -365,6 +365,15 @@ class CourseAuthoringTransferService {
     mediaAttributions: source.mediaAttributions,
     derivativeWorksPolicy: source.derivativeWorksPolicy,
     forkProvenance: source.forkProvenance,
+    // v11 makes merge provenance optional, so omitting it here would silently
+    // drop it instead of failing as v10 did.
+    mergeProvenance: source.mergeProvenance,
+    minimumAppBuild: source.minimumAppBuild,
+    publisherContact: source.publisherContact,
+    estimatedStudyHours: source.estimatedStudyHours,
+    minimumAge: source.minimumAge,
+    keywords: source.keywords,
+    coverImage: source.coverImage,
     languageVariant: source.languageVariant,
     startLevel: source.startLevel,
     targetLevel: source.targetLevel,

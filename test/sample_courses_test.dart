@@ -20,7 +20,7 @@ void main() {
     test('$file has nine direct temporary-sample Lessons', () async {
       final raw = await rootBundle.loadString('assets/courses/$file');
       final data = jsonDecode(raw) as Map<String, dynamic>;
-      expect(data['formatVersion'], 9);
+      expect(data['formatVersion'], 11);
       expect(data['temporarySample'], isTrue);
       expect(data.containsKey('chapters'), isFalse);
       final lessons = (data['lessons'] as List).cast<Map<String, dynamic>>();

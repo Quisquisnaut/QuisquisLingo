@@ -368,7 +368,7 @@ Future<void> _openFixtureLesson(WidgetTester tester) async {
 // constructors and toJson. This is not a user's Course or bundled content.
 const _rawDraftLessonCourse = r'''
 {
-  "formatVersion": 9,
+  "formatVersion": 11,
   "publicationState": "published",
   "lessonNumberingMode": "lesson",
   "defaultLessonIconStyle": "monochrome",

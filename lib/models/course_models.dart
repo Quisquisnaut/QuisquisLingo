@@ -1,14 +1,18 @@
 import 'dart:convert';
 import 'dart:math';
 
-/// QuisquisLingo Course Model v9.
+import '../services/app_metadata.dart';
+
+/// QuisquisLingo Course Model v11.
 ///
-/// The serialized course format is formatVersion 9. Course content is stored as
+/// The serialized course format is formatVersion 11, the single accepted
+/// format: v9 and v10 are clean-cut and never read. A merged Course is an
+/// ordinary v11 Course that also carries mergeProvenance. Course content is stored as
 /// Course > Lesson > Guidebook + Round > Content. Exercises are one Content kind
 /// and are represented through Prompt + Interaction + Evaluation primitives.
 ///
 /// A few read-only convenience getters expose the author-friendly vocabulary
-/// used by the existing learner/editor widgets. They are derived from the v9
+/// used by the existing learner/editor widgets. They are derived from the v11
 /// primitives and are not a second runtime model.
 
 enum PublicationState {
@@ -290,7 +294,7 @@ class CourseAuthor {
   factory CourseAuthor.fromJson(Map<String, dynamic> json) {
     if (json.containsKey('role')) {
       throw const FormatException(
-        'Course Model v9 uses author.roles and does not support author.role.',
+        'Course Model v11 uses author.roles and does not support author.role.',
       );
     }
     final parsed = <String>[];
@@ -583,7 +587,7 @@ class CourseForkProvenance {
     ]) {
       if (json.containsKey(removed)) {
         throw FormatException(
-          'Course Model v9 does not support forkProvenance.$removed.',
+          'Course Model v11 does not support forkProvenance.$removed.',
         );
       }
     }
@@ -727,12 +731,82 @@ class CourseMergeProvenance {
   }
 }
 
+/// How to reach a Course's publisher or author. Descriptive only: the
+/// application shows it as plain text and never contacts anyone by itself.
+class CoursePublisherContact {
+  final String websiteUrl;
+  final String email;
+
+  CoursePublisherContact({String websiteUrl = '', String email = ''})
+    : websiteUrl = websiteUrl.trim(),
+      email = email.trim() {
+    if (this.websiteUrl.isEmpty && this.email.isEmpty) {
+      throw const FormatException(
+        'course.publisherContact needs a website or an email.',
+      );
+    }
+    if (this.websiteUrl.isNotEmpty) {
+      final uri = Uri.tryParse(this.websiteUrl);
+      if (this.websiteUrl.length > 500 ||
+          uri == null ||
+          uri.scheme.toLowerCase() != 'https' ||
+          !uri.hasAuthority ||
+          uri.host.isEmpty) {
+        throw const FormatException(
+          'Publisher website must be a valid HTTPS URL.',
+        );
+      }
+    }
+    if (this.email.isNotEmpty &&
+        (this.email.length > 254 ||
+            !RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(this.email))) {
+      throw const FormatException('Publisher email is not a valid address.');
+    }
+  }
+
+  /// Null when both values are blank, so an empty editor form clears it.
+  static CoursePublisherContact? fromFields(String websiteUrl, String email) =>
+      websiteUrl.trim().isEmpty && email.trim().isEmpty
+      ? null
+      : CoursePublisherContact(websiteUrl: websiteUrl, email: email);
+
+  Map<String, dynamic> toJson() => {
+    if (websiteUrl.isNotEmpty) 'websiteUrl': websiteUrl,
+    if (email.isNotEmpty) 'email': email,
+  };
+
+  factory CoursePublisherContact.fromJson(Map<String, dynamic> json) {
+    for (final key in const ['websiteUrl', 'email']) {
+      if (json.containsKey(key) && json[key] is! String) {
+        throw FormatException('course.publisherContact.$key must be a string.');
+      }
+    }
+    return CoursePublisherContact(
+      websiteUrl: json['websiteUrl'] as String? ?? '',
+      email: json['email'] as String? ?? '',
+    );
+  }
+}
+
 class Course {
-  static const int currentFormatVersion = 9;
-  static const int mergedFormatVersion = 10;
+  static const int currentFormatVersion = 11;
+
+  /// App Store age-rating classes accepted by [minimumAge].
+  static const List<int> minimumAgeClasses = [4, 9, 13, 16, 18];
+  static const int maxEstimatedStudyHours = 1000;
+  static const int maxKeywords = 20;
+  static const int maxKeywordLength = 32;
+
+  /// A cover is a course-media reference: `media:<sha256>.<ext>`.
+  static final RegExp coverImagePattern = RegExp(
+    r'^media:[0-9a-f]{64}\.(png|jpg|jpeg|webp)$',
+  );
+
+  /// This application's build, compared with [minimumAppBuild].
+  static final int appBuildNumber = int.parse(AppMetadata.buildNumber);
 
   /// In-memory fixture identity used only by direct Dart constructors.
-  /// Serialized v9 custom JSON must still provide lineage and Maintainer
+  /// Serialized v11 custom JSON must still provide lineage and Maintainer
   /// metadata explicitly,
   /// and storage authorization never grants this detached identity rights.
   static const String detachedInMemoryProfileId =
@@ -785,6 +859,18 @@ class Course {
   final DerivativeWorksPolicy derivativeWorksPolicy;
   final CourseForkProvenance? forkProvenance;
   final CourseMergeProvenance? mergeProvenance;
+
+  /// Lowest application build that may open this Course; null when unset.
+  final int? minimumAppBuild;
+  final CoursePublisherContact? publisherContact;
+  final int? estimatedStudyHours;
+
+  /// Minimum suitable age as an App Store class (4, 9, 13, 16 or 18).
+  final int? minimumAge;
+  final List<String> keywords;
+
+  /// Stored and validated only; the application does not display it yet.
+  final String coverImage;
   final String languageVariant;
   final String startLevel;
   final String targetLevel;
@@ -847,6 +933,12 @@ class Course {
     this.derivativeWorksPolicy = DerivativeWorksPolicy.unspecified,
     this.forkProvenance,
     this.mergeProvenance,
+    this.minimumAppBuild,
+    this.publisherContact,
+    this.estimatedStudyHours,
+    this.minimumAge,
+    List<String> keywords = const [],
+    this.coverImage = '',
     this.languageVariant = '',
     this.startLevel = '',
     this.targetLevel = '',
@@ -903,26 +995,27 @@ class Course {
                ? detachedInMemoryTimestamp
                : officialReleaseDateUtc),
        sectionNames = _normalizeSectionNames(sectionNames),
+       keywords = List.unmodifiable(keywords),
        worldFlagId = worldFlagId.trim(),
        customLessonLabel = customLessonLabel.trim(),
        buyACoffeeUrl = normalizeBuyACoffeeUrl(buyACoffeeUrl) {
-    if (formatVersion != currentFormatVersion &&
-        formatVersion != mergedFormatVersion) {
+    if (formatVersion != currentFormatVersion) {
       throw FormatException(
         'Unsupported course formatVersion: $formatVersion.',
       );
     }
-    if (formatVersion == currentFormatVersion && mergeProvenance != null) {
+    if (mergeProvenance != null && originType != CourseOriginType.custom) {
       throw const FormatException(
-        'Course Model v9 does not support mergeProvenance.',
+        'Only custom Courses can have merge provenance.',
       );
     }
-    if (formatVersion == mergedFormatVersion &&
-        (originType != CourseOriginType.custom || mergeProvenance == null)) {
-      throw const FormatException(
-        'Course Model v10 is reserved for merged custom Courses.',
-      );
-    }
+    validateDescriptiveMetadata(
+      minimumAppBuild: minimumAppBuild,
+      estimatedStudyHours: estimatedStudyHours,
+      minimumAge: minimumAge,
+      keywords: this.keywords,
+      coverImage: coverImage,
+    );
     if (originType.isOfficial && forkProvenance != null) {
       throw const FormatException(
         'Only custom courses can have fork provenance.',
@@ -1040,6 +1133,79 @@ class Course {
     }
   }
 
+  /// The one validator for the optional v11 descriptive fields, shared by the
+  /// constructor and the Course Info Editor.
+  static void validateDescriptiveMetadata({
+    int? minimumAppBuild,
+    int? estimatedStudyHours,
+    int? minimumAge,
+    List<String> keywords = const [],
+    String coverImage = '',
+  }) {
+    final build = minimumAppBuild;
+    if (build != null) {
+      if (build < 1) {
+        throw const FormatException(
+          'course.minimumAppBuild must be a positive whole number.',
+        );
+      }
+      if (build > appBuildNumber) {
+        throw FormatException(
+          'This Course requires QuisquisLingo build $build or later. '
+          'This is build $appBuildNumber. Update QuisquisLingo to use it.',
+        );
+      }
+    }
+    final hours = estimatedStudyHours;
+    if (hours != null && (hours < 1 || hours > maxEstimatedStudyHours)) {
+      throw const FormatException(
+        'course.estimatedStudyHours must be a whole number from 1 to 1000.',
+      );
+    }
+    if (minimumAge != null && !minimumAgeClasses.contains(minimumAge)) {
+      throw const FormatException(
+        'course.minimumAge must be one of 4, 9, 13, 16 or 18.',
+      );
+    }
+    if (keywords.length > maxKeywords) {
+      throw const FormatException(
+        'course.keywords accepts at most 20 keywords.',
+      );
+    }
+    final seen = <String>{};
+    for (final keyword in keywords) {
+      if (keyword.isEmpty || keyword != keyword.trim()) {
+        throw const FormatException(
+          'course.keywords entries must be non-empty and trimmed.',
+        );
+      }
+      if (keyword.length > maxKeywordLength) {
+        throw const FormatException(
+          'course.keywords entries must be at most 32 characters.',
+        );
+      }
+      if (!seen.add(keyword.toLowerCase())) {
+        throw FormatException('course.keywords repeats "$keyword".');
+      }
+    }
+    if (coverImage.isNotEmpty && !coverImagePattern.hasMatch(coverImage)) {
+      throw const FormatException(
+        'course.coverImage must be a media:<sha256>.<png|jpg|jpeg|webp> reference.',
+      );
+    }
+  }
+
+  /// Trims keywords, drops blank ones and keeps the first spelling of any
+  /// case-insensitive duplicate. Limits are still enforced by the constructor.
+  static List<String> normalizeKeywords(Iterable<String> values) {
+    final seen = <String>{};
+    return [
+      for (final value in values)
+        if (value.trim().isNotEmpty && seen.add(value.trim().toLowerCase()))
+          value.trim(),
+    ];
+  }
+
   /// Exposes existing Lesson assignments without adding redundant Course data.
   List<String> get availableSectionNames => _normalizeSectionNames([
     ...sectionNames,
@@ -1136,6 +1302,13 @@ class Course {
       'derivativeWorksPolicy': derivativeWorksPolicy.name,
     if (forkProvenance != null) 'forkProvenance': forkProvenance!.toJson(),
     if (mergeProvenance != null) 'mergeProvenance': mergeProvenance!.toJson(),
+    if (minimumAppBuild != null) 'minimumAppBuild': minimumAppBuild,
+    if (publisherContact != null)
+      'publisherContact': publisherContact!.toJson(),
+    if (estimatedStudyHours != null) 'estimatedStudyHours': estimatedStudyHours,
+    if (minimumAge != null) 'minimumAge': minimumAge,
+    if (keywords.isNotEmpty) 'keywords': keywords,
+    if (coverImage.isNotEmpty) 'coverImage': coverImage,
     if (languageVariant.isNotEmpty) 'languageVariant': languageVariant,
     if (startLevel.isNotEmpty) 'startLevel': startLevel,
     if (targetLevel.isNotEmpty) 'targetLevel': targetLevel,
@@ -1171,22 +1344,38 @@ class Course {
       );
     }
     final fv = json['formatVersion'];
-    if (fv != currentFormatVersion && fv != mergedFormatVersion) {
+    if (fv != currentFormatVersion) {
       throw FormatException(
-        'Unsupported course formatVersion: $fv. This version of QuisquisLingo supports Course Model formats 9 and 10 only. Older course formats are not migrated or partially loaded.',
+        'Unsupported course formatVersion: $fv. This version of QuisquisLingo supports Course Model format 11 only. Older course formats are not migrated or partially loaded; convert them with tools/convert_course_to_v11.dart.',
       );
     }
-    if (fv == currentFormatVersion && json.containsKey('mergeProvenance')) {
-      throw const FormatException(
-        'Course Model v9 does not support course.mergeProvenance.',
-      );
-    }
-    if (fv == mergedFormatVersion &&
+    if (json.containsKey('mergeProvenance') &&
         (json['mergeProvenance'] is! Map ||
             CourseOriginType.parse(json) != CourseOriginType.custom)) {
       throw const FormatException(
-        'Course Model v10 requires course.mergeProvenance for a custom Course.',
+        'course.mergeProvenance must be an object on a custom Course.',
       );
+    }
+    for (final key in const [
+      'minimumAppBuild',
+      'estimatedStudyHours',
+      'minimumAge',
+    ]) {
+      if (json.containsKey(key) && json[key] is! int) {
+        throw FormatException('course.$key must be a whole number.');
+      }
+    }
+    if (json.containsKey('keywords') &&
+        (json['keywords'] is! List ||
+            (json['keywords'] as List).any((entry) => entry is! String))) {
+      throw const FormatException('course.keywords must be a list of strings.');
+    }
+    if (json.containsKey('coverImage') && json['coverImage'] is! String) {
+      throw const FormatException('course.coverImage must be a string.');
+    }
+    if (json.containsKey('publisherContact') &&
+        json['publisherContact'] is! Map) {
+      throw const FormatException('course.publisherContact must be an object.');
     }
     for (final removed in const [
       'creatorProfileId',
@@ -1207,23 +1396,23 @@ class Course {
     ]) {
       if (json.containsKey(removed)) {
         throw FormatException(
-          'Course Model formatVersion 9 does not support the obsolete course.$removed field.',
+          'Course Model formatVersion 11 does not support the obsolete course.$removed field.',
         );
       }
     }
     if (json.containsKey('topics')) {
       throw const FormatException(
-        'Course Model formatVersion 9 does not support the legacy topics field.',
+        'Course Model formatVersion 11 does not support the legacy topics field.',
       );
     }
     if (json.containsKey('chapters')) {
       throw const FormatException(
-        'Course Model formatVersion 9 does not support chapters.',
+        'Course Model formatVersion 11 does not support chapters.',
       );
     }
     if (json.containsKey('supportUrl')) {
       throw const FormatException(
-        'Course Model formatVersion 9 uses buyACoffeeUrl, not supportUrl.',
+        'Course Model formatVersion 11 uses buyACoffeeUrl, not supportUrl.',
       );
     }
     if (json.containsKey('buyACoffeeUrl') && json['buyACoffeeUrl'] is! String) {
@@ -1264,7 +1453,7 @@ class Course {
       ]) {
         if (json.containsKey(key)) {
           throw FormatException(
-            'Course Model v9 custom courses do not support course.$key.',
+            'Course Model v11 custom courses do not support course.$key.',
           );
         }
       }
@@ -1276,7 +1465,7 @@ class Course {
       ]) {
         if (json.containsKey(key)) {
           throw FormatException(
-            'Course Model v9 official courses do not support course.$key.',
+            'Course Model v11 official courses do not support course.$key.',
           );
         }
       }
@@ -1284,7 +1473,7 @@ class Course {
     final originalCourseCreator = json['originalCourseCreator'];
     if (originalCourseCreator is! Map) {
       throw const FormatException(
-        'Course Model v9 requires course.originalCourseCreator.',
+        'Course Model v11 requires course.originalCourseCreator.',
       );
     }
     final maintainer = json['maintainer'];
@@ -1294,7 +1483,7 @@ class Course {
     }
     if (originType == CourseOriginType.custom && maintainer is! Map) {
       throw const FormatException(
-        'Course Model v9 custom courses require an explicit course.maintainer.',
+        'Course Model v11 custom courses require an explicit course.maintainer.',
       );
     }
     if (originType.isOfficial && maintainer != null) {
@@ -1317,7 +1506,7 @@ class Course {
     if (lastVersionEditorProfileId.isEmpty !=
         lastVersionEditorDisplayName.isEmpty) {
       throw const FormatException(
-        'Course Model v9 requires both Last Version Editor identity fields when either is present.',
+        'Course Model v11 requires both Last Version Editor identity fields when either is present.',
       );
     }
     return Course(
@@ -1417,6 +1606,16 @@ class Course {
               Map<String, dynamic>.from(json['mergeProvenance'] as Map),
             )
           : null,
+      minimumAppBuild: json['minimumAppBuild'] as int?,
+      publisherContact: json.containsKey('publisherContact')
+          ? CoursePublisherContact.fromJson(
+              Map<String, dynamic>.from(json['publisherContact'] as Map),
+            )
+          : null,
+      estimatedStudyHours: json['estimatedStudyHours'] as int?,
+      minimumAge: json['minimumAge'] as int?,
+      keywords: [...(json['keywords'] as List? ?? const []).cast<String>()],
+      coverImage: _optionalString(json, 'coverImage', ''),
       languageVariant: _optionalString(json, 'languageVariant', ''),
       startLevel: _optionalString(json, 'startLevel', ''),
       targetLevel: _optionalString(json, 'targetLevel', ''),
@@ -1719,12 +1918,12 @@ class Lesson {
     }
     if (j.containsKey('id') || j.containsKey('topicId')) {
       throw const FormatException(
-        'Course Model formatVersion 9 Lessons require lessonId and reject legacy Lesson identity fields.',
+        'Course Model formatVersion 11 Lessons require lessonId and reject legacy Lesson identity fields.',
       );
     }
     if (j.containsKey('role') || j.containsKey('assessment')) {
       throw const FormatException(
-        'Course Model formatVersion 9 Lessons do not support role or assessment fields.',
+        'Course Model formatVersion 11 Lessons do not support role or assessment fields.',
       );
     }
     final rawGuidebook = j['guidebook'];
@@ -1742,7 +1941,7 @@ class Lesson {
     }
     if (j.containsKey('imageAsset')) {
       throw const FormatException(
-        'Course Model formatVersion 9 Lessons do not support the obsolete imageAsset field.',
+        'Course Model formatVersion 11 Lessons do not support the obsolete imageAsset field.',
       );
     }
     if (j.containsKey('sectionName') &&
@@ -2225,19 +2424,19 @@ class ExerciseEvaluation {
   factory ExerciseEvaluation.fromJson(Map<String, dynamic> j) {
     if (j.containsKey('accepted')) {
       throw const FormatException(
-        'Course Model formatVersion 9 uses acceptedAnswers and does not load the legacy accepted field.',
+        'Course Model formatVersion 11 uses acceptedAnswers and does not load the legacy accepted field.',
       );
     }
     if (j.containsKey('correctOrder')) {
       throw const FormatException(
-        'Course Model formatVersion 9 requires correctOrders and does not load the legacy single correctOrder field.',
+        'Course Model formatVersion 11 requires correctOrders and does not load the legacy single correctOrder field.',
       );
     }
     if (j.containsKey('caseSensitive') ||
         j.containsKey('ignorePunctuation') ||
         j.containsKey('ignoreAccents')) {
       throw const FormatException(
-        'Course Model formatVersion 9 requires the normalization object and does not load legacy normalization flags.',
+        'Course Model formatVersion 11 requires the normalization object and does not load legacy normalization flags.',
       );
     }
     final normalization = j['normalization'] is Map

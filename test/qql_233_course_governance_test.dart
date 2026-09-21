@@ -69,7 +69,7 @@ void main() {
 
   test('Course Model v9 permits only an individual Maintainer', () {
     final json = course().toJson();
-    expect(json['formatVersion'], 9);
+    expect(json['formatVersion'], 11);
     expect(json['maintainer'], {'profileId': aliceId});
     expect(json.containsKey('ownership'), isFalse);
     expect(Course.fromJson(json).maintainer!.profileId, aliceId);

@@ -7,11 +7,10 @@ import 'package:flutter/foundation.dart';
 /// a future stable build by setting [isBetaBuild] to false.
 class BetaLifecycleService {
   static const bool isBetaBuild = true;
-  // QQL 242 Revision 0 recalculates the 30-day Beta lifetime from its own
-  // release date, 20 September 2026, which lands on 20 October 2026 — the same
-  // day as Build 241, because both were released on 20 September. This is the
-  // policy applied afresh, not the previous expiry carried forward.
-  static final DateTime expiryDate = DateTime(2026, 10, 20, 23, 59, 59);
+  // QQL 243 Revision 0 recalculates the 30-day Beta lifetime from its own
+  // release date, 21 September 2026, which lands on 21 October 2026. This is
+  // the policy applied afresh, not the previous expiry carried forward.
+  static final DateTime expiryDate = DateTime(2026, 10, 21, 23, 59, 59);
 
   /// The clock the no-argument lifecycle checks read.
   ///

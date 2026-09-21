@@ -1,5 +1,5 @@
 {
-  "formatVersion": 9,
+  "formatVersion": 11,
   "publicationState": "published",
   "lessonNumberingMode": "lesson",
   "defaultLessonIconStyle": "monochrome",
@@ -7,9 +7,9 @@
   "originType": "bundledOfficial",
   "publisherId": "org.quisquislingo",
   "publisherName": "QuisquisLingo",
-  "officialCourseVersion": "1.6.1",
+  "officialCourseVersion": "1.7.0",
   "officialReleaseDateUtc": "2026-09-06T00:00:00.000Z",
-  "officialChecksum": "b6a1f6650e4604a6ab281d3f01a5ba4139d31ce7d71ca4ce80910e4a6e817075",
+  "officialChecksum": "7b8a3f825cf4b1cdafb35c56fff97476e6081db72e2bdfe117dfc4cb7f69c128",
   "officialReleaseNotes": "Build 226.02 revision 3 AI-generated sample label update.",
   "distributionChannel": "bundled",
   "publisherVerificationStatus": "verified",

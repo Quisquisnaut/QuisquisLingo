@@ -37,7 +37,7 @@ class OfficialCourseUpdateResult {
   });
 }
 
-/// Local, offline Course Model v9 authoring storage.
+/// Local, offline Course Model v11 authoring storage.
 ///
 /// Bundled assets and imported official packages remain immutable sources.
 /// Official sources are locally read-only. Only custom courses have authoring
@@ -214,7 +214,7 @@ class CourseEditorService {
         course.maintainer?.profileId == Course.detachedInMemoryProfileId ||
         course.originalCreatedAtUtc.isEmpty) {
       throw const FormatException(
-        'Imported Course Model v9 custom courses require real provenance, creation time and Maintainer metadata.',
+        'Imported Course Model v11 custom courses require real provenance, creation time and Maintainer metadata.',
       );
     }
     if (_bundledOfficialCourseIds.contains(course.courseId) ||

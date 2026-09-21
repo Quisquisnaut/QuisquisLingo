@@ -107,7 +107,7 @@ void main() {
   );
 
   test(
-    'merge creates v10 with fresh Lesson identity and immediate sources',
+    'merge creates a v11 Course with fresh Lesson identity and immediate sources',
     () async {
       final profiles = ProfileService();
       await profiles.createProfile(
@@ -143,7 +143,7 @@ void main() {
             options: CourseMergeOptions.fromCourse(left),
           );
 
-      expect(merged.formatVersion, Course.mergedFormatVersion);
+      expect(merged.formatVersion, Course.currentFormatVersion);
       expect(merged.title, 'English for Italian speakers merged');
       expect(merged.originalCreatedAtUtc, left.originalCreatedAtUtc);
       expect(merged.modifiedAtUtc, _mergeTime.toIso8601String());
@@ -168,7 +168,7 @@ void main() {
   );
 
   test(
-    'merge rejects mismatched Course info and accepts v10 sources',
+    'merge rejects mismatched Course info and accepts merged sources',
     () async {
       final left = _course(
         id: 'course-left',
@@ -186,9 +186,8 @@ void main() {
         () => service.validateCompatibility(left, right),
         throwsA(isA<FormatException>()),
       );
-      final v10 = Course.fromJson({
+      final merged = Course.fromJson({
         ...right.toJson(),
-        'formatVersion': 10,
         'ttsLanguage': 'it-IT',
         'mergeProvenance': {
           'leftSourceCourseId': 'older-left',
@@ -198,7 +197,10 @@ void main() {
           'mergedAtUtc': '2026-09-03T00:00:00.000Z',
         },
       });
-      expect(() => service.validateCompatibility(left, v10), returnsNormally);
+      expect(
+        () => service.validateCompatibility(left, merged),
+        returnsNormally,
+      );
       expect(
         () => service.validateCompatibility(
           left,

@@ -73,7 +73,7 @@ void main() {
   test('Course Model v9 writes only authoritative metadata', () {
     final json = _course().toJson();
 
-    expect(json['formatVersion'], 9);
+    expect(json['formatVersion'], 11);
     expect(json['originalCourseCreator'], {
       'type': 'qqlUser',
       'id': _creatorId,

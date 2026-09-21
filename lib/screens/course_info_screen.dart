@@ -235,8 +235,27 @@ class CourseInfoScreen extends StatefulWidget {
           body: [
             ..._originDetails(context),
             'Lessons: ${course.lessons.length}',
+            if (course.estimatedStudyHours != null)
+              'Estimated study time: ${course.estimatedStudyHours} '
+                  '${course.estimatedStudyHours == 1 ? 'hour' : 'hours'}',
+            if (course.minimumAge != null) 'Minimum age: ${course.minimumAge}+',
+            if (course.keywords.isNotEmpty)
+              'Keywords: ${course.keywords.join(', ')}',
+            if (course.minimumAppBuild != null)
+              'Requires QuisquisLingo build ${course.minimumAppBuild} or later',
           ].join('\n'),
         ),
+        if (course.publisherContact != null)
+          _InfoCard(
+            key: const Key('course-info-publisher-contact'),
+            title: 'Publisher contact',
+            body: [
+              if (course.publisherContact!.websiteUrl.isNotEmpty)
+                'Website: ${course.publisherContact!.websiteUrl}',
+              if (course.publisherContact!.email.isNotEmpty)
+                'Email: ${course.publisherContact!.email}',
+            ].join('\n'),
+          ),
         if (course.buyACoffeeUrl.isNotEmpty) ...[
           const Divider(height: 24),
           ListTile(

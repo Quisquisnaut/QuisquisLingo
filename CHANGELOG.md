@@ -1,3 +1,16 @@
+# 2.0.43 (Build 243, Revision 0) - Course Model v11 - 2026-09-21
+
+First revision of the portable course package work (Revision 1 fixes unreadable stored Courses; Tranches 1–3 follow as Revisions 2–4); see the [course package plan](docs/COURSE_PACKAGE_PLAN.md). Scope: [Build 243 change summary](docs/243_CHANGE_SUMMARY.md); evidence: [243 validation](docs/243_VALIDATION.md).
+
+- Platform version `2.0.43+243000`. The 30-day Beta expiry is recalculated from this release's own date, 21 September 2026: **2026-10-21 23:59:59 local time**.
+- **Course Model v11 is the single accepted format, as a clean cut.** v9 and v10 files are refused with a message naming the conversion tool; the application never converts them. v11 is v9 with merge provenance as an optional field of any custom Course (the former v10 existed only for it), the Build 242 media credits, and six optional descriptive fields.
+- **New optional Course fields**, editable in Course Info Editor and shown in Course Info: estimated study hours (1–1000), minimum age as an App Store class (4+, 9+, 13+, 16+, 18+), up to 20 keywords, a publisher website and/or email shown as plain text, and a minimum QuisquisLingo build — a Course requiring a newer build is refused with a request to update. A square cover image reference (`media:<sha256>.<ext>`) is validated and stored only; nothing displays it yet, and keyword search is not implemented. None of these fields grants permissions.
+- The fields travel with Fork, Copy as New Course and in-Course transfers; a merge keeps the left Course's values and the higher minimum build, and differing values never block it. In-Course transfers now also keep merge provenance, which v11 would otherwise have dropped silently.
+- **New storage folders.** Courses are stored under `qql_courses_v2` and version backups under `Course Backups v11`. The previous `qql_courses_v1` and `Course Backups v9` folders stay on disk untouched and are never read, so an old v9 Course can no longer block every Course list or Version History. Old Courses disappear from the lists; convert them and import them again.
+- **`tools/convert_course_to_v11.dart`** converts a v9/v10 file by changing only `formatVersion` (and, for an official Course, recomputing its checksum and optionally its version). It stops and lists every reference to media outside `assets/`. A Publisher Course loses its signature and must be signed again.
+- The ten bundled Courses are v11 with unchanged Course IDs, so learner progress is kept; each official version rises by one minor step (1.6.1 → 1.7.0, 1.0.1 → 1.1.0, 1.0.0 → 1.1.0). The demo Course and the three Dummy publisher fixtures are converted; the two signed fixtures are signed again with the Dummy test key.
+- Editor Help, Publisher Help, the signing guide, the JSON format reference and the storage inventory describe v11.
+
 # 2.0.42 (Build 242, Revision 0) - Media audit, media credits and the recording-save fix - 2026-09-20
 
 Full findings and reasoning: [media libraries audit and plan](docs/MEDIA_LIBRARIES_PLAN.md). Scope and evidence: [Build 242 change summary](docs/242_CHANGE_SUMMARY.md), [242 validation](docs/242_VALIDATION.md).

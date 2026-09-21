@@ -149,7 +149,7 @@ class CourseMergeService {
     }
     final when = _clock().toUtc();
     final output = Map<String, dynamic>.from(left.toJson())
-      ..['formatVersion'] = Course.mergedFormatVersion
+      ..['formatVersion'] = Course.currentFormatVersion
       ..['courseId'] = Course.newCourseId()
       ..['title'] = options.outputTitle ?? '${options.title} merged'
       ..['originalCreatedAtUtc'] = _earliest(
@@ -190,6 +190,12 @@ class CourseMergeService {
         mergedAtUtc: when.toIso8601String(),
       ).toJson()
       ..['lessons'] = selected.map((lesson) => lesson.toJson()).toList();
+    // Lessons from either side may need its build, so keep the higher one.
+    final minimumAppBuild = _higherBuild(
+      left.minimumAppBuild,
+      right.minimumAppBuild,
+    );
+    if (minimumAppBuild != null) output['minimumAppBuild'] = minimumAppBuild;
     return Course.fromJson(output);
   }
 
@@ -211,6 +217,14 @@ class CourseMergeService {
       'flagCode',
       'worldFlagId',
       'flagImageBase64',
+      // Descriptive v11 metadata never blocks a merge; the merged Course
+      // keeps the left Course's values.
+      'minimumAppBuild',
+      'publisherContact',
+      'estimatedStudyHours',
+      'minimumAge',
+      'keywords',
+      'coverImage',
       'courseId',
       'originalCreatedAtUtc',
       'modifiedAtUtc',
@@ -226,6 +240,9 @@ class CourseMergeService {
     }
     return info;
   }
+
+  static int? _higherBuild(int? left, int? right) =>
+      left == null ? right : (right == null || left >= right ? left : right);
 
   static String _earliest(String left, String right) =>
       DateTime.parse(left).isAfter(DateTime.parse(right)) ? right : left;

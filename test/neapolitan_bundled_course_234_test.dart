@@ -31,7 +31,7 @@ void main() {
   test('QQL 234 ships a verified full Italian to Neapolitan demo', () async {
     final course = await loadCourse();
 
-    expect(course.formatVersion, 9);
+    expect(course.formatVersion, 11);
     expect(course.courseId, 'sample_nap_it_nap');
     expect(course.originType, CourseOriginType.bundledOfficial);
     expect(course.publisherId, 'org.quisquislingo');

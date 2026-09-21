@@ -96,7 +96,7 @@ void main() {
       expect(item.sizeBytes, file.lengthSync());
       expect(item.modified, file.statSync().modified);
       expect(courses.totalBytes, file.lengthSync());
-      expect(courses.location, endsWith('qql_courses_v1'));
+      expect(courses.location, endsWith('qql_courses_v2'));
       expect(courses.items.single.owner, isNotNull);
     },
   );
@@ -105,7 +105,7 @@ void main() {
     'inventory lists unreadable course files without altering them',
     () async {
       final file = touch(
-        '${support.path}${sep}qql_courses_v1${sep}custom${sep}broken.json',
+        '${support.path}${sep}qql_courses_v2${sep}custom${sep}broken.json',
         'broken-json',
       );
       final actual = InventoryService(
@@ -139,7 +139,7 @@ void main() {
         }),
       );
       touch(
-        qql('Exports/Course Backups v9/c_1_2026.json'),
+        qql('Exports/Course Backups v11/c_1_2026.json'),
         jsonEncode({'reason': 'Pre-change Course Editor transaction backup'}),
       );
       touch(qql('Imports/Audio/word.mp3'));
