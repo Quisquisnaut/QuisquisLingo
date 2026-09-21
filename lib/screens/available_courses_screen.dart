@@ -66,6 +66,9 @@ class _AvailableCoursesScreenState extends State<AvailableCoursesScreen> {
 
   /// Page-session ordering, applied inside each section.
   CourseLibrarySort _sort = CourseLibrarySort.title;
+
+  /// Page-session Compact view, one flag per section; all start Expanded.
+  final _compact = List<bool>.filled(_sectionLabels.length, false);
   @override
   void initState() {
     super.initState();
@@ -240,17 +243,42 @@ class _AvailableCoursesScreenState extends State<AvailableCoursesScreen> {
         children: [
           Container(
             color: color.withValues(alpha: 0.12),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-            child: Wrap(
-              crossAxisAlignment: WrapCrossAlignment.center,
+            padding: const EdgeInsets.fromLTRB(16, 6, 8, 6),
+            child: Row(
               children: [
-                Text(label, style: Theme.of(context).textTheme.titleMedium),
-                Text(
-                  hidden == 0
-                      ? ' · ${all.length}'
-                      : ' · ${shown.length} shown · $hidden hidden',
-                  key: ValueKey('course-section-count-$index'),
-                  style: Theme.of(context).textTheme.titleMedium,
+                Expanded(
+                  child: Wrap(
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [
+                      Text(
+                        label,
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                      Text(
+                        hidden == 0
+                            ? ' · ${all.length}'
+                            : ' · ${shown.length} shown · $hidden hidden',
+                        key: ValueKey('course-section-count-$index'),
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                    ],
+                  ),
+                ),
+                Tooltip(
+                  message: _compact[index]
+                      ? 'Show full details'
+                      : 'Show fewer details',
+                  child: TextButton.icon(
+                    key: ValueKey('course-section-view-$index'),
+                    icon: Icon(
+                      _compact[index]
+                          ? Icons.view_headline
+                          : Icons.view_agenda_outlined,
+                    ),
+                    label: Text(_compact[index] ? 'Compact' : 'Expanded'),
+                    onPressed: () =>
+                        setState(() => _compact[index] = !_compact[index]),
+                  ),
                 ),
               ],
             ),
@@ -264,7 +292,8 @@ class _AvailableCoursesScreenState extends State<AvailableCoursesScreen> {
                     : '${all.length == 1 ? 'The Course here is' : 'All ${all.length} Courses here are'} unavailable or Draft. Turn on Show unavailable or Draft Courses to see ${all.length == 1 ? 'it' : 'them'}.',
               ),
             ),
-          for (final course in shown) _courseRow(course),
+          for (final course in shown)
+            _courseRow(course, compact: _compact[index]),
         ],
       ),
     );
@@ -293,7 +322,8 @@ class _AvailableCoursesScreenState extends State<AvailableCoursesScreen> {
         : MaterialLocalizations.of(context).formatShortDate(instant.toLocal());
   }
 
-  Widget _courseRow(Course course) => LayoutBuilder(
+  /// Compact rows keep the title, languages, status labels and action.
+  Widget _courseRow(Course course, {required bool compact}) => LayoutBuilder(
     builder: (context, constraints) {
       final narrow = constraints.maxWidth < 480;
       final version = CourseLibraryPresentation.version(course);
@@ -317,10 +347,12 @@ class _AvailableCoursesScreenState extends State<AvailableCoursesScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text('${course.sourceLanguage} → ${course.targetLanguage}'),
-                if (version != null) Text('Version: $version'),
-                Text('Last edited: ${_lastEdited(context, course)}'),
-                Text('Maintainer: ${_maintainer(course)}'),
-                if (duration != null) Text('Duration: $duration'),
+                if (!compact) ...[
+                  if (version != null) Text('Version: $version'),
+                  Text('Last edited: ${_lastEdited(context, course)}'),
+                  Text('Maintainer: ${_maintainer(course)}'),
+                  if (duration != null) Text('Duration: $duration'),
+                ],
               ],
             ),
           ),
@@ -359,7 +391,11 @@ class _AvailableCoursesScreenState extends State<AvailableCoursesScreen> {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              CourseArtwork(course: course, mediaStore: widget.mediaStore),
+              CourseArtwork(
+                course: course,
+                size: compact ? 40 : 64,
+                mediaStore: widget.mediaStore,
+              ),
               const SizedBox(width: 16),
               Expanded(child: details),
               if (!narrow)

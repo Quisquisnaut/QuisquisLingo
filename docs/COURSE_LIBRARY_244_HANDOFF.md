@@ -15,15 +15,16 @@ with `docs/244_CHANGE_SUMMARY.md` and `docs/244_VALIDATION.md`).
 | 2 | `2.0.44+244002` | `0c96cf5` | Rename to Course Library; availability switch; Draft / Unpublished / Verification required badges |
 | 3 | `2.0.44+244003` | `711f29a` | Bordered sections with counts; My/Other Local Courses; web section hidden (`courseLibraryWebSite = null`) |
 | 4 | `2.0.44+244004` | `0c993bf` | Richer rows; `CourseArtwork` cover-or-flag; `CourseLibraryPresentation` version/date/duration |
-| 5 | `2.0.44+244005` | (this commit) | Sort by inside each section; Beta expiry → 2026-10-22 (release dated 2026-09-22) |
+| 5 | `2.0.44+244005` | `b388e67` | Sort by inside each section; Beta expiry → 2026-10-22 (release dated 2026-09-22) |
+| 6 | `2.0.44+244006` | (this commit) | Expanded/Compact per section |
 
 The untracked `devtools_options.yaml` predates this work and must not be
 committed or deleted.
 
 ## Next steps
 
-Revision 6 next: Expanded/Compact per section. Then Revision 7 (Help
-rewrite, full suite). The web section is gated by `courseLibraryWebSite` (null), not the
+Revision 7 next: Help rewrite (plan §2.11), Editor Help/Info sentence, then
+the full suite once before committing. The web section is gated by `courseLibraryWebSite` (null), not the
 `_courseWebSiteAvailable` flag named in the plan. The full
 suite runs once, before the Revision 7 commit.
 

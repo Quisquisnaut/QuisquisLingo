@@ -1,3 +1,12 @@
+# 2.0.44 (Build 244, Revision 6) - Compact sections - 2026-09-22
+
+Each Course Library section header has its own **Expanded / Compact**
+button. Compact rows keep the picture (smaller), title, languages, status
+labels and Add/Remove, and hide version, last edited date, maintainer and
+duration. Every section starts Expanded, and the choice lasts while the page
+is open.
+Version `2.0.44+244006`; Beta expiry remains **2026-10-22 23:59:59 local time**.
+
 # 2.0.44 (Build 244, Revision 5) - Sort by - 2026-09-22
 
 A **Sort by** control next to the availability switch orders Courses by

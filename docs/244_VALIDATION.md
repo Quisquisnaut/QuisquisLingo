@@ -1,5 +1,17 @@
 # Build 244 validation
 
+## Revision 6 — Compact sections (`2.0.44+244006`)
+
+Validation on 22 September 2026, before the Revision 6 commit.
+
+- New `test/course_library_compact_244_test.dart`: every section starts
+  Expanded; Compact hides the four detail lines and shrinks the artwork to
+  40 × 40 in its own section only, keeping languages and Add; sections toggle
+  independently and revert to 64 × 64 with details; status labels remain in
+  Compact rows; all sections toggled at 320 px do not overflow.
+- Focused run: five Course Library suites **36 passed, 0 failed**; version
+  tests pass; `flutter analyze` on the changed files: no issues.
+
 ## Revision 5 — Sort by (`2.0.44+244005`)
 
 Validation on 22 September 2026, before the Revision 5 commit.

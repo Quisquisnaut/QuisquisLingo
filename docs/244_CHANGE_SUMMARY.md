@@ -93,3 +93,12 @@ removed.
 This release is dated 22 September 2026, so the Beta expiry moves to
 **2026-10-22 23:59:59** local time under the 30-day policy
 (`BetaLifecycleService.expiryDate`, lifecycle and first-run tests, README).
+
+## Revision 6 — Compact sections
+
+Version **2.0.44+244006**, same Beta expiry. Each section header has an **Expanded / Compact** button showing the
+current view (tooltip: Show fewer details / Show full details). The four
+states are independent, start Expanded and are kept only while the page is
+open (no preference key). Compact rows keep a 40 px artwork slot, the title,
+`source → target`, the Draft / Unpublished / Verification required labels
+and Add/Remove; Version, Last edited, Maintainer and Duration are hidden.
