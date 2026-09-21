@@ -94,6 +94,12 @@ class CourseEditorService {
   final CourseAccessPolicy _access;
   final DateTime Function() _clock;
 
+  /// Stored Course files the last [listUserCourses] could not load. They are
+  /// kept on disk untouched; the readable Courses are listed regardless.
+  List<SkippedCourseFile> get unreadableCourseFiles =>
+      List.unmodifiable(_unreadable);
+  final List<SkippedCourseFile> _unreadable = [];
+
   Future<CourseAccessCapabilities> capabilitiesFor(Course course) =>
       _access.forCurrentProfile(course);
 
@@ -107,8 +113,10 @@ class CourseEditorService {
     if (candidates.isEmpty) return;
     try {
       final stores = <Object?>[];
+      // Strict read: an unreadable Course may still use a file, so nothing is
+      // deleted unless every stored Course could be read.
       for (final key in [userCoursesStorageKey, externalOfficialStorageKey]) {
-        stores.add((await _loadKey(key)).values.toList());
+        stores.add((await _store.readAll(_kindFor(key))).values.toList());
       }
       await _audioCleanup.deleteUnreferenced(
         candidates,
@@ -125,14 +133,17 @@ class CourseEditorService {
       ? CourseStoreKind.custom
       : CourseStoreKind.externalOfficial;
 
-  Future<Map<String, dynamic>> _loadKey(String key) =>
-      _store.readAll(_kindFor(key));
+  /// The readable Courses of one store. Unreadable files are skipped here and
+  /// reported by [listUserCourses]; [CourseFileStore.write] refuses to replace
+  /// them, so saving through this map never loses one.
+  Future<Map<String, dynamic>> _loadKey(String key) async =>
+      (await _store.readReadable(_kindFor(key))).records;
 
   /// Applies [data] as the complete contents of a store by writing only what
   /// actually changed. A save therefore costs one Course, not the whole corpus.
   Future<void> _saveKey(String key, Map<String, dynamic> data) async {
     final kind = _kindFor(key);
-    final current = await _store.readAll(kind);
+    final current = (await _store.readReadable(kind)).records;
     for (final entry in data.entries) {
       if (jsonEncode(current[entry.key]) == jsonEncode(entry.value)) continue;
       await _store.write(kind, entry.key, entry.value);
@@ -243,37 +254,59 @@ class CourseEditorService {
     LearnerStatusEvents.publish(LearnerStatusInvalidation.courseMetadata);
   }
 
+  /// Every readable stored Course. One unreadable Course never hides the
+  /// others: it is skipped, left on disk and listed in [unreadableCourseFiles].
   Future<List<Course>> listUserCourses() async {
     final out = <Course>[];
-    final custom = await _loadKey(userCoursesStorageKey);
-    for (final item in custom.entries) {
+    final unreadable = <SkippedCourseFile>[];
+    final customSnapshot = await _store.readReadable(CourseStoreKind.custom);
+    unreadable.addAll(customSnapshot.skipped);
+    for (final item in customSnapshot.records.entries) {
       try {
         out.add(_courseFromEntry(item.value));
       } on FormatException catch (error) {
-        throw FormatException(
-          'Stored custom course ${item.key} has an unsupported course format or invalid data. It was preserved and was not loaded. $error',
+        unreadable.add(
+          SkippedCourseFile(
+            item.key,
+            'Stored custom course ${item.key} has an unsupported course format or invalid data. It was preserved and was not loaded. ${error.message}',
+          ),
         );
       }
     }
-    final external = await _loadKey(externalOfficialStorageKey);
-    for (final item in external.entries) {
-      if (item.value is! Map) {
-        throw FormatException(
-          'Stored external official course ${item.key} is invalid.',
+    final externalSnapshot = await _store.readReadable(
+      CourseStoreKind.externalOfficial,
+    );
+    unreadable.addAll(externalSnapshot.skipped);
+    for (final item in externalSnapshot.records.entries) {
+      try {
+        if (item.value is! Map || (item.value as Map)['source'] is! Map) {
+          throw FormatException(
+            'Stored external official course ${item.key} is invalid.',
+          );
+        }
+        final record = Map<String, dynamic>.from(item.value as Map);
+        final source = Course.fromJson(
+          Map<String, dynamic>.from(record['source'] as Map),
+        );
+        if (source.courseId != item.key ||
+            source.originType != CourseOriginType.externalOfficial) {
+          throw const FormatException(
+            'Stored official source identity is invalid.',
+          );
+        }
+        out.add(await _publisherVerification.assessStored(source));
+      } on FormatException catch (error) {
+        unreadable.add(
+          SkippedCourseFile(
+            item.key,
+            'Stored Publisher Course ${item.key} could not be loaded. It was preserved. ${error.message}',
+          ),
         );
       }
-      final record = Map<String, dynamic>.from(item.value as Map);
-      final source = Course.fromJson(
-        Map<String, dynamic>.from(record['source'] as Map),
-      );
-      if (source.courseId != item.key ||
-          source.originType != CourseOriginType.externalOfficial) {
-        throw const FormatException(
-          'Stored official source identity is invalid.',
-        );
-      }
-      out.add(await _publisherVerification.assessStored(source));
     }
+    _unreadable
+      ..clear()
+      ..addAll(unreadable);
     out.sort((a, b) => a.title.toLowerCase().compareTo(b.title.toLowerCase()));
     return out;
   }

@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:quisquislingo_app/models/course_models.dart';
 import 'package:quisquislingo_app/services/course_backup_service.dart';
 import 'package:quisquislingo_app/services/course_editor_service.dart';
+import 'package:quisquislingo_app/services/course_file_store.dart';
 import 'package:quisquislingo_app/services/managed_media_cleanup.dart';
 import 'package:quisquislingo_app/services/profile_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -112,6 +113,27 @@ void main() {
         await confirmWithClips(saved, []);
 
         expect(shared.existsSync(), isTrue);
+      },
+    );
+
+    test(
+      'nothing is deleted while a stored Course file is unreadable',
+      () async {
+        // Build 243 Revision 1: listing skips unreadable files, but the
+        // cleanup must still refuse to guess what such a Course uses.
+        final clip = managed('course_a', 'maybe-used.mp3');
+        final saved = await create(_course('a', {'clip': clip.path}));
+        final store = await CourseFileStore().directoryFor(
+          CourseStoreKind.custom,
+          create: true,
+        );
+        await File(
+          '${store.path}${Platform.pathSeparator}broken.json',
+        ).writeAsString('{ not json');
+
+        await confirmWithClips(saved, []);
+
+        expect(clip.existsSync(), isTrue);
       },
     );
 

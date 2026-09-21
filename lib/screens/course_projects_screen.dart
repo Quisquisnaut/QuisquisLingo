@@ -1,5 +1,6 @@
 import '../services/settings_service.dart';
 import '../services/course_library_service.dart';
+import '../services/course_file_store.dart';
 import 'available_courses_screen.dart';
 import 'dart:async';
 
@@ -649,6 +650,7 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
   List<Course> _user = [];
   bool _loading = true;
   String? _loadError;
+  List<SkippedCourseFile> _unreadable = const [];
   bool _openedInitialCourse = false;
   String? _activeProfileId;
   Set<String> _memberTeamIds = const {};
@@ -709,6 +711,7 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
       if (!mounted) return;
       setState(() {
         _user = value;
+        _unreadable = _service.unreadableCourseFiles;
         _importAuthoringEnabled = importAuthoringEnabled;
         _includedBundled = includedBundled;
         _loading = false;
@@ -732,6 +735,60 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
             .replaceFirst('StateError: ', '');
       });
     }
+  }
+
+  /// One unreadable stored Course no longer hides the others; this says which
+  /// files were skipped and that they were kept.
+  Widget _unreadableCoursesCard() {
+    final scheme = Theme.of(context).colorScheme;
+    return Card(
+      key: const Key('course-manager-unreadable-courses'),
+      color: scheme.errorContainer,
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  Icons.warning_amber_rounded,
+                  color: scheme.onErrorContainer,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    _unreadable.length == 1
+                        ? '1 stored Course could not be read'
+                        : '${_unreadable.length} stored Courses could not be read',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: scheme.onErrorContainer,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 6),
+            Text(
+              'The other Courses are listed normally. These files were kept '
+              'untouched and are not shown. Saving a Course over one of them '
+              'is refused until the file is moved away.',
+              style: TextStyle(color: scheme.onErrorContainer),
+            ),
+            const SizedBox(height: 6),
+            for (final file in _unreadable)
+              Padding(
+                padding: const EdgeInsets.only(top: 4),
+                child: SelectableText(
+                  '${file.fileName}: ${file.reason}',
+                  style: TextStyle(color: scheme.onErrorContainer),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
   }
 
   Future<void> _openInitialCourse() async {
@@ -2347,6 +2404,10 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
               : ListView(
                   padding: const EdgeInsets.all(16),
                   children: [
+                    if (_unreadable.isNotEmpty) ...[
+                      _unreadableCoursesCard(),
+                      const SizedBox(height: 12),
+                    ],
                     Wrap(
                       spacing: 8,
                       runSpacing: 8,

@@ -1,3 +1,12 @@
+# 2.0.43 (Build 243, Revision 1) - An unreadable stored Course no longer hides the others - 2026-09-21
+
+Scope: [Build 243 change summary](docs/243_CHANGE_SUMMARY.md#revision-1--an-unreadable-stored-course-no-longer-hides-the-others); evidence: [243 validation](docs/243_VALIDATION.md).
+
+- Platform version `2.0.43+243001`. Released on the same day as Revision 0, so the recalculated Beta expiry is again **2026-10-21 23:59:59 local time**.
+- **One unreadable stored Course no longer blocks everything.** Since Build 241 a single damaged, unsupported or duplicated Course file stopped Course Manager, the Course Selector, import and every save, although the code comment and the test name claimed the opposite. Listing and saving now skip such files and continue with the readable Courses.
+- Course Manager shows a notice naming each skipped file and its reason; the Inventory names them too. Skipped files are never modified: saving over one is refused with a message saying which file to move. When two files claim the same Course ID, both are skipped.
+- Stays strict where a missing Course would be dangerous: the unused-MP3 cleanup deletes nothing, and profile deletion is refused, while any stored Course file is unreadable.
+
 # 2.0.43 (Build 243, Revision 0) - Course Model v11 - 2026-09-21
 
 First revision of the portable course package work (Revision 1 fixes unreadable stored Courses; Tranches 1–3 follow as Revisions 2–4); see the [course package plan](docs/COURSE_PACKAGE_PLAN.md). Scope: [Build 243 change summary](docs/243_CHANGE_SUMMARY.md); evidence: [243 validation](docs/243_VALIDATION.md).

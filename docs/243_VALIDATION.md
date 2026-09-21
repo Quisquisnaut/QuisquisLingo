@@ -1,5 +1,24 @@
 # Build 243 validation
 
+## Revision 1 — unreadable stored Courses (`2.0.43+243001`)
+
+**Status: focused validation passed. Final checks not yet run** (same owner
+approval as Revision 0; one complete run can cover both revisions).
+
+- New `test/unreadable_stored_courses_243_test.dart` (7 tests): lenient
+  listing with named skipped files, duplicate IDs, strict `readAll`, `write`
+  refusing unreadable and foreign files, `CourseEditorService` listing and
+  import, and Course Manager loading with the notice instead of an error.
+- New case in `test/managed_audio_cleanup_240_test.dart`: a confirmed save
+  still works and deletes no MP3 while a stored Course file is unreadable.
+- Store, editor-storage, persistence-hardening, Inventory, reset, device
+  administration, transaction, ownership/profile-deletion, Course Manager,
+  Publisher import, Course library, v11, Course Info and version suites:
+  **206 passed, 0 failed**.
+- `flutter analyze` on the 16 changed Dart files: no issues. Formatting and
+  `git diff --check`: clean.
+
+
 ## Revision 0 — Course Model v11 (`2.0.43+243000`)
 
 Scope: [243 change summary](243_CHANGE_SUMMARY.md).

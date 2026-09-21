@@ -2,9 +2,9 @@
 
 Scritto il 2026-09-21 a partire da `efdf784` (Build 242 Revisione 0,
 `2.0.42+242000`). **Stato: approvato. Tranche 0 implementata come Build 243
-Revisione 0 (`2.0.43+243000`), vedi `docs/243_CHANGE_SUMMARY.md`. Poi la
-Revisione 1 (correzione dei corsi illeggibili, §3bis) e le Tranche 1–3 come
-Revisioni 2–4.** Ogni tranche è una revisione con il proprio commit; i controlli finali
+Revisione 0 (`2.0.43+243000`) e correzione dei corsi illeggibili come Revisione
+1 (`2.0.43+243001`), vedi `docs/243_CHANGE_SUMMARY.md`. Le Tranche 1–3 saranno
+le Revisioni 2–4.** Ogni tranche è una revisione con il proprio commit; i controlli finali
 (analyzer, suite completa, validatori) si eseguono solo dopo l'approvazione del
 proprietario.
 

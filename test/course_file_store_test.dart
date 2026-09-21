@@ -64,9 +64,9 @@ void main() {
     });
   });
 
-  test('one unreadable Course does not hide the others', () async {
-    // The whole point of the change: the old single-blob store made a single
-    // bad record hide every Course at once.
+  test('strict readAll refuses the store while a file is unreadable', () async {
+    // readAll is for callers that must see every Course; listing and saving use
+    // readReadable, which returns the others (unreadable_stored_courses_243).
     final store = CourseFileStore(supportDirectory: supportDirectory);
     await store.write(CourseStoreKind.custom, 'good', {'v': 1});
     final directory = await store.directoryFor(CourseStoreKind.custom);

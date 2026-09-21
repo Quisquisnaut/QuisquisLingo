@@ -69,7 +69,8 @@ class InventoryService {
   final ProfileService _profiles;
   final Future<Directory> Function() _documents;
   final Future<Directory> Function() _support;
-  final Future<List<Course>> Function() _courses;
+  final Future<List<Course>> Function()? _courses;
+  final CourseEditorService? _courseService;
   final Future<List<AuthoringTeam>> Function() _teams;
 
   InventoryService({
@@ -81,11 +82,12 @@ class InventoryService {
   }) : _profiles = profiles ?? ProfileService(),
        _documents = documentsDirectory ?? getApplicationDocumentsDirectory,
        _support = supportDirectory ?? getApplicationSupportDirectory,
-       _courses =
-           courses ??
-           (() => CourseEditorService(
-             courseStore: CourseFileStore(supportDirectory: supportDirectory),
-           ).listUserCourses()),
+       _courseService = courses == null
+           ? CourseEditorService(
+               courseStore: CourseFileStore(supportDirectory: supportDirectory),
+             )
+           : null,
+       _courses = courses,
        _teams = teams ?? (() => TeamService().listTeams());
 
   static const _knownTopLevel = <String>{
@@ -103,7 +105,14 @@ class InventoryService {
     List<Course> courses = const [];
     String? courseProblem;
     try {
-      courses = await _courses();
+      courses = await (_courses ?? _courseService!.listUserCourses)();
+      // Unreadable files no longer hide the others; name them here.
+      final unreadable = _courseService?.unreadableCourseFiles ?? const [];
+      if (unreadable.isNotEmpty) {
+        courseProblem =
+            'These stored course files could not be read and were kept '
+            'unchanged: ${unreadable.map((file) => file.fileName).join(', ')}.';
+      }
     } catch (error) {
       courseProblem = 'The stored courses could not be read: $error';
     }

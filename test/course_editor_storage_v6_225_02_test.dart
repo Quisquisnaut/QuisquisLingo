@@ -34,7 +34,7 @@ void main() {
   );
 
   test(
-    'unsupported course in v9 storage fails clearly without deletion',
+    'unsupported stored course is reported clearly without deletion',
     () async {
       final legacyCourse = _course().toJson()..['formatVersion'] = 5;
       final store = CourseFileStore();
@@ -47,21 +47,12 @@ void main() {
       final stored = await file.readAsBytes();
       final service = CourseEditorService();
 
-      await expectLater(
-        service.listUserCourses(),
-        throwsA(
-          isA<FormatException>()
-              .having(
-                (error) => error.message,
-                'message',
-                contains('preserved'),
-              )
-              .having(
-                (error) => error.message,
-                'message',
-                contains('unsupported course format'),
-              ),
-        ),
+      // Build 243 Revision 1: the unreadable Course is skipped and reported;
+      // it no longer hides the readable ones.
+      expect(await service.listUserCourses(), isEmpty);
+      expect(
+        service.unreadableCourseFiles.single.reason,
+        allOf(contains('preserved'), contains('unsupported course format')),
       );
       expect(await file.readAsBytes(), stored);
     },
@@ -95,15 +86,11 @@ void main() {
       await file.writeAsString(corrupt);
       final service = CourseEditorService();
 
-      await expectLater(
-        service.listUserCourses(),
-        throwsA(
-          isA<FormatException>().having(
-            (error) => error.message,
-            'message',
-            allOf(contains('preserved'), contains('not loaded')),
-          ),
-        ),
+      // Build 243 Revision 1: reported by name instead of failing the list.
+      expect(await service.listUserCourses(), isEmpty);
+      expect(
+        service.unreadableCourseFiles.single.reason,
+        allOf(contains('preserved'), contains('not loaded')),
       );
       expect(await file.readAsString(), corrupt);
       expect((await directory.list().toList()).length, 1);

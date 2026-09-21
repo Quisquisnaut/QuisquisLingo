@@ -1,4 +1,9 @@
-# Build 243 Revision 0 — change summary
+# Build 243 — change summary
+
+Revision 0 (`2.0.43+243000`) introduces Course Model v11; Revision 1
+(`2.0.43+243001`) stops one unreadable stored Course from hiding the others.
+
+## Revision 0 — Course Model v11
 
 Version: **2.0.43+243000**. Beta expiry: **2026-10-21 23:59:59 local**, the
 30-day policy applied to this release's own date, 21 September 2026.
@@ -106,3 +111,35 @@ Course that names media outside `assets/`, listing each location.
 
 Course media references (`media:` for images and MP3s), the ZIP package,
 Publisher media, cover display and keyword search. See the plan.
+
+## Revision 1 — an unreadable stored Course no longer hides the others
+
+Version **2.0.43+243001**, same Beta expiry (same release date).
+
+Found while planning Revision 0 and made its own revision by the owner.
+`CourseFileStore.readAll` and `CourseEditorService.listUserCourses` stopped at
+the first file they could not load, so one damaged, unsupported or duplicated
+Course file blocked Course Manager, the Course Selector, import and every save.
+The store's own comment and the test `one unreadable Course does not hide the
+others` claimed the opposite; the test in fact asserted the failure.
+
+- `CourseFileStore.readReadable` returns the readable records and a list of
+  `SkippedCourseFile` (file name and reason). When two files claim one Course
+  ID, both are skipped.
+- `readAll` stays strict and keeps its messages. It is now used only where an
+  unreadable Course must not be mistaken for a missing one: the unused-MP3
+  cleanup (which then deletes nothing) and the profile-deletion guard (which
+  then refuses, naming the file).
+- `CourseEditorService` lists and saves through `readReadable`. Files that are
+  readable JSON but not a valid Course are skipped as well.
+  `unreadableCourseFiles` exposes the result of the last listing.
+- `CourseFileStore.write` refuses to replace a file that cannot be read or that
+  holds another Course ID, so a skipped file is never lost by saving or
+  importing; the message names the file to move.
+- Course Manager shows a notice card listing each skipped file and its reason
+  above the Course lists, instead of the whole-page load error. The Inventory
+  names the skipped files in its course section.
+- Three tests that asserted the old failure now assert the notice, keeping
+  their intent (the file is preserved, the problem is reported): the Build 230
+  Course Manager test, the Build 225 unsupported-course and corrupt-file tests;
+  the file-store test was renamed to what it actually checks.

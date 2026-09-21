@@ -300,15 +300,20 @@ void main() {
     );
     await tester.pumpUntilFileIoState(
       () => find
-          .byKey(const Key('course-manager-load-error'))
+          .byKey(const Key('course-manager-unreadable-courses'))
           .evaluate()
           .isNotEmpty,
     );
 
-    expect(find.byKey(const Key('course-manager-load-error')), findsOneWidget);
+    // Build 243 Revision 1: the corrupt file is named in a notice and the
+    // rest of Course Manager still loads, rather than a whole-page error.
+    expect(
+      find.byKey(const Key('course-manager-unreadable-courses')),
+      findsOneWidget,
+    );
+    expect(find.byKey(const Key('course-manager-load-error')), findsNothing);
     expect(find.byType(CircularProgressIndicator), findsNothing);
     expect(find.textContaining('was preserved'), findsOneWidget);
-    expect(find.widgetWithText(OutlinedButton, 'Retry'), findsOneWidget);
   });
 }
 
