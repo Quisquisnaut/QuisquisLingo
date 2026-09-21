@@ -4,7 +4,7 @@ Keep this file current at the end of **every** revision, so that work can
 resume after a pause or with another agent. Plan and decisions:
 [IMPORT_HARDENING_PLAN.md](IMPORT_HARDENING_PLAN.md). Rules: `AGENTS.md`.
 
-## Where things stand (updated 2026-09-21 16:45, Revision 9 in validation)
+## Where things stand (updated 2026-09-21 16:58, Revision 9 committed)
 
 | Revision | Version | Commit | Content |
 |---|---|---|---|
@@ -12,28 +12,10 @@ resume after a pause or with another agent. Plan and decisions:
 | 6 | `2.0.43+243006` | `0976ed0` | Tranche 0 memory-safety fixes: cover header check, Image Bank pre-scan and bounded inflation, 4096 px icons/flags, animated images refused on import |
 | 7 | `2.0.43+243007` | `4230d94` | Image library tidy-up: `CourseImageUsage` single usage rule (presentations and GuideBooks now count), `image_library_rules.dart`, `ExerciseImageField` |
 | 8 | `2.0.43+243008` | `8a27dfe` | Badge order IN USE first; Remove from this Course (`CourseImageRemoval`, Draft on Audit error); `imageLibrary` with Keep in library; bin on every Course-stored image |
+| 9 | `2.0.43+243009` | `c34aa60` | Tranche 0b: QQL image metadata read-only; Local words; device categories; schema-2 metadata document (fixes the snapshot failure) |
 
-Revisions 5–8 are pushed to `origin/main` with the Revision 8 commit. The untracked
+Revisions 5–9 are pushed to `origin/main`. The untracked
 `devtools_options.yaml` predates this work: never commit or delete it.
-
-## Revision 9 (Tranche 0b) — in validation
-
-Implemented in the working tree: version `2.0.43+243009`, and the analyzer is
-clean. Focused tests passed: 161 across 20 metadata and library files, plus
-`exercise_image_metadata_0b_test.dart` (10) and
-`exercise_image_metadata_0b_ui_test.dart` (2). The release notes are written.
-
-Still to do: run the full suite in two halves, record it in
-`243_VALIDATION.md`, commit Revision 9, put the hash in the table above, and
-push `origin/main`.
-
-Key facts for resuming:
-
-- `ExerciseImageMetadataService` stores schema 2 in the same key. A schema-1
-  snapshot converts once in `_loadDocument` / `_convertSnapshot`.
-- The two existing test files that pinned "Admin edits QQL tags" were
-  updated to the owner's decision: `exercise_image_metadata_234_revision_test`
-  and `exercise_image_metadata_admin_ui_234_revision_test`.
 
 ## Next steps, in order (plan §6a)
 
