@@ -4,7 +4,7 @@ Keep this file current at the end of **every** revision, so that work can
 resume after a pause or with another agent. Plan and decisions:
 [IMPORT_HARDENING_PLAN.md](IMPORT_HARDENING_PLAN.md). Rules: `AGENTS.md`.
 
-## Where things stand (updated 2026-09-21, Revision 15 in validation)
+## Where things stand (updated 2026-09-21, Revision 15 committed)
 
 | Revision | Version | Commit | Content |
 |---|---|---|---|
@@ -18,20 +18,14 @@ resume after a pause or with another agent. Plan and decisions:
 | 12 | `2.0.43+243012` | `a40999d` | Tranche 2b: add images and Image Banks to a Course's own library; readBank split; entry metadata |
 | 13 | `2.0.43+243013` | `da9a3a3` | Tranche 3: `Mp3Validator` on every MP3 route; multi-file Audio Library Open from… with summary; duplicate clips skipped; Dummy media fixture re-signed |
 | 14 | `2.0.43+243014` | `eb0857a` | Tranche 4 part 1: `BoundedZipReader` for banks and packages; bank allowlist, object manifest, field bounds, Admin choice on new categories; `JsonLimits`/`CourseShapeLimits` |
+| 15 | `2.0.43+243015` | `a188613` | Tranche 4 part 2: Course packages parsed from disk; referenced media staged one at a time; `CoursePackage.mediaReferences`/`mediaBytes`/`discard()` |
 
-Revisions 5–14 are pushed to `origin/main`. The untracked
+Revisions 5–15 are pushed to `origin/main`. The untracked
 `devtools_options.yaml` predates this work: never commit or delete it.
 
 ## Next steps, in order (plan §6a)
 
-1. **Revision 15 (Tranche 4, part 2)**: implemented and bumped to
-   `2.0.43+243015`; docs written; full suite running. Course packages are
-   parsed from disk (`parseFile`, `FileDialogService.openStaged`), only
-   referenced media read one at a time into `qql_import_staging` `.part`
-   files, `CoursePackage` has `mediaReferences`/`mediaBytes`/`discard()`.
-   Tests: `course_package_on_disk_tranche4b_test.dart` (8). If green: add the
-   validation record, commit, record hash, push.
-2. **Tranche 5** (Revision 16): content-hash duplicates with Skip / Replace /
+1. **Tranche 5** (Revision 16): content-hash duplicates with Skip / Replace /
    Keep both; provenance; the adversarial suite.
 
 ## Owner decisions already taken
