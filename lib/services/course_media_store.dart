@@ -72,13 +72,15 @@ class CourseMediaStore {
     return 'course_${sha256.convert(utf8.encode(value))}';
   }
 
-  /// Every `media:` reference [course] uses: Audio Library clips, and the
-  /// images [CourseImageUsage] finds in its Lessons and cover.
+  /// Every `media:` reference [course] keeps: Audio Library clips, the images
+  /// [CourseImageUsage] finds in its Lessons and cover, and the unused images
+  /// in its own image library.
   static Set<String> referencesOf(Course course) => {
     for (final clip in course.audioLibrary)
       if (isReference(clip.filePath)) clip.filePath,
     for (final use in CourseImageUsage.uses(course))
       if (isReference(use.asset)) use.asset,
+    for (final entry in course.imageLibrary) entry.asset,
   };
 
   Future<Directory> rootDirectory() async => Directory(
@@ -223,6 +225,20 @@ class CourseMediaStore {
       } catch (_) {}
     } catch (_) {}
     return deleted;
+  }
+
+  /// Deletes the stored file of [reference] for [courseId], if present. The
+  /// caller must know that no saved or edited version of the Course still
+  /// uses it. Returns whether a file was deleted; never throws.
+  Future<bool> deleteStored(String courseId, String reference) async {
+    try {
+      final file = await existingFile(courseId, reference);
+      if (file == null) return false;
+      await file.delete();
+      return true;
+    } catch (_) {
+      return false;
+    }
   }
 
   /// Deletes every stored file of [courseId]; never throws.

@@ -2989,6 +2989,8 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
                           readOnly: true,
                           course: _course,
                           mediaStore: _service.mediaStore,
+                          onCourseChanged: _updateDraft,
+                          savedCourse: _transaction.originalCourse,
                         ),
                       ),
                     )

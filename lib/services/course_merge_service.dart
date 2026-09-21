@@ -227,6 +227,17 @@ class CourseMergeService {
       right.minimumAppBuild,
     );
     if (minimumAppBuild != null) output['minimumAppBuild'] = minimumAppBuild;
+    // Both Courses' unused library images stay available in the merge; the
+    // left Course's entry wins for an image both list.
+    final library = <String, CourseImageLibraryEntry>{};
+    for (final entry in [...left.imageLibrary, ...right.imageLibrary]) {
+      library.putIfAbsent(entry.asset, () => entry);
+    }
+    if (library.isNotEmpty) {
+      output['imageLibrary'] = [
+        for (final entry in library.values) entry.toJson(),
+      ];
+    }
     return Course.fromJson(output);
   }
 

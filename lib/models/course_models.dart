@@ -882,6 +882,10 @@ class Course {
   final String buyACoffeeUrl;
   final List<CourseLessonIconAsset> lessonIconAssets;
   final List<CourseAudioClip> audioLibrary;
+
+  /// Images the Course keeps in its own library even while no exercise uses
+  /// them, so a confirmed save does not remove them.
+  final List<CourseImageLibraryEntry> imageLibrary;
   final List<Lesson> lessons;
 
   Course({
@@ -948,6 +952,7 @@ class Course {
     String buyACoffeeUrl = '',
     this.lessonIconAssets = const [],
     this.audioLibrary = const [],
+    this.imageLibrary = const [],
     required this.lessons,
   }) : originalCourseCreator =
            originalCourseCreator ??
@@ -1376,6 +1381,8 @@ class Course {
       'lessonIconAssets': lessonIconAssets.map((e) => e.toJson()).toList(),
     if (audioLibrary.isNotEmpty)
       'audioLibrary': audioLibrary.map((e) => e.toJson()).toList(),
+    if (imageLibrary.isNotEmpty)
+      'imageLibrary': imageLibrary.map((e) => e.toJson()).toList(),
     'lessons': lessons.map((e) => e.toJson()).toList(),
   };
 
@@ -1704,6 +1711,7 @@ class Course {
                 )
                 .toList()
           : const [],
+      imageLibrary: CourseImageLibraryEntry.parseList(json['imageLibrary']),
       lessons: _parseLessons(json),
     );
   }
@@ -2395,6 +2403,77 @@ class SharedImageSource {
           ? null
           : ImageAttribution.fromJson(attributionJson),
     );
+  }
+}
+
+/// An image a Course keeps in its own library without using it yet.
+class CourseImageLibraryEntry {
+  const CourseImageLibraryEntry({required this.asset, this.sharedImageSource});
+
+  /// A Course media image: `media:<sha256>.<png|jpg|jpeg|webp>`.
+  final String asset;
+
+  /// The Shared Image Library record the image was copied from, if any.
+  final SharedImageSource? sharedImageSource;
+
+  Map<String, dynamic> toJson() => {
+    'asset': asset,
+    if (sharedImageSource != null)
+      'sharedImageSource': sharedImageSource!.toJson(),
+  };
+
+  factory CourseImageLibraryEntry.fromJson(Map<String, dynamic> json) {
+    if (json.keys.toSet().difference({
+      'asset',
+      'sharedImageSource',
+    }).isNotEmpty) {
+      throw const FormatException('imageLibrary entry has unsupported fields.');
+    }
+    final asset = json['asset'];
+    if (asset is! String || !Course.coverImagePattern.hasMatch(asset)) {
+      throw const FormatException(
+        'imageLibrary entries must be media:<sha256>.<png|jpg|jpeg|webp> images.',
+      );
+    }
+    final source = json['sharedImageSource'];
+    if (source != null && source is! Map) {
+      throw const FormatException(
+        'imageLibrary sharedImageSource must be an object.',
+      );
+    }
+    return CourseImageLibraryEntry(
+      asset: asset,
+      sharedImageSource: source == null
+          ? null
+          : SharedImageSource.fromJson(Map<String, dynamic>.from(source)),
+    );
+  }
+
+  /// Parses the optional `imageLibrary` list: each asset at most once.
+  static List<CourseImageLibraryEntry> parseList(Object? value) {
+    if (value == null) return const [];
+    if (value is! List) {
+      throw const FormatException('course.imageLibrary must be a list.');
+    }
+    final out = <CourseImageLibraryEntry>[];
+    final seen = <String>{};
+    for (final entry in value) {
+      if (entry is! Map) {
+        throw const FormatException(
+          'course.imageLibrary entries must be objects.',
+        );
+      }
+      final parsed = CourseImageLibraryEntry.fromJson(
+        Map<String, dynamic>.from(entry),
+      );
+      if (!seen.add(parsed.asset)) {
+        throw FormatException(
+          'course.imageLibrary lists ${parsed.asset} more than once.',
+        );
+      }
+      out.add(parsed);
+    }
+    return List.unmodifiable(out);
   }
 }
 

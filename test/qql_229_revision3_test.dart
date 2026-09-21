@@ -28,9 +28,9 @@ void main() {
   setUp(() => SharedPreferences.setMockInitialValues({}));
 
   test('current release metadata uses Build and revision terminology', () {
-    expect(AppMetadata.technicalVersion, '2.0.43+243007');
+    expect(AppMetadata.technicalVersion, '2.0.43+243008');
     expect(AppMetadata.build, '243');
-    expect(AppMetadata.displayLabel, 'Version 2.0.43\nBuild 243, Revision 7');
+    expect(AppMetadata.displayLabel, 'Version 2.0.43\nBuild 243, Revision 8');
   });
 
   testWidgets(

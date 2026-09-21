@@ -4,36 +4,58 @@ Keep this file current at the end of **every** revision, so that work can
 resume after a pause or with another agent. Plan and decisions:
 [IMPORT_HARDENING_PLAN.md](IMPORT_HARDENING_PLAN.md). Rules: `AGENTS.md`.
 
-## Where things stand (updated 2026-09-21, Revision 7)
+## Where things stand (updated 2026-09-21, Revision 8)
 
 | Revision | Version | Commit | Content |
 |---|---|---|---|
 | 5 | `2.0.43+243005` | `86ae4d2` | Image Library usability: IN USE badge, badge overlay/filter, sorting, merged device/Course tile, compact tiles and chips |
 | 6 | `2.0.43+243006` | `0976ed0` | Tranche 0 memory-safety fixes: cover header check, Image Bank pre-scan and bounded inflation, 4096 px icons/flags, animated images refused on import |
-| 7 | `2.0.43+243007` | *pending* | Image library tidy-up: `CourseImageUsage` single usage rule (presentations and GuideBooks now count), `image_library_rules.dart`, `ExerciseImageField` |
+| 7 | `2.0.43+243007` | `4230d94` | Image library tidy-up: `CourseImageUsage` single usage rule (presentations and GuideBooks now count), `image_library_rules.dart`, `ExerciseImageField` |
+| 8 | `2.0.43+243008` | *see `git log`* | Badge order IN USE first; Remove from this Course (`CourseImageRemoval`, Draft on Audit error) |
 
-Nothing is pushed; all commits are local on `main`. The untracked
+Revisions 5–8 are pushed to `origin/main` with the Revision 8 commit. The untracked
 `devtools_options.yaml` predates this work: never commit or delete it.
+
+## Revision 8 — work in progress (uncommitted working tree)
+
+Resume here if the session stopped. Done in the working tree (analyzer clean):
+
+- Badge order IN USE, QQL, DEVICE, COURSE (`image_library_rules.dart`,
+  `exercise_image_field.dart`) and its tests.
+- `CourseImageRemoval` (`lib/services/course_image_removal.dart`) with
+  `test/course_image_removal_test.dart` (passing).
+- **Remove from this Course** in the Image Library (`onCourseChanged`,
+  corner bin plus preview button, confirmation listing every use), wired to
+  the Course Editor's `_updateDraft`. `test/flat_image_library_removal_test.dart`
+  passes.
+- Owner additions, started:
+  - Course field `imageLibrary` (`CourseImageLibraryEntry` in
+    `course_models.dart`: asset plus optional `sharedImageSource`, each asset
+    once, omitted when empty). It is carried by Duplicate/Fork, authoring
+    transfer, and Merge (union, left wins). `CourseMediaStore.referencesOf`
+    includes it, so cleanup, ZIP and backups keep those files.
+
+Status at 16:20: items 1–4 below are **done** (the second question, bins on
+every Course-stored image, `imageLibrary` tests, docs). Focused tests passed:
+229 across 30 related files, plus the new model and removal tests. The
+analyzer is clean.
+
+Still to do for Revision 8:
+
+5. Run the full suite in two halves (split `find test -name "*_test.dart" |
+   sort` in half), record it in `243_VALIDATION.md`, commit Revision 8 with a
+   message describing Revisions 5–8, fill in the commit hash here, and push
+   `origin/main` (owner-approved).
 
 ## Next steps, in order (plan §6a)
 
-1. **Revision 8 — badge order and removal** (plan §6b). Build on the
-   Revision 7 pieces:
-   - **Badge order:** change `imageBadgeOrder` and `imageBadgesOf` in
-     `lib/services/image_library_rules.dart` (IN USE first, then QQL, DEVICE,
-     COURSE) and the badge list in `lib/widgets/exercise_image_field.dart`.
-     Update `image_library_rules_test.dart`, whose first test pins today's
-     order on purpose.
-   - **Removal:** find every use with `CourseImageUsage.uses(course)`. Its
-     `location` strings are ready for the confirmation dialog. Clear the uses
-     in the `CourseEditorTransaction` working copy. Then run the canonical
-     Audit and make Draft every affected exercise it reports invalid. Files go
-     only through the existing `deleteUnreferenced` after a confirmed save.
-     Presentation and GuideBook uses count too.
-   - Add the bin (tooltip "Remove from this Course") to the library tile when
-     the viewer can edit the Course. A QQL or DEVICE image the Course does not
-     use gets no bin.
-2. **Tranches 0b, 1, 2, 2b, 3, 4, 5** in that order (plan §4, §6).
+1. **Tranche 0b** (plan §4): QQL image metadata read-only, Local words
+   (label "Local:"), device categories. Start in
+   `ExerciseImageMetadataService` (`loadCatalog`, `_persist`,
+   `updateMetadata`). The tile's `Tags:` line lives in `imageTileTags`
+   (`image_library_rules.dart`); `Local:` joins it on the same line, and
+   `matchesImageSearch` must match Local words too.
+2. **Tranches 1, 2, 2b, 3, 4, 5** in that order (plan §4, §6).
 
 ## Owner decisions already taken
 
@@ -53,6 +75,9 @@ All recorded in plan §6, §6a–§6c and Tranche 0b/2b. The most consequential:
   (`CourseImageUsage`). Never add a second walker; extend that one.
 - Splitting `course_editor_screen.dart` into separate screens is deferred.
   Revision 7 extracted only the image section.
+- Removing an image from a Course clears every use and makes Draft whatever
+  the Audit then rejects (`CourseImageRemoval`). A Course-stored image the
+  Course does not use has no bin until Tranche 2b's `imageLibrary`.
 
 ## Release checklist per revision
 
@@ -92,6 +117,11 @@ All recorded in plan §6, §6a–§6c and Tranche 0b/2b. The most consequential:
   folder (`CourseEditorService`, `deleteUnreferenced`). Anything a Course must
   keep has to be referenced from the Course JSON.
 - Use `rg`/git, never PowerShell `Get-Content` (`AGENTS.md`).
+- A full `flutter test` run can be interrupted before its summary (Revision 7:
+  exit code 4 at 1,893 passed, 0 failed). Look for `[E]` markers before
+  treating it as red, and do not re-run it without asking the owner.
+- Test media references must be real hex: `media:` plus 64 of `0-9a-f`.
+  `Course.fromJson` rejects anything else.
 - `sed -i` with `^…$` anchors sometimes fails to match on this checkout. For
   line removals, use Python working on bytes (see the Revision 7 import
   cleanup).

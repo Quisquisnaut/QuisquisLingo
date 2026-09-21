@@ -1,8 +1,9 @@
 # Import security hardening and import architecture — audit and plan
 
-Status: **PLAN ONLY. No production code has been written.** Baseline: QQL
-Build 243 Revision 4 (`2.0.43+243004`, commit `b0db270` on `main`). Written
-2026-09-21.
+Status: **in progress.** Written 2026-09-21 against QQL Build 243 Revision 4
+(`2.0.43+243004`, commit `b0db270`). Done so far: Tranche 0 (Revision 6), the
+image library tidy-up (Revision 7) and badge order plus removal (Revision 8).
+Current state and next steps: [IMPORT_HARDENING_HANDOFF.md](IMPORT_HARDENING_HANDOFF.md).
 
 Read `AGENTS.md` first. Its rules apply to all of this work: smallest correct
 change, no unrelated refactors, no commit or push without a request, focused
@@ -333,6 +334,12 @@ through an injected sink, and cancellation mid-stream leaving no `.part` file.
 
 ### Tranche 2b — Course Image Library imports (owner decision 2026-09-21)
 
+**Status note:** the `imageLibrary` model below (entries with `asset` and
+optional `sharedImageSource`, carried by Fork, transfer and Merge, kept by
+`referencesOf`), together with removal and Keep in library, shipped early in
+Revision 8. Label, category, tags and attribution fields on entries, and all
+import routes, remain for this tranche.
+
 **Goal.** Anyone who can edit a Course can add images to that Course's own
 Image Library in the Course Editor:
 
@@ -610,6 +617,17 @@ editor, Round, Lesson and Course editors, and the rest) is **deferred** to a
 later, separate job, done one screen at a time.
 
 ## 6b. Revision 8 — badge order and removal (owner decisions 2026-09-21)
+
+**Status: implemented as Revision 8 (`2.0.43+243008`).** Owner additions in
+the same revision:
+
+- the `imageLibrary` model, brought forward from Tranche 2b;
+- a second question after removing a Course-stored image's uses (Remove from
+  Course, or Keep in library);
+- a bin on every Course-stored image, used or not.
+
+A leftover file that neither the saved nor the edited Course uses is deleted
+at once. Anything else leaves through the confirmed save.
 
 Not part of the import hardening, but it touches the same screens. Built on
 the Revision 7 structure.

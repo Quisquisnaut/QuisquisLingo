@@ -24,6 +24,7 @@ A Course names its own images and recordings by content, never by a path on one 
 - Audio Library `filePath`: empty, a bundled `assets/…` recording or `media:<sha256>.mp3`.
 - Every `image` element `asset` (prompt and Item content, anywhere in the Lessons): empty, a bundled `assets/…` image, an embedded `data:image/…` image or an image `media:` reference.
 - `coverImage`: an image `media:` reference.
+- `imageLibrary` entries' `asset` (Build 243 Revision 8): an image `media:` reference.
 
 Anything else, including an absolute or relative device path, is refused when the Course is read. Lesson icons (`lessonIconAssets`) and the custom flag remain embedded. Course JSON never contains the media bytes; the Course ZIP carries them (Revision 3).
 
@@ -43,6 +44,7 @@ Each is omitted when unset and never grants QQL permissions. Fork, Copy as New C
 - `minimumAge`: one of the App Store age classes `4`, `9`, `13`, `16`, `18`, shown as `4+` and so on.
 - `keywords`: at most 20 trimmed, non-empty strings of at most 32 characters, without case-insensitive duplicates. Search does not use them yet.
 - `coverImage`: a course-media reference `media:<lowercase sha256>.<png|jpg|jpeg|webp>`, intended for a square 512 × 512 image of at most 100 KB. It is validated and stored only; the application does not display it yet.
+- `imageLibrary` (Build 243 Revision 8): the Course's own images that it keeps even while no exercise uses them. Each entry is an object with `asset`, an image `media:` reference listed at most once, and an optional `sharedImageSource` (the same snapshot shape as on an image element). Other fields are refused. Omitted when empty, so Courses without it stay byte-identical. The entries count as Course media: a confirmed save keeps their files, and the Course ZIP and backups carry them. Fork, Copy as New Course and in-Course transfers carry the list; a merge keeps the entries of both Courses, the left Course's entry winning for an image both list. **Compatibility:** builds before Revision 8 ignore the field, and would drop it if they saved the Course.
 
 Course Model v11 retains the optional presentation and availability fields introduced in Phase 226.04:
 

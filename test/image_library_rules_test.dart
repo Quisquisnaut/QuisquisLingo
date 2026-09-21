@@ -31,23 +31,23 @@ final _courseCopy = _image('course_y', label: 'Cat', origin: 'course-device');
 
 void main() {
   group('badges', () {
-    test('each source gets its badge, IN USE last for now', () {
+    test('each source gets its badge, IN USE first', () {
       expect(imageBadgesOf(_bundled), ['QQL']);
       expect(imageBadgesOf(_device), ['DEVICE']);
       expect(imageBadgesOf(_bank), ['DEVICE']);
       expect(imageBadgesOf(_course), ['COURSE']);
       expect(imageBadgesOf(_courseCopy), ['COURSE']);
-      expect(imageBadgesOf(_bundled, used: true), ['QQL', 'IN USE']);
+      expect(imageBadgesOf(_bundled, used: true), ['IN USE', 'QQL']);
       expect(imageBadgesOf(_device, used: true, inCourse: true), [
+        'IN USE',
         'DEVICE',
         'COURSE',
-        'IN USE',
       ]);
       expect(imageSourceCode(['DEVICE', 'COURSE']), 'DEVICE · COURSE');
     });
 
     test('every badge has an explanation, in filter order', () {
-      expect(imageBadgeOrder, ['QQL', 'DEVICE', 'COURSE', 'IN USE']);
+      expect(imageBadgeOrder, ['IN USE', 'QQL', 'DEVICE', 'COURSE']);
       expect(imageBadgeMeanings.keys, unorderedEquals(imageBadgeOrder));
     });
 

@@ -1,5 +1,34 @@
 # Build 243 validation
 
+## Revision 8 — remove an image from a Course; badge order (`2.0.43+243008`)
+
+Validation on 21 September 2026, before the Revision 8 commit. The tree
+contains Revision 7 (committed as `4230d94`) plus Revision 8, so this run also
+completes the validation of Revision 7, whose own full run was interrupted.
+
+- New tests, all passing:
+  - `course_image_removal_test.dart` (5): Draft only for exercises made
+    invalid, reconcile never republishes, presentation, GuideBook and cover
+    uses, unused assets, content already Draft;
+  - `course_image_library_model_test.dart` (6): omitted when empty,
+    round-trip, invalid entries refused, kept by `referencesOf`,
+    `updateLibrary`, Copy as New Course;
+  - `flat_image_library_removal_test.dart` (6): IN USE above the source
+    badge, no removal without Course editing, a used QQL image with Cancel,
+    Keep in library after removing uses, removing a library entry keeps the
+    file until the confirmed save, a leftover is deleted at once.
+- Focused run across 30 related files (model, Merge, packages, duplication,
+  transfer, Course media, image library, backups, editor transaction):
+  **229 passed, 0 failed**.
+- Complete suite, run in two halves that together cover every test file
+  once: **985 + 1,023 = 2,008 passed, 0 failed**.
+- `flutter analyze` on the repository: **no issues**.
+- `python tools/validate_images.py`: 111 assets, 0 issues.
+- `python tools/validate_lesson_icons.py`: 14 assets, 0 issues.
+- `python tools/validate_media_assets.py`: 443 files, 0 issues.
+- `python tools/validate_courses.py`: all 10 bundled Course Model v11 files OK.
+- `git diff --check`: clean. The untracked `devtools_options.yaml` is excluded.
+
 ## Revision 7 — image library tidy-up (`2.0.43+243007`)
 
 Validation on 21 September 2026, before the Revision 7 commit.

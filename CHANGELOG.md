@@ -1,3 +1,13 @@
+# 2.0.43 (Build 243, Revision 8) - Remove an image from a Course; badge order - 2026-09-21
+
+Revision 8 of the [import hardening plan](docs/IMPORT_HARDENING_PLAN.md) (§6b). Scope: [Build 243 change summary](docs/243_CHANGE_SUMMARY.md#revision-8--remove-an-image-from-a-course-badge-order); evidence: [243 validation](docs/243_VALIDATION.md).
+
+- Platform version `2.0.43+243008`; the Beta expiry remains **2026-10-21 23:59:59 local time**.
+- Image badges are listed `IN USE` first, then `QQL`, `DEVICE`, `COURSE`, on images, in the badge filter and in the exercise image preview.
+- In the Course Editor's Image Library, **Remove from this Course** clears an image from every exercise, presentation, GuideBook and the cover that use it, after a confirmation listing each place. Exercises that the Audit then reports as invalid become Draft. Nothing is stored until the Course is confirmed. QQL images and Shared Image Library originals stay available.
+- Every image stored in a Course now has the same bin, used or not. After its uses are removed, a second question asks whether it also leaves the Course or stays in the Course's own library, unused. A leftover file that no saved or edited version uses is deleted at once.
+- Courses gain an optional `imageLibrary` list of images kept without being used. It is omitted when empty, travels in the Course ZIP and backups, and is carried by Fork, Copy as New Course and Merge. Builds before Revision 8 ignore it.
+
 # 2.0.43 (Build 243, Revision 7) - Image library tidy-up - 2026-09-21
 
 Revision 7 of the [import hardening plan](docs/IMPORT_HARDENING_PLAN.md) (§6c). Scope: [Build 243 change summary](docs/243_CHANGE_SUMMARY.md#revision-7--image-library-tidy-up); evidence: [243 validation](docs/243_VALIDATION.md).

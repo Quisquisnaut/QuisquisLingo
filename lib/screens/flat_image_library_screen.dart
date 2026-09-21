@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -5,6 +6,7 @@ import 'package:flutter/services.dart';
 
 import '../models/course_models.dart';
 import '../models/exercise_image_metadata.dart';
+import '../services/course_image_removal.dart';
 import '../services/course_image_usage.dart';
 import '../services/course_media_store.dart';
 import '../services/exercise_image_metadata_service.dart';
@@ -28,6 +30,16 @@ class FlatImageLibraryScreen extends StatefulWidget {
   final Course? course;
   final CourseMediaStore? mediaStore;
 
+  /// Course Editor only: lets someone editing [course] remove an image from
+  /// it. Receives the changed working copy; nothing is stored until the
+  /// Course is confirmed.
+  final ValueChanged<Course>? onCourseChanged;
+
+  /// The Course as last saved, when [onCourseChanged] is set. A leftover file
+  /// that neither it nor the edited Course uses can be deleted at once;
+  /// otherwise files leave only through the confirmed save.
+  final Course? savedCourse;
+
   const FlatImageLibraryScreen({
     super.key,
     this.selectMode = true,
@@ -40,6 +52,8 @@ class FlatImageLibraryScreen extends StatefulWidget {
     this.profileService,
     this.course,
     this.mediaStore,
+    this.onCourseChanged,
+    this.savedCourse,
   });
 
   @override
@@ -56,6 +70,10 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
       widget.profileService ?? ProfileService();
   late final CourseMediaStore _courseMedia =
       widget.mediaStore ?? CourseMediaStore();
+
+  /// The Course as last changed here; starts as the one the screen was
+  /// opened with.
+  late Course? _course = widget.course;
   final _scroll = ScrollController();
   List<ExerciseImageMetadata> _all = const [];
   Set<String> _usedReferences = const {};
@@ -90,7 +108,7 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
       final owned = <ExerciseImageMetadata>[];
       final ownedDates = <String, DateTime>{};
       final ownedSources = <String, String?>{};
-      final course = widget.course;
+      final course = _course;
       final imageElements = course == null
           ? const <PromptElement>[]
           : CourseImageUsage.imageElements(course).toList();
@@ -100,6 +118,10 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
           if (element.sharedImageSource != null) {
             sources[element.asset] = element.sharedImageSource!;
           }
+        }
+        for (final entry in course.imageLibrary) {
+          final source = entry.sharedImageSource;
+          if (source != null) sources.putIfAbsent(entry.asset, () => source);
         }
         final directory = await _courseMedia.courseDirectory(course.courseId);
         if (await directory.exists()) {
@@ -540,7 +562,7 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
   /// bundled images must be loaded from the asset bundle to measure them.
   Future<void> _loadFileBytes() async {
     final sizes = <String, int>{};
-    final course = widget.course;
+    final course = _course;
     for (final item in _all) {
       try {
         final path = item.assetPath;
@@ -569,7 +591,6 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
       _loadFileBytes();
     }
   }
-
 
   /// A compact filter chip: smaller text, tight padding and no checkmark (the
   /// selected fill already shows the choice), so more categories fit a row.
@@ -615,6 +636,13 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
   /// Delete or remove-bank control laid over the image's bottom-right corner,
   /// so it takes no row of its own; null when the viewer cannot remove it.
   Widget? _removeAction(ExerciseImageMetadata item) {
+    if (_canRemoveFromCourse(item)) {
+      return _cornerButton(
+        'Remove from this Course',
+        Icons.delete_outline,
+        () => _removeFromCourse(item),
+      );
+    }
     if (!_canManageMetadata) return null;
     if (item.origin == 'local') {
       return _cornerButton(
@@ -647,6 +675,236 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
     icon: Icon(icon),
   );
 
+  /// Removal applies to images the Course uses. A QQL or DEVICE image the
+  /// Course does not use has nothing to remove.
+  bool _canRemoveFromCourse(ExerciseImageMetadata item) =>
+      widget.onCourseChanged != null &&
+      _course != null &&
+      (_isUsed(item) || _isCourseStored(item));
+
+  /// Stored in the Course folder: a Course image, or a Shared Image Library
+  /// image whose Course copy shares its tile.
+  bool _isCourseStored(ExerciseImageMetadata item) =>
+      item.origin.startsWith('course') ||
+      _courseCopiedSharedIds.contains(item.id);
+
+  /// The Course assets [item] stands for: its own, plus a Course copy of a
+  /// Shared Image Library image shown on the same tile, used or kept.
+  Set<String> _courseAssetsOf(ExerciseImageMetadata item, Course course) => {
+    item.assetPath,
+    if (!isBundledImage(item)) ...[
+      for (final element in CourseImageUsage.imageElements(course))
+        if (element.sharedImageSource?.id == item.id) element.asset,
+      for (final entry in course.imageLibrary)
+        if (entry.sharedImageSource?.id == item.id) entry.asset,
+    ],
+  };
+
+  Future<void> _removeFromCourse(ExerciseImageMetadata item) async {
+    final course = _course;
+    final onChanged = widget.onCourseChanged;
+    if (course == null || onChanged == null) return;
+    final assets = _courseAssetsOf(item, course);
+    final stored = {
+      for (final asset in assets)
+        if (CourseMediaStore.isImageReference(asset)) asset,
+    };
+    final uses = [
+      for (final use in CourseImageUsage.uses(course))
+        if (assets.contains(use.asset)) use,
+    ];
+    if (uses.isEmpty && stored.isEmpty) return;
+
+    // Step 1: take the image out of everything that uses it.
+    var changed = course;
+    var cleared = 0;
+    var drafted = 0;
+    if (uses.isNotEmpty) {
+      if (await _confirmRemoveUses(item, uses, stored.isNotEmpty) != true ||
+          !mounted) {
+        return;
+      }
+      final result = CourseImageRemoval.remove(
+        course,
+        assets,
+        now: DateTime.now(),
+      );
+      changed = result.course;
+      cleared = result.clearedUses;
+      drafted = result.draftedContentIds.length;
+    }
+
+    // Step 2: a Course-stored image may also leave the Course's library, or
+    // stay there unused. Closing the question keeps it: nothing is lost.
+    var removedFromLibrary = false;
+    if (stored.isNotEmpty) {
+      final leave = await _confirmLeaveLibrary(wasUsed: uses.isNotEmpty);
+      if (!mounted) return;
+      if (leave == true) {
+        removedFromLibrary = true;
+        changed = CourseImageRemoval.updateLibrary(changed, remove: stored);
+      } else if (uses.isNotEmpty || leave == false) {
+        changed = CourseImageRemoval.updateLibrary(
+          changed,
+          keep: {
+            for (final asset in stored)
+              asset:
+                  CourseImageUsage.sharedSourceOf(course, asset) ??
+                  _librarySource(course, asset),
+          },
+        );
+      }
+    }
+    final courseChanged =
+        jsonEncode(changed.toJson()) != jsonEncode(course.toJson());
+    // A leftover file changes nothing in the Course but may still be deleted.
+    if (!courseChanged && !removedFromLibrary) return;
+    try {
+      if (courseChanged) {
+        onChanged(changed);
+        setState(() => _course = changed);
+      }
+      final deletedNow = removedFromLibrary
+          ? await _deleteLeftovers(changed, stored)
+          : 0;
+      await _load();
+      if (!mounted) return;
+      final parts = [
+        if (cleared > 0)
+          'Removed from $cleared ${cleared == 1 ? 'place' : 'places'}.',
+        if (drafted > 0)
+          '$drafted ${drafted == 1 ? 'item is' : 'items are'} now Draft.',
+        if (removedFromLibrary && deletedNow == stored.length)
+          'Removed from the Course.'
+        else if (removedFromLibrary)
+          'It leaves the Course when you confirm the Course.'
+        else if (stored.isNotEmpty)
+          "Kept in this Course's library.",
+      ];
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(parts.join(' '))));
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(duration: const Duration(seconds: 8), content: Text('$error')),
+      );
+    }
+  }
+
+  SharedImageSource? _librarySource(Course course, String asset) {
+    for (final entry in course.imageLibrary) {
+      if (entry.asset == asset) return entry.sharedImageSource;
+    }
+    return null;
+  }
+
+  /// A file that neither the saved nor the edited Course uses is a leftover:
+  /// deleting it now cannot break Discard. Anything else waits for the
+  /// confirmed save.
+  Future<int> _deleteLeftovers(Course changed, Set<String> assets) async {
+    final saved = widget.savedCourse;
+    if (saved == null) return 0;
+    final kept = {
+      ...CourseMediaStore.referencesOf(saved),
+      ...CourseMediaStore.referencesOf(changed),
+    };
+    var deleted = 0;
+    for (final asset in assets) {
+      if (!kept.contains(asset) &&
+          await _courseMedia.deleteStored(changed.courseId, asset)) {
+        deleted++;
+      }
+    }
+    return deleted;
+  }
+
+  Future<bool?> _confirmRemoveUses(
+    ExerciseImageMetadata item,
+    List<CourseImageUse> uses,
+    bool stored,
+  ) {
+    final kept = isBundledImage(item)
+        ? 'The QQL image stays available in the library.'
+        : stored
+        ? "Next you choose whether it also leaves this Course's library."
+        : 'The Shared Image Library image stays on this device.';
+    const shown = 8;
+    return showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Remove from this Course?'),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                uses.length == 1
+                    ? 'Used in 1 place:'
+                    : 'Used in ${uses.length} places:',
+              ),
+              const SizedBox(height: 4),
+              for (final use in uses.take(shown)) Text('• ${use.location}'),
+              if (uses.length > shown)
+                Text('• and ${uses.length - shown} more'),
+              const SizedBox(height: 12),
+              Text(
+                'The image is removed from all of them. $kept Exercises that '
+                'no longer work without it become Draft. Nothing is saved '
+                'until you confirm the Course.',
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            key: const Key('exercise-image-remove-confirm'),
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: const Text('Remove'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// True: leave the Course's library. False: keep it there, unused.
+  Future<bool?> _confirmLeaveLibrary({required bool wasUsed}) =>
+      showDialog<bool>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          title: Text(
+            wasUsed
+                ? "Also remove it from this Course's library?"
+                : "Remove it from this Course's library?",
+          ),
+          content: Text(
+            wasUsed
+                ? 'No exercise uses this image any more. Remove it from the '
+                      'Course too, or keep it in the Course\'s library, '
+                      'unused, to use again later.'
+                : 'No exercise uses this image. Remove it from the Course, or '
+                      "keep it in the Course's library to use later.",
+          ),
+          actions: [
+            TextButton(
+              key: const Key('exercise-image-keep-in-library'),
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: const Text('Keep in library'),
+            ),
+            FilledButton(
+              key: const Key('exercise-image-remove-from-library'),
+              onPressed: () => Navigator.pop(dialogContext, true),
+              child: const Text('Remove from Course'),
+            ),
+          ],
+        ),
+      );
+
   bool _isMissing(ExerciseImageMetadata item) =>
       !item.assetPath.startsWith('assets/') &&
       !CourseMediaStore.isImageReference(item.assetPath) &&
@@ -660,7 +918,7 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
 
   bool _isUsed(ExerciseImageMetadata item) =>
       _usedReferences.contains(item.assetPath) ||
-      (widget.course != null && _usedSharedIds.contains(item.id));
+      (_course != null && _usedSharedIds.contains(item.id));
 
   Widget _imageFor(ExerciseImageMetadata item) {
     if (_isMissing(item)) {
@@ -680,10 +938,9 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
         ),
       );
     }
-    if (CourseMediaStore.isImageReference(item.assetPath) &&
-        widget.course != null) {
+    if (CourseMediaStore.isImageReference(item.assetPath) && _course != null) {
       return CourseMediaImage(
-        courseId: widget.course!.courseId,
+        courseId: _course!.courseId,
         asset: item.assetPath,
         mediaStore: _courseMedia,
         fit: BoxFit.contain,
@@ -799,6 +1056,16 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
                         icon: const Icon(Icons.edit_outlined),
                         label: const Text('Edit metadata'),
                       ),
+                    if (_canRemoveFromCourse(item))
+                      OutlinedButton.icon(
+                        key: const Key('exercise-image-remove-from-course'),
+                        onPressed: () async {
+                          Navigator.pop(dialogContext);
+                          await _removeFromCourse(item);
+                        },
+                        icon: const Icon(Icons.delete_outline),
+                        label: const Text('Remove from this Course'),
+                      ),
                     TextButton(
                       onPressed: () => Navigator.pop(dialogContext),
                       child: const Text('Close'),
@@ -826,9 +1093,7 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
     final categories = _all.map((item) => item.category).toSet().toList()
       ..sort();
     final normalizedQuery = normalizeImageSearchText(_query);
-    final presentBadges = {
-      for (final item in _all) ..._badges(item),
-    };
+    final presentBadges = {for (final item in _all) ..._badges(item)};
     final badges = imageBadgeOrder.where(presentBadges.contains).toList();
     // A filter left over from a reload that no longer offers it is ignored.
     final badge = badges.length > 1 && badges.contains(_badge) ? _badge : null;
@@ -837,8 +1102,7 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
             .where(
               (item) =>
                   (_category == null || item.category == _category) &&
-                  (badge == null ||
-                      _badges(item).contains(badge)) &&
+                  (badge == null || _badges(item).contains(badge)) &&
                   matchesImageSearch(item, normalizedQuery),
             )
             .toList()
@@ -854,7 +1118,7 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          '${widget.course == null ? 'Shared Image Library' : 'Image Library'} '
+          '${_course == null ? 'Shared Image Library' : 'Image Library'} '
           '· ${_all.length} images',
         ),
         actions: [

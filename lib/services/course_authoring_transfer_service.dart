@@ -374,6 +374,7 @@ class CourseAuthoringTransferService {
     minimumAge: source.minimumAge,
     keywords: source.keywords,
     coverImage: source.coverImage,
+    imageLibrary: source.imageLibrary,
     languageVariant: source.languageVariant,
     startLevel: source.startLevel,
     targetLevel: source.targetLevel,

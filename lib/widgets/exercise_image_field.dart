@@ -206,6 +206,10 @@ class _ExerciseImageFieldState extends State<ExerciseImageField> {
                       left: 4,
                       bottom: 4,
                       child: ImageBadges(fontSize: 10, [
+                        (
+                          label: 'IN USE',
+                          message: 'This image is used by this Course.',
+                        ),
                         if (widget.asset.startsWith('assets/'))
                           (
                             label: 'QQL',
@@ -223,10 +227,6 @@ class _ExerciseImageFieldState extends State<ExerciseImageField> {
                             message:
                                 'The image bytes are stored in this Course folder.',
                           ),
-                        (
-                          label: 'IN USE',
-                          message: 'This image is used by this Course.',
-                        ),
                       ]),
                     ),
                   ],

@@ -382,3 +382,58 @@ behavior change.
 - **Tests:** the existing Image Library and Exercise editor tests pass
   unchanged. New tests are `course_image_usage_test.dart`,
   `image_library_rules_test.dart` and `exercise_image_field_test.dart`.
+
+## Revision 8 — remove an image from a Course; badge order
+
+Version **2.0.43+243008**, same Beta expiry. Plan §6b of
+`docs/IMPORT_HARDENING_PLAN.md`, built on the Revision 7 structure.
+
+- **Badge order:** `IN USE`, then `QQL`, `DEVICE`, `COURSE`
+  (`imageBadgeOrder` and `imageBadgesOf` in `image_library_rules.dart`, and
+  `ExerciseImageField`).
+- **`CourseImageRemoval`** (`lib/services/course_image_removal.dart`) takes a
+  Course and a set of assets and returns the changed Course.
+  - It clears every image element using those assets from exercise prompts,
+    answer items, layouts and presentation content, in Rounds and
+    GuideBooks, plus the cover.
+  - It stamps `updatedAt` on the changed exercises, Rounds and Lessons.
+  - It makes Draft every changed item whose runnable exercise then has an
+    Audit error, the same rule publication uses. Content already Draft is
+    left alone.
+- **Image Library:** a new `onCourseChanged` callback, passed only by the
+  Course Editor's main Image Library entry, shows **Remove from this Course**
+  on every image the Course uses:
+  - a 22 px bin in the bottom-right corner, and a button in the preview;
+  - a confirmation listing each use with its location;
+  - for a merged tile, both the device original and its Course copy.
+
+  The Course Editor applies the result through `_updateDraft`. That requires
+  Edit on a Course the user may edit, and runs the existing Draft
+  reconciliation, which never republishes an exercise. The Exercise editor's
+  image chooser does not offer removal.
+- **What stays:** a QQL image stays in the library, and a Shared Image Library
+  original stays on the device.
+- **Course image library (owner addition).** A new optional Course field,
+  `imageLibrary`, holds `CourseImageLibraryEntry` items.
+  - Each entry has an `asset` (an image `media:` reference, listed once) and
+    an optional `sharedImageSource`. It is omitted when empty.
+  - `CourseMediaStore.referencesOf` includes the entries, so cleanup, the
+    Course ZIP and backups keep those files.
+  - Duplicate/Fork and authoring transfer carry the list. Merge keeps both
+    Courses' entries, the left Course's entry winning for an image both list.
+  - Builds before Revision 8 ignore the field.
+- **Second question and bins (owner addition).** Every Course-stored image
+  (`COURSE`, including a device image's Course copy) has the bin, used or
+  not.
+  - After its uses are cleared, **Remove from Course** or **Keep in library**
+    is offered. Keep adds an `imageLibrary` entry; closing the question also
+    keeps it.
+  - A kept image shows as `COURSE` without `IN USE`.
+  - **Remove from Course** drops any entry. The file leaves through
+    `deleteUnreferenced` after the confirmed save. It is deleted at once
+    (`CourseMediaStore.deleteStored`) only when neither the saved Course
+    (`savedCourse`, the editor's `_transaction.originalCourse`) nor the
+    edited Course references it, so Discard always stays possible.
+  - QQL and Shared Library images never get the second question.
+- The model part of Tranche 2b (`imageLibrary`) is therefore done. Tranche 2b
+  keeps the import of images and Image Banks into it.

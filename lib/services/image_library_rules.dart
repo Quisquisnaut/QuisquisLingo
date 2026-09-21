@@ -58,7 +58,7 @@ bool isBundledImage(ExerciseImageMetadata item) =>
     item.origin == 'bundled' || item.assetPath.startsWith('assets/');
 
 /// Badge labels in display order; the badge filter offers the same labels.
-const imageBadgeOrder = ['QQL', 'DEVICE', 'COURSE', 'IN USE'];
+const imageBadgeOrder = ['IN USE', 'QQL', 'DEVICE', 'COURSE'];
 
 const imageBadgeMeanings = {
   'QQL': 'App bundled; supplied by QQL on every device.',
@@ -73,12 +73,12 @@ List<String> imageBadgesOf(
   bool used = false,
   bool inCourse = false,
 }) => [
+  if (used) 'IN USE',
   ...switch (item.origin) {
     // Listed on its own only when the device original is gone.
     'course' || 'course-device' => const ['COURSE'],
     _ => [isBundledImage(item) ? 'QQL' : 'DEVICE', if (inCourse) 'COURSE'],
   },
-  if (used) 'IN USE',
 ];
 
 /// The tile's tag line, or null when the image has no tags. `Local:` will
