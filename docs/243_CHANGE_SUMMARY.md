@@ -766,6 +766,7 @@ Version **2.0.43+243016**, same Beta expiry. Tranche 5 (part 1) of
 - **Tests:** `duplicates_provenance_tranche5_test.dart` (12); Tranche 4
   Shared Library tests use `uniquePng` (`test/support/unique_png.dart`) and
   a failing metadata stub; MP3 tests cover the web-page message.
+
 ## Revision 17 — clearer media errors and Audio Library modes
 
 Version **2.0.43+243017**, same Beta expiry. Import errors now identify
@@ -782,3 +783,17 @@ audio modes each show their own explanation. **Check unused MP3 files**,
 **Import MP3**, and **Open MP3 from…** appear only for Recorded MP3 only
 and Hybrid. The stored `tts` / `recorded` / `hybrid` values and Course
 audio playback are unchanged.
+
+## Revision 18 — image preview details
+
+Version **2.0.43+243018**, same Beta expiry. In both Shared Images and the
+Course Editor's Image Library, the full-size picture has a details tooltip:
+hover on desktop or long-press on a phone. It shows the QQL asset name,
+recorded original name for new device imports, stored name for older device
+imports, or “Course file (named by content)” for Course media. It also shows
+approximate file size, pixel dimensions, detected format, added date (or
+“Included with QQL”), Image Bank name and attribution when available. A
+missing file shows “File missing”; a merged device/Course tile says “Also
+stored in this Course”. This tooltip appears only in the full-size preview.
+Stored images are read for details without import validation. English Editor
+Help explains the hover and long-press gestures.

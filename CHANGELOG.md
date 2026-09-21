@@ -1,3 +1,12 @@
+# 2.0.43 (Build 243, Revision 18) - Image preview details - 2026-09-21
+
+The full-size preview in Shared Images and the Course Editor's Image Library
+shows file details when the picture is hovered over or long-pressed. It names
+the original or stored file, approximate size, dimensions, format, added date,
+Image Bank and attribution when available, and identifies missing files and
+Course copies. Tiles stay compact. English Editor Help explains the gesture.
+Version `2.0.43+243018`; Beta expiry remains **2026-10-21 23:59:59 local time**.
+
 # 2.0.43 (Build 243, Revision 17) - Clearer media errors - 2026-09-21
 
 Media imports now explain common wrong file types and how to fix them.

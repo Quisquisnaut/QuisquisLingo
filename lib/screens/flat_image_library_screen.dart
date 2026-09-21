@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -14,6 +15,7 @@ import '../services/exercise_image_service.dart';
 import '../services/file_dialog_service.dart';
 import '../services/image_bank_service.dart';
 import '../services/image_library_rules.dart';
+import '../services/image_preview_tooltip.dart';
 import '../services/import/import_result.dart';
 import '../services/profile_service.dart';
 import '../widgets/course_media_image.dart';
@@ -1581,7 +1583,78 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
     );
   }
 
+  Future<String> _previewDetails(ExerciseImageMetadata item) async {
+    try {
+      final Uint8List bytes;
+      if (item.assetPath.startsWith('assets/')) {
+        final data = await rootBundle.load(item.assetPath);
+        bytes = data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);
+      } else {
+        final File? file;
+        if (CourseMediaStore.isImageReference(item.assetPath)) {
+          final course = _course;
+          file = course == null
+              ? null
+              : await _courseMedia.existingFile(course.courseId, item.assetPath);
+        } else {
+          file = File(item.assetPath);
+        }
+        if (file == null || !await file.exists()) {
+          return imagePreviewTooltip(item: item, missing: true);
+        }
+        bytes = await file.readAsBytes();
+      }
+
+      int? width;
+      int? height;
+      ui.ImmutableBuffer? buffer;
+      ui.ImageDescriptor? descriptor;
+      try {
+        buffer = await ui.ImmutableBuffer.fromUint8List(bytes);
+        descriptor = await ui.ImageDescriptor.encoded(buffer);
+        width = descriptor.width;
+        height = descriptor.height;
+      } catch (_) {
+        // Old stored images are read for details, never revalidated here.
+      } finally {
+        descriptor?.dispose();
+        buffer?.dispose();
+      }
+      final format = switch (ImageValidator.sniff(bytes)) {
+        ImageFormat.png => 'PNG',
+        ImageFormat.jpeg => 'JPEG',
+        ImageFormat.webp => 'WebP',
+        null => null,
+      };
+      String? bankName;
+      final bankId = imageBankIdOf(item);
+      if (bankId != null) {
+        try {
+          for (final bank in await _banks.banks()) {
+            if (bank.id == bankId) {
+              bankName = bank.name;
+              break;
+            }
+          }
+        } catch (_) {}
+      }
+      return imagePreviewTooltip(
+        item: item,
+        byteLength: bytes.length,
+        width: width,
+        height: height,
+        format: format,
+        addedAt: _addedAt[item.id],
+        bankName: bankName,
+        alsoStoredInCourse: _courseCopiedSharedIds.contains(item.id),
+      );
+    } catch (_) {
+      return imagePreviewTooltip(item: item, missing: true);
+    }
+  }
+
   Future<void> _preview(ExerciseImageMetadata item) async {
+    final details = _previewDetails(item);
     final size = MediaQuery.sizeOf(context);
     await showDialog<void>(
       context: context,
@@ -1629,7 +1702,16 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
                       child: InteractiveViewer(
                         minScale: 0.5,
                         maxScale: 4,
-                        child: Center(child: _imageFor(item)),
+                        child: Center(
+                          child: FutureBuilder<String>(
+                            future: details,
+                            builder: (context, snapshot) => Tooltip(
+                              key: const Key('image-preview-details-tooltip'),
+                              message: snapshot.data ?? 'Loading image details…',
+                              child: _imageFor(item),
+                            ),
+                          ),
+                        ),
                       ),
                     ),
                   ),

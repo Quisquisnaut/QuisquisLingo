@@ -1,5 +1,20 @@
 # Build 243 validation
 
+## Revision 18 — image preview details (`2.0.43+243018`)
+
+Validation on 21 September 2026, before the Revision 18 commit.
+
+- Five new formatting tests cover QQL, new and old device images, bank name
+  and attribution, merged Course copies, content-named Course media, and
+  missing files. Two widget tests cover the tooltip only in full-size
+  previews, hover and long-press, Shared Images and Course Editor contexts.
+- English-only Editor Help guidance is asserted; stored images are read for
+  details without calling import validation.
+- Clean full suite: **2,136 passed, 0 failed** (`flutter test --no-pub`).
+- `flutter analyze --no-pub`: **no issues**.
+- The four `tools/validate_*.py` validators: 0 issues.
+- `git diff --check`: clean. The untracked `devtools_options.yaml` is excluded.
+
 ## Revision 17 — clearer media errors and Audio Library modes (`2.0.43+243017`)
 
 Validation on 21 September 2026, before the Revision 17 commit.
