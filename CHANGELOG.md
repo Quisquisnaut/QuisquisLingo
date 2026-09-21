@@ -1,3 +1,11 @@
+# 2.0.44 (Build 244, Revision 1) - Shared Course Draft rule - 2026-09-21
+
+The rule that decides whether a Course contains authored Draft content now
+lives in one shared model helper instead of inside the Course Editor, so the
+coming Course Library can use it without running the Course Audit. Editor and
+Course Manager Draft badges behave exactly as before.
+Version `2.0.44+244001`; Beta expiry remains **2026-10-21 23:59:59 local time**.
+
 # 2.0.43 (Build 243, Revision 19) - Phase 20 import route matrix - 2026-09-21
 
 Small synthetic fixtures now exercise the fixed-folder, Open from…, and Course

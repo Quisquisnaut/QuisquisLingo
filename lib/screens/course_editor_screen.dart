@@ -12,6 +12,7 @@ import '../widgets/script_recognition_editor.dart';
 import '../widgets/exercise_image_field.dart';
 import 'package:audioplayers/audioplayers.dart';
 
+import '../models/course_draft_status.dart';
 import '../models/course_flag_selection.dart';
 import '../models/course_models.dart';
 import '../models/course_metadata_options.dart';
@@ -146,21 +147,14 @@ class AuthoringHierarchyStatus {
   final Set<String> lessonEmptyRoundsIds;
   final Set<String> lessonGuidebookAuditConcernIds;
 
-  bool get courseHasDraft => course.lessons.any(lessonHasDraft);
+  /// Draft rules live in [CourseDraftStatus]; these getters delegate to it.
+  bool get courseHasDraft => CourseDraftStatus.courseHasDraft(course);
   bool lessonHasDraft(Lesson lesson) =>
-      !lesson.publicationState.isPublished ||
-      lessonGuidebookHasDraft(lesson) ||
-      lessonHasRoundDraft(lesson);
-
-  /// A turned-off GuideBook never shows a Draft badge and never counts in the
-  /// Lesson or Course badge, whatever its stored state.
+      CourseDraftStatus.lessonHasDraft(course, lesson);
   bool lessonGuidebookHasDraft(Lesson lesson) =>
-      course.useGuidebook &&
-      (!lesson.guidebook.publicationState.isPublished ||
-          lesson.guidebook.content.any(
-            (content) => !content.publicationState.isPublished,
-          ));
-  bool lessonHasRoundDraft(Lesson lesson) => lesson.rounds.any(roundHasDraft);
+      CourseDraftStatus.lessonGuidebookHasDraft(course, lesson);
+  bool lessonHasRoundDraft(Lesson lesson) =>
+      CourseDraftStatus.lessonHasRoundDraft(lesson);
   bool lessonHasAuditConcern(Lesson lesson) =>
       lessonAuditConcernIds.contains(lesson.lessonId);
 
@@ -173,12 +167,11 @@ class AuthoringHierarchyStatus {
       lessonEmptyRoundsIds.contains(lesson.lessonId) ||
       lesson.rounds.any(roundHasAuditConcern);
   bool roundHasDraft(LearningRound round) =>
-      !round.publicationState.isPublished ||
-      round.content.any((content) => !content.publicationState.isPublished);
+      CourseDraftStatus.roundHasDraft(round);
   bool roundHasAuditConcern(LearningRound round) =>
       roundAuditConcernIds.contains(round.id);
   bool exerciseIsDraft(Exercise exercise) =>
-      !exercise.publicationState.isPublished;
+      CourseDraftStatus.exerciseIsDraft(exercise);
   bool exerciseHasAuditConcern(Exercise exercise) =>
       exerciseAuditConcernIds.contains(exercise.id);
 }

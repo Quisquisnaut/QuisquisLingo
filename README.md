@@ -1,10 +1,14 @@
 # QuisquisLingo App
 
-**Current source version: 2.0.43+243019 · Build 243, Revision 19 · Course Model v11 (`formatVersion: 11`).**
+**Current source version: 2.0.44+244001 · Build 244, Revision 1 · Course Model v11 (`formatVersion: 11`).**
+
+**QuisquisLingo 2.0.44 Beta — QQL 244 Course Library**
+
+Current project version: 2.0.44
+
+See the [Build 244 change summary](docs/244_CHANGE_SUMMARY.md). Build 244 turns Available on this device into the Course Library; the plan is in [docs/COURSE_LIBRARY_244_PLAN.md](docs/COURSE_LIBRARY_244_PLAN.md). Revision 1 moves the Course Draft rule out of the Course Editor into a shared model helper, with no visible change.
 
 **QuisquisLingo 2.0.43 Beta — QQL 243 Course Model v11**
-
-Current project version: 2.0.43
 
 See the [Build 243 change summary](docs/243_CHANGE_SUMMARY.md) for Course Model v11 and portable Course ZIPs. Export includes only referenced Course media, including images selected from the Admin Shared Image Library; bundled QQL assets remain supplied by the app. Import keeps those images with the Course and does not add them to the destination Shared Image Library. Revision 4 lets signed Publisher ZIPs carry recordings and images; updates archive the previous media and remove files no longer used. The Course Editor's Image Library lists shared and Course-owned images with source and use labels; Admins manage the device-wide Shared Image Library from Course Manager or Device Administration. Revision 5 overlays small `QQL`/`DEVICE`/`COURSE`/`IN USE` badges on each image and adds a badge filter and sorting to the Image Library. Revision 6 hardens Course cover and Image Bank ZIP import against memory-exhaustion files and limits Lesson icon and flag sources to 4096 pixels. Revision 7 gives image usage a single rule and reorganizes the Image Library code; images used only in presentations or GuideBooks now show `IN USE`. Revision 8 lists `IN USE` first and lets Course editors remove an image from a Course, turning exercises that need it into Drafts, and keep unused images in the Course's own image library. Revision 9 makes QQL's own image metadata read-only and adds Admin Local words and device categories. Revision 10 streams every Open from… file into a private staging folder under its real size limit and opens only ordinary files. Revision 11 checks every imported image by its content and lets Admins import up to 100 Shared Library images at once. Revision 12 lets Course editors add images and whole Image Banks to a Course's own library. Revision 13 checks every imported MP3 by its content and lets the Audio Library open several MP3s at once. Revision 14 reads Image Bank and Course ZIPs through one hardened reader, lets an Admin decide about new bank categories, and bounds imported JSON. Revision 15 reads Course ZIPs from disk a piece at a time instead of loading them into memory. Revision 16 renames the library to Shared Images, skips pictures that are already there, lets an Admin resolve Image Bank ID clashes, and records where each imported image came from. Revision 17 explains media import errors, including how to create a missing Image Bank manifest, and makes the Audio Library modes and their available MP3 tools clearer. Revision 18 adds file details on hover or long-press in the full-size image preview, including the original name, format, size, date, bank and credit when known. Revision 19 tests every import route with synthetic adversarial files and checks embedded Course JSON images at import. See the [course package plan](docs/COURSE_PACKAGE_PLAN.md).
 
@@ -73,7 +77,7 @@ The MPL-2.0 covers the QuisquisLingo software source. Courses, the Image Bank an
 
 ## Beta lifecycle
 
-Version 2.0.43, Build 243, Revision 19 is a time-limited Beta with an expiry of **2026-10-21 23:59:59 local time** (30 days from September 21, 2026, its own release date). Near expiry it displays reminders. After expiry, learner exercises and Review are blocked until a newer Beta is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when a Beta expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM.
+Version 2.0.44, Build 244, Revision 1 is a time-limited Beta with an expiry of **2026-10-21 23:59:59 local time** (30 days from September 21, 2026, its own release date). Near expiry it displays reminders. After expiry, learner exercises and Review are blocked until a newer Beta is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when a Beta expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM.
 
 ## Core logic
 
@@ -313,6 +317,6 @@ available for release-mode **test** builds. Never distribute that configuration
 as a public production release. Bundled courses and unsigned custom courses
 retain their distinct trust rules. Course Model is v11; v9/v10 Publisher Courses must be converted and signed again.
 
-Final Build 241 Revision 2 validation passed; see the report for full-suite and final focused evidence. Build 242 evidence is in [242 validation](docs/242_VALIDATION.md); Build 243 evidence is in [243 validation](docs/243_VALIDATION.md).
+Final Build 241 Revision 2 validation passed; see the report for full-suite and final focused evidence. Build 242 evidence is in [242 validation](docs/242_VALIDATION.md); Build 243 evidence is in [243 validation](docs/243_VALIDATION.md); Build 244 evidence is in [244 validation](docs/244_VALIDATION.md).
 
 Manual inspection: [Build 242 visual checklist (Italian)](docs/242_VISUAL_CHECKLIST_IT.md), and the previous [Build 241 Revision 2 checklist](docs/241_REVISION_2_VISUAL_CHECKLIST_IT.md).
