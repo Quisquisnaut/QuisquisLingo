@@ -4,7 +4,7 @@ Keep this file current at the end of **every** revision, so that work can
 resume after a pause or with another agent. Plan and decisions:
 [IMPORT_HARDENING_PLAN.md](IMPORT_HARDENING_PLAN.md). Rules: `AGENTS.md`.
 
-## Where things stand (updated 2026-09-21, Revision 14 in progress)
+## Where things stand (updated 2026-09-21, Revision 14 committed)
 
 | Revision | Version | Commit | Content |
 |---|---|---|---|
@@ -17,32 +17,20 @@ resume after a pause or with another agent. Plan and decisions:
 | 11 | `2.0.43+243011` | `3ed36fa` | Tranche 2: one image validator for every image import; Shared Library multi-file import with summary; N6/N7 fixed |
 | 12 | `2.0.43+243012` | `a40999d` | Tranche 2b: add images and Image Banks to a Course's own library; readBank split; entry metadata |
 | 13 | `2.0.43+243013` | `da9a3a3` | Tranche 3: `Mp3Validator` on every MP3 route; multi-file Audio Library Open from… with summary; duplicate clips skipped; Dummy media fixture re-signed |
+| 14 | `2.0.43+243014` | `eb0857a` | Tranche 4 part 1: `BoundedZipReader` for banks and packages; bank allowlist, object manifest, field bounds, Admin choice on new categories; `JsonLimits`/`CourseShapeLimits` |
 
-Revisions 5–13 are pushed to `origin/main`. The untracked
+Revisions 5–14 are pushed to `origin/main`. The untracked
 `devtools_options.yaml` predates this work: never commit or delete it.
 
 ## Next steps, in order (plan §6a)
 
-1. **Revision 14 (Tranche 4, part 1)**, in progress: `BoundedZipReader`
-   (`lib/services/import/bounded_zip_reader.dart`) is the only ZIP reader
-   (Image Banks and Course packages; `readBoundedEntry` removed); Image Bank
-   allowlist (manifest + listed images only), object manifest with bank-wide
-   `attribution` and `name`, manifest field bounds, category names checked
-   in `readBank`; `ImageBankService.importToSharedLibrary` asks the Admin
-   about new categories (`NewCategoryChoice`) before writing and rolls back
-   on failure; `JsonLimits` + `CourseShapeLimits`
-   (`lib/services/import/json_limits.dart`) before `jsonDecode` for Course,
-   learner backup and Recovery Key. Tests: `import_archives_tranche4_test.dart`
-   (25). Help EN/IT, `IMAGE_BANK_PACKAGES.md`, `COURSE_EDITOR.md`,
-   `EXTERNAL_CONTENT_PACKS.md` done. Left: bump to `243014`, release notes,
-   full suite, commit, push.
-2. **Revision 15 (Tranche 4, part 2)**: Course package media streamed into
+1. **Revision 15 (Tranche 4, part 2)**: Course package media streamed into
    staging and kept on disk (plan item 2, finding N3): `CoursePackage` holds
    staged files instead of `Map<String, Uint8List>`, install moves them;
    the ZIP itself read from a staged file through `InputFileStream`. Split
    from Revision 14 because it changes `CoursePackage`, every
    `withInstalledMedia` caller and the Publisher path.
-3. **Tranche 5** (Revision 16): content-hash duplicates with Skip / Replace /
+2. **Tranche 5** (Revision 16): content-hash duplicates with Skip / Replace /
    Keep both; provenance; the adversarial suite.
 
 ## Owner decisions already taken
