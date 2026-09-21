@@ -1,6 +1,7 @@
 import 'support/pump_file_io.dart';
 import 'dart:convert';
 import 'dart:io';
+import 'package:archive/archive.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -27,9 +28,9 @@ void main() {
   setUp(() => SharedPreferences.setMockInitialValues({}));
 
   test('current release metadata uses Build and revision terminology', () {
-    expect(AppMetadata.technicalVersion, '2.0.43+243002');
+    expect(AppMetadata.technicalVersion, '2.0.43+243003');
     expect(AppMetadata.build, '243');
-    expect(AppMetadata.displayLabel, 'Version 2.0.43\nBuild 243, Revision 2');
+    expect(AppMetadata.displayLabel, 'Version 2.0.43\nBuild 243, Revision 3');
   });
 
   testWidgets(
@@ -226,7 +227,10 @@ void main() {
     final path = await CustomCourseTransferService(
       directory: () async => directory,
     ).exportCourse(course);
-    final exported = jsonDecode(await File(path).readAsString()) as Map;
+    final archive = ZipDecoder().decodeBytes(await File(path).readAsBytes());
+    final exported = jsonDecode(
+      utf8.decode(archive.findFile('course.json')!.readBytes()!),
+    ) as Map;
     expect(exported['title'], 'Unrelated saved title');
     expect(exported['temporarySample'], isTrue);
   });

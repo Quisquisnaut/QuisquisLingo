@@ -69,6 +69,7 @@ class ExerciseImageMetadataService {
             tags: record.tags,
             assetPath: record.assetPath,
             origin: record.origin,
+            attribution: record.attribution,
           );
         })
         .toList(growable: false);
@@ -109,6 +110,7 @@ class ExerciseImageMetadataService {
     required String imageId,
     required String category,
     required List<String> tags,
+    ImageAttribution? attribution,
   }) async {
     await _requireAdmin(actorProfileId);
     final normalizedCategory = _normalizeCategory(category);
@@ -120,10 +122,17 @@ class ExerciseImageMetadataService {
         'No current exercise-image metadata exists for "${imageId.trim()}".',
       );
     }
+    if (records[index].origin == 'bundled' && attribution != null) {
+      throw const FormatException(
+        'Only Admin-added images can have editable attribution.',
+      );
+    }
     final updated = [...records];
     updated[index] = updated[index].copyWith(
       category: normalizedCategory,
       tags: normalizedTags,
+      attribution: _normalizedAttribution(attribution),
+      clearAttribution: attribution == null,
     );
     await _persist(updated);
   }
@@ -150,7 +159,14 @@ class ExerciseImageMetadataService {
         tags: _normalizeTags(record.tags),
         assetPath: _requiredText(record.assetPath, 'assetPath'),
         origin: _requiredText(record.origin, 'origin'),
+        attribution: _normalizedAttribution(record.attribution),
       );
+      if (normalized.origin == 'bundled' &&
+          normalized.attribution != null) {
+        throw const FormatException(
+          'Only Admin-added images can have attribution.',
+        );
+      }
       if (!ids.add(normalized.id) || !paths.add(normalized.assetPath)) {
         throw FormatException(
           'Exercise-image ID or asset path is already registered: ${normalized.id}.',
@@ -213,14 +229,22 @@ class ExerciseImageMetadataService {
       final records = <ExerciseImageMetadata>[];
       final ids = <String>{};
       final paths = <String>{};
-      const fields = {'id', 'label', 'category', 'tags', 'assetPath', 'origin'};
+      const requiredFields = {
+        'id',
+        'label',
+        'category',
+        'tags',
+        'assetPath',
+        'origin',
+      };
+      const allowedFields = {...requiredFields, 'attribution'};
       for (final rawRecord in rawRecords) {
         if (rawRecord is! Map) {
           throw FormatException('$source contains a non-object record.');
         }
         final record = Map<String, dynamic>.from(rawRecord);
-        if (record.keys.toSet().difference(fields).isNotEmpty ||
-            fields.difference(record.keys.toSet()).isNotEmpty) {
+        if (record.keys.toSet().difference(allowedFields).isNotEmpty ||
+            requiredFields.difference(record.keys.toSet()).isNotEmpty) {
           throw FormatException(
             '$source contains unsupported metadata fields.',
           );
@@ -234,6 +258,15 @@ class ExerciseImageMetadataService {
         if (rawTags is! List) {
           throw FormatException('$source contains invalid tags for $id.');
         }
+        final rawAttribution = record['attribution'];
+        if (record.containsKey('attribution') && rawAttribution is! Map) {
+          throw FormatException('$source contains invalid attribution for $id.');
+        }
+        final attribution = rawAttribution == null
+            ? null
+            : ImageAttribution.fromJson(
+                Map<String, dynamic>.from(rawAttribution),
+              );
         records.add(
           ExerciseImageMetadata(
             id: id,
@@ -242,6 +275,7 @@ class ExerciseImageMetadataService {
             tags: _normalizeTags(rawTags.map((tag) => tag.toString()).toList()),
             assetPath: path,
             origin: _requiredText(record['origin'], 'origin'),
+            attribution: attribution,
           ),
         );
       }
@@ -258,6 +292,9 @@ class ExerciseImageMetadataService {
     if (normalized.isEmpty) throw FormatException('$field must not be empty.');
     return normalized;
   }
+
+  static ImageAttribution? _normalizedAttribution(ImageAttribution? value) =>
+      value == null ? null : ImageAttribution.fromJson(value.toJson());
 
   static String _normalizeCategory(Object? value) {
     final raw = _requiredText(value, 'category');

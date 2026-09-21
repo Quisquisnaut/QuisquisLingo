@@ -16,6 +16,7 @@ import '../services/custom_course_transfer_service.dart';
 import '../services/course_service.dart';
 import '../services/course_language_resolver.dart';
 import '../services/course_merge_service.dart';
+import '../services/course_package_service.dart';
 import '../services/formal_name_policy.dart';
 import '../services/course_access_policy.dart';
 import '../services/profile_service.dart';
@@ -72,7 +73,7 @@ class CourseImportScreen extends StatelessWidget {
           key: const Key('import-course-json-primary'),
           onPressed: onImport,
           icon: const Icon(Icons.file_open_outlined),
-          label: const Text('Import Course JSON'),
+          label: const Text('Import Course package or JSON'),
         ),
         if (onOpenFrom != null) ...[
           const SizedBox(height: 12),
@@ -84,7 +85,7 @@ class CourseImportScreen extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           const Text(
-            'Choose a course JSON file anywhere with the system file dialog. '
+            'Choose a Course package ZIP or a media-free JSON file with the system file dialog. '
             'It is checked exactly like an ordinary import.',
           ),
           const SizedBox(height: 8),
@@ -103,10 +104,10 @@ class CourseImportScreen extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         const Text(
-          '1. Copy the course JSON to Documents/QuisquisLingo/Imports/import.json.\n'
-          '2. Select Import Course JSON. QQL validates the complete file before changing local storage.\n'
+          '1. Copy a Course package to Documents/QuisquisLingo/Imports/import.zip, or a media-free JSON to import.json. Keep only one.\n'
+          '2. Select Import Course package or JSON. QQL validates the complete file before changing local storage.\n'
           '3. If the Course ID already exists, choose Replace/update, Copy as New Course, Fork or Cancel, as available.\n'
-          '4. A successful import is added to your courses. Only published courses are available for study. import.json remains in Imports.',
+          '4. A successful import is added to your courses. Only published courses are available for study. The source file remains in Imports.',
         ),
       ],
     ),
@@ -138,6 +139,7 @@ class _CourseMergeScreenState extends State<CourseMergeScreen> {
   late final CourseMergeService _merge =
       widget.mergeService ?? CourseMergeService();
   Course? _rightCourse;
+  CoursePackage? _rightPackage;
   List<LessonMergeChoice> _choices = const [];
   CourseMergeSide _createDuelsSide = CourseMergeSide.left;
   CourseMergeSide _useGuidebookSide = CourseMergeSide.left;
@@ -156,13 +158,13 @@ class _CourseMergeScreenState extends State<CourseMergeScreen> {
   Future<void> _loadMergeCourse({bool fromDialog = false}) async {
     setState(() => _loading = true);
     try {
-      final Course right;
+      final CoursePackage loaded;
       if (fromDialog) {
         // Merge From…: same validation as merge.json, then the same
         // compatibility check below.
-        final picked = await _merge.readMergeCourseFromDialog();
+        final picked = await _merge.readMergePackageFromDialog();
         if (!mounted) return;
-        final opened = picked.course;
+        final opened = picked.package;
         if (opened == null) {
           showFileDialogFeedback(
             context,
@@ -172,14 +174,16 @@ class _CourseMergeScreenState extends State<CourseMergeScreen> {
           );
           return;
         }
-        right = opened;
+        loaded = opened;
       } else {
-        right = await _merge.readMergeCourse();
+        loaded = await _merge.readMergePackage();
       }
+      final right = loaded.course;
       _merge.validateCompatibility(widget.leftCourse, right);
       if (!mounted) return;
       setState(() {
         _rightCourse = right;
+        _rightPackage = loaded;
         _choices = List.filled(
           [
             widget.leftCourse.lessons.length,
@@ -238,7 +242,7 @@ class _CourseMergeScreenState extends State<CourseMergeScreen> {
           child: Text(
             'The Course Merge tool is not intended for merging two completely different courses. '
             'A typical usage case would be two team members working on the same course: while team member, John, edits, say, lessons 1 to 5, another team member, Jane, edits lessons 6 to 8. The Merge Tool allows them, or a third member, to assemble the two sets of lessons into one unified course. Another usage case would be the same editor who wants to merge two versions of the course they are working at: let’s say they want to use lessons 1, 3, and 7 from the first version, and lessons 2, 4, 5, and 6 from the second version.\n\n'
-            'Copy the second Course JSON to Documents/QuisquisLingo/Merges/merge.json. '
+            'Copy the second Course package to Documents/QuisquisLingo/Merges/merge.zip, or a media-free JSON to merge.json. '
             'Both Courses must be custom. Matching Course IDs are allowed only '
             'when the Course versions differ.\n\n'
             'Author, Maintainer, source/target language, Original Course '
@@ -306,7 +310,7 @@ class _CourseMergeScreenState extends State<CourseMergeScreen> {
               key: const Key('merge-course-json-primary'),
               onPressed: _loading ? null : _loadMergeCourse,
               icon: const Icon(Icons.merge_type_outlined),
-              label: const Text('Merge JSON Course'),
+              label: const Text('Merge Course package or JSON'),
             ),
             if (_merge.fileDialogsAvailable) ...[
               const SizedBox(height: 12),
@@ -320,8 +324,8 @@ class _CourseMergeScreenState extends State<CourseMergeScreen> {
               ),
               const SizedBox(height: 4),
               const Text(
-                'Choose the second Course JSON anywhere with the system file dialog. '
-                'It is checked exactly like merge.json.',
+                'Choose the second Course package ZIP or media-free JSON with the system file dialog. '
+                'It is checked exactly like the fixed-folder route.',
               ),
               const SizedBox(height: 8),
               Text(
@@ -338,10 +342,10 @@ class _CourseMergeScreenState extends State<CourseMergeScreen> {
             ),
             const SizedBox(height: 8),
             const Text(
-              '1. Copy the compatible Course JSON to Documents/QuisquisLingo/Merges/merge.json.\n'
-              '2. Select Merge JSON Course. QQL validates both Course information blocks before changing local storage.\n'
+              '1. Copy the compatible Course package to Documents/QuisquisLingo/Merges/merge.zip, or a media-free JSON to merge.json. Keep only one.\n'
+              '2. Select Merge Course package or JSON. QQL validates both Course information blocks before changing local storage.\n'
               '3. Choose the origin of every Lesson you want to include, then check the selections carefully.\n'
-              '4. DO MERGE! creates a third independent Course and leaves both sources and merge.json unchanged.\n'
+              '4. DO MERGE! creates a third independent Course and leaves both sources and the imported file unchanged.\n'
               '5. The new merged Course will be available in Course Manager.',
             ),
           ] else ...[
@@ -389,7 +393,21 @@ class _CourseMergeScreenState extends State<CourseMergeScreen> {
                     (choice) => choice == LessonMergeChoice.exclude,
                   )
                   ? null
-                  : () => widget.onMerge(right, _choices, _options(right)),
+                  : () async {
+                      try {
+                        await _rightPackage!.withInstalledMedia(
+                          right.courseId,
+                          () => widget.onMerge(right, _choices, _options(right)),
+                          keepOnSuccess: false,
+                        );
+                      } catch (error) {
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Course merge failed: $error')),
+                          );
+                        }
+                      }
+                    },
               child: const Text('DO MERGE!'),
             ),
           ],
@@ -1903,7 +1921,7 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
             value: 'export',
             child: ListTile(
               leading: Icon(Icons.download_outlined),
-              title: Text('Export JSON'),
+              title: Text('Export Course ZIP'),
             ),
           ),
         if ((course.originType.isOfficial || access.hasOperationalAccess) &&
@@ -1951,13 +1969,13 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
 
   Future<void> _importCourse({bool fromDialog = false}) async {
     try {
-      final Course imported;
+      final CoursePackage importedPackage;
       if (fromDialog) {
         // Open from…: same validation as the fixed-folder import, then the
         // identical audit / collision flow below.
-        final picked = await _transfer.importCourseFromDialog();
+        final picked = await _transfer.importPackageFromDialog();
         if (!mounted) return;
-        final opened = picked.course;
+        final opened = picked.package;
         if (opened == null) {
           showFileDialogFeedback(
             context,
@@ -1967,10 +1985,11 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
           );
           return;
         }
-        imported = opened;
+        importedPackage = opened;
       } else {
-        imported = await _transfer.importCourse();
+        importedPackage = await _transfer.importCoursePackage();
       }
+      final imported = importedPackage.course;
       if (imported.originType == CourseOriginType.bundledOfficial) {
         throw const FormatException(
           'Bundled official courses are installed only with QuisquisLingo application builds.',
@@ -2040,7 +2059,7 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
             content: SingleChildScrollView(
               child: Text(
                 'Verified publisher: ${course.publisherName}.\nCourse ID: ${course.courseId}\nVersion: ${course.officialCourseVersion}.\n'
-                'The signature authenticates the course JSON, not separate media files. Official courses remain read only; custom forks remain unchanged.'
+                'The signed Course JSON pins every packaged media file by its SHA-256 name. Official courses remain read only; custom forks remain unchanged.'
                 '${existing != null && existing.publisherVerificationStatus != PublisherVerificationStatus.verified ? '\n\nVerification required for the existing version ${existing.officialCourseVersion} from ${existing.publisherName}. Confirm association with this signed release to reactivate this course and retain its progress.' : ''}',
               ),
             ),
@@ -2061,12 +2080,15 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
           ),
         );
         if (proceed != true) return;
-        final result = await _service.installExternalOfficialUpdate(
-          course,
-          confirmUnverifiedAssociation:
-              existing != null &&
-              existing.publisherVerificationStatus !=
-                  PublisherVerificationStatus.verified,
+        final result = await importedPackage.withInstalledMedia(
+          course.courseId,
+          () => _service.installExternalOfficialUpdate(
+            course,
+            confirmUnverifiedAssociation:
+                existing != null &&
+                existing.publisherVerificationStatus !=
+                    PublisherVerificationStatus.verified,
+          ),
         );
         await _reload();
         if (!mounted) return;
@@ -2132,9 +2154,13 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
             'cancel';
         if (choice == 'cancel') return;
         if (choice == 'copy') {
-          final created = await _service.createCopyAsNewCourse(
-            source: course,
-            title: _nextCopyTitle(course.title),
+          final created = await importedPackage.withInstalledMedia(
+            course.courseId,
+            () => _service.createCopyAsNewCourse(
+              source: course,
+              title: _nextCopyTitle(course.title),
+            ),
+            keepOnSuccess: false,
           );
           await _reload();
           if (!mounted) return;
@@ -2153,7 +2179,11 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
           return;
         }
         if (choice == 'fork') {
-          final created = await _service.createFork(source: course);
+          final created = await importedPackage.withInstalledMedia(
+            course.courseId,
+            () => _service.createFork(source: course),
+            keepOnSuccess: false,
+          );
           await _reload();
           if (!mounted) return;
           final result = await Navigator.of(context)
@@ -2171,7 +2201,10 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
           return;
         }
       }
-      await _service.installImportedCustomCourse(course);
+      await importedPackage.withInstalledMedia(
+        course.courseId,
+        () => _service.installImportedCustomCourse(course),
+      );
       await _reload();
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(

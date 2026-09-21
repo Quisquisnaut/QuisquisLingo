@@ -165,13 +165,14 @@ void main() {
       final course = _audioCourse(
         CourseMediaStore.referenceFor(mp3Bytes, 'mp3'),
       );
+      await CourseMediaStore().addFile(course.courseId, mp3);
 
       final exportPath = await service.exportCourse(course);
       final exportFile = File(exportPath);
       final exportedBytes = await exportFile.readAsBytes();
-      final importPath = await service.importFilePath();
+      final importPath = await service.importPackagePath();
       final importFile = await exportFile.copy(importPath);
-      final imported = await service.importCourse();
+      final imported = (await service.importCoursePackage()).course;
 
       expect(exportFile.parent.path, expectedExports.path);
       expect(importFile.parent.path, expectedImports.path);

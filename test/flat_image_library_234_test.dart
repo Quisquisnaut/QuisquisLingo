@@ -30,10 +30,20 @@ void main() {
 
       await search('friend');
       expect(find.text('Man'), findsOneWidget);
+      expect(find.text('QQL'), findsWidgets);
       const uomoTags = 'Tags: man, adult man, male, friend';
       expect(find.text(uomoTags), findsOneWidget);
       await tester.tap(find.text('Man'));
       await tester.pumpAndSettle();
+      expect(
+        find.descendant(
+          of: find.byType(Dialog),
+          matching: find.text(
+            'Source: QQL · App bundled; supplied by QQL on every device.',
+          ),
+        ),
+        findsOneWidget,
+      );
       expect(find.text(uomoTags), findsNWidgets(2));
       final previewTagsFinder = find.descendant(
         of: find.byType(Dialog),

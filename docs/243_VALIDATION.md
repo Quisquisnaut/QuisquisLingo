@@ -1,5 +1,40 @@
 # Build 243 validation
 
+## Revision 3 — portable Course ZIP (`2.0.43+243003`)
+
+Validation on 21 September 2026. The owner requested focused tests after the
+remaining test expectation was corrected, without another complete-suite run.
+
+- `test/course_package_243_test.dart` (12 tests): package round trip, dependency-only
+  image export and shared-image provenance, checked-in demo ZIP, damaged and
+  missing media, unsafe ZIP names, rollback, ZIP and media-free JSON import,
+  Copy/Fork staging, extra files, size limits, and cover checks: 12 passed.
+- `test/flat_image_library_243_source_test.dart` (2 tests): the Shared Image
+  Library shows only `QQL`/`DEVICE` source labels and preserves the selected
+  device image identity; the Course Editor combines `QQL` or `DEVICE` with
+  `USED`, and adds `COURSE` only for a Course media reference.
+- Package, file-dialog, merge, import/export, audio-path, version, Editor Help
+  and image-library focused suites after the provenance addition: **78 passed**.
+- Model v11, authoring duplication, Course media, Publisher import and app
+  metadata focused suites: **43 passed**. The Editor layout suite passed after
+  updating its fixed-folder ZIP expectation; documentation/Help tests passed.
+- `flutter analyze --no-pub` on all 25 changed/new Dart files: **no issues**.
+  After the label refinement, analysis of the 3 affected Dart files found no
+  issues. The library/package/editor-layout run passed 26 tests.
+- After adding optional per-image attribution, the focused package, metadata,
+  Admin UI, Image Bank and source-label suites passed 37 tests. Analysis of
+  the 13 affected Dart files found no issues.
+- One complete `flutter test --no-pub` run on the pre-attribution Revision 3
+  tree: **1,951 passed, 1 failed**. The failing
+  `test/file_dialog_feedback_240_test.dart` still expected the old fixed-folder
+  `import.json` wording. Revision 3 correctly directs ZIP imports to
+  `import.zip` and media-free JSON imports to `import.json`; the expectation
+  was corrected and the isolated test passed. At the owner's request, the
+  complete suite was not repeated after this correction.
+- Final focused run across 21 affected test files (package, labels,
+  attribution, Image Bank, file dialogs, Help, Editor, transfer and version):
+  **152 passed, 0 failed**.
+
 ## Final validation of Revisions 0–2 (on the Revision 2 tree, `2.0.43+243002`)
 
 Run on 21 September 2026 with the owner's approval, on the final working tree

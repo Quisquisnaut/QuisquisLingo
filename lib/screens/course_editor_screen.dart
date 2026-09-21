@@ -39,6 +39,7 @@ import '../services/lesson_presentation_service.dart';
 import '../services/recorded_audio_service.dart';
 import 'round_screen.dart';
 import 'flat_image_library_screen.dart';
+import '../models/exercise_image_metadata.dart';
 import 'editor_help_screen.dart';
 import 'course_version_history_screen.dart';
 import 'course_info_screen.dart';
@@ -3000,11 +3001,11 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
                 key: const Key('course-editor-export-json'),
                 leading: const Icon(Icons.file_upload_outlined),
                 title: const Text(
-                  'Export Course JSON',
+                  'Export Course package',
                   style: _hierarchyLinkStyle,
                 ),
                 subtitle: const Text(
-                  'Export Course metadata and media references. Audio and image bytes are not embedded.',
+                  'Export the Course and its images and recordings together as a ZIP package.',
                 ),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: _exportCustomCourse,
@@ -3014,7 +3015,7 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
                   key: const Key('course-editor-save-json-to'),
                   leading: const Icon(Icons.save_alt_outlined),
                   title: const Text(
-                    'Save Course JSON to…',
+                    'Save Course package to…',
                     style: _hierarchyLinkStyle,
                   ),
                   subtitle: Text(
@@ -8216,6 +8217,7 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
   Set<int> _correctTranslationErrorIndexes = const {};
   String? _correctTranslationError;
   late String _imageAsset;
+  SharedImageSource? _selectedSharedSource;
   bool _useInlineGaps = false;
   bool _useMultiSelect = false;
   static List<String> get _types =>
@@ -8300,6 +8302,12 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
     );
     _contextMode = e.contextMode;
     _imageAsset = e.imageAsset;
+    _selectedSharedSource = e.promptElements
+        .where(
+          (element) => element.type == 'image' && element.asset == _imageAsset,
+        )
+        .firstOrNull
+        ?.sharedImageSource;
     for (final controller in [
       _prompt,
       _question,
@@ -9391,17 +9399,27 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
 
   Future<void> _chooseFlatImage() async {
     if (widget.readOnly) return;
-    final selected = await Navigator.of(context).push<String>(
+    final selected = await Navigator.of(context).push<ExerciseImageMetadata>(
       MaterialPageRoute(
         builder: (_) => const FlatImageLibraryScreen(readOnly: true),
       ),
     );
     if (selected == null || !mounted) return;
     try {
-      final reference = await _asCourseMedia(selected);
+      final reference = await _asCourseMedia(selected.assetPath);
       if (!mounted) return;
       setState(() {
         _imageAsset = reference;
+        _selectedSharedSource = selected.origin == 'bundled'
+            ? null
+            : SharedImageSource(
+                id: selected.id,
+                label: selected.label,
+                category: selected.category,
+                tags: selected.tags,
+                origin: selected.origin,
+                attribution: selected.attribution,
+              );
         _dirty = true;
       });
     } catch (e) {
@@ -9440,6 +9458,7 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
       if (mounted) {
         setState(() {
           _imageAsset = chosen;
+          _selectedSharedSource = null;
           _dirty = true;
         });
       }
@@ -9491,6 +9510,34 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
             ),
             const SizedBox(height: 8),
             preview,
+            if (_imageAsset.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 4,
+                children: [
+                  if (_imageAsset.startsWith('assets/'))
+                    const Tooltip(
+                      message: 'App-bundled image, supplied by QQL.',
+                      child: Chip(label: Text('QQL')),
+                    )
+                  else if (_selectedSharedSource != null)
+                    const Tooltip(
+                      message: 'Originally from the Admin Shared Image Library.',
+                      child: Chip(label: Text('DEVICE')),
+                    ),
+                  if (CourseMediaStore.isImageReference(_imageAsset))
+                    const Tooltip(
+                      message: 'The image bytes are stored in this Course folder.',
+                      child: Chip(label: Text('COURSE')),
+                    ),
+                  const Tooltip(
+                    message: 'This image is used by this Course.',
+                    child: Chip(label: Text('USED')),
+                  ),
+                ],
+              ),
+            ],
             const SizedBox(height: 8),
             Wrap(
               spacing: 8,
@@ -9521,6 +9568,7 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
                         ? null
                         : () => setState(() {
                             _imageAsset = '';
+                            _selectedSharedSource = null;
                             _dirty = true;
                           }),
                     icon: const Icon(Icons.delete_outline),
@@ -10333,6 +10381,32 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
     }
   }
 
+  Exercise _withSelectedSharedSource(Exercise exercise) => Exercise.v2(
+    id: exercise.id,
+    publicationState: exercise.publicationState,
+    updatedAt: exercise.updatedAt,
+    editorTemplate: exercise.editorTemplate,
+    promptElements: [
+      for (final element in exercise.promptElements)
+        if (element.type == 'image' && element.asset == _imageAsset)
+          PromptElement(
+            role: element.role,
+            type: element.type,
+            text: element.text,
+            asset: element.asset,
+            speaker: element.speaker,
+            sharedImageSource: _selectedSharedSource,
+          )
+        else
+          element,
+    ],
+    interaction: exercise.interaction,
+    evaluation: exercise.evaluation,
+    hint: exercise.hint,
+    feedback: exercise.feedback,
+    missingWords: exercise.missingWords,
+  );
+
   Future<bool> _save(
     PublicationState publicationState, {
     bool close = true,
@@ -10344,8 +10418,9 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
       return false;
     }
     if (!mounted) return false;
-    final candidate = _buildCandidate(publicationState);
-    if (candidate == null) return false;
+    final built = _buildCandidate(publicationState);
+    if (built == null) return false;
+    final candidate = _withSelectedSharedSource(built);
     if (!await _validateScriptImages(candidate)) return false;
     if (!mounted) return false;
     final ex =
@@ -10633,6 +10708,13 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
             .join('\n');
         _contextMode = e.contextMode;
         _imageAsset = e.imageAsset;
+        _selectedSharedSource = e.promptElements
+            .where(
+              (element) =>
+                  element.type == 'image' && element.asset == _imageAsset,
+            )
+            .firstOrNull
+            ?.sharedImageSource;
         for (final controller in _correctTranslations) {
           controller.dispose();
         }

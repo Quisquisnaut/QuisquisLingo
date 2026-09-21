@@ -215,3 +215,37 @@ copy.
 Revision 0 had left the in-app Publisher Help and `docs/PUBLISHER_SIGNING_GUIDE.md`
 with different wording for the Course Model line; the test that keeps them
 identical was not in Revision 0's focused set. They are identical again.
+
+## Revision 3 — portable Course ZIP
+
+Version **2.0.43+243003**, same Beta expiry. Tranche 2 of the plan.
+
+- Fixed-folder Export and Save to… produce a Course ZIP containing
+  `qql-course-package.json`, the canonical `course.json`, and only the
+  Course-owned `media:` files the Course actually references. Bundled QQL
+  assets and unreferenced Shared Image Library images are not copied.
+- Fixed-folder Import, Open from… and Merge From… accept the Course ZIP or a
+  media-free v11 JSON. Import checks ZIP names, links, compressed and expanded
+  size, media digests, the Course, and the optional 512 × 512 cover before
+  writing. Collision choices and Merge carry the media; a failed save removes
+  newly copied files.
+- Choosing an Admin-added Shared Image Library image records a snapshot of its
+  library ID, label, category, tags and origin on the Course image. The ZIP
+  manifest lists that provenance with the media SHA-256. Import keeps the
+  image in the Course folder and does not add it to the destination Shared
+  Image Library. The library screen gives app-bundled entries the fixed `QQL`
+  label and Admin-added entries the fixed `DEVICE` label for every viewer.
+  Using an image in a Course does not change its Shared Image Library label.
+  In the Course Editor, a used bundled image shows `QQL` and `USED`;
+  a used Admin-added library image shows `DEVICE`, `COURSE` and `USED`;
+  and a directly imported image shows `COURSE` and `USED`. `COURSE` means
+  the bytes are in the Course folder; `USED` means the Course references
+  the image, regardless of storage.
+  Admins may enter optional per-image attribution (author, license, work title
+  and source) in the Shared Image Library's Edit metadata dialog; Image Banks
+  may supply the same optional attribution per entry. The Course and ZIP
+  manifest retain the attribution snapshot when the image is selected.
+  Existing Course-level media credits remain in `course.json`.
+- The demo Course now has a `.zip` beside its media-free `.json`. Publisher
+  recordings remain subject to the Revision 2 import restriction until
+  Revision 4 adds signed publisher packages with media.

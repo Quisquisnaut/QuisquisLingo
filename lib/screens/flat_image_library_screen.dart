@@ -314,6 +314,10 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
     if (!_canManageMetadata || actor == null) return;
     var category = item.category;
     var tagsText = item.tags.join(', ');
+    var author = item.attribution?.author ?? '';
+    var license = item.attribution?.license ?? '';
+    var title = item.attribution?.title ?? '';
+    var source = item.attribution?.source ?? '';
     String? error;
     final saved = await showDialog<bool>(
       context: context,
@@ -359,6 +363,50 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
                     helperText: 'Separate tags with commas.',
                   ),
                 ),
+                if (!_isBundled(item)) ...[
+                  const SizedBox(height: 12),
+                  const Text('Attribution (optional; author and license go together)'),
+                  const SizedBox(height: 8),
+                  TextFormField(
+                    key: const Key('exercise-image-attribution-author'),
+                    initialValue: author,
+                    onChanged: (value) => author = value,
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                      labelText: 'Author',
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  TextFormField(
+                    key: const Key('exercise-image-attribution-license'),
+                    initialValue: license,
+                    onChanged: (value) => license = value,
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                      labelText: 'License',
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  TextFormField(
+                    key: const Key('exercise-image-attribution-title'),
+                    initialValue: title,
+                    onChanged: (value) => title = value,
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                      labelText: 'Work title (optional)',
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  TextFormField(
+                    key: const Key('exercise-image-attribution-source'),
+                    initialValue: source,
+                    onChanged: (value) => source = value,
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                      labelText: 'Source (optional)',
+                    ),
+                  ),
+                ],
                 if (error != null) ...[
                   const SizedBox(height: 8),
                   Text(
@@ -380,11 +428,22 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
               key: const Key('exercise-image-metadata-save'),
               onPressed: () async {
                 try {
+                  final hasAttribution = [author, license, title, source].any(
+                    (value) => value.trim().isNotEmpty,
+                  );
                   await _metadata.updateMetadata(
                     actorProfileId: actor,
                     imageId: item.id,
                     category: category,
                     tags: tagsText.split(','),
+                    attribution: hasAttribution
+                        ? ImageAttribution.fromJson({
+                            'author': author,
+                            'license': license,
+                            'title': title,
+                            'source': source,
+                          })
+                        : null,
                   );
                   if (dialogContext.mounted) {
                     Navigator.pop(dialogContext, true);
@@ -494,6 +553,9 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
                   ),
                 ),
                 const SizedBox(height: 10),
+                Text(
+                  'Source: ${_sourceCode(item)} · ${_sourceExplanation(item)}',
+                ),
                 Text('Category: ${item.category.replaceAll('_', ' ')}'),
                 Tooltip(
                   message: 'Tags: ${item.tags.join(', ')}',
@@ -503,6 +565,20 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
+                if (item.attribution case final credit?)
+                  Tooltip(
+                    message: [
+                      'Author: ${credit.author}',
+                      'License: ${credit.license}',
+                      if (credit.title.isNotEmpty) 'Work: ${credit.title}',
+                      if (credit.source.isNotEmpty) 'Source: ${credit.source}',
+                    ].join('\n'),
+                    child: Text(
+                      'Attribution: ${credit.author} · ${credit.license}',
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
                 const SizedBox(height: 10),
                 Wrap(
                   alignment: WrapAlignment.end,
@@ -526,7 +602,7 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
                       FilledButton(
                         onPressed: () {
                           Navigator.pop(dialogContext);
-                          Navigator.pop(context, item.assetPath);
+                          Navigator.pop(context, item);
                         },
                         child: const Text('Use image'),
                       ),
@@ -605,7 +681,16 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
                     child: Card(
                       child: Padding(
                         padding: EdgeInsets.all(12),
-                        child: Text('Admin media management'),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Admin media management'),
+                            SizedBox(height: 4),
+                            Text(
+                              'DEVICE images were added to this device by an Admin. When used, they are copied into a Course and included in its ZIP. QQL images are supplied by the app and are not included in the ZIP.',
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
@@ -691,6 +776,17 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
                                         style: const TextStyle(fontSize: 9),
                                       ),
                                       Tooltip(
+                                        message: _sourceExplanation(item),
+                                        child: Text(
+                                          _sourceCode(item),
+                                          textAlign: TextAlign.center,
+                                          style: const TextStyle(
+                                            fontSize: 9,
+                                            fontWeight: FontWeight.w800,
+                                          ),
+                                        ),
+                                      ),
+                                      Tooltip(
                                         message:
                                             'Tags: ${item.tags.join(', ')}',
                                         child: Text(
@@ -747,3 +843,13 @@ String? _bankId(ExerciseImageMetadata item) {
   final id = item.origin.substring('bank:'.length).trim();
   return id.isEmpty ? null : id;
 }
+
+bool _isBundled(ExerciseImageMetadata item) =>
+    item.origin == 'bundled' || item.assetPath.startsWith('assets/');
+
+String _sourceCode(ExerciseImageMetadata item) =>
+    _isBundled(item) ? 'QQL' : 'DEVICE';
+
+String _sourceExplanation(ExerciseImageMetadata item) => _isBundled(item)
+    ? 'App bundled; supplied by QQL on every device.'
+    : 'Admin-added on this device; copied into the Course ZIP when used.';

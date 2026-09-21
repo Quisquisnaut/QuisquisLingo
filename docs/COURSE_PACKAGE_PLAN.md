@@ -5,7 +5,7 @@ Scritto il 2026-09-21 a partire da `efdf784` (Build 242 Revisione 0,
 Revisione 0 (`2.0.43+243000`), correzione dei corsi illeggibili come Revisione
 1 (`2.0.43+243001`) e Tranche 1 come Revisione 2 (`2.0.43+243002`), vedi
 `docs/243_CHANGE_SUMMARY.md`. Le Tranche 2 e 3 saranno le Revisioni 3 e 4.
-Lavoro sospeso dopo la Revisione 2: vedi §0 per riprendere.** Ogni tranche è una revisione con il proprio commit; i controlli finali
+Tranche 2 completata come Revisione 3; la Tranche 3 resta la Revisione 4.** Ogni tranche è una revisione con il proprio commit; i controlli finali
 (analyzer, suite completa, validatori) si eseguono solo dopo l'approvazione del
 proprietario.
 
@@ -22,6 +22,19 @@ esercizi non viaggiano, perché il corso contiene il percorso del file sul
 dispositivo dell'autore.
 
 ## 0. Punto di ripresa (aggiornato al 2026-09-21)
+
+**Decisione aggiuntiva del proprietario per la Revisione 3:** nello ZIP entrano
+solo i media usati dal corso. Le immagini aggiunte dall'Admin alla Shared Image
+Library vengono copiate nel corso quando scelte e quindi incluse se usate;
+all'importazione restano media del corso, senza modificare la libreria globale.
+Il corso e il manifest conservano ID, impronta, etichetta, categoria, tag,
+origine e attribuzione facoltativa disponibili. L'Admin inserisce autore,
+licenza, titolo e fonte nella modifica dei metadati della Shared Image Library;
+anche un Image Bank può fornirli per immagine. I crediti generali del corso
+restano nel JSON. La schermata distingue immagini
+del dispositivo e immagini incluse nell'app. Le immagini incluse nell'app
+restano fornite da QQL in questa revisione; un'opzione per impacchettarle è
+rimandata a una scelta separata.
 
 **Fatto e committato su `main` (nessun push):**
 

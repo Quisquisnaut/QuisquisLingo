@@ -195,6 +195,7 @@ class ImageBankService {
     }
 
     final entries = <Map<String, dynamic>>[];
+    final attributions = <String, ImageAttribution>{};
     final ids = <String>{};
     final warnings = <String>[];
     for (final raw in decoded) {
@@ -224,6 +225,21 @@ class ImageBankService {
       if (!ids.add(id)) throw FormatException('Duplicate Image Bank ID: $id');
       if (existingIds.contains(id)) {
         throw FormatException('Image Bank ID already exists in the app: $id');
+      }
+      if (item.containsKey('attribution')) {
+        final rawAttribution = item['attribution'];
+        if (rawAttribution is! Map) {
+          throw FormatException('Invalid Image Bank attribution for $id.');
+        }
+        try {
+          attributions[id] = ImageAttribution.fromJson(
+            Map<String, dynamic>.from(rawAttribution),
+          );
+        } on FormatException {
+          rethrow;
+        } catch (_) {
+          throw FormatException('Invalid Image Bank attribution for $id.');
+        }
       }
       entries.add(item);
     }
@@ -333,6 +349,7 @@ class ImageBankService {
             tags: tags,
             assetPath: target.path,
             origin: 'bank:$bankId',
+            attribution: attributions[item['id'].toString()],
           ),
         );
       }

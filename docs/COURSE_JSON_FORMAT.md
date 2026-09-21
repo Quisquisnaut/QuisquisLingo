@@ -25,7 +25,13 @@ A Course names its own images and recordings by content, never by a path on one 
 - Every `image` element `asset` (prompt and Item content, anywhere in the Lessons): empty, a bundled `assets/…` image, an embedded `data:image/…` image or an image `media:` reference.
 - `coverImage`: an image `media:` reference.
 
-Anything else, including an absolute or relative device path, is refused when the Course is read. Lesson icons (`lessonIconAssets`) and the custom flag remain embedded. Course JSON never contains the media bytes; the Course package carries them (Tranche 2).
+Anything else, including an absolute or relative device path, is refused when the Course is read. Lesson icons (`lessonIconAssets`) and the custom flag remain embedded. Course JSON never contains the media bytes; the Course ZIP carries them (Revision 3).
+
+### Portable Course ZIP (Build 243 Revision 3)
+
+Export writes one `.zip` with `qql-course-package.json` (`packageFormat: 1`), `course.json`, and `media/<sha256>.<ext>` for each referenced Course-owned file. App-bundled `assets/…` images and recordings, embedded images, and unreferenced Shared Image Library files are not ZIP entries. The ZIP importer checks the archive, each file digest and the Course before installing media. A standalone `.json` import remains valid only when the Course has no `media:` references.
+
+When an image is selected from the Admin-added Shared Image Library, its image prompt can carry `sharedImageSource` with the original library `id`, `label`, `category`, `tags`, `origin` and optional per-image `attribution` (`author`, `license`, optional `title` and `source`). This is a snapshot on a Course-owned `media:` image, not an instruction to install a global library entry. The package manifest lists the same source snapshot, media reference and SHA-256; import verifies that it matches the Course. Admins edit attribution on device images in the Shared Image Library's **Edit metadata** dialog; a bank may also provide it per image. Earlier entries without attribution remain valid. Any separate Course-level `mediaAttributions` remain in Course JSON. Import never adds an image to the recipient device's Shared Image Library or reuses a matching global file.
 
 ### Optional descriptive fields (v11)
 

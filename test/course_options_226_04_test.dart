@@ -312,9 +312,9 @@ void main() {
         directory: () async => directory,
       );
       final exported = await transfer.exportCourse(course);
-      await File(exported).copy(await transfer.importFilePath());
-      final imported = await transfer.importCourse();
-      expect(imported.toJson(), course.toJson());
+      await File(exported).copy(await transfer.importPackagePath());
+      final imported = await transfer.importCoursePackage();
+      expect(imported.course.toJson(), course.toJson());
       final backups = CourseBackupService(
         documentsDirectoryProvider: () async => directory,
       );

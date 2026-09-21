@@ -6,6 +6,7 @@ import 'package:archive/archive.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:quisquislingo_app/services/image_bank_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 const _missingManifest =
     'UEsDBBQAAAAIADW5DV2DFtyMAwAAAAEAAAAJAAAAaW1hZ2UucG5nqwAAUEsBAhQDFAAAAAgANbkNXYMW3IwDAAAAAQAAAAkAAAAAAAAAAAAAAIABAAAAAGltYWdlLnBuZ1BLBQYAAAAAAQABADcAAAAqAAAAAAA=';
@@ -58,6 +59,45 @@ Future<void> _expectFormat(
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+
+  test('Image Bank keeps optional per-image attribution', () async {
+    SharedPreferences.setMockInitialValues({});
+    final support = await Directory.systemTemp.createTemp('qql_credit_bank_');
+    const channel = MethodChannel('plugins.flutter.io/path_provider');
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, (call) async => support.path);
+    addTearDown(() async {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, null);
+      if (await support.exists()) await support.delete(recursive: true);
+    });
+    final manifest = utf8.encode(
+      jsonEncode([
+        {
+          'id': 'cat-credit',
+          'primary_term': 'Cat',
+          'filename': 'cat.webp',
+          'keywords': ['cat'],
+          'attribution': {
+            'author': 'A. Artist',
+            'license': 'CC BY 4.0',
+            'source': 'https://example.org/cat',
+          },
+        },
+      ]),
+    );
+    final archive = Archive()
+      ..addFile(
+        ArchiveFile('image_bank_manifest.json', manifest.length, manifest),
+      )
+      ..addFile(ArchiveFile('cat.webp', 4, [1, 2, 3, 4]));
+    final zip = File('${support.path}${Platform.pathSeparator}bank.zip');
+    await zip.writeAsBytes(ZipEncoder().encode(archive), flush: true);
+
+    final result = await ImageBankService().importBankZip(zip);
+    expect(result.records.single.attribution?.author, 'A. Artist');
+    expect(result.records.single.attribution?.license, 'CC BY 4.0');
+  });
 
   test('rejects ZIP without manifest', () async {
     await _expectFormat(_missingManifest, 'no image_bank_manifest.json');

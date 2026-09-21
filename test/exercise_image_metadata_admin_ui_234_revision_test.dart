@@ -1,5 +1,8 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:quisquislingo_app/models/exercise_image_metadata.dart';
 import 'package:quisquislingo_app/screens/flat_image_library_screen.dart';
 import 'package:quisquislingo_app/services/exercise_image_metadata_service.dart';
 import 'package:quisquislingo_app/services/profile_service.dart';
@@ -96,5 +99,73 @@ void main() {
     );
     await tester.pumpWidget(const SizedBox.shrink());
     await tester.pump();
+  });
+
+  testWidgets('Admin edits attribution for a device image in Metadata edit', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(1000, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    final metadata = ExerciseImageMetadataService();
+    await metadata.addLocalRecord(
+      actorProfileId: _adminId,
+      record: ExerciseImageMetadata(
+        id: 'credited_cat',
+        label: 'Credited cat',
+        category: 'animals',
+        tags: const ['cat'],
+        assetPath: File('assets/exercise_images/apple.webp').absolute.path,
+        origin: 'local',
+      ),
+    );
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: FlatImageLibraryScreen(
+          selectMode: false,
+          metadataEditingEnabled: true,
+          actorProfileId: _adminId,
+        ),
+      ),
+    );
+    await tester.runAsync(() => Future<void>.delayed(Duration.zero));
+    for (
+      var attempt = 0;
+      attempt < 20 &&
+          find.byKey(const Key('exercise-image-search')).evaluate().isEmpty;
+      attempt++
+    ) {
+      await tester.pump(const Duration(milliseconds: 50));
+    }
+    await tester.enterText(
+      find.byKey(const Key('exercise-image-search')),
+      'Credited cat',
+    );
+    await tester.pump();
+    await tester.tap(find.byKey(const ValueKey('exercise-image-credited_cat')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('exercise-image-metadata-edit')));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.byKey(const Key('exercise-image-attribution-author')),
+      'A. Artist',
+    );
+    await tester.enterText(
+      find.byKey(const Key('exercise-image-attribution-license')),
+      'CC BY 4.0',
+    );
+    await tester.tap(find.byKey(const Key('exercise-image-metadata-save')));
+    await tester.pumpAndSettle();
+    expect(
+      (await metadata.metadataFor('credited_cat')).attribution?.author,
+      'A. Artist',
+    );
+    await tester.tap(find.byKey(const ValueKey('exercise-image-credited_cat')));
+    await tester.pumpAndSettle();
+    expect(
+      find.textContaining('Attribution: A. Artist · CC BY 4.0'),
+      findsOneWidget,
+    );
   });
 }

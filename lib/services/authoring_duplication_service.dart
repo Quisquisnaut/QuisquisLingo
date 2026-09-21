@@ -484,5 +484,6 @@ class AuthoringDuplicationService {
     text: source.text,
     asset: source.asset,
     speaker: source.speaker,
+    sharedImageSource: source.sharedImageSource,
   );
 }

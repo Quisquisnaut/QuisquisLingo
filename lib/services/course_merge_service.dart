@@ -4,6 +4,7 @@ import '../models/course_models.dart';
 import 'authoring_duplication_service.dart';
 import 'course_media_store.dart';
 import 'custom_course_transfer_service.dart';
+import 'course_package_service.dart';
 import 'file_dialog_service.dart';
 import 'profile_service.dart';
 
@@ -103,11 +104,16 @@ class CourseMergeService {
 
   Future<Course> readMergeCourse() => _transfer.mergeCourse();
 
+  Future<CoursePackage> readMergePackage() => _transfer.mergeCoursePackage();
+
   /// Merge From…: the second Course chosen in the system file dialog,
   /// validated exactly like `Merges/merge.json`. The Course is null when the
   /// user cancelled or the dialog failed; see the dialog result.
   Future<({FileDialogResult dialog, Course? course})>
   readMergeCourseFromDialog() => _transfer.mergeCourseFromDialog();
+
+  Future<({FileDialogResult dialog, CoursePackage? package})>
+  readMergePackageFromDialog() => _transfer.mergePackageFromDialog();
 
   bool get fileDialogsAvailable => _transfer.fileDialogsAvailable;
 

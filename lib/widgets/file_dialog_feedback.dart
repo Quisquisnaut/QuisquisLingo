@@ -105,8 +105,8 @@ const String imageBankFallbackHint =
     'Copy the ZIP to Documents/QuisquisLingo/Imports/Images (only one ZIP '
     'there) and use Import Image Bank ZIP instead.';
 const String mergeImportFallbackHint =
-    'Copy the file to Documents/QuisquisLingo/Merges/merge.json and use '
-    'Merge JSON Course instead.';
+    'Copy the package to Documents/QuisquisLingo/Merges/merge.zip (or a '
+    'media-free JSON to merge.json) and use Merge Course package or JSON instead.';
 const String courseImportFallbackHint =
-    'Copy the file to Documents/QuisquisLingo/Imports/import.json and use '
-    'Import Course JSON instead.';
+    'Copy the package to Documents/QuisquisLingo/Imports/import.zip (or a '
+    'media-free JSON to import.json) and use Import Course package or JSON instead.';

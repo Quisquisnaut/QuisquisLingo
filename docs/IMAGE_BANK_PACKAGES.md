@@ -7,7 +7,7 @@ An Image Bank is a ZIP containing:
 - `image_bank_manifest.json`
 - the image files referenced by the manifest, normally under `assets/exercise_images/`
 
-The manifest accepts the batch fields `id`, `primary_term`, `keywords`, `category`, and `filename`. QuisquisLingo copies the bank into its application-support directory and records local paths for use by exercises and Lessons.
+The manifest accepts the batch fields `id`, `primary_term`, `keywords`, `category`, and `filename`. Each entry may also contain `"attribution": {"author": "...", "license": "...", "title": "...", "source": "..."}`; author and license are required together, while title and source are optional. Admins can add or edit these credits later in the Shared Image Library's **Edit metadata** dialog. QuisquisLingo copies the bank into its application-support directory and records local paths for use by exercises and Lessons.
 
 Import validation rejects duplicate IDs, missing image files, unsupported image formats, malformed manifests, and images larger than 50 KB. Recommended image resolution is 256 × 256 px and recommended size is 15 KB or less.
 

@@ -7,6 +7,8 @@ import 'package:path_provider/path_provider.dart';
 
 import '../models/course_models.dart';
 import 'file_dialog_service.dart';
+import 'course_package_service.dart';
+import 'course_media_store.dart';
 import 'publisher_verification_service.dart';
 
 /// The exact bytes and base file name a course export produces, shared by the
@@ -19,7 +21,7 @@ class CourseExportPayload {
   /// File name without extension, e.g. `quisquislingo_my_course`.
   final String baseName;
 
-  String get fileName => '$baseName.json';
+  String get fileName => '$baseName.zip';
 }
 
 class CustomCourseTransferService {
@@ -29,20 +31,23 @@ class CustomCourseTransferService {
     Future<Directory> Function()? mergeDirectory,
     FileDialogService? fileDialogs,
     PublisherVerificationService? publisherVerification,
+    CoursePackageService? packageService,
   }) : _directory = directory,
        _importDirectory = importDirectory ?? directory,
        _mergeDirectory = mergeDirectory ?? directory,
        _fileDialogs = fileDialogs ?? FileDialogService(),
        _publisherVerification =
-           publisherVerification ?? PublisherVerificationService();
+           publisherVerification ?? PublisherVerificationService(),
+       _packages = packageService ?? CoursePackageService();
 
   final PublisherVerificationService _publisherVerification;
+  final CoursePackageService _packages;
 
   static const int maxJsonBytes = 10 * 1024 * 1024;
 
   // Memory guard for the dialog path only. Files above maxJsonBytes but below
   // this reach the ordinary validator, so they get the standard size message.
-  static const int _dialogReadCap = 64 * 1024 * 1024;
+  static const int _dialogReadCap = CoursePackageService.maxPackageBytes;
   final FileDialogService _fileDialogs;
 
   /// False when the system dialog is unsupported; hide Save to… / Open from….
@@ -71,6 +76,9 @@ class CustomCourseTransferService {
     return '${directory.path}${Platform.pathSeparator}import.json';
   }
 
+  Future<String> importPackagePath() async =>
+      '${(await importDirectory()).path}${Platform.pathSeparator}import.zip';
+
   Future<Directory> importDirectory() async {
     final injected = _importDirectory;
     final directory = injected != null
@@ -86,6 +94,9 @@ class CustomCourseTransferService {
     final directory = await mergeDirectory();
     return '${directory.path}${Platform.pathSeparator}merge.json';
   }
+
+  Future<String> mergePackagePath() async =>
+      '${(await mergeDirectory()).path}${Platform.pathSeparator}merge.zip';
 
   Future<Directory> mergeDirectory() async {
     final injected = _mergeDirectory;
@@ -103,6 +114,56 @@ class CustomCourseTransferService {
 
   Future<Course> mergeCourse() async =>
       _readCourse(await mergeFilePath(), 'merge.json');
+
+  /// The UI path carries validated media until the import decision is made.
+  Future<CoursePackage> importCoursePackage() async =>
+      _readPackageOrJson(await importPackagePath(), await importFilePath());
+
+  Future<CoursePackage> mergeCoursePackage() async =>
+      _readPackageOrJson(await mergePackagePath(), await mergeFilePath());
+
+  Future<CoursePackage> _readPackageOrJson(
+    String zipPath,
+    String jsonPath,
+  ) async {
+    final zipFile = File(zipPath);
+    final jsonFile = File(jsonPath);
+    final hasZip = await zipFile.exists();
+    final hasJson = await jsonFile.exists();
+    if (hasZip && hasJson) {
+      throw FormatException(
+        'Both ${zipFile.uri.pathSegments.last} and '
+        '${jsonFile.uri.pathSegments.last} are present. Keep only one Course file.',
+      );
+    }
+    if (hasZip) {
+      if (await zipFile.length() > CoursePackageService.maxPackageBytes) {
+        throw const FormatException('Course package exceeds the 300 MB limit.');
+      }
+      return _packages.parse(await zipFile.readAsBytes(), courseFromBytes);
+    }
+    if (hasJson) {
+      if (await jsonFile.length() > maxJsonBytes) {
+        throw const FormatException('Course JSON exceeds the 10 MB safety limit.');
+      }
+      final bytes = await jsonFile.readAsBytes();
+      return _jsonPackage(bytes, jsonFile.uri.pathSegments.last);
+    }
+    throw FormatException(
+      'No Course file found. Copy ${zipFile.uri.pathSegments.last} or '
+      '${jsonFile.uri.pathSegments.last} to ${zipFile.parent.path}, then try again.',
+    );
+  }
+
+  Future<CoursePackage> _jsonPackage(Uint8List bytes, String fileName) async {
+    final course = await courseFromBytes(bytes, fileName);
+    if (CourseMediaStore.referencesOf(course).isNotEmpty) {
+      throw const FormatException(
+        'This Course uses images or recordings. Import its .zip package so the media arrive with it.',
+      );
+    }
+    return CoursePackage(course, bytes, {});
+  }
 
   Future<Course> _readCourse(String path, String fileName) async {
     final file = File(path);
@@ -205,7 +266,7 @@ class CustomCourseTransferService {
 
   /// Builds the export bytes and base name. Shared by [exportCourse] and
   /// [exportCourseTo], so both write identical data.
-  CourseExportPayload buildCourseExport(Course course) {
+  Future<CourseExportPayload> buildCourseExport(Course course) async {
     final payload = const JsonEncoder.withIndent('  ').convert(course.toJson());
     final bytes = Uint8List.fromList(utf8.encode(payload));
     if (bytes.length > maxJsonBytes) {
@@ -219,7 +280,7 @@ class CustomCourseTransferService {
         .replaceAll(RegExp(r'[^a-z0-9]+'), '_')
         .replaceAll(RegExp(r'^_+|_+$'), '');
     return CourseExportPayload(
-      bytes,
+      await _packages.build(course, bytes),
       'quisquislingo_${safe.isEmpty ? 'custom_course' : safe}',
     );
   }
@@ -227,12 +288,12 @@ class CustomCourseTransferService {
   /// Save to…: the same export as [exportCourse], written wherever the user
   /// chooses in the system dialog. Additional to, not a replacement for, the
   /// fixed Exports folder.
-  Future<FileDialogResult> exportCourseTo(Course course) {
-    final payload = buildCourseExport(course);
+  Future<FileDialogResult> exportCourseTo(Course course) async {
+    final payload = await buildCourseExport(course);
     return _fileDialogs.saveBytes(
       bytes: payload.bytes,
       suggestedName: payload.fileName,
-      extensions: const ['json'],
+      extensions: const ['zip'],
       artifact: 'course',
     );
   }
@@ -243,10 +304,44 @@ class CustomCourseTransferService {
   Future<({FileDialogResult dialog, Course? course})>
   importCourseFromDialog() => _courseFromDialog('course');
 
+  Future<({FileDialogResult dialog, CoursePackage? package})>
+  importPackageFromDialog() => _packageFromDialog('course');
+
   /// Merge From…: the same pick-and-validate as [importCourseFromDialog], for
   /// the second Course of a merge instead of `Merges/merge.json`.
   Future<({FileDialogResult dialog, Course? course})> mergeCourseFromDialog() =>
       _courseFromDialog('course-merge');
+
+  Future<({FileDialogResult dialog, CoursePackage? package})>
+  mergePackageFromDialog() => _packageFromDialog('course-merge');
+
+  Future<({FileDialogResult dialog, CoursePackage? package})> _packageFromDialog(
+    String artifact,
+  ) async {
+    final result = await _fileDialogs.openBytes(
+      extensions: const ['zip', 'json'],
+      maxBytes: _dialogReadCap,
+      artifact: artifact,
+    );
+    if (result.outcome != FileDialogOutcome.opened) {
+      return (dialog: result, package: null);
+    }
+    final name = result.displayName!;
+    final bytes = result.bytes!;
+    if (name.toLowerCase().endsWith('.zip')) {
+      return (
+        dialog: result,
+        package: await _packages.parse(bytes, courseFromBytes),
+      );
+    }
+    if (!name.toLowerCase().endsWith('.json')) {
+      throw const FormatException('Choose a Course .zip or .json file.');
+    }
+    return (
+      dialog: result,
+      package: await _jsonPackage(bytes, name),
+    );
+  }
 
   Future<({FileDialogResult dialog, Course? course})> _courseFromDialog(
     String artifact,
@@ -264,7 +359,7 @@ class CustomCourseTransferService {
   }
 
   Future<String> exportCourse(Course course) async {
-    final export = buildCourseExport(course);
+    final export = await buildCourseExport(course);
     final bytes = export.bytes;
     final baseName = export.baseName;
 
@@ -274,12 +369,12 @@ class CustomCourseTransferService {
     final exportDirectory = await transferDirectory();
 
     var output = File(
-      '${exportDirectory.path}${Platform.pathSeparator}$baseName.json',
+      '${exportDirectory.path}${Platform.pathSeparator}$baseName.zip',
     );
     var suffix = 2;
     while (await output.exists()) {
       output = File(
-        '${exportDirectory.path}${Platform.pathSeparator}${baseName}_$suffix.json',
+        '${exportDirectory.path}${Platform.pathSeparator}${baseName}_$suffix.zip',
       );
       suffix += 1;
     }

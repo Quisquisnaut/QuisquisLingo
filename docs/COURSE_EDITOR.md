@@ -1,6 +1,6 @@
 # QuisquisLingo Course Manager and Course Editor
 
-Updated for Version 2.0.34, Build 234, Revision 3 (technical build 234003) and Course Model v9
+The authoring details below were written for Build 234. Current Course Model v11 and portable transfer rules are in [Course JSON format](COURSE_JSON_FORMAT.md) and [Build 243 change summary](243_CHANGE_SUMMARY.md). Build 243 Revision 3 exports a Course ZIP containing only referenced Course-owned media, including Admin-added Shared Image Library images selected for the Course. Bundled images remain supplied by the app. Import leaves the destination Shared Image Library untouched.
 
 ## Unlocking the editor
 
@@ -397,7 +397,11 @@ The compact flag in the Home Top Bar opens the full-size course selector, which 
 
 ### Copy edits as JSON vs Export course JSON
 
-**Copy edits as JSON** copies the current working Course Model v9 object to the clipboard and does not create a file. **Export Course JSON** invokes the established exporter to write the complete canonical v9 object to `Documents/QuisquisLingo/Exports`. Export includes immutable lineage, current Maintainer, optional Team assignment, structured attribution, License/Rights Holder, current-version metadata, fork provenance where applicable and optional custom flag data. Fork exports preserve Original Course Creator/Created, immediate source, authorship, rights, License and Fork Created By/Date metadata. JSON includes Course-owned media metadata and references but does not embed MP3 bytes; verified backups keep their existing referenced-recording copy behavior. Export does not confirm or persist the editing transaction.
+**Copy edits as JSON** copies the current working Course Model v11 object to the clipboard and does not create a file. **Export Course ZIP** writes the canonical v11 JSON and every referenced Course-owned image and recording to one ZIP in `Documents/QuisquisLingo/Exports`. An unused Shared Image Library image does not enter the ZIP; a selected one is copied into Course media and does. Bundled QQL assets remain supplied by the app. Export does not confirm or persist the editing transaction.
+
+Image labels in the Course Editor describe source, storage and use: a bundled image shows `QQL` and `USED`; an Admin-added shared image shows `DEVICE`, `COURSE` and `USED`; and a directly imported image shows `COURSE` and `USED`. `COURSE` means the bytes are in the Course folder, while `USED` means the Course references the image, wherever it is stored. The Shared Image Library itself shows only `QQL` or `DEVICE`; using an image in a Course does not change its library label.
+
+For an Admin-added image, an Admin can add optional author, license, title and source in the Shared Image Library's **Edit metadata** dialog. Author and license are both required when a credit is entered. Every viewer can read the attribution in the image preview. Choosing the image for a Course captures its current metadata and attribution; a later library edit does not silently rewrite an existing Course snapshot. Export puts that snapshot in both `course.json` and the ZIP manifest.
 
 When `Documents/QuisquisLingo/Imports/import.json` is imported successfully, QuisquisLingo validates it and lists it under **Local courses**. The stored course no longer depends on `import.json`; the transfer file is left in place. The stable `courseId` identifies the course internally. Course Info Editor remains available even when the course content is locked. Renaming the visible Course name in Course Info Editor does not change `courseId`; the Lock protects structural/content editing, not course metadata.
 

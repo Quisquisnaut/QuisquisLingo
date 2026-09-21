@@ -40,19 +40,19 @@ void main() {
   tearDown(() => directory.delete(recursive: true));
 
   test(
-    'default Export is unchanged: same folder, name and suffixing',
+    'default package Export keeps the folder and suffixing',
     () async {
       final first = await service.exportCourse(dialogTestCourse());
       final second = await service.exportCourse(dialogTestCourse());
       expect(
         first,
         '${directory.path}${Platform.pathSeparator}'
-        'quisquislingo_dialog_course.json',
+        'quisquislingo_dialog_course.zip',
       );
       expect(
         second,
         '${directory.path}${Platform.pathSeparator}'
-        'quisquislingo_dialog_course_2.json',
+        'quisquislingo_dialog_course_2.zip',
       );
       expect(
         backend.saved,
@@ -67,7 +67,7 @@ void main() {
     final result = await service.exportCourseTo(dialogTestCourse());
 
     expect(result.outcome, FileDialogOutcome.saved);
-    expect(backend.saved.single.name, 'quisquislingo_dialog_course.json');
+    expect(backend.saved.single.name, 'quisquislingo_dialog_course.zip');
     expect(backend.saved.single.bytes, await File(path).readAsBytes());
   });
 
@@ -169,7 +169,7 @@ void main() {
       expect(log, contains('FILE-001'));
       expect(log, contains('direction=save'));
       expect(log, contains('artifact=course'));
-      expect(log, contains('file=quisquislingo_dialog_course.json'));
+      expect(log, contains('file=quisquislingo_dialog_course.zip'));
       expect(log, contains('Access is denied'));
       expect(log, isNot(contains('Someone')));
       expect(log, isNot(contains('Secret Folder')));
@@ -209,16 +209,16 @@ void main() {
       final path = await service.exportCourse(dialogTestCourse());
       final bytes = await File(path).readAsBytes();
       backend.onOpen = () async =>
-          FileDialogResult.opened('anywhere.json', bytes);
+          FileDialogResult.opened('anywhere.zip', bytes);
 
       await File(
         path,
-      ).rename('${directory.path}${Platform.pathSeparator}import.json');
-      final viaFolder = await service.importCourse();
-      final viaDialog = await service.importCourseFromDialog();
+      ).rename('${directory.path}${Platform.pathSeparator}import.zip');
+      final viaFolder = await service.importCoursePackage();
+      final viaDialog = await service.importPackageFromDialog();
 
       expect(viaDialog.dialog.outcome, FileDialogOutcome.opened);
-      expect(viaDialog.course!.toJson(), viaFolder.toJson());
+      expect(viaDialog.package!.course.toJson(), viaFolder.course.toJson());
     },
   );
 

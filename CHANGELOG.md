@@ -1,3 +1,11 @@
+# 2.0.43 (Build 243, Revision 3) - Portable Course ZIP - 2026-09-21
+
+Tranche 2 of the [portable Course package plan](docs/COURSE_PACKAGE_PLAN.md). Scope: [Build 243 change summary](docs/243_CHANGE_SUMMARY.md#revision-3--portable-course-zip); evidence: [243 validation](docs/243_VALIDATION.md).
+
+- Platform version `2.0.43+243003`; the Beta expiry remains **2026-10-21 23:59:59 local time**.
+- Course export writes a ZIP with canonical Course JSON and only its referenced Course media. Import and Merge accept that ZIP or media-free v11 JSON; package validation completes before installation.
+- Admin-added Shared Image Library images selected for a Course travel as Course-owned media, with their library identity, metadata and optional per-image attribution retained in the Course and package manifest. Admins enter attribution in **Edit metadata**; every viewer can read it, and Image Banks may supply it. Import never adds these images to the destination Shared Image Library. Every viewer sees fixed `DEVICE` and `QQL` labels in the library; those labels stay unchanged when a Course uses an image. The Course Editor adds `USED` for any used image and `COURSE` when its bytes are in the Course folder, beside the source label where applicable. Bundled assets stay supplied by the app.
+
 # 2.0.43 (Build 243, Revision 2) - Course media: one format on every device - 2026-09-21
 
 Tranche 1 of the portable course package ([plan](docs/COURSE_PACKAGE_PLAN.md)). Scope: [Build 243 change summary](docs/243_CHANGE_SUMMARY.md#revision-2--course-media); evidence: [243 validation](docs/243_VALIDATION.md).

@@ -295,12 +295,12 @@ void main() {
       expect(find.byType(CourseImportScreen), findsOneWidget);
       expect(find.text('Course Import'), findsOneWidget);
       expect(
-        find.widgetWithText(FilledButton, 'Import Course JSON'),
+        find.widgetWithText(FilledButton, 'Import Course package or JSON'),
         findsOneWidget,
       );
       expect(find.text('Import instructions'), findsOneWidget);
       expect(
-        find.textContaining('Documents/QuisquisLingo/Imports/import.json'),
+        find.textContaining('Documents/QuisquisLingo/Imports/import.zip'),
         findsOneWidget,
       );
       expect(find.textContaining('/Exports/'), findsNothing);
@@ -450,7 +450,7 @@ void main() {
       'Edit',
       'Copy as New Course',
       'Audit',
-      'Export JSON',
+      'Export Course ZIP',
       'Delete course',
     ]) {
       expect(find.text(label), findsOneWidget);
@@ -519,7 +519,7 @@ void main() {
         );
         expect(find.text('View (read only)'), findsOneWidget);
         expect(find.text('Audit'), findsOneWidget);
-        expect(find.text('Export JSON'), findsOneWidget);
+        expect(find.text('Export Course ZIP'), findsOneWidget);
         expect(
           find.text('Fork'),
           policy == DerivativeWorksPolicy.allowed

@@ -19,9 +19,9 @@ void main() {
       final exportPath = await service.exportCourse(original);
       await File(
         exportPath,
-      ).rename('${directory.path}${Platform.pathSeparator}import.json');
+      ).rename('${directory.path}${Platform.pathSeparator}import.zip');
 
-      final restored = await service.importCourse();
+      final restored = (await service.importCoursePackage()).course;
       final exercise = restored.lessons.single.rounds.single.exercises.single;
       expect(restored.toJson(), original.toJson());
       expect(exercise.correctTranslationTexts, [

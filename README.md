@@ -1,12 +1,12 @@
 # QuisquisLingo App
 
-**Current source version: 2.0.43+243002 · Build 243, Revision 2 · Course Model v11 (`formatVersion: 11`).**
+**Current source version: 2.0.43+243003 · Build 243, Revision 3 · Course Model v11 (`formatVersion: 11`).**
 
 **QuisquisLingo 2.0.43 Beta — QQL 243 Course Model v11**
 
 Current project version: 2.0.43
 
-See the [Build 243 change summary](docs/243_CHANGE_SUMMARY.md) for Course Model v11, its new optional Course fields and the clean cut from v9/v10, and the [Build 242 change summary](docs/242_CHANGE_SUMMARY.md) for the previous release. Revision 1 stops one unreadable stored Course from hiding the others; Revision 2 gives every Course its own content-addressed media (`media:<sha256>.<ext>`). Build 243 is the first step towards the portable course package; see the [course package plan](docs/COURSE_PACKAGE_PLAN.md).
+See the [Build 243 change summary](docs/243_CHANGE_SUMMARY.md) for Course Model v11, per-Course media and the Revision 3 portable Course ZIP. Export includes only referenced Course-owned media, including images selected from the Admin Shared Image Library; bundled QQL assets remain supplied by the app. Import keeps those images with the Course and does not add them to the destination Shared Image Library. See the [course package plan](docs/COURSE_PACKAGE_PLAN.md).
 
 QQL 241 completes the course file-store integration: custom and installed official courses use individual files under application support, Reset removes those files for the appropriate scopes, and Inventory reports their real paths and sizes. Tests use isolated directories and explicit save/UI completion conditions. Old course preference blobs are not migrated. Final validation passed (1,879 full-suite tests, plus 8 focused tests for the final Publisher title color); see `docs/241_VALIDATION.md`.
 
@@ -73,7 +73,7 @@ The MPL-2.0 covers the QuisquisLingo software source. Courses, the Image Bank an
 
 ## Beta lifecycle
 
-Version 2.0.43, Build 243, Revision 2 is a time-limited Beta with an expiry of **2026-10-21 23:59:59 local time** (30 days from September 21, 2026, its own release date). Near expiry it displays reminders. After expiry, learner exercises and Review are blocked until a newer Beta is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when a Beta expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM.
+Version 2.0.43, Build 243, Revision 3 is a time-limited Beta with an expiry of **2026-10-21 23:59:59 local time** (30 days from September 21, 2026, its own release date). Near expiry it displays reminders. After expiry, learner exercises and Review are blocked until a newer Beta is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when a Beta expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM.
 
 ## Core logic
 

@@ -33,7 +33,7 @@ void main() {
         scrollable: find.byType(Scrollable).first,
       );
       expect(export, findsOneWidget);
-      expect(find.text('Export Course JSON'), findsOneWidget);
+      expect(find.text('Export Course package'), findsOneWidget);
       expect(find.byType(PopupMenuButton<String>), findsNothing);
 
       final list = tester.widget<ListView>(find.byType(ListView));
@@ -100,7 +100,7 @@ void main() {
       );
       await tester.pump();
       expect(find.byKey(const Key('course-editor-export-json')), findsNothing);
-      expect(find.text('Export Course JSON'), findsNothing);
+      expect(find.text('Export Course package'), findsNothing);
       expect(find.byType(PopupMenuButton<String>), findsNothing);
     });
   }

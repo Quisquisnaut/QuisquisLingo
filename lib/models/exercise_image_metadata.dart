@@ -1,3 +1,60 @@
+/// Optional credit attached to one Admin-added shared image.
+class ImageAttribution {
+  final String author;
+  final String license;
+  final String title;
+  final String source;
+
+  const ImageAttribution({
+    required this.author,
+    required this.license,
+    this.title = '',
+    this.source = '',
+  });
+
+  Map<String, dynamic> toJson() => {
+    'author': author,
+    'license': license,
+    if (title.isNotEmpty) 'title': title,
+    if (source.isNotEmpty) 'source': source,
+  };
+
+  factory ImageAttribution.fromJson(Map<String, dynamic> json) {
+    if (json.keys.toSet().difference({
+      'author',
+      'license',
+      'title',
+      'source',
+    }).isNotEmpty) {
+      throw const FormatException('Image attribution has unsupported fields.');
+    }
+    String field(String name, {bool required = false, int limit = 200}) {
+      final raw = json[name];
+      if (raw != null && raw is! String) {
+        throw FormatException('Image attribution $name must be text.');
+      }
+      final value = (raw as String? ?? '').trim().replaceAll(
+        RegExp(r'\s+'),
+        ' ',
+      );
+      if (required && value.isEmpty) {
+        throw FormatException('Image attribution $name is required.');
+      }
+      if (value.length > limit) {
+        throw FormatException('Image attribution $name is too long.');
+      }
+      return value;
+    }
+
+    return ImageAttribution(
+      author: field('author', required: true),
+      license: field('license', required: true),
+      title: field('title'),
+      source: field('source', limit: 500),
+    );
+  }
+}
+
 class ExerciseImageMetadata {
   final String id;
   final String label;
@@ -5,6 +62,7 @@ class ExerciseImageMetadata {
   final List<String> tags;
   final String assetPath;
   final String origin;
+  final ImageAttribution? attribution;
 
   const ExerciseImageMetadata({
     required this.id,
@@ -13,17 +71,23 @@ class ExerciseImageMetadata {
     required this.tags,
     required this.assetPath,
     required this.origin,
+    this.attribution,
   });
 
-  ExerciseImageMetadata copyWith({String? category, List<String>? tags}) =>
-      ExerciseImageMetadata(
-        id: id,
-        label: label,
-        category: category ?? this.category,
-        tags: List.unmodifiable(tags ?? this.tags),
-        assetPath: assetPath,
-        origin: origin,
-      );
+  ExerciseImageMetadata copyWith({
+    String? category,
+    List<String>? tags,
+    ImageAttribution? attribution,
+    bool clearAttribution = false,
+  }) => ExerciseImageMetadata(
+    id: id,
+    label: label,
+    category: category ?? this.category,
+    tags: List.unmodifiable(tags ?? this.tags),
+    assetPath: assetPath,
+    origin: origin,
+    attribution: clearAttribution ? null : attribution ?? this.attribution,
+  );
 
   Map<String, dynamic> toJson() => {
     'id': id,
@@ -32,5 +96,6 @@ class ExerciseImageMetadata {
     'tags': tags,
     'assetPath': assetPath,
     'origin': origin,
+    if (attribution != null) 'attribution': attribution!.toJson(),
   };
 }

@@ -147,7 +147,7 @@ void main() {
         'Inspection mode',
         'Use GuideBook',
         'Create Duels',
-        'Export Course JSON',
+        'Export Course ZIP',
         'Import Image Bank ZIP',
         'Course Maintainer',
       ]) {

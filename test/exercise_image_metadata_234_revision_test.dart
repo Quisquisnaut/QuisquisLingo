@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:quisquislingo_app/models/exercise_image_metadata.dart';
 import 'package:quisquislingo_app/services/exercise_image_metadata_service.dart';
 import 'package:quisquislingo_app/services/profile_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -142,6 +143,72 @@ void main() {
     expect(
       (await restarted.loadCatalog()).where((record) => record.id == before.id),
       hasLength(1),
+    );
+  });
+
+  test('Admin-added image attribution persists and can be cleared', () async {
+    final service = ExerciseImageMetadataService();
+    await service.addLocalRecord(
+      actorProfileId: _adminId,
+      record: const ExerciseImageMetadata(
+        id: 'local_cat',
+        label: 'Cat',
+        category: 'animals',
+        tags: ['cat'],
+        assetPath: 'local_cat.webp',
+        origin: 'local',
+        attribution: ImageAttribution(
+          author: 'A. Artist',
+          license: 'CC BY 4.0',
+          source: 'https://example.org/cat',
+        ),
+      ),
+    );
+    final restarted = ExerciseImageMetadataService();
+    expect(
+      (await restarted.metadataFor('local_cat')).attribution?.author,
+      'A. Artist',
+    );
+
+    await restarted.updateMetadata(
+      actorProfileId: _adminId,
+      imageId: 'local_cat',
+      category: 'animals',
+      tags: ['cat'],
+      attribution: null,
+    );
+    expect((await restarted.metadataFor('local_cat')).attribution, isNull);
+  });
+
+  test('attribution requires author and license and is device-only', () async {
+    final service = ExerciseImageMetadataService();
+    await expectLater(
+      service.updateMetadata(
+        actorProfileId: _adminId,
+        imageId: 'actions_jump',
+        category: 'actions',
+        tags: const ['jump'],
+        attribution: const ImageAttribution(
+          author: 'A. Artist',
+          license: 'CC BY 4.0',
+        ),
+      ),
+      throwsA(isA<FormatException>()),
+    );
+    await expectLater(
+      service.addLocalRecord(
+        actorProfileId: _adminId,
+        record: const ExerciseImageMetadata(
+          id: 'incomplete_credit',
+          label: 'Incomplete credit',
+          category: 'other',
+          tags: ['image'],
+          assetPath: 'incomplete.webp',
+          origin: 'local',
+          attribution: ImageAttribution(author: '', license: 'CC BY 4.0'),
+        ),
+      ),
+      throwsA(isA<FormatException>()),
     );
   });
 

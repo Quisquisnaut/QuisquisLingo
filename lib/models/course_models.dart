@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:math';
 
+import 'exercise_image_metadata.dart';
 import '../services/app_metadata.dart';
 
 /// QuisquisLingo Course Model v11.
@@ -399,26 +400,19 @@ class CourseMediaAttribution {
     if (appliesTo.isNotEmpty) 'appliesTo': appliesTo,
   };
 
-  factory CourseMediaAttribution.fromJson(Map<String, dynamic> json) =>
-      CourseMediaAttribution(
-        author: _mediaAttributionField(
-          json['author'],
-          'author',
-          required: true,
-        ),
-        license: _mediaAttributionField(
-          json['license'],
-          'license',
-          required: true,
-        ),
-        title: _mediaAttributionField(json['title'], 'title'),
-        source: _mediaAttributionField(
-          json['source'],
-          'source',
-          limit: _maxSourceField,
-        ),
-        appliesTo: _mediaAttributionField(json['appliesTo'], 'appliesTo'),
-      );
+  factory CourseMediaAttribution.fromJson(
+    Map<String, dynamic> json,
+  ) => CourseMediaAttribution(
+    author: _mediaAttributionField(json['author'], 'author', required: true),
+    license: _mediaAttributionField(json['license'], 'license', required: true),
+    title: _mediaAttributionField(json['title'], 'title'),
+    source: _mediaAttributionField(
+      json['source'],
+      'source',
+      limit: _maxSourceField,
+    ),
+    appliesTo: _mediaAttributionField(json['appliesTo'], 'appliesTo'),
+  );
 
   /// Equality by content, so duplicate entries can be rejected.
   @override
@@ -2328,18 +2322,96 @@ class Presentation {
   }
 }
 
+/// Snapshot of an Admin-added Shared Image Library entry. It is descriptive;
+/// importing a Course never installs or authorizes a global library entry.
+class SharedImageSource {
+  final String id;
+  final String label;
+  final String category;
+  final List<String> tags;
+  final String origin;
+  final ImageAttribution? attribution;
+
+  const SharedImageSource({
+    required this.id,
+    required this.label,
+    required this.category,
+    required this.tags,
+    required this.origin,
+    this.attribution,
+  });
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'label': label,
+    'category': category,
+    'tags': tags,
+    'origin': origin,
+    if (attribution != null) 'attribution': attribution!.toJson(),
+  };
+
+  factory SharedImageSource.fromJson(Map<String, dynamic> json) {
+    if (json.keys.toSet().difference({
+      'id',
+      'label',
+      'category',
+      'tags',
+      'origin',
+      'attribution',
+    }).isNotEmpty) {
+      throw const FormatException('sharedImageSource has unsupported fields.');
+    }
+    final id = _requiredString(json, 'id', 'sharedImageSource');
+    final label = _requiredString(json, 'label', 'sharedImageSource');
+    final category = _requiredString(json, 'category', 'sharedImageSource');
+    final origin = _requiredString(json, 'origin', 'sharedImageSource');
+    final tags = _stringList(json, 'tags');
+    final rawAttribution = json['attribution'];
+    Map<String, dynamic>? attributionJson;
+    if (rawAttribution != null) {
+      if (rawAttribution is! Map) {
+        throw const FormatException('Invalid shared image attribution.');
+      }
+      try {
+        attributionJson = Map<String, dynamic>.from(rawAttribution);
+      } catch (_) {
+        throw const FormatException('Invalid shared image attribution.');
+      }
+    }
+    if (origin == 'bundled' ||
+        tags.isEmpty ||
+        [id, label, category, origin].any((value) => value.length > 500) ||
+        tags.length > 100 ||
+        tags.any((tag) => tag.trim().isEmpty || tag.length > 500)) {
+      throw const FormatException('Invalid sharedImageSource metadata.');
+    }
+    return SharedImageSource(
+      id: id,
+      label: label,
+      category: category,
+      tags: List.unmodifiable(tags),
+      origin: origin,
+      attribution: attributionJson == null
+          ? null
+          : ImageAttribution.fromJson(attributionJson),
+    );
+  }
+}
+
 class PromptElement {
   final String role;
   final String type;
   final String text;
   final String asset;
   final String speaker;
+  final SharedImageSource? sharedImageSource;
   const PromptElement({
     this.role = 'primary',
     required this.type,
     this.text = '',
     this.asset = '',
     this.speaker = '',
+    this.sharedImageSource,
   });
   Map<String, dynamic> toJson() => {
     'role': role,
@@ -2347,14 +2419,34 @@ class PromptElement {
     if (text.isNotEmpty) 'text': text,
     if (asset.isNotEmpty) 'asset': asset,
     if (speaker.isNotEmpty) 'speaker': speaker,
+    if (sharedImageSource != null)
+      'sharedImageSource': sharedImageSource!.toJson(),
   };
-  factory PromptElement.fromJson(Map<String, dynamic> j) => PromptElement(
-    role: _optionalString(j, 'role', 'primary'),
-    type: _requiredString(j, 'type', 'prompt'),
-    text: _optionalString(j, 'text', ''),
-    asset: _optionalString(j, 'asset', ''),
-    speaker: _optionalString(j, 'speaker', ''),
-  );
+  factory PromptElement.fromJson(Map<String, dynamic> j) {
+    final source = j['sharedImageSource'];
+    if (source != null &&
+        (source is! Map ||
+            j['type'] != 'image' ||
+            !RegExp(
+              r'^media:[0-9a-f]{64}\.(png|jpg|jpeg|webp)$',
+            ).hasMatch(j['asset']?.toString() ?? ''))) {
+      throw const FormatException(
+        'sharedImageSource requires a Course-owned image.',
+      );
+    }
+    return PromptElement(
+      role: _optionalString(j, 'role', 'primary'),
+      type: _requiredString(j, 'type', 'prompt'),
+      text: _optionalString(j, 'text', ''),
+      asset: _optionalString(j, 'asset', ''),
+      speaker: _optionalString(j, 'speaker', ''),
+      sharedImageSource: source == null
+          ? null
+          : SharedImageSource.fromJson(
+              Map<String, dynamic>.from(source as Map),
+            ),
+    );
+  }
 }
 
 class ExerciseItem {
