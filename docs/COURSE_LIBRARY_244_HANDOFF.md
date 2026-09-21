@@ -16,15 +16,18 @@ with `docs/244_CHANGE_SUMMARY.md` and `docs/244_VALIDATION.md`).
 | 3 | `2.0.44+244003` | `711f29a` | Bordered sections with counts; My/Other Local Courses; web section hidden (`courseLibraryWebSite = null`) |
 | 4 | `2.0.44+244004` | `0c993bf` | Richer rows; `CourseArtwork` cover-or-flag; `CourseLibraryPresentation` version/date/duration |
 | 5 | `2.0.44+244005` | `b388e67` | Sort by inside each section; Beta expiry → 2026-10-22 (release dated 2026-09-22) |
-| 6 | `2.0.44+244006` | (this commit) | Expanded/Compact per section |
+| 6 | `2.0.44+244006` | `a7271bf` | Expanded/Compact per section |
+| 7 | `2.0.44+244007` | (this commit) | Help rewrite; EN/IT Editor Help |
 
 The untracked `devtools_options.yaml` predates this work and must not be
 committed or deleted.
 
 ## Next steps
 
-Revision 7 next: Help rewrite (plan §2.11), Editor Help/Info sentence, then
-the full suite once before committing. The web section is gated by `courseLibraryWebSite` (null), not the
+Build 244 is complete. Full suite **2,206 passed, 0 failed**; `flutter
+analyze` and the four validators clean. Revisions 1–7 are committed locally,
+not pushed. Not yet done: a manual check on a device. Later work: set
+`courseLibraryWebSite` when the QQL Course web site exists. The web section is gated by `courseLibraryWebSite` (null), not the
 `_courseWebSiteAvailable` flag named in the plan. The full
 suite runs once, before the Revision 7 commit.
 

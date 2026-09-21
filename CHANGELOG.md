@@ -1,3 +1,15 @@
+# 2.0.44 (Build 244, Revision 7) - Course Library Help - 2026-09-22
+
+Course Library Help is rewritten. It starts by explaining that the page lists
+every Course on this device, not only those in your personal library, and
+that Courses can come from elsewhere: a friend can send you a Course they
+made, or a publisher may distribute or sell you one. QQL only imports the
+Course package. Help then covers the four categories, the Course details,
+the availability switch, sorting and compact view, the personal library,
+importing and removing Publisher Courses. Editor Help (English and Italian)
+describes the new page.
+Version `2.0.44+244007`; Beta expiry remains **2026-10-22 23:59:59 local time**.
+
 # 2.0.44 (Build 244, Revision 6) - Compact sections - 2026-09-22
 
 Each Course Library section header has its own **Expanded / Compact**

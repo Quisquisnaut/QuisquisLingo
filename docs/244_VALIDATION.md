@@ -1,5 +1,22 @@
 # Build 244 validation
 
+## Revision 7 — Course Library Help (`2.0.44+244007`)
+
+Validation on 22 September 2026, before the Revision 7 commit.
+
+- `test/course_library_screen_244_test.dart` checks the Help opening
+  sentence, the friend and publisher distribute/sell examples, the no-selling
+  statement, the Other Local Courses definition, the availability, personal
+  library, importing and sorting statements, and that the hidden web section
+  is not mentioned. The existing Help test still opens the full text.
+- Clean full suite at the end of Build 244: **2,206 passed, 0 failed**
+  (`flutter test --no-pub`, about 12.5 minutes).
+- `flutter analyze` on the whole project: no issues.
+- `tools/validate_courses.py` (10 bundled Course Model v11 files OK),
+  `validate_images.py`, `validate_lesson_icons.py`, `validate_media_assets.py`:
+  0 issues. `git diff --check`: clean.
+- Manual check on a device: not yet done.
+
 ## Revision 6 — Compact sections (`2.0.44+244006`)
 
 Validation on 22 September 2026, before the Revision 6 commit.

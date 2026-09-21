@@ -14,18 +14,46 @@ import '../widgets/course_artwork.dart';
 /// hidden until this is set.
 const Uri? courseLibraryWebSite = null;
 
-const availableCoursesHelp =
-    '''If your library has no courses available for study, Home keeps Settings and, when activated for your profile, Course Manager. Course Library lets you add courses again. No course flag is shown until a playable course is selected.
+const availableCoursesHelp = '''Courses on this device
 
-Courses are stored once on this device and can be added to each learner's personal library independently.
+Course Library shows all Courses installed or stored on this QQL device, not only the Courses in your personal library. Each learner chooses independently which of them to include in their personal Course library.
 
-Bundled Courses are supplied with QQL. Publisher Courses are installed publisher releases. My Local Courses are Custom Courses created by your profile; Other Local Courses are Custom Courses created by another profile or imported from somebody else. Adding a Custom Course does not grant editing rights.
+Courses do not have to be created on this device. You can import a Course made elsewhere. For example, a friend can send you a Course they created, or a publisher may distribute or sell you a Publisher Course to install. QQL only imports the Course package; it does not sell or license Courses itself.
 
-Courses are sorted alphabetically within each section. Bold titles identify Bundled Courses in black (white on black in dark mode), Publisher Courses in purple and Custom Courses in orange. Maintainer shows the local profile responsible for a Custom Course, or the publisher for Bundled and Publisher Courses. A profile not present on this device is identified by its profile ID.
+If your library has no courses available for study, Home keeps Settings and, when activated for your profile, Course Manager. Course Library lets you add courses again. No course flag is shown until a playable course is selected.
 
-Add to my courses includes the course in your Course Selector and Course Manager. Added · Remove lets you remove it here, with the same confirmation and optional progress reset. By default the page hides Courses that are unpublished, require Publisher verification, or still contain Draft authoring content. Show unavailable or Draft Courses displays them with blue outlined labels: Draft, Unpublished and Verification required. Showing them does not make them playable or verified. Only published courses are available for study. Publisher Courses also require verified signatures; draft or unverified courses remain subject to their existing restrictions.
+Categories
+
+Bundled Courses: supplied with QuisquisLingo.
+Publisher Courses: installed Publisher releases.
+My Local Courses: Custom Courses created by your profile.
+Other Local Courses: Custom Courses created by another profile or imported from somebody else.
+
+Each category has its own section, and its header shows how many Courses it holds. Bold titles identify Bundled Courses in black (white on black in dark mode), Publisher Courses in purple and Custom Courses in orange.
+
+Course details
+
+Each row shows the Course cover, or the Course flag when there is no cover, followed by the languages, Version, Last edited date, Maintainer and, when the author declared it, Duration. Bundled and Publisher Courses show their release version; Custom Courses show their Course version. Maintainer shows the local profile responsible for a Custom Course, or the publisher for Bundled and Publisher Courses. A profile not present on this device is identified by its profile ID.
+
+Availability
+
+By default the page hides Courses that are unpublished, require Publisher verification, or still contain Draft authoring content; a section header then shows how many are shown and how many are hidden. Use Show unavailable or Draft Courses to display them with blue outlined labels: Draft, Unpublished and Verification required. Showing them does not make them playable or verified. Only published courses are available for study. Publisher Courses also require verified signatures.
+
+Sorting and compact view
+
+Sort by orders the Courses inside each section by Title, Language, Maintainer, Most recent or Duration. The sections themselves never change order. Most recent shows the latest edit first; Duration shows the shortest Course first and Courses without a declared duration last. Each section's Expanded / Compact button shows or hides version, date, maintainer and duration for that section only. These choices last while the page is open.
+
+Personal library
+
+Add to my courses adds an installed Course to your personal Course Selector and Course Manager. It does not copy the Course or give you editing rights. Removing it from your courses does not remove it from the device. Added · Remove lets you remove it here, with the same confirmation and optional progress reset.
 
 Remove from my courses, in the Selector or Manager, removes the course only from your library. Progress is kept by default for when you add it again. You may explicitly reset your course progress during removal. Other learners and the shared file are unaffected. Even when Reset my progress is selected, all earned XP (including Weekly XP), total and per-language study days, streak and version backups are kept. XP earned from this course is not subtracted. Reset clears only your completed Rounds/Lessons, Perfect results, won Duels, read Guidebooks and recent Round entries for this course.
+
+Importing
+
+Courses may be transferred as QQL Course packages. Imported Custom Courses keep their ownership and provenance rules. Publisher Courses remain subject to Publisher verification.
+
+Removing a Publisher Course from the device
 
 Only an admin can remove a Publisher Course from the device, through its Course Manager menu. This is blocked while another profile includes the course in its library. Physical removal preserves learner progress and version backups for later reinstallation.''';
 

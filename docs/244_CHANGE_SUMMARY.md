@@ -102,3 +102,19 @@ states are independent, start Expanded and are kept only while the page is
 open (no preference key). Compact rows keep a 40 px artwork slot, the title,
 `source → target`, the Draft / Unpublished / Verification required labels
 and Add/Remove; Version, Last edited, Maintainer and Duration are hidden.
+
+## Revision 7 — Course Library Help
+
+Version **2.0.44+244007**, same Beta expiry. `availableCoursesHelp` is restructured under plain headings: Courses on
+this device (the page shows every Course on the device, not only the
+personal library; a friend can send you a Course, a publisher may distribute
+or sell you one; QQL only imports the package and does not sell or license
+Courses), Categories, Course details, Availability, Sorting and compact view,
+Personal library (Add does not copy the Course or grant editing rights;
+removing from your courses does not remove it from the device; the existing
+removal and reset text is kept), Importing, and Removing a Publisher Course
+from the device (existing admin text). The hidden web section is not
+mentioned. English and Italian Editor Help now name My Local Courses and
+Other Local Courses and describe the switch, Sort by and Expanded / Compact.
+
+Build 244 is complete with this revision.

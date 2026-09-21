@@ -257,6 +257,30 @@ void main() {
     );
   });
 
+  test('Help explains device scope, imports and sources without selling', () {
+    expect(
+      availableCoursesHelp,
+      startsWith(
+        'Courses on this device\n\nCourse Library shows all Courses installed or stored on this QQL device, not only the Courses in your personal library.',
+      ),
+    );
+    for (final phrase in [
+      'a friend can send you a Course they created',
+      'a publisher may distribute or sell you a Publisher Course',
+      'it does not sell or license Courses itself',
+      'Other Local Courses: Custom Courses created by another profile or imported from somebody else.',
+      'Showing them does not make them playable or verified.',
+      'It does not copy the Course or give you editing rights.',
+      'Removing it from your courses does not remove it from the device.',
+      'Publisher Courses remain subject to Publisher verification.',
+      'Sort by orders the Courses inside each section',
+    ]) {
+      expect(availableCoursesHelp, contains(phrase));
+    }
+    // The web site section stays unmentioned while it is hidden.
+    expect(availableCoursesHelp, isNot(contains('on the web')));
+  });
+
   test('every bundled Course is published and free of Draft content', () async {
     for (final code in CourseService.courseAssets.keys) {
       final course = await CourseService().loadCourse(code);

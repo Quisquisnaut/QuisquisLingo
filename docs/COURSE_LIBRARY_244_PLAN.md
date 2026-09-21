@@ -1,6 +1,6 @@
 # Course Library (QQL Build 244) — plan
 
-Status: **in progress** (see [COURSE_LIBRARY_244_HANDOFF.md](COURSE_LIBRARY_244_HANDOFF.md)). Written 2026-09-21 against QQL Build 243 Revision 19
+Status: **done** in Build 244 Revisions 1–7 (see [COURSE_LIBRARY_244_HANDOFF.md](COURSE_LIBRARY_244_HANDOFF.md)). Written 2026-09-21 against QQL Build 243 Revision 19
 (`2.0.43+243019`, commit `9b9647c`).
 
 Read `AGENTS.md` first. Its rules apply: smallest correct change, no unrelated
