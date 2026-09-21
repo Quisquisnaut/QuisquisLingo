@@ -4,7 +4,7 @@ Keep this file current at the end of **every** revision, so that work can
 resume after a pause or with another agent. Plan and decisions:
 [IMPORT_HARDENING_PLAN.md](IMPORT_HARDENING_PLAN.md). Rules: `AGENTS.md`.
 
-## Where things stand (updated 2026-09-21, Revision 18 committed)
+## Where things stand (updated 2026-09-21, Revision 19 committed)
 
 | Revision | Version | Commit | Content |
 |---|---|---|---|
@@ -22,17 +22,18 @@ resume after a pause or with another agent. Plan and decisions:
 | 16 | `2.0.43+243016` | `21bf653` | Tranche 5 part 1: content duplicates skipped; bank ID conflicts Skip/Replace/Keep both + Apply to all; `ImageProvenance`; date sort; screen renamed Shared Images; web page saved as `.mp3` explained |
 | 17 | `2.0.43+243017` | `2959fff` | Clearer media errors and wrong-file identification; Image Bank manifest creation guidance in errors and Help; On-Device TTS label and mode-specific Audio Library text/actions |
 | 18 | `2.0.43+243018` | `f44fc7b` | Full-size image preview tooltip with file details, attribution and missing-file state; English Help guidance |
+| 19 | `2.0.43+243019` | `c007eac` | Phase 20 route-matrix suite with synthetic fixtures; Course JSON import checks embedded exercise images, Lesson icons and flags |
 
-Revisions 5–16 are pushed to `origin/main`; Revisions 17–18 are committed locally.
+Revisions 5–16 are pushed to `origin/main`; Revisions 17–19 are committed locally.
 The untracked `devtools_options.yaml` predates this work and must not be committed
 or deleted. The owner removed `assets/lesson_plants/plant_1.zip` manually.
 
-## Next steps, in order (plan §6a)
+## Next steps
 
-1. **Phase 20 route-matrix adversarial suite**: Revision 19. Generate small
-   synthetic fixtures under `test/fixtures/import/`, exercise each applicable
-   fixed-folder, Open from…, and package route in the §5 matrix, then run the
-   release checklist below.
+The requested Revision 17–19 sequence is complete. Revision 19 passed the
+full suite (**2,173 tests, 0 failures**), `flutter analyze`, all four asset
+validators and `git diff --check`. No further revision is specified in this
+handoff.
 
 ## Owner decisions already taken
 
