@@ -10,11 +10,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'support/publisher_fixtures.dart';
 
-/// A Course file carries clip references, never MP3 bytes. A custom author
-/// can repair a missing recording; a publisher cannot, because the reference
-/// sits inside the signed payload. Until the Course package delivers the files
-/// (Build 243 Tranche 3), such a course is refused at import instead. Device
-/// paths no longer reach this rule: Course Model v11 refuses them itself.
+/// Signed Publisher JSON may name content-addressed media. The Course ZIP
+/// supplies the bytes; installation checks their presence and digest.
 final _courseMedia = 'media:${'c' * 64}.mp3';
 
 void main() {
@@ -47,44 +44,10 @@ void main() {
         'audioLibrary': clips.map((clip) => clip.toJson()).toList(),
       });
 
-  group('the structural rule', () {
-    test('course media is refused, bundled and empty are accepted', () {
-      void check(Course course) =>
-          CustomCourseTransferService.rejectUnreachablePublisherRecordings(
-            course,
-          );
-
-      expect(() => check(fixture()), returnsNormally);
-      expect(
-        () => check(
-          withClips(fixture(), const [
-            CourseAudioClip(
-              id: 'a',
-              text: 'ciao',
-              filePath: 'assets/audio/it_sample/sample_1.mp3',
-            ),
-          ]),
-        ),
-        returnsNormally,
-        reason: 'recordings shipped with the app are reachable everywhere',
-      );
-      expect(
-        () => check(
-          withClips(fixture(), [
-            CourseAudioClip(id: 'a', text: 'ciao', filePath: _courseMedia),
-          ]),
-        ),
-        throwsFormatException,
-      );
-    });
-  });
-
   group('at import', () {
     test(
-      'a validly signed Publisher Course with recordings is refused',
+      'a validly signed Publisher Course with recordings verifies',
       () async {
-        // Signed with the real test key, so this fails on the media rule alone
-        // and not because the signature stopped matching.
         final signed = await signFixture(
           withClips(fixture(), [
             CourseAudioClip(id: 'a', text: 'ciao', filePath: _courseMedia),
@@ -93,17 +56,14 @@ void main() {
         final transfer = CustomCourseTransferService(
           publisherVerification: verifier,
         );
-        await expectLater(
-          transfer.courseFromBytes(bytes(signed), 'signed-with-audio.json'),
-          throwsA(
-            isA<FormatException>().having(
-              (error) => error.message,
-              'message',
-              contains('cannot be delivered inside a Course file'),
-            ),
-          ),
-          reason:
-              'the media rule must fire on its own terms, before verification',
+        final verified = await transfer.courseFromBytes(
+          bytes(signed),
+          'signed-with-audio.json',
+        );
+        expect(verified.audioLibrary.single.filePath, _courseMedia);
+        expect(
+          verified.publisherVerificationStatus,
+          PublisherVerificationStatus.verified,
         );
       },
     );

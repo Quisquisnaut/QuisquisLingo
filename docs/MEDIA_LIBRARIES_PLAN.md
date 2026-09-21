@@ -526,6 +526,12 @@ The owner's settled points, for whoever builds it:
 
 ## 7. Deferred
 
+Build 243 Revisions 2–4 closed the portable-media gap: a Course owns
+content-addressed images and recordings, its ZIP includes only referenced
+non-bundled media, and signed Publisher ZIPs deliver and verify those files.
+Publisher updates archive the previous media and remove files no longer used.
+The audit findings and proposals above describe the Build 242 baseline.
+
 - **Remove unused media** (F6) — build against
   `docs/240_REMOVE_UNUSED_MEDIA_PLAN.md` unchanged; its decisions are already the
   owner's.
@@ -533,10 +539,6 @@ The owner's settled points, for whoever builds it:
   `audioLibrary` clips have `id`s, but embedded `data:` images and the course flag
   have no identity at all, so no uniform reference scheme exists. `appliesTo` as
   free text covers the need until a real media package format arrives.
-- **A portable media package.** The single largest structural gap (§2.2): without
-  it, ordinary exercise images and recorded audio cannot travel with a course at
-  all. `docs/AUDIO_PACKS.md` sketches one, but its network-download model
-  conflicts with the offline-first rule in `AGENTS.md`.
 
 ## 8. Validation
 

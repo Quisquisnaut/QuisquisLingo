@@ -1,3 +1,12 @@
+# 2.0.43 (Build 243, Revision 4) - Signed Publisher Course media - 2026-09-21
+
+Tranche 3 of the [portable Course package plan](docs/COURSE_PACKAGE_PLAN.md). Scope: [Build 243 change summary](docs/243_CHANGE_SUMMARY.md#revision-4--signed-publisher-course-media); evidence: [243 validation](docs/243_VALIDATION.md).
+
+- Platform version `2.0.43+243004`; the Beta expiry remains **2026-10-21 23:59:59 local time**.
+- Signed Publisher Course ZIPs carry only referenced images and recordings. Import checks the signature and each content digest before installation; direct service installation also refuses missing or damaged media. An update backs up the old media and removes files the new version no longer uses; uninstall retains media.
+- `tools/sign_course.dart package` verifies the signed JSON and media files, then creates the distributable ZIP. The Publisher guide and in-app Help describe the new process. A signed Dummy ZIP with media tests the path.
+- The Course Editor's **Image Library** now lists Course-stored images beside shared images, and shows `USED` on bundled and device images used in an exercise. The separate Admin management entry is called **Shared Image Library** in Course Manager and Device Administration; shared entries retain their `QQL` or `DEVICE` label.
+
 # 2.0.43 (Build 243, Revision 3) - Portable Course ZIP - 2026-09-21
 
 Tranche 2 of the [portable Course package plan](docs/COURSE_PACKAGE_PLAN.md). Scope: [Build 243 change summary](docs/243_CHANGE_SUMMARY.md#revision-3--portable-course-zip); evidence: [243 validation](docs/243_VALIDATION.md).

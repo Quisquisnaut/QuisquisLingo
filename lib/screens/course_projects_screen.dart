@@ -2080,15 +2080,13 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
           ),
         );
         if (proceed != true) return;
-        final result = await importedPackage.withInstalledMedia(
-          course.courseId,
-          () => _service.installExternalOfficialUpdate(
-            course,
-            confirmUnverifiedAssociation:
-                existing != null &&
-                existing.publisherVerificationStatus !=
-                    PublisherVerificationStatus.verified,
-          ),
+        final result = await _service.installExternalOfficialUpdate(
+          course,
+          package: importedPackage,
+          confirmUnverifiedAssociation:
+              existing != null &&
+              existing.publisherVerificationStatus !=
+                  PublisherVerificationStatus.verified,
         );
         await _reload();
         if (!mounted) return;
@@ -2484,7 +2482,7 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
                               await _reload();
                             },
                             icon: const Icon(Icons.perm_media_outlined),
-                            label: const Text('Shared Image Library (admin)'),
+                            label: const Text('Shared Image Library'),
                           ),
                       ],
                     ),

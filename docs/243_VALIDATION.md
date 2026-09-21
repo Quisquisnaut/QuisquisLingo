@@ -1,5 +1,27 @@
 # Build 243 validation
 
+## Revision 4 — signed Publisher media and Image Library (`2.0.43+243004`)
+
+Validation on 21 September 2026, before the Revision 4 commit and push.
+
+- Focused run across 17 Publisher package, signature, import, Course ZIP,
+  Image Library, attribution, Editor, version and file-dialog test files:
+  **101 passed, 0 failed**. This includes the signed Dummy media ZIP,
+  installation and update with backup and cleanup, the Publisher packaging
+  tool, Course-owned images in the Editor library, and `USED` on QQL and
+  DEVICE images in exercise prompts and answer options.
+- Complete `flutter test --no-pub --reporter expanded` on the final code tree:
+  **1,960 passed, 0 failed**.
+- After a formatting-only adjustment to the Image Library screen, its three
+  focused suites were rerun: **7 passed, 0 failed**.
+- `flutter analyze --no-pub` on the repository: **no issues**.
+- `python tools/validate_images.py`: 111 assets, 0 issues.
+- `python tools/validate_lesson_icons.py`: 14 assets, 0 issues.
+- `python tools/validate_media_assets.py`: 443 files, 0 issues.
+- `python tools/validate_courses.py`: all 10 bundled Course Model v11 files OK.
+- `git diff --check`: clean. The pre-existing untracked
+  `devtools_options.yaml` is excluded from the commit.
+
 ## Revision 3 — portable Course ZIP (`2.0.43+243003`)
 
 Validation on 21 September 2026. The owner requested focused tests after the

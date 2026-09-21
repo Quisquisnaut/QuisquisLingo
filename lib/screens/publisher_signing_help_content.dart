@@ -138,34 +138,38 @@ Attach the signature. This verifies the signature against the supplied public ke
 
 dart run tools/sign_course.dart attach C:/QQL-Publisher/course.json dummy-1 C:/QQL-Publisher/signature.bin C:/QQL-Publisher/publisher-public.der C:/QQL-Publisher/course-signed.json
 
-Check exit code 0 after each command ($LASTEXITCODE in PowerShell). The Dart tool refuses an existing output name. OpenSSL can overwrite output files, so use fresh names. Do not modify course.json between prepare and attach; any content change requires preparing and signing again. Attach proves agreement with the supplied key, not QQL registry approval.
+Place each referenced recording or image in C:/QQL-Publisher/media/ under its SHA-256 filename, such as <sha256>.mp3. Then package the signed JSON:
 
-Import course-signed.json in a QQL version containing your approved key. Check the verified publisher, version and content. Test an update against the previous installed release and its progress. Distribute that exact signed file. Re-exporting through QQL preserves the normalized signed content and signature; editing signed content invalidates it.
+dart run tools/sign_course.dart package C:/QQL-Publisher/course-signed.json C:/QQL-Publisher/media C:/QQL-Publisher/publisher-public.der C:/QQL-Publisher/course-signed.zip
 
-The signature covers the normalized course JSON, including embedded data. For separate media files or URLs, it authenticates only the reference, not the external bytes. Do not advertise those attachments as authenticated. A media-hash manifest and an in-app publishing interface are not implemented.''',
+The package command checks the signature against the supplied key, checks every referenced media file and its SHA-256, and includes only files the Course uses. An empty media folder is sufficient when the Course uses no separate media.
+
+Check exit code 0 after each command ($LASTEXITCODE in PowerShell). The Dart tool refuses an existing output name. OpenSSL can overwrite output files, so use fresh names. Do not modify course.json between prepare and attach; any content change requires preparing and signing again. Verification with the supplied key is not QQL registry approval.
+
+Import course-signed.zip in a QQL version containing your approved key. Check the verified publisher, version, content and media. Test an update against the previous installed release and its progress. Distribute that exact ZIP. Re-exporting through QQL preserves the normalized signed content and signature; editing signed content invalidates it.
+
+The signature covers the normalized Course JSON, including embedded data and each media: SHA-256 reference. The ZIP verifies each file against its signed reference, so replacing media bytes fails import. An in-app publishing interface is not implemented.''',
   ),
   (
     title: "7a. Media a Publisher Course can and cannot carry",
     body:
-        r'''A Course file is a single JSON document. There is no course package and no audio pack, so media either travels inside the JSON or does not travel at all.
+        r'''A portable Course ZIP contains course.json, a package manifest and each non-bundled media file actually used by the Course. The app supplies bundled assets/ media.
 
-Carried inside the file, and therefore covered by the signature: custom Lesson icons, a custom course flag, and Recognize characters images, all stored as embedded data. References to media shipped with the application under assets/ also work everywhere, because the application supplies those files.
+Embedded custom Lesson icons, custom flags and Recognize characters images travel inside course.json. Recorded MP3s and ordinary imported exercise images travel as content-addressed media: files in the ZIP. The ZIP includes Admin-added Shared Image Library images used by the Course, without importing them into the recipient's Shared Image Library.
 
-Not carried: recorded MP3 files and ordinary exercise images added with Import custom image. The JSON stores a path on the machine that authored it, never the bytes.
+The Publisher must have distribution rights for every included file. A Course with media: references cannot be installed from JSON alone; use its complete ZIP. Missing, altered or oversized media is refused before installation.
 
-Recorded MP3 files are therefore refused. A Publisher Course whose Audio Library points at anything outside assets/ is rejected at import and again at installation, because the path is inside the signed payload, cannot be repaired by the learner, and would install a course whose audio never plays. Use text-to-speech, or recordings shipped with the application. This restriction applies to Publisher Courses only; a custom author can still import their own recordings and repair the references themselves.
-
-Ordinary exercise images behave the same way but are not currently refused: check before release that every image in your course is either an assets/ path or an embedded Recognize characters image, or learners will see a missing-image notice.''',
+An update backs up the previous official Course and its media, then removes media no longer used by the new version. Uninstall keeps the Course media and backup for later reinstallation.''',
   ),
   (
     title: "7b. Media credits",
     body:
-        r'''Record the author and licence of any third-party image or recording in Course Info Editor, under License / Rights. The entries are stored in the course's mediaAttributions and are therefore inside the signed payload, so they are tamper-evident and they travel with the file even when the media bytes do not. Course Audit raises a warning when a course carries media of its own and records no credit; the warning does not block export or import. Media supplied with QuisquisLingo is already credited in the application and needs no entry.''',
+        r'''Record the author and licence of any third-party image or recording in Course Info Editor, under License / Rights. The entries are stored in the course's mediaAttributions and are inside the signed payload. Admin-added Shared Image Library images may also carry per-image attribution in their metadata; this travels in the Course and ZIP manifest when used. Course Audit raises a warning when a course carries media of its own and records no credit; the warning does not block export or import. Media supplied with QuisquisLingo is already credited in the application and needs no entry.''',
   ),
   (
     title: "8. Import policy and existing courses",
     body:
-        r'''New externalOfficial imports require a valid signature from an active approved key. Missing, malformed, invalid, revoked or unknown signatures are blocked before storage. A Publisher Course that declares recorded MP3 files outside assets/ is refused before the signature is even checked, for the reasons in section 7. The app computes verification status; a serialized verified flag is never proof. A lower/equal official version or another publisher cannot replace an installed official course. Unsigned imports cannot downgrade verified courses.
+        r'''New externalOfficial imports require a valid signature from an active approved key. Missing, malformed, invalid, revoked or unknown signatures are blocked before storage. A Publisher Course with media: references must arrive as a complete ZIP; package validation checks every file against its signed digest before installation. The app computes verification status; a serialized verified flag is never proof. A lower/equal official version or another publisher cannot replace an installed official course. Unsigned imports cannot downgrade verified courses.
 
 Custom courses remain unsigned and subject to ordinary import validation. Unverified official files are not automatically converted to custom. Existing Publisher Course files that cannot be verified remain on disk and in Course Manager with Verification required; their progress is preserved and they are excluded from learner delivery. To reactivate, import a newer valid signed release with matching identity/provenance and explicitly confirm association with the existing course.
 
@@ -193,7 +197,7 @@ Offline devices learn about revocation only after an app update. Tell publishers
 
 The checksum is SHA-256 over model-normalized Course.toJson() after excluding officialChecksum, publisherSignature and publisherVerificationStatus, sorting object keys recursively and writing compact JSON. Array order is preserved. This is QQL canonicalization, not RFC 8785/JCS. Unknown fields discarded by the model are outside the signed payload. Use the QQL preparation tool; other-language serialization is not assumed compatible.
 
-Publisher checklist: protected key/backup; approved identity and key; completed audit and licenses; prepared payload; signed bytes; attached signature; import/update checked on a trusted-registry app; distribute the tested artifact.
+Publisher checklist: protected key/backup; approved identity and key; completed audit and licenses; prepared payload; signed bytes; attached signature; packaged media; import/update checked on a trusted-registry app; distribute the tested ZIP.
 
 Owner checklist: independent identity check; fingerprint and one-use challenge checked; decision recorded; registry entry reviewed; valid/invalid import tests passed; media limits respected and third-party media credited in mediaAttributions; publisher informed of the supported app version. Keep the normal build free of the Dummy test opt-in.
 
@@ -218,7 +222,7 @@ flutter build windows --release --dart-define=QQL_ENABLE_DUMMY_PUBLISHER=true
 
 These builds show a TEST ONLY banner and recognize Dummy. Do not distribute them as public production releases. A public build must omit the flag; build into a clean output location so artifacts cannot be confused.
 
-Import test/fixtures/publishers/dummy-signed-v1.json through Course Manager → Course Import → Open from… or copy it to Imports/import.json. Expect the verified publisher confirmation. Then import dummy-signed-v2.json to test an update. dummy-unsigned.json must be rejected; changing a signed title must also be rejected, even if an attacker recalculates the checksum. A normal build without the flag rejects the Dummy signed files as an unknown key.
+Import test/fixtures/publishers/dummy-signed-media.zip through Course Manager → Course Import → Open from… or copy it to Imports/import.zip. Expect the verified publisher confirmation and the packaged recording. Then import dummy-signed-v2.json to test an update that removes the unused recording. dummy-unsigned.json must be rejected; changing a signed title must also be rejected, even if an attacker recalculates the checksum. A normal build without the flag rejects the Dummy signed files as an unknown key.
 
 Dummy testing requires no approval request to a real publisher. All dummy release files must retain their TEST ONLY identification.''',
   ),

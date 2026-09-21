@@ -1,13 +1,11 @@
 # Modello del corso v11 e pacchetto del corso (ZIP con media) — piano
 
 Scritto il 2026-09-21 a partire da `efdf784` (Build 242 Revisione 0,
-`2.0.42+242000`). **Stato: approvato. Tranche 0 implementata come Build 243
-Revisione 0 (`2.0.43+243000`), correzione dei corsi illeggibili come Revisione
-1 (`2.0.43+243001`) e Tranche 1 come Revisione 2 (`2.0.43+243002`), vedi
-`docs/243_CHANGE_SUMMARY.md`. Le Tranche 2 e 3 saranno le Revisioni 3 e 4.
-Tranche 2 completata come Revisione 3; la Tranche 3 resta la Revisione 4.** Ogni tranche è una revisione con il proprio commit; i controlli finali
-(analyzer, suite completa, validatori) si eseguono solo dopo l'approvazione del
-proprietario.
+`2.0.42+242000`). **Stato: Build 243 completata nelle Revisioni 0–4.**
+La Revisione 1 corregge i corsi illeggibili; le Tranche 0–3 corrispondono
+alle Revisioni 0, 2, 3 e 4. Il proprietario ha autorizzato commit e push
+dopo i controlli: analyzer, suite completa e validatori sono verdi; vedi
+`docs/243_VALIDATION.md`.
 
 Leggere prima `AGENTS.md`: le sue regole valgono per tutto questo lavoro (modifica
 più piccola possibile, niente refactoring estranei, niente commit o push senza
@@ -36,43 +34,22 @@ del dispositivo e immagini incluse nell'app. Le immagini incluse nell'app
 restano fornite da QQL in questa revisione; un'opzione per impacchettarle è
 rimandata a una scelta separata.
 
-**Fatto e committato su `main` (nessun push):**
+**Revisioni di Build 243:**
 
 | Revisione | Versione | Contenuto |
 |---|---|---|
 | 0 | `2.0.43+243000` | Modello v11, nuovi campi facoltativi, conversione di corsi inclusi, demo e prove Dummy, cartelle `qql_courses_v2` e `Course Backups v11` |
 | 1 | `2.0.43+243001` | Un corso salvato illeggibile non nasconde più gli altri |
 | 2 | `2.0.43+243002` | Tranche 1: riferimenti `media:<sha256>.<ext>`, una cartella di media per corso, copia in Fork/Copia/Fusione, backup e ripristino dei media, pulizia per corso |
+| 3 | `2.0.43+243003` | Tranche 2: ZIP portabile, dipendenze media usate, provenienza e attribuzione delle immagini condivise, etichette QQL/DEVICE/COURSE/USED |
+| 4 | `2.0.43+243004` | Tranche 3: ZIP Publisher firmati con immagini e registrazioni; Image Library del corso con immagini proprie e badge USED sulle immagini usate |
 
-La validazione finale (suite completa, analyzer su tutto il repository, i
-quattro validatori Python) è registrata in `docs/243_VALIDATION.md`.
-
-**Da fare, nell'ordine:**
-
-1. **Tranche 2 → Revisione 3 (`2.0.43+243003`).** Pacchetto ZIP: esportazione
-   (solo ZIP) e importazione (`.zip` e `.json`) come descritto al §3, Tranche 2.
-   Il codice su cui costruire:
-   - `CourseMediaStore` (`lib/services/course_media_store.dart`): `referencesOf`,
-     `existingFile`, `addBytes` (verifica l'impronta);
-   - `CustomCourseTransferService` (`lib/services/custom_course_transfer_service.dart`):
-     `buildCourseExport`, `exportCourse`, `exportCourseTo`, `courseFromBytes`
-     (validatore unico), `importCourseFromDialog`, `mergeCourseFromDialog`;
-   - `course_projects_screen.dart` → `_importCourse`: flusso esistente per il
-     corso già presente (Sostituisci/Copia/Fork/Annulla) e per i publisher;
-   - `ImageBankService.importBankZip`: esempio di lettura ZIP con `archive`.
-   Poi lo ZIP del corso demo accanto al `.json` in `demo_courses/`.
-2. **Tranche 3 → Revisione 4 (`2.0.43+243004`).** Publisher con media: togliere
-   `CustomCourseTransferService.rejectUnreachablePublisherRecordings` (e
-   riscrivere `test/publisher_recorded_audio_test.dart`), copiare i media
-   all'installazione e all'aggiornamento di un corso publisher
-   (`CourseEditorService.installExternalOfficialUpdate`), `tools/sign_course.dart`
-   che produce lo ZIP, un Dummy firmato con media, documentazione finale
-   (Help, guida alla firma, `docs/AUDIO_PACKS.md` superato,
-   `docs/MEDIA_LIBRARIES_PLAN.md` §7).
-3. Per ogni revisione: numero di build, stessa regola della scadenza Beta
-   (30 giorni dalla data di rilascio), CHANGELOG, `docs/243_CHANGE_SUMMARY.md`,
-   `docs/243_VALIDATION.md`, `AGENTS.md`, README; test mirati; commit. La suite
-   completa solo dopo l'approvazione del proprietario.
+**Revisione 4 (`2.0.43+243004`) completata e verificata:** i corsi Publisher
+firmati includono i media nello ZIP; installazione e aggiornamento verificano
+e copiano i file, l'aggiornamento conserva un backup e rimuove i media non più
+usati. `tools/sign_course.dart package` produce lo ZIP e un Dummy firmato con
+media verifica il percorso. La suite completa ha superato 1.960 test;
+risultati in `docs/243_VALIDATION.md`.
 
 **Note per chi riprende:**
 

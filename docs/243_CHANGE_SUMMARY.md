@@ -249,3 +249,27 @@ Version **2.0.43+243003**, same Beta expiry. Tranche 2 of the plan.
 - The demo Course now has a `.zip` beside its media-free `.json`. Publisher
   recordings remain subject to the Revision 2 import restriction until
   Revision 4 adds signed publisher packages with media.
+## Revision 4 — signed Publisher Course media
+
+Version **2.0.43+243004**, same Beta expiry. Tranche 3 of the plan.
+
+- Publisher Courses can distribute recordings and ordinary images as verified
+  `media:` files inside a signed Course ZIP. The signed JSON pins each file by
+  SHA-256; package import checks its actual bytes before changing storage.
+- `CourseEditorService.installExternalOfficialUpdate` installs package media
+  into the Course folder and refuses missing or damaged media when called
+  without a package. A newer signed update backs up the previous Course and
+  media, then removes files no longer referenced. Uninstall keeps media.
+- `tools/sign_course.dart package` takes signed JSON, a media directory and
+  the Publisher public key; it verifies the signature and referenced files,
+  then writes a ZIP containing only those dependencies. The signed Dummy
+  media ZIP exercises import and update. Publisher Help, the signing guide
+  and the historical audio-pack notes reflect the portable package.
+- Course Editor calls its browser **Image Library** and shows the Course's
+  stored images beside the shared catalogue. In that browser, images used by
+  an exercise add `USED` to their source label: `QQL · USED` for bundled assets,
+  `DEVICE · USED` for an Admin-added image, and `DEVICE · COURSE · USED` for
+  its Course-stored copy. Direct Course images show `COURSE` and add `USED`
+  when referenced. The separate **Shared Image Library** management entry
+  remains Admin-only in Course Manager and Device Administration; its entries
+  show `QQL` or `DEVICE` without Course-use badges.

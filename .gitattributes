@@ -1,6 +1,7 @@
 /assets/world_flags/flags/breton.svg -text whitespace=cr-at-eol
 /test/fixtures/publishers/*.bin -text -diff
 /test/fixtures/publishers/*.der -text -diff
+/test/fixtures/publishers/*.zip -text -diff
 /assets/world_flags/flags/cornish.svg -text
 /assets/world_flags/flags/corsican.svg -text
 /assets/world_flags/flags/friulian.svg -text

@@ -1,6 +1,6 @@
 # QuisquisLingo Course Manager and Course Editor
 
-The authoring details below were written for Build 234. Current Course Model v11 and portable transfer rules are in [Course JSON format](COURSE_JSON_FORMAT.md) and [Build 243 change summary](243_CHANGE_SUMMARY.md). Build 243 Revision 3 exports a Course ZIP containing only referenced Course-owned media, including Admin-added Shared Image Library images selected for the Course. Bundled images remain supplied by the app. Import leaves the destination Shared Image Library untouched.
+The authoring details below were written for Build 234. Current Course Model v11 and portable transfer rules are in [Course JSON format](COURSE_JSON_FORMAT.md) and [Build 243 change summary](243_CHANGE_SUMMARY.md). Build 243 exports a Course ZIP containing only referenced Course-owned media, including Admin-added Shared Image Library images selected for the Course. Bundled images remain supplied by the app. Import leaves the destination Shared Image Library untouched. The Course Editor's **Image Library** includes shared and Course-stored images; `QQL` and `DEVICE` identify the source, `COURSE` means stored in the Course folder, and `USED` means referenced by the Course. The Admin-only management entry in Course Manager and Device Administration is **Shared Image Library**; its shared entries show only their source label.
 
 ## Unlocking the editor
 

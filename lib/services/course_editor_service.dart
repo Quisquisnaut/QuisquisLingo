@@ -1,9 +1,9 @@
 import 'course_library_service.dart';
 import 'dart:convert';
+import 'package:crypto/crypto.dart';
 import 'course_flag_service.dart';
 import 'course_editor_storage.dart';
 import 'course_file_store.dart';
-import 'custom_course_transfer_service.dart';
 import 'publisher_verification_service.dart';
 
 import '../models/course_models.dart';
@@ -13,6 +13,7 @@ import 'profile_service.dart';
 import 'authoring_duplication_service.dart';
 import 'course_access_policy.dart';
 import 'course_media_store.dart';
+import 'course_package_service.dart';
 import 'team_service.dart';
 
 class CourseConfirmationResult {
@@ -849,16 +850,50 @@ class CourseEditorService {
   Future<OfficialCourseUpdateResult> installExternalOfficialUpdate(
     Course update, {
     bool confirmUnverifiedAssociation = false,
+    CoursePackage? package,
   }) async {
     if (update.originType != CourseOriginType.externalOfficial) {
       throw ArgumentError('The package is not an external official course.');
     }
-    // Second gate, as the signing guide describes: storage checks again, so a
-    // caller that did not come through the file importer is covered too.
-    CustomCourseTransferService.rejectUnreachablePublisherRecordings(update);
     final normalizedUpdate = await _publisherVerification.requireVerified(
       update,
     );
+    final references = CourseMediaStore.referencesOf(update);
+    if (package != null) {
+      if (jsonEncode(package.course.toJson()) != jsonEncode(update.toJson()) ||
+          package.media.keys.toSet().difference(references).isNotEmpty ||
+          references.difference(package.media.keys.toSet()).isNotEmpty) {
+        throw const FormatException('Publisher package does not match its Course.');
+      }
+      return package.withInstalledMedia(
+        update.courseId,
+        () => _installVerifiedExternalOfficialUpdate(
+          normalizedUpdate,
+          confirmUnverifiedAssociation: confirmUnverifiedAssociation,
+        ),
+        mediaStore: _media,
+      );
+    }
+    for (final reference in references) {
+      final file = await _media.existingFile(update.courseId, reference);
+      if (file == null ||
+          sha256.convert(await file.readAsBytes()).toString() !=
+              CourseMediaStore.digestOf(reference)) {
+        throw FormatException(
+          'Publisher Course media ${CourseMediaStore.fileNameOf(reference)} is missing or damaged. Import its ZIP package.',
+        );
+      }
+    }
+    return _installVerifiedExternalOfficialUpdate(
+      normalizedUpdate,
+      confirmUnverifiedAssociation: confirmUnverifiedAssociation,
+    );
+  }
+
+  Future<OfficialCourseUpdateResult> _installVerifiedExternalOfficialUpdate(
+    Course normalizedUpdate, {
+    required bool confirmUnverifiedAssociation,
+  }) async {
     final all = await _loadKey(externalOfficialStorageKey);
     final raw = all[normalizedUpdate.courseId];
     if (raw == null) {
@@ -933,6 +968,10 @@ class CourseEditorService {
     };
     await _replaceKeyAtomically(externalOfficialStorageKey, next);
     await _addToImporterLibrary(normalizedUpdate);
+    await _media.deleteUnreferenced(
+      normalizedUpdate.courseId,
+      CourseMediaStore.referencesOf(normalizedUpdate),
+    );
     LearnerStatusEvents.publish(LearnerStatusInvalidation.courseMetadata);
     return OfficialCourseUpdateResult(
       officialCourse: normalizedUpdate,

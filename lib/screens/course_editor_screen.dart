@@ -2977,19 +2977,21 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
             ListTile(
               leading: const Icon(Icons.image_outlined),
               title: const Text(
-                'Shared Image Library',
+                'Image Library',
                 style: TextStyle(fontWeight: FontWeight.w800),
               ),
               subtitle: const Text(
-                'Browse the images shared by every course on this device. Only admins add to or change this library. To use your own picture in one exercise, use Import custom image in that exercise.',
+                'Browse shared images and images stored in this Course. Only admins add to or change the Shared Image Library. Import custom image in an exercise stores a picture in this Course.',
               ),
               trailing: const Icon(Icons.chevron_right),
               onTap: _canModify
                   ? () => Navigator.of(context).push(
                       MaterialPageRoute(
-                        builder: (_) => const FlatImageLibraryScreen(
+                        builder: (_) => FlatImageLibraryScreen(
                           selectMode: false,
                           readOnly: true,
+                          course: _course,
+                          mediaStore: _service.mediaStore,
                         ),
                       ),
                     )
@@ -9397,11 +9399,37 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
     return _media.addFile(course.courseId, File(selected));
   }
 
+  SharedImageSource? _courseImageSource(String reference) {
+    final course = widget.course;
+    if (course == null) return null;
+    for (final lesson in course.lessons) {
+      for (final round in lesson.rounds) {
+        for (final exercise in round.exercises) {
+          for (final element in [
+            ...exercise.promptElements,
+            ...exercise.interaction.layout,
+            for (final item in exercise.interaction.items) ...item.content,
+          ]) {
+            if (element.type == 'image' && element.asset == reference &&
+                element.sharedImageSource != null) {
+              return element.sharedImageSource;
+            }
+          }
+        }
+      }
+    }
+    return null;
+  }
+
   Future<void> _chooseFlatImage() async {
     if (widget.readOnly) return;
     final selected = await Navigator.of(context).push<ExerciseImageMetadata>(
       MaterialPageRoute(
-        builder: (_) => const FlatImageLibraryScreen(readOnly: true),
+        builder: (_) => FlatImageLibraryScreen(
+          readOnly: true,
+          course: widget.course,
+          mediaStore: _media,
+        ),
       ),
     );
     if (selected == null || !mounted) return;
@@ -9410,7 +9438,9 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
       if (!mounted) return;
       setState(() {
         _imageAsset = reference;
-        _selectedSharedSource = selected.origin == 'bundled'
+        _selectedSharedSource = selected.origin.startsWith('course')
+            ? _courseImageSource(reference)
+            : selected.origin == 'bundled'
             ? null
             : SharedImageSource(
                 id: selected.id,

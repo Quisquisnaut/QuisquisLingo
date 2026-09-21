@@ -35,6 +35,12 @@ class CoursePackage {
     var succeeded = false;
     try {
       for (final entry in media.entries) {
+        if (sha256.convert(entry.value).toString() !=
+            CourseMediaStore.digestOf(entry.key)) {
+          throw FormatException(
+            'Course media ${entry.key} has the wrong SHA-256.',
+          );
+        }
         final existing = await store.existingFile(targetCourseId, entry.key);
         if (existing != null) {
           if (sha256.convert(await existing.readAsBytes()).toString() !=
@@ -93,7 +99,11 @@ class CoursePackageService {
   );
 
   /// Uses the supplied Course serialization unchanged as `course.json`.
-  Future<Uint8List> build(Course course, Uint8List courseJson) async {
+  Future<Uint8List> build(
+    Course course,
+    Uint8List courseJson, {
+    Map<String, Uint8List>? suppliedMedia,
+  }) async {
     if (courseJson.length > maxCourseJsonBytes) {
       throw const FormatException(
         'Course JSON exceeds the 10 MB safety limit.',
@@ -117,15 +127,19 @@ class CoursePackageService {
     var total = courseJson.length + manifestBytes.length;
     final references = CourseMediaStore.referencesOf(course).toList()..sort();
     for (final reference in references) {
-      final file = await _media.existingFile(course.courseId, reference);
-      if (file == null) {
+      final file = suppliedMedia == null
+          ? await _media.existingFile(course.courseId, reference)
+          : null;
+      final bytes = suppliedMedia == null
+          ? (file == null ? null : await file.readAsBytes())
+          : suppliedMedia[reference];
+      if (bytes == null) {
         throw FormatException(
           'Course media ${CourseMediaStore.fileNameOf(reference)} is missing '
-          'from ${(await _media.courseDirectory(course.courseId)).path}; used in '
+          'from ${suppliedMedia == null ? (await _media.courseDirectory(course.courseId)).path : 'the supplied media folder'}; used in '
           '${_usage(course, reference)}.',
         );
       }
-      final bytes = await file.readAsBytes();
       _checkMedia(reference, bytes);
       total += bytes.length;
       if (total > sizeLimit) {

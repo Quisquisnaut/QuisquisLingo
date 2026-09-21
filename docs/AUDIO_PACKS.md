@@ -1,5 +1,9 @@
 # Optional recorded-audio packs
 
+**Superseded by Build 243 Revision 4.** Portable Course ZIPs now carry the
+recorded MP3 files a Course uses. The download-on-demand design below is
+historical and is not the current distribution model.
+
 QuisquisLingo is local-first. System TTS remains the default where it is suitable,
 but a course may eventually ship a recorded-audio pack when its authors prefer
 human recordings or when good TTS is unavailable.

@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -7,6 +8,10 @@ import 'package:quisquislingo_app/models/exercise_image_metadata.dart';
 import 'package:quisquislingo_app/screens/course_editor_screen.dart';
 import 'package:quisquislingo_app/screens/flat_image_library_screen.dart';
 import 'package:quisquislingo_app/services/exercise_image_metadata_service.dart';
+import 'package:quisquislingo_app/services/course_media_store.dart';
+import 'package:quisquislingo_app/widgets/course_media_image.dart';
+
+import 'support/pump_file_io.dart';
 
 class _Catalog extends ExerciseImageMetadataService {
   _Catalog(this.records);
@@ -18,6 +23,162 @@ class _Catalog extends ExerciseImageMetadataService {
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+
+  testWidgets('Course Image Library lists owned images beside shared images', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(1000, 900);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    final temp = (await tester.runAsync(
+      () => Directory.systemTemp.createTemp('qql_course_image_library_'),
+    ))!;
+    addTearDown(() => temp.delete(recursive: true));
+    final media = CourseMediaStore(supportDirectory: () async => temp);
+    final base = Course.fromJson(
+      Map<String, dynamic>.from(
+        jsonDecode(
+              File(
+                'demo_courses/italian_demo_2_pick_the_translation.json',
+              ).readAsStringSync(),
+            )
+            as Map,
+      ),
+    );
+    final bytes = (await tester.runAsync(
+      () => File('assets/exercise_images/apple.webp').readAsBytes(),
+    ))!;
+    final reference = (await tester.runAsync(
+      () => media.addBytes(base.courseId, bytes, 'webp'),
+    ))!;
+    final course = Course.fromJson({...base.toJson(), 'coverImage': reference});
+    const bundled = ExerciseImageMetadata(
+      id: 'apple',
+      label: 'Apple',
+      category: 'food_drinks',
+      tags: ['apple'],
+      assetPath: 'assets/exercise_images/apple.webp',
+      origin: 'bundled',
+    );
+    await tester.pumpWidget(
+      MaterialApp(
+        home: FlatImageLibraryScreen(
+          course: course,
+          mediaStore: media,
+          readOnly: true,
+          selectMode: false,
+          metadataService: _Catalog(const [bundled]),
+        ),
+      ),
+    );
+    await tester.pumpUntilFileIoState(
+      () =>
+          find.textContaining('Image Library · 2 images').evaluate().isNotEmpty,
+    );
+    expect(find.textContaining('Image Library · 2 images'), findsOneWidget);
+    expect(find.text('COURSE · USED'), findsOneWidget);
+    expect(find.text('QQL · USED'), findsOneWidget);
+    expect(find.text('DEVICE'), findsNothing);
+    await tester.pumpUntilFileIoState(
+      () => find
+          .descendant(
+            of: find.byType(CourseMediaImage),
+            matching: find.byType(Image),
+          )
+          .evaluate()
+          .isNotEmpty,
+    );
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
+
+  testWidgets('Course Image Library adds USED to QQL and DEVICE entries', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(1000, 900);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    final courseJson =
+        jsonDecode(
+              File(
+                'demo_courses/italian_demo_2_pick_the_translation.json',
+              ).readAsStringSync(),
+            )
+            as Map<String, dynamic>;
+    final lessons = courseJson['lessons'] as List;
+    final rounds = (lessons.first as Map)['rounds'] as List;
+    final content = (rounds.first as Map)['content'] as List;
+    final bundledExercise = (content.first as Map)['exercise'] as Map;
+    final interaction = bundledExercise['interaction'] as Map;
+    final items = interaction['items'] as List;
+    final choiceContent = (items.first as Map)['content'] as List;
+    choiceContent.add({
+      'role': 'clue',
+      'type': 'image',
+      'asset': 'assets/exercise_images/banana.webp',
+    });
+    final deviceExercise = (content[1] as Map)['exercise'] as Map;
+    final prompt = deviceExercise['prompt'] as List;
+    final image = prompt.cast<Map>().firstWhere(
+      (element) => element['type'] == 'image',
+    );
+    image['asset'] = 'media:${'a' * 64}.webp';
+    image['sharedImageSource'] = const SharedImageSource(
+      id: 'cat-01',
+      label: 'Cat',
+      category: 'animals',
+      tags: ['cat'],
+      origin: 'local',
+    ).toJson();
+    final course = Course.fromJson(courseJson);
+    final records = [
+      const ExerciseImageMetadata(
+        id: 'apple',
+        label: 'Apple',
+        category: 'food_drinks',
+        tags: ['apple'],
+        assetPath: 'assets/exercise_images/apple.webp',
+        origin: 'bundled',
+      ),
+      const ExerciseImageMetadata(
+        id: 'banana',
+        label: 'Banana',
+        category: 'food_drinks',
+        tags: ['banana'],
+        assetPath: 'assets/exercise_images/banana.webp',
+        origin: 'bundled',
+      ),
+      const ExerciseImageMetadata(
+        id: 'cat-01',
+        label: 'Cat',
+        category: 'animals',
+        tags: ['cat'],
+        assetPath: 'C:/missing/cat.webp',
+        origin: 'local',
+      ),
+    ];
+    await tester.pumpWidget(
+      MaterialApp(
+        home: FlatImageLibraryScreen(
+          course: course,
+          mediaStore: CourseMediaStore(
+            supportDirectory: () async => Directory.systemTemp,
+          ),
+          readOnly: true,
+          metadataService: _Catalog(records),
+        ),
+      ),
+    );
+    await tester.pumpUntilFileIoState(
+      () =>
+          find.textContaining('Image Library · 3 images').evaluate().isNotEmpty,
+    );
+    expect(find.text('QQL · USED'), findsNWidgets(2));
+    expect(find.text('DEVICE · USED'), findsOneWidget);
+    expect(find.textContaining('COURSE'), findsNothing);
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
 
   testWidgets(
     'library distinguishes sources and returns device image identity',

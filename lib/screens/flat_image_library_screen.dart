@@ -2,11 +2,14 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 
+import '../models/course_models.dart';
 import '../models/exercise_image_metadata.dart';
+import '../services/course_media_store.dart';
 import '../services/exercise_image_metadata_service.dart';
 import '../services/exercise_image_service.dart';
 import '../services/image_bank_service.dart';
 import '../services/profile_service.dart';
+import '../widgets/course_media_image.dart';
 import '../widgets/file_dialog_feedback.dart';
 
 String _normalizeImageSearchText(String value) => value
@@ -34,6 +37,8 @@ class FlatImageLibraryScreen extends StatefulWidget {
   final ExerciseImageService? imageService;
   final ImageBankService? bankService;
   final ProfileService? profileService;
+  final Course? course;
+  final CourseMediaStore? mediaStore;
 
   const FlatImageLibraryScreen({
     super.key,
@@ -45,6 +50,8 @@ class FlatImageLibraryScreen extends StatefulWidget {
     this.imageService,
     this.bankService,
     this.profileService,
+    this.course,
+    this.mediaStore,
   });
 
   @override
@@ -59,8 +66,12 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
   late final ImageBankService _banks = widget.bankService ?? ImageBankService();
   late final ProfileService _profiles =
       widget.profileService ?? ProfileService();
+  late final CourseMediaStore _courseMedia =
+      widget.mediaStore ?? CourseMediaStore();
   final _scroll = ScrollController();
   List<ExerciseImageMetadata> _all = const [];
+  Set<String> _usedReferences = const {};
+  Set<String> _usedSharedIds = const {};
   String _query = '';
   String? _category;
   String? _loadError;
@@ -82,6 +93,40 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
   Future<void> _load() async {
     try {
       final records = await _metadata.loadCatalog();
+      final owned = <ExerciseImageMetadata>[];
+      final course = widget.course;
+      final imageElements = course == null
+          ? const <PromptElement>[]
+          : _courseImageElements(course).toList();
+      if (course != null) {
+        final sources = <String, SharedImageSource>{};
+        for (final element in imageElements) {
+          if (element.sharedImageSource != null) {
+            sources[element.asset] = element.sharedImageSource!;
+          }
+        }
+        final directory = await _courseMedia.courseDirectory(course.courseId);
+        if (await directory.exists()) {
+          await for (final entity in directory.list(followLinks: false)) {
+            if (entity is! File) continue;
+            final name = entity.uri.pathSegments.last;
+            final reference = 'media:$name';
+            if (!CourseMediaStore.isImageReference(reference)) continue;
+            final source = sources[reference];
+            owned.add(
+              ExerciseImageMetadata(
+                id: 'course_$name',
+                label: source?.label ?? 'Course image ${name.substring(0, 8)}',
+                category: source?.category ?? 'other',
+                tags: source?.tags ?? const [],
+                assetPath: reference,
+                origin: source == null ? 'course' : 'course-device',
+                attribution: source?.attribution,
+              ),
+            );
+          }
+        }
+      }
       final actor = widget.actorProfileId;
       final canManage =
           !widget.readOnly &&
@@ -90,11 +135,25 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
           await _profiles.isAdmin(actor);
       if (!mounted) return;
       setState(() {
-        _all = [...records]
+        _all = [...records, ...owned]
           ..sort(
             (left, right) =>
                 left.label.toLowerCase().compareTo(right.label.toLowerCase()),
           );
+        _usedReferences = course == null
+            ? const {}
+            : {
+                ...CourseMediaStore.referencesOf(course),
+                if (course.coverImage.isNotEmpty) course.coverImage,
+                for (final element in imageElements) element.asset,
+              };
+        _usedSharedIds = course == null
+            ? const {}
+            : {
+                for (final element in imageElements)
+                  if (element.sharedImageSource != null)
+                    element.sharedImageSource!.id,
+              };
         _canManageMetadata = canManage;
         _loadError = null;
         _loading = false;
@@ -468,7 +527,12 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
 
   bool _isMissing(ExerciseImageMetadata item) =>
       !item.assetPath.startsWith('assets/') &&
+      !CourseMediaStore.isImageReference(item.assetPath) &&
       !File(item.assetPath).existsSync();
+
+  bool _isUsed(ExerciseImageMetadata item) =>
+      _usedReferences.contains(item.assetPath) ||
+      (widget.course != null && _usedSharedIds.contains(item.id));
 
   Widget _imageFor(ExerciseImageMetadata item) {
     if (_isMissing(item)) {
@@ -486,6 +550,18 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
         errorBuilder: (_, _, _) => const Center(
           child: Text('Image file missing', textAlign: TextAlign.center),
         ),
+      );
+    }
+    if (CourseMediaStore.isImageReference(item.assetPath) &&
+        widget.course != null) {
+      return CourseMediaImage(
+        courseId: widget.course!.courseId,
+        asset: item.assetPath,
+        mediaStore: _courseMedia,
+        fit: BoxFit.contain,
+        cacheWidth: 320,
+        cacheHeight: 320,
+        missing: const Center(child: Text('Image file missing')),
       );
     }
     return Image.file(
@@ -554,7 +630,8 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
                 ),
                 const SizedBox(height: 10),
                 Text(
-                  'Source: ${_sourceCode(item)} · ${_sourceExplanation(item)}',
+                  'Source: ${_sourceCode(item, used: _isUsed(item))} '
+                  '· ${_sourceExplanation(item)}',
                 ),
                 Text('Category: ${item.category.replaceAll('_', ' ')}'),
                 Tooltip(
@@ -630,7 +707,10 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
         .toList();
     return Scaffold(
       appBar: AppBar(
-        title: Text('Shared Image Library · ${_all.length} images'),
+        title: Text(
+          '${widget.course == null ? 'Shared Image Library' : 'Image Library'} '
+          '· ${_all.length} images',
+        ),
         actions: [
           if (_canManageMetadata)
             PopupMenuButton<String>(
@@ -778,7 +858,7 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
                                       Tooltip(
                                         message: _sourceExplanation(item),
                                         child: Text(
-                                          _sourceCode(item),
+                                          _sourceCode(item, used: _isUsed(item)),
                                           textAlign: TextAlign.center,
                                           style: const TextStyle(
                                             fontSize: 9,
@@ -847,9 +927,39 @@ String? _bankId(ExerciseImageMetadata item) {
 bool _isBundled(ExerciseImageMetadata item) =>
     item.origin == 'bundled' || item.assetPath.startsWith('assets/');
 
-String _sourceCode(ExerciseImageMetadata item) =>
-    _isBundled(item) ? 'QQL' : 'DEVICE';
+Iterable<PromptElement> _courseImageElements(Course course) sync* {
+  for (final lesson in course.lessons) {
+    for (final round in lesson.rounds) {
+      for (final exercise in round.exercises) {
+        for (final element in exercise.promptElements) {
+          if (element.type == 'image') yield element;
+        }
+        for (final item in exercise.interaction.items) {
+          for (final element in item.content) {
+            if (element.type == 'image') yield element;
+          }
+        }
+        for (final element in exercise.interaction.layout) {
+          if (element.type == 'image') yield element;
+        }
+      }
+    }
+  }
+}
 
-String _sourceExplanation(ExerciseImageMetadata item) => _isBundled(item)
-    ? 'App bundled; supplied by QQL on every device.'
-    : 'Admin-added on this device; copied into the Course ZIP when used.';
+String _sourceCode(ExerciseImageMetadata item, {bool used = false}) {
+  final source = switch (item.origin) {
+    'course-device' => 'DEVICE · COURSE',
+    'course' => 'COURSE',
+    _ => _isBundled(item) ? 'QQL' : 'DEVICE',
+  };
+  return used ? '$source · USED' : source;
+}
+
+String _sourceExplanation(ExerciseImageMetadata item) => switch (item.origin) {
+  'course-device' => 'Originally Admin-added; these bytes are stored in this Course.',
+  'course' => 'These bytes are stored in this Course.',
+  _ => _isBundled(item)
+      ? 'App bundled; supplied by QQL on every device.'
+      : 'Admin-added on this device; copied into the Course ZIP when used.',
+};
