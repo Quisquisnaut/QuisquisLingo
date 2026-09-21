@@ -1,5 +1,36 @@
 # Build 243 validation
 
+## Revision 6 — import memory-safety fixes (`2.0.43+243006`)
+
+Validation on 21 September 2026, before the Revision 6 commit.
+
+- Focused run: the new `import_hardening_tranche0_test.dart`, plus the Image
+  Bank, example bank, Course package, Publisher package, custom Lesson icon,
+  World flag, portable image and Recognize Characters test files. All passed
+  after two expected corrections:
+  - The understated-entry test now patches only the bomb entry. Every entry,
+    including the manifest, must match its declared size.
+  - An empty ZIP directory is reported as unreadable.
+- `import_hardening_tranche0_test.dart` covers:
+  - the limited stream;
+  - an entry that understates its size;
+  - more than 50 MB declared across all entries, from an unreferenced entry;
+  - a symlink entry;
+  - 5,001 entries;
+  - non-ZIP bytes;
+  - a cover declaring 30,000²;
+  - a 4,097-pixel icon and flag;
+  - an APNG;
+  - an animated WebP, by its flag and by an `ANIM` chunk.
+- Complete `flutter test --no-pub` on the final code tree: **1,973 passed,
+  0 failed**.
+- `flutter analyze` on the repository: **no issues**.
+- `python tools/validate_images.py`: 111 assets, 0 issues.
+- `python tools/validate_lesson_icons.py`: 14 assets, 0 issues.
+- `python tools/validate_media_assets.py`: 443 files, 0 issues.
+- `python tools/validate_courses.py`: all 10 bundled Course Model v11 files OK.
+- `git diff --check`: clean. The untracked `devtools_options.yaml` is excluded.
+
 ## Revision 5 — Image Library usability (`2.0.43+243005`)
 
 Validation on 21 September 2026, before the Revision 5 commit.

@@ -166,13 +166,22 @@ void main() {
       ..addFile(ArchiveFile('bomb.png', payload.length, payload));
     final zipped = Uint8List.fromList(ZipEncoder().encode(archive));
 
-    // Understate every declared uncompressed size, local and central.
+    // Understate bomb.png's declared uncompressed size, local and central.
     final view = ByteData.sublistView(zipped);
-    for (var i = 0; i + 30 < zipped.length; i++) {
+    bool namesBomb(int nameAt, int lengthAt) =>
+        utf8.decode(
+          zipped.sublist(
+            nameAt,
+            nameAt + view.getUint16(lengthAt, Endian.little),
+          ),
+          allowMalformed: true,
+        ) ==
+        'bomb.png';
+    for (var i = 0; i + 46 < zipped.length; i++) {
       final signature = view.getUint32(i, Endian.little);
-      if (signature == 0x02014b50) {
+      if (signature == 0x02014b50 && namesBomb(i + 46, i + 28)) {
         view.setUint32(i + 24, 500, Endian.little);
-      } else if (signature == 0x04034b50) {
+      } else if (signature == 0x04034b50 && namesBomb(i + 30, i + 26)) {
         view.setUint32(i + 22, 500, Endian.little);
       }
     }
@@ -198,8 +207,9 @@ void main() {
     final file = File('${dir.path}${Platform.pathSeparator}bank.zip');
     await file.writeAsBytes(zipped, flush: true);
 
-    // The declared size passes the pre-flight check, so this can only be
-    // caught after inflation.
+    // The declared size passes the pre-flight check. Inflation now stops as
+    // soon as the output passes that claim, instead of after the whole
+    // payload has been allocated.
     final decoded = ZipDecoder().decodeBytes(zipped);
     final entry = decoded.files.firstWhere((f) => f.name == 'bomb.png');
     expect(entry.size, lessThan(ImageBankService.maxImageBytes));
@@ -211,7 +221,7 @@ void main() {
         isA<FormatException>().having(
           (e) => e.message,
           'message',
-          contains('exceeds the 50 KB maximum'),
+          contains('expands beyond its declared size'),
         ),
       ),
     );

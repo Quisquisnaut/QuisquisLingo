@@ -1,12 +1,12 @@
 # QuisquisLingo App
 
-**Current source version: 2.0.43+243005 · Build 243, Revision 5 · Course Model v11 (`formatVersion: 11`).**
+**Current source version: 2.0.43+243006 · Build 243, Revision 6 · Course Model v11 (`formatVersion: 11`).**
 
 **QuisquisLingo 2.0.43 Beta — QQL 243 Course Model v11**
 
 Current project version: 2.0.43
 
-See the [Build 243 change summary](docs/243_CHANGE_SUMMARY.md) for Course Model v11 and portable Course ZIPs. Export includes only referenced Course media, including images selected from the Admin Shared Image Library; bundled QQL assets remain supplied by the app. Import keeps those images with the Course and does not add them to the destination Shared Image Library. Revision 4 lets signed Publisher ZIPs carry recordings and images; updates archive the previous media and remove files no longer used. The Course Editor's Image Library lists shared and Course-owned images with source and use labels; Admins manage the device-wide Shared Image Library from Course Manager or Device Administration. Revision 5 overlays small `QQL`/`DEVICE`/`COURSE`/`IN USE` badges on each image and adds a badge filter and sorting to the Image Library. See the [course package plan](docs/COURSE_PACKAGE_PLAN.md).
+See the [Build 243 change summary](docs/243_CHANGE_SUMMARY.md) for Course Model v11 and portable Course ZIPs. Export includes only referenced Course media, including images selected from the Admin Shared Image Library; bundled QQL assets remain supplied by the app. Import keeps those images with the Course and does not add them to the destination Shared Image Library. Revision 4 lets signed Publisher ZIPs carry recordings and images; updates archive the previous media and remove files no longer used. The Course Editor's Image Library lists shared and Course-owned images with source and use labels; Admins manage the device-wide Shared Image Library from Course Manager or Device Administration. Revision 5 overlays small `QQL`/`DEVICE`/`COURSE`/`IN USE` badges on each image and adds a badge filter and sorting to the Image Library. Revision 6 hardens Course cover and Image Bank ZIP import against memory-exhaustion files and limits Lesson icon and flag sources to 4096 pixels. See the [course package plan](docs/COURSE_PACKAGE_PLAN.md).
 
 QQL 241 completes the course file-store integration: custom and installed official courses use individual files under application support, Reset removes those files for the appropriate scopes, and Inventory reports their real paths and sizes. Tests use isolated directories and explicit save/UI completion conditions. Old course preference blobs are not migrated. Final validation passed (1,879 full-suite tests, plus 8 focused tests for the final Publisher title color); see `docs/241_VALIDATION.md`.
 
@@ -73,7 +73,7 @@ The MPL-2.0 covers the QuisquisLingo software source. Courses, the Image Bank an
 
 ## Beta lifecycle
 
-Version 2.0.43, Build 243, Revision 5 is a time-limited Beta with an expiry of **2026-10-21 23:59:59 local time** (30 days from September 21, 2026, its own release date). Near expiry it displays reminders. After expiry, learner exercises and Review are blocked until a newer Beta is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when a Beta expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM.
+Version 2.0.43, Build 243, Revision 6 is a time-limited Beta with an expiry of **2026-10-21 23:59:59 local time** (30 days from September 21, 2026, its own release date). Near expiry it displays reminders. After expiry, learner exercises and Review are blocked until a newer Beta is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when a Beta expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM.
 
 ## Core logic
 

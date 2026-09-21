@@ -6,6 +6,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/exercise_image_metadata.dart';
+import 'bounded_archive_entry.dart';
 import 'exercise_image_service.dart';
 import 'file_dialog_service.dart';
 
@@ -48,6 +49,9 @@ class ImageBankService {
   static const int maxArchiveEntries = 5000;
   static const int maxImportedImages = 2500;
   static const int maxTotalImageBytes = 50 * 1024 * 1024;
+
+  /// Every entry's inflated bytes together, referenced or not.
+  static const int maxInflatedArchiveBytes = 50 * 1024 * 1024;
   static const banksKey = 'quisquislingo_imported_image_banks_v2';
 
   // Memory guard for Open from…; larger files than maxZipBytes reach the
@@ -153,11 +157,44 @@ class ImageBankService {
       );
     }
     final bytes = await zipFile.readAsBytes();
-    final archive = ZipDecoder().decodeBytes(bytes);
-    if (archive.files.length > maxArchiveEntries) {
+    // Read the central directory before ZipDecoder: decoding eagerly inflates
+    // symlink entries, and entries must be counted and their sizes bounded
+    // before anything is expanded. Each entry is later inflated only up to its
+    // declared size, so the declared total also bounds the real output.
+    final directory = ZipDirectory();
+    try {
+      directory.read(InputMemoryStream(bytes));
+    } catch (_) {
+      throw const FormatException('This is not a readable Image Bank ZIP.');
+    }
+    if (directory.fileHeaders.isEmpty) {
+      throw const FormatException('This is not a readable Image Bank ZIP.');
+    }
+    if (directory.fileHeaders.length > maxArchiveEntries) {
       throw const FormatException(
         'Image Bank ZIP contains too many archive entries.',
       );
+    }
+    var declaredTotal = 0;
+    for (final header in directory.fileHeaders) {
+      if (((header.externalFileAttributes >> 16) & 0xf000) == 0xa000) {
+        throw FormatException(
+          'Image Bank ZIP contains a symbolic link: ${header.filename}',
+        );
+      }
+      final size = header.uncompressedSize;
+      declaredTotal += size;
+      if (size < 0 || declaredTotal > maxInflatedArchiveBytes) {
+        throw const FormatException(
+          'Image Bank ZIP expands beyond the 50 MB safety limit.',
+        );
+      }
+    }
+    final Archive archive;
+    try {
+      archive = ZipDecoder().decodeBytes(bytes);
+    } catch (_) {
+      throw const FormatException('This is not a readable Image Bank ZIP.');
     }
     ArchiveFile? manifestFile;
     for (final file in archive.files) {
@@ -178,10 +215,12 @@ class ImageBankService {
         'Image Bank manifest exceeds the 2 MB safety limit.',
       );
     }
-    final manifestBytes = manifestFile.readBytes();
-    if (manifestBytes == null) {
-      throw const FormatException('Image Bank manifest could not be read.');
-    }
+    final manifestBytes = readBoundedEntry(
+      manifestFile,
+      manifestFile.size,
+      overflowMessage: 'Image Bank manifest expands beyond its declared size.',
+      damagedMessage: 'Image Bank manifest could not be read.',
+    );
     final decoded = jsonDecode(utf8.decode(manifestBytes));
     if (decoded is! List) {
       throw const FormatException(
@@ -311,12 +350,13 @@ class ImageBankService {
         final target = File(
           '${imagesDir.path}${Platform.pathSeparator}$filename',
         );
-        final sourceBytes = source.readBytes();
-        if (sourceBytes == null) {
-          throw FormatException(
-            'Image asset could not be read from ZIP: $filename',
-          );
-        }
+        final sourceBytes = readBoundedEntry(
+          source,
+          source.size,
+          overflowMessage:
+              'Image asset expands beyond its declared size: $filename',
+          damagedMessage: 'Image asset could not be read from ZIP: $filename',
+        );
         if (sourceBytes.length > maxImageBytes) {
           throw FormatException(
             'Image asset exceeds the 50 KB maximum: $filename '

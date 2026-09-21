@@ -1,3 +1,13 @@
+# 2.0.43 (Build 243, Revision 6) - Import memory-safety fixes - 2026-09-21
+
+Tranche 0 of the [import hardening plan](docs/IMPORT_HARDENING_PLAN.md). Scope: [Build 243 change summary](docs/243_CHANGE_SUMMARY.md#revision-6--import-memory-safety-fixes); evidence: [243 validation](docs/243_VALIDATION.md).
+
+- Platform version `2.0.43+243006`; the Beta expiry remains **2026-10-21 23:59:59 local time**.
+- A Course ZIP cover is checked for 512 × 512 from its header before it is decoded, so a small file claiming huge dimensions can no longer exhaust memory.
+- Image Bank ZIPs are checked before anything is decompressed: at most 5,000 entries, no symbolic links, and at most 50 MB across all entries. The manifest and each image are then decompressed only up to their declared size and must match it exactly.
+- Custom Lesson icons and Course flags accept sources up to 4096 pixels per side (previously 8192).
+- Animated PNG and WebP images are refused when imported as exercise images. Images already stored in a Course keep working.
+
 # 2.0.43 (Build 243, Revision 5) - Image Library usability - 2026-09-21
 
 Scope: [Build 243 change summary](docs/243_CHANGE_SUMMARY.md#revision-5--image-library-usability); evidence: [243 validation](docs/243_VALIDATION.md).

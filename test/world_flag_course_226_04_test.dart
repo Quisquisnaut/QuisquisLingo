@@ -360,7 +360,7 @@ void main() {
               isA<FormatException>().having(
                 (error) => error.message,
                 'message',
-                contains('Maximum source dimension: 8192'),
+                contains('Maximum source dimension: 4096'),
               ),
             ),
           );

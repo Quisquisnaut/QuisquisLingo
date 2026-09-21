@@ -26,7 +26,7 @@ class LessonIconService {
 
   static const int canvasSize = 256;
   static const int maxInputBytes = 2 * 1024 * 1024;
-  static const int maxSourceDimension = 8192;
+  static const int maxSourceDimension = 4096;
 
   // Memory guard for Open from… only; larger files reach prepareIcon and get
   // its standard 2 MB message.
@@ -142,7 +142,7 @@ class LessonIconService {
           descriptor.width > maxSourceDimension ||
           descriptor.height > maxSourceDimension) {
         throw const FormatException(
-          'Lesson icon dimensions must be between 1 and 8192 pixels.',
+          'Lesson icon dimensions must be between 1 and 4096 pixels.',
         );
       }
       codec = await descriptor.instantiateCodec();

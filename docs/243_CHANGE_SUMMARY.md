@@ -302,3 +302,41 @@ behavior changes.
   are 22 px controls over the image's bottom-right corner instead of a row.
 - Category and badge filter chips are compact, without a checkmark; the
   selected chip is filled.
+
+## Revision 6 — import memory-safety fixes
+
+Version **2.0.43+243006**, same Beta expiry. Tranche 0 of
+`docs/IMPORT_HARDENING_PLAN.md`.
+
+- **Course cover:** `CoursePackageService._checkCover` reads the dimensions
+  with `ImageDescriptor.encoded` and refuses anything but 512 × 512 before
+  `instantiateCodec`. Previously a ≤100 KB PNG declaring 30,000 × 30,000 was
+  fully decoded first.
+- **Image Bank ZIP:** `ImageBankService.importBankZip` reads the central
+  directory before `ZipDecoder`, because `decodeBytes` in `archive` 4.0.9
+  eagerly inflates symlink entries. It rejects, before inflating anything:
+  - an empty or unreadable directory;
+  - more than 5,000 entries;
+  - any symlink;
+  - a declared total above 50 MB across all entries
+    (`maxInflatedArchiveBytes`).
+
+  The manifest and every image are inflated through `readBoundedEntry`, which
+  stops at the declared size and requires an exact match. Previously each
+  entry was fully inflated before its 50 KB check.
+- **Shared bounded reader:** `lib/services/bounded_archive_entry.dart` holds
+  `readBoundedEntry` and `LimitedOutputStream`, moved from
+  `CoursePackageService`. Course packages and Image Banks share it.
+- **Lesson icon and custom flag:** `maxSourceDimension` is 4096 (was 8192).
+  An 8192² Lesson icon could allocate about 256 MB when decoded at full size.
+  The error text, English and Italian Help and `docs/COURSE_EDITOR.md` match.
+- **Animated images:** `PortableExerciseImageService.fromBytes`, and so
+  `fromFile`, rejects APNG `acTL`, WebP `ANIM`/`ANMF` and the VP8X animation
+  flag. `decode` and `validate` are unchanged, so images already stored in a
+  Course keep loading, rendering and saving.
+- **Changed messages:**
+  - A truncated Course package entry reports "is damaged" (was "could not be
+    read").
+  - A non-ZIP Image Bank reports "This is not a readable Image Bank ZIP".
+  - An understated Image Bank entry reports that it expands beyond its
+    declared size.

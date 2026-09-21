@@ -150,22 +150,52 @@ the full suite run once at the end of each.
 
 ### Tranche 0 — Memory-bomb hotfixes (small, ship first)
 
-No new architecture. Minimal targeted fixes:
+**Status: implemented in the working tree after Revision 5 (`86ae4d2`); not
+yet committed.** No new architecture; minimal targeted fixes:
 
-1. **N1:** `_checkCover` reads dimensions with `ImageDescriptor.encoded` and
-   rejects anything other than 512 × 512 **before** `instantiateCodec`.
-2. **N2:** Image Bank manifest and entries inflate through a limited output
-   stream, as `CoursePackageService._bytes` already does: cap = min(declared
-   size, 50 KB) per image and 2 MB for the manifest. Add a running inflated
-   total across **all** file entries in the central directory.
-3. **C7:** Lesson icon and flag `maxSourceDimension` 8192 → 4096. Update the
-   Help/error text and tests.
-4. **C6 / N-animation:** Reject WebP `ANIM`/`ANMF` and PNG `acTL` in
-   `PortableExerciseImageService._dimensions`.
+1. **N1, Course cover:** `_checkCover` reads the dimensions with
+   `ImageDescriptor.encoded` and rejects anything other than 512 × 512
+   **before** `instantiateCodec`.
+2. **N2, Image Bank:**
+   - The central directory is read with `ZipDirectory` **before**
+     `ZipDecoder`. This matters because `ZipDecoder.decodeBytes` in
+     `archive` 4.0.9 eagerly inflates any entry whose Unix mode marks it as a
+     symlink.
+   - The pre-scan rejects, before anything is inflated: an empty or
+     unreadable directory, more than 5,000 entries, any symlink entry, and a
+     declared total above 50 MB across **all** entries, referenced or not
+     (`maxInflatedArchiveBytes`).
+   - The manifest and each image are then inflated through
+     `readBoundedEntry` (`lib/services/bounded_archive_entry.dart`), which
+     stops at the entry's declared size. The result must match that size
+     exactly, so the declared total also bounds the real output.
+   - The limited output stream was **moved** from `CoursePackageService`, not
+     copied. Both importers now share one implementation.
+3. **C7:** Lesson icon and custom flag `maxSourceDimension` 8192 → 4096.
+   The error text, English and Italian Help, `docs/COURSE_EDITOR.md` and tests
+   are updated.
+4. **C6, animation:** APNG `acTL`, WebP `ANIM`/`ANMF` and the VP8X animation
+   flag are rejected by `PortableExerciseImageService.fromBytes` (and
+   therefore `fromFile`), which covers **new imports only**. `decode` and
+   `validate` also run when a Course renders, is audited, or saves an
+   exercise, so they are unchanged: an image already stored in a Course keeps
+   working (§6 Q1).
 
-Tests: a 100 KB cover PNG declaring 30000², an Image Bank entry declaring 100 B
-and inflating to 10 MB, an unreferenced 49 MB entry in the bank, a 4097-px icon,
-an APNG, an animated WebP.
+Tests: `test/import_hardening_tranche0_test.dart` covers:
+
+- a limited stream that never grows past its limit;
+- an entry that understates its size;
+- a declared total above 50 MB from an unreferenced entry;
+- a symlink entry;
+- 5,001 entries;
+- non-ZIP bytes;
+- a cover declaring 30,000²;
+- a 4,097-pixel icon and flag;
+- an APNG;
+- an animated WebP, both by its flag and by an `ANIM` chunk.
+
+`image_bank_service_test.dart`'s understated-entry test now expects inflation
+to stop at the declared size.
 
 ### Tranche 0b — QQL image metadata read-only, Local search words (owner decision 2026-09-21)
 
@@ -563,6 +593,134 @@ Route 14 is new relative to the brief.
    library images **travel in the Course ZIP and backups**, and there is
    **no separate image-count limit**. The 300 MB Course package limit
    applies and is checked before writing.
+
+---
+
+## 6a. Revision order (owner decision 2026-09-21)
+
+1. **Revision 6:** Tranche 0 (memory-bomb fixes).
+2. **Revision 7:** image library tidy-up (§6c). No visible change.
+3. **Revision 8:** Image Library badge order and removing an image from a
+   Course (§6b).
+4. Then Tranches 0b, 1, 2, 2b, 3, 4 and 5, all built on the Revision 7
+   structure.
+
+Splitting `course_editor_screen.dart` into separate screens (the Exercise
+editor, Round, Lesson and Course editors, and the rest) is **deferred** to a
+later, separate job, done one screen at a time.
+
+## 6b. Revision 8 — badge order and removal (owner decisions 2026-09-21)
+
+Not part of the import hardening, but it touches the same screens. Built on
+the Revision 7 structure.
+
+**Badge order.** On every image and in the badge filter, the order is
+**IN USE, QQL, DEVICE, COURSE**, with IN USE first. Today's order is QQL,
+DEVICE, COURSE, IN USE (`_badgesOf`, `_badgeOrder` in
+`flat_image_library_screen.dart`, and the exercise image preview in
+`course_editor_screen.dart`).
+
+**Remove an image from a Course (Course Editor's Image Library).**
+
+- **Who:** anyone who can edit the Course (Maintainer or assigned Team). Not
+  in View mode, and not on official or Publisher Courses. Enforced in the
+  service layer as well as the UI.
+- **How:** a working-copy edit through `CourseEditorTransaction`, confirmed
+  with the Course's normal Confirm like any other structural edit. It can be
+  discarded before confirmation. Files leave the Course folder only through
+  the existing `deleteUnreferenced` after a confirmed save, and the
+  pre-change backup keeps its own copies.
+- **Where:** a bin over the image's bottom-right corner (tooltip "Remove from
+  this Course") and the same action in the preview dialog. A confirmation
+  lists every use, for example "Used in 3 exercises: Lesson 2 › Round 1 › …,
+  and as the Course cover".
+- **What it removes:**
+
+  | Image | Removal | Stays |
+  |---|---|---|
+  | COURSE only | cleared from every exercise and the cover; `imageLibrary` entry removed (Tranche 2b); file deleted on the next confirmed save | nothing |
+  | DEVICE (+ Course copy) | cleared from the Course; the copy's file deleted on save | the Shared Image Library original (DEVICE) |
+  | QQL | its uses cleared from exercises and the cover | the bundled image (QQL) |
+
+  A DEVICE or QQL image that the Course does not use shows no bin, because
+  there is nothing to remove from the Course.
+- **Exercises left invalid (owner decision):** the image is cleared
+  everywhere. Every affected exercise that the canonical Audit then reports
+  as invalid (an Error) becomes **Draft**, so learners never meet a broken
+  exercise. Exercises where the image was optional keep their publication
+  state. Parent Draft badges and counts update through the existing
+  reconciliation.
+- **Tests:** removal of each kind; cover use; Draft only for exercises made
+  invalid; discard restores everything; the file is gone only after the
+  confirmed save; the Shared original and QQL image are untouched; a
+  non-editor and View mode are refused at the service; the badge order
+  holds everywhere.
+
+## 6c. Revision 7 — image library tidy-up (owner decision 2026-09-21)
+
+**Purpose.** Six planned changes touch the image library (Revision 8,
+Tranches 0b, 2, 2b and 5, and the badge order). Before them, give its logic
+one home each and make it testable without opening a screen. **No visible
+change:** the existing widget tests must pass unchanged.
+
+**Why.**
+
+- "Where does this Course use this image?" is answered in three slightly
+  different places:
+  - `_courseImageElements` and the used sets in
+    `flat_image_library_screen.dart`;
+  - `CourseMediaStore.referencesOf`;
+  - `_courseImageSource` in the Exercise editor.
+
+  Revision 8's removal depends on one correct answer.
+- Badge rules, the merging of a device original with its Course copy,
+  filtering, sorting and the derived added date all live in the screen's
+  state. They can only be tested by opening the whole screen with real files.
+- The exercise image section (choose, import, `_asCourseMedia`, preview with
+  badges, remove; `course_editor_screen.dart` about lines 9390–9631) can read
+  and change anything in the 2,800-line Exercise editor.
+
+**Scope (the slim version, owner-approved).**
+
+1. **`CourseImageUsage`** (pure Dart): the single answer to where a Course
+   uses an image (exercise prompt, items, layout, and the cover), with
+   readable locations for confirmation dialogs. The three existing places
+   delegate to it.
+2. **Image library rules** (pure Dart), moved out of the screen state. They
+   cover badges and their order, the device original / Course copy merge,
+   the category, badge and text filters, sorting and the derived added date.
+   The screen stays an ordinary StatefulWidget that calls them.
+3. **`ExerciseImageField`**: a public widget the Exercise editor uses through
+   explicit inputs (Course, current image, its Shared Library source,
+   read-only) and a change callback.
+
+**Explicitly not included.**
+
+- No new controller, catalog or actions layers, and no new pattern that the
+  rest of QQL does not use.
+- Authorization stays in the services.
+- No split of `course_editor_screen.dart` beyond the image section (see §6a).
+
+**Method (per `AGENTS.md`).**
+
+1. Characterize first: add tests that pin today's badges, the merged tile,
+   filters, each sort order, which images count as used (prompt, items,
+   layout, cover) and the permission gates, before moving anything.
+2. Move, don't copy: one implementation per responsibility, with old call
+   sites delegating to it.
+3. `FlatImageLibraryScreen` keeps its constructor, so Course Editor, Course
+   Manager, Device Administration and Recognize Characters are unchanged.
+4. New unit tests for the pure rules; existing widget tests unchanged.
+
+**Expected size effect (small by design).**
+
+| File | Before | After (approx.) |
+|---|---:|---:|
+| `course_editor_screen.dart` | 11,383 | about 11,140 |
+| `flat_image_library_screen.dart` | 1,219 | about 970 |
+| New files together | 0 | about 650 |
+
+The gain is one source of truth and fast tests, not file size.
 
 ---
 

@@ -77,6 +77,7 @@ abstract final class PortableExerciseImageService {
     if (mime == null) {
       throw const FormatException('Choose a readable PNG, JPEG or WEBP image.');
     }
+    _rejectAnimation(bytes, mime);
     final asset = 'data:image/$mime;base64,${base64Encode(bytes)}';
     await validate(asset);
     return asset;
@@ -110,6 +111,46 @@ abstract final class PortableExerciseImageService {
       codec?.dispose();
       descriptor?.dispose();
       buffer?.dispose();
+    }
+  }
+
+  /// Exercise images are static. Checked when an image is imported, not by
+  /// [decode], so images already stored in a Course keep loading.
+  static void _rejectAnimation(Uint8List bytes, String mime) {
+    const animated = FormatException(
+      'Animated images are not supported. Choose a still PNG, JPEG or WEBP image.',
+    );
+    final data = ByteData.sublistView(bytes);
+    if (mime == 'png') {
+      var offset = 8;
+      while (offset + 12 <= bytes.length) {
+        final length = data.getUint32(offset);
+        final type = ascii.decode(
+          bytes.sublist(offset + 4, offset + 8),
+          allowInvalid: true,
+        );
+        if (type == 'acTL') throw animated;
+        if (type == 'IDAT' || length > bytes.length - offset - 12) return;
+        offset += length + 12;
+      }
+      return;
+    }
+    if (mime != 'webp') return;
+    var offset = 12;
+    while (offset + 8 <= bytes.length) {
+      final type = ascii.decode(
+        bytes.sublist(offset, offset + 4),
+        allowInvalid: true,
+      );
+      final length = data.getUint32(offset + 4, Endian.little);
+      final payload = offset + 8;
+      if (type == 'ANIM' || type == 'ANMF') throw animated;
+      // VP8X flags: bit 1 marks an animated file.
+      if (type == 'VP8X' && payload < bytes.length && bytes[payload] & 2 != 0) {
+        throw animated;
+      }
+      if (length > bytes.length - payload) return;
+      offset = payload + length + (length.isOdd ? 1 : 0);
     }
   }
 

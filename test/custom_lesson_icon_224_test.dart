@@ -57,7 +57,7 @@ void main() {
           isA<FormatException>().having(
             (error) => error.message,
             'message',
-            contains('between 1 and 8192 pixels'),
+            contains('between 1 and 4096 pixels'),
           ),
         ),
       );

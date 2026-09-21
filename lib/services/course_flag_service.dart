@@ -45,7 +45,7 @@ class CourseFlagService {
   static const int maxInputBytes = 2 * 1024 * 1024;
   static const int minWidth = 64;
   static const int minHeight = 40;
-  static const int maxSourceDimension = 8192;
+  static const int maxSourceDimension = 4096;
   static const int maxOutputDimension = 256;
 
   static Map<String, String> get builtInFlags =>
@@ -245,7 +245,7 @@ class CourseFlagService {
     }
     if (width > maxSourceDimension || height > maxSourceDimension) {
       throw const FormatException(
-        'Flag resolution is too large. Maximum source dimension: 8192 pixels.',
+        'Flag resolution is too large. Maximum source dimension: 4096 pixels.',
       );
     }
 

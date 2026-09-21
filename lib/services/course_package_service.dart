@@ -4,8 +4,10 @@ import 'dart:ui' as ui;
 
 import 'package:archive/archive.dart';
 import 'package:crypto/crypto.dart';
+import 'package:flutter/foundation.dart' show visibleForTesting;
 
 import '../models/course_models.dart';
+import 'bounded_archive_entry.dart';
 import 'course_media_store.dart';
 
 /// A fully checked package. Reading one never writes to course storage.
@@ -291,21 +293,12 @@ class CoursePackageService {
     return CoursePackage(course, courseJson, media, mediaStore: _media);
   }
 
-  static Uint8List _bytes(ArchiveFile entry) {
-    try {
-      final output = _LimitedOutputStream(entry.size);
-      entry.decompress(output);
-      final bytes = output.getBytes();
-      if (bytes.length != entry.size) {
-        throw const FormatException('Course package entry could not be read.');
-      }
-      return bytes;
-    } on FormatException {
-      rethrow;
-    } catch (_) {
-      throw FormatException('Course package entry ${entry.name} is damaged.');
-    }
-  }
+  static Uint8List _bytes(ArchiveFile entry) => readBoundedEntry(
+    entry,
+    entry.size,
+    overflowMessage: 'Course package entry expands beyond its declared size.',
+    damagedMessage: 'Course package entry ${entry.name} is damaged.',
+  );
 
   static void _checkMedia(String reference, Uint8List bytes) {
     final max = CourseMediaStore.isAudioReference(reference)
@@ -323,6 +316,10 @@ class CoursePackageService {
       );
     }
   }
+
+  @visibleForTesting
+  static Future<void> checkCoverForTest(String reference, Uint8List bytes) =>
+      _checkCover(reference, bytes);
 
   static Future<void> _checkCover(String reference, Uint8List bytes) async {
     if (!CourseMediaStore.isImageReference(reference) ||
@@ -360,24 +357,31 @@ class CoursePackageService {
         'Course cover file format does not match its name.',
       );
     }
+    // Read the declared dimensions from the header first. Decoding before
+    // this check let a 100 KB file that claims 30,000 × 30,000 pixels
+    // allocate gigabytes; only a genuine 512 × 512 cover is ever rasterized.
+    ui.ImmutableBuffer? buffer;
+    ui.ImageDescriptor? descriptor;
     ui.Codec? codec;
     try {
-      codec = await ui.instantiateImageCodec(bytes);
-      final frame = await codec.getNextFrame();
-      final image = frame.image;
-      final valid = image.width == 512 && image.height == 512;
-      image.dispose();
-      if (!valid) {
+      buffer = await ui.ImmutableBuffer.fromUint8List(bytes);
+      descriptor = await ui.ImageDescriptor.encoded(buffer);
+      if (descriptor.width != 512 || descriptor.height != 512) {
         throw const FormatException(
           'Course cover must be exactly 512 × 512 pixels.',
         );
       }
+      codec = await descriptor.instantiateCodec();
+      final frame = await codec.getNextFrame();
+      frame.image.dispose();
     } on FormatException {
       rethrow;
     } catch (_) {
       throw const FormatException('Course cover image could not be decoded.');
     } finally {
       codec?.dispose();
+      descriptor?.dispose();
+      buffer?.dispose();
     }
   }
 
@@ -462,51 +466,4 @@ class CoursePackageService {
     final sorted = entries.keys.toList()..sort();
     return [for (final key in sorted) entries[key]!];
   }
-}
-
-class _LimitedOutputStream extends OutputStream {
-  _LimitedOutputStream(this.limit)
-    : _output = OutputMemoryStream(size: limit),
-      super(byteOrder: ByteOrder.littleEndian);
-
-  final int limit;
-  final OutputMemoryStream _output;
-
-  @override
-  int get length => _output.length;
-
-  void _check(int additional) {
-    if (additional < 0 || length + additional > limit) {
-      throw const FormatException(
-        'Course package entry expands beyond its declared size.',
-      );
-    }
-  }
-
-  @override
-  void writeByte(int value) {
-    _check(1);
-    _output.writeByte(value);
-  }
-
-  @override
-  void writeBytes(List<int> bytes, {int? length}) {
-    _check(length ?? bytes.length);
-    _output.writeBytes(bytes, length: length);
-  }
-
-  @override
-  void writeStream(InputStream stream) {
-    _check(stream.length);
-    _output.writeStream(stream);
-  }
-
-  @override
-  void clear() => _output.clear();
-
-  @override
-  void flush() => _output.flush();
-
-  @override
-  Uint8List subset(int start, [int? end]) => _output.subset(start, end);
 }
