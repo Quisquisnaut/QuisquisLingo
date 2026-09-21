@@ -181,6 +181,11 @@ class _CourseMergeScreenState extends State<CourseMergeScreen> {
       final right = loaded.course;
       _merge.validateCompatibility(widget.leftCourse, right);
       if (!mounted) return;
+      // The package being replaced no longer needs its staged media.
+      final previous = _rightPackage;
+      if (previous != null && !identical(previous, loaded)) {
+        unawaited(previous.discard());
+      }
       setState(() {
         _rightCourse = right;
         _rightPackage = loaded;
@@ -217,6 +222,7 @@ class _CourseMergeScreenState extends State<CourseMergeScreen> {
   @override
   void dispose() {
     unawaited(_sounds.dispose());
+    unawaited(_rightPackage?.discard() ?? Future<void>.value());
     super.dispose();
   }
 
@@ -1968,6 +1974,8 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
   Future<void> _importCourseFromDialog() => _importCourse(fromDialog: true);
 
   Future<void> _importCourse({bool fromDialog = false}) async {
+    // A package read from a ZIP keeps its media in staging until done.
+    CoursePackage? held;
     try {
       final CoursePackage importedPackage;
       if (fromDialog) {
@@ -1989,6 +1997,7 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
       } else {
         importedPackage = await _transfer.importCoursePackage();
       }
+      held = importedPackage;
       final imported = importedPackage.course;
       if (imported.originType == CourseOriginType.bundledOfficial) {
         throw const FormatException(
@@ -2225,6 +2234,8 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
           backgroundColor: Theme.of(context).colorScheme.error,
         ),
       );
+    } finally {
+      await held?.discard();
     }
   }
 

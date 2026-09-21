@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 
@@ -10,24 +11,67 @@ import '../models/course_models.dart';
 import 'course_media_store.dart';
 import 'import/bounded_zip_reader.dart';
 import 'import/image_validator.dart';
+import 'import/import_stager.dart';
 import 'import/mp3_validator.dart';
 
 /// A fully checked package. Reading one never writes to course storage.
+///
+/// A package read from a ZIP keeps each media file in QQL's private staging
+/// folder, not in memory; [discard] removes those copies (startup cleanup
+/// removes any that are left behind). A package built in memory (a media-free
+/// JSON Course, or a Copy/Fork) holds its few bytes directly.
 class CoursePackage {
   CoursePackage(
     this.course,
     this.courseJson,
-    this.media, {
+    Map<String, Uint8List> media, {
     CourseMediaStore? mediaStore,
-  }) : _mediaStore = mediaStore ?? CourseMediaStore();
+  }) : _memory = Map.unmodifiable(media),
+       _staged = const {},
+       _mediaStore = mediaStore ?? CourseMediaStore();
+
+  CoursePackage._staged(
+    this.course,
+    this.courseJson,
+    Map<String, File> staged, {
+    required CourseMediaStore mediaStore,
+  }) : _memory = const {},
+       _staged = Map.unmodifiable(staged),
+       _mediaStore = mediaStore;
 
   final Course course;
   final Uint8List courseJson;
-  final Map<String, Uint8List> media;
+  final Map<String, Uint8List> _memory;
+  final Map<String, File> _staged;
   final CourseMediaStore _mediaStore;
 
+  /// The media references this package carries (exactly those the Course
+  /// uses).
+  Set<String> get mediaReferences => {..._memory.keys, ..._staged.keys};
+
+  /// One medium's bytes, read when needed.
+  Future<Uint8List> mediaBytes(String reference) async {
+    final inMemory = _memory[reference];
+    if (inMemory != null) return inMemory;
+    final file = _staged[reference];
+    if (file == null) {
+      throw FormatException('Course media $reference is not in the package.');
+    }
+    return file.readAsBytes();
+  }
+
+  /// Removes the staged media copies; never throws.
+  Future<void> discard() async {
+    for (final file in _staged.values) {
+      try {
+        if (await file.exists()) await file.delete();
+      } catch (_) {}
+    }
+  }
+
   /// Materializes only the media this Course uses, after the caller has
-  /// accepted it. Newly created files are rolled back if [save] fails.
+  /// accepted it, one file at a time. Newly created files are rolled back if
+  /// [save] fails.
   Future<T> withInstalledMedia<T>(
     String targetCourseId,
     Future<T> Function() save, {
@@ -38,19 +82,20 @@ class CoursePackage {
     final created = <String>[];
     var succeeded = false;
     try {
-      for (final entry in media.entries) {
-        if (sha256.convert(entry.value).toString() !=
-            CourseMediaStore.digestOf(entry.key)) {
+      for (final reference in mediaReferences) {
+        final bytes = await mediaBytes(reference);
+        if (sha256.convert(bytes).toString() !=
+            CourseMediaStore.digestOf(reference)) {
           throw FormatException(
-            'Course media ${entry.key} has the wrong SHA-256.',
+            'Course media $reference has the wrong SHA-256.',
           );
         }
-        final existing = await store.existingFile(targetCourseId, entry.key);
+        final existing = await store.existingFile(targetCourseId, reference);
         if (existing != null) {
           if (sha256.convert(await existing.readAsBytes()).toString() !=
-              CourseMediaStore.digestOf(entry.key)) {
+              CourseMediaStore.digestOf(reference)) {
             throw FormatException(
-              'Existing Course media ${CourseMediaStore.fileNameOf(entry.key)} '
+              'Existing Course media ${CourseMediaStore.fileNameOf(reference)} '
               'is damaged; the Course was not changed.',
             );
           }
@@ -58,10 +103,10 @@ class CoursePackage {
         }
         await store.addBytes(
           targetCourseId,
-          entry.value,
-          CourseMediaStore.extensionOf(entry.key),
+          bytes,
+          CourseMediaStore.extensionOf(reference),
         );
-        created.add(entry.key);
+        created.add(reference);
       }
       final result = await save();
       succeeded = true;
@@ -85,11 +130,14 @@ class CoursePackage {
 class CoursePackageService {
   CoursePackageService({
     CourseMediaStore? mediaStore,
+    ImportStager? stager,
     this.sizeLimit = maxPackageBytes,
   }) : assert(sizeLimit > 0 && sizeLimit <= maxPackageBytes),
-       _media = mediaStore ?? CourseMediaStore();
+       _media = mediaStore ?? CourseMediaStore(),
+       _stager = stager ?? ImportStager();
 
   final CourseMediaStore _media;
+  final ImportStager _stager;
   final int sizeLimit;
 
   static const int maxPackageBytes = 300 * 1024 * 1024;
@@ -175,8 +223,32 @@ class CoursePackageService {
     if (zip.length > sizeLimit) {
       throw const FormatException('Course package exceeds the 300 MB limit.');
     }
+    return _parse(InputMemoryStream(zip), validateCourse);
+  }
+
+  /// [parse] reading the ZIP from [zip] on disk, a piece at a time, so the
+  /// whole archive is never held in memory.
+  Future<CoursePackage> parseFile(
+    File zip,
+    Future<Course> Function(Uint8List bytes, String fileName) validateCourse,
+  ) async {
+    if (await zip.length() > sizeLimit) {
+      throw const FormatException('Course package exceeds the 300 MB limit.');
+    }
+    final input = InputFileStream(zip.path);
+    try {
+      return await _parse(input, validateCourse);
+    } finally {
+      await input.close();
+    }
+  }
+
+  Future<CoursePackage> _parse(
+    InputStream input,
+    Future<Course> Function(Uint8List bytes, String fileName) validateCourse,
+  ) async {
     final zipReader = BoundedZipReader.open(
-      InputMemoryStream(zip),
+      input,
       label: 'Course package',
       maxEntries: maxPackageEntries,
       maxTotalBytes: sizeLimit,
@@ -223,24 +295,6 @@ class CoursePackageService {
       throw const FormatException('Invalid Course package manifest.');
     }
     final courseJson = zipReader.read(courseEntry);
-    final media = <String, Uint8List>{};
-    for (final entry in entries.entries) {
-      if (!_mediaName.hasMatch(entry.key)) continue;
-      final reference = 'media:${entry.key.substring('media/'.length)}';
-      final value = zipReader.read(entry.value);
-      _checkMedia(reference, value);
-      _checkImportedImage(reference, value);
-      if (CourseMediaStore.isAudioReference(reference)) {
-        try {
-          await Mp3Validator.validate(value);
-        } on Mp3ValidationException catch (error) {
-          throw FormatException(
-            '${CourseMediaStore.fileNameOf(reference)}: ${error.message}',
-          );
-        }
-      }
-      media[reference] = value;
-    }
     final course = await validateCourse(courseJson, courseName);
     final expectedSources = _sharedImageSources(course);
     final actualSources = manifestData['sharedImageSources'];
@@ -259,18 +313,53 @@ class CoursePackageService {
     }
     final references = CourseMediaStore.referencesOf(course);
     for (final reference in references) {
-      if (!media.containsKey(reference)) {
+      if (!entries.containsKey(
+        'media/${CourseMediaStore.fileNameOf(reference)}',
+      )) {
         throw FormatException(
           'Course package is missing ${CourseMediaStore.fileNameOf(reference)} '
           'used in ${_usage(course, reference)}.',
         );
       }
     }
-    if (course.coverImage.isNotEmpty) {
-      await _checkCover(course.coverImage, media[course.coverImage]!);
+    // Media the Course does not use is never read. Each used file is read,
+    // checked and written to staging before the next one is read.
+    final staged = <String, File>{};
+    try {
+      for (final reference in references) {
+        final value = zipReader.read(
+          entries['media/${CourseMediaStore.fileNameOf(reference)}']!,
+        );
+        _checkMedia(reference, value);
+        _checkImportedImage(reference, value);
+        if (CourseMediaStore.isAudioReference(reference)) {
+          try {
+            await Mp3Validator.validate(value);
+          } on Mp3ValidationException catch (error) {
+            throw FormatException(
+              '${CourseMediaStore.fileNameOf(reference)}: ${error.message}',
+            );
+          }
+        }
+        if (reference == course.coverImage) {
+          await _checkCover(course.coverImage, value);
+        }
+        staged[reference] = await _stager.stageBytes(value);
+      }
+    } catch (_) {
+      for (final file in staged.values) {
+        try {
+          await file.delete();
+        } catch (_) {}
+      }
+      rethrow;
     }
-    media.removeWhere((reference, _) => !references.contains(reference));
-    return CoursePackage(course, courseJson, media, mediaStore: _media);
+    return CoursePackage._staged(
+      course,
+      courseJson,
+      staged,
+      mediaStore: _media,
+    );
   }
 
   /// An imported image medium must be a valid image of the type its name

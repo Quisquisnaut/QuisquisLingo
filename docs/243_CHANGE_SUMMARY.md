@@ -704,3 +704,30 @@ follows as Revision 15.
   Bank tests follow the new messages.
 - **Docs:** Help EN/IT, `docs/IMAGE_BANK_PACKAGES.md` (new rules, object
   manifest example), `docs/COURSE_EDITOR.md`, `docs/EXTERNAL_CONTENT_PACKS.md`.
+
+## Revision 15 — Course packages read from disk
+
+Version **2.0.43+243015**, same Beta expiry. Tranche 4 (part 2) of
+`docs/IMPORT_HARDENING_PLAN.md`, finding N3 (peak memory about 600 MB).
+
+- **`CoursePackageService.parseFile(File, …)`** reads the ZIP through
+  `InputFileStream` and `BoundedZipReader`; `parse(Uint8List, …)` remains for
+  in-memory callers and tests. Both run `_parse`, which now validates
+  `course.json` first and then reads only the media the Course references,
+  one entry at a time (hash, image check, MP3 check, cover check), writing
+  each to `ImportStager.stageBytes` (a `.part` file in `qql_import_staging`)
+  before reading the next. Unused media entries are never inflated. On a
+  failure the staged files are deleted.
+- **`CoursePackage`** no longer exposes `media`: `mediaReferences`,
+  `mediaBytes(reference)` and `discard()` replace it. `withInstalledMedia`
+  installs one file at a time from staging. The in-memory constructor stays
+  for media-free JSON packages and Copy/Fork.
+- **Routes:** the fixed-folder import uses `parseFile`. Open from… uses the
+  new `FileDialogService.openStaged`, which leaves the picked file in
+  staging instead of reading it into memory; a ZIP is parsed from there, a
+  JSON file (≤10 MB) is read, and the staged copy is always removed.
+- **Lifecycle:** the Course import flow discards the package in `finally`;
+  the merge screen discards a replaced package and its package on dispose;
+  startup cleanup removes any `.part` left behind.
+- **Tests:** `course_package_on_disk_tranche4b_test.dart` (8); package and
+  Publisher tests use `mediaReferences`/`mediaBytes`.

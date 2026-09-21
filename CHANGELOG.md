@@ -1,3 +1,11 @@
+# 2.0.43 (Build 243, Revision 15) - Course packages read from disk - 2026-09-21
+
+Tranche 4 (part 2) of the [import hardening plan](docs/IMPORT_HARDENING_PLAN.md). Scope: [Build 243 change summary](docs/243_CHANGE_SUMMARY.md#revision-15--course-packages-read-from-disk); evidence: [243 validation](docs/243_VALIDATION.md).
+
+- Platform version `2.0.43+243015`; the Beta expiry remains **2026-10-21 23:59:59 local time**.
+- A Course ZIP (up to 300 MB) is no longer loaded into memory whole. QQL reads it from disk one piece at a time and keeps its images and recordings in a private staging folder until the Course is installed, which lowers peak memory use on phones and small Linux machines.
+- Only the images and recordings the Course actually uses are read. A refused package leaves nothing behind.
+
 # 2.0.43 (Build 243, Revision 14) - Safer archives and structured files - 2026-09-21
 
 Tranche 4 (part 1) of the [import hardening plan](docs/IMPORT_HARDENING_PLAN.md). Scope: [Build 243 change summary](docs/243_CHANGE_SUMMARY.md#revision-14--safer-archives-and-structured-files); evidence: [243 validation](docs/243_VALIDATION.md).

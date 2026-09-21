@@ -147,7 +147,7 @@ class CustomCourseTransferService {
       if (await zipFile.length() > CoursePackageService.maxPackageBytes) {
         throw const FormatException('Course package exceeds the 300 MB limit.');
       }
-      return _packages.parse(await zipFile.readAsBytes(), courseFromBytes);
+      return _packages.parseFile(zipFile, courseFromBytes);
     }
     if (hasJson) {
       if (await jsonFile.length() > maxJsonBytes) {
@@ -301,27 +301,41 @@ class CustomCourseTransferService {
   Future<({FileDialogResult dialog, CoursePackage? package})> _packageFromDialog(
     String artifact,
   ) async {
-    final result = await _fileDialogs.openBytes(
+    // The file stays in staging and a ZIP is read from there piece by
+    // piece: a 300 MB package is never held in memory whole.
+    final picked = await _fileDialogs.openStaged(
       extensions: const ['zip', 'json'],
       maxBytes: CoursePackageService.maxPackageBytes,
       artifact: artifact,
     );
+    final result = picked.dialog;
     if (result.outcome == FileDialogOutcome.tooLarge) {
       throw const FormatException('Course package exceeds the 300 MB limit.');
     }
-    if (result.outcome != FileDialogOutcome.opened) {
+    final staged = picked.staged;
+    if (result.outcome != FileDialogOutcome.opened || staged == null) {
       return (dialog: result, package: null);
     }
     final name = result.displayName!;
-    final bytes = result.bytes!;
-    if (name.toLowerCase().endsWith('.zip')) {
-      return (
-        dialog: result,
-        package: await _packages.parse(bytes, courseFromBytes),
-      );
-    }
-    if (!name.toLowerCase().endsWith('.json')) {
-      throw const FormatException('Choose a Course .zip or .json file.');
+    final Uint8List bytes;
+    try {
+      if (name.toLowerCase().endsWith('.zip')) {
+        return (
+          dialog: result,
+          package: await _packages.parseFile(staged.file, courseFromBytes),
+        );
+      }
+      if (!name.toLowerCase().endsWith('.json')) {
+        throw const FormatException('Choose a Course .zip or .json file.');
+      }
+      if (staged.length > maxJsonBytes) {
+        throw const FormatException(
+          'Course JSON exceeds the 10 MB safety limit.',
+        );
+      }
+      bytes = await staged.readBytes();
+    } finally {
+      await staged.discard();
     }
     return (
       dialog: result,

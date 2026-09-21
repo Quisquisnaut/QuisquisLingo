@@ -4,7 +4,7 @@ Keep this file current at the end of **every** revision, so that work can
 resume after a pause or with another agent. Plan and decisions:
 [IMPORT_HARDENING_PLAN.md](IMPORT_HARDENING_PLAN.md). Rules: `AGENTS.md`.
 
-## Where things stand (updated 2026-09-21, Revision 14 committed)
+## Where things stand (updated 2026-09-21, Revision 15 in validation)
 
 | Revision | Version | Commit | Content |
 |---|---|---|---|
@@ -24,12 +24,13 @@ Revisions 5–14 are pushed to `origin/main`. The untracked
 
 ## Next steps, in order (plan §6a)
 
-1. **Revision 15 (Tranche 4, part 2)**: Course package media streamed into
-   staging and kept on disk (plan item 2, finding N3): `CoursePackage` holds
-   staged files instead of `Map<String, Uint8List>`, install moves them;
-   the ZIP itself read from a staged file through `InputFileStream`. Split
-   from Revision 14 because it changes `CoursePackage`, every
-   `withInstalledMedia` caller and the Publisher path.
+1. **Revision 15 (Tranche 4, part 2)**: implemented and bumped to
+   `2.0.43+243015`; docs written; full suite running. Course packages are
+   parsed from disk (`parseFile`, `FileDialogService.openStaged`), only
+   referenced media read one at a time into `qql_import_staging` `.part`
+   files, `CoursePackage` has `mediaReferences`/`mediaBytes`/`discard()`.
+   Tests: `course_package_on_disk_tranche4b_test.dart` (8). If green: add the
+   validation record, commit, record hash, push.
 2. **Tranche 5** (Revision 16): content-hash duplicates with Skip / Replace /
    Keep both; provenance; the adversarial suite.
 

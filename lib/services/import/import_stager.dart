@@ -267,6 +267,25 @@ class ImportStager {
     return ImportBatchResult(items);
   }
 
+  /// Writes [bytes] (already checked, for example one entry of a Course
+  /// package) to a new staging file and returns it. The caller deletes it;
+  /// [removeLeftovers] removes any left behind.
+  Future<File> stageBytes(List<int> bytes) async {
+    try {
+      final directory = await stagingDirectory();
+      await directory.create(recursive: true);
+      final file = File(
+        '${directory.path}${Platform.pathSeparator}${_randomName()}.part',
+      );
+      await file.writeAsBytes(bytes, flush: true);
+      return file;
+    } catch (_) {
+      throw const ImportStorageException(
+        'QQL could not prepare its import folder.',
+      );
+    }
+  }
+
   /// Removes staging files left by an interrupted import; never throws.
   Future<void> removeLeftovers() async {
     try {

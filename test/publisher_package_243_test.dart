@@ -41,7 +41,7 @@ void main() {
         package.course.publisherVerificationStatus,
         PublisherVerificationStatus.verified,
       );
-      expect(package.media[reference], syntheticMp3());
+      expect(await package.mediaBytes(reference), syntheticMp3());
     },
   );
 
@@ -195,7 +195,7 @@ void main() {
           publisherVerification: verifier,
         ).courseFromBytes,
       );
-      expect(package.media.keys, {reference});
+      expect(package.mediaReferences, {reference});
       await mediaFile.writeAsBytes([0x49, 0x44, 0x33, 9]);
       await expectLater(
         signing_tool.packageSignedCourse(

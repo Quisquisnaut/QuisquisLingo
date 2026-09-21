@@ -330,6 +330,49 @@ class FileDialogService {
     }
   });
 
+  /// Open from…: one file, streamed into staging and counted against
+  /// [maxBytes], left there for the caller to read piece by piece. The
+  /// caller must discard [staged]. Used for Course packages up to 300 MB,
+  /// which are never read into memory whole.
+  Future<({FileDialogResult dialog, StagedFile? staged})> openStaged({
+    required List<String> extensions,
+    required int maxBytes,
+    required String artifact,
+  }) async {
+    StagedFile? staged;
+    final dialog = await _run('open', artifact, null, (initialDirectory) async {
+      final pick = await _backend.pickFiles(
+        extensions: extensions,
+        multiple: false,
+        initialDirectory: initialDirectory,
+      );
+      if (pick.outcome != FileDialogOutcome.opened) return pick.asResult();
+      final file = pick.files.single;
+      try {
+        staged = await _stager.stage(file, maxBytes: maxBytes);
+        return FileDialogResult.opened(file.displayName, Uint8List(0));
+      } on ImportTooLargeException {
+        return FileDialogResult.tooLarge(file.displayName);
+      } on ImportEmptyException {
+        return FileDialogResult.failed(
+          '${file.displayName} is empty.',
+          displayName: file.displayName,
+        );
+      } on ImportAccessException catch (error) {
+        return FileDialogResult.failed(
+          error.message,
+          displayName: file.displayName,
+        );
+      } on ImportStorageException catch (error) {
+        return FileDialogResult.failed(
+          error.message,
+          displayName: file.displayName,
+        );
+      }
+    });
+    return (dialog: dialog, staged: staged);
+  }
+
   /// Open from… with a multiple selection: every file is streamed into
   /// staging within the batch limits (100 files, 250 MB actual bytes, each at
   /// most [maxBytesPerFile]). The batch reports each file's outcome; the

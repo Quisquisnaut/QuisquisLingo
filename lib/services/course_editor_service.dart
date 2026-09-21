@@ -861,8 +861,8 @@ class CourseEditorService {
     final references = CourseMediaStore.referencesOf(update);
     if (package != null) {
       if (jsonEncode(package.course.toJson()) != jsonEncode(update.toJson()) ||
-          package.media.keys.toSet().difference(references).isNotEmpty ||
-          references.difference(package.media.keys.toSet()).isNotEmpty) {
+          package.mediaReferences.difference(references).isNotEmpty ||
+          references.difference(package.mediaReferences).isNotEmpty) {
         throw const FormatException('Publisher package does not match its Course.');
       }
       return package.withInstalledMedia(

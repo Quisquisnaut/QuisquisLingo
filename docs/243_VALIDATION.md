@@ -1,5 +1,28 @@
 # Build 243 validation
 
+## Revision 15 — Course packages read from disk (`2.0.43+243015`)
+
+Validation on 21 September 2026, before the Revision 15 commit.
+
+- New `course_package_on_disk_tranche4b_test.dart` (8), all passing:
+  - a package on disk is parsed into two staged `.part` files, nothing
+    reaches the Course folder while reading, installation copies both
+    recordings, `discard` removes the staged files (twice is harmless);
+  - an unused media entry (not even audio) is never read or staged;
+  - a bad recording half-way leaves nothing staged;
+  - a file over the size limit is refused before reading;
+  - Open from…: a ZIP is staged and parsed from disk, only the package's own
+    recording remains in staging, a refused ZIP and a cancelled dialog leave
+    nothing, a media-free JSON Course still opens.
+- The 140 tests of every file touching Course packages, transfer, merge and
+  Publisher installs passed before the full run (they now use
+  `mediaReferences`/`mediaBytes`).
+- Complete suite in two halves covering all 235 test files once:
+  **1,011 + 1,098 = 2,109 passed, 0 failed** (both halves exit 0).
+- `flutter analyze` on the repository: **no issues**.
+- The four `tools/validate_*.py` validators: 0 issues.
+- `git diff --check`: clean. The untracked `devtools_options.yaml` is excluded.
+
 ## Revision 14 — safer archives and structured files (`2.0.43+243014`)
 
 Validation on 21 September 2026, before the Revision 14 commit.

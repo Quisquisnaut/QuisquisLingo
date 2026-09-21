@@ -70,7 +70,7 @@ void main() {
 
       expect(imported.course.toJson(), course.toJson());
       expect(imported.courseJson, courseJson);
-      expect(imported.media[reference], recording);
+      expect(await imported.mediaBytes(reference), recording);
       await imported.withInstalledMedia('destination', () async => null);
       expect(await media.existingFile('destination', reference), isNotNull);
     },
@@ -260,7 +260,7 @@ void main() {
       (bytes, _) async => Course.fromJson(jsonDecode(utf8.decode(bytes))),
     );
     expect(imported.course.courseId, 'italian-demo-2-239');
-    expect(imported.media, isEmpty);
+    expect(imported.mediaReferences, isEmpty);
   });
 
   test('a recording that is not a real MP3 is refused on import', () async {
@@ -454,7 +454,10 @@ void main() {
       };
       Future<Course> validate(Uint8List bytes, String _) async =>
           Course.fromJson(jsonDecode(utf8.decode(bytes)));
-      expect((await packages.parse(zipped(entries), validate)).media, isEmpty);
+      expect(
+        (await packages.parse(zipped(entries), validate)).mediaReferences,
+        isEmpty,
+      );
       await expectLater(
         packages.parse(
           zipped({
