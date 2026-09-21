@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../models/course_draft_status.dart';
 import '../models/course_models.dart';
 import '../services/course_editor_service.dart';
 import '../services/course_library_service.dart';
@@ -6,7 +7,7 @@ import '../services/course_service.dart';
 import '../services/publication_service.dart';
 
 const availableCoursesHelp =
-    '''If your library has no courses available for study, Home keeps Settings and, when activated for your profile, Course Manager. Available on this device lets you add courses again. No course flag is shown until a playable course is selected.
+    '''If your library has no courses available for study, Home keeps Settings and, when activated for your profile, Course Manager. Course Library lets you add courses again. No course flag is shown until a playable course is selected.
 
 Courses are stored once on this device and can be added to each learner's personal library independently.
 
@@ -14,7 +15,7 @@ Bundled Courses are supplied with QQL. Publisher Courses are installed publisher
 
 Courses are sorted alphabetically within each section. Bold titles identify Bundled Courses in black (white on black in dark mode), Publisher Courses in purple and Custom Courses in orange. Maintainer shows the local profile responsible for a Custom Course, or the publisher for Bundled and Publisher Courses. A profile not present on this device is identified by its profile ID.
 
-Add to my courses includes the course in your Course Selector and Course Manager. Added · Remove lets you remove it here, with the same confirmation and optional progress reset. Blue outlined labels identify states that prevent study: Not published · Draft and Verification required. Only published courses are available for study. Publisher Courses also require verified signatures; draft or unverified courses remain subject to their existing restrictions.
+Add to my courses includes the course in your Course Selector and Course Manager. Added · Remove lets you remove it here, with the same confirmation and optional progress reset. By default the page hides Courses that are unpublished, require Publisher verification, or still contain Draft authoring content. Show unavailable or Draft Courses displays them with blue outlined labels: Draft, Unpublished and Verification required. Showing them does not make them playable or verified. Only published courses are available for study. Publisher Courses also require verified signatures; draft or unverified courses remain subject to their existing restrictions.
 
 Remove from my courses, in the Selector or Manager, removes the course only from your library. Progress is kept by default for when you add it again. You may explicitly reset your course progress during removal. Other learners and the shared file are unaffected. Even when Reset my progress is selected, all earned XP (including Weekly XP), total and per-language study days, streak and version backups are kept. XP earned from this course is not subtracted. Reset clears only your completed Rounds/Lessons, Perfect results, won Duels, read Guidebooks and recent Round entries for this course.
 
@@ -34,7 +35,11 @@ class _AvailableCoursesScreenState extends State<AvailableCoursesScreen> {
   String? _profileId;
   String? _error;
   Map<String, String> _profileNames = {};
+  Set<String> _hasDraft = {};
   bool _busy = false;
+
+  /// Page-session presentation filter; never changes any Course state.
+  bool _showUnavailable = false;
   @override
   void initState() {
     super.initState();
@@ -61,9 +66,14 @@ class _AvailableCoursesScreenState extends State<AvailableCoursesScreen> {
         final title = a.title.toLowerCase().compareTo(b.title.toLowerCase());
         return title != 0 ? title : a.courseId.compareTo(b.courseId);
       });
+      final hasDraft = {
+        for (final course in courses)
+          if (CourseDraftStatus.courseHasDraft(course)) course.courseId,
+      };
       if (!mounted) return;
       setState(() {
         _courses = courses;
+        _hasDraft = hasDraft;
         _added = added;
         _profileId = profileId;
         _profileNames = profileNames;
@@ -73,6 +83,20 @@ class _AvailableCoursesScreenState extends State<AvailableCoursesScreen> {
       if (mounted) setState(() => _error = '$error');
     }
   }
+
+  bool _isUnpublished(Course c) => !c.publicationState.isPublished;
+  bool _hasAuthoredDraft(Course c) => _hasDraft.contains(c.courseId);
+
+  /// Unpublished, awaiting Publisher verification, or containing Draft content.
+  bool _isUnavailableOrDraft(Course c) =>
+      _isUnpublished(c) ||
+      PublicationService.requiresPublisherVerification(c) ||
+      _hasAuthoredDraft(c);
+
+  List<Course> get _shownCourses => [
+    for (final course in _courses!)
+      if (_showUnavailable || !_isUnavailableOrDraft(course)) course,
+  ];
 
   int _section(Course c) {
     if (c.originType == CourseOriginType.bundledOfficial) return 0;
@@ -127,7 +151,7 @@ class _AvailableCoursesScreenState extends State<AvailableCoursesScreen> {
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(
-      title: const Text('Available on this device'),
+      title: const Text('Course Library'),
       actions: [
         IconButton(
           tooltip: 'Help',
@@ -135,9 +159,7 @@ class _AvailableCoursesScreenState extends State<AvailableCoursesScreen> {
           onPressed: () => Navigator.of(context).push<void>(
             MaterialPageRoute(
               builder: (_) => Scaffold(
-                appBar: AppBar(
-                  title: const Text('Available on this device — Help'),
-                ),
+                appBar: AppBar(title: const Text('Course Library — Help')),
                 body: const SingleChildScrollView(
                   padding: EdgeInsets.all(20),
                   child: SelectableText(availableCoursesHelp),
@@ -163,6 +185,26 @@ class _AvailableCoursesScreenState extends State<AvailableCoursesScreen> {
         : ListView(
             padding: const EdgeInsets.all(16),
             children: [
+              MergeSemantics(
+                child: InkWell(
+                  onTap: () =>
+                      setState(() => _showUnavailable = !_showUnavailable),
+                  child: Row(
+                    children: [
+                      Switch(
+                        key: const Key('show-unavailable-courses'),
+                        value: _showUnavailable,
+                        onChanged: (value) =>
+                            setState(() => _showUnavailable = value),
+                      ),
+                      const SizedBox(width: 8),
+                      const Flexible(
+                        child: Text('Show unavailable or Draft Courses'),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
               for (final (index, label) in [
                 'Bundled Courses',
                 'Publisher Courses',
@@ -176,9 +218,9 @@ class _AvailableCoursesScreenState extends State<AvailableCoursesScreen> {
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                 ),
-                if (!_courses!.any((c) => _section(c) == index))
+                if (!_shownCourses.any((c) => _section(c) == index))
                   const Text('No courses in this section.'),
-                for (final course in _courses!.where(
+                for (final course in _shownCourses.where(
                   (c) => _section(c) == index,
                 ))
                   LayoutBuilder(
@@ -195,7 +237,8 @@ class _AvailableCoursesScreenState extends State<AvailableCoursesScreen> {
                                 Theme.of(context).brightness == Brightness.dark
                                     ? Colors.white
                                     : Colors.black,
-                              CourseOriginType.externalOfficial => Colors.purple,
+                              CourseOriginType.externalOfficial =>
+                                Colors.purple,
                               CourseOriginType.custom => Colors.orange,
                             },
                             backgroundColor:
@@ -214,20 +257,17 @@ class _AvailableCoursesScreenState extends State<AvailableCoursesScreen> {
                             Text(
                               '${course.sourceLanguage} → ${course.targetLanguage}\nMaintainer: ${_maintainer(course)}',
                             ),
-                            if (!course.publicationState.isPublished ||
-                                PublicationService.requiresPublisherVerification(
-                                  course,
-                                ))
+                            if (_isUnavailableOrDraft(course))
                               Padding(
                                 padding: const EdgeInsets.only(top: 6),
                                 child: Wrap(
                                   spacing: 6,
                                   runSpacing: 6,
                                   children: [
-                                    if (!course.publicationState.isPublished)
-                                      const _BlockingStatusBadge(
-                                        'Not published · Draft',
-                                      ),
+                                    if (_hasAuthoredDraft(course))
+                                      const _BlockingStatusBadge('Draft'),
+                                    if (_isUnpublished(course))
+                                      const _BlockingStatusBadge('Unpublished'),
                                     if (PublicationService.requiresPublisherVerification(
                                       course,
                                     ))
@@ -294,7 +334,7 @@ Future<bool> removeFromMyCourses(BuildContext context, Course course) async {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                'Remove “${course.title}” from your Course Selector and Course Manager? The shared course and other profiles are unaffected. You can add it again from Available on this device.',
+                'Remove “${course.title}” from your Course Selector and Course Manager? The shared course and other profiles are unaffected. You can add it again from Course Library.',
               ),
               CheckboxListTile(
                 value: reset,

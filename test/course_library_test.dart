@@ -225,7 +225,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.pageBack();
     await tester.pumpUntilFileIoState(
-      () => find.text('Available on this device').evaluate().isNotEmpty,
+      () => find.text('Course Library').evaluate().isNotEmpty,
     );
     await tester.tap(find.byKey(const Key('empty-library-course-manager')));
     await tester.pumpUntilFileIoState(
@@ -234,9 +234,9 @@ void main() {
     expect(find.text('Bundled Courses'), findsNothing);
     await tester.pageBack();
     await tester.pumpUntilFileIoState(
-      () => find.text('Available on this device').evaluate().isNotEmpty,
+      () => find.text('Course Library').evaluate().isNotEmpty,
     );
-    await tester.tap(find.text('Available on this device'));
+    await tester.tap(find.text('Course Library'));
     await tester.pumpUntilFileIoState(
       () => find.text('Bundled Courses').evaluate().isNotEmpty,
     );
@@ -379,6 +379,10 @@ void main() {
         find.byKey(ValueKey('add-course-${publisher.courseId}')),
         350,
       );
+      await tester.ensureVisible(
+        find.byKey(ValueKey('add-course-${publisher.courseId}')),
+      );
+      await tester.pump();
       await tester.tap(
         find.byKey(ValueKey('add-course-${publisher.courseId}')),
       );
@@ -450,6 +454,9 @@ void main() {
         await tester.pumpUntilFileIoState(
           () => find.text('Bundled Courses').evaluate().isNotEmpty,
         );
+        expect(find.text(blocked.title), findsNothing);
+        await tester.tap(find.byKey(const Key('show-unavailable-courses')));
+        await tester.pump();
         final bundledTitle =
             tester.widget<ListTile>(find.byType(ListTile).first).title! as Text;
         expect(bundledTitle.style?.fontWeight, FontWeight.bold);
@@ -467,10 +474,7 @@ void main() {
         final publisherTitle = tester.widget<Text>(find.text(blocked.title));
         expect(publisherTitle.style?.fontWeight, FontWeight.bold);
         expect(publisherTitle.style?.color, Colors.purple);
-        for (final label in [
-          'Not published · Draft',
-          'Verification required',
-        ]) {
+        for (final label in ['Unpublished', 'Verification required']) {
           final badge = find
               .ancestor(of: find.text(label), matching: find.byType(Container))
               .first;

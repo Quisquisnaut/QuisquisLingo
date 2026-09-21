@@ -1551,7 +1551,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ListTile(
                     key: const Key('available-on-device'),
                     leading: const Icon(Icons.library_add_outlined),
-                    title: const Text('Available on this device'),
+                    title: const Text('Course Library'),
                     trailing: const Icon(Icons.chevron_right),
                     onTap: () async {
                       Navigator.pop(ctx);
@@ -2059,7 +2059,7 @@ class _HomeScreenState extends State<HomeScreen> {
               const Text('No courses available for study in your library.'),
               FilledButton(
                 onPressed: _openAvailableCourses,
-                child: const Text('Available on this device'),
+                child: const Text('Course Library'),
               ),
               if (_emptyLibraryEditorUnlocked) ...[
                 const SizedBox(height: 12),

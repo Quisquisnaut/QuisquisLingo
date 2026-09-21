@@ -3,66 +3,9 @@ import 'package:quisquislingo_app/models/course_draft_status.dart';
 import 'package:quisquislingo_app/models/course_models.dart';
 import 'package:quisquislingo_app/screens/course_editor_screen.dart';
 
-const _published = PublicationState.published;
-const _draft = PublicationState.draft;
+import 'support/course_library_fixtures.dart';
 
-Course draftStatusCourse({
-  PublicationState lesson = _published,
-  PublicationState round = _published,
-  PublicationState exercise = _published,
-  PublicationState guidebook = _published,
-  bool useGuidebook = true,
-}) {
-  final time = DateTime.utc(2026, 9, 21, 12);
-  return Course(
-    courseId: 'user_draft_status',
-    publicationState: _published,
-    learningLanguage: 'Italian',
-    interfaceLanguage: 'English',
-    sourceLanguage: 'English',
-    targetLanguage: 'Italian',
-    title: 'Draft status',
-    ttsLanguage: 'it-IT',
-    useGuidebook: useGuidebook,
-    lessons: [
-      Lesson(
-        lessonId: 'lesson',
-        publicationState: lesson,
-        updatedAt: time,
-        title: 'Lesson',
-        guidebook: Guidebook(publicationState: guidebook, content: const []),
-        rounds: [
-          LearningRound(
-            id: 'round',
-            publicationState: round,
-            updatedAt: time,
-            title: '',
-            exercises: [
-              Exercise(
-                id: 'exercise',
-                publicationState: exercise,
-                updatedAt: time,
-                type: 'build_translation',
-                prompt: 'How are you?',
-                question: '',
-                answers: const [],
-                correct: null,
-                tts: null,
-                accepted: const [],
-                tokens: const ['Come', 'stai'],
-                orderAnswer: const [],
-                correctTranslations: const ['Come stai?'],
-                pairs: const [],
-                hint: '',
-                icons: const [],
-              ),
-            ],
-          ),
-        ],
-      ),
-    ],
-  );
-}
+const _draft = PublicationState.draft;
 
 void main() {
   test('a fully published hierarchy has no Draft', () {

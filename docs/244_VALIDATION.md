@@ -1,5 +1,22 @@
 # Build 244 validation
 
+## Revision 2 — Course Library and availability switch (`2.0.44+244002`)
+
+Validation on 21 September 2026, before the Revision 2 commit.
+
+- New `test/course_library_screen_244_test.dart`: the title is Course
+  Library; by default the unpublished, Draft and unverified Courses are hidden
+  and the clean one is shown; the switch reveals each with exactly its own
+  labels and hides them again; toggling never changes membership or Course
+  JSON; every bundled Course is published and Draft-free, so none is hidden.
+- `test/course_library_test.dart` updated for the new name, the default-off
+  switch and the `Unpublished` label; one tap now scrolls its button fully
+  into view (the switch row moved the list down by one row).
+- Shared fixture builder moved to `test/support/course_library_fixtures.dart`.
+- Focused run: the two Course Library suites, the Draft rule test and the
+  four version tests: **40 passed, 0 failed**. `flutter analyze` on the
+  changed files: no issues. `git diff --check`: clean.
+
 ## Revision 1 — shared Course Draft rule (`2.0.44+244001`)
 
 Validation on 21 September 2026, before the Revision 1 commit.

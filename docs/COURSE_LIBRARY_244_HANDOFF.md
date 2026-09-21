@@ -11,7 +11,8 @@ with `docs/244_CHANGE_SUMMARY.md` and `docs/244_VALIDATION.md`).
 
 | Revision | Version | Commit | Content |
 |---|---|---|---|
-| 1 | `2.0.44+244001` | in progress | Draft predicates extracted to `lib/models/course_draft_status.dart` |
+| 1 | `2.0.44+244001` | `4516bd0` | Draft predicates extracted to `lib/models/course_draft_status.dart` |
+| 2 | `2.0.44+244002` | in progress | Rename to Course Library; availability switch; Draft / Unpublished / Verification required badges |
 
 The untracked `devtools_options.yaml` predates this work and must not be
 committed or deleted.

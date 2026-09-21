@@ -1,3 +1,14 @@
+# 2.0.44 (Build 244, Revision 2) - Course Library and availability switch - 2026-09-21
+
+Available on this device is now called **Course Library**, in its title, its Help,
+both Home entry points, the removal dialog and Editor Help and Info. A new
+**Show unavailable or Draft Courses** switch, off by default, hides Courses that
+are unpublished, need Publisher verification or contain Draft authoring
+content. Turned on, it shows them with separate **Draft**, **Unpublished** and
+**Verification required** labels. The switch only changes what the page shows;
+personal libraries, files and Course states are untouched.
+Version `2.0.44+244002`; Beta expiry remains **2026-10-21 23:59:59 local time**.
+
 # 2.0.44 (Build 244, Revision 1) - Shared Course Draft rule - 2026-09-21
 
 The rule that decides whether a Course contains authored Draft content now
