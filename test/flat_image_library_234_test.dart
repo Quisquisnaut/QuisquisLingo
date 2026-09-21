@@ -29,11 +29,11 @@ void main() {
       }
 
       await search('friend');
-      expect(find.text('Man'), findsOneWidget);
+      expect(find.text('man'), findsOneWidget);
       expect(find.text('QQL'), findsWidgets);
       const uomoTags = 'Tags: man, adult man, male, friend';
       expect(find.text(uomoTags), findsOneWidget);
-      await tester.tap(find.text('Man'));
+      await tester.tap(find.text('man'));
       await tester.pumpAndSettle();
       expect(
         find.descendant(
@@ -61,16 +61,16 @@ void main() {
       await tester.pumpAndSettle();
 
       await search('people_family_man');
-      expect(find.text('Man'), findsOneWidget);
+      expect(find.text('man'), findsOneWidget);
 
       await search('people family');
-      expect(find.text('Man'), findsOneWidget);
-      expect(find.text('Woman'), findsOneWidget);
+      expect(find.text('man'), findsOneWidget);
+      expect(find.text('woman'), findsOneWidget);
 
       await search('leap');
       expect(
         find.byWidgetPredicate(
-          (widget) => widget is Text && widget.data == 'Saltare',
+          (widget) => widget is Text && widget.data == 'saltare',
         ),
         findsOneWidget,
       );

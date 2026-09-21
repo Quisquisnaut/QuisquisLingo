@@ -1,5 +1,26 @@
 # Build 243 validation
 
+## Revision 5 — Image Library usability (`2.0.43+243005`)
+
+Validation on 21 September 2026, before the Revision 5 commit.
+
+- Focused run across the Image Library, Shared Image Library metadata, Admin
+  and non-Admin metadata UI and Recognize Characters test files: **42 passed,
+  0 failed**. This includes the new `flat_image_library_sort_test.dart`, which
+  covers name, newest, oldest, largest and smallest ordering and the corner
+  position of the badges and the delete control. It also includes the
+  single-tile case for a Shared Image Library image and its Course copy,
+  including a deleted original and a missing original file.
+- Complete `flutter test --no-pub` on the final code tree: **1,962 passed,
+  0 failed**.
+- `flutter analyze` on the repository: **no issues**.
+- `python tools/validate_images.py`: 111 assets, 0 issues.
+- `python tools/validate_lesson_icons.py`: 14 assets, 0 issues.
+- `python tools/validate_media_assets.py`: 443 files, 0 issues.
+- `python tools/validate_courses.py`: all 10 bundled Course Model v11 files OK.
+- `git diff --check`: clean. The pre-existing untracked
+  `devtools_options.yaml` is excluded from the commit.
+
 ## Revision 4 — signed Publisher media and Image Library (`2.0.43+243004`)
 
 Validation on 21 September 2026, before the Revision 4 commit and push.

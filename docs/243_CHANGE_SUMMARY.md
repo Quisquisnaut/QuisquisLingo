@@ -273,3 +273,32 @@ Version **2.0.43+243004**, same Beta expiry. Tranche 3 of the plan.
   when referenced. The separate **Shared Image Library** management entry
   remains Admin-only in Course Manager and Device Administration; its entries
   show `QQL` or `DEVICE` without Course-use badges.
+
+## Revision 5 — Image Library usability
+
+Version **2.0.43+243005**, same Beta expiry. Owner-requested interface changes
+to the Image Library and Shared Image Library; no Course, storage or import
+behavior changes.
+
+- `USED` is renamed `IN USE`. Badges (`QQL`, `DEVICE`, `COURSE`, `IN USE`)
+  are small labels on a translucent backing over the image's bottom-left
+  corner, one per row (`lib/widgets/image_badges.dart`), in the library grid
+  and in the exercise image preview.
+- A badge filter (All badges plus each badge present) sits below the category
+  filter when the listed images carry more than one kind of badge.
+- A sort menu orders the grid by Name (A–Z, default), Newest or Oldest added,
+  Largest or Smallest file. No record stores an added date, so it is derived
+  from QQL-generated values: the stamp in a single import's `local_<µs>` ID or
+  its Image Bank's `bank_<µs>` ID, or the Course file's write time. Bundled
+  images count as the oldest. File sizes are measured only when a size order is
+  first chosen. The choice is not persisted.
+- In a Course's Image Library, a Shared Image Library image and its Course copy
+  appear as one tile labelled `DEVICE`, `COURSE` and `IN USE`. The copy is
+  listed alone, as `COURSE`, when the original record is gone or its file is
+  missing.
+- Tiles show the image with its badges, the lowercase name and, only when the
+  image has tags, a lowercase `Tags:` line. The category line is removed, since
+  the category filter shows it. For an Admin, the delete and remove-bank buttons
+  are 22 px controls over the image's bottom-right corner instead of a row.
+- Category and badge filter chips are compact, without a checkmark; the
+  selected chip is filled.

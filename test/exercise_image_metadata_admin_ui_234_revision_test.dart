@@ -90,7 +90,7 @@ void main() {
       'colleague',
     );
     await tester.pump();
-    expect(find.text('Man'), findsOneWidget);
+    expect(find.text('man'), findsOneWidget);
     expect(
       (await ExerciseImageMetadataService().metadataFor(
         'people_family_man',

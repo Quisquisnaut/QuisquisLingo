@@ -1,3 +1,14 @@
+# 2.0.43 (Build 243, Revision 5) - Image Library usability - 2026-09-21
+
+Scope: [Build 243 change summary](docs/243_CHANGE_SUMMARY.md#revision-5--image-library-usability); evidence: [243 validation](docs/243_VALIDATION.md).
+
+- Platform version `2.0.43+243005`; the Beta expiry remains **2026-10-21 23:59:59 local time**.
+- The `USED` badge is renamed `IN USE`. Badges are small labels laid over the image's bottom-left corner, one per row, in the Image Library and the exercise image preview.
+- The Image Library adds a badge filter beside the category filter, and a sort menu: Name (A–Z), Newest or Oldest added, Largest or Smallest file.
+- In a Course's Image Library, an Admin-added image and its Course copy appear once, labelled `DEVICE`, `COURSE` and `IN USE`. If the original is gone from the device, the copy appears alone as `COURSE`.
+- Tiles show only the image, the name and, when present, the tags, in lowercase; the category is no longer repeated. An Admin's delete or remove-bank button is a small control in the image's bottom-right corner. Category and badge filter chips are compact.
+- The import security hardening plan is recorded in [docs/IMPORT_HARDENING_PLAN.md](docs/IMPORT_HARDENING_PLAN.md).
+
 # 2.0.43 (Build 243, Revision 4) - Signed Publisher Course media - 2026-09-21
 
 Tranche 3 of the [portable Course package plan](docs/COURSE_PACKAGE_PLAN.md). Scope: [Build 243 change summary](docs/243_CHANGE_SUMMARY.md#revision-4--signed-publisher-course-media); evidence: [243 validation](docs/243_VALIDATION.md).

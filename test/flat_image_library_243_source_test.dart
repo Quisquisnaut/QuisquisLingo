@@ -21,6 +21,13 @@ class _Catalog extends ExerciseImageMetadataService {
   Future<List<ExerciseImageMetadata>> loadCatalog() async => records;
 }
 
+/// Badges now sit over each image, so count them inside the grid only: the
+/// badge filter above the grid uses the same labels.
+Finder _inGrid(String text) => find.descendant(
+  of: find.byKey(const Key('exercise-image-grid')),
+  matching: find.text(text),
+);
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -77,9 +84,18 @@ void main() {
           find.textContaining('Image Library · 2 images').evaluate().isNotEmpty,
     );
     expect(find.textContaining('Image Library · 2 images'), findsOneWidget);
-    expect(find.text('COURSE · USED'), findsOneWidget);
-    expect(find.text('QQL · USED'), findsOneWidget);
+    expect(_inGrid('COURSE'), findsOneWidget);
+    expect(_inGrid('QQL'), findsOneWidget);
+    expect(_inGrid('IN USE'), findsNWidgets(2));
     expect(find.text('DEVICE'), findsNothing);
+    // The badge filter narrows the grid to images carrying that badge.
+    await tester.tap(find.byKey(const ValueKey('exercise-image-badge-QQL')));
+    await tester.pump();
+    expect(_inGrid('QQL'), findsOneWidget);
+    expect(_inGrid('COURSE'), findsNothing);
+    await tester.tap(find.text('All badges'));
+    await tester.pump();
+    expect(_inGrid('COURSE'), findsOneWidget);
     await tester.pumpUntilFileIoState(
       () => find
           .descendant(
@@ -92,7 +108,7 @@ void main() {
     await tester.pumpWidget(const SizedBox.shrink());
   });
 
-  testWidgets('Course Image Library adds USED to QQL and DEVICE entries', (
+  testWidgets('Course Image Library adds IN USE to QQL and DEVICE entries', (
     tester,
   ) async {
     tester.view.physicalSize = const Size(1000, 900);
@@ -174,9 +190,125 @@ void main() {
       () =>
           find.textContaining('Image Library · 3 images').evaluate().isNotEmpty,
     );
-    expect(find.text('QQL · USED'), findsNWidgets(2));
-    expect(find.text('DEVICE · USED'), findsOneWidget);
+    expect(_inGrid('QQL'), findsNWidgets(2));
+    expect(_inGrid('DEVICE'), findsOneWidget);
+    expect(_inGrid('IN USE'), findsNWidgets(3));
     expect(find.textContaining('COURSE'), findsNothing);
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
+
+  testWidgets('Course Image Library shows a device image and its copy once', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(1000, 900);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    final temp = (await tester.runAsync(
+      () => Directory.systemTemp.createTemp('qql_course_image_merge_'),
+    ))!;
+    addTearDown(() => temp.delete(recursive: true));
+    final media = CourseMediaStore(supportDirectory: () async => temp);
+    final courseJson =
+        jsonDecode(
+              File(
+                'demo_courses/italian_demo_2_pick_the_translation.json',
+              ).readAsStringSync(),
+            )
+            as Map<String, dynamic>;
+    final bytes = (await tester.runAsync(
+      () => File('assets/exercise_images/apple.webp').readAsBytes(),
+    ))!;
+    final reference = (await tester.runAsync(
+      () => media.addBytes(courseJson['courseId'] as String, bytes, 'webp'),
+    ))!;
+    final lessons = courseJson['lessons'] as List;
+    final rounds = (lessons.first as Map)['rounds'] as List;
+    final content = (rounds.first as Map)['content'] as List;
+    final exercise = (content[1] as Map)['exercise'] as Map;
+    final image = (exercise['prompt'] as List).cast<Map>().firstWhere(
+      (element) => element['type'] == 'image',
+    );
+    image['asset'] = reference;
+    image['sharedImageSource'] = const SharedImageSource(
+      id: 'cat-01',
+      label: 'Cat',
+      category: 'animals',
+      tags: ['cat'],
+      origin: 'local',
+    ).toJson();
+    final course = Course.fromJson(courseJson);
+    final originalFile = File('${temp.path}${Platform.pathSeparator}cat.webp');
+    await tester.runAsync(() => originalFile.writeAsBytes(bytes));
+    final original = ExerciseImageMetadata(
+      id: 'cat-01',
+      label: 'Cat',
+      category: 'animals',
+      tags: const ['cat'],
+      assetPath: originalFile.path,
+      origin: 'local',
+    );
+    final missingOriginal = ExerciseImageMetadata(
+      id: 'cat-01',
+      label: 'Cat',
+      category: 'animals',
+      tags: const ['cat'],
+      assetPath: '${temp.path}${Platform.pathSeparator}gone.webp',
+      origin: 'local',
+    );
+
+    Future<void> show(
+      List<ExerciseImageMetadata> records, {
+      int count = 1,
+    }) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: FlatImageLibraryScreen(
+            key: UniqueKey(),
+            course: course,
+            mediaStore: media,
+            readOnly: true,
+            metadataService: _Catalog(records),
+          ),
+        ),
+      );
+      await tester.pumpUntilFileIoState(
+        () => find
+            .textContaining('Image Library \u00b7 $count images')
+            .evaluate()
+            .isNotEmpty,
+      );
+    }
+
+    // The original is on the device: one tile carries all three badges.
+    await show([original]);
+    expect(_inGrid('cat'), findsOneWidget);
+    expect(_inGrid('DEVICE'), findsOneWidget);
+    expect(_inGrid('COURSE'), findsOneWidget);
+    expect(_inGrid('IN USE'), findsOneWidget);
+
+    // The original was deleted: the Course copy stands alone.
+    await show(const []);
+    expect(_inGrid('DEVICE'), findsNothing);
+    expect(_inGrid('COURSE'), findsOneWidget);
+
+    // A record whose file is gone does not hide the working Course copy.
+    await show([missingOriginal], count: 2);
+    expect(_inGrid('cat'), findsNWidgets(2));
+    expect(_inGrid('COURSE'), findsOneWidget);
+    expect(_inGrid('DEVICE'), findsOneWidget);
+    expect(_inGrid('IN USE'), findsNWidgets(2));
+    // Let the Course file finish loading so Windows releases it before the
+    // temporary folder is deleted.
+    await tester.pumpUntilFileIoState(
+      () => find
+          .descendant(
+            of: find.byType(CourseMediaImage),
+            matching: find.byType(Image),
+          )
+          .evaluate()
+          .isNotEmpty,
+    );
     await tester.pumpWidget(const SizedBox.shrink());
   });
 
@@ -242,10 +374,16 @@ void main() {
       );
       await tester.tap(find.text('Open library'));
       await tester.pumpAndSettle();
-      expect(find.text('QQL'), findsOneWidget);
-      expect(find.text('DEVICE'), findsOneWidget);
+      expect(_inGrid('QQL'), findsOneWidget);
+      expect(_inGrid('DEVICE'), findsOneWidget);
       expect(find.text('COURSE'), findsNothing);
-      expect(find.text('USED'), findsNothing);
+      expect(find.text('IN USE'), findsNothing);
+      await tester.tap(
+        find.byKey(const ValueKey('exercise-image-badge-DEVICE')),
+      );
+      await tester.pumpAndSettle();
+      expect(_inGrid('QQL'), findsNothing);
+      expect(_inGrid('DEVICE'), findsOneWidget);
       await tester.tap(find.byKey(const ValueKey('exercise-image-cat-01')));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Use image'));
@@ -326,7 +464,7 @@ void main() {
     await show(exercise('assets/exercise_images/apple.webp'));
     expect(find.text('QQL'), findsOneWidget);
     expect(find.text('COURSE'), findsNothing);
-    expect(find.text('USED'), findsOneWidget);
+    expect(find.text('IN USE'), findsOneWidget);
     expect(find.text('DEVICE'), findsNothing);
 
     final reference = 'media:${'a' * 64}.webp';
@@ -344,12 +482,12 @@ void main() {
     );
     expect(find.text('DEVICE'), findsOneWidget);
     expect(find.text('COURSE'), findsOneWidget);
-    expect(find.text('USED'), findsOneWidget);
+    expect(find.text('IN USE'), findsOneWidget);
     expect(find.text('QQL'), findsNothing);
 
     await show(exercise(reference));
     expect(find.text('COURSE'), findsOneWidget);
-    expect(find.text('USED'), findsOneWidget);
+    expect(find.text('IN USE'), findsOneWidget);
     expect(find.text('DEVICE'), findsNothing);
     expect(find.text('QQL'), findsNothing);
   });

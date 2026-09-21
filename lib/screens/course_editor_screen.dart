@@ -9,6 +9,7 @@ import '../services/first_letter_answer_service.dart';
 import '../services/portable_exercise_image.dart';
 import '../widgets/script_recognition_editor.dart';
 import '../widgets/course_media_image.dart';
+import '../widgets/image_badges.dart';
 import '../services/course_media_store.dart';
 import 'package:audioplayers/audioplayers.dart';
 
@@ -9539,35 +9540,46 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
               ],
             ),
             const SizedBox(height: 8),
-            preview,
-            if (_imageAsset.isNotEmpty) ...[
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 8,
-                runSpacing: 4,
-                children: [
-                  if (_imageAsset.startsWith('assets/'))
-                    const Tooltip(
-                      message: 'App-bundled image, supplied by QQL.',
-                      child: Chip(label: Text('QQL')),
-                    )
-                  else if (_selectedSharedSource != null)
-                    const Tooltip(
-                      message: 'Originally from the Admin Shared Image Library.',
-                      child: Chip(label: Text('DEVICE')),
+            if (_imageAsset.isEmpty)
+              preview
+            else
+              // Loose constraints let the Stack hug the image, so the badges
+              // sit on the image itself and the image stays centered.
+              Center(
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    preview,
+                    Positioned(
+                      left: 4,
+                      bottom: 4,
+                      child: ImageBadges(fontSize: 10, [
+                        if (_imageAsset.startsWith('assets/'))
+                          (
+                            label: 'QQL',
+                            message: 'App-bundled image, supplied by QQL.',
+                          )
+                        else if (_selectedSharedSource != null)
+                          (
+                            label: 'DEVICE',
+                            message:
+                                'Originally from the Admin Shared Image Library.',
+                          ),
+                        if (CourseMediaStore.isImageReference(_imageAsset))
+                          (
+                            label: 'COURSE',
+                            message:
+                                'The image bytes are stored in this Course folder.',
+                          ),
+                        (
+                          label: 'IN USE',
+                          message: 'This image is used by this Course.',
+                        ),
+                      ]),
                     ),
-                  if (CourseMediaStore.isImageReference(_imageAsset))
-                    const Tooltip(
-                      message: 'The image bytes are stored in this Course folder.',
-                      child: Chip(label: Text('COURSE')),
-                    ),
-                  const Tooltip(
-                    message: 'This image is used by this Course.',
-                    child: Chip(label: Text('USED')),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ],
             const SizedBox(height: 8),
             Wrap(
               spacing: 8,

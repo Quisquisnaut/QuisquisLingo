@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../models/course_models.dart';
 import '../models/exercise_image_metadata.dart';
@@ -11,6 +12,7 @@ import '../services/image_bank_service.dart';
 import '../services/profile_service.dart';
 import '../widgets/course_media_image.dart';
 import '../widgets/file_dialog_feedback.dart';
+import '../widgets/image_badges.dart';
 
 String _normalizeImageSearchText(String value) => value
     .trim()
@@ -26,6 +28,34 @@ bool _matchesImageSearch(ExerciseImageMetadata asset, String normalizedQuery) {
     asset.id,
     asset.category,
   ].any((value) => _normalizeImageSearchText(value).contains(normalizedQuery));
+}
+
+enum _ImageSort {
+  name('Name (A–Z)'),
+  newest('Newest added'),
+  oldest('Oldest added'),
+  largest('Largest file'),
+  smallest('Smallest file');
+
+  const _ImageSort(this.label);
+  final String label;
+}
+
+// No image record stores when it was added, so the date comes from values QQL
+// itself generated: the microsecond stamp in a single import's ID, the stamp in
+// its Image Bank ID, or when the file was written into the Course folder.
+// Bundled images have no date and count as the oldest.
+final _localIdStamp = RegExp(r'^local_(\d+)$');
+final _bankOriginStamp = RegExp(r'^bank:bank_(\d+)$');
+
+DateTime? _stampedDate(ExerciseImageMetadata item) {
+  final match =
+      _localIdStamp.firstMatch(item.id) ??
+      _bankOriginStamp.firstMatch(item.origin);
+  final micros = match == null ? null : int.tryParse(match.group(1)!);
+  return micros == null
+      ? null
+      : DateTime.fromMicrosecondsSinceEpoch(micros, isUtc: true);
 }
 
 class FlatImageLibraryScreen extends StatefulWidget {
@@ -72,8 +102,14 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
   List<ExerciseImageMetadata> _all = const [];
   Set<String> _usedReferences = const {};
   Set<String> _usedSharedIds = const {};
+  Set<String> _courseCopiedSharedIds = const {};
   String _query = '';
   String? _category;
+  String? _badge;
+  _ImageSort _sort = _ImageSort.name;
+  Map<String, DateTime> _addedAt = const {};
+  Map<String, int> _fileBytes = const {};
+  bool _fileBytesLoaded = false;
   String? _loadError;
   bool _loading = true;
   bool _canManageMetadata = false;
@@ -94,6 +130,8 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
     try {
       final records = await _metadata.loadCatalog();
       final owned = <ExerciseImageMetadata>[];
+      final ownedDates = <String, DateTime>{};
+      final ownedSources = <String, String?>{};
       final course = widget.course;
       final imageElements = course == null
           ? const <PromptElement>[]
@@ -113,6 +151,11 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
             final reference = 'media:$name';
             if (!CourseMediaStore.isImageReference(reference)) continue;
             final source = sources[reference];
+            try {
+              ownedDates['course_$name'] = (await entity.lastModified())
+                  .toUtc();
+            } catch (_) {}
+            ownedSources['course_$name'] = source?.id;
             owned.add(
               ExerciseImageMetadata(
                 id: 'course_$name',
@@ -127,6 +170,20 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
           }
         }
       }
+      // A Course copy of a Shared Image Library image whose original is still
+      // on this device is shown once, as the original with a COURSE badge. A
+      // record whose file is gone does not hide a working Course copy.
+      final deviceIds = {
+        for (final record in records)
+          if (!_isBundled(record) && !_isMissing(record)) record.id,
+      };
+      final copied = <String>{};
+      owned.removeWhere((item) {
+        final sourceId = ownedSources[item.id];
+        if (sourceId == null || !deviceIds.contains(sourceId)) return false;
+        copied.add(sourceId);
+        return true;
+      });
       final actor = widget.actorProfileId;
       final canManage =
           !widget.readOnly &&
@@ -154,6 +211,14 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
                   if (element.sharedImageSource != null)
                     element.sharedImageSource!.id,
               };
+        _addedAt = {
+          for (final record in records)
+            if (_stampedDate(record) case final date?) record.id: date,
+          ...ownedDates,
+        };
+        _fileBytes = const {};
+        _fileBytesLoaded = false;
+        _courseCopiedSharedIds = copied;
         _canManageMetadata = canManage;
         _loadError = null;
         _loading = false;
@@ -525,10 +590,150 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
     if (saved == true) await _load();
   }
 
+  /// File sizes are read only when a size order is first chosen, because the
+  /// bundled images must be loaded from the asset bundle to measure them.
+  Future<void> _loadFileBytes() async {
+    final sizes = <String, int>{};
+    final course = widget.course;
+    for (final item in _all) {
+      try {
+        final path = item.assetPath;
+        if (path.startsWith('assets/')) {
+          sizes[item.id] = (await rootBundle.load(path)).lengthInBytes;
+        } else if (CourseMediaStore.isImageReference(path)) {
+          if (course == null) continue;
+          final file = await _courseMedia.existingFile(course.courseId, path);
+          if (file != null) sizes[item.id] = await file.length();
+        } else {
+          sizes[item.id] = await File(path).length();
+        }
+      } catch (_) {}
+    }
+    if (!mounted) return;
+    setState(() {
+      _fileBytes = sizes;
+      _fileBytesLoaded = true;
+    });
+  }
+
+  void _setSort(_ImageSort sort) {
+    setState(() => _sort = sort);
+    if ((sort == _ImageSort.largest || sort == _ImageSort.smallest) &&
+        !_fileBytesLoaded) {
+      _loadFileBytes();
+    }
+  }
+
+  int _compareImages(ExerciseImageMetadata left, ExerciseImageMetadata right) {
+    int byName() =>
+        left.label.toLowerCase().compareTo(right.label.toLowerCase());
+    final oldest = DateTime.fromMicrosecondsSinceEpoch(0, isUtc: true);
+    int byDate() =>
+        (_addedAt[left.id] ?? oldest).compareTo(_addedAt[right.id] ?? oldest);
+    // An unmeasured file (missing, or sizes still loading) sorts last.
+    int bySize(bool largestFirst) {
+      final a = _fileBytes[left.id];
+      final b = _fileBytes[right.id];
+      if (a == null || b == null) return a == null ? (b == null ? 0 : 1) : -1;
+      return largestFirst ? b.compareTo(a) : a.compareTo(b);
+    }
+
+    final primary = switch (_sort) {
+      _ImageSort.name => 0,
+      _ImageSort.newest => -byDate(),
+      _ImageSort.oldest => byDate(),
+      _ImageSort.largest => bySize(true),
+      _ImageSort.smallest => bySize(false),
+    };
+    return primary != 0 ? primary : byName();
+  }
+
+  /// A compact filter chip: smaller text, tight padding and no checkmark (the
+  /// selected fill already shows the choice), so more categories fit a row.
+  static Widget _filterChip({
+    Key? key,
+    required String label,
+    required bool selected,
+    required VoidCallback onSelected,
+  }) => Padding(
+    padding: const EdgeInsets.only(right: 4),
+    child: ChoiceChip(
+      key: key,
+      label: Text(label),
+      labelStyle: const TextStyle(fontSize: 12),
+      labelPadding: const EdgeInsets.symmetric(horizontal: 2),
+      padding: const EdgeInsets.symmetric(horizontal: 4),
+      showCheckmark: false,
+      visualDensity: VisualDensity.compact,
+      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      selected: selected,
+      onSelected: (_) => onSelected(),
+    ),
+  );
+
+  /// The image with its badges over its own bottom-left corner. Under loose
+  /// constraints the Stack hugs the image, so a narrow or short image still
+  /// carries the badges on the picture rather than on the empty tile.
+  Widget _badged(ExerciseImageMetadata item) => Stack(
+    clipBehavior: Clip.none,
+    children: [
+      _imageFor(item),
+      Positioned(
+        left: 0,
+        bottom: 0,
+        child: ImageBadges([
+          for (final badge in _badges(item))
+            (label: badge, message: _badgeMeanings[badge]!),
+        ]),
+      ),
+    ],
+  );
+
+  /// Delete or remove-bank control laid over the image's bottom-right corner,
+  /// so it takes no row of its own; null when the viewer cannot remove it.
+  Widget? _removeAction(ExerciseImageMetadata item) {
+    if (!_canManageMetadata) return null;
+    if (item.origin == 'local') {
+      return _cornerButton(
+        'Delete imported image',
+        Icons.delete_outline,
+        () => _deleteLocal(item),
+      );
+    }
+    if (_bankId(item) != null) {
+      return _cornerButton(
+        'Remove this imported bank',
+        Icons.inventory_2_outlined,
+        () => _removeBank(item),
+      );
+    }
+    return null;
+  }
+
+  static Widget _cornerButton(
+    String tooltip,
+    IconData icon,
+    VoidCallback onPressed,
+  ) => IconButton.filledTonal(
+    tooltip: tooltip,
+    onPressed: onPressed,
+    iconSize: 13,
+    visualDensity: VisualDensity.compact,
+    padding: const EdgeInsets.all(3),
+    constraints: const BoxConstraints(minWidth: 22, minHeight: 22),
+    icon: Icon(icon),
+  );
+
   bool _isMissing(ExerciseImageMetadata item) =>
       !item.assetPath.startsWith('assets/') &&
       !CourseMediaStore.isImageReference(item.assetPath) &&
       !File(item.assetPath).existsSync();
+
+  List<String> _badges(ExerciseImageMetadata item) => _badgesOf(
+    item,
+    used: _isUsed(item),
+    inCourse: _courseCopiedSharedIds.contains(item.id),
+  );
 
   bool _isUsed(ExerciseImageMetadata item) =>
       _usedReferences.contains(item.assetPath) ||
@@ -630,7 +835,7 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
                 ),
                 const SizedBox(height: 10),
                 Text(
-                  'Source: ${_sourceCode(item, used: _isUsed(item))} '
+                  'Source: ${_sourceCode(_badges(item))} '
                   '· ${_sourceExplanation(item)}',
                 ),
                 Text('Category: ${item.category.replaceAll('_', ' ')}'),
@@ -698,13 +903,23 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
     final categories = _all.map((item) => item.category).toSet().toList()
       ..sort();
     final normalizedQuery = _normalizeImageSearchText(_query);
-    final items = _all
-        .where(
-          (item) =>
-              (_category == null || item.category == _category) &&
-              _matchesImageSearch(item, normalizedQuery),
-        )
-        .toList();
+    final presentBadges = {
+      for (final item in _all) ..._badges(item),
+    };
+    final badges = _badgeOrder.where(presentBadges.contains).toList();
+    // A filter left over from a reload that no longer offers it is ignored.
+    final badge = badges.length > 1 && badges.contains(_badge) ? _badge : null;
+    final items =
+        _all
+            .where(
+              (item) =>
+                  (_category == null || item.category == _category) &&
+                  (badge == null ||
+                      _badges(item).contains(badge)) &&
+                  _matchesImageSearch(item, normalizedQuery),
+            )
+            .toList()
+          ..sort(_compareImages);
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -712,6 +927,21 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
           '· ${_all.length} images',
         ),
         actions: [
+          PopupMenuButton<_ImageSort>(
+            key: const Key('exercise-image-sort'),
+            tooltip: 'Sort images: ${_sort.label}',
+            icon: const Icon(Icons.sort),
+            onSelected: _setSort,
+            itemBuilder: (_) => [
+              for (final sort in _ImageSort.values)
+                CheckedPopupMenuItem(
+                  key: ValueKey('exercise-image-sort-${sort.name}'),
+                  value: sort,
+                  checked: sort == _sort,
+                  child: Text(sort.label),
+                ),
+            ],
+          ),
           if (_canManageMetadata)
             PopupMenuButton<String>(
               tooltip: 'Import',
@@ -787,29 +1017,49 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
                   ),
                 ),
                 SizedBox(
-                  height: 44,
+                  height: 36,
                   child: ListView(
                     scrollDirection: Axis.horizontal,
                     padding: const EdgeInsets.symmetric(horizontal: 10),
                     children: [
-                      ChoiceChip(
-                        label: const Text('All'),
+                      _filterChip(
+                        label: 'All',
                         selected: _category == null,
-                        onSelected: (_) => setState(() => _category = null),
+                        onSelected: () => setState(() => _category = null),
                       ),
-                      const SizedBox(width: 6),
-                      for (final category in categories) ...[
-                        ChoiceChip(
-                          label: Text(category.replaceAll('_', ' ')),
+                      for (final category in categories)
+                        _filterChip(
+                          label: category.replaceAll('_', ' '),
                           selected: _category == category,
-                          onSelected: (_) =>
+                          onSelected: () =>
                               setState(() => _category = category),
                         ),
-                        const SizedBox(width: 6),
-                      ],
                     ],
                   ),
                 ),
+                if (badges.length > 1)
+                  SizedBox(
+                    height: 36,
+                    child: ListView(
+                      key: const Key('exercise-image-badge-filter'),
+                      scrollDirection: Axis.horizontal,
+                      padding: const EdgeInsets.symmetric(horizontal: 10),
+                      children: [
+                        _filterChip(
+                          label: 'All badges',
+                          selected: badge == null,
+                          onSelected: () => setState(() => _badge = null),
+                        ),
+                        for (final option in badges)
+                          _filterChip(
+                            key: ValueKey('exercise-image-badge-$option'),
+                            label: option,
+                            selected: badge == option,
+                            onSelected: () => setState(() => _badge = option),
+                          ),
+                      ],
+                    ),
+                  ),
                 Expanded(
                   child: items.isEmpty
                       ? const Center(child: Text('No matching images.'))
@@ -836,11 +1086,29 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
                                   child: Column(
                                     children: [
                                       Expanded(
-                                        child: Center(child: _imageFor(item)),
+                                        child: Stack(
+                                          children: [
+                                            Positioned.fill(
+                                              child: Center(
+                                                child: _badged(item),
+                                              ),
+                                            ),
+                                            if (_removeAction(item)
+                                                case final action?)
+                                              Positioned(
+                                                right: 0,
+                                                bottom: 0,
+                                                child: action,
+                                              ),
+                                          ],
+                                        ),
                                       ),
                                       const SizedBox(height: 4),
+                                      // The category filter already shows the
+                                      // category, so the tile carries only the
+                                      // name and tags, in lowercase.
                                       Text(
-                                        item.label,
+                                        item.label.toLowerCase(),
                                         textAlign: TextAlign.center,
                                         maxLines: 2,
                                         overflow: TextOverflow.ellipsis,
@@ -849,52 +1117,15 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
                                           fontWeight: FontWeight.w600,
                                         ),
                                       ),
-                                      Text(
-                                        item.category.replaceAll('_', ' '),
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: const TextStyle(fontSize: 9),
-                                      ),
-                                      Tooltip(
-                                        message: _sourceExplanation(item),
-                                        child: Text(
-                                          _sourceCode(item, used: _isUsed(item)),
-                                          textAlign: TextAlign.center,
-                                          style: const TextStyle(
-                                            fontSize: 9,
-                                            fontWeight: FontWeight.w800,
-                                          ),
-                                        ),
-                                      ),
-                                      Tooltip(
-                                        message:
-                                            'Tags: ${item.tags.join(', ')}',
-                                        child: Text(
-                                          'Tags: ${item.tags.join(', ')}',
-                                          textAlign: TextAlign.center,
-                                          maxLines: 2,
-                                          overflow: TextOverflow.ellipsis,
-                                          style: const TextStyle(fontSize: 9),
-                                        ),
-                                      ),
-                                      if (_canManageMetadata &&
-                                          item.origin == 'local')
-                                        IconButton(
-                                          tooltip: 'Delete imported image',
-                                          onPressed: () => _deleteLocal(item),
-                                          icon: const Icon(
-                                            Icons.delete_outline,
-                                            size: 18,
-                                          ),
-                                        ),
-                                      if (_canManageMetadata &&
-                                          _bankId(item) != null)
-                                        IconButton(
-                                          tooltip: 'Remove this imported bank',
-                                          onPressed: () => _removeBank(item),
-                                          icon: const Icon(
-                                            Icons.inventory_2_outlined,
-                                            size: 18,
+                                      if (_tileTags(item) case final tags?)
+                                        Tooltip(
+                                          message: tags,
+                                          child: Text(
+                                            tags,
+                                            textAlign: TextAlign.center,
+                                            maxLines: 2,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: const TextStyle(fontSize: 9),
                                           ),
                                         ),
                                     ],
@@ -947,14 +1178,37 @@ Iterable<PromptElement> _courseImageElements(Course course) sync* {
   }
 }
 
-String _sourceCode(ExerciseImageMetadata item, {bool used = false}) {
-  final source = switch (item.origin) {
-    'course-device' => 'DEVICE · COURSE',
-    'course' => 'COURSE',
-    _ => _isBundled(item) ? 'QQL' : 'DEVICE',
-  };
-  return used ? '$source · USED' : source;
-}
+/// Badge labels in display order; the badge filter offers the same labels.
+const _badgeOrder = ['QQL', 'DEVICE', 'COURSE', 'IN USE'];
+
+const _badgeMeanings = {
+  'QQL': 'App bundled; supplied by QQL on every device.',
+  'DEVICE': 'Admin-added on this device; copied into the Course ZIP when used.',
+  'COURSE': 'These bytes are stored in this Course.',
+  'IN USE': 'This image is used by this Course.',
+};
+
+/// [inCourse]: a device image whose Course copy is listed as this same tile.
+List<String> _badgesOf(
+  ExerciseImageMetadata item, {
+  bool used = false,
+  bool inCourse = false,
+}) => [
+  ...switch (item.origin) {
+    // Listed on its own only when the device original is gone.
+    'course' || 'course-device' => const ['COURSE'],
+    _ => [_isBundled(item) ? 'QQL' : 'DEVICE', if (inCourse) 'COURSE'],
+  },
+  if (used) 'IN USE',
+];
+
+/// The tile's tag line, or null when the image has no tags. `Local:` will
+/// follow on the same line, only when present, once Local words exist
+/// (docs/IMPORT_HARDENING_PLAN.md, Tranche 0b).
+String? _tileTags(ExerciseImageMetadata item) =>
+    item.tags.isEmpty ? null : 'Tags: ${item.tags.join(', ').toLowerCase()}';
+
+String _sourceCode(List<String> badges) => badges.join(' · ');
 
 String _sourceExplanation(ExerciseImageMetadata item) => switch (item.origin) {
   'course-device' => 'Originally Admin-added; these bytes are stored in this Course.',
