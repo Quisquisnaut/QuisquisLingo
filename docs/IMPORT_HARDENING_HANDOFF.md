@@ -4,7 +4,7 @@ Keep this file current at the end of **every** revision, so that work can
 resume after a pause or with another agent. Plan and decisions:
 [IMPORT_HARDENING_PLAN.md](IMPORT_HARDENING_PLAN.md). Rules: `AGENTS.md`.
 
-## Where things stand (updated 2026-09-21, Revision 16 committed; paused by the owner for usage credits)
+## Where things stand (updated 2026-09-21, Revision 17 committed)
 
 | Revision | Version | Commit | Content |
 |---|---|---|---|
@@ -20,21 +20,15 @@ resume after a pause or with another agent. Plan and decisions:
 | 14 | `2.0.43+243014` | `eb0857a` | Tranche 4 part 1: `BoundedZipReader` for banks and packages; bank allowlist, object manifest, field bounds, Admin choice on new categories; `JsonLimits`/`CourseShapeLimits` |
 | 15 | `2.0.43+243015` | `a188613` | Tranche 4 part 2: Course packages parsed from disk; referenced media staged one at a time; `CoursePackage.mediaReferences`/`mediaBytes`/`discard()` |
 | 16 | `2.0.43+243016` | `21bf653` | Tranche 5 part 1: content duplicates skipped; bank ID conflicts Skip/Replace/Keep both + Apply to all; `ImageProvenance`; date sort; screen renamed Shared Images; web page saved as `.mp3` explained |
+| 17 | `2.0.43+243017` | `2959fff` | Clearer media errors and wrong-file identification; Image Bank manifest creation guidance in errors and Help; On-Device TTS label and mode-specific Audio Library text/actions |
 
-Revisions 5–16 are pushed to `origin/main`. The untracked
-`devtools_options.yaml` predates this work: never commit or delete it.
+Revisions 5–16 are pushed to `origin/main`; Revision 17 is committed locally.
+The untracked `devtools_options.yaml` and `assets/lesson_plants/plant_1.zip`
+predate this work: never commit or delete them.
 
 ## Next steps, in order (plan §6a)
 
-**Paused here by the owner (usage credits).** Resume with item 1.
-
-1. **Revision 17 (owner request 2026-09-21): clearer media error
-   messages.** Every media error (images, recordings, Image Banks, Course
-   package media, Lesson icons, flags; about 110 messages) says in plain
-   words what is wrong and what to do; no exact byte counts. Recognise what
-   a mislabelled file really is (web page, ZIP, PDF, picture named .mp3,
-   recording named .png…) and say so. Update tests that match messages.
-2. **Revision 18 (owner decision 2026-09-21):** in the full-size preview
+1. **Revision 18 (owner decision 2026-09-21):** in the full-size preview
    (`FlatImageLibraryScreen._preview`, both Shared Images and the Course
    Editor's Image Library), a tooltip on the picture: hover on desktop,
    long-press on phones, none on tiles. Content: file name (QQL asset name;
@@ -46,7 +40,7 @@ Revisions 5–16 are pushed to `origin/main`. The untracked
    this Course". Owner: "Yes to all. Only English": format and bank
    name in, importing Admin's name out (as proposed; one line to add if the
    owner wants it), Help text in English only.
-3. **Phase 20 route-matrix adversarial suite**: Revision 19.
+2. **Phase 20 route-matrix adversarial suite**: Revision 19.
 
 ## Owner decisions already taken
 
