@@ -4,7 +4,7 @@ Keep this file current at the end of **every** revision, so that work can
 resume after a pause or with another agent. Plan and decisions:
 [IMPORT_HARDENING_PLAN.md](IMPORT_HARDENING_PLAN.md). Rules: `AGENTS.md`.
 
-## Where things stand (updated 2026-09-21 17:10, Revision 10 in validation)
+## Where things stand (updated 2026-09-21 17:24, Revision 10 committed)
 
 | Revision | Version | Commit | Content |
 |---|---|---|---|
@@ -13,22 +13,10 @@ resume after a pause or with another agent. Plan and decisions:
 | 7 | `2.0.43+243007` | `4230d94` | Image library tidy-up: `CourseImageUsage` single usage rule (presentations and GuideBooks now count), `image_library_rules.dart`, `ExerciseImageField` |
 | 8 | `2.0.43+243008` | `8a27dfe` | Badge order IN USE first; Remove from this Course (`CourseImageRemoval`, Draft on Audit error); `imageLibrary` with Keep in library; bin on every Course-stored image |
 | 9 | `2.0.43+243009` | `c34aa60` | Tranche 0b: QQL image metadata read-only; Local words; device categories; schema-2 metadata document (fixes the snapshot failure) |
+| 10 | `2.0.43+243010` | `b2b7d7d` | Tranche 1: safe import foundation (streamed staging under real limits, ordinary files only, per-file batch results, cancellation) |
 
-Revisions 5–9 are pushed to `origin/main`. The untracked
+Revisions 5–10 are pushed to `origin/main`. The untracked
 `devtools_options.yaml` predates this work: never commit or delete it.
-
-## Revision 10 (Tranche 1) — in validation
-
-Implemented in the working tree: version `2.0.43+243010`, and the analyzer is
-clean. New code is in `lib/services/import/` (stager, selected files, results,
-safe names). `FileDialogService` stages through `ImportStager`, and the nine
-callers pass real limits and map `tooLarge`. Fixed-name imports check
-`isOrdinaryFile`. The staging folder is registered in reset, inventory and the
-storage doc. `import_foundation_tranche1_test.dart` (17) passes, as do 207
-reset, inventory and import-route tests and 61 dialog tests.
-
-Still to do: run the full suite in two halves, record it in
-`243_VALIDATION.md`, commit, put the hash in the table above, and push.
 
 ## Next steps, in order (plan §6a)
 
