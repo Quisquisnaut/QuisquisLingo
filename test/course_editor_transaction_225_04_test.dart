@@ -1,10 +1,12 @@
 import 'support/publisher_fixtures.dart';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:quisquislingo_app/models/course_models.dart';
 import 'package:quisquislingo_app/services/course_backup_service.dart';
+import 'package:quisquislingo_app/services/course_media_store.dart';
 import 'package:quisquislingo_app/services/course_editor_service.dart';
 import 'package:quisquislingo_app/services/course_file_store.dart';
 import 'package:quisquislingo_app/services/course_editor_transaction.dart';
@@ -252,12 +254,16 @@ void main() {
   );
 
   test('backup copies and verifies course-owned audio assets', () async {
-    final audio = File('${documents.path}${Platform.pathSeparator}voice.ogg');
-    await audio.writeAsBytes(const [1, 2, 3, 4], flush: true);
+    final base = _customCourse(title: 'Audio', version: '4');
+    final reference = await CourseMediaStore().addBytes(
+      base.courseId,
+      Uint8List.fromList(const [1, 2, 3, 4]),
+      'mp3',
+    );
     final source = Course.fromJson({
-      ..._customCourse(title: 'Audio', version: '4').toJson(),
+      ...base.toJson(),
       'audioLibrary': [
-        {'id': 'voice', 'text': 'Ciao', 'filePath': audio.path},
+        {'id': 'voice', 'text': 'Ciao', 'filePath': reference},
       ],
     });
     final record = await backups.createBackup(
@@ -291,7 +297,7 @@ void main() {
           {
             'id': 'missing-voice',
             'text': 'Ciao',
-            'filePath': '${documents.path}${Platform.pathSeparator}missing.ogg',
+            'filePath': CourseMediaStore.referenceFor(const [7, 7], 'mp3'),
           },
         ],
       });
@@ -325,12 +331,7 @@ void main() {
       expect(result.backupPath, backup.manifestFile.path);
       expect(backup.course.toJson(), source.toJson());
       expect(backup.assets, [
-        {
-          'originalPath': File(
-            source.audioLibrary.single.filePath,
-          ).absolute.path,
-          'missing': 'true',
-        },
+        {'reference': source.audioLibrary.single.filePath, 'missing': 'true'},
       ]);
     },
   );

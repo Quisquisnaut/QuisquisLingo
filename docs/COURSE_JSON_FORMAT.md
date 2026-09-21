@@ -17,6 +17,16 @@ Every native Course Model v11 course declares:
 
 Build 243 makes v11 the single accepted format and a clean cut: v9 and v10 files are refused with a message naming `tools/convert_course_to_v11.dart`, and the application never converts them. v11 is v9 plus three things: merge provenance becomes an optional field of any custom Course (the former v10 existed only to carry it), the Build 242 `mediaAttributions` list, and the optional descriptive fields below. The developer tool converts a v9/v10 file by changing only `formatVersion` and, for an official Course, recomputing `officialChecksum`; a Publisher Course loses its signature and must be signed again, and a Course naming media outside `assets/` is refused with every location listed.
 
+### Course media references (v11, Build 243 Revision 2)
+
+A Course names its own images and recordings by content, never by a path on one device: `media:<sha256>.<ext>`, where `<sha256>` is the lowercase SHA-256 of the file bytes and `<ext>` is `mp3`, `png`, `jpg`, `jpeg` or `webp`. Each device keeps the file in the Course's own folder, `<AppSupport>/quisquislingo_course_media/course_<sha256(courseId)>/<sha256>.<ext>` (`CourseMediaStore`), so the same JSON is valid everywhere and a signature over it also pins the media.
+
+- Audio Library `filePath`: empty, a bundled `assets/…` recording or `media:<sha256>.mp3`.
+- Every `image` element `asset` (prompt and Item content, anywhere in the Lessons): empty, a bundled `assets/…` image, an embedded `data:image/…` image or an image `media:` reference.
+- `coverImage`: an image `media:` reference.
+
+Anything else, including an absolute or relative device path, is refused when the Course is read. Lesson icons (`lessonIconAssets`) and the custom flag remain embedded. Course JSON never contains the media bytes; the Course package carries them (Tranche 2).
+
 ### Optional descriptive fields (v11)
 
 Each is omitted when unset and never grants QQL permissions. Fork, Copy as New Course and in-Course transfers carry them; a merge keeps the left Course's values, except `minimumAppBuild`, which keeps the higher of the two, and differing values never block a merge.

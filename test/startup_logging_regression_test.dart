@@ -134,10 +134,8 @@ void main() {
       ],
       'lib/services/course_flag_service.dart': ['QuisquisLingo'],
       'lib/services/exercise_image_service.dart': ['QuisquisLingo'],
-      'lib/services/recorded_audio_service.dart': [
-        'QuisquisLingo',
-        'quisquislingo_audio',
-      ],
+      'lib/services/recorded_audio_service.dart': ['QuisquisLingo'],
+      'lib/services/course_media_store.dart': ['quisquislingo_course_media'],
       'lib/services/tts_linux_backend_io.dart': ['quisquislingo_tts_'],
     };
 

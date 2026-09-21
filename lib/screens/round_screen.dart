@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'dart:math';
-import 'dart:io';
 import 'package:flutter/material.dart';
 import '../services/first_letter_answer_service.dart';
+import '../widgets/course_media_image.dart';
 import '../widgets/portable_exercise_image.dart';
 import '../services/beta_lifecycle_service.dart';
 import '../widgets/beta_expired_view.dart';
@@ -240,6 +240,7 @@ class _RoundScreenState extends State<RoundScreen> {
       final recorded = await _recordedAudio.playConcatenated(
         text,
         widget.course.audioLibrary,
+        courseId: widget.course.courseId,
         enableDiagnostics: !widget.previewMode,
       );
       if (recorded) return true;
@@ -2425,34 +2426,20 @@ class _RoundScreenState extends State<RoundScreen> {
 
   Widget _exerciseImage(Exercise ex) {
     if (ex.imageAsset.isEmpty) return const SizedBox.shrink();
-    if (!ex.imageAsset.startsWith('assets/') &&
-        !File(ex.imageAsset).existsSync()) {
-      return _missingImageNotice(ex.imageAsset);
-    }
     // Decode at the size actually shown. Nothing bounds the pixel dimensions
-    // of a path-based exercise image: a 50 KB PNG may declare 30,000 × 30,000
-    // and cost gigabytes to rasterize. The portable path already enforces
-    // 4096; this bounds the decode for the rest without rejecting images an
-    // author has already used.
+    // of a course-media image: a 50 KB PNG may declare 30,000 × 30,000 and
+    // cost gigabytes to rasterize. The portable path already enforces 4096;
+    // this bounds the decode for the rest.
     const decodeWidth = 840;
     const decodeHeight = 560;
-    final image = ex.imageAsset.startsWith('assets/')
-        ? Image.asset(
-            ex.imageAsset,
-            fit: BoxFit.contain,
-            cacheWidth: decodeWidth,
-            cacheHeight: decodeHeight,
-            semanticLabel: 'Exercise illustration',
-            errorBuilder: (_, __, ___) => _missingImageNotice(ex.imageAsset),
-          )
-        : Image.file(
-            File(ex.imageAsset),
-            fit: BoxFit.contain,
-            cacheWidth: decodeWidth,
-            cacheHeight: decodeHeight,
-            semanticLabel: 'Exercise illustration',
-            errorBuilder: (_, __, ___) => _missingImageNotice(ex.imageAsset),
-          );
+    final image = CourseMediaImage(
+      courseId: widget.course.courseId,
+      asset: ex.imageAsset,
+      cacheWidth: decodeWidth,
+      cacheHeight: decodeHeight,
+      semanticLabel: 'Exercise illustration',
+      missing: _missingImageNotice(ex.imageAsset),
+    );
     return Center(
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 420, maxHeight: 280),

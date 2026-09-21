@@ -95,6 +95,25 @@ class _CourseVersionHistoryScreenState
     ];
   }
 
+  /// The confirmed change may have removed media this version uses from the
+  /// Course folder; the backup kept verified copies, so put them back first.
+  Future<void> _restore(CourseBackupRecord record) async {
+    try {
+      await widget.backupService.reinstateMedia(record);
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          duration: const Duration(seconds: 8),
+          content: Text('This version\'s media could not be restored: $error'),
+        ),
+      );
+      return;
+    }
+    if (!mounted) return;
+    Navigator.pop(context, CourseHistorySelection.restore(record.course));
+  }
+
   Future<void> _exportHistorical(Course course) async {
     try {
       final notice = CourseAuditService().auditCourse(course).exportNotice;
@@ -248,10 +267,7 @@ class _CourseVersionHistoryScreenState
                           if (!widget.course.originType.isOfficial &&
                               widget.allowRestore)
                             FilledButton(
-                              onPressed: () => Navigator.pop(
-                                context,
-                                CourseHistorySelection.restore(record.course),
-                              ),
+                              onPressed: () => _restore(record),
                               child: const Text('Restore this version'),
                             ),
                           OutlinedButton(

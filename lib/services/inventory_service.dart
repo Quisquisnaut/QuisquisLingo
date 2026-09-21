@@ -9,7 +9,7 @@ import 'course_editor_service.dart';
 import 'course_file_store.dart';
 import 'course_backup_service.dart';
 import 'profile_service.dart';
-import 'recorded_audio_service.dart';
+import 'course_media_store.dart';
 import 'team_service.dart';
 
 /// One thing QQL stores because of user activity: a file, a folder, or a
@@ -355,11 +355,9 @@ class InventoryService {
     );
 
     // ---- Imported media copies in QQL's own storage
-    final audioOwners = <String, String>{};
+    final mediaOwners = <String, String>{};
     for (final course in courses) {
-      audioOwners[RecordedAudioService.storageDirectoryForCourseId(
-            course.courseId,
-          )] =
+      mediaOwners[CourseMediaStore.folderNameFor(course.courseId)] =
           '${course.title.isEmpty ? course.courseId : course.title} · ${ownerOf(course)}';
     }
     sections.add(
@@ -384,19 +382,23 @@ class InventoryService {
     );
     sections.add(
       await folder(
-        title: 'Imported audio files',
+        title: 'Course media',
         description:
-            'Recorded MP3 copies QQL made in its own storage when you imported them, one folder per course.',
-        directory: Directory('$supportRoot${sep}quisquislingo_audio'),
+            'Images and recorded MP3s that courses use, copied into QQL\'s own storage and named by content, one folder per course.',
+        directory: Directory(
+          '$supportRoot$sep${CourseMediaStore.rootDirectoryName}',
+        ),
         describe: (file, root) async {
           final rel = _relative(file, root);
           final courseFolder = rel.split(RegExp(r'[\\/]')).first;
           return plain(
             file,
             root,
-            note: 'Imported MP3 recording.',
+            note: file.path.toLowerCase().endsWith('.mp3')
+                ? 'Course recording (MP3).'
+                : 'Course image.',
             owner:
-                audioOwners[courseFolder] ??
+                mediaOwners[courseFolder] ??
                 'A course no longer on this device',
           );
         },

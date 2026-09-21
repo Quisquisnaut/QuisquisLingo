@@ -13,6 +13,7 @@ import 'package:quisquislingo_app/services/image_bank_service.dart';
 import 'package:quisquislingo_app/services/learner_backup_service.dart';
 import 'package:quisquislingo_app/services/lesson_icon_service.dart';
 import 'package:quisquislingo_app/services/profile_service.dart';
+import 'package:quisquislingo_app/services/course_media_store.dart';
 import 'package:quisquislingo_app/services/recorded_audio_service.dart';
 import 'package:quisquislingo_app/services/user_recovery_key_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -434,14 +435,16 @@ void main() {
         final clip = picked.clip!;
         expect(clip.text, isEmpty);
         expect(clip.id, startsWith('audio_'));
+        // Build 243: named by content, stored in the Course's media folder.
+        expect(clip.filePath, CourseMediaStore.referenceFor(bytes, 'mp3'));
+        final stored = await CourseMediaStore(
+          supportDirectory: () async => support,
+        ).existingFile('course-a', clip.filePath);
         expect(
-          File(clip.filePath).parent.path,
-          endsWith(
-            RecordedAudioService.storageDirectoryForCourseId('course-a'),
-          ),
+          stored!.parent.path,
+          endsWith(CourseMediaStore.folderNameFor('course-a')),
         );
-        expect(clip.filePath, endsWith('_Buon_giorno__1_.mp3'));
-        expect(await File(clip.filePath).readAsBytes(), bytes);
+        expect(await stored.readAsBytes(), bytes);
       },
     );
 
@@ -471,16 +474,22 @@ void main() {
       expect(support.existsSync(), isFalse);
     });
 
-    test('two imports in a row get distinct clip ids and files', () async {
-      backend.onOpen = () async =>
-          FileDialogResult.opened('same.mp3', Uint8List(4));
-      final first = (await audio.importMp3FromDialog('course-a')).clip!;
-      final second = (await audio.importMp3FromDialog('course-a')).clip!;
-      expect(second.id, isNot(first.id));
-      expect(second.filePath, isNot(first.filePath));
-      expect(File(first.filePath).existsSync(), isTrue);
-      expect(File(second.filePath).existsSync(), isTrue);
-    });
+    test(
+      'two imports of the same bytes get distinct clip ids and share one file',
+      () async {
+        backend.onOpen = () async =>
+            FileDialogResult.opened('same.mp3', Uint8List(4));
+        final first = (await audio.importMp3FromDialog('course-a')).clip!;
+        final second = (await audio.importMp3FromDialog('course-a')).clip!;
+        expect(second.id, isNot(first.id));
+        // Build 243: course media is named by content.
+        expect(second.filePath, first.filePath);
+        final folder = await CourseMediaStore(
+          supportDirectory: () async => support,
+        ).courseDirectory('course-a');
+        expect(folder.listSync().whereType<File>(), hasLength(1));
+      },
+    );
   });
 
   group('Lesson theme icon Open from…', () {

@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:quisquislingo_app/models/course_models.dart';
+import 'package:quisquislingo_app/services/course_media_store.dart';
 import 'package:quisquislingo_app/services/custom_course_transfer_service.dart';
 import 'package:quisquislingo_app/services/recorded_audio_service.dart';
 
@@ -25,23 +26,29 @@ void main() {
       expect(result?.map((clip) => clip.id), <String>['long', 'tail']);
     });
 
-    test('returns no recording for incomplete coverage or a missing file', () {
-      const incomplete = <CourseAudioClip>[
-        CourseAudioClip(id: 'hello', text: 'hello', filePath: 'hello.mp3'),
-      ];
-      const missingFile = CourseAudioClip(
-        id: 'missing',
-        text: 'hello',
-        filePath: 'does-not-exist.mp3',
-      );
+    test(
+      'returns no recording for incomplete coverage or a missing file',
+      () async {
+        const incomplete = <CourseAudioClip>[
+          CourseAudioClip(id: 'hello', text: 'hello', filePath: 'hello.mp3'),
+        ];
+        const missingFile = CourseAudioClip(
+          id: 'missing',
+          text: 'hello',
+          filePath: 'does-not-exist.mp3',
+        );
 
-      expect(service.segment('hello world', incomplete), isNull);
-      expect(service.sourceForClip(missingFile), isNull);
-    });
+        expect(service.segment('hello world', incomplete), isNull);
+        expect(
+          await service.resolveSourceForClip(missingFile, courseId: 'course'),
+          isNull,
+        );
+      },
+    );
   });
 
   test(
-    'Course JSON stores audio metadata paths without physical MP3 bytes',
+    'Course JSON stores audio media references without physical MP3 bytes',
     () async {
       final temp = await Directory.systemTemp.createTemp('qql_audio_json_');
       addTearDown(() async {
@@ -54,7 +61,8 @@ void main() {
       );
       final mp3 = File('${temp.path}${Platform.pathSeparator}exact-words.mp3');
       await mp3.writeAsBytes(mp3Bytes, flush: true);
-      final course = _audioCourse(mp3.path);
+      final reference = CourseMediaStore.referenceFor(mp3Bytes, 'mp3');
+      final course = _audioCourse(reference);
 
       final encoded = jsonEncode(course.toJson());
       final decoded = jsonDecode(encoded) as Map<String, dynamic>;
@@ -64,7 +72,7 @@ void main() {
         <String, dynamic>{
           'id': 'clip-1',
           'text': 'Buon giorno',
-          'filePath': mp3.path,
+          'filePath': reference,
         },
       ]);
       expect(encoded, isNot(contains(base64Encode(mp3Bytes))));
@@ -154,7 +162,9 @@ void main() {
         '${documents.path}${Platform.pathSeparator}QuisquisLingo'
         '${Platform.pathSeparator}Imports',
       );
-      final course = _audioCourse(mp3.path);
+      final course = _audioCourse(
+        CourseMediaStore.referenceFor(mp3Bytes, 'mp3'),
+      );
 
       final exportPath = await service.exportCourse(course);
       final exportFile = File(exportPath);
@@ -176,7 +186,7 @@ void main() {
   );
 }
 
-Course _audioCourse(String mp3Path) {
+Course _audioCourse(String mp3Reference) {
   return Course(
     courseId: 'audio-import-paths-course',
     learningLanguage: 'Italian',
@@ -187,7 +197,11 @@ Course _audioCourse(String mp3Path) {
     ttsLanguage: 'it-IT',
     audioMode: 'hybrid',
     audioLibrary: <CourseAudioClip>[
-      CourseAudioClip(id: 'clip-1', text: 'Buon giorno', filePath: mp3Path),
+      CourseAudioClip(
+        id: 'clip-1',
+        text: 'Buon giorno',
+        filePath: mp3Reference,
+      ),
     ],
     lessons: const <Lesson>[],
   );

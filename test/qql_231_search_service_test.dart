@@ -3,6 +3,10 @@ import 'package:quisquislingo_app/models/course_models.dart';
 import 'package:quisquislingo_app/models/exercise_authoring.dart';
 import 'package:quisquislingo_app/services/exercise_search_service.dart';
 
+// A valid course-media reference (Build 243): internal, never searchable.
+const _imageMarker =
+    'media:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee.png';
+
 const _stamp = '2026-09-11T10:00:00.000Z';
 
 Exercise _exercise(String type, String id) => Exercise.v2(
@@ -18,7 +22,7 @@ Exercise _exercise(String type, String id) => Exercise.v2(
       text: '$type Dialogue Marker',
       speaker: '$type Speaker Marker',
     ),
-    const PromptElement(type: 'image', asset: 'asset_internal_marker.png'),
+    const PromptElement(type: 'image', asset: _imageMarker),
   ],
   interaction: ExerciseInteraction(
     kind: 'select',
@@ -170,7 +174,7 @@ void main() {
         expect(actual, definition.fields.toSet(), reason: definition.presetId);
         expect(
           searchable.map((entry) => entry.text),
-          isNot(contains('asset_internal_marker.png')),
+          isNot(contains(_imageMarker)),
           reason: definition.presetId,
         );
       }

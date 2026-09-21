@@ -1,11 +1,13 @@
 import 'support/publisher_fixtures.dart';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:quisquislingo_app/services/course_file_store.dart';
 import 'package:quisquislingo_app/models/course_models.dart';
 import 'package:quisquislingo_app/services/course_backup_service.dart';
+import 'package:quisquislingo_app/services/course_media_store.dart';
 import 'package:quisquislingo_app/services/course_editor_service.dart';
 import 'package:quisquislingo_app/services/course_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -222,8 +224,12 @@ void main() {
         'qql22601_official_audio_',
       );
       addTearDown(() => directory.delete(recursive: true));
-      final audio = File('${directory.path}/source.mp3');
-      await audio.writeAsBytes([1, 2, 3, 4]);
+      // Build 243: the Publisher Course names its recording by content.
+      final reference = await CourseMediaStore().addBytes(
+        'external_audio_history',
+        Uint8List.fromList(const [1, 2, 3, 4]),
+        'mp3',
+      );
       final bundled = await CourseService().loadBundledCourse('IT');
       final payload = Course.fromJson({
         ...bundled.toJson(),
@@ -232,7 +238,7 @@ void main() {
         'distributionChannel': 'file',
         'publisherVerificationStatus': 'unverified',
         'audioLibrary': [
-          {'id': 'official-audio', 'text': 'Hello', 'filePath': audio.path},
+          {'id': 'official-audio', 'text': 'Hello', 'filePath': reference},
         ],
       });
       final official = Course.fromJson({
@@ -262,7 +268,7 @@ void main() {
         CourseBackupService.officialContentChecksum(loaded),
         official.officialChecksum,
       );
-      expect(loaded.audioLibrary.single.filePath, audio.path);
+      expect(loaded.audioLibrary.single.filePath, reference);
     },
   );
 }

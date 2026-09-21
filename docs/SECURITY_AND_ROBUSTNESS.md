@@ -26,9 +26,10 @@ What is excluded, and why:
 | --- | --- |
 | `image_banks/` | Android's Auto Backup quota is 25 MB per app. One Image Bank import alone is capped at 50 MB. |
 | `exercise_images/` | Same quota. |
-| `quisquislingo_audio/` | Same quota; recorded MP3s grow without a practical bound. |
+| `quisquislingo_course_media/` | Same quota; each Course's own images and recorded MP3s (Build 243; formerly `quisquislingo_audio/`), which grow without a practical bound. A restored device gets the Courses back without these files; importing the Course package again restores them. |
+| `quisquislingo_audio/` | Retired by Build 243 and no longer written or read, but still excluded because a device may keep the old folder. |
 
-The reason is the **quota, not privacy**. An app whose data exceeds 25 MB does not get a partial backup — the platform silently stops backing that app up at all. One media import would therefore cost the learner every backup of their progress, without any warning. Bulk media is re-importable from the user's own files; progress is not. This is the same set of folders `AppResetService` treats as bulk media (`_imageFolders`, `_audioFolders`), and it lives under `getApplicationSupportDirectory()`, which is `getFilesDir()` on Android, hence `domain="file"`.
+The reason is the **quota, not privacy**. An app whose data exceeds 25 MB does not get a partial backup — the platform silently stops backing that app up at all. One media import would therefore cost the learner every backup of their progress, without any warning. Bulk media is re-importable from the user's own files; progress is not. This is the same set of folders `AppResetService` treats as bulk media (`_imageFolders`, `_courseMediaFolder`), and it lives under `getApplicationSupportDirectory()`, which is `getFilesDir()` on Android, hence `domain="file"`.
 
 Direct **device-to-device transfer is deliberately not restricted**. It has no 25 MB quota, so a phone-to-phone migration carries the media across as well. `<device-transfer>` is therefore omitted from the rules file rather than left empty.
 

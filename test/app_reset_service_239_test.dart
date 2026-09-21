@@ -150,7 +150,9 @@ void main() {
 
   test('imported media removes only the media folders and keys', () async {
     touch('${support.path}${sep}exercise_images${sep}a.png');
-    touch('${support.path}${sep}quisquislingo_audio${sep}c${sep}a.mp3');
+    touch(
+      '${support.path}${sep}quisquislingo_course_media${sep}c$sep${'a' * 64}.mp3',
+    );
     final other = touch('${support.path}${sep}shared_preferences.json');
     await service.reset(
       AppResetScope.importedMedia,
@@ -162,7 +164,7 @@ void main() {
       isFalse,
     );
     expect(
-      Directory('${support.path}${sep}quisquislingo_audio').existsSync(),
+      Directory('${support.path}${sep}quisquislingo_course_media').existsSync(),
       isFalse,
     );
     expect(other.existsSync(), isTrue);
@@ -197,11 +199,17 @@ void main() {
   test('imported media can remove only images or only audio', () async {
     File images() => File('${support.path}${sep}exercise_images${sep}a.png');
     File banks() => File('${support.path}${sep}image_banks${sep}b${sep}m.json');
-    File audio() =>
-        File('${support.path}${sep}quisquislingo_audio${sep}c${sep}a.mp3');
+    // Course media holds both kinds; the reset separates them by file type.
+    File courseImage() => File(
+      '${support.path}${sep}quisquislingo_course_media${sep}c$sep${'b' * 64}.png',
+    );
+    File audio() => File(
+      '${support.path}${sep}quisquislingo_course_media${sep}c$sep${'a' * 64}.mp3',
+    );
     void seed() {
       touch(images().path);
       touch(banks().path);
+      touch(courseImage().path);
       touch(audio().path);
     }
 
@@ -215,6 +223,7 @@ void main() {
     );
     expect(images().existsSync(), isFalse);
     expect(banks().existsSync(), isFalse);
+    expect(courseImage().existsSync(), isFalse);
     expect(audio().existsSync(), isTrue);
 
     seed();
@@ -228,6 +237,7 @@ void main() {
     expect(audio().existsSync(), isFalse);
     expect(images().existsSync(), isTrue);
     expect(banks().existsSync(), isTrue);
+    expect(courseImage().existsSync(), isTrue);
   });
 
   test('imported media with nothing chosen is refused', () async {
@@ -250,7 +260,9 @@ void main() {
 
   test('custom courses also removes imported images and audio', () async {
     touch('${support.path}${sep}exercise_images${sep}a.png');
-    touch('${support.path}${sep}quisquislingo_audio${sep}c${sep}a.mp3');
+    touch(
+      '${support.path}${sep}quisquislingo_course_media${sep}c$sep${'a' * 64}.mp3',
+    );
     await service.reset(
       AppResetScope.customCourses,
       actorProfileId: adminId,
@@ -261,7 +273,7 @@ void main() {
       isFalse,
     );
     expect(
-      Directory('${support.path}${sep}quisquislingo_audio').existsSync(),
+      Directory('${support.path}${sep}quisquislingo_course_media').existsSync(),
       isFalse,
     );
   });

@@ -9,7 +9,7 @@ const publisherSigningGuideSections = <({String title, String body})>[
 
 Publisher approval is a manual owner process. The owner maintains the public-key registry in lib/services/trusted_publishers.dart and distributes changes with an app update. There is no approval portal or in-app signing button. A developer command and OpenSSL provide course signing outside the app.
 
-The Course Model is v11. The signature protocol is qql-ed25519-v1. Focused verification does not constitute final release validation; Build 241 still awaits the owner's final validation approval.''',
+The Course Model is v11 (Build 243); v9/v10 Publisher Courses must be converted with tools/convert_course_to_v11.dart and signed again. The signature protocol is qql-ed25519-v1. Focused verification does not constitute final release validation; Build 241 still awaits the owner's final validation approval.''',
   ),
   (
     title: "1. Roles and tools",

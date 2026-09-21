@@ -8,6 +8,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../models/course_models.dart';
+import 'course_media_store.dart';
 
 class CourseBackupRecord {
   final File manifestFile;
@@ -34,20 +35,25 @@ class CourseBackupRecord {
 ///
 /// Backups live outside application storage under the existing resolved
 /// Documents/QuisquisLingo/Exports tree. A manifest contains the complete v11
-/// course plus SHA-256 integrity data; local course-owned file assets are
-/// copied alongside it when they exist.
+/// course plus SHA-256 integrity data; the Course's own media (every `media:`
+/// image and recording it uses) is copied alongside it, so a version restores
+/// even after the confirmed change removed a file from the Course folder.
 class CourseBackupService {
   CourseBackupService({
     Future<Directory> Function()? documentsDirectoryProvider,
     Future<void> Function(File file, List<int> bytes)? fileWriter,
     Future<bool> Function(Uri uri)? uriLauncher,
     PublisherVerificationService? publisherVerification,
+    CourseMediaStore? mediaStore,
   }) : _documentsDirectoryProvider =
            documentsDirectoryProvider ?? getApplicationDocumentsDirectory,
        _fileWriter = fileWriter,
        _uriLauncher = uriLauncher,
+       _media = mediaStore ?? CourseMediaStore(),
        _publisherVerification =
            publisherVerification ?? PublisherVerificationService();
+
+  final CourseMediaStore _media;
 
   final PublisherVerificationService _publisherVerification;
 
@@ -159,57 +165,48 @@ class CourseBackupService {
     }
 
     final assetRecords = <Map<String, String>>[];
-    final localPaths = <String>{
-      for (final clip in course.audioLibrary)
-        if (clip.filePath.trim().isNotEmpty &&
-            !clip.filePath.startsWith('assets/'))
-          clip.filePath,
-    };
-    if (localPaths.isNotEmpty) {
+    final references = CourseMediaStore.referencesOf(course).toList()..sort();
+    if (references.isNotEmpty) {
       final assetsDirectory = Directory(
         '${directory.path}${Platform.pathSeparator}${manifest.uri.pathSegments.last.replaceAll('.json', '')}_assets',
       );
       await assetsDirectory.create(recursive: true);
-      var index = 0;
-      for (final sourcePath in localPaths) {
-        final source = File(sourcePath);
-        if (!await source.exists()) {
+      for (final reference in references) {
+        final source = await _media.existingFile(course.courseId, reference);
+        if (source == null) {
           // A file that is already gone cannot be lost by the change this
           // backup precedes, so refusing to back anything up would protect
           // nothing while making the Course permanently unsaveable: the
           // pre-change backup reads the persisted Course, so even the edit
           // that removes the broken reference could never be confirmed.
-          // Record the gap instead; `loadBackup` skips these records and
-          // leaves the clip's stored path untouched on restore.
-          assetRecords.add({
-            'originalPath': source.absolute.path,
-            'missing': 'true',
-          });
+          // Record the gap instead; `loadBackup` accepts it and restore has
+          // nothing to put back.
+          assetRecords.add({'reference': reference, 'missing': 'true'});
           continue;
         }
         final bytes = await source.readAsBytes();
-        final sourceName = source.uri.pathSegments.isEmpty
-            ? 'asset_$index'
-            : source.uri.pathSegments.last;
-        final safeName = sourceName.replaceAll(RegExp(r'[^A-Za-z0-9._-]'), '_');
-        final backupName = '${index}_${safeName.isEmpty ? 'asset' : safeName}';
+        final digest = sha256.convert(bytes).toString();
+        if (digest != CourseMediaStore.digestOf(reference)) {
+          throw StateError(
+            'Course media ${CourseMediaStore.fileNameOf(reference)} does not match its reference.',
+          );
+        }
+        final backupName = CourseMediaStore.fileNameOf(reference);
         final target = File(
           '${assetsDirectory.path}${Platform.pathSeparator}$backupName',
         );
         await _write(target, bytes);
-        final targetBytes = await target.readAsBytes();
-        if (sha256.convert(targetBytes) != sha256.convert(bytes)) {
+        if (sha256.convert(await target.readAsBytes()).toString() != digest) {
           throw StateError(
             'A course-owned backup asset could not be verified.',
           );
         }
         assetRecords.add({
-          'originalPath': source.absolute.path,
+          'reference': reference,
           'backupRelativePath':
               '${assetsDirectory.path.substring(directory.path.length + 1)}/$backupName',
-          'sha256': sha256.convert(bytes).toString(),
+          'sha256': digest,
         });
-        index += 1;
       }
     }
 
@@ -281,7 +278,6 @@ class CourseBackupService {
       throw const FormatException('The course backup timestamp is invalid.');
     }
     final assets = <Map<String, String>>[];
-    final restoredAssetPaths = <String, String>{};
     final rawAssets = manifest['assets'];
     if (rawAssets is List) {
       for (final raw in rawAssets.whereType<Map>()) {
@@ -298,8 +294,12 @@ class CourseBackupService {
         }
         final relative = record['backupRelativePath'];
         final expected = record['sha256'];
+        final reference = record['reference'];
         if (relative == null ||
             expected == null ||
+            reference == null ||
+            !CourseMediaStore.isReference(reference) ||
+            CourseMediaStore.digestOf(reference) != expected ||
             !RegExp(r'^[A-Za-z0-9._-]+/[A-Za-z0-9._-]+$').hasMatch(relative)) {
           throw const FormatException(
             'The course backup asset path is unsafe.',
@@ -315,37 +315,44 @@ class CourseBackupService {
           );
         }
         assets.add(record);
-        final originalPath = record['originalPath'];
-        if (originalPath != null) {
-          restoredAssetPaths[originalPath] = asset.absolute.path;
-        }
       }
     }
-    // Only custom restore remaps paths. Publisher payloads and their official
-    // checksums must remain exact when history is inspected or exported.
-    final restoredCourse =
-        course.originType.isOfficial || restoredAssetPaths.isEmpty
-        ? course
-        : Course.fromJson({
-            ...course.toJson(),
-            'audioLibrary': course.audioLibrary
-                .map(
-                  (clip) => {
-                    ...clip.toJson(),
-                    'filePath':
-                        restoredAssetPaths[clip.filePath] ?? clip.filePath,
-                  },
-                )
-                .toList(),
-          });
+    // Course media references are content-addressed, so the Course needs no
+    // path remapping; [reinstateMedia] puts the files back on restore.
     return CourseBackupRecord(
       manifestFile: manifestFile,
-      course: await _publisherVerification.assessStored(restoredCourse),
+      course: await _publisherVerification.assessStored(course),
       checksum: checksum,
       backedUpAtUtc: backedUpAt,
       reason: '${manifest['reason'] ?? ''}',
       assets: assets,
     );
+  }
+
+  /// Puts every media file [record] saved back into its Course's folder, so a
+  /// restored version shows its images and plays its recordings. Each copy is
+  /// verified against its reference. Recorded gaps have nothing to restore.
+  Future<void> reinstateMedia(CourseBackupRecord record) async {
+    for (final asset in record.assets) {
+      final relative = asset['backupRelativePath'];
+      final reference = asset['reference'];
+      if (relative == null || reference == null) continue;
+      if (await _media.existingFile(record.course.courseId, reference) !=
+          null) {
+        continue;
+      }
+      final source = File(
+        '${record.manifestFile.parent.path}${Platform.pathSeparator}${relative.replaceAll('/', Platform.pathSeparator)}',
+      );
+      final stored = await _media.addBytes(
+        record.course.courseId,
+        await source.readAsBytes(),
+        CourseMediaStore.extensionOf(reference),
+      );
+      if (stored != reference) {
+        throw StateError('Restored course media does not match its reference.');
+      }
+    }
   }
 
   Future<List<CourseBackupRecord>> listBackups(String courseId) async {

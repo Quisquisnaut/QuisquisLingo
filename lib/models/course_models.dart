@@ -1195,6 +1195,62 @@ class Course {
     }
   }
 
+  /// A Course's own images and recordings are named by content
+  /// (`media:<sha256>.<ext>`, see `CourseMediaStore`), never by a path on the
+  /// author's device. Bundled `assets/` media and embedded `data:image/`
+  /// images remain valid.
+  static final RegExp _audioReference = RegExp(r'^media:[0-9a-f]{64}\.mp3$');
+  static final RegExp _imageReference = RegExp(
+    r'^media:[0-9a-f]{64}\.(png|jpg|jpeg|webp)$',
+  );
+
+  static bool isValidAudioReference(String value) =>
+      value.isEmpty ||
+      value.startsWith('assets/') ||
+      _audioReference.hasMatch(value);
+
+  static bool isValidImageReference(String value) =>
+      value.isEmpty ||
+      value.startsWith('assets/') ||
+      value.startsWith('data:image/') ||
+      _imageReference.hasMatch(value);
+
+  static void _validateMediaReferences(Map<String, dynamic> json) {
+    final library = json['audioLibrary'];
+    if (library is List) {
+      for (final clip in library.whereType<Map>()) {
+        final path = clip['filePath'];
+        if (path is String && !isValidAudioReference(path)) {
+          throw FormatException(
+            'Audio Library recording "$path" is not supported. Recordings '
+            'must be bundled assets or course media (media:<sha256>.mp3), '
+            'never a path on one device.',
+          );
+        }
+      }
+    }
+    void visit(Object? node) {
+      if (node is Map) {
+        final asset = node['asset'];
+        if (node['type'] == 'image' &&
+            asset is String &&
+            !isValidImageReference(asset)) {
+          throw FormatException(
+            'Exercise image "${asset.length > 120 ? '${asset.substring(0, 120)}…' : asset}" '
+            'is not supported. Images must be bundled assets, embedded images '
+            'or course media (media:<sha256>.<png|jpg|jpeg|webp>), never a '
+            'path on one device.',
+          );
+        }
+        node.values.forEach(visit);
+      } else if (node is List) {
+        node.forEach(visit);
+      }
+    }
+
+    visit(json['lessons']);
+  }
+
   /// Trims keywords, drops blank ones and keeps the first spelling of any
   /// case-insensitive duplicate. Limits are still enforced by the constructor.
   static List<String> normalizeKeywords(Iterable<String> values) {
@@ -1377,6 +1433,7 @@ class Course {
         json['publisherContact'] is! Map) {
       throw const FormatException('course.publisherContact must be an object.');
     }
+    _validateMediaReferences(json);
     for (final removed in const [
       'creatorProfileId',
       'ownership',

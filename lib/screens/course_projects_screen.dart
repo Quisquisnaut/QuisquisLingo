@@ -886,13 +886,20 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
         );
         if (!mounted) return;
       }
-      final result = await _service.confirmCourseTransaction(
-        originalCourse: merged,
-        workingCourse: merged,
-        languageCode: merged.targetLanguageTag,
-        versionNotes: merged.versionNotes,
-        isNewCourse: true,
-      );
+      await _merge.copyMedia(left: left, right: right, merged: merged);
+      final CourseConfirmationResult result;
+      try {
+        result = await _service.confirmCourseTransaction(
+          originalCourse: merged,
+          workingCourse: merged,
+          languageCode: merged.targetLanguageTag,
+          versionNotes: merged.versionNotes,
+          isNewCourse: true,
+        );
+      } catch (_) {
+        await _merge.discardMedia(merged);
+        rethrow;
+      }
       if (!mounted) return;
       Navigator.of(context).pop();
       _showConfirmationResult(result);

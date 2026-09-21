@@ -2,13 +2,10 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 
-import '../models/course_models.dart';
 import '../models/exercise_image_metadata.dart';
-import '../services/course_editor_service.dart';
 import '../services/exercise_image_metadata_service.dart';
 import '../services/exercise_image_service.dart';
 import '../services/image_bank_service.dart';
-import '../services/managed_media_cleanup.dart';
 import '../services/profile_service.dart';
 import '../widgets/file_dialog_feedback.dart';
 
@@ -38,9 +35,6 @@ class FlatImageLibraryScreen extends StatefulWidget {
   final ImageBankService? bankService;
   final ProfileService? profileService;
 
-  /// Injectable for tests; production reads the stored Courses.
-  final Future<List<Course>> Function()? courseLister;
-
   const FlatImageLibraryScreen({
     super.key,
     this.selectMode = true,
@@ -51,7 +45,6 @@ class FlatImageLibraryScreen extends StatefulWidget {
     this.imageService,
     this.bankService,
     this.profileService,
-    this.courseLister,
   });
 
   @override
@@ -240,64 +233,22 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
     }
   }
 
-  /// Which stored Courses still point at [paths].
-  ///
-  /// The library is device-wide, so one admin can break a course another
-  /// person maintains. Deleting is still allowed — an admin needs a way out —
-  /// but it should not be invisible. Reuses [MediaReferenceIndex], which
-  /// matches any short string value and so does not depend on field names.
-  ///
-  /// [complete] is false when the stored courses could not be read; the dialog
-  /// then says so rather than implying nothing uses the image.
-  Future<({List<String> titles, bool complete})> _referencingCourses(
-    Set<String> paths,
-  ) async {
-    if (paths.isEmpty) return (titles: const <String>[], complete: true);
-    try {
-      final titles = <String>[];
-      for (final course in await (widget.courseLister ??
-          CourseEditorService().listUserCourses)()) {
-        final index = MediaReferenceIndex.fromStoredJson([course.toJson()]);
-        if (paths.any(index.references)) {
-          titles.add(
-            course.title.trim().isEmpty ? course.courseId : course.title.trim(),
-          );
-        }
-      }
-      titles.sort(
-        (left, right) => left.toLowerCase().compareTo(right.toLowerCase()),
-      );
-      return (titles: titles, complete: true);
-    } catch (_) {
-      return (titles: const <String>[], complete: false);
-    }
-  }
-
-  String _usageNotice(({List<String> titles, bool complete}) usage) {
-    if (!usage.complete) {
-      return '\n\nThe stored courses could not be checked, so QQL cannot say whether a course still uses it.';
-    }
-    if (usage.titles.isEmpty) {
-      return '\n\nNo course on this device uses it.';
-    }
-    final used = usage.titles.length == 1 ? 'course uses' : 'courses use';
-    return '\n\n${usage.titles.length} $used it: ${usage.titles.join(', ')}. '
-        'Those exercises will show a missing image until they are changed.';
-  }
+  /// Since Build 243 a Course keeps its own copy of every image it uses
+  /// (course media), so deleting from the shared library never breaks one.
+  static const _coursesKeepCopies =
+      'Courses that use it keep their own copy and are not affected.';
 
   Future<void> _deleteLocal(ExerciseImageMetadata item) async {
     if (item.origin != 'local') return;
     final actor = widget.actorProfileId;
     if (!_canManageMetadata || actor == null) return;
-    final usage = await _referencingCourses({item.assetPath});
-    if (!mounted) return;
     final confirmed =
         await showDialog<bool>(
           context: context,
           builder: (dialogContext) => AlertDialog(
             title: const Text('Delete image?'),
             content: Text(
-              'Delete “${item.label}” from the Shared Image Library? Existing exercise references must be changed separately.${_usageNotice(usage)}',
+              'Delete “${item.label}” from the Shared Image Library? $_coursesKeepCopies',
             ),
             actions: [
               TextButton(
@@ -328,18 +279,13 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
     final bankId = _bankId(item);
     final actor = widget.actorProfileId;
     if (bankId == null || !_canManageMetadata || actor == null) return;
-    final usage = await _referencingCourses({
-      for (final entry in _all)
-        if (_bankId(entry) == bankId) entry.assetPath,
-    });
-    if (!mounted) return;
     final confirmed =
         await showDialog<bool>(
           context: context,
           builder: (dialogContext) => AlertDialog(
             title: const Text('Remove imported Image Bank?'),
             content: Text(
-              'Remove this Image Bank and all of its local files? Existing exercise references must be changed separately.${_usageNotice(usage)}',
+              'Remove this Image Bank and all of its local files? $_coursesKeepCopies',
             ),
             actions: [
               TextButton(

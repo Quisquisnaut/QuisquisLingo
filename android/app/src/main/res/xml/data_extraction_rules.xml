@@ -17,7 +17,7 @@
 
     These three folders live under getApplicationSupportDirectory(), which is
     getFilesDir() on Android, so they belong to domain="file". They are the same
-    folders AppResetService treats as bulk media (_imageFolders, _audioFolders).
+    folders AppResetService treats as bulk media (_imageFolders, _courseMediaFolder).
     Media is re-importable from the user's own files; progress is not.
 
     device-transfer is deliberately omitted so that a direct phone-to-phone
@@ -27,6 +27,8 @@
     <cloud-backup>
         <exclude domain="file" path="image_banks/" />
         <exclude domain="file" path="exercise_images/" />
+        <exclude domain="file" path="quisquislingo_course_media/" />
+        <!-- Retired before Build 243 but possibly still on the device. -->
         <exclude domain="file" path="quisquislingo_audio/" />
     </cloud-backup>
 </data-extraction-rules>

@@ -395,7 +395,9 @@ void main() {
     }
 
     final image = touch('${root.path}/support/exercise_images/a.png');
-    final audio = touch('${root.path}/support/quisquislingo_audio/c/a.mp3');
+    final audio = touch(
+      '${root.path}/support/quisquislingo_course_media/c/${'a' * 64}.mp3',
+    );
     await open(tester);
     await tester.ensureVisible(
       find.byKey(const Key('admin-reset-button-importedMedia')),
@@ -436,7 +438,7 @@ void main() {
     tester,
   ) async {
     await profiles.setOwnAccessPin(actorProfileId: adminId, pin: '1234');
-    File('${root.path}/support/quisquislingo_audio/c/a.mp3')
+    File('${root.path}/support/quisquislingo_course_media/c/${'a' * 64}.mp3')
       ..createSync(recursive: true)
       ..writeAsStringSync('x');
     await open(tester);

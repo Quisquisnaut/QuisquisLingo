@@ -8,6 +8,8 @@ import '../services/answer_materialization_service.dart';
 import '../services/first_letter_answer_service.dart';
 import '../services/portable_exercise_image.dart';
 import '../widgets/script_recognition_editor.dart';
+import '../widgets/course_media_image.dart';
+import '../services/course_media_store.dart';
 import 'package:audioplayers/audioplayers.dart';
 
 import '../models/course_flag_selection.dart';
@@ -8200,6 +8202,7 @@ class ExerciseEditorScreen extends StatefulWidget {
 
 class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
   final _imageService = ExerciseImageService();
+  final _media = CourseMediaStore();
   bool _dirty = false;
   bool _routeMayPop = false;
   bool _navigationBusy = false;
@@ -9370,6 +9373,22 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
     }
   }
 
+  /// A picked or imported image becomes the Course's own media: its bytes are
+  /// copied into the Course folder and the Exercise names them by content, so
+  /// the Course never depends on the library file or the source path.
+  Future<String> _asCourseMedia(String selected) async {
+    if (selected.startsWith('assets/') ||
+        selected.startsWith('data:') ||
+        CourseMediaStore.isReference(selected)) {
+      return selected;
+    }
+    final course = widget.course;
+    if (course == null) {
+      throw StateError('Open this Exercise from its Course to add an image.');
+    }
+    return _media.addFile(course.courseId, File(selected));
+  }
+
   Future<void> _chooseFlatImage() async {
     if (widget.readOnly) return;
     final selected = await Navigator.of(context).push<String>(
@@ -9377,11 +9396,20 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
         builder: (_) => const FlatImageLibraryScreen(readOnly: true),
       ),
     );
-    if (selected != null && mounted) {
+    if (selected == null || !mounted) return;
+    try {
+      final reference = await _asCourseMedia(selected);
+      if (!mounted) return;
       setState(() {
-        _imageAsset = selected;
+        _imageAsset = reference;
         _dirty = true;
       });
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(duration: const Duration(seconds: 8), content: Text('$e')),
+        );
+      }
     }
   }
 
@@ -9407,8 +9435,9 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
       } else {
         selected = await _imageService.importImage();
       }
-      final chosen = selected;
-      if (chosen != null && mounted) {
+      if (selected == null || !mounted) return;
+      final chosen = await _asCourseMedia(selected);
+      if (mounted) {
         setState(() {
           _imageAsset = chosen;
           _dirty = true;
@@ -9430,32 +9459,16 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
         height: 120,
         child: Center(child: Text('No image selected')),
       );
-    } else if (_imageAsset.startsWith('assets/')) {
-      preview = Image.asset(
-        _imageAsset,
+    } else {
+      preview = CourseMediaImage(
+        courseId: widget.course?.courseId ?? '',
+        asset: _imageAsset,
         height: 150,
-        fit: BoxFit.contain,
-        // Bound the decode: nothing limits a path-based image's pixels.
+        // Bound the decode: nothing limits a course-media image's pixels.
         cacheHeight: 300,
-        errorBuilder: (_, __, ___) => const SizedBox(
+        missing: const SizedBox(
           height: 120,
           child: Center(child: Text('Image asset file is missing.')),
-        ),
-      );
-    } else if (!File(_imageAsset).existsSync()) {
-      preview = const SizedBox(
-        height: 120,
-        child: Center(child: Text('Image asset file is missing.')),
-      );
-    } else {
-      preview = Image.file(
-        File(_imageAsset),
-        height: 150,
-        fit: BoxFit.contain,
-        cacheHeight: 300,
-        errorBuilder: (_, __, ___) => const SizedBox(
-          height: 120,
-          child: Center(child: Text('Image asset file is unreadable.')),
         ),
       );
     }
@@ -10854,7 +10867,11 @@ class _AudioLibraryScreenState extends State<AudioLibraryScreen> {
   Future<void> _refreshMissingClips() async {
     final missing = <String>{};
     for (final clip in _course.audioLibrary) {
-      if (await _audio.resolveSourceForClip(clip) == null) missing.add(clip.id);
+      final source = await _audio.resolveSourceForClip(
+        clip,
+        courseId: _course.courseId,
+      );
+      if (source == null) missing.add(clip.id);
     }
     if (!mounted) return;
     setState(() => _missingClipIds = Set.unmodifiable(missing));
@@ -10992,7 +11009,10 @@ class _AudioLibraryScreenState extends State<AudioLibraryScreen> {
       return;
     }
     try {
-      final source = _audio.sourceForClip(clip);
+      final source = await _audio.resolveSourceForClip(
+        clip,
+        courseId: _course.courseId,
+      );
       if (source == null) throw StateError('MP3 source is missing');
       await _previewPlayer.stop();
       await _previewPlayer.play(source);

@@ -1,7 +1,9 @@
 # Build 243 — change summary
 
 Revision 0 (`2.0.43+243000`) introduces Course Model v11; Revision 1
-(`2.0.43+243001`) stops one unreadable stored Course from hiding the others.
+(`2.0.43+243001`) stops one unreadable stored Course from hiding the others;
+Revision 2 (`2.0.43+243002`) gives every Course its own content-addressed
+media.
 
 ## Revision 0 — Course Model v11
 
@@ -143,3 +145,73 @@ others` claimed the opposite; the test in fact asserted the failure.
   their intent (the file is preserved, the problem is reported): the Build 230
   Course Manager test, the Build 225 unsupported-course and corrupt-file tests;
   the file-store test was renamed to what it actually checks.
+
+## Revision 2 — course media
+
+Version **2.0.43+243002**, same Beta expiry. Tranche 1 of the plan.
+
+### The reference
+
+`CourseMediaStore` (`lib/services/course_media_store.dart`) is the single
+authority. A Course's own image or recording is `media:<sha256>.<ext>`
+(`mp3`, `png`, `jpg`, `jpeg`, `webp`), the lowercase SHA-256 of its bytes. The
+file lives in `<AppSupport>/quisquislingo_course_media/course_<sha256(courseId)>/<sha256>.<ext>`.
+The same Course JSON is therefore valid on every device, and a signature over
+it pins the media bytes too.
+
+`Course.fromJson` refuses any Audio Library `filePath` that is not empty,
+`assets/…` or `media:<sha256>.mp3`, and any `image` element `asset` that is not
+empty, `assets/…`, `data:image/…` or an image `media:` reference. Portable
+`data:` images (Recognize characters) and Lesson icons are unchanged.
+
+### Where media is created, shown and removed
+
+- `RecordedAudioService` imports (fixed folder and Open from…) store through
+  the media store; clip IDs gain a random suffix because identical recordings
+  now share a file. Playback, availability and preview resolve with the
+  Course ID (`resolveSourceForClip(clip, courseId:)`,
+  `playConcatenated(…, courseId:)`); the synchronous `sourceForClip` is gone.
+- The Exercise editor copies an imported image or a library/bank choice into
+  course media. `CourseMediaImage` shows any Course image (bundled, embedded or
+  course media) in study, Duel and the editor; it reads bytes rather than
+  using `Image.file`, which memory-maps the file and on Windows keeps it from
+  being deleted.
+- `CourseEditorService`: Copy as New Course and Fork copy the referenced media
+  into the new Course folder before creation and remove it if creation fails;
+  a confirmed save deletes files the saved Course does not reference
+  (including files added and then dropped while editing); deleting a Course
+  deletes its folder. `CourseMergeService.copyMedia` copies from the left and
+  then the right source, called by Course Manager just before saving a merge.
+- `CourseBackupService` copies every referenced file as `<sha256>.<ext>`,
+  verifies it, and records `reference` + `sha256` (or a gap:
+  `reference` + `missing`). Loading requires the checksum to equal the
+  reference's digest. `reinstateMedia` puts files back; Version History calls
+  it before Restore. No path remapping remains. Images are now backed up too.
+
+### Retired
+
+`ManagedAudioCleanup` and `MediaReferenceIndex` are removed. Their job was to
+avoid deleting an MP3 another Course shared; with one folder per Course nothing
+is shared. The Revision 1 note that the MP3 cleanup stays strict about
+unreadable stored Courses no longer applies: cleanup reads only the Course
+being saved. The Shared Image Library delete dialog, which listed Courses
+"still using" an image (Build 242), now states that Courses keep their own
+copy.
+
+### Storage, reset and backup
+
+- Reset → imported media: images removes the library, banks and course-media
+  images; audio removes course-media MP3s; both removes the whole
+  course-media folder. Custom-course and full resets remove it too.
+- Inventory: section "Course media", owner by Course, note by type.
+- Android Auto Backup excludes `quisquislingo_course_media/` and still
+  excludes the retired `quisquislingo_audio/`, which is no longer read.
+- `docs/239_RESET_STORAGE_INVENTORY.md`, `docs/SECURITY_AND_ROBUSTNESS.md`,
+  `docs/AUDIO_LIBRARY.md`, `docs/COURSE_EDITOR.md` and Editor Help (English and
+  Italian) describe the new storage.
+
+### Also fixed
+
+Revision 0 had left the in-app Publisher Help and `docs/PUBLISHER_SIGNING_GUIDE.md`
+with different wording for the Course Model line; the test that keeps them
+identical was not in Revision 0's focused set. They are identical again.

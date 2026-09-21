@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'course_editor_storage.dart';
 import 'course_file_store.dart';
+import 'course_media_store.dart';
 import 'learner_status_events.dart';
 import 'profile_service.dart';
 
@@ -86,7 +87,25 @@ class AppResetService {
   static const audioOrphanCheckKeyPrefix = 'audio_orphan_check_last_';
 
   static const _imageFolders = <String>['exercise_images', 'image_banks'];
-  static const _audioFolders = <String>['quisquislingo_audio'];
+
+  /// Course media (`CourseMediaStore`) holds both images and recordings, one
+  /// folder per Course; the imported-media reset removes them by file type.
+  static const _courseMediaFolder = CourseMediaStore.rootDirectoryName;
+
+  static bool _isCourseAudio(File file) =>
+      file.path.toLowerCase().endsWith('.mp3');
+
+  Future<List<File>> _courseMediaFiles({
+    required bool images,
+    required bool audio,
+  }) async {
+    final root = (await _directories([_courseMediaFolder])).single;
+    if (!await root.exists()) return const [];
+    return [
+      await for (final entity in root.list(recursive: true, followLinks: false))
+        if (entity is File && (_isCourseAudio(entity) ? audio : images)) entity,
+    ];
+  }
 
   final ProfileService _profiles;
   final Future<Directory> Function() _documents;
@@ -128,8 +147,13 @@ class AppResetService {
     final prefs = await SharedPreferences.getInstance();
     final learners = await _profiles.getProfileRecords();
     final admins = await _profiles.getAdminProfileIds();
-    final images = await _countFiles(await _directories(_imageFolders));
-    final audio = await _countFiles(await _directories(_audioFolders));
+    // One pass over course media counts both kinds.
+    final courseMedia = await _courseMediaFiles(images: true, audio: true);
+    final audio = courseMedia.where(_isCourseAudio).length;
+    final images =
+        await _countFiles(await _directories(_imageFolders)) +
+        courseMedia.length -
+        audio;
     return AppResetPreview(
       learnerCount: learners.length,
       nonAdminLearnerCount: learners
@@ -258,10 +282,18 @@ class AppResetService {
   }) async {
     final directories = [
       if (images) ...await _directories(_imageFolders),
-      if (audio) ...await _directories(_audioFolders),
+      if (images && audio) ...await _directories([_courseMediaFolder]),
     ];
     for (final directory in directories) {
       if (await directory.exists()) await directory.delete(recursive: true);
+    }
+    if (images != audio) {
+      for (final file in await _courseMediaFiles(
+        images: images,
+        audio: audio,
+      )) {
+        await file.delete();
+      }
     }
     final prefs = await SharedPreferences.getInstance();
     if (images) {

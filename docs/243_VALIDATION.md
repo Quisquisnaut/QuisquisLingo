@@ -1,9 +1,51 @@
 # Build 243 validation
 
+## Final validation of Revisions 0–2 (on the Revision 2 tree, `2.0.43+243002`)
+
+Run on 21 September 2026 with the owner's approval, on the final working tree
+of Revision 2, which contains Revisions 0 and 1.
+
+- `flutter analyze --no-pub` (whole repository): **no issues**.
+- `python tools/validate_images.py`: 111 assets, 0 issues.
+- `python tools/validate_lesson_icons.py`: 14 assets, 0 issues.
+- `python tools/validate_media_assets.py`: 443 files, 0 issues.
+- `python tools/validate_courses.py`: 10 bundled Course Model v11 files OK.
+- `git diff --check`: clean. Changed Dart files formatted; pre-existing
+  formatter-unclean blocks outside the changes were deliberately left alone.
+- Complete `flutter test --no-pub`, first run: **1,936 passed, 2 failed**, both
+  in `test/qql_231_search_service_test.dart`. Its fixture used the invented
+  image name `asset_internal_marker.png`, which the Revision 2 media rule
+  correctly refuses. The marker is now a valid `media:` reference; the test
+  still proves that image references are never searchable. The file then
+  passed alone (7 tests).
+- Complete `flutter test --no-pub`, rerun on the final tree after that fix:
+  **1,938 passed, 0 failed**.
+
+Revision 0 issues found and fixed before this run: the in-app Publisher Help
+and `docs/PUBLISHER_SIGNING_GUIDE.md` had different wording for the Course
+Model line (`test/publisher_signing_help_test.dart`); they are identical again.
+
+## Revision 2 — course media (`2.0.43+243002`)
+
+- New `test/course_media_243_test.dart` (13 tests): reference format, verified
+  and deduplicated storage, limits, damaged-file replacement, copy with
+  missing references, per-Course cleanup, `referencesOf`, the model rule,
+  save cleanup with backup reinstatement, Course deletion, Copy as New Course
+  and Fork copying media, merge copying from both sources, MP3 import and
+  per-Course playback resolution, and `CourseMediaImage` for present, missing
+  and device-path references.
+- Updated for the new format (same intent): backup gap and restore, transaction
+  backups, official backups, Publisher recordings rule, dialog MP3 import,
+  audio settings and availability overrides, Inventory, reset, Device
+  Administration, branding, audio import paths.
+- 71 focused test files touching images, audio, backups, Fork/Copy/Merge,
+  version history, reset, Inventory and the editor: **770 passed, 0 failed**;
+  Help and documentation suites: **65 passed**; version suites: **27 passed**.
+
+
 ## Revision 1 — unreadable stored Courses (`2.0.43+243001`)
 
-**Status: focused validation passed. Final checks not yet run** (same owner
-approval as Revision 0; one complete run can cover both revisions).
+**Status: passed** — see the final validation above.
 
 - New `test/unreadable_stored_courses_243_test.dart` (7 tests): lenient
   listing with named skipped files, duplicate IDs, strict `readAll`, `write`
@@ -23,10 +65,8 @@ approval as Revision 0; one complete run can cover both revisions).
 
 Scope: [243 change summary](243_CHANGE_SUMMARY.md).
 
-**Status: focused validation passed. Final checks not yet run.** The owner
-approves the complete Flutter suite (about 1,900 tests), the full-repository
-`flutter analyze` and the four Python validators separately, because of their
-duration. They will be recorded here when run.
+**Status: passed** — see the final validation above; its focused evidence
+follows.
 
 ### Focused evidence (final working tree of Revision 0)
 
@@ -49,10 +89,6 @@ duration. They will be recorded here when run.
   signature against `dummy-public.der` before writing.
 - `git diff --check`: clean.
 
-### Pending, on owner approval
+### Still open
 
-- `flutter analyze --no-pub` (whole repository).
-- Complete `flutter test --no-pub`.
-- `tools/validate_images.py`, `validate_lesson_icons.py`,
-  `validate_media_assets.py`, `validate_courses.py`.
-- Manual check: see the Italian checklist that will accompany the release.
+- Manual check on a device: not yet done.

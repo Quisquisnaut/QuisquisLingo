@@ -116,6 +116,7 @@ void main() {
         text: 'missing',
         filePath: 'assets/audio/does_not_exist_228.mp3',
       ),
+      courseId: 'course',
     );
     expect(source, isNull);
   });
@@ -491,13 +492,10 @@ class _CountingRecordedAudio extends RecordedAudioService {
   }
 
   @override
-  Source? sourceForClip(CourseAudioClip clip) {
-    sourceCalls++;
-    return sourceAvailable ? AssetSource('audio/test.mp3') : null;
-  }
-
-  @override
-  Future<Source?> resolveSourceForClip(CourseAudioClip clip) async {
+  Future<Source?> resolveSourceForClip(
+    CourseAudioClip clip, {
+    required String courseId,
+  }) async {
     sourceCalls++;
     return sourceAvailable ? AssetSource('audio/test.mp3') : null;
   }
@@ -506,6 +504,7 @@ class _CountingRecordedAudio extends RecordedAudioService {
   Future<bool> playConcatenated(
     String text,
     List<CourseAudioClip> library, {
+    required String courseId,
     Duration gap = const Duration(milliseconds: 90),
     bool enableDiagnostics = true,
   }) async {

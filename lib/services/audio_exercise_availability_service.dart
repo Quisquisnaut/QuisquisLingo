@@ -38,7 +38,11 @@ class AudioExerciseAvailabilityService {
     final clips = _recordedAudio.segment(text, course.audioLibrary);
     if (clips == null || clips.isEmpty) return false;
     for (final clip in clips) {
-      if (await _recordedAudio.resolveSourceForClip(clip) == null) return false;
+      final source = await _recordedAudio.resolveSourceForClip(
+        clip,
+        courseId: course.courseId,
+      );
+      if (source == null) return false;
     }
     return true;
   }

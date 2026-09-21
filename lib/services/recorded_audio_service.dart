@@ -1,23 +1,23 @@
-import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 import 'package:audioplayers/audioplayers.dart';
-import 'package:crypto/crypto.dart';
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 import '../models/course_models.dart';
 import 'audio_diagnostic_service.dart';
+import 'course_media_store.dart';
 import 'file_dialog_service.dart';
 
 /// Manages creator-supplied recorded speech. Imported MP3 files are copied into
-/// app-owned storage so moving or deleting the creator's original file does not
-/// break the local course. Course packaging can later export this directory as
-/// an optional audio pack.
+/// the Course's own media folder and named by content (`media:<sha256>.mp3`,
+/// see [CourseMediaStore]), so moving or deleting the creator's original file
+/// does not break the Course and the reference is the same on every device.
 class RecordedAudioService {
   RecordedAudioService({
     FileDialogService? fileDialogs,
     Future<Directory> Function()? supportDirectory,
   }) : _fileDialogs = fileDialogs ?? FileDialogService(),
-       _supportDirectory = supportDirectory ?? getApplicationSupportDirectory;
+       _media = CourseMediaStore(supportDirectory: supportDirectory);
 
   static const int maxMp3Bytes = 50 * 1024 * 1024;
 
@@ -26,7 +26,7 @@ class RecordedAudioService {
   static const int _dialogReadCap = 128 * 1024 * 1024;
 
   final FileDialogService _fileDialogs;
-  final Future<Directory> Function() _supportDirectory;
+  final CourseMediaStore _media;
 
   /// False when the system dialog is unsupported; hide Open from….
   bool get fileDialogsAvailable => _fileDialogs.isAvailable;
@@ -41,14 +41,6 @@ class RecordedAudioService {
       .replaceAll(RegExp(r'\s+'), ' ')
       .replaceAll(_nonWordBoundary, '')
       .toLowerCase();
-
-  static String storageDirectoryForCourseId(String courseId) {
-    final value = courseId.trim();
-    if (value.isEmpty) {
-      throw ArgumentError.value(courseId, 'courseId', 'Course ID is required');
-    }
-    return 'course_${sha256.convert(utf8.encode(value))}';
-  }
 
   Future<Directory> fixedImportDirectory() async {
     final documents = await getApplicationDocumentsDirectory();
@@ -75,22 +67,23 @@ class RecordedAudioService {
         'No MP3 files found in ${importDir.path}. Copy the MP3 files you want to import there and try again.',
       );
     }
-    final dir = await _courseAudioDirectory(courseId);
+    for (final source in sources) {
+      if (await source.length() > maxMp3Bytes) throw StateError(_tooLarge);
+    }
     final out = <CourseAudioClip>[];
     final batchStamp = DateTime.now().microsecondsSinceEpoch;
     for (var index = 0; index < sources.length; index++) {
-      final source = sources[index];
-      final size = await source.length();
-      if (size > maxMp3Bytes) throw StateError(_tooLarge);
-      final reserved = await _reserveClip(
-        dir,
-        batchStamp,
-        index,
-        source.uri.pathSegments.last,
+      final reference = await _media.addBytes(
+        courseId,
+        await sources[index].readAsBytes(),
+        'mp3',
       );
-      await source.copy(reserved.path);
       out.add(
-        CourseAudioClip(id: reserved.id, text: '', filePath: reserved.path),
+        CourseAudioClip(
+          id: _clipId(batchStamp, index),
+          text: '',
+          filePath: reference,
+        ),
       );
     }
     return out;
@@ -116,50 +109,27 @@ class RecordedAudioService {
     }
     final bytes = picked.bytes!;
     if (bytes.length > maxMp3Bytes) throw StateError(_tooLarge);
-    final dir = await _courseAudioDirectory(courseId);
-    final reserved = await _reserveClip(
-      dir,
-      DateTime.now().microsecondsSinceEpoch,
-      0,
-      name,
-    );
-    await File(reserved.path).writeAsBytes(bytes, flush: true);
+    final reference = await _media.addBytes(courseId, bytes, 'mp3');
     return (
       dialog: picked,
-      clip: CourseAudioClip(id: reserved.id, text: '', filePath: reserved.path),
+      clip: CourseAudioClip(
+        id: _clipId(DateTime.now().microsecondsSinceEpoch, 0),
+        text: '',
+        filePath: reference,
+      ),
     );
   }
+
+  static final Random _random = Random.secure();
+
+  /// Identical recordings now share one stored file, so the file name no
+  /// longer makes a clip ID unique; a random suffix does.
+  static String _clipId(int batchStamp, int index) =>
+      'audio_${batchStamp}_${index}_'
+      '${_random.nextInt(1 << 32).toRadixString(16).padLeft(8, '0')}';
 
   static const String _tooLarge =
       'MP3 files larger than 50 MB are not accepted.';
-
-  Future<Directory> _courseAudioDirectory(String courseId) async {
-    final root = await _supportDirectory();
-    final dir = Directory(
-      '${root.path}${Platform.pathSeparator}quisquislingo_audio${Platform.pathSeparator}${storageDirectoryForCourseId(courseId)}',
-    );
-    await dir.create(recursive: true);
-    return dir;
-  }
-
-  Future<({String id, String path})> _reserveClip(
-    Directory dir,
-    int batchStamp,
-    int index,
-    String sourceName,
-  ) async {
-    final safeName = sourceName.replaceAll(RegExp(r'[^A-Za-z0-9._-]'), '_');
-    final baseClipId = 'audio_${batchStamp}_$index';
-    var clipId = baseClipId;
-    var destination = '${dir.path}${Platform.pathSeparator}${clipId}_$safeName';
-    var collision = 2;
-    while (await File(destination).exists()) {
-      clipId = '${baseClipId}_$collision';
-      destination = '${dir.path}${Platform.pathSeparator}${clipId}_$safeName';
-      collision += 1;
-    }
-    return (id: clipId, path: destination);
-  }
 
   List<CourseAudioClip> orphaned(Course course) =>
       course.audioLibrary.where((c) => c.text.trim().isEmpty).toList();
@@ -193,23 +163,16 @@ class RecordedAudioService {
     return out;
   }
 
-  Source? sourceForClip(CourseAudioClip clip) {
+  /// Resolves only sources that exist, without creating an audio player.
+  /// Course media is looked up in [courseId]'s folder.
+  Future<Source?> resolveSourceForClip(
+    CourseAudioClip clip, {
+    required String courseId,
+  }) async {
     final path = clip.filePath.trim();
     if (path.isEmpty) return null;
     // Bundled course recordings are Flutter assets, not normal filesystem
     // files on Android/iOS. AssetSource expects the path below assets/.
-    if (path.startsWith('assets/')) {
-      return AssetSource(path.substring('assets/'.length));
-    }
-    final file = File(path);
-    if (!file.existsSync()) return null;
-    return DeviceFileSource(path);
-  }
-
-  /// Resolves only sources that exist, without creating an audio player.
-  Future<Source?> resolveSourceForClip(CourseAudioClip clip) async {
-    final path = clip.filePath.trim();
-    if (path.isEmpty) return null;
     if (path.startsWith('assets/')) {
       try {
         await rootBundle.load(path);
@@ -218,13 +181,14 @@ class RecordedAudioService {
         return null;
       }
     }
-    final file = File(path);
-    return await file.exists() ? DeviceFileSource(path) : null;
+    final file = await _media.existingFile(courseId, path);
+    return file == null ? null : DeviceFileSource(file.path);
   }
 
   Future<bool> playConcatenated(
     String text,
     List<CourseAudioClip> library, {
+    required String courseId,
     Duration gap = const Duration(milliseconds: 90),
     bool enableDiagnostics = true,
   }) async {
@@ -239,7 +203,7 @@ class RecordedAudioService {
       final sources = <Source>[];
       if (clips != null) {
         for (final clip in clips) {
-          final source = await resolveSourceForClip(clip);
+          final source = await resolveSourceForClip(clip, courseId: courseId);
           if (source == null) {
             sources.clear();
             break;

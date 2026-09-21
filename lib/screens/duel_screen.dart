@@ -13,7 +13,7 @@ import '../services/settings_service.dart';
 import '../services/recorded_audio_service.dart';
 import '../services/audio_exercise_availability_service.dart';
 import '../services/translation_choice_service.dart';
-import '../widgets/portable_exercise_image.dart';
+import '../widgets/course_media_image.dart';
 
 class DuelScreen extends StatefulWidget {
   final Course course;
@@ -228,6 +228,7 @@ class _DuelScreenState extends State<DuelScreen> {
       ok = await _recordedAudio.playConcatenated(
         text,
         widget.course.audioLibrary,
+        courseId: widget.course.courseId,
       );
     }
     if (!ok && widget.course.audioMode != 'recorded') {
@@ -566,7 +567,8 @@ class _DuelScreenState extends State<DuelScreen> {
                   if (ex.imageAsset.isNotEmpty) ...[
                     const SizedBox(height: 14),
                     Center(
-                      child: PortableExerciseImage(
+                      child: CourseMediaImage(
+                        courseId: widget.course.courseId,
                         asset: ex.imageAsset,
                         height: 200,
                       ),

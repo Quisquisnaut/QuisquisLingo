@@ -1,23 +1,19 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:quisquislingo_app/models/course_models.dart';
+import 'package:quisquislingo_app/services/course_media_store.dart';
 import 'package:quisquislingo_app/services/recorded_audio_service.dart';
 
 void main() {
-  test('recorded audio storage is contained and Course-ID specific', () {
-    final unsafe = RecordedAudioService.storageDirectoryForCourseId(
-      r'..\..\outside',
-    );
-    final other = RecordedAudioService.storageDirectoryForCourseId('outside');
+  test('course media storage is contained and Course-ID specific', () {
+    final unsafe = CourseMediaStore.folderNameFor(r'..\..\outside');
+    final other = CourseMediaStore.folderNameFor('outside');
 
     expect(unsafe, matches(RegExp(r'^course_[0-9a-f]{64}$')));
     expect(unsafe, isNot(other));
     expect(unsafe, isNot(contains('..')));
     expect(unsafe, isNot(contains('/')));
     expect(unsafe, isNot(contains(r'\')));
-    expect(
-      () => RecordedAudioService.storageDirectoryForCourseId('  '),
-      throwsArgumentError,
-    );
+    expect(() => CourseMediaStore.folderNameFor('  '), throwsArgumentError);
   });
 
   test('recorded audio segmentation prefers longest expression', () {

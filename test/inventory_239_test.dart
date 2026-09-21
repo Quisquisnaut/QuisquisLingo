@@ -9,7 +9,7 @@ import 'package:quisquislingo_app/screens/inventory_screen.dart';
 import 'package:quisquislingo_app/services/inventory_service.dart';
 import 'package:quisquislingo_app/services/course_file_store.dart';
 import 'package:quisquislingo_app/services/profile_service.dart';
-import 'package:quisquislingo_app/services/recorded_audio_service.dart';
+import 'package:quisquislingo_app/services/course_media_store.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 final _course = Course(
@@ -149,12 +149,12 @@ void main() {
       touch(qql('Stuff/inner.bin'));
       touch('${support.path}${sep}exercise_images${sep}a.png');
       touch('${support.path}${sep}image_banks${sep}bank_1${sep}manifest.json');
-      final hash = RecordedAudioService.storageDirectoryForCourseId(
-        _course.courseId,
-      );
-      touch('${support.path}${sep}quisquislingo_audio$sep$hash${sep}a.mp3');
+      final hash = CourseMediaStore.folderNameFor(_course.courseId);
       touch(
-        '${support.path}${sep}quisquislingo_audio${sep}course_unknown${sep}b.mp3',
+        '${support.path}${sep}quisquislingo_course_media$sep$hash$sep${'a' * 64}.mp3',
+      );
+      touch(
+        '${support.path}${sep}quisquislingo_course_media${sep}course_unknown$sep${'b' * 64}.png',
       );
 
       final all = await service.load();
@@ -185,14 +185,16 @@ void main() {
       expect(sectionOf(all, 'Imported images').count, 1);
       expect(sectionOf(all, 'Image banks').count, 1);
 
-      final audio = sectionOf(all, 'Imported audio files');
-      expect(audio.count, 2);
-      final known = audio.items.firstWhere((i) => i.name.startsWith(hash));
+      final media = sectionOf(all, 'Course media');
+      expect(media.count, 2);
+      final known = media.items.firstWhere((i) => i.name.startsWith(hash));
       expect(known.owner, contains('Inventory Course'));
-      final unknown = audio.items.firstWhere(
+      expect(known.note, 'Course recording (MP3).');
+      final unknown = media.items.firstWhere(
         (i) => i.name.startsWith('course_unknown'),
       );
       expect(unknown.owner, 'A course no longer on this device');
+      expect(unknown.note, 'Course image.');
 
       final other = sectionOf(all, 'Other files in the QQL folder');
       expect(other.count, 2);

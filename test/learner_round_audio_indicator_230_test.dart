@@ -348,7 +348,10 @@ class _RecordedAvailability extends RecordedAudioService {
   }
 
   @override
-  Future<Source?> resolveSourceForClip(CourseAudioClip clip) async {
+  Future<Source?> resolveSourceForClip(
+    CourseAudioClip clip, {
+    required String courseId,
+  }) async {
     sourceChecks++;
     return availableTexts.contains(clip.text)
         ? AssetSource('audio/${clip.id}.mp3')

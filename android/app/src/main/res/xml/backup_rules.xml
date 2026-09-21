@@ -14,5 +14,7 @@
 <full-backup-content>
     <exclude domain="file" path="image_banks/" />
     <exclude domain="file" path="exercise_images/" />
+    <exclude domain="file" path="quisquislingo_course_media/" />
+    <!-- Retired before Build 243 but possibly still on the device. -->
     <exclude domain="file" path="quisquislingo_audio/" />
 </full-backup-content>

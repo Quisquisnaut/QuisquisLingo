@@ -1,3 +1,18 @@
+# 2.0.43 (Build 243, Revision 2) - Course media: one format on every device - 2026-09-21
+
+Tranche 1 of the portable course package ([plan](docs/COURSE_PACKAGE_PLAN.md)). Scope: [Build 243 change summary](docs/243_CHANGE_SUMMARY.md#revision-2--course-media); evidence: [243 validation](docs/243_VALIDATION.md).
+
+- Platform version `2.0.43+243002`; same release date, so the Beta expiry stays **2026-10-21 23:59:59 local time**.
+- **A Course names its own images and recordings by content**, `media:<sha256>.<ext>`, never by a path on one device. Course Model v11 refuses device paths for recordings and exercise images; bundled `assets/` media and embedded `data:` images are unchanged. The optional cover image uses the same form.
+- **One media folder per Course**, `quisquislingo_course_media/<course folder>/`. Importing an MP3 or an image, or choosing an image from the Shared Image Library or a bank, copies the bytes there; identical files are stored once and every write is verified against its reference.
+- Study, Duel, Exercise Preview, Audio Library and the editor preview find media through the Course. Course images are read into memory rather than memory-mapped, so an image on screen never blocks the cleanup on Windows.
+- **Copy as New Course, Fork and Merge copy the media they use** into the new Course's folder (a merge from both source Courses); a failed creation removes the copies. Deleting a Course deletes its folder.
+- A confirmed save removes files the Course no longer uses. **Version backups now include images as well as recordings**, verified against their references, and Restore puts them back in the Course folder; a missing file is still recorded as a gap rather than blocking the save.
+- Deleting from the Shared Image Library no longer affects any Course, since each keeps its own copy; the deletion dialog says so instead of listing Courses.
+- Reset: removing imported images or audio also removes course media of that type. Inventory lists "Course media" by Course. Android backup excludes the new folder and still excludes the retired `quisquislingo_audio`.
+- The shared MP3 cleanup (`ManagedAudioCleanup`, `MediaReferenceIndex`) is removed: with one folder per Course nothing is shared, so cleanup no longer needs to read every stored Course.
+- Fixed a Revision 0 slip: the in-app Publisher Help and the signing guide again carry identical wording.
+
 # 2.0.43 (Build 243, Revision 1) - An unreadable stored Course no longer hides the others - 2026-09-21
 
 Scope: [Build 243 change summary](docs/243_CHANGE_SUMMARY.md#revision-1--an-unreadable-stored-course-no-longer-hides-the-others); evidence: [243 validation](docs/243_VALIDATION.md).

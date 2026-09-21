@@ -12,7 +12,7 @@ import 'learner_status_events.dart';
 import 'profile_service.dart';
 import 'authoring_duplication_service.dart';
 import 'course_access_policy.dart';
-import 'managed_media_cleanup.dart';
+import 'course_media_store.dart';
 import 'team_service.dart';
 
 class CourseConfirmationResult {
@@ -66,15 +66,18 @@ class CourseEditorService {
     TeamService? teamService,
     CourseAccessPolicy? accessPolicy,
     DateTime Function()? clock,
-    ManagedAudioCleanup? audioCleanup,
+    CourseMediaStore? mediaStore,
     PublisherVerificationService? publisherVerification,
   }) : _store = courseStore ?? CourseFileStore(),
-       _audioCleanup = audioCleanup ?? ManagedAudioCleanup(),
+       _media = mediaStore ?? CourseMediaStore(),
        _publisherVerification =
            publisherVerification ?? PublisherVerificationService(),
        backupService =
            backupService ??
-           CourseBackupService(publisherVerification: publisherVerification),
+           CourseBackupService(
+             publisherVerification: publisherVerification,
+             mediaStore: mediaStore,
+           ),
        _profiles = profileService ?? ProfileService(),
        _teams = teamService ?? TeamService(profileService: profileService),
        _access =
@@ -87,7 +90,7 @@ class CourseEditorService {
 
   final CourseFileStore _store;
   final PublisherVerificationService _publisherVerification;
-  final ManagedAudioCleanup _audioCleanup;
+  final CourseMediaStore _media;
   final CourseBackupService backupService;
   final ProfileService _profiles;
   final TeamService _teams;
@@ -103,26 +106,29 @@ class CourseEditorService {
   Future<CourseAccessCapabilities> capabilitiesFor(Course course) =>
       _access.forCurrentProfile(course);
 
-  /// Deletes managed MP3 files that a confirmed change or a Course deletion
-  /// left unreferenced. Runs only after the change is persisted and verified,
-  /// checks every stored Course (Duplicate/Fork copies share file paths), and is
-  /// best effort: it never fails a save or a delete, and deletes nothing when
-  /// the stored data cannot be read completely. Backups hold their own copies of
-  /// clips, so they do not need the originals.
-  Future<void> _removeUnusedAudio(Iterable<String> candidates) async {
-    if (candidates.isEmpty) return;
+  /// The Course's own media folder, for the Editor and tests.
+  CourseMediaStore get mediaStore => _media;
+
+  /// Copies the media [copy] uses from [source]'s folder into its own, runs
+  /// [create], and removes the new folder again if creation fails, so a failed
+  /// Fork or Copy leaves no files behind. Each Course owns its media folder;
+  /// nothing is shared between Courses.
+  Future<CourseConfirmationResult> _withCopiedMedia(
+    Course source,
+    Course copy,
+    Future<CourseConfirmationResult> Function() create,
+  ) async {
+    await _media.copyReferences(
+      source.courseId,
+      copy.courseId,
+      CourseMediaStore.referencesOf(copy),
+    );
     try {
-      final stores = <Object?>[];
-      // Strict read: an unreadable Course may still use a file, so nothing is
-      // deleted unless every stored Course could be read.
-      for (final key in [userCoursesStorageKey, externalOfficialStorageKey]) {
-        stores.add((await _store.readAll(_kindFor(key))).values.toList());
-      }
-      await _audioCleanup.deleteUnreferenced(
-        candidates,
-        MediaReferenceIndex.fromStoredJson(stores),
-      );
-    } catch (_) {}
+      return await create();
+    } catch (_) {
+      await _media.deleteCourse(copy.courseId);
+      rethrow;
+    }
   }
 
   /// Which store a legacy storage-key constant refers to.
@@ -380,7 +386,9 @@ class CourseEditorService {
     }
     custom.remove(courseId);
     await _saveKey(userCoursesStorageKey, custom);
-    await _removeUnusedAudio(MediaReferenceIndex.audioPaths(course));
+    // The folder is this Course's alone; its version backups keep their own
+    // copies of the media.
+    await _media.deleteCourse(course.courseId);
     LearnerStatusEvents.publish(LearnerStatusInvalidation.courseMetadata);
   }
 
@@ -531,13 +539,17 @@ class CourseEditorService {
       ),
       maintainer: CourseMaintainer(profile.learnerProfileId),
     );
-    return confirmCourseTransaction(
-      originalCourse: copy,
-      workingCourse: copy,
-      languageCode: copy.targetLanguageTag,
-      versionNotes: 'Created as a new independent Course.',
-      isNewCourse: true,
-      committedAt: when,
+    return _withCopiedMedia(
+      source,
+      copy,
+      () => confirmCourseTransaction(
+        originalCourse: copy,
+        workingCourse: copy,
+        languageCode: copy.targetLanguageTag,
+        versionNotes: 'Created as a new independent Course.',
+        isNewCourse: true,
+        committedAt: when,
+      ),
     );
   }
 
@@ -574,13 +586,17 @@ class CourseEditorService {
             provenance: _forkProvenance(source, profile, when),
             maintainer: targetMaintainer,
           );
-    return confirmCourseTransaction(
-      originalCourse: fork,
-      workingCourse: fork,
-      languageCode: fork.targetLanguageTag,
-      versionNotes: 'Created as a licensed Fork of ${source.courseId}.',
-      isNewCourse: true,
-      committedAt: when,
+    return _withCopiedMedia(
+      source,
+      fork,
+      () => confirmCourseTransaction(
+        originalCourse: fork,
+        workingCourse: fork,
+        languageCode: fork.targetLanguageTag,
+        versionNotes: 'Created as a licensed Fork of ${source.courseId}.',
+        isNewCourse: true,
+        committedAt: when,
+      ),
     );
   }
 
@@ -756,13 +772,13 @@ class CourseEditorService {
     if (jsonEncode(verified.toJson()) != jsonEncode(committed.toJson())) {
       throw StateError('Course persistence verification failed.');
     }
-    if (current != null) {
-      await _removeUnusedAudio(
-        MediaReferenceIndex.audioPaths(
-          current,
-        ).difference(MediaReferenceIndex.audioPaths(verified)),
-      );
-    }
+    // Media added while editing and then removed, or no longer used by the
+    // confirmed version, leave the Course folder. The pre-change backup above
+    // holds its own copies, so older versions still restore.
+    await _media.deleteUnreferenced(
+      verified.courseId,
+      CourseMediaStore.referencesOf(verified),
+    );
     LearnerStatusEvents.publish(LearnerStatusInvalidation.courseMetadata);
     return CourseConfirmationResult(
       course: verified,
