@@ -4,7 +4,7 @@ Keep this file current at the end of **every** revision, so that work can
 resume after a pause or with another agent. Plan and decisions:
 [IMPORT_HARDENING_PLAN.md](IMPORT_HARDENING_PLAN.md). Rules: `AGENTS.md`.
 
-## Where things stand (updated 2026-09-21, Revision 15 committed)
+## Where things stand (updated 2026-09-21, Revision 16 in progress, not committed)
 
 | Revision | Version | Commit | Content |
 |---|---|---|---|
@@ -25,8 +25,47 @@ Revisions 5–15 are pushed to `origin/main`. The untracked
 
 ## Next steps, in order (plan §6a)
 
-1. **Tranche 5** (Revision 16): content-hash duplicates with Skip / Replace /
-   Keep both; provenance; the adversarial suite.
+1. **Revision 16 (Tranche 5, part 1)**, in progress in the working tree:
+   - `ImageProvenance` on `ExerciseImageMetadata` (`provenance` in stored
+     records); `ExerciseImageMetadataService.contentIndex` (SHA-256 of QQL
+     and device images, hashes cached lazily) and `applyLocalRecords`
+     (add + replace in one write; QQL images never replaced).
+   - `ExerciseImageService.addToSharedLibrary` skips exact duplicates
+     (`DuplicateImageException`) and records provenance.
+   - `ImageBankService.importToSharedLibrary`: content duplicates skipped
+     silently; same ID + different picture → `chooseConflict` (Skip /
+     Replace / Keep both + Apply to all); result counts; provenance.
+     Screen dialog keys `bank-conflict-*`; bank removal keeps records a
+     later bank replaced; date sort prefers `importedAtUtc`.
+   - Owner request folded in: the screen is renamed **Shared Images**
+     (title bar, Device Administration tile, Course Manager button only).
+   - Owner request folded in: a web page saved as `.mp3` (a failed download,
+     e.g. a site's "download redirect" page) gets a plain explanation
+     (`lib/services/import/web_page_detector.dart`, used first by
+     `Mp3Validator`). Owner: no exact byte counts in messages.
+   - Done: Tranche 4 tests use `uniquePng(seed)`
+     (`test/support/unique_png.dart`) and a failing metadata stub. Left: add
+     Revision 16 tests (provenance, duplicates, conflicts, date), docs/Help,
+     bump to `243016`, full suite, commit, push.
+2. **Revision 17 (owner request 2026-09-21): clearer media error
+   messages.** Every media error (images, recordings, Image Banks, Course
+   package media, Lesson icons, flags; about 110 messages) says in plain
+   words what is wrong and what to do; no exact byte counts. Recognise what
+   a mislabelled file really is (web page, ZIP, PDF, picture named .mp3,
+   recording named .png…) and say so. Update tests that match messages.
+3. **Revision 18 (owner decision 2026-09-21):** in the full-size preview
+   (`FlatImageLibraryScreen._preview`, both Shared Images and the Course
+   Editor's Image Library), a tooltip on the picture: hover on desktop,
+   long-press on phones, none on tiles. Content: file name (QQL asset name;
+   the recorded original name from Revision 16 on; the stored name for older
+   imports; "Course file (named by content)" for `media:` files), approximate
+   size, pixel dimensions, format, added date (recorded, else derived; QQL
+   images "Included with QQL"), bank name for bank images, attribution;
+   "File missing" when the file is gone; merged tiles add "Also stored in
+   this Course". Owner: "Yes to all. Only English": format and bank
+   name in, importing Admin's name out (as proposed; one line to add if the
+   owner wants it), Help text in English only.
+4. **Phase 20 route-matrix adversarial suite**: Revision 19.
 
 ## Owner decisions already taken
 

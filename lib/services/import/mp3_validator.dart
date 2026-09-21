@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'dart:isolate';
 import 'dart:typed_data';
 
+import 'web_page_detector.dart';
+
 /// An MP3 refused by [Mp3Validator]. A [FormatException], so existing import
 /// paths report it like any other invalid file.
 class Mp3ValidationException extends FormatException {
@@ -74,6 +76,21 @@ abstract final class Mp3Validator {
       throw const Mp3ValidationException(
         'MP3 files larger than 50 MB are not accepted.',
       );
+    }
+    switch (webPageKind(bytes)) {
+      case WebPageKind.downloadPage:
+        throw const Mp3ValidationException(
+          'This is not a recording. The file is named .mp3, but it is a '
+          'website’s download page: the real download did not happen. '
+          'Download the file again and check that it is the audio itself.',
+        );
+      case WebPageKind.page:
+        throw const Mp3ValidationException(
+          'This is not a recording. The file is named .mp3, but it is a web '
+          'page, probably saved by mistake. Download the audio file again.',
+        );
+      case null:
+        break;
     }
     var offset = 0;
     var metadata = 0;

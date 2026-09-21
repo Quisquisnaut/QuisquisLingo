@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:archive/archive.dart';
+import 'package:crypto/crypto.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -10,6 +11,7 @@ import '../models/exercise_image_metadata.dart';
 import 'exercise_image_metadata_service.dart';
 import 'exercise_image_service.dart';
 import 'file_dialog_service.dart';
+import 'image_library_rules.dart';
 import 'import/bounded_zip_reader.dart';
 import 'import/image_validator.dart';
 import 'import/json_limits.dart';
@@ -38,11 +40,23 @@ class ImageBankImportResult {
   final int imported;
   final List<String> warnings;
   final List<ExerciseImageMetadata> records;
+
+  /// Pictures already in the library, byte for byte (skipped silently).
+  final int duplicatesSkipped;
+
+  /// Same ID, different picture: how each was resolved.
+  final int conflictsSkipped;
+  final int replaced;
+  final int keptBoth;
   const ImageBankImportResult({
     required this.bankName,
     required this.imported,
     required this.warnings,
     required this.records,
+    this.duplicatesSkipped = 0,
+    this.conflictsSkipped = 0,
+    this.replaced = 0,
+    this.keptBoth = 0,
   });
 }
 
@@ -56,6 +70,7 @@ class BankImage {
     required this.filename,
     required this.bytes,
     this.attribution,
+    this.detectedFormat,
   });
 
   final String id;
@@ -66,16 +81,45 @@ class BankImage {
   final Uint8List bytes;
   final ImageAttribution? attribution;
 
-  BankImage withCategory(String value) => BankImage(
-    id: id,
+  /// `png`, `jpg` or `webp`, from the content.
+  final String? detectedFormat;
+
+  BankImage withCategory(String value) => _copy(category: value);
+
+  BankImage withId(String value) => _copy(id: value);
+
+  BankImage _copy({String? id, String? category}) => BankImage(
+    id: id ?? this.id,
     label: label,
-    category: value,
+    category: category ?? this.category,
     tags: tags,
     filename: filename,
     bytes: bytes,
     attribution: attribution,
+    detectedFormat: detectedFormat,
   );
 }
+
+/// What to do with a bank image whose ID is already in the library with a
+/// different picture.
+enum ConflictChoice { skip, replace, keepBoth }
+
+/// A bank image whose ID is already in Shared Images with a different
+/// picture. [canReplace] is false for QQL's own images, which never change.
+class BankIdConflict {
+  const BankIdConflict({
+    required this.incoming,
+    required this.existing,
+    required this.canReplace,
+  });
+
+  final BankImage incoming;
+  final ExerciseImageMetadata existing;
+  final bool canReplace;
+}
+
+/// The Admin's answer for one conflict, optionally for all the rest.
+typedef ConflictDecision = ({ConflictChoice choice, bool applyToAll});
 
 /// What the Admin decided about categories a bank adds.
 enum NewCategoryChoice { add, useOther, cancel }
@@ -451,8 +495,9 @@ class ImageBankService {
         byBasename[item.filename.toLowerCase()]!,
         limit: maxImageBytes,
       );
+      final ImageFacts facts;
       try {
-        ImageValidator.inspect(sourceBytes, ImageProfile.exerciseImage);
+        facts = ImageValidator.inspect(sourceBytes, ImageProfile.exerciseImage);
       } on ImageValidationException catch (error) {
         throw FormatException(
           'Image Bank image ${item.filename}: ${error.message}',
@@ -473,6 +518,7 @@ class ImageBankService {
           filename: item.filename,
           bytes: sourceBytes,
           attribution: item.attribution,
+          detectedFormat: facts.format.extension,
         ),
       );
     }
@@ -562,12 +608,20 @@ class ImageBankService {
   /// them, put those images under `other`, or cancel (the result is then
   /// null). The bank's folder, images, records and new categories are
   /// written only after that; a failure removes all of them again.
+  ///
+  /// Duplicates are decided by content first: a picture already in the
+  /// library (QQL's or this device's, or earlier in the same bank) is skipped
+  /// without asking. A bank image whose ID is taken by a different picture
+  /// goes to [chooseConflict]: skip it, replace the device's image (never one
+  /// of QQL's), or keep both under a fresh ID; the answer can apply to all the
+  /// remaining conflicts. Without [chooseConflict] conflicts are skipped.
   Future<ImageBankImportResult?> importToSharedLibrary(
     ParsedImageBank bank, {
     required ExerciseImageMetadataService metadata,
     required String actorProfileId,
     required Future<NewCategoryChoice> Function(List<String> names)
     chooseNewCategories,
+    Future<ConflictDecision> Function(BankIdConflict conflict)? chooseConflict,
   }) async {
     await metadata.requireAdmin(actorProfileId);
     // The Shared Image Library needs at least one tag per image.
@@ -579,12 +633,74 @@ class ImageBankService {
         );
       }
     }
+    final index = await metadata.contentIndex(actorProfileId: actorProfileId);
+    final byId = {
+      for (final record in await metadata.loadCatalog()) record.id: record,
+    };
+    final taken = {...byId.keys, for (final image in bank.images) image.id};
+    final planned = <BankImage>[];
+    final replacing = <String, ExerciseImageMetadata>{};
+    final seen = <String>{};
+    var duplicates = 0;
+    var conflictsSkipped = 0;
+    var keptBoth = 0;
+    ConflictDecision? forAll;
+    for (final image in bank.images) {
+      final hash = sha256.convert(image.bytes).toString();
+      if (index.containsKey(hash) || !seen.add(hash)) {
+        duplicates++;
+        continue;
+      }
+      final existing = byId[image.id];
+      if (existing == null) {
+        planned.add(image);
+        continue;
+      }
+      final canReplace = !isBundledImage(existing);
+      var decision = forAll;
+      if (decision == null ||
+          (decision.choice == ConflictChoice.replace && !canReplace)) {
+        decision = chooseConflict == null
+            ? (choice: ConflictChoice.skip, applyToAll: true)
+            : await chooseConflict(
+                BankIdConflict(
+                  incoming: image,
+                  existing: existing,
+                  canReplace: canReplace,
+                ),
+              );
+        if (decision.applyToAll) forAll = decision;
+      }
+      switch (decision.choice) {
+        case ConflictChoice.replace when canReplace:
+          planned.add(image);
+          replacing[image.id] = existing;
+        case ConflictChoice.keepBoth:
+          final fresh = _freshId(image.id, taken);
+          taken.add(fresh);
+          planned.add(image.withId(fresh));
+          keptBoth++;
+        case ConflictChoice.skip || ConflictChoice.replace:
+          conflictsSkipped++;
+      }
+    }
+    if (planned.isEmpty) {
+      return ImageBankImportResult(
+        bankName: bank.name,
+        imported: 0,
+        warnings: bank.warnings,
+        records: const [],
+        duplicatesSkipped: duplicates,
+        conflictsSkipped: conflictsSkipped,
+      );
+    }
+
     final known = (await metadata.allCategories()).toSet();
     final newCategories = {
-      for (final image in bank.images)
+      for (final image in planned)
         if (!known.contains(image.category)) image.category,
     }.toList()..sort();
-    var images = bank.images;
+    var images = planned;
     if (newCategories.isNotEmpty) {
       if (newCategories.length > maxNewCategoriesPerBank) {
         throw FormatException(
@@ -628,18 +744,61 @@ class ImageBankService {
           ),
         );
       }
-      result = await _install(
+      final installed = await _install(
         ParsedImageBank(
           name: bank.name,
           warnings: bank.warnings,
           images: images,
         ),
       );
-      await metadata.addLocalRecords(
+      result = installed;
+      final byImageId = {for (final image in images) image.id: image};
+      final now = DateTime.now().toUtc();
+      final records = [
+        for (final record in installed.records)
+          record.copyWith(
+            provenance: ImageProvenance(
+              sha256: sha256.convert(byImageId[record.id]!.bytes).toString(),
+              byteLength: byImageId[record.id]!.bytes.length,
+              detectedFormat: byImageId[record.id]!.detectedFormat,
+              sourceName: byImageId[record.id]!.filename,
+              source: ImageProvenance.imageBank,
+              bankId: imageBankIdOf(record),
+              importedBy: actorProfileId,
+              importedAtUtc: now,
+            ),
+          ),
+      ];
+      await metadata.applyLocalRecords(
         actorProfileId: actorProfileId,
-        records: result.records,
+        add: [
+          for (final record in records)
+            if (!replacing.containsKey(record.id)) record,
+        ],
+        replace: [
+          for (final record in records)
+            if (replacing.containsKey(record.id)) record,
+        ],
       );
-      return result;
+      // A replaced single import's old file is no longer used by anything.
+      // A replaced bank image's file belongs to its bank and stays with it.
+      for (final old in replacing.values) {
+        if (old.origin != 'local') continue;
+        try {
+          final file = File(old.assetPath);
+          if (await file.exists()) await file.delete();
+        } catch (_) {}
+      }
+      return ImageBankImportResult(
+        bankName: installed.bankName,
+        imported: installed.imported,
+        warnings: installed.warnings,
+        records: List.unmodifiable(records),
+        duplicatesSkipped: duplicates,
+        conflictsSkipped: conflictsSkipped,
+        replaced: replacing.length,
+        keptBoth: keptBoth,
+      );
     } catch (_) {
       if (result != null && result.records.isNotEmpty) {
         final origin = result.records.first.origin;
@@ -658,6 +817,18 @@ class ImageBankService {
         } catch (_) {}
       }
       rethrow;
+    }
+  }
+
+  /// [id] with the first free `-2`, `-3`, … suffix, within 128 characters.
+  static String _freshId(String id, Set<String> taken) {
+    for (var n = 2; ; n++) {
+      final suffix = '-$n';
+      final base = id.length + suffix.length > 128
+          ? id.substring(0, 128 - suffix.length)
+          : id;
+      final candidate = '$base$suffix';
+      if (!taken.contains(candidate)) return candidate;
     }
   }
 

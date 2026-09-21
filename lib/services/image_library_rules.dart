@@ -32,14 +32,17 @@ enum ImageSort {
   final String label;
 }
 
-// No image record stores when it was added, so the date comes from values QQL
-// itself generated: the microsecond stamp in a single import's ID, the stamp in
-// its Image Bank ID, or when the file was written into the Course folder.
-// Bundled images have no date and count as the oldest.
+// Since Build 243 Revision 16 an imported image records when it was imported
+// (provenance). Older ones get a date from values QQL itself generated: the
+// microsecond stamp in a single import's ID, the stamp in its Image Bank ID, or
+// when the file was written into the Course folder. Bundled images have no
+// date and count as the oldest.
 final _localIdStamp = RegExp(r'^local_(\d+)$');
 final _bankOriginStamp = RegExp(r'^bank:bank_(\d+)$');
 
 DateTime? stampedAddedDate(ExerciseImageMetadata item) {
+  final recorded = item.provenance?.importedAtUtc;
+  if (recorded != null) return recorded;
   final match =
       _localIdStamp.firstMatch(item.id) ??
       _bankOriginStamp.firstMatch(item.origin);

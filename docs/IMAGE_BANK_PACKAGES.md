@@ -43,4 +43,8 @@ Import validation rejects duplicate IDs, missing image files, unsupported image 
 
 **Archive checks.** QQL refuses, before inflating anything: more than 5000 entries; declared sizes above 50 MB in total; absolute paths, drive letters, `.`/`..` or empty path segments and control characters; names that collide after `\` → `/` and case folding; links and special files; encrypted entries; compression other than stored or deflate; archives inside the archive. Each entry is then inflated only up to its declared size and its CRC-32 is checked.
 
+## Duplicates and conflicts since Build 243 Revision 16
+
+Duplicates are decided by content (SHA-256), never by file name. A bank image that is already in Shared Images byte for byte (one of QQL's own pictures, an earlier import, or an earlier entry of the same bank) is skipped without asking. When an entry's `id` is already used by a different picture, the Admin chooses **Skip**, **Replace** (the device's picture is swapped and the id kept; QQL's own images are never replaced) or **Keep both** (the new picture gets the id with `-2`, `-3`, …), optionally with **Apply to all**. Every imported image records its provenance: SHA-256, size, detected format, file name, source, bank, importing Admin and time; never a path.
+
 If an imported bank is later removed while an exercise or Lesson still references one of its files, the app displays a missing-image warning rather than silently hiding the problem.

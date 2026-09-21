@@ -2493,7 +2493,7 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
                               await _reload();
                             },
                             icon: const Icon(Icons.perm_media_outlined),
-                            label: const Text('Shared Image Library'),
+                            label: const Text('Shared Images'),
                           ),
                       ],
                     ),

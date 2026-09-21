@@ -302,6 +302,14 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
           metadata: _metadata,
         );
         outcomes.add(PickedImageResult(item.name, ImportItemOutcome.imported));
+      } on DuplicateImageException catch (error) {
+        outcomes.add(
+          PickedImageResult(
+            item.name,
+            ImportItemOutcome.duplicateSkipped,
+            message: '$error',
+          ),
+        );
       } on StateError catch (error) {
         outcomes.add(
           PickedImageResult(
@@ -339,12 +347,11 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
     if (!_canManageMetadata || actor == null) return;
     try {
       final ParsedImageBank bank;
-      final existingIds = _all.map((entry) => entry.id).toSet();
+      // IDs already in the library are resolved one by one below (skip,
+      // replace or keep both), not refused.
       if (fromDialog) {
         // Open from…: the same checks and the same steps below.
-        final picked = await _banks.readBankFromDialog(
-          existingIds: existingIds,
-        );
+        final picked = await _banks.readBankFromDialog();
         if (!mounted) return;
         final read = picked.bank;
         if (read == null) {
@@ -358,7 +365,7 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
         }
         bank = read;
       } else {
-        bank = await _banks.readBankFromFolder(existingIds: existingIds);
+        bank = await _banks.readBankFromFolder();
       }
       if (!mounted) return;
       final result = await _banks.importToSharedLibrary(
@@ -366,15 +373,25 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
         metadata: _metadata,
         actorProfileId: actor,
         chooseNewCategories: _chooseNewCategories,
+        chooseConflict: _chooseConflict,
       );
       if (result == null) return;
       await _load();
       if (!mounted) return;
+      final notes = [
+        if (result.duplicatesSkipped > 0)
+          '${result.duplicatesSkipped} already here (skipped)',
+        if (result.replaced > 0) '${result.replaced} replaced',
+        if (result.keptBoth > 0) '${result.keptBoth} kept as new copies',
+        if (result.conflictsSkipped > 0)
+          '${result.conflictsSkipped} same-ID images skipped',
+      ];
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           duration: const Duration(seconds: 8),
           content: Text(
-            'Imported ${result.imported} images from ${result.bankName}.',
+            'Imported ${result.imported} images from ${result.bankName}'
+            '${notes.isEmpty ? '' : '; ${notes.join(', ')}'}.',
           ),
         ),
       );
@@ -387,6 +404,66 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
         ),
       );
     }
+  }
+
+  /// Asks the Admin what to do with a bank image whose ID is already used by
+  /// a different picture. Closing the dialog skips it.
+  Future<ConflictDecision> _chooseConflict(BankIdConflict conflict) async {
+    if (!mounted) return (choice: ConflictChoice.skip, applyToAll: false);
+    var applyToAll = false;
+    final choice = await showDialog<ConflictChoice>(
+      context: context,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: const Text('Same ID, different picture'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'The bank’s “${conflict.incoming.label}” uses the ID '
+                '${conflict.incoming.id}, which “${conflict.existing.label}” '
+                'already has in Shared Images, with a different picture.'
+                '${conflict.canReplace ? '' : ' QQL’s own images cannot be replaced.'}',
+              ),
+              CheckboxListTile(
+                key: const Key('bank-conflict-all'),
+                contentPadding: EdgeInsets.zero,
+                value: applyToAll,
+                onChanged: (value) =>
+                    setDialogState(() => applyToAll = value ?? false),
+                title: const Text('Apply to all'),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              key: const Key('bank-conflict-skip'),
+              onPressed: () =>
+                  Navigator.pop(dialogContext, ConflictChoice.skip),
+              child: const Text('Skip'),
+            ),
+            TextButton(
+              key: const Key('bank-conflict-keep'),
+              onPressed: () =>
+                  Navigator.pop(dialogContext, ConflictChoice.keepBoth),
+              child: const Text('Keep both'),
+            ),
+            if (conflict.canReplace)
+              FilledButton(
+                key: const Key('bank-conflict-replace'),
+                onPressed: () =>
+                    Navigator.pop(dialogContext, ConflictChoice.replace),
+                child: const Text('Replace'),
+              ),
+          ],
+        ),
+      ),
+    );
+    return (
+      choice: choice ?? ConflictChoice.skip,
+      applyToAll: choice != null && applyToAll,
+    );
   }
 
   /// Asks the Admin what to do with categories an Image Bank adds.
@@ -494,9 +571,14 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
         false;
     if (!confirmed) return;
     final removedIds = await _banks.removeBank(bankId);
+    // An image a later bank replaced keeps its new record.
     await _metadata.removeLocalRecords(
       actorProfileId: actor,
-      imageIds: removedIds,
+      imageIds: {
+        for (final record in _all)
+          if (removedIds.contains(record.id) && record.origin == 'bank:$bankId')
+            record.id,
+      },
     );
     await _load();
   }
@@ -1667,7 +1749,7 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          '${_course == null ? 'Shared Image Library' : 'Image Library'} '
+          '${_course == null ? 'Shared Images' : 'Image Library'} '
           '· ${_all.length} images',
         ),
         actions: [

@@ -731,3 +731,38 @@ Version **2.0.43+243015**, same Beta expiry. Tranche 4 (part 2) of
   startup cleanup removes any `.part` left behind.
 - **Tests:** `course_package_on_disk_tranche4b_test.dart` (8); package and
   Publisher tests use `mediaReferences`/`mediaBytes`.
+
+## Revision 16 — duplicates and provenance
+
+Version **2.0.43+243016**, same Beta expiry. Tranche 5 (part 1) of
+`docs/IMPORT_HARDENING_PLAN.md`.
+
+- **Provenance:** `ImageProvenance` (`sha256`, `byteLength`,
+  `detectedFormat`, `sourceName`, `source` = `single_import` /
+  `image_bank` / `course_package`, `bankId`, `importedBy`,
+  `importedAtUtc`; strict JSON, never a path) is an optional `provenance`
+  on `ExerciseImageMetadata`, stored with device records.
+- **Content index:** `ExerciseImageMetadataService.contentIndex` maps the
+  SHA-256 of every QQL image (hashed once per run from the asset bundle) and
+  device image (hashed once, then kept in the record's provenance).
+  `applyLocalRecords(add:, replace:)` adds and replaces in one write; QQL
+  images can never be replaced.
+- **Single and multiple image imports:** an exact duplicate throws
+  `DuplicateImageException` (summary: Duplicates skipped); new images record
+  provenance.
+- **Image Banks:** `importToSharedLibrary` skips content duplicates
+  silently; an entry whose ID is taken by a different picture goes to
+  `chooseConflict` (`ConflictChoice.skip` / `replace` / `keepBoth`, with
+  `applyToAll`; replace only for device images; keep both uses `id-2`,
+  `id-3`…). The result counts duplicates, skipped conflicts, replacements
+  and copies. The screen asks with `bank-conflict-*` keys; readBank no
+  longer refuses existing IDs from this screen. Removing a bank keeps
+  records a later bank replaced. A replaced single import's old file is
+  deleted.
+- **Date sort:** `stampedAddedDate` prefers `provenance.importedAtUtc`.
+- **Owner requests:** the screen is titled **Shared Images** (title, Device
+  Administration tile, Course Manager button); `web_page_detector.dart`
+  explains a web page saved as `.mp3` in plain words.
+- **Tests:** `duplicates_provenance_tranche5_test.dart` (12); Tranche 4
+  Shared Library tests use `uniquePng` (`test/support/unique_png.dart`) and
+  a failing metadata stub; MP3 tests cover the web-page message.

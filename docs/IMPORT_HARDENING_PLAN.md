@@ -533,6 +533,8 @@ VBR sequence can be synthesized (silent frames).
 
 ### Tranche 5 — Duplicates, provenance, final adversarial suite
 
+**Status: duplicates, provenance and the date sort implemented as Revision 16 (`2.0.43+243016`), for the Shared Image Library (Course libraries and recordings were already content-addressed). Audio provenance fields were not added: they would change the Course JSON model. The Phase 20 route matrix follows as Revision 19, after clearer media messages (17) and the preview tooltip (18).**
+
 - SHA-256 index for the Shared Library, built lazily on first import by hashing
   existing files once and cached in the metadata record.
 - Duplicate policy exactly as the brief (Skip / Replace-with-authority / Keep

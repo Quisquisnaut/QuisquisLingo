@@ -6,6 +6,7 @@ import 'package:archive/archive.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:quisquislingo_app/models/exercise_image_metadata.dart';
 import 'package:quisquislingo_app/screens/flat_image_library_screen.dart';
 import 'package:quisquislingo_app/services/custom_course_transfer_service.dart';
 import 'package:quisquislingo_app/services/exercise_image_metadata_service.dart';
@@ -20,6 +21,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'support/fake_file_dialog_backend.dart';
 import 'support/pump_file_io.dart';
+import 'support/unique_png.dart';
 
 const _adminId = '11111111-1111-4111-8111-111111111111';
 
@@ -363,15 +365,24 @@ void main() {
   group('Image Bank into the Shared Image Library', () {
     final metadata = ExerciseImageMetadataService();
 
-    Future<ParsedImageBank> bank(List<Map<String, Object?>> entries) async =>
-        ImageBankService().readBank(
-          await write(
-            _bank(entries, {
-              for (final entry in entries)
-                entry['filename'] as String: _apple(),
-            }),
-          ),
-        );
+    /// A bank whose entries each carry their own PNG (never a QQL image).
+    Future<ParsedImageBank> bank(
+      List<Map<String, Object?>> entries, {
+      int seed = 1,
+    }) async {
+      final pngs = [
+        for (final entry in entries)
+          {...entry, 'filename': '${entry['id']}.png'},
+      ];
+      return ImageBankService().readBank(
+        await write(
+          _bank(pngs, {
+            for (var i = 0; i < pngs.length; i++)
+              pngs[i]['filename'] as String: uniquePng(seed + i),
+          }),
+        ),
+      );
+    }
 
     Directory banksFolder() =>
         Directory('${temp.path}${Platform.pathSeparator}image_banks');
@@ -456,11 +467,11 @@ void main() {
     test(
       'a failure after writing removes the bank and its categories',
       () async {
-        // `bread` is a QQL image ID, so registering the records fails.
+        // Registering the records fails after the files were written.
         await expectLater(
           ImageBankService().importToSharedLibrary(
-            await bank([_entry('bread', category: 'new_things')]),
-            metadata: metadata,
+            await bank([_entry('f1', category: 'new_things')]),
+            metadata: _FailingRecords(),
             actorProfileId: _adminId,
             chooseNewCategories: (_) async => NewCategoryChoice.add,
           ),
@@ -497,8 +508,10 @@ void main() {
       addTearDown(tester.view.resetDevicePixelRatio);
       final backend = FakeFileDialogBackend();
       final zip = _bank(
-        [_entry('w1', category: 'garden_tools')],
-        {'w1.webp': _apple()},
+        [
+          {..._entry('w1', category: 'garden_tools'), 'filename': 'w1.png'},
+        ],
+        {'w1.png': uniquePng(99)},
       );
       backend.onOpen = () async => FileDialogResult.opened('tools.zip', zip);
       await tester.pumpWidget(
@@ -640,4 +653,14 @@ void main() {
       }
     });
   });
+}
+
+/// Fails where the records are registered, after the bank's files exist.
+class _FailingRecords extends ExerciseImageMetadataService {
+  @override
+  Future<void> applyLocalRecords({
+    required String actorProfileId,
+    List<ExerciseImageMetadata> add = const [],
+    List<ExerciseImageMetadata> replace = const [],
+  }) async => throw StateError('Disk full');
 }

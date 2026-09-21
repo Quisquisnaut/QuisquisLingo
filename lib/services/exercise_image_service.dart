@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:crypto/crypto.dart';
 import 'package:path_provider/path_provider.dart';
 
 import '../models/exercise_image_metadata.dart';
@@ -20,6 +21,18 @@ class PickedImage {
 
   /// Display and provenance only; never a storage name.
   final String sourceName;
+}
+
+/// The image is already in the Shared Image Library, byte for byte.
+class DuplicateImageException implements Exception {
+  const DuplicateImageException(this.existing);
+
+  final ExerciseImageMetadata existing;
+
+  @override
+  String toString() =>
+      'This picture is already in Shared Images as '
+      '“${existing.label}”.';
 }
 
 /// One file of a multiple image selection.
@@ -226,7 +239,15 @@ class ExerciseImageService {
     required ExerciseImageMetadataService metadata,
   }) async {
     await metadata.requireAdmin(actorProfileId);
-    final id = 'local_${DateTime.now().microsecondsSinceEpoch}';
+    // The same picture already in the library (QQL's or this device's) is
+    // skipped: a duplicate is decided by content, never by file name.
+    final hash = sha256.convert(picked.image.bytes).toString();
+    final existing = (await metadata.contentIndex(
+      actorProfileId: actorProfileId,
+    ))[hash];
+    if (existing != null) throw DuplicateImageException(existing);
+    final now = DateTime.now();
+    final id = 'local_${now.microsecondsSinceEpoch}';
     final dir = Directory(
       '${(await _supportDirectory()).path}${Platform.pathSeparator}exercise_images',
     );
@@ -248,6 +269,15 @@ class ExerciseImageService {
         tags: [label.toLowerCase()],
         assetPath: target.path,
         origin: 'local',
+        provenance: ImageProvenance(
+          sha256: hash,
+          byteLength: picked.image.bytes.length,
+          detectedFormat: picked.image.format.extension,
+          sourceName: safeDisplayName(picked.sourceName),
+          source: ImageProvenance.singleImport,
+          importedBy: actorProfileId,
+          importedAtUtc: now.toUtc(),
+        ),
       );
       await metadata.addLocalRecord(actorProfileId: actorProfileId, record: record);
       return record;

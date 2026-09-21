@@ -1,5 +1,7 @@
 import 'dart:convert';
+import 'dart:io';
 
+import 'package:crypto/crypto.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -277,19 +279,46 @@ class ExerciseImageMetadataService {
   Future<void> addLocalRecords({
     required String actorProfileId,
     required List<ExerciseImageMetadata> records,
+  }) => applyLocalRecords(actorProfileId: actorProfileId, add: records);
+
+  /// Adds [add] and replaces [replace] (device records with the same IDs;
+  /// QQL's own images can never be replaced) in one write, so either all of
+  /// it happens or none of it.
+  Future<void> applyLocalRecords({
+    required String actorProfileId,
+    List<ExerciseImageMetadata> add = const [],
+    List<ExerciseImageMetadata> replace = const [],
   }) async {
     await _requireAdmin(actorProfileId);
     final bundled = await _bundledRecords();
     final document = await _loadDocument(bundled);
     final allowed = {...categories, ...document.deviceCategories};
+    final bundledIds = {for (final record in bundled) record.id};
+    final replacing = {for (final record in replace) record.id};
+    if (replacing.length != replace.length) {
+      throw const FormatException('An image can be replaced only once.');
+    }
+    final deviceIds = {for (final record in document.records) record.id};
+    for (final id in replacing) {
+      if (bundledIds.contains(id)) {
+        throw StateError('QQL images cannot be replaced.');
+      }
+      if (!deviceIds.contains(id)) {
+        throw FormatException('There is no image $id to replace.');
+      }
+    }
+    final kept = [
+      for (final record in document.records)
+        if (!replacing.contains(record.id)) record,
+    ];
     final ids = {
-      for (final record in [...bundled, ...document.records]) record.id,
+      for (final record in [...bundled, ...kept]) record.id,
     };
     final paths = {
-      for (final record in [...bundled, ...document.records]) record.assetPath,
+      for (final record in [...bundled, ...kept]) record.assetPath,
     };
     final normalizedRecords = <ExerciseImageMetadata>[];
-    for (final record in records) {
+    for (final record in [...replace, ...add]) {
       final normalized = ExerciseImageMetadata(
         id: _requiredText(record.id, 'id'),
         label: _requiredText(record.label, 'label'),
@@ -298,6 +327,7 @@ class ExerciseImageMetadataService {
         assetPath: _requiredText(record.assetPath, 'assetPath'),
         origin: _requiredText(record.origin, 'origin'),
         attribution: _normalizedAttribution(record.attribution),
+        provenance: record.provenance,
       );
       if (normalized.origin == 'bundled') {
         throw const FormatException(
@@ -312,8 +342,65 @@ class ExerciseImageMetadataService {
       normalizedRecords.add(normalized);
     }
     await _persistDocument(
-      document.copyWith(records: [...document.records, ...normalizedRecords]),
+      document.copyWith(records: [...kept, ...normalizedRecords]),
     );
+  }
+
+  static Map<String, String>? _bundledHashes;
+
+  /// Every shared image by the SHA-256 of its content: QQL's own and this
+  /// device's. A device image without a stored hash (added before Build 243
+  /// Revision 16) is hashed once and its hash stored in its record. Missing
+  /// files are left out.
+  Future<Map<String, ExerciseImageMetadata>> contentIndex({
+    required String actorProfileId,
+  }) async {
+    await _requireAdmin(actorProfileId);
+    final bundled = await _bundledRecords();
+    final document = await _loadDocument(bundled);
+    final index = <String, ExerciseImageMetadata>{};
+    final hashes = _bundledHashes ??= {};
+    for (final record in bundled) {
+      var hash = hashes[record.assetPath];
+      if (hash == null) {
+        try {
+          final data = await _bundle.load(record.assetPath);
+          hash = sha256
+              .convert(
+                data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes),
+              )
+              .toString();
+          hashes[record.assetPath] = hash;
+        } catch (_) {
+          continue;
+        }
+      }
+      index.putIfAbsent(hash, () => record);
+    }
+    var changed = false;
+    final records = <ExerciseImageMetadata>[];
+    for (final record in document.records) {
+      var current = record;
+      if (current.provenance == null) {
+        try {
+          final bytes = await File(current.assetPath).readAsBytes();
+          current = current.copyWith(
+            provenance: ImageProvenance(
+              sha256: sha256.convert(bytes).toString(),
+              byteLength: bytes.length,
+            ),
+          );
+          changed = true;
+        } catch (_) {
+          records.add(current);
+          continue;
+        }
+      }
+      records.add(current);
+      index.putIfAbsent(current.provenance!.sha256, () => current);
+    }
+    if (changed) await _persistDocument(document.copyWith(records: records));
+    return index;
   }
 
   Future<void> removeLocalRecords({
@@ -491,7 +578,7 @@ class ExerciseImageMetadataService {
         'assetPath',
         'origin',
       };
-      const allowedFields = {...requiredFields, 'attribution'};
+      const allowedFields = {...requiredFields, 'attribution', 'provenance'};
       for (final rawRecord in rawRecords) {
         if (rawRecord is! Map) {
           throw FormatException('$source contains a non-object record.');
@@ -521,6 +608,15 @@ class ExerciseImageMetadataService {
             : ImageAttribution.fromJson(
                 Map<String, dynamic>.from(rawAttribution),
               );
+        final rawProvenance = record['provenance'];
+        if (record.containsKey('provenance') && rawProvenance is! Map) {
+          throw FormatException('$source contains invalid provenance for $id.');
+        }
+        final provenance = rawProvenance == null
+            ? null
+            : ImageProvenance.fromJson(
+                Map<String, dynamic>.from(rawProvenance),
+              );
         records.add(
           ExerciseImageMetadata(
             id: id,
@@ -530,6 +626,7 @@ class ExerciseImageMetadataService {
             assetPath: path,
             origin: _requiredText(record['origin'], 'origin'),
             attribution: attribution,
+            provenance: provenance,
           ),
         );
       }

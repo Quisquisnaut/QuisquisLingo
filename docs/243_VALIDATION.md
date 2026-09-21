@@ -1,5 +1,31 @@
 # Build 243 validation
 
+## Revision 16 — duplicates and provenance (`2.0.43+243016`)
+
+Validation on 21 September 2026, before the Revision 16 commit.
+
+- New `duplicates_provenance_tranche5_test.dart` (12), all passing:
+  provenance round trip and strictness (bad hash, a `path` field, unknown
+  source, bad date); the date sort uses `importedAtUtc`; bank images record
+  full provenance; a picture already present (other ID, twice in one bank,
+  or one of QQL's own) is skipped without asking; Skip keeps the old picture,
+  Keep both adds `id-2`, Replace swaps the picture and keeps one record;
+  Apply to all asks once; QQL images are never replaced; without an answer
+  conflicts are skipped; single imports record provenance and refuse a
+  renamed copy and a copy of a QQL picture; an older record is hashed once
+  and keeps the hash.
+- `mp3_validation_tranche3_test.dart`: a web page saved as `.mp3` (download
+  page and plain page, with a byte-order mark) gets the plain-words message;
+  checked by hand against the owner's two downloaded files.
+- `import_archives_tranche4_test.dart` now builds distinct pictures with
+  `uniquePng` (its apple.webp copies were correctly skipped as duplicates of
+  a QQL picture) and forces the rollback case with a failing metadata stub.
+- Complete suite in two halves covering all 236 test files once:
+  **1,011 + 1,111 = 2,122 passed, 0 failed** (both halves exit 0).
+- `flutter analyze` on the repository: **no issues**.
+- The four `tools/validate_*.py` validators: 0 issues.
+- `git diff --check`: clean. The untracked `devtools_options.yaml` is excluded.
+
 ## Revision 15 — Course packages read from disk (`2.0.43+243015`)
 
 Validation on 21 September 2026, before the Revision 15 commit.

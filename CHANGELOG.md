@@ -1,3 +1,14 @@
+# 2.0.43 (Build 243, Revision 16) - Duplicates and provenance - 2026-09-21
+
+Tranche 5 (part 1) of the [import hardening plan](docs/IMPORT_HARDENING_PLAN.md). Scope: [Build 243 change summary](docs/243_CHANGE_SUMMARY.md#revision-16--duplicates-and-provenance); evidence: [243 validation](docs/243_VALIDATION.md).
+
+- Platform version `2.0.43+243016`; the Beta expiry remains **2026-10-21 23:59:59 local time**.
+- The Shared Image Library screen is now called **Shared Images**.
+- A picture already in Shared Images is recognised by its content and skipped, whatever its file name, including QQL's own pictures.
+- When an Image Bank image has the same ID as a different picture, the Admin chooses **Skip**, **Replace** (never QQL's own images) or **Keep both**, with **Apply to all**.
+- Every imported image now records where it came from and when; the "last added" sort uses that date.
+- A web page saved under an `.mp3` name (for example after a failed download) is now explained as such, instead of "not a valid MP3".
+
 # 2.0.43 (Build 243, Revision 15) - Course packages read from disk - 2026-09-21
 
 Tranche 4 (part 2) of the [import hardening plan](docs/IMPORT_HARDENING_PLAN.md). Scope: [Build 243 change summary](docs/243_CHANGE_SUMMARY.md#revision-15--course-packages-read-from-disk); evidence: [243 validation](docs/243_VALIDATION.md).

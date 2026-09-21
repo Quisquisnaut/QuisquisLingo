@@ -109,6 +109,29 @@ void main() {
       );
     });
 
+    test('a web page saved as .mp3 is named as such', () {
+      // Like a download site's "your download is starting" page.
+      const start =
+          '<!DOCTYPE html><html><head><meta charset="UTF-8"> '
+          '<title>File Examples | Download redirect...</title></head><body>';
+      const end = '</body></html>\n\n';
+      final redirect = Uint8List.fromList(
+        utf8.encode(start + 'x' * (1273 - start.length - end.length) + end),
+      );
+      expect(redirect.length, 1273);
+      expect(
+        () => Mp3Validator.inspect(redirect),
+        _refused('it is a website’s download page'),
+      );
+      final page = Uint8List.fromList(
+        utf8.encode('\u{feff}  <html><body>Not found</body></html>'),
+      );
+      expect(
+        () => Mp3Validator.inspect(page),
+        _refused('it is a web page, probably saved by mistake'),
+      );
+    });
+
     test('an image renamed to .mp3', () {
       expect(
         () => Mp3Validator.inspect(
