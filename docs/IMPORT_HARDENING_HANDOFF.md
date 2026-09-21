@@ -4,7 +4,7 @@ Keep this file current at the end of **every** revision, so that work can
 resume after a pause or with another agent. Plan and decisions:
 [IMPORT_HARDENING_PLAN.md](IMPORT_HARDENING_PLAN.md). Rules: `AGENTS.md`.
 
-## Where things stand (updated 2026-09-21 17:33, Revision 11 in progress)
+## Where things stand (updated 2026-09-21 17:48, Revision 11 committed)
 
 | Revision | Version | Commit | Content |
 |---|---|---|---|
@@ -14,46 +14,21 @@ resume after a pause or with another agent. Plan and decisions:
 | 8 | `2.0.43+243008` | `8a27dfe` | Badge order IN USE first; Remove from this Course (`CourseImageRemoval`, Draft on Audit error); `imageLibrary` with Keep in library; bin on every Course-stored image |
 | 9 | `2.0.43+243009` | `c34aa60` | Tranche 0b: QQL image metadata read-only; Local words; device categories; schema-2 metadata document (fixes the snapshot failure) |
 | 10 | `2.0.43+243010` | `b2b7d7d` | Tranche 1: safe import foundation (streamed staging under real limits, ordinary files only, per-file batch results, cancellation) |
+| 11 | `2.0.43+243011` | `3ed36fa` | Tranche 2: one image validator for every image import; Shared Library multi-file import with summary; N6/N7 fixed |
 
-Revisions 5–10 are pushed to `origin/main`. The untracked
+Revisions 5–11 are pushed to `origin/main`. The untracked
 `devtools_options.yaml` predates this work: never commit or delete it.
-
-## Revision 11 (Tranche 2) — in progress (uncommitted)
-
-Done in the working tree, analyzer clean:
-
-- `lib/services/import/image_validator.dart`:
-  - `ImageValidator.inspect` is the strict structural check in pure Dart:
-    format by content, PNG CRCs and header, JPEG segments and frame header,
-    WebP chunks, no animation, metadata at most 256 KB and a colour profile
-    at most 128 KB, at most 4096 px per side and 16,777,216 pixels, nothing
-    trailing.
-  - `validate` adds one bounded decode and returns `ValidatedImage`.
-  - `ImageProfile`s: exercise image, Lesson icon, flag (PNG/JPEG), cover.
-- `ExerciseImageService` offers `readImage`, `readImageFromDialog` and
-  `readImagesFromDialog`, which write nothing, plus `addToSharedLibrary`:
-  Admin check first, then `image_local_<µs>.<ext>`; the file is removed if
-  the record fails.
-- The Course Editor's `ExerciseImageField` stores validated images directly
-  through `CourseMediaStore.addValidated` (fixes N6).
-- The Shared Library uses **Open image files from…** (up to 100 files) with
-  `showImportSummary` (`lib/widgets/import_summary.dart`).
-- Also on the validator: portable images (`fromBytes` uses `validate`),
-  Lesson icons and flags (`inspect` before their decode), Image Bank entries
-  and Course ZIP image media (`inspect`, on import only, never export), and
-  the cover.
-- Tests: new `image_validator_tranche2_test.dart` (12); updated tests that
-  used placeholder bytes as images (`course_package_243_test`,
-  `image_bank_service_test`) and the APNG fixture CRC.
-
-Still to do: version `243011`, release notes, the full suite in two halves,
-commit, handoff hash, push.
 
 ## Next steps, in order (plan §6a)
 
-1. **Tranches 2, 2b, 3, 4, 5** in that order (plan §4, §6). Tranche 2b's
-   `imageLibrary` model is already in place (Revision 8), and Tranche 1's
-   `openFiles`/`stageBatch` is ready for the multi-file dialogs.
+1. **Tranche 2b** (plan): import single images, several images or an Image
+   Bank into a Course's own `imageLibrary` from the Course Editor's Image
+   Library. The model is done (Revision 8). Use
+   `ExerciseImageService.readImage`, `readImageFromDialog` and
+   `readImagesFromDialog`, then `CourseMediaStore.addValidated` and
+   `CourseImageRemoval.updateLibrary(keep:)` through the editor's
+   `_updateDraft`. Apply the 300 MB package pre-check before writing.
+2. **Tranches 3, 4, 5** in that order.
 
 ## Owner decisions already taken
 
