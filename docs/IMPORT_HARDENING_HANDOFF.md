@@ -9,7 +9,7 @@ resume after a pause or with another agent. Plan and decisions:
 | Revision | Version | Commit | Content |
 |---|---|---|---|
 | 5 | `2.0.43+243005` | `86ae4d2` | Image Library usability: IN USE badge, badge overlay/filter, sorting, merged device/Course tile, compact tiles and chips |
-| 6 | `2.0.43+243006` | *see `git log`* | Tranche 0 memory-safety fixes: cover header check, Image Bank pre-scan and bounded inflation, 4096 px icons/flags, animated images refused on import |
+| 6 | `2.0.43+243006` | `0976ed0` | Tranche 0 memory-safety fixes: cover header check, Image Bank pre-scan and bounded inflation, 4096 px icons/flags, animated images refused on import |
 
 Nothing is pushed; all commits are local on `main`. The untracked
 `devtools_options.yaml` predates this work: never commit or delete it.
