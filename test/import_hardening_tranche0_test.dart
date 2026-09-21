@@ -171,14 +171,10 @@ void main() {
       await tester.runAsync(() async {
         final png = await pngDeclaringDimensions(width: 8, height: 8);
         // Insert an acTL chunk right after IHDR (signature 8 + IHDR 25).
-        final acTL = [
-          0,
-          0,
-          0,
-          8,
-          ...ascii.encode('acTL'),
-          ...List.filled(12, 0),
-        ];
+        // A well-formed acTL chunk: length 8, type, 8 zero bytes, CRC.
+        final body = [...ascii.encode('acTL'), ...List.filled(8, 0)];
+        final crc = ByteData(4)..setUint32(0, getCrc32(body));
+        final acTL = [0, 0, 0, 8, ...body, ...crc.buffer.asUint8List()];
         final apng = Uint8List.fromList([
           ...png.sublist(0, 33),
           ...acTL,

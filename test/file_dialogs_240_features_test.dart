@@ -334,26 +334,38 @@ void main() {
     });
 
     test(
-      'a valid image is stored in the managed folder, bytes unchanged',
+      'a valid image is checked and returned unchanged; nothing is stored yet',
       () async {
         final bytes = File('assets/lesson_icons/home.png').readAsBytesSync();
         backend.onOpen = () async =>
             FileDialogResult.opened('My Picture (1).png', bytes);
 
-        final picked = await images.importImageFromDialog();
+        final result = await images.readImageFromDialog();
 
-        expect(picked.dialog.outcome, FileDialogOutcome.opened);
-        final stored = File(picked.path!);
-        expect(stored.parent.path, endsWith('exercise_images'));
-        expect(stored.uri.pathSegments.last, endsWith('_My_Picture__1_.png'));
-        expect(await stored.readAsBytes(), bytes);
+        expect(result.dialog.outcome, FileDialogOutcome.opened);
+        expect(result.picked!.image.bytes, bytes);
+        expect(result.picked!.sourceName, 'My Picture (1).png');
+        // Storing happens only when a caller commits it (Shared Image
+        // Library or Course media), under a name QQL generates.
+        expect(
+          Directory(
+            '${support.path}${Platform.pathSeparator}exercise_images',
+          ).existsSync(),
+          isFalse,
+        );
       },
     );
 
     test('cancel stores nothing and logs nothing', () async {
-      final picked = await images.importImageFromDialog();
-      expect(picked.path, isNull);
+      final picked = await images.readImageFromDialog();
+      expect(picked.picked, isNull);
       expect(picked.dialog.outcome, FileDialogOutcome.cancelled);
+      expect(
+        Directory(
+          '${support.path}${Platform.pathSeparator}exercise_images',
+        ).existsSync(),
+        isFalse,
+      );
       expect(support.existsSync(), isFalse);
       expect(await _diagnosticLog(), isEmpty);
     });
@@ -361,7 +373,7 @@ void main() {
     test('an unsupported type or an image over 50 KB is rejected', () async {
       backend.onOpen = () async =>
           FileDialogResult.opened('x.gif', Uint8List(10));
-      var error = await _thrown(images.importImageFromDialog);
+      var error = await _thrown(images.readImageFromDialog);
       expect(error, isA<StateError>());
       expect(
         (error as StateError).message,
@@ -372,7 +384,7 @@ void main() {
         'big.png',
         Uint8List(ExerciseImageService.maxImageBytes + 1),
       );
-      error = await _thrown(images.importImageFromDialog);
+      error = await _thrown(images.readImageFromDialog);
       expect(
         (error as StateError).message,
         'Image is larger than the 50 KB maximum. Compress or resize it before importing.',

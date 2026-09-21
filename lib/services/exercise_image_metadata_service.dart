@@ -336,6 +336,10 @@ class ExerciseImageMetadataService {
     );
   }
 
+  /// Refuses anyone but an Admin; import code calls it before writing.
+  Future<void> requireAdmin(String actorProfileId) =>
+      _requireAdmin(actorProfileId);
+
   Future<void> _requireAdmin(String actorProfileId) async {
     if (!await _profiles.isAdmin(actorProfileId)) {
       throw StateError(

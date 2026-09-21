@@ -1,5 +1,41 @@
 # Build 243 validation
 
+## Revision 11 — one image check for every image import (`2.0.43+243011`)
+
+Validation on 21 September 2026, before the Revision 11 commit.
+
+- A probe before routing any importer: `ImageValidator.inspect` accepted all
+  128 real images (bundled exercise images, Lesson icons and the example
+  Image Bank). No false rejections.
+- New `image_validator_tranche2_test.dart` (12), all passing:
+  - bundled images pass;
+  - text, and a program header, under an image name are refused;
+  - empty, truncated and CRC-tampered PNG and WebP files are refused;
+  - a sub-50 KB PNG declaring 30,000² is refused, as is 4,097 px;
+  - APNG and animated WebP are refused;
+  - over-budget metadata and an oversized ICC profile are refused;
+  - a zero-height JPEG frame is refused;
+  - a profile's format restriction is enforced;
+  - a WebP named `.png` is accepted as WebP and stored with a `.webp`
+    Course media reference;
+  - an Admin's Shared Library import is stored as `image_local_<µs>.png`;
+  - a non-Admin writes nothing;
+  - a failed metadata record leaves no file.
+- Updated because they fed placeholder bytes as images, which the validator
+  now correctly refuses: `course_package_243_test` and `image_bank_service_test`
+  now use real bundled images. The Tranche 0 APNG fixture now carries a
+  correct chunk CRC. `file_dialogs_240_features_test` pinned the old
+  write-on-pick behaviour (N6/N7) and now pins "checked, nothing stored until
+  commit".
+- Focused run across 47 image, bank, package, icon, flag, portable,
+  Recognize Characters, dialog and Publisher files: all passed after those
+  updates.
+- Complete suite in two halves covering all 231 test files once:
+  **997 + 1,052 = 2,049 passed, 0 failed**.
+- `flutter analyze` on the repository: **no issues**.
+- The four `tools/validate_*.py` validators: 0 issues.
+- `git diff --check`: clean. The untracked `devtools_options.yaml` is excluded.
+
 ## Revision 10 — safe import foundation (`2.0.43+243010`)
 
 Validation on 21 September 2026, before the Revision 10 commit.

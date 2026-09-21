@@ -9,6 +9,7 @@ import '../models/exercise_image_metadata.dart';
 import 'bounded_archive_entry.dart';
 import 'exercise_image_service.dart';
 import 'file_dialog_service.dart';
+import 'import/image_validator.dart';
 
 class ImportedImageBank {
   final String id;
@@ -358,6 +359,11 @@ class ImageBankService {
               'Image asset expands beyond its declared size: $filename',
           damagedMessage: 'Image asset could not be read from ZIP: $filename',
         );
+        try {
+          ImageValidator.inspect(sourceBytes, ImageProfile.exerciseImage);
+        } on ImageValidationException catch (error) {
+          throw FormatException('Image Bank image $filename: ${error.message}');
+        }
         if (sourceBytes.length > maxImageBytes) {
           throw FormatException(
             'Image asset exceeds the 50 KB maximum: $filename '

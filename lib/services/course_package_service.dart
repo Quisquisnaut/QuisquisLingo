@@ -9,6 +9,7 @@ import 'package:flutter/foundation.dart' show visibleForTesting;
 import '../models/course_models.dart';
 import 'bounded_archive_entry.dart';
 import 'course_media_store.dart';
+import 'import/image_validator.dart';
 
 /// A fully checked package. Reading one never writes to course storage.
 class CoursePackage {
@@ -259,6 +260,7 @@ class CoursePackageService {
       final reference = 'media:${entry.key.substring('media/'.length)}';
       final value = _bytes(entry.value);
       _checkMedia(reference, value);
+      _checkImportedImage(reference, value);
       media[reference] = value;
     }
     final course = await validateCourse(courseJson, courseName);
@@ -299,6 +301,29 @@ class CoursePackageService {
     overflowMessage: 'Course package entry expands beyond its declared size.',
     damagedMessage: 'Course package entry ${entry.name} is damaged.',
   );
+
+  /// An imported image medium must be a valid image of the type its name
+  /// says. Applied when a package is read, never when one is written.
+  static void _checkImportedImage(String reference, Uint8List bytes) {
+    if (!CourseMediaStore.isImageReference(reference)) return;
+    try {
+      final facts = ImageValidator.inspect(
+        bytes,
+        const ImageProfile(maxBytes: CourseMediaStore.maxImageBytes),
+      );
+      final extension = CourseMediaStore.extensionOf(reference);
+      if (facts.format.extension != extension &&
+          !(facts.format == ImageFormat.jpeg && extension == 'jpeg')) {
+        throw const ImageValidationException(
+          'The file is not the image type its name says.',
+        );
+      }
+    } on ImageValidationException catch (error) {
+      throw FormatException(
+        '${CourseMediaStore.fileNameOf(reference)}: ${error.message}',
+      );
+    }
+  }
 
   static void _checkMedia(String reference, Uint8List bytes) {
     final max = CourseMediaStore.isAudioReference(reference)
@@ -371,6 +396,7 @@ class CoursePackageService {
           'Course cover must be exactly 512 × 512 pixels.',
         );
       }
+      ImageValidator.inspect(bytes, ImageProfile.courseCover);
       codec = await descriptor.instantiateCodec();
       final frame = await codec.getNextFrame();
       frame.image.dispose();

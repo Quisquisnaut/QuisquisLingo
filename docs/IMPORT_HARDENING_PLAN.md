@@ -315,6 +315,8 @@ through an injected sink, and cancellation mid-stream leaving no `.part` file.
 
 ### Tranche 2 — Images
 
+**Status: implemented as Revision 11 (`2.0.43+243011`).** Image Bank entries and imported Course ZIP images get the structural `inspect` (no decode per image; up to 2,500 decodes would be too heavy), and every other route gets the full `validate`. **Import single image** from the fixed folder stays single; **Open image files from…** is multiple.
+
 1. `ImageValidator` extracted **from** `PortableExerciseImageService` by moving
    the parser, not copying it. `PortableExerciseImageService` delegates. Add:
    PNG CRC check, IHDR field sanity, metadata chunk budget (`iCCP`/`eXIf`/

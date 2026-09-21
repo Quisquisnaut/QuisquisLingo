@@ -122,28 +122,33 @@ class _ExerciseImageFieldState extends State<ExerciseImageField> {
   Future<void> _importCustomImage({bool fromDialog = false}) async {
     if (widget.readOnly) return;
     try {
-      final String? selected;
+      final PickedImage picked;
       if (fromDialog) {
-        // Open from…: same checks and storage as the fixed-folder import.
-        final picked = await _imageService.importImageFromDialog();
+        // Open from…: the same staging and image check as the folder import.
+        final result = await _imageService.readImageFromDialog();
         if (!mounted) return;
-        final path = picked.path;
-        if (path == null) {
+        final image = result.picked;
+        if (image == null) {
           showFileDialogFeedback(
             context,
-            picked.dialog,
+            result.dialog,
             saving: false,
             fallbackHint: exerciseImageFallbackHint,
           );
           return;
         }
-        selected = path;
+        picked = image;
       } else {
-        selected = await _imageService.importImage();
+        picked = await _imageService.readImage();
       }
-      if (selected == null || !mounted) return;
-      final chosen = await _asCourseMedia(selected);
-      if (mounted) _change(chosen, null);
+      final course = widget.course;
+      if (course == null) {
+        throw StateError('Open this Exercise from its Course to add an image.');
+      }
+      // Straight into the Course's own media: nothing is written to the
+      // shared image folder.
+      final reference = await _media.addValidated(course.courseId, picked.image);
+      if (mounted) _change(reference, null);
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

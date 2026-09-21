@@ -533,3 +533,53 @@ Version **2.0.43+243010**, same Beta expiry. Tranche 1 of
   the Inventory, and recorded in `docs/239_RESET_STORAGE_INVENTORY.md`.
 - **Tests:** `FakeFileDialogBackend` turns scripted results into in-memory
   selections; the dialog tests pass a temporary-folder stager.
+
+## Revision 11 — one image check for every image import
+
+Version **2.0.43+243011**, same Beta expiry. Tranche 2 of
+`docs/IMPORT_HARDENING_PLAN.md`.
+
+- **`ImageValidator`** (`lib/services/import/image_validator.dart`).
+  - `inspect` is pure Dart and decodes no pixels. It detects the format from
+    the bytes and checks, per format:
+    - **PNG:** signature, every chunk's CRC, a valid IHDR (depth and colour
+      combinations, compression, filter, interlace), no unknown critical
+      chunk, no `acTL`/`fcTL`/`fdAT`, and nothing after `IEND`;
+    - **JPEG:** SOI, well-formed segments, a valid frame header (precision
+      8/12, 1–4 components, non-zero width and height, so no DNL), and EOI;
+    - **WebP:** RIFF size, chunk layout and padding, no `ANIM`/`ANMF` or
+      animation flag, and pixel data present.
+
+    On top of that it applies the ancillary metadata budget (256 KB), a
+    per-profile ICC limit (128 KB), and at most 4096 px per side and
+    16,777,216 pixels (kept separate on purpose).
+  - `validate` runs `inspect` plus one bounded decode (header dimensions must
+    match, exactly one frame) and is the only way to obtain a
+    `ValidatedImage`.
+  - `ImageProfile`s: exercise image (50 KB), Lesson icon (2 MB), Course flag
+    (2 MB, PNG or JPEG), Course cover (100 KB).
+- **Routes:**
+  - Shared Image Library and Course Editor go through
+    `ExerciseImageService.readImage`, `readImageFromDialog` or
+    `readImagesFromDialog`, which stage and validate and write nothing.
+  - The Shared Image Library commits through `addToSharedLibrary`: Admin
+    check first, then `exercise_images/image_local_<µs>.<ext>`, with the
+    extension from the content. The file is removed if the metadata record
+    fails (N7).
+  - The Course Editor stores through `CourseMediaStore.addValidated`, with no
+    write to `exercise_images` (N6).
+  - `PortableExerciseImageService.fromBytes` uses `validate`, replacing the
+    Tranche 0 animation check.
+  - Lesson icons and flags run `inspect` between their header dimension
+    check and their single decode.
+  - Image Bank entries and imported Course ZIP image media run `inspect`,
+    and a Course ZIP image must be the type its name says. Export never
+    re-checks.
+- **Shared Image Library:** **Open image files from…** takes up to 100 files
+  through `FileDialogService.openFiles` and ends with `showImportSummary`
+  (`lib/widgets/import_summary.dart`). **Import single image** (fixed
+  folder) stays single.
+- **Not re-checked:** stored images. `PortableExerciseImageService.decode`
+  and `validate` keep their earlier rules for stored Courses.
+- **Help:** English and Italian Help name **Open image files from…** and
+  explain the content check.

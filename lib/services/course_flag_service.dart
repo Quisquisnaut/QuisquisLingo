@@ -11,6 +11,7 @@ import 'course_language_resolver.dart';
 import 'language_flag_catalog.dart';
 import 'world_flag_repository.dart';
 import 'import/selected_external_file.dart';
+import 'import/image_validator.dart';
 
 enum ResolvedCourseFlagKind { worldFlag, customImage, builtIn, neutral }
 
@@ -264,6 +265,7 @@ class CourseFlagService {
         ? (height * scale).round().clamp(1, maxOutputDimension).toInt()
         : height;
 
+    ImageValidator.inspect(bytes, ImageProfile.courseFlag);
     final codec = await ui.instantiateImageCodec(
       bytes,
       targetWidth: targetWidth,

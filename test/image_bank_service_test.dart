@@ -90,7 +90,12 @@ void main() {
       ..addFile(
         ArchiveFile('image_bank_manifest.json', manifest.length, manifest),
       )
-      ..addFile(ArchiveFile('cat.webp', 4, [1, 2, 3, 4]));
+      ..addFile(
+        ArchiveFile.bytes(
+          'cat.webp',
+          File('assets/exercise_images/apple.webp').readAsBytesSync(),
+        ),
+      );
     final zip = File('${support.path}${Platform.pathSeparator}bank.zip');
     await zip.writeAsBytes(ZipEncoder().encode(archive), flush: true);
 

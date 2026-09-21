@@ -1,3 +1,14 @@
+# 2.0.43 (Build 243, Revision 11) - One image check for every image import - 2026-09-21
+
+Tranche 2 of the [import hardening plan](docs/IMPORT_HARDENING_PLAN.md). Scope: [Build 243 change summary](docs/243_CHANGE_SUMMARY.md#revision-11--one-image-check-for-every-image-import); evidence: [243 validation](docs/243_VALIDATION.md).
+
+- Platform version `2.0.43+243011`; the Beta expiry remains **2026-10-21 23:59:59 local time**.
+- Every imported image is checked by its content, not its name: Shared Image Library, Course Editor images, Recognize Characters, Lesson icons, custom flags, Image Bank images and Course ZIP images. It must really be a still PNG, JPEG or WebP, undamaged, at most 4096 × 4096 pixels, with at most 256 KB of embedded metadata. A file of another type under an image name, a damaged file, an animation or a tiny file claiming huge dimensions is refused before anything is stored.
+- The Shared Image Library's **Open image files from…** imports up to 100 images at once and ends with one summary (counts, plus each file's reason).
+- Shared Image Library images are stored under names QQL chooses (`image_local_<number>.<type>`), with the type taken from the content. Nothing is written for anyone but an Admin, and a failed import leaves no file behind.
+- Importing a custom image in the Course Editor no longer leaves an unused copy in the shared image folder; the image goes straight into the Course.
+- Images already stored are not re-checked, so existing Courses and libraries keep working.
+
 # 2.0.43 (Build 243, Revision 10) - Safe import foundation - 2026-09-21
 
 Tranche 1 of the [import hardening plan](docs/IMPORT_HARDENING_PLAN.md). Scope: [Build 243 change summary](docs/243_CHANGE_SUMMARY.md#revision-10--safe-import-foundation); evidence: [243 validation](docs/243_VALIDATION.md).

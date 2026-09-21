@@ -7,6 +7,7 @@ import 'package:path_provider/path_provider.dart';
 
 import '../models/course_models.dart';
 import 'course_image_usage.dart';
+import 'import/image_validator.dart';
 
 /// The one home of a Course's own images and recordings.
 ///
@@ -156,6 +157,11 @@ class CourseMediaStore {
     }
     return reference;
   }
+
+  /// Stores an image that passed [ImageValidator]; the extension comes from
+  /// its content.
+  Future<String> addValidated(String courseId, ValidatedImage image) =>
+      addBytes(courseId, image.bytes, image.format.extension);
 
   /// Copies [source] into [courseId]'s folder; the extension comes from its
   /// name.

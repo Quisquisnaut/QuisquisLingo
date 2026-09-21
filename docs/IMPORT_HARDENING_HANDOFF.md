@@ -4,7 +4,7 @@ Keep this file current at the end of **every** revision, so that work can
 resume after a pause or with another agent. Plan and decisions:
 [IMPORT_HARDENING_PLAN.md](IMPORT_HARDENING_PLAN.md). Rules: `AGENTS.md`.
 
-## Where things stand (updated 2026-09-21 17:24, Revision 10 committed)
+## Where things stand (updated 2026-09-21 17:33, Revision 11 in progress)
 
 | Revision | Version | Commit | Content |
 |---|---|---|---|
@@ -17,6 +17,37 @@ resume after a pause or with another agent. Plan and decisions:
 
 Revisions 5–10 are pushed to `origin/main`. The untracked
 `devtools_options.yaml` predates this work: never commit or delete it.
+
+## Revision 11 (Tranche 2) — in progress (uncommitted)
+
+Done in the working tree, analyzer clean:
+
+- `lib/services/import/image_validator.dart`:
+  - `ImageValidator.inspect` is the strict structural check in pure Dart:
+    format by content, PNG CRCs and header, JPEG segments and frame header,
+    WebP chunks, no animation, metadata at most 256 KB and a colour profile
+    at most 128 KB, at most 4096 px per side and 16,777,216 pixels, nothing
+    trailing.
+  - `validate` adds one bounded decode and returns `ValidatedImage`.
+  - `ImageProfile`s: exercise image, Lesson icon, flag (PNG/JPEG), cover.
+- `ExerciseImageService` offers `readImage`, `readImageFromDialog` and
+  `readImagesFromDialog`, which write nothing, plus `addToSharedLibrary`:
+  Admin check first, then `image_local_<µs>.<ext>`; the file is removed if
+  the record fails.
+- The Course Editor's `ExerciseImageField` stores validated images directly
+  through `CourseMediaStore.addValidated` (fixes N6).
+- The Shared Library uses **Open image files from…** (up to 100 files) with
+  `showImportSummary` (`lib/widgets/import_summary.dart`).
+- Also on the validator: portable images (`fromBytes` uses `validate`),
+  Lesson icons and flags (`inspect` before their decode), Image Bank entries
+  and Course ZIP image media (`inspect`, on import only, never export), and
+  the cover.
+- Tests: new `image_validator_tranche2_test.dart` (12); updated tests that
+  used placeholder bytes as images (`course_package_243_test`,
+  `image_bank_service_test`) and the APNG fixture CRC.
+
+Still to do: version `243011`, release notes, the full suite in two halves,
+commit, handoff hash, push.
 
 ## Next steps, in order (plan §6a)
 

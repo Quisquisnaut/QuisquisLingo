@@ -7,6 +7,7 @@ import 'package:path_provider/path_provider.dart';
 
 import '../models/course_models.dart';
 import 'file_dialog_service.dart';
+import 'import/image_validator.dart';
 
 class ImportedLessonIcon {
   final CourseLessonIconAsset asset;
@@ -146,6 +147,7 @@ class LessonIconService {
           'Lesson icon dimensions must be between 1 and 4096 pixels.',
         );
       }
+      ImageValidator.inspect(bytes, ImageProfile.lessonIcon);
       codec = await descriptor.instantiateCodec();
       source = (await codec.getNextFrame()).image;
     } on FormatException {

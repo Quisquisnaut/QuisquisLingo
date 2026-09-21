@@ -11,12 +11,15 @@ import '../services/course_image_usage.dart';
 import '../services/course_media_store.dart';
 import '../services/exercise_image_metadata_service.dart';
 import '../services/exercise_image_service.dart';
+import '../services/file_dialog_service.dart';
 import '../services/image_bank_service.dart';
 import '../services/image_library_rules.dart';
+import '../services/import/import_result.dart';
 import '../services/profile_service.dart';
 import '../widgets/course_media_image.dart';
 import '../widgets/file_dialog_feedback.dart';
 import '../widgets/image_badges.dart';
+import '../widgets/import_summary.dart';
 
 class FlatImageLibraryScreen extends StatefulWidget {
   final bool selectMode;
@@ -200,34 +203,29 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
     }
   }
 
-  Future<void> _importSingleFromDialog() => _importSingle(fromDialog: true);
-
   Future<void> _importSingle({bool fromDialog = false}) async {
     final actor = widget.actorProfileId;
     if (!_canManageMetadata || actor == null) return;
-    String? path;
     try {
+      final PickedImage picked;
       if (fromDialog) {
-        // Open from…: same checks and storage as the fixed-folder import,
-        // then the identical size hint and metadata steps below.
-        final picked = await _images.importImageFromDialog();
+        final result = await _images.readImageFromDialog();
         if (!mounted) return;
-        path = picked.path;
-        if (path == null) {
+        final image = result.picked;
+        if (image == null) {
           showFileDialogFeedback(
             context,
-            picked.dialog,
+            result.dialog,
             saving: false,
             fallbackHint: exerciseImageFallbackHint,
           );
           return;
         }
+        picked = image;
       } else {
-        path = await _images.importImage();
+        picked = await _images.readImage();
       }
-      if (path == null) return;
-      final info = await _images.inspect(path);
-      if (mounted && (info.width > 512 || info.height > 512)) {
+      if (mounted && (picked.image.width > 512 || picked.image.height > 512)) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             duration: Duration(seconds: 8),
@@ -237,23 +235,10 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
           ),
         );
       }
-      final file = File(path);
-      final base = file.uri.pathSegments.last
-          .replaceFirst(RegExp(r'^\d+_'), '')
-          .replaceFirst(RegExp(r'\.[^.]+$'), '')
-          .replaceAll('_', ' ')
-          .trim();
-      final label = base.isEmpty ? 'Imported image' : base;
-      await _metadata.addLocalRecord(
+      await _images.addToSharedLibrary(
         actorProfileId: actor,
-        record: ExerciseImageMetadata(
-          id: 'local_${DateTime.now().microsecondsSinceEpoch}',
-          label: label,
-          category: 'other',
-          tags: [label.toLowerCase()],
-          assetPath: path,
-          origin: 'local',
-        ),
+        picked: picked,
+        metadata: _metadata,
       );
       await _load();
     } catch (error) {
@@ -262,6 +247,76 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
         SnackBar(duration: const Duration(seconds: 8), content: Text('$error')),
       );
     }
+  }
+
+  /// Open image files from…: up to 100 images, each checked and added on its
+  /// own, then one summary instead of a stream of messages.
+  Future<void> _importManyFromDialog() async {
+    final actor = widget.actorProfileId;
+    if (!_canManageMetadata || actor == null) return;
+    final List<PickedImageResult> items;
+    try {
+      final result = await _images.readImagesFromDialog();
+      if (!mounted) return;
+      if (result.dialog.outcome != FileDialogOutcome.opened) {
+        showFileDialogFeedback(
+          context,
+          result.dialog,
+          saving: false,
+          fallbackHint: exerciseImageFallbackHint,
+        );
+        return;
+      }
+      items = result.items;
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(duration: const Duration(seconds: 8), content: Text('$error')),
+      );
+      return;
+    }
+    final outcomes = <PickedImageResult>[];
+    for (final item in items) {
+      final picked = item.picked;
+      if (picked == null) {
+        outcomes.add(item);
+        continue;
+      }
+      try {
+        await _images.addToSharedLibrary(
+          actorProfileId: actor,
+          picked: picked,
+          metadata: _metadata,
+        );
+        outcomes.add(PickedImageResult(item.name, ImportItemOutcome.imported));
+      } on StateError catch (error) {
+        outcomes.add(
+          PickedImageResult(
+            item.name,
+            ImportItemOutcome.unauthorized,
+            message: error.message,
+          ),
+        );
+      } catch (error) {
+        outcomes.add(
+          PickedImageResult(
+            item.name,
+            ImportItemOutcome.storageFailure,
+            message: '$error',
+          ),
+        );
+      }
+    }
+    await _load();
+    if (!mounted) return;
+    await showImportSummary(
+      context,
+      title: 'Images imported',
+      items: [
+        for (final item in outcomes)
+          ImportItemResult(item.name, item.outcome, message: item.message),
+      ],
+    );
   }
 
   Future<void> _importBankFromDialog() => _importBank(fromDialog: true);
@@ -1430,7 +1485,7 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
                 if (value == 'bank') _importBank();
                 if (value == 'bank_from') _importBankFromDialog();
                 if (value == 'image') _importSingle();
-                if (value == 'image_from') _importSingleFromDialog();
+                if (value == 'image_from') _importManyFromDialog();
                 if (value == 'categories') _manageCategories();
               },
               itemBuilder: (_) => [
@@ -1450,7 +1505,7 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
                 if (_images.fileDialogsAvailable)
                   const PopupMenuItem(
                     value: 'image_from',
-                    child: Text('Open single image from…'),
+                    child: Text('Open image files from…'),
                   ),
                 const PopupMenuItem(
                   value: 'categories',

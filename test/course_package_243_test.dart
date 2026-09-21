@@ -78,8 +78,11 @@ void main() {
   test(
     'exports only the shared-library image copied into this Course',
     () async {
-      final used = Uint8List.fromList([1, 2, 3, 4]);
-      final unused = Uint8List.fromList([5, 6, 7, 8]);
+      // Real images: package import now checks that image media are images.
+      final used = File('assets/exercise_images/apple.webp').readAsBytesSync();
+      final unused = File(
+        'assets/exercise_images/airplane.webp',
+      ).readAsBytesSync();
       final usedReference = await media.addBytes(
         'italian-demo-2-239',
         used,
