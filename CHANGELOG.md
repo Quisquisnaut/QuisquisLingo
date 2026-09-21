@@ -1,3 +1,14 @@
+# 2.0.44 (Build 244, Revision 3) - Course Library sections - 2026-09-21
+
+Each Course Library category is now its own clearly separated section with a
+coloured border and header: **Bundled Courses**, **Publisher Courses**, **My
+Local Courses** and **Other Local Courses** (formerly My and Other Custom
+Courses). Headers show counts, such as `Publisher Courses · 2 shown · 1
+hidden` while the availability switch hides some. A section whose Courses are
+all hidden says so and points to the switch. A Find Courses on the web section
+is prepared but stays hidden until the QQL Course web site exists.
+Version `2.0.44+244003`; Beta expiry remains **2026-10-21 23:59:59 local time**.
+
 # 2.0.44 (Build 244, Revision 2) - Course Library and availability switch - 2026-09-21
 
 Available on this device is now called **Course Library**, in its title, its Help,

@@ -66,7 +66,11 @@ void main() {
     });
   });
 
-  Future<void> pumpLibrary(WidgetTester tester) async {
+  Future<void> pumpLibrary(
+    WidgetTester tester, {
+    Uri? webSite,
+    Future<bool> Function(Uri)? launch,
+  }) async {
     await tester.binding.setSurfaceSize(const Size(800, 4000));
     addTearDown(() => tester.binding.setSurfaceSize(null));
     await tester.pumpWidget(
@@ -78,6 +82,8 @@ void main() {
             withDraft,
             unverified,
           ]),
+          courseWebSite: webSite,
+          launchWebSite: launch,
         ),
       ),
     );
@@ -151,6 +157,104 @@ void main() {
     );
     expect(after, before);
     expect([for (final c in all) jsonEncode(c.toJson())], jsonBefore);
+  });
+
+  String count(WidgetTester tester, int section) => tester
+      .widget<Text>(find.byKey(ValueKey('course-section-count-$section')))
+      .data!;
+
+  testWidgets('four separate sections in fixed order with counts', (
+    tester,
+  ) async {
+    await pumpLibrary(tester);
+    final tops = [
+      for (var i = 0; i < 4; i++)
+        tester.getTopLeft(find.byKey(ValueKey('course-section-$i'))).dy,
+    ];
+    expect(tops, [...tops]..sort());
+    for (final (i, label) in [
+      'Bundled Courses',
+      'Publisher Courses',
+      'My Local Courses',
+      'Other Local Courses',
+    ].indexed) {
+      expect(
+        find.descendant(
+          of: find.byKey(ValueKey('course-section-$i')),
+          matching: find.text(label),
+        ),
+        findsOneWidget,
+      );
+    }
+    final bundled = CourseService.courseAssets.length;
+    expect(count(tester, 0), ' · $bundled');
+    expect(count(tester, 1), ' · 0 shown · 1 hidden');
+    expect(count(tester, 2), ' · 0');
+    // Detached test Courses belong to no local profile: Other Local Courses.
+    expect(count(tester, 3), ' · 1 shown · 2 hidden');
+    expect(
+      find.descendant(
+        of: find.byKey(const ValueKey('course-section-1')),
+        matching: find.textContaining(
+          'The Course here is unavailable or Draft',
+        ),
+      ),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(
+        of: find.byKey(const ValueKey('course-section-2')),
+        matching: find.text('No courses in this section.'),
+      ),
+      findsOneWidget,
+    );
+
+    await tester.tap(find.byKey(const Key('show-unavailable-courses')));
+    await tester.pump();
+    expect(count(tester, 1), ' · 1');
+    expect(count(tester, 3), ' · 3');
+    expect(
+      find.descendant(
+        of: find.byKey(const ValueKey('course-section-3')),
+        matching: find.byKey(ValueKey('device-course-${withDraft.courseId}')),
+      ),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('Find Courses on the web stays hidden without a web site', (
+    tester,
+  ) async {
+    await pumpLibrary(tester);
+    expect(find.byKey(const Key('course-library-web-band')), findsNothing);
+    expect(find.text('Find Courses on the web'), findsNothing);
+  });
+
+  testWidgets('with a web site the first section opens it', (tester) async {
+    final site = Uri.parse('https://courses.example.test/');
+    final opened = <Uri>[];
+    await pumpLibrary(
+      tester,
+      webSite: site,
+      launch: (uri) async {
+        opened.add(uri);
+        return false;
+      },
+    );
+    final band = tester.getTopLeft(
+      find.byKey(const Key('course-library-web-band')),
+    );
+    final bundled = tester.getTopLeft(
+      find.byKey(const ValueKey('course-section-0')),
+    );
+    expect(band.dy, lessThan(bundled.dy));
+    await tester.tap(find.byKey(const Key('find-courses-on-the-web')));
+    await tester.pump();
+    expect(opened, [site]);
+    expect(
+      find.text('The Course web site could not be opened.'),
+      findsOneWidget,
+    );
   });
 
   test('every bundled Course is published and free of Draft content', () async {

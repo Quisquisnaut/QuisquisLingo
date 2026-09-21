@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../models/course_draft_status.dart';
 import '../models/course_models.dart';
 import '../services/course_editor_service.dart';
@@ -6,12 +7,16 @@ import '../services/course_library_service.dart';
 import '../services/course_service.dart';
 import '../services/publication_service.dart';
 
+/// The QQL Course web site. None exists yet, so Find Courses on the web stays
+/// hidden until this is set.
+const Uri? courseLibraryWebSite = null;
+
 const availableCoursesHelp =
     '''If your library has no courses available for study, Home keeps Settings and, when activated for your profile, Course Manager. Course Library lets you add courses again. No course flag is shown until a playable course is selected.
 
 Courses are stored once on this device and can be added to each learner's personal library independently.
 
-Bundled Courses are supplied with QQL. Publisher Courses are installed publisher releases. My Custom Courses were created by your profile; Other Custom Courses were created by another profile. Adding a Custom Course does not grant editing rights.
+Bundled Courses are supplied with QQL. Publisher Courses are installed publisher releases. My Local Courses are Custom Courses created by your profile; Other Local Courses are Custom Courses created by another profile or imported from somebody else. Adding a Custom Course does not grant editing rights.
 
 Courses are sorted alphabetically within each section. Bold titles identify Bundled Courses in black (white on black in dark mode), Publisher Courses in purple and Custom Courses in orange. Maintainer shows the local profile responsible for a Custom Course, or the publisher for Bundled and Publisher Courses. A profile not present on this device is identified by its profile ID.
 
@@ -23,7 +28,18 @@ Only an admin can remove a Publisher Course from the device, through its Course 
 
 class AvailableCoursesScreen extends StatefulWidget {
   final CourseEditorService? editorService;
-  const AvailableCoursesScreen({super.key, this.editorService});
+
+  /// The QQL Course web site; its section is shown only when this is set.
+  final Uri? courseWebSite;
+
+  /// Opens [courseWebSite]; tests replace the external launcher.
+  final Future<bool> Function(Uri site)? launchWebSite;
+  const AvailableCoursesScreen({
+    super.key,
+    this.editorService,
+    this.courseWebSite = courseLibraryWebSite,
+    this.launchWebSite,
+  });
   @override
   State<AvailableCoursesScreen> createState() => _AvailableCoursesScreenState();
 }
@@ -93,11 +109,6 @@ class _AvailableCoursesScreenState extends State<AvailableCoursesScreen> {
       PublicationService.requiresPublisherVerification(c) ||
       _hasAuthoredDraft(c);
 
-  List<Course> get _shownCourses => [
-    for (final course in _courses!)
-      if (_showUnavailable || !_isUnavailableOrDraft(course)) course,
-  ];
-
   int _section(Course c) {
     if (c.originType == CourseOriginType.bundledOfficial) return 0;
     if (c.originType == CourseOriginType.externalOfficial) return 1;
@@ -147,6 +158,171 @@ class _AvailableCoursesScreenState extends State<AvailableCoursesScreen> {
           onPressed: _busy || _profileId == null ? null : () => _add(course),
           child: const Text('Add to my courses'),
         );
+
+  static const _sectionLabels = [
+    'Bundled Courses',
+    'Publisher Courses',
+    'My Local Courses',
+    'Other Local Courses',
+  ];
+
+  /// Border and header colour of each section, from its title colour.
+  Color _sectionColor(BuildContext context, int index) => switch (index) {
+    0 => Theme.of(context).colorScheme.onSurface,
+    1 => Colors.purple,
+    2 => Colors.orange,
+    _ => Colors.orange.shade800,
+  };
+
+  Widget _webSiteBand(Uri site) => _Band(
+    key: const Key('course-library-web-band'),
+    color: Theme.of(context).colorScheme.primary,
+    child: Padding(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        children: [
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton.icon(
+              key: const Key('find-courses-on-the-web'),
+              icon: const Icon(Icons.public),
+              label: const Text('Find Courses on the web'),
+              onPressed: () => _openWebSite(site),
+            ),
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            'Free and paid Courses from QuisquisLingo and publishers. Downloaded Courses are imported as QQL Course packages.',
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    ),
+  );
+
+  Future<void> _openWebSite(Uri site) async {
+    var opened = false;
+    try {
+      opened = await (widget.launchWebSite ?? _launchExternal)(site);
+    } catch (_) {}
+    if (!opened && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('The Course web site could not be opened.'),
+        ),
+      );
+    }
+  }
+
+  static Future<bool> _launchExternal(Uri site) =>
+      launchUrl(site, mode: LaunchMode.externalApplication);
+
+  Widget _sectionBand(BuildContext context, int index, String label) {
+    final all = _courses!.where((c) => _section(c) == index).toList();
+    final shown = [
+      for (final course in all)
+        if (_showUnavailable || !_isUnavailableOrDraft(course)) course,
+    ];
+    final hidden = all.length - shown.length;
+    final color = _sectionColor(context, index);
+    return _Band(
+      key: ValueKey('course-section-$index'),
+      color: color,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Container(
+            color: color.withValues(alpha: 0.12),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            child: Wrap(
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                Text(label, style: Theme.of(context).textTheme.titleMedium),
+                Text(
+                  hidden == 0
+                      ? ' · ${all.length}'
+                      : ' · ${shown.length} shown · $hidden hidden',
+                  key: ValueKey('course-section-count-$index'),
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+              ],
+            ),
+          ),
+          if (shown.isEmpty)
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Text(
+                all.isEmpty
+                    ? 'No courses in this section.'
+                    : '${all.length == 1 ? 'The Course here is' : 'All ${all.length} Courses here are'} unavailable or Draft. Turn on Show unavailable or Draft Courses to see ${all.length == 1 ? 'it' : 'them'}.',
+              ),
+            ),
+          for (final course in shown) _courseRow(course),
+        ],
+      ),
+    );
+  }
+
+  Widget _courseRow(Course course) => LayoutBuilder(
+    builder: (context, constraints) {
+      final compact = constraints.maxWidth < 480;
+      return ListTile(
+        key: ValueKey('device-course-${course.courseId}'),
+        title: Text(
+          course.title,
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: switch (course.originType) {
+              CourseOriginType.bundledOfficial =>
+                Theme.of(context).brightness == Brightness.dark
+                    ? Colors.white
+                    : Colors.black,
+              CourseOriginType.externalOfficial => Colors.purple,
+              CourseOriginType.custom => Colors.orange,
+            },
+            backgroundColor:
+                course.originType == CourseOriginType.bundledOfficial &&
+                    Theme.of(context).brightness == Brightness.dark
+                ? Colors.black
+                : null,
+          ),
+        ),
+        subtitle: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              '${course.sourceLanguage} → ${course.targetLanguage}\nMaintainer: ${_maintainer(course)}',
+            ),
+            if (_isUnavailableOrDraft(course))
+              Padding(
+                padding: const EdgeInsets.only(top: 6),
+                child: Wrap(
+                  spacing: 6,
+                  runSpacing: 6,
+                  children: [
+                    if (_hasAuthoredDraft(course))
+                      const _BlockingStatusBadge('Draft'),
+                    if (_isUnpublished(course))
+                      const _BlockingStatusBadge('Unpublished'),
+                    if (PublicationService.requiresPublisherVerification(
+                      course,
+                    ))
+                      const _BlockingStatusBadge('Verification required'),
+                  ],
+                ),
+              ),
+            if (compact)
+              Align(
+                alignment: Alignment.centerLeft,
+                child: _membershipButton(course),
+              ),
+          ],
+        ),
+        trailing: compact ? null : _membershipButton(course),
+      );
+    },
+  );
 
   @override
   Widget build(BuildContext context) => Scaffold(
@@ -205,92 +381,34 @@ class _AvailableCoursesScreenState extends State<AvailableCoursesScreen> {
                   ),
                 ),
               ),
-              for (final (index, label) in [
-                'Bundled Courses',
-                'Publisher Courses',
-                'My Custom Courses',
-                'Other Custom Courses',
-              ].indexed) ...[
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  child: Text(
-                    label,
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                ),
-                if (!_shownCourses.any((c) => _section(c) == index))
-                  const Text('No courses in this section.'),
-                for (final course in _shownCourses.where(
-                  (c) => _section(c) == index,
-                ))
-                  LayoutBuilder(
-                    builder: (context, constraints) {
-                      final compact = constraints.maxWidth < 480;
-                      return ListTile(
-                        key: ValueKey('device-course-${course.courseId}'),
-                        title: Text(
-                          course.title,
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: switch (course.originType) {
-                              CourseOriginType.bundledOfficial =>
-                                Theme.of(context).brightness == Brightness.dark
-                                    ? Colors.white
-                                    : Colors.black,
-                              CourseOriginType.externalOfficial =>
-                                Colors.purple,
-                              CourseOriginType.custom => Colors.orange,
-                            },
-                            backgroundColor:
-                                course.originType ==
-                                        CourseOriginType.bundledOfficial &&
-                                    Theme.of(context).brightness ==
-                                        Brightness.dark
-                                ? Colors.black
-                                : null,
-                          ),
-                        ),
-                        subtitle: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              '${course.sourceLanguage} → ${course.targetLanguage}\nMaintainer: ${_maintainer(course)}',
-                            ),
-                            if (_isUnavailableOrDraft(course))
-                              Padding(
-                                padding: const EdgeInsets.only(top: 6),
-                                child: Wrap(
-                                  spacing: 6,
-                                  runSpacing: 6,
-                                  children: [
-                                    if (_hasAuthoredDraft(course))
-                                      const _BlockingStatusBadge('Draft'),
-                                    if (_isUnpublished(course))
-                                      const _BlockingStatusBadge('Unpublished'),
-                                    if (PublicationService.requiresPublisherVerification(
-                                      course,
-                                    ))
-                                      const _BlockingStatusBadge(
-                                        'Verification required',
-                                      ),
-                                  ],
-                                ),
-                              ),
-                            if (compact)
-                              Align(
-                                alignment: Alignment.centerLeft,
-                                child: _membershipButton(course),
-                              ),
-                          ],
-                        ),
-                        trailing: compact ? null : _membershipButton(course),
-                      );
-                    },
-                  ),
-              ],
+              if (widget.courseWebSite case final site?) _webSiteBand(site),
+              for (final (index, label) in _sectionLabels.indexed)
+                _sectionBand(context, index, label),
             ],
           ),
+  );
+}
+
+/// One visually separate page section: coloured border, rounded corners and
+/// space below.
+class _Band extends StatelessWidget {
+  final Color color;
+  final Widget child;
+  const _Band({super.key, required this.color, required this.child});
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.only(bottom: 20),
+    child: DecoratedBox(
+      decoration: BoxDecoration(
+        border: Border.all(color: color, width: 2),
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: Material(type: MaterialType.transparency, child: child),
+      ),
+    ),
   );
 }
 

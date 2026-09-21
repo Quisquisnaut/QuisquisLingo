@@ -1,5 +1,19 @@
 # Build 244 validation
 
+## Revision 3 — Course Library sections (`2.0.44+244003`)
+
+Validation on 21 September 2026, before the Revision 3 commit.
+
+- `test/course_library_screen_244_test.dart` adds: four sections in fixed
+  order, each with its heading; counts ` · N` and ` · S shown · H hidden`
+  before and after the switch; all-hidden and empty section messages; a Draft
+  Course stays inside its own section; the web section is absent by default;
+  with a site set it is first, calls the launcher with that site and shows the
+  failure SnackBar.
+- `test/course_library_test.dart` uses the new section names.
+- Focused run: both Course Library suites **16 passed, 0 failed**; the four
+  version tests pass. `flutter analyze` on the changed files: no issues.
+
 ## Revision 2 — Course Library and availability switch (`2.0.44+244002`)
 
 Validation on 21 September 2026, before the Revision 2 commit.

@@ -32,3 +32,22 @@ On, those Courses appear with their labels. The former single `Not published ·
 Draft` label is now three independent labels: **Draft**, **Unpublished** and
 **Verification required**. Membership, files, publication, verification,
 authoring and Course Manager behaviour are unchanged.
+
+## Revision 3 — Course Library sections
+
+Version **2.0.44+244003**, same Beta expiry. The four categories are separate bordered sections (`_Band`: 2 px border
+in the category colour, rounded corners, 20 px apart) with a tinted header.
+Colours follow the existing title colours: on-surface for Bundled, purple for
+Publisher, orange for My Local Courses and a darker orange for Other Local
+Courses. My Custom Courses and Other Custom Courses are renamed My Local
+Courses and Other Local Courses; Help explains that imported Custom Courses
+from somebody else belong to Other Local Courses.
+
+Headers show ` · N`, or ` · S shown · H hidden` while the availability switch
+hides some. A section with Courses that are all hidden explains why and points
+to the switch; an empty section still says `No courses in this section.`
+
+Find Courses on the web is built as the first section with a full-width
+button that opens the site externally (SnackBar on failure), but it renders
+only when `courseWebSite` is set. The default `courseLibraryWebSite` is
+`null`, so the section is hidden until the QQL Course web site exists.

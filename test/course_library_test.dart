@@ -412,9 +412,9 @@ void main() {
             .isNotEmpty,
       );
       expect(await tester.runAsync(() => library.contains(publisher)), isFalse);
-      await tester.scrollUntilVisible(find.text('Other Custom Courses'), 250);
-      expect(find.text('My Custom Courses'), findsOneWidget);
-      expect(find.text('Other Custom Courses'), findsOneWidget);
+      await tester.scrollUntilVisible(find.text('Other Local Courses'), 250);
+      expect(find.text('My Local Courses'), findsOneWidget);
+      expect(find.text('Other Local Courses'), findsOneWidget);
       await tester.tap(find.byTooltip('Help'));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 350));
