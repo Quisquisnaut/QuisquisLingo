@@ -15,6 +15,7 @@ import 'image_library_rules.dart';
 import 'import/bounded_zip_reader.dart';
 import 'import/image_validator.dart';
 import 'import/json_limits.dart';
+import 'import/media_file_kind.dart';
 
 class ImportedImageBank {
   final String id;
@@ -188,7 +189,7 @@ class ImageBankService {
     );
     if (picked.outcome == FileDialogOutcome.tooLarge) {
       throw const FormatException(
-        'Image Bank ZIP exceeds the 50 MB safety limit.',
+        'Image Bank ZIP is too large. Remove images or shrink them, then make a new ZIP.',
       );
     }
     if (picked.outcome != FileDialogOutcome.opened) return picked;
@@ -280,13 +281,36 @@ class ImageBankService {
     File zipFile, {
     Set<String> existingIds = const {},
   }) async {
+    try {
+      return await _readBank(zipFile, existingIds: existingIds);
+    } on FormatException catch (error) {
+      if (error.message.contains('Editor Help > Image Bank')) rethrow;
+      throw FormatException(
+        '${error.message} Correct the ZIP or its manifest and try again. '
+        'See Editor Help > Image Bank for the required layout.',
+      );
+    }
+  }
+
+  Future<ParsedImageBank> _readBank(
+    File zipFile, {
+    Set<String> existingIds = const {},
+  }) async {
     if (await zipFile.length() > maxZipBytes) {
       throw const FormatException(
-        'Image Bank ZIP exceeds the 50 MB safety limit.',
+        'Image Bank ZIP is too large. Remove images or shrink them, then make a new ZIP.',
+      );
+    }
+    final zipBytes = await zipFile.readAsBytes();
+    final kind = unexpectedMediaKind(zipBytes);
+    if (kind != null && kind != 'ZIP archive') {
+      throw FormatException(
+        'This file is a $kind, not an Image Bank ZIP. Select a ZIP containing '
+        'image_bank_manifest.json and its listed images.',
       );
     }
     final zip = BoundedZipReader.open(
-      InputMemoryStream(await zipFile.readAsBytes()),
+      InputMemoryStream(zipBytes),
       label: 'Image Bank ZIP',
       maxEntries: maxArchiveEntries,
       maxTotalBytes: maxInflatedArchiveBytes,
@@ -304,12 +328,16 @@ class ImageBankService {
     final manifestFile = byBasename[manifestName];
     if (manifestFile == null) {
       throw const FormatException(
-        'Image Bank ZIP has no image_bank_manifest.json.',
+        'Image Bank ZIP has no image_bank_manifest.json. This manifest is a '
+        'small JSON file that lists each picture and its name, ID, category '
+        'and keywords. Create it as UTF-8 text, add it to the ZIP beside '
+        'the images it lists, and try again. See Editor Help > Image Bank '
+        'for the format and an example.',
       );
     }
     if (manifestFile.size > maxManifestBytes) {
       throw const FormatException(
-        'Image Bank manifest exceeds the 2 MB safety limit.',
+        'Image Bank manifest is too large. Remove unnecessary text and make a new ZIP.',
       );
     }
     final String manifestText;
@@ -317,7 +345,7 @@ class ImageBankService {
       manifestText = utf8.decode(zip.read(manifestFile));
     } on FormatException catch (error) {
       if (error.message.contains('Image Bank ZIP')) rethrow;
-      throw const FormatException('Image Bank manifest is not UTF-8 text.');
+      throw const FormatException('Image Bank manifest is not UTF-8 text. Save it as UTF-8 JSON and make a new ZIP.');
     }
     final decoded = JsonLimits.imports.decode(
       manifestText,
@@ -476,14 +504,13 @@ class ImageBankService {
       }
       if (source.size > maxImageBytes) {
         throw FormatException(
-          'Image asset exceeds the 50 KB maximum: ${item.filename} '
-          '(${source.size} bytes)',
+          'Image asset is too large: ${item.filename}. Export a smaller picture.',
         );
       }
       declaredImageBytes += source.size;
       if (declaredImageBytes > maxTotalImageBytes) {
         throw const FormatException(
-          'Image Bank decompressed image data exceeds the 50 MB safety limit.',
+          'Image Bank expands to too much image data. Remove or shrink pictures and make a new ZIP.',
         );
       }
     }
@@ -506,7 +533,7 @@ class ImageBankService {
       inflatedImageBytes += sourceBytes.length;
       if (inflatedImageBytes > maxTotalImageBytes) {
         throw const FormatException(
-          'Image Bank decompressed image data exceeds the 50 MB safety limit.',
+          'Image Bank expands to too much image data. Remove or shrink pictures and make a new ZIP.',
         );
       }
       images.add(

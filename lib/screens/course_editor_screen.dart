@@ -2966,7 +2966,7 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
               ),
               subtitle: Text(
                 _course.audioMode == 'tts'
-                    ? 'System TTS · import MP3 or choose Hybrid'
+                    ? 'On-Device TTS'
                     : '${_course.audioLibrary.length} MP3 mappings · ${_course.audioMode}',
               ),
               trailing: const Icon(Icons.chevron_right),
@@ -11019,7 +11019,7 @@ class _AudioLibraryScreenState extends State<AudioLibraryScreen> {
           labelText: 'Course audio source',
         ),
         items: const [
-          DropdownMenuItem(value: 'tts', child: Text('System TTS')),
+          DropdownMenuItem(value: 'tts', child: Text('On-Device TTS')),
           DropdownMenuItem(value: 'recorded', child: Text('Recorded MP3 only')),
           DropdownMenuItem(
             value: 'hybrid',
@@ -11031,11 +11031,16 @@ class _AudioLibraryScreenState extends State<AudioLibraryScreen> {
         },
       ),
       const SizedBox(height: 8),
-      const Text(
-        'For recorded audio, QuisquisLingo uses the longest matching word or expression first and concatenates MP3 clips. Hybrid mode falls back to TTS when a complete recorded sequence is unavailable.',
-      ),
+      Text(switch (_course.audioMode) {
+        'recorded' =>
+          'Recorded MP3 only: learners hear recordings associated with the exact words or expressions in this Course. QQL joins the longest matching clips. Add and associate MP3 files below; if no complete recording is available, there is no TTS fallback.',
+        'hybrid' =>
+          'Hybrid: MP3 + TTS fallback: QQL first joins matching Course recordings. When it cannot build a complete recording, it uses this device’s text-to-speech voice instead. Add and associate MP3 files below.',
+        _ =>
+          'On-Device TTS: this device reads the Course text aloud with its own text-to-speech voice. No MP3 files are needed. Choose Recorded MP3 only or Hybrid to manage Course recordings.',
+      }),
       const SizedBox(height: 8),
-      const Card(
+      if (_course.audioMode != 'tts') const Card(
         child: Padding(
           padding: EdgeInsets.all(12),
           child: Text(
@@ -11043,7 +11048,7 @@ class _AudioLibraryScreenState extends State<AudioLibraryScreen> {
           ),
         ),
       ),
-      ListTile(
+      if (_course.audioMode != 'tts') ListTile(
         title: const Text('Check unused MP3 files'),
         subtitle: const Text(
           'Find recordings not associated with any course text.',
@@ -11135,7 +11140,7 @@ class _AudioLibraryScreenState extends State<AudioLibraryScreen> {
       appBar: AppBar(
         title: const Text('Audio Library'),
         actions: [
-          if (_audio.fileDialogsAvailable)
+          if (_course.audioMode != 'tts' && _audio.fileDialogsAvailable)
             IconButton(
               key: const Key('open-mp3-from'),
               tooltip: 'Open MP3 from…',
@@ -11148,7 +11153,7 @@ class _AudioLibraryScreenState extends State<AudioLibraryScreen> {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
+      floatingActionButton: _course.audioMode == 'tts' ? null : FloatingActionButton.extended(
         onPressed: _import,
         icon: const Icon(Icons.library_music_outlined),
         label: const Text('Import MP3'),

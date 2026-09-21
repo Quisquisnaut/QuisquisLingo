@@ -31,7 +31,7 @@ abstract final class PortableExerciseImageService {
     if (_bundled.hasMatch(asset)) return null;
     // Bound work before matching or allocating decoded bytes.
     if (asset.length > ((maxImageBytes + 2) ~/ 3) * 4 + 32) {
-      throw const FormatException('Exercise images must not exceed 50 KB.');
+      throw const FormatException('Exercise image is too large. Export a smaller picture and try again.');
     }
     final match = _embedded.firstMatch(asset);
     if (match == null) {
@@ -42,11 +42,11 @@ abstract final class PortableExerciseImageService {
     final encoded = match.group(2)!;
     final bytes = base64Decode(encoded);
     if (bytes.isEmpty || bytes.length > maxImageBytes) {
-      throw const FormatException('Exercise images must be 1 byte to 50 KB.');
+      throw const FormatException('Exercise image is empty or too large. Export a smaller picture and try again.');
     }
     if (base64Encode(bytes) != encoded || _mime(bytes) != match.group(1)) {
       throw const FormatException(
-        'Exercise image data or image format is invalid.',
+        'Exercise image data or format is invalid. Export a fresh PNG, JPEG or WebP picture and try again.',
       );
     }
     final dimensions = _dimensions(bytes, match.group(1)!);
@@ -55,7 +55,7 @@ abstract final class PortableExerciseImageService {
         dimensions.$1 > maxImageDimension ||
         dimensions.$2 > maxImageDimension) {
       throw const FormatException(
-        'Exercise image dimensions must be between 1 and 4096 pixels.',
+        'Exercise image dimensions are unsupported. Resize it to at most 4096 pixels on either side and try again.',
       );
     }
     return bytes;
@@ -63,7 +63,7 @@ abstract final class PortableExerciseImageService {
 
   static Future<String> fromFile(File source) async {
     if (await source.length() > maxImageBytes) {
-      throw const FormatException('Exercise images must not exceed 50 KB.');
+      throw const FormatException('Exercise image is too large. Export a smaller picture and try again.');
     }
     return fromBytes(await source.readAsBytes());
   }
@@ -72,7 +72,7 @@ abstract final class PortableExerciseImageService {
   /// import ([fromFile]) and Open from….
   static Future<String> fromBytes(Uint8List bytes) async {
     if (bytes.length > maxImageBytes) {
-      throw const FormatException('Exercise images must not exceed 50 KB.');
+      throw const FormatException('Exercise image is too large. Export a smaller picture and try again.');
     }
     // The one image check shared by every import route. Stored images are not
     // re-checked this way: [decode] and [validate] keep their own rules, so
@@ -100,7 +100,7 @@ abstract final class PortableExerciseImageService {
       if (descriptor.width > maxImageDimension ||
           descriptor.height > maxImageDimension) {
         throw const FormatException(
-          'Exercise image dimensions must not exceed 4096 pixels.',
+          'Exercise image dimensions are too large. Resize it to at most 4096 pixels on either side and try again.',
         );
       }
       codec = await descriptor.instantiateCodec();
@@ -109,7 +109,7 @@ abstract final class PortableExerciseImageService {
     } on FormatException {
       rethrow;
     } catch (_) {
-      throw const FormatException('Choose a readable PNG, JPEG or WEBP image.');
+      throw const FormatException('This is not a readable PNG, JPEG or WebP image. Export a fresh picture and try again.');
     } finally {
       codec?.dispose();
       descriptor?.dispose();

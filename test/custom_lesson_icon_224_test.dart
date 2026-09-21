@@ -57,7 +57,7 @@ void main() {
           isA<FormatException>().having(
             (error) => error.message,
             'message',
-            contains('between 1 and 4096 pixels'),
+            contains('at most 4096 pixels'),
           ),
         ),
       );
@@ -73,7 +73,7 @@ void main() {
           isA<FormatException>().having(
             (error) => error.message,
             'message',
-            contains('not a supported image'),
+            contains('not a readable PNG, JPEG or WebP'),
           ),
         ),
       );

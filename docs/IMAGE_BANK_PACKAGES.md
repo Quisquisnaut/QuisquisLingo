@@ -7,6 +7,17 @@ An Image Bank is a ZIP containing only:
 - `image_bank_manifest.json`
 - the image files referenced by the manifest, normally under `assets/exercise_images/`
 
+The manifest is a plain UTF-8 JSON text file, not a picture. To make a small
+bank, write a list such as the one below in a text editor, save it with the
+exact name `image_bank_manifest.json` (check that your editor did not add
+`.txt`), and put it in the ZIP with `apple.png`. The `filename` must match the
+image in the ZIP exactly. Open **Editor Help > Image Bank** in QQL for the
+import steps and field rules.
+
+```json
+[{"id":"apple","primary_term":"apple","keywords":["apple"],"filename":"apple.png"}]
+```
+
 The manifest accepts the batch fields `id`, `primary_term`, `keywords`, `category`, and `filename`. Each entry may also contain `"attribution": {"author": "...", "license": "...", "title": "...", "source": "..."}`; author and license are required together, while title and source are optional. Admins can add or edit these credits later in the Shared Image Library's **Edit metadata** dialog. QuisquisLingo copies the bank into its application-support directory and records local paths for use by exercises and Lessons.
 
 Import validation rejects duplicate IDs, missing image files, unsupported image formats, malformed manifests, and images larger than 50 KB. Recommended image resolution is 256 × 256 px and recommended size is 15 KB or less.

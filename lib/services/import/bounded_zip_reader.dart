@@ -72,7 +72,7 @@ class BoundedZipReader {
     required int maxEntries,
     required int maxTotalBytes,
   }) {
-    final unreadable = FormatException('This is not a readable $label.');
+    final unreadable = FormatException('This is not a readable $label. Create a fresh ZIP archive and try again.');
     final directory = ZipDirectory();
     try {
       directory.read(input);
@@ -82,7 +82,7 @@ class BoundedZipReader {
     final headers = directory.fileHeaders;
     if (headers.isEmpty) throw unreadable;
     if (headers.length > maxEntries) {
-      throw FormatException('$label contains too many entries.');
+      throw FormatException('$label contains too many entries. Remove unnecessary files and make a new ZIP.');
     }
     final seen = <String>{};
     final entries = <BoundedZipEntry>[];
@@ -97,35 +97,35 @@ class BoundedZipReader {
           RegExp(r'^[A-Za-z]:').hasMatch(path) ||
           RegExp(r'[\x00-\x1f\x7f]').hasMatch(path) ||
           path.split('/').any((s) => s.isEmpty || s == '.' || s == '..')) {
-        throw FormatException('$label contains an unsafe path: $raw');
+        throw FormatException('$label contains an unsafe path: $raw. Put files in ordinary folders without parent-path segments and make a new ZIP.');
       }
       if (!seen.add(path.toLowerCase())) {
-        throw FormatException('$label contains the same name twice: $raw');
+        throw FormatException('$label contains the same name twice: $raw. Give every file a unique name and make a new ZIP.');
       }
       final type = (header.externalFileAttributes >> 16) & 0xf000;
       if (type != 0 && type != 0x8000 && type != 0x4000) {
         throw FormatException(
-          '$label contains a link or special file, which is not allowed: $raw',
+          '$label contains a link or special file, which is not allowed: $raw. Replace it with an ordinary file and make a new ZIP.',
         );
       }
       if (header.generalPurposeBitFlag & 0x41 != 0) {
-        throw FormatException('$label contains an encrypted entry: $raw');
+        throw FormatException('$label contains an encrypted entry: $raw. Make a ZIP without password protection.');
       }
       if (header.compressionMethod != 0 && header.compressionMethod != 8) {
         throw FormatException(
-          '$label uses a compression method QQL does not read: $raw',
+          '$label uses a compression method QQL does not read: $raw. Make a standard ZIP with stored or deflated files.',
         );
       }
       final size = header.uncompressedSize;
       total += size;
       if (size < 0 || total > maxTotalBytes) {
         throw FormatException(
-          '$label expands beyond its ${_megabytes(maxTotalBytes)} limit.',
+          '$label expands beyond its ${_megabytes(maxTotalBytes)} limit. Remove files or shrink them and make a new ZIP.',
         );
       }
       if (isFolder || type == 0x4000) {
         if (size != 0) {
-          throw FormatException('$label contains a damaged folder: $raw');
+          throw FormatException('$label contains a damaged folder: $raw. Recreate the ZIP from the original files.');
         }
         continue;
       }
@@ -135,15 +135,15 @@ class BoundedZipReader {
             path.substring(dot + 1).toLowerCase(),
           )) {
         throw FormatException(
-          '$label contains another archive, which is not allowed: $raw',
+          '$label contains another archive, which is not allowed: $raw. Unpack the inner archive and add its supported files directly.',
         );
       }
       if (header.compressionMethod == 0 && header.compressedSize != size) {
-        throw FormatException('$label entry $raw is damaged.');
+        throw FormatException('$label entry $raw is damaged. Recreate the ZIP from the original files.');
       }
       final local = header.file;
       if (local == null || local.filename != raw) {
-        throw FormatException('$label entry $raw is damaged.');
+        throw FormatException('$label entry $raw is damaged. Recreate the ZIP from the original files.');
       }
       entries.add(BoundedZipEntry._(path, size, header));
     }
@@ -162,16 +162,16 @@ class BoundedZipReader {
   /// declared size or [limit], whichever is smaller. The content must be
   /// exactly the declared size and match the stored CRC-32.
   Uint8List read(BoundedZipEntry entry, {int? limit}) {
-    final damaged = FormatException('$_label entry ${entry.name} is damaged.');
+    final damaged = FormatException('$_label entry ${entry.name} is damaged. Recreate the ZIP from the original files.');
     final cap = limit == null || limit > entry.size ? entry.size : limit;
     if (entry.size > cap) {
-      throw FormatException('$_label entry ${entry.name} is too large.');
+      throw FormatException('$_label entry ${entry.name} is too large. Shrink this file and make a new ZIP.');
     }
     final output = LimitedOutputStream(
       cap,
       overflowMessage:
           '$_label entry ${entry.name} expands beyond its '
-          'declared size.',
+          'declared size. Recreate the ZIP from the original files.',
     );
     try {
       entry._header.file!.decompress(output);

@@ -191,7 +191,7 @@ abstract final class ExerciseFieldHelpRegistry {
       return const ExerciseFieldHelp(
         title: 'Spoken text',
         purpose:
-            'Enter exactly what the learner should hear. System TTS sends this text to the device’s native text-to-speech engine; no audio file is required in that mode. Example: Buongiorno, come stai?',
+            'Enter exactly what the learner should hear. On-Device TTS sends this text to the device’s native text-to-speech engine; no audio file is required in that mode. Example: Buongiorno, come stai?',
         entryRules:
             'Playback follows the Course Audio Library mode. Recorded MP3 resolves this text against Course recordings; Hybrid tries a complete recording sequence before native TTS. Enter spoken words, not an MP3 filename or path. For MP3, open Course Editor > Audio Library, place files in Documents/QuisquisLingo/Imports/Audio, press Import MP3, then Associate recording and enter its Word or expression. Select Recorded MP3 only or Hybrid. Exercises use these text mappings; there is no per-exercise file attachment.',
         validation:
@@ -576,7 +576,7 @@ abstract final class ExerciseFieldHelpRegistry {
       title: 'Audio text',
       purpose: 'Defines the word or passage that the learner hears.',
       entryRules:
-          'Enter one spoken text, not an MP3 filename or path. Multiple lines form the same passage. Course Audio Library selects System TTS, Recorded MP3 or Hybrid and maps recordings to exact words or expressions.',
+          'Enter one spoken text, not an MP3 filename or path. Multiple lines form the same passage. Course Audio Library selects On-Device TTS, Recorded MP3 or Hybrid and maps recordings to exact words or expressions.',
       validation:
           'Listening exercises require non-empty audio text. For contextual comprehension, supply the text/audio context selected by Context mode. Preview playback and review missing recorded mappings in Audit.',
       example: 'Vorrei un caffè, per favore.',

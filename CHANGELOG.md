@@ -1,3 +1,12 @@
+# 2.0.43 (Build 243, Revision 17) - Clearer media errors - 2026-09-21
+
+Media imports now explain common wrong file types and how to fix them.
+A missing Image Bank manifest error explains how to create and add the JSON
+file and points to Editor Help. Audio Library labels its default mode
+**On-Device TTS**, explains each mode, and offers MP3 tools only in Recorded
+MP3 and Hybrid modes. Version `2.0.43+243017`; Beta expiry remains
+**2026-10-21 23:59:59 local time**.
+
 # 2.0.43 (Build 243, Revision 16) - Duplicates and provenance - 2026-09-21
 
 Tranche 5 (part 1) of the [import hardening plan](docs/IMPORT_HARDENING_PLAN.md). Scope: [Build 243 change summary](docs/243_CHANGE_SUMMARY.md#revision-16--duplicates-and-provenance); evidence: [243 validation](docs/243_VALIDATION.md).

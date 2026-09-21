@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:isolate';
 import 'dart:typed_data';
 
+import 'media_file_kind.dart';
 import 'web_page_detector.dart';
 
 /// An MP3 refused by [Mp3Validator]. A [FormatException], so existing import
@@ -13,7 +14,7 @@ class Mp3ValidationException extends FormatException {
 /// The MP3's tags exceed [Mp3Validator.maxMetadataBytes].
 class Mp3MetadataTooLargeException extends Mp3ValidationException {
   const Mp3MetadataTooLargeException()
-    : super('The MP3 file carries more than 2 MB of tags or metadata.');
+    : super('The MP3 file carries too much tag data. Remove unnecessary tags or artwork and export it again.');
 }
 
 /// What the check measured.
@@ -52,7 +53,7 @@ abstract final class Mp3Validator {
   static const watchdog = Duration(seconds: 30);
 
   static const _damaged = Mp3ValidationException(
-    'This is not a valid MP3 file (MPEG audio Layer III).',
+    'This recording is damaged or is not MPEG Layer III audio. Export it as an MP3 again and retry.',
   );
 
   /// [inspect] off the UI isolate, under [watchdog].
@@ -64,17 +65,17 @@ abstract final class Mp3Validator {
     } on FormatException catch (error) {
       throw Mp3ValidationException(error.message);
     } catch (_) {
-      throw const Mp3ValidationException('The MP3 file could not be checked.');
+      throw const Mp3ValidationException('The MP3 file could not be checked. Export a fresh MP3 and try again.');
     }
   }
 
   static Mp3Facts inspect(Uint8List bytes) {
     if (bytes.isEmpty) {
-      throw const Mp3ValidationException('The MP3 file is empty.');
+      throw const Mp3ValidationException('The MP3 file is empty. Choose a recording that plays normally and try again.');
     }
     if (bytes.length > maxBytes) {
       throw const Mp3ValidationException(
-        'MP3 files larger than 50 MB are not accepted.',
+        'This MP3 is too large. Export or split it into smaller recordings and try again.',
       );
     }
     switch (webPageKind(bytes)) {
@@ -91,6 +92,12 @@ abstract final class Mp3Validator {
         );
       case null:
         break;
+    }
+    final kind = unexpectedMediaKind(bytes);
+    if (kind != null && kind != 'MP3 recording') {
+      throw Mp3ValidationException(
+        'This file is a $kind, not an MP3 recording. Download or export the real audio file and try again; changing its name will not convert it.',
+      );
     }
     var offset = 0;
     var metadata = 0;

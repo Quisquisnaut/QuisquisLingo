@@ -283,7 +283,7 @@ void main() {
         isA<FormatException>().having(
           (error) => error.message,
           'message',
-          contains('not a valid MP3'),
+          contains('Export it as an MP3 again'),
         ),
       ),
     );

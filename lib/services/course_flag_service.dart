@@ -189,19 +189,20 @@ class CourseFlagService {
       );
     }
     if (await source.length() > maxInputBytes) {
-      throw const FormatException('Flag image exceeds the 2 MB safety limit.');
+      throw const FormatException('Flag image is too large. Export a smaller PNG or JPEG picture and try again.');
     }
     final bytes = await source.readAsBytes();
     if (bytes.isEmpty) {
-      throw const FormatException('The flag image could not be read.');
+      throw const FormatException('The flag image could not be read. Export a fresh PNG or JPEG picture and try again.');
     }
     return prepareFlag(bytes);
   }
 
   Future<ImportedCourseFlag> prepareFlag(Uint8List bytes) async {
     if (bytes.length > maxInputBytes) {
-      throw const FormatException('Flag image exceeds the 2 MB safety limit.');
+      throw const FormatException('Flag image is too large. Export a smaller PNG or JPEG picture and try again.');
     }
+    ImageValidator.inspect(bytes, ImageProfile.courseFlag);
     final isPng =
         bytes.length >= 8 &&
         bytes[0] == 0x89 &&
@@ -219,7 +220,7 @@ class CourseFlagService {
         bytes[2] == 0xFF;
     if (!isPng && !isJpeg) {
       throw const FormatException(
-        'Flag file must contain a PNG or JPEG image.',
+        'Flag file must contain a PNG or JPEG image. Export the picture in one of those formats and try again.',
       );
     }
 
@@ -239,7 +240,7 @@ class CourseFlagService {
       height = descriptor.height;
     } catch (_) {
       throw const FormatException(
-        'The selected file is not a supported PNG or JPEG image.',
+        'The selected file is not a supported PNG or JPEG image. Export the flag in one of those formats and try again.',
       );
     } finally {
       descriptor?.dispose();
@@ -278,7 +279,7 @@ class CourseFlagService {
     codec.dispose();
     if (data == null) {
       throw const FormatException(
-        'The flag image could not be converted to PNG.',
+        'The flag image could not be converted to PNG. Export a fresh PNG picture and try again.',
       );
     }
     final png = data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);

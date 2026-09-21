@@ -324,7 +324,7 @@ void main() {
               isA<FormatException>().having(
                 (error) => error.message,
                 'message',
-                contains('not a supported PNG or JPEG'),
+                contains('image is damaged'),
               ),
             ),
           );
@@ -344,7 +344,7 @@ void main() {
               isA<FormatException>().having(
                 (error) => error.message,
                 'message',
-                contains('2 MB safety limit'),
+                contains('Export a smaller PNG or JPEG'),
               ),
             ),
           );
@@ -360,7 +360,7 @@ void main() {
               isA<FormatException>().having(
                 (error) => error.message,
                 'message',
-                contains('Maximum source dimension: 4096'),
+                contains('at most 4096 pixels'),
               ),
             ),
           );

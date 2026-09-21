@@ -84,7 +84,7 @@ class LessonIconService {
     final file = candidates.single;
     if (await file.length() > maxInputBytes) {
       throw const FormatException(
-        'Lesson icon image exceeds the 2 MB safety limit.',
+        'Lesson icon image is too large. Export a smaller picture and try again.',
       );
     }
     return prepareIcon(
@@ -106,7 +106,7 @@ class LessonIconService {
     );
     if (picked.outcome == FileDialogOutcome.tooLarge) {
       throw const FormatException(
-        'Lesson icon must be a readable image no larger than 2 MB.',
+        'Lesson icon cannot be read or is too large. Export a smaller PNG, JPEG or WebP picture and try again.',
       );
     }
     if (picked.outcome != FileDialogOutcome.opened) {
@@ -125,9 +125,10 @@ class LessonIconService {
   }) async {
     if (bytes.isEmpty || bytes.length > maxInputBytes) {
       throw const FormatException(
-        'Lesson icon must be a readable image no larger than 2 MB.',
+        'Lesson icon cannot be read or is too large. Export a smaller PNG, JPEG or WebP picture and try again.',
       );
     }
+    ImageValidator.inspect(bytes, ImageProfile.lessonIcon);
     // The decoded image is needed below for drawImageRect, so this cannot skip
     // rasterizing entirely — but the dimension limit is checked against the
     // header first, so an image that declares more than maxSourceDimension is
@@ -144,17 +145,16 @@ class LessonIconService {
           descriptor.width > maxSourceDimension ||
           descriptor.height > maxSourceDimension) {
         throw const FormatException(
-          'Lesson icon dimensions must be between 1 and 4096 pixels.',
+          'Lesson icon dimensions are unsupported. Resize the picture to at most 4096 pixels on either side and try again.',
         );
       }
-      ImageValidator.inspect(bytes, ImageProfile.lessonIcon);
       codec = await descriptor.instantiateCodec();
       source = (await codec.getNextFrame()).image;
     } on FormatException {
       rethrow;
     } catch (_) {
       throw const FormatException(
-        'The selected Lesson icon is not a supported image.',
+        'The selected Lesson icon is not a supported image. Export it as a PNG, JPEG or WebP picture and try again.',
       );
     } finally {
       codec?.dispose();
@@ -179,7 +179,7 @@ class LessonIconService {
     image.dispose();
     if (data == null) {
       throw const FormatException(
-        'The Lesson icon could not be converted to PNG.',
+        'The Lesson icon could not be converted to PNG. Export a fresh PNG picture and try again.',
       );
     }
     final png = data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);

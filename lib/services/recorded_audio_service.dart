@@ -87,7 +87,7 @@ class RecordedAudioService {
         } on ImportTooLargeException {
           throw StateError(_tooLarge);
         } on ImportEmptyException {
-          throw StateError('${selected.displayName} is empty.');
+          throw StateError('${selected.displayName} is empty. Choose a recording that plays normally and try again.');
         } on ImportAccessException catch (error) {
           throw StateError(error.message);
         }
@@ -140,7 +140,7 @@ class RecordedAudioService {
     }
     final name = picked.displayName!;
     if (!name.toLowerCase().endsWith('.mp3')) {
-      throw StateError('Choose an MP3 file.');
+      throw StateError('The selected file name is not .mp3. Export a real MP3 recording and select it again.');
     }
     final bytes = picked.bytes!;
     if (bytes.length > maxMp3Bytes) throw StateError(_tooLarge);
@@ -211,7 +211,7 @@ class RecordedAudioService {
             ImportItemResult(
               item.displayName,
               ImportItemOutcome.invalidType,
-              message: 'Choose an MP3 file.',
+              message: 'The selected file name is not .mp3. Export a real MP3 recording and select it again.',
             ),
           );
           continue;
@@ -280,7 +280,7 @@ class RecordedAudioService {
       '${_random.nextInt(1 << 32).toRadixString(16).padLeft(8, '0')}';
 
   static const String _tooLarge =
-      'MP3 files larger than 50 MB are not accepted.';
+      'This MP3 is too large. Export or split it into smaller recordings and try again.';
 
   List<CourseAudioClip> orphaned(Course course) =>
       course.audioLibrary.where((c) => c.text.trim().isEmpty).toList();

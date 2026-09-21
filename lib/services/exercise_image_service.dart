@@ -107,7 +107,7 @@ class ExerciseImageService {
     } on ImportTooLargeException {
       throw StateError(_tooLarge);
     } on ImportEmptyException {
-      throw StateError('${source.displayName} is empty.');
+      throw StateError('${source.displayName} is empty. Choose a picture that opens normally and try again.');
     } on ImportAccessException catch (error) {
       throw StateError(error.message);
     }
@@ -142,7 +142,7 @@ class ExerciseImageService {
     }
     final name = result.displayName!;
     if (!_supportedName(name)) {
-      throw StateError('Choose a PNG, JPG, JPEG or WEBP image.');
+      throw StateError('The selected file name is not PNG, JPG, JPEG or WebP. Select a picture in one of those formats.');
     }
     return (
       dialog: result,

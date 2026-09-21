@@ -71,14 +71,14 @@ void main() {
           Uint8List.fromList(utf8.encode('just some text')),
           any,
         ),
-        _refused('Choose a readable PNG, JPEG or WEBP image.'),
+        _refused('Export the picture again and retry'),
       );
       expect(
         () => ImageValidator.inspect(
           Uint8List.fromList([0x4d, 0x5a, 0x90, 0x00, ...List.filled(60, 0)]),
           any,
         ),
-        _refused('Choose a readable PNG, JPEG or WEBP image.'),
+        _refused('Export the picture again and retry'),
       );
     });
 
@@ -109,7 +109,7 @@ void main() {
         expect(bomb.length, lessThan(50 * 1024));
         expect(
           () => ImageValidator.inspect(bomb, ImageProfile.exerciseImage),
-          _refused('4096 × 4096'),
+          _refused('at most 4096 pixels'),
         );
         final wide = await pngDeclaringDimensions(width: 4097, height: 16);
         expect(() => ImageValidator.inspect(wide, any), _refused('4096'));

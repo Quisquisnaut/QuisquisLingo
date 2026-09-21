@@ -378,7 +378,7 @@ void main() {
       expect(error, isA<StateError>());
       expect(
         (error as StateError).message,
-        'Choose a PNG, JPG, JPEG or WEBP image.',
+        'The selected file name is not PNG, JPG, JPEG or WebP. Select a picture in one of those formats.',
       );
 
       backend.onOpen = () async => FileDialogResult.opened(
@@ -410,7 +410,7 @@ void main() {
         );
         expect(
           (error as FormatException).message,
-          'Choose a readable PNG, JPEG or WEBP image.',
+          'This is not a readable PNG, JPEG or WebP image. Export the picture again and retry.',
         );
         final tooBig = await _thrown(
           () => PortableExerciseImageService.fromBytes(
@@ -419,7 +419,7 @@ void main() {
         );
         expect(
           (tooBig as FormatException).message,
-          'Exercise images must not exceed 50 KB.',
+          'Exercise image is too large. Export a smaller picture and try again.',
         );
       },
     );
@@ -474,7 +474,10 @@ void main() {
       backend.onOpen = () async =>
           FileDialogResult.opened('x.wav', Uint8List(10));
       var error = await _thrown(() => audio.importMp3FromDialog('course-a'));
-      expect((error as StateError).message, 'Choose an MP3 file.');
+      expect(
+        (error as StateError).message,
+        'The selected file name is not .mp3. Export a real MP3 recording and select it again.',
+      );
 
       backend.onOpen = () async => FileDialogResult.opened(
         'big.mp3',
@@ -483,7 +486,7 @@ void main() {
       error = await _thrown(() => audio.importMp3FromDialog('course-a'));
       expect(
         (error as StateError).message,
-        'MP3 files larger than 50 MB are not accepted.',
+        'This MP3 is too large. Export or split it into smaller recordings and try again.',
       );
       expect(support.existsSync(), isFalse);
     });
@@ -568,7 +571,7 @@ void main() {
         var error = await _thrown(icons.importPreparedIconFromDialog);
         expect(
           (error as FormatException).message,
-          'The selected Lesson icon is not a supported image.',
+          'This is not a readable PNG, JPEG or WebP image. Export the picture again and retry.',
         );
 
         backend.onOpen = () async => FileDialogResult.opened(
@@ -578,7 +581,7 @@ void main() {
         error = await _thrown(icons.importPreparedIconFromDialog);
         expect(
           (error as FormatException).message,
-          'Lesson icon must be a readable image no larger than 2 MB.',
+          'Lesson icon cannot be read or is too large. Export a smaller PNG, JPEG or WebP picture and try again.',
         );
       });
     });

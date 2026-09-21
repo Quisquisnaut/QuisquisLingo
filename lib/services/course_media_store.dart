@@ -133,8 +133,8 @@ class CourseMediaStore {
     if (bytes.isEmpty || bytes.length > limit) {
       throw FormatException(
         isAudioReference(reference)
-            ? 'MP3 files larger than 50 MB are not accepted.'
-            : 'Exercise images must be 1 byte to 50 KB.',
+            ? 'This MP3 is too large. Export or split it into smaller recordings and try again.'
+            : 'This Course image is empty or too large. Export a smaller picture and try again.',
       );
     }
     await courseDirectory(courseId, create: true);
@@ -153,7 +153,7 @@ class CourseMediaStore {
       rethrow;
     }
     if (!await _matches(target, reference)) {
-      throw StateError('Course media could not be verified after writing.');
+      throw StateError('Course media could not be verified after writing. Check available storage and retry the import.');
     }
     return reference;
   }

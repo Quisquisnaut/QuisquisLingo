@@ -1,5 +1,20 @@
 # Build 243 validation
 
+## Revision 17 — clearer media errors and Audio Library modes (`2.0.43+243017`)
+
+Validation on 21 September 2026, before the Revision 17 commit.
+
+- Seven new tests cover common mislabelled media, the missing Image Bank
+  manifest instructions, and the three Audio Library modes and MP3 action
+  availability. Existing exact-message assertions were updated to the new
+  recovery text; the focused dialog and import hardening tests pass.
+- The first full suite run found only five stale exact-message assertions
+  (2,124 passed); all five were corrected before the clean run.
+- Clean full suite: **2,129 passed, 0 failed** (`flutter test --no-pub`).
+- `flutter analyze --no-pub`: **no issues**.
+- The four `tools/validate_*.py` validators: 0 issues.
+- `git diff --check`: clean. The pre-existing untracked files are excluded.
+
 ## Revision 16 — duplicates and provenance (`2.0.43+243016`)
 
 Validation on 21 September 2026, before the Revision 16 commit.

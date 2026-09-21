@@ -766,3 +766,19 @@ Version **2.0.43+243016**, same Beta expiry. Tranche 5 (part 1) of
 - **Tests:** `duplicates_provenance_tranche5_test.dart` (12); Tranche 4
   Shared Library tests use `uniquePng` (`test/support/unique_png.dart`) and
   a failing metadata stub; MP3 tests cover the web-page message.
+## Revision 17 — clearer media errors and Audio Library modes
+
+Version **2.0.43+243017**, same Beta expiry. Import errors now identify
+common files saved under the wrong extension (web pages, ZIPs, PDFs,
+pictures and recordings) and tell the author how to correct the file.
+Image, MP3, Image Bank, Course package, Lesson icon and flag failures give
+actionable recovery text without exact byte counts. A missing Image Bank
+manifest explains what `image_bank_manifest.json` is, how to create it and
+add it to the ZIP, and points to **Editor Help > Image Bank**. The Help and
+`docs/IMAGE_BANK_PACKAGES.md` include a minimal manifest example.
+
+The Audio Library calls the default source **On-Device TTS**. Its three
+audio modes each show their own explanation. **Check unused MP3 files**,
+**Import MP3**, and **Open MP3 from…** appear only for Recorded MP3 only
+and Hybrid. The stored `tts` / `recorded` / `hybrid` values and Course
+audio playback are unchanged.

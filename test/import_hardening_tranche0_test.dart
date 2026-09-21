@@ -157,13 +157,13 @@ void main() {
           await pngDeclaringDimensions(width: 4097, height: 64),
           assetId: 'too_wide',
         ),
-        _formatError('between 1 and 4096 pixels'),
+        _formatError('at most 4096 pixels'),
       );
       await expectLater(
         CourseFlagService().prepareFlag(
           await pngDeclaringDimensions(width: 4097, height: 64),
         ),
-        _formatError('Maximum source dimension: 4096'),
+        _formatError('at most 4096 pixels'),
       );
     });
   });

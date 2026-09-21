@@ -4,6 +4,9 @@ import 'dart:ui' as ui;
 
 import 'package:archive/archive.dart' show getCrc32;
 
+import 'media_file_kind.dart';
+import 'web_page_detector.dart';
+
 /// The raster formats QQL imports. SVG is never imported.
 enum ImageFormat {
   png('png', 'png'),
@@ -86,7 +89,7 @@ abstract final class ImageValidator {
   static const maxProfileBytes = 128 * 1024;
 
   static const _damaged = ImageValidationException(
-    'The image is damaged, or is not a supported PNG, JPEG or WEBP file.',
+    'The image is damaged. Export it again as a still PNG, JPEG or WebP image and retry.',
   );
   static const _animated = ImageValidationException(
     'Animated images are not supported. Choose a still PNG, JPEG or WEBP image.',
@@ -123,22 +126,28 @@ abstract final class ImageValidator {
   /// cheap enough for every entry of an Image Bank.
   static ImageFacts inspect(Uint8List bytes, ImageProfile profile) {
     if (bytes.isEmpty) {
-      throw const ImageValidationException('The image is empty.');
+      throw const ImageValidationException('The image file is empty. Choose a picture that opens normally and try again.');
     }
     if (bytes.length > profile.maxBytes) {
       throw ImageValidationException(
-        'The image is larger than ${_size(profile.maxBytes)}.',
+        'The image is larger than ${_size(profile.maxBytes)}. Export a smaller picture and try again.',
       );
     }
     final format = sniff(bytes);
     if (format == null) {
-      throw const ImageValidationException(
-        'Choose a readable PNG, JPEG or WEBP image.',
+      final kind = unexpectedMediaKind(bytes);
+      final page = webPageKind(bytes);
+      throw ImageValidationException(
+        page != null
+            ? 'This file is a web page, not an image. Download the actual picture and try again.'
+            : kind == null
+            ? 'This is not a readable PNG, JPEG or WebP image. Export the picture again and retry.'
+            : 'This file is a $kind, not an image. Choose a real PNG, JPEG or WebP picture; changing its name will not convert it.',
       );
     }
     if (!profile.formats.contains(format)) {
       throw ImageValidationException(
-        'Choose a ${profile.formats.map((f) => f.name.toUpperCase()).join(' or ')} image.',
+        'This image format is not accepted here. Export it as ${profile.formats.map((f) => f.name.toUpperCase()).join(' or ')} and try again.',
       );
     }
     final facts = switch (format) {
@@ -149,15 +158,15 @@ abstract final class ImageValidator {
     if (facts.width < 1 || facts.height < 1) throw _damaged;
     if (facts.width > maxDimension || facts.height > maxDimension) {
       throw const ImageValidationException(
-        'The image is larger than $maxDimension × $maxDimension pixels.',
+        'The image dimensions are too large. Resize it to at most 4096 pixels on either side and try again.',
       );
     }
     if (facts.width * facts.height > maxPixels) {
-      throw const ImageValidationException('The image has too many pixels.');
+      throw const ImageValidationException('The image has too many pixels. Resize it and try again.');
     }
     if (facts.metadataBytes > maxMetadataBytes) {
       throw const ImageValidationException(
-        'The image carries too much embedded metadata (over 256 KB).',
+        'The image carries too much embedded metadata. Export it without extra metadata and try again.',
       );
     }
     return facts;
@@ -255,7 +264,7 @@ abstract final class ImageValidator {
         metadata += length;
         if (type == 'iCCP' && length > maxProfileBytes) {
           throw const ImageValidationException(
-            'The image carries an oversized colour profile.',
+            'The image carries an oversized colour profile. Export it without the profile and try again.',
           );
         }
       }
@@ -326,7 +335,7 @@ abstract final class ImageValidator {
           profile += length - 2;
           if (profile > maxProfileBytes) {
             throw const ImageValidationException(
-              'The image carries an oversized colour profile.',
+              'The image carries an oversized colour profile. Export it without the profile and try again.',
             );
           }
         }
@@ -409,7 +418,7 @@ abstract final class ImageValidator {
         case 'ICCP':
           if (length > maxProfileBytes) {
             throw const ImageValidationException(
-              'The image carries an oversized colour profile.',
+              'The image carries an oversized colour profile. Export it without the profile and try again.',
             );
           }
           metadata += length;

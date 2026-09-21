@@ -85,7 +85,7 @@ void main() {
       expect((await Mp3Validator.validate(syntheticMp3())).frames, 8);
       await expectLater(
         Mp3Validator.validate(Uint8List.fromList([1, 2, 3])),
-        _refused('not a valid MP3'),
+        _refused('Export it as an MP3 again'),
       );
     });
   });
@@ -95,7 +95,7 @@ void main() {
       expect(() => Mp3Validator.inspect(Uint8List(0)), _refused('empty'));
       expect(
         () => Mp3Validator.inspect(Uint8List(Mp3Validator.maxBytes + 1)),
-        _refused('50 MB'),
+        _refused('split it into smaller recordings'),
       );
     });
 
@@ -105,7 +105,7 @@ void main() {
       );
       expect(
         () => Mp3Validator.inspect(Uint8List.fromList(zip)),
-        _refused('not a valid MP3'),
+        _refused('ZIP archive, not an MP3'),
       );
     });
 
@@ -137,7 +137,7 @@ void main() {
         () => Mp3Validator.inspect(
           File('assets/exercise_images/apple.webp').readAsBytesSync(),
         ),
-        _refused('not a valid MP3'),
+        _refused('WebP image, not an MP3'),
       );
     });
 
