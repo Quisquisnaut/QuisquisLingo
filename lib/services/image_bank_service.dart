@@ -54,10 +54,6 @@ class ImageBankService {
   static const int maxInflatedArchiveBytes = 50 * 1024 * 1024;
   static const banksKey = 'quisquislingo_imported_image_banks_v2';
 
-  // Memory guard for Open from…; larger files than maxZipBytes reach the
-  // ordinary check in importBankZip and get its standard message.
-  static const int _dialogReadCap = 128 * 1024 * 1024;
-
   ImageBankService({
     FileDialogService? fileDialogs,
     Future<Directory> Function()? temporaryDirectory,
@@ -79,9 +75,14 @@ class ImageBankService {
   importBankZipFromDialog({Set<String> existingIds = const {}}) async {
     final picked = await _fileDialogs.openBytes(
       extensions: const ['zip'],
-      maxBytes: _dialogReadCap,
+      maxBytes: maxZipBytes,
       artifact: 'image-bank',
     );
+    if (picked.outcome == FileDialogOutcome.tooLarge) {
+      throw const FormatException(
+        'Image Bank ZIP exceeds the 50 MB safety limit.',
+      );
+    }
     if (picked.outcome != FileDialogOutcome.opened) {
       return (dialog: picked, result: null);
     }

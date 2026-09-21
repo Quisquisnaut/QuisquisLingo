@@ -1,5 +1,37 @@
 # Build 243 validation
 
+## Revision 10 — safe import foundation (`2.0.43+243010`)
+
+Validation on 21 September 2026, before the Revision 10 commit.
+
+- New `import_foundation_tranche1_test.dart` (17), all passing:
+  - safe display names;
+  - ordinary files only: a folder, a missing file and a symbolic link are
+    refused. The symlink tests ran; this machine allows creating links;
+  - a fixed-name `import.json` link refused;
+  - staging:
+    - actual bytes counted, with the reported size deliberately wrong;
+    - SHA-256 computed while reading;
+    - one byte over the limit stops reading;
+    - empty files, and a provider failing part-way;
+    - cancellation mid-file;
+    - leftover removal;
+    - no staging file left behind in any case;
+  - batches: 101 files, the batch byte limit, mixed valid, empty and
+    too-large files with summary lines, and cancel halfway;
+  - `FileDialogService`: too large, within the limit, multiple files, and
+    cancel.
+- Existing tests unchanged apart from passing a temporary-folder stager
+  (`testImportStager()`), including every dialog test that checks each
+  service's own too-large message: 61 dialog tests passed.
+- Focused run across 24 reset, inventory, Course media, backup, Recovery Key,
+  flag, Lesson icon and transfer test files: **207 passed, 0 failed**.
+- Complete suite in two halves covering all 230 test files once:
+  **985 + 1,052 = 2,037 passed, 0 failed**.
+- `flutter analyze` on the repository: **no issues**.
+- The four `tools/validate_*.py` validators: 0 issues.
+- `git diff --check`: clean. The untracked `devtools_options.yaml` is excluded.
+
 ## Revision 9 — QQL image metadata read-only; Local words; device categories (`2.0.43+243009`)
 
 Validation on 21 September 2026, before the Revision 9 commit.

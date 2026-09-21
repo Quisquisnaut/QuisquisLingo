@@ -295,6 +295,8 @@ offers only its Local words. Help and `docs/COURSE_EDITOR.md` say so.
 
 ### Tranche 1 — Safe import foundation
 
+**Status: implemented as Revision 10 (`2.0.43+243010`).** Deviations: `openBytes` stays as the callers' entry point, now built on the stager, instead of being removed; display names are not Unicode-normalised (no normaliser in Dart's core libraries); the disk-full case is covered by the typed `ImportStorageException` path rather than a simulated full disk.
+
 - `SelectedExternalFile`, `openFile`/`openFiles` on the backend, and a desktop
   `lstat` gate. Keep `openBytes` temporarily as a thin wrapper over
   `openFile` + stager + `readAsBytes` of the staged file (bounded by the real

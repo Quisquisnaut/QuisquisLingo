@@ -31,6 +31,7 @@ void main() {
     service = CustomCourseTransferService(
       directory: () async => directory,
       fileDialogs: FileDialogService(
+        stager: testImportStager(),
         backend: backend,
         diagnosticLog: DiagnosticLogService(),
       ),
@@ -79,6 +80,7 @@ void main() {
       downloads = await Directory.systemTemp.createTemp('qql_240_downloads_');
       backend.supportsStart = true;
       dialogs = FileDialogService(
+        stager: testImportStager(),
         backend: backend,
         diagnosticLog: DiagnosticLogService(),
         downloadsDirectory: () async => downloads,
@@ -114,6 +116,7 @@ void main() {
 
     test('an unknown Downloads folder is retried, not counted', () async {
       final noDownloads = FileDialogService(
+        stager: testImportStager(),
         backend: backend,
         diagnosticLog: DiagnosticLogService(),
         downloadsDirectory: () async => null,
@@ -180,6 +183,7 @@ void main() {
     final unavailable = CustomCourseTransferService(
       directory: () async => directory,
       fileDialogs: FileDialogService(
+        stager: testImportStager(),
         backend: const UnavailableFileDialogBackend(),
         diagnosticLog: DiagnosticLogService(),
       ),

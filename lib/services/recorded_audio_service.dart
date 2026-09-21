@@ -21,10 +21,6 @@ class RecordedAudioService {
 
   static const int maxMp3Bytes = 50 * 1024 * 1024;
 
-  // Memory guard for Open from… only; larger files reach the ordinary 50 MB
-  // check and get its standard message.
-  static const int _dialogReadCap = 128 * 1024 * 1024;
-
   final FileDialogService _fileDialogs;
   final CourseMediaStore _media;
 
@@ -97,9 +93,12 @@ class RecordedAudioService {
   importMp3FromDialog(String courseId) async {
     final picked = await _fileDialogs.openBytes(
       extensions: const ['mp3'],
-      maxBytes: _dialogReadCap,
+      maxBytes: maxMp3Bytes,
       artifact: 'mp3',
     );
+    if (picked.outcome == FileDialogOutcome.tooLarge) {
+      throw StateError(_tooLarge);
+    }
     if (picked.outcome != FileDialogOutcome.opened) {
       return (dialog: picked, clip: null);
     }

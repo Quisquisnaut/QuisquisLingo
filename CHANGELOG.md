@@ -1,3 +1,13 @@
+# 2.0.43 (Build 243, Revision 10) - Safe import foundation - 2026-09-21
+
+Tranche 1 of the [import hardening plan](docs/IMPORT_HARDENING_PLAN.md). Scope: [Build 243 change summary](docs/243_CHANGE_SUMMARY.md#revision-10--safe-import-foundation); evidence: [243 validation](docs/243_VALIDATION.md).
+
+- Platform version `2.0.43+243010`; the Beta expiry remains **2026-10-21 23:59:59 local time**.
+- Open from… no longer loads a chosen file into memory before checking it. The file is streamed into a private QQL staging folder while its actual bytes are counted against the real limit (for example 50 KB for exercise images, 50 MB for MP3s), and reading stops as soon as it is exceeded. The size a file claims is never trusted.
+- Only ordinary files are opened: symbolic links, folders and devices are refused, in Open from… and for the fixed-folder names `flag.png`, `import.json`, `import.zip` and `learner_import.json`.
+- Empty files, files that vanish or fail while being read, and a full disk are reported without leaving anything behind. Leftovers from an interrupted import are removed at the next start.
+- Groundwork for multiple selection: per-file results, a batch limit of 100 files and 250 MB, and cancellation. The multi-file dialogs arrive with the image and audio tranches.
+
 # 2.0.43 (Build 243, Revision 9) - QQL image metadata read-only; Local words; device categories - 2026-09-21
 
 Tranche 0b of the [import hardening plan](docs/IMPORT_HARDENING_PLAN.md). Scope: [Build 243 change summary](docs/243_CHANGE_SUMMARY.md#revision-9--qql-image-metadata-read-only-local-words-device-categories); evidence: [243 validation](docs/243_VALIDATION.md).

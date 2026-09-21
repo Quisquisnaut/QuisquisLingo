@@ -4,7 +4,7 @@ Keep this file current at the end of **every** revision, so that work can
 resume after a pause or with another agent. Plan and decisions:
 [IMPORT_HARDENING_PLAN.md](IMPORT_HARDENING_PLAN.md). Rules: `AGENTS.md`.
 
-## Where things stand (updated 2026-09-21 16:58, Revision 9 committed)
+## Where things stand (updated 2026-09-21 17:10, Revision 10 in validation)
 
 | Revision | Version | Commit | Content |
 |---|---|---|---|
@@ -17,10 +17,24 @@ resume after a pause or with another agent. Plan and decisions:
 Revisions 5–9 are pushed to `origin/main`. The untracked
 `devtools_options.yaml` predates this work: never commit or delete it.
 
+## Revision 10 (Tranche 1) — in validation
+
+Implemented in the working tree: version `2.0.43+243010`, and the analyzer is
+clean. New code is in `lib/services/import/` (stager, selected files, results,
+safe names). `FileDialogService` stages through `ImportStager`, and the nine
+callers pass real limits and map `tooLarge`. Fixed-name imports check
+`isOrdinaryFile`. The staging folder is registered in reset, inventory and the
+storage doc. `import_foundation_tranche1_test.dart` (17) passes, as do 207
+reset, inventory and import-route tests and 61 dialog tests.
+
+Still to do: run the full suite in two halves, record it in
+`243_VALIDATION.md`, commit, put the hash in the table above, and push.
+
 ## Next steps, in order (plan §6a)
 
-1. **Tranches 1, 2, 2b, 3, 4, 5** in that order (plan §4, §6). Tranche 2b's
-   `imageLibrary` model is already in place (Revision 8).
+1. **Tranches 2, 2b, 3, 4, 5** in that order (plan §4, §6). Tranche 2b's
+   `imageLibrary` model is already in place (Revision 8), and Tranche 1's
+   `openFiles`/`stageBatch` is ready for the multi-file dialogs.
 
 ## Owner decisions already taken
 

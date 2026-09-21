@@ -194,7 +194,10 @@ void main() {
       final backend = FakeFileDialogBackend();
       final transfer = CustomCourseTransferService(
         importDirectory: () async => directory,
-        fileDialogs: FileDialogService(backend: backend),
+        fileDialogs: FileDialogService(
+          stager: testImportStager(),
+          backend: backend,
+        ),
         publisherVerification: verifier,
       );
       for (final valid in [true, false]) {

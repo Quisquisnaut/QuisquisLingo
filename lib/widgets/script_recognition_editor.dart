@@ -337,9 +337,12 @@ class ScriptRecognitionEditor extends StatelessWidget {
         // Open from…: same bytes check as the fixed-folder import below.
         final picked = await _dialogs.openBytes(
           extensions: const ['png', 'jpg', 'jpeg', 'webp'],
-          maxBytes: 8 * 1024 * 1024,
+          maxBytes: PortableExerciseImageService.maxImageBytes,
           artifact: 'portable-image',
         );
+        if (picked.outcome == FileDialogOutcome.tooLarge) {
+          throw const FormatException('Exercise images must not exceed 50 KB.');
+        }
         if (picked.outcome != FileDialogOutcome.opened) {
           if (context.mounted) {
             showFileDialogFeedback(

@@ -36,6 +36,8 @@ void showFileDialogFeedback(
           '$fallbackHint';
     case FileDialogOutcome.unavailable:
       message = 'The system file dialog is not available here. $fallbackHint';
+    case FileDialogOutcome.tooLarge:
+      message = '${result.displayName ?? 'That file'} is too large to import.';
   }
   ScaffoldMessenger.of(context).showSnackBar(
     SnackBar(

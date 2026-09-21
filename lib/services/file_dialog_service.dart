@@ -7,11 +7,24 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'app_errors.dart';
 import 'diagnostic_log_service.dart';
+import 'import/import_result.dart';
+import 'import/import_stager.dart';
+import 'import/selected_external_file.dart';
 
 /// Result of asking the operating system to save or open a file.
 ///
 /// [cancelled] is a normal outcome, not an error: nothing is shown or logged.
-enum FileDialogOutcome { saved, opened, cancelled, failed, unavailable }
+///
+/// [tooLarge] means more bytes arrived than the caller's limit; the caller
+/// reports it with its own standard message.
+enum FileDialogOutcome {
+  saved,
+  opened,
+  cancelled,
+  failed,
+  unavailable,
+  tooLarge,
+}
 
 class FileDialogResult {
   const FileDialogResult._(
@@ -26,8 +39,14 @@ class FileDialogResult {
   const FileDialogResult.opened(String displayName, Uint8List bytes)
     : this._(FileDialogOutcome.opened, displayName: displayName, bytes: bytes);
   const FileDialogResult.cancelled() : this._(FileDialogOutcome.cancelled);
-  const FileDialogResult.failed(String reason)
-    : this._(FileDialogOutcome.failed, failureReason: reason);
+  const FileDialogResult.failed(String reason, {String? displayName})
+    : this._(
+        FileDialogOutcome.failed,
+        failureReason: reason,
+        displayName: displayName,
+      );
+  const FileDialogResult.tooLarge(String displayName)
+    : this._(FileDialogOutcome.tooLarge, displayName: displayName);
   const FileDialogResult.unavailable() : this._(FileDialogOutcome.unavailable);
 
   final FileDialogOutcome outcome;
@@ -57,13 +76,41 @@ abstract class FileDialogBackend {
     String? initialDirectory,
   });
 
-  /// [maxBytes] is a safety limit: a larger file is reported as failed
-  /// without being read.
-  Future<FileDialogResult> openBytes({
+  /// Lets the user choose one file, or several when [multiple]. The files
+  /// are not read here: [FileDialogService] streams them into staging.
+  Future<FileDialogPick> pickFiles({
     required List<String> extensions,
-    required int maxBytes,
+    required bool multiple,
     String? initialDirectory,
   });
+}
+
+/// The files a dialog returned, or why it returned none.
+class FileDialogPick {
+  const FileDialogPick.picked(this.files)
+    : outcome = FileDialogOutcome.opened,
+      failureReason = null;
+  const FileDialogPick.cancelled()
+    : outcome = FileDialogOutcome.cancelled,
+      files = const [],
+      failureReason = null;
+  const FileDialogPick.failed(String this.failureReason)
+    : outcome = FileDialogOutcome.failed,
+      files = const [];
+  const FileDialogPick.unavailable()
+    : outcome = FileDialogOutcome.unavailable,
+      files = const [],
+      failureReason = null;
+
+  final FileDialogOutcome outcome;
+  final List<SelectedExternalFile> files;
+  final String? failureReason;
+
+  FileDialogResult asResult() => switch (outcome) {
+    FileDialogOutcome.cancelled => const FileDialogResult.cancelled(),
+    FileDialogOutcome.unavailable => const FileDialogResult.unavailable(),
+    _ => FileDialogResult.failed(failureReason ?? 'The dialog failed.'),
+  };
 }
 
 /// Used on platforms with no supported dialog backend.
@@ -85,11 +132,11 @@ class UnavailableFileDialogBackend implements FileDialogBackend {
   }) async => const FileDialogResult.unavailable();
 
   @override
-  Future<FileDialogResult> openBytes({
+  Future<FileDialogPick> pickFiles({
     required List<String> extensions,
-    required int maxBytes,
+    required bool multiple,
     String? initialDirectory,
-  }) async => const FileDialogResult.unavailable();
+  }) async => const FileDialogPick.unavailable();
 }
 
 /// Windows, macOS and Linux (GTK) through `file_selector`. The dialog returns
@@ -138,21 +185,26 @@ class DesktopFileDialogBackend implements FileDialogBackend {
   }
 
   @override
-  Future<FileDialogResult> openBytes({
+  Future<FileDialogPick> pickFiles({
     required List<String> extensions,
-    required int maxBytes,
+    required bool multiple,
     String? initialDirectory,
   }) async {
-    final file = await openFile(
-      initialDirectory: initialDirectory,
-      acceptedTypeGroups: [_group(extensions)],
-    );
-    if (file == null) return const FileDialogResult.cancelled();
-    final name = _fileName(file.path);
-    if (await file.length() > maxBytes) {
-      return FileDialogResult.failed('$name is larger than the safety limit.');
-    }
-    return FileDialogResult.opened(name, await file.readAsBytes());
+    final files = multiple
+        ? await openFiles(
+            initialDirectory: initialDirectory,
+            acceptedTypeGroups: [_group(extensions)],
+          )
+        : [
+            ?await openFile(
+              initialDirectory: initialDirectory,
+              acceptedTypeGroups: [_group(extensions)],
+            ),
+          ];
+    if (files.isEmpty) return const FileDialogPick.cancelled();
+    return FileDialogPick.picked([
+      for (final file in files) FileSystemSelectedFile(file.path),
+    ]);
   }
 
   static String _fileName(String path) =>
@@ -167,9 +219,11 @@ class FileDialogService {
     FileDialogBackend? backend,
     DiagnosticLogService? diagnosticLog,
     Future<Directory?> Function()? downloadsDirectory,
+    ImportStager? stager,
   }) : _backend = backend ?? _defaultBackend(),
        _log = diagnosticLog ?? DiagnosticLogService(),
-       _downloadsDirectory = downloadsDirectory ?? getDownloadsDirectory;
+       _downloadsDirectory = downloadsDirectory ?? getDownloadsDirectory,
+       _stager = stager ?? ImportStager();
 
   /// Device-wide flag: the first dialog ever opened starts in Downloads; after
   /// that QQL passes nothing, so the OS remembers the user's last folder.
@@ -178,6 +232,7 @@ class FileDialogService {
   final FileDialogBackend _backend;
   final DiagnosticLogService _log;
   final Future<Directory?> Function() _downloadsDirectory;
+  final ImportStager _stager;
   bool _loggedUnavailable = false;
 
   Future<String?> _firstUseDirectory() async {
@@ -230,20 +285,81 @@ class FileDialogService {
     ),
   );
 
+  /// Open from…: one file, streamed into staging and counted against
+  /// [maxBytes], the caller's real limit. More bytes than that give
+  /// [FileDialogOutcome.tooLarge] without reading the rest.
   Future<FileDialogResult> openBytes({
     required List<String> extensions,
     required int maxBytes,
     required String artifact,
-  }) => _run(
-    'open',
-    artifact,
-    null,
-    (initialDirectory) => _backend.openBytes(
+  }) => _run('open', artifact, null, (initialDirectory) async {
+    final pick = await _backend.pickFiles(
       extensions: extensions,
-      maxBytes: maxBytes,
+      multiple: false,
       initialDirectory: initialDirectory,
-    ),
-  );
+    );
+    if (pick.outcome != FileDialogOutcome.opened) return pick.asResult();
+    final file = pick.files.single;
+    try {
+      final staged = await _stager.stage(file, maxBytes: maxBytes);
+      try {
+        return FileDialogResult.opened(
+          file.displayName,
+          await staged.readBytes(),
+        );
+      } finally {
+        await staged.discard();
+      }
+    } on ImportTooLargeException {
+      return FileDialogResult.tooLarge(file.displayName);
+    } on ImportEmptyException {
+      return FileDialogResult.failed(
+        '${file.displayName} is empty.',
+        displayName: file.displayName,
+      );
+    } on ImportAccessException catch (error) {
+      return FileDialogResult.failed(
+        error.message,
+        displayName: file.displayName,
+      );
+    } on ImportStorageException catch (error) {
+      return FileDialogResult.failed(
+        error.message,
+        displayName: file.displayName,
+      );
+    }
+  });
+
+  /// Open from… with a multiple selection: every file is streamed into
+  /// staging within the batch limits (100 files, 250 MB actual bytes, each at
+  /// most [maxBytesPerFile]). The batch reports each file's outcome; the
+  /// caller validates and commits the staged files, then discards them.
+  Future<({FileDialogResult dialog, ImportBatchResult? batch})> openFiles({
+    required List<String> extensions,
+    required int maxBytesPerFile,
+    required String artifact,
+    CancellationToken? token,
+  }) async {
+    ImportBatchResult? batch;
+    final dialog = await _run('open', artifact, null, (initialDirectory) async {
+      final pick = await _backend.pickFiles(
+        extensions: extensions,
+        multiple: true,
+        initialDirectory: initialDirectory,
+      );
+      if (pick.outcome != FileDialogOutcome.opened) return pick.asResult();
+      batch = await _stager.stageBatch(
+        pick.files,
+        maxBytesPerFile: maxBytesPerFile,
+        token: token,
+      );
+      return FileDialogResult.opened(
+        '${pick.files.length} files',
+        Uint8List(0),
+      );
+    });
+    return (dialog: dialog, batch: batch);
+  }
 
   Future<FileDialogResult> _run(
     String direction,
@@ -284,6 +400,7 @@ class FileDialogService {
       case FileDialogOutcome.saved:
       case FileDialogOutcome.opened:
       case FileDialogOutcome.cancelled:
+      case FileDialogOutcome.tooLarge:
         break;
     }
     return result;

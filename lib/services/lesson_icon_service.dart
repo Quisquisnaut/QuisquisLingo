@@ -28,10 +28,6 @@ class LessonIconService {
   static const int maxInputBytes = 2 * 1024 * 1024;
   static const int maxSourceDimension = 4096;
 
-  // Memory guard for Open from… only; larger files reach prepareIcon and get
-  // its standard 2 MB message.
-  static const int _dialogReadCap = 16 * 1024 * 1024;
-
   final FileDialogService _fileDialogs;
 
   /// False when the system dialog is unsupported; hide Open from….
@@ -104,9 +100,14 @@ class LessonIconService {
   importPreparedIconFromDialog() async {
     final picked = await _fileDialogs.openBytes(
       extensions: const ['png', 'jpg', 'jpeg', 'webp'],
-      maxBytes: _dialogReadCap,
+      maxBytes: maxInputBytes,
       artifact: 'lesson-icon',
     );
+    if (picked.outcome == FileDialogOutcome.tooLarge) {
+      throw const FormatException(
+        'Lesson icon must be a readable image no larger than 2 MB.',
+      );
+    }
     if (picked.outcome != FileDialogOutcome.opened) {
       return (dialog: picked, icon: null);
     }

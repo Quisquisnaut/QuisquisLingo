@@ -251,8 +251,9 @@ class CourseMediaStore {
 
   static Future<bool> _matches(File file, String reference) async {
     try {
-      return sha256.convert(await file.readAsBytes()).toString() ==
-          digestOf(reference);
+      // Hashed as it is read, so a 50 MB recording is never held whole.
+      final digest = await sha256.bind(file.openRead()).first;
+      return digest.toString() == digestOf(reference);
     } catch (_) {
       return false;
     }

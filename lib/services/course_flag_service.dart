@@ -10,6 +10,7 @@ import '../models/world_flag_entity.dart';
 import 'course_language_resolver.dart';
 import 'language_flag_catalog.dart';
 import 'world_flag_repository.dart';
+import 'import/selected_external_file.dart';
 
 enum ResolvedCourseFlagKind { worldFlag, customImage, builtIn, neutral }
 
@@ -174,6 +175,12 @@ class CourseFlagService {
         source = candidate;
         break;
       }
+    }
+    if (source != null && !await isOrdinaryFile(source.path)) {
+      throw FormatException(
+        '${source.uri.pathSegments.last} is not an ordinary file. Copy the '
+        'file itself, not a link or folder, and try again.',
+      );
     }
     if (source == null) {
       throw FormatException(

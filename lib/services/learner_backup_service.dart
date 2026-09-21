@@ -10,6 +10,7 @@ import 'file_dialog_service.dart';
 import 'learner_status_events.dart';
 import 'profile_service.dart';
 import 'flag_game_score_service.dart';
+import 'import/selected_external_file.dart';
 
 typedef LearnerBackupPreferenceWriter =
     Future<bool> Function(
@@ -55,10 +56,6 @@ class LearnerBackupService {
   final Future<Directory> Function() _documentsDirectoryProvider;
   final LearnerBackupPreferenceWriter? _preferenceWriter;
   final FileDialogService _fileDialogs;
-
-  // Memory guard for Open from… only; larger files reach the ordinary 10 MB
-  // check and get its standard message.
-  static const int _dialogReadCap = 64 * 1024 * 1024;
 
   LearnerBackupService({
     ProfileService? profileService,
@@ -185,6 +182,12 @@ class LearnerBackupService {
         'No $importFileName found. Copy the learner backup to $path, then press Import my data again.',
       );
     }
+    if (!await isOrdinaryFile(path)) {
+      throw const FormatException(
+        '$importFileName is not an ordinary file. Copy the file itself, not a '
+        'link or folder, and try again.',
+      );
+    }
     if (await file.length() > maxBackupBytes) {
       throw const FormatException(
         'Learner backup is larger than the 10 MB safety limit.',
@@ -200,18 +203,18 @@ class LearnerBackupService {
   readImportFromDialog() async {
     final picked = await _fileDialogs.openBytes(
       extensions: const ['json'],
-      maxBytes: _dialogReadCap,
+      maxBytes: maxBackupBytes,
       artifact: 'user-data',
     );
-    if (picked.outcome != FileDialogOutcome.opened) {
-      return (dialog: picked, document: null);
-    }
-    final bytes = picked.bytes!;
-    if (bytes.length > maxBackupBytes) {
+    if (picked.outcome == FileDialogOutcome.tooLarge) {
       throw const FormatException(
         'Learner backup is larger than the 10 MB safety limit.',
       );
     }
+    if (picked.outcome != FileDialogOutcome.opened) {
+      return (dialog: picked, document: null);
+    }
+    final bytes = picked.bytes!;
     return (dialog: picked, document: decodeDocument(bytes));
   }
 

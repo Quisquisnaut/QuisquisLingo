@@ -57,6 +57,7 @@ void main() {
     root = await Directory.systemTemp.createTemp('qql_240_features_');
     backend = FakeFileDialogBackend();
     dialogs = FileDialogService(
+      stager: testImportStager(),
       backend: backend,
       diagnosticLog: DiagnosticLogService(),
     );
@@ -502,6 +503,7 @@ void main() {
           ..onOpen = () async => FileDialogResult.opened('mine.png', bytes);
         final icons = LessonIconService(
           fileDialogs: FileDialogService(
+            stager: testImportStager(),
             backend: backend,
             diagnosticLog: DiagnosticLogService(),
           ),
@@ -521,6 +523,7 @@ void main() {
       await tester.runAsync(() async {
         final icons = LessonIconService(
           fileDialogs: FileDialogService(
+            stager: testImportStager(),
             backend: FakeFileDialogBackend(),
             diagnosticLog: DiagnosticLogService(),
           ),
@@ -539,6 +542,7 @@ void main() {
         final backend = FakeFileDialogBackend();
         final icons = LessonIconService(
           fileDialogs: FileDialogService(
+            stager: testImportStager(),
             backend: backend,
             diagnosticLog: DiagnosticLogService(),
           ),

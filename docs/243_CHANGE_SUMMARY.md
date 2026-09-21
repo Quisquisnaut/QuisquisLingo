@@ -483,3 +483,53 @@ Version **2.0.43+243009**, same Beta expiry. Tranche 0b of
   metadata. Its category and tags are shown read-only.
 - **Reset:** unchanged; the same preference key is already cleared by
   `AppResetService` and listed in the storage inventory.
+
+## Revision 10 — safe import foundation
+
+Version **2.0.43+243010**, same Beta expiry. Tranche 1 of
+`docs/IMPORT_HARDENING_PLAN.md`.
+
+- **`lib/services/import/`**, new:
+  - `selected_external_file.dart`: `SelectedExternalFile` (display name,
+    advisory reported size, a byte stream; no path crosses the interface).
+    `FileSystemSelectedFile` opens only an ordinary file, checked without
+    following links; links, folders, pipes, sockets and devices are refused.
+    Also `MemorySelectedFile` and `isOrdinaryFile`.
+  - `import_stager.dart`: `ImportStager` streams a source into
+    `<AppSupport>/qql_import_staging/<random>.part`. It counts the actual
+    bytes against the limit and stops reading once it is passed, computes
+    SHA-256 while reading, rejects empty files, and turns read, provider and
+    storage failures into typed errors. It honours a `CancellationToken` and
+    deletes the staging file on any failure. `stageBatch` applies 100 files
+    and 250 MB of actual bytes per selection. `removeLeftovers` runs at
+    startup.
+  - `import_result.dart`: `ImportItemOutcome` and `ImportBatchResult`, one
+    result per file plus summary lines.
+  - `safe_file_name.dart`: `safeDisplayName`. It keeps the last path segment
+    and strips control characters, `.`/`..` and trailing dots or spaces. It
+    prefixes Windows reserved names and caps the length at 120. It is for
+    display and logs only; Dart has no built-in Unicode normalisation, so
+    names are not normalised.
+- **`FileDialogService`:**
+  - The backend now returns `SelectedExternalFile`s (`pickFiles`, single or
+    multiple, through `file_selector`'s `openFile`/`openFiles`) instead of
+    bytes.
+  - `openBytes` streams the chosen file through the stager under the
+    caller's real limit and reports the new `FileDialogOutcome.tooLarge`.
+  - New `openFiles` stages a multiple selection and returns an
+    `ImportBatchResult`.
+- **Callers:** the nine callers pass their real limits (exercise and portable
+  images 50 KB, MP3 50 MB, Lesson icon 2 MB, Image Bank 50 MB, learner backup
+  10 MB, Recovery Key 64 KB, Course ZIP or JSON 300 MB, Course JSON 10 MB). They
+  map `tooLarge` to the message each already used. The oversized per-service
+  "dialog read caps" (up to 128 MB) are gone.
+- **Fixed-folder names:** `flag.png`/`.jpg`/`.jpeg`, `import.json`/`.zip`,
+  `merge.json`/`.zip` and `learner_import.json` are refused when they are not
+  ordinary files. The Recovery Key and folder scans already listed without
+  following links.
+- **Course media:** `CourseMediaStore` verifies a stored file's SHA-256 by
+  streaming it instead of reading it whole.
+- **Storage:** `qql_import_staging` is removed by the full reset, listed by
+  the Inventory, and recorded in `docs/239_RESET_STORAGE_INVENTORY.md`.
+- **Tests:** `FakeFileDialogBackend` turns scripted results into in-memory
+  selections; the dialog tests pass a temporary-folder stager.

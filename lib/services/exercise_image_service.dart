@@ -17,10 +17,6 @@ class ExerciseImageService {
   static const int recommendedPixels = 256;
   static const Set<String> supportedExtensions = {'png', 'jpg', 'jpeg', 'webp'};
 
-  // Memory guard for Open from… only; larger files reach the ordinary 50 KB
-  // check and get its standard message.
-  static const int _dialogReadCap = 8 * 1024 * 1024;
-
   final FileDialogService _fileDialogs;
   final Future<Directory> Function() _supportDirectory;
 
@@ -77,9 +73,12 @@ class ExerciseImageService {
   importImageFromDialog() async {
     final picked = await _fileDialogs.openBytes(
       extensions: supportedExtensions.toList(),
-      maxBytes: _dialogReadCap,
+      maxBytes: maxImageBytes,
       artifact: 'exercise-image',
     );
+    if (picked.outcome == FileDialogOutcome.tooLarge) {
+      throw StateError(_tooLarge);
+    }
     if (picked.outcome != FileDialogOutcome.opened) {
       return (dialog: picked, path: null);
     }

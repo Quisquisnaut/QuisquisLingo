@@ -98,16 +98,16 @@ class UserRecoveryKeyService {
   openUserRecoveryKeyFromDialog() async {
     final picked = await _fileDialogs.openBytes(
       extensions: const ['json'],
-      maxBytes: _maximumKeyBytes + 1,
+      maxBytes: _maximumKeyBytes,
       artifact: 'user-recovery-key',
     );
+    if (picked.outcome == FileDialogOutcome.tooLarge) {
+      throw const FormatException('A User Recovery Key is too large.');
+    }
     if (picked.outcome != FileDialogOutcome.opened) {
       return (dialog: picked, candidate: null);
     }
     final bytes = picked.bytes!;
-    if (bytes.length > _maximumKeyBytes) {
-      throw const FormatException('A User Recovery Key is too large.');
-    }
     return (
       dialog: picked,
       candidate: UserRecoveryKeyCandidate(

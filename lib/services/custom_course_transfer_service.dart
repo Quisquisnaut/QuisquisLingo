@@ -10,6 +10,7 @@ import 'file_dialog_service.dart';
 import 'course_package_service.dart';
 import 'course_media_store.dart';
 import 'publisher_verification_service.dart';
+import 'import/selected_external_file.dart';
 
 /// The exact bytes and base file name a course export produces, shared by the
 /// fixed-folder Export and the dialog-based Save to…
@@ -45,9 +46,6 @@ class CustomCourseTransferService {
 
   static const int maxJsonBytes = 10 * 1024 * 1024;
 
-  // Memory guard for the dialog path only. Files above maxJsonBytes but below
-  // this reach the ordinary validator, so they get the standard size message.
-  static const int _dialogReadCap = CoursePackageService.maxPackageBytes;
   final FileDialogService _fileDialogs;
 
   /// False when the system dialog is unsupported; hide Save to… / Open from….
@@ -130,6 +128,14 @@ class CustomCourseTransferService {
     final jsonFile = File(jsonPath);
     final hasZip = await zipFile.exists();
     final hasJson = await jsonFile.exists();
+    for (final (present, file) in [(hasZip, zipFile), (hasJson, jsonFile)]) {
+      if (present && !await isOrdinaryFile(file.path)) {
+        throw FormatException(
+          '${file.uri.pathSegments.last} is not an ordinary file. Copy the '
+          'file itself, not a link or folder, and try again.',
+        );
+      }
+    }
     if (hasZip && hasJson) {
       throw FormatException(
         'Both ${zipFile.uri.pathSegments.last} and '
@@ -170,6 +176,12 @@ class CustomCourseTransferService {
     if (!await file.exists()) {
       throw FormatException(
         'No $fileName found. Copy the course file to $path, then try again.',
+      );
+    }
+    if (!await isOrdinaryFile(path)) {
+      throw FormatException(
+        '$fileName is not an ordinary file. Copy the file itself, not a link '
+        'or folder, and try again.',
       );
     }
     if (await file.length() > maxJsonBytes) {
@@ -290,9 +302,12 @@ class CustomCourseTransferService {
   ) async {
     final result = await _fileDialogs.openBytes(
       extensions: const ['zip', 'json'],
-      maxBytes: _dialogReadCap,
+      maxBytes: CoursePackageService.maxPackageBytes,
       artifact: artifact,
     );
+    if (result.outcome == FileDialogOutcome.tooLarge) {
+      throw const FormatException('Course package exceeds the 300 MB limit.');
+    }
     if (result.outcome != FileDialogOutcome.opened) {
       return (dialog: result, package: null);
     }
@@ -318,9 +333,12 @@ class CustomCourseTransferService {
   ) async {
     final result = await _fileDialogs.openBytes(
       extensions: const ['json'],
-      maxBytes: _dialogReadCap,
+      maxBytes: maxJsonBytes,
       artifact: artifact,
     );
+    if (result.outcome == FileDialogOutcome.tooLarge) {
+      throw const FormatException('Course JSON exceeds the 10 MB safety limit.');
+    }
     if (result.outcome != FileDialogOutcome.opened) {
       return (dialog: result, course: null);
     }

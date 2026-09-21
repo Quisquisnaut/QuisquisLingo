@@ -8,6 +8,7 @@ import 'course_file_store.dart';
 import 'course_media_store.dart';
 import 'learner_status_events.dart';
 import 'profile_service.dart';
+import 'import/import_stager.dart';
 
 /// The ways an admin can reset this device. See
 /// docs/239_RESET_STORAGE_INVENTORY.md for what each scope removes.
@@ -335,6 +336,10 @@ class AppResetService {
     // dies part-way the admin (and the PIN) still exist and can run it again.
     await _removeCourseFiles();
     await _removeImportedMedia();
+    final staging = (await _directories([
+      ImportStager.stagingDirectoryName,
+    ])).single;
+    if (await staging.exists()) await staging.delete(recursive: true);
     final root = await _qqlDocuments();
     if (await root.exists()) {
       final kept = <String>{

@@ -11,6 +11,7 @@ import 'course_backup_service.dart';
 import 'profile_service.dart';
 import 'course_media_store.dart';
 import 'team_service.dart';
+import 'import/import_stager.dart';
 
 /// One thing QQL stores because of user activity: a file, a folder, or a
 /// record kept inside QQL's own settings (which has no file of its own).
@@ -368,6 +369,18 @@ class InventoryService {
         directory: Directory('$supportRoot${sep}exercise_images'),
         describe: (file, root) =>
             plain(file, root, note: 'Imported exercise image.'),
+      ),
+    );
+    sections.add(
+      await folder(
+        title: 'Import staging',
+        description:
+            'Files being checked during an import. Normally empty; leftovers from an interrupted import are removed at the next start.',
+        directory: Directory(
+          '$supportRoot$sep${ImportStager.stagingDirectoryName}',
+        ),
+        describe: (file, root) =>
+            plain(file, root, note: 'Temporary import copy.'),
       ),
     );
     sections.add(

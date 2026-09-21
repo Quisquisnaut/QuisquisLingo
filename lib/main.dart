@@ -22,6 +22,7 @@ import 'widgets/app_restart_scope.dart';
 import 'widgets/learner_shell.dart';
 import 'widgets/learner_navigation.dart';
 import 'widgets/learner_theme_mode_scope.dart';
+import 'services/import/import_stager.dart';
 
 Future<void> main() async {
   StartupDiagnosticService.checkpoint('DART_MAIN_ENTER');
@@ -55,6 +56,8 @@ Future<void> main() async {
       });
       runApp(const QuisquisLingoApp());
       StartupDiagnosticService.checkpoint('DART_RUNAPP_RETURNED');
+      // Staging files left by an interrupted import; never throws.
+      unawaited(ImportStager().removeLeftovers());
     },
     (error, stackTrace) {
       StartupDiagnosticService.recordError(
