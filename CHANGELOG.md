@@ -1,3 +1,12 @@
+# 2.0.43 (Build 243, Revision 7) - Image library tidy-up - 2026-09-21
+
+Revision 7 of the [import hardening plan](docs/IMPORT_HARDENING_PLAN.md) (§6c). Scope: [Build 243 change summary](docs/243_CHANGE_SUMMARY.md#revision-7--image-library-tidy-up); evidence: [243 validation](docs/243_VALIDATION.md).
+
+- Platform version `2.0.43+243007`; the Beta expiry remains **2026-10-21 23:59:59 local time**.
+- One rule now decides where a Course uses an image, for storage, the Image Library's `IN USE` badge and the Exercise editor alike.
+- Images used only in a flashcard, an explanation, a Lesson introduction or a GuideBook now show `IN USE`. Such images come only from Course JSON written outside QQL's editor.
+- No other visible change: the Image Library's rules and the Exercise editor's image section were reorganized into separately tested parts.
+
 # 2.0.43 (Build 243, Revision 6) - Import memory-safety fixes - 2026-09-21
 
 Tranche 0 of the [import hardening plan](docs/IMPORT_HARDENING_PLAN.md). Scope: [Build 243 change summary](docs/243_CHANGE_SUMMARY.md#revision-6--import-memory-safety-fixes); evidence: [243 validation](docs/243_VALIDATION.md).

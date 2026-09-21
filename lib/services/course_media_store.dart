@@ -6,6 +6,7 @@ import 'package:crypto/crypto.dart';
 import 'package:path_provider/path_provider.dart';
 
 import '../models/course_models.dart';
+import 'course_image_usage.dart';
 
 /// The one home of a Course's own images and recordings.
 ///
@@ -71,29 +72,14 @@ class CourseMediaStore {
     return 'course_${sha256.convert(utf8.encode(value))}';
   }
 
-  /// Every `media:` reference [course] uses: Audio Library clips, image
-  /// elements anywhere in its Lessons and the cover image.
-  static Set<String> referencesOf(Course course) {
-    final out = <String>{};
-    for (final clip in course.audioLibrary) {
-      if (isReference(clip.filePath)) out.add(clip.filePath);
-    }
-    if (isReference(course.coverImage)) out.add(course.coverImage);
-    void visit(Object? node) {
-      if (node is Map) {
-        final asset = node['asset'];
-        if (node['type'] == 'image' && asset is String && isReference(asset)) {
-          out.add(asset);
-        }
-        node.values.forEach(visit);
-      } else if (node is List) {
-        node.forEach(visit);
-      }
-    }
-
-    visit([for (final lesson in course.lessons) lesson.toJson()]);
-    return out;
-  }
+  /// Every `media:` reference [course] uses: Audio Library clips, and the
+  /// images [CourseImageUsage] finds in its Lessons and cover.
+  static Set<String> referencesOf(Course course) => {
+    for (final clip in course.audioLibrary)
+      if (isReference(clip.filePath)) clip.filePath,
+    for (final use in CourseImageUsage.uses(course))
+      if (isReference(use.asset)) use.asset,
+  };
 
   Future<Directory> rootDirectory() async => Directory(
     '${(await _supportDirectory()).path}${Platform.pathSeparator}'

@@ -4,48 +4,36 @@ Keep this file current at the end of **every** revision, so that work can
 resume after a pause or with another agent. Plan and decisions:
 [IMPORT_HARDENING_PLAN.md](IMPORT_HARDENING_PLAN.md). Rules: `AGENTS.md`.
 
-## Where things stand (updated 2026-09-21, Revision 6)
+## Where things stand (updated 2026-09-21, Revision 7)
 
 | Revision | Version | Commit | Content |
 |---|---|---|---|
 | 5 | `2.0.43+243005` | `86ae4d2` | Image Library usability: IN USE badge, badge overlay/filter, sorting, merged device/Course tile, compact tiles and chips |
 | 6 | `2.0.43+243006` | `0976ed0` | Tranche 0 memory-safety fixes: cover header check, Image Bank pre-scan and bounded inflation, 4096 px icons/flags, animated images refused on import |
+| 7 | `2.0.43+243007` | *pending* | Image library tidy-up: `CourseImageUsage` single usage rule (presentations and GuideBooks now count), `image_library_rules.dart`, `ExerciseImageField` |
 
 Nothing is pushed; all commits are local on `main`. The untracked
 `devtools_options.yaml` predates this work: never commit or delete it.
 
 ## Next steps, in order (plan §6a)
 
-1. **Revision 7 — image library tidy-up** (plan §6c). No visible change.
-   - `CourseImageUsage` (pure Dart): the single answer to where a Course uses
-     an image (exercise prompt, items, layout; the cover), with readable
-     locations. Replace the three copies: `_courseImageElements` and the used
-     sets in `flat_image_library_screen.dart`, `CourseMediaStore.referencesOf`
-     (keep its signature and delegate), and `_courseImageSource` in the
-     Exercise editor.
-   - Move the badge, merge, filter, sort and derived-date rules out of
-     `_FlatImageLibraryScreenState` into pure functions. The screen stays a
-     StatefulWidget.
-   - `ExerciseImageField`: a public widget replacing the Exercise editor's
-     image section (`course_editor_screen.dart`, about lines 9390–9631:
-     `_asCourseMedia`, `_courseImageSource`, `_chooseFlatImage`,
-     `_importCustomImage`, `_imageEditor`).
-   - **Lead found while preparing:** the three copies do not walk the same
-     things. `referencesOf` walks the whole Lesson JSON for any
-     `{type: image, asset: media:…}`. The Image Library and the Exercise
-     editor walk `round.exercises` (prompt, items, layout) only. A Round holds
-     `LearningContent`, which is either an exercise or a `Presentation`
-     (flashcards, explanations) with its own `content` list. Characterize
-     whether presentation images count as IN USE today. If they differ, report
-     it to the owner before choosing the single rule.
-   - Write characterization tests **first**. Existing widget tests must pass
-     unchanged. Do not add controller or actions layers, and do not split the
-     rest of the editor file (deferred by the owner).
-2. **Revision 8 — badge order and removal** (plan §6b).
-   - The badge order becomes IN USE, QQL, DEVICE, COURSE everywhere.
-   - "Remove from this Course" works as a `CourseEditorTransaction` edit.
-     Exercises the Audit then reports invalid become Draft.
-3. **Tranches 0b, 1, 2, 2b, 3, 4, 5** in that order (plan §4, §6).
+1. **Revision 8 — badge order and removal** (plan §6b). Build on the
+   Revision 7 pieces:
+   - **Badge order:** change `imageBadgeOrder` and `imageBadgesOf` in
+     `lib/services/image_library_rules.dart` (IN USE first, then QQL, DEVICE,
+     COURSE) and the badge list in `lib/widgets/exercise_image_field.dart`.
+     Update `image_library_rules_test.dart`, whose first test pins today's
+     order on purpose.
+   - **Removal:** find every use with `CourseImageUsage.uses(course)`. Its
+     `location` strings are ready for the confirmation dialog. Clear the uses
+     in the `CourseEditorTransaction` working copy. Then run the canonical
+     Audit and make Draft every affected exercise it reports invalid. Files go
+     only through the existing `deleteUnreferenced` after a confirmed save.
+     Presentation and GuideBook uses count too.
+   - Add the bin (tooltip "Remove from this Course") to the library tile when
+     the viewer can edit the Course. A QQL or DEVICE image the Course does not
+     use gets no bin.
+2. **Tranches 0b, 1, 2, 2b, 3, 4, 5** in that order (plan §4, §6).
 
 ## Owner decisions already taken
 
@@ -61,6 +49,10 @@ All recorded in plan §6, §6a–§6c and Tranche 0b/2b. The most consequential:
   library images travel in the ZIP and backups. No image-count limit beyond
   the 300 MB package limit.
 - Android SAF is out of scope. The Course package limit stays 300 MB.
+- One rule for image usage, counting everywhere in the Course
+  (`CourseImageUsage`). Never add a second walker; extend that one.
+- Splitting `course_editor_screen.dart` into separate screens is deferred.
+  Revision 7 extracted only the image section.
 
 ## Release checklist per revision
 
@@ -100,3 +92,10 @@ All recorded in plan §6, §6a–§6c and Tranche 0b/2b. The most consequential:
   folder (`CourseEditorService`, `deleteUnreferenced`). Anything a Course must
   keep has to be referenced from the Course JSON.
 - Use `rg`/git, never PowerShell `Get-Content` (`AGENTS.md`).
+- `sed -i` with `^…$` anchors sometimes fails to match on this checkout. For
+  line removals, use Python working on bytes (see the Revision 7 import
+  cleanup).
+- `round.exercises` is a lossy view: it skips the Lesson introduction and
+  turns presentations into old-style flashcards without their images. Use
+  `LearningContent` (`round.content`, `lesson.guidebook.content`) whenever
+  completeness matters.

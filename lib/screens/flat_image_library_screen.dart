@@ -5,58 +5,16 @@ import 'package:flutter/services.dart';
 
 import '../models/course_models.dart';
 import '../models/exercise_image_metadata.dart';
+import '../services/course_image_usage.dart';
 import '../services/course_media_store.dart';
 import '../services/exercise_image_metadata_service.dart';
 import '../services/exercise_image_service.dart';
 import '../services/image_bank_service.dart';
+import '../services/image_library_rules.dart';
 import '../services/profile_service.dart';
 import '../widgets/course_media_image.dart';
 import '../widgets/file_dialog_feedback.dart';
 import '../widgets/image_badges.dart';
-
-String _normalizeImageSearchText(String value) => value
-    .trim()
-    .toLowerCase()
-    .replaceAll('_', ' ')
-    .replaceAll(RegExp(r'\s+'), ' ');
-
-bool _matchesImageSearch(ExerciseImageMetadata asset, String normalizedQuery) {
-  if (normalizedQuery.isEmpty) return true;
-  return <String>[
-    asset.label,
-    ...asset.tags,
-    asset.id,
-    asset.category,
-  ].any((value) => _normalizeImageSearchText(value).contains(normalizedQuery));
-}
-
-enum _ImageSort {
-  name('Name (A–Z)'),
-  newest('Newest added'),
-  oldest('Oldest added'),
-  largest('Largest file'),
-  smallest('Smallest file');
-
-  const _ImageSort(this.label);
-  final String label;
-}
-
-// No image record stores when it was added, so the date comes from values QQL
-// itself generated: the microsecond stamp in a single import's ID, the stamp in
-// its Image Bank ID, or when the file was written into the Course folder.
-// Bundled images have no date and count as the oldest.
-final _localIdStamp = RegExp(r'^local_(\d+)$');
-final _bankOriginStamp = RegExp(r'^bank:bank_(\d+)$');
-
-DateTime? _stampedDate(ExerciseImageMetadata item) {
-  final match =
-      _localIdStamp.firstMatch(item.id) ??
-      _bankOriginStamp.firstMatch(item.origin);
-  final micros = match == null ? null : int.tryParse(match.group(1)!);
-  return micros == null
-      ? null
-      : DateTime.fromMicrosecondsSinceEpoch(micros, isUtc: true);
-}
 
 class FlatImageLibraryScreen extends StatefulWidget {
   final bool selectMode;
@@ -106,7 +64,7 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
   String _query = '';
   String? _category;
   String? _badge;
-  _ImageSort _sort = _ImageSort.name;
+  ImageSort _sort = ImageSort.name;
   Map<String, DateTime> _addedAt = const {};
   Map<String, int> _fileBytes = const {};
   bool _fileBytesLoaded = false;
@@ -135,7 +93,7 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
       final course = widget.course;
       final imageElements = course == null
           ? const <PromptElement>[]
-          : _courseImageElements(course).toList();
+          : CourseImageUsage.imageElements(course).toList();
       if (course != null) {
         final sources = <String, SharedImageSource>{};
         for (final element in imageElements) {
@@ -170,20 +128,12 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
           }
         }
       }
-      // A Course copy of a Shared Image Library image whose original is still
-      // on this device is shown once, as the original with a COURSE badge. A
-      // record whose file is gone does not hide a working Course copy.
-      final deviceIds = {
-        for (final record in records)
-          if (!_isBundled(record) && !_isMissing(record)) record.id,
-      };
-      final copied = <String>{};
-      owned.removeWhere((item) {
-        final sourceId = ownedSources[item.id];
-        if (sourceId == null || !deviceIds.contains(sourceId)) return false;
-        copied.add(sourceId);
-        return true;
-      });
+      final copied = mergeCourseCopies(
+        records: records,
+        owned: owned,
+        ownedSources: ownedSources,
+        isMissing: _isMissing,
+      );
       final actor = widget.actorProfileId;
       final canManage =
           !widget.readOnly &&
@@ -199,11 +149,7 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
           );
         _usedReferences = course == null
             ? const {}
-            : {
-                ...CourseMediaStore.referencesOf(course),
-                if (course.coverImage.isNotEmpty) course.coverImage,
-                for (final element in imageElements) element.asset,
-              };
+            : CourseImageUsage.usedAssets(course);
         _usedSharedIds = course == null
             ? const {}
             : {
@@ -213,7 +159,7 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
               };
         _addedAt = {
           for (final record in records)
-            if (_stampedDate(record) case final date?) record.id: date,
+            if (stampedAddedDate(record) case final date?) record.id: date,
           ...ownedDates,
         };
         _fileBytes = const {};
@@ -331,7 +277,7 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
         );
       } catch (_) {
         if (result.records.isNotEmpty) {
-          final bankId = _bankId(result.records.first);
+          final bankId = imageBankIdOf(result.records.first);
           if (bankId != null) await _banks.removeBank(bankId);
         }
         rethrow;
@@ -400,7 +346,7 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
   }
 
   Future<void> _removeBank(ExerciseImageMetadata item) async {
-    final bankId = _bankId(item);
+    final bankId = imageBankIdOf(item);
     final actor = widget.actorProfileId;
     if (bankId == null || !_canManageMetadata || actor == null) return;
     final confirmed =
@@ -487,7 +433,7 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
                     helperText: 'Separate tags with commas.',
                   ),
                 ),
-                if (!_isBundled(item)) ...[
+                if (!isBundledImage(item)) ...[
                   const SizedBox(height: 12),
                   const Text('Attribution (optional; author and license go together)'),
                   const SizedBox(height: 8),
@@ -616,37 +562,14 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
     });
   }
 
-  void _setSort(_ImageSort sort) {
+  void _setSort(ImageSort sort) {
     setState(() => _sort = sort);
-    if ((sort == _ImageSort.largest || sort == _ImageSort.smallest) &&
+    if ((sort == ImageSort.largest || sort == ImageSort.smallest) &&
         !_fileBytesLoaded) {
       _loadFileBytes();
     }
   }
 
-  int _compareImages(ExerciseImageMetadata left, ExerciseImageMetadata right) {
-    int byName() =>
-        left.label.toLowerCase().compareTo(right.label.toLowerCase());
-    final oldest = DateTime.fromMicrosecondsSinceEpoch(0, isUtc: true);
-    int byDate() =>
-        (_addedAt[left.id] ?? oldest).compareTo(_addedAt[right.id] ?? oldest);
-    // An unmeasured file (missing, or sizes still loading) sorts last.
-    int bySize(bool largestFirst) {
-      final a = _fileBytes[left.id];
-      final b = _fileBytes[right.id];
-      if (a == null || b == null) return a == null ? (b == null ? 0 : 1) : -1;
-      return largestFirst ? b.compareTo(a) : a.compareTo(b);
-    }
-
-    final primary = switch (_sort) {
-      _ImageSort.name => 0,
-      _ImageSort.newest => -byDate(),
-      _ImageSort.oldest => byDate(),
-      _ImageSort.largest => bySize(true),
-      _ImageSort.smallest => bySize(false),
-    };
-    return primary != 0 ? primary : byName();
-  }
 
   /// A compact filter chip: smaller text, tight padding and no checkmark (the
   /// selected fill already shows the choice), so more categories fit a row.
@@ -683,7 +606,7 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
         bottom: 0,
         child: ImageBadges([
           for (final badge in _badges(item))
-            (label: badge, message: _badgeMeanings[badge]!),
+            (label: badge, message: imageBadgeMeanings[badge]!),
         ]),
       ),
     ],
@@ -700,7 +623,7 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
         () => _deleteLocal(item),
       );
     }
-    if (_bankId(item) != null) {
+    if (imageBankIdOf(item) != null) {
       return _cornerButton(
         'Remove this imported bank',
         Icons.inventory_2_outlined,
@@ -729,7 +652,7 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
       !CourseMediaStore.isImageReference(item.assetPath) &&
       !File(item.assetPath).existsSync();
 
-  List<String> _badges(ExerciseImageMetadata item) => _badgesOf(
+  List<String> _badges(ExerciseImageMetadata item) => imageBadgesOf(
     item,
     used: _isUsed(item),
     inCourse: _courseCopiedSharedIds.contains(item.id),
@@ -835,8 +758,8 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
                 ),
                 const SizedBox(height: 10),
                 Text(
-                  'Source: ${_sourceCode(_badges(item))} '
-                  '· ${_sourceExplanation(item)}',
+                  'Source: ${imageSourceCode(_badges(item))} '
+                  '· ${imageSourceExplanation(item)}',
                 ),
                 Text('Category: ${item.category.replaceAll('_', ' ')}'),
                 Tooltip(
@@ -902,11 +825,11 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
   Widget build(BuildContext context) {
     final categories = _all.map((item) => item.category).toSet().toList()
       ..sort();
-    final normalizedQuery = _normalizeImageSearchText(_query);
+    final normalizedQuery = normalizeImageSearchText(_query);
     final presentBadges = {
       for (final item in _all) ..._badges(item),
     };
-    final badges = _badgeOrder.where(presentBadges.contains).toList();
+    final badges = imageBadgeOrder.where(presentBadges.contains).toList();
     // A filter left over from a reload that no longer offers it is ignored.
     final badge = badges.length > 1 && badges.contains(_badge) ? _badge : null;
     final items =
@@ -916,10 +839,18 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
                   (_category == null || item.category == _category) &&
                   (badge == null ||
                       _badges(item).contains(badge)) &&
-                  _matchesImageSearch(item, normalizedQuery),
+                  matchesImageSearch(item, normalizedQuery),
             )
             .toList()
-          ..sort(_compareImages);
+          ..sort(
+            (left, right) => compareImages(
+              left,
+              right,
+              sort: _sort,
+              addedAt: _addedAt,
+              fileBytes: _fileBytes,
+            ),
+          );
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -927,13 +858,13 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
           '· ${_all.length} images',
         ),
         actions: [
-          PopupMenuButton<_ImageSort>(
+          PopupMenuButton<ImageSort>(
             key: const Key('exercise-image-sort'),
             tooltip: 'Sort images: ${_sort.label}',
             icon: const Icon(Icons.sort),
             onSelected: _setSort,
             itemBuilder: (_) => [
-              for (final sort in _ImageSort.values)
+              for (final sort in ImageSort.values)
                 CheckedPopupMenuItem(
                   key: ValueKey('exercise-image-sort-${sort.name}'),
                   value: sort,
@@ -1117,7 +1048,7 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
                                           fontWeight: FontWeight.w600,
                                         ),
                                       ),
-                                      if (_tileTags(item) case final tags?)
+                                      if (imageTileTags(item) case final tags?)
                                         Tooltip(
                                           message: tags,
                                           child: Text(
@@ -1148,72 +1079,3 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
     );
   }
 }
-
-String? _bankId(ExerciseImageMetadata item) {
-  if (!item.origin.startsWith('bank:')) return null;
-  final id = item.origin.substring('bank:'.length).trim();
-  return id.isEmpty ? null : id;
-}
-
-bool _isBundled(ExerciseImageMetadata item) =>
-    item.origin == 'bundled' || item.assetPath.startsWith('assets/');
-
-Iterable<PromptElement> _courseImageElements(Course course) sync* {
-  for (final lesson in course.lessons) {
-    for (final round in lesson.rounds) {
-      for (final exercise in round.exercises) {
-        for (final element in exercise.promptElements) {
-          if (element.type == 'image') yield element;
-        }
-        for (final item in exercise.interaction.items) {
-          for (final element in item.content) {
-            if (element.type == 'image') yield element;
-          }
-        }
-        for (final element in exercise.interaction.layout) {
-          if (element.type == 'image') yield element;
-        }
-      }
-    }
-  }
-}
-
-/// Badge labels in display order; the badge filter offers the same labels.
-const _badgeOrder = ['QQL', 'DEVICE', 'COURSE', 'IN USE'];
-
-const _badgeMeanings = {
-  'QQL': 'App bundled; supplied by QQL on every device.',
-  'DEVICE': 'Admin-added on this device; copied into the Course ZIP when used.',
-  'COURSE': 'These bytes are stored in this Course.',
-  'IN USE': 'This image is used by this Course.',
-};
-
-/// [inCourse]: a device image whose Course copy is listed as this same tile.
-List<String> _badgesOf(
-  ExerciseImageMetadata item, {
-  bool used = false,
-  bool inCourse = false,
-}) => [
-  ...switch (item.origin) {
-    // Listed on its own only when the device original is gone.
-    'course' || 'course-device' => const ['COURSE'],
-    _ => [_isBundled(item) ? 'QQL' : 'DEVICE', if (inCourse) 'COURSE'],
-  },
-  if (used) 'IN USE',
-];
-
-/// The tile's tag line, or null when the image has no tags. `Local:` will
-/// follow on the same line, only when present, once Local words exist
-/// (docs/IMPORT_HARDENING_PLAN.md, Tranche 0b).
-String? _tileTags(ExerciseImageMetadata item) =>
-    item.tags.isEmpty ? null : 'Tags: ${item.tags.join(', ').toLowerCase()}';
-
-String _sourceCode(List<String> badges) => badges.join(' · ');
-
-String _sourceExplanation(ExerciseImageMetadata item) => switch (item.origin) {
-  'course-device' => 'Originally Admin-added; these bytes are stored in this Course.',
-  'course' => 'These bytes are stored in this Course.',
-  _ => _isBundled(item)
-      ? 'App bundled; supplied by QQL on every device.'
-      : 'Admin-added on this device; copied into the Course ZIP when used.',
-};

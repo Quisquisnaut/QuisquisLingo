@@ -340,3 +340,45 @@ Version **2.0.43+243006**, same Beta expiry. Tranche 0 of
   - A non-ZIP Image Bank reports "This is not a readable Image Bank ZIP".
   - An understated Image Bank entry reports that it expands beyond its
     declared size.
+
+## Revision 7 — image library tidy-up
+
+Version **2.0.43+243007**, same Beta expiry. Plan §6c of
+`docs/IMPORT_HARDENING_PLAN.md`: structural, with one owner-approved
+behavior change.
+
+- **`CourseImageUsage`** (`lib/services/course_image_usage.dart`) is the
+  single answer to where a Course uses an image. It covers every image
+  element in the content of each Round and each GuideBook, whether that
+  content is an exercise (prompt, answer items, layout) or a presentation
+  (flashcards, explanations, the Lesson introduction), plus the cover. Each
+  use has a readable location, such as `Lesson 2 › Round 1 › item 3`.
+  - `CourseMediaStore.referencesOf` delegates to it. A test keeps the
+    previous whole-JSON search as a reference and confirms identical results
+    for every bundled and demo Course, and for a Course with an image in
+    every possible place. Storage keeps exactly what it kept.
+  - The Image Library's IN USE and the Exercise editor's Shared Image
+    Library source also delegate to it.
+- **Behavior change (owner decision):** before this revision the Image
+  Library and the Exercise editor looked only at `round.exercises`, which
+  skips the Lesson introduction and drops presentation images. Images used
+  only there now show `IN USE`, as storage always counted them. QQL's own
+  editor places images only in exercises, so only Course JSON written outside
+  QQL is affected.
+- **`image_library_rules.dart`** holds the Image Library's rules as plain
+  functions, moved unchanged out of the screen:
+  - search;
+  - the sort orders and derived added date;
+  - the badges, their order and meanings;
+  - the tile tag line and source wording;
+  - the merge of a device original with its Course copy.
+
+  `flat_image_library_screen.dart` shrinks from 1,219 to 1,081 lines.
+- **`ExerciseImageField`** (`lib/widgets/exercise_image_field.dart`) is the
+  Exercise editor's image section as a separate widget. It takes the Course,
+  the image, its Shared Image Library source, read-only mode and the Help
+  button, and reports each change through a callback.
+  `course_editor_screen.dart` shrinks from 11,383 to 11,150 lines.
+- **Tests:** the existing Image Library and Exercise editor tests pass
+  unchanged. New tests are `course_image_usage_test.dart`,
+  `image_library_rules_test.dart` and `exercise_image_field_test.dart`.

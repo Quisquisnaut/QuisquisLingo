@@ -8,9 +8,7 @@ import '../services/answer_materialization_service.dart';
 import '../services/first_letter_answer_service.dart';
 import '../services/portable_exercise_image.dart';
 import '../widgets/script_recognition_editor.dart';
-import '../widgets/course_media_image.dart';
-import '../widgets/image_badges.dart';
-import '../services/course_media_store.dart';
+import '../widgets/exercise_image_field.dart';
 import 'package:audioplayers/audioplayers.dart';
 
 import '../models/course_flag_selection.dart';
@@ -40,13 +38,11 @@ import '../services/lesson_presentation_service.dart';
 import '../services/recorded_audio_service.dart';
 import 'round_screen.dart';
 import 'flat_image_library_screen.dart';
-import '../models/exercise_image_metadata.dart';
 import 'editor_help_screen.dart';
 import 'course_version_history_screen.dart';
 import 'course_info_screen.dart';
 import 'guidebook_screen.dart';
 import 'course_editor_search_screen.dart';
-import '../services/exercise_image_service.dart';
 import '../services/course_authoring_transfer_service.dart';
 import '../services/translation_choice_service.dart';
 import '../services/exercise_field_help.dart';
@@ -8205,8 +8201,6 @@ class ExerciseEditorScreen extends StatefulWidget {
 }
 
 class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
-  final _imageService = ExerciseImageService();
-  final _media = CourseMediaStore();
   bool _dirty = false;
   bool _routeMayPop = false;
   bool _navigationBusy = false;
@@ -9382,251 +9376,6 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
           _field(_correct, 'Correct answer number'),
         ];
     }
-  }
-
-  /// A picked or imported image becomes the Course's own media: its bytes are
-  /// copied into the Course folder and the Exercise names them by content, so
-  /// the Course never depends on the library file or the source path.
-  Future<String> _asCourseMedia(String selected) async {
-    if (selected.startsWith('assets/') ||
-        selected.startsWith('data:') ||
-        CourseMediaStore.isReference(selected)) {
-      return selected;
-    }
-    final course = widget.course;
-    if (course == null) {
-      throw StateError('Open this Exercise from its Course to add an image.');
-    }
-    return _media.addFile(course.courseId, File(selected));
-  }
-
-  SharedImageSource? _courseImageSource(String reference) {
-    final course = widget.course;
-    if (course == null) return null;
-    for (final lesson in course.lessons) {
-      for (final round in lesson.rounds) {
-        for (final exercise in round.exercises) {
-          for (final element in [
-            ...exercise.promptElements,
-            ...exercise.interaction.layout,
-            for (final item in exercise.interaction.items) ...item.content,
-          ]) {
-            if (element.type == 'image' && element.asset == reference &&
-                element.sharedImageSource != null) {
-              return element.sharedImageSource;
-            }
-          }
-        }
-      }
-    }
-    return null;
-  }
-
-  Future<void> _chooseFlatImage() async {
-    if (widget.readOnly) return;
-    final selected = await Navigator.of(context).push<ExerciseImageMetadata>(
-      MaterialPageRoute(
-        builder: (_) => FlatImageLibraryScreen(
-          readOnly: true,
-          course: widget.course,
-          mediaStore: _media,
-        ),
-      ),
-    );
-    if (selected == null || !mounted) return;
-    try {
-      final reference = await _asCourseMedia(selected.assetPath);
-      if (!mounted) return;
-      setState(() {
-        _imageAsset = reference;
-        _selectedSharedSource = selected.origin.startsWith('course')
-            ? _courseImageSource(reference)
-            : selected.origin == 'bundled'
-            ? null
-            : SharedImageSource(
-                id: selected.id,
-                label: selected.label,
-                category: selected.category,
-                tags: selected.tags,
-                origin: selected.origin,
-                attribution: selected.attribution,
-              );
-        _dirty = true;
-      });
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(duration: const Duration(seconds: 8), content: Text('$e')),
-        );
-      }
-    }
-  }
-
-  Future<void> _importCustomImage({bool fromDialog = false}) async {
-    if (widget.readOnly) return;
-    try {
-      final String? selected;
-      if (fromDialog) {
-        // Open from…: same checks and storage as the fixed-folder import.
-        final picked = await _imageService.importImageFromDialog();
-        if (!mounted) return;
-        final path = picked.path;
-        if (path == null) {
-          showFileDialogFeedback(
-            context,
-            picked.dialog,
-            saving: false,
-            fallbackHint: exerciseImageFallbackHint,
-          );
-          return;
-        }
-        selected = path;
-      } else {
-        selected = await _imageService.importImage();
-      }
-      if (selected == null || !mounted) return;
-      final chosen = await _asCourseMedia(selected);
-      if (mounted) {
-        setState(() {
-          _imageAsset = chosen;
-          _selectedSharedSource = null;
-          _dirty = true;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(duration: Duration(seconds: 8), content: Text('$e')),
-        );
-      }
-    }
-  }
-
-  Widget _imageEditor() {
-    Widget preview;
-    if (_imageAsset.isEmpty) {
-      preview = const SizedBox(
-        height: 120,
-        child: Center(child: Text('No image selected')),
-      );
-    } else {
-      preview = CourseMediaImage(
-        courseId: widget.course?.courseId ?? '',
-        asset: _imageAsset,
-        height: 150,
-        // Bound the decode: nothing limits a course-media image's pixels.
-        cacheHeight: 300,
-        missing: const SizedBox(
-          height: 120,
-          child: Center(child: Text('Image asset file is missing.')),
-        ),
-      );
-    }
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Row(
-              children: [
-                const Expanded(
-                  child: Text(
-                    'Exercise image',
-                    style: TextStyle(fontWeight: FontWeight.w700),
-                  ),
-                ),
-                _helpButton('image'),
-              ],
-            ),
-            const SizedBox(height: 8),
-            if (_imageAsset.isEmpty)
-              preview
-            else
-              // Loose constraints let the Stack hug the image, so the badges
-              // sit on the image itself and the image stays centered.
-              Center(
-                child: Stack(
-                  clipBehavior: Clip.none,
-                  children: [
-                    preview,
-                    Positioned(
-                      left: 4,
-                      bottom: 4,
-                      child: ImageBadges(fontSize: 10, [
-                        if (_imageAsset.startsWith('assets/'))
-                          (
-                            label: 'QQL',
-                            message: 'App-bundled image, supplied by QQL.',
-                          )
-                        else if (_selectedSharedSource != null)
-                          (
-                            label: 'DEVICE',
-                            message:
-                                'Originally from the Admin Shared Image Library.',
-                          ),
-                        if (CourseMediaStore.isImageReference(_imageAsset))
-                          (
-                            label: 'COURSE',
-                            message:
-                                'The image bytes are stored in this Course folder.',
-                          ),
-                        (
-                          label: 'IN USE',
-                          message: 'This image is used by this Course.',
-                        ),
-                      ]),
-                    ),
-                  ],
-                ),
-              ),
-            const SizedBox(height: 8),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                OutlinedButton.icon(
-                  onPressed: widget.readOnly ? null : _chooseFlatImage,
-                  icon: const Icon(Icons.grid_view_outlined),
-                  label: const Text('Choose flat image'),
-                ),
-                OutlinedButton.icon(
-                  onPressed: widget.readOnly ? null : _importCustomImage,
-                  icon: const Icon(Icons.upload_file_outlined),
-                  label: const Text('Import custom image'),
-                ),
-                if (_imageService.fileDialogsAvailable)
-                  IconButton.outlined(
-                    key: const Key('open-custom-image-from'),
-                    tooltip: 'Open image from…',
-                    onPressed: widget.readOnly
-                        ? null
-                        : () => _importCustomImage(fromDialog: true),
-                    icon: const Icon(Icons.folder_open_outlined),
-                  ),
-                if (_imageAsset.isNotEmpty)
-                  TextButton.icon(
-                    onPressed: widget.readOnly
-                        ? null
-                        : () => setState(() {
-                            _imageAsset = '';
-                            _selectedSharedSource = null;
-                            _dirty = true;
-                          }),
-                    icon: const Icon(Icons.delete_outline),
-                    label: const Text('Remove image'),
-                  ),
-              ],
-            ),
-            const SizedBox(height: 4),
-            const Text(
-              'The shared image library (admin-managed) has lightweight flat images. For Import custom image, place exactly one PNG, JPG, JPEG or WEBP file in Documents/QuisquisLingo/Imports/Images. Image-prompt ordering requires an image; otherwise it is optional and can be changed at any time.',
-              style: TextStyle(fontSize: 12),
-            ),
-          ],
-        ),
-      ),
-    );
   }
 
   Future<void> _choosePreset() async {
@@ -10914,7 +10663,19 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
             const SizedBox(height: 12),
             ..._specificFields(),
             const SizedBox(height: 12),
-            if (_type != 'script_recognition') _imageEditor(),
+            if (_type != 'script_recognition')
+              ExerciseImageField(
+                course: widget.course,
+                asset: _imageAsset,
+                sharedSource: _selectedSharedSource,
+                readOnly: widget.readOnly,
+                help: _helpButton('image'),
+                onChanged: (change) => setState(() {
+                  _imageAsset = change.asset;
+                  _selectedSharedSource = change.source;
+                  _dirty = true;
+                }),
+              ),
           ],
           const SizedBox(height: 12),
           Wrap(

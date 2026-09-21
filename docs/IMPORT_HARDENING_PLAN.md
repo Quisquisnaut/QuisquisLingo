@@ -658,6 +658,12 @@ DEVICE, COURSE, IN USE (`_badgesOf`, `_badgeOrder` in
 
 ## 6c. Revision 7 — image library tidy-up (owner decision 2026-09-21)
 
+**Status: implemented as Revision 7 (`2.0.43+243007`).** The owner also
+decided that the single usage rule counts images **everywhere in the
+Course**, presentations and GuideBooks included. Actual sizes: the editor
+went from 11,383 to 11,150 lines and the Image Library screen from 1,219 to
+1,081. The new files are 115 (usage), 161 (rules) and 277 (field) lines.
+
 **Purpose.** Six planned changes touch the image library (Revision 8,
 Tranches 0b, 2, 2b and 5, and the badge order). Before them, give its logic
 one home each and make it testable without opening a screen. **No visible

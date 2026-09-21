@@ -1,5 +1,31 @@
 # Build 243 validation
 
+## Revision 7 — image library tidy-up (`2.0.43+243007`)
+
+Validation on 21 September 2026, before the Revision 7 commit.
+
+- Focused runs, all passed:
+  - the new `course_image_usage_test.dart` (5), `image_library_rules_test.dart`
+    (10) and `exercise_image_field_test.dart` (4);
+  - 13 files that depend on Course media references (packages, backups,
+    cleanup, Publisher): 133 passed;
+  - 26 files covering the Exercise editor and image flows, plus the new
+    tests: 336 passed.
+
+  Existing tests were not changed.
+- `course_image_usage_test.dart` keeps the previous whole-JSON search as a
+  reference. `CourseMediaStore.referencesOf` returns the identical set for
+  every bundled and demo Course, and for a Course with an image in every
+  possible place.
+- Complete `flutter test --no-pub`: **interrupted** at 1,893 passed and
+  0 failed, with no failure reported, before the run finished (exit code 4
+  from the interruption, not from a test). By the owner's instruction it was
+  not re-run separately. The complete suite runs on the combined Revision 7
+  and 8 tree before the Revision 8 commit; see that section.
+- `flutter analyze` on the repository: **no issues**.
+- The four `tools/validate_*.py` validators: 0 issues.
+- `git diff --check`: clean.
+
 ## Revision 6 — import memory-safety fixes (`2.0.43+243006`)
 
 Validation on 21 September 2026, before the Revision 6 commit.
