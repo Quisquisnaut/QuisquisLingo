@@ -25,7 +25,7 @@ void main() {
     });
   });
 
-  testWidgets('Admin edits global category and tags from media management', (
+  testWidgets('Admin adds Local words to a QQL image from media management', (
     tester,
   ) async {
     tester.view.physicalSize = const Size(1000, 800);
@@ -78,9 +78,11 @@ void main() {
       find.text('Categories and tags must be written in English.'),
       findsNothing,
     );
+    // QQL's category and tags are read-only; only Local words can change.
+    expect(find.byKey(const Key('exercise-image-tags-editor')), findsNothing);
     await tester.enterText(
-      find.byKey(const Key('exercise-image-tags-editor')),
-      'man, friend, colleague',
+      find.byKey(const Key('exercise-image-local-editor')),
+      'colleague',
     );
     await tester.tap(find.byKey(const Key('exercise-image-metadata-save')));
     await tester.pumpAndSettle();
@@ -91,12 +93,12 @@ void main() {
     );
     await tester.pump();
     expect(find.text('man'), findsOneWidget);
-    expect(
-      (await ExerciseImageMetadataService().metadataFor(
-        'people_family_man',
-      )).tags,
-      ['man', 'friend', 'colleague'],
+    expect(find.textContaining('Local: colleague'), findsOneWidget);
+    final record = await ExerciseImageMetadataService().metadataFor(
+      'people_family_man',
     );
+    expect(record.tags, isNot(contains('colleague')));
+    expect(record.localWords, ['colleague']);
     await tester.pumpWidget(const SizedBox.shrink());
     await tester.pump();
   });

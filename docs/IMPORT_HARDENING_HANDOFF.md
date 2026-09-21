@@ -4,7 +4,7 @@ Keep this file current at the end of **every** revision, so that work can
 resume after a pause or with another agent. Plan and decisions:
 [IMPORT_HARDENING_PLAN.md](IMPORT_HARDENING_PLAN.md). Rules: `AGENTS.md`.
 
-## Where things stand (updated 2026-09-21 16:35, Revision 8 committed)
+## Where things stand (updated 2026-09-21 16:45, Revision 9 in validation)
 
 | Revision | Version | Commit | Content |
 |---|---|---|---|
@@ -16,15 +16,29 @@ resume after a pause or with another agent. Plan and decisions:
 Revisions 5–8 are pushed to `origin/main` with the Revision 8 commit. The untracked
 `devtools_options.yaml` predates this work: never commit or delete it.
 
+## Revision 9 (Tranche 0b) — in validation
+
+Implemented in the working tree: version `2.0.43+243009`, and the analyzer is
+clean. Focused tests passed: 161 across 20 metadata and library files, plus
+`exercise_image_metadata_0b_test.dart` (10) and
+`exercise_image_metadata_0b_ui_test.dart` (2). The release notes are written.
+
+Still to do: run the full suite in two halves, record it in
+`243_VALIDATION.md`, commit Revision 9, put the hash in the table above, and
+push `origin/main`.
+
+Key facts for resuming:
+
+- `ExerciseImageMetadataService` stores schema 2 in the same key. A schema-1
+  snapshot converts once in `_loadDocument` / `_convertSnapshot`.
+- The two existing test files that pinned "Admin edits QQL tags" were
+  updated to the owner's decision: `exercise_image_metadata_234_revision_test`
+  and `exercise_image_metadata_admin_ui_234_revision_test`.
+
 ## Next steps, in order (plan §6a)
 
-1. **Tranche 0b** (plan §4): QQL image metadata read-only, Local words
-   (label "Local:"), device categories. Start in
-   `ExerciseImageMetadataService` (`loadCatalog`, `_persist`,
-   `updateMetadata`). The tile's `Tags:` line lives in `imageTileTags`
-   (`image_library_rules.dart`); `Local:` joins it on the same line, and
-   `matchesImageSearch` must match Local words too.
-2. **Tranches 1, 2, 2b, 3, 4, 5** in that order (plan §4, §6).
+1. **Tranches 1, 2, 2b, 3, 4, 5** in that order (plan §4, §6). Tranche 2b's
+   `imageLibrary` model is already in place (Revision 8).
 
 ## Owner decisions already taken
 

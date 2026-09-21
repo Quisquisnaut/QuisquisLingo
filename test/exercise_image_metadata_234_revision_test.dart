@@ -124,27 +124,47 @@ void main() {
     },
   );
 
-  test('Admin correction is global and survives a service restart', () async {
-    final firstService = ExerciseImageMetadataService();
-    final before = await firstService.metadataFor('people_family_man');
-    expect(before.tags, containsAll(['man', 'friend']));
+  test(
+    'QQL metadata is read-only; Local words persist on the device',
+    () async {
+      final firstService = ExerciseImageMetadataService();
+      final before = await firstService.metadataFor('people_family_man');
+      expect(before.tags, containsAll(['man', 'friend']));
 
-    await firstService.updateMetadata(
-      actorProfileId: _adminId,
-      imageId: before.id,
-      category: 'people_family',
-      tags: ['man', 'friend', 'adult man'],
-    );
+      await expectLater(
+        firstService.updateMetadata(
+          actorProfileId: _adminId,
+          imageId: before.id,
+          category: 'people_family',
+          tags: ['man', 'friend', 'colleague'],
+        ),
+        throwsA(isA<StateError>()),
+      );
+      await firstService.updateLocalWords(
+        actorProfileId: _adminId,
+        imageId: before.id,
+        words: [' colleague ', 'Colleague', 'neighbour', ''],
+      );
 
-    final restarted = ExerciseImageMetadataService();
-    final after = await restarted.metadataFor(before.id);
-    expect(after.category, 'people_family');
-    expect(after.tags, ['man', 'friend', 'adult man']);
-    expect(
-      (await restarted.loadCatalog()).where((record) => record.id == before.id),
-      hasLength(1),
-    );
-  });
+      final restarted = ExerciseImageMetadataService();
+      final after = await restarted.metadataFor(before.id);
+      expect(after.category, before.category);
+      expect(after.tags, before.tags);
+      expect(after.localWords, ['colleague', 'neighbour']);
+      expect(
+        (await restarted.loadCatalog()).where(
+          (record) => record.id == before.id,
+        ),
+        hasLength(1),
+      );
+      await restarted.updateLocalWords(
+        actorProfileId: _adminId,
+        imageId: before.id,
+        words: const [],
+      );
+      expect((await restarted.metadataFor(before.id)).localWords, isEmpty);
+    },
+  );
 
   test('Admin-added image attribution persists and can be cleared', () async {
     final service = ExerciseImageMetadataService();
@@ -182,6 +202,7 @@ void main() {
 
   test('attribution requires author and license and is device-only', () async {
     final service = ExerciseImageMetadataService();
+    // A QQL image cannot be changed at all, attribution included.
     await expectLater(
       service.updateMetadata(
         actorProfileId: _adminId,
@@ -193,7 +214,7 @@ void main() {
           license: 'CC BY 4.0',
         ),
       ),
-      throwsA(isA<FormatException>()),
+      throwsA(isA<StateError>()),
     );
     await expectLater(
       service.addLocalRecord(
@@ -230,11 +251,34 @@ void main() {
         ),
         throwsA(isA<StateError>()),
       );
+      await expectLater(
+        service.updateLocalWords(
+          actorProfileId: _learnerId,
+          imageId: 'actions_jump',
+          words: const ['leap'],
+        ),
+        throwsA(isA<StateError>()),
+      );
+      await expectLater(
+        service.addDeviceCategory(actorProfileId: _learnerId, name: 'sports'),
+        throwsA(isA<StateError>()),
+      );
     },
   );
 
   test('empty and exact duplicate tags are rejected', () async {
     final service = ExerciseImageMetadataService();
+    await service.addLocalRecord(
+      actorProfileId: _adminId,
+      record: const ExerciseImageMetadata(
+        id: 'local_jump',
+        label: 'Jump',
+        category: 'actions',
+        tags: ['jump'],
+        assetPath: 'local_jump.webp',
+        origin: 'local',
+      ),
+    );
     for (final tags in <List<String>>[
       ['jump', ''],
       ['jump', 'jump'],
@@ -242,7 +286,7 @@ void main() {
       await expectLater(
         service.updateMetadata(
           actorProfileId: _adminId,
-          imageId: 'actions_jump',
+          imageId: 'local_jump',
           category: 'actions',
           tags: tags,
         ),

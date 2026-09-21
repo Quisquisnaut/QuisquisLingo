@@ -437,3 +437,49 @@ Version **2.0.43+243008**, same Beta expiry. Plan §6b of
   - QQL and Shared Library images never get the second question.
 - The model part of Tranche 2b (`imageLibrary`) is therefore done. Tranche 2b
   keeps the import of images and Image Banks into it.
+
+## Revision 9 — QQL image metadata read-only; Local words; device categories
+
+Version **2.0.43+243009**, same Beta expiry. Tranche 0b of
+`docs/IMPORT_HARDENING_PLAN.md`.
+
+- **The defect.** Every Admin edit or import stored a snapshot of the
+  **whole** catalog, bundled QQL records included, in
+  `quisquislingo_exercise_image_metadata_v2` (schema 1). From then on the
+  snapshot replaced the app's catalog. A later release adding a QQL image
+  would have thrown `Current exercise-image metadata is missing …`, and the
+  library would have stopped loading. Relabelled QQL images and improved QQL
+  tags would never have arrived either.
+- **Schema 2**, same preference key. The document holds only device-owned
+  records (`local`, `bank:<id>`), `localWords` keyed by QQL image ID, and
+  `deviceCategories`. `loadCatalog` always merges the app's bundled catalog
+  (with its Local words) with the device records. A device record can never
+  shadow a QQL ID or path, and Local words for an image no longer shipped
+  are ignored.
+- **One-time conversion** of a schema-1 snapshot:
+  - bundled records leave the document;
+  - tags an Admin had added to a QQL image become its Local words (at most
+    32, 80 characters each);
+  - tags an Admin had removed come back;
+  - category changes to QQL images are dropped;
+  - device records are kept.
+- **QQL metadata is read-only:** `updateMetadata` refuses a QQL image with a
+  `StateError`, in the service and not only in the UI.
+- **Local words:** set with `updateLocalWords` (Admin only, QQL images only).
+  They are trimmed, lose case-insensitive repeats, and are limited to 32 words
+  of 80 characters without control characters. The tile shows
+  `Tags: … · Local: …`, each part only when present. Search matches them,
+  the preview lists them, and they are never exported (a QQL image in a
+  Course carries no `sharedImageSource`).
+- **Device categories:** `addDeviceCategory`, `renameDeviceCategory` (moves
+  every image using it) and `removeDeviceCategory` (refused while in use).
+  - Names are 2–40 lowercase letters, digits or underscores, starting with a
+    letter. A name may not repeat a QQL category, the `food`/`home` aliases
+    or an existing device category. At most 64 per device.
+  - Admin-added and bank images may use them.
+  - UI: **Manage device categories** in the Admin menu, and **New category…**
+    in Edit metadata.
+- **UI:** a QQL image's preview offers **Local words** instead of Edit
+  metadata. Its category and tags are shown read-only.
+- **Reset:** unchanged; the same preference key is already cleared by
+  `AppResetService` and listed in the storage inventory.

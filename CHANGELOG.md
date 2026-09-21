@@ -1,3 +1,13 @@
+# 2.0.43 (Build 243, Revision 9) - QQL image metadata read-only; Local words; device categories - 2026-09-21
+
+Tranche 0b of the [import hardening plan](docs/IMPORT_HARDENING_PLAN.md). Scope: [Build 243 change summary](docs/243_CHANGE_SUMMARY.md#revision-9--qql-image-metadata-read-only-local-words-device-categories); evidence: [243 validation](docs/243_VALIDATION.md).
+
+- Platform version `2.0.43+243009`; the Beta expiry remains **2026-10-21 23:59:59 local time**.
+- QQL's own images keep the category and tags QQL gives them, identical on every installation and updated with the app. Admins can no longer change them.
+- Admins can add **Local** words to a QQL image: extra search words on this device only, shown after the tags (`Tags: … · Local: …`), searchable, never exported.
+- Admins can add their own **device categories**, and rename them or remove them when unused (**Manage device categories**, and **New category…** in Edit metadata).
+- Fixed a latent failure: after any Admin import or edit, a future app update that added a QQL image would have stopped the image library from loading. Stored metadata now holds only device-owned data; a stored snapshot from earlier builds is converted once (tags an Admin added to QQL images become their Local words).
+
 # 2.0.43 (Build 243, Revision 8) - Remove an image from a Course; badge order - 2026-09-21
 
 Revision 8 of the [import hardening plan](docs/IMPORT_HARDENING_PLAN.md) (§6b). Scope: [Build 243 change summary](docs/243_CHANGE_SUMMARY.md#revision-8--remove-an-image-from-a-course-badge-order); evidence: [243 validation](docs/243_VALIDATION.md).

@@ -64,6 +64,11 @@ class ExerciseImageMetadata {
   final String origin;
   final ImageAttribution? attribution;
 
+  /// Device-local search words an Admin added to a QQL (bundled) image. They
+  /// never replace QQL's own tags and are never exported. Always empty for
+  /// other images, and not part of [toJson].
+  final List<String> localWords;
+
   const ExerciseImageMetadata({
     required this.id,
     required this.label,
@@ -72,6 +77,7 @@ class ExerciseImageMetadata {
     required this.assetPath,
     required this.origin,
     this.attribution,
+    this.localWords = const [],
   });
 
   ExerciseImageMetadata copyWith({
@@ -79,6 +85,7 @@ class ExerciseImageMetadata {
     List<String>? tags,
     ImageAttribution? attribution,
     bool clearAttribution = false,
+    List<String>? localWords,
   }) => ExerciseImageMetadata(
     id: id,
     label: label,
@@ -87,6 +94,7 @@ class ExerciseImageMetadata {
     assetPath: assetPath,
     origin: origin,
     attribution: clearAttribution ? null : attribution ?? this.attribution,
+    localWords: List.unmodifiable(localWords ?? this.localWords),
   );
 
   Map<String, dynamic> toJson() => {

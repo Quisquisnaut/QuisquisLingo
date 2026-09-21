@@ -15,6 +15,7 @@ bool matchesImageSearch(ExerciseImageMetadata asset, String normalizedQuery) {
   return <String>[
     asset.label,
     ...asset.tags,
+    ...asset.localWords,
     asset.id,
     asset.category,
   ].any((value) => normalizeImageSearchText(value).contains(normalizedQuery));
@@ -81,11 +82,16 @@ List<String> imageBadgesOf(
   },
 ];
 
-/// The tile's tag line, or null when the image has no tags. `Local:` will
-/// follow on the same line, only when present, once Local words exist
-/// (docs/IMPORT_HARDENING_PLAN.md, Tranche 0b).
-String? imageTileTags(ExerciseImageMetadata item) =>
-    item.tags.isEmpty ? null : 'Tags: ${item.tags.join(', ').toLowerCase()}';
+/// The tile's tag line: `Tags: …` and `Local: …` on one line, each only
+/// when present, in lowercase; null when the image has neither.
+String? imageTileTags(ExerciseImageMetadata item) {
+  final parts = [
+    if (item.tags.isNotEmpty) 'Tags: ${item.tags.join(', ').toLowerCase()}',
+    if (item.localWords.isNotEmpty)
+      'Local: ${item.localWords.join(', ').toLowerCase()}',
+  ];
+  return parts.isEmpty ? null : parts.join(' · ');
+}
 
 String imageSourceCode(List<String> badges) => badges.join(' · ');
 

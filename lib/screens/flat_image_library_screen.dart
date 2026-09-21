@@ -401,9 +401,271 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
     await _load();
   }
 
+  /// QQL images are read-only: their category and tags come from the app.
+  /// An Admin may add Local words, search words for this device only.
+  Future<void> _editLocalWords(ExerciseImageMetadata item, String actor) async {
+    var wordsText = item.localWords.join(', ');
+    String? error;
+    final saved = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: Text('Local words · ${item.label}'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const Text(
+                  'QQL images keep the category and tags QQL gives them. '
+                  'Local words are extra search words on this device only; '
+                  'they are never exported.',
+                ),
+                const SizedBox(height: 12),
+                Text('Category: ${item.category.replaceAll('_', ' ')}'),
+                Text('Tags: ${item.tags.join(', ')}'),
+                const SizedBox(height: 12),
+                TextFormField(
+                  key: const Key('exercise-image-local-editor'),
+                  initialValue: wordsText,
+                  onChanged: (value) => wordsText = value,
+                  minLines: 1,
+                  maxLines: 3,
+                  decoration: const InputDecoration(
+                    border: OutlineInputBorder(),
+                    labelText: 'Local',
+                    helperText: 'Separate words with commas.',
+                  ),
+                ),
+                if (error != null) ...[
+                  const SizedBox(height: 8),
+                  Text(
+                    error!,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.error,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              key: const Key('exercise-image-metadata-save'),
+              onPressed: () async {
+                try {
+                  await _metadata.updateLocalWords(
+                    actorProfileId: actor,
+                    imageId: item.id,
+                    words: wordsText.split(','),
+                  );
+                  if (dialogContext.mounted) {
+                    Navigator.pop(dialogContext, true);
+                  }
+                } catch (exception) {
+                  setDialogState(
+                    () => error = exception.toString().replaceFirst(
+                      'FormatException: ',
+                      '',
+                    ),
+                  );
+                }
+              },
+              child: const Text('Save'),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (saved == true) await _load();
+  }
+
+  /// Asks for a new device category name; returns it once created.
+  Future<String?> _createCategory(String actor, {String? renaming}) async {
+    var name = renaming ?? '';
+    String? error;
+    return showDialog<String>(
+      context: context,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: Text(renaming == null ? 'New category' : 'Rename category'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              TextFormField(
+                key: const Key('exercise-image-category-name'),
+                initialValue: name,
+                autofocus: true,
+                onChanged: (value) => name = value,
+                decoration: const InputDecoration(
+                  border: OutlineInputBorder(),
+                  labelText: 'Name',
+                  helperText: 'Lowercase letters, digits and underscores.',
+                ),
+              ),
+              if (error != null) ...[
+                const SizedBox(height: 8),
+                Text(
+                  error!,
+                  style: TextStyle(color: Theme.of(context).colorScheme.error),
+                ),
+              ],
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              key: const Key('exercise-image-category-save'),
+              onPressed: () async {
+                try {
+                  final created = renaming == null
+                      ? await _metadata.addDeviceCategory(
+                          actorProfileId: actor,
+                          name: name,
+                        )
+                      : await _metadata.renameDeviceCategory(
+                          actorProfileId: actor,
+                          from: renaming,
+                          to: name,
+                        );
+                  if (dialogContext.mounted) {
+                    Navigator.pop(dialogContext, created);
+                  }
+                } catch (exception) {
+                  setDialogState(
+                    () => error = exception.toString().replaceFirst(
+                      RegExp(r'^(FormatException|Bad state): '),
+                      '',
+                    ),
+                  );
+                }
+              },
+              child: const Text('Save'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Lists this device's own categories for renaming or removal.
+  Future<void> _manageCategories() async {
+    final actor = widget.actorProfileId;
+    if (!_canManageMetadata || actor == null) return;
+    var names = await _metadata.deviceCategories();
+    if (!mounted) return;
+    var changed = false;
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (context, setDialogState) {
+          Future<void> refresh() async {
+            final latest = await _metadata.deviceCategories();
+            changed = true;
+            setDialogState(() => names = latest);
+          }
+
+          return AlertDialog(
+            title: const Text('Device categories'),
+            content: SizedBox(
+              width: 360,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const Text(
+                    "QQL's categories cannot change. Categories added on this "
+                    'device can be renamed, or removed when no image uses them.',
+                  ),
+                  const SizedBox(height: 8),
+                  if (names.isEmpty) const Text('No device categories yet.'),
+                  for (final name in names)
+                    ListTile(
+                      key: ValueKey('device-category-$name'),
+                      dense: true,
+                      title: Text(name.replaceAll('_', ' ')),
+                      trailing: Wrap(
+                        children: [
+                          IconButton(
+                            tooltip: 'Rename',
+                            onPressed: () async {
+                              if (await _createCategory(
+                                    actor,
+                                    renaming: name,
+                                  ) !=
+                                  null) {
+                                await refresh();
+                              }
+                            },
+                            icon: const Icon(Icons.edit_outlined),
+                          ),
+                          IconButton(
+                            tooltip: 'Remove',
+                            onPressed: () async {
+                              try {
+                                await _metadata.removeDeviceCategory(
+                                  actorProfileId: actor,
+                                  name: name,
+                                );
+                                await refresh();
+                              } catch (exception) {
+                                if (!context.mounted) return;
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      exception.toString().replaceFirst(
+                                        RegExp(
+                                          r'^(FormatException|Bad state): ',
+                                        ),
+                                        '',
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              }
+                            },
+                            icon: const Icon(Icons.delete_outline),
+                          ),
+                        ],
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                key: const Key('device-category-add'),
+                onPressed: () async {
+                  if (await _createCategory(actor) != null) await refresh();
+                },
+                child: const Text('New category…'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(dialogContext),
+                child: const Text('Close'),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+    if (changed) await _load();
+  }
+
   Future<void> _editMetadata(ExerciseImageMetadata item) async {
     final actor = widget.actorProfileId;
     if (!_canManageMetadata || actor == null) return;
+    if (isBundledImage(item)) return _editLocalWords(item, actor);
+    final categoryChoices = await _metadata.allCategories();
+    if (!mounted) return;
     var category = item.category;
     var tagsText = item.tags.join(', ');
     var author = item.attribution?.author ?? '';
@@ -423,16 +685,14 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
               children: [
                 const SizedBox(height: 12),
                 DropdownButtonFormField<String>(
-                  key: const Key('exercise-image-category-editor'),
+                  key: ValueKey('exercise-image-category-editor-$category'),
                   initialValue: category,
                   decoration: const InputDecoration(
                     border: OutlineInputBorder(),
                     labelText: 'Category',
                   ),
                   items: [
-                    for (final value
-                        in ExerciseImageMetadataService.categories.toList()
-                          ..sort())
+                    for (final value in categoryChoices)
                       DropdownMenuItem(
                         value: value,
                         child: Text(value.replaceAll('_', ' ')),
@@ -441,6 +701,24 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
                   onChanged: (value) {
                     if (value != null) category = value;
                   },
+                ),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton.icon(
+                    key: const Key('exercise-image-new-category'),
+                    onPressed: () async {
+                      final created = await _createCategory(actor);
+                      if (created == null) return;
+                      setDialogState(() {
+                        categoryChoices
+                          ..add(created)
+                          ..sort();
+                        category = created;
+                      });
+                    },
+                    icon: const Icon(Icons.add),
+                    label: const Text('New category…'),
+                  ),
                 ),
                 const SizedBox(height: 12),
                 TextFormField(
@@ -455,50 +733,48 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
                     helperText: 'Separate tags with commas.',
                   ),
                 ),
-                if (!isBundledImage(item)) ...[
-                  const SizedBox(height: 12),
-                  const Text('Attribution (optional; author and license go together)'),
-                  const SizedBox(height: 8),
-                  TextFormField(
-                    key: const Key('exercise-image-attribution-author'),
-                    initialValue: author,
-                    onChanged: (value) => author = value,
-                    decoration: const InputDecoration(
-                      border: OutlineInputBorder(),
-                      labelText: 'Author',
-                    ),
+                const SizedBox(height: 12),
+                const Text('Attribution (optional; author and license go together)'),
+                const SizedBox(height: 8),
+                TextFormField(
+                  key: const Key('exercise-image-attribution-author'),
+                  initialValue: author,
+                  onChanged: (value) => author = value,
+                  decoration: const InputDecoration(
+                    border: OutlineInputBorder(),
+                    labelText: 'Author',
                   ),
-                  const SizedBox(height: 8),
-                  TextFormField(
-                    key: const Key('exercise-image-attribution-license'),
-                    initialValue: license,
-                    onChanged: (value) => license = value,
-                    decoration: const InputDecoration(
-                      border: OutlineInputBorder(),
-                      labelText: 'License',
-                    ),
+                ),
+                const SizedBox(height: 8),
+                TextFormField(
+                  key: const Key('exercise-image-attribution-license'),
+                  initialValue: license,
+                  onChanged: (value) => license = value,
+                  decoration: const InputDecoration(
+                    border: OutlineInputBorder(),
+                    labelText: 'License',
                   ),
-                  const SizedBox(height: 8),
-                  TextFormField(
-                    key: const Key('exercise-image-attribution-title'),
-                    initialValue: title,
-                    onChanged: (value) => title = value,
-                    decoration: const InputDecoration(
-                      border: OutlineInputBorder(),
-                      labelText: 'Work title (optional)',
-                    ),
+                ),
+                const SizedBox(height: 8),
+                TextFormField(
+                  key: const Key('exercise-image-attribution-title'),
+                  initialValue: title,
+                  onChanged: (value) => title = value,
+                  decoration: const InputDecoration(
+                    border: OutlineInputBorder(),
+                    labelText: 'Work title (optional)',
                   ),
-                  const SizedBox(height: 8),
-                  TextFormField(
-                    key: const Key('exercise-image-attribution-source'),
-                    initialValue: source,
-                    onChanged: (value) => source = value,
-                    decoration: const InputDecoration(
-                      border: OutlineInputBorder(),
-                      labelText: 'Source (optional)',
-                    ),
+                ),
+                const SizedBox(height: 8),
+                TextFormField(
+                  key: const Key('exercise-image-attribution-source'),
+                  initialValue: source,
+                  onChanged: (value) => source = value,
+                  decoration: const InputDecoration(
+                    border: OutlineInputBorder(),
+                    labelText: 'Source (optional)',
                   ),
-                ],
+                ),
                 if (error != null) ...[
                   const SizedBox(height: 8),
                   Text(
@@ -1027,6 +1303,12 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
+                if (item.localWords.isNotEmpty)
+                  Text(
+                    'Local: ${item.localWords.join(', ')}',
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 if (item.attribution case final credit?)
                   Tooltip(
                     message: [
@@ -1054,7 +1336,11 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
                           await _editMetadata(item);
                         },
                         icon: const Icon(Icons.edit_outlined),
-                        label: const Text('Edit metadata'),
+                        label: Text(
+                          isBundledImage(item)
+                              ? 'Local words'
+                              : 'Edit metadata',
+                        ),
                       ),
                     if (_canRemoveFromCourse(item))
                       OutlinedButton.icon(
@@ -1145,6 +1431,7 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
                 if (value == 'bank_from') _importBankFromDialog();
                 if (value == 'image') _importSingle();
                 if (value == 'image_from') _importSingleFromDialog();
+                if (value == 'categories') _manageCategories();
               },
               itemBuilder: (_) => [
                 const PopupMenuItem(
@@ -1165,6 +1452,10 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
                     value: 'image_from',
                     child: Text('Open single image from…'),
                   ),
+                const PopupMenuItem(
+                  value: 'categories',
+                  child: Text('Manage device categories'),
+                ),
               ],
             ),
         ],

@@ -200,6 +200,8 @@ to stop at the declared size.
 
 ### Tranche 0b — QQL image metadata read-only, Local search words (owner decision 2026-09-21)
 
+**Status: implemented as Revision 9 (`2.0.43+243009`).** The schema-2 document keeps the existing preference key. Device categories from Image Bank manifests (with the Admin's confirmation) remain Tranche 4.
+
 **Problem.** `ExerciseImageMetadataService` persists a snapshot of the
 **whole** catalog, including bundled records, in
 `quisquislingo_exercise_image_metadata_v2`. This happens on any Admin edit and

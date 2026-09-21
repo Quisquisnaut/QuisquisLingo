@@ -1,5 +1,29 @@
 # Build 243 validation
 
+## Revision 9 — QQL image metadata read-only; Local words; device categories (`2.0.43+243009`)
+
+Validation on 21 September 2026, before the Revision 9 commit.
+
+- New tests, all passing:
+  - `exercise_image_metadata_0b_test.dart` (10): the one-time conversion
+    (added tags become Local words, removed tags and category return, device
+    records kept, unknown bundled records dropped), a snapshot missing a QQL
+    image no longer failing, Local words for an image no longer shipped
+    ignored, device categories (add/use/rename/remove, name rules, the
+    64-category limit, QQL categories immutable), Local-word limits and
+    QQL-only scope, tile line and search;
+  - `exercise_image_metadata_0b_ui_test.dart` (2): Manage device categories;
+    a QQL image offering Local words, not tag editing.
+- Updated to the owner's decision: `exercise_image_metadata_234_revision_test`
+  and `exercise_image_metadata_admin_ui_234_revision_test`, which had pinned
+  "an Admin edits a QQL image's tags".
+- Focused run across 20 metadata and library files: **161 passed, 0 failed**.
+- Complete suite in two halves covering every test file once:
+  **985 + 1,035 = 2,020 passed, 0 failed**.
+- `flutter analyze` on the repository: **no issues**.
+- The four `tools/validate_*.py` validators: 0 issues.
+- `git diff --check`: clean. The untracked `devtools_options.yaml` is excluded.
+
 ## Revision 8 — remove an image from a Course; badge order (`2.0.43+243008`)
 
 Validation on 21 September 2026, before the Revision 8 commit. The tree
