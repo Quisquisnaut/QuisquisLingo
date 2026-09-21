@@ -1,6 +1,6 @@
 # Course Library (QQL Build 244) — plan
 
-Status: **planned.** Written 2026-09-21 against QQL Build 243 Revision 19
+Status: **in progress** (see [COURSE_LIBRARY_244_HANDOFF.md](COURSE_LIBRARY_244_HANDOFF.md)). Written 2026-09-21 against QQL Build 243 Revision 19
 (`2.0.43+243019`, commit `9b9647c`).
 
 Read `AGENTS.md` first. Its rules apply: smallest correct change, no unrelated
@@ -76,9 +76,8 @@ Course Library                                        [?]
   because they only affect the category bands. On narrow widths they wrap onto
   two lines.
 * The web band is built but **not rendered** while
-  `const _courseWebSiteAvailable = false;`. There is no URL yet, so no
-  launcher call is wired. When the site exists: set the constant to `true`,
-  add the URL constant, and the band shows a `FilledButton.icon` (globe icon)
+  `const Uri? courseLibraryWebSite = null;`. When the site exists, set that
+  constant to its address and the band shows a `FilledButton.icon` (globe icon)
   that opens it with `launchUrl(…, mode: LaunchMode.externalApplication)`; a
   failed launch shows a SnackBar. Caption under the button: "Free and paid
   Courses from QuisquisLingo and publishers. Downloaded Courses are imported
@@ -152,8 +151,9 @@ height and does not suit a 64×64 slot plus seven lines).
   `officialCourseVersion`. Empty after trim → line omitted. Shown verbatim;
   no unified `version` field.
 * **Last edited:** `DateTime.tryParse(modifiedAtUtc)`; valid → `.toLocal()`
-  formatted with `MaterialLocalizations.of(context).formatMediumDate` (the
-  app's locale; no `intl` dependency is added). Invalid or empty → `Last
+  formatted with `MaterialLocalizations.of(context).formatShortDate` (the
+  app's locale, e.g. `Sep 20, 2026`; `formatMediumDate` has no year; no `intl`
+  dependency is added). Invalid or empty → `Last
   edited: Unknown`.
 * **Maintainer:** existing `_maintainer()` unchanged.
 * **Duration:** `1 hour` / `N hours`; absent → omitted in both modes.
@@ -242,7 +242,7 @@ build; handoff doc updated after every commit.
 |---|---|---|
 | 244001 | **Structural only.** Extract draft predicates to `lib/models/course_draft_status.dart`; `AuthoringHierarchyStatus` delegates. No behaviour change. | `course_editor_screen.dart`, new model file |
 | 244002 | Rename to Course Library everywhere (page, Help title, Home ×2, removal dialog, EN/IT help/info). Availability switch, filter, three badges. | `available_courses_screen.dart`, `home_screen.dart`, help/info content |
-| 244003 | Web band (hidden behind `_courseWebSiteAvailable = false`), separated category bands, header counts, empty/hidden messages. | `available_courses_screen.dart` |
+| 244003 | Web band (hidden while `courseLibraryWebSite` is null), separated category bands, header counts, empty/hidden messages. | `available_courses_screen.dart` |
 | 244004 | Richer row, `CourseArtwork` (cover → flag), version/date/duration formatting. | new `course_artwork.dart`, screen, `course_models.dart` comment |
 | 244005 | Sort control and pure sort function. | screen (+ small helper file if the screen grows too large) |
 | 244006 | Compact/expanded per band. | screen |
@@ -276,7 +276,7 @@ must first turn the switch on.
   line absent. Last edited valid/Unknown. Duration singular/plural/absent.
 * Compact/expanded independent per band; badges visible in compact rows.
 * Narrow layout (e.g. 320 px) with all badges and long title: no overflow.
-* Web band absent while `_courseWebSiteAvailable` is false (no "Find Courses
+* Web band absent while `courseLibraryWebSite` is null (no "Find Courses
   on the web" text, no globe button).
 * Help contains the friend/import example and the publisher distribute/sell
   wording.
@@ -291,5 +291,6 @@ must first turn the switch on.
    and no URL constant until the site exists. Help does not mention it.
 2. **Band headings:** long form — Bundled Courses, Publisher Courses, My
    Local Courses, Other Local Courses.
-3. **Date style:** `formatMediumDate` in the app locale is accepted.
+3. **Date style:** the app locale's short date (`formatShortDate`, e.g.
+   `Sep 20, 2026` in US English) is accepted.
 4. **Duration sort:** shortest first, unknown last.

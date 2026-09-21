@@ -51,3 +51,27 @@ Find Courses on the web is built as the first section with a full-width
 button that opens the site externally (SnackBar on failure), but it renders
 only when `courseWebSite` is set. The default `courseLibraryWebSite` is
 `null`, so the section is hidden until the QQL Course web site exists.
+
+## Revision 4 — Richer Course rows and covers
+
+Version **2.0.44+244004**, same Beta expiry. Each row is a fixed artwork slot, the details column and the Add/Remove
+action (trailing at 480 px and wider, below the details when narrower).
+
+`CourseArtwork` (`lib/widgets/course_artwork.dart`) is a fixed square
+(64 px here). A `coverImage` that matches `Course.coverImagePattern` is shown
+through the existing `CourseMediaImage`, which reads the Course media file
+into memory; the decode is bounded with `cacheWidth` = slot × device pixel
+ratio, and the slot crops with `BoxFit.cover`. With no cover, a missing file or
+bytes that do not decode, the slot shows `CourseFlagBadge` with the same
+course-code fallback as Home. The slot size never changes, so rows stay
+aligned. This is the first display of `coverImage`; the model comment is
+updated.
+
+The details are: title (colours unchanged), `source → target`, `Version:`
+(Custom `courseVersion`; Bundled/Publisher `officialCourseVersion`; omitted
+when empty), `Last edited:` (`modifiedAtUtc` in the app locale's short date,
+or `Unknown` if it cannot be parsed), `Maintainer:`, `Duration:` (`1 hour` /
+`N hours` from `estimatedStudyHours`, omitted when absent) and the status
+labels. The values come from `CourseLibraryPresentation`
+(`lib/services/course_library_presentation.dart`), which later sorting will
+reuse. No pseudo-duration is calculated.

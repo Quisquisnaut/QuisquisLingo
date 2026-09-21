@@ -1,5 +1,23 @@
 # Build 244 validation
 
+## Revision 4 — Richer Course rows and covers (`2.0.44+244004`)
+
+Validation on 21 September 2026, before the Revision 4 commit.
+
+- New `test/course_library_rows_244_test.dart`: version for Custom, bundled
+  and Publisher Courses and omitted when empty; `modifiedAtUtc` parsing and
+  the defensive malformed case; duration singular, plural and absent; the
+  expanded row lists its fields in order under the title (`Last edited: Sep
+  20, 2026`); absent version and duration lines are omitted; a stored cover
+  shows as a `ResizeImage`-bounded image with no flag; no cover, a missing
+  media file and undecodable bytes each show the flag; the slot is 64 × 64 in
+  every case; a 320 px row with a long title, every field and a label does not
+  overflow and puts Add below the details.
+- `test/course_library_test.dart` reads titles and rows by key instead of
+  `ListTile`.
+- Focused run: the three Course Library suites **25 passed, 0 failed**;
+  version tests pass; `flutter analyze` on the changed files: no issues.
+
 ## Revision 3 — Course Library sections (`2.0.44+244003`)
 
 Validation on 21 September 2026, before the Revision 3 commit.

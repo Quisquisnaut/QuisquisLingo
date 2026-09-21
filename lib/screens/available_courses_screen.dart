@@ -3,9 +3,12 @@ import 'package:url_launcher/url_launcher.dart';
 import '../models/course_draft_status.dart';
 import '../models/course_models.dart';
 import '../services/course_editor_service.dart';
+import '../services/course_library_presentation.dart';
 import '../services/course_library_service.dart';
+import '../services/course_media_store.dart';
 import '../services/course_service.dart';
 import '../services/publication_service.dart';
+import '../widgets/course_artwork.dart';
 
 /// The QQL Course web site. None exists yet, so Find Courses on the web stays
 /// hidden until this is set.
@@ -34,9 +37,13 @@ class AvailableCoursesScreen extends StatefulWidget {
 
   /// Opens [courseWebSite]; tests replace the external launcher.
   final Future<bool> Function(Uri site)? launchWebSite;
+
+  /// Where Course covers are read from; tests use a temporary folder.
+  final CourseMediaStore? mediaStore;
   const AvailableCoursesScreen({
     super.key,
     this.editorService,
+    this.mediaStore,
     this.courseWebSite = courseLibraryWebSite,
     this.launchWebSite,
   });
@@ -263,63 +270,106 @@ class _AvailableCoursesScreenState extends State<AvailableCoursesScreen> {
     );
   }
 
+  TextStyle _titleStyle(BuildContext context, Course course) {
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    return TextStyle(
+      fontWeight: FontWeight.bold,
+      color: switch (course.originType) {
+        CourseOriginType.bundledOfficial => dark ? Colors.white : Colors.black,
+        CourseOriginType.externalOfficial => Colors.purple,
+        CourseOriginType.custom => Colors.orange,
+      },
+      backgroundColor:
+          course.originType == CourseOriginType.bundledOfficial && dark
+          ? Colors.black
+          : null,
+    );
+  }
+
+  String _lastEdited(BuildContext context, Course course) {
+    final instant = CourseLibraryPresentation.lastEdited(course);
+    return instant == null
+        ? 'Unknown'
+        : MaterialLocalizations.of(context).formatShortDate(instant.toLocal());
+  }
+
   Widget _courseRow(Course course) => LayoutBuilder(
     builder: (context, constraints) {
-      final compact = constraints.maxWidth < 480;
-      return ListTile(
+      final narrow = constraints.maxWidth < 480;
+      final version = CourseLibraryPresentation.version(course);
+      final duration = CourseLibraryPresentation.duration(course);
+      final details = Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            course.title,
+            key: ValueKey('device-course-title-${course.courseId}'),
+            style: _titleStyle(context, course),
+          ),
+          const SizedBox(height: 2),
+          DefaultTextStyle.merge(
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('${course.sourceLanguage} → ${course.targetLanguage}'),
+                if (version != null) Text('Version: $version'),
+                Text('Last edited: ${_lastEdited(context, course)}'),
+                Text('Maintainer: ${_maintainer(course)}'),
+                if (duration != null) Text('Duration: $duration'),
+              ],
+            ),
+          ),
+          if (_isUnavailableOrDraft(course))
+            Padding(
+              padding: const EdgeInsets.only(top: 6),
+              child: Wrap(
+                spacing: 6,
+                runSpacing: 6,
+                children: [
+                  if (_hasAuthoredDraft(course))
+                    const _BlockingStatusBadge('Draft'),
+                  if (_isUnpublished(course))
+                    const _BlockingStatusBadge('Unpublished'),
+                  if (PublicationService.requiresPublisherVerification(course))
+                    const _BlockingStatusBadge('Verification required'),
+                ],
+              ),
+            ),
+          if (narrow)
+            Align(
+              alignment: Alignment.centerLeft,
+              child: _membershipButton(course),
+            ),
+        ],
+      );
+      return DecoratedBox(
         key: ValueKey('device-course-${course.courseId}'),
-        title: Text(
-          course.title,
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: switch (course.originType) {
-              CourseOriginType.bundledOfficial =>
-                Theme.of(context).brightness == Brightness.dark
-                    ? Colors.white
-                    : Colors.black,
-              CourseOriginType.externalOfficial => Colors.purple,
-              CourseOriginType.custom => Colors.orange,
-            },
-            backgroundColor:
-                course.originType == CourseOriginType.bundledOfficial &&
-                    Theme.of(context).brightness == Brightness.dark
-                ? Colors.black
-                : null,
+        decoration: BoxDecoration(
+          border: Border(
+            top: BorderSide(color: Theme.of(context).dividerColor),
           ),
         ),
-        subtitle: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              '${course.sourceLanguage} → ${course.targetLanguage}\nMaintainer: ${_maintainer(course)}',
-            ),
-            if (_isUnavailableOrDraft(course))
-              Padding(
-                padding: const EdgeInsets.only(top: 6),
-                child: Wrap(
-                  spacing: 6,
-                  runSpacing: 6,
-                  children: [
-                    if (_hasAuthoredDraft(course))
-                      const _BlockingStatusBadge('Draft'),
-                    if (_isUnpublished(course))
-                      const _BlockingStatusBadge('Unpublished'),
-                    if (PublicationService.requiresPublisherVerification(
-                      course,
-                    ))
-                      const _BlockingStatusBadge('Verification required'),
-                  ],
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 12, 8, 12),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              CourseArtwork(course: course, mediaStore: widget.mediaStore),
+              const SizedBox(width: 16),
+              Expanded(child: details),
+              if (!narrow)
+                Align(
+                  alignment: Alignment.bottomRight,
+                  child: _membershipButton(course),
                 ),
-              ),
-            if (compact)
-              Align(
-                alignment: Alignment.centerLeft,
-                child: _membershipButton(course),
-              ),
-          ],
+            ],
+          ),
         ),
-        trailing: compact ? null : _membershipButton(course),
       );
     },
   );

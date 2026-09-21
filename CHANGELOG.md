@@ -1,3 +1,14 @@
+# 2.0.44 (Build 244, Revision 4) - Richer Course rows and covers - 2026-09-21
+
+Course Library rows now show the Course cover, or its flag when there is no
+usable cover, in a fixed square beside the title. Under the title each row
+lists the languages, **Version**, **Last edited** date, **Maintainer** and, when
+the author declared it, **Duration**. Official Courses show their release
+version and Custom Courses their Course version. This is the first place QQL
+displays Course covers; they are decoded at thumbnail size, and a missing or
+unreadable cover falls back to the flag.
+Version `2.0.44+244004`; Beta expiry remains **2026-10-21 23:59:59 local time**.
+
 # 2.0.44 (Build 244, Revision 3) - Course Library sections - 2026-09-21
 
 Each Course Library category is now its own clearly separated section with a

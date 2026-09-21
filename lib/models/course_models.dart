@@ -863,7 +863,8 @@ class Course {
   final int? minimumAge;
   final List<String> keywords;
 
-  /// Stored and validated only; the application does not display it yet.
+  /// Shown as the Course's artwork in the Course Library, with the Course
+  /// flag as fallback.
   final String coverImage;
   final String languageVariant;
   final String startLevel;

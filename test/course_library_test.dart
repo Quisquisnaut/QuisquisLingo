@@ -356,18 +356,23 @@ void main() {
       await tester.pumpUntilFileIoState(
         () => find.text('Bundled Courses').evaluate().isNotEmpty,
       );
-      final tiles = tester.widgetList<ListTile>(find.byType(ListTile)).toList();
-      final visibleTitles = tiles
-          .map((tile) => (tile.title! as Text).data!)
+      final bundled = find.byKey(const ValueKey('course-section-0'));
+      final visibleTitles = tester
+          .widgetList<Text>(
+            find.descendant(of: bundled, matching: _courseTitles),
+          )
+          .map((title) => title.data!)
           .toList();
+      expect(visibleTitles, isNotEmpty);
       final sortedTitles = [...visibleTitles]
         ..sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
       expect(visibleTitles, sortedTitles);
+      final rows = find.descendant(of: bundled, matching: _courseRows);
       expect(
-        tiles.every(
-          (tile) => find
+        rows.evaluate().every(
+          (row) => find
               .descendant(
-                of: find.byWidget(tile),
+                of: find.byWidget(row.widget),
                 matching: find.textContaining('Maintainer: '),
               )
               .evaluate()
@@ -457,8 +462,7 @@ void main() {
         expect(find.text(blocked.title), findsNothing);
         await tester.tap(find.byKey(const Key('show-unavailable-courses')));
         await tester.pump();
-        final bundledTitle =
-            tester.widget<ListTile>(find.byType(ListTile).first).title! as Text;
+        final bundledTitle = tester.widgetList<Text>(_courseTitles).first;
         expect(bundledTitle.style?.fontWeight, FontWeight.bold);
         expect(
           bundledTitle.style?.color,
@@ -503,3 +507,18 @@ class _DeviceCourses extends CourseEditorService {
   @override
   Future<List<Course>> listUserCourses() async => courses;
 }
+
+Finder _keyedWith(String prefix) => find.byWidgetPredicate(
+  (widget) =>
+      widget.key is ValueKey<String> &&
+      (widget.key! as ValueKey<String>).value.startsWith(prefix),
+);
+
+final _courseTitles = _keyedWith('device-course-title-');
+final _courseRows = find.byWidgetPredicate(
+  (widget) =>
+      widget.key is ValueKey<String> &&
+      RegExp(
+        r'^device-course-(?!title-)',
+      ).hasMatch((widget.key! as ValueKey<String>).value),
+);
