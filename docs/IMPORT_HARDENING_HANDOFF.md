@@ -4,7 +4,7 @@ Keep this file current at the end of **every** revision, so that work can
 resume after a pause or with another agent. Plan and decisions:
 [IMPORT_HARDENING_PLAN.md](IMPORT_HARDENING_PLAN.md). Rules: `AGENTS.md`.
 
-## Where things stand (updated 2026-09-21, Revision 16 in progress, not committed)
+## Where things stand (updated 2026-09-21, Revision 16 committed; paused by the owner for usage credits)
 
 | Revision | Version | Commit | Content |
 |---|---|---|---|
@@ -19,41 +19,22 @@ resume after a pause or with another agent. Plan and decisions:
 | 13 | `2.0.43+243013` | `da9a3a3` | Tranche 3: `Mp3Validator` on every MP3 route; multi-file Audio Library Open from… with summary; duplicate clips skipped; Dummy media fixture re-signed |
 | 14 | `2.0.43+243014` | `eb0857a` | Tranche 4 part 1: `BoundedZipReader` for banks and packages; bank allowlist, object manifest, field bounds, Admin choice on new categories; `JsonLimits`/`CourseShapeLimits` |
 | 15 | `2.0.43+243015` | `a188613` | Tranche 4 part 2: Course packages parsed from disk; referenced media staged one at a time; `CoursePackage.mediaReferences`/`mediaBytes`/`discard()` |
+| 16 | `2.0.43+243016` | `21bf653` | Tranche 5 part 1: content duplicates skipped; bank ID conflicts Skip/Replace/Keep both + Apply to all; `ImageProvenance`; date sort; screen renamed Shared Images; web page saved as `.mp3` explained |
 
-Revisions 5–15 are pushed to `origin/main`. The untracked
+Revisions 5–16 are pushed to `origin/main`. The untracked
 `devtools_options.yaml` predates this work: never commit or delete it.
 
 ## Next steps, in order (plan §6a)
 
-1. **Revision 16 (Tranche 5, part 1)**, in progress in the working tree:
-   - `ImageProvenance` on `ExerciseImageMetadata` (`provenance` in stored
-     records); `ExerciseImageMetadataService.contentIndex` (SHA-256 of QQL
-     and device images, hashes cached lazily) and `applyLocalRecords`
-     (add + replace in one write; QQL images never replaced).
-   - `ExerciseImageService.addToSharedLibrary` skips exact duplicates
-     (`DuplicateImageException`) and records provenance.
-   - `ImageBankService.importToSharedLibrary`: content duplicates skipped
-     silently; same ID + different picture → `chooseConflict` (Skip /
-     Replace / Keep both + Apply to all); result counts; provenance.
-     Screen dialog keys `bank-conflict-*`; bank removal keeps records a
-     later bank replaced; date sort prefers `importedAtUtc`.
-   - Owner request folded in: the screen is renamed **Shared Images**
-     (title bar, Device Administration tile, Course Manager button only).
-   - Owner request folded in: a web page saved as `.mp3` (a failed download,
-     e.g. a site's "download redirect" page) gets a plain explanation
-     (`lib/services/import/web_page_detector.dart`, used first by
-     `Mp3Validator`). Owner: no exact byte counts in messages.
-   - Done: Tranche 4 tests use `uniquePng(seed)`
-     (`test/support/unique_png.dart`) and a failing metadata stub. Left: add
-     Revision 16 tests (provenance, duplicates, conflicts, date), docs/Help,
-     bump to `243016`, full suite, commit, push.
-2. **Revision 17 (owner request 2026-09-21): clearer media error
+**Paused here by the owner (usage credits).** Resume with item 1.
+
+1. **Revision 17 (owner request 2026-09-21): clearer media error
    messages.** Every media error (images, recordings, Image Banks, Course
    package media, Lesson icons, flags; about 110 messages) says in plain
    words what is wrong and what to do; no exact byte counts. Recognise what
    a mislabelled file really is (web page, ZIP, PDF, picture named .mp3,
    recording named .png…) and say so. Update tests that match messages.
-3. **Revision 18 (owner decision 2026-09-21):** in the full-size preview
+2. **Revision 18 (owner decision 2026-09-21):** in the full-size preview
    (`FlatImageLibraryScreen._preview`, both Shared Images and the Course
    Editor's Image Library), a tooltip on the picture: hover on desktop,
    long-press on phones, none on tiles. Content: file name (QQL asset name;
@@ -65,7 +46,7 @@ Revisions 5–15 are pushed to `origin/main`. The untracked
    this Course". Owner: "Yes to all. Only English": format and bank
    name in, importing Admin's name out (as proposed; one line to add if the
    owner wants it), Help text in English only.
-4. **Phase 20 route-matrix adversarial suite**: Revision 19.
+3. **Phase 20 route-matrix adversarial suite**: Revision 19.
 
 ## Owner decisions already taken
 
