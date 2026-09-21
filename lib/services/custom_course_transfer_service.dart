@@ -9,9 +9,12 @@ import '../models/course_models.dart';
 import 'file_dialog_service.dart';
 import 'course_package_service.dart';
 import 'course_media_store.dart';
+import 'course_image_usage.dart';
+import 'portable_exercise_image.dart';
 import 'publisher_verification_service.dart';
 import 'import/selected_external_file.dart';
 import 'import/json_limits.dart';
+import 'import/image_validator.dart';
 
 /// The exact bytes and base file name a course export produces, shared by the
 /// fixed-folder Export and the dialog-based Save to…
@@ -228,13 +231,28 @@ class CustomCourseTransferService {
       );
     }
     if (course.flagImageBase64.isNotEmpty) {
+      late final Uint8List flagBytes;
       try {
-        base64Decode(course.flagImageBase64);
+        flagBytes = base64Decode(course.flagImageBase64);
       } catch (_) {
         throw const FormatException(
           'Embedded custom flag data are not valid Base64.',
         );
       }
+      await ImageValidator.validate(flagBytes, ImageProfile.courseFlag);
+    }
+    // Course.fromJson checks the shape of embedded assets. Imported bytes
+    // also need the same content check used when the Editor first picks them.
+    for (final icon in course.lessonIconAssets) {
+      await ImageValidator.validate(
+        base64Decode(icon.base64Png),
+        ImageProfile.lessonIcon,
+      );
+    }
+    for (final asset in CourseImageUsage.usedAssets(course)) {
+      if (!asset.startsWith('data:image/')) continue;
+      final bytes = PortableExerciseImageService.decode(asset)!;
+      await ImageValidator.validate(bytes, ImageProfile.exerciseImage);
     }
     if (course.originType == CourseOriginType.bundledOfficial) {
       throw const FormatException(

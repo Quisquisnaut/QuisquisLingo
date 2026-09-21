@@ -797,3 +797,16 @@ missing file shows “File missing”; a merged device/Course tile says “Also
 stored in this Course”. This tooltip appears only in the full-size preview.
 Stored images are read for details without import validation. English Editor
 Help explains the hover and long-press gestures.
+
+## Revision 19 — Phase 20 import route matrix
+
+Version **2.0.43+243019**, same Beta expiry. `tools/generate_import_matrix_fixtures.py`
+produces small, synthetic image, MP3, JSON and ZIP fixtures in
+`test/fixtures/import/`. `test/import_route_matrix_revision19_test.dart`
+asserts each applicable fixed-folder, Open from…, batch, Course ZIP and
+embedded Course JSON route. Positive controls confirm that valid synthetic
+media still imports. The suite exposed an import gap: Course JSON accepted
+animated embedded exercise images, Lesson icons and flags. The Course import
+reader now runs those bytes through `ImageValidator` after parsing the Course,
+using `CourseImageUsage` for every embedded exercise image. It applies only
+while importing; existing stored Course images are not rechecked.

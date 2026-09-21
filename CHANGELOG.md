@@ -1,3 +1,12 @@
+# 2.0.43 (Build 243, Revision 19) - Phase 20 import route matrix - 2026-09-21
+
+Small synthetic fixtures now exercise the fixed-folder, Open from…, and Course
+package routes for structured files, images, Image Banks and MP3s. The matrix
+found that embedded exercise images, custom Lesson icons and custom flags in
+Course JSON were not content-checked at import. Those bytes now pass the same
+image validator as direct imports; already stored Courses remain unchanged.
+Version `2.0.43+243019`; Beta expiry remains **2026-10-21 23:59:59 local time**.
+
 # 2.0.43 (Build 243, Revision 18) - Image preview details - 2026-09-21
 
 The full-size preview in Shared Images and the Course Editor's Image Library

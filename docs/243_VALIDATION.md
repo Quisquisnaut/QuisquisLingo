@@ -1,5 +1,28 @@
 # Build 243 validation
 
+## Revision 19 — Phase 20 route matrix (`2.0.43+243019`)
+
+Validation on 21 September 2026, before the Revision 19 commit.
+
+- Generated fixtures are synthetic and small; oversize cases remain generated
+  at test time in the earlier tranche tests. The route matrix covers all 14
+  artifact families in `docs/IMPORT_HARDENING_PLAN.md` §5, including the
+  generated-MP3 validator hook (no generated-MP3 UI route exists).
+- 37 route-matrix tests cover invalid UTF-8, excessive JSON nesting, NUL
+  identities, unsafe ZIP paths, missing Image Bank manifests, animated and
+  oversized-header images, mislabeled images/audio, truncated MP3s and ID3
+  artwork. Valid image, embedded Course JSON, bank, MP3 and Course package
+  controls pass.
+- The first matrix run exposed three embedded Course JSON image gaps. The
+  import reader now validates exercise images, Lesson icons and flags on
+  fixed-folder, Open from… and Course ZIP import paths. Focused matrix and
+  existing Course import tests pass after this correction.
+- Clean full suite: **2,173 passed, 0 failed** (`flutter test --no-pub`).
+- `flutter analyze --no-pub`: **no issues**.
+- The four `tools/validate_*.py` validators: 0 issues.
+- `git diff --check`: clean. The pre-existing untracked
+  `devtools_options.yaml` is excluded.
+
 ## Revision 18 — image preview details (`2.0.43+243018`)
 
 Validation on 21 September 2026, before the Revision 18 commit.
