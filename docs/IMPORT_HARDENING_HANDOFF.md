@@ -4,7 +4,7 @@ Keep this file current at the end of **every** revision, so that work can
 resume after a pause or with another agent. Plan and decisions:
 [IMPORT_HARDENING_PLAN.md](IMPORT_HARDENING_PLAN.md). Rules: `AGENTS.md`.
 
-## Where things stand (updated 2026-09-21 17:57, Revision 12 in validation)
+## Where things stand (updated 2026-09-21 18:08, Revision 12 committed)
 
 | Revision | Version | Commit | Content |
 |---|---|---|---|
@@ -15,29 +15,21 @@ resume after a pause or with another agent. Plan and decisions:
 | 9 | `2.0.43+243009` | `c34aa60` | Tranche 0b: QQL image metadata read-only; Local words; device categories; schema-2 metadata document (fixes the snapshot failure) |
 | 10 | `2.0.43+243010` | `b2b7d7d` | Tranche 1: safe import foundation (streamed staging under real limits, ordinary files only, per-file batch results, cancellation) |
 | 11 | `2.0.43+243011` | `3ed36fa` | Tranche 2: one image validator for every image import; Shared Library multi-file import with summary; N6/N7 fixed |
+| 12 | `2.0.43+243012` | `a40999d` | Tranche 2b: add images and Image Banks to a Course's own library; readBank split; entry metadata |
 
-Revisions 5–11 are pushed to `origin/main`. The untracked
+Revisions 5–12 are pushed to `origin/main`. The untracked
 `devtools_options.yaml` predates this work: never commit or delete it.
-
-## Revision 12 (Tranche 2b) — in validation
-
-Implemented in the working tree (`2.0.43+243012`, analyzer clean): **Add
-images to this Course** in the Course Editor's Image Library,
-`ImageBankService.readBank` (checks without writing), and extended
-`CourseImageLibraryEntry` metadata. `course_image_library_import_test.dart`
-(5) passes. Still to do: the full suite in two halves, validation record,
-commit, hash here, push.
 
 ## Next steps, in order (plan §6a)
 
-1. **Tranche 2b** (plan): import single images, several images or an Image
-   Bank into a Course's own `imageLibrary` from the Course Editor's Image
-   Library. The model is done (Revision 8). Use
-   `ExerciseImageService.readImage`, `readImageFromDialog` and
-   `readImagesFromDialog`, then `CourseMediaStore.addValidated` and
-   `CourseImageRemoval.updateLibrary(keep:)` through the editor's
-   `_updateDraft`. Apply the 300 MB package pre-check before writing.
-2. **Tranches 3, 4, 5** in that order.
+1. **Tranche 3** (plan): real MP3 validation (`Mp3Validator`: ID3v2
+   bounded, MPEG-1/2/2.5 Layer III only, at least 4 consecutive valid frames,
+   ID3v1/APEv2 trailers within 2 MB, `APIC`/`PIC` artwork rejected, 30 s
+   watchdog), used by every MP3 route (fixed folder, Open from…, Course ZIP
+   `.mp3` media on import). Multi-file Audio Library **Open from…** through
+   `FileDialogService.openFiles` and `showImportSummary`. A duplicate clip
+   (same SHA-256 already in the Course's Audio Library) is `DuplicateSkipped`.
+2. **Tranches 4, 5** in that order.
 
 ## Owner decisions already taken
 
