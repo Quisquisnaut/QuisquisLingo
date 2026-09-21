@@ -4,7 +4,7 @@ Keep this file current at the end of **every** revision, so that work can
 resume after a pause or with another agent. Plan and decisions:
 [IMPORT_HARDENING_PLAN.md](IMPORT_HARDENING_PLAN.md). Rules: `AGENTS.md`.
 
-## Where things stand (updated 2026-09-21, Revision 17 committed)
+## Where things stand (updated 2026-09-21, Revision 18 committed)
 
 | Revision | Version | Commit | Content |
 |---|---|---|---|
@@ -21,26 +21,18 @@ resume after a pause or with another agent. Plan and decisions:
 | 15 | `2.0.43+243015` | `a188613` | Tranche 4 part 2: Course packages parsed from disk; referenced media staged one at a time; `CoursePackage.mediaReferences`/`mediaBytes`/`discard()` |
 | 16 | `2.0.43+243016` | `21bf653` | Tranche 5 part 1: content duplicates skipped; bank ID conflicts Skip/Replace/Keep both + Apply to all; `ImageProvenance`; date sort; screen renamed Shared Images; web page saved as `.mp3` explained |
 | 17 | `2.0.43+243017` | `2959fff` | Clearer media errors and wrong-file identification; Image Bank manifest creation guidance in errors and Help; On-Device TTS label and mode-specific Audio Library text/actions |
+| 18 | `2.0.43+243018` | `f44fc7b` | Full-size image preview tooltip with file details, attribution and missing-file state; English Help guidance |
 
-Revisions 5–16 are pushed to `origin/main`; Revision 17 is committed locally.
-The untracked `devtools_options.yaml` and `assets/lesson_plants/plant_1.zip`
-predate this work: never commit or delete them.
+Revisions 5–16 are pushed to `origin/main`; Revisions 17–18 are committed locally.
+The untracked `devtools_options.yaml` predates this work and must not be committed
+or deleted. The owner removed `assets/lesson_plants/plant_1.zip` manually.
 
 ## Next steps, in order (plan §6a)
 
-1. **Revision 18 (owner decision 2026-09-21):** in the full-size preview
-   (`FlatImageLibraryScreen._preview`, both Shared Images and the Course
-   Editor's Image Library), a tooltip on the picture: hover on desktop,
-   long-press on phones, none on tiles. Content: file name (QQL asset name;
-   the recorded original name from Revision 16 on; the stored name for older
-   imports; "Course file (named by content)" for `media:` files), approximate
-   size, pixel dimensions, format, added date (recorded, else derived; QQL
-   images "Included with QQL"), bank name for bank images, attribution;
-   "File missing" when the file is gone; merged tiles add "Also stored in
-   this Course". Owner: "Yes to all. Only English": format and bank
-   name in, importing Admin's name out (as proposed; one line to add if the
-   owner wants it), Help text in English only.
-2. **Phase 20 route-matrix adversarial suite**: Revision 19.
+1. **Phase 20 route-matrix adversarial suite**: Revision 19. Generate small
+   synthetic fixtures under `test/fixtures/import/`, exercise each applicable
+   fixed-folder, Open from…, and package route in the §5 matrix, then run the
+   release checklist below.
 
 ## Owner decisions already taken
 
