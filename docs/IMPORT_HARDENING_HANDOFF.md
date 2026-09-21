@@ -4,48 +4,17 @@ Keep this file current at the end of **every** revision, so that work can
 resume after a pause or with another agent. Plan and decisions:
 [IMPORT_HARDENING_PLAN.md](IMPORT_HARDENING_PLAN.md). Rules: `AGENTS.md`.
 
-## Where things stand (updated 2026-09-21, Revision 8)
+## Where things stand (updated 2026-09-21 16:35, Revision 8 committed)
 
 | Revision | Version | Commit | Content |
 |---|---|---|---|
 | 5 | `2.0.43+243005` | `86ae4d2` | Image Library usability: IN USE badge, badge overlay/filter, sorting, merged device/Course tile, compact tiles and chips |
 | 6 | `2.0.43+243006` | `0976ed0` | Tranche 0 memory-safety fixes: cover header check, Image Bank pre-scan and bounded inflation, 4096 px icons/flags, animated images refused on import |
 | 7 | `2.0.43+243007` | `4230d94` | Image library tidy-up: `CourseImageUsage` single usage rule (presentations and GuideBooks now count), `image_library_rules.dart`, `ExerciseImageField` |
-| 8 | `2.0.43+243008` | *see `git log`* | Badge order IN USE first; Remove from this Course (`CourseImageRemoval`, Draft on Audit error) |
+| 8 | `2.0.43+243008` | `8a27dfe` | Badge order IN USE first; Remove from this Course (`CourseImageRemoval`, Draft on Audit error); `imageLibrary` with Keep in library; bin on every Course-stored image |
 
 Revisions 5–8 are pushed to `origin/main` with the Revision 8 commit. The untracked
 `devtools_options.yaml` predates this work: never commit or delete it.
-
-## Revision 8 — work in progress (uncommitted working tree)
-
-Resume here if the session stopped. Done in the working tree (analyzer clean):
-
-- Badge order IN USE, QQL, DEVICE, COURSE (`image_library_rules.dart`,
-  `exercise_image_field.dart`) and its tests.
-- `CourseImageRemoval` (`lib/services/course_image_removal.dart`) with
-  `test/course_image_removal_test.dart` (passing).
-- **Remove from this Course** in the Image Library (`onCourseChanged`,
-  corner bin plus preview button, confirmation listing every use), wired to
-  the Course Editor's `_updateDraft`. `test/flat_image_library_removal_test.dart`
-  passes.
-- Owner additions, started:
-  - Course field `imageLibrary` (`CourseImageLibraryEntry` in
-    `course_models.dart`: asset plus optional `sharedImageSource`, each asset
-    once, omitted when empty). It is carried by Duplicate/Fork, authoring
-    transfer, and Merge (union, left wins). `CourseMediaStore.referencesOf`
-    includes it, so cleanup, ZIP and backups keep those files.
-
-Status at 16:20: items 1–4 below are **done** (the second question, bins on
-every Course-stored image, `imageLibrary` tests, docs). Focused tests passed:
-229 across 30 related files, plus the new model and removal tests. The
-analyzer is clean.
-
-Still to do for Revision 8:
-
-5. Run the full suite in two halves (split `find test -name "*_test.dart" |
-   sort` in half), record it in `243_VALIDATION.md`, commit Revision 8 with a
-   message describing Revisions 5–8, fill in the commit hash here, and push
-   `origin/main` (owner-approved).
 
 ## Next steps, in order (plan §6a)
 
