@@ -583,3 +583,37 @@ Version **2.0.43+243011**, same Beta expiry. Tranche 2 of
   and `validate` keep their earlier rules for stored Courses.
 - **Help:** English and Italian Help name **Open image files from…** and
   explain the content check.
+
+## Revision 12 — add images and Image Banks to a Course
+
+Version **2.0.43+243012**, same Beta expiry. Tranche 2b of
+`docs/IMPORT_HARDENING_PLAN.md`.
+
+- **Model:** `CourseImageLibraryEntry` gains optional `label` (1–200),
+  `category` (a lowercase Course-scoped name), `tags` (at most 32 of 80) and
+  `attribution`. Control characters are refused. Each field is omitted when
+  empty, so earlier Courses stay byte-identical. `CourseImageLibraryEntry.checked`
+  enforces the limits for JSON and Image Bank data alike.
+  `CourseImageRemoval.updateLibrary(add:)` adds entries.
+- **Image Bank reading is separate from writing.**
+  `ImageBankService.readBank` performs every check (pre-scan, bounded
+  inflation, manifest, image structure) and writes nothing.
+  `importBankZip` (Shared Image Library) writes what `readBank` returned, so
+  its behaviour is unchanged. `readBankFromFolder` and `readBankFromDialog`
+  serve Course imports.
+- **Image Library (Course Editor):** **Add images to this Course**
+  (`course-image-add`) offers Import image (fixed folder), Open image files
+  from… (up to 100), Import Image Bank ZIP and Open Image Bank ZIP from….
+  - Images come from `ExerciseImageService.read*` or `readBank*`.
+  - The Course folder's stored bytes plus the incoming bytes must stay within
+    `CoursePackageService.maxPackageBytes` (300 MB). Otherwise nothing is
+    written and the room left is shown.
+  - An image the Course already keeps is `DuplicateSkipped`.
+  - Each new image is stored with `addBytes` under its content-derived
+    extension and listed in `imageLibrary` through the editor's working copy.
+  - It ends with `showImportSummary`.
+  - The screen shows an entry's own name, category, tags and credit.
+- **Authorization:** the menu appears only when the Course Editor passes
+  `onCourseChanged` (Edit mode on a Course the user may edit), and the change
+  goes through `_updateDraft`.
+- **Help:** English and Italian Help and `docs/COURSE_EDITOR.md` describe it.

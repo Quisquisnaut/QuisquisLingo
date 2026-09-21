@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:archive/archive.dart';
 import 'package:path_provider/path_provider.dart';
@@ -43,6 +44,40 @@ class ImageBankImportResult {
   });
 }
 
+/// One image of an Image Bank, checked and held in memory.
+class BankImage {
+  const BankImage({
+    required this.id,
+    required this.label,
+    required this.category,
+    required this.tags,
+    required this.filename,
+    required this.bytes,
+    this.attribution,
+  });
+
+  final String id;
+  final String label;
+  final String category;
+  final List<String> tags;
+  final String filename;
+  final Uint8List bytes;
+  final ImageAttribution? attribution;
+}
+
+/// An Image Bank that passed every check. Nothing has been written.
+class ParsedImageBank {
+  const ParsedImageBank({
+    required this.name,
+    required this.warnings,
+    required this.images,
+  });
+
+  final String name;
+  final List<String> warnings;
+  final List<BankImage> images;
+}
+
 class ImageBankService {
   static const int maxImageBytes = 50 * 1024;
   static const int maxZipBytes = 50 * 1024 * 1024;
@@ -74,6 +109,19 @@ class ImageBankService {
   /// dialog failed; see the dialog result.
   Future<({FileDialogResult dialog, ImageBankImportResult? result})>
   importBankZipFromDialog({Set<String> existingIds = const {}}) async {
+    ImageBankImportResult? result;
+    final dialog = await _withDialogZip((file) async {
+      result = await importBankZip(file, existingIds: existingIds);
+    });
+    return (dialog: dialog, result: result);
+  }
+
+  /// Picks a ZIP in the system dialog and hands it to [body] as a temporary
+  /// file that keeps the ZIP's own name (which names the bank); the copy is
+  /// always deleted.
+  Future<FileDialogResult> _withDialogZip(
+    Future<void> Function(File zip) body,
+  ) async {
     final picked = await _fileDialogs.openBytes(
       extensions: const ['zip'],
       maxBytes: maxZipBytes,
@@ -84,9 +132,7 @@ class ImageBankService {
         'Image Bank ZIP exceeds the 50 MB safety limit.',
       );
     }
-    if (picked.outcome != FileDialogOutcome.opened) {
-      return (dialog: picked, result: null);
-    }
+    if (picked.outcome != FileDialogOutcome.opened) return picked;
     final staging = await (await _temporaryDirectory()).createTemp(
       'qql_image_bank_',
     );
@@ -94,8 +140,8 @@ class ImageBankService {
       final name = picked.displayName!.replaceAll(RegExp(r'[\\/:*?"<>|]'), '_');
       final file = File('${staging.path}${Platform.pathSeparator}$name');
       await file.writeAsBytes(picked.bytes!, flush: true);
-      final result = await importBankZip(file, existingIds: existingIds);
-      return (dialog: picked, result: result);
+      await body(file);
+      return picked;
     } finally {
       try {
         await staging.delete(recursive: true);
@@ -124,7 +170,25 @@ class ImageBankService {
 
   Future<ImageBankImportResult?> pickAndImportBank({
     Set<String> existingIds = const {},
-  }) async {
+  }) async =>
+      importBankZip(await _folderZip(), existingIds: existingIds);
+
+  /// The one Image Bank ZIP in the fixed import folder, read and checked
+  /// without writing anything (a Course's own library imports from this).
+  Future<ParsedImageBank> readBankFromFolder() async =>
+      readBank(await _folderZip());
+
+  /// Open from…: an Image Bank ZIP read and checked without writing anything.
+  Future<({FileDialogResult dialog, ParsedImageBank? bank})>
+  readBankFromDialog() async {
+    ParsedImageBank? bank;
+    final dialog = await _withDialogZip((file) async {
+      bank = await readBank(file);
+    });
+    return (dialog: dialog, bank: bank);
+  }
+
+  Future<File> _folderZip() async {
     final importDir = await fixedImportDirectory();
     final zipFiles = await importDir
         .list(followLinks: false)
@@ -145,10 +209,14 @@ class ImageBankService {
         'More than one ZIP was found in ${importDir.path}. Keep only the Image Bank ZIP you want to import, then try again.',
       );
     }
-    return importBankZip(zipFiles.single, existingIds: existingIds);
+    return zipFiles.single;
   }
 
-  Future<ImageBankImportResult> importBankZip(
+  /// Reads and checks an Image Bank ZIP without writing anything: the
+  /// archive pre-scan, the manifest, and every image's size and structure.
+  /// Both the Shared Image Library and a Course's own library import from
+  /// this.
+  Future<ParsedImageBank> readBank(
     File zipFile, {
     Set<String> existingIds = const {},
   }) async {
@@ -329,6 +397,72 @@ class ImageBankService {
       }
     }
 
+    // Authoritative size accounting, measured after inflation. The declared
+    // sizes checked above cannot be trusted: a ZIP may claim an entry is
+    // 500 bytes and inflate to megabytes, which would otherwise slip past
+    // both the per-image and the total limit.
+    final images = <BankImage>[];
+    var inflatedImageBytes = 0;
+    for (final item in entries) {
+      final filename = item['filename'].toString();
+      final source = byBasename[filename]!;
+      final sourceBytes = readBoundedEntry(
+        source,
+        source.size,
+        overflowMessage: 'Image asset expands beyond its declared size: $filename',
+        damagedMessage: 'Image asset could not be read from ZIP: $filename',
+      );
+      try {
+        ImageValidator.inspect(sourceBytes, ImageProfile.exerciseImage);
+      } on ImageValidationException catch (error) {
+        throw FormatException('Image Bank image $filename: ${error.message}');
+      }
+      if (sourceBytes.length > maxImageBytes) {
+        throw FormatException(
+          'Image asset exceeds the 50 KB maximum: $filename '
+          '(${sourceBytes.length} bytes)',
+        );
+      }
+      inflatedImageBytes += sourceBytes.length;
+      if (inflatedImageBytes > maxTotalImageBytes) {
+        throw const FormatException(
+          'Image Bank decompressed image data exceeds the 50 MB safety limit.',
+        );
+      }
+      final tags = item['keywords'] is List
+          ? (item['keywords'] as List).map((tag) => tag.toString()).toList()
+          : item['tags'] is List
+          ? (item['tags'] as List).map((tag) => tag.toString()).toList()
+          : <String>[];
+      images.add(
+        BankImage(
+          id: item['id'].toString(),
+          label: (item['primary_term'] ?? item['label']).toString(),
+          category: (item['category'] ?? 'other').toString(),
+          tags: tags,
+          filename: filename,
+          bytes: sourceBytes,
+          attribution: attributions[item['id'].toString()],
+        ),
+      );
+    }
+    return ParsedImageBank(
+      name: zipFile.uri.pathSegments.last.replaceFirst(
+        RegExp(r'\.zip$', caseSensitive: false),
+        '',
+      ),
+      warnings: warnings,
+      images: images,
+    );
+  }
+
+  /// Imports an Image Bank into the Shared Image Library: [readBank], then
+  /// the bank's own folder, manifest and records.
+  Future<ImageBankImportResult> importBankZip(
+    File zipFile, {
+    Set<String> existingIds = const {},
+  }) async {
+    final bank = await readBank(zipFile, existingIds: existingIds);
     final support = await getApplicationSupportDirectory();
     final bankId = 'bank_${DateTime.now().microsecondsSinceEpoch}';
     final dir = Directory(
@@ -338,65 +472,28 @@ class ImageBankService {
     final imagesDir = Directory('${dir.path}${Platform.pathSeparator}images');
     try {
       await imagesDir.create(recursive: true);
-
       final normalizedManifest = <Map<String, dynamic>>[];
       final records = <ExerciseImageMetadata>[];
-      // Authoritative size accounting, measured after inflation. The declared
-      // sizes checked above cannot be trusted: a ZIP may claim an entry is
-      // 500 bytes and inflate to megabytes, which would otherwise slip past
-      // both the per-image and the total limit.
-      var inflatedImageBytes = 0;
-      for (final item in entries) {
-        final filename = item['filename'].toString();
-        final source = byBasename[filename]!;
+      for (final image in bank.images) {
         final target = File(
-          '${imagesDir.path}${Platform.pathSeparator}$filename',
+          '${imagesDir.path}${Platform.pathSeparator}${image.filename}',
         );
-        final sourceBytes = readBoundedEntry(
-          source,
-          source.size,
-          overflowMessage:
-              'Image asset expands beyond its declared size: $filename',
-          damagedMessage: 'Image asset could not be read from ZIP: $filename',
-        );
-        try {
-          ImageValidator.inspect(sourceBytes, ImageProfile.exerciseImage);
-        } on ImageValidationException catch (error) {
-          throw FormatException('Image Bank image $filename: ${error.message}');
-        }
-        if (sourceBytes.length > maxImageBytes) {
-          throw FormatException(
-            'Image asset exceeds the 50 KB maximum: $filename '
-            '(${sourceBytes.length} bytes)',
-          );
-        }
-        inflatedImageBytes += sourceBytes.length;
-        if (inflatedImageBytes > maxTotalImageBytes) {
-          throw const FormatException(
-            'Image Bank decompressed image data exceeds the 50 MB safety limit.',
-          );
-        }
-        await target.writeAsBytes(sourceBytes, flush: true);
+        await target.writeAsBytes(image.bytes, flush: true);
         normalizedManifest.add({
-          'id': item['id'],
-          'label': item['primary_term'] ?? item['label'],
+          'id': image.id,
+          'label': image.label,
           'assetPath': target.path,
           'bankId': bankId,
         });
-        final tags = item['keywords'] is List
-            ? (item['keywords'] as List).map((tag) => tag.toString()).toList()
-            : item['tags'] is List
-            ? (item['tags'] as List).map((tag) => tag.toString()).toList()
-            : <String>[];
         records.add(
           ExerciseImageMetadata(
-            id: item['id'].toString(),
-            label: (item['primary_term'] ?? item['label']).toString(),
-            category: (item['category'] ?? 'other').toString(),
-            tags: tags,
+            id: image.id,
+            label: image.label,
+            category: image.category,
+            tags: image.tags,
             assetPath: target.path,
             origin: 'bank:$bankId',
-            attribution: attributions[item['id'].toString()],
+            attribution: image.attribution,
           ),
         );
       }
@@ -406,19 +503,15 @@ class ImageBankService {
 
       final prefs = await SharedPreferences.getInstance();
       final current = prefs.getStringList(banksKey) ?? <String>[];
-      final name = zipFile.uri.pathSegments.last.replaceFirst(
-        RegExp(r'\.zip$', caseSensitive: false),
-        '',
-      );
-      final bank = ImportedImageBank(id: bankId, path: dir.path, name: name);
+      final entry = ImportedImageBank(id: bankId, path: dir.path, name: bank.name);
       await prefs.setStringList(banksKey, [
         ...current,
-        jsonEncode(bank.toJson()),
+        jsonEncode(entry.toJson()),
       ]);
       return ImageBankImportResult(
-        bankName: name,
+        bankName: bank.name,
         imported: normalizedManifest.length,
-        warnings: warnings,
+        warnings: bank.warnings,
         records: List.unmodifiable(records),
       );
     } catch (_) {

@@ -1,3 +1,13 @@
+# 2.0.43 (Build 243, Revision 12) - Add images and Image Banks to a Course - 2026-09-21
+
+Tranche 2b of the [import hardening plan](docs/IMPORT_HARDENING_PLAN.md). Scope: [Build 243 change summary](docs/243_CHANGE_SUMMARY.md#revision-12--add-images-and-image-banks-to-a-course); evidence: [243 validation](docs/243_VALIDATION.md).
+
+- Platform version `2.0.43+243012`; the Beta expiry remains **2026-10-21 23:59:59 local time**.
+- In the Course Editor's Image Library, **Add images to this Course** imports one image, several at once, or a whole Image Bank ZIP into the Course's own library. No Admin rights are needed, and nothing reaches the device's Shared Image Library.
+- The images stay unused until an exercise uses them (`COURSE`, then `COURSE · IN USE`), travel in the Course ZIP and backups, and can be removed with the bin.
+- Every image passes the image check, duplicates are skipped, and nothing is written if the Course would pass its 300 MB package limit. One summary lists each file's result.
+- An Image Bank imported into a Course keeps its names, categories, tags and credits inside the Course.
+
 # 2.0.43 (Build 243, Revision 11) - One image check for every image import - 2026-09-21
 
 Tranche 2 of the [import hardening plan](docs/IMPORT_HARDENING_PLAN.md). Scope: [Build 243 change summary](docs/243_CHANGE_SUMMARY.md#revision-11--one-image-check-for-every-image-import); evidence: [243 validation](docs/243_VALIDATION.md).

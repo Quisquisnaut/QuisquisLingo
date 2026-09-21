@@ -1,5 +1,33 @@
 # Build 243 validation
 
+## Revision 12 — add images and Image Banks to a Course (`2.0.43+243012`)
+
+Validation on 21 September 2026, before the Revision 12 commit.
+
+- New `course_image_library_import_test.dart` (5), all passing:
+  - entry metadata round-trips and is omitted when empty;
+  - label, category, tag and control-character limits are enforced;
+  - **Open image files from…** into a Course: two valid images are added,
+    unused and stored in the Course folder; a duplicate is skipped; a text
+    file is refused; the summary counts are right; nothing reaches the Shared
+    Image Library;
+  - **Open Image Bank ZIP from…** into a Course keeps the label, category
+    (`food` mapped to `food_drinks`), tags and credit, and creates no
+    `image_banks` folder;
+  - a Course folder 100 bytes under 300 MB refuses the import before any
+    write.
+- The existing Image Bank tests (25) pass unchanged after the split into
+  `readBank` and `importBankZip`.
+- Two defects in the new test itself were fixed before this run. The 300 MB
+  case first left 1,024 bytes free for a 560-byte image, so it rightly
+  imported. An escape written as `\u0000` had been saved as a raw NUL byte. A
+  scan of `lib/` and `test/` finds no raw control bytes.
+- Complete suite in two halves covering all 232 test files once:
+  **990 + 1,064 = 2,054 passed, 0 failed**.
+- `flutter analyze` on the repository: **no issues**.
+- The four `tools/validate_*.py` validators: 0 issues.
+- `git diff --check`: clean. The untracked `devtools_options.yaml` is excluded.
+
 ## Revision 11 — one image check for every image import (`2.0.43+243011`)
 
 Validation on 21 September 2026, before the Revision 11 commit.

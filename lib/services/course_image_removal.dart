@@ -138,6 +138,7 @@ abstract final class CourseImageRemoval {
     Course course, {
     Set<String> remove = const {},
     Map<String, SharedImageSource?> keep = const {},
+    List<CourseImageLibraryEntry> add = const [],
   }) {
     final entries = <String, CourseImageLibraryEntry>{
       for (final entry in course.imageLibrary)
@@ -149,6 +150,9 @@ abstract final class CourseImageRemoval {
         () => CourseImageLibraryEntry(asset: asset, sharedImageSource: source),
       ),
     );
+    for (final entry in add) {
+      entries.putIfAbsent(entry.asset, () => entry);
+    }
     final json = course.toJson()..remove('imageLibrary');
     if (entries.isNotEmpty) {
       json['imageLibrary'] = [

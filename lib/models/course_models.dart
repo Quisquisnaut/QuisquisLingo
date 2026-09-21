@@ -2408,7 +2408,14 @@ class SharedImageSource {
 
 /// An image a Course keeps in its own library without using it yet.
 class CourseImageLibraryEntry {
-  const CourseImageLibraryEntry({required this.asset, this.sharedImageSource});
+  const CourseImageLibraryEntry({
+    required this.asset,
+    this.sharedImageSource,
+    this.label = '',
+    this.category = '',
+    this.tags = const [],
+    this.attribution,
+  });
 
   /// A Course media image: `media:<sha256>.<png|jpg|jpeg|webp>`.
   final String asset;
@@ -2416,16 +2423,38 @@ class CourseImageLibraryEntry {
   /// The Shared Image Library record the image was copied from, if any.
   final SharedImageSource? sharedImageSource;
 
+  /// Optional name, category and tags, for example from an Image Bank
+  /// imported into this Course. Course-scoped: they never change a device's
+  /// Shared Image Library.
+  final String label;
+  final String category;
+  final List<String> tags;
+  final ImageAttribution? attribution;
+
+  static const maxLabelLength = 200;
+  static const maxTags = 32;
+  static const maxTagLength = 80;
+  static final _category = RegExp(r'^[a-z][a-z0-9_]{1,39}$');
+  static final _control = RegExp(r'[\x00-\x1F\x7F]');
+
   Map<String, dynamic> toJson() => {
     'asset': asset,
     if (sharedImageSource != null)
       'sharedImageSource': sharedImageSource!.toJson(),
+    if (label.isNotEmpty) 'label': label,
+    if (category.isNotEmpty) 'category': category,
+    if (tags.isNotEmpty) 'tags': tags,
+    if (attribution != null) 'attribution': attribution!.toJson(),
   };
 
   factory CourseImageLibraryEntry.fromJson(Map<String, dynamic> json) {
     if (json.keys.toSet().difference({
       'asset',
       'sharedImageSource',
+      'label',
+      'category',
+      'tags',
+      'attribution',
     }).isNotEmpty) {
       throw const FormatException('imageLibrary entry has unsupported fields.');
     }
@@ -2441,11 +2470,62 @@ class CourseImageLibraryEntry {
         'imageLibrary sharedImageSource must be an object.',
       );
     }
-    return CourseImageLibraryEntry(
+    final attribution = json['attribution'];
+    if (attribution != null && attribution is! Map) {
+      throw const FormatException(
+        'imageLibrary attribution must be an object.',
+      );
+    }
+    final tags = json['tags'] ?? const [];
+    if (tags is! List || tags.any((tag) => tag is! String)) {
+      throw const FormatException('imageLibrary tags must be strings.');
+    }
+    return CourseImageLibraryEntry.checked(
       asset: asset,
       sharedImageSource: source == null
           ? null
           : SharedImageSource.fromJson(Map<String, dynamic>.from(source)),
+      label: json['label'] is String ? json['label'] as String : '',
+      category: json['category'] is String ? json['category'] as String : '',
+      tags: tags.cast<String>(),
+      attribution: attribution == null
+          ? null
+          : ImageAttribution.fromJson(Map<String, dynamic>.from(attribution)),
+    );
+  }
+
+  /// Builds an entry from outside data (JSON or an Image Bank manifest),
+  /// enforcing the limits: label 1–200 characters, category a lowercase
+  /// name, at most 32 tags of 80 characters, no control characters.
+  factory CourseImageLibraryEntry.checked({
+    required String asset,
+    SharedImageSource? sharedImageSource,
+    String label = '',
+    String category = '',
+    List<String> tags = const [],
+    ImageAttribution? attribution,
+  }) {
+    final cleanLabel = label.trim();
+    final cleanTags = [
+      for (final tag in tags)
+        if (tag.trim().isNotEmpty) tag.trim(),
+    ];
+    if (cleanLabel.length > maxLabelLength ||
+        _control.hasMatch(cleanLabel) ||
+        (category.isNotEmpty && !_category.hasMatch(category)) ||
+        cleanTags.length > maxTags ||
+        cleanTags.any(
+          (tag) => tag.length > maxTagLength || _control.hasMatch(tag),
+        )) {
+      throw FormatException('imageLibrary metadata for $asset is invalid.');
+    }
+    return CourseImageLibraryEntry(
+      asset: asset,
+      sharedImageSource: sharedImageSource,
+      label: cleanLabel,
+      category: category,
+      tags: List.unmodifiable(cleanTags),
+      attribution: attribution,
     );
   }
 

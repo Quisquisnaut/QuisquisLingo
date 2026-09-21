@@ -340,6 +340,8 @@ through an injected sink, and cancellation mid-stream leaving no `.part` file.
 
 ### Tranche 2b — Course Image Library imports (owner decision 2026-09-21)
 
+**Status: implemented as Revision 12 (`2.0.43+243012`).** Image Bank categories are kept as Course-scoped text (`food`/`home` mapped to their QQL categories); a manifest category that is not a valid lowercase name refuses that image, reported in the summary.
+
 **Status note:** the `imageLibrary` model below (entries with `asset` and
 optional `sharedImageSource`, carried by Fork, transfer and Merge, kept by
 `referencesOf`), together with removal and Keep in library, shipped early in

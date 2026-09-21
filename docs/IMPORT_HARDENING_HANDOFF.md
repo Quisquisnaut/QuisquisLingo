@@ -4,7 +4,7 @@ Keep this file current at the end of **every** revision, so that work can
 resume after a pause or with another agent. Plan and decisions:
 [IMPORT_HARDENING_PLAN.md](IMPORT_HARDENING_PLAN.md). Rules: `AGENTS.md`.
 
-## Where things stand (updated 2026-09-21 17:48, Revision 11 committed)
+## Where things stand (updated 2026-09-21 17:57, Revision 12 in validation)
 
 | Revision | Version | Commit | Content |
 |---|---|---|---|
@@ -18,6 +18,15 @@ resume after a pause or with another agent. Plan and decisions:
 
 Revisions 5–11 are pushed to `origin/main`. The untracked
 `devtools_options.yaml` predates this work: never commit or delete it.
+
+## Revision 12 (Tranche 2b) — in validation
+
+Implemented in the working tree (`2.0.43+243012`, analyzer clean): **Add
+images to this Course** in the Course Editor's Image Library,
+`ImageBankService.readBank` (checks without writing), and extended
+`CourseImageLibraryEntry` metadata. `course_image_library_import_test.dart`
+(5) passes. Still to do: the full suite in two halves, validation record,
+commit, hash here, push.
 
 ## Next steps, in order (plan §6a)
 

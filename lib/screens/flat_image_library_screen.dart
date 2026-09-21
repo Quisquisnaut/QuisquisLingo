@@ -20,6 +20,8 @@ import '../widgets/course_media_image.dart';
 import '../widgets/file_dialog_feedback.dart';
 import '../widgets/image_badges.dart';
 import '../widgets/import_summary.dart';
+import '../services/course_package_service.dart';
+import '../services/import/image_validator.dart';
 
 class FlatImageLibraryScreen extends StatefulWidget {
   final bool selectMode;
@@ -122,7 +124,9 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
             sources[element.asset] = element.sharedImageSource!;
           }
         }
+        final listed = <String, CourseImageLibraryEntry>{};
         for (final entry in course.imageLibrary) {
+          listed[entry.asset] = entry;
           final source = entry.sharedImageSource;
           if (source != null) sources.putIfAbsent(entry.asset, () => source);
         }
@@ -139,15 +143,24 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
                   .toUtc();
             } catch (_) {}
             ownedSources['course_$name'] = source?.id;
+            final entry = listed[reference];
             owned.add(
               ExerciseImageMetadata(
                 id: 'course_$name',
-                label: source?.label ?? 'Course image ${name.substring(0, 8)}',
-                category: source?.category ?? 'other',
-                tags: source?.tags ?? const [],
+                label:
+                    source?.label ??
+                    (entry != null && entry.label.isNotEmpty
+                        ? entry.label
+                        : 'Course image ${name.substring(0, 8)}'),
+                category:
+                    source?.category ??
+                    (entry != null && entry.category.isNotEmpty
+                        ? entry.category
+                        : 'other'),
+                tags: source?.tags ?? entry?.tags ?? const [],
                 assetPath: reference,
                 origin: source == null ? 'course' : 'course-device',
-                attribution: source?.attribution,
+                attribution: source?.attribution ?? entry?.attribution,
               ),
             );
           }
@@ -1006,6 +1019,169 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
     icon: Icon(icon),
   );
 
+  /// Adds images to the Course being edited, unused until an exercise uses
+  /// them: one image or several, or a whole Image Bank. Every image is
+  /// checked first; nothing is written if the Course would pass its 300 MB
+  /// package limit; duplicates are skipped. Nothing reaches the Shared Image
+  /// Library.
+  Future<void> _addToCourse(String source) async {
+    final course = _course;
+    final onChanged = widget.onCourseChanged;
+    if (course == null || onChanged == null) return;
+    final incoming = <_IncomingImage>[];
+    final results = <ImportItemResult>[];
+    try {
+      switch (source) {
+        case 'image':
+          final picked = await _images.readImage();
+          incoming.add(_IncomingImage.picked(picked));
+        case 'images_from':
+          final picked = await _images.readImagesFromDialog();
+          if (!mounted) return;
+          if (picked.dialog.outcome != FileDialogOutcome.opened) {
+            showFileDialogFeedback(
+              context,
+              picked.dialog,
+              saving: false,
+              fallbackHint: exerciseImageFallbackHint,
+            );
+            return;
+          }
+          for (final item in picked.items) {
+            final image = item.picked;
+            if (image == null) {
+              results.add(
+                ImportItemResult(
+                  item.name,
+                  item.outcome,
+                  message: item.message,
+                ),
+              );
+            } else {
+              incoming.add(_IncomingImage.picked(image));
+            }
+          }
+        case 'bank' || 'bank_from':
+          final ParsedImageBank bank;
+          if (source == 'bank') {
+            bank = await _banks.readBankFromFolder();
+          } else {
+            final picked = await _banks.readBankFromDialog();
+            if (!mounted) return;
+            final read = picked.bank;
+            if (read == null) {
+              showFileDialogFeedback(
+                context,
+                picked.dialog,
+                saving: false,
+                fallbackHint: imageBankFallbackHint,
+              );
+              return;
+            }
+            bank = read;
+          }
+          incoming.addAll(bank.images.map(_IncomingImage.bank));
+      }
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(duration: const Duration(seconds: 8), content: Text('$error')),
+      );
+      return;
+    }
+    if (incoming.isEmpty && results.isEmpty) return;
+
+    // Room left under the Course package limit, counted before any write.
+    var stored = 0;
+    try {
+      final directory = await _courseMedia.courseDirectory(course.courseId);
+      if (await directory.exists()) {
+        await for (final entity in directory.list(followLinks: false)) {
+          if (entity is File) stored += await entity.length();
+        }
+      }
+    } catch (_) {}
+    final adding = incoming.fold<int>(
+      0,
+      (sum, item) => sum + item.bytes.length,
+    );
+    if (stored + adding > CoursePackageService.maxPackageBytes) {
+      if (!mounted) return;
+      final left =
+          (CoursePackageService.maxPackageBytes - stored) ~/ (1024 * 1024);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          duration: const Duration(seconds: 10),
+          content: Text(
+            'These images would take the Course past its 300 MB limit '
+            '(about $left MB left). Nothing was added.',
+          ),
+        ),
+      );
+      return;
+    }
+
+    final kept = CourseMediaStore.referencesOf(course);
+    final entries = <CourseImageLibraryEntry>[];
+    for (final item in incoming) {
+      final reference = CourseMediaStore.referenceFor(
+        item.bytes,
+        item.extension,
+      );
+      if (kept.contains(reference) ||
+          entries.any((e) => e.asset == reference)) {
+        results.add(
+          ImportItemResult(item.name, ImportItemOutcome.duplicateSkipped),
+        );
+        continue;
+      }
+      try {
+        final entry = CourseImageLibraryEntry.checked(
+          asset: reference,
+          label: item.label,
+          category: item.category,
+          tags: item.tags,
+          attribution: item.attribution,
+        );
+        await _courseMedia.addBytes(
+          course.courseId,
+          item.bytes,
+          item.extension,
+        );
+        entries.add(entry);
+        results.add(ImportItemResult(item.name, ImportItemOutcome.imported));
+      } on FormatException catch (error) {
+        results.add(
+          ImportItemResult(
+            item.name,
+            ImportItemOutcome.malformed,
+            message: error.message,
+          ),
+        );
+      } catch (error) {
+        results.add(
+          ImportItemResult(
+            item.name,
+            ImportItemOutcome.storageFailure,
+            message: '$error',
+          ),
+        );
+      }
+    }
+    if (entries.isNotEmpty) {
+      final changed = CourseImageRemoval.updateLibrary(course, add: entries);
+      onChanged(changed);
+      setState(() => _course = changed);
+      await _load();
+    }
+    if (!mounted) return;
+    await showImportSummary(
+      context,
+      title: 'Images added to this Course',
+      items: results,
+    );
+  }
+
   /// Removal applies to images the Course uses. A QQL or DEVICE image the
   /// Course does not use has nothing to remove.
   bool _canRemoveFromCourse(ExerciseImageMetadata item) =>
@@ -1463,6 +1639,33 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
           '· ${_all.length} images',
         ),
         actions: [
+          if (widget.onCourseChanged != null && _course != null)
+            PopupMenuButton<String>(
+              key: const Key('course-image-add'),
+              tooltip: 'Add images to this Course',
+              icon: const Icon(Icons.add_photo_alternate_outlined),
+              onSelected: _addToCourse,
+              itemBuilder: (_) => [
+                const PopupMenuItem(
+                  value: 'image',
+                  child: Text('Import image'),
+                ),
+                if (_images.fileDialogsAvailable)
+                  const PopupMenuItem(
+                    value: 'images_from',
+                    child: Text('Open image files from…'),
+                  ),
+                const PopupMenuItem(
+                  value: 'bank',
+                  child: Text('Import Image Bank ZIP'),
+                ),
+                if (_banks.fileDialogsAvailable)
+                  const PopupMenuItem(
+                    value: 'bank_from',
+                    child: Text('Open Image Bank ZIP from…'),
+                  ),
+              ],
+            ),
           PopupMenuButton<ImageSort>(
             key: const Key('exercise-image-sort'),
             tooltip: 'Sort images: ${_sort.label}',
@@ -1688,4 +1891,41 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
           : null,
     );
   }
+}
+
+/// One checked image on its way into a Course's own library.
+class _IncomingImage {
+  _IncomingImage.picked(PickedImage picked)
+    : name = picked.sourceName,
+      bytes = picked.image.bytes,
+      extension = picked.image.format.extension,
+      label = picked.sourceName.replaceFirst(RegExp(r'\.[^.]+$'), ''),
+      category = '',
+      tags = const [],
+      attribution = null;
+
+  _IncomingImage.bank(BankImage image)
+    : name = image.filename,
+      bytes = image.bytes,
+      extension = ImageValidator.sniff(image.bytes)!.extension,
+      label = image.label,
+      category = _courseCategory(image.category),
+      tags = image.tags,
+      attribution = image.attribution;
+
+  final String name;
+  final Uint8List bytes;
+  final String extension;
+  final String label;
+  final String category;
+  final List<String> tags;
+  final ImageAttribution? attribution;
+
+  /// A bank category kept as Course-scoped text; `food`/`home` keep their
+  /// usual meaning.
+  static String _courseCategory(String raw) => switch (raw.trim()) {
+    'food' => 'food_drinks',
+    'home' => 'home_household',
+    final value => value,
+  };
 }
