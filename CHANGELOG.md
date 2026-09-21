@@ -1,3 +1,13 @@
+# 2.0.43 (Build 243, Revision 14) - Safer archives and structured files - 2026-09-21
+
+Tranche 4 (part 1) of the [import hardening plan](docs/IMPORT_HARDENING_PLAN.md). Scope: [Build 243 change summary](docs/243_CHANGE_SUMMARY.md#revision-14--safer-archives-and-structured-files); evidence: [243 validation](docs/243_VALIDATION.md).
+
+- Platform version `2.0.43+243014`; the Beta expiry remains **2026-10-21 23:59:59 local time**.
+- Image Bank ZIPs and Course packages are read by one hardened reader. Before anything is unpacked, it refuses links and special files, encrypted entries, unusual compression, archives inside the archive, unsafe or colliding names, and too many or too large entries. Each file is then checked against its declared size and checksum.
+- An Image Bank may contain only its manifest and the images it lists; credits go in the manifest. A manifest may now give one default credit for the whole bank, and its names, labels and keywords are bounded.
+- When an Image Bank brings new categories, the Admin chooses **Add them**, **Put these images under Other** or **Cancel** before anything is stored. A failed import leaves nothing behind.
+- Course files, learner backups and User Recovery Keys are checked for excessive nesting, oversized text and lists, too many Lessons, Rounds or exercises, and NUL characters in names before they are read.
+
 # 2.0.43 (Build 243, Revision 13) - Real MP3 validation - 2026-09-21
 
 Tranche 3 of the [import hardening plan](docs/IMPORT_HARDENING_PLAN.md). Scope: [Build 243 change summary](docs/243_CHANGE_SUMMARY.md#revision-13--real-mp3-validation); evidence: [243 validation](docs/243_VALIDATION.md).

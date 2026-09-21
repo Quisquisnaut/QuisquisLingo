@@ -490,6 +490,8 @@ VBR sequence can be synthesized (silent frames).
 
 ### Tranche 4 — Archives and structured imports
 
+**Status: items 1, 3 and 4 implemented as Revision 14 (`2.0.43+243014`); item 2 (Course package media kept on disk) is Revision 15.** Choices made: images may sit in any folder of a bank (matched by unique basename); a bank's manifest may also carry a display `name`; the Shared Image Library refuses a bank entry without keywords before writing; Course element limits are 500 Lessons, 100 Rounds per Lesson, 1,000 items per Round or GuideBook and 20,000 recordings; Course packages list at most 20,000 entries.
+
 1. `BoundedZipReader` becomes the only ZIP reader. Image Bank and Course package
    both use it. It checks:
    - duplicate names after `\`→`/` and case folding;

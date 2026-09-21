@@ -338,16 +338,16 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
     final actor = widget.actorProfileId;
     if (!_canManageMetadata || actor == null) return;
     try {
-      final ImageBankImportResult? result;
+      final ParsedImageBank bank;
       final existingIds = _all.map((entry) => entry.id).toSet();
       if (fromDialog) {
-        // Open from…: the same importer and the same metadata steps below.
-        final picked = await _banks.importBankZipFromDialog(
+        // Open from…: the same checks and the same steps below.
+        final picked = await _banks.readBankFromDialog(
           existingIds: existingIds,
         );
         if (!mounted) return;
-        result = picked.result;
-        if (result == null) {
+        final read = picked.bank;
+        if (read == null) {
           showFileDialogFeedback(
             context,
             picked.dialog,
@@ -356,22 +356,18 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
           );
           return;
         }
+        bank = read;
       } else {
-        result = await _banks.pickAndImportBank(existingIds: existingIds);
+        bank = await _banks.readBankFromFolder(existingIds: existingIds);
       }
+      if (!mounted) return;
+      final result = await _banks.importToSharedLibrary(
+        bank,
+        metadata: _metadata,
+        actorProfileId: actor,
+        chooseNewCategories: _chooseNewCategories,
+      );
       if (result == null) return;
-      try {
-        await _metadata.addLocalRecords(
-          actorProfileId: actor,
-          records: result.records,
-        );
-      } catch (_) {
-        if (result.records.isNotEmpty) {
-          final bankId = imageBankIdOf(result.records.first);
-          if (bankId != null) await _banks.removeBank(bankId);
-        }
-        rethrow;
-      }
       await _load();
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -391,6 +387,42 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
         ),
       );
     }
+  }
+
+  /// Asks the Admin what to do with categories an Image Bank adds.
+  Future<NewCategoryChoice> _chooseNewCategories(List<String> names) async {
+    if (!mounted) return NewCategoryChoice.cancel;
+    final count = names.length;
+    return await showDialog<NewCategoryChoice>(
+          context: context,
+          builder: (dialogContext) => AlertDialog(
+            title: const Text('New categories'),
+            content: Text(
+              'This bank adds $count new categor${count == 1 ? 'y' : 'ies'}: '
+              '${names.join(', ')}.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () =>
+                    Navigator.pop(dialogContext, NewCategoryChoice.cancel),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                key: const Key('bank-categories-other'),
+                onPressed: () =>
+                    Navigator.pop(dialogContext, NewCategoryChoice.useOther),
+                child: const Text('Put these images under Other'),
+              ),
+              FilledButton(
+                key: const Key('bank-categories-add'),
+                onPressed: () =>
+                    Navigator.pop(dialogContext, NewCategoryChoice.add),
+                child: const Text('Add them'),
+              ),
+            ],
+          ),
+        ) ??
+        NewCategoryChoice.cancel;
   }
 
   /// Since Build 243 a Course keeps its own copy of every image it uses

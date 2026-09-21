@@ -8,6 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'file_dialog_service.dart';
 import 'profile_service.dart';
+import 'import/json_limits.dart';
 
 class UserRecoveryKeyDocument {
   final String learnerProfileId;
@@ -191,11 +192,22 @@ class UserRecoveryKeyService {
   }
 
   UserRecoveryKeyDocument decodeDocument(List<int> bytes) {
-    dynamic value;
+    const invalid = FormatException('The User Recovery Key is not valid JSON.');
+    final String text;
     try {
-      value = jsonDecode(utf8.decode(bytes));
+      text = utf8.decode(bytes);
     } catch (_) {
-      throw const FormatException('The User Recovery Key is not valid JSON.');
+      throw invalid;
+    }
+    final value = JsonLimits.imports.decode(
+      text,
+      what: 'The User Recovery Key',
+      invalidMessage: invalid.message,
+    );
+    if (value is Map) {
+      CourseShapeLimits.noNul(value, const [
+        'learnerProfileId',
+      ], what: 'The User Recovery Key');
     }
     if (value is! Map ||
         value['format'] != format ||

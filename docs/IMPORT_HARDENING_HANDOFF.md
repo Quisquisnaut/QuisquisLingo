@@ -4,7 +4,7 @@ Keep this file current at the end of **every** revision, so that work can
 resume after a pause or with another agent. Plan and decisions:
 [IMPORT_HARDENING_PLAN.md](IMPORT_HARDENING_PLAN.md). Rules: `AGENTS.md`.
 
-## Where things stand (updated 2026-09-21, Revision 13 committed)
+## Where things stand (updated 2026-09-21, Revision 14 in progress)
 
 | Revision | Version | Commit | Content |
 |---|---|---|---|
@@ -23,11 +23,26 @@ Revisions 5–13 are pushed to `origin/main`. The untracked
 
 ## Next steps, in order (plan §6a)
 
-1. **Tranche 4** (Revision 14): one hardened ZIP reader shared by Image Banks
-   and Course packages, streaming with no whole-ZIP buffer; manifest bounds;
-   bank categories confirmed by the Admin; the bank-wide default attribution;
-   JSON structural limits.
-2. **Tranche 5** (Revision 15): content-hash duplicates with Skip / Replace /
+1. **Revision 14 (Tranche 4, part 1)**, in progress: `BoundedZipReader`
+   (`lib/services/import/bounded_zip_reader.dart`) is the only ZIP reader
+   (Image Banks and Course packages; `readBoundedEntry` removed); Image Bank
+   allowlist (manifest + listed images only), object manifest with bank-wide
+   `attribution` and `name`, manifest field bounds, category names checked
+   in `readBank`; `ImageBankService.importToSharedLibrary` asks the Admin
+   about new categories (`NewCategoryChoice`) before writing and rolls back
+   on failure; `JsonLimits` + `CourseShapeLimits`
+   (`lib/services/import/json_limits.dart`) before `jsonDecode` for Course,
+   learner backup and Recovery Key. Tests: `import_archives_tranche4_test.dart`
+   (25). Help EN/IT, `IMAGE_BANK_PACKAGES.md`, `COURSE_EDITOR.md`,
+   `EXTERNAL_CONTENT_PACKS.md` done. Left: bump to `243014`, release notes,
+   full suite, commit, push.
+2. **Revision 15 (Tranche 4, part 2)**: Course package media streamed into
+   staging and kept on disk (plan item 2, finding N3): `CoursePackage` holds
+   staged files instead of `Map<String, Uint8List>`, install moves them;
+   the ZIP itself read from a staged file through `InputFileStream`. Split
+   from Revision 14 because it changes `CoursePackage`, every
+   `withInstalledMedia` caller and the Publisher path.
+3. **Tranche 5** (Revision 16): content-hash duplicates with Skip / Replace /
    Keep both; provenance; the adversarial suite.
 
 ## Owner decisions already taken

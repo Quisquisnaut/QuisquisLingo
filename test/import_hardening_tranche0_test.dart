@@ -8,6 +8,7 @@ import 'package:quisquislingo_app/services/bounded_archive_entry.dart';
 import 'package:quisquislingo_app/services/course_flag_service.dart';
 import 'package:quisquislingo_app/services/course_package_service.dart';
 import 'package:quisquislingo_app/services/image_bank_service.dart';
+import 'package:quisquislingo_app/services/import/bounded_zip_reader.dart';
 import 'package:quisquislingo_app/services/lesson_icon_service.dart';
 import 'package:quisquislingo_app/services/portable_exercise_image.dart';
 
@@ -83,15 +84,16 @@ void main() {
         ),
         100,
       );
-      final entry = ZipDecoder().decodeBytes(zip).files.single;
+      // Revision 14: the shared BoundedZipReader does the bounded read.
+      final reader = BoundedZipReader.open(
+        InputMemoryStream(zip),
+        label: 'Test ZIP',
+        maxEntries: 10,
+        maxTotalBytes: 1 << 21,
+      );
       expect(
-        () => readBoundedEntry(
-          entry,
-          entry.size,
-          overflowMessage: 'expands',
-          damagedMessage: 'damaged',
-        ),
-        _formatError('expands'),
+        () => reader.read(reader.entries.single),
+        _formatError('expands beyond its declared size'),
       );
     });
   });
@@ -104,13 +106,13 @@ void main() {
         _bank([ArchiveFile.bytes('unreferenced.bin', List.filled(64, 0))]),
         ImageBankService.maxInflatedArchiveBytes ~/ 3 + 1,
       );
-      return _expectBankError(zip, 'expands beyond the 50 MB safety limit');
+      return _expectBankError(zip, 'expands beyond its 50 MB limit');
     });
 
     test('rejects a symbolic-link entry before decoding', () {
       final link = ArchiveFile.bytes('link.png', utf8.encode('/etc/passwd'))
         ..mode = 0xa1ff;
-      return _expectBankError(_bank([link]), 'symbolic link');
+      return _expectBankError(_bank([link]), 'link or special file');
     });
 
     test('rejects too many entries before decoding', () {
@@ -118,7 +120,7 @@ void main() {
         for (var i = 0; i < ImageBankService.maxArchiveEntries; i++)
           ArchiveFile.bytes('x$i.bin', const [0]),
       ];
-      return _expectBankError(_bank(extra), 'too many archive entries');
+      return _expectBankError(_bank(extra), 'too many entries');
     });
 
     test('rejects bytes that are not a ZIP', () {

@@ -11,6 +11,7 @@ import 'learner_status_events.dart';
 import 'profile_service.dart';
 import 'flag_game_score_service.dart';
 import 'import/selected_external_file.dart';
+import 'import/json_limits.dart';
 
 typedef LearnerBackupPreferenceWriter =
     Future<bool> Function(
@@ -227,11 +228,16 @@ class LearnerBackupService {
         'learner_import.json must be valid UTF-8 text.',
       );
     }
-    dynamic decoded;
-    try {
-      decoded = jsonDecode(raw);
-    } catch (_) {
-      throw const FormatException('learner_import.json is not valid JSON.');
+    final decoded = JsonLimits.imports.decode(
+      raw,
+      what: 'learner_import.json',
+      invalidMessage: 'learner_import.json is not valid JSON.',
+    );
+    if (decoded is Map) {
+      CourseShapeLimits.noNul(decoded, const [
+        'learnerProfileId',
+        'displayName',
+      ], what: 'learner_import.json');
     }
     if (decoded is! Map ||
         decoded['format'] != format ||

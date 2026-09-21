@@ -7,8 +7,8 @@ import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart' show visibleForTesting;
 
 import '../models/course_models.dart';
-import 'bounded_archive_entry.dart';
 import 'course_media_store.dart';
+import 'import/bounded_zip_reader.dart';
 import 'import/image_validator.dart';
 import 'import/mp3_validator.dart';
 
@@ -96,6 +96,9 @@ class CoursePackageService {
   static const int maxCourseJsonBytes = 10 * 1024 * 1024;
   static const int maxCoverBytes = 100 * 1024;
   static const int maxManifestBytes = 1024 * 1024;
+
+  /// Archive entries (files and folders) a package may list.
+  static const int maxPackageEntries = 20000;
   static const String manifestName = 'qql-course-package.json';
   static const String courseName = 'course.json';
   static final RegExp _mediaName = RegExp(
@@ -172,53 +175,18 @@ class CoursePackageService {
     if (zip.length > sizeLimit) {
       throw const FormatException('Course package exceeds the 300 MB limit.');
     }
-    // Read the central directory before ZipDecoder, which eagerly expands
-    // symlink contents. Reject oversized and unsafe entries first.
-    final directory = ZipDirectory();
-    try {
-      directory.read(InputMemoryStream(zip));
-    } catch (_) {
-      throw const FormatException('This is not a readable Course package ZIP.');
-    }
-    final names = <String>{};
-    var expanded = 0;
-    for (final header in directory.fileHeaders) {
-      final name = header.filename;
-      if (!names.add(name)) {
-        throw FormatException('Duplicate Course package entry: $name');
-      }
-      final mode = header.externalFileAttributes >> 16;
-      if ((mode & 0xf000) == 0xa000 ||
-          (name != manifestName &&
-              name != courseName &&
-              !_mediaName.hasMatch(name))) {
-        throw FormatException(
-          'Unsafe or unexpected Course package entry: $name',
-        );
-      }
-      expanded += header.uncompressedSize;
-      if (header.uncompressedSize < 0 || expanded > sizeLimit) {
-        throw const FormatException(
-          'Expanded Course package exceeds the 300 MB limit.',
-        );
-      }
-    }
-    final ZipDecoder decoder = ZipDecoder();
-    final Archive archive;
-    try {
-      archive = decoder.decodeBytes(zip);
-    } catch (_) {
-      throw const FormatException('This is not a readable Course package ZIP.');
-    }
-    final entries = <String, ArchiveFile>{};
-    for (final entry in archive.files) {
+    final zipReader = BoundedZipReader.open(
+      InputMemoryStream(zip),
+      label: 'Course package',
+      maxEntries: maxPackageEntries,
+      maxTotalBytes: sizeLimit,
+    );
+    final entries = <String, BoundedZipEntry>{};
+    for (final entry in zipReader.entries) {
       final name = entry.name;
-      if (!entry.isFile ||
-          entry.isSymbolicLink ||
-          (entry.mode & 0xf000) == 0xa000 ||
-          (name != manifestName &&
-              name != courseName &&
-              !_mediaName.hasMatch(name))) {
+      if (name != manifestName &&
+          name != courseName &&
+          !_mediaName.hasMatch(name)) {
         throw FormatException(
           'Unsafe or unexpected Course package entry: $name',
         );
@@ -240,7 +208,7 @@ class CoursePackageService {
     }
     late final Map<String, dynamic> manifestData;
     try {
-      final decoded = jsonDecode(utf8.decode(_bytes(manifest)));
+      final decoded = jsonDecode(utf8.decode(zipReader.read(manifest)));
       if (decoded is! Map ||
           decoded['packageFormat'] != 1 ||
           decoded.keys.any(
@@ -254,12 +222,12 @@ class CoursePackageService {
     } catch (_) {
       throw const FormatException('Invalid Course package manifest.');
     }
-    final courseJson = _bytes(courseEntry);
+    final courseJson = zipReader.read(courseEntry);
     final media = <String, Uint8List>{};
     for (final entry in entries.entries) {
       if (!_mediaName.hasMatch(entry.key)) continue;
       final reference = 'media:${entry.key.substring('media/'.length)}';
-      final value = _bytes(entry.value);
+      final value = zipReader.read(entry.value);
       _checkMedia(reference, value);
       _checkImportedImage(reference, value);
       if (CourseMediaStore.isAudioReference(reference)) {
@@ -304,13 +272,6 @@ class CoursePackageService {
     media.removeWhere((reference, _) => !references.contains(reference));
     return CoursePackage(course, courseJson, media, mediaStore: _media);
   }
-
-  static Uint8List _bytes(ArchiveFile entry) => readBoundedEntry(
-    entry,
-    entry.size,
-    overflowMessage: 'Course package entry expands beyond its declared size.',
-    damagedMessage: 'Course package entry ${entry.name} is damaged.',
-  );
 
   /// An imported image medium must be a valid image of the type its name
   /// says. Applied when a package is read, never when one is written.

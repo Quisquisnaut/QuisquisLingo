@@ -1,5 +1,39 @@
 # Build 243 validation
 
+## Revision 14 — safer archives and structured files (`2.0.43+243014`)
+
+Validation on 21 September 2026, before the Revision 14 commit.
+
+- New `import_archives_tranche4_test.dart` (25), all passing:
+  - `BoundedZipReader`: reads files and skips folders; refuses unsafe names
+    (absolute, drive letter, `..`, `.`, empty segment, control character),
+    case and slash collisions, symlink/device/FIFO/socket modes, encrypted
+    entries, bzip2 compression, nested archives, too many entries, a
+    declared total over the limit, a local name that differs, and a wrong
+    CRC; `read(limit:)` refuses a larger entry;
+  - Image Banks: images in folders, object manifest with default credit
+    (an entry's own wins) and `name`; an extra `CREDITS.txt` refused with the
+    `attribution` hint; id, label, tag, category, name and attribution bounds;
+    a manifest nested 65 deep refused before decoding;
+  - Shared Image Library: new categories added on **Add them**, mapped to
+    `other` on **Put these images under Other**, nothing written on
+    **Cancel**, more than 16 refused before asking, a failure after writing
+    removes the bank and its categories, no keywords refused before writing,
+    non-Admin refused; the dialog in the Image Library;
+  - JSON: depth, string and list limits (text inside strings and object
+    members not counted); a Course refused for depth, 501 Lessons, 101
+    Rounds and a NUL `courseId`; learner backup and Recovery Key refused for
+    depth, learner backup for a NUL id; all bundled and demo Courses fit.
+- Tranche 0 and Image Bank tests updated to the reader's messages;
+  `readBoundedEntry`'s test now exercises `BoundedZipReader.read`.
+- The 370 tests of every file touching Image Banks, packages, backups,
+  Recovery Keys and Course transfer passed before the full run.
+- Complete suite in two halves covering all 234 test files once:
+  **1,003 + 1,098 = 2,101 passed, 0 failed** (both halves exit 0).
+- `flutter analyze` on the repository: **no issues**.
+- The four `tools/validate_*.py` validators: 0 issues.
+- `git diff --check`: clean. The untracked `devtools_options.yaml` is excluded.
+
 ## Revision 13 — real MP3 validation (`2.0.43+243013`)
 
 Validation on 21 September 2026, before the Revision 13 commit.

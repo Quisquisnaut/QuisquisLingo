@@ -656,3 +656,51 @@ Version **2.0.43+243013**, same Beta expiry. Tranche 3 of
   its 7-byte placeholder recording is no longer accepted.
 - **Help:** English and Italian Help and `docs/COURSE_EDITOR.md` describe the
   check and the multi-file dialog.
+
+## Revision 14 — safer archives and structured files
+
+Version **2.0.43+243014**, same Beta expiry. Tranche 4 (part 1) of
+`docs/IMPORT_HARDENING_PLAN.md`; part 2 (Course package media kept on disk)
+follows as Revision 15.
+
+- **`BoundedZipReader`** (`lib/services/import/bounded_zip_reader.dart`) is
+  the only import ZIP reader. It reads the central directory with
+  `ZipDirectory` (never `ZipDecoder`) and refuses, before inflating: more
+  than `maxEntries`; declared sizes above `maxTotalBytes` or negative;
+  absolute paths, drive letters, `.`/`..`/empty segments, control
+  characters; names equal after `\`→`/` and case folding; symlink, device,
+  FIFO and socket modes; encrypted entries (flag bits 0 and 6); compression
+  other than stored/deflate; nested archive extensions; stored entries whose
+  sizes disagree; a local header name that differs from the central one.
+  `read(entry, limit:)` inflates through `LimitedOutputStream` up to the
+  declared size and checks length and CRC-32. `readBoundedEntry` is removed.
+- **Image Banks:** `readBank` uses the reader; the ZIP may hold only the
+  manifest and listed images (anywhere in folders; basenames unique case
+  -insensitively), with a message pointing credits to `attribution`. The
+  manifest may be an object with `images`, a bank-wide default `attribution`
+  (an entry's own wins) and `name` (≤120). Bounds: id
+  `^[A-Za-z0-9._-]{1,128}$`, label 1–200, ≤32 tags × ≤80, no control
+  characters. `normalizeCategory` maps `food`/`home`, defaults to `other`,
+  and rejects the bank on an invalid name.
+- **New categories:** `ImageBankService.importToSharedLibrary` (Admin only)
+  checks tags, counts new categories (≤16 per bank, within 64 on the
+  device), asks through `chooseNewCategories` (`NewCategoryChoice.add`,
+  `useOther`, `cancel`), then adds categories, writes the bank and registers
+  the records; any failure removes the bank and the added categories. The
+  Image Library's Import menu uses it with a dialog (`bank-categories-add`,
+  `bank-categories-other`). `pickAndImportBank` is removed;
+  `readBankFromFolder`/`readBankFromDialog` take `existingIds`.
+- **Course packages:** `CoursePackageService.parse` uses the reader
+  (`maxPackageEntries` 20,000, 300 MB declared total). Folder entries are
+  now accepted and ignored.
+- **JSON:** `JsonLimits` (`lib/services/import/json_limits.dart`) scans text
+  before `jsonDecode`: depth ≤64, string ≤1 MB (the custom-flag limit),
+  list ≤100,000. `CourseShapeLimits` checks the decoded Course: ≤500
+  Lessons, ≤100 Rounds per Lesson, ≤1,000 content items per Round or
+  GuideBook, ≤20,000 recordings, and no NUL in identity/name fields. Used by
+  `courseFromBytes` (so Course ZIPs too), learner backup and Recovery Key
+  decoding, and the Image Bank manifest.
+- **Tests:** `import_archives_tranche4_test.dart` (25); Tranche 0 and Image
+  Bank tests follow the new messages.
+- **Docs:** Help EN/IT, `docs/IMAGE_BANK_PACKAGES.md` (new rules, object
+  manifest example), `docs/COURSE_EDITOR.md`, `docs/EXTERNAL_CONTENT_PACKS.md`.

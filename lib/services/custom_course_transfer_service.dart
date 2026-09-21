@@ -11,6 +11,7 @@ import 'course_package_service.dart';
 import 'course_media_store.dart';
 import 'publisher_verification_service.dart';
 import 'import/selected_external_file.dart';
+import 'import/json_limits.dart';
 
 /// The exact bytes and base file name a course export produces, shared by the
 /// fixed-folder Export and the dialog-based Save to…
@@ -208,15 +209,15 @@ class CustomCourseTransferService {
       throw FormatException('$fileName must be valid UTF-8 text.');
     }
 
-    dynamic decoded;
-    try {
-      decoded = jsonDecode(raw);
-    } catch (_) {
-      throw FormatException('$fileName is not valid JSON.');
-    }
+    final decoded = JsonLimits.imports.decode(
+      raw,
+      what: fileName,
+      invalidMessage: '$fileName is not valid JSON.',
+    );
     if (decoded is! Map) {
       throw const FormatException('Course JSON root must be an object.');
     }
+    CourseShapeLimits.check(decoded);
 
     final course = Course.fromJson(Map<String, dynamic>.from(decoded));
     await CourseFlagService().validateWorldFlag(course);

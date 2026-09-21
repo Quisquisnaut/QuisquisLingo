@@ -141,7 +141,7 @@ void main() {
   });
 
   test('rejects path traversal in ZIP entries', () async {
-    await _expectFormat(_pathTraversalEntry, 'Unsafe path in Image Bank ZIP');
+    await _expectFormat(_pathTraversalEntry, 'contains an unsafe path');
   });
 
   test('rejects duplicate basenames in ZIP', () async {
