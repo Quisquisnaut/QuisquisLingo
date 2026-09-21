@@ -14,6 +14,7 @@ import 'package:quisquislingo_app/widgets/course_media_image.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'support/pump_file_io.dart';
+import 'support/synthetic_mp3.dart';
 
 const _profileId = '12345678-1234-4234-9234-123456789abc';
 const _otherProfileId = '22222222-2222-4222-8222-222222222222';
@@ -320,11 +321,11 @@ void main() {
       final imports = await service.fixedImportDirectory();
       File(
         '${imports.path}${Platform.pathSeparator}ciao.mp3',
-      ).writeAsBytesSync(const [1, 2, 3]);
+      ).writeAsBytesSync(syntheticMp3());
 
       final clips = await service.importMp3Files('course-a');
       final reference = clips.single.filePath;
-      expect(reference, CourseMediaStore.referenceFor(const [1, 2, 3], 'mp3'));
+      expect(reference, CourseMediaStore.referenceFor(syntheticMp3(), 'mp3'));
       expect(
         await service.resolveSourceForClip(clips.single, courseId: 'course-a'),
         isNotNull,

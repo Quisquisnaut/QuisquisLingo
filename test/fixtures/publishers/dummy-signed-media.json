@@ -9,11 +9,11 @@
   "publisherName": "Dummy Publisher — TEST ONLY",
   "officialCourseVersion": "1",
   "officialReleaseDateUtc": "2026-09-06T00:00:00.000Z",
-  "officialChecksum": "1f16f3be613cb7510bdb37bfbb87fa6d39fa06ff4831ba0b1078adc5399e3c83",
+  "officialChecksum": "f65c70686b7dce547c6edabf2b11b59b4c38a28773b0b01c9bcf2f9d98f4706e",
   "officialReleaseNotes": "Build 226.02 revision 3 AI-generated sample label update.",
   "distributionChannel": "test-fixture",
   "publisherVerificationStatus": "unverified",
-  "publisherSignature": "qql-ed25519-v1:dummy-1:6vjADnpdytPfjx1Whwsw7QY5QzoxVJPxBjsWiG75TOHEMvhOJYlDeX77KRSefBCVd7JY6AX61YXfKZESRRDNAA==",
+  "publisherSignature": "qql-ed25519-v1:dummy-1:ilx4Z26eEutjgKiUhxduzNzPOI30LwM9tMfVwWthhjnqLIg7mU3PXMT2x2D1xfa2nqt910XoO6fc5g+jSHU5Ag==",
   "originalCourseCreator": {
     "type": "publisher",
     "id": "org.quisquislingo.test.dummy",
@@ -51,7 +51,7 @@
     {
       "id": "clip",
       "text": "ciao",
-      "filePath": "media:08adfb626e65cc53bd26309f5ed482b2eea0b2cee8377db4ee299839c1b8b85b.mp3"
+      "filePath": "media:53372b4e1238862133f4a5de3d4d3bde07006dd23c8a23898cb97e3450abc519.mp3"
     }
   ],
   "lessons": [

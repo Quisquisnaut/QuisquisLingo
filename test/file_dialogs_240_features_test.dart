@@ -20,6 +20,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'support/dialog_test_course.dart';
 import 'support/fake_file_dialog_backend.dart';
+import 'support/synthetic_mp3.dart';
 
 // A ZIP with no image_bank_manifest.json: the ordinary importer rejects it.
 const _zipWithoutManifest =
@@ -439,7 +440,7 @@ void main() {
     test(
       'is stored in the course audio folder, bytes unchanged, no text',
       () async {
-        final bytes = Uint8List.fromList(List<int>.generate(64, (i) => i));
+        final bytes = syntheticMp3();
         backend.onOpen = () async =>
             FileDialogResult.opened('Buon giorno (1).mp3', bytes);
 
@@ -491,7 +492,7 @@ void main() {
       'two imports of the same bytes get distinct clip ids and share one file',
       () async {
         backend.onOpen = () async =>
-            FileDialogResult.opened('same.mp3', Uint8List(4));
+            FileDialogResult.opened('same.mp3', syntheticMp3());
         final first = (await audio.importMp3FromDialog('course-a')).clip!;
         final second = (await audio.importMp3FromDialog('course-a')).clip!;
         expect(second.id, isNot(first.id));

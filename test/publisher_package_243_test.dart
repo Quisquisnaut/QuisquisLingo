@@ -15,6 +15,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'support/publisher_fixtures.dart';
 import '../tools/sign_course.dart' as signing_tool;
+import 'support/synthetic_mp3.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -40,7 +41,7 @@ void main() {
         package.course.publisherVerificationStatus,
         PublisherVerificationStatus.verified,
       );
-      expect(package.media[reference], [0x49, 0x44, 0x33, 1, 2, 3, 4]);
+      expect(package.media[reference], syntheticMp3());
     },
   );
 
@@ -80,7 +81,7 @@ void main() {
               as Map,
         ),
       );
-      final recording = Uint8List.fromList([0x49, 0x44, 0x33, 1, 2, 3, 4]);
+      final recording = syntheticMp3(seed: 1);
       final reference = CourseMediaStore.referenceFor(recording, 'mp3');
       final first = await signFixture(
         Course.fromJson({
@@ -158,7 +159,7 @@ void main() {
               as Map,
         ),
       );
-      final recording = Uint8List.fromList([0x49, 0x44, 0x33, 5, 6, 7]);
+      final recording = syntheticMp3(seed: 2);
       final reference = CourseMediaStore.referenceFor(recording, 'mp3');
       final signed = await signFixture(
         Course.fromJson({

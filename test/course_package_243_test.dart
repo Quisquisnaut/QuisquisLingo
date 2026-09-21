@@ -10,6 +10,7 @@ import 'package:quisquislingo_app/services/authoring_duplication_service.dart';
 import 'package:quisquislingo_app/services/course_media_store.dart';
 import 'package:quisquislingo_app/services/course_package_service.dart';
 import 'package:quisquislingo_app/services/custom_course_transfer_service.dart';
+import 'support/synthetic_mp3.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -53,7 +54,7 @@ void main() {
   test(
     'package round trip keeps Course JSON bytes and recording bytes',
     () async {
-      final recording = Uint8List.fromList([1, 2, 3, 4]);
+      final recording = syntheticMp3(seed: 1);
       final reference = CourseMediaStore.referenceFor(recording, 'mp3');
       final course = await fixture(recording: reference);
       await media.addBytes(course.courseId, recording, 'mp3');
@@ -262,8 +263,38 @@ void main() {
     expect(imported.media, isEmpty);
   });
 
+  test('a recording that is not a real MP3 is refused on import', () async {
+    // Correctly named by its content, so only the MP3 check can catch it.
+    final fake = Uint8List.fromList(utf8.encode('not audio'));
+    final reference = CourseMediaStore.referenceFor(fake, 'mp3');
+    final course = await fixture(recording: reference);
+    Future<Course> validate(Uint8List bytes, String _) async =>
+        Course.fromJson(jsonDecode(utf8.decode(bytes)));
+    await expectLater(
+      packages.parse(
+        zipped({
+          'qql-course-package.json': utf8.encode('{"packageFormat":1}'),
+          'course.json': utf8.encode(jsonEncode(course.toJson())),
+          'media/${CourseMediaStore.fileNameOf(reference)}': fake,
+        }),
+        validate,
+      ),
+      throwsA(
+        isA<FormatException>().having(
+          (error) => error.message,
+          'message',
+          contains('not a valid MP3'),
+        ),
+      ),
+    );
+    expect(
+      await media.courseDirectory(course.courseId).then((d) => d.exists()),
+      isFalse,
+    );
+  });
+
   test('altered and missing media are refused before installation', () async {
-    final original = Uint8List.fromList([1, 2, 3]);
+    final original = syntheticMp3(seed: 2);
     final reference = CourseMediaStore.referenceFor(original, 'mp3');
     final course = await fixture(recording: reference);
     final courseJson = utf8.encode(jsonEncode(course.toJson()));
@@ -329,7 +360,7 @@ void main() {
   test(
     'media is copied after acceptance and removed when the save fails',
     () async {
-      final recording = Uint8List.fromList([4, 5, 6]);
+      final recording = syntheticMp3(seed: 3);
       final reference = CourseMediaStore.referenceFor(recording, 'mp3');
       final course = await fixture(recording: reference);
       final item = CoursePackage(course, Uint8List(0), {reference: recording});
@@ -414,7 +445,7 @@ void main() {
     'extra valid media is ignored but unexpected files are rejected',
     () async {
       final course = await fixture();
-      final extra = Uint8List.fromList([7, 8, 9]);
+      final extra = syntheticMp3(seed: 9);
       final extraRef = CourseMediaStore.referenceFor(extra, 'mp3');
       final entries = <String, List<int>>{
         'qql-course-package.json': utf8.encode('{"packageFormat":1}'),

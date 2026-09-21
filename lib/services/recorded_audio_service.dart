@@ -7,6 +7,10 @@ import '../models/course_models.dart';
 import 'audio_diagnostic_service.dart';
 import 'course_media_store.dart';
 import 'file_dialog_service.dart';
+import 'import/import_result.dart';
+import 'import/import_stager.dart';
+import 'import/mp3_validator.dart';
+import 'import/selected_external_file.dart';
 
 /// Manages creator-supplied recorded speech. Imported MP3 files are copied into
 /// the Course's own media folder and named by content (`media:<sha256>.mp3`,
@@ -16,13 +20,16 @@ class RecordedAudioService {
   RecordedAudioService({
     FileDialogService? fileDialogs,
     Future<Directory> Function()? supportDirectory,
+    ImportStager? stager,
   }) : _fileDialogs = fileDialogs ?? FileDialogService(),
-       _media = CourseMediaStore(supportDirectory: supportDirectory);
+       _media = CourseMediaStore(supportDirectory: supportDirectory),
+       _stager = stager ?? ImportStager(supportDirectory: supportDirectory);
 
   static const int maxMp3Bytes = 50 * 1024 * 1024;
 
   final FileDialogService _fileDialogs;
   final CourseMediaStore _media;
+  final ImportStager _stager;
 
   /// False when the system dialog is unsupported; hide Open from….
   bool get fileDialogsAvailable => _fileDialogs.isAvailable;
@@ -47,7 +54,13 @@ class RecordedAudioService {
     return dir;
   }
 
-  Future<List<CourseAudioClip>> importMp3Files(String courseId) async {
+  /// Imports every MP3 in the fixed folder. Each is staged under the 50 MB
+  /// limit and checked by [Mp3Validator] before any is stored, so one bad
+  /// file stores nothing. Recordings in [existingReferences] are skipped.
+  Future<List<CourseAudioClip>> importMp3Files(
+    String courseId, {
+    Set<String> existingReferences = const {},
+  }) async {
     final importDir = await fixedImportDirectory();
     final sources = await importDir
         .list(followLinks: false)
@@ -63,26 +76,49 @@ class RecordedAudioService {
         'No MP3 files found in ${importDir.path}. Copy the MP3 files you want to import there and try again.',
       );
     }
-    for (final source in sources) {
-      if (await source.length() > maxMp3Bytes) throw StateError(_tooLarge);
+    // Checked copies wait in staging, not in memory, until all have passed.
+    final checked = <StagedFile>[];
+    try {
+      for (final source in sources) {
+        final selected = FileSystemSelectedFile(source.path);
+        final StagedFile staged;
+        try {
+          staged = await _stager.stage(selected, maxBytes: maxMp3Bytes);
+        } on ImportTooLargeException {
+          throw StateError(_tooLarge);
+        } on ImportEmptyException {
+          throw StateError('${selected.displayName} is empty.');
+        } on ImportAccessException catch (error) {
+          throw StateError(error.message);
+        }
+        checked.add(staged);
+        try {
+          await Mp3Validator.validate(await staged.readBytes());
+        } on Mp3ValidationException catch (error) {
+          throw StateError('${selected.displayName}: ${error.message}');
+        }
+      }
+      final out = <CourseAudioClip>[];
+      final batchStamp = DateTime.now().microsecondsSinceEpoch;
+      final seen = {...existingReferences};
+      for (var index = 0; index < checked.length; index++) {
+        final bytes = await checked[index].readBytes();
+        if (!seen.add(CourseMediaStore.referenceFor(bytes, 'mp3'))) continue;
+        final reference = await _media.addBytes(courseId, bytes, 'mp3');
+        out.add(
+          CourseAudioClip(
+            id: _clipId(batchStamp, index),
+            text: '',
+            filePath: reference,
+          ),
+        );
+      }
+      return out;
+    } finally {
+      for (final staged in checked) {
+        await staged.discard();
+      }
     }
-    final out = <CourseAudioClip>[];
-    final batchStamp = DateTime.now().microsecondsSinceEpoch;
-    for (var index = 0; index < sources.length; index++) {
-      final reference = await _media.addBytes(
-        courseId,
-        await sources[index].readAsBytes(),
-        'mp3',
-      );
-      out.add(
-        CourseAudioClip(
-          id: _clipId(batchStamp, index),
-          text: '',
-          filePath: reference,
-        ),
-      );
-    }
-    return out;
   }
 
   /// Open from…: pick one MP3 in the system dialog and store it exactly as
@@ -108,6 +144,7 @@ class RecordedAudioService {
     }
     final bytes = picked.bytes!;
     if (bytes.length > maxMp3Bytes) throw StateError(_tooLarge);
+    await Mp3Validator.validate(bytes);
     final reference = await _media.addBytes(courseId, bytes, 'mp3');
     return (
       dialog: picked,
@@ -117,6 +154,121 @@ class RecordedAudioService {
         filePath: reference,
       ),
     );
+  }
+
+  /// Open from… with a multiple selection: up to 100 MP3s and 250 MB, each
+  /// staged and checked on its own. A recording the Course already has (same
+  /// content) is skipped. Every file gets a result.
+  Future<
+    ({
+      FileDialogResult dialog,
+      List<CourseAudioClip> clips,
+      List<ImportItemResult> results,
+    })
+  >
+  importMp3sFromDialog(
+    String courseId, {
+    Set<String> existingReferences = const {},
+    CancellationToken? token,
+  }) async {
+    final picked = await _fileDialogs.openFiles(
+      extensions: const ['mp3'],
+      maxBytesPerFile: maxMp3Bytes,
+      artifact: 'mp3-files',
+      token: token,
+    );
+    final batch = picked.batch;
+    final clips = <CourseAudioClip>[];
+    final results = <ImportItemResult>[];
+    if (batch == null) {
+      return (dialog: picked.dialog, clips: clips, results: results);
+    }
+    final seen = {...existingReferences};
+    final batchStamp = DateTime.now().microsecondsSinceEpoch;
+    try {
+      for (final item in batch.items) {
+        final staged = item.staged;
+        if (staged == null) {
+          results.add(
+            ImportItemResult(
+              item.displayName,
+              item.outcome,
+              message: item.outcome == ImportItemOutcome.tooLarge
+                  ? _tooLarge
+                  : item.message,
+            ),
+          );
+          continue;
+        }
+        if (token?.isCancelled == true) {
+          results.add(
+            ImportItemResult(item.displayName, ImportItemOutcome.cancelled),
+          );
+          continue;
+        }
+        if (!item.displayName.toLowerCase().endsWith('.mp3')) {
+          results.add(
+            ImportItemResult(
+              item.displayName,
+              ImportItemOutcome.invalidType,
+              message: 'Choose an MP3 file.',
+            ),
+          );
+          continue;
+        }
+        try {
+          final bytes = await staged.readBytes();
+          await Mp3Validator.validate(bytes);
+          if (!seen.add(CourseMediaStore.referenceFor(bytes, 'mp3'))) {
+            results.add(
+              ImportItemResult(
+                item.displayName,
+                ImportItemOutcome.duplicateSkipped,
+              ),
+            );
+            continue;
+          }
+          final reference = await _media.addBytes(courseId, bytes, 'mp3');
+          clips.add(
+            CourseAudioClip(
+              id: _clipId(batchStamp, clips.length),
+              text: '',
+              filePath: reference,
+            ),
+          );
+          results.add(
+            ImportItemResult(item.displayName, ImportItemOutcome.imported),
+          );
+        } on Mp3MetadataTooLargeException catch (error) {
+          results.add(
+            ImportItemResult(
+              item.displayName,
+              ImportItemOutcome.metadataTooLarge,
+              message: error.message,
+            ),
+          );
+        } on FormatException catch (error) {
+          results.add(
+            ImportItemResult(
+              item.displayName,
+              ImportItemOutcome.malformed,
+              message: error.message,
+            ),
+          );
+        } catch (error) {
+          results.add(
+            ImportItemResult(
+              item.displayName,
+              ImportItemOutcome.storageFailure,
+              message: '$error',
+            ),
+          );
+        }
+      }
+    } finally {
+      await batch.discardAll();
+    }
+    return (dialog: picked.dialog, clips: clips, results: results);
   }
 
   static final Random _random = Random.secure();

@@ -10,6 +10,7 @@ import '../models/course_models.dart';
 import 'bounded_archive_entry.dart';
 import 'course_media_store.dart';
 import 'import/image_validator.dart';
+import 'import/mp3_validator.dart';
 
 /// A fully checked package. Reading one never writes to course storage.
 class CoursePackage {
@@ -261,6 +262,15 @@ class CoursePackageService {
       final value = _bytes(entry.value);
       _checkMedia(reference, value);
       _checkImportedImage(reference, value);
+      if (CourseMediaStore.isAudioReference(reference)) {
+        try {
+          await Mp3Validator.validate(value);
+        } on Mp3ValidationException catch (error) {
+          throw FormatException(
+            '${CourseMediaStore.fileNameOf(reference)}: ${error.message}',
+          );
+        }
+      }
       media[reference] = value;
     }
     final course = await validateCourse(courseJson, courseName);

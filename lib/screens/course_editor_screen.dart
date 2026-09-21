@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../services/answer_engine.dart';
 import '../services/answer_materialization_service.dart';
+import '../services/file_dialog_service.dart';
 import '../services/first_letter_answer_service.dart';
 import '../services/portable_exercise_image.dart';
 import '../widgets/script_recognition_editor.dart';
@@ -60,6 +61,7 @@ import '../widgets/file_dialog_feedback.dart';
 import '../widgets/flag_art.dart';
 import '../widgets/course_flag_picker.dart';
 import '../widgets/lesson_fallback_icon.dart';
+import '../widgets/import_summary.dart';
 
 String _exerciseCountLabel(int count) =>
     '$count ${count == 1 ? 'Exercise' : 'Exercises'}';
@@ -10780,11 +10782,15 @@ class _AudioLibraryScreenState extends State<AudioLibraryScreen> {
       });
   Future<void> _importFromDialog() async {
     try {
-      // Open from…: one MP3, stored exactly like a folder import.
-      final picked = await _audio.importMp3FromDialog(_course.courseId);
+      // Open from…: up to 100 MP3s, each checked like a folder import.
+      final picked = await _audio.importMp3sFromDialog(
+        _course.courseId,
+        existingReferences: {
+          for (final clip in _course.audioLibrary) clip.filePath,
+        },
+      );
       if (!mounted) return;
-      final clip = picked.clip;
-      if (clip == null) {
+      if (picked.dialog.outcome != FileDialogOutcome.opened) {
         showFileDialogFeedback(
           context,
           picked.dialog,
@@ -10793,13 +10799,18 @@ class _AudioLibraryScreenState extends State<AudioLibraryScreen> {
         );
         return;
       }
-      setState(() => _course = _copy(clips: [..._course.audioLibrary, clip]));
-      unawaited(_refreshMissingClips());
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          duration: const Duration(seconds: 8),
-          content: Text('Imported MP3 file ${picked.dialog.displayName}.'),
-        ),
+      if (picked.clips.isNotEmpty) {
+        setState(
+          () => _course = _copy(
+            clips: [..._course.audioLibrary, ...picked.clips],
+          ),
+        );
+        unawaited(_refreshMissingClips());
+      }
+      await showImportSummary(
+        context,
+        title: 'MP3 files imported',
+        items: picked.results,
       );
     } catch (e) {
       if (mounted) {
@@ -10812,7 +10823,12 @@ class _AudioLibraryScreenState extends State<AudioLibraryScreen> {
 
   Future<void> _import() async {
     try {
-      final clips = await _audio.importMp3Files(_course.courseId);
+      final clips = await _audio.importMp3Files(
+        _course.courseId,
+        existingReferences: {
+          for (final clip in _course.audioLibrary) clip.filePath,
+        },
+      );
       if (clips.isNotEmpty && mounted) {
         setState(
           () => _course = _copy(clips: [..._course.audioLibrary, ...clips]),

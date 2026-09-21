@@ -617,3 +617,42 @@ Version **2.0.43+243012**, same Beta expiry. Tranche 2b of
   `onCourseChanged` (Edit mode on a Course the user may edit), and the change
   goes through `_updateDraft`.
 - **Help:** English and Italian Help and `docs/COURSE_EDITOR.md` describe it.
+
+## Revision 13 — real MP3 validation
+
+Version **2.0.43+243013**, same Beta expiry. Tranche 3 of
+`docs/IMPORT_HARDENING_PLAN.md`.
+
+- **`Mp3Validator`** (`lib/services/import/mp3_validator.dart`) walks the
+  file's structure without decoding audio:
+  - an optional ID3v2.2–2.4 tag with valid synchsafe sizes, an extended
+    header that fits and well-formed frames; `APIC`/`PIC` artwork is refused
+    (owner decision);
+  - zero padding after the tag;
+  - MPEG-1, 2 or 2.5 Layer III frames only (no reserved values, no free
+    format), at least four, each starting where the previous one ends, with
+    version and sample rate constant (variable bit rate is fine);
+  - after the last frame only an ID3v1 and/or APEv2 trailer;
+  - at most 2 MB of tags in total (`Mp3MetadataTooLargeException`), at most
+    50 MB per file;
+  - duration comes from the frames walked. `validate` runs `inspect` in
+    `Isolate.run` under a 30 s watchdog.
+- **Routes:**
+  - `RecordedAudioService.importMp3Files` (fixed folder) stages each file
+    under 50 MB and checks all of them before storing any;
+  - `importMp3FromDialog` checks the single file;
+  - new `importMp3sFromDialog` uses `FileDialogService.openFiles` (100 files,
+    250 MB) and returns a result per file: `Imported`, `DuplicateSkipped`
+    (same content already in the Course or earlier in the batch),
+    `Malformed`, `MetadataTooLarge`, `InvalidType`, `TooLarge`;
+  - `CoursePackageService.parse` checks every `.mp3` media entry on import
+    only (export is unchanged).
+- **Course Editor:** Audio Library **Open from…** is multi-file and ends with
+  `showImportSummary`; both import actions pass the Course's existing
+  recordings so duplicates are skipped.
+- **Tests:** `test/support/synthetic_mp3.dart` builds valid MP3s;
+  `mp3_validation_tranche3_test.dart` covers the adversarial cases. The
+  signed Dummy media fixture was re-signed with the Dummy test key because
+  its 7-byte placeholder recording is no longer accepted.
+- **Help:** English and Italian Help and `docs/COURSE_EDITOR.md` describe the
+  check and the multi-file dialog.

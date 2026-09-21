@@ -4,7 +4,7 @@ Keep this file current at the end of **every** revision, so that work can
 resume after a pause or with another agent. Plan and decisions:
 [IMPORT_HARDENING_PLAN.md](IMPORT_HARDENING_PLAN.md). Rules: `AGENTS.md`.
 
-## Where things stand (updated 2026-09-21 18:08, Revision 12 committed)
+## Where things stand (updated 2026-09-21 18:40, Revision 13 in validation)
 
 | Revision | Version | Commit | Content |
 |---|---|---|---|
@@ -16,20 +16,24 @@ resume after a pause or with another agent. Plan and decisions:
 | 10 | `2.0.43+243010` | `b2b7d7d` | Tranche 1: safe import foundation (streamed staging under real limits, ordinary files only, per-file batch results, cancellation) |
 | 11 | `2.0.43+243011` | `3ed36fa` | Tranche 2: one image validator for every image import; Shared Library multi-file import with summary; N6/N7 fixed |
 | 12 | `2.0.43+243012` | `a40999d` | Tranche 2b: add images and Image Banks to a Course's own library; readBank split; entry metadata |
+| 13 | `2.0.43+243013` | pending | Tranche 3: `Mp3Validator` on every MP3 route; multi-file Audio Library Open from… with summary; duplicate clips skipped; Dummy media fixture re-signed |
 
 Revisions 5–12 are pushed to `origin/main`. The untracked
 `devtools_options.yaml` predates this work: never commit or delete it.
 
 ## Next steps, in order (plan §6a)
 
-1. **Tranche 3** (plan): real MP3 validation (`Mp3Validator`: ID3v2
-   bounded, MPEG-1/2/2.5 Layer III only, at least 4 consecutive valid frames,
-   ID3v1/APEv2 trailers within 2 MB, `APIC`/`PIC` artwork rejected, 30 s
-   watchdog), used by every MP3 route (fixed folder, Open from…, Course ZIP
-   `.mp3` media on import). Multi-file Audio Library **Open from…** through
-   `FileDialogService.openFiles` and `showImportSummary`. A duplicate clip
-   (same SHA-256 already in the Course's Audio Library) is `DuplicateSkipped`.
-2. **Tranches 4, 5** in that order.
+1. **Revision 13 (Tranche 3)** is implemented, bumped to `2.0.43+243013`,
+   docs written; the full suite is running in two halves. If it is green:
+   add the validation record to `docs/243_VALIDATION.md`, commit, record the
+   hash here, push. If a pause interrupts it, re-run only the half that has
+   no summary line.
+2. **Tranche 4** (Revision 14): one hardened ZIP reader shared by Image Banks
+   and Course packages, streaming with no whole-ZIP buffer; manifest bounds;
+   bank categories confirmed by the Admin; the bank-wide default attribution;
+   JSON structural limits.
+3. **Tranche 5** (Revision 15): content-hash duplicates with Skip / Replace /
+   Keep both; provenance; the adversarial suite.
 
 ## Owner decisions already taken
 
@@ -99,6 +103,10 @@ All recorded in plan §6, §6a–§6c and Tranche 0b/2b. The most consequential:
 - `sed -i` with `^…$` anchors sometimes fails to match on this checkout. For
   line removals, use Python working on bytes (see the Revision 7 import
   cleanup).
+- Test MP3s must be real: use `syntheticMp3(seed:)` from
+  `test/support/synthetic_mp3.dart`. The signed Dummy media fixture is
+  re-signed with the Dummy test key (steps in
+  `test/fixtures/publishers/README.md`).
 - `round.exercises` is a lossy view: it skips the Lesson introduction and
   turns presentations into old-style flashcards without their images. Use
   `LearningContent` (`round.content`, `lesson.guidebook.content`) whenever

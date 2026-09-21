@@ -1,5 +1,37 @@
 # Build 243 validation
 
+## Revision 13 — real MP3 validation (`2.0.43+243013`)
+
+Validation on 21 September 2026, before the Revision 13 commit.
+
+- `Mp3Validator` accepted all 16 bundled `assets/audio/*/sample_*.mp3`
+  recordings (25–39 frames each) before it was wired in.
+- New `mp3_validation_tranche3_test.dart` (21), all passing. It covers
+  constant and variable bit rate, ID3v2/ID3v1/APEv2 tags, the bundled
+  samples, the isolate path, and refusal of: empty, over 50 MB, a renamed
+  ZIP, a renamed image, an ID3 header with no audio, a corrupt synchsafe
+  size, an overlong tag, a damaged ID3 frame, more than 2 MB of metadata,
+  `APIC` artwork, a truncated frame, trailing junk, a single fake sync
+  marker, fewer than four frames, bad bit rate, free format, reserved sample
+  rate, Layer II, and a sample-rate change. Also the routes: multi-file Open
+  from… (per-file results, duplicates skipped, nothing stored for refused
+  files), a cancelled dialog, single Open from…, and the fixed folder storing
+  nothing when one file is bad.
+- `course_package_243_test`: a correctly hashed recording that is not an MP3
+  is refused on Course ZIP import, with nothing installed.
+- Tests that used placeholder MP3 bytes now use `syntheticMp3()`. The signed
+  Dummy media fixture was re-signed with the Dummy test key; only its
+  recording reference, checksum and signature changed.
+- Found in review before the run: the fixed-folder import first held every
+  checked file in memory; it now keeps the checked copies in staging. An
+  unescaped apostrophe in the new English Help text broke compilation; the
+  first suite run was stopped and discarded.
+- Complete suite in two halves covering all 233 test files once:
+  **1,003 + 1,073 = 2,076 passed, 0 failed** (both halves exit 0).
+- `flutter analyze` on the repository: **no issues**.
+- The four `tools/validate_*.py` validators: 0 issues.
+- `git diff --check`: clean. The untracked `devtools_options.yaml` is excluded.
+
 ## Revision 12 — add images and Image Banks to a Course (`2.0.43+243012`)
 
 Validation on 21 September 2026, before the Revision 12 commit.

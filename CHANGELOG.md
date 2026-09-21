@@ -1,3 +1,12 @@
+# 2.0.43 (Build 243, Revision 13) - Real MP3 validation - 2026-09-21
+
+Tranche 3 of the [import hardening plan](docs/IMPORT_HARDENING_PLAN.md). Scope: [Build 243 change summary](docs/243_CHANGE_SUMMARY.md#revision-13--real-mp3-validation); evidence: [243 validation](docs/243_VALIDATION.md).
+
+- Platform version `2.0.43+243013`; the Beta expiry remains **2026-10-21 23:59:59 local time**.
+- Every MP3 that enters QQL is checked by its content: the Audio Library's fixed folder, **Open from…**, and the recordings inside an imported Course ZIP. A file that is not real MPEG Layer III audio, is damaged or cut short, carries more than 2 MB of tags, or has embedded cover artwork is refused.
+- **Open from…** in the Audio Library now takes several MP3s at once (up to 100 files and 250 MB) and ends with a summary of each file's result.
+- A recording the Course already has is skipped instead of listed twice. From the fixed folder, one refused file means nothing is imported.
+
 # 2.0.43 (Build 243, Revision 12) - Add images and Image Banks to a Course - 2026-09-21
 
 Tranche 2b of the [import hardening plan](docs/IMPORT_HARDENING_PLAN.md). Scope: [Build 243 change summary](docs/243_CHANGE_SUMMARY.md#revision-12--add-images-and-image-banks-to-a-course); evidence: [243 validation](docs/243_VALIDATION.md).

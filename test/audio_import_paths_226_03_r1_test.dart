@@ -7,6 +7,7 @@ import 'package:quisquislingo_app/models/course_models.dart';
 import 'package:quisquislingo_app/services/course_media_store.dart';
 import 'package:quisquislingo_app/services/custom_course_transfer_service.dart';
 import 'package:quisquislingo_app/services/recorded_audio_service.dart';
+import 'support/synthetic_mp3.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -139,7 +140,7 @@ void main() {
       final mp3 = File(
         '${documents.path}${Platform.pathSeparator}physical-audio.mp3',
       );
-      final mp3Bytes = utf8.encode('physical mp3 payload outside course json');
+      final mp3Bytes = syntheticMp3();
       await mp3.writeAsBytes(mp3Bytes, flush: true);
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(

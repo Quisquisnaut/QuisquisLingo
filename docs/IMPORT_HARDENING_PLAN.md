@@ -460,6 +460,8 @@ Image Bank into a Course:
 
 ### Tranche 3 — Audio
 
+**Status: implemented as Revision 13 (`2.0.43+243013`).** One refused file in the fixed folder stops the whole folder import (nothing stored); Open from… reports per file.
+
 1. `Mp3Validator`:
    - ID3v2.2/2.3/2.4 at start: synchsafe sizes, footer flag, unsynchronisation,
      frame sizes that stay inside the tag. Extended header bounded.
