@@ -1,5 +1,24 @@
 # Build 244 validation
 
+## Revision 5 — Sort by (`2.0.44+244005`)
+
+Validation on 22 September 2026, before the Revision 5 commit.
+
+- New `test/course_library_sort_244_test.dart`: Title (case-insensitive,
+  trimmed, courseId tie-break), Language (target, source, title), Maintainer,
+  Most recent (newest first, title tie-break) and Duration (shortest first,
+  unknown last); every ordering is independent of input order; in the page,
+  choosing Duration reorders Other Local Courses and leaves Bundled Courses
+  and the empty sections unchanged.
+- The controls wrap at 320 px (the test font's wide glyphs exposed a 25 px
+  overflow of the Sort by row, now a `Wrap`).
+- Beta expiry moved to 2026-10-22: `beta_lifecycle_test` dates shifted by one
+  day; the first-run dialog expectation in `leaderboard_navigation_test`
+  updated.
+- Focused run: four Course Library suites **32 passed, 0 failed**; lifecycle,
+  first-run dialog and version tests pass; `flutter analyze` on the changed
+  files: no issues.
+
 ## Revision 4 — Richer Course rows and covers (`2.0.44+244004`)
 
 Validation on 21 September 2026, before the Revision 4 commit.

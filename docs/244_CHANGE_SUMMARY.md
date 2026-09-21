@@ -75,3 +75,21 @@ or `Unknown` if it cannot be parsed), `Maintainer:`, `Duration:` (`1 hour` /
 labels. The values come from `CourseLibraryPresentation`
 (`lib/services/course_library_presentation.dart`), which later sorting will
 reuse. No pseudo-duration is calculated.
+
+## Revision 5 — Sort by
+
+Version **2.0.44+244005**, Beta expiry **2026-10-22 23:59:59 local**, the 30-day policy applied to this release's own date, 22 September 2026. A **Sort by** dropdown sits beside the availability switch (both wrap
+on narrow screens). Options: Title (default, the former behaviour),
+Language (target, then source), Maintainer (the displayed maintainer label),
+Most recent (parsed `modifiedAtUtc`, newest first, unparsable last) and
+Duration (`estimatedStudyHours`, shortest first, undeclared last). The
+ordering is applied inside each section by
+`CourseLibraryPresentation.sorted`; sections stay in their fixed order and a
+Course never changes section. Every ordering ends with title, then courseId,
+and all text uses one trimmed, case-insensitive comparison. The choice lasts
+only while the page is open. The former one-time title sort in `_load` is
+removed.
+
+This release is dated 22 September 2026, so the Beta expiry moves to
+**2026-10-22 23:59:59** local time under the 30-day policy
+(`BetaLifecycleService.expiryDate`, lifecycle and first-run tests, README).

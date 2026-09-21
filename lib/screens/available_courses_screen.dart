@@ -63,6 +63,9 @@ class _AvailableCoursesScreenState extends State<AvailableCoursesScreen> {
 
   /// Page-session presentation filter; never changes any Course state.
   bool _showUnavailable = false;
+
+  /// Page-session ordering, applied inside each section.
+  CourseLibrarySort _sort = CourseLibrarySort.title;
   @override
   void initState() {
     super.initState();
@@ -85,10 +88,6 @@ class _AvailableCoursesScreenState extends State<AvailableCoursesScreen> {
         for (final profile in await _library.profiles.getProfileRecords())
           profile.learnerProfileId: profile.displayName,
       };
-      courses.sort((a, b) {
-        final title = a.title.toLowerCase().compareTo(b.title.toLowerCase());
-        return title != 0 ? title : a.courseId.compareTo(b.courseId);
-      });
       final hasDraft = {
         for (final course in courses)
           if (CourseDraftStatus.courseHasDraft(course)) course.courseId,
@@ -226,10 +225,11 @@ class _AvailableCoursesScreenState extends State<AvailableCoursesScreen> {
 
   Widget _sectionBand(BuildContext context, int index, String label) {
     final all = _courses!.where((c) => _section(c) == index).toList();
-    final shown = [
-      for (final course in all)
-        if (_showUnavailable || !_isUnavailableOrDraft(course)) course,
-    ];
+    final shown = CourseLibraryPresentation.sorted(
+      all.where((c) => _showUnavailable || !_isUnavailableOrDraft(c)),
+      _sort,
+      maintainerOf: _maintainer,
+    );
     final hidden = all.length - shown.length;
     final color = _sectionColor(context, index);
     return _Band(
@@ -411,27 +411,60 @@ class _AvailableCoursesScreenState extends State<AvailableCoursesScreen> {
         : ListView(
             padding: const EdgeInsets.all(16),
             children: [
-              MergeSemantics(
-                child: InkWell(
-                  onTap: () =>
-                      setState(() => _showUnavailable = !_showUnavailable),
-                  child: Row(
-                    children: [
-                      Switch(
-                        key: const Key('show-unavailable-courses'),
-                        value: _showUnavailable,
-                        onChanged: (value) =>
-                            setState(() => _showUnavailable = value),
+              if (widget.courseWebSite case final site?) _webSiteBand(site),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 16),
+                child: Wrap(
+                  spacing: 24,
+                  runSpacing: 8,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    MergeSemantics(
+                      child: InkWell(
+                        onTap: () => setState(
+                          () => _showUnavailable = !_showUnavailable,
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Switch(
+                              key: const Key('show-unavailable-courses'),
+                              value: _showUnavailable,
+                              onChanged: (value) =>
+                                  setState(() => _showUnavailable = value),
+                            ),
+                            const SizedBox(width: 8),
+                            const Flexible(
+                              child: Text('Show unavailable or Draft Courses'),
+                            ),
+                          ],
+                        ),
                       ),
-                      const SizedBox(width: 8),
-                      const Flexible(
-                        child: Text('Show unavailable or Draft Courses'),
-                      ),
-                    ],
-                  ),
+                    ),
+                    Wrap(
+                      spacing: 12,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: [
+                        const Text('Sort by'),
+                        DropdownButton<CourseLibrarySort>(
+                          key: const Key('course-library-sort'),
+                          value: _sort,
+                          onChanged: (value) {
+                            if (value != null) setState(() => _sort = value);
+                          },
+                          items: [
+                            for (final sort in CourseLibrarySort.values)
+                              DropdownMenuItem(
+                                value: sort,
+                                child: Text(sort.label),
+                              ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
               ),
-              if (widget.courseWebSite case final site?) _webSiteBand(site),
               for (final (index, label) in _sectionLabels.indexed)
                 _sectionBand(context, index, label),
             ],

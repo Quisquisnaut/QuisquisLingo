@@ -1,3 +1,13 @@
+# 2.0.44 (Build 244, Revision 5) - Sort by - 2026-09-22
+
+A **Sort by** control next to the availability switch orders Courses by
+Title (the default), Language, Maintainer, Most recent or Duration. The order
+applies inside each section; sections never move and no Course changes
+section. Most recent puts the newest edit first; Duration puts the shortest
+first and Courses without a declared duration last. Ties are broken by title
+and then by Course ID, so rows never jump between refreshes.
+Version `2.0.44+244005`; Beta expiry moves to **2026-10-22 23:59:59 local time**, 30 days from this release (22 September 2026).
+
 # 2.0.44 (Build 244, Revision 4) - Richer Course rows and covers - 2026-09-21
 
 Course Library rows now show the Course cover, or its flag when there is no
