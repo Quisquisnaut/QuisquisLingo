@@ -3,6 +3,7 @@ import 'package:quisquislingo_app/models/course_models.dart';
 import 'package:quisquislingo_app/services/course_access_policy.dart';
 import 'package:quisquislingo_app/services/course_authoring_session.dart';
 import 'package:quisquislingo_app/services/course_editor_service.dart';
+import 'package:quisquislingo_app/services/course_hierarchy_update_service.dart';
 import 'package:quisquislingo_app/services/settings_service.dart';
 
 const _profileId = '12345678-1234-4234-9234-123456789abc';
@@ -26,6 +27,24 @@ void main() {
     expect(session.hasChanges, isTrue);
     expect(session.auditOutdated, isTrue);
     expect(session.lastAudit, same(firstAudit));
+  });
+
+  test('typed hierarchy update uses the current working Course once', () {
+    final original = _course('Original');
+    final session = _session(original, _RecordingEditorService());
+    session.setEditorMode(CourseEditorMode.edit);
+    session.stageCourse(_withTitle(session.workingCourse, 'Edited'));
+
+    session.applyHierarchyUpdate(
+      ReplaceLessons([
+        Lesson(lessonId: 'new-lesson', title: 'New Lesson', rounds: const []),
+      ]),
+    );
+
+    expect(session.workingCourse.title, 'Edited');
+    expect(session.workingCourse.lessons.single.lessonId, 'new-lesson');
+    expect(session.originalCourse.lessons, isEmpty);
+    expect(session.hasChanges, isTrue);
   });
 
   test('read-only access cannot activate Edit or stage a Course', () {

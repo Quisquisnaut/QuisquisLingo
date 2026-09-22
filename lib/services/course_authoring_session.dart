@@ -3,6 +3,7 @@ import 'course_access_policy.dart';
 import 'course_audit_service.dart';
 import 'course_editor_service.dart';
 import 'course_editor_transaction.dart';
+import 'course_hierarchy_update_service.dart';
 import 'provisional_publication_service.dart';
 import 'settings_service.dart';
 
@@ -72,6 +73,13 @@ class CourseAuthoringSession {
     _transaction.replaceWorkingCourse(reconciled);
     if (governanceChanged) _governanceChangedInEditMode = true;
     _auditOutdated = true;
+  }
+
+  /// Applies a typed hierarchy command to the current transaction snapshot.
+  void applyHierarchyUpdate(CourseHierarchyUpdate update) {
+    stageCourse(
+      const CourseHierarchyUpdateService().apply(workingCourse, update),
+    );
   }
 
   void markAuditOutdated() => _auditOutdated = true;

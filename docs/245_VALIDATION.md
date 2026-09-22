@@ -46,3 +46,25 @@ Validated on 22 September 2026 against the Revision 1 working tree.
 
 The full Flutter suite and manual device smoke remain for the integrated Build
 245 release gate.
+
+## Revision 2 — typed hierarchy updates (`2.0.45+245002`)
+
+Validated on 22 September 2026 against the Revision 2 working tree.
+
+| Check | Result |
+| --- | --- |
+| `flutter test --no-pub test/course_hierarchy_route_245_test.dart` before the screen migration | 1/1 passed, characterizing the standalone Round callback and pop result with rich Content metadata. |
+| `flutter test --no-pub` with 17 focused authoring, icon, transfer, Audit issue, GuideBook, layout, publication and version test files after the final fix | 172/172 passed. Includes generated Round drafts absent from the base Course and duplicate Content/Lesson/Round IDs that must still open for Audit. |
+| `flutter analyze --no-pub` | No issues found (73.9 s). |
+| `python tools/validate_courses.py` | 10 bundled Course Model v11 files valid. |
+| `python tools/validate_images.py` | 111 assets; 0 issues. |
+| `python tools/validate_lesson_icons.py` | 14 assets; 0 issues. |
+| `python tools/validate_media_assets.py` | 443 files; 0 issues. |
+| `git diff --check` | Passed. |
+
+An independent diff review found preview regressions for generated Rounds and
+duplicate IDs before the final gate. Tolerant typed preview overlays and
+regression tests fixed them. Strict ID-targeted mutation commands still reject
+ambiguous targets; existing Audit remains accessible for malformed Courses.
+The full Flutter suite and manual device smoke remain for the integrated Build
+245 release gate.

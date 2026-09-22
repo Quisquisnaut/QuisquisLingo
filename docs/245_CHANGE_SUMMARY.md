@@ -6,6 +6,21 @@ effects. The architecture and revision sequence are in
 revision goals. Course Model v11, storage keys and formats, learner scoring,
 progression, Course packages and Publisher signatures remain unchanged.
 
+## Revision 2 — typed hierarchy updates
+
+Version **2.0.45+245002**. Beta expiry: **2026-10-22 23:59:59 local**, 30
+days from this release date, 22 September 2026.
+
+Typed Lesson, Round and Exercise update commands own hierarchy reconstruction
+and Content-wrapper preservation. Editors retain transient form and navigation
+state. The session remains responsible for adopting staged updates and Audit
+freshness, and the existing final confirmation remains the only persistence
+point. Route callbacks and nested reconciliation retain their current behavior until
+Revision 3, when canonical propagation can preserve each prior-Course
+snapshot. Route coverage and any remaining migration work are recorded in
+[245_VALIDATION.md](245_VALIDATION.md) and [245_HANDOFF.md](245_HANDOFF.md).
+Course Model v11, stored data and user-visible behavior are preserved.
+
 ## Revision 1 — Course authoring session
 
 Version **2.0.45+245001**. Beta expiry: **2026-10-22 23:59:59 local**, 30
