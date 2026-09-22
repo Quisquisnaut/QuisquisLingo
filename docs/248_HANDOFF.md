@@ -101,6 +101,18 @@ its reasoning in [248_VALIDATION.md](248_VALIDATION.md). `git diff --check`
 is clean. `tools/validate_release.ps1` reruns the complete suite at the release
 gate, which re-checks this on an idle machine.
 
+**Follow-up on that failure.** Running the file 13 times on unchanged `main`
+and 19 times on this branch produced 0 and 2 failures respectively — but both
+failures came from one heavily loaded session and all 32 clean runs from a
+rested machine, so the experiment neither convicts nor clears this build. The
+first claim that the failure was definitely unrelated was withdrawn as
+overconfident. Both affected tests waited for the confirmed save with a
+hand-rolled ~3 s budget; they now use the shared `pumpUntilFileIoState`, which
+allows 10 s, as every other Course Editor test does. That is a test-only
+robustness fix worth making regardless of cause, and it does not touch the
+application or the behaviour the owner smoke tested. The app is byte-identical,
+so the build number is deliberately **not** bumped for it.
+
 ## Known limits
 
 * **Pictures added while editing leak the same way** and are deliberately out

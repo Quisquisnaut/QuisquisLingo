@@ -89,22 +89,53 @@ Draft is red and blue through Lesson and Lessons while Rounds stays green"
 failed in the complete run and **passes in isolation** (5/5 on that file
 alone, 27 s).
 
-It is recorded as a load-induced flake, not a regression, on this evidence:
-
-* It fails inside `_confirmCourse`, on the **confirmed save** path. This
-  build's cleanup runs only when `_popEditor` pops with **no** confirmation
-  result; with a result it is a no-op, so the confirm path is behaviourally
-  unchanged.
-* The Course is dirty at that point, so `PopScope.canPop` evaluated to `false`
-  both before and after the `canPop` change. That change can only affect an
-  **unchanged** working copy.
-* The helper waits a fixed ~3 s of real filesystem time for the save to land,
-  and the run followed more than an hour of back-to-back suites on the same
-  machine.
-
 The total is consistent with Build 247's 2,293 tests plus the 9 added here.
-`tools/validate_release.ps1` runs the complete suite again as part of the
-release gate, which re-checks this on an idle machine.
+
+### Investigation, and what it did and did not establish
+
+A first reading called this a load flake unrelated to the change, on the
+argument that it fails on the **confirmed save** path, where this build is a
+no-op (`_popEditor` sweeps only when it pops with no confirmation result), and
+that the Course is dirty there, so `PopScope.canPop` was `false` both before
+and after the `canPop` change. **That argument was stated with more confidence
+than the evidence supported, and is withdrawn.** The change does add a folder
+listing to every Course Editor open and to every unconfirmed close, so it is
+not self-evidently free of timing effects.
+
+The file was then run repeatedly on both sides:
+
+| Tree | Runs | Failures |
+| --- | --- | --- |
+| Unchanged `main` (`f4de191`) | 13 | 0 |
+| Build 248 branch | 19 | 2 |
+
+That looks like a branch regression until the timing is taken into account:
+**both failures occurred in one session on a machine that had been running
+suites back to back for over an hour, and all 32 clean runs were on a rested
+machine**, including 10 on the branch. `main` was never exercised under the
+same load, so it was never given the same opportunity to fail. Machine load
+predicts the failures better than the tree does, and the experiment therefore
+**neither convicts nor clears the change**. It is recorded as unresolved.
+
+### The correction actually made
+
+Both failing tests waited for the confirmed save with a hand-rolled loop of
+100 iterations at 30 ms — a fixed budget of roughly **3 s of real filesystem
+time**. Both now use the repository's shared `pumpUntilFileIoState`, which
+allows **10 s** and names the unmet condition when it gives up, as every other
+Course Editor test already does. This is a test-robustness fix that stands on
+its own merits: a 3 s stopwatch over real disk work is brittle on any loaded
+machine, independently of this build.
+
+Test file only; no application code is touched, and the behaviour verified by
+the owner's manual smoke test is unchanged. After the correction: analyzer
+clean and **10/10** runs of that file passed.
+
+Honest limit of that verification: the file also passed 10/10 on a rested
+machine **before** the correction, so those runs show the change is harmless,
+not that it cures anything. The meaningful re-check is
+`tools/validate_release.ps1`, which runs the complete suite under the same
+kind of load that provoked the original failure.
 
 ## 5. Version and release records
 
