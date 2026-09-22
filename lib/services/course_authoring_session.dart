@@ -7,6 +7,10 @@ import 'course_hierarchy_update_service.dart';
 import 'provisional_publication_service.dart';
 import 'settings_service.dart';
 
+/// A route callback that returns the canonical Course after one staged update.
+typedef CourseDraftAdopter =
+    Course Function(Course candidate, {Course? previous, bool? usePrevious});
+
 /// Coordinates one Course Editor working copy and its final confirmation.
 ///
 /// The transaction remains the sole owner of the original and working Course.
@@ -61,14 +65,19 @@ class CourseAuthoringSession {
   }
 
   /// Stages a Course-level or nested-editor result as one working-copy update.
-  void stageCourse(Course value, {bool governanceChanged = false}) {
+  void stageCourse(
+    Course value, {
+    bool governanceChanged = false,
+    Course? previous,
+    bool usePrevious = true,
+  }) {
     if (!canModify) {
       throw StateError('The Course Editor is not in Edit.');
     }
     final reconciled = const ProvisionalPublicationService().reconcile(
       value,
       updatedAt: _clock(),
-      previous: workingCourse,
+      previous: usePrevious ? previous ?? workingCourse : null,
     );
     _transaction.replaceWorkingCourse(reconciled);
     if (governanceChanged) _governanceChangedInEditMode = true;

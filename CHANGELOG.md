@@ -1,3 +1,13 @@
+# 2.0.45 (Build 245, Revision 3) - Canonical authoring route propagation - 2026-09-22
+
+Integrated Course, Lesson, Round and Exercise editor routes now pass accepted
+updates through the Course authoring session. The route supplies the prior
+Course snapshot required for publication reconciliation, while standalone
+editor routes keep their public callbacks. The session remains the sole
+working Course owner and final confirmation remains the only persistence
+point. Course Model v11, stored data and user-visible behavior are unchanged.
+Version `2.0.45+245003`; Beta expiry remains **2026-10-22 23:59:59 local time**.
+
 # 2.0.45 (Build 245, Revision 2) - Typed hierarchy updates - 2026-09-22
 
 Lesson, Round and Exercise edits gain typed update commands. One service now

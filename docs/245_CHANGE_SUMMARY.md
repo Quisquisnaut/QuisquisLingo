@@ -6,6 +6,20 @@ effects. The architecture and revision sequence are in
 revision goals. Course Model v11, storage keys and formats, learner scoring,
 progression, Course packages and Publisher signatures remain unchanged.
 
+## Revision 3 — canonical authoring route propagation
+
+Version **2.0.45+245003**. Beta expiry: **2026-10-22 23:59:59 local**, 30
+days from this release date, 22 September 2026.
+
+Integrated Course, Lesson, Round and Exercise editor routes propagate accepted
+updates through one authoritative Course authoring session path. Publication
+reconciliation receives the exact prior Course snapshot where the existing
+route supplies one, and standalone public editor routes retain their callback
+contracts. Final Course confirmation remains the only persistence point.
+Course Model v11, stored data and user-visible behavior remain unchanged.
+Route coverage and remaining work are recorded in
+[245_VALIDATION.md](245_VALIDATION.md) and [245_HANDOFF.md](245_HANDOFF.md).
+
 ## Revision 2 — typed hierarchy updates
 
 Version **2.0.45+245002**. Beta expiry: **2026-10-22 23:59:59 local**, 30

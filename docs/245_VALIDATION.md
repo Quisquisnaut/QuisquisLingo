@@ -68,3 +68,29 @@ regression tests fixed them. Strict ID-targeted mutation commands still reject
 ambiguous targets; existing Audit remains accessible for malformed Courses.
 The full Flutter suite and manual device smoke remain for the integrated Build
 245 release gate.
+
+## Revision 3 — canonical route propagation (`2.0.45+245003`)
+
+Validated on 22 September 2026 against the Revision 3 working tree.
+
+| Check | Result |
+| --- | --- |
+| `flutter test --no-pub test/canonical_authoring_route_245_test.dart` before migration | The integrated Course route exposed ten extra clock calls on Back (11 after Exercise Save, 21 at the Course); the standalone Round route emitted two callbacks for one Exercise Save. These were the characterization failures. |
+| `flutter test --no-pub test/course_authoring_session_245_test.dart` | 11/11 passed, including explicit prior-Course and no-prior reconciliation. |
+| `flutter test --no-pub` with 16 focused authoring, hierarchy, transfer, Audit, layout and version test files | 115/115 passed on the final candidate tree. The integrated Published Exercise path had no extra update on Back and confirmed once; standalone Round callback and pending Lesson metadata routes passed. |
+| `flutter test --no-pub test/canonical_authoring_route_245_test.dart` | 5/5 passed. Includes direct Course Audit → Exercise (one live stage, none on return), integrated Course-root Exercise copy, nested Published save, standalone callback compatibility and pending Lesson metadata. |
+| `flutter analyze --no-pub` | No issues found (30.5 s). |
+| `python tools/validate_courses.py` | 10 bundled Course Model v11 files valid. |
+| `python tools/validate_images.py` | 111 assets; 0 issues. |
+| `python tools/validate_lesson_icons.py` | 14 assets; 0 issues. |
+| `python tools/validate_media_assets.py` | 443 files; 0 issues. |
+| `git diff --check` | Passed. |
+
+The integrated nested routes now call one authoring session adopter. Ancestor
+screens synchronize the returned canonical Course without reconciling it again;
+identical pop results are ignored. A direct Audit → Exercise path also uses the
+current canonical Round for its fallback. Standalone route callbacks remain
+compatible. No route was moved to a new file solely to reduce line count.
+
+The full Flutter suite and manual device smoke remain for the integrated Build
+245 release gate.

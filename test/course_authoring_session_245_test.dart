@@ -47,6 +47,32 @@ void main() {
     expect(session.hasChanges, isTrue);
   });
 
+  test('route staging can use its exact prior Course or no prior Course', () {
+    final before = _completionCourse(PublicationState.draft);
+    final candidate = _completionCourse(PublicationState.published);
+    final withPrevious = _session(before, _RecordingEditorService());
+    withPrevious.setEditorMode(CourseEditorMode.edit);
+    withPrevious.stageCourse(candidate, previous: before);
+    expect(
+      withPrevious.workingCourse.lessons.single.rounds.single.publicationState,
+      PublicationState.published,
+    );
+
+    final withoutPrevious = _session(before, _RecordingEditorService());
+    withoutPrevious.setEditorMode(CourseEditorMode.edit);
+    withoutPrevious.stageCourse(candidate, usePrevious: false);
+    expect(
+      withoutPrevious
+          .workingCourse
+          .lessons
+          .single
+          .rounds
+          .single
+          .publicationState,
+      PublicationState.draft,
+    );
+  });
+
   test('read-only access cannot activate Edit or stage a Course', () {
     final original = _course('Original');
     final session = CourseAuthoringSession(
@@ -249,6 +275,44 @@ Course _course(String title, {String version = '6'}) => Course(
 
 Course _withTitle(Course course, String title) =>
     Course.fromJson({...course.toJson(), 'title': title});
+
+Course _completionCourse(PublicationState exerciseState) {
+  final exercise = Exercise(
+    id: 'completion-exercise',
+    type: 'choice',
+    publicationState: exerciseState,
+    prompt: 'Choose the translation.',
+    question: 'water',
+    answers: const ['acqua', 'libro'],
+    correct: 0,
+    tts: null,
+    accepted: const [],
+    tokens: const [],
+    orderAnswer: const [],
+    pairs: const [],
+    hint: '',
+    icons: const [],
+  );
+  final base = _course('Original');
+  return Course.fromJson({
+    ...base.toJson(),
+    'lessons': [
+      Lesson(
+        lessonId: 'completion-lesson',
+        title: 'Lesson',
+        publicationState: PublicationState.draft,
+        rounds: [
+          LearningRound(
+            id: 'completion-round',
+            title: 'Round',
+            publicationState: PublicationState.draft,
+            content: [LearningContent.fromExercise(exercise)],
+          ),
+        ],
+      ).toJson(),
+    ],
+  });
+}
 
 class _RecordingEditorService extends CourseEditorService {
   bool fail = false;
