@@ -2,7 +2,6 @@ import 'dart:convert';
 
 import '../models/course_models.dart';
 import 'authoring_duplication_service.dart';
-import 'course_media_store.dart';
 import 'custom_course_transfer_service.dart';
 import 'course_package_service.dart';
 import 'file_dialog_service.dart';
@@ -68,39 +67,15 @@ class CourseMergeService {
     AuthoringDuplicationService? duplication,
     ProfileService? profileService,
     DateTime Function()? clock,
-    CourseMediaStore? mediaStore,
   }) : _transfer = transfer ?? CustomCourseTransferService(),
        _duplication = duplication ?? AuthoringDuplicationService(),
        _profiles = profileService ?? ProfileService(),
-       _clock = clock ?? DateTime.now,
-       _media = mediaStore ?? CourseMediaStore();
+       _clock = clock ?? DateTime.now;
 
   final CustomCourseTransferService _transfer;
   final AuthoringDuplicationService _duplication;
   final ProfileService _profiles;
   final DateTime Function() _clock;
-  final CourseMediaStore _media;
-
-  /// Copies the media [merged] uses into its own folder: from [left]'s folder
-  /// first, then from [right]'s for whatever the left Course lacks, because
-  /// the merged Lessons come from both. Returns the references neither source
-  /// had. Call it just before saving [merged]; see [discardMedia].
-  Future<Set<String>> copyMedia({
-    required Course left,
-    required Course right,
-    required Course merged,
-  }) async {
-    final missing = await _media.copyReferences(
-      left.courseId,
-      merged.courseId,
-      CourseMediaStore.referencesOf(merged),
-    );
-    return _media.copyReferences(right.courseId, merged.courseId, missing);
-  }
-
-  /// Removes the media folder of a merged Course that was not saved.
-  Future<void> discardMedia(Course merged) =>
-      _media.deleteCourse(merged.courseId);
 
   Future<Course> readMergeCourse() => _transfer.mergeCourse();
 

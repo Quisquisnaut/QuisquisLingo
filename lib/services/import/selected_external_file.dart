@@ -13,6 +13,10 @@ abstract class SelectedExternalFile {
   /// A sanitized name for display and logs only.
   String get displayName;
 
+  /// Original final path segment for decisions requiring the exact filename.
+  /// Never use this unsanitized value in UI, logs or storage paths.
+  String get sourceFileName => displayName;
+
   /// The size the source reports, if any. Advisory only: limits are enforced
   /// against the bytes actually read.
   int? get reportedSize;
@@ -45,6 +49,9 @@ class FileSystemSelectedFile implements SelectedExternalFile {
   final String displayName;
 
   @override
+  String get sourceFileName => _path.split(RegExp(r'[\\/]')).last;
+
+  @override
   final int? reportedSize;
 
   @override
@@ -73,12 +80,16 @@ class FileSystemSelectedFile implements SelectedExternalFile {
 /// Bytes already in memory (tests and in-app sources).
 class MemorySelectedFile implements SelectedExternalFile {
   MemorySelectedFile(String name, this._bytes)
-    : displayName = safeDisplayName(name);
+    : displayName = safeDisplayName(name),
+      sourceFileName = name.split(RegExp(r'[\\/]')).last;
 
   final Uint8List _bytes;
 
   @override
   final String displayName;
+
+  @override
+  final String sourceFileName;
 
   @override
   int? get reportedSize => _bytes.length;

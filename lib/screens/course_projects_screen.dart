@@ -31,6 +31,17 @@ import 'course_editor_screen.dart';
 import 'team_manager_screen.dart';
 import 'flat_image_library_screen.dart';
 
+void _showMatchingZipFolderWarning(BuildContext context) {
+  ScaffoldMessenger.of(context).showSnackBar(
+    const SnackBar(
+      duration: Duration(seconds: 10),
+      content: Text(
+        'Accepted a matching ZIP folder. Course package files normally belong at the ZIP root.',
+      ),
+    ),
+  );
+}
+
 class _DisposeOnUnmount extends StatefulWidget {
   final Widget child;
   final VoidCallback onDispose;
@@ -105,7 +116,7 @@ class CourseImportScreen extends StatelessWidget {
         const SizedBox(height: 8),
         const Text(
           '1. Copy a Course package to Documents/QuisquisLingo/Imports/import.zip, or a media-free JSON to import.json. Keep only one.\n'
-          '2. Select Import Course package or JSON. QQL validates the complete file before changing local storage.\n'
+          '2. A ZIP may have its files at the root or inside one folder named import. QQL accepts the matching folder with a warning. Select Import Course package or JSON; QQL validates the complete file before changing local storage.\n'
           '3. If the Course ID already exists, choose Replace/update, Copy as New Course, Fork or Cancel, as available.\n'
           '4. A successful import is added to your courses. Only published courses are available for study. The source file remains in Imports.',
         ),
@@ -153,6 +164,7 @@ class _CourseMergeScreenState extends State<CourseMergeScreen> {
   CourseMergeSide _targetLevelSide = CourseMergeSide.left;
   bool _showInternalIds = false;
   bool _loading = false;
+  bool _submitting = false;
   final _sounds = SoundEffectService();
 
   Future<void> _loadMergeCourse({bool fromDialog = false}) async {
@@ -207,6 +219,9 @@ class _CourseMergeScreenState extends State<CourseMergeScreen> {
         _startLevelSide = CourseMergeSide.left;
         _targetLevelSide = CourseMergeSide.left;
       });
+      if (loaded.hadMatchingFolderWrapper) {
+        _showMatchingZipFolderWarning(context);
+      }
     } catch (error) {
       unawaited(_sounds.playDefeat());
       if (mounted) {
@@ -222,7 +237,9 @@ class _CourseMergeScreenState extends State<CourseMergeScreen> {
   @override
   void dispose() {
     unawaited(_sounds.dispose());
-    unawaited(_rightPackage?.discard() ?? Future<void>.value());
+    if (!_submitting) {
+      unawaited(_rightPackage?.discard() ?? Future<void>.value());
+    }
     super.dispose();
   }
 
@@ -249,8 +266,8 @@ class _CourseMergeScreenState extends State<CourseMergeScreen> {
             'The Course Merge tool is not intended for merging two completely different courses. '
             'A typical usage case would be two team members working on the same course: while team member, John, edits, say, lessons 1 to 5, another team member, Jane, edits lessons 6 to 8. The Merge Tool allows them, or a third member, to assemble the two sets of lessons into one unified course. Another usage case would be the same editor who wants to merge two versions of the course they are working at: let’s say they want to use lessons 1, 3, and 7 from the first version, and lessons 2, 4, 5, and 6 from the second version.\n\n'
             'Copy the second Course package to Documents/QuisquisLingo/Merges/merge.zip, or a media-free JSON to merge.json. '
-            'Both Courses must be custom. Matching Course IDs are allowed only '
-            'when the Course versions differ.\n\n'
+            'A ZIP normally has its package files at the root. QQL also accepts one enclosing folder whose name exactly matches the ZIP filename without .zip, and shows a non-blocking warning. For merge.zip, that folder must be named merge. '
+            'Both Courses must be custom. If their Course IDs match, the Course version or Modified date and time must differ.\n\n'
             'Author, Maintainer, source/target language, Original Course '
             'Creator, Assigned Team, authors and roles, Rights Holders, license/'
             'derivative policy, language tags/text direction/TTS language, language '
@@ -314,7 +331,7 @@ class _CourseMergeScreenState extends State<CourseMergeScreen> {
           if (right == null) ...[
             FilledButton.icon(
               key: const Key('merge-course-json-primary'),
-              onPressed: _loading ? null : _loadMergeCourse,
+              onPressed: _loading || _submitting ? null : _loadMergeCourse,
               icon: const Icon(Icons.merge_type_outlined),
               label: const Text('Merge Course package or JSON'),
             ),
@@ -322,7 +339,7 @@ class _CourseMergeScreenState extends State<CourseMergeScreen> {
               const SizedBox(height: 12),
               OutlinedButton.icon(
                 key: const Key('merge-course-json-from'),
-                onPressed: _loading
+                onPressed: _loading || _submitting
                     ? null
                     : () => _loadMergeCourse(fromDialog: true),
                 icon: const Icon(Icons.folder_open_outlined),
@@ -349,7 +366,7 @@ class _CourseMergeScreenState extends State<CourseMergeScreen> {
             const SizedBox(height: 8),
             const Text(
               '1. Copy the compatible Course package to Documents/QuisquisLingo/Merges/merge.zip, or a media-free JSON to merge.json. Keep only one.\n'
-              '2. Select Merge Course package or JSON. QQL validates both Course information blocks before changing local storage.\n'
+              '2. A ZIP may have its files at the root or inside one folder named merge. QQL accepts the matching folder with a warning. Select Merge Course package or JSON; QQL validates both Course information blocks before changing local storage.\n'
               '3. Choose the origin of every Lesson you want to include, then check the selections carefully.\n'
               '4. DO MERGE! creates a third independent Course and leaves both sources and the imported file unchanged.\n'
               '5. The new merged Course will be available in Course Manager.',
@@ -381,11 +398,15 @@ class _CourseMergeScreenState extends State<CourseMergeScreen> {
               spacing: 8,
               children: [
                 OutlinedButton(
-                  onPressed: () => _selectAll(LessonMergeChoice.left),
+                  onPressed: _submitting
+                      ? null
+                      : () => _selectAll(LessonMergeChoice.left),
                   child: const Text('Select all Left'),
                 ),
                 OutlinedButton(
-                  onPressed: () => _selectAll(LessonMergeChoice.right),
+                  onPressed: _submitting
+                      ? null
+                      : () => _selectAll(LessonMergeChoice.right),
                   child: const Text('Select all Right'),
                 ),
               ],
@@ -395,15 +416,20 @@ class _CourseMergeScreenState extends State<CourseMergeScreen> {
             const SizedBox(height: 16),
             FilledButton(
               onPressed:
-                  _choices.every(
+                  _loading || _submitting || _choices.every(
                     (choice) => choice == LessonMergeChoice.exclude,
                   )
                   ? null
                   : () async {
+                      if (_submitting) return;
+                      final package = _rightPackage!;
+                      final choices = List<LessonMergeChoice>.of(_choices);
+                      final options = _options(right);
+                      setState(() => _submitting = true);
                       try {
-                        await _rightPackage!.withInstalledMedia(
+                        await package.withInstalledMedia(
                           right.courseId,
-                          () => widget.onMerge(right, _choices, _options(right)),
+                          () => widget.onMerge(right, choices, options),
                           keepOnSuccess: false,
                         );
                       } catch (error) {
@@ -411,6 +437,12 @@ class _CourseMergeScreenState extends State<CourseMergeScreen> {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(content: Text('Course merge failed: $error')),
                           );
+                        }
+                      } finally {
+                        if (mounted) {
+                          setState(() => _submitting = false);
+                        } else {
+                          unawaited(package.discard());
                         }
                       }
                     },
@@ -618,7 +650,7 @@ class _CourseMergeScreenState extends State<CourseMergeScreen> {
           height: 30,
           child: Checkbox(
             value: _choices[index] == choice,
-            onChanged: lesson == null
+            onChanged: lesson == null || _submitting
                 ? null
                 : (selected) => setState(
                     () => _choices[index] = selected!
@@ -910,20 +942,11 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
         );
         if (!mounted) return;
       }
-      await _merge.copyMedia(left: left, right: right, merged: merged);
-      final CourseConfirmationResult result;
-      try {
-        result = await _service.confirmCourseTransaction(
-          originalCourse: merged,
-          workingCourse: merged,
-          languageCode: merged.targetLanguageTag,
-          versionNotes: merged.versionNotes,
-          isNewCourse: true,
-        );
-      } catch (_) {
-        await _merge.discardMedia(merged);
-        rethrow;
-      }
+      final result = await _service.confirmMergedCourse(
+        left: left,
+        right: right,
+        merged: merged,
+      );
       if (!mounted) return;
       Navigator.of(context).pop();
       _showConfirmationResult(result);
@@ -1998,6 +2021,9 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
         importedPackage = await _transfer.importCoursePackage();
       }
       held = importedPackage;
+      if (importedPackage.hadMatchingFolderWrapper && mounted) {
+        _showMatchingZipFolderWarning(context);
+      }
       final imported = importedPackage.course;
       if (imported.originType == CourseOriginType.bundledOfficial) {
         throw const FormatException(

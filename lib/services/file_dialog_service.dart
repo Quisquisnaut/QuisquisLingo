@@ -30,14 +30,23 @@ class FileDialogResult {
   const FileDialogResult._(
     this.outcome, {
     this.displayName,
+    this.sourceFileName,
     this.bytes,
     this.failureReason,
   });
 
   const FileDialogResult.saved(String displayName)
     : this._(FileDialogOutcome.saved, displayName: displayName);
-  const FileDialogResult.opened(String displayName, Uint8List bytes)
-    : this._(FileDialogOutcome.opened, displayName: displayName, bytes: bytes);
+  const FileDialogResult.opened(
+    String displayName,
+    Uint8List bytes, {
+    String? sourceFileName,
+  }) : this._(
+         FileDialogOutcome.opened,
+         displayName: displayName,
+         sourceFileName: sourceFileName,
+         bytes: bytes,
+       );
   const FileDialogResult.cancelled() : this._(FileDialogOutcome.cancelled);
   const FileDialogResult.failed(String reason, {String? displayName})
     : this._(
@@ -53,6 +62,9 @@ class FileDialogResult {
 
   /// File name only (never a full path).
   final String? displayName;
+
+  /// Exact source basename for structural checks, never for display or paths.
+  final String? sourceFileName;
 
   /// Contents of the opened file; present only for [FileDialogOutcome.opened].
   final Uint8List? bytes;
@@ -350,7 +362,11 @@ class FileDialogService {
       final file = pick.files.single;
       try {
         staged = await _stager.stage(file, maxBytes: maxBytes);
-        return FileDialogResult.opened(file.displayName, Uint8List(0));
+        return FileDialogResult.opened(
+          file.displayName,
+          Uint8List(0),
+          sourceFileName: file.sourceFileName,
+        );
       } on ImportTooLargeException {
         return FileDialogResult.tooLarge(file.displayName);
       } on ImportEmptyException {

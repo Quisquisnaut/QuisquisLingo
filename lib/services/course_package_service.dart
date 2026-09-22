@@ -27,6 +27,7 @@ class CoursePackage {
     this.courseJson,
     Map<String, Uint8List> media, {
     CourseMediaStore? mediaStore,
+    this.hadMatchingFolderWrapper = false,
   }) : _memory = Map.unmodifiable(media),
        _staged = const {},
        _mediaStore = mediaStore ?? CourseMediaStore();
@@ -36,12 +37,16 @@ class CoursePackage {
     this.courseJson,
     Map<String, File> staged, {
     required CourseMediaStore mediaStore,
+    required this.hadMatchingFolderWrapper,
   }) : _memory = const {},
        _staged = Map.unmodifiable(staged),
        _mediaStore = mediaStore;
 
   final Course course;
   final Uint8List courseJson;
+
+  /// True when an imported ZIP's sole file-entry folder matched its ZIP name.
+  final bool hadMatchingFolderWrapper;
   final Map<String, Uint8List> _memory;
   final Map<String, File> _staged;
   final CourseMediaStore _mediaStore;
@@ -234,23 +239,31 @@ class CoursePackageService {
 
   /// Checks structure, compressed and expanded sizes, content digests and the
   /// Course itself before returning anything that can be installed.
+  /// Without [archiveFileName], only files at the ZIP root are accepted.
   Future<CoursePackage> parse(
     Uint8List zip,
-    Future<Course> Function(Uint8List bytes, String fileName) validateCourse,
-  ) async {
+    Future<Course> Function(Uint8List bytes, String fileName) validateCourse, {
+    String? archiveFileName,
+  }) async {
     if (zip.length > sizeLimit) {
       throw const FormatException('Course package exceeds the 300 MB limit. Remove or shrink media and export again.');
     }
     _checkArchiveKind(zip);
-    return _parse(InputMemoryStream(zip), validateCourse);
+    return _parse(
+      InputMemoryStream(zip),
+      validateCourse,
+      archiveFileName: archiveFileName,
+    );
   }
 
   /// [parse] reading the ZIP from [zip] on disk, a piece at a time, so the
-  /// whole archive is never held in memory.
+  /// whole archive is never held in memory. Pass [archiveFileName] when [zip]
+  /// is a staged copy whose temporary filename differs from the picked ZIP.
   Future<CoursePackage> parseFile(
     File zip,
-    Future<Course> Function(Uint8List bytes, String fileName) validateCourse,
-  ) async {
+    Future<Course> Function(Uint8List bytes, String fileName) validateCourse, {
+    String? archiveFileName,
+  }) async {
     if (await zip.length() > sizeLimit) {
       throw const FormatException('Course package exceeds the 300 MB limit. Remove or shrink media and export again.');
     }
@@ -262,7 +275,11 @@ class CoursePackageService {
     }
     final input = InputFileStream(zip.path);
     try {
-      return await _parse(input, validateCourse);
+      return await _parse(
+        input,
+        validateCourse,
+        archiveFileName: archiveFileName ?? zip.uri.pathSegments.last,
+      );
     } finally {
       await input.close();
     }
@@ -280,8 +297,9 @@ class CoursePackageService {
 
   Future<CoursePackage> _parse(
     InputStream input,
-    Future<Course> Function(Uint8List bytes, String fileName) validateCourse,
-  ) async {
+    Future<Course> Function(Uint8List bytes, String fileName) validateCourse, {
+    required String? archiveFileName,
+  }) async {
     final zipReader = BoundedZipReader.open(
       input,
       label: 'Course package',
@@ -289,13 +307,19 @@ class CoursePackageService {
       maxTotalBytes: sizeLimit,
     );
     final entries = <String, BoundedZipEntry>{};
+    final wrapperPrefix = _matchingWrapperPrefix(
+      zipReader.entries,
+      archiveFileName,
+    );
     for (final entry in zipReader.entries) {
-      final name = entry.name;
+      final name = wrapperPrefix == null
+          ? entry.name
+          : entry.name.substring(wrapperPrefix.length);
       if (name != manifestName &&
           name != courseName &&
           !_mediaName.hasMatch(name)) {
         throw FormatException(
-          'Unsafe or unexpected Course package entry: $name. Export a fresh package containing only its manifest, course.json and referenced media.',
+          'Unsafe or unexpected Course package entry: ${entry.name}. Export a fresh package containing only its manifest, course.json and referenced media.',
         );
       }
       entries[name] = entry;
@@ -394,7 +418,32 @@ class CoursePackageService {
       courseJson,
       staged,
       mediaStore: _media,
+      hadMatchingFolderWrapper: wrapperPrefix != null,
     );
+  }
+
+  static String? _matchingWrapperPrefix(
+    List<BoundedZipEntry> entries,
+    String? archiveFileName,
+  ) {
+    if (archiveFileName == null ||
+        !archiveFileName.toLowerCase().endsWith('.zip')) {
+      return null;
+    }
+    final stem = archiveFileName.substring(0, archiveFileName.length - 4);
+    if (stem.isEmpty ||
+        stem == '.' ||
+        stem == '..' ||
+        stem.contains('/') ||
+        stem.contains('\\') ||
+        RegExp(r'[\x00-\x1f\x7f]').hasMatch(stem)) {
+      return null;
+    }
+    final prefix = '$stem/';
+    return entries.isNotEmpty &&
+            entries.every((entry) => entry.name.startsWith(prefix))
+        ? prefix
+        : null;
   }
 
   /// An imported image medium must be a valid image of the type its name
