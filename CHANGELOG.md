@@ -1,3 +1,17 @@
+# 2.0.47 (Build 247, Revision 0) - Package Import workflow - 2026-09-22
+
+One import attempt owns a Course package from reading until it is installed
+or cancelled. Custom imports, Copy as New Course and Fork write the package's
+media only into the destination Course's own folder under that Course's lock;
+Copy and Fork no longer pass the media through the same-ID installed Course's
+folder. Staged package files are removed as soon as the import ends, before a
+new Copy or Fork opens in its Editor. Successful imports store the same Course
+and media as before, and failure recovery keeps media whenever a stored Course
+may use them. The package manifest's prompt-only shared-image list is recorded
+as a known limit; package format 1, Course Model v11, stored formats,
+authoring rights and the top-level Course save boundary are unchanged.
+Version `2.0.47+247000`; Beta expiry remains **2026-10-22 23:59:59 local time**.
+
 # 2.0.46 (Build 246, Revision 1) - Matching Course ZIP folder - 2026-09-22
 
 Import and Merge accept a Course package with its files at the ZIP root or

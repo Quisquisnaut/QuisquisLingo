@@ -16,6 +16,7 @@ import '../services/custom_course_transfer_service.dart';
 import '../services/course_service.dart';
 import '../services/course_language_resolver.dart';
 import '../services/course_merge_service.dart';
+import '../services/course_package_import.dart';
 import '../services/course_package_service.dart';
 import '../services/formal_name_policy.dart';
 import '../services/course_access_policy.dart';
@@ -1997,8 +1998,8 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
   Future<void> _importCourseFromDialog() => _importCourse(fromDialog: true);
 
   Future<void> _importCourse({bool fromDialog = false}) async {
-    // A package read from a ZIP keeps its media in staging until done.
-    CoursePackage? held;
+    // One import attempt owns the package's staged media until it ends.
+    CoursePackageImport? attempt;
     try {
       final CoursePackage importedPackage;
       if (fromDialog) {
@@ -2020,8 +2021,8 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
       } else {
         importedPackage = await _transfer.importCoursePackage();
       }
-      held = importedPackage;
-      if (importedPackage.hadMatchingFolderWrapper && mounted) {
+      attempt = CoursePackageImport(importedPackage, editor: _service);
+      if (attempt.hadMatchingFolderWrapper && mounted) {
         _showMatchingZipFolderWarning(context);
       }
       final imported = importedPackage.course;
@@ -2115,9 +2116,7 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
           ),
         );
         if (proceed != true) return;
-        final result = await _service.installExternalOfficialUpdate(
-          course,
-          package: importedPackage,
+        final result = await attempt.installPublisherCourse(
           confirmUnverifiedAssociation:
               existing != null &&
               existing.publisherVerificationStatus !=
@@ -2187,13 +2186,8 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
             'cancel';
         if (choice == 'cancel') return;
         if (choice == 'copy') {
-          final created = await importedPackage.withInstalledMedia(
-            course.courseId,
-            () => _service.createCopyAsNewCourse(
-              source: course,
-              title: _nextCopyTitle(course.title),
-            ),
-            keepOnSuccess: false,
+          final created = await attempt.copyAsNewCourse(
+            title: _nextCopyTitle(course.title),
           );
           await _reload();
           if (!mounted) return;
@@ -2212,11 +2206,7 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
           return;
         }
         if (choice == 'fork') {
-          final created = await importedPackage.withInstalledMedia(
-            course.courseId,
-            () => _service.createFork(source: course),
-            keepOnSuccess: false,
-          );
+          final created = await attempt.fork();
           await _reload();
           if (!mounted) return;
           final result = await Navigator.of(context)
@@ -2234,15 +2224,7 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
           return;
         }
       }
-      await importedPackage.withInstalledMedia(
-        course.courseId,
-        () => _service.installImportedCustomCourse(course),
-        retainCreatedOnFailure: () =>
-            _service.persistedCustomCourseReferencesAny(
-              course.courseId,
-              importedPackage.mediaReferences,
-            ),
-      );
+      await attempt.installCustomCourse();
       await _reload();
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -2266,7 +2248,7 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
         ),
       );
     } finally {
-      await held?.discard();
+      await attempt?.close();
     }
   }
 

@@ -167,13 +167,24 @@ class CourseEditorService {
   /// Copies the media [copy] uses from [source]'s folder into its own, runs
   /// [create], and removes the new folder again if creation fails, so a failed
   /// Fork or Copy leaves no files behind. Each Course owns its media folder;
-  /// nothing is shared between Courses.
+  /// nothing is shared between Courses. An imported [package] supplies the
+  /// media instead, written straight into the new Course's folder.
   Future<CourseConfirmationResult> _withCopiedMedia(
     Course source,
     Course copy,
-    Future<CourseConfirmationResult> Function() create,
-  ) => _store.withCourseLock(copy.courseId, () async {
+    Future<CourseConfirmationResult> Function() create, {
+    CoursePackage? package,
+  }) => _store.withCourseLock(copy.courseId, () async {
     try {
+      if (package != null) {
+        // Recovery below decides what happens to these files on failure.
+        return await package.withInstalledMedia(
+          copy.courseId,
+          create,
+          mediaStore: _media,
+          retainCreatedOnFailure: () async => true,
+        );
+      }
       await _media.copyReferences(
         source.courseId,
         copy.courseId,
@@ -267,7 +278,41 @@ class CourseEditorService {
   /// Installs an imported custom source without granting the importer access.
   /// Replacing an existing identity still requires Maintainer/assigned-Team
   /// authorization.
-  Future<void> installImportedCustomCourse(Course course) async {
+  ///
+  /// With [package], its media are written into the Course's own folder and
+  /// the Course is saved under one hold of the Course lock. Media created by
+  /// this call stay when the stored Course uses any package medium or cannot
+  /// be read; otherwise they are removed again.
+  Future<void> installImportedCustomCourse(
+    Course course, {
+    CoursePackage? package,
+  }) async {
+    if (package == null) return _installImportedCustomCourse(course);
+    _requireMatchingPackage(package, course);
+    return _store.withCourseLock(
+      course.courseId,
+      () => package.withInstalledMedia(
+        course.courseId,
+        () => _installImportedCustomCourse(course),
+        mediaStore: _media,
+        retainCreatedOnFailure: () => persistedCustomCourseReferencesAny(
+          course.courseId,
+          package.mediaReferences,
+        ),
+      ),
+    );
+  }
+
+  static void _requireMatchingPackage(CoursePackage package, Course course) {
+    final references = CourseMediaStore.referencesOf(course);
+    if (jsonEncode(package.course.toJson()) != jsonEncode(course.toJson()) ||
+        package.mediaReferences.difference(references).isNotEmpty ||
+        references.difference(package.mediaReferences).isNotEmpty) {
+      throw const FormatException('Course package does not match its Course.');
+    }
+  }
+
+  Future<void> _installImportedCustomCourse(Course course) async {
     if (course.originType != CourseOriginType.custom) {
       throw ArgumentError(
         'Only a custom course can use custom import storage.',
@@ -598,10 +643,14 @@ class CourseEditorService {
     );
   }
 
+  /// With [package], an imported [source]'s media come from the package
+  /// straight into the new Course's folder, never into another Course's.
   Future<CourseConfirmationResult> createCopyAsNewCourse({
     required Course source,
     required String title,
+    CoursePackage? package,
   }) async {
+    if (package != null) _requireMatchingPackage(package, source);
     final access = await _access.forCurrentProfile(source);
     if (!access.canCopyAsNewCourse || source.maintainer == null) {
       throw StateError(
@@ -630,13 +679,17 @@ class CourseEditorService {
         isNewCourse: true,
         committedAt: when,
       ),
+      package: package,
     );
   }
 
+  /// With [package], as for [createCopyAsNewCourse].
   Future<CourseConfirmationResult> createFork({
     required Course source,
     CourseMaintainer? maintainer,
+    CoursePackage? package,
   }) async {
+    if (package != null) _requireMatchingPackage(package, source);
     if (source.originType == CourseOriginType.externalOfficial) {
       source = await _publisherVerification.requireVerified(source);
     }
@@ -677,6 +730,7 @@ class CourseEditorService {
         isNewCourse: true,
         committedAt: when,
       ),
+      package: package,
     );
   }
 
