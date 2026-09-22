@@ -1,3 +1,29 @@
+# 2.0.47 (Build 247, Revision 1) - Import cleanup after a failure - 2026-09-22
+
+A failed custom Course package import now keeps the media files it created
+only when the stored Course uses every medium in the package, which is what a
+committed import leaves behind, or when storage cannot be read. A Replace
+rejected before it commits removes the files that attempt added instead of
+leaving an unused image or recording in the Course folder; the previous
+Course's own media are untouched. Course Model v11, stored formats, package
+format 1, authoring rights and the top-level Course save boundary are
+unchanged. Version `2.0.47+247001`; Beta expiry remains
+**2026-10-22 23:59:59 local time**.
+
+# 2.0.47 (Build 247, Revision 0) - Package Import workflow - 2026-09-22
+
+One import attempt owns a Course package from reading until it is installed
+or cancelled. Custom imports, Copy as New Course and Fork write the package's
+media only into the destination Course's own folder under that Course's lock;
+Copy and Fork no longer pass the media through the same-ID installed Course's
+folder. Staged package files are removed as soon as the import ends, before a
+new Copy or Fork opens in its Editor. Successful imports store the same Course
+and media as before, and failure recovery keeps media whenever a stored Course
+may use them. The package manifest's prompt-only shared-image list is recorded
+as a known limit; package format 1, Course Model v11, stored formats,
+authoring rights and the top-level Course save boundary are unchanged.
+Version `2.0.47+247000`; Beta expiry remains **2026-10-22 23:59:59 local time**.
+
 # 2.0.46 (Build 246, Revision 1) - Matching Course ZIP folder - 2026-09-22
 
 Import and Merge accept a Course package with its files at the ZIP root or
