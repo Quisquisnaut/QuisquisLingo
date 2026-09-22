@@ -1,3 +1,12 @@
+# 2.0.45 (Build 245, Revision 0) - Course Info ownership - 2026-09-22
+
+The Course Info Editor keeps its form and interactions while one application
+operation applies its metadata and governance changes to the Course Editor
+working copy. The final Course confirmation remains the only persistence
+point. Course Model v11 and user-visible behavior are unchanged. The staged
+architecture plan is in `docs/245_ARCHITECTURE_PLAN.md`.
+Version `2.0.45+245000`; Beta expiry remains **2026-10-22 23:59:59 local time**.
+
 # 2.0.44 (Build 244, Revision 7) - Course Library Help - 2026-09-22
 
 Course Library Help is rewritten. It starts by explaining that the page lists

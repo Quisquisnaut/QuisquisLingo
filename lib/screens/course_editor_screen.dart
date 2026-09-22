@@ -23,6 +23,7 @@ import '../services/course_language_resolver.dart';
 import '../services/formal_name_policy.dart';
 import '../services/course_governance_resolver.dart';
 import '../services/course_governance_service.dart';
+import '../services/course_info_update_service.dart';
 import '../services/course_editor_transaction.dart';
 import '../services/course_access_policy.dart';
 import '../services/course_service.dart';
@@ -825,32 +826,7 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
       ),
       child: Text(value.trim().isEmpty ? 'Not specified' : value),
     );
-    final result =
-        await showDialog<
-          ({
-            String title,
-            List<CourseAuthor> authors,
-            List<CourseRightsHolder> rightsHolders,
-            List<CourseMediaAttribution> mediaAttributions,
-            String license,
-            DerivativeWorksPolicy derivativePolicy,
-            String variant,
-            String startLevel,
-            String targetLevel,
-            String description,
-            String buyACoffeeUrl,
-            int? estimatedStudyHours,
-            int? minimumAge,
-            List<String> keywords,
-            CoursePublisherContact? publisherContact,
-            int? minimumAppBuild,
-            String flagCode,
-            String flagImageBase64,
-            String worldFlagId,
-            String maintainerProfileId,
-            String? assignedTeamId,
-          })
-        >(
+    final result = await showDialog<CourseInfoChange>(
           context: context,
           builder: (ctx) => StatefulBuilder(
             builder: (ctx, setLocalState) => AlertDialog(
@@ -2038,66 +2014,14 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
       customLicense.dispose();
     });
     if (result == null || !mounted) return;
-    final governance = CourseGovernanceService(
-      profileService: _profiles,
-      teamService: _teams,
-    );
-    var governedCourse = _course;
-    if (governedCourse.assignedTeamId != result.assignedTeamId) {
-      governedCourse = await governance.assignTeam(
-        course: governedCourse,
-        actorProfileId: activeProfileId!,
-        teamId: result.assignedTeamId,
-        editMode: true,
-        assignmentConfirmed: true,
-      );
-    }
-    if (governedCourse.maintainer!.profileId != result.maintainerProfileId) {
-      governedCourse = await governance.transferMaintainer(
-        course: governedCourse,
-        actorProfileId: activeProfileId!,
-        newMaintainerProfileId: result.maintainerProfileId,
-        editMode: true,
-      );
-    }
-    final governanceChanged =
-        _course.maintainer!.profileId != governedCourse.maintainer!.profileId ||
-        _course.assignedTeamId != governedCourse.assignedTeamId;
-    if (governanceChanged) _governanceChangedInEditMode = true;
-    final descriptive = <String, Object?>{
-      'estimatedStudyHours': result.estimatedStudyHours,
-      'minimumAge': result.minimumAge,
-      'keywords': result.keywords.isEmpty ? null : result.keywords,
-      'publisherContact': result.publisherContact?.toJson(),
-      'minimumAppBuild': result.minimumAppBuild,
-    };
-    _updateDraft(
-      Course.fromJson({
-        // Cleared optional fields are omitted, never stored as null.
-        ...governedCourse.toJson()
-          ..removeWhere((key, _) => descriptive.containsKey(key)),
-        for (final entry in descriptive.entries)
-          if (entry.value != null) entry.key: entry.value,
-        'title': result.title,
-        'authors': result.authors.map((author) => author.toJson()).toList(),
-        'rightsHolders': result.rightsHolders
-            .map((holder) => holder.toJson())
-            .toList(),
-        'mediaAttributions': result.mediaAttributions
-            .map((credit) => credit.toJson())
-            .toList(),
-        'license': result.license,
-        'derivativeWorksPolicy': result.derivativePolicy.name,
-        'languageVariant': result.variant,
-        'startLevel': result.startLevel,
-        'targetLevel': result.targetLevel,
-        'courseDescription': result.description,
-        'buyACoffeeUrl': result.buyACoffeeUrl,
-        'flagCode': result.flagCode,
-        'flagImageBase64': result.flagImageBase64,
-        'worldFlagId': result.worldFlagId,
-      }),
-    );
+    final update = await CourseInfoUpdateService(
+      governanceService: CourseGovernanceService(
+        profileService: _profiles,
+        teamService: _teams,
+      ),
+    ).apply(_course, result, activeProfileId!);
+    if (update.governanceChanged) _governanceChangedInEditMode = true;
+    _updateDraft(update.course);
   }
 
   Future<void> _openLessons() async {

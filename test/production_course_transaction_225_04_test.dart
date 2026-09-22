@@ -49,7 +49,9 @@ void main() {
   testWidgets(
     'real Course Lesson Round Exercise route stages Draft and confirms once',
     (tester) async {
-      await _openEditor(tester, course, service);
+      final original = _withUntouchedMetadata(course);
+      await tester.runAsync(() => service.saveUserCourse(original));
+      await _openEditor(tester, original, service);
 
       expect(
         find.byKey(const Key('course-editor-lessons-navigation')),
@@ -82,6 +84,7 @@ void main() {
       final beforeConfirm = ((await tester.runAsync(
         () => service.listUserCourses(),
       ))!).single;
+      expect(beforeConfirm.toJson(), original.toJson());
       expect(
         beforeConfirm.lessons.single.rounds.single.exercises.first.prompt,
         'Original prompt',
@@ -123,7 +126,19 @@ void main() {
         reloaded.lessons.single.rounds.single.exercises.first.publicationState,
         PublicationState.draft,
       );
-      expect(await backups.listBackups(course.courseId), hasLength(1));
+      final content = reloaded.lessons.single.rounds.single.content.single;
+      expect(content.required, isFalse);
+      expect(content.sourceRefs, ['guide_source']);
+      expect(reloaded.courseDescription, original.courseDescription);
+      expect(reloaded.estimatedStudyHours, original.estimatedStudyHours);
+      expect(reloaded.keywords, original.keywords);
+      expect(
+        reloaded.lessons.single.guidebook.toJson(),
+        original.lessons.single.guidebook.toJson(),
+      );
+      final history = await backups.listBackups(original.courseId);
+      expect(history, hasLength(1));
+      expect(history.single.course.toJson(), original.toJson());
     },
   );
 
@@ -276,7 +291,9 @@ void main() {
     tester,
   ) async {
     final failing = _FailingCourseEditorService(backups);
-    await _openEditor(tester, course, failing);
+    final original = _withUntouchedMetadata(course);
+    await tester.runAsync(() => service.saveUserCourse(original));
+    await _openEditor(tester, original, failing);
     await tester.tap(find.text('Course Info Editor'));
     await _settle(tester);
     await tester.enterText(_field('Course name'), 'Still editable');
@@ -307,8 +324,8 @@ void main() {
     final live = ((await tester.runAsync(
       () => service.listUserCourses(),
     ))!).single;
-    expect(live.title, course.title);
-    expect(live.courseVersion, '1');
+    expect(live.toJson(), original.toJson());
+    expect(await backups.listBackups(original.courseId), isEmpty);
   });
 
   testWidgets('no-change top-level exit has no dialog, backup or version', (
@@ -628,7 +645,7 @@ void main() {
   testWidgets('Cancel discards a mixed multi-level working copy', (
     tester,
   ) async {
-    final mixed = _mixedCourse();
+    final mixed = _withUntouchedMetadata(_mixedCourse());
     (await tester.runAsync(() => service.saveUserCourse(mixed)));
     await _openEditor(tester, mixed, service);
 
@@ -890,6 +907,50 @@ Course _mixedCourse() {
   return Course.fromJson({
     ...base.toJson(),
     'lessons': [firstLesson.toJson(), secondLesson.toJson()],
+  });
+}
+
+Course _withUntouchedMetadata(Course base) {
+  final lesson = base.lessons.first;
+  final round = lesson.rounds.first;
+  final content = round.content.first;
+  final updatedRound = LearningRound.fromJson({
+    ...round.toJson(),
+    'content': [
+      {
+        ...content.toJson(),
+        'required': false,
+        'sourceRefs': ['guide_source'],
+      },
+      for (final other in round.content.skip(1)) other.toJson(),
+    ],
+  });
+  final updatedLesson = Lesson.fromJson({
+    ...lesson.toJson(),
+    'guidebook': Guidebook(
+      content: [
+        LearningContent.textual(
+          id: 'guide_source',
+          kind: 'explanation',
+          role: 'overview',
+          text: 'Unedited guidebook source',
+        ),
+      ],
+    ).toJson(),
+    'rounds': [
+      updatedRound.toJson(),
+      for (final other in lesson.rounds.skip(1)) other.toJson(),
+    ],
+  });
+  return Course.fromJson({
+    ...base.toJson(),
+    'courseDescription': 'Unedited course description',
+    'estimatedStudyHours': 17,
+    'keywords': ['architecture', 'resilience'],
+    'lessons': [
+      updatedLesson.toJson(),
+      for (final other in base.lessons.skip(1)) other.toJson(),
+    ],
   });
 }
 
