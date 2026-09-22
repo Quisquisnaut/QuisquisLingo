@@ -118,56 +118,37 @@ class CourseEditorService {
     Course source,
     Course copy,
     Future<CourseConfirmationResult> Function() create,
-  ) async {
-    await _media.copyReferences(
-      source.courseId,
-      copy.courseId,
-      CourseMediaStore.referencesOf(copy),
-    );
+  ) => _store.withCourseLock(copy.courseId, () async {
     try {
+      await _media.copyReferences(
+        source.courseId,
+        copy.courseId,
+        CourseMediaStore.referencesOf(copy),
+      );
       return await create();
     } catch (_) {
-      await _media.deleteCourse(copy.courseId);
+      // A later library or cleanup error must not remove media after the
+      // Course record has committed and begun referencing it.
+      var absenceConfirmed = false;
+      try {
+        absenceConfirmed = await _customRecord(copy.courseId) == null;
+      } catch (_) {
+        // When storage is unreadable, retaining media is the recoverable path.
+      }
+      if (absenceConfirmed) {
+        await _media.deleteCourse(copy.courseId);
+      }
       rethrow;
     }
-  }
+  });
 
-  /// Which store a legacy storage-key constant refers to.
-  ///
-  /// The call sites below still speak in whole-store maps, so only the medium
-  /// changed: each Course is now its own file (see [CourseFileStore]).
-  static CourseStoreKind _kindFor(String key) => key == userCoursesStorageKey
-      ? CourseStoreKind.custom
-      : CourseStoreKind.externalOfficial;
+  /// Reads only the requested Course identity. Mutations use the matching
+  /// token so a later storage change cannot be overwritten by a stale editor.
+  Future<CourseStoredRecord?> _customRecord(String courseId) =>
+      _store.snapshot(CourseStoreKind.custom, courseId);
 
-  /// The readable Courses of one store. Unreadable files are skipped here and
-  /// reported by [listUserCourses]; [CourseFileStore.write] refuses to replace
-  /// them, so saving through this map never loses one.
-  Future<Map<String, dynamic>> _loadKey(String key) async =>
-      (await _store.readReadable(_kindFor(key))).records;
-
-  /// Applies [data] as the complete contents of a store by writing only what
-  /// actually changed. A save therefore costs one Course, not the whole corpus.
-  Future<void> _saveKey(String key, Map<String, dynamic> data) async {
-    final kind = _kindFor(key);
-    final current = (await _store.readReadable(kind)).records;
-    for (final entry in data.entries) {
-      if (jsonEncode(current[entry.key]) == jsonEncode(entry.value)) continue;
-      await _store.write(kind, entry.key, entry.value);
-    }
-    for (final courseId in current.keys) {
-      if (!data.containsKey(courseId)) {
-        await _store.remove(kind, courseId);
-      }
-    }
-  }
-
-  /// Kept as a distinct name because callers document a transaction boundary
-  /// here. Each Course file is written temp-then-rename, so a failed write
-  /// leaves the previously stored Course exactly as it was; there is no whole
-  /// store value left to roll back.
-  Future<void> _replaceKeyAtomically(String key, Map<String, dynamic> data) =>
-      _saveKey(key, data);
+  Future<CourseStoredRecord?> _officialRecord(String courseId) =>
+      _store.snapshot(CourseStoreKind.externalOfficial, courseId);
 
   static Course _courseFromEntry(Object? entry) {
     if (entry is! Map || entry['course'] is! Map) {
@@ -181,24 +162,25 @@ class CourseEditorService {
     'course': course.toJson(),
   };
 
-  Future<void> saveUserCourse(Course course) async {
+  Future<void> saveUserCourse(Course course) => _store.withCourseLock(
+    course.courseId,
+    () => _saveUserCourseLocked(course),
+  );
+
+  Future<void> _saveUserCourseLocked(Course course) async {
     if (course.originType != CourseOriginType.custom) {
       throw ArgumentError('Official courses require official-source storage.');
     }
     course = await _materializeDetachedConstructorIdentity(course);
     Course.fromJson(course.toJson());
     if (_bundledOfficialCourseIds.contains(course.courseId) ||
-        (await _loadKey(
-          externalOfficialStorageKey,
-        )).containsKey(course.courseId)) {
+        await _officialRecord(course.courseId) != null) {
       throw const FormatException(
         'A custom course cannot replace an official course identity. Import it as a separate copy.',
       );
     }
-    final all = await _loadKey(userCoursesStorageKey);
-    final existing = all[course.courseId] == null
-        ? null
-        : _courseFromEntry(all[course.courseId]);
+    final stored = await _customRecord(course.courseId);
+    final existing = stored == null ? null : _courseFromEntry(stored.entry);
     final access = await _access.forCurrentProfile(existing ?? course);
     if (!access.canEditOriginal) {
       throw StateError(
@@ -209,8 +191,21 @@ class CourseEditorService {
       _requirePreservedProvenance(existing, course);
       await _requireAuthorizedGovernanceChange(existing, course);
     }
-    all[course.courseId] = _entry(course, _clock());
-    await _saveKey(userCoursesStorageKey, all);
+    final entry = _entry(course, _clock());
+    if (stored == null) {
+      await _store.createIfAbsent(
+        CourseStoreKind.custom,
+        course.courseId,
+        entry,
+      );
+    } else {
+      await _store.replaceIfUnchanged(
+        CourseStoreKind.custom,
+        course.courseId,
+        entry,
+        expectedToken: stored.token,
+      );
+    }
     if (existing == null) await _addToImporterLibrary(course);
     LearnerStatusEvents.publish(LearnerStatusInvalidation.courseMetadata);
   }
@@ -236,17 +231,14 @@ class CourseEditorService {
       );
     }
     if (_bundledOfficialCourseIds.contains(course.courseId) ||
-        (await _loadKey(
-          externalOfficialStorageKey,
-        )).containsKey(course.courseId)) {
+        await _officialRecord(course.courseId) != null) {
       throw const FormatException(
         'A custom course cannot replace an official course identity. Import it as a separate copy.',
       );
     }
-    final all = await _loadKey(userCoursesStorageKey);
-    final existing = all[course.courseId];
-    if (existing != null) {
-      final current = _courseFromEntry(existing);
+    final stored = await _customRecord(course.courseId);
+    if (stored != null) {
+      final current = _courseFromEntry(stored.entry);
       await confirmCourseTransaction(
         originalCourse: current,
         workingCourse: course,
@@ -255,10 +247,21 @@ class CourseEditorService {
       );
       return;
     }
-    all[course.courseId] = _entry(course, _clock());
-    await _replaceKeyAtomically(userCoursesStorageKey, all);
-    await _addToImporterLibrary(course);
-    LearnerStatusEvents.publish(LearnerStatusInvalidation.courseMetadata);
+    await _store.withCourseLock(course.courseId, () async {
+      if (_bundledOfficialCourseIds.contains(course.courseId) ||
+          await _officialRecord(course.courseId) != null) {
+        throw const FormatException(
+          'A custom course cannot replace an official course identity. Import it as a separate copy.',
+        );
+      }
+      await _store.createIfAbsent(
+        CourseStoreKind.custom,
+        course.courseId,
+        _entry(course, _clock()),
+      );
+      await _addToImporterLibrary(course);
+      LearnerStatusEvents.publish(LearnerStatusInvalidation.courseMetadata);
+    });
   }
 
   /// Every readable stored Course. One unreadable Course never hides the
@@ -324,11 +327,21 @@ class CourseEditorService {
   }) async {
     if (course.originType == CourseOriginType.bundledOfficial) return true;
     if (course.originType == CourseOriginType.externalOfficial) {
-      return (await _loadKey(
-        externalOfficialStorageKey,
-      )).containsKey(course.courseId);
+      return await _officialRecord(course.courseId) != null;
     }
-    return (await _loadKey(userCoursesStorageKey)).containsKey(course.courseId);
+    return await _customRecord(course.courseId) != null;
+  }
+
+  /// Lets a package importer retain newly staged media if a failed call
+  /// nevertheless committed a custom Course that references that media.
+  Future<bool> persistedCustomCourseReferencesAny(
+    String courseId,
+    Set<String> references,
+  ) async {
+    final stored = await _customRecord(courseId);
+    if (stored == null) return false;
+    final course = _courseFromEntry(stored.entry);
+    return CourseMediaStore.referencesOf(course).any(references.contains);
   }
 
   Future<void> _addToImporterLibrary(Course course) async {
@@ -337,7 +350,13 @@ class CourseEditorService {
     }
   }
 
-  Future<void> removePublisherCourseFromDevice(Course course) async {
+  Future<void> removePublisherCourseFromDevice(Course course) =>
+      _store.withCourseLock(
+        course.courseId,
+        () => _removePublisherCourseFromDeviceLocked(course),
+      );
+
+  Future<void> _removePublisherCourseFromDeviceLocked(Course course) async {
     final actor = await _profiles.getActiveProfileId();
     if (actor == null || !await _profiles.isAdmin(actor)) {
       throw StateError(
@@ -347,10 +366,9 @@ class CourseEditorService {
     if (course.originType != CourseOriginType.externalOfficial) {
       throw StateError('Only Publisher Courses can be uninstalled here.');
     }
-    final record = (await _loadKey(
-      externalOfficialStorageKey,
-    ))[course.courseId];
-    if (record == null) return;
+    final storedRecord = await _officialRecord(course.courseId);
+    if (storedRecord == null) return;
+    final record = storedRecord.entry;
     if (record is! Map || record['source'] is! Map) {
       throw const FormatException('Invalid stored publisher source.');
     }
@@ -370,23 +388,32 @@ class CourseEditorService {
         );
       }
     }
-    await _store.remove(CourseStoreKind.externalOfficial, course.courseId);
+    await _store.removeIfUnchanged(
+      CourseStoreKind.externalOfficial,
+      course.courseId,
+      expectedToken: storedRecord.token,
+    );
     // Keep membership, progress, media and backups for future reinstallation.
     LearnerStatusEvents.publish(LearnerStatusInvalidation.courseMetadata);
   }
 
-  Future<void> deleteUserCourse(String courseId) async {
-    final custom = await _loadKey(userCoursesStorageKey);
-    final raw = custom[courseId];
-    if (raw == null) return;
-    final course = _courseFromEntry(raw);
+  Future<void> deleteUserCourse(String courseId) =>
+      _store.withCourseLock(courseId, () => _deleteUserCourseLocked(courseId));
+
+  Future<void> _deleteUserCourseLocked(String courseId) async {
+    final stored = await _customRecord(courseId);
+    if (stored == null) return;
+    final course = _courseFromEntry(stored.entry);
     if (!(await _access.forCurrentProfile(course)).canDelete) {
       throw StateError(
         'Only the Course Maintainer or a member of the assigned Team can delete this Course.',
       );
     }
-    custom.remove(courseId);
-    await _saveKey(userCoursesStorageKey, custom);
+    await _store.removeIfUnchanged(
+      CourseStoreKind.custom,
+      courseId,
+      expectedToken: stored.token,
+    );
     // The folder is this Course's alone; its version backups keep their own
     // copies of the media.
     await _media.deleteCourse(course.courseId);
@@ -401,9 +428,7 @@ class CourseEditorService {
     if (course.originType == CourseOriginType.bundledOfficial) {
       source = bundledSource;
     } else if (course.originType == CourseOriginType.externalOfficial) {
-      final record = (await _loadKey(
-        externalOfficialStorageKey,
-      ))[course.courseId];
+      final record = (await _officialRecord(course.courseId))?.entry;
       if (record is Map && record['source'] is Map) {
         source = Course.fromJson(
           Map<String, dynamic>.from(record['source'] as Map),
@@ -652,6 +677,27 @@ class CourseEditorService {
     bool isNewCourse = false,
     bool governanceChangesMadeInEditMode = false,
     DateTime? committedAt,
+  }) => _store.withCourseLock(
+    workingCourse.courseId,
+    () => _confirmCourseTransactionLocked(
+      originalCourse: originalCourse,
+      workingCourse: workingCourse,
+      languageCode: languageCode,
+      versionNotes: versionNotes,
+      isNewCourse: isNewCourse,
+      governanceChangesMadeInEditMode: governanceChangesMadeInEditMode,
+      committedAt: committedAt,
+    ),
+  );
+
+  Future<CourseConfirmationResult> _confirmCourseTransactionLocked({
+    required Course originalCourse,
+    required Course workingCourse,
+    required String languageCode,
+    required String versionNotes,
+    bool isNewCourse = false,
+    bool governanceChangesMadeInEditMode = false,
+    DateTime? committedAt,
   }) async {
     await CourseFlagService().validateWorldFlag(workingCourse);
     originalCourse = await _materializeDetachedConstructorIdentity(
@@ -714,11 +760,9 @@ class CourseEditorService {
     final when = (committedAt ?? _clock()).toUtc();
     final notes = versionNotes.trim();
 
-    const storageKey = userCoursesStorageKey;
     final storageId = workingCourse.courseId;
-    final all = await _loadKey(storageKey);
-    final entry = all[storageId];
-    final current = entry == null ? null : _courseFromEntry(entry);
+    final stored = await _customRecord(storageId);
+    final current = stored == null ? null : _courseFromEntry(stored.entry);
     if (!isNewCourse && current == null) {
       throw StateError('The persisted custom course is unavailable.');
     }
@@ -732,10 +776,8 @@ class CourseEditorService {
         'A course with this identity was created while the Editor was open.',
       );
     }
-    if ((_bundledOfficialCourseIds.contains(workingCourse.courseId) ||
-        (await _loadKey(
-          externalOfficialStorageKey,
-        )).containsKey(workingCourse.courseId))) {
+    if (_bundledOfficialCourseIds.contains(workingCourse.courseId) ||
+        await _officialRecord(workingCourse.courseId) != null) {
       throw StateError(
         'An official course already uses this identity. Create a separate custom-course copy.',
       );
@@ -764,12 +806,28 @@ class CourseEditorService {
       when,
       notes,
     );
-    final next = Map<String, dynamic>.from(all);
-    next[storageId] = _entry(committed, when);
-    await _replaceKeyAtomically(storageKey, next);
+    final committedEntry = _entry(committed, when);
+    if (stored == null) {
+      await _store.createIfAbsent(
+        CourseStoreKind.custom,
+        storageId,
+        committedEntry,
+      );
+    } else {
+      await _store.replaceIfUnchanged(
+        CourseStoreKind.custom,
+        storageId,
+        committedEntry,
+        expectedToken: stored.token,
+      );
+    }
 
     if (current == null) await _addToImporterLibrary(committed);
-    final verified = _courseFromEntry((await _loadKey(storageKey))[storageId]);
+    final verifiedRecord = await _customRecord(storageId);
+    if (verifiedRecord == null) {
+      throw StateError('Course persistence verification failed.');
+    }
+    final verified = _courseFromEntry(verifiedRecord.entry);
     if (jsonEncode(verified.toJson()) != jsonEncode(committed.toJson())) {
       throw StateError('Course persistence verification failed.');
     }
@@ -851,6 +909,19 @@ class CourseEditorService {
     Course update, {
     bool confirmUnverifiedAssociation = false,
     CoursePackage? package,
+  }) => _store.withCourseLock(
+    update.courseId,
+    () => _installExternalOfficialUpdateLocked(
+      update,
+      confirmUnverifiedAssociation: confirmUnverifiedAssociation,
+      package: package,
+    ),
+  );
+
+  Future<OfficialCourseUpdateResult> _installExternalOfficialUpdateLocked(
+    Course update, {
+    required bool confirmUnverifiedAssociation,
+    CoursePackage? package,
   }) async {
     if (update.originType != CourseOriginType.externalOfficial) {
       throw ArgumentError('The package is not an external official course.');
@@ -863,7 +934,9 @@ class CourseEditorService {
       if (jsonEncode(package.course.toJson()) != jsonEncode(update.toJson()) ||
           package.mediaReferences.difference(references).isNotEmpty ||
           references.difference(package.mediaReferences).isNotEmpty) {
-        throw const FormatException('Publisher package does not match its Course.');
+        throw const FormatException(
+          'Publisher package does not match its Course.',
+        );
       }
       return package.withInstalledMedia(
         update.courseId,
@@ -872,6 +945,23 @@ class CourseEditorService {
           confirmUnverifiedAssociation: confirmUnverifiedAssociation,
         ),
         mediaStore: _media,
+        retainCreatedOnFailure: () async {
+          // A failure after the Course record commits must leave its referenced
+          // media available for a later retry or recovery.
+          final persisted = await _officialRecord(update.courseId);
+          if (persisted == null) return false;
+          final entry = persisted.entry;
+          if (entry is! Map || entry['source'] is! Map) return true;
+          try {
+            final source = Course.fromJson(
+              Map<String, dynamic>.from(entry['source'] as Map),
+            );
+            return jsonEncode(source.toJson()) ==
+                jsonEncode(normalizedUpdate.toJson());
+          } catch (_) {
+            return true;
+          }
+        },
       );
     }
     for (final reference in references) {
@@ -894,23 +984,24 @@ class CourseEditorService {
     Course normalizedUpdate, {
     required bool confirmUnverifiedAssociation,
   }) async {
-    final all = await _loadKey(externalOfficialStorageKey);
-    final raw = all[normalizedUpdate.courseId];
-    if (raw == null) {
+    final stored = await _officialRecord(normalizedUpdate.courseId);
+    final raw = stored?.entry;
+    if (stored == null) {
       if (_bundledOfficialCourseIds.contains(normalizedUpdate.courseId) ||
-          (await _loadKey(
-            userCoursesStorageKey,
-          )).containsKey(normalizedUpdate.courseId)) {
+          await _customRecord(normalizedUpdate.courseId) != null) {
         throw const FormatException(
           'This Course ID is already owned by another bundled or custom course origin.',
         );
       }
-      final next = Map<String, dynamic>.from(all);
-      next[normalizedUpdate.courseId] = {
+      final entry = {
         'source': normalizedUpdate.toJson(),
         'savedAt': _clock().toUtc().toIso8601String(),
       };
-      await _replaceKeyAtomically(externalOfficialStorageKey, next);
+      await _store.createIfAbsent(
+        CourseStoreKind.externalOfficial,
+        normalizedUpdate.courseId,
+        entry,
+      );
       await _addToImporterLibrary(normalizedUpdate);
       LearnerStatusEvents.publish(LearnerStatusInvalidation.courseMetadata);
       return OfficialCourseUpdateResult(
@@ -960,13 +1051,17 @@ class CourseEditorService {
       backedUpAt: _clock(),
       reason: 'External official update archived previous official source',
     );
-    final next = Map<String, dynamic>.from(all);
-    next[normalizedUpdate.courseId] = {
+    final entry = {
       ...record,
       'source': normalizedUpdate.toJson(),
       'savedAt': _clock().toUtc().toIso8601String(),
     };
-    await _replaceKeyAtomically(externalOfficialStorageKey, next);
+    await _store.replaceIfUnchanged(
+      CourseStoreKind.externalOfficial,
+      normalizedUpdate.courseId,
+      entry,
+      expectedToken: stored.token,
+    );
     await _addToImporterLibrary(normalizedUpdate);
     await _media.deleteUnreferenced(
       normalizedUpdate.courseId,

@@ -72,16 +72,20 @@ class CoursePackage {
 
   /// Materializes only the media this Course uses, after the caller has
   /// accepted it, one file at a time. Newly created files are rolled back if
-  /// [save] fails.
+  /// [save] fails. A caller that can check whether a failed save nevertheless
+  /// persisted the Course may return true from [retainCreatedOnFailure] to
+  /// keep those files. If that check itself fails, keep them for recovery.
   Future<T> withInstalledMedia<T>(
     String targetCourseId,
     Future<T> Function() save, {
     CourseMediaStore? mediaStore,
     bool keepOnSuccess = true,
+    Future<bool> Function()? retainCreatedOnFailure,
   }) async {
     final store = mediaStore ?? _mediaStore;
     final created = <String>[];
     var succeeded = false;
+    var retainCreated = false;
     try {
       for (final reference in mediaReferences) {
         final bytes = await mediaBytes(reference);
@@ -109,11 +113,24 @@ class CoursePackage {
         );
         created.add(reference);
       }
-      final result = await save();
-      succeeded = true;
-      return result;
+      try {
+        final result = await save();
+        succeeded = true;
+        return result;
+      } catch (_) {
+        if (created.isNotEmpty && retainCreatedOnFailure != null) {
+          try {
+            retainCreated = await retainCreatedOnFailure();
+          } catch (_) {
+            // A failed read cannot prove that a persisted Course does not use
+            // these files. Keep them and rethrow the original save error.
+            retainCreated = true;
+          }
+        }
+        rethrow;
+      }
     } finally {
-      if (!succeeded || !keepOnSuccess) {
+      if ((!succeeded && !retainCreated) || (succeeded && !keepOnSuccess)) {
         for (final reference in created) {
           final file = await store.fileFor(targetCourseId, reference);
           if (await file.exists()) await file.delete();

@@ -1,10 +1,26 @@
 # QuisquisLingo App
 
-**Current source version: 2.0.44+244007 · Build 244, Revision 7 · Course Model v11 (`formatVersion: 11`).**
+**Current source version: 2.0.45+245004 · Build 245, Revision 4 · Course Model v11 (`formatVersion: 11`).**
+
+**QuisquisLingo 2.0.45 Beta — QQL 245 authoring architecture**
+
+Current project version: 2.0.45
+
+See the [Build 245 architecture plan](docs/245_ARCHITECTURE_PLAN.md),
+[change summary](docs/245_CHANGE_SUMMARY.md) and
+[validation](docs/245_VALIDATION.md). Revision 0 gives Course Info metadata
+updates one owner. Revision 1 gives the authoring session ownership of draft
+adoption, Audit freshness and final confirm/cancel around the existing
+working-copy transaction. Revision 2 introduces typed hierarchy updates so
+Lesson, Round and Exercise changes can be applied through that session while
+the editor keeps form and navigation state. Revision 3 gives integrated nested
+editor routes one authoritative update path through the authoring session;
+standalone routes retain their public callbacks. Revision 4 gives per-Course
+create, update and delete commands ownership of storage mutations, keeping the
+Course Editor's final confirmation and recovery ordering. Each architecture
+revision is tested, versioned, handed off and committed separately.
 
 **QuisquisLingo 2.0.44 Beta — QQL 244 Course Library**
-
-Current project version: 2.0.44
 
 See the [Build 244 change summary](docs/244_CHANGE_SUMMARY.md). Build 244 turns Available on this device into the Course Library; the plan is in [docs/COURSE_LIBRARY_244_PLAN.md](docs/COURSE_LIBRARY_244_PLAN.md). Revision 1 moves the Course Draft rule out of the Course Editor into a shared model helper, with no visible change. Revision 2 renames the page to Course Library and adds a Show unavailable or Draft Courses switch, off by default, with separate Draft, Unpublished and Verification required labels. Revision 3 separates the four categories into bordered sections with counts and renames the Custom sections to My Local Courses and Other Local Courses; a Find Courses on the web section stays hidden until the web site exists. Revision 4 gives each row a cover-or-flag picture and shows version, last edited date, maintainer and declared duration; it is the first screen to display Course covers. Revision 5 adds Sort by (Title, Language, Maintainer, Most recent, Duration) inside each section and moves the Beta expiry to 22 October 2026. Revision 6 adds an Expanded/Compact view per section. Revision 7 rewrites the Course Library Help and updates Editor Help.
 
@@ -77,7 +93,7 @@ The MPL-2.0 covers the QuisquisLingo software source. Courses, the Image Bank an
 
 ## Beta lifecycle
 
-Version 2.0.44, Build 244, Revision 7 is a time-limited Beta with an expiry of **2026-10-22 23:59:59 local time** (30 days from September 22, 2026, its own release date). Near expiry it displays reminders. After expiry, learner exercises and Review are blocked until a newer Beta is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when a Beta expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM.
+Version 2.0.45, Build 245, Revision 4 is a time-limited Beta with an expiry of **2026-10-22 23:59:59 local time** (30 days from September 22, 2026, its own release date). Near expiry it displays reminders. After expiry, learner exercises and Review are blocked until a newer Beta is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when a Beta expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM.
 
 ## Core logic
 

@@ -23,7 +23,9 @@ import '../services/course_language_resolver.dart';
 import '../services/formal_name_policy.dart';
 import '../services/course_governance_resolver.dart';
 import '../services/course_governance_service.dart';
-import '../services/course_editor_transaction.dart';
+import '../services/course_info_update_service.dart';
+import '../services/course_hierarchy_update_service.dart';
+import '../services/course_authoring_session.dart';
 import '../services/course_access_policy.dart';
 import '../services/course_service.dart';
 import '../services/course_audit_service.dart';
@@ -307,67 +309,14 @@ class _DraftBranchIndicator extends StatelessWidget {
 
 bool _sameAuthoringJson(Object a, Object b) => jsonEncode(a) == jsonEncode(b);
 
+const _hierarchyUpdates = CourseHierarchyUpdateService();
+
 String _localCourseDateTime(BuildContext context, String utc) {
   final parsed = DateTime.tryParse(utc)?.toLocal();
   if (parsed == null) return 'Not recorded';
   final localizations = MaterialLocalizations.of(context);
   return '${localizations.formatFullDate(parsed)} · '
       '${localizations.formatTimeOfDay(TimeOfDay.fromDateTime(parsed))}';
-}
-
-LearningContent _replaceLearningContentExercise(
-  LearningContent source,
-  Exercise exercise,
-) {
-  if (source.kind == 'exercise') {
-    return LearningContent(
-      id: source.id,
-      publicationState: exercise.publicationState,
-      kind: source.kind,
-      required: source.required,
-      editorTemplate: source.editorTemplate,
-      role: source.role,
-      exercise: exercise,
-      text: source.text,
-      sourceRefs: source.sourceRefs,
-    );
-  }
-  if (source.kind == 'presentation') {
-    final converted = Presentation.fromLegacyExercise(exercise);
-    return LearningContent(
-      id: source.id,
-      publicationState: exercise.publicationState,
-      kind: source.kind,
-      required: source.required,
-      editorTemplate: source.editorTemplate,
-      role: source.role,
-      presentation: Presentation(
-        content: converted.content,
-        actions: source.presentation?.actions ?? converted.actions,
-      ),
-      text: source.text,
-      sourceRefs: source.sourceRefs,
-    );
-  }
-  if (const {
-    'explanation',
-    'example',
-    'vocabulary',
-    'text',
-    'dialogue',
-  }.contains(source.kind)) {
-    return LearningContent(
-      id: source.id,
-      publicationState: exercise.publicationState,
-      kind: source.kind,
-      required: source.required,
-      editorTemplate: source.editorTemplate,
-      role: source.role,
-      text: exercise.prompt.isNotEmpty ? exercise.prompt : exercise.question,
-      sourceRefs: source.sourceRefs,
-    );
-  }
-  return LearningContent.fromExercise(exercise);
 }
 
 Future<bool> _confirmMoveToDraft(BuildContext context, String entity) async =>
@@ -440,31 +389,14 @@ Future<Course?> _openSearchResult(
   if (readOnly) return null;
   if (returned != null) saved[returned.id] = returned;
   if (saved.isEmpty) return null;
-  final content = [
-    for (final item in round.content)
-      saved.containsKey(item.id)
-          ? _replaceLearningContentExercise(item, saved[item.id]!)
-          : item,
-  ];
-  final changedRound = LearningRound.fromJson({
-    ...round.toJson(),
-    'content': content.map((item) => item.toJson()).toList(),
-  });
-  final changedLesson = Lesson.fromJson({
-    ...lesson.toJson(),
-    'rounds': [
-      for (final candidate in lesson.rounds)
-        (candidate.id == round.id ? changedRound : candidate).toJson(),
-    ],
-  });
-  return Course.fromJson({
-    ...course.toJson(),
-    'lessons': [
-      for (final candidate in course.lessons)
-        (candidate.lessonId == lesson.lessonId ? changedLesson : candidate)
-            .toJson(),
-    ],
-  });
+  var changed = course;
+  for (final exercise in saved.values) {
+    changed = _hierarchyUpdates.apply(
+      changed,
+      UpsertExercise(lesson.lessonId, round.id, exercise),
+    );
+  }
+  return changed;
 }
 
 /// Custom-course authoring and read-only official-course inspection.
@@ -546,28 +478,25 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
   late final CustomCourseTransferService _transfer =
       widget.transferService ?? CustomCourseTransferService();
   late final DateTime Function() _clock = widget.clock ?? DateTime.now;
-  late final CourseEditorTransaction _transaction;
-  CourseAuditResult? _lastAudit;
-  bool _auditOutdated = true;
-  CourseEditorMode _editorMode = CourseEditorMode.viewOnly;
+  late final CourseAuthoringSession _session;
   bool _routeMayPop = false;
-  bool _governanceChangedInEditMode = false;
-  String _pendingVersionNotes = '';
 
   @override
   void initState() {
     super.initState();
-    _transaction = CourseEditorTransaction(
-      widget.course,
+    _session = CourseAuthoringSession(
+      course: widget.course,
+      access: widget.access,
+      editorService: _service,
       isNewCourse: widget.isNewCourse,
-      allowReadOnlyOfficial: widget.access.readOnly,
+      clock: _clock,
     );
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       var mode = await _settings.getCourseEditorMode(_course.courseId);
       if (!widget.access.canEditOriginal && mode == CourseEditorMode.edit) {
         mode = CourseEditorMode.viewOnly;
       }
-      if (mounted) setState(() => _editorMode = mode);
+      if (mounted) setState(() => _session.setEditorMode(mode));
       if (widget.access.canEditOriginal &&
           mode == CourseEditorMode.edit &&
           await _settings.isAudioOrphanCheckDue(_code)) {
@@ -579,26 +508,38 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
 
   String get _code => CourseService.codeForCourse(_course);
 
-  Course get _course => _transaction.workingCourse;
+  Course get _course => _session.workingCourse;
 
-  bool get _dirty => _transaction.hasChanges;
+  bool get _dirty => _session.hasChanges;
 
-  bool get _canModify =>
-      widget.access.canEditOriginal && _editorMode == CourseEditorMode.edit;
+  bool get _canModify => _session.canModify;
+
+  CourseEditorMode get _editorMode => _session.editorMode;
+
+  CourseAuditResult? get _lastAudit => _session.lastAudit;
+
+  bool get _auditOutdated => _session.auditOutdated;
+
+  String get _pendingVersionNotes => _session.pendingVersionNotes;
 
   void _updateDraft(Course value) => setState(() {
-    if (!_canModify) {
-      throw StateError('The Course Editor is not in Edit.');
-    }
-    _transaction.replaceWorkingCourse(
-      const ProvisionalPublicationService().reconcile(
-        value,
-        updatedAt: _clock(),
-        previous: _course,
-      ),
-    );
-    _auditOutdated = true;
+    _session.stageCourse(value);
   });
+
+  Course _adoptHierarchyDraft(
+    Course candidate, {
+    Course? previous,
+    bool? usePrevious,
+  }) {
+    setState(() {
+      _session.stageCourse(
+        candidate,
+        previous: previous,
+        usePrevious: usePrevious ?? true,
+      );
+    });
+    return _course;
+  }
 
   Future<void> _popEditor([CourseConfirmationResult? result]) async {
     if (!mounted || _routeMayPop) return;
@@ -661,27 +602,16 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
       ),
     );
     if (choice == 'cancel') {
-      _pendingVersionNotes = '';
-      _transaction.cancel();
-      _governanceChangedInEditMode = false;
+      _session.cancel();
       await _popEditor();
       return;
     }
     if (choice != 'confirm') return;
-    _pendingVersionNotes = versionNotes;
     try {
-      final result = await _service.confirmCourseTransaction(
-        originalCourse: _transaction.originalCourse,
-        workingCourse: _course,
+      final result = await _session.confirm(
         languageCode: _code,
         versionNotes: versionNotes,
-        isNewCourse: widget.isNewCourse,
-        governanceChangesMadeInEditMode: _governanceChangedInEditMode,
-        committedAt: _clock(),
       );
-      _transaction.markConfirmed(result.course);
-      _pendingVersionNotes = '';
-      _governanceChangedInEditMode = false;
       if (!mounted) return;
       await _popEditor(result);
     } catch (error) {
@@ -697,11 +627,6 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
       );
     }
   }
-
-  Course _withLessons(List<Lesson> lessons) => Course.fromJson({
-    ..._course.toJson(),
-    'lessons': lessons.map((lesson) => lesson.toJson()).toList(),
-  });
 
   Future<void> _editCourseInfo() async {
     final resolvedGovernance = await CourseGovernanceResolver(
@@ -825,32 +750,7 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
       ),
       child: Text(value.trim().isEmpty ? 'Not specified' : value),
     );
-    final result =
-        await showDialog<
-          ({
-            String title,
-            List<CourseAuthor> authors,
-            List<CourseRightsHolder> rightsHolders,
-            List<CourseMediaAttribution> mediaAttributions,
-            String license,
-            DerivativeWorksPolicy derivativePolicy,
-            String variant,
-            String startLevel,
-            String targetLevel,
-            String description,
-            String buyACoffeeUrl,
-            int? estimatedStudyHours,
-            int? minimumAge,
-            List<String> keywords,
-            CoursePublisherContact? publisherContact,
-            int? minimumAppBuild,
-            String flagCode,
-            String flagImageBase64,
-            String worldFlagId,
-            String maintainerProfileId,
-            String? assignedTeamId,
-          })
-        >(
+    final result = await showDialog<CourseInfoChange>(
           context: context,
           builder: (ctx) => StatefulBuilder(
             builder: (ctx, setLocalState) => AlertDialog(
@@ -2038,66 +1938,18 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
       customLicense.dispose();
     });
     if (result == null || !mounted) return;
-    final governance = CourseGovernanceService(
-      profileService: _profiles,
-      teamService: _teams,
-    );
-    var governedCourse = _course;
-    if (governedCourse.assignedTeamId != result.assignedTeamId) {
-      governedCourse = await governance.assignTeam(
-        course: governedCourse,
-        actorProfileId: activeProfileId!,
-        teamId: result.assignedTeamId,
-        editMode: true,
-        assignmentConfirmed: true,
+    final update = await CourseInfoUpdateService(
+      governanceService: CourseGovernanceService(
+        profileService: _profiles,
+        teamService: _teams,
+      ),
+    ).apply(_course, result, activeProfileId);
+    setState(() {
+      _session.stageCourse(
+        update.course,
+        governanceChanged: update.governanceChanged,
       );
-    }
-    if (governedCourse.maintainer!.profileId != result.maintainerProfileId) {
-      governedCourse = await governance.transferMaintainer(
-        course: governedCourse,
-        actorProfileId: activeProfileId!,
-        newMaintainerProfileId: result.maintainerProfileId,
-        editMode: true,
-      );
-    }
-    final governanceChanged =
-        _course.maintainer!.profileId != governedCourse.maintainer!.profileId ||
-        _course.assignedTeamId != governedCourse.assignedTeamId;
-    if (governanceChanged) _governanceChangedInEditMode = true;
-    final descriptive = <String, Object?>{
-      'estimatedStudyHours': result.estimatedStudyHours,
-      'minimumAge': result.minimumAge,
-      'keywords': result.keywords.isEmpty ? null : result.keywords,
-      'publisherContact': result.publisherContact?.toJson(),
-      'minimumAppBuild': result.minimumAppBuild,
-    };
-    _updateDraft(
-      Course.fromJson({
-        // Cleared optional fields are omitted, never stored as null.
-        ...governedCourse.toJson()
-          ..removeWhere((key, _) => descriptive.containsKey(key)),
-        for (final entry in descriptive.entries)
-          if (entry.value != null) entry.key: entry.value,
-        'title': result.title,
-        'authors': result.authors.map((author) => author.toJson()).toList(),
-        'rightsHolders': result.rightsHolders
-            .map((holder) => holder.toJson())
-            .toList(),
-        'mediaAttributions': result.mediaAttributions
-            .map((credit) => credit.toJson())
-            .toList(),
-        'license': result.license,
-        'derivativeWorksPolicy': result.derivativePolicy.name,
-        'languageVariant': result.variant,
-        'startLevel': result.startLevel,
-        'targetLevel': result.targetLevel,
-        'courseDescription': result.description,
-        'buyACoffeeUrl': result.buyACoffeeUrl,
-        'flagCode': result.flagCode,
-        'flagImageBase64': result.flagImageBase64,
-        'worldFlagId': result.worldFlagId,
-      }),
-    );
+    });
   }
 
   Future<void> _openLessons() async {
@@ -2154,13 +2006,17 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
           initiallyLocked: false,
           readOnly: readOnly,
           courseEditorMode: _editorMode,
-          onCourseChanged: _canModify ? _updateDraft : null,
+          adoptCourse: _canModify ? _adoptHierarchyDraft : null,
           clock: _clock,
         ),
       ),
     );
-    if (updated != null && _canModify) _updateDraft(updated);
-    if (mounted) setState(() => _auditOutdated = true);
+    if (updated != null &&
+        _canModify &&
+        !_sameAuthoringJson(updated.toJson(), _course.toJson())) {
+      _updateDraft(updated);
+    }
+    if (mounted) setState(_session.markAuditOutdated);
   }
 
   Future<void> _setEditorMode(CourseEditorMode mode) async {
@@ -2176,7 +2032,7 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
       return;
     }
     await _settings.setCourseEditorMode(_course.courseId, mode);
-    if (mounted) setState(() => _editorMode = mode);
+    if (mounted) setState(() => _session.setEditorMode(mode));
   }
 
   Future<bool> _resolveChangesBeforeModeSwitch() async {
@@ -2235,32 +2091,16 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
     );
     if (!mounted || choice == null || choice == 'stay') return false;
     if (choice == 'cancel') {
-      _pendingVersionNotes = '';
-      setState(() {
-        _transaction.cancel();
-        _governanceChangedInEditMode = false;
-        _auditOutdated = true;
-      });
+      setState(_session.cancel);
       return true;
     }
-    _pendingVersionNotes = versionNotes;
     try {
-      final result = await _service.confirmCourseTransaction(
-        originalCourse: _transaction.originalCourse,
-        workingCourse: _course,
+      await _session.confirm(
         languageCode: _code,
         versionNotes: versionNotes,
-        isNewCourse: widget.isNewCourse,
-        governanceChangesMadeInEditMode: _governanceChangedInEditMode,
-        committedAt: _clock(),
       );
       if (!mounted) return false;
-      setState(() {
-        _transaction.markConfirmed(result.course);
-        _pendingVersionNotes = '';
-        _governanceChangedInEditMode = false;
-        _auditOutdated = true;
-      });
+      setState(() {});
       return true;
     } catch (error) {
       if (!mounted) return false;
@@ -2372,8 +2212,7 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
     if (!mounted) return;
     try {
       setState(() {
-        _transaction.loadHistoricalCourse(selection.course);
-        _auditOutdated = true;
+        _session.loadHistoricalCourse(selection.course);
       });
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -2439,12 +2278,9 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
     }
     await _checkOrphanAudio(prompt: _canModify);
     final fresh = _course;
-    final result = CourseAuditService().auditCourse(fresh);
+    final result = _session.runAudit();
     if (!mounted) return;
-    setState(() {
-      _lastAudit = result;
-      _auditOutdated = false;
-    });
+    setState(() {});
     final selected = await Navigator.of(context).push<CourseAuditIssue>(
       MaterialPageRoute(
         builder: (_) => CourseAuditScreen(course: fresh, result: result),
@@ -2485,38 +2321,11 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
                       : (exercise) {
                           savedExercises[exercise.id] = exercise;
                           if (!mounted) return;
-                          _updateDraft(
-                            _withLessons([
-                              for (final currentLesson in _course.lessons)
-                                if (currentLesson.lessonId == lesson.lessonId)
-                                  Lesson.fromJson({
-                                    ...currentLesson.toJson(),
-                                    'rounds': [
-                                      for (final currentRound
-                                          in currentLesson.rounds)
-                                        if (currentRound.id == round.id)
-                                          {
-                                            ...currentRound.toJson(),
-                                            'content': [
-                                              for (final item
-                                                  in currentRound.content)
-                                                (item.id == exercise.id
-                                                        ? _replaceLearningContentExercise(
-                                                            item,
-                                                            exercise,
-                                                          )
-                                                        : item)
-                                                    .toJson(),
-                                            ],
-                                          }
-                                        else
-                                          currentRound.toJson(),
-                                    ],
-                                  })
-                                else
-                                  currentLesson,
-                            ]),
-                          );
+                          setState(() {
+                            _session.applyHierarchyUpdate(
+                              UpsertExercise(lesson.lessonId, round.id, exercise),
+                            );
+                          });
                         },
                 ),
               ),
@@ -2525,22 +2334,28 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
               savedExercises[updatedExercise.id] = updatedExercise;
             }
             if (savedExercises.isNotEmpty) {
+              // A live Save may already have staged and reconciled this Round.
+              // Build the route-result fallback from that canonical snapshot.
+              final currentRound = _course.lessons
+                  .firstWhere((item) => item.lessonId == lesson.lessonId)
+                  .rounds
+                  .firstWhere((item) => item.id == round.id);
               final content = [
-                for (final item in round.content)
+                for (final item in currentRound.content)
                   savedExercises.containsKey(item.id)
-                      ? _replaceLearningContentExercise(
+                      ? _hierarchyUpdates.replaceExerciseContent(
                           item,
                           savedExercises[item.id]!,
                         )
                       : item,
               ];
               updatedRound = LearningRound(
-                id: round.id,
-                publicationState: round.publicationState,
-                provisionalDraft: round.provisionalDraft,
-                updatedAt: round.updatedAt,
-                title: round.title,
-                visualType: round.visualType,
+                id: currentRound.id,
+                publicationState: currentRound.publicationState,
+                provisionalDraft: currentRound.provisionalDraft,
+                updatedAt: currentRound.updatedAt,
+                title: currentRound.title,
+                visualType: currentRound.visualType,
                 content: content,
               );
             }
@@ -2552,7 +2367,7 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
           MaterialPageRoute(
             builder: (_) => RoundEditorScreen(
               course: _course,
-              onCourseChanged: _canModify ? _updateDraft : null,
+              adoptCourse: _canModify ? _adoptHierarchyDraft : null,
               lesson: lesson,
               round: round,
               roundIndex: ri,
@@ -2562,23 +2377,13 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
           ),
         );
         if (updatedRound == null || !mounted) return;
-        final rounds = [..._course.lessons[ti].rounds];
-        rounds[ri] = updatedRound;
-        final lessons = [..._course.lessons];
-        lessons[ti] = Lesson(
-          lessonId: lesson.lessonId,
-          publicationState: lesson.publicationState,
-          provisionalDraft: lesson.provisionalDraft,
-          updatedAt: lesson.updatedAt,
-          title: lesson.title,
-          rounds: rounds,
-          section: lesson.section,
-          sectionName: lesson.sectionName,
-          themeIconAsset: lesson.themeIconAsset,
-          guidebook: lesson.guidebook,
-          duel: lesson.duel,
+        final candidate = _hierarchyUpdates.apply(
+          _course,
+          ReplaceRound(lesson.lessonId, round.id, updatedRound),
         );
-        _updateDraft(_withLessons(lessons));
+        if (!_sameAuthoringJson(candidate.toJson(), _course.toJson())) {
+          _updateDraft(candidate);
+        }
         return;
       }
     }
@@ -2985,7 +2790,7 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
                           course: _course,
                           mediaStore: _service.mediaStore,
                           onCourseChanged: _updateDraft,
-                          savedCourse: _transaction.originalCourse,
+                          savedCourse: _session.originalCourse,
                         ),
                       ),
                     )
@@ -3038,6 +2843,7 @@ class LessonManagementScreen extends StatefulWidget {
     this.readOnly = false,
     this.courseEditorMode = CourseEditorMode.edit,
     this.onCourseChanged,
+    this.adoptCourse,
     this.clock,
   });
 
@@ -3046,6 +2852,7 @@ class LessonManagementScreen extends StatefulWidget {
   final bool readOnly;
   final CourseEditorMode courseEditorMode;
   final ValueChanged<Course>? onCourseChanged;
+  final CourseDraftAdopter? adoptCourse;
   final DateTime Function()? clock;
 
   @override
@@ -3070,21 +2877,25 @@ class _LessonManagementScreenState extends State<LessonManagementScreen> {
   Course _withLessons(
     List<Lesson> lessons, {
     List<CourseLessonIconAsset>? lessonIconAssets,
-  }) => Course.fromJson({
-    ..._course.toJson(),
-    'lessons': lessons.map((lesson) => lesson.toJson()).toList(),
-    'lessonIconAssets': (lessonIconAssets ?? _course.lessonIconAssets)
-        .map((asset) => asset.toJson())
-        .toList(),
-  });
+  }) => _hierarchyUpdates.apply(
+    _course,
+    ReplaceLessons(lessons, lessonIconAssets: lessonIconAssets),
+  );
 
   void _adoptCourse(Course course) {
     if (!mounted) return;
-    course = const ProvisionalPublicationService().reconcile(
-      course,
-      updatedAt: _clock(),
-      previous: _course,
-    );
+    course = widget.adoptCourse?.call(course, previous: _course) ??
+        const ProvisionalPublicationService().reconcile(
+          course,
+          updatedAt: _clock(),
+          previous: _course,
+        );
+    setState(() => _course = course);
+    widget.onCourseChanged?.call(course);
+  }
+
+  void _receiveCourse(Course course) {
+    if (!mounted) return;
     setState(() => _course = course);
     widget.onCourseChanged?.call(course);
   }
@@ -3354,8 +3165,9 @@ class _LessonManagementScreenState extends State<LessonManagementScreen> {
               ? null
               : (course) {
                   iconAssets = course.lessonIconAssets;
-                  _adoptCourse(course);
+                  _receiveCourse(course);
                 },
+          adoptCourse: _locked ? null : widget.adoptCourse,
           clock: _clock,
         ),
       ),
@@ -3366,7 +3178,10 @@ class _LessonManagementScreenState extends State<LessonManagementScreen> {
     );
     if (currentIndex < 0) return;
     final lessons = [..._course.lessons]..[currentIndex] = updated;
-    _replaceLessons(lessons, lessonIconAssets: iconAssets);
+    final candidate = _withLessons(lessons, lessonIconAssets: iconAssets);
+    if (!_sameAuthoringJson(candidate.toJson(), _course.toJson())) {
+      _adoptCourse(candidate);
+    }
   }
 
   Future<void> _openSearch() async {
@@ -4175,6 +3990,7 @@ class _GuidebookInsightsEditorScreenState
 class LessonEditorScreen extends StatefulWidget {
   final Course course;
   final ValueChanged<Course>? onCourseChanged;
+  final CourseDraftAdopter? adoptCourse;
   final Lesson lesson;
   final ValueChanged<List<CourseLessonIconAsset>>? onLessonIconAssetsChanged;
   final DateTime Function()? clock;
@@ -4184,6 +4000,7 @@ class LessonEditorScreen extends StatefulWidget {
     super.key,
     required this.course,
     this.onCourseChanged,
+    this.adoptCourse,
     required this.lesson,
     this.onLessonIconAssetsChanged,
     this.clock,
@@ -4206,16 +4023,13 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
   final _lessonIcons = LessonIconService();
   bool _routeMayPop = false;
 
-  Course get _courseWithIcons => Course.fromJson({
-    ..._course.toJson(),
-    'lessons': [
-      for (final lesson in _course.lessons)
-        (lesson.lessonId == _lesson.lessonId ? _lesson : lesson).toJson(),
-    ],
-    'lessonIconAssets': _lessonIconAssets
-        .map((asset) => asset.toJson())
-        .toList(),
-  });
+  Course get _courseWithIcons => _hierarchyUpdates.apply(
+    _course,
+    OverlayLessonDraft(
+      _lesson,
+      lessonIconAssets: _lessonIconAssets,
+    ),
+  );
 
   int get _lessonNumber {
     final index = _course.lessons.indexWhere(
@@ -4236,11 +4050,17 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
 
   void _adoptCourse(Course course) {
     if (!mounted) return;
-    course = const ProvisionalPublicationService().reconcile(
-      course,
-      updatedAt: _clock(),
-      previous: _course,
-    );
+    course = widget.adoptCourse?.call(course, previous: _course) ??
+        const ProvisionalPublicationService().reconcile(
+          course,
+          updatedAt: _clock(),
+          previous: _course,
+        );
+    _receiveCourse(course);
+  }
+
+  void _receiveCourse(Course course) {
+    if (!mounted) return;
     final lesson = course.lessons.firstWhere(
       (candidate) => candidate.lessonId == _lesson.lessonId,
     );
@@ -4254,16 +4074,14 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
 
   void _publishLesson(Lesson lesson) {
     if (!mounted) return;
-    final course = Course.fromJson({
-      ..._course.toJson(),
-      'lessons': [
-        for (final candidate in _course.lessons)
-          (candidate.lessonId == lesson.lessonId ? lesson : candidate).toJson(),
-      ],
-      'lessonIconAssets': _lessonIconAssets
-          .map((asset) => asset.toJson())
-          .toList(),
-    });
+    final course = _hierarchyUpdates.apply(
+      _course,
+      ReplaceLesson(
+        lesson.lessonId,
+        lesson,
+        lessonIconAssets: _lessonIconAssets,
+      ),
+    );
     _adoptCourse(course);
   }
 
@@ -4649,7 +4467,8 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
       MaterialPageRoute(
         builder: (_) => LessonRoundsScreen(
           course: _courseWithIcons,
-          onCourseChanged: widget.readOnly ? null : _adoptCourse,
+          onCourseChanged: widget.readOnly ? null : _receiveCourse,
+          adoptCourse: widget.readOnly ? null : widget.adoptCourse,
           lesson: draftLesson,
           readOnly: widget.readOnly,
           courseEditorMode: widget.courseEditorMode,
@@ -4658,7 +4477,10 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
       ),
     );
     if (!widget.readOnly && rounds != null && mounted) {
-      _publishLesson(_copy(rounds: rounds));
+      final candidate = _copy(rounds: rounds);
+      if (!_sameAuthoringJson(candidate.toJson(), _lesson.toJson())) {
+        _publishLesson(candidate);
+      }
     }
   }
 
@@ -5748,6 +5570,7 @@ class _GuidebookRoundGeneratorScreenState
 class LessonRoundsScreen extends StatefulWidget {
   final Course course;
   final ValueChanged<Course>? onCourseChanged;
+  final CourseDraftAdopter? adoptCourse;
   final Lesson lesson;
   final DateTime Function()? clock;
   final bool readOnly;
@@ -5757,6 +5580,7 @@ class LessonRoundsScreen extends StatefulWidget {
     super.key,
     required this.course,
     this.onCourseChanged,
+    this.adoptCourse,
     required this.lesson,
     this.clock,
     this.readOnly = false,
@@ -5781,14 +5605,10 @@ class _LessonRoundsScreenState extends State<LessonRoundsScreen> {
     _rounds = [...widget.lesson.rounds];
     // Adopt pending Lesson metadata once. Child callbacks thereafter own the
     // current canonical state, including first-Save publication reconciliation.
-    _course = Course.fromJson({
-      ..._course.toJson(),
-      'lessons': [
-        for (final lesson in _course.lessons)
-          (lesson.lessonId == widget.lesson.lessonId ? widget.lesson : lesson)
-              .toJson(),
-      ],
-    });
+    _course = _hierarchyUpdates.apply(
+      _course,
+      OverlayLessonDraft(widget.lesson),
+    );
   }
 
   Lesson get _currentLesson => _course.lessons.firstWhere(
@@ -5810,11 +5630,17 @@ class _LessonRoundsScreenState extends State<LessonRoundsScreen> {
 
   void _adoptCourse(Course course) {
     if (!mounted) return;
-    course = const ProvisionalPublicationService().reconcile(
-      course,
-      updatedAt: _clock(),
-      previous: _course,
-    );
+    course = widget.adoptCourse?.call(course, previous: _course) ??
+        const ProvisionalPublicationService().reconcile(
+          course,
+          updatedAt: _clock(),
+          previous: _course,
+        );
+    _receiveCourse(course);
+  }
+
+  void _receiveCourse(Course course) {
+    if (!mounted) return;
     setState(() {
       _course = course;
       _rounds = [
@@ -5827,19 +5653,14 @@ class _LessonRoundsScreenState extends State<LessonRoundsScreen> {
   }
 
   Course _courseWithRounds(List<LearningRound> rounds) {
-    final lessons = [..._course.lessons];
-    final index = lessons.indexWhere(
+    final index = _course.lessons.indexWhere(
       (lesson) => lesson.lessonId == widget.lesson.lessonId,
     );
     if (index < 0) return _course;
-    lessons[index] = Lesson.fromJson({
-      ...lessons[index].toJson(),
-      'rounds': rounds.map((round) => round.toJson()).toList(),
-    });
-    return Course.fromJson({
-      ..._course.toJson(),
-      'lessons': lessons.map((lesson) => lesson.toJson()).toList(),
-    });
+    return _hierarchyUpdates.apply(
+      _course,
+      ReplaceRounds(widget.lesson.lessonId, rounds),
+    );
   }
 
   Future<void> _transferRound(int index, {required bool copy}) async {
@@ -5961,7 +5782,8 @@ class _LessonRoundsScreenState extends State<LessonRoundsScreen> {
       MaterialPageRoute(
         builder: (_) => RoundEditorScreen(
           course: _auditableCourse,
-          onCourseChanged: _adoptCourse,
+          onCourseChanged: _receiveCourse,
+          adoptCourse: widget.readOnly ? null : widget.adoptCourse,
           linkParent: true,
           lesson: _draftLesson,
           round: _rounds[index],
@@ -5978,7 +5800,12 @@ class _LessonRoundsScreenState extends State<LessonRoundsScreen> {
       );
       if (currentIndex < 0) return;
       final rounds = [..._rounds]..[currentIndex] = updated;
-      _updateRounds(rounds);
+      if (!_sameAuthoringJson(
+        updated.toJson(),
+        _rounds[currentIndex].toJson(),
+      )) {
+        _updateRounds(rounds);
+      }
     }
   }
 
@@ -6340,6 +6167,7 @@ class _LessonRoundsScreenState extends State<LessonRoundsScreen> {
 class RoundEditorScreen extends StatefulWidget {
   final Course course;
   final ValueChanged<Course>? onCourseChanged;
+  final CourseDraftAdopter? adoptCourse;
   final Lesson lesson;
   final LearningRound round;
   final int roundIndex;
@@ -6351,6 +6179,7 @@ class RoundEditorScreen extends StatefulWidget {
     super.key,
     required this.course,
     this.onCourseChanged,
+    this.adoptCourse,
     required this.lesson,
     required this.round,
     required this.roundIndex,
@@ -6401,24 +6230,8 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
     content: _editedContent(),
   );
 
-  List<LearningContent> _editedContent() {
-    // Keep non-runnable metadata slots in place while honoring the current
-    // runnable Exercise order. Each text/presentation slot is emitted once.
-    final pending = _exercises.iterator;
-    final content = <LearningContent>[];
-    for (final original in _originalContent) {
-      if (original.role == 'lesson_intro' ||
-          original.asRunnableExercise() == null) {
-        content.add(original);
-      } else if (pending.moveNext()) {
-        content.add(_contentForEditedExercise(pending.current));
-      }
-    }
-    while (pending.moveNext()) {
-      content.add(_contentForEditedExercise(pending.current));
-    }
-    return content;
-  }
+  List<LearningContent> _editedContent() =>
+      _hierarchyUpdates.contentForExercises(_originalContent, _exercises);
 
   Future<void> _returnToRounds() async {
     if (!mounted || _routeMayPop) return;
@@ -6427,20 +6240,6 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
     if (mounted) {
       Navigator.pop(context, widget.readOnly ? widget.round : _editedRound());
     }
-  }
-
-  LearningContent _contentForEditedExercise(Exercise exercise) {
-    final source = _originalContent
-        .where((item) => item.id == exercise.id)
-        .firstOrNull;
-    if (source == null) return LearningContent.fromExercise(exercise);
-    final original = source.asRunnableExercise();
-    if (source.publicationState == exercise.publicationState &&
-        original != null &&
-        _sameAuthoringJson(original.toJson(), exercise.toJson())) {
-      return source;
-    }
-    return _replaceLearningContentExercise(source, exercise);
   }
 
   Future<void> _saveRound(PublicationState state) async {
@@ -6555,36 +6354,25 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
       ? e.question.trim()
       : (e.tts ?? e.id);
 
-  Course get _workingCourse => Course.fromJson({
-    ..._course.toJson(),
-    'lessons': [
-      for (final lesson in _course.lessons)
-        if (lesson.lessonId == _lesson.lessonId)
-          {
-            ..._lesson.toJson(),
-            'rounds': [
-              for (final round in _lesson.rounds)
-                (round.id == widget.round.id ? _editedRound() : round).toJson(),
-            ],
-          }
-        else
-          lesson.toJson(),
-    ],
-  });
+  Course get _workingCourse => _hierarchyUpdates.apply(
+    _course,
+    OverlayRoundDraft(_lesson, _editedRound()),
+  );
 
   void _mutateRound(VoidCallback mutation) {
     if (!mounted) return;
-    late Course course;
     // The working copy before this change lets a parent Draft be promoted when
     // its last Draft child is saved as Published.
     final before = _workingCourse;
+    mutation();
+    final candidate = _workingCourse;
+    final course = widget.adoptCourse?.call(candidate, previous: before) ??
+        const ProvisionalPublicationService().reconcile(
+          candidate,
+          updatedAt: _clock(),
+          previous: before,
+        );
     setState(() {
-      mutation();
-      course = const ProvisionalPublicationService().reconcile(
-        _workingCourse,
-        updatedAt: _clock(),
-        previous: before,
-      );
       _course = course;
       _lesson = course.lessons.firstWhere(
         (lesson) => lesson.lessonId == _lesson.lessonId,
@@ -6601,7 +6389,7 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
   }
 
   bool get _canTransfer =>
-      widget.onCourseChanged != null &&
+      (widget.onCourseChanged != null || widget.adoptCourse != null) &&
       _course.lessons.any(
         (lesson) =>
             lesson.lessonId == _lesson.lessonId &&
@@ -6611,6 +6399,10 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
   void _acceptExercise(Exercise exercise) {
     if (widget.readOnly) return;
     final index = _exercises.indexWhere((value) => value.id == exercise.id);
+    if (index >= 0 &&
+        _sameAuthoringJson(_exercises[index].toJson(), exercise.toJson())) {
+      return;
+    }
     _mutateRound(() {
       if (index < 0) {
         _exercises.add(exercise);
@@ -6738,10 +6530,15 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
               destinationLessonId: destination.lessonId,
               destinationRoundId: destination.roundId!,
             );
-      final updated = const ProvisionalPublicationService().reconcile(
-        transferred,
-        updatedAt: _clock(),
-      );
+      final updated = widget.adoptCourse?.call(
+            transferred,
+            previous: course,
+            usePrevious: false,
+          ) ??
+          const ProvisionalPublicationService().reconcile(
+            transferred,
+            updatedAt: _clock(),
+          );
       setState(() {
         _course = updated;
         _lesson = updated.lessons.firstWhere(
@@ -7276,23 +7073,28 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
       clock: _clock,
     );
     if (changed == null || !mounted) return;
-    final lesson = changed.lessons.firstWhere(
+    final course = widget.adoptCourse?.call(
+          changed,
+          previous: _workingCourse,
+        ) ??
+        changed;
+    final adoptedLesson = course.lessons.firstWhere(
       (candidate) => candidate.lessonId == _lesson.lessonId,
     );
-    final round = lesson.rounds.firstWhere(
+    final adoptedRound = adoptedLesson.rounds.firstWhere(
       (candidate) => candidate.id == widget.round.id,
     );
     setState(() {
-      _course = changed;
-      _lesson = lesson;
-      _exercises = [...round.exercises];
-      _originalContent = [...round.content];
-      _title = round.title;
-      _updatedAt = round.updatedAt;
-      _publicationState = round.publicationState;
-      _provisionalDraft = round.provisionalDraft;
+      _course = course;
+      _lesson = adoptedLesson;
+      _exercises = [...adoptedRound.exercises];
+      _originalContent = [...adoptedRound.content];
+      _title = adoptedRound.title;
+      _updatedAt = adoptedRound.updatedAt;
+      _publicationState = adoptedRound.publicationState;
+      _provisionalDraft = adoptedRound.provisionalDraft;
     });
-    widget.onCourseChanged?.call(changed);
+    widget.onCourseChanged?.call(course);
   }
 
   Future<void> _auditRound() => Navigator.of(context).push<void>(

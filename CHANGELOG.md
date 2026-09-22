@@ -1,3 +1,53 @@
+# 2.0.45 (Build 245, Revision 4) - Per-Course storage commands - 2026-09-22
+
+Course storage mutations use intent-specific create, update and delete
+commands instead of a whole-store map bridge. The Course Editor facade keeps
+authorization and stale-edit checks, and confirmed changes retain backup
+before write, readback and media cleanup ordering. Unreadable or duplicate-ID
+files remain protected by the file store; failed writes preserve recovery
+paths. Course Model v11, stored formats and user-visible behavior are unchanged.
+Version `2.0.45+245004`; Beta expiry remains **2026-10-22 23:59:59 local time**.
+
+# 2.0.45 (Build 245, Revision 3) - Canonical authoring route propagation - 2026-09-22
+
+Integrated Course, Lesson, Round and Exercise editor routes now pass accepted
+updates through the Course authoring session. The route supplies the prior
+Course snapshot required for publication reconciliation, while standalone
+editor routes keep their public callbacks. The session remains the sole
+working Course owner and final confirmation remains the only persistence
+point. Course Model v11, stored data and user-visible behavior are unchanged.
+Version `2.0.45+245003`; Beta expiry remains **2026-10-22 23:59:59 local time**.
+
+# 2.0.45 (Build 245, Revision 2) - Typed hierarchy updates - 2026-09-22
+
+Lesson, Round and Exercise edits gain typed update commands. One service now
+owns hierarchy reconstruction and preserves Content wrapper metadata while
+the editor retains transient form and navigation state. The existing Course
+transaction remains the sole working copy and final confirmation
+remains the sole persistence point. Course Model v11 and user-visible behavior
+are unchanged. Canonical nested callback propagation follows in Revision 3.
+Route coverage and verification are recorded in
+`docs/245_VALIDATION.md` and `docs/245_HANDOFF.md`.
+Version `2.0.45+245002`; Beta expiry remains **2026-10-22 23:59:59 local time**.
+
+# 2.0.45 (Build 245, Revision 1) - Course authoring session - 2026-09-22
+
+One authoring session coordinates the existing Course Editor working copy,
+provisional publication reconciliation, draft adoption, dirty state, Audit
+freshness and final confirm/cancel. The screen retains presentation and
+navigation state. There is still one Course working copy and one final
+persistence boundary. Course Model v11 and user-visible behavior are unchanged.
+Version `2.0.45+245001`; Beta expiry remains **2026-10-22 23:59:59 local time**.
+
+# 2.0.45 (Build 245, Revision 0) - Course Info ownership - 2026-09-22
+
+The Course Info Editor keeps its form and interactions while one application
+operation applies its metadata and governance changes to the Course Editor
+working copy. The final Course confirmation remains the only persistence
+point. Course Model v11 and user-visible behavior are unchanged. The staged
+architecture plan is in `docs/245_ARCHITECTURE_PLAN.md`.
+Version `2.0.45+245000`; Beta expiry remains **2026-10-22 23:59:59 local time**.
+
 # 2.0.44 (Build 244, Revision 7) - Course Library Help - 2026-09-22
 
 Course Library Help is rewritten. It starts by explaining that the page lists

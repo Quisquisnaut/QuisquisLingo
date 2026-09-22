@@ -1,6 +1,8 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:crypto/crypto.dart';
 import 'package:path_provider/path_provider.dart';
 
 import 'course_backup_service.dart';
@@ -18,6 +20,18 @@ enum CourseStoreKind {
 /// the SharedPreferences store used before.
 typedef CourseStoreFileWriter =
     Future<void> Function(File target, String contents);
+
+/// One exact on-disk Course record and its opaque compare-and-swap token.
+class CourseStoredRecord {
+  const CourseStoredRecord(this.entry, this.token);
+
+  final Object? entry;
+  final String token;
+}
+
+class _CourseLockOwner {
+  bool active = true;
+}
 
 /// One file per Course, replacing the single SharedPreferences blob.
 ///
@@ -52,6 +66,52 @@ class CourseFileStore {
 
   final Future<Directory> Function() _supportDirectory;
   final CourseStoreFileWriter? _fileWriter;
+
+  static final Object _heldLocksZoneKey = Object();
+  static final Map<String, Future<void>> _lockTails = {};
+  static int _nextTemporaryId = 0;
+
+  /// Serializes mutations of one Course across store instances and both kinds.
+  /// The canonical file name is used so IDs that sanitize to the same path
+  /// cannot enter independent critical sections.
+  Future<T> withCourseLock<T>(
+    String courseId,
+    Future<T> Function() action,
+  ) async {
+    final support = await _supportDirectory();
+    String rootPath;
+    try {
+      rootPath = await support.resolveSymbolicLinks();
+    } on FileSystemException {
+      rootPath = support.absolute.path;
+    }
+    final pathKey = Platform.isWindows ? rootPath.toLowerCase() : rootPath;
+    final fileName = CourseBackupService.sanitizedCourseId(courseId);
+    final fileKey = Platform.isWindows ? fileName.toLowerCase() : fileName;
+    final key = '$pathKey\u0000$fileKey';
+    final held =
+        Zone.current[_heldLocksZoneKey] as Map<String, _CourseLockOwner>?;
+    if (held?[key]?.active ?? false) return action();
+
+    final prior = _lockTails[key];
+    final released = Completer<void>();
+    final tail = released.future;
+    final owner = _CourseLockOwner();
+    _lockTails[key] = tail;
+    try {
+      if (prior != null) await prior;
+      return await runZoned(
+        action,
+        zoneValues: {
+          _heldLocksZoneKey: {...?held, key: owner},
+        },
+      );
+    } finally {
+      owner.active = false;
+      if (identical(_lockTails[key], tail)) _lockTails.remove(key);
+      released.complete();
+    }
+  }
 
   Future<Directory> directoryFor(
     CourseStoreKind kind, {
@@ -159,10 +219,12 @@ class CourseFileStore {
     return CourseStoreSnapshot(out, skipped);
   }
 
-  Future<Map<String, dynamic>> _decode(File file) async {
-    String raw;
+  Future<({Map<String, dynamic> record, List<int> bytes})> _readRecord(
+    File file,
+  ) async {
+    List<int> bytes;
     try {
-      raw = await file.readAsString();
+      bytes = await file.readAsBytes();
     } catch (error) {
       throw FormatException(
         'Stored Course record ${_name(file)} could not be read. '
@@ -170,13 +232,13 @@ class CourseFileStore {
       );
     }
     try {
-      final decoded = jsonDecode(raw);
+      final decoded = jsonDecode(utf8.decode(bytes));
       if (decoded is! Map) {
         throw const FormatException(
           'A stored Course record must be an object.',
         );
       }
-      return Map<String, dynamic>.from(decoded);
+      return (record: Map<String, dynamic>.from(decoded), bytes: bytes);
     } catch (error) {
       throw FormatException(
         'Stored Course record ${_name(file)} is invalid or unsupported. '
@@ -185,8 +247,123 @@ class CourseFileStore {
     }
   }
 
+  Future<Map<String, dynamic>> _decode(File file) async =>
+      (await _readRecord(file)).record;
+
   static String _name(File file) =>
       file.path.split(RegExp(r'[\\/]')).where((part) => part.isNotEmpty).last;
+
+  /// Reads only the requested Course record. A duplicate ID or a canonical
+  /// file owned by another ID is refused instead of silently choosing one.
+  Future<CourseStoredRecord?> snapshot(CourseStoreKind kind, String courseId) =>
+      withCourseLock(courseId, () => _snapshotUnlocked(kind, courseId));
+
+  Future<CourseStoredRecord?> _snapshotUnlocked(
+    CourseStoreKind kind,
+    String courseId,
+  ) async {
+    final directory = await directoryFor(kind);
+    if (!await directory.exists()) return null;
+    final target = _fileFor(directory, courseId);
+    CourseStoredRecord? result;
+    if (await target.exists()) {
+      final stored = await _readRecord(target);
+      if (stored.record['courseId'] != courseId ||
+          !stored.record.containsKey('entry')) {
+        throw FormatException(
+          'Stored Course record ${_name(target)} does not belong to '
+          '$courseId or has no entry. The file was preserved.',
+        );
+      }
+      result = CourseStoredRecord(
+        stored.record['entry'],
+        sha256.convert(stored.bytes).toString(),
+      );
+    }
+    // The filename is a lossy form of the ID. Detect another readable file
+    // claiming this ID before a create, replacement, or deletion.
+    await for (final entity in directory.list(followLinks: false)) {
+      if (entity is! File || !entity.path.toLowerCase().endsWith('.json')) {
+        continue;
+      }
+      final samePath = Platform.isWindows
+          ? entity.absolute.path.toLowerCase() ==
+                target.absolute.path.toLowerCase()
+          : entity.absolute.path == target.absolute.path;
+      if (samePath) continue;
+      final Map<String, dynamic> other;
+      try {
+        other = await _decode(entity);
+      } on FormatException {
+        continue;
+      }
+      if (other['courseId'] == courseId) {
+        throw FormatException(
+          'Two stored Course records both claim the Course ID $courseId. '
+          'Both files were preserved.',
+        );
+      }
+    }
+    return result;
+  }
+
+  /// Creates only when no file or duplicate record claims this Course ID.
+  Future<void> createIfAbsent(
+    CourseStoreKind kind,
+    String courseId,
+    Object? entry,
+  ) => withCourseLock(courseId, () async {
+    if (await _snapshotUnlocked(kind, courseId) != null) {
+      throw StateError('Stored Course $courseId already exists.');
+    }
+    final directory = await directoryFor(kind, create: true);
+    await _writeEncoded(
+      _fileFor(directory, courseId),
+      _encode(courseId, entry),
+      requireAbsent: true,
+    );
+  });
+
+  /// Replaces one record only when it still has the caller's exact token.
+  Future<void> replaceIfUnchanged(
+    CourseStoreKind kind,
+    String courseId,
+    Object? entry, {
+    required String expectedToken,
+  }) => withCourseLock(courseId, () async {
+    final current = await _snapshotUnlocked(kind, courseId);
+    if (current == null || current.token != expectedToken) {
+      throw StateError('Stored Course $courseId changed before replacement.');
+    }
+    final directory = await directoryFor(kind);
+    await _writeEncoded(
+      _fileFor(directory, courseId),
+      _encode(courseId, entry),
+      expectedToken: expectedToken,
+    );
+  });
+
+  /// Removes one record only when it still has the caller's exact token.
+  Future<void> removeIfUnchanged(
+    CourseStoreKind kind,
+    String courseId, {
+    required String expectedToken,
+  }) => withCourseLock(courseId, () async {
+    final current = await _snapshotUnlocked(kind, courseId);
+    if (current == null || current.token != expectedToken) {
+      throw StateError('Stored Course $courseId changed before removal.');
+    }
+    final directory = await directoryFor(kind);
+    final target = _fileFor(directory, courseId);
+    if (!await target.exists()) {
+      throw StateError('Stored Course $courseId disappeared before removal.');
+    }
+    final latest = await _readRecord(target);
+    if (sha256.convert(latest.bytes).toString() != expectedToken) {
+      throw StateError('Stored Course $courseId changed before removal.');
+    }
+    await target.delete();
+  });
 
   Future<bool> contains(CourseStoreKind kind, String courseId) async {
     final directory = await directoryFor(kind);
@@ -199,13 +376,8 @@ class CourseFileStore {
     CourseStoreKind kind,
     String courseId,
     Object? entry,
-  ) async {
-    final encoded = jsonEncode({'courseId': courseId, 'entry': entry});
-    if (utf8.encode(encoded).length > maxCourseBytes) {
-      throw StateError(
-        'This Course exceeds the 10 MB storage safety limit. Export or simplify it before saving more content.',
-      );
-    }
+  ) => withCourseLock(courseId, () async {
+    final encoded = _encode(courseId, entry);
     final directory = await directoryFor(kind, create: true);
     final target = _fileFor(directory, courseId);
     // Never replace a file that the listing skipped: it may be the only copy
@@ -225,13 +397,59 @@ class CourseFileStore {
         );
       }
     }
-    final temporary = File('${target.path}.tmp');
+    await _writeEncoded(target, encoded);
+  });
+
+  String _encode(String courseId, Object? entry) {
+    final encoded = jsonEncode({'courseId': courseId, 'entry': entry});
+    if (utf8.encode(encoded).length > maxCourseBytes) {
+      throw StateError(
+        'This Course exceeds the 10 MB storage safety limit. Export or simplify it before saving more content.',
+      );
+    }
+    return encoded;
+  }
+
+  Future<void> _writeEncoded(
+    File target,
+    String encoded, {
+    String? expectedToken,
+    bool requireAbsent = false,
+  }) async {
+    final temporary = File(
+      '${target.path}.$pid.${DateTime.now().microsecondsSinceEpoch}.'
+      '${_nextTemporaryId++}.tmp',
+    );
     try {
       final writer = _fileWriter;
       if (writer == null) {
         await temporary.writeAsString(encoded, flush: true);
       } else {
         await writer(temporary, encoded);
+      }
+      if (!await temporary.exists() ||
+          await temporary.readAsString() != encoded) {
+        throw StateError(
+          'The staged Course file for ${_name(target)} was incomplete.',
+        );
+      }
+      if (requireAbsent && await target.exists()) {
+        throw StateError(
+          'Stored Course ${_name(target)} appeared during creation.',
+        );
+      }
+      if (expectedToken != null) {
+        if (!await target.exists()) {
+          throw StateError(
+            'Stored Course ${_name(target)} disappeared before replacement.',
+          );
+        }
+        final current = await _readRecord(target);
+        if (sha256.convert(current.bytes).toString() != expectedToken) {
+          throw StateError(
+            'Stored Course ${_name(target)} changed before replacement.',
+          );
+        }
       }
       await temporary.rename(target.path);
     } catch (error) {
@@ -241,16 +459,19 @@ class CourseFileStore {
       rethrow;
     }
     if (await target.readAsString() != encoded) {
-      throw StateError('Verified Course storage write failed for $courseId.');
+      throw StateError(
+        'Verified Course storage write failed for ${_name(target)}.',
+      );
     }
   }
 
-  Future<void> remove(CourseStoreKind kind, String courseId) async {
-    final directory = await directoryFor(kind);
-    if (!await directory.exists()) return;
-    final target = _fileFor(directory, courseId);
-    if (await target.exists()) await target.delete();
-  }
+  Future<void> remove(CourseStoreKind kind, String courseId) =>
+      withCourseLock(courseId, () async {
+        final directory = await directoryFor(kind);
+        if (!await directory.exists()) return;
+        final target = _fileFor(directory, courseId);
+        if (await target.exists()) await target.delete();
+      });
 }
 
 /// The readable part of one store, plus every file that was skipped.
