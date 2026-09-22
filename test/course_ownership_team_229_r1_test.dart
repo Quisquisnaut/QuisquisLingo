@@ -441,7 +441,10 @@ void main() {
         await tester.tap(find.byKey(const Key('open-generated-course')));
         await tester.pumpAndSettle();
         await tester.tap(find.byType(BackButton));
-        await tester.pumpAndSettle();
+        // An unchanged exit still ends the session's media lifetime on disk.
+        await tester.pumpUntilFileIoState(
+          () => find.byType(CourseEditorScreen).evaluate().isEmpty,
+        );
         expect(
           find.byKey(const Key('course-transaction-confirmation')),
           findsNothing,

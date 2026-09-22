@@ -204,6 +204,22 @@ class CourseMediaStore {
     return missing;
   }
 
+  /// The Course's own stored media, as `media:` references. Only regular files
+  /// named like course media are listed. A folder that does not exist is
+  /// empty, but an unreadable one throws, so a caller that must know the real
+  /// contents cannot mistake a failed read for an empty folder.
+  Future<Set<String>> storedReferences(String courseId) async {
+    final directory = await courseDirectory(courseId);
+    if (!await directory.exists()) return <String>{};
+    final references = <String>{};
+    await for (final entity in directory.list(followLinks: false)) {
+      if (entity is! File) continue;
+      final name = entity.uri.pathSegments.last;
+      if (_fileNamePattern.hasMatch(name)) references.add('media:$name');
+    }
+    return references;
+  }
+
   /// Deletes the stored files of [courseId] that [keep] does not name, and the
   /// folder once it is empty. Only regular files named like course media are
   /// touched. Returns how many files were deleted; never throws.

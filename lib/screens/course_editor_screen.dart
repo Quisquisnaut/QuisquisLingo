@@ -544,6 +544,11 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
   Future<void> _popEditor([CourseConfirmationResult? result]) async {
     if (!mounted || _routeMayPop) return;
     setState(() => _routeMayPop = true);
+    // No confirmation result means this session is leaving without saving a
+    // Course, on either the cancelled or the unchanged path. The recordings it
+    // imported were written straight to disk, so the session owns them until
+    // here. A confirmed Course tidies up inside its own confirmation instead.
+    if (result == null) await _session.discardUnconfirmedMedia();
     await WidgetsBinding.instance.endOfFrame;
     if (mounted) Navigator.pop(context, result);
   }
@@ -2516,8 +2521,11 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
     final canExportCourse =
         widget.access.hasOperationalAccess &&
         _course.originType == CourseOriginType.custom;
+    // Even an unchanged working copy leaves through _attemptLeave, because a
+    // session can have imported recordings to disk without the draft keeping
+    // them. _popEditor is then the one place that ends the media's lifetime.
     return PopScope(
-      canPop: _routeMayPop || !_dirty,
+      canPop: _routeMayPop,
       onPopInvokedWithResult: (didPop, _) {
         if (!didPop) _attemptLeave();
       },

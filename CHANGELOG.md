@@ -1,3 +1,25 @@
+# 2.0.48 (Build 248, Revision 0) - Audio Library media lifetime - 2026-09-22
+
+One owner now holds the lifetime of the recordings a Course editing session
+imports. `RecordedAudioService` writes an imported MP3 into the Course's own
+media folder immediately, long before the single top-level Course
+confirmation, so a cancelled session, a back-out of the Audio Library without
+Save, or a batch that failed part way through used to leave files on disk that
+nothing referred to — permanently, for a new Course that was never confirmed.
+`CourseAuthoringMedia` records what the Course's media folder held when the
+session opened and, when the session ends without confirming a Course, removes
+exactly the recordings it created that the stored Course does not use. It
+removes nothing when the folder or the stored Course cannot be read, so media
+stay for recovery, and a confirmed Course still tidies up inside its own
+confirmation. MP3 validation and storage stay in `RecordedAudioService`, and
+the player, preview controls and dialogs stay in the widget. Closing an
+unchanged Course Editor now completes after that check rather than in the same
+frame. Pictures added while editing leak the same way and are recorded as a
+known limit for a later build. Course Model v11, stored formats and keys,
+package format 1, authoring rights, scoring and progression are unchanged.
+Version `2.0.48+248000`; Beta expiry remains
+**2026-10-22 23:59:59 local time**.
+
 # 2.0.47 (Build 247, Revision 1) - Import cleanup after a failure - 2026-09-22
 
 A failed custom Course package import now keeps the media files it created

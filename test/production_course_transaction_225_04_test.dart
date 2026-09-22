@@ -272,8 +272,11 @@ void main() {
     );
 
     await tester.tap(find.byType(BackButton).last);
-    await _settle(tester);
-    expect(find.byType(CourseEditorScreen), findsNothing);
+    // An unchanged exit still ends the session's media lifetime on disk, so
+    // the Editor closes after that check rather than within the same frames.
+    await tester.pumpUntilFileIoState(
+      () => find.byType(CourseEditorScreen).evaluate().isEmpty,
+    );
     expect(
       find.byKey(const Key('course-transaction-confirmation')),
       findsNothing,
@@ -333,8 +336,11 @@ void main() {
   ) async {
     await _openEditor(tester, course, service);
     await tester.tap(find.byType(BackButton).last);
-    await _settle(tester);
-    expect(find.byType(CourseEditorScreen), findsNothing);
+    // An unchanged exit still ends the session's media lifetime on disk, so
+    // the Editor closes after that check rather than within the same frames.
+    await tester.pumpUntilFileIoState(
+      () => find.byType(CourseEditorScreen).evaluate().isEmpty,
+    );
     expect(
       find.byKey(const Key('course-transaction-confirmation')),
       findsNothing,
@@ -622,7 +628,10 @@ void main() {
         findsNothing,
       );
       await tester.tap(find.byType(BackButton).last);
-      await _settle(tester);
+      // An unchanged exit still ends the session's media lifetime on disk.
+      await tester.pumpUntilFileIoState(
+        () => find.text('Open Editor').evaluate().isNotEmpty,
+      );
       expect(
         find.byKey(const Key('course-transaction-confirmation')),
         findsNothing,
