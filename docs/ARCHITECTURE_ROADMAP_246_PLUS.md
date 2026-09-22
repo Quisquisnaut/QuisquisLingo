@@ -1,7 +1,9 @@
 # QQL architecture roadmap after Build 245
 
-Status: **proposed roadmap, not implementation approval**. Written against
-`main` after merged PR #9, `2.0.45+245004` (Build 245, Revision 4).
+Status: **approved by the owner for staged implementation on 2026-09-22**.
+Written against `main` after merged PR #9, `2.0.45+245004` (Build 245,
+Revision 4). This approval covers the numbered architectural scopes and
+sequence below; each build still needs its own concrete contract and tests.
 Read `pubspec.yaml`, `AGENTS.md`, and the preceding handoff again at the
 start of every future step. Build 246 Revision 0 has its own plan in the
 separate Merge task; that plan controls its detailed implementation.
@@ -17,8 +19,8 @@ rights, scoring, progression, package/signature compatibility, and the single
 top-level confirmed Course save unless a later approved plan explicitly
 changes one of them.
 
-The numbers below are **proposed slots**. Start each numbered build from the
-then-current merged `main`; do not implement the whole roadmap at once.
+The numbers below are **approved planning slots**. Start each numbered build
+from the then-current merged `main`; do not implement the whole roadmap at once.
 Every build starts at Revision 0. Add Revision 1 or later only for a separately
 reviewable correction or follow-up proven necessary by that build's tests.
 Never make an empty revision merely to fill a reserved number. The
@@ -158,6 +160,8 @@ rules; it does not justify its own build now.
 * New Course Model wire versions, changed signature/package formats, or
   altered scoring/XP. Those require their own product decision and plan.
 
-This document is a roadmap. The separate Build 246 Revision 0 Merge plan is
-the next detailed implementation plan; later rows each require their own
-concrete, approved plan before source changes.
+This document is the approved roadmap. The separate Build 246 Revision 0 Merge
+plan is the next detailed implementation plan; later rows each require their
+own concrete plan before source changes. A newly discovered behavior,
+persistence, or compatibility change must be characterized and handled
+explicitly rather than silently folded into an extraction.
