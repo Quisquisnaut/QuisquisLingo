@@ -21,6 +21,8 @@ class _ChunkedFile implements SelectedExternalFile {
 
   @override
   final String displayName;
+  @override
+  String get sourceFileName => displayName;
   final List<List<int>> chunks;
 
   /// Deliberately wrong: limits must come from the bytes actually read.

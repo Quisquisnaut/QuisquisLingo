@@ -335,12 +335,17 @@ class CustomCourseTransferService {
       return (dialog: result, package: null);
     }
     final name = result.displayName!;
+    final sourceFileName = result.sourceFileName ?? name;
     final Uint8List bytes;
     try {
-      if (name.toLowerCase().endsWith('.zip')) {
+      if (sourceFileName.toLowerCase().endsWith('.zip')) {
         return (
           dialog: result,
-          package: await _packages.parseFile(staged.file, courseFromBytes),
+          package: await _packages.parseFile(
+            staged.file,
+            courseFromBytes,
+            archiveFileName: sourceFileName,
+          ),
         );
       }
       if (!name.toLowerCase().endsWith('.json')) {

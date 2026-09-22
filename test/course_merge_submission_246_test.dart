@@ -91,4 +91,48 @@ void main() {
     finishMerge.complete();
     await tester.pump();
   });
+
+  testWidgets('matching ZIP folder warning does not block Merge', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(1400, 1000);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    final right = _course('right');
+    final package = CoursePackage(
+      right,
+      Uint8List(0),
+      const {},
+      hadMatchingFolderWrapper: true,
+    );
+    var submissions = 0;
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: CourseMergeScreen(
+          leftCourse: _course('left'),
+          mergeService: _PackageMergeService(package),
+          onMerge: (right, choices, options) async {
+            submissions++;
+          },
+        ),
+      ),
+    );
+    await tester.tap(find.byKey(const Key('merge-course-json-primary')));
+    await tester.pump();
+
+    expect(find.textContaining('matching ZIP folder'), findsOneWidget);
+    await tester.tap(find.text('Select all Right'));
+    await tester.pump();
+
+    final mergeButton = find.widgetWithText(FilledButton, 'DO MERGE!');
+    await tester.ensureVisible(mergeButton);
+    await tester.pumpAndSettle();
+    expect(tester.widget<FilledButton>(mergeButton).onPressed, isNotNull);
+    await tester.tap(mergeButton);
+    await tester.pump();
+    expect(submissions, 1);
+  });
 }

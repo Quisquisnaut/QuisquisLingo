@@ -1,5 +1,28 @@
 # Build 246 validation
 
+## Revision 1 — matching Course ZIP folder (`2.0.46+246001`)
+
+Validated on 22 September 2026 against the Build 246 Revision 1 working tree.
+
+| Check | Result |
+| --- | --- |
+| Boundary tests before implementation | A `sample.zip` with `sample/` package entries failed with “Unsafe or unexpected Course package entry”; the Merge warning widget test found no warning. |
+| `flutter test --no-pub --concurrency=1 test/course_package_on_disk_tranche4b_test.dart test/course_merge_submission_246_test.dart` | 14/14 passed, including matching and mismatched wrapper layouts, referenced media, staged dialog Import/Merge, exact original long filename and nonblocking Merge warning. |
+| `flutter analyze --no-pub` | No issues found after the filename-contract test fake was updated. |
+| `python tools/validate_courses.py` | 10 bundled Course Model v11 files valid. |
+| `python tools/validate_images.py` | 111 assets; 0 issues. |
+| `python tools/validate_lesson_icons.py` | 14 assets; 0 issues. |
+| `python tools/validate_media_assets.py` | 443 files; 0 issues. |
+| Complete `flutter test --no-pub --concurrency=1 --reporter compact` | 2,274/2,274 passed on the final source and test tree (22 min 37 s). |
+| `git diff --check` and `git diff --cached --check` | Passed on the working tree and final staged diff. |
+
+The parser still requires the bounded ZIP reader and the existing package
+entry allowlist, manifest, media digests and Course validation. Only one
+folder matching the original ZIP filename stem is stripped before applying
+those checks. Other layouts are rejected. The imported-package flag drives
+the nonblocking warning; the exported ZIP layout stays at the root. Manual
+device smoke testing and a platform release artifact remain outstanding.
+
 ## Revision 0 — Merge media and Course confirmation (`2.0.46+246000`)
 
 Validated on 22 September 2026 against the Build 246 Revision 0 working tree.

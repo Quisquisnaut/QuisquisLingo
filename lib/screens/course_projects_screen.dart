@@ -31,6 +31,17 @@ import 'course_editor_screen.dart';
 import 'team_manager_screen.dart';
 import 'flat_image_library_screen.dart';
 
+void _showMatchingZipFolderWarning(BuildContext context) {
+  ScaffoldMessenger.of(context).showSnackBar(
+    const SnackBar(
+      duration: Duration(seconds: 10),
+      content: Text(
+        'Accepted a matching ZIP folder. Course package files normally belong at the ZIP root.',
+      ),
+    ),
+  );
+}
+
 class _DisposeOnUnmount extends StatefulWidget {
   final Widget child;
   final VoidCallback onDispose;
@@ -105,7 +116,7 @@ class CourseImportScreen extends StatelessWidget {
         const SizedBox(height: 8),
         const Text(
           '1. Copy a Course package to Documents/QuisquisLingo/Imports/import.zip, or a media-free JSON to import.json. Keep only one.\n'
-          '2. Select Import Course package or JSON. QQL validates the complete file before changing local storage.\n'
+          '2. A ZIP may have its files at the root or inside one folder named import. QQL accepts the matching folder with a warning. Select Import Course package or JSON; QQL validates the complete file before changing local storage.\n'
           '3. If the Course ID already exists, choose Replace/update, Copy as New Course, Fork or Cancel, as available.\n'
           '4. A successful import is added to your courses. Only published courses are available for study. The source file remains in Imports.',
         ),
@@ -208,6 +219,9 @@ class _CourseMergeScreenState extends State<CourseMergeScreen> {
         _startLevelSide = CourseMergeSide.left;
         _targetLevelSide = CourseMergeSide.left;
       });
+      if (loaded.hadMatchingFolderWrapper) {
+        _showMatchingZipFolderWarning(context);
+      }
     } catch (error) {
       unawaited(_sounds.playDefeat());
       if (mounted) {
@@ -252,8 +266,8 @@ class _CourseMergeScreenState extends State<CourseMergeScreen> {
             'The Course Merge tool is not intended for merging two completely different courses. '
             'A typical usage case would be two team members working on the same course: while team member, John, edits, say, lessons 1 to 5, another team member, Jane, edits lessons 6 to 8. The Merge Tool allows them, or a third member, to assemble the two sets of lessons into one unified course. Another usage case would be the same editor who wants to merge two versions of the course they are working at: let’s say they want to use lessons 1, 3, and 7 from the first version, and lessons 2, 4, 5, and 6 from the second version.\n\n'
             'Copy the second Course package to Documents/QuisquisLingo/Merges/merge.zip, or a media-free JSON to merge.json. '
-            'Both Courses must be custom. Matching Course IDs are allowed only '
-            'when the Course versions differ.\n\n'
+            'A ZIP normally has its package files at the root. QQL also accepts one enclosing folder whose name exactly matches the ZIP filename without .zip, and shows a non-blocking warning. For merge.zip, that folder must be named merge. '
+            'Both Courses must be custom. If their Course IDs match, the Course version or Modified date and time must differ.\n\n'
             'Author, Maintainer, source/target language, Original Course '
             'Creator, Assigned Team, authors and roles, Rights Holders, license/'
             'derivative policy, language tags/text direction/TTS language, language '
@@ -352,7 +366,7 @@ class _CourseMergeScreenState extends State<CourseMergeScreen> {
             const SizedBox(height: 8),
             const Text(
               '1. Copy the compatible Course package to Documents/QuisquisLingo/Merges/merge.zip, or a media-free JSON to merge.json. Keep only one.\n'
-              '2. Select Merge Course package or JSON. QQL validates both Course information blocks before changing local storage.\n'
+              '2. A ZIP may have its files at the root or inside one folder named merge. QQL accepts the matching folder with a warning. Select Merge Course package or JSON; QQL validates both Course information blocks before changing local storage.\n'
               '3. Choose the origin of every Lesson you want to include, then check the selections carefully.\n'
               '4. DO MERGE! creates a third independent Course and leaves both sources and the imported file unchanged.\n'
               '5. The new merged Course will be available in Course Manager.',
@@ -2007,6 +2021,9 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
         importedPackage = await _transfer.importCoursePackage();
       }
       held = importedPackage;
+      if (importedPackage.hadMatchingFolderWrapper && mounted) {
+        _showMatchingZipFolderWarning(context);
+      }
       final imported = importedPackage.course;
       if (imported.originType == CourseOriginType.bundledOfficial) {
         throw const FormatException(

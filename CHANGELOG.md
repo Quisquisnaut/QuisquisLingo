@@ -1,3 +1,14 @@
+# 2.0.46 (Build 246, Revision 1) - Matching Course ZIP folder - 2026-09-22
+
+Import and Merge accept a Course package with its files at the ZIP root or
+inside one folder whose name exactly matches the ZIP filename without `.zip`.
+The matching folder produces a nonblocking warning. Other unexpected or unsafe
+ZIP layouts remain rejected. Import and Merge Help explain the folder rule;
+Merge Help clarifies that same-ID sources may differ by Course version or
+Modified date and time. Course Model v11, stored formats, authoring rights and
+the top-level Course save boundary are unchanged. Version `2.0.46+246001`;
+Beta expiry remains **2026-10-22 23:59:59 local time**.
+
 # 2.0.45 (Build 245, Revision 4) - Per-Course storage commands - 2026-09-22
 
 Course storage mutations use intent-specific create, update and delete

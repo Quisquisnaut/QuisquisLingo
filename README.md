@@ -1,6 +1,6 @@
 # QuisquisLingo App
 
-**Current source version: 2.0.46+246000 · Build 246, Revision 0 · Course Model v11 (`formatVersion: 11`).**
+**Current source version: 2.0.46+246001 · Build 246, Revision 1 · Course Model v11 (`formatVersion: 11`).**
 
 **QuisquisLingo 2.0.46 Beta — QQL 246 Merge workflow**
 
@@ -12,6 +12,8 @@ copying, Course confirmation and failure cleanup. It keeps copied media when
 a saved Course may reference it. See the [Build 246 plan](docs/246_MERGE_PLAN.md),
 [change summary](docs/246_CHANGE_SUMMARY.md) and
 [validation](docs/246_VALIDATION.md) and [handoff](docs/246_HANDOFF.md).
+Revision 1 accepts a Course ZIP whose package files are all inside a single
+folder exactly matching the ZIP filename stem, with a non-blocking warning.
 
 **QuisquisLingo 2.0.45 Beta — QQL 245 authoring architecture**
 
@@ -102,7 +104,7 @@ The MPL-2.0 covers the QuisquisLingo software source. Courses, the Image Bank an
 
 ## Beta lifecycle
 
-Version 2.0.46, Build 246, Revision 0 is a time-limited Beta with an expiry of **2026-10-22 23:59:59 local time** (30 days from September 22, 2026, its own release date). Near expiry it displays reminders. After expiry, learner exercises and Review are blocked until a newer Beta is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when a Beta expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM.
+Version 2.0.46, Build 246, Revision 1 is a time-limited Beta with an expiry of **2026-10-22 23:59:59 local time** (30 days from September 22, 2026, its own release date). Near expiry it displays reminders. After expiry, learner exercises and Review are blocked until a newer Beta is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when a Beta expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM.
 
 ## Core logic
 
