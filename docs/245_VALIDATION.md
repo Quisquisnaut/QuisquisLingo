@@ -27,3 +27,22 @@ avoid unrelated churn.
 The full Flutter suite is scheduled for the integrated Build 245 gate. Manual
 device smoke testing remains outstanding; this commit is a source revision,
 not a release artifact.
+
+## Revision 1 — authoring session (`2.0.45+245001`)
+
+Validated on 22 September 2026 against the Revision 1 working tree.
+
+| Check | Result |
+| --- | --- |
+| `flutter test --no-pub test/production_course_transaction_225_04_test.dart test/provisional_parent_save_ui_test.dart test/qql_231_revision1_test.dart` before migration | 24/24 passed. |
+| `flutter test --no-pub test/course_authoring_session_245_test.dart` | 9/9 passed after TDD red checks. Covers stage permission and atomicity, audit freshness, cancel, history, failed and successful confirmation, and new Course confirmation before the Edit setting loads. |
+| `flutter test --no-pub` with 12 focused authoring, publication, Course Info, governance and version test files after integration | 74/74 passed. |
+| `flutter analyze --no-pub` | No issues found (24.8 s). |
+| `python tools/validate_courses.py` | 10 bundled Course Model v11 files valid. |
+| `python tools/validate_images.py` | 111 assets; 0 issues. |
+| `python tools/validate_lesson_icons.py` | 14 assets; 0 issues. |
+| `python tools/validate_media_assets.py` | 443 files; 0 issues. |
+| `git diff --check` | Passed. |
+
+The full Flutter suite and manual device smoke remain for the integrated Build
+245 release gate.

@@ -1,3 +1,12 @@
+# 2.0.45 (Build 245, Revision 1) - Course authoring session - 2026-09-22
+
+One authoring session coordinates the existing Course Editor working copy,
+provisional publication reconciliation, draft adoption, dirty state, Audit
+freshness and final confirm/cancel. The screen retains presentation and
+navigation state. There is still one Course working copy and one final
+persistence boundary. Course Model v11 and user-visible behavior are unchanged.
+Version `2.0.45+245001`; Beta expiry remains **2026-10-22 23:59:59 local time**.
+
 # 2.0.45 (Build 245, Revision 0) - Course Info ownership - 2026-09-22
 
 The Course Info Editor keeps its form and interactions while one application

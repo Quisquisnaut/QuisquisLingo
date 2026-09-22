@@ -6,6 +6,22 @@ effects. The architecture and revision sequence are in
 revision goals. Course Model v11, storage keys and formats, learner scoring,
 progression, Course packages and Publisher signatures remain unchanged.
 
+## Revision 1 — Course authoring session
+
+Version **2.0.45+245001**. Beta expiry: **2026-10-22 23:59:59 local**, 30
+days from this release date, 22 September 2026.
+
+One non-UI authoring session coordinates the existing Course Editor working
+copy, top-level provisional publication reconciliation and draft adoption, dirty state,
+Audit freshness and final confirm/cancel. The screen retains presentation and
+navigation state. The session keeps one working Course, passes the relevant
+previous snapshot to publication reconciliation, and uses the existing final
+confirmation path. Nested editor reconciliation remains for Revision 2.
+Course Model v11 and user-visible behavior are preserved.
+
+See [245_VALIDATION.md](245_VALIDATION.md) for fresh checks and
+[245_HANDOFF.md](245_HANDOFF.md) for the next revision.
+
 ## Revision 0 — Course Info update boundary
 
 Version **2.0.45+245000**. Beta expiry: **2026-10-22 23:59:59 local**, 30

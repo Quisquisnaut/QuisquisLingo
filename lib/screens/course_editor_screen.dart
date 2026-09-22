@@ -24,7 +24,7 @@ import '../services/formal_name_policy.dart';
 import '../services/course_governance_resolver.dart';
 import '../services/course_governance_service.dart';
 import '../services/course_info_update_service.dart';
-import '../services/course_editor_transaction.dart';
+import '../services/course_authoring_session.dart';
 import '../services/course_access_policy.dart';
 import '../services/course_service.dart';
 import '../services/course_audit_service.dart';
@@ -547,28 +547,25 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
   late final CustomCourseTransferService _transfer =
       widget.transferService ?? CustomCourseTransferService();
   late final DateTime Function() _clock = widget.clock ?? DateTime.now;
-  late final CourseEditorTransaction _transaction;
-  CourseAuditResult? _lastAudit;
-  bool _auditOutdated = true;
-  CourseEditorMode _editorMode = CourseEditorMode.viewOnly;
+  late final CourseAuthoringSession _session;
   bool _routeMayPop = false;
-  bool _governanceChangedInEditMode = false;
-  String _pendingVersionNotes = '';
 
   @override
   void initState() {
     super.initState();
-    _transaction = CourseEditorTransaction(
-      widget.course,
+    _session = CourseAuthoringSession(
+      course: widget.course,
+      access: widget.access,
+      editorService: _service,
       isNewCourse: widget.isNewCourse,
-      allowReadOnlyOfficial: widget.access.readOnly,
+      clock: _clock,
     );
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       var mode = await _settings.getCourseEditorMode(_course.courseId);
       if (!widget.access.canEditOriginal && mode == CourseEditorMode.edit) {
         mode = CourseEditorMode.viewOnly;
       }
-      if (mounted) setState(() => _editorMode = mode);
+      if (mounted) setState(() => _session.setEditorMode(mode));
       if (widget.access.canEditOriginal &&
           mode == CourseEditorMode.edit &&
           await _settings.isAudioOrphanCheckDue(_code)) {
@@ -580,25 +577,22 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
 
   String get _code => CourseService.codeForCourse(_course);
 
-  Course get _course => _transaction.workingCourse;
+  Course get _course => _session.workingCourse;
 
-  bool get _dirty => _transaction.hasChanges;
+  bool get _dirty => _session.hasChanges;
 
-  bool get _canModify =>
-      widget.access.canEditOriginal && _editorMode == CourseEditorMode.edit;
+  bool get _canModify => _session.canModify;
+
+  CourseEditorMode get _editorMode => _session.editorMode;
+
+  CourseAuditResult? get _lastAudit => _session.lastAudit;
+
+  bool get _auditOutdated => _session.auditOutdated;
+
+  String get _pendingVersionNotes => _session.pendingVersionNotes;
 
   void _updateDraft(Course value) => setState(() {
-    if (!_canModify) {
-      throw StateError('The Course Editor is not in Edit.');
-    }
-    _transaction.replaceWorkingCourse(
-      const ProvisionalPublicationService().reconcile(
-        value,
-        updatedAt: _clock(),
-        previous: _course,
-      ),
-    );
-    _auditOutdated = true;
+    _session.stageCourse(value);
   });
 
   Future<void> _popEditor([CourseConfirmationResult? result]) async {
@@ -662,27 +656,16 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
       ),
     );
     if (choice == 'cancel') {
-      _pendingVersionNotes = '';
-      _transaction.cancel();
-      _governanceChangedInEditMode = false;
+      _session.cancel();
       await _popEditor();
       return;
     }
     if (choice != 'confirm') return;
-    _pendingVersionNotes = versionNotes;
     try {
-      final result = await _service.confirmCourseTransaction(
-        originalCourse: _transaction.originalCourse,
-        workingCourse: _course,
+      final result = await _session.confirm(
         languageCode: _code,
         versionNotes: versionNotes,
-        isNewCourse: widget.isNewCourse,
-        governanceChangesMadeInEditMode: _governanceChangedInEditMode,
-        committedAt: _clock(),
       );
-      _transaction.markConfirmed(result.course);
-      _pendingVersionNotes = '';
-      _governanceChangedInEditMode = false;
       if (!mounted) return;
       await _popEditor(result);
     } catch (error) {
@@ -2020,8 +2003,12 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
         teamService: _teams,
       ),
     ).apply(_course, result, activeProfileId!);
-    if (update.governanceChanged) _governanceChangedInEditMode = true;
-    _updateDraft(update.course);
+    setState(() {
+      _session.stageCourse(
+        update.course,
+        governanceChanged: update.governanceChanged,
+      );
+    });
   }
 
   Future<void> _openLessons() async {
@@ -2084,7 +2071,7 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
       ),
     );
     if (updated != null && _canModify) _updateDraft(updated);
-    if (mounted) setState(() => _auditOutdated = true);
+    if (mounted) setState(_session.markAuditOutdated);
   }
 
   Future<void> _setEditorMode(CourseEditorMode mode) async {
@@ -2100,7 +2087,7 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
       return;
     }
     await _settings.setCourseEditorMode(_course.courseId, mode);
-    if (mounted) setState(() => _editorMode = mode);
+    if (mounted) setState(() => _session.setEditorMode(mode));
   }
 
   Future<bool> _resolveChangesBeforeModeSwitch() async {
@@ -2159,32 +2146,16 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
     );
     if (!mounted || choice == null || choice == 'stay') return false;
     if (choice == 'cancel') {
-      _pendingVersionNotes = '';
-      setState(() {
-        _transaction.cancel();
-        _governanceChangedInEditMode = false;
-        _auditOutdated = true;
-      });
+      setState(_session.cancel);
       return true;
     }
-    _pendingVersionNotes = versionNotes;
     try {
-      final result = await _service.confirmCourseTransaction(
-        originalCourse: _transaction.originalCourse,
-        workingCourse: _course,
+      await _session.confirm(
         languageCode: _code,
         versionNotes: versionNotes,
-        isNewCourse: widget.isNewCourse,
-        governanceChangesMadeInEditMode: _governanceChangedInEditMode,
-        committedAt: _clock(),
       );
       if (!mounted) return false;
-      setState(() {
-        _transaction.markConfirmed(result.course);
-        _pendingVersionNotes = '';
-        _governanceChangedInEditMode = false;
-        _auditOutdated = true;
-      });
+      setState(() {});
       return true;
     } catch (error) {
       if (!mounted) return false;
@@ -2296,8 +2267,7 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
     if (!mounted) return;
     try {
       setState(() {
-        _transaction.loadHistoricalCourse(selection.course);
-        _auditOutdated = true;
+        _session.loadHistoricalCourse(selection.course);
       });
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -2363,12 +2333,9 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
     }
     await _checkOrphanAudio(prompt: _canModify);
     final fresh = _course;
-    final result = CourseAuditService().auditCourse(fresh);
+    final result = _session.runAudit();
     if (!mounted) return;
-    setState(() {
-      _lastAudit = result;
-      _auditOutdated = false;
-    });
+    setState(() {});
     final selected = await Navigator.of(context).push<CourseAuditIssue>(
       MaterialPageRoute(
         builder: (_) => CourseAuditScreen(course: fresh, result: result),
@@ -2909,7 +2876,7 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
                           course: _course,
                           mediaStore: _service.mediaStore,
                           onCourseChanged: _updateDraft,
-                          savedCourse: _transaction.originalCourse,
+                          savedCourse: _session.originalCourse,
                         ),
                       ),
                     )
