@@ -1,5 +1,29 @@
 # Build 247 — Package Import workflow change summary
 
+## Revision 1 — cleanup after a failed custom import
+
+Version **2.0.47+247001**. Beta expiry remains **2026-10-22 23:59:59
+local**, 30 days from the 22 September 2026 release date.
+
+Revision 0 kept the Build 245 retention test: after a failed custom import,
+the media it created stayed whenever the stored Course used **any** package
+medium. A Replace whose save was rejected before it committed met that test
+through the media the previous version already used, so the new files that
+attempt had added stayed in the Course folder unused until that Course's next
+confirmed save. Revision 0's characterization test pinned this.
+
+The rule is now: keep the created media when the stored Course uses **every**
+package medium — the state a committed import leaves — or when storage cannot
+be read. A rejected Replace removes exactly the files that attempt created and
+never touches media that existed before it, and a Replace that commits before
+a later error still keeps its new media. `persistedCustomCourseReferencesAny`
+had no caller left after Revision 0 moved import ownership, and is removed
+with the rule it implemented, so one rule decides this question.
+
+Course Model v11, stored formats and keys, package format 1 and signatures,
+authoring rights, scoring and progression, and the single top-level Course
+save boundary are unchanged.
+
 ## Revision 0 — one owner for a Course package import
 
 Version **2.0.47+247000**. Beta expiry: **2026-10-22 23:59:59 local**,

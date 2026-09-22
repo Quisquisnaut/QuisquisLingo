@@ -281,8 +281,10 @@ class CourseEditorService {
   ///
   /// With [package], its media are written into the Course's own folder and
   /// the Course is saved under one hold of the Course lock. Media created by
-  /// this call stay when the stored Course uses any package medium or cannot
-  /// be read; otherwise they are removed again.
+  /// this call stay when the stored Course uses every package medium — which
+  /// is what a committed import looks like — or when storage cannot be read.
+  /// A rejected Replace therefore leaves the previous Course's own media in
+  /// place and removes the files this attempt added.
   Future<void> installImportedCustomCourse(
     Course course, {
     CoursePackage? package,
@@ -295,7 +297,7 @@ class CourseEditorService {
         course.courseId,
         () => _installImportedCustomCourse(course),
         mediaStore: _media,
-        retainCreatedOnFailure: () => persistedCustomCourseReferencesAny(
+        retainCreatedOnFailure: () => _persistedCustomCourseUsesAll(
           course.courseId,
           package.mediaReferences,
         ),
@@ -431,16 +433,19 @@ class CourseEditorService {
     return await _customRecord(course.courseId) != null;
   }
 
-  /// Lets a package importer retain newly staged media if a failed call
-  /// nevertheless committed a custom Course that references that media.
-  Future<bool> persistedCustomCourseReferencesAny(
+  /// Whether the stored custom Course uses every one of [references]. A
+  /// failed import that nevertheless committed leaves exactly that state, so
+  /// its media must stay. A stored Course that uses only some of them is the
+  /// previous version, which never used the files this attempt created.
+  /// An unreadable record throws, and the caller then keeps the media.
+  Future<bool> _persistedCustomCourseUsesAll(
     String courseId,
     Set<String> references,
   ) async {
     final stored = await _customRecord(courseId);
     if (stored == null) return false;
-    final course = _courseFromEntry(stored.entry);
-    return CourseMediaStore.referencesOf(course).any(references.contains);
+    final used = CourseMediaStore.referencesOf(_courseFromEntry(stored.entry));
+    return references.every(used.contains);
   }
 
   Future<void> _addToImporterLibrary(Course course) async {

@@ -267,7 +267,7 @@ void main() {
     );
 
     test(
-      'a Replace rejected before commit keeps the previous Course and its media',
+      'a Replace rejected before commit removes only the media it created',
       () async {
         final shared = uniquePng(13);
         final added = uniquePng(14);
@@ -287,10 +287,34 @@ void main() {
         final stored = (await editor.listUserCourses()).single;
         expect(stored.title, 'Imported Course');
         expect(await hasMedia('same', refShared), isTrue);
-        // Today's retention test keeps every created file when the stored
-        // Course uses any package medium, so the unused new file remains.
-        expect(await hasMedia('same', refAdded), isTrue);
+        // The stored Course is still the previous version, which never used
+        // the file this attempt added.
+        expect(await hasMedia('same', refAdded), isFalse);
         expect(await stagedFiles(), isEmpty);
+      },
+    );
+
+    test(
+      'a Replace that commits before an error keeps its new media',
+      () async {
+        final shared = uniquePng(15);
+        final added = uniquePng(16);
+        final refShared = await media.addBytes('same', shared, 'png');
+        final refAdded = CourseMediaStore.referenceFor(added, 'png');
+        await editor.installImportedCustomCourse(
+          _course('same', images: [refShared]),
+        );
+        final package = await zipPackage(
+          _course('same', title: 'Updated', images: [refShared, refAdded]),
+          {refShared: shared, refAdded: added},
+        );
+        store.throwAfterReplace = true;
+
+        await expectLater(installCustom(package), throwsA(isA<StateError>()));
+
+        expect((await editor.listUserCourses()).single.title, 'Updated');
+        expect(await hasMedia('same', refShared), isTrue);
+        expect(await hasMedia('same', refAdded), isTrue);
       },
     );
   });
@@ -685,6 +709,7 @@ class _FailingCourseStore extends CourseFileStore {
   bool throwBeforeCreate = false;
   bool throwAfterCreate = false;
   bool throwBeforeReplace = false;
+  bool throwAfterReplace = false;
   bool throwDuringRecoveryRead = false;
   bool _failed = false;
 
@@ -724,12 +749,16 @@ class _FailingCourseStore extends CourseFileStore {
       _failed = true;
       throw StateError('simulated rejection before Course replacement');
     }
-    return super.replaceIfUnchanged(
+    await super.replaceIfUnchanged(
       kind,
       courseId,
       entry,
       expectedToken: expectedToken,
     );
+    if (throwAfterReplace && kind == CourseStoreKind.custom) {
+      _failed = true;
+      throw StateError('simulated error after Course replacement');
+    }
   }
 }
 

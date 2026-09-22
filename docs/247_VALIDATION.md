@@ -1,5 +1,24 @@
 # Build 247 validation
 
+## Revision 1 — cleanup after a failed custom import (`2.0.47+247001`)
+
+Validated on 22 September 2026 against the Build 247 Revision 1 working tree.
+
+| Check | Result |
+| --- | --- |
+| Behavior before the change | Revision 0's test "a Replace rejected before commit keeps the previous Course and its media" recorded the unused created file left behind. It is rewritten as "a Replace rejected before commit removes only the media it created" and fails on Revision 0. |
+| `flutter test --no-pub --concurrency=1 test/course_package_import_247_test.dart` | 17/17 passed, including the new "a Replace that commits before an error keeps its new media". |
+| `flutter test --no-pub --concurrency=1` import, staging-lifetime, storage-race and package media recovery files | 28/28 passed. `course_storage_race_245_test.dart` now drives `CoursePackageImport` instead of the removed retention method. |
+| `flutter analyze --no-pub` | No issues found. |
+| Four asset validators | 10 Course files valid; 111 images, 14 Lesson icons and 443 media assets with 0 issues. |
+| Complete `flutter test --no-pub --concurrency=1 --reporter compact` | 2,293/2,293 passed on the final source and test tree (19 min 28 s). |
+| `git diff --check` | Passed on the working tree; the final staged diff is checked before commit. |
+
+`CoursePackage.withInstalledMedia` keeps its all-or-nothing retention
+callback and its own tests; only the rule the import owner passes to it
+changed. Copy and Fork keep their separate recovery, which deletes the new
+Course's folder only when storage proves no Course was saved.
+
 ## Revision 0 — Package Import workflow (`2.0.47+247000`)
 
 Validated on 22 September 2026 against the Build 247 Revision 0 working tree.

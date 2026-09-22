@@ -9,6 +9,7 @@ import 'package:quisquislingo_app/services/course_backup_service.dart';
 import 'package:quisquislingo_app/services/course_editor_service.dart';
 import 'package:quisquislingo_app/services/course_file_store.dart';
 import 'package:quisquislingo_app/services/course_media_store.dart';
+import 'package:quisquislingo_app/services/course_package_import.dart';
 import 'package:quisquislingo_app/services/course_package_service.dart';
 import 'package:quisquislingo_app/services/trusted_publishers.dart';
 import 'package:quisquislingo_app/services/profile_service.dart';
@@ -301,15 +302,10 @@ void main() {
       store.throwAfterCreateCourseId = course.courseId;
 
       await expectLater(
-        package.withInstalledMedia<void>(
-          course.courseId,
-          () => importedService.installImportedCustomCourse(course),
-          retainCreatedOnFailure: () =>
-              importedService.persistedCustomCourseReferencesAny(
-                course.courseId,
-                package.mediaReferences,
-              ),
-        ),
+        CoursePackageImport(
+          package,
+          editor: importedService,
+        ).installCustomCourse(),
         throwsA(isA<StateError>()),
       );
 
