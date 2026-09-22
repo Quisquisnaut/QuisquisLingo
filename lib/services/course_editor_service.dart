@@ -110,6 +110,60 @@ class CourseEditorService {
   /// The Course's own media folder, for the Editor and tests.
   CourseMediaStore get mediaStore => _media;
 
+  /// Copies a new merged Course's referenced media from the left source first,
+  /// then the right source, and confirms it through the ordinary Course save.
+  /// A failed or uncertain save keeps media whenever a stored Course may use it.
+  Future<CourseConfirmationResult> confirmMergedCourse({
+    required Course left,
+    required Course right,
+    required Course merged,
+  }) => _store.withCourseLock(merged.courseId, () async {
+    if (merged.courseId == left.courseId || merged.courseId == right.courseId) {
+      throw ArgumentError('A merged Course needs a fresh Course identity.');
+    }
+    if (await _customRecord(merged.courseId) != null ||
+        _bundledOfficialCourseIds.contains(merged.courseId) ||
+        await _officialRecord(merged.courseId) != null) {
+      throw StateError('A course with this identity already exists.');
+    }
+
+    final references = CourseMediaStore.referencesOf(merged);
+    final newlyCopied = <String>{};
+    for (final reference in references) {
+      if (await _media.existingFile(merged.courseId, reference) == null) {
+        newlyCopied.add(reference);
+      }
+    }
+    try {
+      final missing = await _media.copyReferences(
+        left.courseId,
+        merged.courseId,
+        references,
+      );
+      await _media.copyReferences(right.courseId, merged.courseId, missing);
+      return await confirmCourseTransaction(
+        originalCourse: merged,
+        workingCourse: merged,
+        languageCode: merged.targetLanguageTag,
+        versionNotes: merged.versionNotes,
+        isNewCourse: true,
+      );
+    } catch (_) {
+      var absenceConfirmed = false;
+      try {
+        absenceConfirmed = await _customRecord(merged.courseId) == null;
+      } catch (_) {
+        // An unreadable record cannot prove that copied media are unowned.
+      }
+      if (absenceConfirmed) {
+        for (final reference in newlyCopied) {
+          await _media.deleteStored(merged.courseId, reference);
+        }
+      }
+      rethrow;
+    }
+  });
+
   /// Copies the media [copy] uses from [source]'s folder into its own, runs
   /// [create], and removes the new folder again if creation fails, so a failed
   /// Fork or Copy leaves no files behind. Each Course owns its media folder;

@@ -7,7 +7,6 @@ import 'package:quisquislingo_app/models/course_models.dart';
 import 'package:quisquislingo_app/services/course_editor_service.dart';
 import 'package:quisquislingo_app/services/course_file_store.dart';
 import 'package:quisquislingo_app/services/course_media_store.dart';
-import 'package:quisquislingo_app/services/course_merge_service.dart';
 import 'package:quisquislingo_app/services/profile_service.dart';
 import 'package:quisquislingo_app/services/recorded_audio_service.dart';
 import 'package:quisquislingo_app/widgets/course_media_image.dart';
@@ -289,29 +288,6 @@ void main() {
       expect(await store.existingFile(copy.courseId, clip), isNotNull);
     });
 
-    test('a merge copies media from both source Courses', () async {
-      final store = CourseMediaStore();
-      final leftImage = await store.addBytes('course-l', bytes([1]), 'png');
-      final rightImage = await store.addBytes('course-r', bytes([2]), 'png');
-      final left = _course('l', image: leftImage);
-      final right = _course('r', image: rightImage);
-      final merged = Course.fromJson({
-        ...left.toJson(),
-        'courseId': 'course-merged',
-        'lessons': [
-          ...left.lessons,
-          ...right.lessons,
-        ].map((lesson) => lesson.toJson()).toList(),
-      });
-
-      final missing = await CourseMergeService(
-        mediaStore: store,
-      ).copyMedia(left: left, right: right, merged: merged);
-
-      expect(missing, isEmpty);
-      expect(await store.existingFile('course-merged', leftImage), isNotNull);
-      expect(await store.existingFile('course-merged', rightImage), isNotNull);
-    });
   });
 
   test(

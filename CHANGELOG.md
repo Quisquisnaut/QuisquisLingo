@@ -2066,3 +2066,14 @@ Complete scope, including Claude's initial file-store, backup, TTS, image-valida
 - Added Word Match: exactly three source-to-target translation pairs.
 - Added Super Match: exactly three target-language relationship pairs such as synonyms or opposites.
 - Sample rounds regenerated at 13 exercises with examples of the new match types.
+# 2.0.46 (Build 246, Revision 0) - Merge media and Course save ownership - 2026-09-22
+
+One Course Editor service operation now copies a merged Course's media from
+both sources, confirms the new Course, and decides cleanup after failures.
+Partial copies no longer leave newly created destination files when no Course
+was saved. A late confirmation error retains media whenever a stored Course
+may reference it. Temporary media from the right-hand Course package still
+lasts through the copy. The Merge button accepts one submission at a time
+through package cleanup. Course Model v11, stored formats, authoring rights and
+the successful Merge result are unchanged.
+Version `2.0.46+246000`; Beta expiry remains **2026-10-22 23:59:59 local time**.

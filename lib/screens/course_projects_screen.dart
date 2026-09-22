@@ -153,6 +153,7 @@ class _CourseMergeScreenState extends State<CourseMergeScreen> {
   CourseMergeSide _targetLevelSide = CourseMergeSide.left;
   bool _showInternalIds = false;
   bool _loading = false;
+  bool _submitting = false;
   final _sounds = SoundEffectService();
 
   Future<void> _loadMergeCourse({bool fromDialog = false}) async {
@@ -222,7 +223,9 @@ class _CourseMergeScreenState extends State<CourseMergeScreen> {
   @override
   void dispose() {
     unawaited(_sounds.dispose());
-    unawaited(_rightPackage?.discard() ?? Future<void>.value());
+    if (!_submitting) {
+      unawaited(_rightPackage?.discard() ?? Future<void>.value());
+    }
     super.dispose();
   }
 
@@ -314,7 +317,7 @@ class _CourseMergeScreenState extends State<CourseMergeScreen> {
           if (right == null) ...[
             FilledButton.icon(
               key: const Key('merge-course-json-primary'),
-              onPressed: _loading ? null : _loadMergeCourse,
+              onPressed: _loading || _submitting ? null : _loadMergeCourse,
               icon: const Icon(Icons.merge_type_outlined),
               label: const Text('Merge Course package or JSON'),
             ),
@@ -322,7 +325,7 @@ class _CourseMergeScreenState extends State<CourseMergeScreen> {
               const SizedBox(height: 12),
               OutlinedButton.icon(
                 key: const Key('merge-course-json-from'),
-                onPressed: _loading
+                onPressed: _loading || _submitting
                     ? null
                     : () => _loadMergeCourse(fromDialog: true),
                 icon: const Icon(Icons.folder_open_outlined),
@@ -381,11 +384,15 @@ class _CourseMergeScreenState extends State<CourseMergeScreen> {
               spacing: 8,
               children: [
                 OutlinedButton(
-                  onPressed: () => _selectAll(LessonMergeChoice.left),
+                  onPressed: _submitting
+                      ? null
+                      : () => _selectAll(LessonMergeChoice.left),
                   child: const Text('Select all Left'),
                 ),
                 OutlinedButton(
-                  onPressed: () => _selectAll(LessonMergeChoice.right),
+                  onPressed: _submitting
+                      ? null
+                      : () => _selectAll(LessonMergeChoice.right),
                   child: const Text('Select all Right'),
                 ),
               ],
@@ -395,15 +402,20 @@ class _CourseMergeScreenState extends State<CourseMergeScreen> {
             const SizedBox(height: 16),
             FilledButton(
               onPressed:
-                  _choices.every(
+                  _loading || _submitting || _choices.every(
                     (choice) => choice == LessonMergeChoice.exclude,
                   )
                   ? null
                   : () async {
+                      if (_submitting) return;
+                      final package = _rightPackage!;
+                      final choices = List<LessonMergeChoice>.of(_choices);
+                      final options = _options(right);
+                      setState(() => _submitting = true);
                       try {
-                        await _rightPackage!.withInstalledMedia(
+                        await package.withInstalledMedia(
                           right.courseId,
-                          () => widget.onMerge(right, _choices, _options(right)),
+                          () => widget.onMerge(right, choices, options),
                           keepOnSuccess: false,
                         );
                       } catch (error) {
@@ -411,6 +423,12 @@ class _CourseMergeScreenState extends State<CourseMergeScreen> {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(content: Text('Course merge failed: $error')),
                           );
+                        }
+                      } finally {
+                        if (mounted) {
+                          setState(() => _submitting = false);
+                        } else {
+                          unawaited(package.discard());
                         }
                       }
                     },
@@ -618,7 +636,7 @@ class _CourseMergeScreenState extends State<CourseMergeScreen> {
           height: 30,
           child: Checkbox(
             value: _choices[index] == choice,
-            onChanged: lesson == null
+            onChanged: lesson == null || _submitting
                 ? null
                 : (selected) => setState(
                     () => _choices[index] = selected!
@@ -910,20 +928,11 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
         );
         if (!mounted) return;
       }
-      await _merge.copyMedia(left: left, right: right, merged: merged);
-      final CourseConfirmationResult result;
-      try {
-        result = await _service.confirmCourseTransaction(
-          originalCourse: merged,
-          workingCourse: merged,
-          languageCode: merged.targetLanguageTag,
-          versionNotes: merged.versionNotes,
-          isNewCourse: true,
-        );
-      } catch (_) {
-        await _merge.discardMedia(merged);
-        rethrow;
-      }
+      final result = await _service.confirmMergedCourse(
+        left: left,
+        right: right,
+        merged: merged,
+      );
       if (!mounted) return;
       Navigator.of(context).pop();
       _showConfirmationResult(result);
