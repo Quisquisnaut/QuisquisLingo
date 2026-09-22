@@ -1,3 +1,13 @@
+# 2.0.45 (Build 245, Revision 4) - Per-Course storage commands - 2026-09-22
+
+Course storage mutations use intent-specific create, update and delete
+commands instead of a whole-store map bridge. The Course Editor facade keeps
+authorization and stale-edit checks, and confirmed changes retain backup
+before write, readback and media cleanup ordering. Unreadable or duplicate-ID
+files remain protected by the file store; failed writes preserve recovery
+paths. Course Model v11, stored formats and user-visible behavior are unchanged.
+Version `2.0.45+245004`; Beta expiry remains **2026-10-22 23:59:59 local time**.
+
 # 2.0.45 (Build 245, Revision 3) - Canonical authoring route propagation - 2026-09-22
 
 Integrated Course, Lesson, Round and Exercise editor routes now pass accepted

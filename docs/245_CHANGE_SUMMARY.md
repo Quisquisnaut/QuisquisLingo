@@ -6,6 +6,26 @@ effects. The architecture and revision sequence are in
 revision goals. Course Model v11, storage keys and formats, learner scoring,
 progression, Course packages and Publisher signatures remain unchanged.
 
+## Revision 4 — per-Course storage commands
+
+Version **2.0.45+245004**. Beta expiry: **2026-10-22 23:59:59 local**, 30
+days from this release date, 22 September 2026.
+
+Course storage mutations use intent-specific per-Course create, update and
+delete commands in place of the whole-store map bridge beneath the existing
+`CourseEditorService` facade. Authorization, stale-edit rejection,
+backup-before-write, readback and media cleanup order remain intact. The file
+store continues to protect unreadable and duplicate-ID files, and failed
+writes retain the existing recovery path. Course Model v11, storage formats,
+keys and user-visible behavior remain unchanged. Concurrency and recovery
+checks are recorded in [245_VALIDATION.md](245_VALIDATION.md), with the final
+state in [245_HANDOFF.md](245_HANDOFF.md).
+
+The integrated suite also exposed a Revision 0 Course Info regression: a
+metadata-only edit without an active profile hit a null assertion. Descriptive
+edits again stage without an actor; Team assignment and Maintainer transfer
+still require an active profile.
+
 ## Revision 3 — canonical authoring route propagation
 
 Version **2.0.45+245003**. Beta expiry: **2026-10-22 23:59:59 local**, 30

@@ -94,3 +94,36 @@ compatible. No route was moved to a new file solely to reduce line count.
 
 The full Flutter suite and manual device smoke remain for the integrated Build
 245 release gate.
+
+## Revision 4 — per-Course storage commands (`2.0.45+245004`)
+
+Validated on 22 September 2026 against the Revision 4 working tree.
+
+| Check | Result |
+| --- | --- |
+| Deterministic pre-change race tests | 0/3 passed. Paused Course A confirmation erased a concurrently saved B; paused A deletion erased B; a direct same-ID file change during backup was overwritten instead of rejected. |
+| `flutter test --no-pub test/course_storage_commands_245_test.dart test/course_file_store_test.dart` | 21/21 passed. Covers unchanged disk format, stale tokens, duplicate/alias IDs, corrupt canonical files, incomplete staged writes, external changes during staging, Windows case aliases and delayed async lock reentry. |
+| `flutter test --no-pub test/course_storage_race_245_test.dart` | 7/7 passed. Concurrent B survives A confirmation and deletion; an out-of-band same-ID change rejects stale confirmation; a postcommit error leaves the new Course and backup readable; signed Publisher and custom packages retain newly installed referenced media after postcommit errors; a failed partial Copy as New removes its destination media. |
+| `flutter test --no-pub test/course_package_media_recovery_245_test.dart` | 3/3 passed. Default rollback is retained; an explicit persisted-record check or unreadable storage preserves media after a failed save. |
+| `flutter test --no-pub` with 17 focused persistence, package, publisher, backup and real editor test files | 118/118 passed before the final signed Publisher postcommit test was added. |
+| First full `flutter test --no-pub` run | 2,256 passed, 1 failed: the Course Info wording route hit a null assertion on a metadata-only edit with no active profile. |
+| `flutter test --no-pub` with Course Info wording, update-service and metadata UI test files after the fix | 8/8 passed. Descriptive edits allow no active actor; governance changes still require one. |
+| Final full `flutter test --no-pub` run | 2,261/2,261 passed (16 min 24 s). |
+| `flutter analyze --no-pub` on the final source tree | No issues found (41.5 s). |
+| `python tools/validate_courses.py` | 10 bundled Course Model v11 files valid. |
+| `python tools/validate_images.py` | 111 assets; 0 issues. |
+| `python tools/validate_lesson_icons.py` | 14 assets; 0 issues. |
+| `python tools/validate_media_assets.py` | 443 files; 0 issues. |
+
+`CourseEditorService` now uses one-record snapshots and intent-specific create,
+replace and remove operations. The store compares whole-record tokens and
+verifies staged bytes before replacing a live file. A shared per-Course lock
+covers service checks, backup, commit, readback and media cleanup across store
+instances in the same isolate. Publisher package media is retained if a
+postcommit failure leaves it referenced by the stored Course.
+
+The storage command's duplicate-ID check scans other readable Course files, so
+its read cost still grows with the number of files. A raw external writer can
+still race in the narrow interval after the final token check and before the
+filesystem rename or delete; the in-app lock and token checks prevent the
+reproduced app-level races and detect earlier out-of-band changes.

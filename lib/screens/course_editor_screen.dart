@@ -1943,7 +1943,7 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
         profileService: _profiles,
         teamService: _teams,
       ),
-    ).apply(_course, result, activeProfileId!);
+    ).apply(_course, result, activeProfileId);
     setState(() {
       _session.stageCourse(
         update.course,

@@ -2211,6 +2211,11 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
       await importedPackage.withInstalledMedia(
         course.courseId,
         () => _service.installImportedCustomCourse(course),
+        retainCreatedOnFailure: () =>
+            _service.persistedCustomCourseReferencesAny(
+              course.courseId,
+              importedPackage.mediaReferences,
+            ),
       );
       await _reload();
       if (!mounted) return;

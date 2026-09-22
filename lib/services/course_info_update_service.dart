@@ -41,10 +41,13 @@ class CourseInfoUpdateService {
   Future<CourseInfoUpdateResult> apply(
     Course currentCourse,
     CourseInfoChange change,
-    String actorProfileId,
+    String? actorProfileId,
   ) async {
     var governedCourse = currentCourse;
     if (governedCourse.assignedTeamId != change.assignedTeamId) {
+      if (actorProfileId == null) {
+        throw StateError('An active profile is required to assign a Team.');
+      }
       governedCourse = await _governanceService.assignTeam(
         course: governedCourse,
         actorProfileId: actorProfileId,
@@ -54,6 +57,11 @@ class CourseInfoUpdateService {
       );
     }
     if (governedCourse.maintainer!.profileId != change.maintainerProfileId) {
+      if (actorProfileId == null) {
+        throw StateError(
+          'An active profile is required to transfer the Course Maintainer.',
+        );
+      }
       governedCourse = await _governanceService.transferMaintainer(
         course: governedCourse,
         actorProfileId: actorProfileId,
