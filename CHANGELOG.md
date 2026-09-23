@@ -1,3 +1,25 @@
+# 2.0.48 (Build 248, Revision 1) - Course Editor layout and media notices - 2026-09-23
+
+The Course-level Lesson settings - Lesson numbering, Use GuideBook and Create
+Duels - move from the Lessons screen to a collapsed Lesson Options section
+under the Course Editor's Lessons tile, where they belong: none of them was
+ever a Lesson property. The Lesson editor drops its Lesson title and Audit
+Lesson links and the Round editor drops Rename Round and Audit Round, because
+the Lessons and Rounds pages already offer Rename and Audit in their 3-dot
+menus; the surviving rename dialog keeps the same "Title, or Enter to skip"
+behaviour, including preserving a title when Enter is pressed on an empty
+field. The Audio Library no longer has a Save button: leaving the screen hands
+its draft to the Course Editor, exactly as Save did, and a notice explains that
+the changes reach the Course only when the Course changes are confirmed, and
+are discarded - along with any media that session added - when they are
+cancelled. A Course's Image Library gains the same notice; it already saved on
+exit and already discarded on cancel, so only the notice is new. The Build 248
+media clean-up now covers every kind of Course media rather than recordings
+only, so images added during a cancelled session are removed too. Course Model
+v11, stored formats and keys, package format 1, authoring rights, scoring,
+progression and the single top-level Course save are unchanged. Version
+`2.0.48+248001`; Beta expiry remains **2026-10-22 23:59:59 local time**.
+
 # 2.0.48 (Build 248, Revision 0) - Audio Library media lifetime - 2026-09-22
 
 One owner now holds the lifetime of the recordings a Course editing session

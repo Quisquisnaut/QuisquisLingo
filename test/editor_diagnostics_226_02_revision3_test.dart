@@ -228,30 +228,42 @@ void main() {
     final course = _course();
     final lesson = course.lessons.first;
     final round = lesson.rounds.first;
+    // Rename moved to the Rounds page's 3-dot menu, so the rename happens
+    // there and the Round editor is reopened to check the displayed ID.
+    Course? renamed;
     await tester.pumpWidget(
       MaterialApp(
-        home: RoundEditorScreen(
+        home: LessonRoundsScreen(
           course: course,
           lesson: lesson,
-          round: round,
-          roundIndex: 0,
+          onCourseChanged: (value) => renamed = value,
         ),
       ),
     );
     await tester.pumpAndSettle();
-    expect(find.text('Round ID: round-one'), findsOneWidget);
-    await tester.tap(find.byKey(const Key('round-rename-action')));
+    await tester.tap(find.byKey(ValueKey('round-actions-${round.id}')));
     await tester.pumpAndSettle();
-    final titleField = find.byWidgetPredicate(
-      (widget) =>
-          widget is TextField &&
-          widget.decoration?.labelText == 'Title, or Enter to skip',
-    );
-    await tester.enterText(titleField, 'Renamed Round');
+    await tester.tap(find.text('Rename').last);
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextFormField), 'Renamed Round');
     await tester.tap(
       find.descendant(
         of: find.byType(AlertDialog),
         matching: find.widgetWithText(FilledButton, 'Save'),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(renamed!.lessons.first.rounds.first.title, 'Renamed Round');
+    expect(renamed!.lessons.first.rounds.first.id, 'round-one');
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: RoundEditorScreen(
+          course: renamed!,
+          lesson: renamed!.lessons.first,
+          round: renamed!.lessons.first.rounds.first,
+          roundIndex: 0,
+        ),
       ),
     );
     await tester.pumpAndSettle();

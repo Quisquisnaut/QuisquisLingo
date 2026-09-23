@@ -163,3 +163,50 @@ user-file folder, so `AppResetService`, `InventoryService` and
 `docs/239_RESET_STORAGE_INVENTORY.md` are unaffected. MP3 validation and
 storage remain in `RecordedAudioService` and playback and controls remain in
 the widget, as the roadmap row requires.
+
+---
+
+# Revision 1 validation
+
+`2.0.48+248001`. Plan: [248_EDITOR_LAYOUT_PLAN.md](248_EDITOR_LAYOUT_PLAN.md).
+
+| Check | Result |
+| --- | --- |
+| `flutter analyze --no-pub` | **No issues found** |
+| The four asset validators | all pass, 0 issues |
+| `flutter test --no-pub --concurrency=1` | **2,305 / 2,305 passed**, 0 failed (27 min 35 s) |
+| `git diff --check` | clean |
+
+## What the existing tests proved
+
+Twenty assertions across nine suites reached the moved or removed controls and
+failed until they were repointed; that failure is the evidence the changes
+landed. `lesson_naming_226_04` (6), `lesson_controls_226_04` (1),
+`optional_learning_paths_226_04` (2), `qql_231_revision1` (1),
+`qql_231_course_editor_ui` (2), `exercise_workflow_226_02` (3),
+`generated_round_editor_route_245` (3), `editor_diagnostics_226_02_revision3`
+(1) and `lesson_metadata_and_icon` (1).
+
+Two needed restructuring rather than repointing, because a Course-level toggle
+and the Lesson rows are no longer on one screen: the live-recompute intent is
+now checked against the Course screen's own Lessons status card, which sits
+beside the toggle.
+
+Before deleting the Round editor's rename, its dialog was compared with the
+Rounds page's: `_name(..., allowEmpty: true)` carries the same
+`Title, or Enter to skip` label **and** the same `onFieldSubmitted` rule that
+keeps an existing title when Enter is pressed on an empty field. Nothing was
+removed without checking that the survivor behaves identically.
+
+## The Revision 0 flake, re-checked
+
+`guidebook_status_workflow_226_02_test.dart` passed in this complete run under
+full-suite load — the first evidence on a loaded machine since the shared
+10 s `pumpUntilFileIoState` replaced its hand-rolled 3 s budget. One clean run
+is not proof, but it is the only observation so far taken under the conditions
+that produced the original failure.
+
+## Still owed by the owner
+
+Revision 0's manual smoke test covered the Audio Library, which Revision 1
+changes. That smoke test must be repeated before release.

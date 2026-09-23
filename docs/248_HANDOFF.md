@@ -147,3 +147,64 @@ giving `ExerciseEditorScreen._buildCandidate` a pure draft-builder contract.
 The image half of this build's problem is the obvious candidate for its own
 revision or build whenever the owner wants it; the owner asked to be told
 about it rather than have it folded in here.
+
+---
+
+# Revision 1 current state
+
+Build 248 Revision 1 is `2.0.48+248001`, Course Model v11, on branch
+`claude/248-audio-library`, following Revision 0 commit `c7c9712` and the
+test-robustness commit `ddb67a3`. Beta expiry remains `2026-10-22 23:59:59`
+local time. The untracked `devtools_options.yaml` is the owner's and stays
+untouched.
+
+**Why this revision exists.** It is a Course Editor layout scope extension the
+owner asked for on 2026-09-23, not a correction proven by Build 248's tests.
+The recommendation was a separate build after Build 248 merged, so Revision 0's
+manual smoke test stayed valid; the owner chose to add it to the open pull
+request. Recorded so the history says why.
+
+Six changes: the Course-level Lesson settings (Lesson numbering, Use GuideBook,
+Create Duels) move from the Lessons screen to a collapsed **Lesson Options**
+section under the Course Editor's Lessons tile; the Lesson editor drops
+`lesson-title-control` and `lesson-audit-action`; the Round editor drops
+`round-rename-action` and `round-audit-action`; the Audio Library loses its
+Save button and applies its draft on exit with an explaining notice; a Course's
+Image Library gains the same notice (its behaviour already matched); and
+`CourseAuthoringMedia.ownedExtensions` widens from MP3s to every kind of Course
+media, closing the image limit Revision 0 recorded.
+
+`askAuthoringName` is now the one shared authoring title prompt.
+
+Validation: analyzer clean, four validators pass, **2,305 / 2,305** tests
+passed at `--concurrency=1` in 27 min 35 s, `git diff --check` clean. See
+[248_VALIDATION.md](248_VALIDATION.md).
+
+## Known limits after Revision 1
+
+* The Lesson editor no longer shows the plain Lesson title, because
+  `lesson-title-control` was the only widget displaying it. The numbered title
+  remains in the AppBar and breadcrumbs.
+* A session ended by process death still leaves its media; the next successful
+  save of that Course removes it.
+* An emptied Course media folder may remain as an empty directory until the
+  next confirmed save.
+* The in-isolate per-Course lock does not coordinate external writers (Build
+  245 limit).
+
+## Next boundary
+
+**The owner must repeat the manual Audio Library smoke test**, because
+Revision 1 changed that screen after Revision 0 was tested by hand.
+
+A Revision 2 was requested on 2026-09-23 and is **not** implemented here:
+a dedicated Course Export screen mirroring `CourseImportScreen`; one Export
+command in the Course Manager menu replacing `Export Course ZIP` and
+`Save to…`; removal of the Course Editor's two export tiles
+(`course-editor-export-json`, `course-editor-save-json-to`, which today export
+the **unconfirmed working copy** — a real defect, since a cancelled session
+would leave an exported Course that exists nowhere); a bottom-area Preview and
+Round Wizard in the Lesson editor replacing `lesson-preview-action` and
+`guidebook-round-generator`; renaming the Round editor's `Creation Wizard` to
+`Exercise Wizard`; and moving the Lesson editor's `EditorBreadcrumbs` to the
+top. Write its plan before any source change.

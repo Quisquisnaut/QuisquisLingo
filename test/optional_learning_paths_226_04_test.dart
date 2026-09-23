@@ -236,22 +236,21 @@ void main() {
     await tester.binding.setSurfaceSize(const Size(700, 1200));
     addTearDown(() => tester.binding.setSurfaceSize(null));
     final course = _course(emptyGuidebook: true, count: 3);
-    Course? adopted;
     await tester.pumpWidget(
-      MaterialApp(
-        home: LessonManagementScreen(
-          course: course,
-          initiallyLocked: false,
-          onCourseChanged: (value) => adopted = value,
-        ),
-      ),
+      MaterialApp(home: CourseEditorScreen(course: course, userCourse: true)),
     );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('course-editor-lock')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Edit'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('course-lesson-options')));
     await tester.pumpAndSettle();
     final indicator = find.byWidgetPredicate(
       (widget) =>
           widget is AuthoringStatusCard &&
-          widget.indicatorKey ==
-              const ValueKey('lesson-status-indicator-optional-lesson'),
+          widget.indicatorKey == const Key('course-lessons-status-indicator'),
+      skipOffstage: false,
     );
     expect(
       tester.widget<AuthoringStatusCard>(indicator).hasAuditConcern,
@@ -261,24 +260,14 @@ void main() {
     await tester.ensureVisible(toggle);
     await tester.tap(toggle);
     await tester.pumpAndSettle();
-    expect(adopted!.useGuidebook, isFalse);
     expect(
       tester.widget<AuthoringStatusCard>(indicator).hasAuditConcern,
-      isFalse,
-    );
-    expect(
-      AuthoringHierarchyStatus.fromCourse(adopted!).hasLessonsAuditConcern,
       isFalse,
     );
     await tester.tap(toggle);
     await tester.pumpAndSettle();
-    expect(adopted!.useGuidebook, isTrue);
     expect(
       tester.widget<AuthoringStatusCard>(indicator).hasAuditConcern,
-      isTrue,
-    );
-    expect(
-      AuthoringHierarchyStatus.fromCourse(adopted!).hasLessonsAuditConcern,
       isTrue,
     );
     expect(tester.takeException(), isNull);
@@ -306,9 +295,7 @@ void main() {
         tester.widget<AuthoringStatusCard>(ancestor).hasAuditConcern,
         isTrue,
       );
-      await tester.tap(
-        find.byKey(const Key('course-editor-lessons-navigation')),
-      );
+      await tester.tap(find.byKey(const Key('course-lesson-options')));
       await tester.pumpAndSettle();
       final toggle = find.byKey(const Key('course-use-guidebook'));
       await tester.ensureVisible(toggle);

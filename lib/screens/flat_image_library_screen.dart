@@ -1925,6 +1925,28 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
             )
           : Column(
               children: [
+                // Only a Course's own Image Library defers to the Course
+                // confirmation; the device-wide Shared Images library writes
+                // straight away and must not claim otherwise.
+                if (widget.onCourseChanged != null && _course != null)
+                  const Padding(
+                    padding: EdgeInsets.fromLTRB(12, 12, 12, 4),
+                    child: Card(
+                      key: Key('course-image-save-notice'),
+                      child: Padding(
+                        padding: EdgeInsets.all(12),
+                        child: Text(
+                          'Changes here are kept as you make them and are '
+                          'applied when you leave this screen, so there is no '
+                          'Save button. They are written to the Course only '
+                          'when you confirm the Course changes on leaving the '
+                          'Course Editor. Cancelling the Course discards them, '
+                          'and any images added in that session are removed '
+                          'again.',
+                        ),
+                      ),
+                    ),
+                  ),
                 if (_canManageMetadata)
                   const Padding(
                     padding: EdgeInsets.fromLTRB(12, 12, 12, 4),

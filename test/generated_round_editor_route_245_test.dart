@@ -82,12 +82,7 @@ void main() {
       expect(tester.takeException(), isNull);
       expect(find.text('Generated draft'), findsWidgets);
 
-      await tester.tap(find.byKey(const Key('round-rename-action')));
-      await tester.pumpAndSettle();
-      await tester.enterText(find.byType(TextField).last, 'Reviewed draft');
-      await tester.tap(find.widgetWithText(FilledButton, 'Save').last);
-      await tester.pumpAndSettle();
-      expect(tester.takeException(), isNull);
+      expect(find.byKey(const Key('round-rename-action')), findsNothing);
 
       await tester.tap(find.byKey(const Key('round-save-draft')));
       await tester.pumpAndSettle();
@@ -95,7 +90,7 @@ void main() {
       expect(returned, isNotNull);
       expect(returned!.id, generated.id);
       expect(returned!.publicationState, PublicationState.draft);
-      expect(returned!.title, 'Reviewed draft');
+      expect(returned!.title, 'Generated draft');
       expect(
         returned!.content.single.toJson(),
         generated.content.single.toJson(),
@@ -168,7 +163,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(tester.takeException(), isNull);
-    expect(find.byKey(const Key('round-audit-action')), findsOneWidget);
+    expect(find.byKey(const Key('round-audit-action')), findsNothing);
     expect(
       find.byKey(const ValueKey('exercise-actions-duplicate-content')),
       findsOneWidget,
@@ -266,6 +261,6 @@ void main() {
     );
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
-    expect(find.byKey(const Key('round-audit-action')), findsOneWidget);
+    expect(find.byKey(const Key('round-audit-action')), findsNothing);
   });
 }

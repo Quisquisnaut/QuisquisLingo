@@ -572,18 +572,27 @@ void main() {
   testWidgets('Create Duels guidance omits the unnecessary qualifier', (
     tester,
   ) async {
+    // Create Duels is a Course setting, under Lesson Options on the Course
+    // Editor screen.
     final course = _course(_choiceExercise());
     await tester.pumpWidget(
-      MaterialApp(
-        home: LessonManagementScreen(course: course, initiallyLocked: false),
-      ),
+      MaterialApp(home: CourseEditorScreen(course: course, userCourse: true)),
     );
     await tester.pumpAndSettle();
+    final options = find.byKey(const Key('course-lesson-options'));
     await tester.scrollUntilVisible(
-      find.byKey(const Key('course-create-duels')),
+      options,
       300,
-      scrollable: find.byType(Scrollable).first,
+      scrollable: find
+          .descendant(
+            of: find.byType(CourseEditorScreen),
+            matching: find.byType(Scrollable),
+          )
+          .first,
     );
+    await tester.pumpAndSettle();
+    await tester.tap(options);
+    await tester.pumpAndSettle();
     expect(
       find.text(
         'When enough eligible Exercises are available, winning a Duel unlocks the next Lesson without completing the preceding Lesson.',

@@ -59,7 +59,7 @@ void main() {
   });
 
   testWidgets(
-    'leaving the Audio Library without Save removes only that session’s recordings',
+    'leaving the Audio Library applies its draft and removes only that session’s recordings',
     (tester) async {
       final service = _service();
       final kept = syntheticMp3(seed: 7);
@@ -89,11 +89,11 @@ void main() {
       await _importFromFolder(tester, expectedClips: 1);
       expect(await _storedMp3s(tester), hasLength(3));
 
-      // Back out instead of Save: the draft never receives the clip, so the
-      // Editor is not dirty and leaves without asking.
+      // There is no Save button: leaving the screen hands the draft to the
+      // Editor, so the Course is now changed and asks on the way out.
       await tester.pageBack();
       await _settle(tester);
-      await _leaveEditor(tester, confirm: false, expectDialog: false);
+      await _leaveEditor(tester, confirm: false);
 
       expect(
         await _storedMp3s(tester),
@@ -215,6 +215,66 @@ void main() {
     );
   });
 
+  testWidgets('Lesson Options carries the Course-level Lesson settings', (
+    tester,
+  ) async {
+    final service = _service();
+    final stored = _course();
+    await tester.runAsync(() => service.saveUserCourse(stored));
+    await _openEditor(tester, service, stored);
+
+    // Collapsed until tapped, and not on the Lessons screen any more.
+    expect(find.byKey(const Key('course-use-guidebook')), findsNothing);
+    expect(find.byKey(const Key('course-create-duels')), findsNothing);
+    expect(find.text('Lesson appearance'), findsNothing);
+
+    await tester.tap(find.byKey(const Key('course-lesson-options')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('course-use-guidebook')), findsOneWidget);
+    expect(find.byKey(const Key('course-create-duels')), findsOneWidget);
+    expect(
+      find.byType(DropdownButtonFormField<LessonNumberingMode>),
+      findsOneWidget,
+    );
+
+    await tester.tap(find.byKey(const Key('course-editor-lessons-navigation')));
+    await tester.pumpAndSettle();
+    expect(find.byType(LessonManagementScreen), findsOneWidget);
+    expect(find.byKey(const Key('course-use-guidebook')), findsNothing);
+    expect(find.byKey(const Key('course-create-duels')), findsNothing);
+  });
+
+  testWidgets('the Audio Library saves on exit and says so', (tester) async {
+    final service = _service();
+    final stored = _course();
+    await tester.runAsync(() => service.saveUserCourse(stored));
+    await _putImportFiles(tester, {'a.mp3': syntheticMp3(seed: 41)});
+
+    await _openEditor(tester, service, stored);
+    await _openAudioLibrary(tester);
+    expect(find.byKey(const Key('audio-library-save-notice')), findsOneWidget);
+    expect(find.widgetWithText(TextButton, 'Save'), findsNothing);
+    await _importFromFolder(tester, expectedClips: 1);
+
+    // Leaving hands the draft to the Editor, so the Course is now changed.
+    await tester.pageBack();
+    await tester.pumpUntilFileIoState(
+      () => find.text('Import MP3').evaluate().isEmpty,
+    );
+    await tester.tap(find.byType(BackButton).last);
+    await _settle(tester);
+    expect(
+      find.byKey(const Key('course-transaction-confirmation')),
+      findsOneWidget,
+      reason: 'Leaving the Audio Library applies its draft without a Save.',
+    );
+    await tester.tap(find.byKey(const Key('cancel-course-changes')));
+    await tester.pumpUntilFileIoState(
+      () => find.byType(CourseEditorScreen).evaluate().isEmpty,
+    );
+    expect(await _storedMp3s(tester), isEmpty);
+  });
+
   group('the media lifetime owner', () {
     late Directory support;
     late CourseMediaStore media;
@@ -240,14 +300,14 @@ void main() {
       expect(await media.storedReferences(_courseId), isEmpty);
     });
 
-    test('pictures added while editing are left in place', () async {
+    test('pictures added while editing go too', () async {
       final owner = CourseAuthoringMedia(
         courseId: _courseId,
         persistedReferences: () async => null,
         mediaStore: media,
       );
       await owner.ready;
-      final picture = await media.addBytes(
+      await media.addBytes(
         _courseId,
         Uint8List.fromList(const [0x89, 0x50, 0x4e, 0x47, 1, 2, 3]),
         'png',
@@ -256,10 +316,28 @@ void main() {
 
       expect(
         await owner.discardUnconfirmedMedia(),
-        1,
-        reason: 'Build 248 owns recordings only; pictures are a later build.',
+        2,
+        reason: 'Revision 1 owns every kind of Course media, not only MP3s.',
       );
-      expect(await media.storedReferences(_courseId), {picture});
+      expect(await media.storedReferences(_courseId), isEmpty);
+    });
+
+    test('a picture already in the folder is kept', () async {
+      final existing = await media.addBytes(
+        _courseId,
+        Uint8List.fromList(const [0x89, 0x50, 0x4e, 0x47, 9, 9, 9]),
+        'png',
+      );
+      final owner = CourseAuthoringMedia(
+        courseId: _courseId,
+        persistedReferences: () async => null,
+        mediaStore: media,
+      );
+      await owner.ready;
+      await media.addBytes(_courseId, syntheticMp3(seed: 35), 'mp3');
+
+      expect(await owner.discardUnconfirmedMedia(), 1);
+      expect(await media.storedReferences(_courseId), {existing});
     });
 
     test('an unreadable folder removes nothing', () async {
@@ -500,8 +578,9 @@ Future<void> _importFromFolder(
   );
 }
 
+/// Revision 1 removed the Save button: leaving the screen applies the draft.
 Future<void> _saveAudioLibrary(WidgetTester tester) async {
-  await tester.tap(find.widgetWithText(TextButton, 'Save'));
+  await tester.pageBack();
   await tester.pumpUntilFileIoState(
     () => find.text('Import MP3').evaluate().isEmpty,
   );

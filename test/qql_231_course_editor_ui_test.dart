@@ -273,7 +273,7 @@ void main() {
     expect(find.byKey(const Key('lesson-search-action')), findsOneWidget);
     expect(find.byTooltip('Rename lesson'), findsNothing);
     expect(find.byTooltip('Generate Rounds from GuideBook'), findsNothing);
-    expect(find.byKey(const Key('lesson-title-control')), findsOneWidget);
+    expect(find.byKey(const Key('lesson-title-control')), findsNothing);
     expect(find.byKey(const Key('guidebook-round-generator')), findsOneWidget);
 
     await tester.tap(find.byKey(const Key('lesson-rounds-navigation')));
@@ -285,7 +285,7 @@ void main() {
     expect(find.byKey(const Key('round-search-action')), findsOneWidget);
     expect(find.byTooltip('Preview round'), findsNothing);
     expect(find.byTooltip('Rename round'), findsNothing);
-    expect(find.byKey(const Key('round-rename-action')), findsOneWidget);
+    expect(find.byKey(const Key('round-rename-action')), findsNothing);
     expect(find.byKey(const Key('round-preview')), findsOneWidget);
     expect(find.byKey(const Key('round-save-draft')), findsOneWidget);
     expect(find.byKey(const Key('round-save')), findsOneWidget);
@@ -307,12 +307,7 @@ void main() {
 
     expect(find.byKey(const Key('round-preview')), findsOneWidget);
     expect(find.byKey(const Key('round-save')), findsNothing);
-    expect(
-      tester
-          .widget<ListTile>(find.byKey(const Key('round-rename-action')))
-          .onTap,
-      isNull,
-    );
+    expect(find.byKey(const Key('round-rename-action')), findsNothing);
     await tester.tap(find.byKey(const Key('round-preview')));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 500));

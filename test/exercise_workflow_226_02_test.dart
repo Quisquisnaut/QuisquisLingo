@@ -418,31 +418,24 @@ void main() {
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
     final course = exampleCourse([exampleExercise()]);
-    LearningRound? returned;
+    Course? renamed;
     await tester.pumpWidget(
       MaterialApp(
-        home: Builder(
-          builder: (context) => TextButton(
-            onPressed: () async {
-              returned = await Navigator.of(context).push<LearningRound>(
-                MaterialPageRoute(
-                  builder: (_) => RoundEditorScreen(
-                    course: course,
-                    lesson: course.lessons.first,
-                    round: course.lessons.first.rounds.first,
-                    roundIndex: 0,
-                  ),
-                ),
-              );
-            },
-            child: const Text('Open Round'),
-          ),
+        home: LessonRoundsScreen(
+          course: course,
+          lesson: course.lessons.first,
+          onCourseChanged: (value) => renamed = value,
         ),
       ),
     );
-    await tester.tap(find.text('Open Round'));
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('round-rename-action')));
+    await tester.tap(
+      find.byKey(
+        ValueKey('round-actions-${course.lessons.first.rounds.first.id}'),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Rename').last);
     await tester.pumpAndSettle();
     expect(
       find.descendant(
@@ -459,13 +452,7 @@ void main() {
     await tester.testTextInput.receiveAction(TextInputAction.done);
     await tester.pumpAndSettle();
     expect(find.byType(AlertDialog), findsNothing);
-    expect(
-      find.descendant(of: find.byType(AppBar), matching: find.text('Round 1')),
-      findsOneWidget,
-    );
-    await tester.tap(find.byType(BackButton));
-    await tester.pumpAndSettle();
-    expect(returned?.title, isEmpty);
+    expect(renamed?.lessons.first.rounds.first.title, isEmpty);
     expect(tester.takeException(), isNull);
   });
 
@@ -499,47 +486,31 @@ void main() {
       ...base.toJson(),
       'lessons': [lesson.toJson()],
     });
-    LearningRound? returned;
+    Course? renamed;
 
     await tester.pumpWidget(
       MaterialApp(
-        home: Builder(
-          builder: (context) => TextButton(
-            onPressed: () async {
-              returned = await Navigator.of(context).push<LearningRound>(
-                MaterialPageRoute(
-                  builder: (_) => RoundEditorScreen(
-                    course: course,
-                    lesson: lesson,
-                    round: titledRound,
-                    roundIndex: 0,
-                  ),
-                ),
-              );
-            },
-            child: const Text('Open titled Round'),
-          ),
+        home: LessonRoundsScreen(
+          course: course,
+          lesson: lesson,
+          onCourseChanged: (value) => renamed = value,
         ),
       ),
     );
-    await tester.tap(find.text('Open titled Round'));
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('round-rename-action')));
+    await tester.tap(find.byKey(ValueKey('round-actions-${titledRound.id}')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Rename').last);
     await tester.pumpAndSettle();
     expect(field('Title, or Enter to skip'), findsOneWidget);
     await tester.enterText(field('Title, or Enter to skip'), '');
     await tester.testTextInput.receiveAction(TextInputAction.done);
     await tester.pumpAndSettle();
+    expect(find.byType(AlertDialog), findsNothing);
     expect(
-      find.descendant(
-        of: find.byType(AppBar),
-        matching: find.text('Keep this title'),
-      ),
-      findsOneWidget,
+      renamed?.lessons.first.rounds.first.title ?? titledRound.title,
+      'Keep this title',
     );
-    await tester.tap(find.byType(BackButton));
-    await tester.pumpAndSettle();
-    expect(returned?.title, 'Keep this title');
     expect(tester.takeException(), isNull);
   });
 
@@ -620,23 +591,40 @@ void main() {
         ],
       });
       await useViewport(tester);
+      // Rename now lives in the Lessons page's 3-dot menu, so the breadcrumb
+      // is checked in the Lesson editor opened after the rename.
+      Course? renamed;
       await tester.pumpWidget(
         MaterialApp(
-          home: LessonEditorScreen(
+          home: LessonManagementScreen(
             course: duplicateTitleCourse,
-            lesson: duplicateTitleCourse.lessons.first,
+            initiallyLocked: false,
+            onCourseChanged: (value) => renamed = value,
           ),
         ),
       );
       await tester.pumpAndSettle();
-
-      await tester.tap(find.byKey(const Key('lesson-title-control')));
+      final firstLessonId = duplicateTitleCourse.lessons.first.lessonId;
+      await tester.tap(find.byKey(ValueKey('lesson-actions-$firstLessonId')));
       await tester.pumpAndSettle();
-      await tester.enterText(find.byType(TextFormField), 'Renamed lesson');
+      await tester.tap(find.text('Rename').last);
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextField), 'Renamed lesson');
       await tester.tap(
         find.descendant(
           of: find.byType(AlertDialog),
           matching: find.widgetWithText(FilledButton, 'Save'),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(renamed!.lessons.first.title, 'Renamed lesson');
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: LessonEditorScreen(
+            course: renamed!,
+            lesson: renamed!.lessons.first,
+          ),
         ),
       );
       await tester.pumpAndSettle();

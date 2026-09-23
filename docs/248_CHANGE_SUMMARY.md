@@ -96,3 +96,50 @@ new user-file folder, so `AppResetService`, `InventoryService` and
   next confirmed save removes it.
 * The in-isolate per-Course lock does not coordinate external writers; this
   remains the documented Build 245 storage limit.
+
+---
+
+# Build 248 Revision 1 — Course Editor layout and media notices
+
+`2.0.48+248001`. Plan: [248_EDITOR_LAYOUT_PLAN.md](248_EDITOR_LAYOUT_PLAN.md).
+
+**Recorded deliberately:** this revision is a scope extension the owner asked
+for, not a correction proven by Build 248's tests, and it was added to the open
+Build 248 pull request at the owner's choice. The recommendation was a separate
+build after Build 248 merged, so Revision 0's manual smoke test stayed valid.
+Because item 4 changes the Audio Library screen that smoke test exercised, that
+smoke test must be repeated.
+
+| # | Change |
+| --- | --- |
+| 1 | Lesson numbering, Use GuideBook and Create Duels move from the **Lessons** screen to a collapsed **Lesson Options** section (`course-lesson-options`) under the Course Editor's Lessons tile. All three are Course properties, so this puts them on the Course screen. `askAuthoringName` becomes the one shared title prompt instead of two copies. |
+| 2 | The Lesson editor drops `lesson-title-control` and `lesson-audit-action`. |
+| 3 | The Round editor drops `round-rename-action` and `round-audit-action`. |
+| 4 | The Audio Library has no Save button; leaving the screen returns its draft, and `audio-library-save-notice` explains what that means. |
+| 5 | A Course's Image Library gains `course-image-save-notice`. Its save-on-exit and discard-on-cancel behaviour already worked through `onCourseChanged: _updateDraft`, so **only the notice is new**. |
+| 6 | `CourseAuthoringMedia.ownedExtensions` widens from MP3s to every kind of Course media, so images added during a cancelled session are removed too — the known limit Revision 0 recorded. |
+
+## Nothing is lost by items 2 and 3
+
+Rename and Audit remain in the Lessons and Rounds pages' 3-dot menus. The
+surviving rename dialog was checked rather than assumed: `_name(...,
+allowEmpty: true)` carries the same `Title, or Enter to skip` label **and** the
+same `onFieldSubmitted` rule that keeps the existing title when Enter is
+pressed on an empty field, which was the one behaviour the removed Round-editor
+dialog had.
+
+One visible consequence: the Lesson editor no longer shows the plain Lesson
+title, because `lesson-title-control` was the only widget that displayed it.
+The numbered title remains in the AppBar and breadcrumbs.
+
+## Test work
+
+Twenty existing assertions across nine suites reached the moved or removed
+controls; that they failed is the evidence the changes landed. They now reach
+Lesson Options on the Course screen, or rename through the list pages' menus.
+`lesson_controls_226_04` and `optional_learning_paths_226_04` needed
+restructuring because a toggle and the Lesson rows are no longer on one screen;
+the live-recompute intent is preserved against the Course screen's own Lessons
+status card. New tests cover Lesson Options being collapsed by default and
+absent from the Lessons screen, the Audio Library having no Save button and
+applying on exit, and both notices.

@@ -30,10 +30,14 @@ class CourseAuthoringMedia {
     unawaited(_openingFiles.catchError((Object _) => const <String>{}));
   }
 
-  /// Recordings only. Pictures added while editing are left in place for now:
-  /// they leak the same way and are a separate, approved follow-up, and this
-  /// set is the one place that would bring them in.
-  static const Set<String> ownedExtensions = {'mp3'};
+  /// Every kind of media a Course owns: recordings and pictures alike. Both
+  /// are written into the Course folder before the confirmation, so both are
+  /// this session's to clean up. Anything `CourseMediaStore` does not
+  /// recognise as Course media is never listed, and so is never touched.
+  static const Set<String> ownedExtensions = {
+    ...CourseMediaStore.audioExtensions,
+    ...CourseMediaStore.imageExtensions,
+  };
 
   final String courseId;
   final Future<Set<String>?> Function() _persistedReferences;
