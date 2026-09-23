@@ -131,6 +131,103 @@ rules; it does not justify its own build now.
    commit for that revision**. Do not begin the next revision until this
    handoff and commit exist. Push, PR, and merge follow the user's direction.
 
+## Second track: one Course library screen
+
+Approved in discussion on 2026-09-23. Independent of the paused architecture
+steps above and orderable against them freely, but **internally ordered**: each
+step makes the next smaller.
+
+**Target.** One screen with two tabs. **ALL COURSES** lists every Course on the
+device and offers Add / Remove to the Personal Library, for learning or for
+editing. **COURSE MANAGER** offers operations on the Courses in that Personal
+Library. Personal Library membership also decides what appears in the learner
+Course Selector.
+
+That last rule is **not new**: `CourseLibraryService` (`contains`/`add`/
+`remove`) already drives all three surfaces, and `AGENTS.md` already states
+that Add/Remove controls both Selector and Manager. The two tabs make an
+existing invisible rule visible, so there is no migration and no new key.
+
+The merge also fixes a real dead end: today, removing a Course from the
+Personal Library makes it vanish from Course Manager, and it can only be
+recovered from a different screen. With ALL COURSES one tab away, it cannot.
+
+| Step | What | Note |
+| --- | --- | --- |
+| ✅ **1** | Course Editor working-copy boundary rule in `AGENTS.md` | Done 2026-09-23. |
+| ~~2~~ | ~~Remove the Editor's `listUserCourses` duplicate-title check~~ | **Withdrawn.** It is a read that powers a duplicate-name warning while typing, not a library operation, and the sharpened rule explicitly allows it. Removing it would lose the warning or defer the clash to confirm time. |
+| **2** | **Course library operations owner** | The real build. See below. |
+| **3** | Merge into one screen, two tabs, capability-driven | Small once 2 is done; reuse the Build 229 "unified surface is capability-driven" pattern. |
+| **4** | Hide / Unhide, per learner × Course | Clutter control. See below. |
+| **5** | Editor device-state owner | Independent of this track; see below. |
+
+### Step 2 — Course library operations owner
+
+Course Library is already presentation over `CourseLibraryService` and
+`CourseLibraryPresentation`, which is why it is 662 lines. Course Manager is
+2,677 lines with its operations inline.
+
+The **storage** operations already have owners: `CoursePackageImport`
+(Build 247), `confirmMergedCourse` (Build 246), and `createFork`,
+`createCopyAsNewCourse`, `deleteUserCourse` on `CourseEditorService`. What is
+unowned is the **workflow around them** — copy-title generation, confirmation
+dialogs, result reporting, reload, and which action is offered for which
+Course. That is the extraction; it is smaller than the line count suggests.
+
+**Do this before the merge.** Merging first produces a ~3,300-line screen with
+half its logic unowned, which is exactly how `course_editor_screen.dart`
+reached 10,659 lines: screens absorbed each other faster than their rules got
+owners.
+
+**Proof:** every operation reachable in a test without the screen; the screen
+reduced to presentation and confirmation.
+
+### Step 4 — Hide / Unhide
+
+Considered and rejected: splitting membership into "studying" and "authoring".
+A maintainer's normal loop is edit, then check the result in the learner view,
+so a second intent flag would have to be added and removed constantly. Hide
+keeps one membership concept and makes unhiding a single tap.
+
+**Clean cut on `course_hidden_`, reusing the retired key**, agreed on
+2026-09-23 because there are **no released users as of Build 248**. Record that
+reason with the change: it is true now and expires silently. Build 241
+Revision 2 retired those values as ignored-never-converted, and that decision
+still constrains work three builds later.
+
+Recover the Build 229 Revision 0 design rather than reinventing it: it had
+**active-course protection** and a reversible **`Hidden courses (n)`**
+management entry. `AGENTS.md` currently states Hide/Unhide was removed; that
+line becomes wrong and must be rewritten. The retired key appears to be swept
+by the `learner_<UUID>_` prefix reset rather than named individually in
+`AppResetService` — confirm that when building, and update
+`docs/239_RESET_STORAGE_INVENTORY.md` either way.
+
+### Step 5 — Editor device-state owner
+
+An audit of the Course Editor root on 2026-09-23 found four kinds of
+responsibility that are not editing the open Course:
+
+1. **Six `SettingsService` calls** for per-device editor preferences — access
+   mode, the one-time View-only notice, the orphan-check due date — written
+   immediately, outside the confirmation the Editor otherwise defends.
+2. **A background maintenance job**: `_checkOrphanAudio` runs automatically in
+   `initState` when due, with its own due-date bookkeeping.
+3. **Identity and governance lookups** (`getProfileRecords`, `listTeams`,
+   `getActiveProfileId`, `CourseGovernanceResolver`) to populate Course Info.
+4. The duplicate-title read, which the boundary rule now explicitly allows.
+
+Give 1 and 2 one owner, so "written immediately" becomes a deliberate property
+of that owner rather than an accident of where the code sits.
+
+### Open questions
+
+* **Is `_checkOrphanAudio` running automatically on Editor open deliberate
+  design or historical drift?** This decides whether step 5 is an extraction or
+  a behaviour correction, and those must not be mixed.
+* **Does Hide ship with the merge or after it?** The merge is what makes people
+  add more Courses, so it is what creates the clutter Hide solves.
+
 ## Findings carried out of the delivered builds
 
 These are open items the delivered work uncovered. They are **not** steps above

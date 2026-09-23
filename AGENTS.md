@@ -340,6 +340,8 @@ When a new XP system is explicitly introduced, update this section to describe t
 
 ## Course Editor invariants
 
+- The Course Editor holds an **unconfirmed working copy**. It must not produce or persist anything derived from that copy outside the single top-level Course confirmation: no export or package, no new Course identity (Copy as New Course, Fork), no install, no delete. Those act on **stored** Courses and belong to Course Manager. Reading library facts to validate what is being edited, such as warning that a Course name is already taken, is not a library operation and is allowed.
+- Build 248 Revisions 2 and 3 removed three violations of this rule that had accumulated in the Editor: `course-editor-export-json`, `course-editor-save-json-to`, `course-editor-copy-as-new-course` and `course-editor-fork-course`. Each passed the working copy where the stored Course was meant, so a cancelled session could leave an exported package, or a persisted Course, built from changes that existed nowhere. A regression test had been pinning the Copy behaviour in place. Version History stays in the Editor because it works the other way: it loads **into** the working copy and still defers to the confirmation.
 - Keep exercise type names friendly and concrete in the editor. Do not replace them with abstract/internal taxonomy.
 - GuideBooks belong to Lessons.
 - Lesson Guidebook content may be used to generate draft exercises/Rounds.
