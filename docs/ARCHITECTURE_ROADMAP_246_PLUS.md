@@ -156,9 +156,9 @@ recovered from a different screen. With ALL COURSES one tab away, it cannot.
 | --- | --- | --- |
 | ✅ **1** | Course Editor working-copy boundary rule in `AGENTS.md` | Done 2026-09-23. |
 | ~~2~~ | ~~Remove the Editor's `listUserCourses` duplicate-title check~~ | **Withdrawn.** It is a read that powers a duplicate-name warning while typing, not a library operation, and the sharpened rule explicitly allows it. Removing it would lose the warning or defer the clash to confirm time. |
-| **2** | **Course library operations owner** | The real build. See below. |
+| ✅ **2** | **Course library operations owner** | Build 249 Revision 0: `CourseLibraryOperations`. See below and `docs/249_HANDOFF.md`. |
 | **3** | Merge into one screen, two tabs, capability-driven | Small once 2 is done; reuse the Build 229 "unified surface is capability-driven" pattern. |
-| **4** | **Hide in Learner** / Unhide, per learner × Course | Ships **with** step 3. See below. |
+| **4** | **Hide in Learner** / **Unhide in Learner**, per learner × Course | Ships **with** step 3. See below. |
 | **5** | Editor device-state owner | Independent of this track; see below. |
 
 ### Step 2 — Course library operations owner
@@ -182,7 +182,212 @@ owners.
 **Proof:** every operation reachable in a test without the screen; the screen
 reduced to presentation and confirmation.
 
-### Step 4 — Hide in Learner / Unhide, shipped with the merge
+### Step 3 — One screen, two tabs: shared Course rows
+
+Owner decisions, 2026-09-23. **Both tabs use the same Course row**: today's
+Course Library row, with its artwork, languages, Version, Last edited,
+Maintainer, Duration and blue status labels (Draft, Unpublished, Verification
+required), plus Sort by and Expanded / Compact. The artwork is the Course
+**cover image when there is one, otherwise the flag**, in both tabs; this is
+what `CourseArtwork` already does.
+
+**Both tabs have Sort by and a Show unavailable switch, on by default**, so
+every Course is shown until it is turned off. There is **one** Sort by
+and **one** Show unavailable switch for the whole screen, above the tabs, and
+they apply to both; switching tabs never changes the order or what is
+filtered. Expanded / Compact stays per section. "Unavailable" keeps today's
+Course Library meaning: unpublished, awaiting Publisher verification, or
+containing Draft content. This **changes today's Course Library default**,
+where *Show unavailable or Draft Courses* starts off. The page-session scope,
+and the switch never changing Course state, stay as they are.
+
+**The word "hide" is reserved for Hide in Learner** (step 4). Nothing else on
+this screen may use it, so two different things never share a name. That
+applies to the switch above and to the section counts: today's
+`· S shown · H hidden` becomes **`· S of N shown`** (for example
+`My Local Courses · 2 of 3 shown`), and a section with nothing filtered keeps
+its plain `· N`.
+
+The rows differ only in **colour and trailing controls**. The COURSE MANAGER
+tab alone keeps the **red / green Audit border** that Course Manager cards
+show today; ALL COURSES rows have no Audit colour. ALL COURSES keeps
+Add / Remove and gains the 3-dot menu of step 4; COURSE MANAGER keeps its
+3-dot operations menu, with unavailable entries greyed out with a reason
+(Build 249 Revision 1).
+
+**ALL COURSES 3-dot menu** (owner decisions, 2026-09-23), in this order:
+
+1. **Course Info** — the existing Course Info dialog the learner Course
+   Selector already offers on every row (Build 229). Always available.
+2. **Favorite** / **Remove from Favorites** — for **any** Course, whether or
+   not it is in the Personal Library. Favorite never changes membership.
+3. **Hide in Learner** / **Unhide in Learner** (step 4). Greyed out with
+   "Add it to your courses first" when not in the Personal Library.
+4. **Reset course progress** — the active learner's progress for this Course
+   only, through the existing `ProgressService.resetCourse` and the existing
+   reset confirmation wording (XP, Weekly XP, study days and streak are kept).
+   Greyed out with "Add it to your courses first" when not in the Personal
+   Library. Known consequence: progress kept after *Remove from my courses*
+   can then be reset only by adding the Course back, or by choosing the reset
+   option while removing it, which is unchanged.
+
+Operations that change or derive from a Course (Edit, Fork, Copy, Merge,
+Export, Delete) stay in the COURSE MANAGER tab.
+
+**Favorites section.** ALL COURSES gains a **Favorites** section **first**,
+above Bundled Courses. A Favorite Course **also stays in its own section**:
+Favorites is a shortcut list, so section counts and places stay as people
+expect. The Favorites section is drawn in **inverted black and white** — a
+black band with white text in Light mode, a white band with black text in Dark
+mode — so it reads as different from the Bundled section below it.
+Favorites appear only in ALL COURSES.
+
+**Entry from the Course Selector** (owner decisions, 2026-09-23). The learner
+Course Selector has **two distinct entries**, **All Courses** and **Course
+Manager**, each opening the one Courses screen with **its tab already
+selected**. All Courses replaces today's *Course Library* entry.
+
+**Locked Course Manager.** Today, while Course Manager is locked for the
+profile, the Selector's Course Manager entry and its edit-current-Course entry
+are hidden. Instead:
+
+* the Selector's **Course Manager** entry and its **edit-current-Course**
+  entry are shown **greyed out**;
+* the Courses screen's **COURSE MANAGER tab** is shown **greyed out**;
+* using any of them shows one message that says Course Manager must be
+  unlocked **for this profile** to edit Courses and use Course operations,
+  **and how to unlock it**: tap **Version** in Settings ten times. The owner
+  chose to state the method.
+
+The unlock stays **per user profile**: each profile activates Course Manager
+for itself, exactly as today. The unlock itself and today's import-only rules
+for a locked profile are unchanged. Help texts that say Course Manager is
+available "when activated for your profile" stay correct; they only gain a
+sentence saying the entries are shown greyed out until then.
+
+**Help split** (owner decision, 2026-09-23; section assignment confirmed by
+the owner the same day). Course Manager today opens the full
+Course Editor Help (`lib/screens/editor_help_content.dart`, 33 EN/IT sections
+plus the Course types card and the Technical reference). It is split so that
+**Course types and Course operations** move to a new **Course Manager Help**,
+while **editing** stays in the **Course Editor Help**. Some overlap is allowed
+where both screens need it. Proposed assignment:
+
+* **Course Manager Help**: the Course types card; Course origin; Official
+  course updates; Create a new course; Course creation rules; Import a custom
+  course; Export a custom course; Course responsibility, permissions and Teams;
+  Android device backup (technical); and a **new** section on Copy as New
+  Course, Fork, Merge, Delete and Remove Publisher Course, which have no
+  section today (the Merge screen keeps its own Help too).
+* **Both** (allowed overlap): Course Audit; Audit severity and codes; Local
+  course edits and backups; Course Info Editor and license.
+* **Course Editor Help**: every other editing section, and the Technical
+  reference.
+* **All courses Help** (today's `availableCoursesHelp`): gains *Courses in
+  learner mode*.
+
+On the Courses screen the Help button opens the Help of the selected tab. The
+Course Manager Help keeps the EN/IT toggle and the rule that the two language
+lists stay the same length.
+
+**Screen layout details** (confirmed by the owner, 2026-09-23). Both tabs use
+the same four sections (Bundled, Publisher, My Local, Other Local; ALL COURSES
+adds Favorites first). Team Manager and Shared Images appear only in the
+COURSE MANAGER tab. The Import icon is in the top bar of both tabs. The **New
+course** icon appears **only in the COURSE MANAGER tab**, because it leads to
+creating and then editing a Course. ALL COURSES gets a third top-bar icon of
+its own instead: **Search** (a magnifier), confirmed by the owner. It opens a
+filter field under the top bar that narrows every section, Favorites
+included, by Course title or language as the user types. It is page-session
+only, stores nothing and never changes a Course; filtered sections use the
+same `· S of N shown` count as Show unavailable.
+
+**Course Selector row menu** (owner decisions, 2026-09-23). Today it offers
+Remove from my courses, Review (current Course only) and Course Info. It
+becomes, in this order: **Course Info**; **Review** (current Course only);
+**Hide in Learner**, greyed out on the Course being studied ("You're studying
+this Course"), with no Unhide here because hidden Courses are not listed;
+**Remove from my courses**, last. **Reset course progress is not offered in
+the Selector**; it stays in ALL COURSES. The owner confirmed that Hide in
+Learner and Remove from my courses are clear enough side by side.
+
+**Favorites in the Course Selector** (owner decision, 2026-09-23, option B).
+The Selector's row menu also offers **Favorite / Remove from Favorites**, after
+Review, so the menu reads: Course Info, Review, Favorite, Hide in Learner,
+Remove from my courses. The Selector lists, **top to bottom**:
+
+1. **Current** Course;
+2. **Recent** Courses, at most 3, as today;
+3. **Favorites**, no maximum: favorite Courses in the Personal Library that
+   are not hidden in Learner;
+4. the **other** Courses in the Personal Library;
+5. the links **All Courses**, **Course Manager**, **Course Editor** (the
+   current Course) and **Import**, in that order; Course Manager and Course
+   Editor are greyed out with the unlock message while locked.
+
+**Recent and Favorites do not skip each other**: a Course that is both recent
+and a favorite appears in both groups (owner's choice). The **current Course
+is never repeated in Recent**, as today: Recent holds up to 3 *other* recently
+studied Courses. Apart from Recent, being current removes a Course from no
+group: it also appears in Favorites when it is a favorite, or in Other when it
+is neither recent nor a favorite. "Other" lists the library Courses that are
+in neither Recent nor Favorites.
+
+**Import: locked profiles and received updates** (discussed 2026-09-23).
+
+* **Approved:** in the *Matching Course ID* dialog, a profile with Course
+  Manager locked sees **Copy as New Course** and **Fork greyed out** with the
+  reason "Unlock Course Manager for this profile to create your own copy (tap
+  Version ten times in Settings)". Replace / update and Cancel are unchanged.
+  Copy and Fork stay unavailable while locked: they create a Course whose only
+  purpose is editing.
+* **Approved: received Custom Courses can be updated (option D, clean cut).**
+  Today a learner can never take a friend's newer version of a Custom Course:
+  Replace needs Maintainer or Team rights, which belong to the friend.
+  Publisher Courses do not have this gap, because a trusted signature, the same
+  publisher and a newer version authorise any profile. Custom Courses carry no
+  signature, and the device holds **one shared copy** of each Course, so the
+  rule must never let an unrelated profile overwrite a Course someone authors
+  on this device. The rule:
+  * When a Custom Course is **installed by import** and no profile on this
+    device is its Maintainer or a member of its assigned Team, the device
+    records it as **received**: a device-local flag keyed by Course ID, never
+    written into the Course file.
+  * For a **received** Course, any profile that has it in its Personal Library
+    may **Update to version N** from a file naming the **same Maintainer and
+    Original Course Creator** with a **newer Course version**. The previous
+    version is backed up and learner progress is kept, as for Publisher
+    updates.
+  * A Course authored here (not received) keeps today's rule: only its
+    Maintainer or Team may replace it; others see Update greyed out with the
+    reason that it is authored on this device.
+  * **Clean cut, no legacy inference** (owner decision): Courses stored before
+    this ships carry no flag and are not received. Recorded reason: **there
+    are no released users as of Build 249**; that reason expires silently.
+  * The flag is new stored data: add it to `AppResetService`,
+    `InventoryService` and `docs/239_RESET_STORAGE_INVENTORY.md`, and write
+    the exact key and the edge cases (for example, the Maintainer's profile
+    later appearing on the device) into that build's plan first.
+  * Remaining risk, accepted for now: without a signature, a crafted file can
+    still impersonate a friend's update, but only for a received Course, only
+    through the user's own import, and with the old version backed up. Signed
+    Custom Courses (option C) would close it and are a separate format
+    decision.
+* **Proposed, awaiting the owner's decision:** after any successful import,
+  return to where Import was opened, with no Editor opened for Copy or Fork.
+  From the Courses screen, land on ALL COURSES with the new Course scrolled to
+  and highlighted. From the Course Selector, return to Home with "Imported …
+  and added to your courses", plus **Study now** when the Course is playable,
+  or the reason it cannot be studied yet. Imports keep adding the Course to
+  the importing profile's Personal Library, as today.
+
+**Favorite is new stored data**: one per-learner × Course flag under the
+learner prefix. Following the change discipline, the key must be added to
+`AppResetService`, `InventoryService` and
+`docs/239_RESET_STORAGE_INVENTORY.md`, and confirmed with the owner before it
+ships, as any new stored key is.
+
+### Step 4 — Hide in Learner / Unhide in Learner, shipped with the merge
 
 Considered and rejected: splitting membership into "studying" and "authoring".
 A maintainer's normal loop is edit, then check the result in the learner view,
@@ -195,9 +400,22 @@ reason with the change: it is true now and expires silently. Build 241
 Revision 2 retired those values as ignored-never-converted, and that decision
 still constrains work three builds later.
 
-Recover the Build 229 Revision 0 design rather than reinventing it: it had
-**active-course protection** and a reversible **`Hidden courses (n)`**
-management entry. `AGENTS.md` currently states Hide/Unhide was removed; that
+**Both tabs offer it in their 3-dot menus** (owner decisions, 2026-09-23).
+The entry reads **Hide in Learner**, or **Unhide in Learner** once hidden.
+ALL COURSES gains a 3-dot menu per row for it; for a Course not in the
+Personal Library the entry is shown **greyed out with a short reason** ("Add
+it to your courses first"), following the Build 249 Revision 1 rule that
+unavailable entries are greyed with a reason rather than hidden. The COURSE
+MANAGER tab's existing 3-dot menu gains the same entry; every Course there is
+already in the Personal Library, so only active-course protection can grey it
+out.
+
+Recover the Build 229 Revision 0 design's **active-course protection**, but
+**not** its separate **`Hidden courses (n)`** management entry: the owner
+dropped it on 2026-09-23. Unhide in Learner sits in the same row menu as Hide,
+in either tab, so hiding stays reversible without a dedicated screen. A hidden
+Course's row should carry a visible **Hidden in Learner** label, so it can be
+found to unhide. `AGENTS.md` currently states Hide/Unhide was removed; that
 line becomes wrong and must be rewritten. The retired key appears to be swept
 by the `learner_<UUID>_` prefix reset rather than named individually in
 `AppResetService` — confirm that when building, and update
@@ -241,7 +459,8 @@ extraction as `AGENTS.md` requires.
 people to add more Courses, so it creates the clutter Hide solves; shipping
 them together means the problem never appears.
 
-The action is labelled **Hide in Learner** / **Unhide**, not plain Hide. The
+The action is labelled **Hide in Learner** / **Unhide in Learner**, not plain
+Hide. The
 merged screen puts two removals within a few pixels of each other — Remove
 (leaves the Personal Library, so it disappears from the Manager tab too) and
 Hide (stays in the library, absent only from the learner Course Selector).
@@ -253,16 +472,9 @@ These are open items the delivered work uncovered. They are **not** steps above
 and need no particular order; take each with whatever build next touches that
 area, or on its own.
 
-* **The Course Editor's Fork still acts on the unconfirmed working copy.**
-  `_forkCourse` calls `createFork(source: _course)`, where `_course` is the
-  working copy — the same defect Build 248 Revision 2 removed from export and
-  Copy as New Course, and it was missed because only the two named actions were
-  removed. Fork **persists** a new Course, so a fork can be created from edits
-  that are then cancelled, leaving provenance pointing at a source version that
-  never existed. Course Manager's Fork passes the stored Course and is correct.
-  Fix: remove `course-editor-fork-course` and `_forkCourse` (about 15 lines),
-  leaving Course Manager as the only route — but first confirm Course Manager's
-  Fork covers every case the Editor's does, particularly official Courses.
+* ~~**The Course Editor's Fork still acts on the unconfirmed working copy.**~~
+  **Closed by Build 248 Revision 3**, which removed `course-editor-fork-course`
+  and `_forkCourse`; Course Manager is the only Fork route.
 * **`CourseEditorScreen.transferService` is inert.** Six lines of wiring that
   nothing reads, kept so its seven callers keep compiling. Remove it with those
   call sites when something next touches that file.
