@@ -274,7 +274,7 @@ void main() {
     expect(find.byTooltip('Rename lesson'), findsNothing);
     expect(find.byTooltip('Generate Rounds from GuideBook'), findsNothing);
     expect(find.byKey(const Key('lesson-title-control')), findsNothing);
-    expect(find.byKey(const Key('guidebook-round-generator')), findsOneWidget);
+    expect(find.byKey(const Key('lesson-round-wizard')), findsOneWidget);
 
     await tester.tap(find.byKey(const Key('lesson-rounds-navigation')));
     await tester.pumpAndSettle();

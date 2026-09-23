@@ -208,3 +208,52 @@ Round Wizard in the Lesson editor replacing `lesson-preview-action` and
 `guidebook-round-generator`; renaming the Round editor's `Creation Wizard` to
 `Exercise Wizard`; and moving the Lesson editor's `EditorBreadcrumbs` to the
 top. Write its plan before any source change.
+
+---
+
+# Revision 2 current state
+
+Build 248 Revision 2 is `2.0.48+248002`, Course Model v11, on branch
+`claude/248-audio-library`, following `ecee745`. Beta expiry remains
+`2026-10-22 23:59:59` local time. The untracked `devtools_options.yaml` is the
+owner's and stays untouched.
+
+**Why this revision exists.** A Course Editor scope extension the owner asked
+for on 2026-09-23, added to the open pull request at the owner's choice. It
+also fixes a real defect: the Editor's export and Copy as New Course ran on the
+unconfirmed working copy.
+
+Eight changes: a `CourseExportScreen` mirroring `CourseImportScreen` with the
+fixed-folder route and **Save to…**; one **Export Course** entry in the Course
+Manager menu opening it, for official Courses too; removal of
+`course-editor-export-json`, `course-editor-save-json-to` and
+`course-editor-copy-as-new-course`; `lesson-preview-action` and
+`guidebook-round-generator` replaced by bottom-bar `lesson-preview` and
+`lesson-round-wizard`; the Round editor's wizard relabelled **Exercise
+Wizard**; and the Lesson editor's `EditorBreadcrumbs` moved to the top of its
+body.
+
+`CourseEditorScreen.transferService` is now inert: nothing in the Editor
+transfers Courses any more. The parameter is kept so its seven callers,
+including several tests, keep compiling.
+
+Validation: analyzer clean, four validators pass, **2,306 / 2,306** tests
+passed at `--concurrency=1` in 24 min 21 s, `git diff --check` clean.
+
+## Deliberately not done
+
+Version History stays in the Course Editor. It writes into the working copy and
+respects the single confirmation, unlike export and copy; moving it would have
+created a second persistence path and left restored media with no owner. The
+owner cancelled that change after the analysis.
+
+## Next boundary
+
+**Smoke tests the owner still owes before release:** the Audio Library
+(Revision 1 changed it), exporting from Course Manager through the new screen,
+and the Lesson bottom bar.
+
+Three commits are local and unpushed: `c7c9712` (Revision 0, already pushed),
+`ddb67a3` (test robustness) and `ecee745` (Revision 1), plus this one. The pull
+request description still describes Revision 0 only and needs rewriting before
+merge.

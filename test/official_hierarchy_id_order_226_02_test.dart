@@ -46,7 +46,7 @@ void main() {
           tester,
           entryKey: 'lesson-entry-lesson',
           id: 'lesson',
-          destinationText: 'Preview Lesson',
+          destinationText: 'Lesson Guidebook',
         );
         await tester.tap(find.byKey(const Key('lesson-rounds-navigation')));
         await tester.pumpAndSettle();

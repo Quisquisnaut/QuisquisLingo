@@ -748,9 +748,11 @@ void main() {
       findsNothing,
     );
     expect(find.text('Course Info Editor'), findsOneWidget);
+    // Copy as New Course moved to Course Manager: in the Editor it copied the
+    // unconfirmed working copy.
     expect(
       find.byKey(const Key('course-editor-copy-as-new-course')),
-      findsOneWidget,
+      findsNothing,
     );
   });
 

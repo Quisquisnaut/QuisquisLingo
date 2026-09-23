@@ -514,8 +514,6 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
   final _profiles = ProfileService();
   late final _teams = TeamService(profileService: _profiles);
   final _recordedAudio = RecordedAudioService();
-  late final CustomCourseTransferService _transfer =
-      widget.transferService ?? CustomCourseTransferService();
   late final DateTime Function() _clock = widget.clock ?? DateTime.now;
   late final CourseAuthoringSession _session;
   bool _routeMayPop = false;
@@ -2556,102 +2554,6 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
     }
   }
 
-  Future<void> _exportCustomCourse() async {
-    try {
-      final notice = CourseAuditService().auditCourse(_course).exportNotice;
-      final path = await _transfer.exportCourse(_course);
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          duration: const Duration(seconds: 12),
-          content: Text(
-            'Exported “${_course.title}” to $path'
-            '${notice == null ? '' : ' $notice'}',
-          ),
-        ),
-      );
-    } catch (error) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          duration: Duration(seconds: 8),
-          content: Text(error.toString().replaceFirst('FormatException: ', '')),
-          backgroundColor: Theme.of(context).colorScheme.error,
-        ),
-      );
-    }
-  }
-
-  Future<void> _saveCustomCourseTo() async {
-    try {
-      final notice = CourseAuditService().auditCourse(_course).exportNotice;
-      final result = await _transfer.exportCourseTo(_course);
-      if (!mounted) return;
-      showFileDialogFeedback(
-        context,
-        result,
-        saving: true,
-        savedMessage:
-            'Saved “${_course.title}” as ${result.displayName}.'
-            '${notice == null ? '' : ' $notice'}',
-        fallbackHint: exportFallbackHint,
-      );
-    } catch (error) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          duration: const Duration(seconds: 8),
-          content: Text(error.toString().replaceFirst('FormatException: ', '')),
-          backgroundColor: Theme.of(context).colorScheme.error,
-        ),
-      );
-    }
-  }
-
-  Future<void> _copyAsNewCourse() async {
-    final existingTitles = (await _service.listUserCourses())
-        .map((course) => course.title)
-        .toSet();
-    var title = '${_course.title} copy';
-    var suffix = 2;
-    while (existingTitles.contains(title)) {
-      title = '${_course.title} copy ${suffix++}';
-    }
-    final created = await _service.createCopyAsNewCourse(
-      source: _course,
-      title: title,
-    );
-    final createdAccess = await _service.capabilitiesFor(created.course);
-    if (!mounted) return;
-    final result = await Navigator.of(context).push<CourseConfirmationResult>(
-      MaterialPageRoute(
-        builder: (_) => CourseEditorScreen(
-          course: created.course,
-          access: createdAccess,
-          editorService: _service,
-          clock: _clock,
-        ),
-      ),
-    );
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'New independent Course created: ${created.course.title}\n'
-            'Course version: ${created.course.courseVersion}',
-          ),
-        ),
-      );
-    }
-    if (result != null && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Course changes confirmed: ${result.course.title}'),
-        ),
-      );
-    }
-  }
-
   Future<void> _forkCourse() async {
     try {
       final created = await _service.createFork(source: _course);
@@ -2680,9 +2582,6 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
   @override
   Widget build(BuildContext context) {
     final hierarchyStatus = AuthoringHierarchyStatus.fromCourse(_course);
-    final canExportCourse =
-        widget.access.hasOperationalAccess &&
-        _course.originType == CourseOriginType.custom;
     // Even an unchanged working copy leaves through _attemptLeave, because a
     // session can have imported recordings to disk without the draft keeping
     // them. _popEditor is then the one place that ends the media's lifetime.
@@ -2844,19 +2743,6 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
                       ),
                     ),
             ),
-            if (widget.access.canCopyAsNewCourse) ...[
-              const Divider(height: 1),
-              ListTile(
-                key: const Key('course-editor-copy-as-new-course'),
-                leading: const Icon(Icons.copy_outlined),
-                title: const Text('Copy as New Course'),
-                subtitle: const Text(
-                  'Create a new independent Course using this Course as the starting content.',
-                ),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: _copyAsNewCourse,
-              ),
-            ],
             if (widget.access.canFork) ...[
               const Divider(height: 1),
               ListTile(
@@ -2976,37 +2862,6 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
                     )
                   : null,
             ),
-            if (canExportCourse) ...[
-              const Divider(height: 1),
-              ListTile(
-                key: const Key('course-editor-export-json'),
-                leading: const Icon(Icons.file_upload_outlined),
-                title: const Text(
-                  'Export Course package',
-                  style: _hierarchyLinkStyle,
-                ),
-                subtitle: const Text(
-                  'Export the Course and its images and recordings together as a ZIP package.',
-                ),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: _exportCustomCourse,
-              ),
-              if (_transfer.fileDialogsAvailable)
-                ListTile(
-                  key: const Key('course-editor-save-json-to'),
-                  leading: const Icon(Icons.save_alt_outlined),
-                  title: const Text(
-                    'Save Course package to…',
-                    style: _hierarchyLinkStyle,
-                  ),
-                  subtitle: Text(
-                    'The same export, saved wherever you choose with the system file dialog.\n'
-                    '${cloudFolderHelpText()}',
-                  ),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: _saveCustomCourseTo,
-                ),
-            ],
           ],
         ),
       ),
@@ -4910,9 +4765,11 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
               spacing: 8,
               runSpacing: 8,
               children: [
-                EditorBreadcrumbs(
-                  course: _courseWithIcons,
-                  lessonId: _lesson.lessonId,
+                OutlinedButton.icon(
+                  key: const Key('lesson-preview'),
+                  onPressed: _previewLesson,
+                  icon: const Icon(Icons.play_circle_outline),
+                  label: const Text('Preview'),
                 ),
                 if (!_lesson.publicationState.isPublished)
                   _DraftBranchIndicator(
@@ -4932,6 +4789,12 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
                     onPressed: () => _saveLesson(PublicationState.published),
                     child: const Text('Save'),
                   ),
+                  FilledButton.icon(
+                    key: const Key('lesson-round-wizard'),
+                    onPressed: _openGuidebookRoundGenerator,
+                    icon: const Icon(Icons.auto_awesome_outlined),
+                    label: const Text('Round Wizard'),
+                  ),
                 ],
               ],
             ),
@@ -4941,6 +4804,10 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
           key: const Key('lesson-metadata-controls'),
           padding: const EdgeInsets.only(bottom: 48),
           children: [
+            EditorBreadcrumbs(
+              course: _courseWithIcons,
+              lessonId: _lesson.lessonId,
+            ),
             EditorInternalIdText(label: 'Lesson', id: _lesson.lessonId),
             AuthoringStatusCard(
               indicatorKey: const Key('lesson-rounds-status-indicator'),
@@ -4980,23 +4847,6 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
                 trailing: const Icon(Icons.chevron_right),
                 onTap: _editGuidebook,
               ),
-            ),
-            ListTile(
-              key: const Key('guidebook-round-generator'),
-              leading: const Icon(Icons.auto_awesome_outlined),
-              title: const Text('Generate Rounds from GuideBook'),
-              subtitle: const Text(
-                'Choose Round and Exercise counts, preview the difficulty plan, review every draft, then explicitly approve insertion.',
-              ),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: widget.readOnly ? null : _openGuidebookRoundGenerator,
-            ),
-            ListTile(
-              key: const Key('lesson-preview-action'),
-              leading: const Icon(Icons.play_circle_outline),
-              title: const Text('Preview Lesson'),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: _previewLesson,
             ),
             EditorInternalIdText(label: 'GuideBook', id: _lesson.guidebookId),
             Padding(
@@ -7055,7 +6905,7 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
                     key: const Key('exercise-creation-wizard'),
                     onPressed: _openCreationWizard,
                     icon: const Icon(Icons.auto_awesome_outlined),
-                    label: const Text('Creation Wizard'),
+                    label: const Text('Exercise Wizard'),
                   ),
                 ],
               ],

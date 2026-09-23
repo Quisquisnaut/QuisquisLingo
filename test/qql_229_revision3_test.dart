@@ -28,9 +28,9 @@ void main() {
   setUp(() => SharedPreferences.setMockInitialValues({}));
 
   test('current release metadata uses Build and revision terminology', () {
-    expect(AppMetadata.technicalVersion, '2.0.48+248001');
+    expect(AppMetadata.technicalVersion, '2.0.48+248002');
     expect(AppMetadata.build, '248');
-    expect(AppMetadata.displayLabel, 'Version 2.0.48\nBuild 248, Revision 1');
+    expect(AppMetadata.displayLabel, 'Version 2.0.48\nBuild 248, Revision 2');
   });
 
   testWidgets(
@@ -162,13 +162,11 @@ void main() {
         course.courseId,
         CourseEditorMode.edit,
       );
-      final transfer = _RecordingTransferService();
       await tester.pumpWidget(
         MaterialApp(
           home: CourseEditorScreen(
             course: course,
             access: CourseAccessPolicy.evaluate(course, profileId: _leadId),
-            transferService: transfer,
           ),
         ),
       );
@@ -185,32 +183,26 @@ void main() {
       await tester.ensureVisible(save);
       await tester.tap(save);
       await tester.pumpUntilFileIoState(() => save.evaluate().isEmpty);
-      final export = find.byKey(const Key('course-editor-export-json'));
-      await tester.scrollUntilVisible(
-        export,
-        300,
-        scrollable: find.byType(Scrollable).first,
-      );
-      await tester.tap(export);
-      await tester.pumpAndSettle();
+      // The Editor no longer exports the working copy, so the metadata is
+      // checked where the edit actually lands: the Course Editor's own title.
+      expect(find.text('Renamed sample course'), findsWidgets);
+      expect(find.textContaining('TEMPORARY SAMPLE'), findsNothing);
 
-      expect(transfer.exported?.title, 'Renamed sample course');
-      expect(transfer.exported?.temporarySample, isTrue);
-      expect(transfer.exported?.toJson()['temporarySample'], isTrue);
-
+      final renamed = Course.fromJson({
+        ...course.toJson(),
+        'title': 'Renamed sample course',
+      });
       await tester.pumpWidget(
         MaterialApp(
           home: CourseEditorScreen(
-            course: transfer.exported!,
-            access: CourseAccessPolicy.evaluate(
-              transfer.exported!,
-              profileId: _leadId,
-            ),
-            transferService: transfer,
+            course: renamed,
+            access: CourseAccessPolicy.evaluate(renamed, profileId: _leadId),
           ),
         ),
       );
       await tester.pumpAndSettle();
+      expect(renamed.temporarySample, isTrue);
+      expect(renamed.toJson()['temporarySample'], isTrue);
       expect(find.textContaining('TEMPORARY SAMPLE'), findsNothing);
     },
   );
@@ -439,14 +431,4 @@ Future<void> _pumpManager(
   await tester.pumpUntilFileIoState(
     () => find.text('Bundled Courses').evaluate().isNotEmpty,
   );
-}
-
-class _RecordingTransferService extends CustomCourseTransferService {
-  Course? exported;
-
-  @override
-  Future<String> exportCourse(Course course) async {
-    exported = course;
-    return 'revision-three-export.json';
-  }
 }

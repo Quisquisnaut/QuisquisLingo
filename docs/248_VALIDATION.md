@@ -210,3 +210,52 @@ that produced the original failure.
 
 Revision 0's manual smoke test covered the Audio Library, which Revision 1
 changes. That smoke test must be repeated before release.
+
+---
+
+# Revision 2 validation
+
+`2.0.48+248002`. Plan:
+[248_EXPORT_AND_LESSON_ACTIONS_PLAN.md](248_EXPORT_AND_LESSON_ACTIONS_PLAN.md).
+
+| Check | Result |
+| --- | --- |
+| `flutter analyze --no-pub` | **No issues found** |
+| The four asset validators | all pass, 0 issues |
+| `flutter test --no-pub --concurrency=1` | **2,306 / 2,306 passed**, 0 failed (24 min 21 s) |
+| `git diff --check` | clean |
+
+## The defect this revision removes
+
+`_exportCustomCourse` called `_transfer.exportCourse(_course)` and
+`_copyAsNewCourse` called `createCopyAsNewCourse(source: _course)`, where
+`_course` is the Course Editor's **working copy**. Both could therefore act on
+changes that were never confirmed, and Copy additionally **persisted** a new
+Course from them. Course Manager's equivalents pass the stored Course and are
+unaffected.
+
+`test/course_editor_layout_regression_test.dart` had pinned the defect in
+place: its Copy as New Course case edited Course Info, left it unconfirmed,
+copied, and asserted the copy carried those unsaved edits. It is replaced by a
+case asserting the Editor offers neither action.
+
+## Version History was considered and deliberately left alone
+
+Moving it was proposed and withdrawn. Export and Copy **read** the working copy
+and let it escape the confirmation; Version History **writes into** the working
+copy through `_session.loadHistoricalCourse` and still defers to the single
+confirmation, warning first when unapplied changes would be replaced. Moving it
+to Course Manager would have required restoring straight to storage — a second
+persistence path — and would have left media restored by
+`CourseBackupService.reinstateMedia` with no session owner, reopening the leak
+Revision 0 closed.
+
+## Test work
+
+Twenty assertions across eleven suites reached the removed or moved controls
+and failed until repointed. Two probe rewrites were needed because the Editor's
+export had been used as an observation point for the working copy:
+`course_info_v11_fields_243` and `qql_229_revision3` now observe where the edit
+actually lands. New `test/course_export_screen_248_test.dart` covers the Export
+screen's two routes, the Course title it names, the stored-Course wording, and
+**Save to…** being hidden where no system dialog exists.

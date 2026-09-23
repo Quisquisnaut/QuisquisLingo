@@ -133,7 +133,7 @@ void main() {
         'monospace',
       );
       expect(find.byTooltip(id), findsOneWidget);
-      final generator = find.byKey(const Key('guidebook-round-generator'));
+      final generator = find.byKey(const Key('lesson-guidebook-navigation'));
       expect(
         tester.getTopLeft(line).dy,
         greaterThanOrEqualTo(tester.getBottomLeft(generator).dy),

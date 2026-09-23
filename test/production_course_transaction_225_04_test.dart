@@ -422,7 +422,7 @@ void main() {
       await _settle(tester);
       expect(find.byType(LessonEditorScreen), findsOneWidget);
 
-      await tester.tap(find.byKey(const Key('guidebook-round-generator')));
+      await tester.tap(find.byKey(const Key('lesson-round-wizard')));
       await _settle(tester);
       await tester.enterText(
         find.byKey(const Key('generator-round-count')),

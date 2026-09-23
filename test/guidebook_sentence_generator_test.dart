@@ -18,7 +18,7 @@ void main() {
       final routeResults = <Lesson?>[];
       await _openLessonEditor(tester, fixture, routeResults: routeResults);
 
-      await tester.tap(find.byKey(const Key('guidebook-round-generator')));
+      await tester.tap(find.byKey(const Key('lesson-round-wizard')));
       await tester.pumpAndSettle();
 
       expect(
@@ -58,7 +58,7 @@ void main() {
       final routeResults = <Lesson?>[];
       await _openLessonEditor(tester, fixture, routeResults: routeResults);
 
-      await tester.tap(find.byKey(const Key('guidebook-round-generator')));
+      await tester.tap(find.byKey(const Key('lesson-round-wizard')));
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const Key('generator-review-plan')));
       await tester.pumpAndSettle();

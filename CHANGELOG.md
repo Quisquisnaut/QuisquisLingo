@@ -1,3 +1,26 @@
+# 2.0.48 (Build 248, Revision 2) - Export leaves the Editor - 2026-09-23
+
+Course export and Copy as New Course are no longer offered inside the Course
+Editor. Both worked on the unconfirmed working copy, so a cancelled session
+could produce a package - or persist a whole new Course - built from changes
+that were never saved. Course Manager keeps both actions and works from the
+stored Course. A new Course Export screen mirrors the Import screen, offering
+the fixed-folder export and Save to… in one place, and the Course Manager menu
+now has a single Export Course entry that opens it, for official Courses too.
+
+In each Lesson, Preview Lesson and Generate Rounds from GuideBook leave the
+body and become Preview and Round Wizard buttons in the bottom area, matching
+the Round screen, and the breadcrumbs move to the top like every other level.
+The Round screen's Creation Wizard is renamed Exercise Wizard.
+
+Version History deliberately stays in the Editor: unlike export and copy it
+loads into the working copy and still respects the single Course confirmation.
+
+Course Model v11, stored formats and keys, package format 1, authoring rights,
+scoring, progression and the single top-level Course save are unchanged.
+Version `2.0.48+248002`; Beta expiry remains
+**2026-10-22 23:59:59 local time**.
+
 # 2.0.48 (Build 248, Revision 1) - Course Editor layout and media notices - 2026-09-23
 
 The Course-level Lesson settings - Lesson numbering, Use GuideBook and Create

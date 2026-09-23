@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:quisquislingo_app/models/course_models.dart';
 import 'package:quisquislingo_app/screens/course_editor_screen.dart';
-import 'package:quisquislingo_app/services/custom_course_transfer_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
@@ -10,81 +9,31 @@ void main() {
 
   setUp(() => SharedPreferences.setMockInitialValues({}));
 
-  testWidgets(
-    'custom export is the final page entry and uses existing service',
-    (tester) async {
-      _viewport(tester);
-      final course = _customCourse();
-      final transfer = _RecordingTransfer();
+  testWidgets('the Course Editor offers no export of the working copy', (
+    tester,
+  ) async {
+    // Export left the Editor: it ran on the unconfirmed working copy, so a
+    // cancelled session could produce a package of a Course that exists
+    // nowhere. Course Manager exports the stored Course instead.
+    _viewport(tester);
+    for (final course in [_customCourse(), _customCourse(fork: true)]) {
       await tester.pumpWidget(
         MaterialApp(
-          home: CourseEditorScreen(
-            course: course,
-            userCourse: true,
-            transferService: transfer,
-          ),
+          home: CourseEditorScreen(course: course, userCourse: true),
         ),
       );
       await tester.pumpAndSettle();
-      final export = find.byKey(const Key('course-editor-export-json'));
-      await tester.scrollUntilVisible(
-        export,
-        300,
-        scrollable: find.byType(Scrollable).first,
-      );
-      expect(export, findsOneWidget);
-      expect(find.text('Export Course package'), findsOneWidget);
-      expect(find.byType(PopupMenuButton<String>), findsNothing);
-
-      final list = tester.widget<ListView>(find.byType(ListView));
-      final children =
-          (list.childrenDelegate as SliverChildListDelegate).children;
-      // Export stays the last existing entry. Only the additive Save to…
-      // tile (QQL 240; hidden where no system dialog exists) may follow it.
-      final keys = children.map((child) => child.key).toList();
-      final exportIndex = keys.indexOf(const Key('course-editor-export-json'));
-      expect(exportIndex, greaterThanOrEqualTo(0));
-      final trailing = keys.sublist(exportIndex + 1);
+      expect(find.byKey(const Key('course-editor-export-json')), findsNothing);
+      expect(find.byKey(const Key('course-editor-save-json-to')), findsNothing);
+      expect(find.text('Export Course package'), findsNothing);
       expect(
-        trailing,
-        anyOf(isEmpty, [const Key('course-editor-save-json-to')]),
+        find.byKey(const Key('course-editor-copy-as-new-course')),
+        findsNothing,
+        reason: 'Copy as New Course copied the working copy for the same '
+            'reason and also moved to Course Manager.',
       );
-
-      await tester.tap(export);
-      await tester.pump();
-      expect(transfer.exported?.toJson(), equals(course.toJson()));
-      expect(find.textContaining('Exported “Custom course”'), findsOneWidget);
-    },
-  );
-
-  testWidgets('licensed custom fork exports with provenance unchanged', (
-    tester,
-  ) async {
-    _viewport(tester);
-    final course = _customCourse(fork: true);
-    final before = course.toJson();
-    final transfer = _RecordingTransfer();
-    await tester.pumpWidget(
-      MaterialApp(
-        home: CourseEditorScreen(
-          course: course,
-          userCourse: true,
-          transferService: transfer,
-        ),
-      ),
-    );
-    await tester.pumpAndSettle();
-    final export = find.byKey(const Key('course-editor-export-json'));
-    await tester.scrollUntilVisible(
-      export,
-      300,
-      scrollable: find.byType(Scrollable).first,
-    );
-    await tester.tap(export);
-    await tester.pump();
-    expect(transfer.exported?.toJson(), before);
-    expect(transfer.exported?.forkProvenance?.sourceCourseId, 'official-id');
-    expect(transfer.exported?.originType, CourseOriginType.custom);
+      expect(find.byType(PopupMenuButton<String>), findsNothing);
+    }
   });
 
   for (final origin in [
@@ -119,15 +68,6 @@ void main() {
   );
 }
 
-class _RecordingTransfer extends CustomCourseTransferService {
-  Course? exported;
-
-  @override
-  Future<String> exportCourse(Course course) async {
-    exported = course;
-    return r'C:\Exports\custom_course.json';
-  }
-}
 
 void _viewport(WidgetTester tester) {
   tester.view.physicalSize = const Size(1200, 1100);

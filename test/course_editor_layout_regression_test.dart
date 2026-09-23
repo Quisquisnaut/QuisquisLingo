@@ -450,7 +450,7 @@ void main() {
       'Edit',
       'Copy as New Course',
       'Audit',
-      'Export Course ZIP',
+      'Export Course',
       'Delete course',
     ]) {
       expect(find.text(label), findsOneWidget);
@@ -519,7 +519,7 @@ void main() {
         );
         expect(find.text('View (read only)'), findsOneWidget);
         expect(find.text('Audit'), findsOneWidget);
-        expect(find.text('Export Course ZIP'), findsOneWidget);
+        expect(find.text('Export Course'), findsOneWidget);
         expect(
           find.text('Fork'),
           policy == DerivativeWorksPolicy.allowed
@@ -533,8 +533,13 @@ void main() {
   }
 
   testWidgets(
-    'custom Course Editor exposes Copy as New Course while Delete stays in Course Manager',
+    'the Course Editor offers neither Copy as New Course nor Delete',
     (tester) async {
+      // Copy as New Course ran on the unconfirmed working copy: the old test
+      // here edited Course Info, copied, and expected the copy to carry those
+      // unsaved edits - a Course built from state that might never be saved.
+      // Both actions now live in Course Manager, which works from the stored
+      // Course.
       const profileId = _ownerProfileId;
       SharedPreferences.setMockInitialValues({
         ProfileService.profilesKey: [
@@ -564,9 +569,9 @@ void main() {
           Lesson(lessonId: 'lesson', title: 'Lesson', rounds: const []),
         ],
       );
-      (await tester.runAsync(
+      await tester.runAsync(
         () => CourseEditorService().saveUserCourse(custom),
-      ));
+      );
       await tester.pumpWidget(
         MaterialApp(home: CourseEditorScreen(course: custom, userCourse: true)),
       );
@@ -574,79 +579,10 @@ void main() {
 
       expect(
         find.byKey(const Key('course-editor-copy-as-new-course')),
-        findsOneWidget,
+        findsNothing,
       );
-      expect(find.text('Copy as New Course'), findsOneWidget);
-      expect(find.text('Duplicate'), findsNothing);
+      expect(find.text('Copy as New Course'), findsNothing);
       expect(find.text('Delete course'), findsNothing);
-      expect(find.byTooltip('Run Course Audit'), findsNothing);
-      expect(find.widgetWithText(TextButton, 'Run audit'), findsOneWidget);
-
-      await tester.tap(find.byKey(const Key('course-editor-lock')));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Edit'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Course Info Editor'));
-      await tester.pumpAndSettle();
-      expect(find.text('License / Rights'), findsOneWidget);
-      expect(
-        find.byKey(const Key('course-info-rights-holder-name-0')),
-        findsOneWidget,
-      );
-      await tester.enterText(
-        find.byKey(const Key('course-info-rights-holder-name-0')),
-        'Independent Course Rights Organization',
-      );
-      await tester.ensureVisible(find.byKey(const Key('course-info-save')));
-      await tester.tap(find.byKey(const Key('course-info-save')));
-      await tester.pumpUntilFileIoState(
-        () => find.byKey(const Key('course-info-save')).evaluate().isEmpty,
-      );
-      await tester.ensureVisible(
-        find.byKey(const Key('course-editor-lessons-navigation')),
-      );
-      await tester.tap(
-        find.byKey(const Key('course-editor-lessons-navigation')),
-      );
-      await tester.pumpAndSettle();
-      expect(find.byKey(const Key('lessons-search-action')), findsOneWidget);
-      expect(find.widgetWithText(TextButton, 'Run audit'), findsNothing);
-      await tester.tap(find.byType(BackButton).last);
-      await tester.pumpAndSettle();
-
-      await tester.tap(
-        find.byKey(const Key('course-editor-copy-as-new-course')),
-      );
-      await tester.pumpUntilFileIoState(
-        () =>
-            tester
-                .widget<CourseEditorScreen>(
-                  find.byType(CourseEditorScreen).last,
-                )
-                .course
-                .courseId !=
-            custom.courseId,
-      );
-      final copyEditor = tester.widget<CourseEditorScreen>(
-        find.byType(CourseEditorScreen).last,
-      );
-      expect(copyEditor.isNewCourse, isFalse);
-      expect(copyEditor.course.originType, CourseOriginType.custom);
-      expect(copyEditor.course.courseId, isNot(custom.courseId));
-      expect(copyEditor.course.forkProvenance, isNull);
-      expect(copyEditor.course.rightsHolders, hasLength(1));
-      expect(
-        copyEditor.course.rightsHolders.single.name,
-        'Independent Course Rights Organization',
-      );
-      expect(
-        copyEditor.course.lessons.single.lessonId,
-        isNot(custom.lessons.single.lessonId),
-      );
-      expect(
-        (await tester.runAsync(() => CourseEditorService().listUserCourses()))!,
-        hasLength(2),
-      );
     },
   );
 
