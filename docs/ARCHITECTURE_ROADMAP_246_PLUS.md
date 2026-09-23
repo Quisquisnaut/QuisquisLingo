@@ -158,7 +158,7 @@ recovered from a different screen. With ALL COURSES one tab away, it cannot.
 | ~~2~~ | ~~Remove the Editor's `listUserCourses` duplicate-title check~~ | **Withdrawn.** It is a read that powers a duplicate-name warning while typing, not a library operation, and the sharpened rule explicitly allows it. Removing it would lose the warning or defer the clash to confirm time. |
 | **2** | **Course library operations owner** | The real build. See below. |
 | **3** | Merge into one screen, two tabs, capability-driven | Small once 2 is done; reuse the Build 229 "unified surface is capability-driven" pattern. |
-| **4** | Hide / Unhide, per learner × Course | Clutter control. See below. |
+| **4** | **Hide in Learner** / Unhide, per learner × Course | Ships **with** step 3. See below. |
 | **5** | Editor device-state owner | Independent of this track; see below. |
 
 ### Step 2 — Course library operations owner
@@ -182,7 +182,7 @@ owners.
 **Proof:** every operation reachable in a test without the screen; the screen
 reduced to presentation and confirmation.
 
-### Step 4 — Hide / Unhide
+### Step 4 — Hide in Learner / Unhide, shipped with the merge
 
 Considered and rejected: splitting membership into "studying" and "authoring".
 A maintainer's normal loop is edit, then check the result in the learner view,
@@ -220,13 +220,32 @@ responsibility that are not editing the open Course:
 Give 1 and 2 one owner, so "written immediately" becomes a deliberate property
 of that owner rather than an accident of where the code sits.
 
-### Open questions
+### Both open questions are answered
 
-* **Is `_checkOrphanAudio` running automatically on Editor open deliberate
-  design or historical drift?** This decides whether step 5 is an extraction or
-  a behaviour correction, and those must not be mixed.
-* **Does Hide ship with the merge or after it?** The merge is what makes people
-  add more Courses, so it is what creates the clutter Hide solves.
+**`_checkOrphanAudio` is deliberate.** `SettingsService.isAudioOrphanCheckDue`
+is a **7-day throttle per Course code**, persisted, and the run is additionally
+gated on `canEditOriginal` and Edit mode. A weekly scheduler is not something
+that accumulates by accident. Step 5 is therefore a **pure extraction**: move
+the schedule and the per-device settings to an owner without changing when the
+check runs or what it offers.
+
+One interaction is worth knowing but must **not** be folded into that
+extraction. The dialog removes clip references from the working copy, which
+makes the Course dirty, so accepting an automatic prompt and then leaving now
+produces the "Unapplied course changes" confirmation for something the author
+did not initiate. If that proves annoying, change it in its own revision with
+its own decision, keeping behaviour corrections separate from structural
+extraction as `AGENTS.md` requires.
+
+**Hide ships with the merge** (step 3), not after it. The merge is what leads
+people to add more Courses, so it creates the clutter Hide solves; shipping
+them together means the problem never appears.
+
+The action is labelled **Hide in Learner** / **Unhide**, not plain Hide. The
+merged screen puts two removals within a few pixels of each other — Remove
+(leaves the Personal Library, so it disappears from the Manager tab too) and
+Hide (stays in the library, absent only from the learner Course Selector).
+Naming the *place* in the action is what keeps them apart.
 
 ## Findings carried out of the delivered builds
 
