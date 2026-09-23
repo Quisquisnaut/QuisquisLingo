@@ -3163,7 +3163,7 @@ void main() {
       final betaDialog = tester.widget<AlertDialog>(find.byType(AlertDialog));
       expect(betaDialog.backgroundColor, isNull);
       expect(betaDialog.surfaceTintColor, isNull);
-      expect(find.textContaining('Expiry date: 2026-10-22.'), findsOneWidget);
+      expect(find.textContaining('Expiry date: 2026-10-23.'), findsOneWidget);
       expect(find.widgetWithText(FilledButton, 'OK'), findsOneWidget);
       expect(
         tester

@@ -2,10 +2,12 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:quisquislingo_app/models/course_flag_selection.dart';
 import 'package:quisquislingo_app/models/course_models.dart';
 import 'package:quisquislingo_app/screens/course_editor_screen.dart';
 import 'package:quisquislingo_app/services/course_backup_service.dart';
 import 'package:quisquislingo_app/services/course_editor_service.dart';
+import 'package:quisquislingo_app/services/course_library_operations.dart';
 import 'package:quisquislingo_app/services/profile_service.dart';
 import 'package:quisquislingo_app/services/settings_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -25,8 +27,41 @@ void main() {
       RegExp(r"ValueKey\(\s*'new-course-rights-holder-name-").hasMatch(source),
       isTrue,
     );
-    expect(source, contains('CourseRightsHolder('));
-    expect(source, contains('rightsHolders: rightsHolders'));
+
+    // Since Build 249 the dialog's values are built into the Course by
+    // CourseLibraryOperations.newCourse, so the structure is checked by
+    // behaviour rather than by searching the screen's source.
+    final course = CourseLibraryOperations().newCourse(
+      creator: const LearnerProfile(
+        learnerProfileId: _profileId,
+        displayName: 'Rights Author',
+      ),
+      maintainerProfileId: _profileId,
+      title: 'Rights',
+      sourceLanguage: 'English',
+      targetLanguage: 'Italian',
+      credits: const [],
+      license: 'CC BY 4.0',
+      derivativeWorksPolicy: DerivativeWorksPolicy.allowed,
+      rightsHolders: const [
+        (type: CourseRightsHolderType.organization, name: ' Rights Org '),
+        (type: CourseRightsHolderType.person, name: ''),
+      ],
+      languageVariant: '',
+      startLevel: '',
+      targetLevel: '',
+      courseDescription: '',
+      buyACoffeeUrl: '',
+      flag: const CourseFlagSelection.automatic(),
+      lessonCount: 1,
+      roundsPerLesson: 1,
+    );
+    expect(course.rightsHolders, hasLength(1));
+    expect(
+      course.rightsHolders.single.type,
+      CourseRightsHolderType.organization,
+    );
+    expect(course.rightsHolders.single.name, 'Rights Org');
   });
 
   testWidgets('Course Info Editor persists edited structured Rights Holders', (

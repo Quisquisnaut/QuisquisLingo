@@ -1,3 +1,45 @@
+# 2.0.49 (Build 249, Revision 2) - Failed Course deletion is reported - 2026-09-23
+
+When deleting a Course failed at the storage step, Course Manager showed
+nothing: the error was lost and the Course simply stayed in the list. It now
+says "Could not delete “…”:" with the reason, and the list is reloaded so it
+shows what is actually stored. Deleting that succeeds is unchanged, and so is
+the two-step confirmation.
+
+Version `2.0.49+249002`; Beta expiry remains
+**2026-10-23 23:59:59 local time**.
+
+# 2.0.49 (Build 249, Revision 1) - Greyed-out Course Manager actions - 2026-09-23
+
+Course Manager's menu no longer hides actions you are not allowed to use.
+An action that depends on your rights, the Course's license, Publisher
+verification or admin status now appears greyed out, with a short line
+saying why: for example "Only the Maintainer or assigned Team can delete this
+Course.", "The license does not allow derivative works." or "Only an admin
+can remove a Publisher Course from this device." Tapping it does nothing.
+Actions that can never apply to that kind of Course, such as Copy, Merge or
+Delete on an official Course, stay hidden. Who may do what is unchanged.
+
+Version `2.0.49+249001`; Beta expiry remains
+**2026-10-23 23:59:59 local time**.
+
+# 2.0.49 (Build 249, Revision 0) - Course library operations - 2026-09-23
+
+Course Manager's workflow has one owner. Which Courses are listed, which menu
+actions each Course offers, the titles given to copies and merges, where a Fork
+of an official Course takes its source, what an import may do when its Course
+ID is already in use, and the messages reported afterwards all lived inside
+the screen. They now live in `CourseLibraryOperations`, which can be tested
+without building the screen; the screen keeps its layout, dialogs and
+confirmations. Course Manager looks and behaves exactly as before.
+
+A characterization test found one existing defect, deliberately left alone in
+this revision: when deleting a Course fails at the storage step, nothing is
+shown and the error is lost. It is fixed separately in Revision 2.
+
+Version `2.0.49+249000`; the Beta expiry, recalculated from this release's
+date, is **2026-10-23 23:59:59 local time**.
+
 # 2.0.48 (Build 248, Revision 3) - Fork leaves the Editor - 2026-09-23
 
 Fork was the third Course Editor action running on the unconfirmed working

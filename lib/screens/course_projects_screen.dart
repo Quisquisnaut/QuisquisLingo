@@ -1,6 +1,3 @@
-import '../services/settings_service.dart';
-import '../services/course_library_service.dart';
-import '../services/course_file_store.dart';
 import 'available_courses_screen.dart';
 import 'dart:async';
 
@@ -10,19 +7,16 @@ import '../models/course_flag_selection.dart';
 import '../models/course_models.dart';
 import '../models/course_metadata_options.dart';
 import '../services/course_editor_service.dart';
-import '../services/course_audit_service.dart';
-import '../services/course_flag_service.dart';
 import '../services/custom_course_transfer_service.dart';
 import '../services/course_service.dart';
 import '../services/course_language_resolver.dart';
+import '../services/course_library_operations.dart';
 import '../services/course_merge_service.dart';
 import '../services/course_package_import.dart';
 import '../services/course_package_service.dart';
 import '../services/formal_name_policy.dart';
 import '../services/course_access_policy.dart';
-import '../services/profile_service.dart';
 import '../services/sound_effect_service.dart';
-import '../services/team_service.dart';
 import '../services/new_course_structure.dart';
 import '../widgets/course_flag_picker.dart';
 import '../widgets/editor_app_bar_actions.dart';
@@ -495,9 +489,11 @@ class _CourseMergeScreenState extends State<CourseMergeScreen> {
             const SizedBox(height: 16),
             FilledButton(
               onPressed:
-                  _loading || _submitting || _choices.every(
-                    (choice) => choice == LessonMergeChoice.exclude,
-                  )
+                  _loading ||
+                      _submitting ||
+                      _choices.every(
+                        (choice) => choice == LessonMergeChoice.exclude,
+                      )
                   ? null
                   : () async {
                       if (_submitting) return;
@@ -514,7 +510,9 @@ class _CourseMergeScreenState extends State<CourseMergeScreen> {
                       } catch (error) {
                         if (context.mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Course merge failed: $error')),
+                            SnackBar(
+                              content: Text('Course merge failed: $error'),
+                            ),
                           );
                         }
                       } finally {
@@ -773,25 +771,17 @@ class CourseProjectsScreen extends StatefulWidget {
 }
 
 class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
-  late final _service = widget.editorService ?? CourseEditorService();
-  final _courseService = CourseService();
-  final _flags = CourseFlagService();
-  late final _transfer =
-      widget.transferService ?? CustomCourseTransferService();
-  final _merge = CourseMergeService();
-  final _profiles = ProfileService();
+  late final _ops = CourseLibraryOperations(
+    editor: widget.editorService,
+    transfer: widget.transferService,
+  );
+  late final _service = _ops.editor;
+  late final _transfer = _ops.transfer;
   final _sounds = SoundEffectService();
-  late final _teams = TeamService(profileService: _profiles);
-  List<Course> _user = [];
+  CourseManagerLibrary _library = const CourseManagerLibrary();
   bool _loading = true;
   String? _loadError;
-  List<SkippedCourseFile> _unreadable = const [];
   bool _openedInitialCourse = false;
-  String? _activeProfileId;
-  Set<String> _memberTeamIds = const {};
-  bool _isAdmin = false;
-  bool _importAuthoringEnabled = false;
-  List<Course> _includedBundled = [];
 
   @override
   void initState() {
@@ -813,46 +803,14 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
       });
     }
     try {
-      final value = await CourseLibraryService().included(
-        await _service.listUserCourses(),
+      final library = await _ops.load(
+        currentCourse: widget.currentCourse,
+        importOnly: widget.importOnly,
       );
-      final bundled = <Course>[
-        if (!widget.importOnly)
-          for (final code in CourseService.courseAssets.keys)
-            await _courseService.loadCourse(code),
-      ];
-      final includedBundled = await CourseLibraryService().included([
-        if (widget.currentCourse?.originType ==
-            CourseOriginType.bundledOfficial)
-          widget.currentCourse!,
-        ...bundled.where(
-          (c) =>
-              c.courseId != widget.currentCourse?.courseId ||
-              widget.currentCourse?.originType !=
-                  CourseOriginType.bundledOfficial,
-        ),
-      ]);
-      final importAuthoringEnabled =
-          !widget.importOnly ||
-          await SettingsService().isCourseEditorUnlocked();
-      final activeProfileId = await _profiles.getActiveProfileId();
-      final isAdmin =
-          activeProfileId != null && await _profiles.isAdmin(activeProfileId);
-      final memberTeamIds = activeProfileId == null
-          ? const <String>{}
-          : (await _teams.teamsForProfile(
-              activeProfileId,
-            )).map((team) => team.teamId).toSet();
       if (!mounted) return;
       setState(() {
-        _user = value;
-        _unreadable = _service.unreadableCourseFiles;
-        _importAuthoringEnabled = importAuthoringEnabled;
-        _includedBundled = includedBundled;
+        _library = library;
         _loading = false;
-        _activeProfileId = activeProfileId;
-        _memberTeamIds = memberTeamIds;
-        _isAdmin = isAdmin;
       });
       if (!_openedInitialCourse && widget.initialCourseIdToOpen != null) {
         _openedInitialCourse = true;
@@ -893,9 +851,9 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    _unreadable.length == 1
+                    _library.unreadable.length == 1
                         ? '1 stored Course could not be read'
-                        : '${_unreadable.length} stored Courses could not be read',
+                        : '${_library.unreadable.length} stored Courses could not be read',
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       color: scheme.onErrorContainer,
@@ -912,7 +870,7 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
               style: TextStyle(color: scheme.onErrorContainer),
             ),
             const SizedBox(height: 6),
-            for (final file in _unreadable)
+            for (final file in _library.unreadable)
               Padding(
                 padding: const EdgeInsets.only(top: 4),
                 child: SelectableText(
@@ -930,11 +888,10 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
     if (!mounted) return;
     final courseId = widget.initialCourseIdToOpen;
     if (courseId == null) return;
-    for (final course in _user) {
-      if (course.courseId == courseId) {
-        await _openUser(course);
-        return;
-      }
+    final course = _library.personalCourse(courseId);
+    if (course != null) {
+      await _openUser(course);
+      return;
     }
     if (widget.currentCourse?.courseId == courseId) await _openBundled();
   }
@@ -950,8 +907,8 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
     ),
   );
 
-  Future<void> _openCourseExport(Course course) => Navigator.of(context)
-      .push<void>(
+  Future<void> _openCourseExport(Course course) =>
+      Navigator.of(context).push<void>(
         MaterialPageRoute(
           builder: (_) => CourseExportScreen(
             courseTitle: course.title,
@@ -982,41 +939,15 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
     CourseMergeOptions options,
   ) async {
     try {
-      final outputTitle = _nextMergeTitle('${options.title} merged');
-      final merged = await _merge.createMergedCourse(
+      final proposal = await _ops.composeMerge(
         left: left,
         right: right,
         choices: choices,
-        options: CourseMergeOptions(
-          title: options.title,
-          outputTitle: outputTitle,
-          createDuels: options.createDuels,
-          useGuidebook: options.useGuidebook,
-          lessonNumberingMode: options.lessonNumberingMode,
-          customLessonLabel: options.customLessonLabel,
-          sectionNames: options.sectionNames,
-          buyACoffeeUrl: options.buyACoffeeUrl,
-          courseDescription: options.courseDescription,
-          startLevel: options.startLevel,
-          targetLevel: options.targetLevel,
-          flagCode: options.flagCode,
-          worldFlagId: options.worldFlagId,
-          flagImageBase64: options.flagImageBase64,
-        ),
+        options: options,
+        library: _library,
       );
       if (!mounted) return;
-      final audit = CourseAuditService().auditCourse(merged);
-      final errors = audit.issues
-          .where((issue) => issue.severity == AuditSeverity.error)
-          .toList();
-      if (errors.isNotEmpty) {
-        throw StateError(
-          'Course Audit found ${errors.length} error${errors.length == 1 ? '' : 's'}. Fix the source Course content before merging.',
-        );
-      }
-      if (audit.issues.any(
-        (issue) => issue.severity == AuditSeverity.warning,
-      )) {
+      if (proposal.hasAuditWarnings) {
         await showDialog<void>(
           context: context,
           builder: (context) => AlertDialog(
@@ -1034,11 +965,7 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
         );
         if (!mounted) return;
       }
-      final result = await _service.confirmMergedCourse(
-        left: left,
-        right: right,
-        merged: merged,
-      );
+      final result = await _ops.confirmMerge(proposal);
       if (!mounted) return;
       Navigator.of(context).pop();
       _showConfirmationResult(result);
@@ -1053,7 +980,7 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
   }
 
   Future<Course?> _createCourse() async {
-    final activeProfile = await _profiles.getActiveProfileRecord();
+    final activeProfile = await _ops.profiles.getActiveProfileRecord();
     if (activeProfile == null) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -1064,7 +991,7 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
       }
       return null;
     }
-    final availableMaintainers = await _profiles.getProfileRecords();
+    final availableMaintainers = await _ops.profiles.getProfileRecords();
     if (!mounted) return null;
     final title = TextEditingController();
     final source = TextEditingController(text: 'English');
@@ -1646,11 +1573,7 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
                         final s = source.text.trim();
                         final tg = target.text.trim();
                         if (s.isEmpty || tg.isEmpty) return;
-                        if (_user.any(
-                          (course) =>
-                              FormalNamePolicy.comparisonKey(course.title) ==
-                              FormalNamePolicy.comparisonKey(t),
-                        )) {
+                        if (_library.hasCourseTitled(t)) {
                           final continueAnyway = await showDialog<bool>(
                             context: ctx,
                             builder: (warningContext) => AlertDialog(
@@ -1689,102 +1612,54 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
                           );
                           return;
                         }
-                        final credits = <CourseAuthor>[];
-                        for (
-                          var index = 0;
-                          index < authorNames.length;
-                          index++
-                        ) {
-                          final name = authorNames[index].text.trim();
-                          if (name.isEmpty) continue;
-                          final roles = <String>[
-                            ...CourseMetadataOptions.standardRoles.where(
-                              authorRoles[index].contains,
-                            ),
-                          ];
-                          for (final part
-                              in customAuthorRoles[index].text.split(',')) {
-                            final role = part.trim();
-                            if (role.isNotEmpty && !roles.contains(role)) {
-                              roles.add(role);
-                            }
-                          }
-                          if (roles.isEmpty) roles.add('Contributor');
-                          credits.add(CourseAuthor(name: name, roles: roles));
-                        }
-                        final rightsHolders = <CourseRightsHolder>[];
-                        for (
-                          var index = 0;
-                          index < rightsHolderNames.length;
-                          index++
-                        ) {
-                          final name = rightsHolderNames[index].text.trim();
-                          if (name.isEmpty) continue;
-                          rightsHolders.add(
-                            CourseRightsHolder(
-                              type: rightsHolderTypes[index],
-                              name: name,
-                            ),
-                          );
-                        }
-                        final updatedAt = DateTime.now().toUtc();
-                        final lessons = NewCourseStructure.create(
-                          sourceLanguage: s,
-                          learningLanguage: tg,
-                          lessonCount: int.parse(lessonCount.text.trim()),
-                          roundsPerLesson: int.parse(
-                            roundsPerLesson.text.trim(),
-                          ),
-                          updatedAt: updatedAt,
-                        );
-                        final speechLanguage =
-                            CourseLanguageResolver.codeFromMetadata([tg]) ??
-                            'und';
-                        final nowUtc = updatedAt.toIso8601String();
                         Navigator.pop(
                           ctx,
-                          Course(
-                            courseId: Course.newCourseId(),
-                            originalCourseCreator:
-                                CourseProvenanceIdentity.qqlUser(
-                                  profileId: activeProfile.learnerProfileId,
-                                  displayName: activeProfile.presentationName,
-                                ),
-                            maintainer: CourseMaintainer(selectedMaintainer),
-                            originalCreatedAtUtc: nowUtc,
-                            lastVersionEditorProfileId:
-                                activeProfile.learnerProfileId,
-                            lastVersionEditorDisplayName:
-                                activeProfile.presentationName,
-                            modifiedAtUtc: nowUtc,
-                            publicationState: PublicationState.draft,
-                            learningLanguage: tg,
-                            interfaceLanguage: s,
+                          _ops.newCourse(
+                            creator: activeProfile,
+                            maintainerProfileId: selectedMaintainer,
+                            title: t,
                             sourceLanguage: s,
                             targetLanguage: tg,
-                            title: t,
-                            ttsLanguage: speechLanguage,
-                            originType: CourseOriginType.custom,
-                            courseVersion: '',
-                            authors: credits,
+                            credits: [
+                              for (
+                                var index = 0;
+                                index < authorNames.length;
+                                index++
+                              )
+                                (
+                                  name: authorNames[index].text,
+                                  roles: authorRoles[index],
+                                  customRoles: customAuthorRoles[index].text,
+                                ),
+                            ],
                             license: license,
-                            rightsHolders: rightsHolders,
                             derivativeWorksPolicy:
                                 selectedLicense == 'Other / Custom license'
                                 ? selectedDerivativePolicy
                                 : CourseMetadataOptions.derivativePolicyForLicense(
                                     selectedLicense,
                                   ),
+                            rightsHolders: [
+                              for (
+                                var index = 0;
+                                index < rightsHolderNames.length;
+                                index++
+                              )
+                                (
+                                  type: rightsHolderTypes[index],
+                                  name: rightsHolderNames[index].text,
+                                ),
+                            ],
                             languageVariant: variant.text.trim(),
                             startLevel: startLevel.text.trim(),
                             targetLevel: targetLevel.text.trim(),
                             courseDescription: description.text.trim(),
                             buyACoffeeUrl: normalizedBuyACoffeeUrl,
-                            flagCode: flagSelection.flagCode,
-                            flagImageBase64: flagSelection.flagImageBase64,
-                            worldFlagId: flagSelection.selectedWorldFlagId,
-                            temporarySample: false,
-                            lessons: lessons,
+                            flag: flagSelection,
+                            lessonCount: int.parse(lessonCount.text.trim()),
+                            roundsPerLesson: int.parse(
+                              roundsPerLesson.text.trim(),
+                            ),
                           ),
                         );
                       },
@@ -1808,7 +1683,7 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
           course: course,
           access: CourseAccessPolicy.evaluate(
             course,
-            profileId: _activeProfileId,
+            profileId: _library.activeProfileId,
           ).copyForUnconfirmedCreator(),
           isNewCourse: true,
           editorService: _service,
@@ -1847,39 +1722,17 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
   }
 
   void _showConfirmationResult(CourseConfirmationResult result) {
-    final course = result.course;
-    final version = 'New course version: ${course.courseVersion}';
-    final backup = result.backupPath == null
-        ? '\nNo previous version existed, so no backup was required.'
-        : '\nBackup: ${result.backupPath}';
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         duration: const Duration(seconds: 12),
-        content: Text('Course changes confirmed.\n$version$backup'),
+        content: Text(CourseLibraryReports.confirmed(result)),
       ),
-    );
-  }
-
-  String _nextCopyTitle(String sourceTitle) {
-    return CourseMergeService.nextAvailableTitle(
-      '$sourceTitle copy',
-      _user.map((course) => course.title),
-    );
-  }
-
-  String _nextMergeTitle(String sourceTitle) {
-    return CourseMergeService.nextAvailableTitle(
-      sourceTitle,
-      _user.map((course) => course.title),
     );
   }
 
   Future<void> _copyAsNewCourse(Course course) async {
     try {
-      final created = await _service.createCopyAsNewCourse(
-        source: course,
-        title: _nextCopyTitle(course.title),
-      );
+      final created = await _ops.copyAsNewCourse(course, _library);
       await _reload();
       if (!mounted) return;
       _showConfirmationResult(created);
@@ -1907,24 +1760,7 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
 
   Future<void> _forkCourse(Course course) async {
     try {
-      Course source = course;
-      if (course.originType.isOfficial) {
-        final bundledSource =
-            course.originType == CourseOriginType.bundledOfficial
-            ? await _courseService.loadBundledCourse(
-                CourseService.codeForCourse(course),
-              )
-            : null;
-        final official = await _service.officialSourceFor(
-          course,
-          bundledSource: bundledSource,
-        );
-        if (official == null) {
-          throw StateError('The immutable official source is unavailable.');
-        }
-        source = official;
-      }
-      final created = await _service.createFork(source: source);
+      final created = await _ops.fork(course);
       await _reload();
       if (!mounted) return;
       _showConfirmationResult(created);
@@ -1948,11 +1784,7 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
   }
 
   CourseAccessCapabilities _capabilities(Course course) =>
-      CourseAccessPolicy.evaluate(
-        course,
-        profileId: _activeProfileId,
-        memberTeamIds: _memberTeamIds,
-      );
+      _library.capabilitiesFor(course);
 
   Widget _courseActions(
     Course course, {
@@ -1960,118 +1792,129 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
     required VoidCallback onOpen,
   }) {
     final access = _capabilities(course);
-    return PopupMenuButton<String>(
+    return PopupMenuButton<CourseManagerAction>(
       key: key,
       tooltip: 'Course actions',
-      onSelected: (value) {
-        if (value == 'open') onOpen();
-        if (value == 'remove_personal') _removePersonal(course);
-        if (value == 'uninstall_publisher') _uninstallPublisher(course);
-        if (value == 'fork') _forkCourse(course);
-        if (value == 'copy_as_new') _copyAsNewCourse(course);
-        if (value == 'merge') _openCourseMerge(course);
-        if (value == 'audit') _auditCourse(course);
-        if (value == 'export') _openCourseExport(course);
-        if (value == 'delete' && course.originType == CourseOriginType.custom) {
-          _delete(course);
+      onSelected: (action) {
+        switch (action) {
+          case CourseManagerAction.open:
+            onOpen();
+          case CourseManagerAction.removeFromMyCourses:
+            _removePersonal(course);
+          case CourseManagerAction.removePublisherFromDevice:
+            _uninstallPublisher(course);
+          case CourseManagerAction.fork:
+            _forkCourse(course);
+          case CourseManagerAction.copyAsNewCourse:
+            _copyAsNewCourse(course);
+          case CourseManagerAction.merge:
+            _openCourseMerge(course);
+          case CourseManagerAction.audit:
+            _auditCourse(course);
+          case CourseManagerAction.export:
+            _openCourseExport(course);
+          case CourseManagerAction.delete:
+            _delete(course);
         }
       },
       itemBuilder: (_) => [
-        const PopupMenuItem(
-          value: 'remove_personal',
-          child: Text('Remove from my courses'),
-        ),
-        if (_isAdmin && course.originType == CourseOriginType.externalOfficial)
-          const PopupMenuItem(
-            value: 'uninstall_publisher',
-            child: Text('Remove Publisher Course from device'),
-          ),
-        PopupMenuItem(
-          value: 'open',
-          child: ListTile(
-            leading: Icon(
-              access.canEditOriginal
-                  ? Icons.edit_outlined
-                  : Icons.visibility_outlined,
-            ),
-            title: Text(access.canEditOriginal ? 'Edit' : 'View (read only)'),
-          ),
-        ),
-        if (access.canFork)
-          const PopupMenuItem(
-            value: 'fork',
-            child: ListTile(
-              leading: Icon(Icons.fork_right_outlined),
-              title: Text('Fork'),
-              subtitle: Text(
-                'Create a derivative Course that preserves the source Course lineage.',
-              ),
-            ),
-          ),
-        if (access.canCopyAsNewCourse)
-          const PopupMenuItem(
-            value: 'copy_as_new',
-            child: ListTile(
-              leading: Icon(Icons.copy_outlined),
-              title: Text('Copy as New Course'),
-              subtitle: Text(
-                'Create a new independent Course using this Course as the starting content.',
-              ),
-            ),
-          ),
-        if (course.originType == CourseOriginType.custom &&
-            access.hasOperationalAccess)
-          const PopupMenuItem(
-            value: 'merge',
-            child: ListTile(
-              leading: Icon(Icons.merge_type_outlined),
-              title: Text('Merge'),
-              subtitle: Text('Create a third Course from selected Lessons.'),
-            ),
-          ),
-        const PopupMenuItem(
-          value: 'audit',
-          child: ListTile(
-            leading: Icon(Icons.fact_check_outlined),
-            title: Text('Audit'),
-          ),
-        ),
-        if (course.originType.isOfficial || access.hasOperationalAccess)
-          const PopupMenuItem(
-            value: 'export',
-            child: ListTile(
-              leading: Icon(Icons.download_outlined),
-              title: Text('Export Course'),
-            ),
-          ),
-        if (access.canDelete)
-          const PopupMenuItem(
-            value: 'delete',
-            child: ListTile(
-              leading: Icon(Icons.delete_outline),
-              title: Text('Delete course'),
-            ),
-          ),
+        for (final entry in _library.entriesFor(course))
+          _courseActionItem(entry, access),
       ],
     );
   }
 
+  /// An unavailable entry is shown disabled, with its reason in place of the
+  /// description.
+  PopupMenuEntry<CourseManagerAction> _courseActionItem(
+    CourseManagerEntry entry,
+    CourseAccessCapabilities access,
+  ) {
+    final (
+      IconData? icon,
+      String title,
+      String? description,
+    ) = switch (entry.action) {
+      CourseManagerAction.removeFromMyCourses => (
+        null,
+        'Remove from my courses',
+        null,
+      ),
+      CourseManagerAction.removePublisherFromDevice => (
+        null,
+        'Remove Publisher Course from device',
+        null,
+      ),
+      CourseManagerAction.open => (
+        access.canEditOriginal
+            ? Icons.edit_outlined
+            : Icons.visibility_outlined,
+        access.canEditOriginal ? 'Edit' : 'View (read only)',
+        null,
+      ),
+      CourseManagerAction.fork => (
+        Icons.fork_right_outlined,
+        'Fork',
+        'Create a derivative Course that preserves the source Course lineage.',
+      ),
+      CourseManagerAction.copyAsNewCourse => (
+        Icons.copy_outlined,
+        'Copy as New Course',
+        'Create a new independent Course using this Course as the starting content.',
+      ),
+      CourseManagerAction.merge => (
+        Icons.merge_type_outlined,
+        'Merge',
+        'Create a third Course from selected Lessons.',
+      ),
+      CourseManagerAction.audit => (Icons.fact_check_outlined, 'Audit', null),
+      CourseManagerAction.export => (
+        Icons.download_outlined,
+        'Export Course',
+        null,
+      ),
+      CourseManagerAction.delete => (
+        Icons.delete_outline,
+        'Delete course',
+        null,
+      ),
+    };
+    final reason = entry.unavailableReason;
+    return PopupMenuItem(
+      value: entry.action,
+      enabled: entry.available,
+      child: icon == null && reason == null
+          ? Text(title)
+          : ListTile(
+              enabled: entry.available,
+              leading: icon == null ? null : Icon(icon),
+              title: Text(title),
+              subtitle: reason != null
+                  ? Text(
+                      reason,
+                      key: ValueKey(
+                        'course-manager-unavailable-${entry.action.name}',
+                      ),
+                    )
+                  : description == null
+                  ? null
+                  : Text(description),
+            ),
+    );
+  }
+
   Future<void> _auditCourse(Course course) async {
-    try {
-      await _flags.validateWorldFlag(course);
-    } on FormatException catch (error) {
-      if (!mounted) return;
+    final audit = await _ops.audit(course);
+    if (!mounted) return;
+    final flagProblem = audit.flagProblem;
+    if (flagProblem != null) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text(error.message)));
+      ).showSnackBar(SnackBar(content: Text(flagProblem)));
     }
-    if (!mounted) return;
     await Navigator.of(context).push<void>(
       MaterialPageRoute(
-        builder: (_) => CourseAuditScreen(
-          course: course,
-          result: CourseAuditService().auditCourse(course),
-        ),
+        builder: (_) => CourseAuditScreen(course: course, result: audit.result),
       ),
     );
   }
@@ -2106,24 +1949,9 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
       if (attempt.hadMatchingFolderWrapper && mounted) {
         _showMatchingZipFolderWarning(context);
       }
-      final imported = importedPackage.course;
-      if (imported.originType == CourseOriginType.bundledOfficial) {
-        throw const FormatException(
-          'Bundled official courses are installed only with QuisquisLingo application builds.',
-        );
-      }
-      // Import keeps every publication state stored in the file (Course,
-      // Lessons, GuideBooks, Rounds and Exercises); it never asks and never
-      // changes them.
-      final course = imported;
-      final installedCourses = await _service.listUserCourses();
-      final audit = CourseAuditService().auditCourse(course);
-      final errors = audit.issues
-          .where((issue) => issue.severity == AuditSeverity.error)
-          .toList();
-      final warnings = audit.issues
-          .where((issue) => issue.severity == AuditSeverity.warning)
-          .toList();
+      final review = await _ops.reviewImport(attempt, _library);
+      final course = review.course;
+      final errors = review.errors;
       if (!mounted) return;
       if (errors.isNotEmpty) {
         await showDialog<void>(
@@ -2137,9 +1965,7 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text(
-                      'Course Audit found ${errors.length} error${errors.length == 1 ? '' : 's'}. Fix these errors before importing the course.',
-                    ),
+                    Text(CourseLibraryReports.importBlocked(errors.length)),
                     const SizedBox(height: 10),
                     for (final issue in errors.take(8))
                       Text(
@@ -2161,10 +1987,8 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
         );
         return;
       }
-      if (course.originType == CourseOriginType.externalOfficial) {
-        final existing = installedCourses
-            .where((candidate) => candidate.courseId == course.courseId)
-            .firstOrNull;
+      if (review.isPublisherCourse) {
+        final existing = review.existing;
         final proceed = await showDialog<bool>(
           context: context,
           builder: (context) => AlertDialog(
@@ -2198,37 +2022,22 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
         );
         if (proceed != true) return;
         final result = await attempt.installPublisherCourse(
-          confirmUnverifiedAssociation:
-              existing != null &&
-              existing.publisherVerificationStatus !=
-                  PublisherVerificationStatus.verified,
+          confirmUnverifiedAssociation: review.confirmsUnverifiedAssociation,
         );
         await _reload();
         if (!mounted) return;
-        final verification =
-            result.officialCourse.publisherVerificationStatus ==
-                PublisherVerificationStatus.verified
-            ? 'verified publisher signature'
-            : 'UNVERIFIED publisher metadata';
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             duration: const Duration(seconds: 12),
             content: Text(
-              'Installed Publisher Course version ${course.officialCourseVersion} from ${course.publisherName} ($verification).'
-              '${result.backupPath == null ? '' : '\nBacked up previous official source: ${result.backupPath}'}',
+              CourseLibraryReports.publisherInstalled(course, result),
             ),
           ),
         );
         return;
       }
-      final existingIndex = installedCourses.indexWhere(
-        (c) => c.courseId == course.courseId,
-      );
-      final existing = existingIndex < 0
-          ? null
-          : installedCourses[existingIndex];
+      final existing = review.existing;
       if (existing != null) {
-        final importedAccess = _capabilities(course);
         final choice =
             await showDialog<String>(
               context: context,
@@ -2244,19 +2053,19 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
                     onPressed: () => Navigator.pop(ctx, 'cancel'),
                     child: const Text('Cancel'),
                   ),
-                  if (_importAuthoringEnabled &&
-                      importedAccess.canCopyAsNewCourse)
+                  if (review.choices.contains(
+                    CourseImportChoice.copyAsNewCourse,
+                  ))
                     OutlinedButton(
                       onPressed: () => Navigator.pop(ctx, 'copy'),
                       child: const Text('Copy as New Course'),
                     ),
-                  if (_importAuthoringEnabled && importedAccess.canFork)
+                  if (review.choices.contains(CourseImportChoice.fork))
                     OutlinedButton(
                       onPressed: () => Navigator.pop(ctx, 'fork'),
                       child: const Text('Fork'),
                     ),
-                  if (!existing.originType.isOfficial &&
-                      _capabilities(existing).canEditOriginal)
+                  if (review.choices.contains(CourseImportChoice.replace))
                     FilledButton(
                       onPressed: () => Navigator.pop(ctx, 'replace'),
                       child: const Text('Replace / update'),
@@ -2268,7 +2077,7 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
         if (choice == 'cancel') return;
         if (choice == 'copy') {
           final created = await attempt.copyAsNewCourse(
-            title: _nextCopyTitle(course.title),
+            title: _library.nextCopyTitle(course.title),
           );
           await _reload();
           if (!mounted) return;
@@ -2312,9 +2121,7 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
         SnackBar(
           duration: const Duration(seconds: 8),
           content: Text(
-            warnings.isEmpty
-                ? 'Imported “${course.title}”.'
-                : 'Imported “${course.title}” with ${warnings.length} Course Audit warning${warnings.length == 1 ? '' : 's'}. Review Course Audit.',
+            CourseLibraryReports.imported(course, review.warnings.length),
           ),
         ),
       );
@@ -2335,15 +2142,17 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
 
   Future<void> _exportCourse(Course course) async {
     try {
-      final notice = CourseAuditService().auditCourse(course).exportNotice;
-      final path = await _transfer.exportCourse(course);
+      final exported = await _ops.exportCourse(course);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           duration: const Duration(seconds: 12),
           content: Text(
-            'Exported “${course.title}” to $path'
-            '${notice == null ? '' : ' $notice'}',
+            CourseLibraryReports.exported(
+              course,
+              exported.path,
+              exported.notice,
+            ),
           ),
         ),
       );
@@ -2361,16 +2170,17 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
 
   Future<void> _saveCourseTo(Course course) async {
     try {
-      final notice = CourseAuditService().auditCourse(course).exportNotice;
-      final result = await _transfer.exportCourseTo(course);
+      final saved = await _ops.saveCourseTo(course);
       if (!mounted) return;
       showFileDialogFeedback(
         context,
-        result,
+        saved.result,
         saving: true,
-        savedMessage:
-            'Saved “${course.title}” as ${result.displayName}.'
-            '${notice == null ? '' : ' $notice'}',
+        savedMessage: CourseLibraryReports.savedTo(
+          course,
+          saved.result.displayName,
+          saved.notice,
+        ),
         fallbackHint: exportFallbackHint,
       );
     } catch (error) {
@@ -2411,7 +2221,7 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
     );
     if (confirmed != true) return;
     try {
-      await _service.removePublisherCourseFromDevice(course);
+      await _ops.removePublisherCourse(course);
       await _reload();
     } catch (error) {
       if (mounted) {
@@ -2467,7 +2277,20 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
         ) ??
         false;
     if (!second) return;
-    await _service.deleteUserCourse(course.courseId);
+    try {
+      await _ops.deleteCourse(course);
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            duration: const Duration(seconds: 8),
+            content: Text(CourseLibraryReports.deleteFailed(course, error)),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+        );
+      }
+    }
+    // Either way, list what storage now holds.
     await _reload();
   }
 
@@ -2547,7 +2370,7 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
               : ListView(
                   padding: const EdgeInsets.all(16),
                   children: [
-                    if (_unreadable.isNotEmpty) ...[
+                    if (_library.unreadable.isNotEmpty) ...[
                       _unreadableCoursesCard(),
                       const SizedBox(height: 12),
                     ],
@@ -2561,8 +2384,8 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
                             await Navigator.of(context).push<void>(
                               MaterialPageRoute(
                                 builder: (_) => TeamManagerScreen(
-                                  teamService: _teams,
-                                  profileService: _profiles,
+                                  teamService: _ops.teams,
+                                  profileService: _ops.profiles,
                                 ),
                               ),
                             );
@@ -2571,7 +2394,8 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
                           icon: const Icon(Icons.groups_outlined),
                           label: const Text('Team Manager'),
                         ),
-                        if (_isAdmin && _activeProfileId != null)
+                        if (_library.isAdmin &&
+                            _library.activeProfileId != null)
                           OutlinedButton.icon(
                             key: const Key('admin-media-library-entry'),
                             onPressed: () async {
@@ -2580,7 +2404,7 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
                                   builder: (_) => FlatImageLibraryScreen(
                                     selectMode: false,
                                     metadataEditingEnabled: true,
-                                    actorProfileId: _activeProfileId,
+                                    actorProfileId: _library.activeProfileId,
                                   ),
                                 ),
                               );
@@ -2591,13 +2415,13 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
                           ),
                       ],
                     ),
-                    if (_includedBundled.isNotEmpty) ...[
+                    if (_library.bundledCourses.isNotEmpty) ...[
                       const SizedBox(height: 18),
                       Text(
                         'Bundled Courses',
                         style: Theme.of(context).textTheme.titleMedium,
                       ),
-                      for (final course in _includedBundled)
+                      for (final course in _library.bundledCourses)
                         _courseStatusCard(
                           course,
                           ListTile(
@@ -2629,12 +2453,12 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    if (_user.isEmpty)
+                    if (_library.personalCourses.isEmpty)
                       const Padding(
                         padding: EdgeInsets.symmetric(vertical: 16),
                         child: Text('No local courses yet.'),
                       ),
-                    for (final course in _user)
+                    for (final course in _library.personalCourses)
                       _courseStatusCard(
                         course,
                         ListTile(

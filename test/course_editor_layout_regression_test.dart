@@ -520,11 +520,28 @@ void main() {
         expect(find.text('View (read only)'), findsOneWidget);
         expect(find.text('Audit'), findsOneWidget);
         expect(find.text('Export Course'), findsOneWidget);
+        // Since Build 249 Revision 1 a Fork the license forbids is shown
+        // greyed out with its reason; Copy and Delete never apply to an
+        // official Course and stay hidden.
+        expect(find.text('Fork'), findsOneWidget);
+        final fork =
+            tester.widget(
+                  find
+                      .ancestor(
+                        of: find.text('Fork'),
+                        matching: find.byWidgetPredicate(
+                          (w) => w is PopupMenuItem,
+                        ),
+                      )
+                      .first,
+                )
+                as PopupMenuItem;
+        expect(fork.enabled, policy == DerivativeWorksPolicy.allowed);
         expect(
-          find.text('Fork'),
+          find.text('The license does not allow derivative works.'),
           policy == DerivativeWorksPolicy.allowed
-              ? findsOneWidget
-              : findsNothing,
+              ? findsNothing
+              : findsOneWidget,
         );
         expect(find.text('Copy as New Course'), findsNothing);
         expect(find.text('Delete course'), findsNothing);
@@ -569,9 +586,7 @@ void main() {
           Lesson(lessonId: 'lesson', title: 'Lesson', rounds: const []),
         ],
       );
-      await tester.runAsync(
-        () => CourseEditorService().saveUserCourse(custom),
-      );
+      await tester.runAsync(() => CourseEditorService().saveUserCourse(custom));
       await tester.pumpWidget(
         MaterialApp(home: CourseEditorScreen(course: custom, userCourse: true)),
       );

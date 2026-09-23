@@ -1,6 +1,30 @@
 # QuisquisLingo App
 
-**Current source version: 2.0.48+248003 · Build 248, Revision 3 · Course Model v11 (`formatVersion: 11`).**
+**Current source version: 2.0.49+249002 · Build 249, Revision 2 · Course Model v11 (`formatVersion: 11`).**
+
+**QuisquisLingo 2.0.49 Beta — QQL 249 Course library operations**
+
+Current project version: 2.0.49
+
+Build 249 gives Course Manager's workflow one owner. The storage operations
+already had owners; what sat inline in the screen was everything around them:
+which Courses are listed, which menu actions each Course offers, the titles of
+copies and merges, where a Fork of an official Course takes its source, what
+an import may do with a Course ID already in use, and the result messages.
+`CourseLibraryOperations` now owns all of it and can be tested without the
+screen, which keeps its layout, dialogs and confirmations. Course Manager looks
+and behaves exactly as before. See the
+[Build 249 plan](docs/249_LIBRARY_OPERATIONS_PLAN.md),
+[change summary](docs/249_CHANGE_SUMMARY.md),
+[validation](docs/249_VALIDATION.md) and [handoff](docs/249_HANDOFF.md).
+Revision 1 stops Course Manager's menu from silently hiding what you may not
+do: an action that depends on your rights, the Course's license, Publisher
+verification or admin status is shown greyed out with a one-line reason, such
+as "Only the Maintainer or assigned Team can delete this Course." Actions that
+can never apply to that kind of Course, such as deleting an official Course,
+stay hidden.
+Revision 2 reports a Course deletion that fails at the storage step, instead
+of losing the error silently, and the Course stays listed.
 
 **QuisquisLingo 2.0.48 Beta — QQL 248 Audio Library media lifetime**
 
@@ -147,7 +171,7 @@ The MPL-2.0 covers the QuisquisLingo software source. Courses, the Image Bank an
 
 ## Beta lifecycle
 
-Version 2.0.48, Build 248, Revision 3 is a time-limited Beta with an expiry of **2026-10-22 23:59:59 local time** (30 days from September 22, 2026, its own release date). Near expiry it displays reminders. After expiry, learner exercises and Review are blocked until a newer Beta is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when a Beta expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM.
+Version 2.0.49, Build 249, Revision 2 is a time-limited Beta with an expiry of **2026-10-23 23:59:59 local time** (30 days from September 23, 2026, its own release date). Near expiry it displays reminders. After expiry, learner exercises and Review are blocked until a newer Beta is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when a Beta expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM.
 
 ## Core logic
 
