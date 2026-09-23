@@ -101,3 +101,48 @@ on the final tree.
 `pubspec.yaml` and `AppMetadata` are `2.0.49+249000`, Build 249, Revision 0.
 The Beta expiry is recalculated from this release's date, 23 September 2026:
 `2026-10-23 23:59:59` local time, one day later than Build 248's.
+
+## Revision 1
+
+`2.0.49+249001` — Build 249, Revision 1, Course Model v11, following Revision 0
+commit `df9be0b`.
+
+### 1. Failing tests first
+
+The menu expectations in `test/course_manager_workflow_249_test.dart` were
+changed to the new behaviour and run against Revision 0's code: **3 failed**,
+as intended.
+
+| Test | On Revision 0 |
+| --- | --- |
+| Menu per Course kind now lists greyed entries | **failed** — `Fork (greyed)` expected where the entry was absent |
+| A non-admin sees Publisher removal greyed out | **failed** — the entry was absent |
+| A greyed-out entry says why and does nothing when tapped | **failed** — no reason text was shown |
+
+After the change all three pass.
+
+### 2. Focused tests
+
+`course_library_operations_249_test.dart` (34 tests, 6 new for the reasons),
+`course_manager_workflow_249_test.dart` and
+`course_editor_layout_regression_test.dart`: **63 passed, 1 skipped**.
+
+`course_editor_layout_regression_test.dart` asserted that Fork is absent on an
+official Course whose license forbids derivatives. That was the behaviour this
+revision deliberately changes; it now asserts that Fork is shown disabled with
+"The license does not allow derivative works.", and still that Copy and Delete
+are absent there.
+
+### 3. Release gate
+
+* `flutter analyze --no-pub`: **No issues found.**
+* Validators: unchanged since Revision 0 (no asset changes).
+* Complete suite, `flutter test --no-pub --concurrency=1 --reporter
+  expanded`: **2,360 passed, 1 skipped, 0 failed** in 25 min 9 s. The
+  skipped test is still the known Delete failure, Revision 2's proof.
+* `git diff --check`: clean.
+
+### 4. Version
+
+`2.0.49+249001`, Build 249, Revision 1. Beta expiry unchanged at
+`2026-10-23 23:59:59` local time: the release date is still 23 September 2026.

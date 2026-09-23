@@ -1818,85 +1818,90 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
         }
       },
       itemBuilder: (_) => [
-        for (final action in _library.actionsFor(course))
-          _courseActionItem(action, access),
+        for (final entry in _library.entriesFor(course))
+          _courseActionItem(entry, access),
       ],
     );
   }
 
+  /// An unavailable entry is shown disabled, with its reason in place of the
+  /// description.
   PopupMenuEntry<CourseManagerAction> _courseActionItem(
-    CourseManagerAction action,
+    CourseManagerEntry entry,
     CourseAccessCapabilities access,
-  ) => switch (action) {
-    CourseManagerAction.removeFromMyCourses => const PopupMenuItem(
-      value: CourseManagerAction.removeFromMyCourses,
-      child: Text('Remove from my courses'),
-    ),
-    CourseManagerAction.removePublisherFromDevice => const PopupMenuItem(
-      value: CourseManagerAction.removePublisherFromDevice,
-      child: Text('Remove Publisher Course from device'),
-    ),
-    CourseManagerAction.open => PopupMenuItem(
-      value: CourseManagerAction.open,
-      child: ListTile(
-        leading: Icon(
-          access.canEditOriginal
-              ? Icons.edit_outlined
-              : Icons.visibility_outlined,
-        ),
-        title: Text(access.canEditOriginal ? 'Edit' : 'View (read only)'),
+  ) {
+    final (
+      IconData? icon,
+      String title,
+      String? description,
+    ) = switch (entry.action) {
+      CourseManagerAction.removeFromMyCourses => (
+        null,
+        'Remove from my courses',
+        null,
       ),
-    ),
-    CourseManagerAction.fork => const PopupMenuItem(
-      value: CourseManagerAction.fork,
-      child: ListTile(
-        leading: Icon(Icons.fork_right_outlined),
-        title: Text('Fork'),
-        subtitle: Text(
-          'Create a derivative Course that preserves the source Course lineage.',
-        ),
+      CourseManagerAction.removePublisherFromDevice => (
+        null,
+        'Remove Publisher Course from device',
+        null,
       ),
-    ),
-    CourseManagerAction.copyAsNewCourse => const PopupMenuItem(
-      value: CourseManagerAction.copyAsNewCourse,
-      child: ListTile(
-        leading: Icon(Icons.copy_outlined),
-        title: Text('Copy as New Course'),
-        subtitle: Text(
-          'Create a new independent Course using this Course as the starting content.',
-        ),
+      CourseManagerAction.open => (
+        access.canEditOriginal
+            ? Icons.edit_outlined
+            : Icons.visibility_outlined,
+        access.canEditOriginal ? 'Edit' : 'View (read only)',
+        null,
       ),
-    ),
-    CourseManagerAction.merge => const PopupMenuItem(
-      value: CourseManagerAction.merge,
-      child: ListTile(
-        leading: Icon(Icons.merge_type_outlined),
-        title: Text('Merge'),
-        subtitle: Text('Create a third Course from selected Lessons.'),
+      CourseManagerAction.fork => (
+        Icons.fork_right_outlined,
+        'Fork',
+        'Create a derivative Course that preserves the source Course lineage.',
       ),
-    ),
-    CourseManagerAction.audit => const PopupMenuItem(
-      value: CourseManagerAction.audit,
-      child: ListTile(
-        leading: Icon(Icons.fact_check_outlined),
-        title: Text('Audit'),
+      CourseManagerAction.copyAsNewCourse => (
+        Icons.copy_outlined,
+        'Copy as New Course',
+        'Create a new independent Course using this Course as the starting content.',
       ),
-    ),
-    CourseManagerAction.export => const PopupMenuItem(
-      value: CourseManagerAction.export,
-      child: ListTile(
-        leading: Icon(Icons.download_outlined),
-        title: Text('Export Course'),
+      CourseManagerAction.merge => (
+        Icons.merge_type_outlined,
+        'Merge',
+        'Create a third Course from selected Lessons.',
       ),
-    ),
-    CourseManagerAction.delete => const PopupMenuItem(
-      value: CourseManagerAction.delete,
-      child: ListTile(
-        leading: Icon(Icons.delete_outline),
-        title: Text('Delete course'),
+      CourseManagerAction.audit => (Icons.fact_check_outlined, 'Audit', null),
+      CourseManagerAction.export => (
+        Icons.download_outlined,
+        'Export Course',
+        null,
       ),
-    ),
-  };
+      CourseManagerAction.delete => (
+        Icons.delete_outline,
+        'Delete course',
+        null,
+      ),
+    };
+    final reason = entry.unavailableReason;
+    return PopupMenuItem(
+      value: entry.action,
+      enabled: entry.available,
+      child: icon == null && reason == null
+          ? Text(title)
+          : ListTile(
+              enabled: entry.available,
+              leading: icon == null ? null : Icon(icon),
+              title: Text(title),
+              subtitle: reason != null
+                  ? Text(
+                      reason,
+                      key: ValueKey(
+                        'course-manager-unavailable-${entry.action.name}',
+                      ),
+                    )
+                  : description == null
+                  ? null
+                  : Text(description),
+            ),
+    );
+  }
 
   Future<void> _auditCourse(Course course) async {
     final audit = await _ops.audit(course);

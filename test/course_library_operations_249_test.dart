@@ -235,6 +235,133 @@ void main() {
     });
   });
 
+  group('greyed-out entries and their reasons (Revision 1)', () {
+    const admin = CourseManagerLibrary(activeProfileId: _alice, isAdmin: true);
+    const notAdmin = CourseManagerLibrary(activeProfileId: _bob);
+    const nobody = CourseManagerLibrary();
+    Map<CourseManagerAction, String?> reasons(
+      CourseManagerLibrary library,
+      Course course,
+    ) => {
+      for (final entry in library.entriesFor(course))
+        entry.action: entry.unavailableReason,
+    };
+
+    test('a maintained Custom Course greys out only Fork', () {
+      final shown = reasons(admin, _course('mine', title: 'Mine'));
+      expect(shown.keys, const [
+        CourseManagerAction.removeFromMyCourses,
+        CourseManagerAction.open,
+        CourseManagerAction.fork,
+        CourseManagerAction.copyAsNewCourse,
+        CourseManagerAction.merge,
+        CourseManagerAction.audit,
+        CourseManagerAction.export,
+        CourseManagerAction.delete,
+      ]);
+      expect(
+        shown[CourseManagerAction.fork],
+        'You maintain this Course: use Copy as New Course instead.',
+      );
+      expect(shown.entries.where((e) => e.value != null).map((e) => e.key), [
+        CourseManagerAction.fork,
+      ]);
+    });
+
+    test('an outsider sees every authoring entry with its reason', () {
+      final shown = reasons(
+        admin,
+        _course(
+          'theirs',
+          title: 'Theirs',
+          maintainer: _bob,
+          derivatives: DerivativeWorksPolicy.forbidden,
+        ),
+      );
+      expect(
+        shown[CourseManagerAction.fork],
+        'The license does not allow derivative works.',
+      );
+      for (final (action, verb) in const [
+        (CourseManagerAction.copyAsNewCourse, 'copy'),
+        (CourseManagerAction.merge, 'merge'),
+        (CourseManagerAction.export, 'export'),
+        (CourseManagerAction.delete, 'delete'),
+      ]) {
+        expect(
+          shown[action],
+          'Only the Maintainer or assigned Team can $verb this Course.',
+        );
+      }
+      expect(shown[CourseManagerAction.open], isNull);
+      expect(shown[CourseManagerAction.audit], isNull);
+    });
+
+    test('official Courses hide what can never apply', () async {
+      final bundled = await CourseService().loadCourse('IT');
+      final shown = reasons(admin, bundled);
+      expect(shown.keys, const [
+        CourseManagerAction.removeFromMyCourses,
+        CourseManagerAction.open,
+        CourseManagerAction.fork,
+        CourseManagerAction.audit,
+        CourseManagerAction.export,
+      ]);
+      expect(
+        shown[CourseManagerAction.fork],
+        'The license does not allow derivative works.',
+      );
+    });
+
+    test('Publisher removal needs an admin; Fork needs verification', () {
+      final unverified = Course.fromJson({
+        ...publisher.toJson(),
+        'publisherVerificationStatus': 'unverified',
+      });
+      expect(
+        reasons(
+          notAdmin,
+          unverified,
+        )[CourseManagerAction.removePublisherFromDevice],
+        'Only an admin can remove a Publisher Course from this device.',
+      );
+      expect(
+        reasons(
+          admin,
+          unverified,
+        )[CourseManagerAction.removePublisherFromDevice],
+        isNull,
+      );
+      expect(
+        reasons(admin, unverified)[CourseManagerAction.fork],
+        'The Publisher Course must be verified first.',
+      );
+    });
+
+    test('without a learner profile, Fork asks for one', () {
+      expect(
+        reasons(
+          nobody,
+          _course(
+            'theirs',
+            title: 'Theirs',
+            maintainer: _bob,
+            derivatives: DerivativeWorksPolicy.allowed,
+          ),
+        )[CourseManagerAction.fork],
+        'Select a learner profile first.',
+      );
+    });
+
+    test('actionsFor keeps only the usable entries', () {
+      final course = _course('mine', title: 'Mine');
+      expect(admin.actionsFor(course), [
+        for (final entry in admin.entriesFor(course))
+          if (entry.available) entry.action,
+      ]);
+    });
+  });
+
   group('titles', () {
     final library = CourseManagerLibrary(
       personalCourses: [

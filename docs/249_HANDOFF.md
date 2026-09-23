@@ -114,3 +114,41 @@ were rewritten as behaviour tests. Details in
 Revision 1 (greyed-out menu entries with reasons), then Revision 2 (report a
 failed Delete), each with its own version, validation, handoff and commit, in
 this same task. Push, PR and merge follow the owner's direction.
+
+---
+
+# Revision 1 current state
+
+Build 249 Revision 1 is `2.0.49+249001`, Course Model v11, on branch
+`claude/249-library-operations`, following Revision 0 commit `df9be0b`. Beta
+expiry remains `2026-10-23 23:59:59` local time. The untracked
+`devtools_options.yaml` is the owner's and stays untouched.
+
+An owner-requested behaviour change: Course Manager menu entries that depend
+on rights, license, Publisher verification or admin status are shown greyed
+out with a one-line reason instead of being hidden; entries that can never
+apply to that kind of Course stay hidden. `CourseManagerLibrary.entriesFor`
+owns the rule and the reasons; `actionsFor` still returns only usable actions.
+`CourseAccessPolicy` is untouched. See
+[249_CHANGE_SUMMARY.md](249_CHANGE_SUMMARY.md) for the reason table.
+
+Three changed menu expectations failed on Revision 0's code first, then
+passed. One older assertion (Fork absent on a forbidding official Course) was
+updated on purpose to "greyed out with its reason".
+
+## Validation
+
+Analyzer clean, complete suite **2,360 passed, 1 skipped, 0 failed** at
+`--concurrency=1` in 25 min 9 s, `git diff --check` clean. See
+[249_VALIDATION.md](249_VALIDATION.md).
+
+## Known limits
+
+* The reasons are English only, like the rest of Course Manager.
+* The two-tab screen will reuse this rule; its own menus (ALL COURSES, the
+  Course Selector) are not built yet.
+
+## Next step
+
+Revision 2: report a failed Delete and keep the Course listed; unskip the
+characterization test that proves it.

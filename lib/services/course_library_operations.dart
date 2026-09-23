@@ -32,6 +32,18 @@ enum CourseManagerAction {
   delete,
 }
 
+/// One Course Manager menu entry, with the reason it cannot be used, if any.
+class CourseManagerEntry {
+  const CourseManagerEntry(this.action, [this.unavailableReason]);
+
+  final CourseManagerAction action;
+
+  /// Shown under a greyed-out entry; null when the entry can be used.
+  final String? unavailableReason;
+
+  bool get available => unavailableReason == null;
+}
+
 /// What an import of an already-used custom Course ID may do, in dialog order.
 enum CourseImportChoice { copyAsNewCourse, fork, replace }
 
@@ -73,23 +85,70 @@ class CourseManagerLibrary {
         memberTeamIds: memberTeamIds,
       );
 
-  List<CourseManagerAction> actionsFor(Course course) {
+  /// The actions [course] can use now, in menu order.
+  List<CourseManagerAction> actionsFor(Course course) => [
+    for (final entry in entriesFor(course))
+      if (entry.available) entry.action,
+  ];
+
+  /// Every entry the menu shows for [course], in menu order. An entry that
+  /// depends on rights, license, verification or admin status is shown with
+  /// the reason it cannot be used; an entry that can never apply to this kind
+  /// of Course is left out.
+  List<CourseManagerEntry> entriesFor(Course course) {
     final access = capabilitiesFor(course);
+    final official = course.originType.isOfficial;
+    const onlyInside = 'Only the Maintainer or assigned Team can';
     return [
-      CourseManagerAction.removeFromMyCourses,
-      if (isAdmin && course.originType == CourseOriginType.externalOfficial)
-        CourseManagerAction.removePublisherFromDevice,
-      CourseManagerAction.open,
-      if (access.canFork) CourseManagerAction.fork,
-      if (access.canCopyAsNewCourse) CourseManagerAction.copyAsNewCourse,
-      if (course.originType == CourseOriginType.custom &&
-          access.hasOperationalAccess)
-        CourseManagerAction.merge,
-      CourseManagerAction.audit,
-      if (course.originType.isOfficial || access.hasOperationalAccess)
+      const CourseManagerEntry(CourseManagerAction.removeFromMyCourses),
+      if (course.originType == CourseOriginType.externalOfficial)
+        CourseManagerEntry(
+          CourseManagerAction.removePublisherFromDevice,
+          isAdmin
+              ? null
+              : 'Only an admin can remove a Publisher Course from this device.',
+        ),
+      const CourseManagerEntry(CourseManagerAction.open),
+      CourseManagerEntry(CourseManagerAction.fork, _forkUnavailable(course)),
+      if (!official)
+        CourseManagerEntry(
+          CourseManagerAction.copyAsNewCourse,
+          access.canCopyAsNewCourse ? null : '$onlyInside copy this Course.',
+        ),
+      if (!official)
+        CourseManagerEntry(
+          CourseManagerAction.merge,
+          access.hasOperationalAccess ? null : '$onlyInside merge this Course.',
+        ),
+      const CourseManagerEntry(CourseManagerAction.audit),
+      CourseManagerEntry(
         CourseManagerAction.export,
-      if (access.canDelete) CourseManagerAction.delete,
+        official || access.hasOperationalAccess
+            ? null
+            : '$onlyInside export this Course.',
+      ),
+      if (!official)
+        CourseManagerEntry(
+          CourseManagerAction.delete,
+          access.canDelete ? null : '$onlyInside delete this Course.',
+        ),
     ];
+  }
+
+  /// Why [course] cannot be forked now, or null when it can.
+  String? _forkUnavailable(Course course) {
+    final access = capabilitiesFor(course);
+    if (access.canFork) return null;
+    if (activeProfileId == null) return 'Select a learner profile first.';
+    if (!course.originType.isOfficial && access.hasOperationalAccess) {
+      return 'You maintain this Course: use Copy as New Course instead.';
+    }
+    if (course.originType == CourseOriginType.externalOfficial &&
+        course.publisherVerificationStatus !=
+            PublisherVerificationStatus.verified) {
+      return 'The Publisher Course must be verified first.';
+    }
+    return 'The license does not allow derivative works.';
   }
 
   /// `<title> copy`, then `<title> copy 2`, … among the listed titles only.

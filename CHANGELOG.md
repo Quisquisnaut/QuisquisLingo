@@ -1,3 +1,17 @@
+# 2.0.49 (Build 249, Revision 1) - Greyed-out Course Manager actions - 2026-09-23
+
+Course Manager's menu no longer hides actions you are not allowed to use.
+An action that depends on your rights, the Course's license, Publisher
+verification or admin status now appears greyed out, with a short line
+saying why: for example "Only the Maintainer or assigned Team can delete this
+Course.", "The license does not allow derivative works." or "Only an admin
+can remove a Publisher Course from this device." Tapping it does nothing.
+Actions that can never apply to that kind of Course, such as Copy, Merge or
+Delete on an official Course, stay hidden. Who may do what is unchanged.
+
+Version `2.0.49+249001`; Beta expiry remains
+**2026-10-23 23:59:59 local time**.
+
 # 2.0.49 (Build 249, Revision 0) - Course library operations - 2026-09-23
 
 Course Manager's workflow has one owner. Which Courses are listed, which menu

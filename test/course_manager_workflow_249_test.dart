@@ -196,12 +196,28 @@ void main() {
     'Delete course',
   ];
 
+  /// The entries the menu shows; since Build 249 Revision 1 an entry that
+  /// cannot be used is shown greyed out, marked here as `(greyed)`.
   Future<List<String>> menuEntries(WidgetTester tester, Key key) async {
     await openMenu(tester, key);
-    final offered = [
-      for (final entry in everyEntry)
-        if (find.text(entry).evaluate().isNotEmpty) entry,
-    ];
+    final offered = <String>[];
+    for (final entry in everyEntry) {
+      final text = find.text(entry);
+      if (text.evaluate().isEmpty) continue;
+      final item =
+          tester.widget(
+                find
+                    .ancestor(
+                      of: text.last,
+                      matching: find.byWidgetPredicate(
+                        (widget) => widget is PopupMenuItem,
+                      ),
+                    )
+                    .first,
+              )
+              as PopupMenuItem;
+      offered.add(item.enabled ? entry : '$entry (greyed)');
+    }
     await closeMenu(tester);
     return offered;
   }
@@ -231,6 +247,7 @@ void main() {
       expect(await menuEntries(tester, actionsOf('mine')), [
         'Remove from my courses',
         'Edit',
+        'Fork (greyed)',
         'Copy as New Course',
         'Merge',
         'Audit',
@@ -241,7 +258,11 @@ void main() {
         'Remove from my courses',
         'View (read only)',
         'Fork',
+        'Copy as New Course (greyed)',
+        'Merge (greyed)',
         'Audit',
+        'Export Course (greyed)',
+        'Delete course (greyed)',
       ]);
       expect(await menuEntries(tester, actionsOf(publisher.courseId)), [
         'Remove from my courses',
@@ -256,13 +277,16 @@ void main() {
         [
           'Remove from my courses',
           'View (read only)',
+          'Fork (greyed)',
           'Audit',
           'Export Course',
         ],
       );
     });
 
-    testWidgets('a non-admin is not offered Publisher removal', (tester) async {
+    testWidgets('a non-admin sees Publisher removal greyed out', (
+      tester,
+    ) async {
       await setUpDevice(tester);
       await install(tester, publisher);
       await addToLibrary(tester, publisher, profileId: _bob);
@@ -271,8 +295,40 @@ void main() {
 
       expect(
         await menuEntries(tester, actionsOf(publisher.courseId)),
-        isNot(contains('Remove Publisher Course from device')),
+        contains('Remove Publisher Course from device (greyed)'),
       );
+    });
+
+    testWidgets('a greyed-out entry says why and does nothing when tapped', (
+      tester,
+    ) async {
+      await setUpDevice(tester);
+      final theirs = _course(
+        'theirs',
+        title: 'Theirs',
+        maintainer: _bob,
+        derivatives: DerivativeWorksPolicy.forbidden,
+      );
+      await install(tester, theirs);
+      await addToLibrary(tester, theirs);
+      await pumpManager(tester);
+
+      await openMenu(tester, actionsOf('theirs'));
+      expect(
+        find.text(
+          'Only the Maintainer or assigned Team can delete this Course.',
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.text('The license does not allow derivative works.'),
+        findsOneWidget,
+      );
+      await tester.tap(find.text('Delete course'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+      expect(find.text('Delete course?'), findsNothing);
+      expect((await stored(tester)).map((c) => c.courseId), ['theirs']);
     });
   });
 

@@ -78,3 +78,49 @@ Release: `pubspec.yaml`, `lib/services/app_metadata.dart`,
 The roadmap also records the owner's design decisions for the later two-tab
 Courses screen (track steps 3 and 4), taken during this build; none of them is
 implemented here.
+
+## Revision 1
+
+`2.0.49+249001` — Build 249, Revision 1, Course Model v11. An owner-requested
+behaviour change, kept separate from Revision 0's extraction.
+
+### What changed
+
+Course Manager's menu used to hide every action you could not use, so a
+learner opening someone else's Course simply saw fewer entries and no
+explanation. Now an action that depends on **rights, license, Publisher
+verification or admin status** is shown **greyed out with a one-line
+reason**; tapping it does nothing. An action that can **never** apply to that
+kind of Course stays hidden.
+
+| Entry | Greyed out when | Reason shown |
+| --- | --- | --- |
+| Fork | You maintain the Course | You maintain this Course: use Copy as New Course instead. |
+| Fork | The license forbids derivatives | The license does not allow derivative works. |
+| Fork | A Publisher Course is not verified | The Publisher Course must be verified first. |
+| Fork | No learner profile | Select a learner profile first. |
+| Copy as New Course, Merge, Export, Delete (Custom) | You are not the Maintainer or in the assigned Team | Only the Maintainer or assigned Team can *copy / merge / export / delete* this Course. |
+| Remove Publisher Course from device | You are not an admin | Only an admin can remove a Publisher Course from this device. |
+
+Still hidden, because they can never apply: Copy as New Course, Merge and
+Delete on official Courses, and Remove Publisher Course from device on
+anything but a Publisher Course.
+
+The rule lives in the owner: `CourseManagerLibrary.entriesFor` returns every
+shown entry with its `unavailableReason`; `actionsFor` still returns only the
+usable ones. Who may do what, `CourseAccessPolicy`, is unchanged.
+
+### Files
+
+Source: `lib/services/course_library_operations.dart`,
+`lib/screens/course_projects_screen.dart`.
+
+Tests: `test/course_manager_workflow_249_test.dart` (menu expectations now
+include greyed entries, plus a test that a greyed entry states its reason and
+does nothing), `test/course_library_operations_249_test.dart` (6 new tests of
+the reasons), `test/course_editor_layout_regression_test.dart` (Fork on an
+official Course whose license forbids derivatives is now greyed with its
+reason instead of absent).
+
+Release: `pubspec.yaml`, `lib/services/app_metadata.dart` and the four version
+tests, `AGENTS.md`, `README.md`, `CHANGELOG.md` and the Build 249 documents.
