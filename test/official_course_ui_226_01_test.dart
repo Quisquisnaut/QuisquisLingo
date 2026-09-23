@@ -113,7 +113,7 @@ void main() {
       await tester.tap(find.byKey(const ValueKey('lesson-entry-lesson')));
       await _settle(tester);
       expect(find.text('Lesson Guidebook'), findsOneWidget);
-      expect(find.text('Preview Lesson'), findsOneWidget);
+      expect(find.byKey(const Key('lesson-preview')), findsOneWidget);
       _expectNoAuthoring();
       await tester.tap(find.byKey(const Key('lesson-rounds-navigation')));
       await _settle(tester);

@@ -10,6 +10,8 @@ import 'package:quisquislingo_app/services/course_editor_service.dart';
 import 'package:quisquislingo_app/services/profile_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'support/pump_file_io.dart';
+
 const _profileId = '12345678-1234-4234-9234-123456789abc';
 const _lessonId = 'guidebook-status-lesson';
 
@@ -192,13 +194,9 @@ void main() {
         findsOneWidget,
       );
       await tester.tap(find.byKey(const Key('confirm-course-changes')));
-      for (var attempt = 0; attempt < 100; attempt++) {
-        await tester.runAsync(
-          () => Future<void>.delayed(const Duration(milliseconds: 30)),
-        );
-        await tester.pump(const Duration(milliseconds: 50));
-        if (find.byType(CourseEditorScreen).evaluate().isEmpty) break;
-      }
+      await tester.pumpUntilFileIoState(
+        () => find.byType(CourseEditorScreen).evaluate().isEmpty,
+      );
       await tester.pumpAndSettle();
 
       final reloaded = ((await tester.runAsync(
@@ -339,13 +337,9 @@ Future<void> _confirmCourse(WidgetTester tester) async {
     findsOneWidget,
   );
   await tester.tap(find.byKey(const Key('confirm-course-changes')));
-  for (var attempt = 0; attempt < 100; attempt++) {
-    await tester.runAsync(
-      () => Future<void>.delayed(const Duration(milliseconds: 30)),
-    );
-    await tester.pump(const Duration(milliseconds: 50));
-    if (find.byType(CourseEditorScreen).evaluate().isEmpty) break;
-  }
+  await tester.pumpUntilFileIoState(
+    () => find.byType(CourseEditorScreen).evaluate().isEmpty,
+  );
   expect(find.byType(CourseEditorScreen), findsNothing);
   await tester.pumpAndSettle();
 }

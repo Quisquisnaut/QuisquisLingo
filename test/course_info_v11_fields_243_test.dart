@@ -6,7 +6,7 @@ import 'package:quisquislingo_app/models/course_models.dart';
 import 'package:quisquislingo_app/screens/course_editor_screen.dart';
 import 'package:quisquislingo_app/screens/course_info_screen.dart';
 import 'package:quisquislingo_app/services/course_access_policy.dart';
-import 'package:quisquislingo_app/services/custom_course_transfer_service.dart';
+import 'package:quisquislingo_app/services/course_editor_service.dart';
 import 'package:quisquislingo_app/services/profile_service.dart';
 import 'package:quisquislingo_app/services/settings_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -19,7 +19,7 @@ void main() {
   testWidgets('Course Info Editor saves the v11 descriptive fields', (
     tester,
   ) async {
-    final transfer = await _pumpEditor(tester, _course());
+    await _pumpEditor(tester, _course());
 
     await tester.tap(find.text('Course Info Editor'));
     await tester.pumpAndSettle();
@@ -42,9 +42,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('13+').last);
     await tester.pumpAndSettle();
-    await _saveAndExport(tester);
-
-    final saved = transfer.exported!;
+    final saved = await _saveAndConfirm(tester);
     expect(saved.estimatedStudyHours, 40);
     expect(saved.keywords, ['travel', 'food']);
     expect(saved.publisherContact!.websiteUrl, 'https://example.org/courses');
@@ -56,7 +54,7 @@ void main() {
   testWidgets('clearing the fields removes them from the Course', (
     tester,
   ) async {
-    final transfer = await _pumpEditor(
+    await _pumpEditor(
       tester,
       _course(
         estimatedStudyHours: 5,
@@ -75,9 +73,7 @@ void main() {
     ]) {
       await _enter(tester, key, '');
     }
-    await _saveAndExport(tester);
-
-    final json = transfer.exported!.toJson();
+    final json = (await _saveAndConfirm(tester)).toJson();
     for (final key in const [
       'estimatedStudyHours',
       'keywords',
@@ -176,22 +172,22 @@ Future<void> _enter(WidgetTester tester, String key, String text) async {
   await tester.pump();
 }
 
-Future<void> _saveAndExport(WidgetTester tester) async {
+Future<Course> _saveAndConfirm(WidgetTester tester) async {
   final save = find.byKey(const Key('course-info-save'));
   await tester.ensureVisible(save);
   await tester.tap(save);
   await tester.pumpUntilFileIoState(() => save.evaluate().isEmpty);
-  final export = find.byKey(const Key('course-editor-export-json'));
-  await tester.scrollUntilVisible(
-    export,
-    300,
-    scrollable: find.byType(Scrollable).first,
-  );
-  await tester.tap(export);
+  await tester.tap(find.byType(BackButton).last);
   await tester.pumpAndSettle();
+  await tester.tap(find.byKey(const Key('confirm-course-changes')));
+  await tester.pumpUntilFileIoState(
+    () => find.byType(CourseEditorScreen).evaluate().isEmpty,
+  );
+  return ((await tester.runAsync(CourseEditorService().listUserCourses))!)
+      .single;
 }
 
-Future<_RecordingTransferService> _pumpEditor(
+Future<void> _pumpEditor(
   WidgetTester tester,
   Course course,
 ) async {
@@ -203,18 +199,31 @@ Future<_RecordingTransferService> _pumpEditor(
     course.courseId,
     CourseEditorMode.edit,
   );
-  final transfer = _RecordingTransferService();
+  await tester.runAsync(() => CourseEditorService().saveUserCourse(course));
+  // Pushed rather than root, so the Editor has a Back button and its
+  // confirmation can be reached.
   await tester.pumpWidget(
     MaterialApp(
-      home: CourseEditorScreen(
-        course: course,
-        access: CourseAccessPolicy.evaluate(course, profileId: _profileId),
-        transferService: transfer,
+      home: Builder(
+        builder: (context) => FilledButton(
+          onPressed: () => Navigator.of(context).push<void>(
+            MaterialPageRoute(
+              builder: (_) => CourseEditorScreen(
+                course: course,
+                access: CourseAccessPolicy.evaluate(
+                  course,
+                  profileId: _profileId,
+                ),
+              ),
+            ),
+          ),
+          child: const Text('Open Course'),
+        ),
       ),
     ),
   );
+  await tester.tap(find.text('Open Course'));
   await tester.pumpAndSettle();
-  return transfer;
 }
 
 Course _course({
@@ -277,13 +286,3 @@ Course _course({
     ),
   ],
 );
-
-class _RecordingTransferService extends CustomCourseTransferService {
-  Course? exported;
-
-  @override
-  Future<String> exportCourse(Course course) async {
-    exported = course;
-    return 'v11-fields-export.json';
-  }
-}

@@ -10,7 +10,7 @@ void main() {
 
   setUp(() => SharedPreferences.setMockInitialValues({}));
 
-  testWidgets('Round editor keeps New exercise beside Creation Wizard', (
+  testWidgets('Round editor keeps New exercise beside Exercise Wizard', (
     tester,
   ) async {
     final fixture = _fixture();

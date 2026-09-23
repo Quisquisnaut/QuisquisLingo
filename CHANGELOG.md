@@ -1,3 +1,70 @@
+# 2.0.48 (Build 248, Revision 2) - Export leaves the Editor - 2026-09-23
+
+Course export and Copy as New Course are no longer offered inside the Course
+Editor. Both worked on the unconfirmed working copy, so a cancelled session
+could produce a package - or persist a whole new Course - built from changes
+that were never saved. Course Manager keeps both actions and works from the
+stored Course. A new Course Export screen mirrors the Import screen, offering
+the fixed-folder export and Save to… in one place, and the Course Manager menu
+now has a single Export Course entry that opens it, for official Courses too.
+
+In each Lesson, Preview Lesson and Generate Rounds from GuideBook leave the
+body and become Preview and Round Wizard buttons in the bottom area, matching
+the Round screen, and the breadcrumbs move to the top like every other level.
+The Round screen's Creation Wizard is renamed Exercise Wizard.
+
+Version History deliberately stays in the Editor: unlike export and copy it
+loads into the working copy and still respects the single Course confirmation.
+
+Course Model v11, stored formats and keys, package format 1, authoring rights,
+scoring, progression and the single top-level Course save are unchanged.
+Version `2.0.48+248002`; Beta expiry remains
+**2026-10-22 23:59:59 local time**.
+
+# 2.0.48 (Build 248, Revision 1) - Course Editor layout and media notices - 2026-09-23
+
+The Course-level Lesson settings - Lesson numbering, Use GuideBook and Create
+Duels - move from the Lessons screen to a collapsed Lesson Options section
+under the Course Editor's Lessons tile, where they belong: none of them was
+ever a Lesson property. The Lesson editor drops its Lesson title and Audit
+Lesson links and the Round editor drops Rename Round and Audit Round, because
+the Lessons and Rounds pages already offer Rename and Audit in their 3-dot
+menus; the surviving rename dialog keeps the same "Title, or Enter to skip"
+behaviour, including preserving a title when Enter is pressed on an empty
+field. The Audio Library no longer has a Save button: leaving the screen hands
+its draft to the Course Editor, exactly as Save did, and a notice explains that
+the changes reach the Course only when the Course changes are confirmed, and
+are discarded - along with any media that session added - when they are
+cancelled. A Course's Image Library gains the same notice; it already saved on
+exit and already discarded on cancel, so only the notice is new. The Build 248
+media clean-up now covers every kind of Course media rather than recordings
+only, so images added during a cancelled session are removed too. Course Model
+v11, stored formats and keys, package format 1, authoring rights, scoring,
+progression and the single top-level Course save are unchanged. Version
+`2.0.48+248001`; Beta expiry remains **2026-10-22 23:59:59 local time**.
+
+# 2.0.48 (Build 248, Revision 0) - Audio Library media lifetime - 2026-09-22
+
+One owner now holds the lifetime of the recordings a Course editing session
+imports. `RecordedAudioService` writes an imported MP3 into the Course's own
+media folder immediately, long before the single top-level Course
+confirmation, so a cancelled session, a back-out of the Audio Library without
+Save, or a batch that failed part way through used to leave files on disk that
+nothing referred to — permanently, for a new Course that was never confirmed.
+`CourseAuthoringMedia` records what the Course's media folder held when the
+session opened and, when the session ends without confirming a Course, removes
+exactly the recordings it created that the stored Course does not use. It
+removes nothing when the folder or the stored Course cannot be read, so media
+stay for recovery, and a confirmed Course still tidies up inside its own
+confirmation. MP3 validation and storage stay in `RecordedAudioService`, and
+the player, preview controls and dialogs stay in the widget. Closing an
+unchanged Course Editor now completes after that check rather than in the same
+frame. Pictures added while editing leak the same way and are recorded as a
+known limit for a later build. Course Model v11, stored formats and keys,
+package format 1, authoring rights, scoring and progression are unchanged.
+Version `2.0.48+248000`; Beta expiry remains
+**2026-10-22 23:59:59 local time**.
+
 # 2.0.47 (Build 247, Revision 1) - Import cleanup after a failure - 2026-09-22
 
 A failed custom Course package import now keeps the media files it created

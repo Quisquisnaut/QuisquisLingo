@@ -4,6 +4,7 @@ import 'package:quisquislingo_app/models/course_models.dart';
 import 'package:quisquislingo_app/screens/course_editor_screen.dart';
 import 'package:quisquislingo_app/services/editor_display_preferences.dart';
 import 'package:quisquislingo_app/services/lesson_presentation_service.dart';
+import 'package:quisquislingo_app/services/settings_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 Course course({List<Lesson>? lessons, List<String> sections = const []}) =>
@@ -132,7 +133,7 @@ void main() {
         'monospace',
       );
       expect(find.byTooltip(id), findsOneWidget);
-      final generator = find.byKey(const Key('guidebook-round-generator'));
+      final generator = find.byKey(const Key('lesson-guidebook-navigation'));
       expect(
         tester.getTopLeft(line).dy,
         greaterThanOrEqualTo(tester.getBottomLeft(generator).dy),
@@ -432,18 +433,15 @@ void main() {
   testWidgets(
     'GuideBook and Duel switches update in Edit and are protected in View',
     (tester) async {
+      // Both are Course settings, so they live under Lesson Options on the
+      // Course Editor screen rather than on the Lessons screen.
       final source = course(sections: ['Retain']);
-      var latest = source;
+      await SettingsService().setCourseEditorLocked(source.courseId, false);
       await tester.pumpWidget(
-        MaterialApp(
-          home: LessonManagementScreen(
-            course: source,
-            initiallyLocked: false,
-            onCourseChanged: (value) => latest = value,
-          ),
-        ),
+        MaterialApp(home: CourseEditorScreen(course: source, userCourse: true)),
       );
       await tester.pumpAndSettle();
+      await _expandLessonOptions(tester);
       for (final key in ['course-use-guidebook', 'course-create-duels']) {
         final toggle = find.byKey(Key(key));
         await tester.ensureVisible(toggle);
@@ -453,54 +451,55 @@ void main() {
         await tester.pumpAndSettle();
         expect(tester.widget<SwitchListTile>(toggle).value, isFalse);
       }
-      expect(latest.useGuidebook, isFalse);
-      expect(latest.createDuels, isFalse);
-      expect(latest.sectionNames, ['Retain']);
-      expect(latest.lessons.single.toJson(), source.lessons.single.toJson());
-      final reloaded = Course.fromJson(latest.toJson());
-      expect(reloaded.useGuidebook, isFalse);
-      expect(reloaded.createDuels, isFalse);
-      await tester.pumpWidget(
-        MaterialApp(
-          home: LessonManagementScreen(
-            key: const ValueKey('readonly-lessons'),
-            course: latest,
-            initiallyLocked: false,
-            readOnly: true,
-          ),
-        ),
-      );
-      await tester.pumpAndSettle();
-      for (final key in ['course-use-guidebook', 'course-create-duels']) {
-        expect(
-          tester.widget<SwitchListTile>(find.byKey(Key(key))).onChanged,
-          isNull,
-        );
-      }
-      await tester.pumpWidget(
-        MaterialApp(
-          home: LessonManagementScreen(
-            key: const ValueKey('editable-lessons'),
-            course: latest,
-            initiallyLocked: false,
-            onCourseChanged: (value) => latest = value,
-          ),
-        ),
-      );
-      await tester.pumpAndSettle();
       for (final key in ['course-use-guidebook', 'course-create-duels']) {
         final toggle = find.byKey(Key(key));
         await tester.ensureVisible(toggle);
         await tester.pumpAndSettle();
         await tester.tap(toggle);
         await tester.pumpAndSettle();
+        expect(tester.widget<SwitchListTile>(toggle).value, isTrue);
       }
-      expect(latest.useGuidebook, isTrue);
-      expect(latest.createDuels, isTrue);
-      expect(latest.lessons.single.toJson(), source.lessons.single.toJson());
+
+      // With no stored choice the Editor opens in View only.
+      SharedPreferences.setMockInitialValues(const {});
+      await tester.pumpWidget(
+        MaterialApp(
+          home: CourseEditorScreen(
+            key: const ValueKey('readonly-editor'),
+            course: source,
+            userCourse: true,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await _expandLessonOptions(tester);
+      for (final key in ['course-use-guidebook', 'course-create-duels']) {
+        final toggle = find.byKey(Key(key));
+        await tester.ensureVisible(toggle);
+        await tester.pumpAndSettle();
+        expect(tester.widget<SwitchListTile>(toggle).onChanged, isNull);
+      }
       expect(tester.takeException(), isNull);
     },
   );
+}
+
+Future<void> _expandLessonOptions(WidgetTester tester) async {
+  final tile = find.byKey(const Key('course-lesson-options'));
+  await tester.scrollUntilVisible(
+    tile,
+    -200,
+    scrollable: find
+        .descendant(
+          of: find.byType(CourseEditorScreen),
+          matching: find.byType(Scrollable),
+        )
+        .first,
+    maxScrolls: 10,
+  );
+  await tester.pumpAndSettle();
+  await tester.tap(tile);
+  await tester.pumpAndSettle();
 }
 
 Finder _sectionPicker() => find.byWidgetPredicate(

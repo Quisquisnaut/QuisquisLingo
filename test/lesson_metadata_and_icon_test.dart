@@ -483,14 +483,7 @@ void main() {
       expect(find.byType(ReorderableListView), findsNothing);
       expect(find.byKey(const ValueKey('round-a')), findsNothing);
 
-      final titleControl = find.byKey(const Key('lesson-title-control'));
-      await tester.ensureVisible(titleControl);
-      await tester.pumpAndSettle();
-      await tester.tap(titleControl);
-      await tester.pumpAndSettle();
-      await tester.enterText(find.byType(TextFormField), 'Draft title');
-      await tester.tap(find.text('Save').last);
-      await tester.pumpAndSettle();
+      // Lesson rename now lives in the Lessons page's 3-dot menu.
       await _openSectionChoice(tester, 'Add new section...');
       await tester.enterText(
         find.descendant(
@@ -511,7 +504,7 @@ void main() {
       await tester.tap(find.byKey(const Key('lesson-rounds-navigation')));
       await tester.pumpAndSettle();
       expect(find.byType(LessonRoundsScreen), findsOneWidget);
-      expect(find.text('Rounds · Lesson 1: Draft title'), findsOneWidget);
+      expect(find.text('Rounds · Lesson 1: Original title'), findsOneWidget);
       expect(find.byKey(const ValueKey('round-a')), findsOneWidget);
       expect(find.byKey(const ValueKey('round-b')), findsOneWidget);
 
@@ -561,7 +554,8 @@ void main() {
       await tester.pageBack();
       await tester.pumpAndSettle();
       expect(find.byType(LessonEditorScreen), findsOneWidget);
-      expect(find.text('Draft title'), findsWidgets);
+      // The title now shows in its numbered form, not as a plain control.
+      expect(find.text('Lesson 1: Original title'), findsWidgets);
       await tester.scrollUntilVisible(
         _sectionPicker(),
         200,
@@ -581,7 +575,7 @@ void main() {
       await tester.tap(find.byKey(const Key('save-lesson-draft')));
       await tester.pumpAndSettle();
       expect(saved!.rounds.map((round) => round.id), ['round-b', 'round-a']);
-      expect(saved!.title, 'Draft title');
+      expect(saved!.title, 'Original title');
       expect(saved!.sectionName, 'Draft Section');
     },
   );

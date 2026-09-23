@@ -266,6 +266,45 @@ class AuthoringStatusCard extends StatelessWidget {
   }
 }
 
+/// The authoring title prompt shared by the Course Editor's Lesson Options and
+/// the Lessons screen. Returns null when cancelled or left empty.
+Future<String?> askAuthoringName(
+  BuildContext context, {
+  String title = 'New lesson',
+  String initial = '',
+  String confirmLabel = 'Create',
+  int? maxLength,
+}) async {
+  final controller = TextEditingController(text: initial);
+  final result = await showDialog<String>(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: Text(title),
+      content: TextField(
+        controller: controller,
+        maxLength: maxLength,
+        autofocus: true,
+        decoration: const InputDecoration(
+          border: OutlineInputBorder(),
+          labelText: 'Title',
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancel'),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.pop(context, controller.text.trim()),
+          child: Text(confirmLabel),
+        ),
+      ],
+    ),
+  );
+  WidgetsBinding.instance.addPostFrameCallback((_) => controller.dispose());
+  return result == null || result.isEmpty ? null : result;
+}
+
 class _DraftBranchIndicator extends StatelessWidget {
   const _DraftBranchIndicator({
     super.key,
@@ -475,11 +514,10 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
   final _profiles = ProfileService();
   late final _teams = TeamService(profileService: _profiles);
   final _recordedAudio = RecordedAudioService();
-  late final CustomCourseTransferService _transfer =
-      widget.transferService ?? CustomCourseTransferService();
   late final DateTime Function() _clock = widget.clock ?? DateTime.now;
   late final CourseAuthoringSession _session;
   bool _routeMayPop = false;
+  int _numberingFieldVersion = 0;
 
   @override
   void initState() {
@@ -544,6 +582,11 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
   Future<void> _popEditor([CourseConfirmationResult? result]) async {
     if (!mounted || _routeMayPop) return;
     setState(() => _routeMayPop = true);
+    // No confirmation result means this session is leaving without saving a
+    // Course, on either the cancelled or the unchanged path. The recordings it
+    // imported were written straight to disk, so the session owns them until
+    // here. A confirmed Course tidies up inside its own confirmation instead.
+    if (result == null) await _session.discardUnconfirmedMedia();
     await WidgetsBinding.instance.endOfFrame;
     if (mounted) Navigator.pop(context, result);
   }
@@ -2169,6 +2212,128 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
     _updateDraft(candidate);
   }
 
+  /// Course-level Lesson settings, shown under the Lessons tile. They were on
+  /// the Lessons screen but none of them is a Lesson property.
+  List<Widget> _lessonOptions() => [
+    Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+      child: DropdownButtonFormField<LessonNumberingMode>(
+        key: ValueKey(
+          'lesson-numbering-${_course.lessonNumberingMode.name}-$_numberingFieldVersion',
+        ),
+        initialValue: _course.lessonNumberingMode,
+        isExpanded: true,
+        decoration: const InputDecoration(
+          border: OutlineInputBorder(),
+          labelText: 'Lesson numbering',
+        ),
+        items: const [
+          DropdownMenuItem(
+            value: LessonNumberingMode.lesson,
+            child: Text('Lesson + number'),
+          ),
+          DropdownMenuItem(value: LessonNumberingMode.unit, child: Text('Unit')),
+          DropdownMenuItem(
+            value: LessonNumberingMode.topic,
+            child: Text('Topic'),
+          ),
+          DropdownMenuItem(
+            value: LessonNumberingMode.module,
+            child: Text('Module'),
+          ),
+          DropdownMenuItem(
+            value: LessonNumberingMode.skill,
+            child: Text('Skill'),
+          ),
+          DropdownMenuItem(
+            value: LessonNumberingMode.chapter,
+            child: Text('Chapter'),
+          ),
+          DropdownMenuItem(
+            value: LessonNumberingMode.stage,
+            child: Text('Stage'),
+          ),
+          DropdownMenuItem(value: LessonNumberingMode.step, child: Text('Step')),
+          DropdownMenuItem(value: LessonNumberingMode.part, child: Text('Part')),
+          DropdownMenuItem(
+            value: LessonNumberingMode.other,
+            child: Text('Other...'),
+          ),
+          DropdownMenuItem(
+            value: LessonNumberingMode.numberOnly,
+            child: Text('Number only'),
+          ),
+          DropdownMenuItem(
+            value: LessonNumberingMode.none,
+            child: Text('Title only'),
+          ),
+        ],
+        onChanged: _canModify ? _setLessonNumbering : null,
+      ),
+    ),
+    if (_course.lessonNumberingMode == LessonNumberingMode.other)
+      Padding(
+        padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+        child: TextButton(
+          onPressed: _canModify
+              ? () => _setLessonNumbering(LessonNumberingMode.other)
+              : null,
+          child: Text('Custom Lesson label: ${_course.customLessonLabel}'),
+        ),
+      ),
+    SwitchListTile(
+      key: const Key('course-use-guidebook'),
+      title: const Text('Use GuideBook'),
+      value: _course.useGuidebook,
+      onChanged: _canModify
+          ? (value) => _updateDraft(
+              Course.fromJson({..._course.toJson(), 'useGuidebook': value}),
+            )
+          : null,
+    ),
+    SwitchListTile(
+      key: const Key('course-create-duels'),
+      title: const Text('Create Duels'),
+      subtitle: const Text(
+        'When enough eligible Exercises are available, winning a Duel unlocks the next Lesson without completing the preceding Lesson.',
+      ),
+      value: _course.createDuels,
+      onChanged: _canModify
+          ? (value) => _updateDraft(
+              Course.fromJson({..._course.toJson(), 'createDuels': value}),
+            )
+          : null,
+    ),
+  ];
+
+  Future<void> _setLessonNumbering(LessonNumberingMode? mode) async {
+    if (!_canModify || mode == null) return;
+    var label = _course.customLessonLabel;
+    if (mode == LessonNumberingMode.other) {
+      final entered = await askAuthoringName(
+        context,
+        title: 'Custom Lesson label',
+        initial: label,
+        confirmLabel: 'Save',
+        maxLength: 40,
+      );
+      if (!mounted) return;
+      if (entered == null) {
+        // Rebuild the field from the unchanged canonical selection on Cancel.
+        setState(() => _numberingFieldVersion++);
+        return;
+      }
+      label = entered;
+    }
+    _updateDraft(
+      Course.fromJson({
+        ..._course.toJson(),
+        'lessonNumberingMode': mode.name,
+        'customLessonLabel': mode == LessonNumberingMode.other ? label : '',
+      }),
+    );
+  }
+
   Future<void> _openAudioLibrary() async {
     final updated = await Navigator.of(context).push<Course>(
       MaterialPageRoute(builder: (_) => AudioLibraryScreen(course: _course)),
@@ -2389,102 +2554,6 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
     }
   }
 
-  Future<void> _exportCustomCourse() async {
-    try {
-      final notice = CourseAuditService().auditCourse(_course).exportNotice;
-      final path = await _transfer.exportCourse(_course);
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          duration: const Duration(seconds: 12),
-          content: Text(
-            'Exported “${_course.title}” to $path'
-            '${notice == null ? '' : ' $notice'}',
-          ),
-        ),
-      );
-    } catch (error) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          duration: Duration(seconds: 8),
-          content: Text(error.toString().replaceFirst('FormatException: ', '')),
-          backgroundColor: Theme.of(context).colorScheme.error,
-        ),
-      );
-    }
-  }
-
-  Future<void> _saveCustomCourseTo() async {
-    try {
-      final notice = CourseAuditService().auditCourse(_course).exportNotice;
-      final result = await _transfer.exportCourseTo(_course);
-      if (!mounted) return;
-      showFileDialogFeedback(
-        context,
-        result,
-        saving: true,
-        savedMessage:
-            'Saved “${_course.title}” as ${result.displayName}.'
-            '${notice == null ? '' : ' $notice'}',
-        fallbackHint: exportFallbackHint,
-      );
-    } catch (error) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          duration: const Duration(seconds: 8),
-          content: Text(error.toString().replaceFirst('FormatException: ', '')),
-          backgroundColor: Theme.of(context).colorScheme.error,
-        ),
-      );
-    }
-  }
-
-  Future<void> _copyAsNewCourse() async {
-    final existingTitles = (await _service.listUserCourses())
-        .map((course) => course.title)
-        .toSet();
-    var title = '${_course.title} copy';
-    var suffix = 2;
-    while (existingTitles.contains(title)) {
-      title = '${_course.title} copy ${suffix++}';
-    }
-    final created = await _service.createCopyAsNewCourse(
-      source: _course,
-      title: title,
-    );
-    final createdAccess = await _service.capabilitiesFor(created.course);
-    if (!mounted) return;
-    final result = await Navigator.of(context).push<CourseConfirmationResult>(
-      MaterialPageRoute(
-        builder: (_) => CourseEditorScreen(
-          course: created.course,
-          access: createdAccess,
-          editorService: _service,
-          clock: _clock,
-        ),
-      ),
-    );
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'New independent Course created: ${created.course.title}\n'
-            'Course version: ${created.course.courseVersion}',
-          ),
-        ),
-      );
-    }
-    if (result != null && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Course changes confirmed: ${result.course.title}'),
-        ),
-      );
-    }
-  }
-
   Future<void> _forkCourse() async {
     try {
       final created = await _service.createFork(source: _course);
@@ -2513,11 +2582,11 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
   @override
   Widget build(BuildContext context) {
     final hierarchyStatus = AuthoringHierarchyStatus.fromCourse(_course);
-    final canExportCourse =
-        widget.access.hasOperationalAccess &&
-        _course.originType == CourseOriginType.custom;
+    // Even an unchanged working copy leaves through _attemptLeave, because a
+    // session can have imported recordings to disk without the draft keeping
+    // them. _popEditor is then the one place that ends the media's lifetime.
     return PopScope(
-      canPop: _routeMayPop || !_dirty,
+      canPop: _routeMayPop,
       onPopInvokedWithResult: (didPop, _) {
         if (!didPop) _attemptLeave();
       },
@@ -2645,6 +2714,16 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
                 onTap: _openLessons,
               ),
             ),
+            // These three are Course properties, not Lesson properties, so
+            // they belong on the Course screen. Collapsed until tapped, and
+            // the expansion is page-session presentation state only.
+            ExpansionTile(
+              key: const Key('course-lesson-options'),
+              initiallyExpanded: false,
+              leading: const Icon(Icons.tune_outlined),
+              title: const Text('Lesson Options'),
+              children: _lessonOptions(),
+            ),
             const Divider(height: 1),
             ListTile(
               key: const Key('course-editor-course-info'),
@@ -2664,19 +2743,6 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
                       ),
                     ),
             ),
-            if (widget.access.canCopyAsNewCourse) ...[
-              const Divider(height: 1),
-              ListTile(
-                key: const Key('course-editor-copy-as-new-course'),
-                leading: const Icon(Icons.copy_outlined),
-                title: const Text('Copy as New Course'),
-                subtitle: const Text(
-                  'Create a new independent Course using this Course as the starting content.',
-                ),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: _copyAsNewCourse,
-              ),
-            ],
             if (widget.access.canFork) ...[
               const Divider(height: 1),
               ListTile(
@@ -2796,37 +2862,6 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
                     )
                   : null,
             ),
-            if (canExportCourse) ...[
-              const Divider(height: 1),
-              ListTile(
-                key: const Key('course-editor-export-json'),
-                leading: const Icon(Icons.file_upload_outlined),
-                title: const Text(
-                  'Export Course package',
-                  style: _hierarchyLinkStyle,
-                ),
-                subtitle: const Text(
-                  'Export the Course and its images and recordings together as a ZIP package.',
-                ),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: _exportCustomCourse,
-              ),
-              if (_transfer.fileDialogsAvailable)
-                ListTile(
-                  key: const Key('course-editor-save-json-to'),
-                  leading: const Icon(Icons.save_alt_outlined),
-                  title: const Text(
-                    'Save Course package to…',
-                    style: _hierarchyLinkStyle,
-                  ),
-                  subtitle: Text(
-                    'The same export, saved wherever you choose with the system file dialog.\n'
-                    '${cloudFolderHelpText()}',
-                  ),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: _saveCustomCourseTo,
-                ),
-            ],
           ],
         ),
       ),
@@ -2860,7 +2895,6 @@ class LessonManagementScreen extends StatefulWidget {
 }
 
 class _LessonManagementScreenState extends State<LessonManagementScreen> {
-  int _numberingFieldVersion = 0;
   final _ids = TimestampAuthoringIdGenerator();
   late Course _course;
   late bool _locked;
@@ -2905,33 +2939,6 @@ class _LessonManagementScreenState extends State<LessonManagementScreen> {
     List<CourseLessonIconAsset>? lessonIconAssets,
   }) => _adoptCourse(_withLessons(lessons, lessonIconAssets: lessonIconAssets));
 
-  Future<void> _setLessonNumbering(LessonNumberingMode? mode) async {
-    if (_locked || mode == null) return;
-    var label = _course.customLessonLabel;
-    if (mode == LessonNumberingMode.other) {
-      final entered = await _askName(
-        title: 'Custom Lesson label',
-        initial: label,
-        confirmLabel: 'Save',
-        maxLength: 40,
-      );
-      if (!mounted) return;
-      if (entered == null) {
-        // Rebuild the field from the unchanged canonical selection on Cancel.
-        setState(() => _numberingFieldVersion++);
-        return;
-      }
-      label = entered;
-    }
-    _adoptCourse(
-      Course.fromJson({
-        ..._course.toJson(),
-        'lessonNumberingMode': mode.name,
-        'customLessonLabel': mode == LessonNumberingMode.other ? label : '',
-      }),
-    );
-  }
-
   Future<void> _returnToCourse() async {
     if (!mounted || _routeMayPop) return;
     setState(() => _routeMayPop = true);
@@ -2944,36 +2951,13 @@ class _LessonManagementScreenState extends State<LessonManagementScreen> {
     String initial = '',
     String confirmLabel = 'Create',
     int? maxLength,
-  }) async {
-    final controller = TextEditingController(text: initial);
-    final result = await showDialog<String>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(title),
-        content: TextField(
-          controller: controller,
-          maxLength: maxLength,
-          autofocus: true,
-          decoration: const InputDecoration(
-            border: OutlineInputBorder(),
-            labelText: 'Title',
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, controller.text.trim()),
-            child: Text(confirmLabel),
-          ),
-        ],
-      ),
-    );
-    WidgetsBinding.instance.addPostFrameCallback((_) => controller.dispose());
-    return result == null || result.isEmpty ? null : result;
-  }
+  }) => askAuthoringName(
+    context,
+    title: title,
+    initial: initial,
+    confirmLabel: confirmLabel,
+    maxLength: maxLength,
+  );
 
   Future<void> _addLesson() async {
     if (_locked) return;
@@ -3238,137 +3222,6 @@ class _LessonManagementScreenState extends State<LessonManagementScreen> {
         body: Column(
           children: [
             EditorBreadcrumbs(course: _course),
-            Flexible(
-              child: SingleChildScrollView(
-                key: const Key('lesson-course-settings-scroll'),
-                child: Column(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
-                      child: Card(
-                        key: const Key('lesson-appearance-settings'),
-                        child: Padding(
-                          padding: const EdgeInsets.all(12),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              Text(
-                                'Lesson appearance',
-                                style: Theme.of(context).textTheme.titleMedium,
-                              ),
-                              const SizedBox(height: 8),
-                              DropdownButtonFormField<LessonNumberingMode>(
-                                key: ValueKey(
-                                  'lesson-numbering-${_course.lessonNumberingMode.name}-$_numberingFieldVersion',
-                                ),
-                                initialValue: _course.lessonNumberingMode,
-                                isExpanded: true,
-                                decoration: const InputDecoration(
-                                  border: OutlineInputBorder(),
-                                  labelText: 'Lesson numbering',
-                                ),
-                                items: const [
-                                  DropdownMenuItem(
-                                    value: LessonNumberingMode.lesson,
-                                    child: Text('Lesson + number'),
-                                  ),
-                                  DropdownMenuItem(
-                                    value: LessonNumberingMode.unit,
-                                    child: Text('Unit'),
-                                  ),
-                                  DropdownMenuItem(
-                                    value: LessonNumberingMode.topic,
-                                    child: Text('Topic'),
-                                  ),
-                                  DropdownMenuItem(
-                                    value: LessonNumberingMode.module,
-                                    child: Text('Module'),
-                                  ),
-                                  DropdownMenuItem(
-                                    value: LessonNumberingMode.skill,
-                                    child: Text('Skill'),
-                                  ),
-                                  DropdownMenuItem(
-                                    value: LessonNumberingMode.chapter,
-                                    child: Text('Chapter'),
-                                  ),
-                                  DropdownMenuItem(
-                                    value: LessonNumberingMode.stage,
-                                    child: Text('Stage'),
-                                  ),
-                                  DropdownMenuItem(
-                                    value: LessonNumberingMode.step,
-                                    child: Text('Step'),
-                                  ),
-                                  DropdownMenuItem(
-                                    value: LessonNumberingMode.part,
-                                    child: Text('Part'),
-                                  ),
-                                  DropdownMenuItem(
-                                    value: LessonNumberingMode.other,
-                                    child: Text('Other...'),
-                                  ),
-                                  DropdownMenuItem(
-                                    value: LessonNumberingMode.numberOnly,
-                                    child: Text('Number only'),
-                                  ),
-                                  DropdownMenuItem(
-                                    value: LessonNumberingMode.none,
-                                    child: Text('Title only'),
-                                  ),
-                                ],
-                                onChanged: _locked ? null : _setLessonNumbering,
-                              ),
-                              if (_course.lessonNumberingMode ==
-                                  LessonNumberingMode.other)
-                                TextButton(
-                                  onPressed: _locked
-                                      ? null
-                                      : () => _setLessonNumbering(
-                                          LessonNumberingMode.other,
-                                        ),
-                                  child: Text(
-                                    'Custom Lesson label: ${_course.customLessonLabel}',
-                                  ),
-                                ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                    SwitchListTile(
-                      key: const Key('course-use-guidebook'),
-                      title: const Text('Use GuideBook'),
-                      value: _course.useGuidebook,
-                      onChanged: _locked
-                          ? null
-                          : (value) => _adoptCourse(
-                              Course.fromJson({
-                                ..._course.toJson(),
-                                'useGuidebook': value,
-                              }),
-                            ),
-                    ),
-                    SwitchListTile(
-                      key: const Key('course-create-duels'),
-                      title: const Text('Create Duels'),
-                      subtitle: const Text(
-                        'When enough eligible Exercises are available, winning a Duel unlocks the next Lesson without completing the preceding Lesson.',
-                      ),
-                      value: _course.createDuels,
-                      onChanged: _locked
-                          ? null
-                          : (value) => _adoptCourse(
-                              Course.fromJson({
-                                ..._course.toJson(),
-                                'createDuels': value,
-                              }),
-                            ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
             const Divider(height: 1),
             Expanded(
               child: _course.lessons.isEmpty
@@ -4348,42 +4201,6 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
     if (mounted) Navigator.pop(context, _lesson);
   }
 
-  Future<String?> _name(String title, {String initial = ''}) async {
-    var edited = initial;
-    final v = await showDialog<String>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(title),
-        content: TextFormField(
-          initialValue: initial,
-          onChanged: (value) => edited = value,
-          autofocus: true,
-          decoration: const InputDecoration(
-            border: OutlineInputBorder(),
-            labelText: 'Title',
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(ctx, edited.trim()),
-            child: const Text('Save'),
-          ),
-        ],
-      ),
-    );
-    return v?.trim().isEmpty == true ? null : v;
-  }
-
-  Future<void> _rename() async {
-    if (widget.readOnly) return;
-    final n = await _name('Rename lesson', initial: _lesson.title);
-    if (n != null && mounted) _publishLesson(_copy(title: n));
-  }
-
   Future<void> _editGuidebook() async {
     if (widget.readOnly) {
       await Navigator.of(context).push<void>(
@@ -4916,19 +4733,6 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
     ),
   );
 
-  Future<void> _auditLesson() => Navigator.of(context).push<void>(
-    MaterialPageRoute(
-      builder: (_) => CourseAuditScreen(
-        course: _courseWithIcons,
-        result: CourseAuditService().auditLesson(
-          _courseWithIcons,
-          _lesson.lessonId,
-        ),
-        title: 'Lesson Audit',
-      ),
-    ),
-  );
-
   @override
   Widget build(BuildContext context) {
     final hierarchyStatus = AuthoringHierarchyStatus.fromCourse(
@@ -4961,9 +4765,11 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
               spacing: 8,
               runSpacing: 8,
               children: [
-                EditorBreadcrumbs(
-                  course: _courseWithIcons,
-                  lessonId: _lesson.lessonId,
+                OutlinedButton.icon(
+                  key: const Key('lesson-preview'),
+                  onPressed: _previewLesson,
+                  icon: const Icon(Icons.play_circle_outline),
+                  label: const Text('Preview'),
                 ),
                 if (!_lesson.publicationState.isPublished)
                   _DraftBranchIndicator(
@@ -4983,6 +4789,12 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
                     onPressed: () => _saveLesson(PublicationState.published),
                     child: const Text('Save'),
                   ),
+                  FilledButton.icon(
+                    key: const Key('lesson-round-wizard'),
+                    onPressed: _openGuidebookRoundGenerator,
+                    icon: const Icon(Icons.auto_awesome_outlined),
+                    label: const Text('Round Wizard'),
+                  ),
                 ],
               ],
             ),
@@ -4992,6 +4804,10 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
           key: const Key('lesson-metadata-controls'),
           padding: const EdgeInsets.only(bottom: 48),
           children: [
+            EditorBreadcrumbs(
+              course: _courseWithIcons,
+              lessonId: _lesson.lessonId,
+            ),
             EditorInternalIdText(label: 'Lesson', id: _lesson.lessonId),
             AuthoringStatusCard(
               indicatorKey: const Key('lesson-rounds-status-indicator'),
@@ -5011,18 +4827,6 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
               ),
             ),
             const Divider(height: 1),
-            ListTile(
-              key: const Key('lesson-title-control'),
-              leading: const Icon(Icons.title),
-              title: const Text('Lesson title'),
-              subtitle: Text(_lesson.title),
-              trailing: Icon(
-                widget.readOnly
-                    ? Icons.visibility_outlined
-                    : Icons.edit_outlined,
-              ),
-              onTap: widget.readOnly ? null : _rename,
-            ),
             AuthoringStatusCard(
               indicatorKey: const Key('lesson-guidebook-status-indicator'),
               draftIndicatorKey: const Key('lesson-guidebook-draft-indicator'),
@@ -5043,30 +4847,6 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
                 trailing: const Icon(Icons.chevron_right),
                 onTap: _editGuidebook,
               ),
-            ),
-            ListTile(
-              key: const Key('guidebook-round-generator'),
-              leading: const Icon(Icons.auto_awesome_outlined),
-              title: const Text('Generate Rounds from GuideBook'),
-              subtitle: const Text(
-                'Choose Round and Exercise counts, preview the difficulty plan, review every draft, then explicitly approve insertion.',
-              ),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: widget.readOnly ? null : _openGuidebookRoundGenerator,
-            ),
-            ListTile(
-              key: const Key('lesson-preview-action'),
-              leading: const Icon(Icons.play_circle_outline),
-              title: const Text('Preview Lesson'),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: _previewLesson,
-            ),
-            ListTile(
-              key: const Key('lesson-audit-action'),
-              leading: const Icon(Icons.fact_check_outlined),
-              title: const Text('Audit Lesson'),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: _auditLesson,
             ),
             EditorInternalIdText(label: 'GuideBook', id: _lesson.guidebookId),
             Padding(
@@ -6596,44 +6376,6 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
     });
   }
 
-  Future<void> _rename() async {
-    if (widget.readOnly) return;
-    final c = TextEditingController(text: _title);
-    final n = await showDialog<String>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Rename Round'),
-        content: TextField(
-          controller: c,
-          onSubmitted: (value) => Navigator.pop(
-            ctx,
-            value.trim().isEmpty && _title.trim().isNotEmpty
-                ? _title.trim()
-                : value.trim(),
-          ),
-          decoration: const InputDecoration(
-            border: OutlineInputBorder(),
-            labelText: 'Title, or Enter to skip',
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(ctx, c.text.trim()),
-            child: const Text('Save'),
-          ),
-        ],
-      ),
-    );
-    WidgetsBinding.instance.addPostFrameCallback((_) => c.dispose());
-    if (n != null && mounted) {
-      _mutateRound(() => _title = n.trim());
-    }
-  }
-
   Future<void> _generateFromReading(int index) async {
     if (widget.readOnly) return;
     final reading = _exercises[index];
@@ -7097,19 +6839,6 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
     widget.onCourseChanged?.call(course);
   }
 
-  Future<void> _auditRound() => Navigator.of(context).push<void>(
-    MaterialPageRoute(
-      builder: (_) => CourseAuditScreen(
-        course: _workingCourse,
-        result: CourseAuditService().auditRound(
-          _workingCourse,
-          widget.round.id,
-        ),
-        title: 'Round Audit',
-      ),
-    ),
-  );
-
   @override
   Widget build(BuildContext context) {
     final hierarchyStatus = AuthoringHierarchyStatus.fromCourse(_workingCourse);
@@ -7176,7 +6905,7 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
                     key: const Key('exercise-creation-wizard'),
                     onPressed: _openCreationWizard,
                     icon: const Icon(Icons.auto_awesome_outlined),
-                    label: const Text('Creation Wizard'),
+                    label: const Text('Exercise Wizard'),
                   ),
                 ],
               ],
@@ -7199,27 +6928,6 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
                   label: 'Round',
                   id: widget.round.id,
                 ),
-              ),
-              ListTile(
-                key: const Key('round-rename-action'),
-                leading: const Icon(Icons.title),
-                title: const Text('Rename Round'),
-                subtitle: Text(
-                  _title.trim().isEmpty ? 'No custom title' : _title,
-                ),
-                trailing: Icon(
-                  widget.readOnly
-                      ? Icons.visibility_outlined
-                      : Icons.edit_outlined,
-                ),
-                onTap: widget.readOnly ? null : _rename,
-              ),
-              ListTile(
-                key: const Key('round-audit-action'),
-                leading: const Icon(Icons.fact_check_outlined),
-                title: const Text('Audit Round'),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: _auditRound,
               ),
             ],
           ),
@@ -10530,6 +10238,7 @@ class _AudioLibraryScreenState extends State<AudioLibraryScreen> {
   final _audio = RecordedAudioService();
   final AudioPlayer _previewPlayer = AudioPlayer();
   late Course _course;
+  bool _routeMayPop = false;
   String? _playingId;
   final Map<String, GlobalKey> _letterKeys = {};
 
@@ -10807,6 +10516,20 @@ class _AudioLibraryScreenState extends State<AudioLibraryScreen> {
             .toList()
           ..sort();
     final children = <Widget>[
+      Card(
+        key: const Key('audio-library-save-notice'),
+        child: const Padding(
+          padding: EdgeInsets.all(12),
+          child: Text(
+            'Changes here are kept as you make them and are applied when you '
+            'leave this screen, so there is no Save button. They are written '
+            'to the Course only when you confirm the Course changes on leaving '
+            'the Course Editor. Cancelling the Course discards them, and any '
+            'recordings imported in that session are removed again.',
+          ),
+        ),
+      ),
+      const SizedBox(height: 8),
       DropdownButtonFormField<String>(
         initialValue: _course.audioMode,
         decoration: const InputDecoration(
@@ -10931,7 +10654,12 @@ class _AudioLibraryScreenState extends State<AudioLibraryScreen> {
         ),
       );
     }
-    return Scaffold(
+    return PopScope<Course>(
+      canPop: _routeMayPop,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) _leave();
+      },
+      child: Scaffold(
       appBar: AppBar(
         title: const Text('Audio Library'),
         actions: [
@@ -10942,10 +10670,6 @@ class _AudioLibraryScreenState extends State<AudioLibraryScreen> {
               onPressed: _importFromDialog,
               icon: const Icon(Icons.folder_open_outlined),
             ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, _course),
-            child: const Text('Save'),
-          ),
         ],
       ),
       floatingActionButton: _course.audioMode == 'tts' ? null : FloatingActionButton.extended(
@@ -10957,6 +10681,17 @@ class _AudioLibraryScreenState extends State<AudioLibraryScreen> {
         padding: const EdgeInsets.fromLTRB(12, 12, 12, 90),
         children: children,
       ),
+      ),
     );
+  }
+
+  /// Leaving the screen returns the draft, so there is no Save button. The
+  /// Course Editor stages it in the working copy; the single top-level Course
+  /// confirmation is still the only thing that writes it.
+  Future<void> _leave() async {
+    if (!mounted || _routeMayPop) return;
+    setState(() => _routeMayPop = true);
+    await WidgetsBinding.instance.endOfFrame;
+    if (mounted) Navigator.pop(context, _course);
   }
 }

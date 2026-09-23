@@ -448,6 +448,15 @@ class CourseEditorService {
     return references.every(used.contains);
   }
 
+  /// The `media:` references the stored custom Course uses, or null when no
+  /// custom Course is stored under [courseId]. An unreadable record throws,
+  /// and the caller then keeps the media rather than assume they are unused.
+  Future<Set<String>?> persistedCustomCourseReferences(String courseId) async {
+    final stored = await _customRecord(courseId);
+    if (stored == null) return null;
+    return CourseMediaStore.referencesOf(_courseFromEntry(stored.entry));
+  }
+
   Future<void> _addToImporterLibrary(Course course) async {
     if (await _profiles.getActiveProfileId() != null) {
       await CourseLibraryService(profileService: _profiles).add(course);

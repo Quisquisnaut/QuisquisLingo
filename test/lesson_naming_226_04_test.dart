@@ -87,24 +87,26 @@ void main() {
         expect(modeField, findsNothing);
         await tester.tap(find.widgetWithText(TextButton, 'Cancel'));
         await tester.pumpAndSettle();
-        final lessonsLink = find.byKey(
-          const Key('course-editor-lessons-navigation'),
-        );
+        final editorScroll = find
+            .descendant(
+              of: find.byType(CourseEditorScreen),
+              matching: find.byType(Scrollable),
+            )
+            .first;
+        final lessonOptions = find.byKey(const Key('course-lesson-options'));
         await tester.scrollUntilVisible(
-          lessonsLink,
+          lessonOptions,
           -200,
-          scrollable: find
-              .descendant(
-                of: find.byType(CourseEditorScreen),
-                matching: find.byType(Scrollable),
-              )
-              .first,
+          scrollable: editorScroll,
           maxScrolls: 10,
         );
         await tester.pumpAndSettle();
-        await tester.tap(lessonsLink);
+        // Course-level Lesson settings live on the Course screen and stay
+        // collapsed until Lesson Options is tapped.
+        expect(modeField, findsNothing);
+        await tester.tap(lessonOptions);
         await tester.pumpAndSettle();
-        expect(find.text('Lesson appearance'), findsOneWidget);
+        expect(find.text('Lesson Options'), findsOneWidget);
         expect(
           tester
               .widget<DropdownButton<LessonNumberingMode>>(
@@ -157,6 +159,18 @@ void main() {
             LessonNumberingMode.module,
           );
         }
+        final lessonsLink = find.byKey(
+          const Key('course-editor-lessons-navigation'),
+        );
+        await tester.scrollUntilVisible(
+          lessonsLink,
+          -200,
+          scrollable: editorScroll,
+          maxScrolls: 10,
+        );
+        await tester.pumpAndSettle();
+        await tester.tap(lessonsLink);
+        await tester.pumpAndSettle();
         Course? working;
         for (final entry in [
           ('default-title', scenario.first),

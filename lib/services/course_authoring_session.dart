@@ -1,6 +1,7 @@
 import '../models/course_models.dart';
 import 'course_access_policy.dart';
 import 'course_audit_service.dart';
+import 'course_authoring_media.dart';
 import 'course_editor_service.dart';
 import 'course_editor_transaction.dart';
 import 'course_hierarchy_update_service.dart';
@@ -30,13 +31,20 @@ class CourseAuthoringSession {
          course,
          isNewCourse: isNewCourse,
          allowReadOnlyOfficial: access.readOnly,
-       );
+       ) {
+    _media = CourseAuthoringMedia(
+      courseId: course.courseId,
+      persistedReferences: () =>
+          editorService.persistedCustomCourseReferences(course.courseId),
+    );
+  }
 
   final CourseAccessCapabilities _access;
   final CourseEditorService _editorService;
   final bool _isNewCourse;
   final DateTime Function() _clock;
   final CourseEditorTransaction _transaction;
+  late final CourseAuthoringMedia _media;
 
   CourseEditorMode _editorMode = CourseEditorMode.viewOnly;
   CourseAuditResult? _lastAudit;
@@ -111,6 +119,10 @@ class CourseAuthoringSession {
     _governanceChangedInEditMode = false;
     _auditOutdated = true;
   }
+
+  /// The editing session is ending without a confirmed Course, so the media it
+  /// created belong to nothing. Returns how many files were removed.
+  Future<int> discardUnconfirmedMedia() => _media.discardUnconfirmedMedia();
 
   Future<CourseConfirmationResult> confirm({
     required String languageCode,
