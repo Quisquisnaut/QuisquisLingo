@@ -259,3 +259,66 @@ export had been used as an observation point for the working copy:
 actually lands. New `test/course_export_screen_248_test.dart` covers the Export
 screen's two routes, the Course title it names, the stored-Course wording, and
 **Save to…** being hidden where no system dialog exists.
+
+---
+
+# Revision 3 validation
+
+`2.0.48+248003`. Plan: [248_FORK_FIX_PLAN.md](248_FORK_FIX_PLAN.md).
+
+| Check | Result |
+| --- | --- |
+| `flutter analyze --no-pub` | **No issues found** |
+| The four asset validators | all pass, 0 issues |
+| `flutter test --no-pub --concurrency=1` | **2,308 / 2,308 passed**, 0 failed (24 min) |
+| `git diff --check` | clean |
+
+## Before the change
+
+`test/editor_fork_248_test.dart` ran first against the unchanged tree:
+**1 failed, 1 passed.** The Course Editor did offer
+`course-editor-fork-course`, and the fork capability was already correct.
+
+## The caveat was checked, not assumed
+
+The roadmap finding required confirming Course Manager covers every case before
+removing the Editor's entry. It does, and it is the more correct route:
+
+* the same `access.canFork` gate;
+* it passes the **stored** Course, not a working copy;
+* for an **official** Course it first resolves the immutable official source
+  (`officialSourceFor`, via `loadBundledCourse` for a bundled Course) and
+  refuses when that source is unavailable, where the Editor forked whatever it
+  happened to hold.
+
+## Honest limit of the second test
+
+The intent was to drive Course Manager's real Fork menu. The stored fixture did
+not appear in that screen's list and the fixture work was not pursued, so the
+test asserts the **capability** instead: an outsider may fork, the Maintainer
+may not, and a signed-out profile may not. That is a weaker proof than a UI
+test and is recorded as such rather than implied otherwise.
+
+## Repointed suites
+
+`course_ownership_team_229_r1` now expects the Editor tile to be absent.
+`official_course_ui_226_01` creates the fork through
+`CourseEditorService.createFork`, as Course Manager does, and its post-confirm
+expectations changed because the fork's Editor is no longer pushed on top of an
+official one. Its subject — that a fork preserves attribution and provenance
+through rename and confirmation — is unchanged.
+
+## A separate, pre-existing test defect found and fixed
+
+The first complete run failed once in
+`test/qql_233_revision_profile_security_test.dart`, unrelated to this build.
+The test proved a PIN is not stored in plaintext with
+`isNot(contains('1234'))` over `v1:<random salt>:<64 hex digest>`. A
+four-character run matches inside a random digest with probability about
+61/65536, roughly **once in 1,100 runs**; that run produced
+`...ead12343e...`. The assertion now checks each field of the verifier, which
+still catches a real `v1:<salt>:1234` leak and additionally requires the digest
+field to be exactly 64 hex characters, so a plaintext PIN fails twice over. It
+also now asserts the salt is random by requiring the same PIN to store a
+different value on a second set — a property the test never covered. The defect
+has been latent since Build 233.

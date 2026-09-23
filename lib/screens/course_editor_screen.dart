@@ -2554,31 +2554,6 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
     }
   }
 
-  Future<void> _forkCourse() async {
-    try {
-      final created = await _service.createFork(source: _course);
-      final createdAccess = await _service.capabilitiesFor(created.course);
-      if (!mounted) return;
-      await Navigator.of(context).push<CourseConfirmationResult>(
-        MaterialPageRoute(
-          builder: (_) => CourseEditorScreen(
-            course: created.course,
-            access: createdAccess,
-            editorService: _service,
-            clock: _clock,
-          ),
-        ),
-      );
-    } catch (error) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(error.toString().replaceFirst('StateError: ', '')),
-        ),
-      );
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final hierarchyStatus = AuthoringHierarchyStatus.fromCourse(_course);
@@ -2743,19 +2718,6 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
                       ),
                     ),
             ),
-            if (widget.access.canFork) ...[
-              const Divider(height: 1),
-              ListTile(
-                key: const Key('course-editor-fork-course'),
-                leading: const Icon(Icons.fork_right_outlined),
-                title: const Text('Fork'),
-                subtitle: const Text(
-                  'Create a derivative Course that preserves the source Course lineage.',
-                ),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: _forkCourse,
-              ),
-            ],
             const Divider(height: 1),
             ListTile(
               key: const Key('course-draft-status'),

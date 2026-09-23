@@ -257,3 +257,46 @@ Three commits are local and unpushed: `c7c9712` (Revision 0, already pushed),
 `ddb67a3` (test robustness) and `ecee745` (Revision 1), plus this one. The pull
 request description still describes Revision 0 only and needs rewriting before
 merge.
+
+---
+
+# Revision 3 current state
+
+Build 248 Revision 3 is `2.0.48+248003`, Course Model v11, on branch
+`claude/248-fork-working-copy` from `main` `aefda4b`. Beta expiry remains
+`2026-10-22 23:59:59` local time. The untracked `devtools_options.yaml` is the
+owner's and stays untouched.
+
+Unlike Revisions 1 and 2, this **is** a correction inside Build 248's own
+scope. Revision 2 set out to stop the Course Editor acting on the unconfirmed
+working copy and removed two of the three actions that did; Fork was the third.
+`_forkCourse` called `createFork(source: _course)`, and because Fork
+**persists** a new Course, a fork could be built from edits that were then
+cancelled and carry `forkProvenance` naming a source version that existed
+nowhere.
+
+`course-editor-fork-course` and `_forkCourse` are removed. Course Manager is
+the only route and the more correct one. `CourseAccessPolicy.canFork`,
+`CourseEditorService.createFork` and fork lineage are untouched.
+
+Validation: analyzer clean, four validators pass, **2,308 / 2,308** tests at
+`--concurrency=1` in 24 min, `git diff --check` clean. See
+[248_VALIDATION.md](248_VALIDATION.md).
+
+## Also in this branch, separately committed
+
+A pre-existing flaky assertion in
+`test/qql_233_revision_profile_security_test.dart`, latent since Build 233 and
+unrelated to Build 248. It searched a random-salted hex digest for the substring
+`1234`, which collides about once in 1,100 runs. It now checks the verifier's
+fields, requires a 64-hex digest, and additionally proves the salt is random.
+
+## Next boundary
+
+The roadmap's "Findings carried out of the delivered builds" entry for the
+Editor's Fork is now closed and should be struck when the roadmap is next
+touched. The inert `CourseEditorScreen.transferService` (6 lines) remains open.
+
+Smoke test worth repeating before release: forking an official Course from
+Course Manager, and confirming the Course Editor offers no Fork, Export or
+Copy as New Course.

@@ -1,3 +1,19 @@
+# 2.0.48 (Build 248, Revision 3) - Fork leaves the Editor - 2026-09-23
+
+Fork was the third Course Editor action running on the unconfirmed working
+copy, and Revision 2 missed it while removing the other two. Because Fork
+persists a new Course, you could open a Course you do not maintain, change it,
+Fork, then cancel - and keep a forked Course built from edits that were never
+confirmed, whose provenance named a source version that existed nowhere.
+
+Fork is now reached only from Course Manager, which is also the more correct
+route: it forks the stored Course, and for an official Course it first resolves
+the immutable official source rather than whatever the Editor happened to hold.
+Who may fork, and what a fork inherits, are unchanged.
+
+Version `2.0.48+248003`; Beta expiry remains
+**2026-10-22 23:59:59 local time**.
+
 # 2.0.48 (Build 248, Revision 2) - Export leaves the Editor - 2026-09-23
 
 Course export and Copy as New Course are no longer offered inside the Course
