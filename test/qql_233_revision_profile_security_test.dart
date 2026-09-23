@@ -263,7 +263,20 @@ void main() {
         (key) => key.endsWith('access_pin_verifier_v1'),
       );
       expect(prefs.getString(verifierKey), startsWith('v1:'));
-      expect(prefs.getString(verifierKey), isNot(contains('1234')));
+      // A plain `isNot(contains('1234'))` is flaky: the verifier ends in a
+      // random-salted 64-character hex digest, and a four-character run matches
+      // by chance roughly once in 1,100 runs without the PIN having leaked.
+      // Checking each field instead still catches a real leak - a stored
+      // `v1:<salt>:1234` - while a chance run inside the digest cannot fail it.
+      final verifier = prefs.getString(verifierKey)!;
+      final fields = verifier.split(':');
+      expect(fields, hasLength(3));
+      expect(fields, everyElement(isNot('1234')));
+      expect(fields.last, matches(RegExp(r'^[0-9a-f]{64}$')));
+
+      // The salt must be random, so the same PIN never stores the same value.
+      await profiles.setOwnAccessPin(actorProfileId: _bobId, pin: '1234');
+      expect(prefs.getString(verifierKey), isNot(verifier));
       expect(await profiles.verifyAccessPin(_bobId, '1234'), isTrue);
       expect(await profiles.verifyAccessPin(_bobId, '0000'), isFalse);
       await expectLater(

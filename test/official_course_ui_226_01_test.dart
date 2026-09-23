@@ -170,17 +170,14 @@ void main() {
     (tester) async {
       final official = _official();
       final original = official.toJson();
-      await _open(tester, official, service);
-      await tester.tap(find.byKey(const Key('course-editor-fork-course')));
+      // Fork is reached from Course Manager now, which passes the immutable
+      // official source. The subject here is what the fork preserves.
+      final created = (await tester.runAsync(
+        () => service.createFork(source: official),
+      ))!;
+      await _open(tester, created.course, service);
       await tester.pumpUntilFileIoState(
-        () =>
-            tester
-                .widget<CourseEditorScreen>(
-                  find.byType(CourseEditorScreen).last,
-                )
-                .course
-                .originType ==
-            CourseOriginType.custom,
+        () => find.byType(CourseEditorScreen).evaluate().isNotEmpty,
       );
       final editor = tester.widget<CourseEditorScreen>(
         find.byType(CourseEditorScreen).last,
@@ -225,17 +222,11 @@ void main() {
         findsOneWidget,
       );
       await tester.tap(find.byKey(const Key('confirm-course-changes')));
+      // Only the fork's Editor is open now, so confirming closes it; there is
+      // no official Editor underneath because Fork is reached from the Manager.
       await tester.pumpUntilFileIoState(
-        () =>
-            tester
-                .widget<CourseEditorScreen>(
-                  find.byType(CourseEditorScreen).last,
-                )
-                .course
-                .courseId ==
-            official.courseId,
+        () => find.byType(CourseEditorScreen).evaluate().isEmpty,
       );
-      expect(find.byType(CourseEditorScreen), findsOneWidget);
       final saved = ((await tester.runAsync(
         () => service.listUserCourses(),
       ))!).single;
@@ -249,7 +240,7 @@ void main() {
       );
       expect(saved.forkProvenance!.forkCreatedByProfileId, _profileId);
       expect(official.toJson(), original);
-      expect(find.byType(CourseEditorScreen), findsOneWidget);
+      expect(find.byType(CourseEditorScreen), findsNothing);
     },
   );
 

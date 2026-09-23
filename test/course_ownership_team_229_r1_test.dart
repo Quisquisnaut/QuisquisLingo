@@ -722,7 +722,9 @@ void main() {
       findsOneWidget,
     );
     expect(find.text('Course Info'), findsOneWidget);
-    expect(find.byKey(const Key('course-editor-fork-course')), findsOneWidget);
+    // Fork moved to Course Manager: in the Editor it forked the unconfirmed
+    // working copy.
+    expect(find.byKey(const Key('course-editor-fork-course')), findsNothing);
 
     // Dispose the first editor before mounting a different course. In the app,
     // each editor is a separate route; replacing MaterialApp.home directly
