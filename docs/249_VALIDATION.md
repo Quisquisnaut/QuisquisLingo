@@ -146,3 +146,33 @@ are absent there.
 
 `2.0.49+249001`, Build 249, Revision 1. Beta expiry unchanged at
 `2026-10-23 23:59:59` local time: the release date is still 23 September 2026.
+
+## Revision 2
+
+`2.0.49+249002` — Build 249, Revision 2, Course Model v11, following Revision 1
+commit `50f860e`.
+
+### 1. Failing test first
+
+The Delete failure characterization test, skipped in Revisions 0 and 1, was
+unskipped and run against Revision 1's code: **failed**, exactly as recorded
+in Revision 0 — an uncaught `Bad state: simulated storage failure on delete`
+and no message. After the change it passes.
+
+### 2. Focused tests
+
+`course_library_operations_249_test.dart` (with the new report text) and
+`course_manager_workflow_249_test.dart`: **53 passed, 0 skipped**.
+
+### 3. Release gate
+
+* `flutter analyze --no-pub`: **No issues found.**
+* Validators: unchanged since Revision 0 (no asset changes).
+* Complete suite, `flutter test --no-pub --concurrency=1 --reporter
+  expanded`: **2,361 passed, 0 skipped, 0 failed** in 24 min 3 s.
+* `git diff --check`: clean.
+
+### 4. Version
+
+`2.0.49+249002`, Build 249, Revision 2. Beta expiry unchanged at
+`2026-10-23 23:59:59` local time.

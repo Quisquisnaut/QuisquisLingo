@@ -1,3 +1,14 @@
+# 2.0.49 (Build 249, Revision 2) - Failed Course deletion is reported - 2026-09-23
+
+When deleting a Course failed at the storage step, Course Manager showed
+nothing: the error was lost and the Course simply stayed in the list. It now
+says "Could not delete “…”:" with the reason, and the list is reloaded so it
+shows what is actually stored. Deleting that succeeds is unchanged, and so is
+the two-step confirmation.
+
+Version `2.0.49+249002`; Beta expiry remains
+**2026-10-23 23:59:59 local time**.
+
 # 2.0.49 (Build 249, Revision 1) - Greyed-out Course Manager actions - 2026-09-23
 
 Course Manager's menu no longer hides actions you are not allowed to use.

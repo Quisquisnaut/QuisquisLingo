@@ -679,6 +679,14 @@ void main() {
       'Exported “Mine” to X/Mine.zip',
     );
     expect(
+      CourseLibraryReports.deleteFailed(mine, StateError('Disk is full.')),
+      'Could not delete “Mine”: Disk is full.',
+    );
+    expect(
+      CourseLibraryReports.deleteFailed(mine, Exception('x')),
+      'Could not delete “Mine”: Exception: x',
+    );
+    expect(
       CourseLibraryReports.importBlocked(1),
       'Course Audit found 1 error. Fix these errors before importing the course.',
     );

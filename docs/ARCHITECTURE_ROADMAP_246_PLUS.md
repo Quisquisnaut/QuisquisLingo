@@ -10,6 +10,7 @@ stands at that time.
 | ✅ | 246 | One Merge workflow owns copied media, Course confirmation and cleanup. |
 | ✅ | 247 | One import attempt owns a Course package from reading until the attempt ends. |
 | ✅ | 248 | One authoring media-lifetime owner; plus owner-requested Course Editor layout work and the removal of export/copy from the Editor. |
+| ✅ | 249 | Course library track step 2: one owner for Course Manager's workflow, greyed-out menu entries with reasons, and a reported Delete failure (merge pending). |
 
 **Build numbers are no longer reserved.** The earlier slots 249–253 are
 withdrawn: the remaining work is a numbered list of **steps**, and each step
@@ -156,7 +157,7 @@ recovered from a different screen. With ALL COURSES one tab away, it cannot.
 | --- | --- | --- |
 | ✅ **1** | Course Editor working-copy boundary rule in `AGENTS.md` | Done 2026-09-23. |
 | ~~2~~ | ~~Remove the Editor's `listUserCourses` duplicate-title check~~ | **Withdrawn.** It is a read that powers a duplicate-name warning while typing, not a library operation, and the sharpened rule explicitly allows it. Removing it would lose the warning or defer the clash to confirm time. |
-| ✅ **2** | **Course library operations owner** | Build 249 Revision 0: `CourseLibraryOperations`. See below and `docs/249_HANDOFF.md`. |
+| ✅ **2** | **Course library operations owner** | Build 249: `CourseLibraryOperations` (Revision 0), greyed-out menu entries with reasons (Revision 1), failed Delete reported (Revision 2). See below and `docs/249_HANDOFF.md`. |
 | **3** | Merge into one screen, two tabs, capability-driven | Small once 2 is done; reuse the Build 229 "unified surface is capability-driven" pattern. |
 | **4** | **Hide in Learner** / **Unhide in Learner**, per learner × Course | Ships **with** step 3. See below. |
 | **5** | Editor device-state owner | Independent of this track; see below. |

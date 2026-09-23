@@ -551,11 +551,8 @@ void main() {
         expect(find.byKey(actionsOf('mine')), findsOneWidget);
         expect((await stored(tester)).map((c) => c.courseId), ['mine']);
       },
-      // Fails on Build 248 and on the Build 249 extraction alike: the error
-      // escapes the menu callback and nothing is shown. The fix is a separate
-      // behaviour revision the owner has not yet chosen; see
-      // docs/249_HANDOFF.md.
-      skip: true,
+      // Failed on Build 248 and on Build 249 Revisions 0 and 1: the error
+      // escaped the menu callback and nothing was shown. Revision 2's proof.
     );
   });
 

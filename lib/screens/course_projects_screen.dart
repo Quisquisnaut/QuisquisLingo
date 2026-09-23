@@ -2277,7 +2277,20 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
         ) ??
         false;
     if (!second) return;
-    await _ops.deleteCourse(course);
+    try {
+      await _ops.deleteCourse(course);
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            duration: const Duration(seconds: 8),
+            content: Text(CourseLibraryReports.deleteFailed(course, error)),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+        );
+      }
+    }
+    // Either way, list what storage now holds.
     await _reload();
   }
 

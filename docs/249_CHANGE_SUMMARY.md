@@ -124,3 +124,33 @@ reason instead of absent).
 
 Release: `pubspec.yaml`, `lib/services/app_metadata.dart` and the four version
 tests, `AGENTS.md`, `README.md`, `CHANGELOG.md` and the Build 249 documents.
+
+## Revision 2
+
+`2.0.49+249002` — Build 249, Revision 2, Course Model v11. A correction proven
+by its own failing test, kept separate from Revision 0's extraction.
+
+### What changed
+
+`_delete` started the storage call from the popup menu without awaiting or
+catching it, so when deleting failed at the storage step the error escaped
+uncaught and the user saw nothing; the Course just stayed in the list. It now
+shows **"Could not delete “Title”: reason"** in an error SnackBar, and reloads
+the list either way so it shows what storage really holds.
+`CourseLibraryReports.deleteFailed` owns the text, taking the plain message
+from a `StateError` or `FormatException`.
+
+The double confirmation, `CourseEditorService.deleteUserCourse`, its rights
+check and a successful deletion are unchanged.
+
+### Files
+
+Source: `lib/services/course_library_operations.dart`,
+`lib/screens/course_projects_screen.dart`.
+
+Tests: `test/course_manager_workflow_249_test.dart` (the Delete failure test
+is no longer skipped), `test/course_library_operations_249_test.dart` (the
+report text).
+
+Release: `pubspec.yaml`, `lib/services/app_metadata.dart` and the four version
+tests, `AGENTS.md`, `README.md`, `CHANGELOG.md` and the Build 249 documents.

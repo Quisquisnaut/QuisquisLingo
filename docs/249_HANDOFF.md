@@ -151,4 +151,62 @@ Analyzer clean, complete suite **2,360 passed, 1 skipped, 0 failed** at
 ## Next step
 
 Revision 2: report a failed Delete and keep the Course listed; unskip the
-characterization test that proves it.
+characterization test that proves it. Done; see below.
+
+---
+
+# Revision 2 current state — Build 249 complete
+
+Build 249 Revision 2 is `2.0.49+249002`, Course Model v11, on branch
+`claude/249-library-operations`, following Revision 1 commit `50f860e`
+(Revision 0 is `df9be0b`). Beta expiry remains `2026-10-23 23:59:59` local
+time. The untracked `devtools_options.yaml` is the owner's and stays
+untouched.
+
+A failed Course deletion is now reported: "Could not delete “Title”: reason",
+and the list reloads to show what storage holds. The characterization test
+that proved the silent failure, skipped since Revision 0, is unskipped and
+passes. `CourseLibraryReports.deleteFailed` owns the text.
+
+## Validation
+
+Analyzer clean, complete suite **2,361 passed, 0 skipped, 0 failed** at
+`--concurrency=1` in 24 min 3 s, `git diff --check` clean. See
+[249_VALIDATION.md](249_VALIDATION.md).
+
+## Known limits after Build 249
+
+* Copy and merge titles avoid only the active profile's personal-library
+  titles, not every Course on the device (recorded, unchanged).
+* `CourseProjectsScreen._openUser` opens the Editor with a default
+  `CourseEditorService` rather than the injected one (unchanged).
+* The inert `CourseEditorScreen.transferService` remains; no Build 249
+  revision touched that file.
+* Course Manager widget tests time out in parallel; run them with
+  `--concurrency=1`.
+* Manual smoke testing and a platform release artifact are outside this
+  source build.
+
+## Smoke tests worth doing by hand
+
+* Course Manager on another profile's Custom Course: Copy, Merge, Export and
+  Delete are greyed with their reasons; Fork follows the license.
+* An official Course: Fork greyed when the license forbids it; no Copy, Merge
+  or Delete entries.
+* A non-admin on a Publisher Course: Remove Publisher Course from device is
+  greyed with its reason.
+
+## Next boundary
+
+Build 249 is complete: three local commits, unpushed. Push, pull request and
+merge follow the owner's direction.
+
+The next build is the **two-tab Courses screen** (roadmap track steps 3 and
+4), in a **new task** from the then-current `main`. Read `AGENTS.md`,
+`pubspec.yaml`, the roadmap's "Step 3 — One screen, two tabs" and "Step 4"
+sections and this handoff first. Every design decision taken on 2026-09-23 is
+recorded there. Still open for that build: Import and New course while
+locked, which tab shows the unreadable-files warning, the screen name
+"Courses", the empty-library link, and the proposed return-after-import and
+Study now behaviour. The Favorite and "received" flags are new stored keys and
+need the owner's confirmation of their exact keys before implementation.

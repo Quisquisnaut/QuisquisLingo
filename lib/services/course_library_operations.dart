@@ -610,4 +610,14 @@ abstract final class CourseLibraryReports {
 
   static String importBlocked(int errors) =>
       'Course Audit found $errors error${errors == 1 ? '' : 's'}. Fix these errors before importing the course.';
+
+  /// A failed Delete, with the storage error's own message.
+  static String deleteFailed(Course course, Object error) {
+    final reason = switch (error) {
+      StateError(:final message) => message,
+      FormatException(:final message) => message,
+      _ => '$error',
+    };
+    return 'Could not delete “${course.title}”: $reason';
+  }
 }
