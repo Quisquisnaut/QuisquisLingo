@@ -260,19 +260,19 @@ void main() {
           );
           await _expectCourseTile(
             tester,
-            const ValueKey('bundled-course-DE'),
+            const ValueKey('recent-course-DE'),
             'AI-Slop Demo: German for English Speakers',
             selected: false,
           );
           await _expectCourseTile(
             tester,
-            const ValueKey('bundled-course-EN'),
+            const ValueKey('recent-course-EN'),
             'AI-Slop Demo: Inglés para hispanohablantes',
             selected: false,
           );
           await _expectCourseTile(
             tester,
-            ValueKey('local-course-${otherCustom.courseId}'),
+            ValueKey('recent-course-custom:${otherCustom.courseId}'),
             otherCustom.title,
             selected: false,
           );
@@ -368,12 +368,20 @@ Future<void> _pumpUntilWithIo(WidgetTester tester, Finder finder) async {
 
 Future<void> _expectTenBundledTiles(WidgetTester tester) async {
   expect(CourseService.courseAssets, hasLength(10));
+  final settings = SettingsService();
+  final selected = await settings.getLastSelectedCourseCode();
+  final recent = (await settings.getRecentCourseRefs())
+      .where((ref) => ref != selected)
+      .take(3)
+      .toSet();
   final selectorScroll = find.descendant(
     of: find.byType(BottomSheet),
     matching: find.byType(Scrollable),
   );
   for (final code in CourseService.courseAssets.keys) {
-    final tile = find.byKey(ValueKey('bundled-course-$code'));
+    final tile = find.byKey(
+      ValueKey('${recent.contains(code) ? 'recent' : 'bundled'}-course-$code'),
+    );
     await tester.scrollUntilVisible(tile, 180, scrollable: selectorScroll);
     expect(tile, findsOneWidget);
   }

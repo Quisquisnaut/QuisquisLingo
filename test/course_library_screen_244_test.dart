@@ -188,15 +188,15 @@ void main() {
     }
     final bundled = CourseService.courseAssets.length;
     expect(count(tester, 0), ' · $bundled');
-    expect(count(tester, 1), ' · 0 shown · 1 hidden');
+    expect(count(tester, 1), ' · 0 of 1 shown');
     expect(count(tester, 2), ' · 0');
     // Detached test Courses belong to no local profile: Other Local Courses.
-    expect(count(tester, 3), ' · 1 shown · 2 hidden');
+    expect(count(tester, 3), ' · 1 of 3 shown');
     expect(
       find.descendant(
         of: find.byKey(const ValueKey('course-section-1')),
         matching: find.textContaining(
-          'The Course here is unavailable or Draft',
+          'No Courses are shown in this section. Turn on Show unavailable Courses to see them.',
         ),
       ),
       findsOneWidget,
@@ -261,7 +261,7 @@ void main() {
     expect(
       availableCoursesHelp,
       startsWith(
-        'Courses on this device\n\nCourse Library shows all Courses installed or stored on this QQL device, not only the Courses in your personal library.',
+        'Courses on this device\n\nAll Courses shows every Course installed or stored on this QQL device, including Courses outside your personal library.',
       ),
     );
     for (final phrase in [

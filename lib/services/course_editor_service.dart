@@ -14,6 +14,7 @@ import 'authoring_duplication_service.dart';
 import 'course_access_policy.dart';
 import 'course_media_store.dart';
 import 'course_package_service.dart';
+import 'course_received_service.dart';
 import 'team_service.dart';
 
 class CourseConfirmationResult {
@@ -69,6 +70,7 @@ class CourseEditorService {
     DateTime Function()? clock,
     CourseMediaStore? mediaStore,
     PublisherVerificationService? publisherVerification,
+    CourseReceivedService? receivedCourses,
   }) : _store = courseStore ?? CourseFileStore(),
        _media = mediaStore ?? CourseMediaStore(),
        _publisherVerification =
@@ -87,7 +89,10 @@ class CourseEditorService {
              profileService: profileService,
              teamService: teamService,
            ),
-       _clock = clock ?? DateTime.now;
+       _clock = clock ?? DateTime.now,
+       _receivedCourses =
+           receivedCourses ??
+           CourseReceivedService(profiles: profileService, teams: teamService);
 
   final CourseFileStore _store;
   final PublisherVerificationService _publisherVerification;
@@ -97,6 +102,10 @@ class CourseEditorService {
   final TeamService _teams;
   final CourseAccessPolicy _access;
   final DateTime Function() _clock;
+  final CourseReceivedService _receivedCourses;
+
+  /// The device-local received-Course status used by import review.
+  CourseReceivedService get receivedCourses => _receivedCourses;
 
   /// Stored Course files the last [listUserCourses] could not load. They are
   /// kept on disk untouched; the readable Courses are listed regardless.
@@ -272,6 +281,7 @@ class CourseEditorService {
       );
     }
     if (existing == null) await _addToImporterLibrary(course);
+    await _receivedCourses.clear(course.courseId);
     LearnerStatusEvents.publish(LearnerStatusInvalidation.courseMetadata);
   }
 
@@ -289,7 +299,12 @@ class CourseEditorService {
     Course course, {
     CoursePackage? package,
   }) async {
-    if (package == null) return _installImportedCustomCourse(course);
+    if (package == null) {
+      return _store.withCourseLock(
+        course.courseId,
+        () => _installImportedCustomCourse(course),
+      );
+    }
     _requireMatchingPackage(package, course);
     return _store.withCourseLock(
       course.courseId,
@@ -340,6 +355,17 @@ class CourseEditorService {
     final stored = await _customRecord(course.courseId);
     if (stored != null) {
       final current = _courseFromEntry(stored.entry);
+      if (!(await _access.forCurrentProfile(current)).canEditOriginal) {
+        final decision = await _receivedCourses.reviewUpdate(
+          existing: current,
+          incoming: course,
+        );
+        if (!decision.allowed) {
+          throw StateError(decision.unavailableReason!);
+        }
+        await _installReceivedCustomUpdate(stored, current, course);
+        return;
+      }
       await confirmCourseTransaction(
         originalCourse: current,
         workingCourse: course,
@@ -355,14 +381,67 @@ class CourseEditorService {
           'A custom course cannot replace an official course identity. Import it as a separate copy.',
         );
       }
-      await _store.createIfAbsent(
-        CourseStoreKind.custom,
-        course.courseId,
-        _entry(course, _clock()),
-      );
+      await _receivedCourses.recordNewImport(course);
+      try {
+        await _store.createIfAbsent(
+          CourseStoreKind.custom,
+          course.courseId,
+          _entry(course, _clock()),
+        );
+      } catch (_) {
+        // A file write may commit before reporting failure. Preserve the
+        // received marker and importer membership when that exact Course is
+        // readable; otherwise remove the provisional marker. An unreadable
+        // record leaves the marker for recovery rather than guessing.
+        try {
+          final persisted = await _customRecord(course.courseId);
+          if (persisted == null ||
+              jsonEncode(_courseFromEntry(persisted.entry).toJson()) !=
+                  jsonEncode(course.toJson())) {
+            await _receivedCourses.clear(course.courseId);
+          } else {
+            await _addToImporterLibrary(course);
+          }
+        } catch (_) {}
+        rethrow;
+      }
       await _addToImporterLibrary(course);
       LearnerStatusEvents.publish(LearnerStatusInvalidation.courseMetadata);
     });
+  }
+
+  /// The exceptional import-only path keeps the friend's supplied version and
+  /// the previous Course backup; no Course Editor working copy is created.
+  Future<void> _installReceivedCustomUpdate(
+    CourseStoredRecord stored,
+    Course current,
+    Course incoming,
+  ) async {
+    await CourseFlagService().validateWorldFlag(incoming);
+    _requirePreservedProvenance(current, incoming);
+    final when = _clock().toUtc();
+    await backupService.createBackup(
+      current,
+      backedUpAt: when,
+      reason: 'Received Custom Course update archived previous version',
+    );
+    await _store.replaceIfUnchanged(
+      CourseStoreKind.custom,
+      incoming.courseId,
+      _entry(incoming, when),
+      expectedToken: stored.token,
+    );
+    final verifiedRecord = await _customRecord(incoming.courseId);
+    if (verifiedRecord == null ||
+        jsonEncode(_courseFromEntry(verifiedRecord.entry).toJson()) !=
+            jsonEncode(incoming.toJson())) {
+      throw StateError('Course persistence verification failed.');
+    }
+    await _media.deleteUnreferenced(
+      incoming.courseId,
+      CourseMediaStore.referencesOf(incoming),
+    );
+    LearnerStatusEvents.publish(LearnerStatusInvalidation.courseMetadata);
   }
 
   /// Every readable stored Course. One unreadable Course never hides the
@@ -527,6 +606,7 @@ class CourseEditorService {
       courseId,
       expectedToken: stored.token,
     );
+    await _receivedCourses.clear(courseId);
     // The folder is this Course's alone; its version backups keep their own
     // copies of the media.
     await _media.deleteCourse(course.courseId);
@@ -953,6 +1033,7 @@ class CourseEditorService {
     if (jsonEncode(verified.toJson()) != jsonEncode(committed.toJson())) {
       throw StateError('Course persistence verification failed.');
     }
+    await _receivedCourses.clear(storageId);
     // Media added while editing and then removed, or no longer used by the
     // confirmed version, leave the Course folder. The pre-change backup above
     // holds its own copies, so older versions still restore.

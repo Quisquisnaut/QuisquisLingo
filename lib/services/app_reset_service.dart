@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'course_editor_storage.dart';
 import 'course_file_store.dart';
+import 'course_received_service.dart';
 import 'course_media_store.dart';
 import 'learner_status_events.dart';
 import 'profile_service.dart';
@@ -164,6 +165,11 @@ class AppResetService {
       audioFileCount: audio,
       hasCustomCourses:
           _courseKeys.any(prefs.containsKey) ||
+          prefs.getKeys().any(
+            (key) =>
+                key.startsWith(CourseReceivedService.keyPrefix) &&
+                prefs.getBool(key) == true,
+          ) ||
           await _countFiles(
                 await _directories([CourseFileStore.rootDirectoryName]),
               ) >
@@ -322,6 +328,11 @@ class AppResetService {
     await _removeCourseFiles();
     final prefs = await SharedPreferences.getInstance();
     for (final key in _courseKeys) {
+      await prefs.remove(key);
+    }
+    for (final key in prefs.getKeys().where(
+      (key) => key.startsWith(CourseReceivedService.keyPrefix),
+    )) {
       await prefs.remove(key);
     }
     await _removeImportedMedia();

@@ -11,6 +11,9 @@ import '../services/custom_course_transfer_service.dart';
 import '../services/course_service.dart';
 import '../services/course_language_resolver.dart';
 import '../services/course_library_operations.dart';
+import '../services/course_library_presentation.dart';
+import '../services/course_library_service.dart';
+import '../services/course_media_store.dart';
 import '../services/course_merge_service.dart';
 import '../services/course_package_import.dart';
 import '../services/course_package_service.dart';
@@ -19,6 +22,7 @@ import '../services/course_access_policy.dart';
 import '../services/sound_effect_service.dart';
 import '../services/new_course_structure.dart';
 import '../widgets/course_flag_picker.dart';
+import '../widgets/course_library_row.dart';
 import '../widgets/editor_app_bar_actions.dart';
 import '../widgets/file_dialog_feedback.dart';
 import '../widgets/flag_art.dart';
@@ -757,6 +761,11 @@ class CourseProjectsScreen extends StatefulWidget {
   final String? initialCourseIdToOpen;
   final CourseEditorService? editorService;
   final CustomCourseTransferService? transferService;
+  final CourseMediaStore? mediaStore;
+  final bool embedded;
+  final CourseLibrarySort sort;
+  final bool showUnavailable;
+  final int refreshToken;
   const CourseProjectsScreen({
     super.key,
     required this.currentCourse,
@@ -764,13 +773,18 @@ class CourseProjectsScreen extends StatefulWidget {
     this.initialCourseIdToOpen,
     this.editorService,
     this.transferService,
+    this.mediaStore,
+    this.embedded = false,
+    this.sort = CourseLibrarySort.title,
+    this.showUnavailable = true,
+    this.refreshToken = 0,
   });
 
   @override
-  State<CourseProjectsScreen> createState() => _CourseProjectsScreenState();
+  CourseProjectsScreenState createState() => CourseProjectsScreenState();
 }
 
-class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
+class CourseProjectsScreenState extends State<CourseProjectsScreen> {
   late final _ops = CourseLibraryOperations(
     editor: widget.editorService,
     transfer: widget.transferService,
@@ -782,6 +796,10 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
   bool _loading = true;
   String? _loadError;
   bool _openedInitialCourse = false;
+  final _compact = List<bool>.filled(4, false);
+  Map<String, String> _profileNames = {};
+
+  Future<void> createCourse() => _newCourse();
 
   @override
   void initState() {
@@ -792,7 +810,10 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
   @override
   void didUpdateWidget(covariant CourseProjectsScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.currentCourse != widget.currentCourse) _reload();
+    if (oldWidget.currentCourse != widget.currentCourse ||
+        oldWidget.refreshToken != widget.refreshToken) {
+      _reload();
+    }
   }
 
   Future<void> _reload() async {
@@ -807,9 +828,14 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
         currentCourse: widget.currentCourse,
         importOnly: widget.importOnly,
       );
+      final profileNames = {
+        for (final profile in await _ops.profiles.getProfileRecords())
+          profile.learnerProfileId: profile.displayName,
+      };
       if (!mounted) return;
       setState(() {
         _library = library;
+        _profileNames = profileNames;
         _loading = false;
       });
       if (!_openedInitialCourse && widget.initialCourseIdToOpen != null) {
@@ -1786,6 +1812,24 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
   CourseAccessCapabilities _capabilities(Course course) =>
       _library.capabilitiesFor(course);
 
+  Future<void> _toggleLearnerVisibility(Course course) async {
+    try {
+      await _ops.visibility.setHidden(
+        course,
+        !_library.hiddenCourseIds.contains(course.courseId),
+        activeCourseId: widget.currentCourse?.courseId,
+      );
+      await _reload();
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(error.toString().replaceFirst('Bad state: ', '')),
+        ),
+      );
+    }
+  }
+
   Widget _courseActions(
     Course course, {
     required Key key,
@@ -1799,6 +1843,8 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
         switch (action) {
           case CourseManagerAction.open:
             onOpen();
+          case CourseManagerAction.toggleLearnerVisibility:
+            _toggleLearnerVisibility(course);
           case CourseManagerAction.removeFromMyCourses:
             _removePersonal(course);
           case CourseManagerAction.removePublisherFromDevice:
@@ -1819,7 +1865,7 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
       },
       itemBuilder: (_) => [
         for (final entry in _library.entriesFor(course))
-          _courseActionItem(entry, access),
+          _courseActionItem(entry, access, course),
       ],
     );
   }
@@ -1829,6 +1875,7 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
   PopupMenuEntry<CourseManagerAction> _courseActionItem(
     CourseManagerEntry entry,
     CourseAccessCapabilities access,
+    Course course,
   ) {
     final (
       IconData? icon,
@@ -1850,6 +1897,15 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
             ? Icons.edit_outlined
             : Icons.visibility_outlined,
         access.canEditOriginal ? 'Edit' : 'View (read only)',
+        null,
+      ),
+      CourseManagerAction.toggleLearnerVisibility => (
+        _library.hiddenCourseIds.contains(course.courseId)
+            ? Icons.visibility_outlined
+            : Icons.visibility_off_outlined,
+        _library.hiddenCourseIds.contains(course.courseId)
+            ? 'Unhide in Learner'
+            : 'Hide in Learner',
         null,
       ),
       CourseManagerAction.fork => (
@@ -1920,6 +1976,10 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
   }
 
   Future<void> _importCourseFromDialog() => _importCourse(fromDialog: true);
+
+  void _returnImportedCourse(Course course) {
+    if (widget.importOnly && mounted) Navigator.of(context).pop(course);
+  }
 
   Future<void> _importCourse({bool fromDialog = false}) async {
     // One import attempt owns the package's staged media until it ends.
@@ -2034,6 +2094,7 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
             ),
           ),
         );
+        _returnImportedCourse(course);
         return;
       }
       final existing = review.existing;
@@ -2042,11 +2103,30 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
             await showDialog<String>(
               context: context,
               builder: (ctx) => AlertDialog(
+                scrollable: true,
                 title: const Text('Matching Course ID'),
-                content: Text(
-                  existing.originType.isOfficial
-                      ? 'Official Course “${existing.title}” already uses ID “${course.courseId}”. It cannot be replaced by custom content; create an available Copy as New Course or Fork, or cancel.'
-                      : 'A custom Course with ID “${course.courseId}” already exists. Replace “${existing.title}”, create an available Copy as New Course or Fork, or cancel?',
+                content: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      existing.originType.isOfficial
+                          ? 'Official Course “${existing.title}” already uses ID “${course.courseId}”. It cannot be replaced by custom content; create an available Copy as New Course or Fork, or cancel.'
+                          : review.receivedUpdate
+                          ? 'A newer version of the received Custom Course “${existing.title}” is available. Update to version ${course.courseVersion}, create an available Copy as New Course or Fork, or cancel?'
+                          : 'A custom Course with ID “${course.courseId}” already exists. Replace “${existing.title}”, create an available Copy as New Course or Fork, or cancel?',
+                    ),
+                    if (!_library.importAuthoringEnabled) ...[
+                      const SizedBox(height: 12),
+                      const Text(
+                        'Unlock Course Manager for this profile to create your own copy (tap Version ten times in Settings). Copy as New Course and Fork are unavailable until then.',
+                      ),
+                    ],
+                    if (review.replaceUnavailableReason != null) ...[
+                      const SizedBox(height: 12),
+                      Text(review.replaceUnavailableReason!),
+                    ],
+                  ],
                 ),
                 actions: [
                   TextButton(
@@ -2060,15 +2140,32 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
                       onPressed: () => Navigator.pop(ctx, 'copy'),
                       child: const Text('Copy as New Course'),
                     ),
+                  if (!_library.importAuthoringEnabled)
+                    const OutlinedButton(
+                      onPressed: null,
+                      child: Text('Copy as New Course'),
+                    ),
                   if (review.choices.contains(CourseImportChoice.fork))
                     OutlinedButton(
                       onPressed: () => Navigator.pop(ctx, 'fork'),
                       child: const Text('Fork'),
                     ),
+                  if (!_library.importAuthoringEnabled)
+                    const OutlinedButton(onPressed: null, child: Text('Fork')),
                   if (review.choices.contains(CourseImportChoice.replace))
                     FilledButton(
                       onPressed: () => Navigator.pop(ctx, 'replace'),
-                      child: const Text('Replace / update'),
+                      child: Text(
+                        review.receivedUpdate
+                            ? 'Update to version ${course.courseVersion}'
+                            : 'Replace / update',
+                      ),
+                    ),
+                  if (!review.choices.contains(CourseImportChoice.replace) &&
+                      review.replaceUnavailableReason != null)
+                    const FilledButton(
+                      onPressed: null,
+                      child: Text('Replace / update'),
                     ),
                 ],
               ),
@@ -2081,36 +2178,16 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
           );
           await _reload();
           if (!mounted) return;
-          final result = await Navigator.of(context)
-              .push<CourseConfirmationResult>(
-                MaterialPageRoute(
-                  builder: (_) => CourseEditorScreen(
-                    course: created.course,
-                    access: _capabilities(created.course),
-                    editorService: _service,
-                  ),
-                ),
-              );
-          if (result != null && mounted) _showConfirmationResult(result);
-          await _reload();
+          if (!widget.importOnly) _showConfirmationResult(created);
+          _returnImportedCourse(created.course);
           return;
         }
         if (choice == 'fork') {
           final created = await attempt.fork();
           await _reload();
           if (!mounted) return;
-          final result = await Navigator.of(context)
-              .push<CourseConfirmationResult>(
-                MaterialPageRoute(
-                  builder: (_) => CourseEditorScreen(
-                    course: created.course,
-                    access: _capabilities(created.course),
-                    editorService: _service,
-                  ),
-                ),
-              );
-          if (result != null && mounted) _showConfirmationResult(result);
-          await _reload();
+          if (!widget.importOnly) _showConfirmationResult(created);
+          _returnImportedCourse(created.course);
           return;
         }
       }
@@ -2125,6 +2202,7 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
           ),
         ),
       );
+      _returnImportedCourse(course);
     } catch (error) {
       unawaited(_sounds.playDefeat());
       if (!mounted) return;
@@ -2294,134 +2372,363 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
     await _reload();
   }
 
-  @override
-  Widget build(BuildContext context) => widget.importOnly
-      ? (_loading || _loadError != null
-            ? Scaffold(
-                appBar: AppBar(title: const Text('Course Import')),
-                body: Center(
-                  child: _loadError == null
-                      ? const CircularProgressIndicator()
-                      : Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(_loadError!),
-                            TextButton(
-                              onPressed: _reload,
-                              child: const Text('Retry'),
-                            ),
-                          ],
-                        ),
+  static const _managerSectionLabels = [
+    'Bundled Courses',
+    'Publisher Courses',
+    'My Local Courses',
+    'Other Local Courses',
+  ];
+
+  int _managerSection(Course course) {
+    if (course.originType == CourseOriginType.bundledOfficial) return 0;
+    if (course.originType == CourseOriginType.externalOfficial) return 1;
+    return CourseLibraryService.creatorProfileId(course) ==
+            _library.activeProfileId
+        ? 2
+        : 3;
+  }
+
+  String _managerMaintainer(Course course) {
+    if (course.originType.isOfficial) return course.publisherName;
+    final id = course.maintainer?.profileId;
+    if (id == null) return 'Not specified';
+    return _profileNames[id] ?? 'Profile not on this device ($id)';
+  }
+
+  Color _managerSectionColor(BuildContext context, int index) =>
+      switch (index) {
+        0 => Theme.of(context).colorScheme.onSurface,
+        1 => Colors.purple,
+        2 => Colors.orange,
+        _ => Colors.orange.shade800,
+      };
+
+  Widget _managerSectionBand(BuildContext context, int index) {
+    final courses = <Course>[
+      ..._library.bundledCourses,
+      ..._library.personalCourses,
+    ];
+    final all = courses.where((c) => _managerSection(c) == index).toList();
+    final shown = CourseLibraryPresentation.sorted(
+      all.where(
+        (course) =>
+            widget.showUnavailable || !CourseLibraryRow.isUnavailable(course),
+      ),
+      widget.sort,
+      maintainerOf: _managerMaintainer,
+    );
+    final color = _managerSectionColor(context, index);
+    return Padding(
+      key: ValueKey('manager-section-$index'),
+      padding: const EdgeInsets.only(bottom: 20),
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          border: Border.all(color: color, width: 2),
+          borderRadius: BorderRadius.circular(14),
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Container(
+                color: color.withValues(alpha: 0.12),
+                padding: const EdgeInsets.fromLTRB(16, 6, 8, 6),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        '${_managerSectionLabels[index]} · ${shown.length == all.length ? '${all.length}' : '${shown.length} of ${all.length} shown'}',
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                    ),
+                    TextButton.icon(
+                      key: ValueKey('manager-section-view-$index'),
+                      onPressed: () =>
+                          setState(() => _compact[index] = !_compact[index]),
+                      icon: Icon(
+                        _compact[index]
+                            ? Icons.view_headline
+                            : Icons.view_agenda_outlined,
+                      ),
+                      label: Text(_compact[index] ? 'Compact' : 'Expanded'),
+                    ),
+                  ],
                 ),
-              )
-            : CourseImportScreen(
-                onImport: _importCourse,
-                onOpenFrom: _transfer.fileDialogsAvailable
-                    ? _importCourseFromDialog
-                    : null,
-              ))
-      : Scaffold(
-          appBar: AppBar(
-            title: const Text('Course Manager'),
-            actions: [
-              IconButton(
-                key: const Key('course-import-icon-action'),
-                tooltip: 'Course Import',
-                onPressed: _openCourseImport,
-                icon: const Icon(Icons.file_open_outlined),
               ),
-              IconButton(
-                key: const Key('create-course-icon-action'),
-                tooltip: 'Create new course',
-                onPressed: _newCourse,
-                icon: const Icon(Icons.add),
-              ),
-              const EditorAppBarActions(showInternalIdsToggle: false),
-            ],
-          ),
-          body: _loading
-              ? const Center(child: CircularProgressIndicator())
-              : _loadError != null
-              ? Center(
-                  key: const Key('course-manager-load-error'),
-                  child: Padding(
-                    padding: const EdgeInsets.all(24),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(Icons.error_outline, size: 40),
-                        const SizedBox(height: 12),
-                        const Text(
-                          'Course Manager could not load local course data.',
-                          textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(height: 8),
-                        Text(_loadError!, textAlign: TextAlign.center),
-                        const SizedBox(height: 16),
-                        OutlinedButton.icon(
-                          onPressed: _reload,
-                          icon: const Icon(Icons.refresh),
-                          label: const Text('Retry'),
-                        ),
-                      ],
+              if (shown.isEmpty)
+                const Padding(
+                  padding: EdgeInsets.all(16),
+                  child: Text('No courses in this section.'),
+                ),
+              for (final course in shown)
+                _courseStatusCard(
+                  course,
+                  CourseLibraryRow(
+                    key: ValueKey('manager-course-${course.courseId}'),
+                    course: course,
+                    compact: _compact[index],
+                    maintainer: _managerMaintainer(course),
+                    mediaStore: widget.mediaStore,
+                    hiddenInLearner: _library.hiddenCourseIds.contains(
+                      course.courseId,
+                    ),
+                    onTap: () => _openUser(course),
+                    trailing: _courseActions(
+                      course,
+                      key: ValueKey(
+                        'course-manager-actions-${course.courseId}',
+                      ),
+                      onOpen: () => _openUser(course),
                     ),
                   ),
-                )
-              : ListView(
-                  padding: const EdgeInsets.all(16),
-                  children: [
-                    if (_library.unreadable.isNotEmpty) ...[
-                      _unreadableCoursesCard(),
-                      const SizedBox(height: 12),
-                    ],
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: [
-                        OutlinedButton.icon(
-                          key: const Key('team-manager-entry'),
-                          onPressed: () async {
-                            await Navigator.of(context).push<void>(
-                              MaterialPageRoute(
-                                builder: (_) => TeamManagerScreen(
-                                  teamService: _ops.teams,
-                                  profileService: _ops.profiles,
-                                ),
+                  showIndicators: false,
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _embeddedBody(BuildContext context) {
+    if (_loading) return const Center(child: CircularProgressIndicator());
+    if (_loadError != null) {
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('Course Manager could not load local course data.'),
+            Text(_loadError!),
+            TextButton(onPressed: _reload, child: const Text('Retry')),
+          ],
+        ),
+      );
+    }
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            OutlinedButton.icon(
+              key: const Key('team-manager-entry'),
+              onPressed: () async {
+                await Navigator.of(context).push<void>(
+                  MaterialPageRoute(
+                    builder: (_) => TeamManagerScreen(
+                      teamService: _ops.teams,
+                      profileService: _ops.profiles,
+                    ),
+                  ),
+                );
+                await _reload();
+              },
+              icon: const Icon(Icons.groups_outlined),
+              label: const Text('Team Manager'),
+            ),
+            if (_library.isAdmin && _library.activeProfileId != null)
+              OutlinedButton.icon(
+                key: const Key('admin-media-library-entry'),
+                onPressed: () async {
+                  await Navigator.of(context).push<void>(
+                    MaterialPageRoute(
+                      builder: (_) => FlatImageLibraryScreen(
+                        selectMode: false,
+                        metadataEditingEnabled: true,
+                        actorProfileId: _library.activeProfileId,
+                      ),
+                    ),
+                  );
+                  await _reload();
+                },
+                icon: const Icon(Icons.perm_media_outlined),
+                label: const Text('Shared Images'),
+              ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        for (final index in Iterable<int>.generate(
+          _managerSectionLabels.length,
+        ))
+          _managerSectionBand(context, index),
+      ],
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (widget.embedded && !widget.importOnly) return _embeddedBody(context);
+    return widget.importOnly
+        ? (_loading || _loadError != null
+              ? Scaffold(
+                  appBar: AppBar(title: const Text('Course Import')),
+                  body: Center(
+                    child: _loadError == null
+                        ? const CircularProgressIndicator()
+                        : Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(_loadError!),
+                              TextButton(
+                                onPressed: _reload,
+                                child: const Text('Retry'),
                               ),
-                            );
-                            await _reload();
-                          },
-                          icon: const Icon(Icons.groups_outlined),
-                          label: const Text('Team Manager'),
-                        ),
-                        if (_library.isAdmin &&
-                            _library.activeProfileId != null)
+                            ],
+                          ),
+                  ),
+                )
+              : CourseImportScreen(
+                  onImport: _importCourse,
+                  onOpenFrom: _transfer.fileDialogsAvailable
+                      ? _importCourseFromDialog
+                      : null,
+                ))
+        : Scaffold(
+            appBar: AppBar(
+              title: const Text('Course Manager'),
+              actions: [
+                IconButton(
+                  key: const Key('course-import-icon-action'),
+                  tooltip: 'Course Import',
+                  onPressed: _openCourseImport,
+                  icon: const Icon(Icons.file_open_outlined),
+                ),
+                IconButton(
+                  key: const Key('create-course-icon-action'),
+                  tooltip: 'Create new course',
+                  onPressed: _newCourse,
+                  icon: const Icon(Icons.add),
+                ),
+                const EditorAppBarActions(showInternalIdsToggle: false),
+              ],
+            ),
+            body: _loading
+                ? const Center(child: CircularProgressIndicator())
+                : _loadError != null
+                ? Center(
+                    key: const Key('course-manager-load-error'),
+                    child: Padding(
+                      padding: const EdgeInsets.all(24),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.error_outline, size: 40),
+                          const SizedBox(height: 12),
+                          const Text(
+                            'Course Manager could not load local course data.',
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 8),
+                          Text(_loadError!, textAlign: TextAlign.center),
+                          const SizedBox(height: 16),
                           OutlinedButton.icon(
-                            key: const Key('admin-media-library-entry'),
+                            onPressed: _reload,
+                            icon: const Icon(Icons.refresh),
+                            label: const Text('Retry'),
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
+                : ListView(
+                    padding: const EdgeInsets.all(16),
+                    children: [
+                      if (_library.unreadable.isNotEmpty) ...[
+                        _unreadableCoursesCard(),
+                        const SizedBox(height: 12),
+                      ],
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          OutlinedButton.icon(
+                            key: const Key('team-manager-entry'),
                             onPressed: () async {
                               await Navigator.of(context).push<void>(
                                 MaterialPageRoute(
-                                  builder: (_) => FlatImageLibraryScreen(
-                                    selectMode: false,
-                                    metadataEditingEnabled: true,
-                                    actorProfileId: _library.activeProfileId,
+                                  builder: (_) => TeamManagerScreen(
+                                    teamService: _ops.teams,
+                                    profileService: _ops.profiles,
                                   ),
                                 ),
                               );
                               await _reload();
                             },
-                            icon: const Icon(Icons.perm_media_outlined),
-                            label: const Text('Shared Images'),
+                            icon: const Icon(Icons.groups_outlined),
+                            label: const Text('Team Manager'),
+                          ),
+                          if (_library.isAdmin &&
+                              _library.activeProfileId != null)
+                            OutlinedButton.icon(
+                              key: const Key('admin-media-library-entry'),
+                              onPressed: () async {
+                                await Navigator.of(context).push<void>(
+                                  MaterialPageRoute(
+                                    builder: (_) => FlatImageLibraryScreen(
+                                      selectMode: false,
+                                      metadataEditingEnabled: true,
+                                      actorProfileId: _library.activeProfileId,
+                                    ),
+                                  ),
+                                );
+                                await _reload();
+                              },
+                              icon: const Icon(Icons.perm_media_outlined),
+                              label: const Text('Shared Images'),
+                            ),
+                        ],
+                      ),
+                      if (_library.bundledCourses.isNotEmpty) ...[
+                        const SizedBox(height: 18),
+                        Text(
+                          'Bundled Courses',
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
+                        for (final course in _library.bundledCourses)
+                          _courseStatusCard(
+                            course,
+                            ListTile(
+                              leading: CourseFlagBadge(
+                                course: course,
+                                fallbackCode: CourseService.codeForCourse(
+                                  course,
+                                ),
+                              ),
+                              title: Text(course.title),
+                              subtitle: const Text(
+                                'Bundled Course · read only',
+                              ),
+                              onTap: () => _openUser(course),
+                              trailing: _courseActions(
+                                course,
+                                key:
+                                    course.courseId ==
+                                        widget.currentCourse?.courseId
+                                    ? const Key(
+                                        'course-manager-actions-current',
+                                      )
+                                    : ValueKey(
+                                        'course-manager-actions-${course.courseId}',
+                                      ),
+                                onOpen: () => _openUser(course),
+                              ),
+                            ),
                           ),
                       ],
-                    ),
-                    if (_library.bundledCourses.isNotEmpty) ...[
                       const SizedBox(height: 18),
                       Text(
-                        'Bundled Courses',
-                        style: Theme.of(context).textTheme.titleMedium,
+                        'Local courses',
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(fontWeight: FontWeight.bold),
                       ),
-                      for (final course in _library.bundledCourses)
+                      if (_library.personalCourses.isEmpty)
+                        const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 16),
+                          child: Text('No local courses yet.'),
+                        ),
+                      for (final course in _library.personalCourses)
                         _courseStatusCard(
                           course,
                           ListTile(
@@ -2430,68 +2737,36 @@ class _CourseProjectsScreenState extends State<CourseProjectsScreen> {
                               fallbackCode: CourseService.codeForCourse(course),
                             ),
                             title: Text(course.title),
-                            subtitle: const Text('Bundled Course · read only'),
+                            subtitle: Text(
+                              '${course.sourceLanguage} → ${course.targetLanguage} · ${course.originType.isOfficial ? 'Publisher Course · ${course.publisherName} ${course.officialCourseVersion} · read only${course.originType == CourseOriginType.externalOfficial && course.publisherVerificationStatus != PublisherVerificationStatus.verified ? ' · Verification required' : ''}' : 'custom version ${course.courseVersion.isEmpty ? 'unconfirmed' : course.courseVersion}'}',
+                            ),
                             onTap: () => _openUser(course),
                             trailing: _courseActions(
                               course,
-                              key:
-                                  course.courseId ==
-                                      widget.currentCourse?.courseId
-                                  ? const Key('course-manager-actions-current')
-                                  : ValueKey(
-                                      'course-manager-actions-${course.courseId}',
-                                    ),
+                              key: ValueKey(
+                                'course-manager-actions-${course.courseId}',
+                              ),
                               onOpen: () => _openUser(course),
                             ),
                           ),
                         ),
                     ],
-                    const SizedBox(height: 18),
-                    Text(
-                      'Local courses',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    if (_library.personalCourses.isEmpty)
-                      const Padding(
-                        padding: EdgeInsets.symmetric(vertical: 16),
-                        child: Text('No local courses yet.'),
-                      ),
-                    for (final course in _library.personalCourses)
-                      _courseStatusCard(
-                        course,
-                        ListTile(
-                          leading: CourseFlagBadge(
-                            course: course,
-                            fallbackCode: CourseService.codeForCourse(course),
-                          ),
-                          title: Text(course.title),
-                          subtitle: Text(
-                            '${course.sourceLanguage} → ${course.targetLanguage} · ${course.originType.isOfficial ? 'Publisher Course · ${course.publisherName} ${course.officialCourseVersion} · read only${course.originType == CourseOriginType.externalOfficial && course.publisherVerificationStatus != PublisherVerificationStatus.verified ? ' · Verification required' : ''}' : 'custom version ${course.courseVersion.isEmpty ? 'unconfirmed' : course.courseVersion}'}',
-                          ),
-                          onTap: () => _openUser(course),
-                          trailing: _courseActions(
-                            course,
-                            key: ValueKey(
-                              'course-manager-actions-${course.courseId}',
-                            ),
-                            onOpen: () => _openUser(course),
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
-        );
+                  ),
+          );
+  }
 }
 
-Widget _courseStatusCard(Course course, Widget child) {
+Widget _courseStatusCard(
+  Course course,
+  Widget child, {
+  bool showIndicators = true,
+}) {
   final status = AuthoringHierarchyStatus.fromCourse(course);
   return AuthoringStatusCard(
     indicatorKey: ValueKey('course-manager-status-${course.courseId}'),
     draftIndicatorKey: ValueKey('course-manager-draft-${course.courseId}'),
-    hasDraft: status.courseHasDraft,
-    hasUnpublished: !course.publicationState.isPublished,
+    hasDraft: showIndicators && status.courseHasDraft,
+    hasUnpublished: showIndicators && !course.publicationState.isPublished,
     unpublishedIndicatorKey: ValueKey(
       'course-manager-unpublished-${course.courseId}',
     ),

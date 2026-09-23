@@ -1,3 +1,27 @@
+# 2.0.50 (Build 250, Revision 0) - Courses screen and learner visibility - 2026-09-23
+
+All Courses and Course Manager are now tabs of one **Courses** screen, sharing
+Course rows, sorting and availability controls. All Courses adds search and a
+Favorites shortcut section. Favorite is per learner and does not add or remove
+a Course from the Personal Library. Hide in Learner is also per learner: it
+keeps the Course in that library, removes it from the learner Selector, and
+cannot hide the Course currently being studied. The Selector groups Current,
+up to three Recent, Favorites and Other Courses. Locked Course Manager and
+Course Editor entries remain visible and explain how to unlock them.
+
+Import remains available to locked profiles. Copy and Fork are greyed out in
+the matching-ID Import dialog until Course Manager is unlocked. Successful
+imports return to their opening screen, without opening the Editor for Copy or
+Fork; the Selector offers **Study now** for a playable result. A received
+Custom Course can be updated from a strictly newer matching version by a
+learner who has it in their Personal Library, provided no local Maintainer or
+assigned-Team member exists. Locally authored Courses keep their existing
+replacement rights. Course Manager Help is separate from Course Editor Help.
+
+Version `2.0.50+250000`; Course Model v11 and Course package format 1 remain
+unchanged. Beta expiry is **2026-10-23 23:59:59 local time**. See the
+[Build 250 plan](docs/250_COURSES_SCREEN_PLAN.md).
+
 # 2.0.49 (Build 249, Revision 2) - Failed Course deletion is reported - 2026-09-23
 
 When deleting a Course failed at the storage step, Course Manager showed

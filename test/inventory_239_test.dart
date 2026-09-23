@@ -101,6 +101,36 @@ void main() {
     },
   );
 
+  test('lists device-level received Custom Course flags', () async {
+    const key = 'quisquislingo_received_custom_course_friend%2Fcourse';
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(key, true);
+
+    final all = await service.load();
+    final received = sectionOf(all, 'Received Custom Courses');
+    expect(received.count, 1);
+    expect(received.items.single.name, 'friend/course');
+    expect(received.items.single.path, isNull);
+  });
+
+  test('lists active learner Course Favorite flags with their owner', () async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(
+      'learner_${adminId}_course_favorite_friend%2Fcourse%201',
+      true,
+    );
+    await prefs.setBool(
+      'learner_${adminId}_course_favorite_not-favorite',
+      false,
+    );
+
+    final favorites = sectionOf(await service.load(), 'Course Favorites');
+    expect(favorites.count, 1);
+    expect(favorites.items.single.name, 'friend/course 1');
+    expect(favorites.items.single.owner, 'Admin One');
+    expect(favorites.items.single.path, isNull);
+  });
+
   test(
     'inventory lists unreadable course files without altering them',
     () async {

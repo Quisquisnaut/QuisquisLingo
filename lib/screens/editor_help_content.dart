@@ -3,7 +3,7 @@ import '../widgets/help_language_toggle.dart';
 /// One titled block of the Course Editor Help page.
 typedef EditorHelpSection = ({String title, String body});
 
-/// The Course Editor Help text in the requested language.
+/// Editing Help, excluding the Course Manager operations and learner listing.
 ///
 /// The two lists are kept side by side so a change to one is an obvious prompt
 /// to change the other, and a test asserts they stay the same length.
@@ -13,8 +13,66 @@ typedef EditorHelpSection = ({String title, String body});
 /// itself is English and the reader has to find them there. The technical
 /// reference sections keep their technical vocabulary; the rest is written the
 /// way an author would actually be told how to work.
-List<EditorHelpSection> editorHelpSections(HelpLanguage language) =>
-    language == HelpLanguage.italian ? _italian : _english;
+List<EditorHelpSection> editorHelpSections(HelpLanguage language) {
+  final sections = language == HelpLanguage.italian ? _italian : _english;
+  return [
+    for (final (index, section) in _english.indexed)
+      if (section.title != 'Courses in learner mode' &&
+          !_managerOnlyTitles.contains(section.title))
+        sections[index],
+  ];
+}
+
+/// Course types, operations and the topics that the Manager shares with the
+/// Editor. Both languages use the same source positions and order.
+List<EditorHelpSection> courseManagerHelpSections(HelpLanguage language) {
+  final sections = language == HelpLanguage.italian ? _italian : _english;
+  return [
+    for (final title in _managerSectionOrder)
+      sections[_english.indexWhere((section) => section.title == title)],
+    language == HelpLanguage.italian
+        ? _italianCourseOperations
+        : _englishCourseOperations,
+  ];
+}
+
+const _managerOnlyTitles = <String>{
+  'Course origin',
+  'Official course updates',
+  'Create a new course',
+  'Course creation rules',
+  'Import a custom course',
+  'Export a custom course',
+  'Course responsibility, permissions and Teams',
+  'Android device backup (technical)',
+};
+
+const _managerSectionOrder = <String>[
+  'Course origin',
+  'Official course updates',
+  'Create a new course',
+  'Course creation rules',
+  'Import a custom course',
+  'Export a custom course',
+  'Course responsibility, permissions and Teams',
+  'Android device backup (technical)',
+  'Course Audit',
+  'Audit severity and codes',
+  'Local course edits and backups',
+  'Course Info Editor and license',
+];
+
+const _englishCourseOperations = (
+  title: 'Course operations',
+  body:
+      'Copy as New Course creates an independent Custom Course from one you can manage. Fork creates a derivative Custom Course when the source license allows it; it keeps the source lineage and receives fresh IDs. Merge combines selected Lessons from compatible Courses into a third Course, leaving both sources unchanged. Delete course permanently removes a Custom Course from this device after two confirmations, when you have the required Course rights. Remove Publisher Course from device is available only to an Admin and is blocked while another profile includes the Course in their personal library; learner progress and version backups are kept. Remove from my courses changes only your personal membership. Hide in Learner keeps membership but removes the Course from the learner Course Selector; Unhide in Learner reverses that choice. Unavailable operations are greyed out with a reason.',
+);
+
+const _italianCourseOperations = (
+  title: 'Operazioni sui corsi',
+  body:
+      'Copy as New Course crea un corso Custom indipendente a partire da uno che puoi gestire. Fork crea un corso Custom derivato quando la licenza della sorgente lo permette; conserva la provenienza e assegna nuovi ID. Merge unisce le Lesson scelte da corsi compatibili in un terzo corso, lasciando invariati entrambi i corsi di partenza. Delete course elimina definitivamente un corso Custom dal dispositivo dopo due conferme, se hai i permessi necessari. Remove Publisher Course from device è disponibile soltanto all’Admin e viene bloccato se un altro profilo ha il corso nella propria libreria; i progressi degli studenti e i backup delle versioni restano. Remove from my courses cambia soltanto l’appartenenza alla tua libreria personale. Hide in Learner conserva questa appartenenza ma toglie il corso dal Course Selector dello studente; Unhide in Learner annulla la scelta. Le operazioni non disponibili appaiono in grigio con una spiegazione.',
+);
 
 /// Heading and blurb of the Technical reference card.
 ({String title, String body, String note}) editorHelpTechnicalIntro(
@@ -207,7 +265,7 @@ const _english = <EditorHelpSection>[
   (
     title: 'Audit severity and codes',
     body:
-        'Course Audit reports Errors, Warnings and Info. Error blocks publication or import because content is structurally or functionally invalid. Warning marks a likely authoring problem that needs review. Info is guidance or a neutral fact and never blocks publication by itself. Audit can sort by Lesson, friendly Exercise type or Recently modified and can be opened for a whole Course, one Lesson or one Round. Recent order uses updatedAt descending with deterministic ties; findings are numbered progressively inside each severity group after filtering. A red border marks an Audit Error or Warning and propagates through its represented branch. A luminous green border means the current branch has no Error or Warning; Info guidance may remain. One blue Draft indicator independently includes a Lesson or Round\'s own Draft state and follows Draft Guidebooks and Content through their visible ancestors. A green Audit border does not mean the item is Published. An explicitly Draft Lesson or Round keeps Published children hidden until that container is saved. A Guidebook concern affects its Lesson and Lessons hierarchy, but not the separate Rounds branch. Fewer than 3 Rounds is Info; fewer than 25 eligible Duel Exercises is Info only when Create Duels is ON. Missing Reading- or Listening-comprehension coverage produces no finding; malformed existing comprehension content still receives validation. Drafts are included for author review without making unrelated Published learner content invalid. Technical reference > Audit Codes displays the shared 102-rule registry in Errors, Warnings, Info order. All three independently selectable categories start enabled, and text search applies within the selected categories.',
+        'Course Audit reports Errors, Warnings and Info. Error blocks publication or import because content is structurally or functionally invalid. Warning marks a likely authoring problem that needs review. Info is guidance or a neutral fact and never blocks publication by itself. Audit can sort by Lesson, friendly Exercise type or Recently modified and can be opened for a whole Course, one Lesson or one Round. Recent order uses updatedAt descending with deterministic ties; findings are numbered progressively inside each severity group after filtering. A red border marks an Audit Error or Warning and propagates through its represented branch. A luminous green border means the current branch has no Error or Warning; Info guidance may remain. One blue Draft indicator independently includes a Lesson or Round\'s own Draft state and follows Draft Guidebooks and Content through their visible ancestors. A green Audit border does not mean the item is Published. An explicitly Draft Lesson or Round keeps Published children hidden until that container is saved. A Guidebook concern affects its Lesson and Lessons hierarchy, but not the separate Rounds branch. Fewer than 3 Rounds is Info; fewer than 25 eligible Duel Exercises is Info only when Create Duels is ON. Missing Reading- or Listening-comprehension coverage produces no finding; malformed existing comprehension content still receives validation. Drafts are included for author review without making unrelated Published learner content invalid. Course Editor Help > Technical reference > Audit Codes displays the shared 102-rule registry in Errors, Warnings, Info order. All three independently selectable categories start enabled, and text search applies within the selected categories.',
   ),
   (
     title: 'Course Audit',
@@ -396,7 +454,7 @@ const _italian = <EditorHelpSection>[
   (
     title: 'Gravità e codici dell’Audit',
     body:
-        'Il Course Audit segnala Error, Warning e Info. Error impedisce la pubblicazione o l’importazione, perché il contenuto non è valido dal punto di vista strutturale o funzionale. Warning indica un problema probabile, da rivedere. Info è un’indicazione o un fatto neutro e da solo non blocca mai la pubblicazione. L’Audit può ordinare per Lesson, per nome leggibile del tipo di esercizio o per Recently modified, e si può aprire su un corso intero, su una Lesson o su un Round. L’ordine per data usa updatedAt decrescente con criteri deterministici a parità di valore; le segnalazioni vengono numerate progressivamente dentro ogni gruppo di gravità, dopo i filtri. Il bordo rosso segnala un Error o un Warning e si propaga lungo il ramo che rappresenta. Il bordo verde acceso vuol dire che in quel ramo non ci sono Error né Warning; possono restare indicazioni Info. Un unico indicatore blu Draft comprende lo stato Draft della Lesson o del Round e segue i GuideBook e i contenuti Draft lungo gli elementi che li contengono. Un bordo verde dell’Audit non vuol dire che l’elemento è pubblicato. Una Lesson o un Round esplicitamente Draft tengono nascosti i figli pubblicati finché quel contenitore non viene salvato. Un problema nel GuideBook riguarda la sua Lesson e la gerarchia Lessons, ma non il ramo Rounds. Meno di 3 Round è Info; meno di 25 esercizi idonei per il Duel è Info soltanto quando Create Duels è ON. La mancanza di esercizi di comprensione scritta o orale non produce nessuna segnalazione; il contenuto di comprensione già presente ma malformato viene comunque controllato. Le bozze sono incluse perché chi scrive possa rivederle, senza che questo renda non valido il contenuto pubblicato che non c’entra. Technical reference > Audit Codes mostra il registro condiviso di 102 regole, nell’ordine Error, Warning, Info. Le tre categorie si possono selezionare indipendentemente e partono tutte attive; la ricerca testuale agisce dentro le categorie selezionate.',
+        'Il Course Audit segnala Error, Warning e Info. Error impedisce la pubblicazione o l’importazione, perché il contenuto non è valido dal punto di vista strutturale o funzionale. Warning indica un problema probabile, da rivedere. Info è un’indicazione o un fatto neutro e da solo non blocca mai la pubblicazione. L’Audit può ordinare per Lesson, per nome leggibile del tipo di esercizio o per Recently modified, e si può aprire su un corso intero, su una Lesson o su un Round. L’ordine per data usa updatedAt decrescente con criteri deterministici a parità di valore; le segnalazioni vengono numerate progressivamente dentro ogni gruppo di gravità, dopo i filtri. Il bordo rosso segnala un Error o un Warning e si propaga lungo il ramo che rappresenta. Il bordo verde acceso vuol dire che in quel ramo non ci sono Error né Warning; possono restare indicazioni Info. Un unico indicatore blu Draft comprende lo stato Draft della Lesson o del Round e segue i GuideBook e i contenuti Draft lungo gli elementi che li contengono. Un bordo verde dell’Audit non vuol dire che l’elemento è pubblicato. Una Lesson o un Round esplicitamente Draft tengono nascosti i figli pubblicati finché quel contenitore non viene salvato. Un problema nel GuideBook riguarda la sua Lesson e la gerarchia Lessons, ma non il ramo Rounds. Meno di 3 Round è Info; meno di 25 esercizi idonei per il Duel è Info soltanto quando Create Duels è ON. La mancanza di esercizi di comprensione scritta o orale non produce nessuna segnalazione; il contenuto di comprensione già presente ma malformato viene comunque controllato. Le bozze sono incluse perché chi scrive possa rivederle, senza che questo renda non valido il contenuto pubblicato che non c’entra. Course Editor Help > Technical reference > Audit Codes mostra il registro condiviso di 102 regole, nell’ordine Error, Warning, Info. Le tre categorie si possono selezionare indipendentemente e partono tutte attive; la ricerca testuale agisce dentro le categorie selezionate.',
   ),
   (
     title: 'Course Audit',

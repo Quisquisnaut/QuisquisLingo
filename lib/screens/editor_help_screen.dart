@@ -36,8 +36,47 @@ class _EditorHelpScreenState extends State<EditorHelpScreen> {
       children: [
         _TechnicalLinks(language: _language),
         const SizedBox(height: 12),
-        _CourseTypesHelpSection(language: _language),
         for (final section in editorHelpSections(_language))
+          _HelpSection(title: section.title, body: section.body),
+      ],
+    ),
+  );
+}
+
+/// Help for the Course Manager tab, using the same language choice as Editor
+/// Help while keeping the Editor's technical reference on the Editor page.
+class CourseManagerHelpScreen extends StatefulWidget {
+  const CourseManagerHelpScreen({super.key});
+
+  @override
+  State<CourseManagerHelpScreen> createState() =>
+      _CourseManagerHelpScreenState();
+}
+
+class _CourseManagerHelpScreenState extends State<CourseManagerHelpScreen> {
+  HelpLanguage _language = HelpLanguage.english;
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+    appBar: AppBar(
+      title: Text(
+        _language == HelpLanguage.italian
+            ? 'Guida al Course Manager'
+            : 'Course Manager Help',
+      ),
+      actions: [
+        HelpLanguageToggle(
+          key: const Key('course-manager-help-language-toggle'),
+          language: _language,
+          onChanged: (value) => setState(() => _language = value),
+        ),
+      ],
+    ),
+    body: ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        _CourseTypesHelpSection(language: _language),
+        for (final section in courseManagerHelpSections(_language))
           _HelpSection(title: section.title, body: section.body),
       ],
     ),
@@ -72,7 +111,7 @@ class _CourseTypesHelpSection extends StatelessWidget {
             ],
             const SizedBox(height: 12),
             Table(
-              key: const Key('editor-help-course-types-table'),
+              key: const Key('course-manager-help-course-types-table'),
               columnWidths: const {
                 0: FlexColumnWidth(2),
                 1: FlexColumnWidth(3),

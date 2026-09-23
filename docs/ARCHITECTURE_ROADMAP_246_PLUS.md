@@ -158,8 +158,8 @@ recovered from a different screen. With ALL COURSES one tab away, it cannot.
 | ✅ **1** | Course Editor working-copy boundary rule in `AGENTS.md` | Done 2026-09-23. |
 | ~~2~~ | ~~Remove the Editor's `listUserCourses` duplicate-title check~~ | **Withdrawn.** It is a read that powers a duplicate-name warning while typing, not a library operation, and the sharpened rule explicitly allows it. Removing it would lose the warning or defer the clash to confirm time. |
 | ✅ **2** | **Course library operations owner** | Build 249: `CourseLibraryOperations` (Revision 0), greyed-out menu entries with reasons (Revision 1), failed Delete reported (Revision 2). See below and `docs/249_HANDOFF.md`. |
-| **3** | Merge into one screen, two tabs, capability-driven | Small once 2 is done; reuse the Build 229 "unified surface is capability-driven" pattern. |
-| **4** | **Hide in Learner** / **Unhide in Learner**, per learner × Course | Ships **with** step 3. See below. |
+| **3** | Merge into one screen, two tabs, capability-driven | Implemented in Build 250 Revision 0 on `codex/build-250-courses`; merge pending. |
+| **4** | **Hide in Learner** / **Unhide in Learner**, per learner × Course | Implemented with step 3 in Build 250 Revision 0; merge pending. |
 | **5** | Editor device-state owner | Independent of this track; see below. |
 
 ### Step 2 — Course library operations owner
@@ -374,7 +374,7 @@ in neither Recent nor Favorites.
     through the user's own import, and with the old version backed up. Signed
     Custom Courses (option C) would close it and are a separate format
     decision.
-* **Proposed, awaiting the owner's decision:** after any successful import,
+* **Approved by the owner, 2026-09-23:** after any successful import,
   return to where Import was opened, with no Editor opened for Copy or Fork.
   From the Courses screen, land on ALL COURSES with the new Course scrolled to
   and highlighted. From the Course Selector, return to Home with "Imported …

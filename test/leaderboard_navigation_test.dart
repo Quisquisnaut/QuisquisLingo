@@ -11,6 +11,7 @@ import 'package:quisquislingo_app/models/course_models.dart';
 import 'package:quisquislingo_app/screens/course_editor_screen.dart';
 import 'package:quisquislingo_app/screens/course_info_screen.dart';
 import 'package:quisquislingo_app/screens/course_projects_screen.dart';
+import 'package:quisquislingo_app/screens/courses_screen.dart';
 import 'package:quisquislingo_app/screens/guidebook_screen.dart';
 import 'package:quisquislingo_app/screens/home_screen.dart';
 import 'package:quisquislingo_app/screens/info_screen.dart';
@@ -20,6 +21,9 @@ import 'package:quisquislingo_app/screens/round_screen.dart';
 import 'package:quisquislingo_app/screens/settings_screen.dart';
 import 'package:quisquislingo_app/services/app_metadata.dart';
 import 'package:quisquislingo_app/services/course_editor_service.dart';
+import 'package:quisquislingo_app/services/course_favorite_service.dart';
+import 'package:quisquislingo_app/services/course_learner_visibility_service.dart';
+import 'package:quisquislingo_app/services/course_library_service.dart';
 import 'package:quisquislingo_app/services/course_service.dart';
 import 'package:quisquislingo_app/services/profile_service.dart';
 import 'package:quisquislingo_app/services/progress_service.dart';
@@ -2731,9 +2735,12 @@ void main() {
         find.text('Choose course'),
         failureMessage: 'Timed out loading the course picker.',
       );
-      tester
-          .widget<ListTile>(find.byKey(ValueKey('bundled-course-$code')))
-          .onTap!();
+      final recent = await SettingsService().getRecentCourseRefs();
+      final selected = await SettingsService().getLastSelectedCourseCode();
+      final tile = recent.where((ref) => ref != selected).take(3).contains(code)
+          ? find.byKey(ValueKey('recent-course-$code'))
+          : find.byKey(ValueKey('bundled-course-$code'));
+      tester.widget<ListTile>(tile).onTap!();
       await tester.pump();
       final expectedCourseId = code == 'IT'
           ? italianCourse.courseId
@@ -2761,7 +2768,7 @@ void main() {
     expect(fullPicker.heightFactor, greaterThanOrEqualTo(.65));
     expect(find.text('Choose course'), findsOneWidget);
     expect(find.text('Current course'), findsOneWidget);
-    expect(find.text('All included courses'), findsOneWidget);
+    expect(find.text('Other courses'), findsOneWidget);
     expect(find.text(italianCourse.title), findsWidgets);
     tester
         .widget<ListTile>(find.byKey(const ValueKey('bundled-course-DE')))
@@ -2810,7 +2817,7 @@ void main() {
   });
 
   testWidgets(
-    'course selector ends with stable Editor actions without changing selection',
+    'course selector links open the requested Courses tab without changing selection',
     (tester) async {
       await _openHome(tester, scrollToActions: false);
       await _pumpUntilWithIo(
@@ -2845,20 +2852,38 @@ void main() {
       }
 
       await openSelectorAndRevealActions();
+      final all = find.byKey(const Key('course-selector-all-courses'));
       final edit = find.byKey(const Key('course-selector-edit-current'));
       final manager = find.byKey(const Key('course-selector-course-manager'));
+      expect(all, findsOneWidget);
       expect(edit, findsOneWidget);
       expect(manager, findsOneWidget);
-      expect(tester.getRect(edit).top, lessThan(tester.getRect(manager).top));
+      expect(tester.getRect(all).top, lessThan(tester.getRect(manager).top));
+      expect(tester.getRect(manager).top, lessThan(tester.getRect(edit).top));
 
       await tester.tap(manager);
       await tester.pumpUntilFileIoState(
         () =>
-            find.byType(CourseProjectsScreen).evaluate().isNotEmpty &&
+            find.byType(CoursesScreen).evaluate().isNotEmpty &&
             find.byType(CircularProgressIndicator).evaluate().isEmpty,
       );
-      expect(find.byType(CourseProjectsScreen), findsOneWidget);
+      expect(
+        tester.widget<CoursesScreen>(find.byType(CoursesScreen)).initialTab,
+        CoursesTab.manager,
+      );
       expect(await settings.getLastSelectedCourseCode(), selectedBefore);
+      await tester.tap(find.byType(BackButton).last);
+      await tester.pumpAndSettle();
+
+      await openSelectorAndRevealActions();
+      await tester.tap(find.byKey(const Key('course-selector-all-courses')));
+      await tester.pumpUntilFileIoState(
+        () => find.byType(CoursesScreen).evaluate().isNotEmpty,
+      );
+      expect(
+        tester.widget<CoursesScreen>(find.byType(CoursesScreen)).initialTab,
+        CoursesTab.allCourses,
+      );
       await tester.tap(find.byType(BackButton).last);
       await tester.pumpAndSettle();
 
@@ -2874,6 +2899,43 @@ void main() {
       );
       expect(inspection.course.courseId, selectedCourseId);
       expect(await settings.getLastSelectedCourseCode(), selectedBefore);
+    },
+  );
+
+  testWidgets(
+    'locked Selector keeps Manager and Editor greyed and explains the profile unlock',
+    (tester) async {
+      await _openHome(tester, scrollToActions: false);
+      await _pumpUntilWithIo(
+        tester,
+        find.byType(UnifiedLearnerTopBar),
+        failureMessage: 'Home did not load for locked Selector test.',
+      );
+      await SettingsService().setCourseEditorUnlocked(false);
+      await tester.tap(find.byKey(const Key('unified-topbar-course-selector')));
+      await _pumpUntilWithIo(
+        tester,
+        find.text('Choose course'),
+        failureMessage: 'Locked Selector did not open.',
+      );
+      final list = find.descendant(
+        of: find.byType(BottomSheet),
+        matching: find.byType(Scrollable),
+      );
+      for (final key in [
+        const Key('course-selector-course-manager'),
+        const Key('course-selector-edit-current'),
+      ]) {
+        await tester.scrollUntilVisible(find.byKey(key), 350, scrollable: list);
+        final tile = tester.widget<ListTile>(find.byKey(key));
+        expect(tile.enabled, isFalse);
+        await tester.tap(find.byKey(key));
+        await tester.pumpAndSettle();
+        expect(find.text(courseManagerUnlockMessage), findsOneWidget);
+        await tester.tap(find.text('OK'));
+        await tester.pumpAndSettle();
+      }
+      expect(find.byType(CoursesScreen), findsNothing);
     },
   );
 
@@ -2913,6 +2975,22 @@ void main() {
       );
       await tester.pumpAndSettle();
       expect(
+        tester
+            .widgetList<PopupMenuItem<String>>(
+              find.byType(PopupMenuItem<String>),
+            )
+            .map((item) => item.value),
+        ['info', 'review', 'favorite', 'hide', 'remove_personal'],
+      );
+      final currentHide = tester.widget<PopupMenuItem<String>>(
+        find.byWidgetPredicate(
+          (widget) => widget is PopupMenuItem<String> && widget.value == 'hide',
+        ),
+      );
+      expect(currentHide.enabled, isFalse);
+      expect(find.text("You're studying this Course"), findsOneWidget);
+      expect(find.text('Unhide in Learner'), findsNothing);
+      expect(
         find.byWidgetPredicate(
           (widget) =>
               widget is PopupMenuItem<String> && widget.value == 'review',
@@ -2937,6 +3015,17 @@ void main() {
               widget is PopupMenuItem<String> && widget.value == 'review',
         ),
         findsNothing,
+      );
+      expect(
+        tester
+            .widget<PopupMenuItem<String>>(
+              find.byWidgetPredicate(
+                (widget) =>
+                    widget is PopupMenuItem<String> && widget.value == 'hide',
+              ),
+            )
+            .enabled,
+        isTrue,
       );
       await tester.tapAt(const Offset(4, 4));
       await tester.pumpAndSettle();
@@ -2971,15 +3060,16 @@ void main() {
   );
 
   testWidgets(
-    'retired visibility flags are ignored; selector offers personal removal and direct import',
+    'hidden Courses leave the Selector while direct Import remains available',
     (tester) async {
-      final italianCourse = await _loadItalianCourse(tester);
+      await _loadItalianCourse(tester);
+      final germanCourse = await _loadCourse(tester, 'DE');
       final profiles = ProfileService();
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool(
         profiles.keyForProfileId(
           (await profiles.getActiveProfileId())!,
-          'course_hidden_${italianCourse.courseId}',
+          'course_hidden_${germanCourse.courseId}',
         ),
         true,
       );
@@ -2995,12 +3085,13 @@ void main() {
         find.text('Choose course'),
         failureMessage: 'Selector did not open',
       );
+      expect(find.byKey(const Key('bundled-course-DE')), findsNothing);
       await tester.tap(
         find.byKey(const Key('course-selector-actions-current')),
       );
       await tester.pump(const Duration(milliseconds: 350));
-      expect(find.text('Hide'), findsNothing);
-      expect(find.text('Unhide'), findsNothing);
+      expect(find.text('Hide in Learner'), findsOneWidget);
+      expect(find.text('Unhide in Learner'), findsNothing);
       expect(find.text('Remove from my courses'), findsOneWidget);
       await tester.tapAt(const Offset(4, 4));
       await tester.pump(const Duration(milliseconds: 350));
@@ -3030,60 +3121,253 @@ void main() {
     },
   );
 
+  testWidgets('course picker places three other recent courses before Other', (
+    tester,
+  ) async {
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(1200, 1400);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    addTearDown(tester.view.resetPhysicalSize);
+    final settings = SettingsService();
+    for (final ref in ['DE', 'ES', 'FI', 'PT', 'IT']) {
+      await settings.setLastSelectedCourseCode(ref);
+    }
+    await _openHome(tester, scrollToActions: false);
+
+    await tester.tap(find.byKey(const Key('unified-topbar-course-selector')));
+    await _pumpUntilWithIo(
+      tester,
+      find.text('Choose course'),
+      failureMessage: 'Timed out loading recent courses.',
+    );
+
+    final currentTop = tester.getRect(find.text('Current course')).top;
+    final recentTop = tester.getRect(find.text('Recently opened')).top;
+    final allTop = tester.getRect(find.text('Other courses')).top;
+    expect(currentTop, lessThan(recentTop));
+    expect(recentTop, lessThan(allTop));
+
+    final recentTiles = find.byType(ListTile).evaluate().where((element) {
+      final center = tester
+          .getRect(
+            find.byElementPredicate(
+              (candidate) => identical(candidate, element),
+            ),
+          )
+          .center
+          .dy;
+      return center > recentTop && center < allTop;
+    }).toList();
+    expect(recentTiles, hasLength(3));
+
+    final recentTitles = [
+      'AI-Slop Demo: Portuguese for English Speakers',
+      'AI-Slop Demo: Finnish for English Speakers',
+      'AI-Slop Demo: Spanish for English Speakers',
+    ];
+    final recentPositions = recentTitles
+        .map((title) => tester.getRect(find.text(title).first).center.dy)
+        .toList();
+    expect(recentPositions, orderedEquals(recentPositions.toList()..sort()));
+    for (final position in recentPositions) {
+      expect(position, greaterThan(recentTop));
+      expect(position, lessThan(allTop));
+    }
+    // The current Course is not repeated in Recent, but belongs to Other
+    // when it is not a Favorite.
+    await tester.scrollUntilVisible(
+      find.byKey(const Key('bundled-course-IT')),
+      250,
+      scrollable: find.descendant(
+        of: find.byType(BottomSheet),
+        matching: find.byType(Scrollable),
+      ),
+    );
+    expect(find.byKey(const Key('bundled-course-IT')), findsOneWidget);
+  });
+
   testWidgets(
-    'course picker places three other recent courses before the complete list',
+    'Favorites may repeat Current and Recent; Hide removes a noncurrent row only',
     (tester) async {
       tester.view.devicePixelRatio = 1;
-      tester.view.physicalSize = const Size(1200, 1400);
+      tester.view.physicalSize = const Size(1200, 2000);
       addTearDown(tester.view.resetDevicePixelRatio);
       addTearDown(tester.view.resetPhysicalSize);
       final settings = SettingsService();
-      for (final ref in ['DE', 'ES', 'FI', 'PT', 'IT']) {
+      for (final ref in ['DE', 'PT', 'IT']) {
         await settings.setLastSelectedCourseCode(ref);
       }
       await _openHome(tester, scrollToActions: false);
+      final current = _activeCourse(tester);
+      final portuguese = (await tester.runAsync(
+        () => CourseService().loadCourse('PT'),
+      ))!;
+      final german = (await tester.runAsync(
+        () => CourseService().loadCourse('DE'),
+      ))!;
+      final favorites = CourseFavoriteService();
+      await favorites.setFavorite(current.courseId, true);
+      await favorites.setFavorite(portuguese.courseId, true);
+      await favorites.setFavorite(german.courseId, true);
 
       await tester.tap(find.byKey(const Key('unified-topbar-course-selector')));
       await _pumpUntilWithIo(
         tester,
         find.text('Choose course'),
-        failureMessage: 'Timed out loading recent courses.',
+        failureMessage: 'Selector did not open for Favorites.',
       );
-
-      final currentTop = tester.getRect(find.text('Current course')).top;
-      final recentTop = tester.getRect(find.text('Recently opened')).top;
-      final allTop = tester.getRect(find.text('All included courses')).top;
-      expect(currentTop, lessThan(recentTop));
-      expect(recentTop, lessThan(allTop));
-
-      final recentTiles = find.byType(ListTile).evaluate().where((element) {
-        final center = tester
-            .getRect(
-              find.byElementPredicate(
-                (candidate) => identical(candidate, element),
-              ),
-            )
-            .center
-            .dy;
-        return center > recentTop && center < allTop;
-      }).toList();
-      expect(recentTiles, hasLength(3));
-
-      final recentTitles = [
-        'AI-Slop Demo: Portuguese for English Speakers',
-        'AI-Slop Demo: Finnish for English Speakers',
-        'AI-Slop Demo: Spanish for English Speakers',
-      ];
-      final recentPositions = recentTitles
-          .map((title) => tester.getRect(find.text(title).first).center.dy)
-          .toList();
-      expect(recentPositions, orderedEquals(recentPositions.toList()..sort()));
-      for (final position in recentPositions) {
-        expect(position, greaterThan(recentTop));
-        expect(position, lessThan(allTop));
+      final selectorScroll = find.descendant(
+        of: find.byType(BottomSheet),
+        matching: find.byType(Scrollable),
+      );
+      expect(find.byKey(const Key('current-course')), findsOneWidget);
+      expect(find.byKey(const Key('recent-course-PT')), findsOneWidget);
+      for (final ref in ['IT', 'PT', 'DE']) {
+        await tester.scrollUntilVisible(
+          find.byKey(ValueKey('favorite-course-$ref')),
+          250,
+          scrollable: selectorScroll,
+        );
+        expect(find.byKey(ValueKey('favorite-course-$ref')), findsOneWidget);
       }
+      expect(find.text('Favorites'), findsOneWidget);
+
+      await tester.scrollUntilVisible(
+        find.byKey(const Key('course-selector-actions-favorite-DE')),
+        250,
+        scrollable: selectorScroll,
+      );
+      await tester.tap(
+        find.byKey(const Key('course-selector-actions-favorite-DE')),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('Remove from Favorites'), findsOneWidget);
+      await tester.tap(find.text('Hide in Learner'));
+      await tester.pumpAndSettle();
+      expect(
+        await CourseLearnerVisibilityService().isHidden(german.courseId),
+        isTrue,
+      );
+      expect(await CourseLibraryService().contains(german), isTrue);
+      expect(await settings.getLastSelectedCourseCode(), 'IT');
+      expect(find.byKey(const Key('favorite-course-DE')), findsNothing);
+
+      await tester.scrollUntilVisible(
+        find.byKey(const Key('course-selector-actions-current')),
+        -300,
+        scrollable: selectorScroll,
+      );
+      await tester.tap(
+        find.byKey(const Key('course-selector-actions-current')),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Remove from Favorites'));
+      await tester.pumpAndSettle();
+      expect(await favorites.isFavorite(current.courseId), isFalse);
+      expect(await CourseLibraryService().contains(current), isTrue);
+      await tester.scrollUntilVisible(
+        find.byKey(const Key('bundled-course-IT')),
+        250,
+        scrollable: selectorScroll,
+      );
+      expect(find.byKey(const Key('bundled-course-IT')), findsOneWidget);
     },
   );
+
+  testWidgets('Selector Import offers Study now for a playable Course', (
+    tester,
+  ) async {
+    await _loadItalianCourse(tester);
+    final german = await _loadCourse(tester, 'DE');
+    await _openHome(tester, scrollToActions: false);
+    await tester.tap(find.byKey(const Key('unified-topbar-course-selector')));
+    await _pumpUntilWithIo(
+      tester,
+      find.text('Choose course'),
+      failureMessage: 'Selector did not open for Import.',
+    );
+    await tester.scrollUntilVisible(
+      find.byKey(const Key('course-selector-import')),
+      350,
+      scrollable: find.descendant(
+        of: find.byType(BottomSheet),
+        matching: find.byType(Scrollable),
+      ),
+    );
+    await tester.tap(find.byKey(const Key('course-selector-import')));
+    await _pumpUntilWithIo(
+      tester,
+      find.byKey(const Key('import-course-json-primary')),
+      failureMessage: 'Import screen did not open.',
+    );
+    Navigator.of(tester.element(find.byType(CourseProjectsScreen))).pop(german);
+    await _pumpUntilWithIo(
+      tester,
+      find.textContaining(
+        'Imported “${german.title}” and added to your courses.',
+      ),
+      failureMessage: 'Import result was not shown on Home.',
+    );
+    expect(find.byType(CourseProjectsScreen), findsNothing);
+    await tester.tap(find.text('Study now'));
+    await _pumpUntilWithIo(
+      tester,
+      _courseInTopBar(german.courseId),
+      failureMessage: 'Study now did not select the imported Course.',
+    );
+    expect(await SettingsService().getLastSelectedCourseCode(), 'DE');
+  });
+
+  testWidgets('Selector Import explains when a Course cannot be studied', (
+    tester,
+  ) async {
+    await _loadItalianCourse(tester);
+    await _openHome(tester, scrollToActions: false);
+    await tester.tap(find.byKey(const Key('unified-topbar-course-selector')));
+    await _pumpUntilWithIo(
+      tester,
+      find.text('Choose course'),
+      failureMessage: 'Selector did not open for Import.',
+    );
+    await tester.scrollUntilVisible(
+      find.byKey(const Key('course-selector-import')),
+      350,
+      scrollable: find.descendant(
+        of: find.byType(BottomSheet),
+        matching: find.byType(Scrollable),
+      ),
+    );
+    await tester.tap(find.byKey(const Key('course-selector-import')));
+    await _pumpUntilWithIo(
+      tester,
+      find.byKey(const Key('import-course-json-primary')),
+      failureMessage: 'Import screen did not open.',
+    );
+    final draft = Course(
+      courseId: 'imported_draft',
+      learningLanguage: 'Italian',
+      interfaceLanguage: 'English',
+      sourceLanguage: 'English',
+      targetLanguage: 'Italian',
+      title: 'Received Draft',
+      ttsLanguage: 'it-IT',
+      publicationState: PublicationState.draft,
+      lessons: const [],
+    );
+    Navigator.of(tester.element(find.byType(CourseProjectsScreen))).pop(draft);
+    await _pumpUntilWithIo(
+      tester,
+      find.textContaining(
+        'Imported “Received Draft” and added to your courses.',
+      ),
+      failureMessage: 'Draft Import result was not shown on Home.',
+    );
+    expect(
+      find.textContaining('Publish this Course before you can study it.'),
+      findsOneWidget,
+    );
+    expect(find.text('Study now'), findsNothing);
+  });
 
   testWidgets(
     'Welcome and Beta expiry dialogs retain their structure and controls',

@@ -7,7 +7,7 @@ import 'package:quisquislingo_app/widgets/help_language_toggle.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  group('Course Editor Help translation', () {
+  group('Course Help translation', () {
     for (final italian in [false, true]) {
       testWidgets(
         'four columns fit a narrow ${italian ? 'Italian' : 'English'} Help page',
@@ -16,14 +16,18 @@ void main() {
           tester.view.devicePixelRatio = 1;
           addTearDown(tester.view.resetPhysicalSize);
           addTearDown(tester.view.resetDevicePixelRatio);
-          await tester.pumpWidget(const MaterialApp(home: EditorHelpScreen()));
+          await tester.pumpWidget(
+            const MaterialApp(home: CourseManagerHelpScreen()),
+          );
           if (italian) {
             await tester.tap(
-              find.byKey(const Key('editor-help-language-toggle')),
+              find.byKey(const Key('course-manager-help-language-toggle')),
             );
             await tester.pump();
           }
-          final table = find.byKey(const Key('editor-help-course-types-table'));
+          final table = find.byKey(
+            const Key('course-manager-help-course-types-table'),
+          );
           await tester.scrollUntilVisible(table, 250);
           await tester.pump();
           final bounds = tester.getRect(table);
@@ -49,12 +53,50 @@ void main() {
       );
     }
 
-    test('both languages carry the same sections in the same order', () {
+    test('Editor keeps editing sections; Manager gets operations sections', () {
       final english = editorHelpSections(HelpLanguage.english);
       final italian = editorHelpSections(HelpLanguage.italian);
+      final managerEnglish = courseManagerHelpSections(HelpLanguage.english);
+      final managerItalian = courseManagerHelpSections(HelpLanguage.italian);
 
-      expect(english, hasLength(37));
+      expect(english, hasLength(28));
       expect(italian, hasLength(english.length));
+      expect(managerEnglish, hasLength(13));
+      expect(managerItalian, hasLength(managerEnglish.length));
+      expect(
+        english.map((section) => section.title),
+        contains('Audio Library'),
+      );
+      expect(
+        english.map((section) => section.title),
+        isNot(contains('Course origin')),
+      );
+      expect(
+        english.map((section) => section.title),
+        isNot(contains('Courses in learner mode')),
+      );
+      expect(
+        managerEnglish.map((section) => section.title),
+        containsAll([
+          'Course origin',
+          'Create a new course',
+          'Course creation rules',
+          'Import a custom course',
+          'Export a custom course',
+          'Course responsibility, permissions and Teams',
+          'Android device backup (technical)',
+          'Course operations',
+        ]),
+      );
+      for (final title in [
+        'Course Audit',
+        'Audit severity and codes',
+        'Local course edits and backups',
+        'Course Info Editor and license',
+      ]) {
+        expect(english.map((section) => section.title), contains(title));
+        expect(managerEnglish.map((section) => section.title), contains(title));
+      }
       for (var index = 0; index < english.length; index++) {
         expect(
           italian[index].title.trim(),
@@ -66,6 +108,26 @@ void main() {
           isNot(english[index].body),
           reason: '"${english[index].title}" is untranslated',
         );
+      }
+      for (var index = 0; index < managerEnglish.length; index++) {
+        expect(managerItalian[index].title.trim(), isNotEmpty);
+        expect(
+          managerItalian[index].body,
+          isNot(managerEnglish[index].body),
+          reason: 'Manager section at $index is untranslated',
+        );
+      }
+      final operations = managerEnglish
+          .singleWhere((section) => section.title == 'Course operations')
+          .body;
+      for (final action in [
+        'Copy as New Course',
+        'Fork',
+        'Merge',
+        'Delete course',
+        'Remove Publisher Course from device',
+      ]) {
+        expect(operations, contains(action));
       }
     });
 
@@ -140,14 +202,12 @@ void main() {
         HelpLanguage.italian,
       ).map((section) => section.body).join('\n');
       for (final label in const [
-        'Course Manager',
         'Save as draft',
         'Confirm course changes',
         'View only',
         'Inspection mode',
         'Use GuideBook',
         'Create Duels',
-        'Export Course ZIP',
         'Import Image Bank ZIP',
         'Course Maintainer',
       ]) {
@@ -163,7 +223,7 @@ void main() {
 
       expect(find.text('Editor Help'), findsOneWidget);
       expect(find.text('Technical reference'), findsOneWidget);
-      expect(find.text('Course types'), findsOneWidget);
+      expect(find.text('Course types'), findsNothing);
       expect(find.text('Italiano'), findsOneWidget);
 
       await tester.tap(find.byKey(const Key('editor-help-language-toggle')));
@@ -171,9 +231,7 @@ void main() {
 
       expect(find.text('Guida all’Editor'), findsOneWidget);
       expect(find.text('Riferimento tecnico'), findsOneWidget);
-      await tester.scrollUntilVisible(find.text('Tipi di corso'), 200);
-      await tester.pump();
-      expect(find.text('Tipi di corso'), findsOneWidget);
+      expect(find.text('Tipi di corso'), findsNothing);
       expect(find.text('English'), findsOneWidget);
       expect(find.text('Editor Help'), findsNothing);
 
@@ -197,5 +255,25 @@ void main() {
       expect(find.text('Audit Codes'), findsOneWidget);
       expect(find.text('Exercise types'), findsOneWidget);
     });
+
+    testWidgets(
+      'Manager Help has course types and an EN/IT toggle but no technical reference',
+      (tester) async {
+        await tester.pumpWidget(
+          const MaterialApp(home: CourseManagerHelpScreen()),
+        );
+        expect(find.text('Course Manager Help'), findsOneWidget);
+        expect(find.text('Course types'), findsOneWidget);
+        expect(find.text('Technical reference'), findsNothing);
+
+        await tester.tap(
+          find.byKey(const Key('course-manager-help-language-toggle')),
+        );
+        await tester.pumpAndSettle();
+        expect(find.text('Guida al Course Manager'), findsOneWidget);
+        expect(find.text('Tipi di corso'), findsOneWidget);
+        expect(find.text('Riferimento tecnico'), findsNothing);
+      },
+    );
   });
 }

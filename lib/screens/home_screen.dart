@@ -1,4 +1,6 @@
 import '../services/course_library_service.dart';
+import '../services/course_favorite_service.dart';
+import '../services/course_learner_visibility_service.dart';
 import 'available_courses_screen.dart';
 import 'dart:async';
 import 'dart:convert';
@@ -34,6 +36,7 @@ import 'settings_screen.dart';
 import 'review_screen.dart';
 import 'course_info_screen.dart';
 import 'course_projects_screen.dart';
+import 'courses_screen.dart';
 import 'duel_screen.dart';
 import 'guidebook_screen.dart';
 import 'info_screen.dart';
@@ -1219,27 +1222,59 @@ class _HomeScreenState extends State<HomeScreen> {
       await _courseEditorService.listUserCourses(),
     )).map(_publication.learnerCourse).whereType<Course>().toList();
     final editorUnlocked = await _settings.isCourseEditorUnlocked();
-    final recentRefs = (await _settings.getRecentCourseRefs())
+    final allRefs = [
+      ...codes,
+      for (final course in localCourses) 'custom:${course.courseId}',
+    ];
+    final courseByRef = <String, Course>{
+      for (final code in codes) code: bundledCourses[code]!,
+      for (final course in localCourses) 'custom:${course.courseId}': course,
+    };
+    final courseIds = courseByRef.values.map((course) => course.courseId);
+    final favoriteService = CourseFavoriteService();
+    final visibilityService = CourseLearnerVisibilityService();
+    final favoriteIds = await favoriteService.favoriteCourseIds(courseIds);
+    final hiddenIds = await visibilityService.hiddenCourseIds(courseIds);
+    final recentHistory = await _settings.getRecentCourseRefs();
+    if (!mounted || !overlayContext.mounted) return;
+    StateSetter? setPickerState;
+
+    String normalizedRef(String ref) =>
+        ref.startsWith('custom:') ? ref : ref.trim().toUpperCase();
+
+    bool visibleInPicker(String ref) =>
+        !hiddenIds.contains(courseByRef[ref]!.courseId);
+
+    List<String> recentRefs() => recentHistory
+        .map(normalizedRef)
         .where(
           (ref) =>
               ref != _selectedCourseRef &&
-              (bundledCourses.containsKey(ref.trim().toUpperCase()) ||
-                  (ref.startsWith('custom:') &&
-                      localCourses.any(
-                        (c) => c.courseId == ref.substring('custom:'.length),
-                      ))),
+              courseByRef.containsKey(ref) &&
+              courseByRef[ref]!.courseId != _course?.courseId &&
+              visibleInPicker(ref),
         )
+        .toSet()
         .take(3)
         .toList();
-    if (!mounted || !overlayContext.mounted) return;
-    Course? customCourseFor(String ref) {
-      if (!ref.startsWith('custom:')) return null;
-      final id = ref.substring('custom:'.length);
-      for (final course in localCourses) {
-        if (course.courseId == id) return course;
-      }
-      return null;
-    }
+
+    List<String> favoriteRefs() => allRefs
+        .where(
+          (ref) =>
+              visibleInPicker(ref) &&
+              favoriteIds.contains(courseByRef[ref]!.courseId),
+        )
+        .toList();
+
+    List<String> otherRefs(List<String> recent, List<String> favorites) =>
+        allRefs
+            .where(
+              (ref) =>
+                  visibleInPicker(ref) &&
+                  !recent.contains(ref) &&
+                  !favorites.contains(ref),
+            )
+            .toList();
 
     String originLabel(Course course) {
       if (course.originType == CourseOriginType.bundledOfficial) {
@@ -1278,6 +1313,66 @@ class _HomeScreenState extends State<HomeScreen> {
         await openCourseInfo(context, course);
         return;
       }
+      if (action == 'favorite') {
+        final favorite = !favoriteIds.contains(course.courseId);
+        try {
+          await favoriteService.setFavorite(course.courseId, favorite);
+          if (!mounted || !context.mounted) return;
+          setPickerState?.call(() {
+            if (favorite) {
+              favoriteIds.add(course.courseId);
+            } else {
+              favoriteIds.remove(course.courseId);
+            }
+          });
+        } catch (error) {
+          if (context.mounted) {
+            await showDialog<void>(
+              context: context,
+              builder: (dialogContext) => AlertDialog(
+                title: const Text('Could not update Favorite'),
+                content: Text('$error'),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(dialogContext),
+                    child: const Text('OK'),
+                  ),
+                ],
+              ),
+            );
+          }
+        }
+        return;
+      }
+      if (action == 'hide') {
+        if (course.courseId == _course?.courseId) return;
+        try {
+          await visibilityService.setHidden(
+            course,
+            true,
+            activeCourseId: _course?.courseId,
+          );
+          if (!mounted || !context.mounted) return;
+          setPickerState?.call(() => hiddenIds.add(course.courseId));
+        } catch (error) {
+          if (context.mounted) {
+            await showDialog<void>(
+              context: context,
+              builder: (dialogContext) => AlertDialog(
+                title: const Text('Could not hide Course'),
+                content: Text('$error'),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(dialogContext),
+                    child: const Text('OK'),
+                  ),
+                ],
+              ),
+            );
+          }
+        }
+        return;
+      }
     }
 
     Widget courseTile({
@@ -1306,8 +1401,12 @@ class _HomeScreenState extends State<HomeScreen> {
                   handleCourseAction(overlayContext, course, action),
               itemBuilder: (_) => [
                 const PopupMenuItem(
-                  value: 'remove_personal',
-                  child: Text('Remove from my courses'),
+                  value: 'info',
+                  child: ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: Icon(Icons.info_outline),
+                    title: Text('Course Info'),
+                  ),
                 ),
                 if (showReview)
                   const PopupMenuItem(
@@ -1318,13 +1417,37 @@ class _HomeScreenState extends State<HomeScreen> {
                       title: Text('Review'),
                     ),
                   ),
-                const PopupMenuItem(
-                  value: 'info',
+                PopupMenuItem(
+                  value: 'favorite',
                   child: ListTile(
                     contentPadding: EdgeInsets.zero,
-                    leading: Icon(Icons.info_outline),
-                    title: Text('Course Info'),
+                    leading: Icon(
+                      favoriteIds.contains(course.courseId)
+                          ? Icons.star
+                          : Icons.star_border,
+                    ),
+                    title: Text(
+                      favoriteIds.contains(course.courseId)
+                          ? 'Remove from Favorites'
+                          : 'Favorite',
+                    ),
                   ),
+                ),
+                PopupMenuItem(
+                  value: 'hide',
+                  enabled: course.courseId != _course?.courseId,
+                  child: ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: const Icon(Icons.visibility_off_outlined),
+                    title: const Text('Hide in Learner'),
+                    subtitle: course.courseId == _course?.courseId
+                        ? const Text("You're studying this Course")
+                        : null,
+                  ),
+                ),
+                const PopupMenuItem(
+                  value: 'remove_personal',
+                  child: Text('Remove from my courses'),
                 ),
               ],
             ),
@@ -1334,18 +1457,35 @@ class _HomeScreenState extends State<HomeScreen> {
       );
     }
 
-    Widget recentCourseTile(BuildContext ctx, String ref) {
-      final custom = customCourseFor(ref);
+    Widget includedCourseTile(BuildContext ctx, String ref, String section) {
+      final custom = ref.startsWith('custom:') ? courseByRef[ref] : null;
+      final key = section == 'other'
+          ? custom == null
+                ? ValueKey('bundled-course-$ref')
+                : ValueKey('local-course-${custom.courseId}')
+          : ValueKey('$section-course-$ref');
+      final rowId = section == 'other'
+          ? custom == null
+                ? 'bundled-$ref'
+                : 'local-${custom.courseId}'
+          : '$section-$ref';
       if (custom != null) {
         return courseTile(
-          key: ValueKey('recent-course-$ref'),
-          rowId: 'recent-$ref',
+          key: key,
+          rowId: rowId,
           course: custom,
           leading: CourseFlagBadge(
             course: custom,
             fallbackCode: CourseService.codeForCourse(custom),
           ),
-          subtitle: Text(originLabel(custom)),
+          subtitle: Text(
+            '${custom.sourceLanguage} → ${custom.targetLanguage}'
+            ' · ${originLabel(custom)}',
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+          selected: _selectedCourseRef == ref,
+          showReview: custom.courseId == _course?.courseId,
           onTap: () {
             if (custom.courseId != _course?.courseId) {
               selectedCourseSwitch = () => _switchCustomCourse(custom);
@@ -1356,16 +1496,21 @@ class _HomeScreenState extends State<HomeScreen> {
       }
       final code = ref.trim().toUpperCase();
       return courseTile(
-        key: ValueKey('recent-course-$ref'),
-        rowId: 'recent-$ref',
+        key: key,
+        rowId: rowId,
         course: bundledCourses[code]!,
         leading: CourseFlagBadge(
           course: bundledCourses[code]!,
           fallbackCode: code,
         ),
         subtitle: Text(
-          '${CourseService.sourceLabels[code] ?? 'English'} → ${CourseService.targetLabels[code] ?? code}',
+          '${CourseService.sourceLabels[code] ?? 'English'} → ${CourseService.targetLabels[code] ?? code}'
+          ' · Bundled official${CourseService.hasCourse(code) ? '' : ' · Coming soon'}',
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
         ),
+        selected: _selectedCourseRef == code,
+        showReview: bundledCourses[code]!.courseId == _course?.courseId,
         onTap: CourseService.hasCourse(code)
             ? () {
                 if (bundledCourses[code]!.courseId != _course?.courseId) {
@@ -1377,22 +1522,64 @@ class _HomeScreenState extends State<HomeScreen> {
       );
     }
 
-    Future<void> openCourseManager(
+    Future<void> openCourses(
       BuildContext sheetContext, {
-      required bool editCurrent,
+      required CoursesTab tab,
+      bool editCurrent = false,
     }) async {
       final selectedCourse = _course;
       Navigator.pop(sheetContext);
-      if (selectedCourse == null || !overlayContext.mounted) return;
+      if (!overlayContext.mounted) return;
       await Navigator.of(overlayContext).push<void>(
         MaterialPageRoute(
-          builder: (_) => CourseProjectsScreen(
+          builder: (_) => CoursesScreen(
+            initialTab: tab,
             currentCourse: selectedCourse,
-            initialCourseIdToOpen: editCurrent ? selectedCourse.courseId : null,
+            initialCourseIdToOpen: editCurrent
+                ? selectedCourse?.courseId
+                : null,
           ),
         ),
       );
       if (mounted) await _reload();
+    }
+
+    Future<void> showCourseManagerLocked(BuildContext sheetContext) =>
+        showDialog<void>(
+          context: sheetContext,
+          builder: (ctx) => AlertDialog(
+            title: const Text('Course Manager locked'),
+            content: const Text(courseManagerUnlockMessage),
+            actions: [
+              FilledButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('OK'),
+              ),
+            ],
+          ),
+        );
+
+    Widget managerLink(
+      BuildContext sheetContext, {
+      required Key key,
+      required IconData icon,
+      required String title,
+      required VoidCallback onOpen,
+    }) {
+      final tile = ListTile(
+        key: key,
+        enabled: editorUnlocked,
+        leading: Icon(icon),
+        title: Text(title),
+        trailing: const Icon(Icons.chevron_right),
+        onTap: editorUnlocked ? onOpen : null,
+      );
+      return editorUnlocked
+          ? tile
+          : InkWell(
+              onTap: () => showCourseManagerLocked(sheetContext),
+              child: tile,
+            );
     }
 
     await showModalBottomSheet<void>(
@@ -1401,6 +1588,10 @@ class _HomeScreenState extends State<HomeScreen> {
       isScrollControlled: true,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setSheetState) {
+          setPickerState = setSheetState;
+          final recent = recentRefs();
+          final favorites = favoriteRefs();
+          final other = otherRefs(recent, favorites);
           return SafeArea(
             child: FractionallySizedBox(
               heightFactor: .78,
@@ -1427,7 +1618,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       selected: true,
                       showReview: true,
                     ),
-                  if (recentRefs.isNotEmpty) ...[
+                  if (recent.isNotEmpty) ...[
                     const Padding(
                       padding: EdgeInsets.fromLTRB(16, 14, 16, 6),
                       child: Text(
@@ -1435,100 +1626,56 @@ class _HomeScreenState extends State<HomeScreen> {
                         style: TextStyle(fontWeight: FontWeight.w800),
                       ),
                     ),
-                    for (final ref in recentRefs) recentCourseTile(ctx, ref),
+                    for (final ref in recent)
+                      includedCourseTile(ctx, ref, 'recent'),
+                  ],
+                  if (favorites.isNotEmpty) ...[
+                    const Padding(
+                      padding: EdgeInsets.fromLTRB(16, 14, 16, 6),
+                      child: Text(
+                        'Favorites',
+                        style: TextStyle(fontWeight: FontWeight.w800),
+                      ),
+                    ),
+                    for (final ref in favorites)
+                      includedCourseTile(ctx, ref, 'favorite'),
                   ],
                   const Divider(),
                   const Padding(
                     padding: EdgeInsets.fromLTRB(16, 4, 16, 6),
                     child: Text(
-                      'All included courses',
+                      'Other courses',
                       style: TextStyle(fontWeight: FontWeight.w800),
                     ),
                   ),
-                  for (final code in codes)
-                    courseTile(
-                      key: ValueKey('bundled-course-$code'),
-                      rowId: 'bundled-$code',
-                      course: bundledCourses[code]!,
-                      leading: CourseFlagBadge(
-                        course: bundledCourses[code]!,
-                        fallbackCode: code,
-                      ),
-                      subtitle: Text(
-                        '${CourseService.sourceLabels[code] ?? 'English'} → ${CourseService.targetLabels[code] ?? code}'
-                        ' · Bundled official${CourseService.hasCourse(code) ? '' : ' · Coming soon'}',
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      selected: _selectedCourseRef == code,
-                      onTap: () {
-                        if (bundledCourses[code]!.courseId !=
-                            _course?.courseId) {
-                          selectedCourseSwitch = () => _switchCourse(code);
-                        }
-                        Navigator.pop(ctx);
-                      },
+                  for (final ref in other)
+                    includedCourseTile(ctx, ref, 'other'),
+                  const Divider(height: 28),
+                  ListTile(
+                    key: const Key('course-selector-all-courses'),
+                    leading: const Icon(Icons.library_add_outlined),
+                    title: const Text('All Courses'),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () => openCourses(ctx, tab: CoursesTab.allCourses),
+                  ),
+                  managerLink(
+                    ctx,
+                    key: const Key('course-selector-course-manager'),
+                    icon: Icons.library_books_outlined,
+                    title: 'Course Manager',
+                    onOpen: () => openCourses(ctx, tab: CoursesTab.manager),
+                  ),
+                  managerLink(
+                    ctx,
+                    key: const Key('course-selector-edit-current'),
+                    icon: Icons.edit_outlined,
+                    title: 'Course Editor',
+                    onOpen: () => openCourses(
+                      ctx,
+                      tab: CoursesTab.manager,
+                      editCurrent: true,
                     ),
-                  if (localCourses.isNotEmpty) ...[
-                    const Divider(),
-                    const Padding(
-                      padding: EdgeInsets.fromLTRB(16, 8, 16, 6),
-                      child: Text(
-                        'Local courses',
-                        style: TextStyle(fontWeight: FontWeight.w800),
-                      ),
-                    ),
-                    for (final course in localCourses)
-                      courseTile(
-                        key: ValueKey('local-course-${course.courseId}'),
-                        rowId: 'local-${course.courseId}',
-                        course: course,
-                        leading: CourseFlagBadge(
-                          course: course,
-                          fallbackCode: CourseService.codeForCourse(course),
-                        ),
-                        subtitle: Text(
-                          '${course.sourceLanguage} → ${course.targetLanguage}'
-                          ' · ${originLabel(course)}',
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        selected:
-                            _selectedCourseRef == 'custom:${course.courseId}',
-                        onTap: () {
-                          if (course.courseId != _course?.courseId) {
-                            selectedCourseSwitch = () =>
-                                _switchCustomCourse(course);
-                          }
-                          Navigator.pop(ctx);
-                        },
-                      ),
-                  ],
-                  if (editorUnlocked) ...[
-                    const Divider(height: 28),
-                    const Padding(
-                      padding: EdgeInsets.fromLTRB(16, 0, 16, 6),
-                      child: Text(
-                        'Editor',
-                        style: TextStyle(fontWeight: FontWeight.w800),
-                      ),
-                    ),
-                    ListTile(
-                      key: const Key('course-selector-edit-current'),
-                      leading: const Icon(Icons.edit_outlined),
-                      title: const Text('Edit current course'),
-                      trailing: const Icon(Icons.chevron_right),
-                      onTap: () => openCourseManager(ctx, editCurrent: true),
-                    ),
-                    ListTile(
-                      key: const Key('course-selector-course-manager'),
-                      leading: const Icon(Icons.library_books_outlined),
-                      title: const Text('Course Manager'),
-                      trailing: const Icon(Icons.chevron_right),
-                      onTap: () => openCourseManager(ctx, editCurrent: false),
-                    ),
-                  ],
-                  const Divider(),
+                  ),
                   ListTile(
                     key: const Key('course-selector-import'),
                     leading: const Icon(Icons.file_open_outlined),
@@ -1537,25 +1684,64 @@ class _HomeScreenState extends State<HomeScreen> {
                       final selected = _course;
                       if (selected == null) return;
                       Navigator.pop(ctx);
-                      await Navigator.of(overlayContext).push<void>(
-                        MaterialPageRoute(
-                          builder: (_) => CourseProjectsScreen(
-                            currentCourse: selected,
-                            importOnly: true,
+                      final imported = await Navigator.of(overlayContext)
+                          .push<Course>(
+                            MaterialPageRoute(
+                              builder: (_) => CourseProjectsScreen(
+                                currentCourse: selected,
+                                importOnly: true,
+                              ),
+                            ),
+                          );
+                      if (!mounted) return;
+                      await _reload();
+                      if (!mounted || imported == null) return;
+                      final playable =
+                          _publication.learnerCourse(imported) != null;
+                      final canStudy =
+                          playable &&
+                          (imported.originType !=
+                                  CourseOriginType.bundledOfficial ||
+                              CourseService.hasCourse(
+                                CourseService.codeForCourse(imported),
+                              ));
+                      final reason =
+                          PublicationService.requiresPublisherVerification(
+                            imported,
+                          )
+                          ? ' Publisher verification is required before you can study it.'
+                          : !imported.publicationState.isPublished
+                          ? ' Publish this Course before you can study it.'
+                          : canStudy
+                          ? ''
+                          : ' This Course is not available for study yet.';
+                      final messenger = ScaffoldMessenger.of(context);
+                      messenger.clearSnackBars();
+                      messenger.showSnackBar(
+                        SnackBar(
+                          duration: const Duration(seconds: 8),
+                          content: Text(
+                            'Imported “${imported.title}” and added to your courses.$reason',
                           ),
+                          action: canStudy
+                              ? SnackBarAction(
+                                  label: 'Study now',
+                                  onPressed: () {
+                                    if (imported.originType ==
+                                        CourseOriginType.bundledOfficial) {
+                                      unawaited(
+                                        _switchCourse(
+                                          CourseService.codeForCourse(imported),
+                                        ),
+                                      );
+                                    } else {
+                                      unawaited(_switchCustomCourse(imported));
+                                    }
+                                  },
+                                )
+                              : null,
                         ),
                       );
-                      if (mounted) await _reload();
-                    },
-                  ),
-                  ListTile(
-                    key: const Key('available-on-device'),
-                    leading: const Icon(Icons.library_add_outlined),
-                    title: const Text('Course Library'),
-                    trailing: const Icon(Icons.chevron_right),
-                    onTap: () async {
-                      Navigator.pop(ctx);
-                      await _openAvailableCourses();
                     },
                   ),
                 ],
@@ -1565,6 +1751,7 @@ class _HomeScreenState extends State<HomeScreen> {
         },
       ),
     );
+    setPickerState = null;
     if (!mounted || !overlayContext.mounted) return;
     if (selectedCourseSwitch != null) {
       // The sheet's result resolves when reverse animation starts. Wait through
@@ -1576,9 +1763,11 @@ class _HomeScreenState extends State<HomeScreen> {
     await selectedCourseSwitch?.call();
   }
 
-  Future<void> _openAvailableCourses() async {
+  Future<void> _openAllCourses() async {
     await Navigator.of(context).push<void>(
-      MaterialPageRoute(builder: (_) => const AvailableCoursesScreen()),
+      MaterialPageRoute(
+        builder: (_) => const CoursesScreen(initialTab: CoursesTab.allCourses),
+      ),
     );
     if (mounted) await _reload();
   }
@@ -2058,8 +2247,8 @@ class _HomeScreenState extends State<HomeScreen> {
             children: [
               const Text('No courses available for study in your library.'),
               FilledButton(
-                onPressed: _openAvailableCourses,
-                child: const Text('Course Library'),
+                onPressed: _openAllCourses,
+                child: const Text('All Courses'),
               ),
               if (_emptyLibraryEditorUnlocked) ...[
                 const SizedBox(height: 12),
@@ -2070,8 +2259,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   onPressed: () async {
                     await Navigator.of(context).push<void>(
                       MaterialPageRoute(
-                        builder: (_) =>
-                            const CourseProjectsScreen(currentCourse: null),
+                        builder: (_) => const CoursesScreen(
+                          initialTab: CoursesTab.manager,
+                          currentCourse: null,
+                        ),
                       ),
                     );
                     if (mounted) await _reload();
