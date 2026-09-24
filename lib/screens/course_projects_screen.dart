@@ -7,6 +7,7 @@ import '../models/course_flag_selection.dart';
 import '../models/course_models.dart';
 import '../models/course_metadata_options.dart';
 import '../services/course_editor_service.dart';
+import '../services/course_favorite_service.dart';
 import '../services/custom_course_transfer_service.dart';
 import '../services/course_service.dart';
 import '../services/course_language_resolver.dart';
@@ -27,6 +28,7 @@ import '../widgets/editor_app_bar_actions.dart';
 import '../widgets/file_dialog_feedback.dart';
 import '../widgets/flag_art.dart';
 import 'course_editor_screen.dart';
+import 'course_info_screen.dart';
 import 'team_manager_screen.dart';
 import 'flat_image_library_screen.dart';
 
@@ -125,7 +127,7 @@ class CourseImportScreen extends StatelessWidget {
 }
 
 /// Export counterpart of [CourseImportScreen]: the fixed-folder route and the
-/// system dialog in one place, so the Course Manager menu offers one Export.
+/// system dialog in one place, so the Course Studio menu offers one Export.
 class CourseExportScreen extends StatelessWidget {
   final String courseTitle;
   final Future<void> Function() onExport;
@@ -195,7 +197,7 @@ class CourseExportScreen extends StatelessWidget {
           '1. The package always exports the Course as it is stored. Changes still open in the Course Editor are not included until they are confirmed.\n'
           '2. App-bundled QQL images are supplied by the application and are not packaged.\n'
           '3. A Course with blocking Audit errors can still be exported; the result names them so the recipient knows.\n'
-          '4. Import the package on another device from Course Manager > Import Course.',
+          '4. Import the package on another device from Course Studio > Import Course.',
         ),
       ],
     ),
@@ -446,7 +448,7 @@ class _CourseMergeScreenState extends State<CourseMergeScreen> {
               '2. A ZIP may have its files at the root or inside one folder named merge. QQL accepts the matching folder with a warning. Select Merge Course package or JSON; QQL validates both Course information blocks before changing local storage.\n'
               '3. Choose the origin of every Lesson you want to include, then check the selections carefully.\n'
               '4. DO MERGE! creates a third independent Course and leaves both sources and the imported file unchanged.\n'
-              '5. The new merged Course will be available in Course Manager.',
+              '5. The new merged Course will be available in Course Studio.',
             ),
           ] else ...[
             Text(
@@ -765,6 +767,7 @@ class CourseProjectsScreen extends StatefulWidget {
   final bool embedded;
   final CourseLibrarySort sort;
   final bool showUnavailable;
+  final String search;
   final int refreshToken;
   const CourseProjectsScreen({
     super.key,
@@ -777,6 +780,7 @@ class CourseProjectsScreen extends StatefulWidget {
     this.embedded = false,
     this.sort = CourseLibrarySort.title,
     this.showUnavailable = true,
+    this.search = '',
     this.refreshToken = 0,
   });
 
@@ -791,12 +795,15 @@ class CourseProjectsScreenState extends State<CourseProjectsScreen> {
   );
   late final _service = _ops.editor;
   late final _transfer = _ops.transfer;
+  final _favorites = CourseFavoriteService();
   final _sounds = SoundEffectService();
   CourseManagerLibrary _library = const CourseManagerLibrary();
   bool _loading = true;
   String? _loadError;
   bool _openedInitialCourse = false;
   final _compact = List<bool>.filled(4, false);
+  bool _favoritesCompact = false;
+  Set<String> _favoriteIds = const {};
   Map<String, String> _profileNames = {};
 
   Future<void> createCourse() => _newCourse();
@@ -828,6 +835,13 @@ class CourseProjectsScreenState extends State<CourseProjectsScreen> {
         currentCourse: widget.currentCourse,
         importOnly: widget.importOnly,
       );
+      final favoriteIds = await _favorites.favoriteCourseIds(
+        [
+          ...library.bundledCourses,
+          ...library.personalCourses,
+        ].map((course) => course.courseId),
+        profileId: library.activeProfileId,
+      );
       final profileNames = {
         for (final profile in await _ops.profiles.getProfileRecords())
           profile.learnerProfileId: profile.displayName,
@@ -835,6 +849,7 @@ class CourseProjectsScreenState extends State<CourseProjectsScreen> {
       if (!mounted) return;
       setState(() {
         _library = library;
+        _favoriteIds = favoriteIds;
         _profileNames = profileNames;
         _loading = false;
       });
@@ -1841,6 +1856,12 @@ class CourseProjectsScreenState extends State<CourseProjectsScreen> {
       tooltip: 'Course actions',
       onSelected: (action) {
         switch (action) {
+          case CourseManagerAction.courseInfo:
+            Navigator.of(context).push<void>(
+              MaterialPageRoute(
+                builder: (_) => CourseInfoScreen(course: course),
+              ),
+            );
           case CourseManagerAction.open:
             onOpen();
           case CourseManagerAction.toggleLearnerVisibility:
@@ -1890,6 +1911,11 @@ class CourseProjectsScreenState extends State<CourseProjectsScreen> {
       CourseManagerAction.removePublisherFromDevice => (
         null,
         'Remove Publisher Course from device',
+        null,
+      ),
+      CourseManagerAction.courseInfo => (
+        Icons.info_outline,
+        'Course Info',
         null,
       ),
       CourseManagerAction.open => (
@@ -2119,7 +2145,7 @@ class CourseProjectsScreenState extends State<CourseProjectsScreen> {
                     if (!_library.importAuthoringEnabled) ...[
                       const SizedBox(height: 12),
                       const Text(
-                        'Unlock Course Manager for this profile to create your own copy (tap Version ten times in Settings). Copy as New Course and Fork are unavailable until then.',
+                        'Unlock Course Studio for this profile to create your own copy (tap Version ten times in Settings). Copy as New Course and Fork are unavailable until then.',
                       ),
                     ],
                     if (review.replaceUnavailableReason != null) ...[
@@ -2400,26 +2426,51 @@ class CourseProjectsScreenState extends State<CourseProjectsScreen> {
         0 => Theme.of(context).colorScheme.onSurface,
         1 => Colors.purple,
         2 => Colors.orange,
-        _ => Colors.orange.shade800,
+        _ =>
+          Theme.of(context).brightness == Brightness.dark
+              ? const Color(0xFFBDBDBD)
+              : const Color(0xFF686868),
       };
 
-  Widget _managerSectionBand(BuildContext context, int index) {
+  Widget _managerSectionBand(
+    BuildContext context,
+    int index, {
+    bool favorites = false,
+  }) {
     final courses = <Course>[
       ..._library.bundledCourses,
       ..._library.personalCourses,
     ];
-    final all = courses.where((c) => _managerSection(c) == index).toList();
+    final all = courses
+        .where(
+          (course) => favorites
+              ? _favoriteIds.contains(course.courseId)
+              : _managerSection(course) == index,
+        )
+        .toList();
+    final query = widget.search.trim().toLowerCase();
     final shown = CourseLibraryPresentation.sorted(
       all.where(
         (course) =>
-            widget.showUnavailable || !CourseLibraryRow.isUnavailable(course),
+            (widget.showUnavailable ||
+                !CourseLibraryRow.isUnavailable(course)) &&
+            (query.isEmpty ||
+                course.title.toLowerCase().contains(query) ||
+                course.sourceLanguage.toLowerCase().contains(query) ||
+                course.targetLanguage.toLowerCase().contains(query)),
       ),
       widget.sort,
       maintainerOf: _managerMaintainer,
     );
-    final color = _managerSectionColor(context, index);
+    final color = favorites
+        ? Theme.of(context).brightness == Brightness.dark
+              ? Colors.amber.shade300
+              : Colors.amber.shade700
+        : _managerSectionColor(context, index);
+    final compact = favorites ? _favoritesCompact : _compact[index];
+    final sectionKey = favorites ? 'favorites' : '$index';
     return Padding(
-      key: ValueKey('manager-section-$index'),
+      key: ValueKey('manager-section-$sectionKey'),
       padding: const EdgeInsets.only(bottom: 20),
       child: DecoratedBox(
         decoration: BoxDecoration(
@@ -2438,36 +2489,49 @@ class CourseProjectsScreenState extends State<CourseProjectsScreen> {
                   children: [
                     Expanded(
                       child: Text(
-                        '${_managerSectionLabels[index]} · ${shown.length == all.length ? '${all.length}' : '${shown.length} of ${all.length} shown'}',
+                        '${favorites ? 'Favorites' : _managerSectionLabels[index]} · ${shown.length == all.length ? '${all.length}' : '${shown.length} of ${all.length} shown'}',
                         style: Theme.of(context).textTheme.titleMedium,
                       ),
                     ),
                     TextButton.icon(
-                      key: ValueKey('manager-section-view-$index'),
-                      onPressed: () =>
-                          setState(() => _compact[index] = !_compact[index]),
+                      key: ValueKey('manager-section-view-$sectionKey'),
+                      onPressed: () => setState(() {
+                        if (favorites) {
+                          _favoritesCompact = !_favoritesCompact;
+                        } else {
+                          _compact[index] = !_compact[index];
+                        }
+                      }),
                       icon: Icon(
-                        _compact[index]
+                        compact
                             ? Icons.view_headline
                             : Icons.view_agenda_outlined,
                       ),
-                      label: Text(_compact[index] ? 'Compact' : 'Expanded'),
+                      label: Text(compact ? 'Compact' : 'Expanded'),
                     ),
                   ],
                 ),
               ),
               if (shown.isEmpty)
-                const Padding(
-                  padding: EdgeInsets.all(16),
-                  child: Text('No courses in this section.'),
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Text(
+                    all.isEmpty && favorites
+                        ? 'No Favorites yet.'
+                        : all.isNotEmpty && query.isNotEmpty
+                        ? 'No matching Courses in this section.'
+                        : 'No courses in this section.',
+                  ),
                 ),
               for (final course in shown)
                 _courseStatusCard(
                   course,
                   CourseLibraryRow(
-                    key: ValueKey('manager-course-${course.courseId}'),
+                    key: ValueKey(
+                      '${favorites ? 'manager-favorite' : 'manager-course'}-${course.courseId}',
+                    ),
                     course: course,
-                    compact: _compact[index],
+                    compact: compact,
                     maintainer: _managerMaintainer(course),
                     mediaStore: widget.mediaStore,
                     hiddenInLearner: _library.hiddenCourseIds.contains(
@@ -2477,7 +2541,7 @@ class CourseProjectsScreenState extends State<CourseProjectsScreen> {
                     trailing: _courseActions(
                       course,
                       key: ValueKey(
-                        'course-manager-actions-${course.courseId}',
+                        'course-manager-actions-${favorites ? 'favorite-' : ''}${course.courseId}',
                       ),
                       onOpen: () => _openUser(course),
                     ),
@@ -2498,7 +2562,7 @@ class CourseProjectsScreenState extends State<CourseProjectsScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text('Course Manager could not load local course data.'),
+            const Text('Course Studio could not load local course data.'),
             Text(_loadError!),
             TextButton(onPressed: _reload, child: const Text('Retry')),
           ],
@@ -2549,6 +2613,7 @@ class CourseProjectsScreenState extends State<CourseProjectsScreen> {
           ],
         ),
         const SizedBox(height: 16),
+        _managerSectionBand(context, -1, favorites: true),
         for (final index in Iterable<int>.generate(
           _managerSectionLabels.length,
         ))
@@ -2587,7 +2652,7 @@ class CourseProjectsScreenState extends State<CourseProjectsScreen> {
                 ))
         : Scaffold(
             appBar: AppBar(
-              title: const Text('Course Manager'),
+              title: const Text('Course Studio'),
               actions: [
                 IconButton(
                   key: const Key('course-import-icon-action'),
@@ -2617,7 +2682,7 @@ class CourseProjectsScreenState extends State<CourseProjectsScreen> {
                           const Icon(Icons.error_outline, size: 40),
                           const SizedBox(height: 12),
                           const Text(
-                            'Course Manager could not load local course data.',
+                            'Course Studio could not load local course data.',
                             textAlign: TextAlign.center,
                           ),
                           const SizedBox(height: 8),

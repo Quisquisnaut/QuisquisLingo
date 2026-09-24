@@ -24,6 +24,7 @@ import 'team_service.dart';
 enum CourseManagerAction {
   removeFromMyCourses,
   removePublisherFromDevice,
+  courseInfo,
   open,
   toggleLearnerVisibility,
   fork,
@@ -114,6 +115,7 @@ class CourseManagerLibrary {
               ? null
               : 'Only an admin can remove a Publisher Course from this device.',
         ),
+      const CourseManagerEntry(CourseManagerAction.courseInfo),
       const CourseManagerEntry(CourseManagerAction.open),
       CourseManagerEntry(
         CourseManagerAction.toggleLearnerVisibility,

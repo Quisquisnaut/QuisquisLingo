@@ -14,7 +14,7 @@ import 'editor_help_screen.dart';
 enum CoursesTab { allCourses, manager }
 
 const courseManagerUnlockMessage =
-    'Unlock Course Manager for this profile to edit Courses and use Course operations. Tap Version in Settings ten times to unlock it.';
+    'Unlock Course Studio for this profile to edit Courses and use Course operations. Tap Version in Settings ten times to unlock it.';
 
 /// One Courses screen with shared view controls and two Course libraries.
 class CoursesScreen extends StatefulWidget {
@@ -120,8 +120,8 @@ class _CoursesScreenState extends State<CoursesScreen> {
     if (mounted) setState(() => _refreshToken++);
   }
 
-  void _openHelp() {
-    if (_tab == CoursesTab.manager) {
+  void _openHelp(CoursesTab tab) {
+    if (tab == CoursesTab.manager) {
       Navigator.of(context).push<void>(
         MaterialPageRoute(builder: (_) => const CourseManagerHelpScreen()),
       );
@@ -158,31 +158,56 @@ class _CoursesScreenState extends State<CoursesScreen> {
                     : 'courses-tab-manager-selected',
               )
             : null,
-        child: InkWell(
-          key: Key(
-            tab == CoursesTab.allCourses
-                ? 'courses-tab-all'
-                : 'courses-tab-manager',
+        child: Container(
+          decoration: BoxDecoration(
+            border: Border(
+              bottom: BorderSide(
+                color: selected ? scheme.primary : Colors.transparent,
+                width: 2,
+              ),
+            ),
           ),
-          onTap: () => _select(tab),
-          child: Container(
-            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
-            decoration: BoxDecoration(
-              border: Border(
-                bottom: BorderSide(
-                  color: selected ? scheme.primary : Colors.transparent,
-                  width: 2,
+          child: Row(
+            children: [
+              Expanded(
+                child: InkWell(
+                  key: Key(
+                    tab == CoursesTab.allCourses
+                        ? 'courses-tab-all'
+                        : 'courses-tab-manager',
+                  ),
+                  onTap: () => _select(tab),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 12,
+                      horizontal: 2,
+                    ),
+                    child: Text(
+                      label,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: color,
+                        fontWeight: selected
+                            ? FontWeight.bold
+                            : FontWeight.normal,
+                      ),
+                    ),
+                  ),
                 ),
               ),
-            ),
-            child: Text(
-              label,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: color,
-                fontWeight: selected ? FontWeight.bold : FontWeight.normal,
+              IconButton(
+                key: Key(
+                  tab == CoursesTab.allCourses
+                      ? 'all-courses-help'
+                      : 'course-manager-help',
+                ),
+                tooltip: tab == CoursesTab.allCourses
+                    ? 'All Courses Help'
+                    : 'Course Studio Help',
+                onPressed: () => _openHelp(tab),
+                icon: const Icon(Icons.help_outline),
               ),
-            ),
+            ],
           ),
         ),
       ),
@@ -205,85 +230,84 @@ class _CoursesScreenState extends State<CoursesScreen> {
             onPressed: _openImport,
             icon: const Icon(Icons.file_open_outlined),
           ),
-          if (allSelected)
-            IconButton(
-              key: const Key('courses-search'),
-              tooltip: 'Search Courses',
-              onPressed: () => setState(() {
-                _searchOpen = !_searchOpen;
-                if (!_searchOpen) _search = '';
-              }),
-              icon: const Icon(Icons.search),
-            )
-          else
+          IconButton(
+            key: const Key('courses-search'),
+            tooltip: 'Search Courses',
+            onPressed: () => setState(() {
+              _searchOpen = !_searchOpen;
+              if (!_searchOpen) _search = '';
+            }),
+            icon: const Icon(Icons.search),
+          ),
+          if (!allSelected)
             IconButton(
               key: const Key('create-course-icon-action'),
               tooltip: 'Create new course',
               onPressed: _newCourse,
               icon: const Icon(Icons.add),
             ),
-          IconButton(
-            key: const Key('courses-help'),
-            tooltip: 'Help',
-            onPressed: _openHelp,
-            icon: const Icon(Icons.help_outline),
-          ),
         ],
       ),
       body: Column(
         children: [
-          if (allSelected && _searchOpen)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-              child: TextField(
-                key: const Key('courses-search-field'),
-                autofocus: true,
-                decoration: const InputDecoration(
-                  prefixIcon: Icon(Icons.search),
-                  hintText: 'Search title or language',
-                ),
-                onChanged: (value) => setState(() => _search = value),
-              ),
-            ),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Wrap(
-              spacing: 24,
-              runSpacing: 8,
-              crossAxisAlignment: WrapCrossAlignment.center,
+            padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Switch(
-                      key: const Key('show-unavailable-courses'),
-                      value: _showUnavailable,
-                      onChanged: (value) =>
-                          setState(() => _showUnavailable = value),
-                    ),
-                    const Flexible(child: Text('Show unavailable Courses')),
-                  ],
-                ),
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Text('Sort by'),
-                    const SizedBox(width: 8),
-                    DropdownButton<CourseLibrarySort>(
-                      key: const Key('course-library-sort'),
-                      value: _sort,
-                      onChanged: (value) {
-                        if (value != null) setState(() => _sort = value);
-                      },
-                      items: [
-                        for (final sort in CourseLibrarySort.values)
-                          DropdownMenuItem(
-                            value: sort,
-                            child: Text(sort.label),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('Sort by'),
+                      DropdownButton<CourseLibrarySort>(
+                        key: const Key('course-library-sort'),
+                        value: _sort,
+                        isExpanded: true,
+                        onChanged: (value) {
+                          if (value != null) setState(() => _sort = value);
+                        },
+                        items: [
+                          for (final sort in CourseLibrarySort.values)
+                            DropdownMenuItem(
+                              value: sort,
+                              child: Text(
+                                sort.label,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                        ],
+                      ),
+                      if (_searchOpen) ...[
+                        const SizedBox(height: 8),
+                        TextField(
+                          key: const Key('courses-search-field'),
+                          autofocus: true,
+                          decoration: const InputDecoration(
+                            prefixIcon: Icon(Icons.search),
+                            hintText: 'Search',
                           ),
+                          onChanged: (value) => setState(() => _search = value),
+                        ),
                       ],
-                    ),
-                  ],
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('Show unavailable'),
+                      Switch(
+                        key: const Key('show-unavailable-courses'),
+                        value: _showUnavailable,
+                        onChanged: (value) =>
+                            setState(() => _showUnavailable = value),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -291,7 +315,7 @@ class _CoursesScreenState extends State<CoursesScreen> {
           Row(
             children: [
               _tabButton(CoursesTab.allCourses, 'ALL COURSES'),
-              _tabButton(CoursesTab.manager, 'COURSE MANAGER'),
+              _tabButton(CoursesTab.manager, 'COURSE STUDIO'),
             ],
           ),
           Expanded(
@@ -323,6 +347,7 @@ class _CoursesScreenState extends State<CoursesScreen> {
                   embedded: true,
                   sort: _sort,
                   showUnavailable: _showUnavailable,
+                  search: _search,
                   refreshToken: _refreshToken,
                 ),
               ],

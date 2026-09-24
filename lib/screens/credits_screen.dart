@@ -72,7 +72,7 @@ class CreditsScreen extends StatelessWidget {
           const _CreditCard(
             title: 'Result / achievement sounds',
             text:
-                'Original synthesized tones created specifically for QuisquisLingo; no third-party recordings are used. The win sound is used for Duel victories, Course Manager unlock and a newly earned laurel crown.',
+                'Original synthesized tones created specifically for QuisquisLingo; no third-party recordings are used. The win sound is used for Duel victories, Course Studio unlock and a newly earned laurel crown.',
           ),
           const SizedBox(height: 22),
           if (course != null) ...[

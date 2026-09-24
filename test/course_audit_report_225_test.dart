@@ -20,10 +20,10 @@ void main() {
     );
 
     expect(report, contains('Version: 2.0.50'));
-    expect(report, contains('Build 250, Revision 0'));
+    expect(report, contains('Build 250, Revision 1'));
     expect(report, isNot(contains('Phase:')));
     expect(report, isNot(contains('revision')));
-    expect(report, contains('Technical version: 2.0.50+250000'));
+    expect(report, contains('Technical version: 2.0.50+250001'));
     expect(report, contains('Generated: 2026-09-03T20:15:30.000'));
     expect(report, contains('Course name: Italian test'));
     expect(report, contains('Course ID: stable_course_id'));

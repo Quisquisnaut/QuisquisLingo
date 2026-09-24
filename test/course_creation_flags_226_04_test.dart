@@ -232,7 +232,7 @@ void main() {
     await tester.tap(find.widgetWithText(TextButton, 'Cancel'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Course Manager'), findsOneWidget);
+    expect(find.text('Course Studio'), findsOneWidget);
     expect(find.byType(CourseEditorScreen), findsNothing);
     expect(
       (await tester.runAsync(() => CourseEditorService().listUserCourses()))!,

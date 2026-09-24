@@ -1,5 +1,32 @@
 # Build 250 change summary
 
+## Revision 1 — Courses layout
+
+`2.0.50+250001`, dated 2026-09-24. The Course Manager tab is named **Course
+Studio** in user-facing labels and Help, with internal class and key names
+preserved. The three-dot Course actions menu stays at the right edge of each
+row, including narrow layouts. Sort by and Show unavailable share one line;
+the switch label is **Show unavailable**. The Search icon is available in both
+tabs and opens a field below Sort. Each tab has its own adjacent Help icon;
+New course remains on Course Studio only.
+
+Other Local Courses has a neutral gray section border in both tabs, clearly
+separate from red Audit errors, green ready and blue Draft/Unpublished Course
+states. Each Course Studio three-dot Course menu includes **Course Info**.
+Tapping the displayed cover or flag in either tab opens a popup showing that
+image enlarged.
+
+Favorites use a soft amber section accent and normal row text/background
+colors. Course Studio has a Favorites section for Courses in the active
+learner's Personal Library. It uses the existing learner-scoped Favorite flag,
+the same Manager Course actions, shared sort and availability filter, and an
+independent Expanded / Compact state. No favorite key or membership rule
+changed. Course Model v11, package format 1, authoring rights, import,
+progression, scoring and the Course Editor confirmation stay unchanged. Beta
+expiry is `2026-10-24 23:59:59` local time. Exact verification is in
+[250_VALIDATION.md](250_VALIDATION.md). Revision 1 is a source release; no
+Windows package is created for this revision.
+
 ## Revision 0 — Courses screen and learner visibility
 
 `2.0.50+250000`, Course Model v11. Plan:

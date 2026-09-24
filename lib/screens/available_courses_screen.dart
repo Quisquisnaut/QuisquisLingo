@@ -25,7 +25,7 @@ All Courses shows every Course installed or stored on this QQL device, including
 
 Courses do not have to be created on this device. You can import a Course made elsewhere. For example, a friend can send you a Course they created, or a publisher may distribute or sell you a Publisher Course to install. QQL only imports the Course package; it does not sell or license Courses itself.
 
-If your library has no courses available for study, Home keeps Settings and All Courses. Course Manager can be unlocked for your profile by tapping Version in Settings ten times. All Courses lets you add Courses again. No course flag is shown until a playable Course is selected.
+If your library has no courses available for study, Home keeps Settings and All Courses. Course Studio can be unlocked for your profile by tapping Version in Settings ten times. All Courses lets you add Courses again. No course flag is shown until a playable Course is selected.
 
 Categories
 
@@ -43,7 +43,7 @@ Each row shows the Course cover, or the Course flag when there is no cover, foll
 
 Availability
 
-Show unavailable Courses starts on, displaying unpublished Courses, Courses needing Publisher verification and Courses with Draft authoring content. Turn it off to filter those rows from both tabs. A filtered section says how many of its Courses are shown. Blue outlined labels identify Draft, Unpublished and Verification required. Showing them does not make them playable or verified. Only published Courses are available for study. Publisher Courses also require verified signatures.
+Show unavailable starts on, displaying unpublished Courses, Courses needing Publisher verification and Courses with Draft authoring content. Turn it off to filter those rows from both tabs. A filtered section says how many of its Courses are shown. Blue outlined labels identify Draft, Unpublished and Verification required. Showing them does not make them playable or verified. Only published Courses are available for study. Publisher Courses also require verified signatures.
 
 Sorting and compact view
 
@@ -51,13 +51,13 @@ Sort by orders the Courses inside each section by Title, Language, Maintainer, M
 
 Personal library
 
-Add to my courses adds an installed Course to your personal Course Selector and Course Manager. It does not copy the Course or give you editing rights. Removing it from your courses does not remove it from the device. Added · Remove lets you remove it here, with the same confirmation and optional progress reset.
+Add to my courses adds an installed Course to your personal Course Selector and Course Studio. It does not copy the Course or give you editing rights. Removing it from your courses does not remove it from the device. Added · Remove lets you remove it here, with the same confirmation and optional progress reset.
 
-Remove from my courses, in the Selector or Manager, removes the course only from your library. Progress is kept by default for when you add it again. You may explicitly reset your course progress during removal. Other learners and the shared file are unaffected. Even when Reset my progress is selected, all earned XP (including Weekly XP), total and per-language study days, streak and version backups are kept. XP earned from this course is not subtracted. Reset clears only your completed Rounds/Lessons, Perfect results, won Duels, read Guidebooks and recent Round entries for this course.
+Remove from my courses, in the Selector or Course Studio, removes the course only from your library. Progress is kept by default for when you add it again. You may explicitly reset your course progress during removal. Other learners and the shared file are unaffected. Even when Reset my progress is selected, all earned XP (including Weekly XP), total and per-language study days, streak and version backups are kept. XP earned from this course is not subtracted. Reset clears only your completed Rounds/Lessons, Perfect results, won Duels, read Guidebooks and recent Round entries for this course.
 
 Courses in learner mode
 
-Hide in Learner keeps a Course in your personal library and Course Manager but removes it from the learner Course Selector. Unhide in Learner restores it. The Course you are studying cannot be hidden until you switch Courses. Favorites are learner-specific shortcuts; favoriting never adds a Course to your personal library. All Courses keeps hidden Courses visible with a Hidden in Learner label so you can unhide them.
+Hide in Learner keeps a Course in your personal library and Course Studio but removes it from the learner Course Selector. Unhide in Learner restores it. The Course you are studying cannot be hidden until you switch Courses. Favorites are learner-specific shortcuts; favoriting never adds a Course to your personal library. All Courses keeps hidden Courses visible with a Hidden in Learner label so you can unhide them.
 
 Importing
 
@@ -65,7 +65,7 @@ Courses may be transferred as QQL Course packages. Imported Custom Courses keep 
 
 Removing a Publisher Course from the device
 
-Only an admin can remove a Publisher Course from the device, through its Course Manager menu. This is blocked while another profile includes the course in its library. Physical removal preserves learner progress and version backups for later reinstallation.''';
+Only an admin can remove a Publisher Course from the device, through its Course Studio menu. This is blocked while another profile includes the course in its library. Physical removal preserves learner progress and version backups for later reinstallation.''';
 
 class AvailableCoursesScreen extends StatefulWidget {
   final CourseEditorService? editorService;
@@ -281,17 +281,14 @@ class _AvailableCoursesScreenState extends State<AvailableCoursesScreen> {
     }
   }
 
-  Widget _membershipButton(Course course, {Color? foreground}) =>
-      _added.contains(course.courseId)
+  Widget _membershipButton(Course course) => _added.contains(course.courseId)
       ? TextButton(
           key: ValueKey('remove-course-${course.courseId}'),
-          style: TextButton.styleFrom(foregroundColor: foreground),
           onPressed: _busy || _profileId == null ? null : () => _remove(course),
           child: const Text('Added · Remove'),
         )
       : TextButton(
           key: ValueKey('add-course-${course.courseId}'),
-          style: TextButton.styleFrom(foregroundColor: foreground),
           onPressed: _busy || _profileId == null ? null : () => _add(course),
           child: const Text('Add to my courses'),
         );
@@ -410,7 +407,7 @@ class _AvailableCoursesScreenState extends State<AvailableCoursesScreen> {
     ),
   );
 
-  Widget _courseActions(Course course, {Color? iconColor}) {
+  Widget _courseActions(Course course) {
     final member = _added.contains(course.courseId);
     final hidden = _hidden.contains(course.courseId);
     final active = widget.currentCourse?.courseId == course.courseId;
@@ -422,7 +419,7 @@ class _AvailableCoursesScreenState extends State<AvailableCoursesScreen> {
     return PopupMenuButton<String>(
       key: ValueKey('all-course-actions-${course.courseId}'),
       tooltip: 'Course actions',
-      icon: Icon(Icons.more_vert, color: iconColor),
+      icon: const Icon(Icons.more_vert),
       onSelected: (action) {
         switch (action) {
           case 'info':
@@ -473,7 +470,10 @@ class _AvailableCoursesScreenState extends State<AvailableCoursesScreen> {
     0 => Theme.of(context).colorScheme.onSurface,
     1 => Colors.purple,
     2 => Colors.orange,
-    _ => Colors.orange.shade800,
+    _ =>
+      Theme.of(context).brightness == Brightness.dark
+          ? const Color(0xFFBDBDBD)
+          : const Color(0xFF686868),
   };
 
   Widget _webSiteBand(Uri site) => _Band(
@@ -584,98 +584,79 @@ class _AvailableCoursesScreenState extends State<AvailableCoursesScreen> {
     final filtered = all.length - shown.length;
     final dark = Theme.of(context).brightness == Brightness.dark;
     final color = favorites
-        ? (dark ? Colors.white : Colors.black)
+        ? (dark ? Colors.amber.shade200 : Colors.amber.shade800)
         : _sectionColor(context, index);
-    final foreground = favorites ? (dark ? Colors.black : Colors.white) : null;
     final compact = favorites ? _favoritesCompact : _compact[index];
     final sectionKey = favorites ? 'favorites' : '$index';
     return _Band(
       key: ValueKey('course-section-$sectionKey'),
       color: color,
-      child: ColoredBox(
-        color: favorites ? color : Colors.transparent,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Container(
-              color: favorites ? color : color.withValues(alpha: 0.12),
-              padding: const EdgeInsets.fromLTRB(16, 6, 8, 6),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Wrap(
-                      crossAxisAlignment: WrapCrossAlignment.center,
-                      children: [
-                        Text(
-                          label,
-                          style: Theme.of(
-                            context,
-                          ).textTheme.titleMedium?.copyWith(color: foreground),
-                        ),
-                        Text(
-                          filtered == 0
-                              ? ' · ${all.length}'
-                              : ' · ${shown.length} of ${all.length} shown',
-                          key: ValueKey('course-section-count-$sectionKey'),
-                          style: Theme.of(
-                            context,
-                          ).textTheme.titleMedium?.copyWith(color: foreground),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Tooltip(
-                    message: compact
-                        ? 'Show full details'
-                        : 'Show fewer details',
-                    child: TextButton.icon(
-                      key: ValueKey('course-section-view-$sectionKey'),
-                      style: foreground == null
-                          ? null
-                          : TextButton.styleFrom(foregroundColor: foreground),
-                      icon: Icon(
-                        compact
-                            ? Icons.view_headline
-                            : Icons.view_agenda_outlined,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Container(
+            color: color.withValues(alpha: favorites && dark ? 0.20 : 0.12),
+            padding: const EdgeInsets.fromLTRB(16, 6, 8, 6),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Wrap(
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [
+                      Text(
+                        label,
+                        style: Theme.of(context).textTheme.titleMedium,
                       ),
-                      label: Text(compact ? 'Compact' : 'Expanded'),
-                      onPressed: () => setState(() {
-                        if (favorites) {
-                          _favoritesCompact = !_favoritesCompact;
-                        } else {
-                          _compact[index] = !_compact[index];
-                        }
-                      }),
-                    ),
+                      Text(
+                        filtered == 0
+                            ? ' · ${all.length}'
+                            : ' · ${shown.length} of ${all.length} shown',
+                        key: ValueKey('course-section-count-$sectionKey'),
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                    ],
                   ),
-                ],
+                ),
+                Tooltip(
+                  message: compact ? 'Show full details' : 'Show fewer details',
+                  child: TextButton.icon(
+                    key: ValueKey('course-section-view-$sectionKey'),
+                    icon: Icon(
+                      compact
+                          ? Icons.view_headline
+                          : Icons.view_agenda_outlined,
+                    ),
+                    label: Text(compact ? 'Compact' : 'Expanded'),
+                    onPressed: () => setState(() {
+                      if (favorites) {
+                        _favoritesCompact = !_favoritesCompact;
+                      } else {
+                        _compact[index] = !_compact[index];
+                      }
+                    }),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (shown.isEmpty)
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Text(
+                all.isEmpty
+                    ? favorites
+                          ? 'No Favorites yet.'
+                          : 'No courses in this section.'
+                    : widget.search.trim().isNotEmpty
+                    ? 'No matching Courses in this section.'
+                    : 'No Courses are shown in this section. Turn on Show unavailable to see them.',
               ),
             ),
-            if (shown.isEmpty)
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: Text(
-                  all.isEmpty
-                      ? favorites
-                            ? 'No Favorites yet.'
-                            : 'No courses in this section.'
-                      : widget.search.trim().isNotEmpty
-                      ? 'No matching Courses in this section.'
-                      : 'No Courses are shown in this section. Turn on Show unavailable Courses to see them.',
-                  style: TextStyle(color: foreground),
-                ),
-              ),
-            for (final course in shown)
-              favorites
-                  ? _courseRow(
-                      course,
-                      compact: compact,
-                      favorites: true,
-                      foreground: foreground,
-                    )
-                  : _courseRow(course, compact: compact),
-          ],
-        ),
+          for (final course in shown)
+            favorites
+                ? _courseRow(course, compact: compact, favorites: true)
+                : _courseRow(course, compact: compact),
+        ],
       ),
     );
   }
@@ -685,7 +666,6 @@ class _AvailableCoursesScreenState extends State<AvailableCoursesScreen> {
     Course course, {
     required bool compact,
     bool favorites = false,
-    Color? foreground,
   }) {
     final row = CourseLibraryRow(
       key: ValueKey(
@@ -696,14 +676,8 @@ class _AvailableCoursesScreenState extends State<AvailableCoursesScreen> {
       maintainer: _maintainer(course),
       mediaStore: widget.mediaStore,
       hiddenInLearner: _hidden.contains(course.courseId),
-      foreground: foreground,
-      trailing: Wrap(
-        crossAxisAlignment: WrapCrossAlignment.center,
-        children: [
-          _membershipButton(course, foreground: foreground),
-          _courseActions(course, iconColor: foreground),
-        ],
-      ),
+      supplementalAction: _membershipButton(course),
+      trailing: _courseActions(course),
     );
     if (favorites || course.courseId != widget.highlightCourseId) return row;
     return DecoratedBox(
@@ -760,9 +734,7 @@ class _AvailableCoursesScreenState extends State<AvailableCoursesScreen> {
                                   setState(() => _showUnavailable = value),
                             ),
                             const SizedBox(width: 8),
-                            const Flexible(
-                              child: Text('Show unavailable or Draft Courses'),
-                            ),
+                            const Flexible(child: Text('Show unavailable')),
                           ],
                         ),
                       ),
@@ -863,7 +835,7 @@ Future<bool> removeFromMyCourses(BuildContext context, Course course) async {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                'Remove “${course.title}” from your Course Selector and Course Manager? The shared course and other profiles are unaffected. You can add it again from Course Library.',
+                'Remove “${course.title}” from your Course Selector and Course Studio? The shared course and other profiles are unaffected. You can add it again from Course Library.',
               ),
               CheckboxListTile(
                 value: reset,

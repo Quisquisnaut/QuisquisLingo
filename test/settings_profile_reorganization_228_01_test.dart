@@ -46,7 +46,7 @@ void main() {
       'Version and Build',
       'Update',
     ]);
-    expect(find.text('Course Manager'), findsNothing);
+    expect(find.text('Course Studio'), findsNothing);
     expect(find.text('User Data'), findsNothing);
     expect(find.text('TTS Settings'), findsNothing);
 

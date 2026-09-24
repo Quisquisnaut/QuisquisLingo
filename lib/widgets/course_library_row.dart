@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 
 import '../models/course_draft_status.dart';
@@ -8,7 +10,7 @@ import '../services/publication_service.dart';
 import 'course_artwork.dart';
 
 /// The Course details used by both tabs of Courses. The owning tab supplies
-/// its own actions and, for Course Manager, its Audit border.
+/// its own actions and, for Course Studio, its Audit border.
 class CourseLibraryRow extends StatelessWidget {
   const CourseLibraryRow({
     super.key,
@@ -17,6 +19,7 @@ class CourseLibraryRow extends StatelessWidget {
     required this.maintainer,
     this.mediaStore,
     this.trailing,
+    this.supplementalAction,
     this.onTap,
     this.hiddenInLearner = false,
     this.foreground,
@@ -27,6 +30,7 @@ class CourseLibraryRow extends StatelessWidget {
   final String maintainer;
   final CourseMediaStore? mediaStore;
   final Widget? trailing;
+  final Widget? supplementalAction;
   final VoidCallback? onTap;
   final bool hiddenInLearner;
   final Color? foreground;
@@ -54,6 +58,59 @@ class CourseLibraryRow extends StatelessWidget {
               dark
           ? Colors.black
           : null,
+    );
+  }
+
+  void _showArtworkPreview(BuildContext context) {
+    showDialog<void>(
+      context: context,
+      builder: (dialogContext) {
+        final viewport = MediaQuery.sizeOf(dialogContext);
+        final artworkSize = math.max(
+          96.0,
+          math.min(520.0, math.min(viewport.width - 80, viewport.height - 180)),
+        );
+        return Dialog(
+          key: ValueKey('course-artwork-preview-${course.courseId}'),
+          insetPadding: const EdgeInsets.all(16),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SizedBox(
+                  width: artworkSize,
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          course.title,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: Theme.of(dialogContext).textTheme.titleMedium,
+                        ),
+                      ),
+                      IconButton(
+                        key: const ValueKey('course-artwork-preview-close'),
+                        tooltip: 'Close',
+                        onPressed: () => Navigator.of(dialogContext).pop(),
+                        icon: const Icon(Icons.close),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 8),
+                CourseArtwork(
+                  course: course,
+                  size: artworkSize,
+                  coverFit: BoxFit.contain,
+                  mediaStore: mediaStore,
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -115,8 +172,10 @@ class CourseLibraryRow extends StatelessWidget {
                 ],
               ),
             ),
-          if (narrow && trailing != null)
-            Align(alignment: Alignment.centerLeft, child: trailing),
+          if (narrow && supplementalAction != null) ...[
+            const SizedBox(height: 4),
+            Align(alignment: Alignment.centerLeft, child: supplementalAction),
+          ],
         ],
       );
       return InkWell(
@@ -136,15 +195,23 @@ class CourseLibraryRow extends StatelessWidget {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                CourseArtwork(
-                  course: course,
-                  size: compact ? 40 : 64,
-                  mediaStore: mediaStore,
+                Tooltip(
+                  message: 'Enlarge Course image',
+                  child: InkWell(
+                    key: ValueKey('course-artwork-open-${course.courseId}'),
+                    onTap: () => _showArtworkPreview(context),
+                    borderRadius: BorderRadius.circular(8),
+                    child: CourseArtwork(
+                      course: course,
+                      size: compact ? 40 : 64,
+                      mediaStore: mediaStore,
+                    ),
+                  ),
                 ),
                 const SizedBox(width: 16),
                 Expanded(child: details),
-                if (!narrow && trailing != null)
-                  Align(alignment: Alignment.bottomRight, child: trailing),
+                if (!narrow && supplementalAction != null) supplementalAction!,
+                if (trailing != null) trailing!,
               ],
             ),
           ),

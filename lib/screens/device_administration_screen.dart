@@ -310,7 +310,7 @@ class _DeviceAdministrationScreenState
                         leading: const Icon(Icons.perm_media_outlined),
                         title: const Text('Shared Images'),
                         subtitle: const Text(
-                          'Manage the images shared by every course and learner on this device, and their descriptive metadata. Only admins can add to or change this library. Anyone who edits a course can still add their own image to an exercise. The same library is available from Course Manager.',
+                          'Manage the images shared by every course and learner on this device, and their descriptive metadata. Only admins can add to or change this library. Anyone who edits a course can still add their own image to an exercise. The same library is available from Course Studio.',
                         ),
                         trailing: const Icon(Icons.chevron_right),
                         onTap: () => _push(
@@ -900,7 +900,7 @@ class _ResetSection extends StatelessWidget {
     if (plan.scope == AppResetScope.customCourses ||
         plan.scope == AppResetScope.everything) {
       buffer.write(
-        'Courses are exported one at a time from Course Manager.\n\n',
+        'Courses are exported one at a time from Course Studio.\n\n',
       );
     }
     buffer.write(

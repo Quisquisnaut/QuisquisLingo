@@ -1548,7 +1548,7 @@ class _HomeScreenState extends State<HomeScreen> {
         showDialog<void>(
           context: sheetContext,
           builder: (ctx) => AlertDialog(
-            title: const Text('Course Manager locked'),
+            title: const Text('Course Studio locked'),
             content: const Text(courseManagerUnlockMessage),
             actions: [
               FilledButton(
@@ -1662,7 +1662,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ctx,
                     key: const Key('course-selector-course-manager'),
                     icon: Icons.library_books_outlined,
-                    title: 'Course Manager',
+                    title: 'Course Studio',
                     onOpen: () => openCourses(ctx, tab: CoursesTab.manager),
                   ),
                   managerLink(
@@ -2255,7 +2255,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 OutlinedButton.icon(
                   key: const Key('empty-library-course-manager'),
                   icon: const Icon(Icons.edit_note),
-                  label: const Text('Course Manager'),
+                  label: const Text('Course Studio'),
                   onPressed: () async {
                     await Navigator.of(context).push<void>(
                       MaterialPageRoute(

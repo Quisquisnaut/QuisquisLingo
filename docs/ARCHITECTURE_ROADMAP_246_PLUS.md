@@ -303,6 +303,12 @@ included, by Course title or language as the user types. It is page-session
 only, stores nothing and never changes a Course; filtered sections use the
 same `· S of N shown` count as Show unavailable.
 
+Build 250 Revision 1 supersedes these 23 September layout details: the
+user-facing tab name is **COURSE STUDIO**; Search is available in both tabs;
+Favorites also appears in Course Studio for Personal Library Courses; and
+each tab has its own adjacent Help icon. The approved layout and next
+revision sequence are in [250_COURSES_SCREEN_PLAN.md](250_COURSES_SCREEN_PLAN.md).
+
 **Course Selector row menu** (owner decisions, 2026-09-23). Today it offers
 Remove from my courses, Review (current Course only) and Course Info. It
 becomes, in this order: **Course Info**; **Review** (current Course only);

@@ -283,7 +283,7 @@ void main() {
                 .isNotEmpty &&
             find.byType(CircularProgressIndicator).evaluate().isEmpty,
       );
-      expect(find.text('Course Manager'), findsOneWidget);
+      expect(find.text('Course Studio'), findsOneWidget);
       expect(find.text('Course Editor'), findsNothing);
       expect(find.text('Course Import'), findsNothing);
       expect(find.byTooltip('Course Import'), findsOneWidget);

@@ -174,9 +174,32 @@ void main() {
     const admin = CourseManagerLibrary(activeProfileId: _alice, isAdmin: true);
     const notAdmin = CourseManagerLibrary(activeProfileId: _bob);
 
+    test(
+      'Course Info is available for every Course without authoring rights',
+      () async {
+        final bundled = await CourseService().loadCourse('IT');
+        final outsider = _course('theirs', title: 'Theirs', maintainer: _bob);
+        for (final course in [outsider, publisher, bundled]) {
+          final entries = notAdmin.entriesFor(course);
+          final info = entries.singleWhere(
+            (entry) => entry.action == CourseManagerAction.courseInfo,
+          );
+          expect(info.available, isTrue);
+          expect(
+            entries.indexOf(info),
+            entries.indexWhere(
+                  (entry) => entry.action == CourseManagerAction.open,
+                ) -
+                1,
+          );
+        }
+      },
+    );
+
     test('a maintained Custom Course', () {
       expect(admin.actionsFor(_course('mine', title: 'Mine')), const [
         CourseManagerAction.removeFromMyCourses,
+        CourseManagerAction.courseInfo,
         CourseManagerAction.open,
         CourseManagerAction.toggleLearnerVisibility,
         CourseManagerAction.copyAsNewCourse,
@@ -215,6 +238,7 @@ void main() {
       );
       expect(admin.actionsFor(theirs(DerivativeWorksPolicy.allowed)), const [
         CourseManagerAction.removeFromMyCourses,
+        CourseManagerAction.courseInfo,
         CourseManagerAction.open,
         CourseManagerAction.toggleLearnerVisibility,
         CourseManagerAction.fork,
@@ -222,6 +246,7 @@ void main() {
       ]);
       expect(admin.actionsFor(theirs(DerivativeWorksPolicy.forbidden)), const [
         CourseManagerAction.removeFromMyCourses,
+        CourseManagerAction.courseInfo,
         CourseManagerAction.open,
         CourseManagerAction.toggleLearnerVisibility,
         CourseManagerAction.audit,
@@ -236,6 +261,7 @@ void main() {
       expect(admin.actionsFor(verified), const [
         CourseManagerAction.removeFromMyCourses,
         CourseManagerAction.removePublisherFromDevice,
+        CourseManagerAction.courseInfo,
         CourseManagerAction.open,
         CourseManagerAction.toggleLearnerVisibility,
         CourseManagerAction.fork,
@@ -252,6 +278,7 @@ void main() {
       final bundled = await CourseService().loadCourse('IT');
       expect(admin.actionsFor(bundled), const [
         CourseManagerAction.removeFromMyCourses,
+        CourseManagerAction.courseInfo,
         CourseManagerAction.open,
         CourseManagerAction.toggleLearnerVisibility,
         CourseManagerAction.audit,
@@ -276,6 +303,7 @@ void main() {
       final shown = reasons(admin, _course('mine', title: 'Mine'));
       expect(shown.keys, const [
         CourseManagerAction.removeFromMyCourses,
+        CourseManagerAction.courseInfo,
         CourseManagerAction.open,
         CourseManagerAction.toggleLearnerVisibility,
         CourseManagerAction.fork,
@@ -320,6 +348,7 @@ void main() {
         );
       }
       expect(shown[CourseManagerAction.open], isNull);
+      expect(shown[CourseManagerAction.courseInfo], isNull);
       expect(shown[CourseManagerAction.audit], isNull);
     });
 
@@ -328,6 +357,7 @@ void main() {
       final shown = reasons(admin, bundled);
       expect(shown.keys, const [
         CourseManagerAction.removeFromMyCourses,
+        CourseManagerAction.courseInfo,
         CourseManagerAction.open,
         CourseManagerAction.toggleLearnerVisibility,
         CourseManagerAction.fork,

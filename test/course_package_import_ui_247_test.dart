@@ -162,7 +162,7 @@ void main() {
     expect(copy.onPressed, isNull);
     expect(fork.onPressed, isNull);
     expect(
-      find.textContaining('Unlock Course Manager for this profile'),
+      find.textContaining('Unlock Course Studio for this profile'),
       findsWidgets,
     );
     expect(

@@ -3109,14 +3109,14 @@ void main() {
         find.byKey(const Key('import-course-json-primary')),
         failureMessage: 'Direct import did not load',
       );
-      expect(find.text('Course Manager'), findsNothing);
+      expect(find.text('Course Studio'), findsNothing);
       await tester.tap(find.byType(BackButton).last);
       await _pumpUntilWithIo(
         tester,
         find.byType(UnifiedLearnerTopBar),
         failureMessage: 'Home did not load',
       );
-      expect(find.text('Course Manager'), findsNothing);
+      expect(find.text('Course Studio'), findsNothing);
       expect(await SettingsService().isCourseEditorUnlocked(), isFalse);
     },
   );
@@ -3447,7 +3447,7 @@ void main() {
       final betaDialog = tester.widget<AlertDialog>(find.byType(AlertDialog));
       expect(betaDialog.backgroundColor, isNull);
       expect(betaDialog.surfaceTintColor, isNull);
-      expect(find.textContaining('Expiry date: 2026-10-23.'), findsOneWidget);
+      expect(find.textContaining('Expiry date: 2026-10-24.'), findsOneWidget);
       expect(find.widgetWithText(FilledButton, 'OK'), findsOneWidget);
       expect(
         tester

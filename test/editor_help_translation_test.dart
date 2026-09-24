@@ -61,7 +61,7 @@ void main() {
 
       expect(english, hasLength(28));
       expect(italian, hasLength(english.length));
-      expect(managerEnglish, hasLength(13));
+      expect(managerEnglish, hasLength(14));
       expect(managerItalian, hasLength(managerEnglish.length));
       expect(
         english.map((section) => section.title),
@@ -120,6 +120,17 @@ void main() {
       final operations = managerEnglish
           .singleWhere((section) => section.title == 'Course operations')
           .body;
+      final browsing = managerEnglish
+          .singleWhere((section) => section.title == 'Finding Courses')
+          .body;
+      expect(browsing, contains('Search'));
+      expect(browsing, contains('Favorites'));
+      expect(browsing, contains('Show unavailable'));
+      final italianBrowsing = managerItalian
+          .singleWhere((section) => section.title == 'Trovare i corsi')
+          .body;
+      expect(italianBrowsing, contains('Search'));
+      expect(italianBrowsing, contains('Favorites'));
       for (final action in [
         'Copy as New Course',
         'Fork',
@@ -262,7 +273,7 @@ void main() {
         await tester.pumpWidget(
           const MaterialApp(home: CourseManagerHelpScreen()),
         );
-        expect(find.text('Course Manager Help'), findsOneWidget);
+        expect(find.text('Course Studio Help'), findsOneWidget);
         expect(find.text('Course types'), findsOneWidget);
         expect(find.text('Technical reference'), findsNothing);
 
@@ -270,7 +281,7 @@ void main() {
           find.byKey(const Key('course-manager-help-language-toggle')),
         );
         await tester.pumpAndSettle();
-        expect(find.text('Guida al Course Manager'), findsOneWidget);
+        expect(find.text('Guida al Course Studio'), findsOneWidget);
         expect(find.text('Tipi di corso'), findsOneWidget);
         expect(find.text('Riferimento tecnico'), findsNothing);
       },

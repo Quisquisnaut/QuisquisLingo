@@ -1,5 +1,41 @@
 # Build 250 handoff
 
+## Revision 1 source state
+
+Build 250 Revision 1 is `2.0.50+250001` on `codex/build-250-courses`, dated
+2026-09-24. Beta expiry is `2026-10-24 23:59:59` local time. This
+owner-requested presentation revision names the former Course Manager tab
+**Course Studio** in user-facing labels and Help, while keeping internal class
+and key names. It keeps Course actions at the right of each row, puts Sort by
+and Show unavailable on one line, and opens the Search field below Sort.
+Search is available on both tabs. Each tab has a separate Help icon beside
+its label, and New course stays exclusive to Course Studio. Other Local
+Courses uses a neutral gray border in both tabs, distinct from red Audit
+errors and the green ready and blue Draft/Unpublished statuses. Course
+Studio's three-dot Course menu includes Course Info. Tapping the displayed
+Course cover or flag in either tab opens an enlarged image popup.
+
+Both tabs use a soft amber Favorites section accent with ordinary Course-row
+colors. Course Studio shows only favorites in the active learner's Personal
+Library, through the existing `CourseFavoriteService` flag and ordinary
+Manager rows and actions. Its Favorites section has its own Expanded / Compact
+state. This revision does not alter Course Model v11, package format 1,
+storage keys, membership, authoring rights, import, progression, scoring or
+the top-level Course confirmation. See
+[250_CHANGE_SUMMARY.md](250_CHANGE_SUMMARY.md) for the behavior summary and
+[250_VALIDATION.md](250_VALIDATION.md) for exact verification evidence. This
+revision is released as source without a Windows ZIP/package.
+
+## Revision 1 tested source state
+
+The settled serial `flutter test --no-pub --concurrency=1 --reporter expanded`
+run passed **2,417/2,417**. `flutter analyze --no-pub` found no issues, the
+changed Dart files passed formatting, and all four Course/image/media asset
+validators passed. The focused Course Info and artwork-preview tests passed
+**57/57** and **3/3**, respectively. The exact commands and exploratory
+corrections are in [250_VALIDATION.md](250_VALIDATION.md). No Windows package
+was built for this revision.
+
 ## Revision 0 source state
 
 Build 250 Revision 0 is `2.0.50+250000`, Course Model v11, on
@@ -34,7 +70,7 @@ operations Help is separate from editing Help, with English/Italian section
 parity. Course Model v11, package format 1 and the top-level Course save
 boundary stay unchanged.
 
-## Tested source state
+## Revision 0 tested source state
 
 The uninterrupted solo `flutter test --no-pub --concurrency=1 --reporter
 expanded` run passed **2,402/2,402**. `flutter analyze --no-pub` found no
@@ -64,10 +100,10 @@ release artifacts are separate from source validation.
 
 ## Next revision sequence
 
-1. **Build 250 Revision 1 only if a defect is later proven:** make a narrow
-   correction with a failing characterization, its own validation, handoff
-   and local commit. Later corrections receive the next revision number;
-   none is assumed in advance.
+1. **Build 250 Revision 2 only if a defect is proven:** make a narrow
+   correction with a failing characterization, its own validation and
+   handoff. Later corrections receive subsequent revision numbers; none is
+   assumed in advance.
 2. In the following roadmap build, begin **Step 5, Revision 0**: give the
    Course Editor's immediately written device preferences and seven-day
    orphan-audio schedule one owner, preserving timing and dialogs. Start

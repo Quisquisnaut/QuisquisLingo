@@ -232,7 +232,7 @@ void main() {
     await tester.pumpUntilFileIoState(
       () => find
           .descendant(
-            of: find.byKey(const ValueKey('manager-section-2')),
+            of: find.byKey(const ValueKey('manager-section-0')),
             matching: find.text('No courses in this section.'),
           )
           .evaluate()

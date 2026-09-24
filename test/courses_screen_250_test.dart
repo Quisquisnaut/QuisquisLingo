@@ -102,7 +102,88 @@ void main() {
     expect(find.byKey(const Key('show-unavailable-courses')), findsOneWidget);
   });
 
-  testWidgets('locked Course Manager stays visible and explains its unlock', (
+  testWidgets('Sort by and Show unavailable share one line on a phone', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(320, 800));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    await tester.pumpWidget(
+      MaterialApp(home: CoursesScreen(editorService: _DeviceCourses([]))),
+    );
+    await tester.pumpUntilFileIoState(
+      () => find.text('Sort by').evaluate().isNotEmpty,
+    );
+
+    final sort = find.text('Sort by');
+    final unavailable = find.text('Show unavailable');
+    expect(unavailable, findsOneWidget);
+    expect(
+      (tester.getTopLeft(sort).dy - tester.getTopLeft(unavailable).dy).abs(),
+      lessThan(2),
+    );
+    expect(find.text('Show unavailable Courses'), findsNothing);
+    expect(find.byKey(const Key('course-library-sort')), findsOneWidget);
+    expect(find.byKey(const Key('show-unavailable-courses')), findsOneWidget);
+    expect(tester.takeException(), isNull);
+
+    await tester.tap(find.byKey(const Key('courses-search')));
+    await tester.pump();
+    expect(find.byKey(const Key('courses-search-field')), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('each tab has its own Help and Manager keeps New course', (
+    tester,
+  ) async {
+    await SettingsService().setCourseEditorUnlocked(true);
+    await tester.pumpWidget(
+      MaterialApp(home: CoursesScreen(editorService: _DeviceCourses([]))),
+    );
+    await tester.pumpUntilFileIoState(
+      () => find.byKey(const Key('courses-tab-manager')).evaluate().isNotEmpty,
+    );
+
+    expect(find.byKey(const Key('all-courses-help')), findsOneWidget);
+    expect(find.byKey(const Key('course-manager-help')), findsOneWidget);
+    expect(find.text('COURSE STUDIO'), findsOneWidget);
+    expect(find.text('COURSE MANAGER'), findsNothing);
+    expect(find.byKey(const Key('courses-help')), findsNothing);
+    expect(find.byKey(const Key('courses-search')), findsOneWidget);
+    expect(find.byKey(const Key('create-course-icon-action')), findsNothing);
+
+    await tester.tap(find.byKey(const Key('all-courses-help')));
+    await tester.pumpAndSettle();
+    expect(find.text('All Courses — Help'), findsOneWidget);
+    await tester.pageBack();
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const Key('course-manager-help')));
+    await tester.pumpAndSettle();
+    expect(find.text('Course Studio Help'), findsOneWidget);
+    await tester.pageBack();
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const Key('courses-tab-manager')));
+    await tester.pump();
+    expect(find.byKey(const Key('courses-search')), findsOneWidget);
+    expect(find.byKey(const Key('create-course-icon-action')), findsOneWidget);
+    await tester.tap(find.byKey(const Key('courses-search')));
+    await tester.pump();
+    final searchField = find.byKey(const Key('courses-search-field'));
+    expect(searchField, findsOneWidget);
+    expect(
+      tester.getTopLeft(searchField).dy,
+      greaterThan(
+        tester.getBottomLeft(find.byKey(const Key('course-library-sort'))).dy,
+      ),
+    );
+    expect(
+      tester.getTopLeft(searchField).dx,
+      closeTo(tester.getTopLeft(find.text('Sort by')).dx, 1),
+    );
+  });
+
+  testWidgets('locked Course Studio stays visible and explains its unlock', (
     tester,
   ) async {
     await tester.pumpWidget(
@@ -113,8 +194,9 @@ void main() {
     );
     await tester.tap(find.byKey(const Key('courses-tab-manager')));
     await tester.pump(const Duration(milliseconds: 500));
+    expect(find.text('COURSE STUDIO'), findsOneWidget);
     expect(
-      find.textContaining('Tap Version in Settings ten times'),
+      find.textContaining('Unlock Course Studio for this profile'),
       findsOneWidget,
     );
     expect(find.byKey(const Key('courses-tab-all-selected')), findsOneWidget);

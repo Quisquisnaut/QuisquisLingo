@@ -346,7 +346,7 @@ class InventoryService {
       await folder(
         title: 'Custom and installed courses',
         description:
-            'Courses created or installed on this device, stored as one file per course. Export a course from Course Manager to share it.'
+            'Courses created or installed on this device, stored as one file per course. Export a course from Course Studio to share it.'
             '${courseProblem == null ? '' : ' $courseProblem'}',
         directory: Directory(
           '$supportRoot$sep${CourseFileStore.rootDirectoryName}',

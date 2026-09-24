@@ -1,28 +1,40 @@
 # QuisquisLingo App
 
-**Current source version: 2.0.50+250000 · Build 250, Revision 0 · Course Model v11 (`formatVersion: 11`).**
+**Current source version: 2.0.50+250001 · Build 250, Revision 1 · Course Model v11 (`formatVersion: 11`).**
 
 **QuisquisLingo 2.0.50 Beta — QQL 250 Courses**
 
 Current project version: 2.0.50
 
-The **Courses** screen brings All Courses and Course Manager into two tabs
-with shared rows, sorting and availability controls. All Courses adds search
-and Favorites. Favorite is a learner shortcut; Hide in Learner removes a Course
+The **Courses** screen brings All Courses and Course Studio into two tabs
+with shared rows, Search, sorting and availability controls. All Courses adds
+Favorites. Favorite is a learner shortcut; Hide in Learner removes a Course
 from the learner Selector without removing it from the Personal Library. The
 Selector now groups Current, Recent, Favorites and Other Courses, and shows
-Course Manager and Course Editor greyed out with an unlock explanation for
+Course Studio and Course Editor greyed out with an unlock explanation for
 locked profiles.
 
 Import is available from both Courses and the Selector. A successful import
 returns to its opening screen; the Selector offers **Study now** when the
 Course is playable. Eligible received Custom Courses can be updated from a
 newer matching version while locally authored Courses keep their existing
-rights. Course Manager Help now covers operations separately from Course
+rights. Course Studio Help now covers operations separately from Course
 Editor Help. Course Model v11 and Course package format 1 are unchanged. See
 the [Build 250 plan](docs/250_COURSES_SCREEN_PLAN.md),
 [change summary](docs/250_CHANGE_SUMMARY.md),
 [validation](docs/250_VALIDATION.md) and [handoff](docs/250_HANDOFF.md).
+
+Revision 1 keeps each Course's three-dot menu at the right of its row and puts
+Sort by and Show unavailable on one line. The Search icon works in both tabs;
+its field opens below Sort. Each tab has its own Help icon, while New course
+appears only in Course Studio. Favorites use a soft amber accent instead of
+inverted row colors, and Course Studio includes Favorites from the active
+learner's Personal Library. Other Local Courses uses a neutral gray border in
+both tabs, separate from red Audit errors and green/blue Course status colors.
+Course Studio's three-dot menu includes Course Info, and tapping a Course
+cover or flag in either tab opens a larger image popup. This source release
+does not include a Windows package or change Course data, preferences or
+authoring rights.
 
 **QuisquisLingo 2.0.49 Beta — QQL 249 Course library operations**
 
@@ -193,7 +205,7 @@ The MPL-2.0 covers the QuisquisLingo software source. Courses, the Image Bank an
 
 ## Beta lifecycle
 
-Version 2.0.50, Build 250, Revision 0 is a time-limited Beta with an expiry of **2026-10-23 23:59:59 local time** (30 days from September 23, 2026, its own release date). Near expiry it displays reminders. After expiry, learner exercises and Review are blocked until a newer Beta is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when a Beta expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM.
+Version 2.0.50, Build 250, Revision 1 is a time-limited Beta with an expiry of **2026-10-24 23:59:59 local time** (30 days from September 24, 2026, its own release date). Near expiry it displays reminders. After expiry, learner exercises and Review are blocked until a newer Beta is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when a Beta expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM.
 
 ## Core logic
 
@@ -378,7 +390,7 @@ See `docs/COURSE_EDITOR.md`, `docs/TTS_ALL_PLATFORMS.md`, `docs/AUDIO_PACKS.md`,
 
 Large vocabulary image collections can be distributed separately from the app. Place exactly one Image Bank ZIP in `Documents/QuisquisLingo/Imports/Images`, then open **Settings > Image Bank** or **Course Editor > Image Bank** and choose **Import Image Bank ZIP**. The package must contain `image_bank_manifest.json` plus its referenced image assets, and nothing else (see `docs/IMAGE_BANK_PACKAGES.md`). This allows new banks to be installed without recompiling QuisquisLingo.
 
-Course Manager and every Course Editor hierarchy page provide the same direct **Editor Help** button. General Info keeps only a link to those authoring instructions.
+Course Studio has its own operations Help; Course Editor hierarchy pages provide **Editor Help** for authoring.
 
 The **Image Word** exercise displays an image and asks the learner to build the corresponding target-language word from letter or syllable blocks.
 

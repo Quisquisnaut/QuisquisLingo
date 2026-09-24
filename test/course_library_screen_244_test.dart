@@ -99,6 +99,7 @@ void main() {
     await pumpLibrary(tester);
     expect(find.text('Course Library'), findsOneWidget);
     expect(find.text('Available on this device'), findsNothing);
+    expect(find.text('Show unavailable'), findsOneWidget);
   });
 
   testWidgets('by default unavailable and Draft Courses are hidden', (
@@ -196,7 +197,7 @@ void main() {
       find.descendant(
         of: find.byKey(const ValueKey('course-section-1')),
         matching: find.textContaining(
-          'No Courses are shown in this section. Turn on Show unavailable Courses to see them.',
+          'No Courses are shown in this section. Turn on Show unavailable to see them.',
         ),
       ),
       findsOneWidget,
@@ -274,11 +275,14 @@ void main() {
       'Removing it from your courses does not remove it from the device.',
       'Publisher Courses remain subject to Publisher verification.',
       'Sort by orders the Courses inside each section',
+      'Show unavailable starts on',
+      'Course Studio',
     ]) {
       expect(availableCoursesHelp, contains(phrase));
     }
     // The web site section stays unmentioned while it is hidden.
     expect(availableCoursesHelp, isNot(contains('on the web')));
+    expect(availableCoursesHelp, isNot(contains('Course Manager')));
   });
 
   test('every bundled Course is published and free of Draft content', () async {

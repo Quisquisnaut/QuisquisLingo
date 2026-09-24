@@ -14,11 +14,13 @@ class CourseArtwork extends StatelessWidget {
     super.key,
     required this.course,
     this.size = 64,
+    this.coverFit = BoxFit.cover,
     this.mediaStore,
   });
 
   final Course course;
   final double size;
+  final BoxFit coverFit;
   final CourseMediaStore? mediaStore;
 
   @override
@@ -45,8 +47,8 @@ class CourseArtwork extends StatelessWidget {
                 asset: course.coverImage,
                 width: size,
                 height: size,
-                fit: BoxFit.cover,
-                // Bounded decode: a list thumbnail never needs the full cover.
+                fit: coverFit,
+                // Bound decoding to the artwork's displayed size.
                 cacheWidth: (size * MediaQuery.devicePixelRatioOf(context))
                     .ceil(),
                 semanticLabel: '${course.title} cover',

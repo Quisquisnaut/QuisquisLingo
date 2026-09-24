@@ -1,5 +1,88 @@
 # Build 250 validation
 
+## Revision 1 — Course Studio and Courses layout
+
+`2.0.50+250001`, 24 September 2026, on `codex/build-250-courses` from
+Revision 0 commit `c08ecf6`. Beta expiry: `2026-10-24 23:59:59` local time.
+The owner approved the soft amber Favorites treatment, the Course Studio
+name, a Search icon on both tabs, Studio-only New course, separate tab Help,
+one-line Sort by / Show unavailable controls, right-edge Course menus,
+neutral gray Other Local Courses borders, Course Info in the Studio menu and
+an enlarged cover/flag popup in both tabs.
+Course Model v11, package format 1, preferences, rights, scoring, progression
+and the Course Editor confirmation remain unchanged.
+
+### Focused behavior and metadata evidence
+
+* New row-layout and Course Studio Favorites/search widget tests first failed
+  against Revision 0. After implementation, the row-layout file passed **4/4**,
+  the Studio Favorites file **4/4**, and the Courses screen file **9/9**.
+  The updated Courses test checked the Search field below Sort and no overflow
+  at 320 px. An initial Favorites menu test used `pageBack()` on a popup;
+  sending Escape fixed the test navigation without a production change.
+* A Build 244/249 affected-file run passed **90 of 91** tests. The remaining
+  empty-library test looked for the third Studio section while the new
+  Favorites section pushed it below the lazy ListView viewport. It now checks
+  the visible first empty section, and its isolated rerun passed.
+* The Course Studio rename first failed the new `COURSE STUDIO` tab assertion.
+  These focused runs then passed **66/66** across navigation, Help and nearby
+  screens:
+  `flutter test test/courses_screen_250_test.dart
+  test/editor_help_translation_test.dart test/course_library_screen_244_test.dart
+  test/info_page_translation_test.dart --no-pub --concurrency=1
+  --reporter expanded` (**34/34**) and `flutter test
+  test/course_creation_flags_226_04_test.dart
+  test/course_editor_layout_regression_test.dart
+  test/unreadable_stored_courses_243_test.dart
+  test/course_package_import_ui_247_test.dart
+  test/settings_profile_reorganization_228_01_test.dart --no-pub
+  --concurrency=1 --reporter expanded` (**32/32**).
+* Version `250001` and the 24 October Beta expiry first failed their updated
+  assertions against Revision 0. `flutter test
+  test/app_metadata_225_04_test.dart test/beta_lifecycle_test.dart
+  test/qql_233_revision_platform_contract_test.dart --no-pub
+  --concurrency=1 --reporter expanded` then passed **11/11**.
+* The current Info page still described Editor actions and Help from an older
+  build. Its new Course Studio Help assertion failed before the EN/IT text was
+  corrected. `flutter test test/info_page_translation_test.dart --no-pub
+  --concurrency=1 --reporter expanded` passed **6/6** afterward.
+* Course Info is an always-available Course Studio menu entry, including for
+  Courses without authoring rights. Its service and navigation suites passed
+  **57/57**: `flutter test --no-pub --concurrency=1 --reporter expanded
+  test/course_library_operations_249_test.dart
+  test/course_manager_workflow_249_test.dart`.
+* The new shared artwork tests first failed because row artwork had no opener.
+  After adding the popup, the focused test file passed **3/3**: `flutter test
+  --no-pub test/course_artwork_preview_250_test.dart --reporter expanded`.
+  They cover an uncropped enlarged cover, the Studio flag without Editor
+  navigation, a missing cover's flag fallback and a 320-pixel-wide viewport.
+
+### Static and asset checks
+
+* `flutter analyze --no-pub`: **No issues found** on the settled revision.
+* `dart format --output=none --set-exit-if-changed` on the 40 changed Dart
+  files: **0 files needed formatting** after applying the formatter.
+* `python tools/validate_courses.py`: **10** bundled Course Model v11 files OK.
+* `python tools/validate_images.py`: **111** assets, **0** issues.
+* `python tools/validate_lesson_icons.py`: **14** assets, **0** issues.
+* `python tools/validate_media_assets.py`: **443** files, **0** issues.
+
+### Release gate
+
+The first final-suite attempt was stopped when the format check found two
+files needing formatting. After formatting, the settled tree passed the
+uninterrupted serial release run:
+
+`flutter test --no-pub --concurrency=1 --reporter expanded` — **2,417 passed,
+0 failed** (33 minutes 18 seconds; exit 0). The temporary Windows
+`ES_CONTINUOUS | ES_SYSTEM_REQUIRED` request used during this long run was
+cleared when it ended. `flutter analyze --no-pub` found no issues; all four
+asset validators above passed on the same source. Revision 1 is a source
+release; no Windows package was requested or created.
+`git diff --check` and `git diff --cached --check` exited 0. The staged file
+list contains only Revision 1 source, tests, metadata and documents; four
+pre-existing generated plugin registrant changes remain unstaged.
+
 ## Revision 0 — Courses screen and learner visibility
 
 `2.0.50+250000`, Course Model v11, 23 September 2026, on

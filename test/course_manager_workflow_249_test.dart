@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:quisquislingo_app/models/course_models.dart';
 import 'package:quisquislingo_app/screens/course_editor_screen.dart';
+import 'package:quisquislingo_app/screens/course_info_screen.dart';
 import 'package:quisquislingo_app/screens/course_projects_screen.dart';
 import 'package:quisquislingo_app/services/course_editor_service.dart';
 import 'package:quisquislingo_app/services/course_file_store.dart';
@@ -206,6 +207,7 @@ void main() {
   const everyEntry = [
     'Remove from my courses',
     'Remove Publisher Course from device',
+    'Course Info',
     'Edit',
     'View (read only)',
     'Fork',
@@ -246,6 +248,25 @@ void main() {
       ValueKey('course-manager-actions-$courseId');
 
   group('which actions are offered', () {
+    testWidgets('Course Info opens read-only details from the Studio menu', (
+      tester,
+    ) async {
+      await setUpDevice(tester);
+      final course = _course('mine', title: 'Mine');
+      await install(tester, course);
+      await pumpManager(tester);
+
+      await openMenu(tester, actionsOf(course.courseId));
+      await choose(tester, 'Course Info');
+      expect(find.byType(CourseInfoScreen), findsOneWidget);
+      expect(find.text('Course Info'), findsOneWidget);
+
+      await tester.tap(find.byType(BackButton).last);
+      await tester.pumpAndSettle();
+      expect(find.byKey(actionsOf(course.courseId)), findsOneWidget);
+      expect(await stored(tester), hasLength(1));
+    });
+
     testWidgets('per Course kind, rights and admin status', (tester) async {
       await setUpDevice(tester);
       final mine = _course('mine', title: 'Mine');
@@ -266,6 +287,7 @@ void main() {
 
       expect(await menuEntries(tester, actionsOf('mine')), [
         'Remove from my courses',
+        'Course Info',
         'Edit',
         'Fork (greyed)',
         'Copy as New Course',
@@ -276,6 +298,7 @@ void main() {
       ]);
       expect(await menuEntries(tester, actionsOf('theirs')), [
         'Remove from my courses',
+        'Course Info',
         'View (read only)',
         'Fork',
         'Copy as New Course (greyed)',
@@ -287,6 +310,7 @@ void main() {
       expect(await menuEntries(tester, actionsOf(publisher.courseId)), [
         'Remove from my courses',
         'Remove Publisher Course from device',
+        'Course Info',
         'View (read only)',
         'Fork',
         'Audit',
@@ -296,6 +320,7 @@ void main() {
         await menuEntries(tester, const Key('course-manager-actions-current')),
         [
           'Remove from my courses',
+          'Course Info',
           'View (read only)',
           'Fork (greyed)',
           'Audit',

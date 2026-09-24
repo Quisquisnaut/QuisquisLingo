@@ -124,7 +124,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           duration: Duration(seconds: 8),
-          content: Text('Course Manager could not be unlocked. Try again.'),
+          content: Text('Course Studio could not be unlocked. Try again.'),
         ),
       );
       return;
@@ -134,7 +134,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         duration: Duration(seconds: 8),
-        content: Text('Course Manager unlocked.'),
+        content: Text('Course Studio unlocked.'),
       ),
     );
     // The unlock is complete and shown before the optional sound starts, so an
@@ -268,8 +268,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 const Divider(),
                 Tooltip(
                   message: _editorUnlocked
-                      ? 'Course Manager unlocked'
-                      : 'Tap x 10 times to unlock Course Manager',
+                      ? 'Course Studio unlocked'
+                      : 'Tap x 10 times to unlock Course Studio',
                   child: ListTile(
                     key: const Key('settings-version-build-area'),
                     leading: const Icon(Icons.info_outline),

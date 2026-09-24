@@ -110,9 +110,9 @@ List<InfoSection> _english() => [
         'Settings > Debug contains both logging tools and concise reporting guidance. Use the Crash Log for startup/runtime crashes or unexpected closes. For non-crashing runtime problems, reproduce the issue when possible and export the Diagnostic Log shortly afterward; clearing it first is optional and is useful only to isolate a specific reproducible problem, while intermittent evidence should be exported before clearing. Both files use Documents/QuisquisLingo/Logs. Learner audio diagnostics use short correlation IDs and bounded lifecycles with preparation, learner UI state, stable exercise ID/type, activation trigger, suppression, source, backend, playback, failure and disposal status. They are designed to avoid spoken text, answers, course content and full personal file paths.',
   ),
   (
-    title: 'Course Manager and Course Editor',
+    title: 'Course Studio and Course Editor',
     body:
-        'Course Manager is opened from the learner Course Selector rather than Settings. It is the lifecycle hub: official courses provide read-only inspection, licensed Fork, Audit and supported Export; custom courses provide Edit, Copy as New Course, Audit, Export and manager-only Delete. Eligible official inspection also provides Fork, while custom Course Editor provides Copy as New Course without Delete. Fork preserves the source lineage; Copy as New Course starts an independent Course lineage. For complete authoring instructions, open Editor Help from Course Manager or any Course Editor hierarchy page.',
+        'Course Studio is opened from the learner Course Selector rather than Settings. It is the lifecycle hub: official courses provide read-only inspection, licensed Fork, Audit and supported Export; custom courses provide Edit, Copy as New Course, Merge, Audit, Export and Delete. Fork preserves the source lineage; Copy as New Course starts an independent Course lineage. Open Course Studio Help for library operations, and Editor Help from any Course Editor hierarchy page for authoring instructions.',
   ),
   (
     title: 'Course content and AI',
@@ -210,9 +210,9 @@ List<InfoSection> _italian() => [
         'In Settings > Debug trovi sia gli strumenti di log sia una guida breve su come segnalare i problemi. Usa il Crash Log per i crash all’avvio o durante l’uso e per le chiusure inattese. Per i problemi che non fanno chiudere l’app, riproduci il problema quando puoi ed esporta il Diagnostic Log subito dopo; svuotarlo prima è facoltativo e serve solo a isolare un problema ben riproducibile, mentre se il problema è intermittente conviene esportare prima di svuotare. Entrambi i file stanno in Documents/QuisquisLingo/Logs. La diagnostica audio usa codici di correlazione brevi e cicli di vita delimitati, con preparazione, stato dell’interfaccia, ID e tipo stabile dell’esercizio, motivo di attivazione, soppressione, sorgente, backend, riproduzione, errore e chiusura. È pensata per non registrare il testo letto, le risposte, i contenuti dei corsi e i percorsi completi dei tuoi file.',
   ),
   (
-    title: 'Course Manager e Course Editor',
+    title: 'Course Studio e Course Editor',
     body:
-        'Il Course Manager si apre dal Course Selector della pagina di studio, non da Settings. È il punto da cui si gestisce tutto il ciclo di vita dei corsi: quelli ufficiali permettono la consultazione in sola lettura, il Fork su licenza, l’Audit e l’Export supportato; quelli personalizzati permettono Edit, Copy as New Course, Audit, Export e il Delete, disponibile solo dal Manager. La consultazione di un corso ufficiale idoneo offre anche Fork, mentre il Course Editor di un corso personalizzato offre Copy as New Course ma non Delete. Il Fork mantiene la discendenza dal corso di origine; Copy as New Course fa partire una discendenza indipendente. Per le istruzioni complete su come creare i corsi, apri Editor Help dal Course Manager o da qualsiasi pagina del Course Editor.',
+        'Il Course Studio si apre dal Course Selector della pagina di studio, non da Settings. È il punto da cui si gestisce tutto il ciclo di vita dei corsi: quelli ufficiali permettono la consultazione in sola lettura, il Fork su licenza, l’Audit e l’Export supportato; quelli personalizzati permettono Edit, Copy as New Course, Merge, Audit, Export e Delete. Il Fork mantiene la discendenza dal corso di origine; Copy as New Course fa partire una discendenza indipendente. Per le operazioni della libreria apri Course Studio Help (Guida al Course Studio); per creare e modificare i corsi apri Editor Help da una pagina del Course Editor.',
   ),
   (
     title: 'Contenuti dei corsi e IA',

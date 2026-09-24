@@ -43,7 +43,7 @@ class _EditorHelpScreenState extends State<EditorHelpScreen> {
   );
 }
 
-/// Help for the Course Manager tab, using the same language choice as Editor
+/// Help for the Course Studio tab, using the same language choice as Editor
 /// Help while keeping the Editor's technical reference on the Editor page.
 class CourseManagerHelpScreen extends StatefulWidget {
   const CourseManagerHelpScreen({super.key});
@@ -61,8 +61,8 @@ class _CourseManagerHelpScreenState extends State<CourseManagerHelpScreen> {
     appBar: AppBar(
       title: Text(
         _language == HelpLanguage.italian
-            ? 'Guida al Course Manager'
-            : 'Course Manager Help',
+            ? 'Guida al Course Studio'
+            : 'Course Studio Help',
       ),
       actions: [
         HelpLanguageToggle(
