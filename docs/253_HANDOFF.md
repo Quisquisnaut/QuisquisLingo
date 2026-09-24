@@ -61,6 +61,10 @@ focused Windows-host widget UI checks. The interactive native click-through is
 still pending because the UI automation helpers failed to initialize. See the
 post-commit note in [253_VALIDATION.md](253_VALIDATION.md).
 
+A later clean Windows Release build and a same-path repeat build passed. Keep
+the repository path spelling consistent between Flutter commands; the
+recovery and evidence are in [253_VALIDATION.md](253_VALIDATION.md).
+
 The owner's interactive smoke test remains pending. The remaining app UI and
 inline Help are outside this slice. Future language or full-app work can reuse
 the Locale owner and lookup with new catalogs after separate approval.

@@ -306,6 +306,14 @@ flutter run
 
 The official Flutter CLI can bootstrap any missing Android/iOS host files.
 
+On Windows, keep the repository path's capitalization the same for every
+Flutter command, including when switching between Debug and Release. If a
+build reports C1083 for missing files under
+`windows\flutter\ephemeral\cpp_client_wrapper`, stop other Flutter builds,
+then run `flutter clean`, `flutter pub get`, and `flutter build windows` from
+one consistently spelled project path. Those wrapper files are generated
+build output.
+
 ## TTS
 
 `TtsCacheService` hashes language + voice + rate + text to derive a cache filename.

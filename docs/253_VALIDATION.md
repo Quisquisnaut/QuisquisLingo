@@ -84,3 +84,19 @@ was opened against that data. No full suite rerun was needed for these text and
 documentation corrections.
 
 The owner's interactive smoke test is still pending.
+
+## Windows Release build recovery
+
+A later Release build reported C1083 for missing generated
+`windows/flutter/ephemeral/cpp_client_wrapper` sources. The Debug build cache
+recorded outputs under `C:\QQL\QuisquisLingo`, while the failed Release build
+recorded the same directory under `C:\qql\QuisquisLingo`. Flutter's local
+`trackSharedBuildDirectory` cleanup compares those output path strings case
+sensitively and removed the just-generated files. The engine cache copies and
+QQL source files were intact.
+
+With no other build running, `flutter clean` and `flutter pub get` followed by
+`flutter build windows --release --no-pub` from `C:\QQL\QuisquisLingo` passed
+in 254.6 seconds. A second Release build from that same path passed without
+cleaning in 26.5 seconds. The executable reports `2.0.53+253000`. This was a
+generated build-cache issue; the documentation fix needs no test rerun.

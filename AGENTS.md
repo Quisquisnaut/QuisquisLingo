@@ -15,6 +15,7 @@ These are persistent instructions for Codex when working on QuisquisLingo.
 - Separate structural refactoring from behavior changes whenever practical.
 - Do not implement future roadmap items merely because they are mentioned in documentation or architectural notes. Follow the user's explicit current task.
 - For long Windows test or release-build runs, hold a temporary `ES_CONTINUOUS | ES_SYSTEM_REQUIRED` execution-state request in the supervising PowerShell process and clear it in `finally`. Do not change the user's persistent power settings.
+- Keep the absolute repository path spelling consistent across Windows Flutter builds. Flutter's shared build cache compares output paths case sensitively, so switching between `C:\QQL\QuisquisLingo` and `C:\qql\QuisquisLingo` can remove generated `cpp_client_wrapper` files. If that C1083 error occurs, stop other builds, run `flutter clean` and `flutter pub get`, then rebuild from one consistently spelled path.
 
 ## Current release boundary
 
