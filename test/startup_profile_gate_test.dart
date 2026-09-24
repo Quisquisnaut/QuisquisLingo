@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -117,18 +118,18 @@ void main() {
         find.byKey(const Key('qql-startup-logo-scale')),
       );
       expect(fade.opacity.value, 0);
-      expect(scale.scale.value, closeTo(.60, .001));
+      expect(scale.scale.value, closeTo(.30, .001));
       await tester.pump(const Duration(milliseconds: 600));
-      expect(fade.opacity.value, greaterThan(0));
-      expect(fade.opacity.value, lessThan(1));
-      expect(scale.scale.value, greaterThan(.60));
-      expect(scale.scale.value, lessThan(1));
+      expect(fade.opacity.value, 1);
+      expect(scale.scale.value, closeTo(.58, .03));
       await tester.pump(const Duration(milliseconds: 400));
       expect(fade.opacity.value, 1);
-      expect(scale.scale.value, 1);
-      await tester.pump(const Duration(milliseconds: 799));
+      expect(scale.scale.value, closeTo(.77, .03));
+      await tester.pump(const Duration(milliseconds: 500));
+      expect(scale.scale.value, closeTo(1, .001));
+      await tester.pump(const Duration(milliseconds: 299));
       expect(fade.opacity.value, 1);
-      expect(scale.scale.value, 1);
+      expect(scale.scale.value, closeTo(1, .001));
       expect(startup, findsOneWidget);
       await tester.pump(const Duration(milliseconds: 2));
       await tester.pump();
@@ -195,6 +196,75 @@ void main() {
       expect(find.text('QuisquisLingo Beta testing'), findsOneWidget);
     },
   );
+
+  testWidgets('logo grows throughout its entrance after its image is ready', (
+    tester,
+  ) async {
+    final profiles = ProfileService(
+      idGenerator: () => _existingLearnerId,
+      numericSuffixGenerator: () => 54321,
+      randomIndex: (_) => 0,
+    );
+    await profiles.createProfile('Existing Learner');
+    await SettingsService().setAnimationsEnabled(true);
+    final releaseLogo = Completer<void>();
+    final bundle = _DelayedLogoBundle(releaseLogo.future);
+
+    await tester.pumpWidget(
+      DefaultAssetBundle(
+        bundle: bundle,
+        child: QuisquisLingoApp(profileService: profiles),
+      ),
+    );
+    await _pumpUntil(tester, find.byKey(const Key('qql-startup-animation')));
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 20)),
+    );
+    await tester.pump();
+
+    double scale() => tester
+        .widget<ScaleTransition>(
+          find.byKey(const Key('qql-startup-logo-scale')),
+        )
+        .scale
+        .value;
+    double opacity() => tester
+        .widget<FadeTransition>(find.byKey(const Key('qql-startup-logo-fade')))
+        .opacity
+        .value;
+    double frameScale() => tester
+        .widget<Transform>(
+          find.descendant(
+            of: find.byKey(const Key('qql-startup-logo-scale')),
+            matching: find.byType(Transform),
+          ),
+        )
+        .transform
+        .storage[0];
+
+    final initialScale = scale();
+    await tester.pump(const Duration(milliseconds: 600));
+    expect(scale(), closeTo(initialScale, .001));
+    expect(opacity(), 0);
+
+    releaseLogo.complete();
+    for (var attempt = 0; attempt < 100 && scale() == initialScale; attempt++) {
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 10)),
+      );
+      await tester.pump(const Duration(milliseconds: 10));
+    }
+    expect(scale(), greaterThan(initialScale));
+    expect(scale(), lessThan(initialScale + .04));
+    await tester.pump(const Duration(milliseconds: 375));
+    expect(scale(), closeTo(.475, .03));
+    expect(frameScale(), closeTo(.475, .03));
+    expect(opacity(), 1);
+    await tester.pump(const Duration(milliseconds: 750));
+    expect(scale(), closeTo(.825, .03));
+    expect(frameScale(), closeTo(.825, .03));
+    expect(opacity(), 1);
+  });
 
   testWidgets('Beta testing acknowledgement is shown only once', (
     tester,
@@ -318,6 +388,18 @@ class _RetryingProfileService extends ProfileService {
       throw StateError('simulated profile read failure');
     }
     return super.getProfileRecords();
+  }
+}
+
+class _DelayedLogoBundle extends CachingAssetBundle {
+  _DelayedLogoBundle(this.logoReady);
+
+  final Future<void> logoReady;
+
+  @override
+  Future<ByteData> load(String key) async {
+    if (key == 'assets/branding/qql_logo_4.png') await logoReady;
+    return rootBundle.load(key);
   }
 }
 

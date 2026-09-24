@@ -483,7 +483,9 @@ class _StartupGate extends StatefulWidget {
 class _StartupGateState extends State<_StartupGate>
     with SingleTickerProviderStateMixin {
   static const _gateDuration = Duration(milliseconds: 1800);
-  static const _entranceEnd = 1000 / 1800;
+  static const _entranceEnd = 1500 / 1800;
+  static const _fadeEnd = 150 / 1800;
+  static const _logoAsset = 'assets/branding/qql_logo_4.png';
 
   late final AnimationController _c;
   bool _show = true;
@@ -514,6 +516,11 @@ class _StartupGateState extends State<_StartupGate>
     if (!enabled || reducedMotion) {
       setState(() => _showStaticArtwork = true);
     }
+    await precacheImage(
+      AssetImage(_logoAsset, bundle: DefaultAssetBundle.of(context)),
+      context,
+    );
+    if (!mounted) return;
     await _c.forward();
     if (mounted) setState(() => _show = false);
   }
@@ -538,30 +545,19 @@ class _StartupGateState extends State<_StartupGate>
           key: const Key('qql-startup-logo-fade'),
           opacity: _showStaticArtwork
               ? const AlwaysStoppedAnimation<double>(1)
-              : CurvedAnimation(
-                  parent: _c,
-                  curve: const Interval(
-                    0,
-                    _entranceEnd,
-                    curve: Curves.easeOutCubic,
-                  ),
-                ),
+              : CurvedAnimation(parent: _c, curve: const Interval(0, _fadeEnd)),
           child: ScaleTransition(
             key: const Key('qql-startup-logo-scale'),
             scale: _showStaticArtwork
                 ? const AlwaysStoppedAnimation<double>(1)
-                : Tween<double>(begin: .60, end: 1).animate(
+                : Tween<double>(begin: .30, end: 1).animate(
                     CurvedAnimation(
                       parent: _c,
-                      curve: const Interval(
-                        0,
-                        _entranceEnd,
-                        curve: Curves.easeOutCubic,
-                      ),
+                      curve: const Interval(0, _entranceEnd),
                     ),
                   ),
             child: Image.asset(
-              'assets/branding/qql_logo_4.png',
+              _logoAsset,
               key: const Key('qql-startup-logo'),
               fit: BoxFit.contain,
               filterQuality: FilterQuality.high,
