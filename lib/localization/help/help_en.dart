@@ -474,6 +474,11 @@ If the Crash Log file is deleted, QuisquisLingo recreates it automatically at th
       r'''Other files in the QQL folder: anything added directly to the QuisquisLingo folder with the operating system, which QQL did not create and does not use.''',
   'deviceAdminHelp.inventory.bullet7':
       r'''Media and files that come with the app itself are not listed. Very large lists show the 500 most recent files per section.''',
+  'deviceAdminHelp.qqlTools.title': r'''QQL-Tools''',
+  'deviceAdminHelp.qqlTools.paragraph1':
+      r'''QQL-Tools is an optional companion project for independent validation of QQL Course JSON files and package ZIP files. Its results do not replace QQL's own Course Audit, import validation, or safety checks.''',
+  'deviceAdminHelp.qqlTools.paragraph2':
+      r'''In Device Administration, an Admin uses Browse... to configure the QQL-Tools executable once per device, then Test to check it or Clear to remove it. Validate with QQL-Tools... runs in the background while QQL stays open. It does not modify or import the selected Course. Not available on mobile devices.''',
   'deviceAdminHelp.updates.title': r'''Updates''',
   'deviceAdminHelp.updates.paragraph1':
       r'''The Update entry opens the same page every learner can reach in Settings > Update: it checks GitHub for a newer release and shows the installation instructions. Only an admin can change “Check automatically at startup”, because it applies to the whole device.''',

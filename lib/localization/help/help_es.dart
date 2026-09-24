@@ -537,6 +537,11 @@ const Map<String, String> helpEs = {
       'Otros archivos en la carpeta de QQL: los añadidos desde el sistema operativo que QQL no creó ni usa.',
   'deviceAdminHelp.inventory.bullet7':
       'No aparecen los medios incluidos con la app. En listas muy grandes se muestran los 500 archivos más recientes por sección.',
+  'deviceAdminHelp.qqlTools.title': 'QQL-Tools',
+  'deviceAdminHelp.qqlTools.paragraph1':
+      'QQL-Tools es un proyecto complementario opcional que valida de forma independiente archivos Course JSON y paquetes ZIP de QQL. Sus resultados no sustituyen Course Audit, la validación de importaciones ni los controles de seguridad de QQL.',
+  'deviceAdminHelp.qqlTools.paragraph2':
+      'En Device Administration, un Admin usa Browse... para configurar el ejecutable QQL-Tools una vez por dispositivo; Test lo comprueba y Clear borra la configuración. Validate with QQL-Tools... se ejecuta en segundo plano mientras QQL permanece abierto. No modifica ni importa el Course seleccionado. Not available on mobile devices.',
   'deviceAdminHelp.updates.title': 'Updates',
   'deviceAdminHelp.updates.paragraph1':
       'Update abre la misma página que Settings > Update: comprueba GitHub y muestra instrucciones de instalación. Solo un Admin puede cambiar Check automatically at startup porque afecta a todo el dispositivo.',
