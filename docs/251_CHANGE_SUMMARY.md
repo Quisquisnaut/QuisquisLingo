@@ -1,5 +1,19 @@
 # Build 251 change summary
 
+## Startup logo animation fix (after Revision 1)
+
+On Windows, the startup logo could appear to jump from its initial size to its
+final size because the animation clock advanced while the logo image loaded.
+The image is now ready before the entrance begins. With Animations enabled,
+the logo grows smoothly from 30% to 100% over 1,500 ms and fades in during
+the first 150 ms. The timed startup gate remains 1,800 ms. With Animations
+disabled or reduced motion requested, the final logo stays static.
+
+This follow-up did not change the version (`2.0.51+251001`). The 14 focused
+startup tests, Flutter analysis and a Windows release build passed, and the
+owner smoke-tested the release. The full Flutter test suite was skipped at
+the owner's request. See [PR #17](https://github.com/Quisquisnaut/QuisquisLingo/pull/17).
+
 ## Revision 1 — Course Editor device state
 
 `2.0.51+251001`, dated 2026-09-24. `CourseEditorDeviceState` owns the Course
