@@ -413,6 +413,10 @@ When a new XP system is explicitly introduced, update this section to describe t
 - Do not push unless the user explicitly asks for a push.
 - Do not stage unrelated files.
 - Do not include unrelated generated files in a commit.
+- In GitHub-facing pull request and release descriptions and in change summaries,
+  describe every new fix and feature included in the change. Include follow-up
+  fixes even when the version number does not change; state the behavior and why
+  it changed instead of relying on a generic title or an earlier pull request.
 - Do not delete untracked user files merely because they are outside the requested scope.
 - Do not use destructive Git commands such as broad `reset`, `clean`, `checkout`, or `restore` against user work without explicit approval and a clear reason.
 - Before reverting a suspicious file, determine whether it contains genuine user changes.
