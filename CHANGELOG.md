@@ -1,3 +1,18 @@
+# 2.0.52 (Build 252, Revision 0) - Exercise Authoring - 2026-09-24
+
+Exercise candidate construction is extracted from `ExerciseEditorScreen` into
+a pure draft builder. It takes draft values and returns either a candidate
+Exercise or typed field errors. Controllers, dialogs, navigation and feedback
+stay in the widget; `CourseAuthoringSession` remains the sole owner of the
+final Course update. Preview, Save and Cancel behavior remain unchanged.
+
+Version `2.0.52+252000`; Course Model v11, package format 1, stored data and
+keys, rights, signatures, scoring, progression and the Course Editor's final
+confirmation remain unchanged. This is a source release without a Windows
+package. Beta expiry is **2026-10-24 23:59:59 local time**, 30 days from this
+revision's 24 September 2026 release date. See the
+[Build 252 plan](docs/252_ARCHITECTURE_PLAN.md).
+
 # 2.0.51 (Build 251, Revision 1) - Course Editor device state - 2026-09-24
 
 One owner now holds the Course Editor's immediately written access mode,

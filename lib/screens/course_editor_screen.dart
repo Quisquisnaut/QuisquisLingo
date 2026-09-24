@@ -6,7 +6,6 @@ import 'package:flutter/services.dart';
 import '../services/answer_engine.dart';
 import '../services/answer_materialization_service.dart';
 import '../services/file_dialog_service.dart';
-import '../services/first_letter_answer_service.dart';
 import '../services/portable_exercise_image.dart';
 import '../widgets/script_recognition_editor.dart';
 import '../widgets/exercise_image_field.dart';
@@ -57,6 +56,7 @@ import '../widgets/editor_app_bar_actions.dart';
 import '../services/custom_course_transfer_service.dart';
 import '../services/authoring_duplication_service.dart';
 import '../services/exercise_creation_planner.dart';
+import '../services/exercise_draft_builder.dart';
 import '../services/guidebook_round_generator.dart';
 import '../services/publication_service.dart';
 import '../services/provisional_publication_service.dart';
@@ -7862,17 +7862,6 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
     super.dispose();
   }
 
-  List<String> get _literalCorrectTranslations => _correctTranslations
-      .map((controller) => controller.text.trim())
-      .where((value) => value.isNotEmpty)
-      .toList(growable: false);
-
-  String _normalizedLiteralTranslation(String value) => value
-      .trim()
-      .replaceAll(RegExp(r'[.!?…]+$'), '')
-      .replaceAll(RegExp(r'\s+'), ' ')
-      .toLowerCase();
-
   void _addCorrectTranslation() {
     if (widget.readOnly) return;
     final controller = _translationController('');
@@ -8041,54 +8030,6 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
     ];
   }
 
-  List<List<String>> _pairLines() {
-    final out = <List<String>>[];
-    for (final line in _lines(_pairs)) {
-      final separator = line.indexOf('=');
-      if (separator > 0 && separator < line.length - 1) {
-        out.add([
-          line.substring(0, separator).trim(),
-          line.substring(separator + 1).trim(),
-        ]);
-      }
-    }
-    return out;
-  }
-
-  List<PromptElement> _dialogueTurns() {
-    final turns = <PromptElement>[];
-    for (final line in _lines(_dialogue)) {
-      final separator = line.indexOf(':');
-      if (separator <= 0 || separator >= line.length - 1) {
-        turns.add(
-          PromptElement(role: 'dialogue_turn', type: 'text', text: line),
-        );
-      } else {
-        turns.add(
-          PromptElement(
-            role: 'dialogue_turn',
-            type: 'text',
-            speaker: line.substring(0, separator).trim(),
-            text: line.substring(separator + 1).trim(),
-          ),
-        );
-      }
-    }
-    return turns;
-  }
-
-  bool get _choices => const {
-    'choice',
-    'gap_choice',
-    'icon_choice',
-    'listening_choice',
-    'listening_comprehension',
-    'reading_comprehension',
-    'dialogue_response',
-    'contextual_comprehension',
-    'translation_choice_to_target',
-    'translation_choice_to_source',
-  }.contains(_type);
   String _fieldKey(TextEditingController controller) => {
     _prompt: 'prompt',
     _question: 'question',
@@ -8947,664 +8888,120 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
   Exercise? _buildCandidate(
     PublicationState publicationState, {
     bool requireValidAnswer = false,
+    bool attachSelectedSharedSource = false,
   }) {
-    if (_type == 'script_recognition') {
-      return _scriptController!.build(publicationState);
-    }
-    if (const {'word_order', 'build_translation'}.contains(_type) &&
-        _useInlineGaps) {
-      return _buildArrangeGapCandidate(publicationState);
-    }
-    if (_type == 'choice' && _useInlineGaps) {
-      return _buildSelectGapCandidate(publicationState);
-    }
-    if (_type == 'choice' && _useMultiSelect) {
-      return _buildSelectMultiCandidate(publicationState);
-    }
-    if (TranslationChoice.isTranslationChoice(_type)) {
-      final problem = TranslationChoice.answersProblem(_lines(_answers));
-      if (problem != null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            duration: const Duration(seconds: 8),
-            content: Text(problem),
-          ),
-        );
-        return null;
-      }
-    }
-    if (_type == 'type_translation' || _type == 'type_missing_word') {
-      final accepted = _lines(_accepted);
-      try {
-        if (accepted.isNotEmpty) {
-          AnswerExpressionParser.expandAll(accepted);
-        }
-        if (_type == 'type_missing_word' && accepted.isNotEmpty) {
-          FirstLetterAnswerService.display(_prompt.text.trim(), accepted);
-        }
-      } on AnswerExpressionException catch (error) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(error.message)));
-        return null;
-      }
-      var replaced = false;
-      var imageReplaced = false;
-      final imageChanged = _imageAsset != _exercise.imageAsset;
-      final prompt = <PromptElement>[];
-      for (final element in _exercise.promptElements) {
-        if (imageChanged && !imageReplaced && element.type == 'image') {
-          imageReplaced = true;
-          if (_imageAsset.isNotEmpty) {
-            prompt.add(
-              PromptElement(
-                role: element.role,
-                type: element.type,
-                text: element.text,
-                asset: _imageAsset,
-                speaker: element.speaker,
-              ),
-            );
-          }
-        } else if (!replaced &&
-            element.role == 'primary' &&
-            element.type == 'text') {
-          prompt.add(
-            PromptElement(
-              role: element.role,
-              type: element.type,
-              text: _prompt.text.trim(),
-              asset: element.asset,
-              speaker: element.speaker,
-            ),
-          );
-          replaced = true;
-        } else {
-          prompt.add(element);
-        }
-      }
-      if (!replaced) {
-        prompt.add(PromptElement(type: 'text', text: _prompt.text.trim()));
-      }
-      if (imageChanged && !imageReplaced && _imageAsset.isNotEmpty) {
-        prompt.add(PromptElement(type: 'image', asset: _imageAsset));
-      }
-      return Exercise.v2(
-        id: _exercise.id,
-        publicationState: publicationState,
-        updatedAt: _exercise.updatedAt,
-        editorTemplate: _type,
-        promptElements: prompt,
-        interaction: _exercise.type == _type
-            ? _exercise.interaction
-            : const ExerciseInteraction(kind: 'input'),
-        evaluation: ExerciseEvaluation(
-          kind: 'text_match',
-          accepted: accepted,
-          correctItemIds: _exercise.type == _type
-              ? _exercise.evaluation.correctItemIds
-              : const [],
-          correctOrders: _exercise.type == _type
-              ? _exercise.evaluation.correctOrders
-              : const [],
-          pairs: _exercise.type == _type
-              ? _exercise.evaluation.pairs
-              : const [],
-          normalization: _exercise.evaluation.normalization,
-        ),
-        hint: _hint.text.trim(),
-        feedback: _exercise.feedback,
-        missingWords: _exercise.missingWords,
-      );
-    }
-    if (_type == 'build_translation') {
-      final translations = _literalCorrectTranslations;
-      if (translations.isEmpty) {
-        setState(() {
-          _correctTranslationErrorIndexes = const {0};
-          _correctTranslationError =
-              'Add at least one non-empty correct translation.';
-        });
-        return null;
-      }
-      final normalizedByIndex = <int, String>{
-        for (var index = 0; index < _correctTranslations.length; index++)
-          if (_correctTranslations[index].text.trim().isNotEmpty)
-            index: _normalizedLiteralTranslation(
-              _correctTranslations[index].text,
-            ),
-      };
-      if (normalizedByIndex.values.toSet().length != normalizedByIndex.length) {
-        final duplicateIndexes = <int>{};
-        for (final entry in normalizedByIndex.entries) {
-          if (normalizedByIndex.values
-                  .where((value) => value == entry.value)
-                  .length >
-              1) {
-            duplicateIndexes.add(entry.key);
-          }
-        }
-        setState(() {
-          _correctTranslationErrorIndexes = duplicateIndexes;
-          _correctTranslationError =
-              'Correct translations contain duplicates after ignoring case, spacing and final punctuation. Remove or change the repeated entry.';
-        });
-        return null;
-      }
-    }
-    if (const {
-      'matching',
-      'audio_match',
-      'word_match',
-      'super_match',
-    }.contains(_type)) {
-      final invalidLine = _lines(_pairs).indexWhere((line) {
-        final separator = line.indexOf('=');
-        return separator < 0 ||
-            line.substring(0, separator).trim().isEmpty ||
-            line.substring(separator + 1).trim().isEmpty;
-      });
-      if (invalidLine >= 0) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Pairs line ${invalidLine + 1}: enter both values as left = right, one pair per line. Complete or remove this line before Preview or Save.',
-            ),
-          ),
-        );
-        return null;
-      }
-    }
-    final answers = _type == 'flashcard'
-        ? _lines(_answers)
-        : _type == 'audio_match'
-        ? _pairLines().map((p) => p[1]).toList()
-        : _choices
-        ? _lines(_answers)
-        : <String>[];
-    int? correct;
-    if (_choices) {
-      final parsed = int.tryParse(_correct.text.trim());
-      if (parsed == null || parsed < 1 || parsed > answers.length) {
-        if (!publicationState.isPublished && !requireValidAnswer) {
-          correct = null;
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              duration: Duration(seconds: 8),
-              content: Text(
-                'Correct answer number: enter the number of an existing answer, starting at 1.',
-              ),
-            ),
-          );
-          return null;
-        }
-      } else {
-        correct = parsed - 1;
-      }
-    }
-    final Exercise candidate;
-    if (_type == 'contextual_comprehension') {
-      final items = <ExerciseItem>[
-        for (var i = 0; i < answers.length; i++)
-          ExerciseItem(
-            id: i < _exercise.interaction.items.length
-                ? _exercise.interaction.items[i].id
-                : 'item_$i',
-            content: [PromptElement(type: 'text', text: answers[i])],
-          ),
-      ];
-      candidate = Exercise.v2(
-        id: _exercise.id,
-        publicationState: publicationState,
-        updatedAt: _exercise.updatedAt,
-        editorTemplate: _type,
-        promptElements: [
-          if (_contextMode != 'audio' && _context.text.trim().isNotEmpty)
-            PromptElement(
-              role: 'context',
-              type: 'text',
-              text: _context.text.trim(),
-            ),
-          if (_contextMode != 'text' && _tts.text.trim().isNotEmpty)
-            PromptElement(
-              role: 'context',
-              type: 'audio',
-              text: _tts.text.trim(),
-            ),
-          if (_imageAsset.isNotEmpty)
-            PromptElement(role: 'context', type: 'image', asset: _imageAsset),
-          ..._dialogueTurns(),
-          PromptElement(
-            role: 'question',
-            type: 'text',
-            text: _question.text.trim(),
-          ),
-        ],
-        interaction: ExerciseInteraction(kind: 'select', items: items),
-        evaluation: ExerciseEvaluation(
-          kind: 'selected_items',
-          correctItemIds: correct == null ? const [] : [items[correct].id],
-        ),
-        hint: '',
-      );
-    } else {
-      candidate = Exercise(
-        id: _exercise.id,
-        publicationState: publicationState,
-        updatedAt: _exercise.updatedAt,
+    final result = ExerciseDraftBuilder.build(
+      ExerciseDraftValues(
+        original: _exercise,
         type: _type,
-        prompt:
-            const {
-              'flashcard',
-              'word_order',
-              'build_translation',
-              'type_translation',
-              'image_word',
-              'matching',
-              'audio_match',
-              'word_match',
-              'super_match',
-              'reading_comprehension',
-              'choice',
-              'missing_word',
-              'listening_spelling',
-              'dialogue_response',
-            }.contains(_type)
-            ? _prompt.text.trim()
-            : '',
-        question:
-            const {
-              'flashcard',
-              'fill_blank',
-              'icon_choice',
-              'listening_choice',
-              'listening_comprehension',
-              'reading_comprehension',
-              'choice',
-              'gap_choice',
-              'dialogue_response',
-              'translation_choice_to_target',
-              'translation_choice_to_source',
-            }.contains(_type)
-            ? _question.text.trim()
-            : '',
-        answers: answers,
-        correct: correct,
-        tts:
-            const {
-                  'flashcard',
-                  'fill_blank',
-                  'listening_choice',
-                  'listening_comprehension',
-                  'missing_word',
-                  'listening_spelling',
-                }.contains(_type) &&
-                _tts.text.trim().isNotEmpty
-            ? _tts.text.trim()
-            : null,
-        accepted: const {'listening_spelling', 'missing_word'}.contains(_type)
-            ? _lines(_missingWords)
-            : const {'fill_blank', 'type_translation'}.contains(_type)
-            ? _lines(_accepted)
-            : const [],
-        tokens:
-            const {
-              'word_order',
-              'image_word',
-              'build_translation',
-            }.contains(_type)
-            ? _lines(_tokens)
-            : const [],
-        orderAnswer: const {'word_order', 'image_word'}.contains(_type)
-            ? _lines(_order)
-            : const [],
-        correctTranslations: _type == 'build_translation'
-            ? _literalCorrectTranslations
-            : const [],
-        pairs:
-            const {
-              'matching',
-              'audio_match',
-              'word_match',
-              'super_match',
-            }.contains(_type)
-            ? _pairLines()
-            : const [],
-        hint:
-            const {
-              'gap_choice',
-              'fill_blank',
-              'type_translation',
-            }.contains(_type)
-            ? _hint.text.trim()
-            : '',
-        icons: _type == 'icon_choice' ? _lines(_icons) : const [],
+        publicationState: publicationState,
+        requireValidAnswer: requireValidAnswer,
+        useInlineGaps: _useInlineGaps,
+        useMultiSelect: _useMultiSelect,
+        prompt: _prompt.text,
+        question: _question.text,
+        tts: _tts.text,
+        hint: _hint.text,
+        answers: _answers.text,
+        correct: _correct.text,
+        accepted: _accepted.text,
+        tokens: _tokens.text,
+        order: _order.text,
+        gapLayout: _gapLayout.text,
+        pairs: _pairs.text,
+        icons: _icons.text,
+        missingWords: _missingWords.text,
+        context: _context.text,
+        dialogue: _dialogue.text,
+        requiredSelections: _requiredSelections.text,
+        correctTranslations: [
+          for (final controller in _correctTranslations) controller.text,
+        ],
+        contextMode: _contextMode,
         imageAsset: _imageAsset,
-        missingWords: _type == 'missing_word'
-            ? _lines(_missingWords)
-            : const [],
-      );
+        selectedSharedSource: _selectedSharedSource,
+        attachSelectedSharedSource: attachSelectedSharedSource,
+        scriptCandidate: _type == 'script_recognition'
+            ? _scriptController!.build(publicationState)
+            : null,
+      ),
+    );
+    final error = result.error;
+    if (error != null) {
+      _showDraftError(error);
+      return null;
     }
-    return candidate;
+    return result.candidate;
   }
 
-  /// Builds the inline-gap Arrange candidate for `word_order` and
-  /// `build_translation` when Inline gaps is enabled. Reuses the existing
-  /// token/authored-order block-matching rules and legacy prompt-role
-  /// mapping so gap-fill authoring stays consistent with the unchanged
-  /// whole-sentence Arrange builder.
-  static final RegExp _gapBracePattern = RegExp(r'\{([^{}]*)\}');
-
-  /// True when every `{`/`}` in [text] belongs to a well-formed `{answer}`
-  /// gap marker (no stray or nested braces left over once all gap markers
-  /// are removed).
-  bool _gapBraceCountsBalance(String text) =>
-      !text.replaceAll(_gapBracePattern, '').contains(RegExp(r'[{}]'));
-
-  Exercise? _buildArrangeGapCandidate(PublicationState publicationState) {
-    final text = _gapLayout.text;
-    if (text.contains('{') && !_gapBraceCountsBalance(text)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Sentence with gaps: every { must have a matching } directly '
+  void _showDraftError(ExerciseDraftFieldError error) {
+    if (error.field == ExerciseDraftField.correctTranslations) {
+      setState(() {
+        _correctTranslationErrorIndexes = error.indexes;
+        _correctTranslationError =
+            error.code == ExerciseDraftErrorCode.correctTranslationsRequired
+            ? 'Add at least one non-empty correct translation.'
+            : 'Correct translations contain duplicates after ignoring case, spacing and final punctuation. Remove or change the repeated entry.';
+      });
+      return;
+    }
+    final message = switch (error.code) {
+      ExerciseDraftErrorCode.translationChoiceAnswers ||
+      ExerciseDraftErrorCode.answerExpression => error.detail!,
+      ExerciseDraftErrorCode.correctTranslationsRequired =>
+        'Add at least one non-empty correct translation.',
+      ExerciseDraftErrorCode.correctTranslationsDuplicate =>
+        'Correct translations contain duplicates after ignoring case, spacing and final punctuation. Remove or change the repeated entry.',
+      ExerciseDraftErrorCode.pairLine =>
+        'Pairs line ${error.line}: enter both values as left = right, one pair per line. Complete or remove this line before Preview or Save.',
+      ExerciseDraftErrorCode.correctAnswerNumber =>
+        'Correct answer number: enter the number of an existing answer, starting at 1.',
+      ExerciseDraftErrorCode.arrangeGapBraces =>
+        'Sentence with gaps: every { must have a matching } directly '
             'around one answer word or phrase, e.g. {go}. Literal { or } '
             "characters can't be used elsewhere in the sentence.",
-          ),
-        ),
-      );
-      return null;
-    }
-    final matches = _gapBracePattern.allMatches(text).toList();
-    if (matches.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Sentence with gaps: add at least one gap, e.g. {go}.'),
-        ),
-      );
-      return null;
-    }
-    final gapAnswers = <String>[];
-    for (final match in matches) {
-      final answer = (match.group(1) ?? '').trim();
-      if (answer.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'Sentence with gaps: each {…} gap must contain the answer '
-              'text, e.g. {go}, not an empty {}.',
-            ),
-          ),
-        );
-        return null;
-      }
-      gapAnswers.add(answer);
-    }
-    final distractors = _lines(_tokens);
-    final tokens = [...gapAnswers, ...distractors];
-    final itemIds = Exercise.resolveOrderedItemIds(tokens, gapAnswers);
-    if (itemIds.length != gapAnswers.length) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Sentence with gaps: could not resolve every gap answer to a '
+      ExerciseDraftErrorCode.arrangeGapMissing =>
+        'Sentence with gaps: add at least one gap, e.g. {go}.',
+      ExerciseDraftErrorCode.arrangeGapEmpty =>
+        'Sentence with gaps: each {…} gap must contain the answer '
+            'text, e.g. {go}, not an empty {}.',
+      ExerciseDraftErrorCode.arrangeGapConflict =>
+        'Sentence with gaps: could not resolve every gap answer to a '
             'block. Check the extra distractor blocks for a conflict.',
-          ),
-        ),
-      );
-      return null;
-    }
-    final gapIds = [for (var i = 0; i < gapAnswers.length; i++) 'gap_${i + 1}'];
-    final layout = <PromptElement>[];
-    var cursor = 0;
-    for (var i = 0; i < matches.length; i++) {
-      final match = matches[i];
-      final fixedText = text.substring(cursor, match.start).trim();
-      if (fixedText.isNotEmpty) {
-        layout.add(PromptElement(type: 'text', text: fixedText));
-      }
-      layout.add(PromptElement(type: 'gap', text: gapIds[i]));
-      cursor = match.end;
-    }
-    final trailingText = text.substring(cursor).trim();
-    if (trailingText.isNotEmpty) {
-      layout.add(PromptElement(type: 'text', text: trailingText));
-    }
-    final items = [
-      for (var i = 0; i < tokens.length; i++)
-        ExerciseItem(
-          id: 'item_$i',
-          content: [PromptElement(type: 'text', text: tokens[i])],
-        ),
-    ];
-    return Exercise.v2(
-      id: _exercise.id,
-      publicationState: publicationState,
-      updatedAt: _exercise.updatedAt,
-      editorTemplate: _type,
-      promptElements: Exercise.legacyPromptElements(
-        _type,
-        _prompt.text.trim(),
-        '',
-        _tts.text.trim().isEmpty ? null : _tts.text.trim(),
-        _imageAsset,
-      ),
-      interaction: ExerciseInteraction(
-        kind: 'arrange',
-        items: items,
-        layout: layout,
-      ),
-      evaluation: ExerciseEvaluation(
-        kind: 'ordered_items',
-        gapAssignments: {
-          for (var i = 0; i < gapIds.length; i++) gapIds[i]: itemIds[i],
-        },
-      ),
-      hint: '',
-      feedback: _exercise.feedback,
-      missingWords: _exercise.missingWords,
-    );
-  }
-
-  /// Builds the multiple-selection Select candidate for `choice` when
-  /// Multiple correct answers is enabled. Correctness is set-based: the
-  /// learner's selected options must exactly match `correctItemIds`.
-  Exercise? _buildSelectMultiCandidate(PublicationState publicationState) {
-    final answerLines = _lines(_answers);
-    if (answerLines.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Answers: add at least one answer.')),
-      );
-      return null;
-    }
-    final numberTexts = _correct.text
-        .split(RegExp(r'[,\n]'))
-        .map((value) => value.trim())
-        .where((value) => value.isNotEmpty)
-        .toList();
-    final correctIndexes = <int>{};
-    for (final numberText in numberTexts) {
-      final parsed = int.tryParse(numberText);
-      if (parsed == null || parsed < 1 || parsed > answerLines.length) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            duration: Duration(seconds: 8),
-            content: Text(
-              'Correct answer numbers: enter the numbers of existing '
-              'answers, starting at 1, separated by commas.',
-            ),
-          ),
-        );
-        return null;
-      }
-      correctIndexes.add(parsed - 1);
-    }
-    if (correctIndexes.isEmpty && publicationState.isPublished) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Correct answer numbers: enter at least one correct answer '
+      ExerciseDraftErrorCode.multiAnswersMissing =>
+        'Answers: add at least one answer.',
+      ExerciseDraftErrorCode.multiCorrectNumbers =>
+        'Correct answer numbers: enter the numbers of existing '
+            'answers, starting at 1, separated by commas.',
+      ExerciseDraftErrorCode.multiCorrectRequired =>
+        'Correct answer numbers: enter at least one correct answer '
             'number to publish.',
-          ),
-        ),
-      );
-      return null;
-    }
-    final requiredText = _requiredSelections.text.trim();
-    final required = requiredText.isEmpty
-        ? (correctIndexes.isEmpty ? 1 : correctIndexes.length)
-        : int.tryParse(requiredText);
-    if (required == null || required < 1 || required > answerLines.length) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Required selections: enter a number between 1 and the number '
+      ExerciseDraftErrorCode.multiRequiredSelections =>
+        'Required selections: enter a number between 1 and the number '
             'of answers, or leave blank.',
-          ),
-        ),
-      );
-      return null;
-    }
-    final items = [
-      for (var i = 0; i < answerLines.length; i++)
-        ExerciseItem(
-          id: 'item_$i',
-          content: [PromptElement(type: 'text', text: answerLines[i])],
-        ),
-    ];
-    return Exercise.v2(
-      id: _exercise.id,
-      publicationState: publicationState,
-      updatedAt: _exercise.updatedAt,
-      editorTemplate: _type,
-      promptElements: Exercise.legacyPromptElements(
-        _type,
-        _prompt.text.trim(),
-        _question.text.trim(),
-        null,
-        _imageAsset,
-      ),
-      interaction: ExerciseInteraction(
-        kind: 'select',
-        items: items,
-        minSelections: required,
-        maxSelections: items.length,
-      ),
-      evaluation: ExerciseEvaluation(
-        kind: 'selected_items',
-        correctItemIds: [for (final i in correctIndexes) items[i].id],
-      ),
-      hint: '',
-      feedback: _exercise.feedback,
-      missingWords: _exercise.missingWords,
-    );
-  }
-
-  /// Builds the linked-gap Select candidate for `choice` when Inline gaps is
-  /// enabled. Unlike gap-based Arrange, the same option can be the required
-  /// answer for more than one gap, so answer text is deduplicated into one
-  /// shared option: the learner can tap it again to fill a later gap that
-  /// also needs it, instead of needing a separate tile per occurrence.
-  Exercise? _buildSelectGapCandidate(PublicationState publicationState) {
-    final text = _gapLayout.text;
-    if (text.contains('{') && !_gapBraceCountsBalance(text)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Sentence with gaps: every { must have a matching } directly '
+      ExerciseDraftErrorCode.selectGapBraces =>
+        'Sentence with gaps: every { must have a matching } directly '
             'around one answer option, e.g. {answer}. Literal { or } '
             "characters can't be used elsewhere in the sentence.",
-          ),
-        ),
-      );
-      return null;
-    }
-    final matches = _gapBracePattern.allMatches(text).toList();
-    if (matches.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Sentence with gaps: add at least one gap, e.g. {answer}.',
-          ),
-        ),
-      );
-      return null;
-    }
-    final gapAnswers = <String>[];
-    for (final match in matches) {
-      final answer = (match.group(1) ?? '').trim();
-      if (answer.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'Sentence with gaps: each {…} gap must contain the answer '
-              'text, e.g. {answer}, not an empty {}.',
-            ),
-          ),
-        );
-        return null;
-      }
-      gapAnswers.add(answer);
-    }
-    final distractors = _lines(_tokens);
-    final optionTexts = <String>[];
-    for (final answer in [...gapAnswers, ...distractors]) {
-      if (!optionTexts.contains(answer)) optionTexts.add(answer);
-    }
-    final idByText = {
-      for (var i = 0; i < optionTexts.length; i++) optionTexts[i]: 'item_$i',
+      ExerciseDraftErrorCode.selectGapMissing =>
+        'Sentence with gaps: add at least one gap, e.g. {answer}.',
+      ExerciseDraftErrorCode.selectGapEmpty =>
+        'Sentence with gaps: each {…} gap must contain the answer '
+            'text, e.g. {answer}, not an empty {}.',
+      ExerciseDraftErrorCode.scriptCandidateMissing =>
+        'Recognize characters: reopen this Exercise to restore its options.',
     };
-    final gapIds = [for (var i = 0; i < gapAnswers.length; i++) 'gap_${i + 1}'];
-    final layout = <PromptElement>[];
-    var cursor = 0;
-    for (var i = 0; i < matches.length; i++) {
-      final match = matches[i];
-      final fixedText = text.substring(cursor, match.start).trim();
-      if (fixedText.isNotEmpty) {
-        layout.add(PromptElement(type: 'text', text: fixedText));
-      }
-      layout.add(PromptElement(type: 'gap', text: gapIds[i]));
-      cursor = match.end;
-    }
-    final trailingText = text.substring(cursor).trim();
-    if (trailingText.isNotEmpty) {
-      layout.add(PromptElement(type: 'text', text: trailingText));
-    }
-    final items = [
-      for (final optionText in optionTexts)
-        ExerciseItem(
-          id: idByText[optionText]!,
-          content: [PromptElement(type: 'text', text: optionText)],
-        ),
-    ];
-    return Exercise.v2(
-      id: _exercise.id,
-      publicationState: publicationState,
-      updatedAt: _exercise.updatedAt,
-      editorTemplate: _type,
-      promptElements: Exercise.legacyPromptElements(
-        _type,
-        _prompt.text.trim(),
-        '',
-        _tts.text.trim().isEmpty ? null : _tts.text.trim(),
-        _imageAsset,
-      ),
-      interaction: ExerciseInteraction(
-        kind: 'select',
-        items: items,
-        layout: layout,
-      ),
-      evaluation: ExerciseEvaluation(
-        kind: 'selected_items',
-        gapAssignments: {
-          for (var i = 0; i < gapIds.length; i++)
-            gapIds[i]: idByText[gapAnswers[i]]!,
-        },
-      ),
-      hint: '',
-      feedback: _exercise.feedback,
-      missingWords: _exercise.missingWords,
+    final longFeedback =
+        error.code == ExerciseDraftErrorCode.translationChoiceAnswers ||
+        error.code == ExerciseDraftErrorCode.correctAnswerNumber ||
+        error.code == ExerciseDraftErrorCode.multiCorrectNumbers;
+    ScaffoldMessenger.of(context).showSnackBar(
+      longFeedback
+          ? SnackBar(
+              duration: const Duration(seconds: 8),
+              content: Text(message),
+            )
+          : SnackBar(content: Text(message)),
     );
   }
 
@@ -9642,32 +9039,6 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
     }
   }
 
-  Exercise _withSelectedSharedSource(Exercise exercise) => Exercise.v2(
-    id: exercise.id,
-    publicationState: exercise.publicationState,
-    updatedAt: exercise.updatedAt,
-    editorTemplate: exercise.editorTemplate,
-    promptElements: [
-      for (final element in exercise.promptElements)
-        if (element.type == 'image' && element.asset == _imageAsset)
-          PromptElement(
-            role: element.role,
-            type: element.type,
-            text: element.text,
-            asset: element.asset,
-            speaker: element.speaker,
-            sharedImageSource: _selectedSharedSource,
-          )
-        else
-          element,
-    ],
-    interaction: exercise.interaction,
-    evaluation: exercise.evaluation,
-    hint: exercise.hint,
-    feedback: exercise.feedback,
-    missingWords: exercise.missingWords,
-  );
-
   Future<bool> _save(
     PublicationState publicationState, {
     bool close = true,
@@ -9679,9 +9050,11 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
       return false;
     }
     if (!mounted) return false;
-    final built = _buildCandidate(publicationState);
-    if (built == null) return false;
-    final candidate = _withSelectedSharedSource(built);
+    final candidate = _buildCandidate(
+      publicationState,
+      attachSelectedSharedSource: true,
+    );
+    if (candidate == null) return false;
     if (!await _validateScriptImages(candidate)) return false;
     if (!mounted) return false;
     final ex =
