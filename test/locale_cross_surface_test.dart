@@ -6,6 +6,7 @@ import 'package:quisquislingo_app/localization/locale_service.dart';
 import 'package:quisquislingo_app/models/course_models.dart';
 import 'package:quisquislingo_app/screens/course_info_screen.dart';
 import 'package:quisquislingo_app/screens/editor_help_screen.dart';
+import 'package:quisquislingo_app/screens/qql_guide_screen.dart';
 import 'package:quisquislingo_app/screens/settings_screen.dart';
 import 'package:quisquislingo_app/services/profile_service.dart';
 import 'package:quisquislingo_app/widgets/app_locale_selector.dart';
@@ -15,7 +16,7 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   setUp(() => SharedPreferences.setMockInitialValues({}));
 
-  testWidgets('Settings Help and Course Info share one persisted Locale', (
+  testWidgets('Guide Help and Course Info share one persisted Locale', (
     tester,
   ) async {
     tester.view.physicalSize = const Size(1000, 2000);
@@ -29,13 +30,14 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await _select(tester, 'settings-locale-selector', 'IT');
-    unawaited(
-      Navigator.of(
-        tester.element(find.byType(SettingsScreen)),
-      ).push<void>(MaterialPageRoute(builder: (_) => const EditorHelpScreen())),
-    );
+    await tester.tap(find.byKey(const Key('settings-qql-guide')));
     await tester.pumpAndSettle();
+    expect(find.byType(QqlGuideScreen), findsOneWidget);
+    await _select(tester, 'qql-guide-language-selector', 'IT');
+    await tester.ensureVisible(find.byKey(const Key('qql-guide-help-editor')));
+    await tester.tap(find.byKey(const Key('qql-guide-help-editor')));
+    await tester.pumpAndSettle();
+    expect(find.byType(EditorHelpScreen), findsOneWidget);
     expect(
       tester
           .widget<AppLocaleSelector>(
@@ -51,14 +53,14 @@ void main() {
     expect(
       tester
           .widget<AppLocaleSelector>(
-            find.byKey(const Key('settings-locale-selector')),
+            find.byKey(const Key('qql-guide-language-selector')),
           )
           .locale,
       AppLocale.spanish,
     );
 
     unawaited(
-      Navigator.of(tester.element(find.byType(SettingsScreen))).push<void>(
+      Navigator.of(tester.element(find.byType(QqlGuideScreen))).push<void>(
         MaterialPageRoute(builder: (_) => CourseInfoScreen(course: _course)),
       ),
     );
@@ -70,12 +72,29 @@ void main() {
     expect(
       tester
           .widget<AppLocaleSelector>(
-            find.byKey(const Key('settings-locale-selector')),
+            find.byKey(const Key('qql-guide-language-selector')),
           )
           .locale,
       AppLocale.english,
     );
     expect(await LocaleService().read(), AppLocale.english);
+
+    await tester.pageBack();
+    await tester.pumpAndSettle();
+    expect(find.byType(SettingsScreen), findsOneWidget);
+    expect(find.byKey(const Key('settings-locale-selector')), findsNothing);
+    expect(find.text('Help Language'), findsNothing);
+    expect(find.text('App Info'), findsNothing);
+    await tester.tap(find.byKey(const Key('settings-qql-guide')));
+    await tester.pumpAndSettle();
+    expect(
+      tester
+          .widget<AppLocaleSelector>(
+            find.byKey(const Key('qql-guide-language-selector')),
+          )
+          .locale,
+      AppLocale.english,
+    );
   });
 }
 

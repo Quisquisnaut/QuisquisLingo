@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import '../models/course_models.dart';
-import '../localization/locale_builder.dart';
 import '../services/app_metadata.dart';
 import '../services/settings_service.dart';
 import '../services/sound_effect_service.dart';
@@ -12,11 +11,10 @@ import 'do_not_disturb_settings_screen.dart';
 import 'debug_screen.dart';
 import 'device_administration_screen.dart';
 import '../services/profile_service.dart';
-import 'info_screen.dart';
 import 'profile_screen.dart';
 import 'update_settings_screen.dart';
 import 'flag_game_screen.dart';
-import '../widgets/app_locale_selector.dart';
+import 'qql_guide_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   final Course? course;
@@ -219,29 +217,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                 const Divider(),
                 ListTile(
-                  title: const Text('Locale'),
-                  subtitle: const Text(
-                    'Help and Course Info language for this learner.',
-                  ),
-                  trailing: LocaleBuilder(
-                    builder: (_, locale) => AppLocaleSelector(
-                      key: const Key('settings-locale-selector'),
-                      locale: locale,
-                    ),
-                  ),
-                ),
-                ListTile(
-                  leading: const Icon(Icons.help_outline),
-                  title: const Text('App Info'),
-                  subtitle: const Text(
-                    'Learning rules, metrics and app behavior.',
-                  ),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => Navigator.of(
-                    context,
-                  ).push(MaterialPageRoute(builder: (_) => const InfoScreen())),
-                ),
-                ListTile(
                   leading: const Icon(Icons.record_voice_over_outlined),
                   title: const Text('Audio Settings'),
                   subtitle: const Text(
@@ -265,6 +240,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     MaterialPageRoute(
                       builder: (_) => const DoNotDisturbSettingsScreen(),
                     ),
+                  ),
+                ),
+                ListTile(
+                  key: const Key('settings-qql-guide'),
+                  leading: const Icon(Icons.menu_book_outlined),
+                  title: const Text('QQL Guide'),
+                  subtitle: const Text(
+                    'Help pages, Help Language and App Info.',
+                  ),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const QqlGuideScreen()),
                   ),
                 ),
                 const Divider(),

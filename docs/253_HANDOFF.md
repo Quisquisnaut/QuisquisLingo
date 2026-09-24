@@ -1,5 +1,33 @@
 # Build 253 handoff
 
+## Revision 1: QQL Guide
+
+Build 253 Revision 1 is `2.0.53+253001`, dated 2026-09-24. Settings places
+**QQL Guide** immediately after Do Not Disturb. The Guide shows the existing
+per-learner Locale selector and description as **Help Language**, followed by
+the existing App Info link and description. App Settings no longer shows those
+two entries directly. The Locale ID and storage key are unchanged, so Help,
+Course Info, App Info and QQL Guide continue to observe the same preference.
+Only an explicit selector change writes it; fallback reads leave it intact.
+
+The Guide links to the standalone Help screens, ordered alphabetically by
+their current title in the selected language. It includes distinct All
+Courses Help and Course Library Help links, even though they share Help body
+text. A central destination list resolves titles through the shared Help
+catalog and opens the corresponding screens; adding a Help page or renaming a
+localized title does not require maintaining three separate navigation lists.
+The Audit Codes registry is included as an English-only destination by owner
+choice. The existing Help page selectors and the technical reference pages
+retain their own content and behavior. Inline Help and the rest of the app UI
+remain outside localization scope.
+
+No stored data, Course Model v11, package format 1, rights, scoring,
+progression or beta-expiry change accompanies this revision. Its verification
+record is in [253_VALIDATION.md](253_VALIDATION.md): 2469/2469 Flutter tests,
+0 analyzer issues and a successful Windows Release build. Native UI automation
+could not initialize on this host, so the interactive smoke test remains
+pending.
+
 ## Revision 0 source state
 
 Build 253 Revision 0 is `2.0.53+253000`, dated 2026-09-24. This source

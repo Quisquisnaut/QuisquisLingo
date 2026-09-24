@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../localization/locale_service.dart';
 
-/// The same persisted Locale control used by Settings, Help and Course Info.
+/// The same persisted Help Language control used by the Guide, Help and Course Info.
 class AppLocaleSelector extends StatelessWidget {
   const AppLocaleSelector({super.key, required this.locale});
 
@@ -10,7 +10,7 @@ class AppLocaleSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Tooltip(
-    message: 'Locale',
+    message: 'Help Language',
     child: DropdownButtonHideUnderline(
       child: DropdownButton<AppLocale>(
         value: locale,
@@ -25,7 +25,7 @@ class AppLocaleSelector extends StatelessWidget {
           } catch (_) {
             if (!context.mounted) return;
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Could not save Locale.')),
+              const SnackBar(content: Text('Could not save Help Language.')),
             );
           }
         },

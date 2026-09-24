@@ -1,6 +1,38 @@
 # Build 253 validation
 
-## Scope and release state
+## Revision 1: QQL Guide
+
+Build 253 Revision 1 is `2.0.53+253001`, dated 2026-09-24
+(Europe/Rome). The beta expiry remains `2026-10-24 23:59:59` local time.
+The revision moves the Locale and App Info entries into QQL Guide after Do
+Not Disturb and labels the shared selector **Help Language**. The Guide lists
+the standalone Help destinations in alphabetic order by their localized
+titles. Both All Courses Help and Course Library Help are separate links; the
+Audit Codes registry remains English-only. Inline Help and the rest of the app
+UI remain outside localization scope.
+
+The focused Guide, Settings, Locale synchronization and version tests passed
+**37/37**. The affected Help, App Info, Course Info and catalog tests passed
+**45/45**. The new Guide test opens all 12 registered destinations and checks
+EN/IT/ES title order, the English-only Audit Codes link and Locale storage.
+`flutter analyze --no-pub` reported **0 issues** in 78.2 seconds. The final
+serial `flutter test --no-pub --concurrency=1 --reporter expanded` passed
+**2469/2469** in 24 minutes 9 seconds (exit code 0).
+
+`flutter build windows --release --no-pub` from the consistently spelled
+`C:\QQL\QuisquisLingo` path passed in 137.4 seconds. Both Windows executable
+version fields report `2.0.53+253001`. The Windows computer-use helper failed
+to initialize twice with `failed to write kernel assets` (OS error 3), so an
+interactive native click-through could not be completed. Windows-host widget
+tests covered the Guide, all destination routes and Locale changes; the
+owner's native smoke test remains pending. Long test and build runs held a
+temporary `ES_CONTINUOUS | ES_SYSTEM_REQUIRED` execution-state request in the
+supervising PowerShell process and cleared it in `finally`. No full suite
+rerun was needed after this documentation-only update.
+
+---
+
+## Revision 0: scope and release state
 
 Build 253 Revision 0 is `2.0.53+253000`, dated 2026-09-24
 (Europe/Rome). It is a source release without a Windows package. Beta expiry

@@ -1,3 +1,23 @@
+# 2.0.53 (Build 253, Revision 1) - QQL Guide - 2026-09-24
+
+Settings now opens **QQL Guide** immediately after Do Not Disturb. The shared
+per-learner Locale selector and its description move there under the label
+**Help Language**. The App Info link and its description move there too.
+Below them, QQL Guide lists every standalone Help destination by its title in
+the selected language, sorted alphabetically. All Courses Help and Course
+Library Help each have a link. Audit Codes is included as an English-only
+technical registry. A single destination registry uses the Help catalogs'
+title keys, so future Help pages, renamed titles and languages share the same
+list and localization lookup.
+
+The existing Locale key, EN/IT/ES choices, persistence, English fallback and
+Help/Course Info selectors are unchanged. Inline Help and the remaining app UI
+are outside this revision's localization scope. Course Model v11, package
+format 1, Course data, rights, scoring, progression and beta expiry
+(`2026-10-24 23:59:59` local time) remain unchanged. Version
+`2.0.53+253001`. See the [validation](docs/253_VALIDATION.md) and
+[handoff](docs/253_HANDOFF.md).
+
 # 2.0.53 (Build 253, Revision 0) - Localization first slice - 2026-09-24
 
 Standalone Help pages, App Info and Course Info now have English, Italian and

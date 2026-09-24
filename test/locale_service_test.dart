@@ -6,6 +6,7 @@ import 'package:quisquislingo_app/localization/locale_builder.dart';
 import 'package:quisquislingo_app/localization/locale_service.dart';
 import 'package:quisquislingo_app/localization/localized_text.dart';
 import 'package:quisquislingo_app/screens/settings_screen.dart';
+import 'package:quisquislingo_app/screens/qql_guide_screen.dart';
 import 'package:quisquislingo_app/services/learner_backup_service.dart';
 import 'package:quisquislingo_app/services/profile_service.dart';
 import 'package:quisquislingo_app/widgets/app_locale_selector.dart';
@@ -188,7 +189,7 @@ void main() {
     expect(find.text('ES'), findsOneWidget);
   });
 
-  testWidgets('App Settings exposes the shared per-user Locale', (
+  testWidgets('QQL Guide exposes the shared per-user Help Language', (
     tester,
   ) async {
     final profiles = ProfileService();
@@ -200,9 +201,13 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    final selector = find.byKey(const Key('settings-locale-selector'));
+    expect(find.byKey(const Key('settings-locale-selector')), findsNothing);
+    await tester.tap(find.byKey(const Key('settings-qql-guide')));
+    await tester.pumpAndSettle();
+    expect(find.byType(QqlGuideScreen), findsOneWidget);
+    final selector = find.byKey(const Key('qql-guide-language-selector'));
     expect(selector, findsOneWidget);
-    expect(find.widgetWithText(ListTile, 'Locale'), findsOneWidget);
+    expect(find.widgetWithText(ListTile, 'Help Language'), findsOneWidget);
     await tester.tap(selector);
     await tester.pumpAndSettle();
     await tester.tap(find.text('IT').last);

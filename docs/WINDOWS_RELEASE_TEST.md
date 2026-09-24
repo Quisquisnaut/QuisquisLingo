@@ -69,7 +69,17 @@ Run before distributing a Windows build:
 5. Copy the entire `build\\windows\\x64\\runner\\Release` directory to a Windows machine without Flutter or VS Code.
 6. Start QuisquisLingo from the packaged `QuisquisLingo.exe` bootstrap. Also
    confirm direct `quisquislingo_app.exe` execution still bypasses preflight.
-7. Verify Settings is ordered Profile, App Info, Audio Settings, Do Not Disturb, Debug, Version and Build, Update. Verify Course Manager and User Data are absent there.
+7. Verify Settings is ordered Profile, Audio Settings, Do Not Disturb, QQL Guide,
+   Debug, Version and Build, Update (with Device Administration for eligible
+   profiles). Locale and App Info no longer appear directly in Settings;
+   Course Manager and User Data remain absent there. Open QQL Guide and verify
+   Help Language with its description, then App Info with its description,
+   then all standalone Help links sorted alphabetically by the
+   selected-language title. Verify All Courses Help and Course Library Help
+   open separately and Audit Codes remains English. Change Help Language
+   among EN, IT and ES; verify Guide titles reorder, Help and Course Info show
+   the same Locale, and the choice survives restart. Change Locale from Help
+   or Course Info and verify QQL Guide updates.
 8. Verify Profile is ordered Avatar, Learner profiles, Gamification, Statistics, User Data, then Log out.
 9. Open Statistics after studying more than one language. Verify Total Study Days counts shared dates once and each language shows its flag, name, canonical ID, Study Days, Current Streak and Max Streak.
 10. Create a new learner, open Audio Settings and verify Enable Audio Exercises and Text-to-speech both start Off. Verify the order is Enable Audio Exercises, Text-to-speech, then TTS voice with the existing Test Voice action.
