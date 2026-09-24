@@ -101,6 +101,9 @@ void main() {
     'learner progress removes progress but keeps profiles and settings',
     () async {
       await seedProgress(learnerId);
+      final prefsBefore = await SharedPreferences.getInstance();
+      final prefixBefore = ProfileService.prefixForProfileId(learnerId);
+      await prefsBefore.setString('${prefixBefore}locale', 'ES');
       await service.reset(
         AppResetScope.learnerProgress,
         actorProfileId: adminId,
@@ -111,12 +114,16 @@ void main() {
       expect(prefs.containsKey('${prefix}v4_completed_rounds'), isFalse);
       expect(prefs.containsKey('${prefix}xp_it'), isFalse);
       expect(prefs.getString('${prefix}theme_mode'), 'dark');
+      expect(prefs.getString('${prefix}locale'), 'ES');
       expect(await profiles.getProfileRecords(), hasLength(2));
       expect(await profiles.hasAccessPin(adminId), isTrue);
     },
   );
 
   test('a non-everything reset leaves the admin logged in', () async {
+    final prefs = await SharedPreferences.getInstance();
+    final localeKey = profiles.keyForProfileId(adminId, 'locale');
+    await prefs.setString(localeKey, 'IT');
     for (final scope in [
       AppResetScope.learnerProgress,
       AppResetScope.nonAdminLearners,
@@ -129,6 +136,11 @@ void main() {
         await profiles.getActiveProfileId(),
         adminId,
         reason: '$scope must not log the admin out',
+      );
+      expect(
+        prefs.getString(localeKey),
+        'IT',
+        reason: '$scope must keep Locale',
       );
     }
   });
@@ -343,6 +355,8 @@ void main() {
   test(
     'everything wipes preferences and files, keeping ticked folders',
     () async {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(profiles.keyForProfileId(adminId, 'locale'), 'ES');
       touch('${documents.path}${sep}QuisquisLingo${sep}Exports${sep}b.json');
       touch('${documents.path}${sep}QuisquisLingo${sep}Logs${sep}crash.log');
       touch('${documents.path}${sep}QuisquisLingo${sep}Imports${sep}i.json');

@@ -1,3 +1,48 @@
+# 2.0.53 (Build 253, Revision 1) - QQL Guide - 2026-09-24
+
+Settings now opens **QQL Guide** immediately after Do Not Disturb. The shared
+per-learner Locale selector and its description move there under the label
+**Help Language**. The App Info link and its description move there too.
+Below them, QQL Guide lists every standalone Help destination by its title in
+the selected language, sorted alphabetically. All Courses Help and Course
+Library Help each have a link. Audit Codes is included as an English-only
+technical registry. A single destination registry uses the Help catalogs'
+title keys, so future Help pages, renamed titles and languages share the same
+list and localization lookup.
+
+The existing Locale key, EN/IT/ES choices, persistence, English fallback and
+Help/Course Info selectors are unchanged. Inline Help and the remaining app UI
+are outside this revision's localization scope. Course Model v11, package
+format 1, Course data, rights, scoring, progression and beta expiry
+(`2026-10-24 23:59:59` local time) remain unchanged. Version
+`2.0.53+253001`. See the [validation](docs/253_VALIDATION.md) and
+[handoff](docs/253_HANDOFF.md).
+
+The Italian technical Help now uses “primitive” consistently for Exercise
+primitives.
+
+# 2.0.53 (Build 253, Revision 0) - Localization first slice - 2026-09-24
+
+Standalone Help pages, App Info and Course Info now have English, Italian and
+Spanish text. A Locale selector on these pages and in App Settings reads and
+writes one learner-scoped preference; a change updates mounted pages and
+survives restart. Each language has its own text catalog with shared stable
+keys. A missing translated keyed value, such as a title, body, label or table
+cell, falls back to English without changing the stored Locale. QQL command,
+menu, button, setting and mode names mentioned in Help and Course Info remain
+in English.
+
+Locale follows learner backup and restore. Progress, Course and media resets
+keep it; deleting a profile or wiping the device removes it. Inline Help and
+the linked Audit Codes technical registry remain English, as does the rest of
+the app interface. Course Model v11, package format 1, Course data, rights,
+scoring and progression remain unchanged.
+
+Version `2.0.53+253000`. This is a source release without a Windows package;
+the owner smoke test is pending. Beta expiry remains **2026-10-24 23:59:59
+local time**. See the [Build 253 plan](docs/253_LOCALIZATION_PLAN.md),
+[validation](docs/253_VALIDATION.md) and [handoff](docs/253_HANDOFF.md).
+
 # 2.0.52 (Build 252, Revision 0) - Exercise Authoring - 2026-09-24
 
 Exercise candidate construction is extracted from `ExerciseEditorScreen` into

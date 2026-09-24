@@ -5,9 +5,13 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
 
+import '../localization/help/help_structure.dart';
+import '../localization/help/help_text.dart';
+import '../localization/locale_builder.dart';
 import '../services/crash_log_service.dart';
 import '../services/diagnostic_log_service.dart';
 import '../services/file_dialog_service.dart';
+import '../widgets/app_locale_selector.dart';
 import '../widgets/file_dialog_feedback.dart';
 
 class DebugScreen extends StatefulWidget {
@@ -329,31 +333,27 @@ class DebugHelpScreen extends StatelessWidget {
   const DebugHelpScreen({super.key});
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('Debug Help')),
-    body: ListView(
-      padding: const EdgeInsets.all(16),
-      children: const [
-        _DebugHelpSection(
-          title: 'Crash Log',
-          body:
-              'This Beta version keeps an automatic local Crash Log to help investigate crashes and other serious technical problems.\n\n'
-              'For cases where QQL crashes or closes unexpectedly. If available after a crash, copy or export this file and provide it with your report. It is primarily useful for startup and runtime crashes.\n\n'
-              'Please use the app normally and reproduce the crash. After the app closes, reopen it if necessary. When you send the Crash Log, also say what you clicked immediately before the crash. Please send the whole log file, not a screenshot of it.\n\n'
-              'The Crash Log contains technical system information, session starts, uncaught errors and stack traces. It does not intentionally record learner names, exercise answers or course content.\n\n'
-              'If the Crash Log file is deleted, QuisquisLingo recreates it automatically at the next app start or crash write.',
-        ),
-        _DebugHelpSection(
-          title: 'Diagnostic Log',
-          body:
-              'For problems that do not necessarily crash QQL, including audio, TTS, Recorded MP3, unexpected playback, source-resolution problems, and other runtime anomalies. When possible, reproduce the problem and export this log shortly afterward. To isolate one specific reproducible problem, you may clear it first; clearing is optional. For intermittent or difficult-to-reproduce problems, export the current Diagnostic Log before clearing to preserve existing evidence.',
-        ),
-        _DebugHelpSection(
-          title: 'Privacy',
-          body:
-              'Learner audio diagnostics are designed to avoid recording spoken text, answers, course content, or full personal file paths.',
-        ),
-      ],
+  Widget build(BuildContext context) => LocaleBuilder(
+    builder: (context, locale) => Scaffold(
+      appBar: AppBar(
+        title: Text(helpText.lookup(locale, 'debugHelp.title')),
+        actions: [
+          AppLocaleSelector(
+            key: const Key('debug-help-locale-selector'),
+            locale: locale,
+          ),
+        ],
+      ),
+      body: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          for (final sectionId in debugHelpSectionIds)
+            _DebugHelpSection(
+              title: helpText.lookup(locale, 'debugHelp.$sectionId.title'),
+              body: helpText.lookup(locale, 'debugHelp.$sectionId.body'),
+            ),
+        ],
+      ),
     ),
   );
 }

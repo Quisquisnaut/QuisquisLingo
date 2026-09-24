@@ -11,6 +11,7 @@ enum LearnerStatusInvalidation {
   avatar,
   theme,
   flagBackground,
+  locale,
 }
 
 /// Process-local invalidations. Values remain authoritative in their services.

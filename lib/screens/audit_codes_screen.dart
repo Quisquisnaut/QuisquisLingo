@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../services/audit_code_registry.dart';
 
+const auditCodesPageTitle = 'Audit Codes';
+
 class AuditCodesScreen extends StatefulWidget {
   const AuditCodesScreen({super.key});
 
@@ -41,7 +43,7 @@ class _AuditCodesScreenState extends State<AuditCodesScreen> {
           ),
     ];
     return Scaffold(
-      appBar: AppBar(title: const Text('Audit Codes')),
+      appBar: AppBar(title: const Text(auditCodesPageTitle)),
       body: SafeArea(
         child: Center(
           child: ConstrainedBox(

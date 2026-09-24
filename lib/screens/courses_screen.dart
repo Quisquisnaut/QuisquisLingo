@@ -215,12 +215,8 @@ class _CoursesScreenState extends State<CoursesScreen> {
     }
     Navigator.of(context).push<void>(
       MaterialPageRoute(
-        builder: (_) => Scaffold(
-          appBar: AppBar(title: const Text('All Courses — Help')),
-          body: const SingleChildScrollView(
-            padding: EdgeInsets.all(20),
-            child: SelectableText(availableCoursesHelp),
-          ),
+        builder: (_) => const CourseLibraryHelpScreen(
+          source: CourseLibraryHelpSource.allCourses,
         ),
       ),
     );

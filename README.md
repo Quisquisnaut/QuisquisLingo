@@ -1,6 +1,24 @@
 # QuisquisLingo App
 
-**Current source version: 2.0.52+252000 · Build 252, Revision 0 · Course Model v11 (`formatVersion: 11`).**
+**Current source version: 2.0.53+253001 · Build 253, Revision 1 · Course Model v11 (`formatVersion: 11`).**
+
+**QuisquisLingo 2.0.53 Beta — QQL 253 Help localization and QQL Guide**
+
+Current project version: 2.0.53
+
+Build 253 adds English, Italian and Spanish to standalone Help pages, App
+Info and Course Info. Their EN/IT/ES selectors share one per-learner Locale
+preference that persists across restart and follows learner backup and restore.
+Missing translated text falls back to English without
+changing the selected Locale. QQL command names in Help and Course Info stay
+in English. Revision 1 adds **QQL Guide** after Do Not Disturb in Settings.
+It holds the shared selector as **Help Language**, the App Info link and an
+alphabetically sorted list of standalone Help pages in the selected language.
+All Courses Help and Course Library Help have separate links. The listed Audit
+Codes technical registry, inline Help and the rest of the interface remain
+English. This is a source release without a Windows package. See the
+[Build 253 plan](docs/253_LOCALIZATION_PLAN.md),
+[validation](docs/253_VALIDATION.md) and [handoff](docs/253_HANDOFF.md).
 
 **QuisquisLingo 2.0.52 Beta — QQL 252 Exercise Authoring**
 
@@ -233,7 +251,7 @@ The MPL-2.0 covers the QuisquisLingo software source. Courses, the Image Bank an
 
 ## Beta lifecycle
 
-Version 2.0.52, Build 252, Revision 0 is a time-limited Beta with an expiry of **2026-10-24 23:59:59 local time** (30 days from September 24, 2026, its own release date). Near expiry it displays reminders. After expiry, learner exercises and Review are blocked until a newer Beta is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when a Beta expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM.
+Version 2.0.53, Build 253, Revision 1 is a time-limited Beta with an expiry of **2026-10-24 23:59:59 local time** (unchanged from Build 253 Revision 0). Near expiry it displays reminders. After expiry, learner exercises and Review are blocked until a newer Beta is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when a Beta expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM.
 
 ## Core logic
 
@@ -290,6 +308,14 @@ flutter run
 ```
 
 The official Flutter CLI can bootstrap any missing Android/iOS host files.
+
+On Windows, keep the repository path's capitalization the same for every
+Flutter command, including when switching between Debug and Release. If a
+build reports C1083 for missing files under
+`windows\flutter\ephemeral\cpp_client_wrapper`, stop other Flutter builds,
+then run `flutter clean`, `flutter pub get`, and `flutter build windows` from
+one consistently spelled project path. Those wrapper files are generated
+build output.
 
 ## TTS
 

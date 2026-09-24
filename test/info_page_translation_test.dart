@@ -1,20 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:quisquislingo_app/localization/locale_service.dart';
 import 'package:quisquislingo_app/screens/info_screen.dart';
 import 'package:quisquislingo_app/screens/info_screen_content.dart';
+import 'package:quisquislingo_app/services/profile_service.dart';
 import 'package:quisquislingo_app/widgets/help_language_toggle.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   group('App Info translation', () {
+    setUp(() => SharedPreferences.setMockInitialValues({}));
+
     test('both languages carry the same sections in the same order', () {
       final english = infoSections(HelpLanguage.english);
       final italian = infoSections(HelpLanguage.italian);
+      final spanish = infoSections(HelpLanguage.spanish);
 
       // A section added to one language and forgotten in the other would show
       // the reader a page that silently loses content when they switch.
       expect(italian, hasLength(english.length));
+      expect(spanish, hasLength(english.length));
+      expect(spanish[1].title, 'Elegir y abrir cursos');
       for (var index = 0; index < english.length; index++) {
         expect(
           italian[index].title.trim(),
@@ -37,14 +45,14 @@ void main() {
       expect(untranslated, ['Version and Build']);
     });
 
-    test('the credits button is labelled in both languages', () {
+    test('the credits button keeps its canonical English label', () {
       expect(
         infoCreditsButtonLabel(HelpLanguage.english),
         'App and image credits',
       );
       expect(
         infoCreditsButtonLabel(HelpLanguage.italian),
-        'Crediti dell’app e delle immagini',
+        'App and image credits',
       );
     });
 
@@ -72,36 +80,43 @@ void main() {
       }
     });
 
-    testWidgets('the toggle swaps the page between English and Italian', (
+    testWidgets('the Locale dropdown persists ES and restores it on reopen', (
       tester,
     ) async {
+      final profiles = ProfileService();
+      await profiles.addProfile('Alice');
+      final profileId = (await profiles.getActiveProfileId())!;
+      final localeKey = profiles.keyForProfileId(profileId, 'locale');
+      final prefs = await SharedPreferences.getInstance();
       await tester.pumpWidget(const MaterialApp(home: InfoScreen()));
       await tester.pumpAndSettle();
 
-      // Opens in English, offering Italian.
+      expect(prefs.containsKey(localeKey), isFalse);
       expect(find.text('Choosing and opening courses'), findsOneWidget);
-      expect(find.text('Scegliere e aprire i corsi'), findsNothing);
-      expect(find.text('Italiano'), findsOneWidget);
-
       await tester.tap(find.byKey(const Key('app-info-language-toggle')));
       await tester.pumpAndSettle();
-
-      // Now Italian, and the same control offers the way back.
-      expect(find.text('Scegliere e aprire i corsi'), findsOneWidget);
-      expect(find.text('Choosing and opening courses'), findsNothing);
-      expect(find.text('English'), findsOneWidget);
-
-      await tester.tap(find.byKey(const Key('app-info-language-toggle')));
+      for (final id in ['EN', 'IT', 'ES']) {
+        expect(find.text(id), findsWidgets);
+      }
+      await tester.tap(find.text('ES').last);
       await tester.pumpAndSettle();
+      expect(find.text('Elegir y abrir cursos'), findsOneWidget);
+      expect(prefs.getString(localeKey), 'ES');
 
-      expect(find.text('Choosing and opening courses'), findsOneWidget);
-      expect(find.text('Italiano'), findsOneWidget);
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pumpWidget(const MaterialApp(home: InfoScreen()));
+      await tester.pumpAndSettle();
+      expect(find.text('Elegir y abrir cursos'), findsOneWidget);
+      expect(await LocaleService().read(), AppLocale.spanish);
     });
 
     testWidgets('Italian keeps on-screen names in English', (tester) async {
+      await ProfileService().addProfile('Alice');
       await tester.pumpWidget(const MaterialApp(home: InfoScreen()));
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const Key('app-info-language-toggle')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('IT').last);
       await tester.pumpAndSettle();
 
       // The interface is English, so a reader following the Italian text has

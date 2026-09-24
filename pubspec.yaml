@@ -1,12 +1,14 @@
 name: quisquislingo_app
 description: Offline-first language learning prototype with lessons, rounds, exercises, streaks, duels, profiles, and optional cross-platform TTS.
 publish_to: "none"
-version: 2.0.52+252000
+version: 2.0.53+253001
 environment:
   sdk: ">=3.9.0 <4.0.0"
 
 dependencies:
   flutter:
+    sdk: flutter
+  flutter_localizations:
     sdk: flutter
   flutter_tts: ^4.2.5
   quisquislingo_flutter_tts_windows:

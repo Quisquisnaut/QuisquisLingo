@@ -3,9 +3,26 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:quisquislingo_app/screens/editor_help_content.dart';
 import 'package:quisquislingo_app/screens/editor_help_screen.dart';
 import 'package:quisquislingo_app/widgets/help_language_toggle.dart';
+import 'package:quisquislingo_app/services/profile_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+  setUp(() async {
+    SharedPreferences.setMockInitialValues({});
+    await ProfileService().addProfile('Help Reader');
+  });
+
+  Future<void> selectLocale(
+    WidgetTester tester,
+    String selectorKey,
+    String id,
+  ) async {
+    await tester.tap(find.byKey(Key(selectorKey)));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(id).last);
+    await tester.pumpAndSettle();
+  }
 
   group('Course Help translation', () {
     for (final italian in [false, true]) {
@@ -20,10 +37,11 @@ void main() {
             const MaterialApp(home: CourseManagerHelpScreen()),
           );
           if (italian) {
-            await tester.tap(
-              find.byKey(const Key('course-manager-help-language-toggle')),
+            await selectLocale(
+              tester,
+              'course-manager-help-language-toggle',
+              'IT',
             );
-            await tester.pump();
           }
           final table = find.byKey(
             const Key('course-manager-help-course-types-table'),
@@ -56,13 +74,17 @@ void main() {
     test('Editor keeps editing sections; Manager gets operations sections', () {
       final english = editorHelpSections(HelpLanguage.english);
       final italian = editorHelpSections(HelpLanguage.italian);
+      final spanish = editorHelpSections(HelpLanguage.spanish);
       final managerEnglish = courseManagerHelpSections(HelpLanguage.english);
       final managerItalian = courseManagerHelpSections(HelpLanguage.italian);
+      final managerSpanish = courseManagerHelpSections(HelpLanguage.spanish);
 
       expect(english, hasLength(28));
       expect(italian, hasLength(english.length));
+      expect(spanish, hasLength(english.length));
       expect(managerEnglish, hasLength(14));
       expect(managerItalian, hasLength(managerEnglish.length));
+      expect(managerSpanish, hasLength(managerEnglish.length));
       expect(
         english.map((section) => section.title),
         contains('Audio Library'),
@@ -200,11 +222,12 @@ void main() {
       ]);
     });
 
-    test('the Technical reference card warns that its links are English', () {
+    test('the Technical reference card uses localized descriptions', () {
       expect(editorHelpTechnicalIntro(HelpLanguage.english).note, isEmpty);
+      expect(editorHelpTechnicalIntro(HelpLanguage.italian).note, isEmpty);
       expect(
-        editorHelpTechnicalIntro(HelpLanguage.italian).note,
-        contains('inglese'),
+        editorHelpTechnicalIntro(HelpLanguage.italian).body,
+        isNot(editorHelpTechnicalIntro(HelpLanguage.english).body),
       );
     });
 
@@ -235,22 +258,20 @@ void main() {
       expect(find.text('Editor Help'), findsOneWidget);
       expect(find.text('Technical reference'), findsOneWidget);
       expect(find.text('Course types'), findsNothing);
-      expect(find.text('Italiano'), findsOneWidget);
+      expect(find.text('EN'), findsOneWidget);
 
-      await tester.tap(find.byKey(const Key('editor-help-language-toggle')));
-      await tester.pumpAndSettle();
+      await selectLocale(tester, 'editor-help-language-toggle', 'IT');
 
       expect(find.text('Guida all’Editor'), findsOneWidget);
       expect(find.text('Riferimento tecnico'), findsOneWidget);
       expect(find.text('Tipi di corso'), findsNothing);
-      expect(find.text('English'), findsOneWidget);
+      expect(find.text('IT'), findsOneWidget);
       expect(find.text('Editor Help'), findsNothing);
 
-      await tester.tap(find.byKey(const Key('editor-help-language-toggle')));
-      await tester.pumpAndSettle();
+      await selectLocale(tester, 'editor-help-language-toggle', 'EN');
 
       expect(find.text('Editor Help'), findsOneWidget);
-      expect(find.text('Italiano'), findsOneWidget);
+      expect(find.text('EN'), findsOneWidget);
     });
 
     testWidgets('the links out stay English in both languages', (tester) async {
@@ -258,8 +279,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('Audit Codes'), findsOneWidget);
 
-      await tester.tap(find.byKey(const Key('editor-help-language-toggle')));
-      await tester.pumpAndSettle();
+      await selectLocale(tester, 'editor-help-language-toggle', 'IT');
 
       // They name English-only screens, so translating the label would send
       // the reader somewhere that does not match what they tapped.
@@ -268,7 +288,7 @@ void main() {
     });
 
     testWidgets(
-      'Manager Help has course types and an EN/IT toggle but no technical reference',
+      'Manager Help has course types and a Locale selector but no technical reference',
       (tester) async {
         await tester.pumpWidget(
           const MaterialApp(home: CourseManagerHelpScreen()),
@@ -277,10 +297,7 @@ void main() {
         expect(find.text('Course types'), findsOneWidget);
         expect(find.text('Technical reference'), findsNothing);
 
-        await tester.tap(
-          find.byKey(const Key('course-manager-help-language-toggle')),
-        );
-        await tester.pumpAndSettle();
+        await selectLocale(tester, 'course-manager-help-language-toggle', 'IT');
         expect(find.text('Guida al Course Studio'), findsOneWidget);
         expect(find.text('Tipi di corso'), findsOneWidget);
         expect(find.text('Riferimento tecnico'), findsNothing);

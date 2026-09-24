@@ -11,10 +11,10 @@ import 'do_not_disturb_settings_screen.dart';
 import 'debug_screen.dart';
 import 'device_administration_screen.dart';
 import '../services/profile_service.dart';
-import 'info_screen.dart';
 import 'profile_screen.dart';
 import 'update_settings_screen.dart';
 import 'flag_game_screen.dart';
+import 'qql_guide_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   final Course? course;
@@ -217,17 +217,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                 const Divider(),
                 ListTile(
-                  leading: const Icon(Icons.help_outline),
-                  title: const Text('App Info'),
-                  subtitle: const Text(
-                    'Learning rules, metrics and app behavior.',
-                  ),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => Navigator.of(
-                    context,
-                  ).push(MaterialPageRoute(builder: (_) => const InfoScreen())),
-                ),
-                ListTile(
                   leading: const Icon(Icons.record_voice_over_outlined),
                   title: const Text('Audio Settings'),
                   subtitle: const Text(
@@ -251,6 +240,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     MaterialPageRoute(
                       builder: (_) => const DoNotDisturbSettingsScreen(),
                     ),
+                  ),
+                ),
+                ListTile(
+                  key: const Key('settings-qql-guide'),
+                  leading: const Icon(Icons.menu_book_outlined),
+                  title: const Text('QQL Guide'),
+                  subtitle: const Text(
+                    'Help pages, Help Language and App Info.',
+                  ),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const QqlGuideScreen()),
                   ),
                 ),
                 const Divider(),

@@ -1,41 +1,75 @@
 import 'package:flutter/material.dart';
 
-import 'publisher_signing_help_content.dart';
+import '../localization/help/help_structure.dart';
+import '../localization/help/help_text.dart';
+import '../localization/locale_builder.dart';
+import '../widgets/app_locale_selector.dart';
 
 class PublisherSigningHelpScreen extends StatelessWidget {
   const PublisherSigningHelpScreen({super.key});
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text(publisherSigningGuideTitle)),
-    body: ListView(
-      padding: const EdgeInsets.all(16),
-      children: [
-        for (final (index, section) in publisherSigningGuideSections.indexed)
-          Card(
-            child: index == 0
-                ? Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Text(
-                          section.title,
-                          style: Theme.of(context).textTheme.titleMedium,
+  Widget build(BuildContext context) => LocaleBuilder(
+    builder: (context, locale) => Scaffold(
+      appBar: AppBar(
+        title: Text(helpText.lookup(locale, 'publisherSigningHelp.title')),
+        actions: [
+          AppLocaleSelector(
+            key: const Key('publisher-signing-help-locale-selector'),
+            locale: locale,
+          ),
+        ],
+      ),
+      body: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          for (final (index, sectionId)
+              in publisherSigningHelpSectionIds.indexed)
+            Card(
+              child: index == 0
+                  ? Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Text(
+                            helpText.lookup(
+                              locale,
+                              'publisherSigningHelp.$sectionId.title',
+                            ),
+                            style: Theme.of(context).textTheme.titleMedium,
+                          ),
+                          _GuideBody(
+                            helpText.lookup(
+                              locale,
+                              'publisherSigningHelp.$sectionId.body',
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  : ExpansionTile(
+                      key: PageStorageKey('publisher-guide-$index'),
+                      title: Text(
+                        helpText.lookup(
+                          locale,
+                          'publisherSigningHelp.$sectionId.title',
                         ),
-                        _GuideBody(section.body),
+                      ),
+                      childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                      expandedCrossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        _GuideBody(
+                          helpText.lookup(
+                            locale,
+                            'publisherSigningHelp.$sectionId.body',
+                          ),
+                        ),
                       ],
                     ),
-                  )
-                : ExpansionTile(
-                    key: PageStorageKey('publisher-guide-$index'),
-                    title: Text(section.title),
-                    childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                    expandedCrossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [_GuideBody(section.body)],
-                  ),
-          ),
-      ],
+            ),
+        ],
+      ),
     ),
   );
 }

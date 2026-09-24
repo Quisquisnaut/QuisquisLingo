@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:quisquislingo_app/models/course_models.dart';
 import 'package:quisquislingo_app/screens/debug_screen.dart';
 import 'package:quisquislingo_app/screens/profile_screen.dart';
+import 'package:quisquislingo_app/screens/qql_guide_screen.dart';
 import 'package:quisquislingo_app/screens/settings_screen.dart';
 import 'package:quisquislingo_app/screens/tts_settings_screen.dart';
 import 'package:quisquislingo_app/screens/user_data_settings_screen.dart';
@@ -39,9 +40,9 @@ void main() {
         .toList();
     expect(titles, [
       'Profile',
-      'App Info',
       'Audio Settings',
       'Do Not Disturb',
+      'QQL Guide',
       'Debug',
       'Version and Build',
       'Update',
@@ -49,6 +50,13 @@ void main() {
     expect(find.text('Course Studio'), findsNothing);
     expect(find.text('User Data'), findsNothing);
     expect(find.text('TTS Settings'), findsNothing);
+    expect(find.byKey(const Key('settings-locale-selector')), findsNothing);
+
+    await tester.tap(find.byKey(const Key('settings-qql-guide')));
+    await tester.pumpAndSettle();
+    expect(find.byType(QqlGuideScreen), findsOneWidget);
+    await tester.pageBack();
+    await tester.pumpAndSettle();
 
     await tester.tap(find.widgetWithText(ListTile, 'Audio Settings'));
     await tester.pumpAndSettle();
