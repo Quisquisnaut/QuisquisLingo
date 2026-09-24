@@ -66,4 +66,21 @@ removed. Non-everything reset tests seed `IT` and verify it survives each
 scope. Profile deletion's prefix removal was reviewed in source; no new
 Locale-specific deletion test was added.
 
-After the task-scoped local commit, the owner smoke test is still pending.
+## Post-commit Windows check
+
+Editor Help's EN, IT and ES Audit Codes text no longer states the stale
+102-rule count; the current registry has 104 rules. The focused catalog test
+passed **4/4**. After an initial incremental Windows build found missing
+generated Flutter C++ wrapper files, `flutter clean` regenerated them and
+`flutter build windows --debug` passed in 181.0 seconds. The debug executable
+reports `2.0.53+253000` in both Windows version fields.
+
+The focused Windows-host widget UI run passed **21/21** across Settings, Help,
+Course Info, Locale persistence and the EN/IT/ES selectors. An interactive
+native click-through is still pending: both available UI automation helpers
+failed before initialization with `failed to write kernel assets` (OS error 3).
+The host account also contains existing QQL learner data, so no app session
+was opened against that data. No full suite rerun was needed for these text and
+documentation corrections.
+
+The owner's interactive smoke test is still pending.

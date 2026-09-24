@@ -47,15 +47,20 @@ remains `2026-10-24 23:59:59` local time.
 The tests exercise Settings ↔ Help ↔ Course Info synchronization, learner
 switches and preference persistence, learner backup/restore, progress-reset
 retention, leaf-level fallback without a storage write, EN/IT/ES catalog
-parity, and canonical English QQL command names. Course and media reset
-retention, profile deletion and full-wipe behavior follow the existing
-profile-key ownership and reset paths; there is no new Locale-specific test
-for those paths. Focused and integrated results belong in
+parity, and canonical English QQL command names. Course and media reset tests
+seed `IT` and check that Locale survives; the full-wipe test seeds `ES` and
+checks that Locale is removed. Profile deletion follows the existing
+profile-key namespace removal, reviewed in source without a new Locale-specific
+deletion test. Focused and integrated results belong in
 [253_VALIDATION.md](253_VALIDATION.md). Flutter analysis reported 0 issues,
 all four asset validators passed, and the final serial Flutter suite passed
 2467/2467.
 
-After the task-scoped local commit, wait for the owner's smoke test before any
-further localization. The remaining app UI and inline Help are outside this
-slice. Future language or full-app work can reuse the Locale owner and lookup
-with new catalogs after separate approval.
+A post-commit Windows debug build passed for `2.0.53+253000`, along with 21/21
+focused Windows-host widget UI checks. The interactive native click-through is
+still pending because the UI automation helpers failed to initialize. See the
+post-commit note in [253_VALIDATION.md](253_VALIDATION.md).
+
+The owner's interactive smoke test remains pending. The remaining app UI and
+inline Help are outside this slice. Future language or full-app work can reuse
+the Locale owner and lookup with new catalogs after separate approval.
