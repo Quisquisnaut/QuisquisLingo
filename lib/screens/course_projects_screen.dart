@@ -12,8 +12,8 @@ import '../services/custom_course_transfer_service.dart';
 import '../services/course_service.dart';
 import '../services/course_language_resolver.dart';
 import '../services/course_library_operations.dart';
+import '../services/course_library_categories.dart';
 import '../services/course_library_presentation.dart';
-import '../services/course_library_service.dart';
 import '../services/course_media_store.dart';
 import '../services/course_merge_service.dart';
 import '../services/course_package_import.dart';
@@ -24,6 +24,7 @@ import '../services/sound_effect_service.dart';
 import '../services/new_course_structure.dart';
 import '../widgets/course_flag_picker.dart';
 import '../widgets/course_library_row.dart';
+import '../widgets/course_library_section.dart';
 import '../widgets/editor_app_bar_actions.dart';
 import '../widgets/file_dialog_feedback.dart';
 import '../widgets/flag_art.dart';
@@ -801,8 +802,7 @@ class CourseProjectsScreenState extends State<CourseProjectsScreen> {
   bool _loading = true;
   String? _loadError;
   bool _openedInitialCourse = false;
-  final _compact = List<bool>.filled(4, false);
-  bool _favoritesCompact = false;
+  final _compactSections = <CourseLibraryCategory, bool>{};
   Set<String> _favoriteIds = const {};
   Map<String, String> _profileNames = {};
 
@@ -2398,22 +2398,6 @@ class CourseProjectsScreenState extends State<CourseProjectsScreen> {
     await _reload();
   }
 
-  static const _managerSectionLabels = [
-    'Bundled Courses',
-    'Publisher Courses',
-    'My Local Courses',
-    'Other Local Courses',
-  ];
-
-  int _managerSection(Course course) {
-    if (course.originType == CourseOriginType.bundledOfficial) return 0;
-    if (course.originType == CourseOriginType.externalOfficial) return 1;
-    return CourseLibraryService.creatorProfileId(course) ==
-            _library.activeProfileId
-        ? 2
-        : 3;
-  }
-
   String _managerMaintainer(Course course) {
     if (course.originType.isOfficial) return course.publisherName;
     final id = course.maintainer?.profileId;
@@ -2421,139 +2405,43 @@ class CourseProjectsScreenState extends State<CourseProjectsScreen> {
     return _profileNames[id] ?? 'Profile not on this device ($id)';
   }
 
-  Color _managerSectionColor(BuildContext context, int index) =>
-      switch (index) {
-        0 => Theme.of(context).colorScheme.onSurface,
-        1 => Colors.purple,
-        2 => Colors.orange,
-        _ =>
-          Theme.of(context).brightness == Brightness.dark
-              ? const Color(0xFFBDBDBD)
-              : const Color(0xFF686868),
-      };
-
-  Widget _managerSectionBand(
-    BuildContext context,
-    int index, {
-    bool favorites = false,
-  }) {
-    final courses = <Course>[
-      ..._library.bundledCourses,
-      ..._library.personalCourses,
-    ];
-    final all = courses
-        .where(
-          (course) => favorites
-              ? _favoriteIds.contains(course.courseId)
-              : _managerSection(course) == index,
-        )
-        .toList();
-    final query = widget.search.trim().toLowerCase();
-    final shown = CourseLibraryPresentation.sorted(
-      all.where(
-        (course) =>
-            (widget.showUnavailable ||
-                !CourseLibraryRow.isUnavailable(course)) &&
-            (query.isEmpty ||
-                course.title.toLowerCase().contains(query) ||
-                course.sourceLanguage.toLowerCase().contains(query) ||
-                course.targetLanguage.toLowerCase().contains(query)),
-      ),
-      widget.sort,
-      maintainerOf: _managerMaintainer,
-    );
-    final color = favorites
-        ? Theme.of(context).brightness == Brightness.dark
-              ? Colors.amber.shade300
-              : Colors.amber.shade700
-        : _managerSectionColor(context, index);
-    final compact = favorites ? _favoritesCompact : _compact[index];
-    final sectionKey = favorites ? 'favorites' : '$index';
-    return Padding(
-      key: ValueKey('manager-section-$sectionKey'),
-      padding: const EdgeInsets.only(bottom: 20),
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          border: Border.all(color: color, width: 2),
-          borderRadius: BorderRadius.circular(14),
+  Widget _courseSection(CourseLibraryCategory category) => CourseLibrarySection(
+    key: ValueKey('manager-section-${category.sectionId}'),
+    category: category,
+    surface: CourseLibrarySectionSurface.courseStudio,
+    courses: [..._library.bundledCourses, ..._library.personalCourses],
+    activeProfileId: _library.activeProfileId,
+    favoriteIds: _favoriteIds,
+    showUnavailable: widget.showUnavailable,
+    search: widget.search,
+    sort: widget.sort,
+    maintainerOf: _managerMaintainer,
+    compact: _compactSections[category] ?? false,
+    onCompactChanged: (value) =>
+        setState(() => _compactSections[category] = value),
+    rowBuilder: (course, compact, favorites) => _courseStatusCard(
+      course,
+      CourseLibraryRow(
+        key: ValueKey(
+          '${favorites ? 'manager-favorite' : 'manager-course'}-${course.courseId}',
         ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Container(
-                color: color.withValues(alpha: 0.12),
-                padding: const EdgeInsets.fromLTRB(16, 6, 8, 6),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        '${favorites ? 'Favorites' : _managerSectionLabels[index]} · ${shown.length == all.length ? '${all.length}' : '${shown.length} of ${all.length} shown'}',
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
-                    ),
-                    TextButton.icon(
-                      key: ValueKey('manager-section-view-$sectionKey'),
-                      onPressed: () => setState(() {
-                        if (favorites) {
-                          _favoritesCompact = !_favoritesCompact;
-                        } else {
-                          _compact[index] = !_compact[index];
-                        }
-                      }),
-                      icon: Icon(
-                        compact
-                            ? Icons.view_headline
-                            : Icons.view_agenda_outlined,
-                      ),
-                      label: Text(compact ? 'Compact' : 'Expanded'),
-                    ),
-                  ],
-                ),
-              ),
-              if (shown.isEmpty)
-                Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Text(
-                    all.isEmpty && favorites
-                        ? 'No Favorites yet.'
-                        : all.isNotEmpty && query.isNotEmpty
-                        ? 'No matching Courses in this section.'
-                        : 'No courses in this section.',
-                  ),
-                ),
-              for (final course in shown)
-                _courseStatusCard(
-                  course,
-                  CourseLibraryRow(
-                    key: ValueKey(
-                      '${favorites ? 'manager-favorite' : 'manager-course'}-${course.courseId}',
-                    ),
-                    course: course,
-                    compact: compact,
-                    maintainer: _managerMaintainer(course),
-                    mediaStore: widget.mediaStore,
-                    hiddenInLearner: _library.hiddenCourseIds.contains(
-                      course.courseId,
-                    ),
-                    onTap: () => _openUser(course),
-                    trailing: _courseActions(
-                      course,
-                      key: ValueKey(
-                        'course-manager-actions-${favorites ? 'favorite-' : ''}${course.courseId}',
-                      ),
-                      onOpen: () => _openUser(course),
-                    ),
-                  ),
-                  showIndicators: false,
-                ),
-            ],
+        course: course,
+        compact: compact,
+        maintainer: _managerMaintainer(course),
+        mediaStore: widget.mediaStore,
+        hiddenInLearner: _library.hiddenCourseIds.contains(course.courseId),
+        onTap: () => _openUser(course),
+        trailing: _courseActions(
+          course,
+          key: ValueKey(
+            'course-manager-actions-${favorites ? 'favorite-' : ''}${course.courseId}',
           ),
+          onOpen: () => _openUser(course),
         ),
       ),
-    );
-  }
+      showIndicators: false,
+    ),
+  );
 
   Widget _embeddedBody(BuildContext context) {
     if (_loading) return const Center(child: CircularProgressIndicator());
@@ -2613,11 +2501,9 @@ class CourseProjectsScreenState extends State<CourseProjectsScreen> {
           ],
         ),
         const SizedBox(height: 16),
-        _managerSectionBand(context, -1, favorites: true),
-        for (final index in Iterable<int>.generate(
-          _managerSectionLabels.length,
-        ))
-          _managerSectionBand(context, index),
+        _courseSection(CourseLibraryCategory.favorites),
+        for (final category in CourseLibraryCategories.standard)
+          _courseSection(category),
       ],
     );
   }

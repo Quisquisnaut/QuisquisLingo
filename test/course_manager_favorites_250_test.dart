@@ -185,6 +185,41 @@ void main() {
     expect(find.textContaining('0 of 1 shown'), findsNWidgets(2));
   });
 
+  testWidgets('Favorites Compact survives a Course Studio data reload', (
+    tester,
+  ) async {
+    final amber = _course('amber', 'Amber Path');
+    await CourseLibraryService().add(amber);
+    await CourseFavoriteService().setFavorite(amber.courseId, true);
+    await showManager(tester, [amber]);
+
+    final favorite = find.byKey(const Key('manager-favorite-amber'));
+    await tester.tap(find.byKey(const Key('manager-section-view-favorites')));
+    await tester.pump();
+    expect(
+      find.descendant(of: favorite, matching: find.text('Version: 3')),
+      findsNothing,
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: CourseProjectsScreen(
+            currentCourse: null,
+            editorService: _DeviceCourses([amber]),
+            embedded: true,
+            refreshToken: 1,
+          ),
+        ),
+      ),
+    );
+    await tester.pumpUntilFileIoState(() => favorite.evaluate().isNotEmpty);
+    expect(
+      find.descendant(of: favorite, matching: find.text('Version: 3')),
+      findsNothing,
+    );
+  });
+
   testWidgets(
     'Search filters Manager Favorites and sections by language and title',
     (tester) async {

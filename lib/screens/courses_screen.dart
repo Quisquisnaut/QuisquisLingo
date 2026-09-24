@@ -16,6 +16,92 @@ enum CoursesTab { allCourses, manager }
 const courseManagerUnlockMessage =
     'Unlock Course Studio for this profile to edit Courses and use Course operations. Tap Version in Settings ten times to unlock it.';
 
+/// All Courses data and learner actions inside the shared Courses frame.
+class AllCoursesTab extends StatelessWidget {
+  const AllCoursesTab({
+    super.key,
+    this.editorService,
+    this.currentCourse,
+    this.mediaStore,
+    this.courseWebSite,
+    required this.showUnavailable,
+    required this.sort,
+    required this.search,
+    required this.refreshToken,
+    this.highlightCourseId,
+    this.onLibraryChanged,
+  });
+
+  final CourseEditorService? editorService;
+  final Course? currentCourse;
+  final CourseMediaStore? mediaStore;
+  final Uri? courseWebSite;
+  final bool showUnavailable;
+  final CourseLibrarySort sort;
+  final String search;
+  final int refreshToken;
+  final String? highlightCourseId;
+  final VoidCallback? onLibraryChanged;
+
+  @override
+  Widget build(BuildContext context) => AvailableCoursesScreen(
+    editorService: editorService,
+    currentCourse: currentCourse,
+    mediaStore: mediaStore,
+    courseWebSite: courseWebSite,
+    embedded: true,
+    showUnavailable: showUnavailable,
+    sort: sort,
+    search: search,
+    refreshToken: refreshToken,
+    highlightCourseId: highlightCourseId,
+    onLibraryChanged: onLibraryChanged,
+  );
+}
+
+/// Course Studio data and authoring actions inside the shared Courses frame.
+class CourseStudioTab extends StatelessWidget {
+  const CourseStudioTab({
+    super.key,
+    required this.screenKey,
+    required this.currentCourse,
+    this.initialCourseIdToOpen,
+    this.editorService,
+    this.transferService,
+    this.mediaStore,
+    required this.sort,
+    required this.showUnavailable,
+    required this.search,
+    required this.refreshToken,
+  });
+
+  final GlobalKey<CourseProjectsScreenState> screenKey;
+  final Course? currentCourse;
+  final String? initialCourseIdToOpen;
+  final CourseEditorService? editorService;
+  final CustomCourseTransferService? transferService;
+  final CourseMediaStore? mediaStore;
+  final CourseLibrarySort sort;
+  final bool showUnavailable;
+  final String search;
+  final int refreshToken;
+
+  @override
+  Widget build(BuildContext context) => CourseProjectsScreen(
+    key: screenKey,
+    currentCourse: currentCourse,
+    initialCourseIdToOpen: initialCourseIdToOpen,
+    editorService: editorService,
+    transferService: transferService,
+    mediaStore: mediaStore,
+    embedded: true,
+    sort: sort,
+    showUnavailable: showUnavailable,
+    search: search,
+    refreshToken: refreshToken,
+  );
+}
+
 /// One Courses screen with shared view controls and two Course libraries.
 class CoursesScreen extends StatefulWidget {
   const CoursesScreen({
@@ -322,12 +408,11 @@ class _CoursesScreenState extends State<CoursesScreen> {
             child: IndexedStack(
               index: allSelected ? 0 : 1,
               children: [
-                AvailableCoursesScreen(
+                AllCoursesTab(
                   editorService: widget.editorService,
                   currentCourse: widget.currentCourse,
                   mediaStore: widget.mediaStore,
                   courseWebSite: widget.courseWebSite,
-                  embedded: true,
                   showUnavailable: _showUnavailable,
                   sort: _sort,
                   search: _search,
@@ -335,8 +420,8 @@ class _CoursesScreenState extends State<CoursesScreen> {
                   highlightCourseId: _highlightCourseId,
                   onLibraryChanged: () => setState(() => _refreshToken++),
                 ),
-                CourseProjectsScreen(
-                  key: _managerKey,
+                CourseStudioTab(
+                  screenKey: _managerKey,
                   currentCourse: widget.currentCourse,
                   initialCourseIdToOpen: _managerUnlocked!
                       ? widget.initialCourseIdToOpen
@@ -344,7 +429,6 @@ class _CoursesScreenState extends State<CoursesScreen> {
                   editorService: widget.editorService,
                   transferService: widget.transferService,
                   mediaStore: widget.mediaStore,
-                  embedded: true,
                   sort: _sort,
                   showUnavailable: _showUnavailable,
                   search: _search,

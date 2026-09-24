@@ -1,10 +1,10 @@
 # QuisquisLingo App
 
-**Current source version: 2.0.50+250001 · Build 250, Revision 1 · Course Model v11 (`formatVersion: 11`).**
+**Current source version: 2.0.51+251000 · Build 251, Revision 0 · Course Model v11 (`formatVersion: 11`).**
 
-**QuisquisLingo 2.0.50 Beta — QQL 250 Courses**
+**QuisquisLingo 2.0.51 Beta — QQL 251 architecture**
 
-Current project version: 2.0.50
+Current project version: 2.0.51
 
 The **Courses** screen brings All Courses and Course Studio into two tabs
 with shared rows, Search, sorting and availability controls. All Courses adds
@@ -205,7 +205,7 @@ The MPL-2.0 covers the QuisquisLingo software source. Courses, the Image Bank an
 
 ## Beta lifecycle
 
-Version 2.0.50, Build 250, Revision 1 is a time-limited Beta with an expiry of **2026-10-24 23:59:59 local time** (30 days from September 24, 2026, its own release date). Near expiry it displays reminders. After expiry, learner exercises and Review are blocked until a newer Beta is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when a Beta expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM.
+Version 2.0.51, Build 251, Revision 0 is a time-limited Beta with an expiry of **2026-10-24 23:59:59 local time** (30 days from September 24, 2026, its own release date). Near expiry it displays reminders. After expiry, learner exercises and Review are blocked until a newer Beta is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when a Beta expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM.
 
 ## Core logic
 

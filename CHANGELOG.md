@@ -2286,3 +2286,18 @@ lasts through the copy. The Merge button accepts one submission at a time
 through package cleanup. Course Model v11, stored formats, authoring rights and
 the successful Merge result are unchanged.
 Version `2.0.46+246000`; Beta expiry remains **2026-10-22 23:59:59 local time**.
+# 2.0.51 (Build 251, Revision 0) - Shared Course sections - 2026-09-24
+
+The Courses screen now uses one Course Library section component for Favorites,
+Bundled, Publisher, My Local and Other Local Courses in both tabs. It owns each
+section's Expanded/Compact state, border, count, empty message, Search,
+availability filter and sorting. All Courses and Course Studio keep their own
+data loading, rows and actions; their existing labels, keys and presentation
+remain the same. This is a source-only architectural revision with no behavior
+change.
+
+Version `2.0.51+251000`; Course Model v11, package format 1, stored keys,
+authoring rights, progression, scoring and the Course Editor confirmation are
+unchanged. Beta expiry is **2026-10-24 23:59:59 local time**, recalculated as
+30 days from this revision's 24 September 2026 release date. See the
+[Build 251 plan](docs/251_ARCHITECTURE_PLAN.md).
