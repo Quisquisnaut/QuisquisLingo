@@ -13,6 +13,7 @@ import 'package:quisquislingo_app/services/course_service.dart';
 import 'package:quisquislingo_app/services/settings_service.dart';
 import 'package:quisquislingo_app/screens/available_courses_screen.dart';
 import 'package:quisquislingo_app/screens/course_projects_screen.dart';
+import 'package:quisquislingo_app/screens/courses_screen.dart';
 import 'package:quisquislingo_app/services/course_access_policy.dart';
 import 'package:quisquislingo_app/screens/home_screen.dart';
 import 'package:quisquislingo_app/services/app_metadata.dart';
@@ -150,7 +151,7 @@ void main() {
     },
   );
 
-  testWidgets('empty library retains Settings, profiles and device discovery', (
+  testWidgets('empty library keeps Settings and opens All Courses', (
     tester,
   ) async {
     await tester.runAsync(() async {
@@ -225,20 +226,34 @@ void main() {
     await tester.pumpAndSettle();
     await tester.pageBack();
     await tester.pumpUntilFileIoState(
-      () => find.text('Course Library').evaluate().isNotEmpty,
+      () => find.text('All Courses').evaluate().isNotEmpty,
     );
     await tester.tap(find.byKey(const Key('empty-library-course-manager')));
     await tester.pumpUntilFileIoState(
-      () => find.text('No local courses yet.').evaluate().isNotEmpty,
+      () => find
+          .descendant(
+            of: find.byKey(const ValueKey('manager-section-0')),
+            matching: find.text('No courses in this section.'),
+          )
+          .evaluate()
+          .isNotEmpty,
     );
-    expect(find.text('Bundled Courses'), findsNothing);
+    expect(
+      tester.widget<CoursesScreen>(find.byType(CoursesScreen)).initialTab,
+      CoursesTab.manager,
+    );
+    expect(find.textContaining('Bundled Courses ·'), findsOneWidget);
     await tester.pageBack();
     await tester.pumpUntilFileIoState(
-      () => find.text('Course Library').evaluate().isNotEmpty,
+      () => find.text('All Courses').evaluate().isNotEmpty,
     );
-    await tester.tap(find.text('Course Library'));
+    await tester.tap(find.text('All Courses'));
     await tester.pumpUntilFileIoState(
       () => find.text('Bundled Courses').evaluate().isNotEmpty,
+    );
+    expect(
+      tester.widget<CoursesScreen>(find.byType(CoursesScreen)).initialTab,
+      CoursesTab.allCourses,
     );
     await tester.scrollUntilVisible(
       find.byKey(const ValueKey('add-course-sample_it_en_it')),
@@ -480,10 +495,13 @@ void main() {
         expect(publisherTitle.style?.color, Colors.purple);
         for (final label in ['Unpublished', 'Verification required']) {
           final badge = find
-              .ancestor(of: find.text(label), matching: find.byType(Container))
+              .ancestor(
+                of: find.text(label),
+                matching: find.byType(DecoratedBox),
+              )
               .first;
           final decoration =
-              tester.widget<Container>(badge).decoration! as BoxDecoration;
+              tester.widget<DecoratedBox>(badge).decoration as BoxDecoration;
           expect(
             (decoration.border! as Border).top.color,
             brightness == Brightness.dark

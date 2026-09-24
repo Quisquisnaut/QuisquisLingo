@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:quisquislingo_app/models/course_models.dart';
 import 'package:quisquislingo_app/screens/course_editor_screen.dart';
+import 'package:quisquislingo_app/screens/course_info_screen.dart';
 import 'package:quisquislingo_app/screens/course_projects_screen.dart';
 import 'package:quisquislingo_app/services/course_editor_service.dart';
 import 'package:quisquislingo_app/services/course_file_store.dart';
@@ -137,23 +138,43 @@ void main() {
     Course? current,
     bool importOnly = false,
     Directory? imports,
+    ValueChanged<Course?>? onImported,
   }) async {
-    await tester.pumpWidget(
-      MaterialApp(
-        home: CourseProjectsScreen(
-          currentCourse: current,
-          importOnly: importOnly,
-          editorService: editor,
-          transferService: CustomCourseTransferService(
-            importDirectory: imports == null ? null : () async => imports,
-            publisherVerification: fixtureVerifier(
-              publisher.publisherId,
-              publisher.publisherName,
-            ),
-          ),
+    final manager = CourseProjectsScreen(
+      currentCourse: current,
+      importOnly: importOnly,
+      editorService: editor,
+      transferService: CustomCourseTransferService(
+        importDirectory: imports == null ? null : () async => imports,
+        publisherVerification: fixtureVerifier(
+          publisher.publisherId,
+          publisher.publisherName,
         ),
       ),
     );
+    await tester.pumpWidget(
+      MaterialApp(
+        home: onImported == null
+            ? manager
+            : Scaffold(
+                body: Builder(
+                  builder: (context) => TextButton(
+                    onPressed: () async {
+                      final imported = await Navigator.of(context).push<Course>(
+                        MaterialPageRoute(builder: (_) => manager),
+                      );
+                      onImported(imported);
+                    },
+                    child: const Text('Open Course Import'),
+                  ),
+                ),
+              ),
+      ),
+    );
+    if (onImported != null) {
+      await tester.tap(find.text('Open Course Import'));
+      await tester.pump();
+    }
     await tester.pumpUntilFileIoState(
       () => importOnly
           ? find
@@ -186,6 +207,7 @@ void main() {
   const everyEntry = [
     'Remove from my courses',
     'Remove Publisher Course from device',
+    'Course Info',
     'Edit',
     'View (read only)',
     'Fork',
@@ -226,6 +248,25 @@ void main() {
       ValueKey('course-manager-actions-$courseId');
 
   group('which actions are offered', () {
+    testWidgets('Course Info opens read-only details from the Studio menu', (
+      tester,
+    ) async {
+      await setUpDevice(tester);
+      final course = _course('mine', title: 'Mine');
+      await install(tester, course);
+      await pumpManager(tester);
+
+      await openMenu(tester, actionsOf(course.courseId));
+      await choose(tester, 'Course Info');
+      expect(find.byType(CourseInfoScreen), findsOneWidget);
+      expect(find.text('Course Info'), findsOneWidget);
+
+      await tester.tap(find.byType(BackButton).last);
+      await tester.pumpAndSettle();
+      expect(find.byKey(actionsOf(course.courseId)), findsOneWidget);
+      expect(await stored(tester), hasLength(1));
+    });
+
     testWidgets('per Course kind, rights and admin status', (tester) async {
       await setUpDevice(tester);
       final mine = _course('mine', title: 'Mine');
@@ -246,6 +287,7 @@ void main() {
 
       expect(await menuEntries(tester, actionsOf('mine')), [
         'Remove from my courses',
+        'Course Info',
         'Edit',
         'Fork (greyed)',
         'Copy as New Course',
@@ -256,6 +298,7 @@ void main() {
       ]);
       expect(await menuEntries(tester, actionsOf('theirs')), [
         'Remove from my courses',
+        'Course Info',
         'View (read only)',
         'Fork',
         'Copy as New Course (greyed)',
@@ -267,6 +310,7 @@ void main() {
       expect(await menuEntries(tester, actionsOf(publisher.courseId)), [
         'Remove from my courses',
         'Remove Publisher Course from device',
+        'Course Info',
         'View (read only)',
         'Fork',
         'Audit',
@@ -276,6 +320,7 @@ void main() {
         await menuEntries(tester, const Key('course-manager-actions-current')),
         [
           'Remove from my courses',
+          'Course Info',
           'View (read only)',
           'Fork (greyed)',
           'Audit',
@@ -632,19 +677,27 @@ void main() {
         () => find.text('Matching Course ID').evaluate().isNotEmpty,
       );
       final dialog = find.byType(AlertDialog);
-      final offered = [
-        for (final choice in [
-          'Cancel',
-          'Copy as New Course',
-          'Fork',
-          'Replace / update',
-        ])
-          if (find
-              .descendant(of: dialog, matching: find.text(choice))
-              .evaluate()
-              .isNotEmpty)
-            choice,
-      ];
+      final offered = <String>[];
+      for (final choice in [
+        'Cancel',
+        'Copy as New Course',
+        'Fork',
+        'Replace / update',
+      ]) {
+        final label = find.descendant(of: dialog, matching: find.text(choice));
+        if (label.evaluate().isEmpty) continue;
+        final button = tester.widget<ButtonStyleButton>(
+          find
+              .ancestor(
+                of: label,
+                matching: find.byWidgetPredicate(
+                  (widget) => widget is ButtonStyleButton,
+                ),
+              )
+              .first,
+        );
+        offered.add(button.onPressed == null ? '$choice (greyed)' : choice);
+      }
       await tester.tap(find.text('Cancel'));
       await tester.pumpUntilFileIoState(
         () => find.text('Matching Course ID').evaluate().isEmpty,
@@ -652,19 +705,29 @@ void main() {
       return offered;
     }
 
-    testWidgets('a new Course is installed and reported', (tester) async {
+    testWidgets('a new Course is installed and returned to its opener', (
+      tester,
+    ) async {
       await setUpDevice(tester);
       final imports = await importsHolding(
         tester,
         _course('fresh', title: 'Fresh'),
       );
-      await pumpManager(tester, importOnly: true, imports: imports);
-
-      await tester.tap(find.byKey(const Key('import-course-json-primary')));
-      await tester.pumpUntilFileIoState(
-        () => find.textContaining('Imported “Fresh”').evaluate().isNotEmpty,
+      Course? returned;
+      await pumpManager(
+        tester,
+        importOnly: true,
+        imports: imports,
+        onImported: (course) => returned = course,
       );
 
+      await tester.tap(find.byKey(const Key('import-course-json-primary')));
+      await tester.pumpUntilFileIoState(() => returned != null);
+
+      final imported = returned!;
+      expect(imported.courseId, 'fresh');
+      expect(imported.title, 'Fresh');
+      expect(find.text('Open Course Import'), findsOneWidget);
       expect((await stored(tester)).map((c) => c.courseId), ['fresh']);
     });
 
@@ -689,7 +752,7 @@ void main() {
       ]);
     });
 
-    testWidgets('locked import-only mode offers no Copy or Fork', (
+    testWidgets('locked import-only mode shows disabled Copy and Fork', (
       tester,
     ) async {
       await setUpDevice(tester);
@@ -700,10 +763,17 @@ void main() {
       );
       await pumpManager(tester, importOnly: true, imports: imports);
 
-      expect(await collisionChoices(tester), ['Cancel', 'Replace / update']);
+      expect(await collisionChoices(tester), [
+        'Cancel',
+        'Copy as New Course (greyed)',
+        'Fork (greyed)',
+        'Replace / update',
+      ]);
     });
 
-    testWidgets('an outsider\'s matching ID offers only Fork', (tester) async {
+    testWidgets('an outsider\'s matching ID offers Fork but not Replace', (
+      tester,
+    ) async {
       await setUpDevice(tester);
       final theirs = _course(
         'same',
@@ -726,7 +796,11 @@ void main() {
       );
       await pumpManager(tester, importOnly: true, imports: imports);
 
-      expect(await collisionChoices(tester), ['Cancel', 'Fork']);
+      expect(await collisionChoices(tester), [
+        'Cancel',
+        'Fork',
+        'Replace / update (greyed)',
+      ]);
     });
   });
 

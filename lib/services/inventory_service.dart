@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:path_provider/path_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/authoring_team.dart';
 import '../models/course_models.dart';
@@ -10,6 +11,8 @@ import 'course_file_store.dart';
 import 'course_backup_service.dart';
 import 'profile_service.dart';
 import 'course_media_store.dart';
+import 'course_favorite_service.dart';
+import 'course_received_service.dart';
 import 'team_service.dart';
 import 'import/import_stager.dart';
 
@@ -169,6 +172,91 @@ class InventoryService {
       ),
     );
 
+    final preferences = await SharedPreferences.getInstance();
+    final favoriteFlags = <({String courseId, String profileId})>[];
+    const learnerPrefix = 'learner_';
+    const favoriteMarker = '_${CourseFavoriteService.keyPrefix}';
+    for (final key in preferences.getKeys()) {
+      if (!key.startsWith(learnerPrefix)) continue;
+      final markerAt = key.indexOf(favoriteMarker, learnerPrefix.length);
+      if (markerAt < 0) continue;
+      final profileId = key.substring(learnerPrefix.length, markerAt);
+      if (!ProfileService.isValidLearnerProfileId(profileId) ||
+          preferences.getBool(key) != true) {
+        continue;
+      }
+      final encodedCourseId = key.substring(markerAt + favoriteMarker.length);
+      if (encodedCourseId.isEmpty) continue;
+      String courseId;
+      try {
+        courseId = Uri.decodeComponent(encodedCourseId);
+      } on FormatException {
+        courseId = encodedCourseId;
+      }
+      favoriteFlags.add((courseId: courseId, profileId: profileId));
+    }
+    favoriteFlags.sort((a, b) {
+      final byCourse = a.courseId.compareTo(b.courseId);
+      return byCourse != 0 ? byCourse : a.profileId.compareTo(b.profileId);
+    });
+    sections.add(
+      InventorySection(
+        title: 'Course Favorites',
+        description:
+            'Per-learner Course Favorite flags stored inside QQL settings. They do not change Personal Library membership or Course files.',
+        items: [
+          for (final favorite in favoriteFlags.take(maxListedPerSection))
+            InventoryItem(
+              name: favorite.courseId,
+              owner:
+                  names[favorite.profileId] ??
+                  'a learner no longer on this device',
+              note: 'Course Favorite flag in QQL settings (no file).',
+            ),
+        ],
+        hiddenCount: favoriteFlags.length > maxListedPerSection
+            ? favoriteFlags.length - maxListedPerSection
+            : 0,
+      ),
+    );
+
+    final receivedKeys =
+        preferences
+            .getKeys()
+            .where(
+              (key) =>
+                  key.startsWith(CourseReceivedService.keyPrefix) &&
+                  preferences.getBool(key) == true,
+            )
+            .toList()
+          ..sort();
+    String receivedCourseId(String key) {
+      final encoded = key.substring(CourseReceivedService.keyPrefix.length);
+      try {
+        return Uri.decodeComponent(encoded);
+      } on FormatException {
+        return encoded;
+      }
+    }
+
+    sections.add(
+      InventorySection(
+        title: 'Received Custom Courses',
+        description:
+            'Device-level flags for imported Custom Courses whose Maintainer and assigned Team were not on this device when installed. They are stored inside QQL settings.',
+        items: [
+          for (final key in receivedKeys.take(maxListedPerSection))
+            InventoryItem(
+              name: receivedCourseId(key),
+              note: 'Received Custom Course flag in QQL settings (no file).',
+            ),
+        ],
+        hiddenCount: receivedKeys.length > maxListedPerSection
+            ? receivedKeys.length - maxListedPerSection
+            : 0,
+      ),
+    );
+
     // ---- Folders under Documents/QuisquisLingo
     Future<InventorySection> folder({
       required String title,
@@ -258,7 +346,7 @@ class InventoryService {
       await folder(
         title: 'Custom and installed courses',
         description:
-            'Courses created or installed on this device, stored as one file per course. Export a course from Course Manager to share it.'
+            'Courses created or installed on this device, stored as one file per course. Export a course from Course Studio to share it.'
             '${courseProblem == null ? '' : ' $courseProblem'}',
         directory: Directory(
           '$supportRoot$sep${CourseFileStore.rootDirectoryName}',

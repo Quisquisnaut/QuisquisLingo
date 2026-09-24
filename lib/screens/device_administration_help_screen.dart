@@ -52,7 +52,7 @@ class DeviceAdministrationHelpScreen extends StatelessWidget {
                   'Take ownership of courses. Being an admin gives no special right to edit or delete another person’s course. Course rights come only from being its Owner or a member of its owning Team.',
                   'Delete a learner who is the maintainer of a course, or the only Team Leader of a Team. Change the course maintainer or promote another Team Leader first.',
                   'Edit or delete the bundled official courses. They are read-only for everyone; like any learner, an admin can only fork them where their license allows it.',
-                  'Manage Teams. Teams are run by their own Leads and members from Course Manager, not by device admins.',
+                  'Manage Teams. Teams are run by their own Leads and members from Course Studio, not by device admins.',
                   'Act on other devices. Admin rights apply only to this installation.',
                   'Undo a reset or a deleted learner. Deleted data can only come back from a backup you made earlier.',
                 ],
@@ -102,7 +102,7 @@ class DeviceAdministrationHelpScreen extends StatelessWidget {
               _Section(
                 title: 'Before you reset: backups',
                 paragraphs: [
-                  'Learner data is exported from Profile → User Data, and each backup covers only the learner who is logged in: an admin cannot export other learners’ data, so before a reset that affects other learners, ask each of them to export their own. Courses are exported one at a time from Course Manager. Exports are saved in the QuisquisLingo/Exports folder, which the full wipe keeps unless you untick it.',
+                  'Learner data is exported from Profile → User Data, and each backup covers only the learner who is logged in: an admin cannot export other learners’ data, so before a reset that affects other learners, ask each of them to export their own. Courses are exported one at a time from Course Studio. Exports are saved in the QuisquisLingo/Exports folder, which the full wipe keeps unless you untick it.',
                 ],
               ),
               _Section(

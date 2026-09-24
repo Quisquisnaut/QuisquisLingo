@@ -7,6 +7,7 @@ import 'package:quisquislingo_app/models/course_flag_selection.dart';
 import 'package:quisquislingo_app/models/course_models.dart';
 import 'package:quisquislingo_app/services/course_editor_service.dart';
 import 'package:quisquislingo_app/services/course_file_store.dart';
+import 'package:quisquislingo_app/services/course_learner_visibility_service.dart';
 import 'package:quisquislingo_app/services/course_library_operations.dart';
 import 'package:quisquislingo_app/services/course_library_service.dart';
 import 'package:quisquislingo_app/services/course_merge_service.dart';
@@ -133,7 +134,26 @@ void main() {
         library.bundledCourses.where((c) => c.courseId == italian.courseId),
         hasLength(1),
       );
+      expect(library.activeCourseId, current.courseId);
     });
+
+    test(
+      'loads hidden Personal Library Course IDs for the active learner',
+      () async {
+        final hidden = _course('hidden', title: 'Hidden');
+        await editor.installImportedCustomCourse(hidden);
+        await CourseLearnerVisibilityService().setHidden(hidden, true);
+
+        final library = await ops.load(importOnly: true);
+        expect(library.hiddenCourseIds, {'hidden'});
+        expect(library.personalCourses.map((c) => c.courseId), ['hidden']);
+
+        await asProfile(_bob, () async {
+          await CourseLibraryService().add(hidden);
+          expect((await ops.load(importOnly: true)).hiddenCourseIds, isEmpty);
+        });
+      },
+    );
 
     test('names an unreadable stored Course file and lists the rest', () async {
       await editor.installImportedCustomCourse(_course('mine', title: 'Mine'));
@@ -154,10 +174,34 @@ void main() {
     const admin = CourseManagerLibrary(activeProfileId: _alice, isAdmin: true);
     const notAdmin = CourseManagerLibrary(activeProfileId: _bob);
 
+    test(
+      'Course Info is available for every Course without authoring rights',
+      () async {
+        final bundled = await CourseService().loadCourse('IT');
+        final outsider = _course('theirs', title: 'Theirs', maintainer: _bob);
+        for (final course in [outsider, publisher, bundled]) {
+          final entries = notAdmin.entriesFor(course);
+          final info = entries.singleWhere(
+            (entry) => entry.action == CourseManagerAction.courseInfo,
+          );
+          expect(info.available, isTrue);
+          expect(
+            entries.indexOf(info),
+            entries.indexWhere(
+                  (entry) => entry.action == CourseManagerAction.open,
+                ) -
+                1,
+          );
+        }
+      },
+    );
+
     test('a maintained Custom Course', () {
       expect(admin.actionsFor(_course('mine', title: 'Mine')), const [
         CourseManagerAction.removeFromMyCourses,
+        CourseManagerAction.courseInfo,
         CourseManagerAction.open,
+        CourseManagerAction.toggleLearnerVisibility,
         CourseManagerAction.copyAsNewCourse,
         CourseManagerAction.merge,
         CourseManagerAction.audit,
@@ -194,13 +238,17 @@ void main() {
       );
       expect(admin.actionsFor(theirs(DerivativeWorksPolicy.allowed)), const [
         CourseManagerAction.removeFromMyCourses,
+        CourseManagerAction.courseInfo,
         CourseManagerAction.open,
+        CourseManagerAction.toggleLearnerVisibility,
         CourseManagerAction.fork,
         CourseManagerAction.audit,
       ]);
       expect(admin.actionsFor(theirs(DerivativeWorksPolicy.forbidden)), const [
         CourseManagerAction.removeFromMyCourses,
+        CourseManagerAction.courseInfo,
         CourseManagerAction.open,
+        CourseManagerAction.toggleLearnerVisibility,
         CourseManagerAction.audit,
       ]);
     });
@@ -213,7 +261,9 @@ void main() {
       expect(admin.actionsFor(verified), const [
         CourseManagerAction.removeFromMyCourses,
         CourseManagerAction.removePublisherFromDevice,
+        CourseManagerAction.courseInfo,
         CourseManagerAction.open,
+        CourseManagerAction.toggleLearnerVisibility,
         CourseManagerAction.fork,
         CourseManagerAction.audit,
         CourseManagerAction.export,
@@ -228,7 +278,9 @@ void main() {
       final bundled = await CourseService().loadCourse('IT');
       expect(admin.actionsFor(bundled), const [
         CourseManagerAction.removeFromMyCourses,
+        CourseManagerAction.courseInfo,
         CourseManagerAction.open,
+        CourseManagerAction.toggleLearnerVisibility,
         CourseManagerAction.audit,
         CourseManagerAction.export,
       ]);
@@ -251,7 +303,9 @@ void main() {
       final shown = reasons(admin, _course('mine', title: 'Mine'));
       expect(shown.keys, const [
         CourseManagerAction.removeFromMyCourses,
+        CourseManagerAction.courseInfo,
         CourseManagerAction.open,
+        CourseManagerAction.toggleLearnerVisibility,
         CourseManagerAction.fork,
         CourseManagerAction.copyAsNewCourse,
         CourseManagerAction.merge,
@@ -294,6 +348,7 @@ void main() {
         );
       }
       expect(shown[CourseManagerAction.open], isNull);
+      expect(shown[CourseManagerAction.courseInfo], isNull);
       expect(shown[CourseManagerAction.audit], isNull);
     });
 
@@ -302,7 +357,9 @@ void main() {
       final shown = reasons(admin, bundled);
       expect(shown.keys, const [
         CourseManagerAction.removeFromMyCourses,
+        CourseManagerAction.courseInfo,
         CourseManagerAction.open,
+        CourseManagerAction.toggleLearnerVisibility,
         CourseManagerAction.fork,
         CourseManagerAction.audit,
         CourseManagerAction.export,
@@ -349,6 +406,46 @@ void main() {
             derivatives: DerivativeWorksPolicy.allowed,
           ),
         )[CourseManagerAction.fork],
+        'Select a learner profile first.',
+      );
+    });
+
+    test('Hide is greyed for the current Course and Unhide stays usable', () {
+      final current = _course('current', title: 'Current');
+      const showing = CourseManagerLibrary(
+        activeProfileId: _alice,
+        activeCourseId: 'current',
+      );
+      const hidden = CourseManagerLibrary(
+        activeProfileId: _alice,
+        activeCourseId: 'current',
+        hiddenCourseIds: {'current'},
+      );
+      expect(
+        reasons(showing, current)[CourseManagerAction.toggleLearnerVisibility],
+        "You're studying this Course",
+      );
+      expect(
+        showing.actionsFor(current),
+        isNot(contains(CourseManagerAction.toggleLearnerVisibility)),
+      );
+      expect(
+        reasons(hidden, current)[CourseManagerAction.toggleLearnerVisibility],
+        isNull,
+      );
+      expect(
+        hidden.actionsFor(current),
+        contains(CourseManagerAction.toggleLearnerVisibility),
+      );
+      expect(
+        reasons(
+          showing,
+          _course('other', title: 'Other'),
+        )[CourseManagerAction.toggleLearnerVisibility],
+        isNull,
+      );
+      expect(
+        reasons(nobody, current)[CourseManagerAction.toggleLearnerVisibility],
         'Select a learner profile first.',
       );
     });

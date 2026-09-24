@@ -114,12 +114,21 @@ void main() {
         'Remove from my courses',
         'Profile > Statistics',
         'Settings > Audio Settings',
-        'Course Manager',
+        'Course Studio',
+        'Course Studio Help',
         'Editor Help',
         'Week XP',
       ]) {
         expect(italian, contains(label), reason: '$label was translated away');
       }
+      expect(
+        italian,
+        isNot(
+          contains(
+            'Course Editor di un corso personalizzato offre Copy as New Course',
+          ),
+        ),
+      );
     });
   });
 }

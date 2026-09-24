@@ -34,7 +34,7 @@ class _WelcomeWizardDialogState extends State<WelcomeWizardDialog> {
       icon: Icons.menu_book_outlined,
       title: 'Choose a Course',
       body:
-          'Use the Course selector to start learning. It also opens Course Manager.',
+          'Use the Course selector to start learning. It also opens Course Studio.',
     ),
     (
       color: Color(0xFFEF6C00),

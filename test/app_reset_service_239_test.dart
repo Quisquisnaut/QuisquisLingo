@@ -303,6 +303,29 @@ void main() {
     expect((await service.preview()).hasCustomCourses, isTrue);
   });
 
+  test('received Custom Course flags follow the custom-course reset', () async {
+    const key = 'quisquislingo_received_custom_course_friend%2Fcourse';
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(key, true);
+    expect((await service.preview()).hasCustomCourses, isTrue);
+
+    for (final scope in [
+      AppResetScope.learnerProgress,
+      AppResetScope.importedMedia,
+      AppResetScope.nonAdminLearners,
+    ]) {
+      await service.reset(scope, actorProfileId: adminId, pin: '4321');
+      expect(prefs.getBool(key), isTrue);
+    }
+
+    await service.reset(
+      AppResetScope.customCourses,
+      actorProfileId: adminId,
+      pin: '4321',
+    );
+    expect(prefs.containsKey(key), isFalse);
+  });
+
   test('custom courses removes courses and teams but keeps learners', () async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(CourseEditorStorage.userCoursesKey, '[]');

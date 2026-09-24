@@ -7,6 +7,7 @@ import 'course_editor_service.dart';
 import 'course_file_store.dart';
 import 'course_flag_service.dart';
 import 'course_language_resolver.dart';
+import 'course_learner_visibility_service.dart';
 import 'course_library_service.dart';
 import 'course_merge_service.dart';
 import 'course_package_import.dart';
@@ -23,7 +24,9 @@ import 'team_service.dart';
 enum CourseManagerAction {
   removeFromMyCourses,
   removePublisherFromDevice,
+  courseInfo,
   open,
+  toggleLearnerVisibility,
   fork,
   copyAsNewCourse,
   merge,
@@ -58,6 +61,8 @@ class CourseManagerLibrary {
     this.bundledCourses = const [],
     this.unreadable = const [],
     this.activeProfileId,
+    this.activeCourseId,
+    this.hiddenCourseIds = const {},
     this.memberTeamIds = const {},
     this.isAdmin = false,
     this.importAuthoringEnabled = false,
@@ -72,6 +77,8 @@ class CourseManagerLibrary {
   /// Stored Course files that could not be read; kept untouched on disk.
   final List<SkippedCourseFile> unreadable;
   final String? activeProfileId;
+  final String? activeCourseId;
+  final Set<String> hiddenCourseIds;
   final Set<String> memberTeamIds;
   final bool isAdmin;
 
@@ -108,7 +115,12 @@ class CourseManagerLibrary {
               ? null
               : 'Only an admin can remove a Publisher Course from this device.',
         ),
+      const CourseManagerEntry(CourseManagerAction.courseInfo),
       const CourseManagerEntry(CourseManagerAction.open),
+      CourseManagerEntry(
+        CourseManagerAction.toggleLearnerVisibility,
+        _learnerVisibilityUnavailable(course),
+      ),
       CourseManagerEntry(CourseManagerAction.fork, _forkUnavailable(course)),
       if (!official)
         CourseManagerEntry(
@@ -133,6 +145,16 @@ class CourseManagerLibrary {
           access.canDelete ? null : '$onlyInside delete this Course.',
         ),
     ];
+  }
+
+  /// Only Hide is refused for the Course being studied; Unhide can repair it.
+  String? _learnerVisibilityUnavailable(Course course) {
+    if (activeProfileId == null) return 'Select a learner profile first.';
+    if (activeCourseId == course.courseId &&
+        !hiddenCourseIds.contains(course.courseId)) {
+      return "You're studying this Course";
+    }
+    return null;
   }
 
   /// Why [course] cannot be forked now, or null when it can.
@@ -187,6 +209,8 @@ class CourseImportReview {
     required this.warnings,
     required this.existing,
     required this.choices,
+    this.receivedUpdate = false,
+    this.replaceUnavailableReason,
   });
 
   final Course course;
@@ -198,6 +222,12 @@ class CourseImportReview {
 
   /// Offered for a matching custom Course ID; Cancel is always offered.
   final List<CourseImportChoice> choices;
+
+  /// True only when an outsider may install a newer received Custom Course.
+  final bool receivedUpdate;
+
+  /// Why the matching-ID Custom Course cannot be replaced, when unavailable.
+  final String? replaceUnavailableReason;
 
   bool get blocked => errors.isNotEmpty;
   bool get isPublisherCourse =>
@@ -251,6 +281,7 @@ class CourseLibraryOperations {
     CourseMergeService? merge,
     CourseService? courses,
     CourseLibraryService? library,
+    CourseLearnerVisibilityService? learnerVisibility,
     SettingsService? settings,
     ProfileService? profiles,
     TeamService? teams,
@@ -267,6 +298,12 @@ class CourseLibraryOperations {
     this.teams = teams ?? TeamService(profileService: this.profiles);
     _membership =
         library ?? CourseLibraryService(profileService: this.profiles);
+    visibility =
+        learnerVisibility ??
+        CourseLearnerVisibilityService(
+          profiles: this.profiles,
+          settings: _settings,
+        );
   }
 
   final CourseEditorService editor;
@@ -276,6 +313,7 @@ class CourseLibraryOperations {
   final CourseMergeService _merge;
   final CourseService _courses;
   late final CourseLibraryService _membership;
+  late final CourseLearnerVisibilityService visibility;
   final SettingsService _settings;
   final CourseFlagService _flags;
   final DateTime Function() _clock;
@@ -310,11 +348,16 @@ class CourseLibraryOperations {
         : (await teams.teamsForProfile(
             activeProfileId,
           )).map((team) => team.teamId).toSet();
+    final hiddenCourseIds = await visibility.hiddenCourseIds(
+      [...personal, ...includedBundled].map((course) => course.courseId),
+    );
     return CourseManagerLibrary(
       personalCourses: personal,
       bundledCourses: includedBundled,
       unreadable: editor.unreadableCourseFiles,
       activeProfileId: activeProfileId,
+      activeCourseId: currentCourse?.courseId,
+      hiddenCourseIds: Set.unmodifiable(hiddenCourseIds),
       memberTeamIds: memberTeamIds,
       isAdmin: isAdmin,
       importAuthoringEnabled: importAuthoringEnabled,
@@ -423,6 +466,21 @@ class CourseLibraryOperations {
         .where((candidate) => candidate.courseId == course.courseId)
         .firstOrNull;
     final imported = library.capabilitiesFor(course);
+    final ordinaryReplace =
+        existing != null &&
+        !existing.originType.isOfficial &&
+        library.capabilitiesFor(existing).canEditOriginal;
+    final receivedDecision =
+        existing != null &&
+            !existing.originType.isOfficial &&
+            course.originType == CourseOriginType.custom &&
+            !ordinaryReplace
+        ? await editor.receivedCourses.reviewUpdate(
+            existing: existing,
+            incoming: course,
+            profileId: library.activeProfileId,
+          )
+        : null;
     return CourseImportReview(
       course: course,
       errors: [
@@ -434,6 +492,10 @@ class CourseLibraryOperations {
           if (issue.severity == AuditSeverity.warning) issue,
       ],
       existing: existing,
+      receivedUpdate: receivedDecision?.allowed ?? false,
+      replaceUnavailableReason: ordinaryReplace
+          ? null
+          : receivedDecision?.unavailableReason,
       choices: [
         if (existing != null &&
             course.originType != CourseOriginType.externalOfficial) ...[
@@ -441,8 +503,7 @@ class CourseLibraryOperations {
             CourseImportChoice.copyAsNewCourse,
           if (library.importAuthoringEnabled && imported.canFork)
             CourseImportChoice.fork,
-          if (!existing.originType.isOfficial &&
-              library.capabilitiesFor(existing).canEditOriginal)
+          if (ordinaryReplace || receivedDecision?.allowed == true)
             CourseImportChoice.replace,
         ],
       ],

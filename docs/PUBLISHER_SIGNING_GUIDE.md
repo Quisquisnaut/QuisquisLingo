@@ -185,7 +185,7 @@ Record the author and licence of any third-party image or recording in Course In
 
 New externalOfficial imports require a valid signature from an active approved key. Missing, malformed, invalid, revoked or unknown signatures are blocked before storage. A Publisher Course with media: references must arrive as a complete ZIP; package validation checks every file against its signed digest before installation. The app computes verification status; a serialized verified flag is never proof. A lower/equal official version or another publisher cannot replace an installed official course. Unsigned imports cannot downgrade verified courses.
 
-Custom courses remain unsigned and subject to ordinary import validation. Unverified official files are not automatically converted to custom. Existing Publisher Course files that cannot be verified remain on disk and in Course Manager with Verification required; their progress is preserved and they are excluded from learner delivery. To reactivate, import a newer valid signed release with matching identity/provenance and explicitly confirm association with the existing course.
+Custom courses remain unsigned and subject to ordinary import validation. Unverified official files are not automatically converted to custom. Existing Publisher Course files that cannot be verified remain on disk and in Course Studio with Verification required; their progress is preserved and they are excluded from learner delivery. To reactivate, import a newer valid signed release with matching identity/provenance and explicitly confirm association with the existing course.
 
 Authenticity is checked again when stored external courses and backup history are read. Revocation or file tampering removes verified status without deleting the course. Backups do not bypass import verification.
 
@@ -237,6 +237,6 @@ flutter build windows --release --dart-define=QQL_ENABLE_DUMMY_PUBLISHER=true
 
 These builds show a TEST ONLY banner and recognize Dummy. Do not distribute them as public production releases. A public build must omit the flag; build into a clean output location so artifacts cannot be confused.
 
-Import test/fixtures/publishers/dummy-signed-media.zip through Course Manager → Course Import → Open from… or copy it to Imports/import.zip. Expect the verified publisher confirmation and the packaged recording. Then import dummy-signed-v2.json to test an update that removes the unused recording. dummy-unsigned.json must be rejected; changing a signed title must also be rejected, even if an attacker recalculates the checksum. A normal build without the flag rejects the Dummy signed files as an unknown key.
+Import test/fixtures/publishers/dummy-signed-media.zip through Course Studio → Course Import → Open from… or copy it to Imports/import.zip. Expect the verified publisher confirmation and the packaged recording. Then import dummy-signed-v2.json to test an update that removes the unused recording. dummy-unsigned.json must be rejected; changing a signed title must also be rejected, even if an attacker recalculates the checksum. A normal build without the flag rejects the Dummy signed files as an unknown key.
 
 Dummy testing requires no approval request to a real publisher. All dummy release files must retain their TEST ONLY identification.

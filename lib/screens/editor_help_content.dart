@@ -3,18 +3,91 @@ import '../widgets/help_language_toggle.dart';
 /// One titled block of the Course Editor Help page.
 typedef EditorHelpSection = ({String title, String body});
 
-/// The Course Editor Help text in the requested language.
+/// Editing Help, excluding the Course Studio operations and learner listing.
 ///
 /// The two lists are kept side by side so a change to one is an obvious prompt
 /// to change the other, and a test asserts they stay the same length.
 ///
-/// Names that appear on screen — Course Manager, Save as draft, Confirm course
+/// Names that appear on screen — Course Studio, Save as draft, Confirm course
 /// changes — stay in English inside the Italian text, because the interface
 /// itself is English and the reader has to find them there. The technical
 /// reference sections keep their technical vocabulary; the rest is written the
 /// way an author would actually be told how to work.
-List<EditorHelpSection> editorHelpSections(HelpLanguage language) =>
-    language == HelpLanguage.italian ? _italian : _english;
+List<EditorHelpSection> editorHelpSections(HelpLanguage language) {
+  final sections = language == HelpLanguage.italian ? _italian : _english;
+  return [
+    for (final (index, section) in _english.indexed)
+      if (section.title != 'Courses in learner mode' &&
+          !_managerOnlyTitles.contains(section.title))
+        sections[index],
+  ];
+}
+
+/// Course types, operations and the topics that the Manager shares with the
+/// Editor. Both languages use the same source positions and order.
+List<EditorHelpSection> courseManagerHelpSections(HelpLanguage language) {
+  final sections = language == HelpLanguage.italian ? _italian : _english;
+  return [
+    for (final title in _managerSectionOrder)
+      sections[_english.indexWhere((section) => section.title == title)],
+    language == HelpLanguage.italian
+        ? _italianCourseBrowsing
+        : _englishCourseBrowsing,
+    language == HelpLanguage.italian
+        ? _italianCourseOperations
+        : _englishCourseOperations,
+  ];
+}
+
+const _managerOnlyTitles = <String>{
+  'Course origin',
+  'Official course updates',
+  'Create a new course',
+  'Course creation rules',
+  'Import a custom course',
+  'Export a custom course',
+  'Course responsibility, permissions and Teams',
+  'Android device backup (technical)',
+};
+
+const _managerSectionOrder = <String>[
+  'Course origin',
+  'Official course updates',
+  'Create a new course',
+  'Course creation rules',
+  'Import a custom course',
+  'Export a custom course',
+  'Course responsibility, permissions and Teams',
+  'Android device backup (technical)',
+  'Course Audit',
+  'Audit severity and codes',
+  'Local course edits and backups',
+  'Course Info Editor and license',
+];
+
+const _englishCourseBrowsing = (
+  title: 'Finding Courses',
+  body:
+      'Search filters Course titles and source or target languages in Course Studio, including Favorites. Favorites shows shortcuts for Courses in the active learner’s personal library; each remains in its usual section too. Sort by and Show unavailable apply to both Favorites and the ordinary sections. Each section has its own Expanded / Compact control. These controls change only the view.',
+);
+
+const _italianCourseBrowsing = (
+  title: 'Trovare i corsi',
+  body:
+      'Search filtra titoli e lingue di partenza o di arrivo in Course Studio, anche in Favorites. Favorites mostra scorciatoie per i corsi nella libreria personale dello studente attivo; ciascun corso resta anche nella sua sezione abituale. Sort by e Show unavailable si applicano a Favorites e alle sezioni normali. Ogni sezione ha il proprio controllo Expanded / Compact. Questi controlli cambiano solo la visualizzazione.',
+);
+
+const _englishCourseOperations = (
+  title: 'Course operations',
+  body:
+      'Copy as New Course creates an independent Custom Course from one you can manage. Fork creates a derivative Custom Course when the source license allows it; it keeps the source lineage and receives fresh IDs. Merge combines selected Lessons from compatible Courses into a third Course, leaving both sources unchanged. Delete course permanently removes a Custom Course from this device after two confirmations, when you have the required Course rights. Remove Publisher Course from device is available only to an Admin and is blocked while another profile includes the Course in their personal library; learner progress and version backups are kept. Remove from my courses changes only your personal membership. Hide in Learner keeps membership but removes the Course from the learner Course Selector; Unhide in Learner reverses that choice. Unavailable operations are greyed out with a reason.',
+);
+
+const _italianCourseOperations = (
+  title: 'Operazioni sui corsi',
+  body:
+      'Copy as New Course crea un corso Custom indipendente a partire da uno che puoi gestire. Fork crea un corso Custom derivato quando la licenza della sorgente lo permette; conserva la provenienza e assegna nuovi ID. Merge unisce le Lesson scelte da corsi compatibili in un terzo corso, lasciando invariati entrambi i corsi di partenza. Delete course elimina definitivamente un corso Custom dal dispositivo dopo due conferme, se hai i permessi necessari. Remove Publisher Course from device è disponibile soltanto all’Admin e viene bloccato se un altro profilo ha il corso nella propria libreria; i progressi degli studenti e i backup delle versioni restano. Remove from my courses cambia soltanto l’appartenenza alla tua libreria personale. Hide in Learner conserva questa appartenenza ma toglie il corso dal Course Selector dello studente; Unhide in Learner annulla la scelta. Le operazioni non disponibili appaiono in grigio con una spiegazione.',
+);
 
 /// Heading and blurb of the Technical reference card.
 ({String title, String body, String note}) editorHelpTechnicalIntro(
@@ -37,7 +110,7 @@ const _english = <EditorHelpSection>[
   (
     title: 'Courses in learner mode',
     body:
-        'Course Library, at the bottom of Course Selector, lists every Course on this device in Bundled Courses, Publisher Courses, My Local Courses and Other Local Courses. By default it hides unavailable or Draft Courses; a switch shows them. Sort by and each section\'s Expanded / Compact button change only the view. Add to my courses adds a shared course to your Selector and Manager without granting editing rights. Remove from my courses removes it from both for your profile only; progress is kept unless you explicitly choose Reset my progress. Even with reset selected, all XP (including Weekly XP), total and per-language study days and streak remain; XP earned from this course is not subtracted. Only an admin can Remove Publisher Course from device, and only if no other profile includes it. Progress and version backups survive uninstall. With no playable courses, Home keeps Settings and Course Manager when activated; no course flag is displayed. The page has its own Help, Course covers or flags, Version, Last edited, Maintainer and Duration details, and an Added · Remove action. Import Course in the Selector returns directly to study; it does not activate Course Manager. Continue to Editor prepares a new course; it is saved only with Confirm course changes. Change course lists Published courses in your personal library: the bundled official courses included with QuisquisLingo and Published courses under Local courses. Courses that are Not published stay available for authoring but cannot become the active learner Course. Selecting a Published course makes it current. The learner page resumes the active Published Lesson for that learner and course. When a course has real Sections, the fixed Section selector opens its ordered consecutive Published Section blocks and jumps to each block\'s first Lesson.',
+        'Course Library, at the bottom of Course Selector, lists every Course on this device in Bundled Courses, Publisher Courses, My Local Courses and Other Local Courses. By default it hides unavailable or Draft Courses; a switch shows them. Sort by and each section\'s Expanded / Compact button change only the view. Add to my courses adds a shared course to your Selector and Course Studio without granting editing rights. Remove from my courses removes it from both for your profile only; progress is kept unless you explicitly choose Reset my progress. Even with reset selected, all XP (including Weekly XP), total and per-language study days and streak remain; XP earned from this course is not subtracted. Only an admin can Remove Publisher Course from device, and only if no other profile includes it. Progress and version backups survive uninstall. With no playable courses, Home keeps Settings and Course Studio when activated; no course flag is displayed. The page has its own Help, Course covers or flags, Version, Last edited, Maintainer and Duration details, and an Added · Remove action. Import Course in the Selector returns directly to study; it does not activate Course Studio. Continue to Editor prepares a new course; it is saved only with Confirm course changes. Change course lists Published courses in your personal library: the bundled official courses included with QuisquisLingo and Published courses under Local courses. Courses that are Not published stay available for authoring but cannot become the active learner Course. Selecting a Published course makes it current. The learner page resumes the active Published Lesson for that learner and course. When a course has real Sections, the fixed Section selector opens its ordered consecutive Published Section blocks and jumps to each block\'s first Lesson.',
   ),
   (
     title: 'Course origin',
@@ -117,7 +190,7 @@ const _english = <EditorHelpSection>[
   (
     title: 'Import a custom course',
     body:
-        '1. Copy a supported Course ZIP to Documents/QuisquisLingo/Imports/import.zip, or a media-free Course Model v11 JSON to import.json; keep only one. The ZIP normally has course.json, qql-course-package.json and media/ at its root. QQL also accepts one enclosing folder whose name exactly matches the ZIP filename without .zip and shows a non-blocking warning; for import.zip, the folder must be named import. 2. In Course Manager, open Course Import and select Import Course package or JSON. 3. QQL checks the whole package and Course Audit before installing the Course and its own media. Audit errors block import; warnings are reported. Images copied from an Admin Shared Image Library stay with the imported Course and are not added to the recipient device’s Shared Image Library. An external-official Course requires a valid approved-publisher signature; an ordinary custom import stays custom. The source file remains in Imports. A JSON import must be valid UTF-8 and at most 10 MB; a Course ZIP may be at most 300 MB compressed and expanded. Earlier Course formats are refused without migration or deletion.',
+        '1. Copy a supported Course ZIP to Documents/QuisquisLingo/Imports/import.zip, or a media-free Course Model v11 JSON to import.json; keep only one. The ZIP normally has course.json, qql-course-package.json and media/ at its root. QQL also accepts one enclosing folder whose name exactly matches the ZIP filename without .zip and shows a non-blocking warning; for import.zip, the folder must be named import. 2. In Course Studio, open Course Import and select Import Course package or JSON. 3. QQL checks the whole package and Course Audit before installing the Course and its own media. Audit errors block import; warnings are reported. Images copied from an Admin Shared Image Library stay with the imported Course and are not added to the recipient device’s Shared Image Library. An external-official Course requires a valid approved-publisher signature; an ordinary custom import stays custom. The source file remains in Imports. A JSON import must be valid UTF-8 and at most 10 MB; a Course ZIP may be at most 300 MB compressed and expanded. Earlier Course formats are refused without migration or deletion.',
   ),
   (
     title: 'Export a custom course',
@@ -207,7 +280,7 @@ const _english = <EditorHelpSection>[
   (
     title: 'Audit severity and codes',
     body:
-        'Course Audit reports Errors, Warnings and Info. Error blocks publication or import because content is structurally or functionally invalid. Warning marks a likely authoring problem that needs review. Info is guidance or a neutral fact and never blocks publication by itself. Audit can sort by Lesson, friendly Exercise type or Recently modified and can be opened for a whole Course, one Lesson or one Round. Recent order uses updatedAt descending with deterministic ties; findings are numbered progressively inside each severity group after filtering. A red border marks an Audit Error or Warning and propagates through its represented branch. A luminous green border means the current branch has no Error or Warning; Info guidance may remain. One blue Draft indicator independently includes a Lesson or Round\'s own Draft state and follows Draft Guidebooks and Content through their visible ancestors. A green Audit border does not mean the item is Published. An explicitly Draft Lesson or Round keeps Published children hidden until that container is saved. A Guidebook concern affects its Lesson and Lessons hierarchy, but not the separate Rounds branch. Fewer than 3 Rounds is Info; fewer than 25 eligible Duel Exercises is Info only when Create Duels is ON. Missing Reading- or Listening-comprehension coverage produces no finding; malformed existing comprehension content still receives validation. Drafts are included for author review without making unrelated Published learner content invalid. Technical reference > Audit Codes displays the shared 102-rule registry in Errors, Warnings, Info order. All three independently selectable categories start enabled, and text search applies within the selected categories.',
+        'Course Audit reports Errors, Warnings and Info. Error blocks publication or import because content is structurally or functionally invalid. Warning marks a likely authoring problem that needs review. Info is guidance or a neutral fact and never blocks publication by itself. Audit can sort by Lesson, friendly Exercise type or Recently modified and can be opened for a whole Course, one Lesson or one Round. Recent order uses updatedAt descending with deterministic ties; findings are numbered progressively inside each severity group after filtering. A red border marks an Audit Error or Warning and propagates through its represented branch. A luminous green border means the current branch has no Error or Warning; Info guidance may remain. One blue Draft indicator independently includes a Lesson or Round\'s own Draft state and follows Draft Guidebooks and Content through their visible ancestors. A green Audit border does not mean the item is Published. An explicitly Draft Lesson or Round keeps Published children hidden until that container is saved. A Guidebook concern affects its Lesson and Lessons hierarchy, but not the separate Rounds branch. Fewer than 3 Rounds is Info; fewer than 25 eligible Duel Exercises is Info only when Create Duels is ON. Missing Reading- or Listening-comprehension coverage produces no finding; malformed existing comprehension content still receives validation. Drafts are included for author review without making unrelated Published learner content invalid. Course Editor Help > Technical reference > Audit Codes displays the shared 102-rule registry in Errors, Warnings, Info order. All three independently selectable categories start enabled, and text search applies within the selected categories.',
   ),
   (
     title: 'Course Audit',
@@ -218,7 +291,7 @@ const _english = <EditorHelpSection>[
   (
     title: 'Create a new course',
     body:
-        'Course Manager creates an independent Course Model v11 project and opens it in Course Editor. New Course restores the same License / Rights, Authors / Contributors, language variant, levels, description and support metadata used by Course Info Editor. The active profile becomes the immutable Original Course Creator and defaults as Course Maintainer; another local individual may instead be selected as Maintainer. Assigned Team remains separate and is not selected during creation. Number of Lessons defaults to 3 (whole numbers 1–100), and Rounds per Lesson defaults to 1 (whole numbers 1–20). Invalid or missing values show inline errors and disable Create. The complete initial hierarchy is created atomically with fresh stable IDs and untitled Rounds, each with exactly one Draft Pick the translation (to target) sample Exercise. Review and explicitly save teaching content before publication. The new Not published Course remains only a working copy until Confirm course changes creates version 1; cancelling creates no stored Course. Imported v11 authoring content must state its provenance, Maintainer, Draft/Published state and required UTC timestamps explicitly; earlier Course Models are neither inferred nor migrated.',
+        'Course Studio creates an independent Course Model v11 project and opens it in Course Editor. New Course restores the same License / Rights, Authors / Contributors, language variant, levels, description and support metadata used by Course Info Editor. The active profile becomes the immutable Original Course Creator and defaults as Course Maintainer; another local individual may instead be selected as Maintainer. Assigned Team remains separate and is not selected during creation. Number of Lessons defaults to 3 (whole numbers 1–100), and Rounds per Lesson defaults to 1 (whole numbers 1–20). Invalid or missing values show inline errors and disable Create. The complete initial hierarchy is created atomically with fresh stable IDs and untitled Rounds, each with exactly one Draft Pick the translation (to target) sample Exercise. Review and explicitly save teaching content before publication. The new Not published Course remains only a working copy until Confirm course changes creates version 1; cancelling creates no stored Course. Imported v11 authoring content must state its provenance, Maintainer, Draft/Published state and required UTC timestamps explicitly; earlier Course Models are neither inferred nor migrated.',
   ),
 ];
 
@@ -226,7 +299,7 @@ const _italian = <EditorHelpSection>[
   (
     title: 'I corsi in modalità studente',
     body:
-        'Course Library, in fondo al Course Selector, elenca tutti i corsi presenti sul dispositivo in Bundled Courses, Publisher Courses, My Local Courses e Other Local Courses. Per impostazione predefinita nasconde i corsi non disponibili o con contenuti Draft; un interruttore li mostra. Sort by e il pulsante Expanded / Compact di ogni sezione cambiano solo la visualizzazione. Add to my courses aggiunge il corso condiviso al tuo Selector e Manager senza concedere permessi di modifica. Remove from my courses lo rimuove da entrambi solo per il tuo profilo; i progressi restano salvo scelta esplicita di Reset my progress. Anche scegliendo il reset, restano tutti gli XP (compresi quelli settimanali), i giorni di studio totali e per lingua e la streak; gli XP ottenuti con questo corso non vengono sottratti. Solo un admin può usare Remove Publisher Course from device, purché nessun altro profilo includa il corso. Progressi e backup delle versioni restano dopo la disinstallazione. Senza corsi disponibili per lo studio, Home conserva Settings e Course Manager se attivato; non mostra una bandiera di corso. La pagina ha un proprio Help, copertina o bandiera del corso, dettagli Version, Last edited, Maintainer e Duration, e azione Added · Remove. Import Course nel Selector torna direttamente allo studio senza attivare Course Manager. Continue to Editor prepara il nuovo corso, salvato solo con Confirm course changes. Change course elenca i corsi Published della tua libreria personale: quelli ufficiali inclusi in QuisquisLingo e i corsi Published che stanno sotto Local courses. I corsi Not published restano disponibili per l’authoring, ma non possono diventare il corso attivo dello studente. Se selezioni un corso Published, quello diventa il corso corrente. La pagina di studio riprende dalla Lesson Published attiva per quello studente e quel corso. Se il corso ha delle Section vere, il Section selector fisso apre i blocchi di Section Published in ordine consecutivo e salta alla prima Lesson di ogni blocco.',
+        'Course Library, in fondo al Course Selector, elenca tutti i corsi presenti sul dispositivo in Bundled Courses, Publisher Courses, My Local Courses e Other Local Courses. Per impostazione predefinita nasconde i corsi non disponibili o con contenuti Draft; un interruttore li mostra. Sort by e il pulsante Expanded / Compact di ogni sezione cambiano solo la visualizzazione. Add to my courses aggiunge il corso condiviso al tuo Selector e Course Studio senza concedere permessi di modifica. Remove from my courses lo rimuove da entrambi solo per il tuo profilo; i progressi restano salvo scelta esplicita di Reset my progress. Anche scegliendo il reset, restano tutti gli XP (compresi quelli settimanali), i giorni di studio totali e per lingua e la streak; gli XP ottenuti con questo corso non vengono sottratti. Solo un admin può usare Remove Publisher Course from device, purché nessun altro profilo includa il corso. Progressi e backup delle versioni restano dopo la disinstallazione. Senza corsi disponibili per lo studio, Home conserva Settings e Course Studio se attivato; non mostra una bandiera di corso. La pagina ha un proprio Help, copertina o bandiera del corso, dettagli Version, Last edited, Maintainer e Duration, e azione Added · Remove. Import Course nel Selector torna direttamente allo studio senza attivare Course Studio. Continue to Editor prepara il nuovo corso, salvato solo con Confirm course changes. Change course elenca i corsi Published della tua libreria personale: quelli ufficiali inclusi in QuisquisLingo e i corsi Published che stanno sotto Local courses. I corsi Not published restano disponibili per l’authoring, ma non possono diventare il corso attivo dello studente. Se selezioni un corso Published, quello diventa il corso corrente. La pagina di studio riprende dalla Lesson Published attiva per quello studente e quel corso. Se il corso ha delle Section vere, il Section selector fisso apre i blocchi di Section Published in ordine consecutivo e salta alla prima Lesson di ogni blocco.',
   ),
   (
     title: 'Origine del corso',
@@ -306,7 +379,7 @@ const _italian = <EditorHelpSection>[
   (
     title: 'Importare un corso personalizzato',
     body:
-        '1. Copia uno ZIP di corso supportato in Documents/QuisquisLingo/Imports/import.zip, oppure un JSON Course Model v11 senza media propri in import.json; tienine uno solo. Di norma course.json, qql-course-package.json e media/ si trovano alla radice dello ZIP. QQL accetta anche una sola cartella contenitore il cui nome corrisponde esattamente al nome dello ZIP senza .zip e mostra un avviso non bloccante; per import.zip, la cartella deve chiamarsi import. 2. In Course Manager apri Course Import e scegli Import Course package or JSON. 3. QQL controlla l’intero pacchetto e il Course Audit prima di installare il corso e i suoi media. Gli errori dell’Audit bloccano l’importazione; gli avvisi vengono segnalati. Le immagini copiate da una Shared Image Library gestita dall’Admin restano nel corso importato e non vengono aggiunte alla libreria condivisa del dispositivo di arrivo. Un corso external-official richiede la firma valida di un editore approvato; un normale import custom resta custom. Il file sorgente resta in Imports. Il JSON deve essere UTF-8 valido e non superare 10 MB; lo ZIP non può superare 300 MB, né compresso né espanso. I modelli di corso precedenti vengono rifiutati senza migrazione o cancellazione.',
+        '1. Copia uno ZIP di corso supportato in Documents/QuisquisLingo/Imports/import.zip, oppure un JSON Course Model v11 senza media propri in import.json; tienine uno solo. Di norma course.json, qql-course-package.json e media/ si trovano alla radice dello ZIP. QQL accetta anche una sola cartella contenitore il cui nome corrisponde esattamente al nome dello ZIP senza .zip e mostra un avviso non bloccante; per import.zip, la cartella deve chiamarsi import. 2. In Course Studio apri Course Import e scegli Import Course package or JSON. 3. QQL controlla l’intero pacchetto e il Course Audit prima di installare il corso e i suoi media. Gli errori dell’Audit bloccano l’importazione; gli avvisi vengono segnalati. Le immagini copiate da una Shared Image Library gestita dall’Admin restano nel corso importato e non vengono aggiunte alla libreria condivisa del dispositivo di arrivo. Un corso external-official richiede la firma valida di un editore approvato; un normale import custom resta custom. Il file sorgente resta in Imports. Il JSON deve essere UTF-8 valido e non superare 10 MB; lo ZIP non può superare 300 MB, né compresso né espanso. I modelli di corso precedenti vengono rifiutati senza migrazione o cancellazione.',
   ),
   (
     title: 'Esportare un corso personalizzato',
@@ -396,7 +469,7 @@ const _italian = <EditorHelpSection>[
   (
     title: 'Gravità e codici dell’Audit',
     body:
-        'Il Course Audit segnala Error, Warning e Info. Error impedisce la pubblicazione o l’importazione, perché il contenuto non è valido dal punto di vista strutturale o funzionale. Warning indica un problema probabile, da rivedere. Info è un’indicazione o un fatto neutro e da solo non blocca mai la pubblicazione. L’Audit può ordinare per Lesson, per nome leggibile del tipo di esercizio o per Recently modified, e si può aprire su un corso intero, su una Lesson o su un Round. L’ordine per data usa updatedAt decrescente con criteri deterministici a parità di valore; le segnalazioni vengono numerate progressivamente dentro ogni gruppo di gravità, dopo i filtri. Il bordo rosso segnala un Error o un Warning e si propaga lungo il ramo che rappresenta. Il bordo verde acceso vuol dire che in quel ramo non ci sono Error né Warning; possono restare indicazioni Info. Un unico indicatore blu Draft comprende lo stato Draft della Lesson o del Round e segue i GuideBook e i contenuti Draft lungo gli elementi che li contengono. Un bordo verde dell’Audit non vuol dire che l’elemento è pubblicato. Una Lesson o un Round esplicitamente Draft tengono nascosti i figli pubblicati finché quel contenitore non viene salvato. Un problema nel GuideBook riguarda la sua Lesson e la gerarchia Lessons, ma non il ramo Rounds. Meno di 3 Round è Info; meno di 25 esercizi idonei per il Duel è Info soltanto quando Create Duels è ON. La mancanza di esercizi di comprensione scritta o orale non produce nessuna segnalazione; il contenuto di comprensione già presente ma malformato viene comunque controllato. Le bozze sono incluse perché chi scrive possa rivederle, senza che questo renda non valido il contenuto pubblicato che non c’entra. Technical reference > Audit Codes mostra il registro condiviso di 102 regole, nell’ordine Error, Warning, Info. Le tre categorie si possono selezionare indipendentemente e partono tutte attive; la ricerca testuale agisce dentro le categorie selezionate.',
+        'Il Course Audit segnala Error, Warning e Info. Error impedisce la pubblicazione o l’importazione, perché il contenuto non è valido dal punto di vista strutturale o funzionale. Warning indica un problema probabile, da rivedere. Info è un’indicazione o un fatto neutro e da solo non blocca mai la pubblicazione. L’Audit può ordinare per Lesson, per nome leggibile del tipo di esercizio o per Recently modified, e si può aprire su un corso intero, su una Lesson o su un Round. L’ordine per data usa updatedAt decrescente con criteri deterministici a parità di valore; le segnalazioni vengono numerate progressivamente dentro ogni gruppo di gravità, dopo i filtri. Il bordo rosso segnala un Error o un Warning e si propaga lungo il ramo che rappresenta. Il bordo verde acceso vuol dire che in quel ramo non ci sono Error né Warning; possono restare indicazioni Info. Un unico indicatore blu Draft comprende lo stato Draft della Lesson o del Round e segue i GuideBook e i contenuti Draft lungo gli elementi che li contengono. Un bordo verde dell’Audit non vuol dire che l’elemento è pubblicato. Una Lesson o un Round esplicitamente Draft tengono nascosti i figli pubblicati finché quel contenitore non viene salvato. Un problema nel GuideBook riguarda la sua Lesson e la gerarchia Lessons, ma non il ramo Rounds. Meno di 3 Round è Info; meno di 25 esercizi idonei per il Duel è Info soltanto quando Create Duels è ON. La mancanza di esercizi di comprensione scritta o orale non produce nessuna segnalazione; il contenuto di comprensione già presente ma malformato viene comunque controllato. Le bozze sono incluse perché chi scrive possa rivederle, senza che questo renda non valido il contenuto pubblicato che non c’entra. Course Editor Help > Technical reference > Audit Codes mostra il registro condiviso di 102 regole, nell’ordine Error, Warning, Info. Le tre categorie si possono selezionare indipendentemente e partono tutte attive; la ricerca testuale agisce dentro le categorie selezionate.',
   ),
   (
     title: 'Course Audit',
@@ -406,7 +479,7 @@ const _italian = <EditorHelpSection>[
   (
     title: 'Creare un corso nuovo',
     body:
-        'Course Manager crea un progetto Course Model v11 indipendente e lo apre nel Course Editor. New Course ripropone gli stessi campi License / Rights, Authors / Contributors, variante della lingua, livelli, descrizione e metadati di supporto che usa Course Info Editor. Il profilo attivo diventa l’Original Course Creator immutabile ed è anche il Course Maintainer predefinito; in alternativa puoi scegliere come Maintainer un’altra persona locale. L’Assigned Team resta una cosa a parte e non si sceglie durante la creazione. Number of Lessons parte da 3 (numeri interi da 1 a 100) e Rounds per Lesson parte da 1 (numeri interi da 1 a 20). I valori non validi o mancanti mostrano un errore accanto al campo e disattivano Create. L’intera gerarchia iniziale viene creata in blocco, con ID stabili nuovi e Round senza titolo, ciascuno con esattamente un esercizio di esempio Draft di tipo Pick the translation (to target). Rivedi e salva esplicitamente i contenuti didattici prima di pubblicare. Il nuovo corso Not published resta soltanto una copia di lavoro finché Confirm course changes non crea la versione 1; se annulli, non viene salvato nessun corso. I contenuti di authoring v11 importati devono dichiarare esplicitamente provenienza, Maintainer, stato Draft/Published e le date UTC richieste; i Course Model precedenti non vengono né dedotti né convertiti.',
+        'Course Studio crea un progetto Course Model v11 indipendente e lo apre nel Course Editor. New Course ripropone gli stessi campi License / Rights, Authors / Contributors, variante della lingua, livelli, descrizione e metadati di supporto che usa Course Info Editor. Il profilo attivo diventa l’Original Course Creator immutabile ed è anche il Course Maintainer predefinito; in alternativa puoi scegliere come Maintainer un’altra persona locale. L’Assigned Team resta una cosa a parte e non si sceglie durante la creazione. Number of Lessons parte da 3 (numeri interi da 1 a 100) e Rounds per Lesson parte da 1 (numeri interi da 1 a 20). I valori non validi o mancanti mostrano un errore accanto al campo e disattivano Create. L’intera gerarchia iniziale viene creata in blocco, con ID stabili nuovi e Round senza titolo, ciascuno con esattamente un esercizio di esempio Draft di tipo Pick the translation (to target). Rivedi e salva esplicitamente i contenuti didattici prima di pubblicare. Il nuovo corso Not published resta soltanto una copia di lavoro finché Confirm course changes non crea la versione 1; se annulli, non viene salvato nessun corso. I contenuti di authoring v11 importati devono dichiarare esplicitamente provenienza, Maintainer, stato Draft/Published e le date UTC richieste; i Course Model precedenti non vengono né dedotti né convertiti.',
   ),
 ];
 
@@ -481,7 +554,7 @@ const _courseTypesEnglish = (
       "Deletion",
       "Personal removal only",
       "Personal removal; admin-only uninstall if unused by others",
-      "Authorized deletion in Course Manager",
+      "Authorized deletion in Course Studio",
     ],
     [
       "Updates",
@@ -562,7 +635,7 @@ const _courseTypesItalian = (
       "Eliminazione",
       "Solo rimozione personale",
       "Rimozione personale; disinstallazione admin se non usato da altri",
-      "Da Course Manager, se autorizzati",
+      "Da Course Studio, se autorizzati",
     ],
     [
       "Aggiornamenti",

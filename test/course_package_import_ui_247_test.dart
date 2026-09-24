@@ -5,7 +5,6 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:quisquislingo_app/models/course_models.dart';
-import 'package:quisquislingo_app/screens/course_editor_screen.dart';
 import 'package:quisquislingo_app/screens/course_projects_screen.dart';
 import 'package:quisquislingo_app/services/course_editor_service.dart';
 import 'package:quisquislingo_app/services/course_media_store.dart';
@@ -40,8 +39,12 @@ void main() {
 
   /// A same-ID Course is installed; `Imports/import.zip` holds an incoming
   /// version with one new image.
-  Future<void> prepare(WidgetTester tester) async {
-    tester.view.physicalSize = const Size(1400, 1000);
+  Future<void> prepare(
+    WidgetTester tester, {
+    bool importOnly = false,
+    Size viewport = const Size(1400, 1000),
+  }) async {
+    tester.view.physicalSize = viewport;
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
@@ -80,6 +83,7 @@ void main() {
       MaterialApp(
         home: CourseProjectsScreen(
           currentCourse: null,
+          importOnly: importOnly,
           editorService: editor,
           transferService: CustomCourseTransferService(
             importDirectory: () async => imports,
@@ -87,19 +91,28 @@ void main() {
         ),
       ),
     );
-    await tester.pumpUntilFileIoState(
-      () => find.byTooltip('Course Import').evaluate().isNotEmpty,
-    );
-    await tester.tap(find.byTooltip('Course Import'));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 400));
+    if (!importOnly) {
+      await tester.pumpUntilFileIoState(
+        () => find.byTooltip('Course Import').evaluate().isNotEmpty,
+      );
+      await tester.tap(find.byTooltip('Course Import'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+    } else {
+      await tester.pumpUntilFileIoState(
+        () => find
+            .byKey(const Key('import-course-json-primary'))
+            .evaluate()
+            .isNotEmpty,
+      );
+    }
     await tester.tap(find.byKey(const Key('import-course-json-primary')));
     await tester.pumpUntilFileIoState(
       () => find.text('Matching Course ID').evaluate().isNotEmpty,
     );
   }
 
-  testWidgets('Copy from an import opens its Editor with no staged media', (
+  testWidgets('Copy from an import returns without Editor or staged media', (
     tester,
   ) async {
     await prepare(tester);
@@ -107,31 +120,70 @@ void main() {
 
     await tester.tap(find.widgetWithText(OutlinedButton, 'Copy as New Course'));
     await tester.pumpUntilFileIoState(
-      () => find.byType(CourseEditorScreen).evaluate().isNotEmpty,
+      () => find
+          .textContaining('Course changes confirmed.')
+          .evaluate()
+          .isNotEmpty,
     );
-
-    final copy = tester.widget<CourseEditorScreen>(
-      find.byType(CourseEditorScreen),
-    );
-    expect(copy.course.courseId, isNot('same'));
     final state = await tester.runAsync(() async {
+      final copy = (await editor.listUserCourses()).singleWhere(
+        (course) => course.courseId != 'same',
+      );
       final media = CourseMediaStore();
       return (
+        copy: copy,
         staged: await stagedFiles(),
-        copyHasImage:
-            await media.existingFile(copy.course.courseId, incoming) != null,
+        copyHasImage: await media.existingFile(copy.courseId, incoming) != null,
         sameHasImage: await media.existingFile('same', incoming) != null,
         sameKeepsSentinel: await media.existingFile('same', sentinel) != null,
       );
     });
-    expect(state!.copyHasImage, isTrue);
+    expect(state!.copy.courseId, isNot('same'));
+    expect(state.copyHasImage, isTrue);
     expect(state.sameHasImage, isFalse);
     expect(state.sameKeepsSentinel, isTrue);
     expect(
       state.staged,
       isEmpty,
-      reason:
-          'staging ends when the Copy is installed, not when its Editor closes',
+      reason: 'staging ends when the Copy is installed',
+    );
+  });
+
+  testWidgets('locked Import greys Copy and Fork but keeps Replace', (
+    tester,
+  ) async {
+    await prepare(tester, importOnly: true);
+    final copy = tester.widget<OutlinedButton>(
+      find.widgetWithText(OutlinedButton, 'Copy as New Course'),
+    );
+    final fork = tester.widget<OutlinedButton>(
+      find.widgetWithText(OutlinedButton, 'Fork'),
+    );
+    expect(copy.onPressed, isNull);
+    expect(fork.onPressed, isNull);
+    expect(
+      find.textContaining('Unlock Course Studio for this profile'),
+      findsWidgets,
+    );
+    expect(
+      tester
+          .widget<FilledButton>(
+            find.widgetWithText(FilledButton, 'Replace / update'),
+          )
+          .onPressed,
+      isNotNull,
+    );
+  });
+
+  testWidgets('locked matching-ID Import dialog fits a phone viewport', (
+    tester,
+  ) async {
+    await prepare(tester, importOnly: true, viewport: const Size(320, 568));
+    expect(tester.takeException(), isNull);
+    expect(find.text('Matching Course ID'), findsOneWidget);
+    expect(
+      find.widgetWithText(FilledButton, 'Replace / update').hitTestable(),
+      findsOneWidget,
     );
   });
 

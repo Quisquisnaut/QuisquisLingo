@@ -195,7 +195,7 @@ void main() {
     expect(find.textContaining('broken.json'), findsOneWidget);
     // The readable Course is listed by the service (tested above); here the
     // page must load instead of showing the whole-store error.
-    expect(find.text('Course Manager'), findsOneWidget);
+    expect(find.text('Course Studio'), findsOneWidget);
   });
 }
 

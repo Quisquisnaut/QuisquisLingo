@@ -723,7 +723,14 @@ Future<void> _openCoursePicker(WidgetTester tester) async {
 }
 
 Future<void> _tapBundledCourse(WidgetTester tester, String code) async {
-  final tile = find.byKey(ValueKey('bundled-course-$code'));
+  final settings = SettingsService();
+  final selected = await settings.getLastSelectedCourseCode();
+  final recent = (await settings.getRecentCourseRefs())
+      .where((ref) => ref != selected)
+      .take(3);
+  final tile = find.byKey(
+    ValueKey('${recent.contains(code) ? 'recent' : 'bundled'}-course-$code'),
+  );
   await _revealCourseTile(tester, tile);
   tester.widget<ListTile>(tile).onTap!();
   await tester.pump();
@@ -735,7 +742,17 @@ Future<void> _selectCustomCourse(WidgetTester tester, String courseId) async {
 }
 
 Future<void> _tapCustomCourse(WidgetTester tester, String courseId) async {
-  final tile = find.byKey(ValueKey('local-course-$courseId'));
+  final settings = SettingsService();
+  final selected = await settings.getLastSelectedCourseCode();
+  final recent = (await settings.getRecentCourseRefs())
+      .where((ref) => ref != selected)
+      .take(3);
+  final ref = 'custom:$courseId';
+  final tile = find.byKey(
+    ValueKey(
+      recent.contains(ref) ? 'recent-course-$ref' : 'local-course-$courseId',
+    ),
+  );
   await _revealCourseTile(tester, tile);
   tester.widget<ListTile>(tile).onTap!();
   await tester.pump();

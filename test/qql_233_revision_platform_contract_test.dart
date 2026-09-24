@@ -4,17 +4,14 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:quisquislingo_app/services/app_metadata.dart';
 
 void main() {
-  test(
-    'technical version is unchanged while the public build label is clear',
-    () {
-      final pubspec = File('pubspec.yaml').readAsStringSync();
+  test('technical version matches the current public build label', () {
+    final pubspec = File('pubspec.yaml').readAsStringSync();
 
-      expect(AppMetadata.technicalVersion, '2.0.49+249002');
-      expect(AppMetadata.publicBuildLabel, 'Build 249, Revision 2');
-      expect(AppMetadata.displayLabel, 'Version 2.0.49\nBuild 249, Revision 2');
-      expect(pubspec, contains('version: 2.0.49+249002'));
-    },
-  );
+    expect(AppMetadata.technicalVersion, '2.0.50+250001');
+    expect(AppMetadata.publicBuildLabel, 'Build 250, Revision 1');
+    expect(AppMetadata.displayLabel, 'Version 2.0.50\nBuild 250, Revision 1');
+    expect(pubspec, contains('version: 2.0.50+250001'));
+  });
 
   test('platform application identities use the QuisquisLingo namespace', () {
     final linux = File('linux/CMakeLists.txt').readAsStringSync();
