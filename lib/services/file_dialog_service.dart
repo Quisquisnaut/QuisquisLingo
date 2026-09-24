@@ -9,6 +9,7 @@ import 'app_errors.dart';
 import 'diagnostic_log_service.dart';
 import 'import/import_result.dart';
 import 'import/import_stager.dart';
+import 'import/safe_file_name.dart';
 import 'import/selected_external_file.dart';
 
 /// Result of asking the operating system to save or open a file.
@@ -72,6 +73,48 @@ class FileDialogResult {
   final String? failureReason;
 }
 
+/// A local desktop path selected for an external tool. Unlike import results,
+/// this retains the original path so the external tool can read that file.
+/// Only [displayName] should be shown or written to diagnostics.
+class FileDialogPathResult {
+  const FileDialogPathResult._(
+    this.outcome, {
+    this.path,
+    this.displayName,
+    this.failureReason,
+  });
+
+  FileDialogPathResult.picked(String path)
+    : this._(
+        FileDialogOutcome.opened,
+        path: path,
+        displayName: safeDisplayName(path),
+      );
+  const FileDialogPathResult.cancelled() : this._(FileDialogOutcome.cancelled);
+  const FileDialogPathResult.failed(String reason)
+    : this._(FileDialogOutcome.failed, failureReason: reason);
+  const FileDialogPathResult.unavailable()
+    : this._(FileDialogOutcome.unavailable);
+
+  final FileDialogOutcome outcome;
+  final String? path;
+  final String? displayName;
+  final String? failureReason;
+
+  FileDialogResult _asDialogResult() => switch (outcome) {
+    FileDialogOutcome.opened => FileDialogResult.opened(
+      displayName!,
+      Uint8List(0),
+    ),
+    FileDialogOutcome.cancelled => const FileDialogResult.cancelled(),
+    FileDialogOutcome.failed => FileDialogResult.failed(
+      failureReason ?? 'The dialog failed.',
+    ),
+    FileDialogOutcome.unavailable => const FileDialogResult.unavailable(),
+    _ => const FileDialogResult.failed('The dialog failed.'),
+  };
+}
+
 /// Platform seam. Bytes in, bytes out: no file path crosses this interface,
 /// because some platforms return document URIs instead of paths.
 abstract class FileDialogBackend {
@@ -93,6 +136,15 @@ abstract class FileDialogBackend {
   Future<FileDialogPick> pickFiles({
     required List<String> extensions,
     required bool multiple,
+    String? initialDirectory,
+  });
+}
+
+/// An optional desktop-only capability for choosing a local original path.
+/// Existing byte-based import backends do not need to implement this.
+abstract interface class DesktopPathFileDialogBackend {
+  Future<FileDialogPathResult> pickDesktopPath({
+    required List<String> extensions,
     String? initialDirectory,
   });
 }
@@ -153,7 +205,8 @@ class UnavailableFileDialogBackend implements FileDialogBackend {
 
 /// Windows, macOS and Linux (GTK) through `file_selector`. The dialog returns
 /// an ordinary path, which this class writes or reads itself.
-class DesktopFileDialogBackend implements FileDialogBackend {
+class DesktopFileDialogBackend
+    implements FileDialogBackend, DesktopPathFileDialogBackend {
   const DesktopFileDialogBackend();
 
   @override
@@ -166,6 +219,21 @@ class DesktopFileDialogBackend implements FileDialogBackend {
     label: extensions.map((e) => '.$e').join(', '),
     extensions: extensions,
   );
+
+  @override
+  Future<FileDialogPathResult> pickDesktopPath({
+    required List<String> extensions,
+    String? initialDirectory,
+  }) async {
+    final selected = await openFile(
+      initialDirectory: initialDirectory,
+      // An empty filter lets the Admin choose extensionless POSIX executables.
+      acceptedTypeGroups: extensions.isEmpty ? const [] : [_group(extensions)],
+    );
+    return selected == null
+        ? const FileDialogPathResult.cancelled()
+        : FileDialogPathResult.picked(selected.path);
+  }
 
   @override
   Future<FileDialogResult> saveBytes({
@@ -279,6 +347,32 @@ class FileDialogService {
 
   /// False when the dialog buttons should be hidden.
   bool get isAvailable => _backend.isAvailable;
+
+  /// Opens the existing system picker and returns the chosen original path.
+  /// This is for desktop external-tool use only; imports keep using bounded
+  /// streams and private staging through [openBytes] or [openStaged].
+  Future<FileDialogPathResult> pickDesktopPath({
+    required List<String> extensions,
+    required String artifact,
+  }) async {
+    FileDialogPathResult? selected;
+    final dialog = await _run('open', artifact, null, (initialDirectory) async {
+      final backend = _backend;
+      selected = backend is DesktopPathFileDialogBackend
+          ? await (backend as DesktopPathFileDialogBackend).pickDesktopPath(
+              extensions: extensions,
+              initialDirectory: initialDirectory,
+            )
+          : const FileDialogPathResult.unavailable();
+      return selected!._asDialogResult();
+    });
+    return FileDialogPathResult._(
+      dialog.outcome,
+      path: dialog.outcome == FileDialogOutcome.opened ? selected?.path : null,
+      displayName: dialog.displayName,
+      failureReason: dialog.failureReason,
+    );
+  }
 
   Future<FileDialogResult> saveBytes({
     required Uint8List bytes,

@@ -544,6 +544,11 @@ const Map<String, String> helpIt = {
       "Altri file nella cartella QQL: tutto ciò che è stato aggiunto direttamente alla cartella QuisquisLingo dal sistema operativo e che QQL non crea né usa.",
   "deviceAdminHelp.inventory.bullet7":
       "I media e i file inclusi nell’app non compaiono. Per elenchi molto grandi vengono mostrati i 500 file più recenti per sezione.",
+  "deviceAdminHelp.qqlTools.title": "QQL-Tools",
+  "deviceAdminHelp.qqlTools.paragraph1":
+      "QQL-Tools è un progetto complementare facoltativo per la convalida indipendente dei file Course JSON e dei package ZIP di QQL. I suoi risultati non sostituiscono Course Audit, la convalida delle importazioni o i controlli di sicurezza di QQL.",
+  "deviceAdminHelp.qqlTools.paragraph2":
+      "In Device Administration, un Admin usa Browse... per configurare l’eseguibile QQL-Tools una sola volta per dispositivo, poi Test per verificarlo o Clear per rimuoverlo. Validate with QQL-Tools... viene eseguito in background mentre QQL rimane aperto. Non modifica né importa il Course selezionato. Not available on mobile devices.",
   "deviceAdminHelp.updates.title": "Updates",
   "deviceAdminHelp.updates.paragraph1":
       "Update apre la stessa pagina disponibile a ogni studente in Settings > Update: controlla GitHub per una release più recente e mostra le istruzioni di installazione. Solo un admin può cambiare Check automatically at startup, perché vale per tutto il dispositivo.",

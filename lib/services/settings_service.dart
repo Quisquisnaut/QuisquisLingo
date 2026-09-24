@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:shared_preferences/shared_preferences.dart';
 import 'app_reset_service.dart';
 import 'profile_service.dart';
@@ -86,6 +88,66 @@ class SettingsService {
   static const _lessonExpansionModeKeyPrefix = 'lesson_expansion_mode_';
   static const _automaticUpdateCheckKey = 'automatic_update_check_enabled';
   static const _updateLastCheckedKey = 'update_last_checked_at';
+  static const _qqlToolsExecutablePathKey = 'qql_tools_executable_path_v1';
+
+  /// Device-wide, so switching learners never changes the selected tool.
+  Future<String?> getQqlToolsExecutablePath() async =>
+      (await SharedPreferences.getInstance()).getString(
+        _qqlToolsExecutablePathKey,
+      );
+
+  Future<void> setQqlToolsExecutablePath({
+    required String actorProfileId,
+    required String path,
+  }) async {
+    await _requireActiveAdminForQqlTools(actorProfileId);
+    final executablePath = path;
+    final trimmedPath = path.trim();
+    final hasUriScheme = RegExp(
+      r'^[A-Za-z][A-Za-z0-9+.-]*:',
+    ).hasMatch(trimmedPath);
+    final isWindowsDrivePath = RegExp(
+      r'^[A-Za-z]:[\\/]',
+    ).hasMatch(trimmedPath);
+    if (trimmedPath.isEmpty ||
+        (hasUriScheme && !isWindowsDrivePath) ||
+        (Platform.isWindows && !executablePath.toLowerCase().endsWith('.exe'))) {
+      throw ArgumentError.value(path, 'path', 'Select a local executable file.');
+    }
+    FileSystemEntityType fileType;
+    try {
+      fileType = await FileSystemEntity.type(
+        executablePath,
+        followLinks: true,
+      );
+    } on FileSystemException {
+      throw ArgumentError.value(path, 'path', 'Executable file not available.');
+    }
+    if (fileType != FileSystemEntityType.file) {
+      throw ArgumentError.value(path, 'path', 'Executable file not found.');
+    }
+    await (await SharedPreferences.getInstance()).setString(
+      _qqlToolsExecutablePathKey,
+      executablePath,
+    );
+  }
+
+  Future<void> clearQqlToolsExecutablePath({
+    required String actorProfileId,
+  }) async {
+    await _requireActiveAdminForQqlTools(actorProfileId);
+    await (await SharedPreferences.getInstance()).remove(
+      _qqlToolsExecutablePathKey,
+    );
+  }
+
+  Future<void> _requireActiveAdminForQqlTools(String actorProfileId) async {
+    final profiles = ProfileService();
+    if (await profiles.getActiveProfileId() != actorProfileId ||
+        !await profiles.isAdmin(actorProfileId)) {
+      throw StateError('Only the active admin may configure QQL-Tools.');
+    }
+  }
 
   Future<bool> isAutomaticUpdateCheckEnabled() async =>
       (await SharedPreferences.getInstance()).getBool(

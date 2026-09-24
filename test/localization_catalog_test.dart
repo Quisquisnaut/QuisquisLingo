@@ -143,4 +143,33 @@ void main() {
       );
     }
   });
+
+  test('QQL-Tools Device Administration Help explains its boundaries', () {
+    expect(deviceAdminHelpSectionIds, contains('qqlTools'));
+    expect(
+      deviceAdminHelpSectionShape['qqlTools'],
+      (paragraphs: 2, bullets: 0),
+    );
+    for (final locale in AppLocale.values) {
+      expect(
+        helpText.lookup(locale, 'deviceAdminHelp.qqlTools.title'),
+        'QQL-Tools',
+      );
+      final help = [
+        helpText.lookup(locale, 'deviceAdminHelp.qqlTools.paragraph1'),
+        helpText.lookup(locale, 'deviceAdminHelp.qqlTools.paragraph2'),
+      ].join(' ');
+      for (final phrase in [
+        'QQL-Tools',
+        'Course Audit',
+        'Browse...',
+        'Test',
+        'Clear',
+        'Validate with QQL-Tools...',
+        'Not available on mobile devices.',
+      ]) {
+        expect(help, contains(phrase), reason: locale.id);
+      }
+    }
+  });
 }

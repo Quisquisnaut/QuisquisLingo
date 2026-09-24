@@ -4,6 +4,7 @@ import '../models/course_models.dart';
 import '../services/app_reset_service.dart';
 import '../services/profile_service.dart';
 import '../widgets/app_restart_scope.dart';
+import '../widgets/qql_tools_panel.dart';
 import 'flat_image_library_screen.dart';
 import 'inventory_screen.dart';
 import 'update_settings_screen.dart';
@@ -221,6 +222,17 @@ class _DeviceAdministrationScreenState
     if (mounted) await _load();
   }
 
+  Future<void> _manageLearners() async {
+    try {
+      await widget.onManageLearners(context);
+    } finally {
+      if (mounted) {
+        setState(() => _loading = true);
+        await _load();
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -279,7 +291,7 @@ class _DeviceAdministrationScreenState
                           'Opens the Learner Profiles list: switch learner, add a learner, make or remove admins, reset a learner PIN, or delete a learner. The only admin cannot be deleted.',
                         ),
                         trailing: const Icon(Icons.chevron_right),
-                        onTap: () => widget.onManageLearners(context),
+                        onTap: _manageLearners,
                       ),
                       SwitchListTile(
                         key: const Key('admin-startup-mode'),
@@ -304,6 +316,8 @@ class _DeviceAdministrationScreenState
                         trailing: const Icon(Icons.edit_outlined),
                         onTap: _editDeviceName,
                       ),
+                      _sectionTitle('QQL-Tools'),
+                      QqlToolsPanel(actorProfileId: _actorId!),
                       _sectionTitle('Media'),
                       ListTile(
                         key: const Key('admin-media-library'),
