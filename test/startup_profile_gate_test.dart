@@ -107,32 +107,9 @@ void main() {
         find.descendant(of: startup, matching: find.byType(Text)),
         findsNothing,
       );
-      await tester.runAsync(
-        () => Future<void>.delayed(const Duration(milliseconds: 20)),
-      );
-      await tester.pump();
-      final fade = tester.widget<FadeTransition>(
-        find.byKey(const Key('qql-startup-logo-fade')),
-      );
-      final scale = tester.widget<ScaleTransition>(
-        find.byKey(const Key('qql-startup-logo-scale')),
-      );
-      expect(fade.opacity.value, 0);
-      expect(scale.scale.value, closeTo(.30, .001));
-      await tester.pump(const Duration(milliseconds: 600));
-      expect(fade.opacity.value, 1);
-      expect(scale.scale.value, closeTo(.58, .03));
-      await tester.pump(const Duration(milliseconds: 400));
-      expect(fade.opacity.value, 1);
-      expect(scale.scale.value, closeTo(.77, .03));
-      await tester.pump(const Duration(milliseconds: 500));
-      expect(scale.scale.value, closeTo(1, .001));
-      await tester.pump(const Duration(milliseconds: 299));
-      expect(fade.opacity.value, 1);
-      expect(scale.scale.value, closeTo(1, .001));
-      expect(startup, findsOneWidget);
-      await tester.pump(const Duration(milliseconds: 2));
-      await tester.pump();
+      // The image-ready animation test below owns its frame timing. First-run
+      // profile creation waits for that asynchronous animation to finish.
+      await _finishStartupGate(tester);
       await _pumpUntil(tester, find.text('QuisquisLingo Beta testing'));
 
       expect(find.text('Create Profile'), findsNothing);

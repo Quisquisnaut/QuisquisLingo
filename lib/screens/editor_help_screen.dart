@@ -1,96 +1,89 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../localization/help/help_structure.dart';
+import '../localization/help/help_text.dart';
+import '../localization/locale_builder.dart';
+import '../localization/locale_service.dart';
 import '../models/exercise_authoring.dart';
 import '../services/exercise_field_help.dart';
-import '../widgets/help_language_toggle.dart';
+import '../widgets/app_locale_selector.dart';
 import 'audit_codes_screen.dart';
-import 'editor_help_content.dart';
 import 'publisher_signing_help_screen.dart';
 
-class EditorHelpScreen extends StatefulWidget {
+String _t(AppLocale locale, String key) => helpText.lookup(locale, key);
+
+_HelpSection _localizedSection(AppLocale locale, String key) => _HelpSection(
+  title: _t(locale, '$key.title'),
+  body: _t(locale, '$key.body'),
+);
+
+class EditorHelpScreen extends StatelessWidget {
   const EditorHelpScreen({super.key});
 
   @override
-  State<EditorHelpScreen> createState() => _EditorHelpScreenState();
-}
-
-class _EditorHelpScreenState extends State<EditorHelpScreen> {
-  HelpLanguage _language = HelpLanguage.english;
-
-  @override
-  Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(
-      title: Text(
-        _language == HelpLanguage.italian ? 'Guida all’Editor' : 'Editor Help',
+  Widget build(BuildContext context) => LocaleBuilder(
+    builder: (context, locale) => Scaffold(
+      appBar: AppBar(
+        title: Text(_t(locale, 'editorHelp.title')),
+        actions: [
+          AppLocaleSelector(
+            key: const Key('editor-help-language-toggle'),
+            locale: locale,
+          ),
+        ],
       ),
-      actions: [
-        HelpLanguageToggle(
-          key: const Key('editor-help-language-toggle'),
-          language: _language,
-          onChanged: (value) => setState(() => _language = value),
-        ),
-      ],
-    ),
-    body: ListView(
-      padding: const EdgeInsets.all(16),
-      children: [
-        _TechnicalLinks(language: _language),
-        const SizedBox(height: 12),
-        for (final section in editorHelpSections(_language))
-          _HelpSection(title: section.title, body: section.body),
-      ],
+      body: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          _TechnicalLinks(locale: locale),
+          const SizedBox(height: 12),
+          for (final id in editorHelpSectionIds)
+            _localizedSection(locale, 'editorHelp.$id'),
+        ],
+      ),
     ),
   );
 }
 
 /// Help for the Course Studio tab, using the same language choice as Editor
 /// Help while keeping the Editor's technical reference on the Editor page.
-class CourseManagerHelpScreen extends StatefulWidget {
+class CourseManagerHelpScreen extends StatelessWidget {
   const CourseManagerHelpScreen({super.key});
 
   @override
-  State<CourseManagerHelpScreen> createState() =>
-      _CourseManagerHelpScreenState();
-}
-
-class _CourseManagerHelpScreenState extends State<CourseManagerHelpScreen> {
-  HelpLanguage _language = HelpLanguage.english;
-
-  @override
-  Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(
-      title: Text(
-        _language == HelpLanguage.italian
-            ? 'Guida al Course Studio'
-            : 'Course Studio Help',
+  Widget build(BuildContext context) => LocaleBuilder(
+    builder: (context, locale) => Scaffold(
+      appBar: AppBar(
+        title: Text(_t(locale, 'courseStudioHelp.title')),
+        actions: [
+          AppLocaleSelector(
+            key: const Key('course-manager-help-language-toggle'),
+            locale: locale,
+          ),
+        ],
       ),
-      actions: [
-        HelpLanguageToggle(
-          key: const Key('course-manager-help-language-toggle'),
-          language: _language,
-          onChanged: (value) => setState(() => _language = value),
-        ),
-      ],
-    ),
-    body: ListView(
-      padding: const EdgeInsets.all(16),
-      children: [
-        _CourseTypesHelpSection(language: _language),
-        for (final section in courseManagerHelpSections(_language))
-          _HelpSection(title: section.title, body: section.body),
-      ],
+      body: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          _CourseTypesHelpSection(locale: locale),
+          for (final id in courseStudioHelpSectionIds)
+            _localizedSection(locale, 'editorHelp.$id'),
+          _localizedSection(locale, 'courseStudioHelp.findingCourses'),
+          _localizedSection(locale, 'courseStudioHelp.courseOperations'),
+        ],
+      ),
     ),
   );
 }
 
 class _CourseTypesHelpSection extends StatelessWidget {
-  const _CourseTypesHelpSection({required this.language});
+  const _CourseTypesHelpSection({required this.locale});
 
-  final HelpLanguage language;
+  final AppLocale locale;
 
   @override
   Widget build(BuildContext context) {
-    final content = editorHelpCourseTypes(language);
+    const key = 'courseStudioHelp.courseTypes';
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(12),
@@ -98,16 +91,16 @@ class _CourseTypesHelpSection extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              content.title,
+              _t(locale, '$key.title'),
               style: Theme.of(
                 context,
               ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
-            Text(content.intro),
-            for (final type in content.types) ...[
+            Text(_t(locale, '$key.intro')),
+            for (var type = 1; type <= 3; type++) ...[
               const SizedBox(height: 8),
-              Text(type),
+              Text(_t(locale, '$key.type$type')),
             ],
             const SizedBox(height: 12),
             Table(
@@ -120,22 +113,25 @@ class _CourseTypesHelpSection extends StatelessWidget {
               },
               defaultVerticalAlignment: TableCellVerticalAlignment.top,
               children: [
-                for (final (index, row) in content.rows.indexed)
+                for (var row = 1; row <= 11; row++)
                   TableRow(
                     children: [
-                      for (final cell in row)
-                        _CourseTypeTableCell(cell, bold: index == 0),
+                      for (var col = 1; col <= 4; col++)
+                        _CourseTypeTableCell(
+                          _t(locale, '$key.row$row.col$col'),
+                          bold: row == 1,
+                        ),
                     ],
                   ),
               ],
             ),
-            for (final note in content.notes) ...[
+            for (var note = 1; note <= 4; note++) ...[
               const SizedBox(height: 8),
-              Text(note),
+              Text(_t(locale, '$key.note$note')),
             ],
             const SizedBox(height: 12),
             Text(
-              content.contact,
+              _t(locale, '$key.contact'),
               style: const TextStyle(fontWeight: FontWeight.bold),
             ),
           ],
@@ -166,9 +162,9 @@ class _CourseTypeTableCell extends StatelessWidget {
 }
 
 class _TechnicalLinks extends StatelessWidget {
-  const _TechnicalLinks({required this.language});
+  const _TechnicalLinks({required this.locale});
 
-  final HelpLanguage language;
+  final AppLocale locale;
 
   @override
   Widget build(BuildContext context) => Card(
@@ -178,22 +174,13 @@ class _TechnicalLinks extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            editorHelpTechnicalIntro(language).title,
+            _t(locale, 'editorHelp.technicalReference.title'),
             style: Theme.of(
               context,
             ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
           ),
           const SizedBox(height: 6),
-          Text(editorHelpTechnicalIntro(language).body),
-          // The linked pages below are English only; say so rather than let an
-          // Italian reader discover it by tapping.
-          if (editorHelpTechnicalIntro(language).note.isNotEmpty) ...[
-            const SizedBox(height: 6),
-            Text(
-              editorHelpTechnicalIntro(language).note,
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
-          ],
+          Text(_t(locale, 'editorHelp.technicalReference.body')),
           ListTile(
             contentPadding: EdgeInsets.zero,
             title: Text('Exercise types'),
@@ -243,9 +230,6 @@ class _TechnicalLinks extends StatelessWidget {
             key: const Key('editor-help-publisher-signing'),
             contentPadding: EdgeInsets.zero,
             title: const Text('Publisher signing and approval'),
-            subtitle: const Text(
-              'English · Signing, approval and verification',
-            ),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => Navigator.of(context).push(
               MaterialPageRoute(
@@ -331,17 +315,21 @@ class _ExerciseHelpScreenState extends State<ExerciseHelpScreen> {
     return KeyEventResult.handled;
   }
 
-  List<Widget> _searchResults() {
+  List<Widget> _searchResults(AppLocale locale) {
     bool matches(String text) => text.toLowerCase().contains(_query);
     final results = <Widget>[];
     for (final preset in ExercisePresetRegistry.presets) {
-      final body = ExercisePresetRegistry.helpByPreset[preset.id]!;
-      if (matches('${preset.name}\n${preset.description}\n$body')) {
+      final description = _t(
+        locale,
+        'exerciseHelp.preset.${preset.id}.description',
+      );
+      final body = _t(locale, 'exerciseHelp.preset.${preset.id}.body');
+      if (matches('${preset.name}\n$description\n$body')) {
         results.add(
           _HelpSection(
             key: ValueKey('exercise-help-result-${preset.id}'),
             title: preset.name,
-            body: '${preset.description}\n\n$body',
+            body: '$description\n\n$body',
           ),
         );
       }
@@ -349,18 +337,21 @@ class _ExerciseHelpScreenState extends State<ExerciseHelpScreen> {
         preset.id,
       )) {
         final help = ExerciseFieldHelpRegistry.forEditorField(preset.id, field);
-        if (matches('${help.title}\n${help.text}')) {
+        final key =
+            exerciseHelpFieldKeyByPresetAndField['${preset.id}.$field']!;
+        final body = _t(locale, key);
+        if (matches('${help.title}\n$body')) {
           results.add(
             _HelpSection(
               key: ValueKey('exercise-help-result-${preset.id}-$field'),
               title: '${preset.name}: ${help.title}',
-              body: help.text,
+              body: body,
             ),
           );
         }
       }
     }
-    for (final supplement in _supplements) {
+    for (final supplement in _supplements(locale)) {
       if (matches('${supplement.title}\n${supplement.body}')) {
         results.add(supplement);
       }
@@ -369,68 +360,78 @@ class _ExerciseHelpScreenState extends State<ExerciseHelpScreen> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    final sections = _query.isEmpty ? _allSections(context) : _searchResults();
-    return Scaffold(
-      appBar: AppBar(title: const Text('Exercise Help')),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-            child: TextField(
-              key: const ValueKey('exercise-help-search'),
-              controller: _search,
-              focusNode: _searchFocus,
-              textInputAction: TextInputAction.search,
-              decoration: InputDecoration(
-                labelText: 'Search Exercise Help',
-                prefixIcon: const Icon(Icons.search),
-                suffixIcon: _search.text.isEmpty
-                    ? null
-                    : IconButton(
-                        key: const ValueKey('exercise-help-search-clear'),
-                        tooltip: 'Clear search',
-                        onPressed: _clear,
-                        icon: const Icon(Icons.clear),
+  Widget build(BuildContext context) => LocaleBuilder(
+    builder: (context, locale) {
+      final sections = _query.isEmpty
+          ? _allSections(context, locale)
+          : _searchResults(locale);
+      return Scaffold(
+        appBar: AppBar(
+          title: Text(_t(locale, 'exerciseHelp.title')),
+          actions: [
+            AppLocaleSelector(
+              key: const Key('exercise-help-language-toggle'),
+              locale: locale,
+            ),
+          ],
+        ),
+        body: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+              child: TextField(
+                key: const ValueKey('exercise-help-search'),
+                controller: _search,
+                focusNode: _searchFocus,
+                textInputAction: TextInputAction.search,
+                decoration: InputDecoration(
+                  labelText: _t(locale, 'exerciseHelp.search'),
+                  prefixIcon: const Icon(Icons.search),
+                  suffixIcon: _search.text.isEmpty
+                      ? null
+                      : IconButton(
+                          key: const ValueKey('exercise-help-search-clear'),
+                          tooltip: _t(locale, 'exerciseHelp.clearSearch'),
+                          onPressed: _clear,
+                          icon: const Icon(Icons.clear),
+                        ),
+                ),
+                onChanged: _filter,
+                onSubmitted: (_) => _resultsFocus.requestFocus(),
+              ),
+            ),
+            Expanded(
+              child: Focus(
+                focusNode: _resultsFocus,
+                onKeyEvent: _scrollWithKeyboard,
+                child: sections.isEmpty
+                    ? Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Text(_t(locale, 'exerciseHelp.noResults')),
+                        ),
+                      )
+                    : ListView(
+                        key: const Key('exercise-help-list'),
+                        controller: _scroll,
+                        padding: const EdgeInsets.all(16),
+                        children: sections,
                       ),
               ),
-              onChanged: _filter,
-              onSubmitted: (_) => _resultsFocus.requestFocus(),
             ),
-          ),
-          Expanded(
-            child: Focus(
-              focusNode: _resultsFocus,
-              onKeyEvent: _scrollWithKeyboard,
-              child: sections.isEmpty
-                  ? const Center(
-                      child: Padding(
-                        padding: EdgeInsets.all(16),
-                        child: Text(
-                          'No Exercise Help results match your search.',
-                        ),
-                      ),
-                    )
-                  : ListView(
-                      key: const Key('exercise-help-list'),
-                      controller: _scroll,
-                      padding: const EdgeInsets.all(16),
-                      children: sections,
-                    ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+          ],
+        ),
+      );
+    },
+  );
 
-  List<Widget> _allSections(BuildContext context) => [
+  List<Widget> _allSections(BuildContext context, AppLocale locale) => [
     for (final category in ExerciseCategory.values)
       if (ExercisePresetRegistry.inCategory(category).isNotEmpty) ...[
         Padding(
           padding: const EdgeInsets.fromLTRB(4, 12, 4, 8),
           child: Text(
-            category.label,
+            _t(locale, 'exerciseHelp.category.${category.name}'),
             style: Theme.of(
               context,
             ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
@@ -439,173 +440,68 @@ class _ExerciseHelpScreenState extends State<ExerciseHelpScreen> {
         for (final preset in ExercisePresetRegistry.inCategory(category))
           _HelpSection(
             title: preset.name,
-            body: ExercisePresetRegistry.helpByPreset[preset.id]!,
+            body: _t(locale, 'exerciseHelp.preset.${preset.id}.body'),
           ),
       ],
-    ..._supplements,
+    ..._supplements(locale),
   ];
 
-  static const _supplements = [
-    _HelpSection(
-      title: 'Answer variants',
-      body:
-          'Multiple complete equivalent answers may be entered on separate lines. Compact syntax is optional: {Io} makes “Io” optional; [prendo|vorrei] chooses one independent alternative; and (non arrivo <> oggi) swaps only declared phrase parts. Grouped alternatives use *: to link by position: [*:il|i] [*:tuo|tuoi] [*:denaro|soldi] accepts “il tuo denaro” and “i tuoi soldi”, never “il tuoi soldi” or “i tuo denaro”. Two or more linked groups are required and every linked group must have the same number of alternatives. Linked groups compose with {}, ordinary [] and valid <> scopes. During reordering, terminal punctuation stays at the final sentence end. Expansion is deterministic, removes duplicates, and rejects malformed syntax or more than 128 variants instead of truncating.',
-    ),
-    _HelpSection(
-      title: 'Text evaluation and corrections',
-      body:
-          'QQL accepts any configured complete answer or syntax-expanded variant after the established case, punctuation, whitespace, apostrophe and accent rules. Type the translation also permits one omitted or duplicated repeated letter in a word of at least five characters when every word position is otherwise unchanged. Its incorrect feedback shows up to three similarity-ranked valid answers and says Some possible translations when more exist. Its correct feedback shows up to two alternatives, excluding the matched canonical answer even after typo tolerance. No alternatives means no empty section. Ties keep author order and ranking never changes correctness. Other typed presets retain their canonical Correct answer. Feedback names only differences actually used; exact answers show no false difference reason.',
-    ),
-    _HelpSection(
-      title: 'Contextual comprehension example',
-      body:
-          'Question: What does Jane mean?\n\nContext:\nJane: I thought Jim was coming with us.\nJim: I changed my mind.\nJane: That’s just great.\n\nQuestion and Context are separate. Context can be text, audio, or both. Dialogue turns are optional; an announcement, short passage or situation is equally valid. Configure answer choices separately.',
-    ),
+  List<_HelpSection> _supplements(AppLocale locale) => [
+    for (final id in exerciseHelpSupplementIds)
+      _localizedSection(locale, 'exerciseHelp.supplement.$id'),
   ];
 }
 
 class CourseModelV4HelpScreen extends StatelessWidget {
   const CourseModelV4HelpScreen({super.key});
+
   @override
-  Widget build(BuildContext context) => _TechnicalPage(
-    title: 'QuisquisLingo Course Model v11',
-    sections: const [
-      _HelpSection(
-        title: 'Status',
-        body:
-            'Work in progress. QuisquisLingo uses formatVersion 11 as its only native Course Model. Earlier formats are rejected without migration or deletion. Every custom Course requires an immutable Original Course Creator and one individual Course Maintainer; an optional Assigned Team remains separate.',
-      ),
-      _HelpSection(
-        title: 'Hierarchy',
-        body:
-            'Course > Lesson > Guidebook + Round > Content. Every Lesson owns its Guidebook and Duel. Exercise is one Content kind rather than the only object allowed inside a Round.',
-      ),
-      _HelpSection(
-        title: 'Content',
-        body:
-            'Current kinds include exercise, presentation, explanation, example, vocabulary, text and dialogue. Content has a stable ID and can be required for normal completion. Lesson, Round and Exercise objects carry required UTC updatedAt timestamps. Presentation Content can be interactive without producing a correct/incorrect result.',
-      ),
-      _HelpSection(
-        title: 'Guidebook',
-        body:
-            'Each Lesson GuideBook is structured Content rather than a single monolithic block. Its vocabulary, examples and explanations are learner reference material and can also act as the sole source for configurable, progressively harder draft Round generation and sourceRefs.',
-      ),
-      _HelpSection(
-        title: 'Completion and progression',
-        body:
-            'required means required for normal completion. Completion, correctness and unlock state are separate. Completing a Lesson or winning its available Duel can unlock the next Lesson without marking skipped Content as completed.',
-      ),
-      _HelpSection(
-        title: 'Language Duel',
-        body:
-            'Duel identity belongs directly to the Lesson. QuisquisLingo dynamically selects 25 unique eligible exercises from that Lesson and starts with 4 lives. There is no score or pass threshold. If the actual eligible pool is smaller than 25, the Lesson Duel is unavailable rather than invalid.',
-      ),
-      _HelpSection(
-        title: 'Friendly Editor templates',
-        body:
-            'The Editor keeps names such as Choose a picture, What do you hear?, Build the sentence and Match the sounds. editorTemplate is optional authoring metadata. The learner executes the primitive representation.',
-      ),
-    ],
+  Widget build(BuildContext context) => const _TechnicalPage(
+    prefix: 'technical.courseModel',
+    sectionIds: courseModelHelpSectionIds,
   );
 }
 
 class ExercisePrimitivesHelpScreen extends StatelessWidget {
   const ExercisePrimitivesHelpScreen({super.key});
+
   @override
-  Widget build(BuildContext context) => _TechnicalPage(
-    title: 'Exercise primitives',
-    sections: const [
-      _HelpSection(
-        title: 'Status',
-        body:
-            'Work in progress. The current primitive set is the implemented Course Model v11 baseline.',
-      ),
-      _HelpSection(
-        title: 'Exercise anatomy',
-        body:
-            'Exercise = Prompt[] + Interaction + Evaluation, with optional hint and feedback.',
-      ),
-      _HelpSection(
-        title: 'Interactions',
-        body:
-            'select: choose one or more Items. input: produce a typed response. arrange: order Items. match: create relationships between Items.',
-      ),
-      _HelpSection(
-        title: 'Evaluations',
-        body:
-            'selected_items checks selected stable Item IDs. text_match checks accepted text with explicit normalization. ordered_items checks Item order. matched_items checks Item relationships.',
-      ),
-      _HelpSection(
-        title: 'Prompt and Item media',
-        body:
-            'The initial media primitives are text, image and audio. Prompt elements may carry roles such as primary, passage, question, context or clue.',
-      ),
-      _HelpSection(
-        title: 'Presentation Content',
-        body:
-            'Flashcard is presentation Content, not an Exercise. The learner chooses understood or review_later. Both complete the current presentation; review_later requests re-presentation and is not an incorrect answer.',
-      ),
-      _HelpSection(
-        title: 'Templates vs primitives',
-        body:
-            'Friendly templates remain an authoring layer. Multiple templates can share the same primitive mechanics. Template constraints such as distractor limits do not become universal primitive rules.',
-      ),
-    ],
+  Widget build(BuildContext context) => const _TechnicalPage(
+    prefix: 'technical.exercisePrimitives',
+    sectionIds: exercisePrimitivesHelpSectionIds,
   );
 }
 
 class JsonV4HelpScreen extends StatelessWidget {
   const JsonV4HelpScreen({super.key});
+
   @override
-  Widget build(BuildContext context) => _TechnicalPage(
-    title: 'JSON data structure',
-    sections: const [
-      _HelpSection(
-        title: 'Status',
-        body: 'Work in progress. QuisquisLingo writes formatVersion: 9.',
-      ),
-      _HelpSection(
-        title: 'Root',
-        body:
-            'The root contains formatVersion, Course metadata and lessons[]. Bundled samples and custom Courses use the native v11 model; a merged Course also carries mergeProvenance. Custom roots require immutable originalCourseCreator provenance and one individual maintainer; optional assignedTeamId is separate, while Team membership itself remains outside Course JSON. Earlier Course Models are not read or migrated.',
-      ),
-      _HelpSection(
-        title: 'Guidebook',
-        body:
-            'Each Lesson contains a guidebook with optional publicationState and guidebook.content[] structured Content such as explanation, vocabulary and example entries. An omitted Guidebook publicationState means published; an explicit draft state keeps the Guidebook out of learner delivery. Its displayed Internal ID is derived from the immutable Lesson ID with the suffix _guidebook; no additional ID field is persisted. Guidebook Content retains its own stable IDs. The optional course useGuidebook switch changes learner access and the empty-Guidebook Warning, never the stored content.',
-      ),
-      _HelpSection(
-        title: 'Lesson and Round',
-        body:
-            'Course, Lesson, Guidebook, Round and authored Exercise content carry draft/published state. Guidebook defaults to published when its optional state is absent. Lesson, Round and Exercise also require UTC updatedAt timestamps. A Course stores Lesson numbering, a legacy-compatible fallback-icon value and optional managed custom Lesson-icon assets. Both accepted legacy fallback values now render the same theme-colored number circle. A Lesson contains lessonId, title, optional Section and themeIconAsset metadata, guidebook, rounds[] and its Duel identity. Guidebook may contain ordered Insights sections with Title and Text. Round title is optional and falls back everywhere to its current Round N position without changing identity.',
-      ),
-      _HelpSection(
-        title: 'Exercise Content',
-        body:
-            'Exercise Content stores editorTemplate plus exercise.prompt[], exercise.interaction and exercise.evaluation. Correctness uses stable Item IDs rather than display indexes. Build the translation stores one or more literal correctOrders with answer text and ordered Item IDs; legacy correctOrder is rejected.',
-      ),
-      _HelpSection(
-        title: 'Duel',
-        body:
-            'A Lesson serializes a stable Duel ID and title. Availability is derived at runtime from the actual Lesson exercise pool under the standard eligibility and deduplication rules; it is not serialized and does not depend on Round count. Course createDuels and useGuidebook default true and serialize only when false. Optional sectionNames retains non-empty trimmed reusable names; an empty catalog is omitted. Optional worldFlagId references authoritative bundled SVG artwork and is omitted when empty.',
-      ),
-      _HelpSection(
-        title: 'Compatibility',
-        body:
-            'Bundled Courses are native Course Model v11, and so are custom Courses. Every earlier format is unsupported and is not read, migrated, converted or deleted. Attribution, provenance and Rights Holder metadata never grant Course permissions or infer Team assignment.',
-      ),
-    ],
+  Widget build(BuildContext context) => const _TechnicalPage(
+    prefix: 'technical.jsonStructure',
+    sectionIds: jsonStructureHelpSectionIds,
   );
 }
 
 class _TechnicalPage extends StatelessWidget {
-  final String title;
-  final List<Widget> sections;
-  const _TechnicalPage({required this.title, required this.sections});
+  const _TechnicalPage({required this.prefix, required this.sectionIds});
+
+  final String prefix;
+  final List<String> sectionIds;
+
   @override
-  Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: Text(title)),
-    body: ListView(padding: const EdgeInsets.all(16), children: sections),
+  Widget build(BuildContext context) => LocaleBuilder(
+    builder: (context, locale) => Scaffold(
+      appBar: AppBar(
+        title: Text(_t(locale, '$prefix.title')),
+        actions: [AppLocaleSelector(locale: locale)],
+      ),
+      body: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          for (final id in sectionIds) _localizedSection(locale, '$prefix.$id'),
+        ],
+      ),
+    ),
   );
 }
 

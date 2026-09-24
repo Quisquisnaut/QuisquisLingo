@@ -39,6 +39,7 @@ void main() {
         .toList();
     expect(titles, [
       'Profile',
+      'Locale',
       'App Info',
       'Audio Settings',
       'Do Not Disturb',

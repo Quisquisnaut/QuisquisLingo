@@ -1,0 +1,61 @@
+# Build 253 handoff
+
+## Revision 0 source state
+
+Build 253 Revision 0 is `2.0.53+253000`, dated 2026-09-24. This source
+release adds EN, IT and ES to the standalone Editor, Course Studio, Exercise,
+All Courses/Course Library, Publisher signing, Device Administration and Debug
+Help pages, their three technical reference pages, App Info and Course Info.
+App Settings also has the shared Locale control. Inline Help dialogs and the
+rest of the app interface remain English. The linked Audit Codes screen is an
+English technical registry: its production rule definitions and search are
+outside this slice. No Windows package is part of this release.
+
+`LocaleService` owns one `EN`, `IT` or `ES` preference for the active learner.
+App Settings, Help and Course Info use the same value, update mounted readers
+when a selector changes it, and read it again after restart or a learner
+switch. English is the default. A missing or empty translated leaf falls back
+to its English leaf without changing the selected or stored Locale. Reads do
+not write; only an explicit selector change stores a Locale. Each keyed value
+is one fallback unit, so a body containing several paragraphs falls back as
+one body.
+
+`LocalizedText` is reusable for later app areas without migrating their UI
+strings in this build. The first slice keeps shared stable keys and ordering
+separate from one text-only file per language:
+`lib/localization/help/help_en.dart`, `help_it.dart` and `help_es.dart`.
+Existing Italian Editor Help and Course Info wording guided the Italian
+catalog. Names of QQL commands, menu items, buttons, settings and modes
+mentioned in Help and Course Info remain canonical English. Course content,
+profile names and other user-provided values are displayed verbatim.
+
+## Data and compatibility
+
+Locale is a profile-scoped setting and follows the existing learner backup
+and restore path. Progress, Course and media resets retain it; profile
+deletion and full wipe remove it. An older backup without a Locale key yields
+the English default under the existing replace-profile restore behavior.
+Unsupported stored IDs also read as English without silently rewriting the
+stored value. No backup schema or Course format migration is needed.
+
+Course Model v11, package format 1, Course data, rights, signatures, scoring,
+progression and the Course Editor confirmation remain unchanged. Beta expiry
+remains `2026-10-24 23:59:59` local time.
+
+## Validation and owner handoff
+
+The tests exercise Settings ↔ Help ↔ Course Info synchronization, learner
+switches and preference persistence, learner backup/restore, progress-reset
+retention, leaf-level fallback without a storage write, EN/IT/ES catalog
+parity, and canonical English QQL command names. Course and media reset
+retention, profile deletion and full-wipe behavior follow the existing
+profile-key ownership and reset paths; there is no new Locale-specific test
+for those paths. Focused and integrated results belong in
+[253_VALIDATION.md](253_VALIDATION.md). Flutter analysis reported 0 issues,
+all four asset validators passed, and the final serial Flutter suite passed
+2467/2467.
+
+After the task-scoped local commit, wait for the owner's smoke test before any
+further localization. The remaining app UI and inline Help are outside this
+slice. Future language or full-app work can reuse the Locale owner and lookup
+with new catalogs after separate approval.

@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../localization/help/help_structure.dart';
+import '../localization/help/help_text.dart';
+import '../localization/locale_builder.dart';
+import '../localization/locale_service.dart';
 import '../models/course_draft_status.dart';
 import '../models/course_models.dart';
 import '../services/course_library_categories.dart';
@@ -12,6 +16,7 @@ import '../services/course_library_service.dart';
 import '../services/course_media_store.dart';
 import '../services/course_service.dart';
 import '../services/progress_service.dart';
+import '../widgets/app_locale_selector.dart';
 import '../widgets/course_library_row.dart';
 import '../widgets/course_library_section.dart';
 import 'course_info_screen.dart';
@@ -20,53 +25,58 @@ import 'course_info_screen.dart';
 /// hidden until this is set.
 const Uri? courseLibraryWebSite = null;
 
-const availableCoursesHelp = '''Courses on this device
+/// The English Help text remains readable for existing callers and tests.
+String get availableCoursesHelp => availableCoursesHelpFor(AppLocale.english);
 
-All Courses shows every Course installed or stored on this QQL device, including Courses outside your personal library. Each learner chooses independently which of them to include.
+/// A missing translated leaf falls back to English without changing Locale.
+String availableCoursesHelpFor(AppLocale locale) {
+  String text(String key) => helpText.lookup(locale, 'allCoursesHelp.$key');
+  return [
+    text('title'),
+    for (var paragraph = 1; paragraph <= 3; paragraph++)
+      text('intro$paragraph'),
+    for (final section in allCoursesHelpSectionIds)
+      "${text('$section.title')}\n\n${text('$section.body')}",
+  ].join('\n\n');
+}
 
-Courses do not have to be created on this device. You can import a Course made elsewhere. For example, a friend can send you a Course they created, or a publisher may distribute or sell you a Publisher Course to install. QQL only imports the Course package; it does not sell or license Courses itself.
+/// The same full Help page opens from All Courses and Course Library.
+enum CourseLibraryHelpSource { allCourses, courseLibrary }
 
-If your library has no courses available for study, Home keeps Settings and All Courses. Course Studio can be unlocked for your profile by tapping Version in Settings ten times. All Courses lets you add Courses again. No course flag is shown until a playable Course is selected.
+class CourseLibraryHelpScreen extends StatelessWidget {
+  const CourseLibraryHelpScreen({super.key, required this.source});
 
-Categories
+  final CourseLibraryHelpSource source;
 
-Favorites: your shortcuts, also listed in their normal sections.
-Bundled Courses: supplied with QuisquisLingo.
-Publisher Courses: installed Publisher releases.
-My Local Courses: Custom Courses created by your profile.
-Other Local Courses: Custom Courses created by another profile or imported from somebody else.
-
-Each category has its own section, and its header shows how many Courses it holds. Bold titles identify Bundled Courses in black (white on black in dark mode), Publisher Courses in purple and Custom Courses in orange.
-
-Course details
-
-Each row shows the Course cover, or the Course flag when there is no cover, followed by the languages, Version, Last edited date, Maintainer and, when the author declared it, Duration. Bundled and Publisher Courses show their release version; Custom Courses show their Course version. Maintainer shows the local profile responsible for a Custom Course, or the publisher for Bundled and Publisher Courses. A profile not present on this device is identified by its profile ID.
-
-Availability
-
-Show unavailable starts on, displaying unpublished Courses, Courses needing Publisher verification and Courses with Draft authoring content. Turn it off to filter those rows from both tabs. A filtered section says how many of its Courses are shown. Blue outlined labels identify Draft, Unpublished and Verification required. Showing them does not make them playable or verified. Only published Courses are available for study. Publisher Courses also require verified signatures.
-
-Sorting and compact view
-
-Sort by orders the Courses inside each section by Title, Language, Maintainer, Most recent or Duration. The sections themselves never change order. Most recent shows the latest edit first; Duration shows the shortest Course first and Courses without a declared duration last. Each section's Expanded / Compact button shows or hides version, date, maintainer and duration for that section only. Search filters titles and languages across all sections, including Favorites. These choices last while the page is open.
-
-Personal library
-
-Add to my courses adds an installed Course to your personal Course Selector and Course Studio. It does not copy the Course or give you editing rights. Removing it from your courses does not remove it from the device. Added · Remove lets you remove it here, with the same confirmation and optional progress reset.
-
-Remove from my courses, in the Selector or Course Studio, removes the course only from your library. Progress is kept by default for when you add it again. You may explicitly reset your course progress during removal. Other learners and the shared file are unaffected. Even when Reset my progress is selected, all earned XP (including Weekly XP), total and per-language study days, streak and version backups are kept. XP earned from this course is not subtracted. Reset clears only your completed Rounds/Lessons, Perfect results, won Duels, read Guidebooks and recent Round entries for this course.
-
-Courses in learner mode
-
-Hide in Learner keeps a Course in your personal library and Course Studio but removes it from the learner Course Selector. Unhide in Learner restores it. The Course you are studying cannot be hidden until you switch Courses. Favorites are learner-specific shortcuts; favoriting never adds a Course to your personal library. All Courses keeps hidden Courses visible with a Hidden in Learner label so you can unhide them.
-
-Importing
-
-Courses may be transferred as QQL Course packages. Imported Custom Courses keep their ownership and provenance rules. Publisher Courses remain subject to Publisher verification.
-
-Removing a Publisher Course from the device
-
-Only an admin can remove a Publisher Course from the device, through its Course Studio menu. This is blocked while another profile includes the course in its library. Physical removal preserves learner progress and version backups for later reinstallation.''';
+  @override
+  Widget build(BuildContext context) => LocaleBuilder(
+    builder: (context, locale) => Scaffold(
+      appBar: AppBar(
+        title: Text(
+          helpText.lookup(
+            locale,
+            source == CourseLibraryHelpSource.allCourses
+                ? 'allCoursesHelp.allCoursesPageTitle'
+                : 'allCoursesHelp.courseLibraryPageTitle',
+          ),
+        ),
+        actions: [
+          AppLocaleSelector(
+            key: const Key('all-courses-help-locale-selector'),
+            locale: locale,
+          ),
+        ],
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(20),
+        child: SelectableText(
+          availableCoursesHelpFor(locale),
+          key: const Key('all-courses-help-text'),
+        ),
+      ),
+    ),
+  );
+}
 
 class AvailableCoursesScreen extends StatefulWidget {
   final CourseEditorService? editorService;
@@ -660,12 +670,8 @@ class _AvailableCoursesScreenState extends State<AvailableCoursesScreen> {
             icon: const Icon(Icons.help_outline),
             onPressed: () => Navigator.of(context).push<void>(
               MaterialPageRoute(
-                builder: (_) => Scaffold(
-                  appBar: AppBar(title: const Text('Course Library — Help')),
-                  body: const SingleChildScrollView(
-                    padding: EdgeInsets.all(20),
-                    child: SelectableText(availableCoursesHelp),
-                  ),
+                builder: (_) => const CourseLibraryHelpScreen(
+                  source: CourseLibraryHelpSource.courseLibrary,
                 ),
               ),
             ),
