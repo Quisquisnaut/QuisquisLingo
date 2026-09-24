@@ -1,5 +1,50 @@
 # Build 251 validation
 
+## Revision 1 — Course Editor device state
+
+`2.0.51+251001`, 24 September 2026, on `codex/build-251-architecture`.
+Beta expiry is `2026-10-24 23:59:59` local time, 30 days from this
+revision's release date. The Course Model, package format and stored
+SettingsService keys and values are unchanged.
+
+Before extraction, the new characterization cases in
+`test/qql_231_revision1_test.dart` passed **15/15** against the Revision 0
+code. They cover immediate per-learner mode and one-time notice writes,
+legacy mode values, seven-day scheduling by Course code, the
+`canEditOriginal`/Edit gate, recording the date after the automatic check,
+dialog timing and the separate manual Audit path. The new
+`test/course_editor_device_state_251_test.dart` failed before the owner
+existed, then passed after extraction. The final combined focused run passed
+**18/18**:
+
+```text
+flutter test --no-pub test/course_editor_device_state_251_test.dart \
+  test/qql_231_revision1_test.dart --reporter expanded
+```
+
+The screen delegates only the preference reads/writes and the automatic
+schedule to `CourseEditorDeviceState`. A read-only independent review found
+no concrete difference in their ordering, the existing dialogs, manual Audit,
+governance lookups or duplicate-title reads. `flutter analyze --no-pub`
+reported **no issues**. The ten new/changed owner, metadata and test Dart
+files passed `dart format --output=none --set-exit-if-changed`; the large
+Course Editor file was kept to a narrow 29-line wiring diff. `git diff
+--check` passed. The four asset validators passed: 10 bundled Course Model
+v11 files, 111 images, 14 Lesson icons and 443 media files, with zero issues.
+
+The final release gate ran on the settled source and test tree:
+
+```text
+flutter test --no-pub --concurrency=1 --reporter compact
+```
+
+**2,430/2,430 passed** in 28 minutes 24 seconds, exit code 0. Immediately
+before starting Flutter, the
+supervising PowerShell process requested Windows
+`ES_CONTINUOUS | ES_SYSTEM_REQUIRED`; its `finally` block cleared the request
+after Flutter exited. The command output confirmed both transitions. No
+Windows package was built by this task.
+
 ## Revision 0 — Shared Course sections
 
 `2.0.51+251000`, 24 September 2026, on `codex/build-251-architecture`

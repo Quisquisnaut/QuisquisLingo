@@ -18,6 +18,7 @@ import '../models/course_models.dart';
 import '../models/course_metadata_options.dart';
 import '../models/exercise_authoring.dart';
 import '../services/course_editor_service.dart';
+import '../services/course_editor_device_state.dart';
 import '../services/course_flag_service.dart';
 import '../services/course_language_resolver.dart';
 import '../services/formal_name_policy.dart';
@@ -510,7 +511,7 @@ class _CustomCourseEditorScreen extends StatefulWidget {
 class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
   late final CourseEditorService _service =
       widget.editorService ?? CourseEditorService();
-  final _settings = SettingsService();
+  final _deviceState = CourseEditorDeviceState();
   final _profiles = ProfileService();
   late final _teams = TeamService(profileService: _profiles);
   final _recordedAudio = RecordedAudioService();
@@ -530,17 +531,17 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
       clock: _clock,
     );
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      var mode = await _settings.getCourseEditorMode(_course.courseId);
-      if (!widget.access.canEditOriginal && mode == CourseEditorMode.edit) {
-        mode = CourseEditorMode.viewOnly;
-      }
+      final mode = await _deviceState.openingMode(
+        _course.courseId,
+        canEditOriginal: widget.access.canEditOriginal,
+      );
       if (mounted) setState(() => _session.setEditorMode(mode));
-      if (widget.access.canEditOriginal &&
-          mode == CourseEditorMode.edit &&
-          await _settings.isAudioOrphanCheckDue(_code)) {
-        await _checkOrphanAudio();
-        await _settings.markAudioOrphanCheckRun(_code);
-      }
+      await _deviceState.runAutomaticOrphanCheck(
+        courseCode: _code,
+        canEditOriginal: widget.access.canEditOriginal,
+        mode: mode,
+        check: _checkOrphanAudio,
+      );
     });
   }
 
@@ -2018,7 +2019,7 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
     final activeProfileId = await _profiles.getActiveProfileId();
     if (_editorMode == CourseEditorMode.viewOnly &&
         activeProfileId != null &&
-        !await _settings.hasSeenCourseEditorViewNotice(_course.courseId)) {
+        !await _deviceState.hasSeenViewOnlyNotice(_course.courseId)) {
       if (!mounted) return;
       await showDialog<void>(
         context: context,
@@ -2038,7 +2039,7 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
           ],
         ),
       );
-      await _settings.markCourseEditorViewNoticeSeen(_course.courseId);
+      await _deviceState.markViewOnlyNoticeSeen(_course.courseId);
       if (!mounted) return;
     }
     if (!mounted) return;
@@ -2074,7 +2075,7 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
         !await _resolveChangesBeforeModeSwitch()) {
       return;
     }
-    await _settings.setCourseEditorMode(_course.courseId, mode);
+    await _deviceState.setMode(_course.courseId, mode);
     if (mounted) setState(() => _session.setEditorMode(mode));
   }
 

@@ -9,7 +9,7 @@ class BetaLifecycleService {
   static const bool isBetaBuild = true;
   // QQL 250 Revision 1 applies the 30-day Beta lifetime from its own
   // release date, 24 September 2026, which lands on 24 October 2026.
-  // Recalculated for Build 251 released on 2026-09-24: 30 local calendar days.
+  // Recalculated for Build 251 Revision 1 on 2026-09-24: 30 local calendar days.
   static final DateTime expiryDate = DateTime(2026, 10, 24, 23, 59, 59);
 
   /// The clock the no-argument lifecycle checks read.
