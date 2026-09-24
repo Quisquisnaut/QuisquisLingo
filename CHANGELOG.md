@@ -18,6 +18,9 @@ format 1, Course data, rights, scoring, progression and beta expiry
 `2.0.53+253001`. See the [validation](docs/253_VALIDATION.md) and
 [handoff](docs/253_HANDOFF.md).
 
+The Italian technical Help now uses “primitive” consistently for Exercise
+primitives.
+
 # 2.0.53 (Build 253, Revision 0) - Localization first slice - 2026-09-24
 
 Standalone Help pages, App Info and Course Info now have English, Italian and

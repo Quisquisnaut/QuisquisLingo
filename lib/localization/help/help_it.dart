@@ -399,10 +399,10 @@ const Map<String, String> helpIt = {
   "technical.courseModel.friendlyEditorTemplates.title": "Template dell’Editor",
   "technical.courseModel.friendlyEditorTemplates.body":
       "L’Editor conserva nomi come Choose a picture, What do you hear?, Build the sentence e Match the sounds. editorTemplate è un metadato facoltativo di authoring. Lo studente usa la rappresentazione primitiva.",
-  "technical.exercisePrimitives.title": "Primitivi degli esercizi",
+  "technical.exercisePrimitives.title": "Primitive degli esercizi",
   "technical.exercisePrimitives.status.title": "Stato",
   "technical.exercisePrimitives.status.body":
-      "Work in progress. L’insieme attuale dei primitivi è la base implementata del Course Model v11.",
+      "Work in progress. L’insieme attuale delle primitive è la base implementata del Course Model v11.",
   "technical.exercisePrimitives.exerciseAnatomy.title":
       "Struttura di un esercizio",
   "technical.exercisePrimitives.exerciseAnatomy.body":
@@ -416,15 +416,15 @@ const Map<String, String> helpIt = {
   "technical.exercisePrimitives.promptAndItemMedia.title":
       "Media di Prompt e Item",
   "technical.exercisePrimitives.promptAndItemMedia.body":
-      "I primitivi media iniziali sono text, image e audio. Gli elementi Prompt possono avere ruoli come primary, passage, question, context o clue.",
+      "Le primitive media iniziali sono text, image e audio. Gli elementi Prompt possono avere ruoli come primary, passage, question, context o clue.",
   "technical.exercisePrimitives.presentationContent.title":
       "Presentation Content",
   "technical.exercisePrimitives.presentationContent.body":
       "Flashcard è Presentation Content, non un Exercise. Lo studente sceglie understood o review_later. Entrambi completano la presentazione corrente; review_later chiede di riproporla e non è una risposta errata.",
   "technical.exercisePrimitives.friendlyTemplates.title":
-      "Template e primitivi",
+      "Template e primitive",
   "technical.exercisePrimitives.friendlyTemplates.body":
-      "I template leggibili restano un livello di authoring. Più template possono condividere gli stessi meccanismi primitivi. Vincoli del template, come il numero massimo di distrattori, non diventano regole universali dei primitivi.",
+      "I template leggibili restano un livello di authoring. Più template possono condividere le stesse primitive. Vincoli del template, come il numero massimo di distrattori, non diventano regole universali delle primitive.",
   "technical.jsonStructure.title": "Struttura dati JSON",
   "technical.jsonStructure.status.title": "Stato",
   "technical.jsonStructure.status.body":

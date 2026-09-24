@@ -30,6 +30,11 @@ temporary `ES_CONTINUOUS | ES_SYSTEM_REQUIRED` execution-state request in the
 supervising PowerShell process and cleared it in `finally`. No full suite
 rerun was needed after this documentation-only update.
 
+The later Italian wording correction changed five Exercise primitives Help
+strings from “primitivi” to “primitive”. The focused catalog, Editor Help and
+Guide tests passed **16/16**. This Help text correction did not require another
+complete suite run under the owner's documentation-only rerun guidance.
+
 ---
 
 ## Revision 0: scope and release state
