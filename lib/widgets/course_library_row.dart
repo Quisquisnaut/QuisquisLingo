@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../models/course_draft_status.dart';
 import '../models/course_models.dart';
+import '../services/course_library_filter.dart';
 import '../services/course_library_presentation.dart';
 import '../services/course_media_store.dart';
 import '../services/publication_service.dart';
@@ -36,9 +37,7 @@ class CourseLibraryRow extends StatelessWidget {
   final Color? foreground;
 
   static bool isUnavailable(Course course) =>
-      !course.publicationState.isPublished ||
-      PublicationService.requiresPublisherVerification(course) ||
-      CourseDraftStatus.courseHasDraft(course);
+      CourseLibraryFilter.isUnavailable(course);
 
   TextStyle _titleStyle(BuildContext context) {
     final dark = Theme.of(context).brightness == Brightness.dark;

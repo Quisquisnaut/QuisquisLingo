@@ -89,37 +89,41 @@ Exercise _scriptExercise() => Exercise.v2(
   ),
 );
 
-Course _course(Exercise exercise, {String courseId = 'qql231_r1_course'}) =>
-    Course(
-      courseId: courseId,
-      originalCourseCreator: CourseProvenanceIdentity.qqlUser(
-        profileId: _ownerId,
-        displayName: 'Original Course Creator',
-      ),
-      maintainer: const CourseMaintainer(_ownerId),
-      originType: CourseOriginType.custom,
-      learningLanguage: 'Italian',
-      interfaceLanguage: 'English',
-      sourceLanguage: 'English',
-      targetLanguage: 'Italian',
-      title: 'QQL 231 revision 1',
-      ttsLanguage: 'it-IT',
-      lessons: [
-        Lesson(
-          lessonId: 'revision1_lesson',
+Course _course(
+  Exercise exercise, {
+  String courseId = 'qql231_r1_course',
+  List<CourseAudioClip> audioLibrary = const [],
+}) => Course(
+  courseId: courseId,
+  originalCourseCreator: CourseProvenanceIdentity.qqlUser(
+    profileId: _ownerId,
+    displayName: 'Original Course Creator',
+  ),
+  maintainer: const CourseMaintainer(_ownerId),
+  originType: CourseOriginType.custom,
+  learningLanguage: 'Italian',
+  interfaceLanguage: 'English',
+  sourceLanguage: 'English',
+  targetLanguage: 'Italian',
+  title: 'QQL 231 revision 1',
+  ttsLanguage: 'it-IT',
+  audioLibrary: audioLibrary,
+  lessons: [
+    Lesson(
+      lessonId: 'revision1_lesson',
+      updatedAt: _updatedAt,
+      title: 'Everyday Italian',
+      rounds: [
+        LearningRound(
+          id: 'revision1_round',
           updatedAt: _updatedAt,
-          title: 'Everyday Italian',
-          rounds: [
-            LearningRound(
-              id: 'revision1_round',
-              updatedAt: _updatedAt,
-              title: 'Greetings',
-              exercises: [exercise],
-            ),
-          ],
+          title: 'Greetings',
+          exercises: [exercise],
         ),
       ],
-    );
+    ),
+  ],
+);
 
 Future<void> _setProfile([String profileId = _ownerId]) async {
   SharedPreferences.setMockInitialValues({
@@ -189,6 +193,253 @@ Future<void> _selectMode(WidgetTester tester, CourseEditorMode mode) async {
 
 void main() {
   setUp(_setProfile);
+
+  test('Course Editor mode retains stored values and legacy fallback', () async {
+    const courseId = 'legacy:editor';
+    const legacyKey = 'course_editor_locked_LEGACY:EDITOR';
+    const modeKey =
+        'learner_00000000-0000-4000-8000-000000002311_course_editor_mode_legacy%3Aeditor';
+    final settings = SettingsService();
+    final preferences = await SharedPreferences.getInstance();
+
+    expect(
+      await settings.getCourseEditorMode(courseId),
+      CourseEditorMode.viewOnly,
+    );
+    await preferences.setBool(legacyKey, true);
+    expect(
+      await settings.getCourseEditorMode(courseId),
+      CourseEditorMode.locked,
+    );
+    await preferences.setBool(legacyKey, false);
+    expect(await settings.getCourseEditorMode(courseId), CourseEditorMode.edit);
+
+    for (final (mode, stored) in [
+      (CourseEditorMode.locked, 'locked'),
+      (CourseEditorMode.viewOnly, 'view'),
+      (CourseEditorMode.inspection, 'inspection'),
+      (CourseEditorMode.edit, 'edit'),
+    ]) {
+      await settings.setCourseEditorMode(courseId, mode);
+      expect(preferences.getString(modeKey), stored);
+      expect(await settings.getCourseEditorMode(courseId), mode);
+    }
+    await preferences.setString(modeKey, 'former-unknown-value');
+    expect(
+      await settings.getCourseEditorMode(courseId),
+      CourseEditorMode.viewOnly,
+    );
+  });
+
+  test(
+    'orphan-check date is device-wide and due after seven days by code',
+    () async {
+      final settings = SettingsService();
+      final preferences = await SharedPreferences.getInstance();
+      const key = 'audio_orphan_check_last_IT';
+      expect(await settings.isAudioOrphanCheckDue('it'), isTrue);
+      await preferences.setString(key, 'invalid-date');
+      expect(await settings.isAudioOrphanCheckDue('it'), isTrue);
+
+      await preferences.setString(
+        key,
+        DateTime.now()
+            .subtract(const Duration(days: 6, hours: 23))
+            .toIso8601String(),
+      );
+      expect(await settings.isAudioOrphanCheckDue('it'), isFalse);
+      await preferences.setString(
+        key,
+        DateTime.now()
+            .subtract(const Duration(days: 7, minutes: 1))
+            .toIso8601String(),
+      );
+      expect(await settings.isAudioOrphanCheckDue('it'), isTrue);
+
+      final before = DateTime.now();
+      await settings.markAudioOrphanCheckRun('it');
+      final recorded = DateTime.parse(preferences.getString(key)!);
+      expect(recorded.isBefore(before), isFalse);
+      expect(recorded.isAfter(DateTime.now()), isFalse);
+      expect(await settings.isAudioOrphanCheckDue('IT'), isFalse);
+      expect(await settings.isAudioOrphanCheckDue('DE'), isTrue);
+    },
+  );
+
+  testWidgets('automatic orphan prompt records its run after the dialog closes', (
+    tester,
+  ) async {
+    final course = _course(
+      _choiceExercise(),
+      courseId: 'automatic_orphan_251',
+      audioLibrary: const [
+        CourseAudioClip(
+          id: 'unused',
+          text: '',
+          filePath:
+              'media:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.mp3',
+        ),
+      ],
+    );
+    final settings = SettingsService();
+    final preferences = await SharedPreferences.getInstance();
+    await settings.setCourseEditorMode(course.courseId, CourseEditorMode.edit);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: CourseEditorScreen(
+          course: course,
+          access: CourseAccessPolicy.evaluate(course, profileId: _ownerId),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('1 unused MP3 file found'), findsOneWidget);
+    expect(preferences.getString('audio_orphan_check_last_IT'), isNull);
+    await tester.tap(find.text('Keep'));
+    await tester.pumpAndSettle();
+    expect(preferences.getString('audio_orphan_check_last_IT'), isNotNull);
+
+    await tester.pumpWidget(const SizedBox());
+    await tester.pumpAndSettle();
+    await tester.pumpWidget(
+      MaterialApp(
+        home: CourseEditorScreen(
+          course: course,
+          access: CourseAccessPolicy.evaluate(course, profileId: _ownerId),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('1 unused MP3 file found'), findsNothing);
+  });
+
+  testWidgets(
+    'stored Edit without rights opens View only and skips automatic check',
+    (tester) async {
+      final course = _course(
+        _choiceExercise(),
+        courseId: 'denied_orphan_251',
+        audioLibrary: const [
+          CourseAudioClip(
+            id: 'unused',
+            text: '',
+            filePath:
+                'media:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.mp3',
+          ),
+        ],
+      );
+      final settings = SettingsService();
+      final preferences = await SharedPreferences.getInstance();
+      await settings.setCourseEditorMode(
+        course.courseId,
+        CourseEditorMode.edit,
+      );
+      await tester.pumpWidget(
+        MaterialApp(
+          home: CourseEditorScreen(
+            course: course,
+            access: CourseAccessPolicy.evaluate(course, profileId: _otherId),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(_accessIcon(tester), Icons.visibility_outlined);
+      expect(find.text('1 unused MP3 file found'), findsNothing);
+      expect(preferences.getString('audio_orphan_check_last_IT'), isNull);
+      expect(
+        await settings.getCourseEditorMode(course.courseId),
+        CourseEditorMode.edit,
+      );
+    },
+  );
+
+  testWidgets('automatic check records a run even when no clips are unused', (
+    tester,
+  ) async {
+    final course = _course(_choiceExercise(), courseId: 'no_orphan_251');
+    final settings = SettingsService();
+    final preferences = await SharedPreferences.getInstance();
+    await settings.setCourseEditorMode(course.courseId, CourseEditorMode.edit);
+    await tester.pumpWidget(
+      MaterialApp(
+        home: CourseEditorScreen(
+          course: course,
+          access: CourseAccessPolicy.evaluate(course, profileId: _ownerId),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.textContaining('unused MP3 file'), findsNothing);
+    expect(preferences.getString('audio_orphan_check_last_IT'), isNotNull);
+  });
+
+  testWidgets('switching into Edit does not start the opening orphan check', (
+    tester,
+  ) async {
+    final course = _course(
+      _choiceExercise(),
+      courseId: 'switch_to_edit_251',
+      audioLibrary: const [
+        CourseAudioClip(
+          id: 'unused',
+          text: '',
+          filePath:
+              'media:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.mp3',
+        ),
+      ],
+    );
+    final preferences = await SharedPreferences.getInstance();
+    await tester.pumpWidget(
+      MaterialApp(
+        home: CourseEditorScreen(
+          course: course,
+          access: CourseAccessPolicy.evaluate(course, profileId: _ownerId),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await _selectMode(tester, CourseEditorMode.edit);
+    expect(find.text('1 unused MP3 file found'), findsNothing);
+    expect(preferences.getString('audio_orphan_check_last_IT'), isNull);
+  });
+
+  testWidgets('manual Audit checks orphans without changing the weekly date', (
+    tester,
+  ) async {
+    final course = _course(
+      _choiceExercise(),
+      courseId: 'manual_orphan_251',
+      audioLibrary: const [
+        CourseAudioClip(
+          id: 'unused',
+          text: '',
+          filePath:
+              'media:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.mp3',
+        ),
+      ],
+    );
+    final settings = SettingsService();
+    final preferences = await SharedPreferences.getInstance();
+    await settings.setCourseEditorMode(course.courseId, CourseEditorMode.edit);
+    await settings.markAudioOrphanCheckRun('IT');
+    final originalDate = preferences.getString('audio_orphan_check_last_IT');
+    await tester.pumpWidget(
+      MaterialApp(
+        home: CourseEditorScreen(
+          course: course,
+          access: CourseAccessPolicy.evaluate(course, profileId: _ownerId),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Run audit'));
+    await tester.pumpAndSettle();
+    expect(find.text('1 unused MP3 file found'), findsOneWidget);
+    await tester.tap(find.text('Keep'));
+    await tester.pumpAndSettle();
+    expect(preferences.getString('audio_orphan_check_last_IT'), originalDate);
+  });
 
   testWidgets('Course Editor exposes and persists all four access states', (
     tester,

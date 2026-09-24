@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../models/course_draft_status.dart';
 import '../models/course_models.dart';
+import '../services/course_library_categories.dart';
 import '../services/course_editor_service.dart';
 import '../services/course_favorite_service.dart';
 import '../services/course_file_store.dart';
@@ -11,8 +12,8 @@ import '../services/course_library_service.dart';
 import '../services/course_media_store.dart';
 import '../services/course_service.dart';
 import '../services/progress_service.dart';
-import '../services/publication_service.dart';
 import '../widgets/course_library_row.dart';
+import '../widgets/course_library_section.dart';
 import 'course_info_screen.dart';
 
 /// The QQL Course web site. None exists yet, so Find Courses on the web stays
@@ -127,10 +128,8 @@ class _AvailableCoursesScreenState extends State<AvailableCoursesScreen> {
 
   /// Page-session ordering, applied inside each section.
   CourseLibrarySort _sort = CourseLibrarySort.title;
+  final _compactSections = <CourseLibraryCategory, bool>{};
 
-  /// Page-session Compact view, one flag per section; all start Expanded.
-  final _compact = List<bool>.filled(_sectionLabels.length, false);
-  bool _favoritesCompact = false;
   @override
   void initState() {
     super.initState();
@@ -228,21 +227,6 @@ class _AvailableCoursesScreenState extends State<AvailableCoursesScreen> {
     } catch (error) {
       if (mounted) setState(() => _error = '$error');
     }
-  }
-
-  bool _isUnpublished(Course c) => !c.publicationState.isPublished;
-  bool _hasAuthoredDraft(Course c) => _hasDraft.contains(c.courseId);
-
-  /// Unpublished, awaiting Publisher verification, or containing Draft content.
-  bool _isUnavailableOrDraft(Course c) =>
-      _isUnpublished(c) ||
-      PublicationService.requiresPublisherVerification(c) ||
-      _hasAuthoredDraft(c);
-
-  int _section(Course c) {
-    if (c.originType == CourseOriginType.bundledOfficial) return 0;
-    if (c.originType == CourseOriginType.externalOfficial) return 1;
-    return CourseLibraryService.creatorProfileId(c) == _profileId ? 2 : 3;
   }
 
   Future<void> _add(Course course) async {
@@ -458,24 +442,6 @@ class _AvailableCoursesScreenState extends State<AvailableCoursesScreen> {
     );
   }
 
-  static const _sectionLabels = [
-    'Bundled Courses',
-    'Publisher Courses',
-    'My Local Courses',
-    'Other Local Courses',
-  ];
-
-  /// Border and header colour of each section, from its title colour.
-  Color _sectionColor(BuildContext context, int index) => switch (index) {
-    0 => Theme.of(context).colorScheme.onSurface,
-    1 => Colors.purple,
-    2 => Colors.orange,
-    _ =>
-      Theme.of(context).brightness == Brightness.dark
-          ? const Color(0xFFBDBDBD)
-          : const Color(0xFF686868),
-  };
-
   Widget _webSiteBand(Uri site) => _Band(
     key: const Key('course-library-web-band'),
     color: Theme.of(context).colorScheme.primary,
@@ -554,112 +520,24 @@ class _AvailableCoursesScreenState extends State<AvailableCoursesScreen> {
     );
   }
 
-  Widget _sectionBand(
-    BuildContext context,
-    int index,
-    String label, {
-    bool favorites = false,
-  }) {
-    final all = _courses!
-        .where(
-          (c) => favorites
-              ? _favoriteIds.contains(c.courseId)
-              : _section(c) == index,
-        )
-        .toList();
-    final query = widget.search.trim().toLowerCase();
-    final shown = CourseLibraryPresentation.sorted(
-      all.where(
-        (c) =>
-            ((widget.showUnavailable ?? _showUnavailable) ||
-                !_isUnavailableOrDraft(c)) &&
-            (query.isEmpty ||
-                c.title.toLowerCase().contains(query) ||
-                c.sourceLanguage.toLowerCase().contains(query) ||
-                c.targetLanguage.toLowerCase().contains(query)),
-      ),
-      widget.sort ?? _sort,
-      maintainerOf: _maintainer,
-    );
-    final filtered = all.length - shown.length;
-    final dark = Theme.of(context).brightness == Brightness.dark;
-    final color = favorites
-        ? (dark ? Colors.amber.shade200 : Colors.amber.shade800)
-        : _sectionColor(context, index);
-    final compact = favorites ? _favoritesCompact : _compact[index];
-    final sectionKey = favorites ? 'favorites' : '$index';
-    return _Band(
-      key: ValueKey('course-section-$sectionKey'),
-      color: color,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Container(
-            color: color.withValues(alpha: favorites && dark ? 0.20 : 0.12),
-            padding: const EdgeInsets.fromLTRB(16, 6, 8, 6),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Wrap(
-                    crossAxisAlignment: WrapCrossAlignment.center,
-                    children: [
-                      Text(
-                        label,
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
-                      Text(
-                        filtered == 0
-                            ? ' · ${all.length}'
-                            : ' · ${shown.length} of ${all.length} shown',
-                        key: ValueKey('course-section-count-$sectionKey'),
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
-                    ],
-                  ),
-                ),
-                Tooltip(
-                  message: compact ? 'Show full details' : 'Show fewer details',
-                  child: TextButton.icon(
-                    key: ValueKey('course-section-view-$sectionKey'),
-                    icon: Icon(
-                      compact
-                          ? Icons.view_headline
-                          : Icons.view_agenda_outlined,
-                    ),
-                    label: Text(compact ? 'Compact' : 'Expanded'),
-                    onPressed: () => setState(() {
-                      if (favorites) {
-                        _favoritesCompact = !_favoritesCompact;
-                      } else {
-                        _compact[index] = !_compact[index];
-                      }
-                    }),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          if (shown.isEmpty)
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Text(
-                all.isEmpty
-                    ? favorites
-                          ? 'No Favorites yet.'
-                          : 'No courses in this section.'
-                    : widget.search.trim().isNotEmpty
-                    ? 'No matching Courses in this section.'
-                    : 'No Courses are shown in this section. Turn on Show unavailable to see them.',
-              ),
-            ),
-          for (final course in shown)
-            favorites
-                ? _courseRow(course, compact: compact, favorites: true)
-                : _courseRow(course, compact: compact),
-        ],
-      ),
-    );
-  }
+  Widget _courseSection(CourseLibraryCategory category) => CourseLibrarySection(
+    key: ValueKey('course-section-${category.sectionId}'),
+    category: category,
+    surface: CourseLibrarySectionSurface.allCourses,
+    courses: _courses!,
+    activeProfileId: _profileId,
+    favoriteIds: _favoriteIds,
+    showUnavailable: widget.showUnavailable ?? _showUnavailable,
+    search: widget.search,
+    sort: widget.sort ?? _sort,
+    maintainerOf: _maintainer,
+    draftCourseIds: _hasDraft,
+    compact: _compactSections[category] ?? false,
+    onCompactChanged: (value) =>
+        setState(() => _compactSections[category] = value),
+    rowBuilder: (course, compact, favorites) =>
+        _courseRow(course, compact: compact, favorites: favorites),
+  );
 
   /// Compact rows keep the title, languages, status labels and action.
   Widget _courseRow(
@@ -764,9 +642,9 @@ class _AvailableCoursesScreenState extends State<AvailableCoursesScreen> {
                 ),
               ),
             if (widget.embedded)
-              _sectionBand(context, -1, 'Favorites', favorites: true),
-            for (final (index, label) in _sectionLabels.indexed)
-              _sectionBand(context, index, label),
+              _courseSection(CourseLibraryCategory.favorites),
+            for (final category in CourseLibraryCategories.standard)
+              _courseSection(category),
           ],
         );
 

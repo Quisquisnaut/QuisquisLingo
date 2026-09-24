@@ -1,6 +1,20 @@
 # QuisquisLingo App
 
-**Current source version: 2.0.50+250001 · Build 250, Revision 1 · Course Model v11 (`formatVersion: 11`).**
+**Current source version: 2.0.51+251001 · Build 251, Revision 1 · Course Model v11 (`formatVersion: 11`).**
+
+**QuisquisLingo 2.0.51 Beta — QQL 251 architecture**
+
+Current project version: 2.0.51
+
+Build 251 Revision 0 shares the five Course Library sections, their
+categories and filters across All Courses and Course Studio. Each tab keeps
+its data and actions. Revision 1 gives the Course Editor's immediately saved
+mode and View-only notice preferences, and its seven-day orphan MP3 check
+schedule, one testable owner. These are source-only architectural changes;
+Course data, behavior and the top-level Editor confirmation are unchanged.
+See the [Build 251 plan](docs/251_ARCHITECTURE_PLAN.md),
+[change summary](docs/251_CHANGE_SUMMARY.md),
+[validation](docs/251_VALIDATION.md) and [handoff](docs/251_HANDOFF.md).
 
 **QuisquisLingo 2.0.50 Beta — QQL 250 Courses**
 
@@ -24,8 +38,9 @@ the [Build 250 plan](docs/250_COURSES_SCREEN_PLAN.md),
 [change summary](docs/250_CHANGE_SUMMARY.md),
 [validation](docs/250_VALIDATION.md) and [handoff](docs/250_HANDOFF.md).
 
-Revision 1 keeps each Course's three-dot menu at the right of its row and puts
-Sort by and Show unavailable on one line. The Search icon works in both tabs;
+Build 250 Revision 1 keeps each Course's three-dot menu at the right of its
+row and puts Sort by and Show unavailable on one line. The Search icon works
+in both tabs;
 its field opens below Sort. Each tab has its own Help icon, while New course
 appears only in Course Studio. Favorites use a soft amber accent instead of
 inverted row colors, and Course Studio includes Favorites from the active
@@ -205,7 +220,7 @@ The MPL-2.0 covers the QuisquisLingo software source. Courses, the Image Bank an
 
 ## Beta lifecycle
 
-Version 2.0.50, Build 250, Revision 1 is a time-limited Beta with an expiry of **2026-10-24 23:59:59 local time** (30 days from September 24, 2026, its own release date). Near expiry it displays reminders. After expiry, learner exercises and Review are blocked until a newer Beta is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when a Beta expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM.
+Version 2.0.51, Build 251, Revision 1 is a time-limited Beta with an expiry of **2026-10-24 23:59:59 local time** (30 days from September 24, 2026, its own release date). Near expiry it displays reminders. After expiry, learner exercises and Review are blocked until a newer Beta is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when a Beta expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM.
 
 ## Core logic
 

@@ -1,3 +1,34 @@
+# 2.0.51 (Build 251, Revision 1) - Course Editor device state - 2026-09-24
+
+One owner now holds the Course Editor's immediately written access mode,
+one-time View-only notice preference and seven-day per-Course-code orphan MP3
+check schedule. The Editor keeps the dialogs, working copy and Audit route.
+Stored keys and values, legacy mode fallback, automatic-check gate and mark
+timing remain unchanged. This is a source-only architectural revision with no
+behavior change.
+
+Version `2.0.51+251001`; Course Model v11, package format 1, rights, import,
+progression, scoring and the Course Editor confirmation remain unchanged. Beta
+expiry is **2026-10-24 23:59:59 local time**, recalculated as 30 days from
+this revision's 24 September 2026 release date. See the
+[Build 251 plan](docs/251_ARCHITECTURE_PLAN.md).
+
+# 2.0.51 (Build 251, Revision 0) - Shared Course sections - 2026-09-24
+
+The Courses screen now uses one Course Library section component for Favorites,
+Bundled, Publisher, My Local and Other Local Courses in both tabs. The section
+renders Expanded/Compact controls, border, count and empty message while the
+tabs retain each section's view state. Shared owners apply Search, availability
+filter and sorting. All Courses and Course Studio keep their own data loading,
+rows and actions; their existing labels, keys and presentation remain the same.
+This is a source-only architectural revision with no behavior change.
+
+Version `2.0.51+251000`; Course Model v11, package format 1, stored keys,
+authoring rights, progression, scoring and the Course Editor confirmation are
+unchanged. Beta expiry is **2026-10-24 23:59:59 local time**, recalculated as
+30 days from this revision's 24 September 2026 release date. See the
+[Build 251 plan](docs/251_ARCHITECTURE_PLAN.md).
+
 # 2.0.50 (Build 250, Revision 1) - Courses layout - 2026-09-24
 
 The Course Manager tab is renamed Course Studio in user-facing labels and
