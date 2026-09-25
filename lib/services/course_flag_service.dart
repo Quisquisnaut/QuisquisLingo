@@ -1,9 +1,6 @@
 import 'dart:convert';
-import 'dart:io';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
-
-import 'package:path_provider/path_provider.dart';
 
 import '../models/course_models.dart';
 import '../models/world_flag_entity.dart';
@@ -12,6 +9,8 @@ import 'language_flag_catalog.dart';
 import 'world_flag_repository.dart';
 import 'import/selected_external_file.dart';
 import 'import/image_validator.dart';
+import 'import/import_stager.dart';
+import 'storage/qql_storage.dart';
 
 enum ResolvedCourseFlagKind { worldFlag, customImage, builtIn, neutral }
 
@@ -44,6 +43,12 @@ class ImportedCourseFlag {
 }
 
 class CourseFlagService {
+  CourseFlagService({QqlStorage? storage}) : _storageOverride = storage;
+
+  /// Created only when a flag is imported: most callers only resolve flags.
+  final QqlStorage? _storageOverride;
+  QqlStorage get _storage => _storageOverride ?? QqlStorage();
+
   static const int maxInputBytes = 2 * 1024 * 1024;
   static const int minWidth = 64;
   static const int minHeight = 40;
@@ -157,41 +162,37 @@ class CourseFlagService {
     }
   }
 
-  Future<Directory> flagImportDirectory() async {
-    final documents = await getApplicationDocumentsDirectory();
-    final directory = Directory(
-      '${documents.path}${Platform.pathSeparator}QuisquisLingo${Platform.pathSeparator}Exports',
-    );
-    await directory.create(recursive: true);
-    return directory;
-  }
-
   Future<ImportedCourseFlag> importPreparedFlag() async {
-    final directory = await flagImportDirectory();
+    final folder = await _storage.importFolder(
+      QqlStorageRole.courseFlagImports,
+    );
     const names = ['flag.png', 'flag.jpg', 'flag.jpeg'];
-    File? source;
+    QuickImportFile? source;
     for (final name in names) {
-      final candidate = File('${directory.path}${Platform.pathSeparator}$name');
-      if (await candidate.exists()) {
-        source = candidate;
-        break;
-      }
+      source = await folder.file(name);
+      if (source != null) break;
     }
-    if (source != null && !await isOrdinaryFile(source.path)) {
+    if (source != null && !source.isOrdinaryFile) {
       throw FormatException(
-        '${source.uri.pathSegments.last} is not an ordinary file. Copy the '
+        '${source.name} is not an ordinary file. Copy the '
         'file itself, not a link or folder, and try again.',
       );
     }
     if (source == null) {
       throw FormatException(
-        'No flag image found. Copy flag.png, flag.jpg, or flag.jpeg to ${directory.path}, then press Import flag again.',
+        'No flag image found. Copy flag.png, flag.jpg, or flag.jpeg to ${folder.location}, then press Import flag again.',
       );
     }
-    if (await source.length() > maxInputBytes) {
-      throw const FormatException('Flag image is too large. Export a smaller PNG or JPEG picture and try again.');
+    const tooLarge = FormatException('Flag image is too large. Export a smaller PNG or JPEG picture and try again.');
+    if ((source.reportedSize ?? 0) > maxInputBytes) throw tooLarge;
+    final Uint8List bytes;
+    try {
+      bytes = await readQuickImportFile(source, maxBytes: maxInputBytes);
+    } on ImportTooLargeException {
+      throw tooLarge;
+    } on ImportAccessException catch (error) {
+      throw FormatException(error.message);
     }
-    final bytes = await source.readAsBytes();
     if (bytes.isEmpty) {
       throw const FormatException('The flag image could not be read. Export a fresh PNG or JPEG picture and try again.');
     }

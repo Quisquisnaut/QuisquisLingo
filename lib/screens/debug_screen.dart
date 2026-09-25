@@ -13,6 +13,7 @@ import '../services/diagnostic_log_service.dart';
 import '../services/file_dialog_service.dart';
 import '../widgets/app_locale_selector.dart';
 import '../widgets/file_dialog_feedback.dart';
+import '../services/storage/qql_storage.dart';
 
 class DebugScreen extends StatefulWidget {
   const DebugScreen({super.key});
@@ -136,7 +137,7 @@ class _DebugScreenState extends State<DebugScreen> {
         saving: true,
         savedMessage: 'Diagnostic Log copy saved as ${result.displayName}.',
         fallbackHint:
-            'You can use Export Diagnostic Log instead; it saves to Documents/QuisquisLingo/Logs.',
+            'You can use Export Diagnostic Log instead; it saves to ${QqlStorageLayout.current.folderLabel(QqlStorageRole.diagnosticLogExports)}.',
       );
     } catch (_) {
       if (!mounted) return;
@@ -266,7 +267,7 @@ class _DebugScreenState extends State<DebugScreen> {
                       if (_dialogs.isAvailable)
                         IconButton(
                           key: const Key('save-crash-log-copy-to'),
-                          tooltip: 'Save log copy to…',
+                          tooltip: 'Save log copy as…',
                           onPressed: _crashLogPath == null
                               ? null
                               : _saveCrashLogCopyTo,
@@ -303,7 +304,7 @@ class _DebugScreenState extends State<DebugScreen> {
                       if (_dialogs.isAvailable)
                         IconButton(
                           key: const Key('save-diagnostic-log-copy-to'),
-                          tooltip: 'Save log copy to…',
+                          tooltip: 'Save log copy as…',
                           onPressed: _hasDiagnosticLog
                               ? _saveDiagnosticLogCopyTo
                               : null,

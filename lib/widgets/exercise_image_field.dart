@@ -11,6 +11,7 @@ import '../services/exercise_image_service.dart';
 import 'course_media_image.dart';
 import 'file_dialog_feedback.dart';
 import 'image_badges.dart';
+import '../services/storage/qql_storage.dart';
 
 /// A new image for an Exercise: the asset, and the Shared Image Library
 /// record it came from when there is one. An empty asset removes the image.
@@ -270,8 +271,8 @@ class _ExerciseImageFieldState extends State<ExerciseImageField> {
               ],
             ),
             const SizedBox(height: 4),
-            const Text(
-              'The shared image library (admin-managed) has lightweight flat images. For Import custom image, place exactly one PNG, JPG, JPEG or WEBP file in Documents/QuisquisLingo/Imports/Images. Image-prompt ordering requires an image; otherwise it is optional and can be changed at any time.',
+            Text(
+              'The shared image library (admin-managed) has lightweight flat images. For Import custom image, place exactly one PNG, JPG, JPEG or WEBP file in ${QqlStorageLayout.current.folderLabel(QqlStorageRole.imageImports)}. Image-prompt ordering requires an image; otherwise it is optional and can be changed at any time.',
               style: TextStyle(fontSize: 12),
             ),
           ],

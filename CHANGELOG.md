@@ -1,3 +1,48 @@
+# 2.0.55 (Build 255, Revision 0) - Logical storage roles and Course Quick folders - 2026-09-25
+
+QQL's user folders are now **logical storage roles**: a direction (Imports,
+Exports) and a category (Courses, Merges, Audio, Images, Lesson icons, Flags,
+Learner data, Recovery keys, Audit reports, Diagnostic logs). Feature code asks
+for a role, such as "the Quick Import source for Courses"; a per-platform
+layout and backend decide what that folder is. No feature code builds a
+Windows, Android or iOS path for a user folder any more, so Android public
+folders (Revisions 1–2) and a later iOS Files backend plug in without changing
+the features. Every folder-based ("Quick") route uses the layer: Course import,
+export and Merge, Audit reports, Export/Import my data, the User Recovery Key,
+the Diagnostic Log export, Import MP3, custom and portable images, Image Bank
+ZIPs, Lesson icons and the custom flag. A Quick Import file is read as a
+bounded stream, like a file chosen with Open from…; a Course package goes
+through the same private staging as Open from… before it is parsed.
+
+On **every desktop** (Windows, Linux and macOS) Course packages now have their
+own folders: Quick Import reads `import.zip` or `import.json` from
+`Documents/QuisquisLingo/Imports/Courses`, and Quick Export (including a
+Version History export) writes to `Documents/QuisquisLingo/Exports/Courses`.
+Files left in the old `Imports` and `Exports` places are not read or moved
+(clean cut). Every other folder keeps its place: Merges, learner data,
+Recovery Keys, Audio, Images, Lesson Icons, the flag in Exports, Audit reports
+in Exports and the Diagnostic Log in Logs. The owner audit of every import,
+export, save, restore and merge operation, and which files stay internal, is
+in [the Build 255 plan](docs/255_STORAGE_PLAN.md).
+
+The folder-based buttons are renamed **Quick Import** and **Quick Export**
+(Course Import and Course Export screens), and every dialog save is now
+**Save as…** (Save as…, Save my data as…, Save Recovery Key as…, Save log copy
+as…, Save historical version as…). **Open from…** is unchanged. Screens,
+fallback hints and Help (English, Italian and Spanish) name folders through the
+layout, so they always show the current platform's folders; Help catalogs use
+`{folder…}` placeholders.
+
+An empty `import.zip` now reports "import.zip is empty." like the Open from…
+route, and a too-large Image Bank ZIP in the folder gives the Open from…
+message. Export folders are created by their first write, as before. Course
+Model v11, package format 1, rights, scoring, progression and learner data are
+unchanged.
+
+Version `2.0.55+255000`; Beta expiry **2026-10-25 23:59:59 local time** (30
+days from the 25 September 2026 release date). See
+[handoff](docs/255_HANDOFF.md) and [validation](docs/255_VALIDATION.md).
+
 # 2.0.54 (Build 254, Revision 0) - Bundled exercise demos - 2026-09-25
 
 Replaces the Italian, Finnish and Dutch demos with **Exercise Laboratory**

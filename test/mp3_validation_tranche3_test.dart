@@ -14,6 +14,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'support/fake_file_dialog_backend.dart';
 import 'support/synthetic_mp3.dart';
+import 'package:quisquislingo_app/services/storage/qql_storage.dart';
+import 'support/quick_folders.dart';
 
 /// One MPEG-1 Layer III frame with the given header bytes 2 and 3.
 Uint8List _frame(int byte2, {int length = 417}) =>
@@ -318,7 +320,7 @@ void main() {
     });
 
     test('the fixed folder stores nothing when one file is bad', () async {
-      final folder = await audio.fixedImportDirectory();
+      final folder = await quickFolder(QqlStorageRole.audioImports);
       final files = [
         File('${folder.path}${Platform.pathSeparator}good.mp3'),
         File('${folder.path}${Platform.pathSeparator}bad.mp3'),

@@ -63,7 +63,7 @@ void main() {
     },
   );
 
-  test('Save to… writes exactly the bytes the default Export writes', () async {
+  test('Save as… writes exactly the bytes the Quick Export writes', () async {
     final path = await service.exportCourse(dialogTestCourse());
     final result = await service.exportCourseTo(dialogTestCourse());
 

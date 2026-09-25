@@ -9,13 +9,15 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/exercise_image_metadata.dart';
 import 'exercise_image_metadata_service.dart';
-import 'exercise_image_service.dart';
 import 'file_dialog_service.dart';
 import 'image_library_rules.dart';
 import 'import/bounded_zip_reader.dart';
 import 'import/image_validator.dart';
 import 'import/json_limits.dart';
+import 'import/import_stager.dart';
 import 'import/media_file_kind.dart';
+import 'import/selected_external_file.dart';
+import 'storage/qql_storage.dart';
 
 class ImportedImageBank {
   final String id;
@@ -153,11 +155,14 @@ class ImageBankService {
   ImageBankService({
     FileDialogService? fileDialogs,
     Future<Directory> Function()? temporaryDirectory,
+    QqlStorage? storage,
   }) : _fileDialogs = fileDialogs ?? FileDialogService(),
-       _temporaryDirectory = temporaryDirectory ?? getTemporaryDirectory;
+       _temporaryDirectory = temporaryDirectory ?? getTemporaryDirectory,
+       _storage = storage ?? QqlStorage();
 
   final FileDialogService _fileDialogs;
   final Future<Directory> Function() _temporaryDirectory;
+  final QqlStorage _storage;
 
   /// False when the system dialog is unsupported; hide Open from….
   bool get fileDialogsAvailable => _fileDialogs.isAvailable;
@@ -187,21 +192,31 @@ class ImageBankService {
       maxBytes: maxZipBytes,
       artifact: 'image-bank',
     );
-    if (picked.outcome == FileDialogOutcome.tooLarge) {
-      throw const FormatException(
-        'Image Bank ZIP is too large. Remove images or shrink them, then make a new ZIP.',
-      );
-    }
+    if (picked.outcome == FileDialogOutcome.tooLarge) throw _zipTooLarge;
     if (picked.outcome != FileDialogOutcome.opened) return picked;
+    await _withZipBytes(picked.displayName!, picked.bytes!, body);
+    return picked;
+  }
+
+  static const _zipTooLarge = FormatException(
+    'Image Bank ZIP is too large. Remove images or shrink them, then make a new ZIP.',
+  );
+
+  /// Hands [bytes] to [body] as a temporary file named [name], the ZIP's own
+  /// name (which names the bank). The copy is always deleted.
+  Future<void> _withZipBytes(
+    String name,
+    Uint8List bytes,
+    Future<void> Function(File zip) body,
+  ) async {
     final staging = await (await _temporaryDirectory()).createTemp(
       'qql_image_bank_',
     );
     try {
-      final name = picked.displayName!.replaceAll(RegExp(r'[\\/:*?"<>|]'), '_');
-      final file = File('${staging.path}${Platform.pathSeparator}$name');
-      await file.writeAsBytes(picked.bytes!, flush: true);
+      final safeName = name.replaceAll(RegExp(r'[\\/:*?"<>|]'), '_');
+      final file = File('${staging.path}${Platform.pathSeparator}$safeName');
+      await file.writeAsBytes(bytes, flush: true);
       await body(file);
-      return picked;
     } finally {
       try {
         await staging.delete(recursive: true);
@@ -223,16 +238,29 @@ class ImageBankService {
     return out;
   }
 
-  /// Image Banks and single images share one fixed import folder; the folder
-  /// is defined once, by [ExerciseImageService.fixedImportDirectory].
-  Future<Directory> fixedImportDirectory() =>
-      ExerciseImageService().fixedImportDirectory();
-
-  /// The one Image Bank ZIP in the fixed import folder, read and checked
-  /// without writing anything (a Course's own library imports from this).
+  /// The one Image Bank ZIP in the Quick Import folder for images, which it
+  /// shares with single images ([QqlStorageRole.imageImports]), read and
+  /// checked without writing anything (a Course's own library imports from
+  /// this).
   Future<ParsedImageBank> readBankFromFolder({
     Set<String> existingIds = const {},
-  }) async => readBank(await _folderZip(), existingIds: existingIds);
+  }) async {
+    final zip = await _folderZip();
+    final Uint8List bytes;
+    if ((zip.reportedSize ?? 0) > maxZipBytes) throw _zipTooLarge;
+    try {
+      bytes = await readQuickImportFile(zip, maxBytes: maxZipBytes);
+    } on ImportTooLargeException {
+      throw _zipTooLarge;
+    } on ImportAccessException catch (error) {
+      throw FormatException(error.message);
+    }
+    late final ParsedImageBank bank;
+    await _withZipBytes(zip.displayName, bytes, (file) async {
+      bank = await readBank(file, existingIds: existingIds);
+    });
+    return bank;
+  }
 
   /// Open from…: an Image Bank ZIP read and checked without writing anything.
   Future<({FileDialogResult dialog, ParsedImageBank? bank})>
@@ -244,25 +272,22 @@ class ImageBankService {
     return (dialog: dialog, bank: bank);
   }
 
-  Future<File> _folderZip() async {
-    final importDir = await fixedImportDirectory();
-    final zipFiles = await importDir
-        .list(followLinks: false)
-        .where((entity) => entity is File)
-        .cast<File>()
-        .where((file) => file.path.toLowerCase().endsWith('.zip'))
+  Future<QuickImportFile> _folderZip() async {
+    final folder = await _storage.importFolder(QqlStorageRole.imageImports);
+    final zipFiles = (await folder.files())
+        .where((file) => file.name.toLowerCase().endsWith('.zip'))
         .toList();
     zipFiles.sort(
-      (a, b) => a.path.toLowerCase().compareTo(b.path.toLowerCase()),
+      (a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()),
     );
     if (zipFiles.isEmpty) {
       throw StateError(
-        'No Image Bank ZIP found in ${importDir.path}. Copy one ZIP there and try again.',
+        'No Image Bank ZIP found in ${folder.location}. Copy one ZIP there and try again.',
       );
     }
     if (zipFiles.length > 1) {
       throw StateError(
-        'More than one ZIP was found in ${importDir.path}. Keep only the Image Bank ZIP you want to import, then try again.',
+        'More than one ZIP was found in ${folder.location}. Keep only the Image Bank ZIP you want to import, then try again.',
       );
     }
     return zipFiles.single;

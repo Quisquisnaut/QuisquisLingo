@@ -4,15 +4,18 @@ import 'package:flutter/material.dart';
 
 import '../models/course_models.dart';
 import '../screens/flat_image_library_screen.dart';
-import '../services/exercise_image_service.dart';
 import '../services/exercise_field_help.dart';
 import '../services/file_dialog_service.dart';
+import '../services/import/import_stager.dart';
+import '../services/import/selected_external_file.dart';
 import '../services/portable_exercise_image.dart';
+import '../services/storage/qql_storage.dart';
 import 'file_dialog_feedback.dart';
 import 'portable_exercise_image.dart';
 
 // The editor is a const StatelessWidget, so its dialog service is shared.
 final FileDialogService _dialogs = FileDialogService();
+final QqlStorage _storage = QqlStorage();
 
 enum ScriptRecognitionMode { imageToText, textToImage }
 
@@ -350,38 +353,35 @@ class ScriptRecognitionEditor extends StatelessWidget {
               picked,
               saving: false,
               fallbackHint:
-                  'Copy the image to Documents/QuisquisLingo/Imports/Images and use Import portable image instead.',
+                  'Copy the image to ${_storage.label(QqlStorageRole.imageImports)} and use Import portable image instead.',
             );
           }
           return null;
         }
         return await PortableExerciseImageService.fromBytes(picked.bytes!);
       }
-      final directory = await ExerciseImageService().fixedImportDirectory();
-      final files = await directory
-          .list(followLinks: false)
-          .where((entry) => entry is File)
-          .cast<File>()
+      final folder = await _storage.importFolder(QqlStorageRole.imageImports);
+      final files = (await folder.files())
           .where(
             (file) => const {
               'png',
               'jpg',
               'jpeg',
               'webp',
-            }.contains(file.path.toLowerCase().split('.').last),
+            }.contains(file.name.toLowerCase().split('.').last),
           )
           .toList();
-      files.sort((a, b) => a.path.compareTo(b.path));
+      files.sort((a, b) => a.name.compareTo(b.name));
       if (files.isEmpty) {
         throw StateError(
-          'Copy a PNG, JPEG or WEBP image to ${directory.path}, then try again. '
+          'Copy a PNG, JPEG or WEBP image to ${folder.location}, then try again. '
           'Each image must be at most 50 KB.',
         );
       }
       if (!context.mounted) return null;
       final picked = files.length == 1
           ? files.single
-          : await showDialog<File>(
+          : await showDialog<QuickImportFile>(
               context: context,
               builder: (context) => SimpleDialog(
                 title: const Text('Choose image to import'),
@@ -389,14 +389,31 @@ class ScriptRecognitionEditor extends StatelessWidget {
                   for (final file in files)
                     SimpleDialogOption(
                       onPressed: () => Navigator.pop(context, file),
-                      child: Text(file.uri.pathSegments.last),
+                      child: Text(file.displayName),
                     ),
                 ],
               ),
             );
-      return picked == null
-          ? null
-          : await PortableExerciseImageService.fromFile(picked);
+      if (picked == null) return null;
+      const tooLarge = FormatException(
+        'Exercise image is too large. Export a smaller picture and try again.',
+      );
+      if ((picked.reportedSize ?? 0) >
+          PortableExerciseImageService.maxImageBytes) {
+        throw tooLarge;
+      }
+      try {
+        return await PortableExerciseImageService.fromBytes(
+          await readQuickImportFile(
+            picked,
+            maxBytes: PortableExerciseImageService.maxImageBytes,
+          ),
+        );
+      } on ImportTooLargeException {
+        throw tooLarge;
+      } on ImportAccessException catch (error) {
+        throw FormatException(error.message);
+      }
     } catch (error) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

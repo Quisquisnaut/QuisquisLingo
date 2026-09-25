@@ -25,7 +25,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.byKey(const Key('course-editor-export-json')), findsNothing);
       expect(find.byKey(const Key('course-editor-save-json-to')), findsNothing);
-      expect(find.text('Export Course package'), findsNothing);
+      expect(find.text('Quick Export'), findsNothing);
       expect(
         find.byKey(const Key('course-editor-copy-as-new-course')),
         findsNothing,
@@ -49,7 +49,7 @@ void main() {
       );
       await tester.pump();
       expect(find.byKey(const Key('course-editor-export-json')), findsNothing);
-      expect(find.text('Export Course package'), findsNothing);
+      expect(find.text('Quick Export'), findsNothing);
       expect(find.byType(PopupMenuButton<String>), findsNothing);
     });
   }

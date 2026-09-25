@@ -277,7 +277,7 @@ class _CourseVersionHistoryScreenState
                           if (_transfer.fileDialogsAvailable)
                             OutlinedButton(
                               onPressed: () => _saveHistoricalTo(record.course),
-                              child: const Text('Save historical version to…'),
+                              child: const Text('Save historical version as…'),
                             ),
                         ],
                       ),

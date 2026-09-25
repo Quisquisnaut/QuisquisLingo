@@ -3,12 +3,15 @@ import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data';
 
-import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'file_dialog_service.dart';
 import 'profile_service.dart';
+import 'import/import_stager.dart';
 import 'import/json_limits.dart';
+import 'import/selected_external_file.dart';
+import 'storage/file_system_storage.dart';
+import 'storage/qql_storage.dart';
 
 class UserRecoveryKeyDocument {
   final String learnerProfileId;
@@ -43,8 +46,11 @@ class UserRecoveryKeyService {
   static const _maximumKeyBytes = 64 * 1024;
 
   final ProfileService _profiles;
-  final Future<Directory> Function() _exportsDirectoryProvider;
-  final Future<Directory> Function() _importsDirectoryProvider;
+
+  /// Replace the Quick Export and Quick Import folders in tests.
+  final Future<Directory> Function()? _exportsDirectoryProvider;
+  final Future<Directory> Function()? _importsDirectoryProvider;
+  final QqlStorage _storage;
   final List<int> Function(int length) _secureBytes;
   final FileDialogService _fileDialogs;
 
@@ -54,31 +60,43 @@ class UserRecoveryKeyService {
     Future<Directory> Function()? importsDirectoryProvider,
     List<int> Function(int length)? secureBytes,
     FileDialogService? fileDialogs,
+    QqlStorage? storage,
   }) : _profiles = profileService ?? ProfileService(),
        _fileDialogs = fileDialogs ?? FileDialogService(),
-       _exportsDirectoryProvider =
-           exportsDirectoryProvider ?? (() => _qqlDirectory('Exports')),
-       _importsDirectoryProvider =
-           importsDirectoryProvider ?? (() => _qqlDirectory('Imports')),
+       _exportsDirectoryProvider = exportsDirectoryProvider,
+       _importsDirectoryProvider = importsDirectoryProvider,
+       _storage = storage ?? QqlStorage(),
        _secureBytes =
            secureBytes ??
            ((length) =>
                List<int>.generate(length, (_) => Random.secure().nextInt(256)));
 
-  static Future<Directory> _qqlDirectory(String name) async {
-    final documents = await getApplicationDocumentsDirectory();
-    final directory = Directory(
-      '${documents.path}${Platform.pathSeparator}QuisquisLingo'
-      '${Platform.pathSeparator}$name',
-    );
+  static Future<Directory> _created(
+    Future<Directory> Function() injected,
+  ) async {
+    final directory = await injected();
     await directory.create(recursive: true);
     return directory;
   }
 
-  /// False when the system dialog is unsupported; hide Save to… / Open from….
+  Future<QuickExportFolder> _exportFolder() async {
+    final injected = _exportsDirectoryProvider;
+    return injected == null
+        ? _storage.exportFolder(QqlStorageRole.recoveryKeyExports)
+        : FileSystemExportFolder(await _created(injected));
+  }
+
+  Future<QuickImportFolder> _importFolder() async {
+    final injected = _importsDirectoryProvider;
+    return injected == null
+        ? _storage.importFolder(QqlStorageRole.recoveryKeyImports)
+        : FileSystemImportFolder(await _created(injected));
+  }
+
+  /// False when the system dialog is unsupported; hide Save as… / Open from….
   bool get fileDialogsAvailable => _fileDialogs.isAvailable;
 
-  /// Save to…: the same key file as [exportActiveUserRecoveryKey], written
+  /// Save as…: the same key file as [exportActiveUserRecoveryKey], written
   /// wherever the user chooses. The key is a secret: callers must warn the
   /// user before the dialog opens.
   Future<FileDialogResult> exportActiveUserRecoveryKeyTo() async {
@@ -147,44 +165,41 @@ class UserRecoveryKeyService {
 
   Future<String> exportActiveUserRecoveryKey() async {
     final export = await _buildActiveKeyExport();
-    final stem = export.stem;
-    final directory = await _exportsDirectoryProvider();
-    await directory.create(recursive: true);
-    var file = File('${directory.path}${Platform.pathSeparator}$stem.json');
-    var suffix = 2;
-    while (await file.exists()) {
-      file = File(
-        '${directory.path}${Platform.pathSeparator}${stem}_$suffix.json',
-      );
-      suffix++;
-    }
-    await file.writeAsBytes(export.bytes, flush: true);
-    return file.path;
+    final written = await (await _exportFolder()).write(
+      baseName: export.stem,
+      extension: 'json',
+      bytes: export.bytes,
+    );
+    return written.location;
   }
 
   Future<List<UserRecoveryKeyCandidate>>
   findImportableUserRecoveryKeys() async {
-    final directory = await _importsDirectoryProvider();
-    await directory.create(recursive: true);
-    final files = await directory
-        .list(followLinks: false)
-        .where(
-          (entry) =>
-              entry is File &&
-              entry.path.toLowerCase().endsWith('.user-recovery-key.json'),
-        )
-        .cast<File>()
-        .toList();
-    files.sort((a, b) => a.path.compareTo(b.path));
+    final folder = await _importFolder();
+    final files =
+        (await folder.files())
+            .where(
+              (file) =>
+                  file.name.toLowerCase().endsWith('.user-recovery-key.json'),
+            )
+            .toList()
+          ..sort((a, b) => a.name.compareTo(b.name));
+    const tooLarge = FormatException('A User Recovery Key is too large.');
     final candidates = <UserRecoveryKeyCandidate>[];
     for (final file in files) {
-      if (await file.length() > _maximumKeyBytes) {
-        throw const FormatException('A User Recovery Key is too large.');
+      if ((file.reportedSize ?? 0) > _maximumKeyBytes) throw tooLarge;
+      final List<int> bytes;
+      try {
+        bytes = await readQuickImportFile(file, maxBytes: _maximumKeyBytes);
+      } on ImportTooLargeException {
+        throw tooLarge;
+      } on ImportAccessException catch (error) {
+        throw FormatException(error.message);
       }
       candidates.add(
         UserRecoveryKeyCandidate(
-          path: file.path,
-          document: decodeDocument(await file.readAsBytes()),
+          path: folder.locationOf(file.name),
+          document: decodeDocument(bytes),
         ),
       );
     }

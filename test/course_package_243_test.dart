@@ -11,6 +11,7 @@ import 'package:quisquislingo_app/services/course_media_store.dart';
 import 'package:quisquislingo_app/services/course_package_service.dart';
 import 'package:quisquislingo_app/services/custom_course_transfer_service.dart';
 import 'support/synthetic_mp3.dart';
+import 'support/quick_folders.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();

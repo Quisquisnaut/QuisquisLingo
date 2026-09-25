@@ -6,20 +6,24 @@ import 'package:flutter/services.dart';
 import '../models/course_models.dart';
 import 'app_metadata.dart';
 import 'course_audit_service.dart';
-import 'custom_course_transfer_service.dart';
+import 'storage/file_system_storage.dart';
+import 'storage/qql_storage.dart';
 
 class CourseAuditReportService {
   CourseAuditReportService({
     Future<Directory> Function()? exportDirectory,
+    QqlStorage? storage,
     Future<void> Function(String text)? copyText,
     DateTime Function()? clock,
-  }) : _exportDirectory =
-           exportDirectory ?? CustomCourseTransferService().transferDirectory,
+  }) : _exportDirectory = exportDirectory,
+       _storage = storage ?? QqlStorage(),
        _copyText =
            copyText ?? ((text) => Clipboard.setData(ClipboardData(text: text))),
        _clock = clock ?? DateTime.now;
 
-  final Future<Directory> Function() _exportDirectory;
+  /// Replaces the Quick Export folder for Audit reports in tests.
+  final Future<Directory> Function()? _exportDirectory;
+  final QqlStorage _storage;
   final Future<void> Function(String text) _copyText;
   final DateTime Function() _clock;
 
@@ -120,7 +124,6 @@ class CourseAuditReportService {
       sortMode: sortMode,
       generatedAt: generatedAt,
     );
-    final directory = await _exportDirectory();
     final stamp = generatedAt
         .toIso8601String()
         .replaceAll(RegExp(r'[^0-9]'), '')
@@ -129,18 +132,21 @@ class CourseAuditReportService {
     final coursePart = _safePart(course.title, fallback: 'course');
     final idPart = _safePart(course.courseId, fallback: 'unknown_id');
     final baseName = 'quisquislingo_audit_${coursePart}_${idPart}_$stamp';
-    var output = File(
-      '${directory.path}${Platform.pathSeparator}$baseName.txt',
-    );
-    var suffix = 2;
-    while (await output.exists()) {
-      output = File(
-        '${directory.path}${Platform.pathSeparator}${baseName}_$suffix.txt',
-      );
-      suffix += 1;
+    final injected = _exportDirectory;
+    final QuickExportFolder folder;
+    if (injected == null) {
+      folder = await _storage.exportFolder(QqlStorageRole.auditReportExports);
+    } else {
+      final directory = await injected();
+      await directory.create(recursive: true);
+      folder = FileSystemExportFolder(directory);
     }
-    await output.writeAsBytes(utf8.encode(report), flush: true);
-    return output.path;
+    final written = await folder.write(
+      baseName: baseName,
+      extension: 'txt',
+      bytes: utf8.encode(report),
+    );
+    return written.location;
   }
 
   String _sortLabel(AuditSortMode mode) => switch (mode) {

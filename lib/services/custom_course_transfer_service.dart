@@ -3,8 +3,6 @@ import 'course_flag_service.dart';
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:path_provider/path_provider.dart';
-
 import '../models/course_models.dart';
 import 'file_dialog_service.dart';
 import 'course_package_service.dart';
@@ -12,12 +10,15 @@ import 'course_media_store.dart';
 import 'course_image_usage.dart';
 import 'portable_exercise_image.dart';
 import 'publisher_verification_service.dart';
+import 'import/import_stager.dart';
 import 'import/selected_external_file.dart';
 import 'import/json_limits.dart';
 import 'import/image_validator.dart';
+import 'storage/file_system_storage.dart';
+import 'storage/qql_storage.dart';
 
 /// The exact bytes and base file name a course export produces, shared by the
-/// fixed-folder Export and the dialog-based Save to…
+/// Quick Export and the dialog-based Save as…
 class CourseExportPayload {
   const CourseExportPayload(this.bytes, this.baseName);
 
@@ -37,132 +38,166 @@ class CustomCourseTransferService {
     FileDialogService? fileDialogs,
     PublisherVerificationService? publisherVerification,
     CoursePackageService? packageService,
+    QqlStorage? storage,
+    ImportStager? stager,
   }) : _directory = directory,
        _importDirectory = importDirectory ?? directory,
        _mergeDirectory = mergeDirectory ?? directory,
        _fileDialogs = fileDialogs ?? FileDialogService(),
        _publisherVerification =
            publisherVerification ?? PublisherVerificationService(),
-       _packages = packageService ?? CoursePackageService();
+       _packages = packageService ?? CoursePackageService(),
+       _storage = storage ?? QqlStorage(),
+       _stager = stager ?? ImportStager();
 
   final PublisherVerificationService _publisherVerification;
   final CoursePackageService _packages;
+  final QqlStorage _storage;
+  final ImportStager _stager;
 
   static const int maxJsonBytes = 10 * 1024 * 1024;
 
+  /// The file names Quick Import and Course Merge look for.
+  static const importPackageName = 'import.zip';
+  static const importJsonName = 'import.json';
+  static const mergePackageName = 'merge.zip';
+  static const mergeJsonName = 'merge.json';
+
   final FileDialogService _fileDialogs;
 
-  /// False when the system dialog is unsupported; hide Save to… / Open from….
+  /// False when the system dialog is unsupported; hide Save as… / Open from….
   bool get fileDialogsAvailable => _fileDialogs.isAvailable;
   final Future<Directory> Function()? _directory;
   final Future<Directory> Function()? _importDirectory;
   final Future<Directory> Function()? _mergeDirectory;
 
-  Future<Directory> transferDirectory() async {
-    final testDirectory = _directory;
-    if (testDirectory != null) {
-      final directory = await testDirectory();
-      await directory.create(recursive: true);
-      return directory;
-    }
-    final documents = await getApplicationDocumentsDirectory();
-    final directory = Directory(
-      '${documents.path}${Platform.pathSeparator}QuisquisLingo${Platform.pathSeparator}Exports',
-    );
+  /// A directory injected for tests replaces the platform folder of a role.
+  static Future<Directory> _created(
+    Future<Directory> Function() injected,
+  ) async {
+    final directory = await injected();
     await directory.create(recursive: true);
     return directory;
   }
 
-  Future<String> importFilePath() async {
-    final directory = await importDirectory();
-    return '${directory.path}${Platform.pathSeparator}import.json';
+  /// Quick Export destination for Course packages.
+  Future<QuickExportFolder> exportFolder() async {
+    final injected = _directory;
+    return injected == null
+        ? _storage.exportFolder(QqlStorageRole.courseExports)
+        : FileSystemExportFolder(await _created(injected));
   }
 
-  Future<String> importPackagePath() async =>
-      '${(await importDirectory()).path}${Platform.pathSeparator}import.zip';
-
-  Future<Directory> importDirectory() async {
+  /// Quick Import source: `import.zip` or `import.json`.
+  Future<QuickImportFolder> importFolder() async {
     final injected = _importDirectory;
-    final directory = injected != null
-        ? await injected()
-        : Directory(
-            '${(await getApplicationDocumentsDirectory()).path}${Platform.pathSeparator}QuisquisLingo${Platform.pathSeparator}Imports',
-          );
-    await directory.create(recursive: true);
-    return directory;
+    return injected == null
+        ? _storage.importFolder(QqlStorageRole.courseImports)
+        : FileSystemImportFolder(await _created(injected));
   }
 
-  Future<String> mergeFilePath() async {
-    final directory = await mergeDirectory();
-    return '${directory.path}${Platform.pathSeparator}merge.json';
-  }
-
-  Future<String> mergePackagePath() async =>
-      '${(await mergeDirectory()).path}${Platform.pathSeparator}merge.zip';
-
-  Future<Directory> mergeDirectory() async {
+  /// Course Merge source: `merge.zip` or `merge.json`.
+  Future<QuickImportFolder> mergeFolder() async {
     final injected = _mergeDirectory;
-    final directory = injected != null
-        ? await injected()
-        : Directory(
-            '${(await getApplicationDocumentsDirectory()).path}${Platform.pathSeparator}QuisquisLingo${Platform.pathSeparator}Merges',
-          );
-    await directory.create(recursive: true);
-    return directory;
+    return injected == null
+        ? _storage.importFolder(QqlStorageRole.mergeImports)
+        : FileSystemImportFolder(await _created(injected));
   }
 
   Future<Course> importCourse() async =>
-      _readCourse(await importFilePath(), 'import.json');
+      _readCourse(await importFolder(), importJsonName);
 
   Future<Course> mergeCourse() async =>
-      _readCourse(await mergeFilePath(), 'merge.json');
+      _readCourse(await mergeFolder(), mergeJsonName);
 
   /// The UI path carries validated media until the import decision is made.
-  Future<CoursePackage> importCoursePackage() async =>
-      _readPackageOrJson(await importPackagePath(), await importFilePath());
+  Future<CoursePackage> importCoursePackage() async => _readPackageOrJson(
+    await importFolder(),
+    importPackageName,
+    importJsonName,
+  );
 
-  Future<CoursePackage> mergeCoursePackage() async =>
-      _readPackageOrJson(await mergePackagePath(), await mergeFilePath());
+  Future<CoursePackage> mergeCoursePackage() async => _readPackageOrJson(
+    await mergeFolder(),
+    mergePackageName,
+    mergeJsonName,
+  );
+
+  static FormatException _notOrdinary(String name) => FormatException(
+    '$name is not an ordinary file. Copy the file itself, not a link or '
+    'folder, and try again.',
+  );
 
   Future<CoursePackage> _readPackageOrJson(
-    String zipPath,
-    String jsonPath,
+    QuickImportFolder folder,
+    String zipName,
+    String jsonName,
   ) async {
-    final zipFile = File(zipPath);
-    final jsonFile = File(jsonPath);
-    final hasZip = await zipFile.exists();
-    final hasJson = await jsonFile.exists();
-    for (final (present, file) in [(hasZip, zipFile), (hasJson, jsonFile)]) {
-      if (present && !await isOrdinaryFile(file.path)) {
-        throw FormatException(
-          '${file.uri.pathSegments.last} is not an ordinary file. Copy the '
-          'file itself, not a link or folder, and try again.',
-        );
-      }
+    final zip = await folder.file(zipName);
+    final json = await folder.file(jsonName);
+    for (final file in [zip, json]) {
+      if (file != null && !file.isOrdinaryFile) throw _notOrdinary(file.name);
     }
-    if (hasZip && hasJson) {
+    if (zip != null && json != null) {
       throw FormatException(
-        'Both ${zipFile.uri.pathSegments.last} and '
-        '${jsonFile.uri.pathSegments.last} are present. Keep only one Course file.',
+        'Both $zipName and $jsonName are present. Keep only one Course file.',
       );
     }
-    if (hasZip) {
-      if (await zipFile.length() > CoursePackageService.maxPackageBytes) {
-        throw const FormatException('Course package exceeds the 300 MB limit.');
+    if (zip != null) {
+      const tooLarge = FormatException(
+        'Course package exceeds the 300 MB limit.',
+      );
+      if ((zip.reportedSize ?? 0) > CoursePackageService.maxPackageBytes) {
+        throw tooLarge;
       }
-      return _packages.parseFile(zipFile, courseFromBytes);
+      // Read from a private staged copy, piece by piece: the same path as
+      // Open from…, whatever kind of folder the package came from.
+      final StagedFile staged;
+      try {
+        staged = await _stager.stage(
+          zip,
+          maxBytes: CoursePackageService.maxPackageBytes,
+        );
+      } on ImportTooLargeException {
+        throw tooLarge;
+      } on ImportEmptyException {
+        throw FormatException('${zip.displayName} is empty.');
+      } on ImportAccessException catch (error) {
+        throw FormatException(error.message);
+      } on ImportStorageException catch (error) {
+        throw FormatException(error.message);
+      }
+      try {
+        return await _packages.parseFile(
+          staged.file,
+          courseFromBytes,
+          archiveFileName: zip.name,
+        );
+      } finally {
+        await staged.discard();
+      }
     }
-    if (hasJson) {
-      if (await jsonFile.length() > maxJsonBytes) {
-        throw const FormatException('Course JSON exceeds the 10 MB safety limit.');
-      }
-      final bytes = await jsonFile.readAsBytes();
-      return _jsonPackage(bytes, jsonFile.uri.pathSegments.last);
+    if (json != null) {
+      return _jsonPackage(await _readJson(json), json.name);
     }
     throw FormatException(
-      'No Course file found. Copy ${zipFile.uri.pathSegments.last} or '
-      '${jsonFile.uri.pathSegments.last} to ${zipFile.parent.path}, then try again.',
+      'No Course file found. Copy $zipName or $jsonName to '
+      '${folder.location}, then try again.',
     );
+  }
+
+  static Future<Uint8List> _readJson(QuickImportFile file) async {
+    const tooLarge = FormatException(
+      'Course JSON exceeds the 10 MB safety limit.',
+    );
+    if ((file.reportedSize ?? 0) > maxJsonBytes) throw tooLarge;
+    try {
+      return await readQuickImportFile(file, maxBytes: maxJsonBytes);
+    } on ImportTooLargeException {
+      throw tooLarge;
+    } on ImportAccessException catch (error) {
+      throw FormatException(error.message);
+    }
   }
 
   Future<CoursePackage> _jsonPackage(Uint8List bytes, String fileName) async {
@@ -175,26 +210,16 @@ class CustomCourseTransferService {
     return CoursePackage(course, bytes, {});
   }
 
-  Future<Course> _readCourse(String path, String fileName) async {
-    final file = File(path);
-    if (!await file.exists()) {
+  Future<Course> _readCourse(QuickImportFolder folder, String fileName) async {
+    final file = await folder.file(fileName);
+    if (file == null) {
       throw FormatException(
-        'No $fileName found. Copy the course file to $path, then try again.',
+        'No $fileName found. Copy the course file to '
+        '${folder.locationOf(fileName)}, then try again.',
       );
     }
-    if (!await isOrdinaryFile(path)) {
-      throw FormatException(
-        '$fileName is not an ordinary file. Copy the file itself, not a link '
-        'or folder, and try again.',
-      );
-    }
-    if (await file.length() > maxJsonBytes) {
-      throw const FormatException(
-        'Course JSON exceeds the 10 MB safety limit.',
-      );
-    }
-
-    return courseFromBytes(await file.readAsBytes(), fileName);
+    if (!file.isOrdinaryFile) throw _notOrdinary(fileName);
+    return courseFromBytes(await _readJson(file), fileName);
   }
 
   /// The one authoritative course-file validator. Both the fixed-folder
@@ -286,9 +311,9 @@ class CustomCourseTransferService {
     );
   }
 
-  /// Save to…: the same export as [exportCourse], written wherever the user
+  /// Save as…: the same export as [exportCourse], written wherever the user
   /// chooses in the system dialog. Additional to, not a replacement for, the
-  /// fixed Exports folder.
+  /// Quick Export folder.
   Future<FileDialogResult> exportCourseTo(Course course) async {
     final payload = await buildCourseExport(course);
     return _fileDialogs.saveBytes(
@@ -386,26 +411,14 @@ class CustomCourseTransferService {
 
   Future<String> exportCourse(Course course) async {
     final export = await buildCourseExport(course);
-    final bytes = export.bytes;
-    final baseName = export.baseName;
-
     // Keep course exports independent from desktop file-picker/portal support.
-    // They always go to one predictable per-user folder. (Save to… is a
+    // They always go to one predictable Quick Export folder. (Save as… is a
     // separate, additional route: see exportCourseTo.)
-    final exportDirectory = await transferDirectory();
-
-    var output = File(
-      '${exportDirectory.path}${Platform.pathSeparator}$baseName.zip',
+    final written = await (await exportFolder()).write(
+      baseName: export.baseName,
+      extension: 'zip',
+      bytes: export.bytes,
     );
-    var suffix = 2;
-    while (await output.exists()) {
-      output = File(
-        '${exportDirectory.path}${Platform.pathSeparator}${baseName}_$suffix.zip',
-      );
-      suffix += 1;
-    }
-
-    await output.writeAsBytes(bytes, flush: true);
-    return output.path;
+    return written.location;
   }
 }

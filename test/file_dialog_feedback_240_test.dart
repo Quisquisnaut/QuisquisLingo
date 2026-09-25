@@ -80,7 +80,7 @@ void main() {
     await tester.tap(find.text('go'));
     await tester.pump();
     expect(find.textContaining('Couldn’t open that file.'), findsOneWidget);
-    expect(find.textContaining('Imports/import.zip'), findsOneWidget);
+    expect(find.textContaining('Imports/Courses/import.zip'), findsOneWidget);
     expect(
       find.textContaining('media-free JSON to import.json'),
       findsOneWidget,

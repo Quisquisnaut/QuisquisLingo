@@ -32,6 +32,13 @@ import 'course_editor_screen.dart';
 import 'course_info_screen.dart';
 import 'team_manager_screen.dart';
 import 'flat_image_library_screen.dart';
+import '../services/storage/qql_storage.dart';
+
+String _folder(QqlStorageRole role) =>
+    QqlStorageLayout.current.folderLabel(role);
+
+String _file(QqlStorageRole role, String name) =>
+    QqlStorageLayout.current.fileLabel(role, name);
 
 void _showMatchingZipFolderWarning(BuildContext context) {
   ScaffoldMessenger.of(context).showSnackBar(
@@ -86,7 +93,12 @@ class CourseImportScreen extends StatelessWidget {
           key: const Key('import-course-json-primary'),
           onPressed: onImport,
           icon: const Icon(Icons.file_open_outlined),
-          label: const Text('Import Course package or JSON'),
+          label: const Text('Quick Import'),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          'Reads import.zip or import.json from '
+          '${_folder(QqlStorageRole.courseImports)} without a dialog.',
         ),
         if (onOpenFrom != null) ...[
           const SizedBox(height: 12),
@@ -116,11 +128,11 @@ class CourseImportScreen extends StatelessWidget {
           ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 8),
-        const Text(
-          '1. Copy a Course package to Documents/QuisquisLingo/Imports/import.zip, or a media-free JSON to import.json. Keep only one.\n'
-          '2. A ZIP may have its files at the root or inside one folder named import. QQL accepts the matching folder with a warning. Select Import Course package or JSON; QQL validates the complete file before changing local storage.\n'
+        Text(
+          '1. Copy a Course package to ${_file(QqlStorageRole.courseImports, 'import.zip')}, or a media-free JSON to import.json. Keep only one.\n'
+          '2. A ZIP may have its files at the root or inside one folder named import. QQL accepts the matching folder with a warning. Select Quick Import; QQL validates the complete file before changing local storage.\n'
           '3. If the Course ID already exists, choose Replace/update, Copy as New Course, Fork or Cancel, as available.\n'
-          '4. A successful import is added to your courses. Only published courses are available for study. The source file remains in Imports.',
+          '4. A successful import is added to your courses. Only published courses are available for study. The source file remains in ${_folder(QqlStorageRole.courseImports)}.',
         ),
       ],
     ),
@@ -161,11 +173,11 @@ class CourseExportScreen extends StatelessWidget {
           key: const Key('export-course-zip-primary'),
           onPressed: onExport,
           icon: const Icon(Icons.download_outlined),
-          label: const Text('Export Course package'),
+          label: const Text('Quick Export'),
         ),
         const SizedBox(height: 4),
-        const Text(
-          'Writes a ZIP holding course.json and only the images and recordings this Course uses, into Documents/QuisquisLingo/Exports.',
+        Text(
+          'Writes a ZIP holding course.json and only the images and recordings this Course uses, into ${_folder(QqlStorageRole.courseExports)}, without a dialog.',
         ),
         if (onSaveTo != null) ...[
           const SizedBox(height: 12),
@@ -173,7 +185,7 @@ class CourseExportScreen extends StatelessWidget {
             key: const Key('save-course-zip-to'),
             onPressed: onSaveTo,
             icon: const Icon(Icons.save_alt_outlined),
-            label: const Text('Save to…'),
+            label: const Text('Save as…'),
           ),
           const SizedBox(height: 4),
           const Text(
@@ -341,11 +353,11 @@ class _CourseMergeScreenState extends State<CourseMergeScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Course Merge Help'),
-        content: const SingleChildScrollView(
+        content: SingleChildScrollView(
           child: Text(
             'The Course Merge tool is not intended for merging two completely different courses. '
             'A typical usage case would be two team members working on the same course: while team member, John, edits, say, lessons 1 to 5, another team member, Jane, edits lessons 6 to 8. The Merge Tool allows them, or a third member, to assemble the two sets of lessons into one unified course. Another usage case would be the same editor who wants to merge two versions of the course they are working at: let’s say they want to use lessons 1, 3, and 7 from the first version, and lessons 2, 4, 5, and 6 from the second version.\n\n'
-            'Copy the second Course package to Documents/QuisquisLingo/Merges/merge.zip, or a media-free JSON to merge.json. '
+            'Copy the second Course package to ${_file(QqlStorageRole.mergeImports, 'merge.zip')}, or a media-free JSON to merge.json. '
             'A ZIP normally has its package files at the root. QQL also accepts one enclosing folder whose name exactly matches the ZIP filename without .zip, and shows a non-blocking warning. For merge.zip, that folder must be named merge. '
             'Both Courses must be custom. If their Course IDs match, the Course version or Modified date and time must differ.\n\n'
             'Author, Maintainer, source/target language, Original Course '
@@ -428,7 +440,7 @@ class _CourseMergeScreenState extends State<CourseMergeScreen> {
               const SizedBox(height: 4),
               const Text(
                 'Choose the second Course package ZIP or media-free JSON with the system file dialog. '
-                'It is checked exactly like the fixed-folder route.',
+                'It is checked exactly like the Merge folder route.',
               ),
               const SizedBox(height: 8),
               Text(
@@ -444,8 +456,8 @@ class _CourseMergeScreenState extends State<CourseMergeScreen> {
               ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
-            const Text(
-              '1. Copy the compatible Course package to Documents/QuisquisLingo/Merges/merge.zip, or a media-free JSON to merge.json. Keep only one.\n'
+            Text(
+              '1. Copy the compatible Course package to ${_file(QqlStorageRole.mergeImports, 'merge.zip')}, or a media-free JSON to merge.json. Keep only one.\n'
               '2. A ZIP may have its files at the root or inside one folder named merge. QQL accepts the matching folder with a warning. Select Merge Course package or JSON; QQL validates both Course information blocks before changing local storage.\n'
               '3. Choose the origin of every Lesson you want to include, then check the selections carefully.\n'
               '4. DO MERGE! creates a third independent Course and leaves both sources and the imported file unchanged.\n'

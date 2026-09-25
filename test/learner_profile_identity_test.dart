@@ -580,13 +580,11 @@ void main() {
       'displayName': 'Imported',
       'data': {'xp_IT': 42},
     });
-    final importPath = await backup.importFilePath();
-    expect(
-      importPath,
-      '${documents.path}${Platform.pathSeparator}QuisquisLingo'
-      '${Platform.pathSeparator}Imports${Platform.pathSeparator}'
-      'learner_import.json',
-    );
+    final importPath =
+        '${documents.path}${Platform.pathSeparator}QuisquisLingo'
+        '${Platform.pathSeparator}Imports${Platform.pathSeparator}'
+        'learner_import.json';
+    await File(importPath).create(recursive: true);
     await File(importPath).writeAsString(payload);
 
     final document = await backup.readImportFile();
@@ -607,11 +605,13 @@ void main() {
       final backup = LearnerBackupService(
         documentsDirectoryProvider: () async => documents,
       );
-      final exportDirectory = await backup.transferDirectory();
-      await File(
-        '${exportDirectory.path}${Platform.pathSeparator}'
+      final exported = File(
+        '${documents.path}${Platform.pathSeparator}QuisquisLingo'
+        '${Platform.pathSeparator}Exports${Platform.pathSeparator}'
         'learner_import.json',
-      ).writeAsString('{}');
+      );
+      await exported.create(recursive: true);
+      await exported.writeAsString('{}');
 
       expect(
         backup.readImportFile,

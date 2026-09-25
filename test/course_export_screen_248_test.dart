@@ -45,7 +45,7 @@ void main() {
     expect(savedTo, 1);
   });
 
-  testWidgets('Save to… is hidden where the system dialog is unavailable', (
+  testWidgets('Save as… is hidden where the system dialog is unavailable', (
     tester,
   ) async {
     await tester.pumpWidget(

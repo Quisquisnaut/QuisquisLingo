@@ -27,9 +27,9 @@ Everything else under the prefix (identity, avatar, theme, PIN verifier, recover
 ## Files
 | Location | Contents | Scopes that remove it |
 |---|---|---|
-| `Documents/QuisquisLingo/Exports` | learner and course backups, exports | everything, only when the admin unticks "keep" |
+| `Documents/QuisquisLingo/Exports` | learner and course backups, exports (Course packages in `Exports/Courses` since Build 255) | everything, only when the admin unticks "keep" |
 | `Documents/QuisquisLingo/Logs` | crash log, session marker, diagnostic export | everything, only when the admin unticks "keep" |
-| `Documents/QuisquisLingo/Imports` | the original images, audio and course files the user copied there | everything, only when the admin unticks "keep" |
+| `Documents/QuisquisLingo/Imports` | the original images, audio and course files the user copied there (Course packages in `Imports/Courses` since Build 255) | everything, only when the admin unticks "keep" |
 | `Documents/QuisquisLingo/Merges` and other files | merge input and other user files | everything |
 | `<AppSupport>/qql_courses_v2/custom`, `<AppSupport>/qql_courses_v2/external_official` (Build 243; the retired `qql_courses_v1` tree of v9/v10 Courses is left untouched and is neither read, listed nor reset) | one JSON file per custom or installed official course; interrupted `.tmp` files also belong to this store | custom courses, everything |
 | `<AppSupport>/qql_import_staging` | temporary copies of files being checked during an import (Build 243 Revision 10); normally empty, `.part` leftovers are removed at startup | everything |

@@ -11,6 +11,7 @@ import 'import/import_result.dart';
 import 'import/import_stager.dart';
 import 'import/safe_file_name.dart';
 import 'import/selected_external_file.dart';
+import 'storage/qql_storage.dart';
 
 /// An image read from outside QQL that passed [ImageValidator], with the
 /// sanitized name it came under. Nothing has been stored yet.
@@ -53,9 +54,11 @@ class ExerciseImageService {
     FileDialogService? fileDialogs,
     Future<Directory> Function()? supportDirectory,
     ImportStager? stager,
+    QqlStorage? storage,
   }) : _fileDialogs = fileDialogs ?? FileDialogService(),
        _supportDirectory = supportDirectory ?? getApplicationSupportDirectory,
-       _stager = stager ?? ImportStager(supportDirectory: supportDirectory);
+       _stager = stager ?? ImportStager(supportDirectory: supportDirectory),
+       _storage = storage ?? QqlStorage();
 
   static const int maxImageBytes = 50 * 1024;
   static const int recommendedImageBytes = 15 * 1024;
@@ -65,42 +68,31 @@ class ExerciseImageService {
   final FileDialogService _fileDialogs;
   final Future<Directory> Function() _supportDirectory;
   final ImportStager _stager;
+  final QqlStorage _storage;
 
   /// False when the system dialog is unsupported; hide Open from….
   bool get fileDialogsAvailable => _fileDialogs.isAvailable;
 
-  Future<Directory> fixedImportDirectory() async {
-    final documents = await getApplicationDocumentsDirectory();
-    final dir = Directory(
-      '${documents.path}${Platform.pathSeparator}QuisquisLingo${Platform.pathSeparator}Imports${Platform.pathSeparator}Images',
-    );
-    await dir.create(recursive: true);
-    return dir;
-  }
-
-  /// The one image in the fixed import folder, checked.
+  /// The one image in the Quick Import folder for images, checked.
   Future<PickedImage> readImage() async {
-    final importDir = await fixedImportDirectory();
-    final candidates = await importDir
-        .list(followLinks: false)
-        .where((entity) => entity is File)
-        .cast<File>()
-        .where((file) => _supportedName(file.path))
+    final folder = await _storage.importFolder(QqlStorageRole.imageImports);
+    final candidates = (await folder.files())
+        .where((file) => _supportedName(file.name))
         .toList();
     candidates.sort(
-      (a, b) => a.path.toLowerCase().compareTo(b.path.toLowerCase()),
+      (a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()),
     );
     if (candidates.isEmpty) {
       throw StateError(
-        'No image found in ${importDir.path}. Copy one PNG, JPG, JPEG or WEBP image there and try again.',
+        'No image found in ${folder.location}. Copy one PNG, JPG, JPEG or WEBP image there and try again.',
       );
     }
     if (candidates.length > 1) {
       throw StateError(
-        'More than one image was found in ${importDir.path}. Keep only the image you want to import, then try again.',
+        'More than one image was found in ${folder.location}. Keep only the image you want to import, then try again.',
       );
     }
-    final source = FileSystemSelectedFile(candidates.single.path);
+    final source = candidates.single;
     final StagedFile staged;
     try {
       staged = await _stager.stage(source, maxBytes: maxImageBytes);

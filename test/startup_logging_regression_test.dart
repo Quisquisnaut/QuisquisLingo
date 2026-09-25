@@ -2,8 +2,7 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:quisquislingo_app/services/exercise_image_service.dart';
-import 'package:quisquislingo_app/services/image_bank_service.dart';
+import 'package:quisquislingo_app/services/storage/qql_storage.dart';
 
 void main() {
   test('first-profile gate owns startup before animation and notices', () {
@@ -133,8 +132,11 @@ void main() {
         'quisquislingo_',
       ],
       'lib/services/course_flag_service.dart': ['QuisquisLingo'],
-      'lib/services/exercise_image_service.dart': ['QuisquisLingo'],
-      'lib/services/recorded_audio_service.dart': ['QuisquisLingo'],
+      // Quick Import and Quick Export folders are named by the storage layer.
+      'lib/services/storage/file_system_storage.dart': ['QuisquisLingo'],
+      'lib/services/storage/qql_storage_layout.dart': [
+        'Documents/QuisquisLingo',
+      ],
       'lib/services/course_media_store.dart': ['quisquislingo_course_media'],
       'lib/services/tts_linux_backend_io.dart': ['quisquislingo_tts_'],
     };
@@ -150,10 +152,11 @@ void main() {
     final expectedImageDirectory =
         '${documents.path}${Platform.pathSeparator}QuisquisLingo'
         '${Platform.pathSeparator}Imports${Platform.pathSeparator}Images';
-    final imageDirectory = await ExerciseImageService().fixedImportDirectory();
-    final bankDirectory = await ImageBankService().fixedImportDirectory();
-    expect(imageDirectory.path, expectedImageDirectory);
-    expect(bankDirectory.path, expectedImageDirectory);
-    expect(await bankDirectory.exists(), isTrue);
+    // Single images and Image Bank ZIPs share one role, so one folder.
+    final imageFolder = await QqlStorage().importFolder(
+      QqlStorageRole.imageImports,
+    );
+    expect(imageFolder.location, expectedImageDirectory);
+    expect(await Directory(expectedImageDirectory).exists(), isTrue);
   });
 }

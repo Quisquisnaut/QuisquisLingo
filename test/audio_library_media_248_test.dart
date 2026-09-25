@@ -11,11 +11,12 @@ import 'package:quisquislingo_app/services/course_editor_service.dart';
 import 'package:quisquislingo_app/services/course_file_store.dart';
 import 'package:quisquislingo_app/services/course_media_store.dart';
 import 'package:quisquislingo_app/services/profile_service.dart';
-import 'package:quisquislingo_app/services/recorded_audio_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'support/pump_file_io.dart';
 import 'support/synthetic_mp3.dart';
+import 'package:quisquislingo_app/services/storage/qql_storage.dart';
+import 'support/quick_folders.dart';
 
 /// Build 248: who owns an imported recording's file between the moment
 /// `RecordedAudioService` writes it into the Course's media folder and the
@@ -501,7 +502,7 @@ Future<void> _putImportFiles(
   Map<String, List<int>> files,
 ) async {
   await tester.runAsync(() async {
-    final directory = await RecordedAudioService().fixedImportDirectory();
+    final directory = await quickFolder(QqlStorageRole.audioImports);
     for (final entry in files.entries) {
       await File(
         '${directory.path}${Platform.pathSeparator}${entry.key}',

@@ -2,15 +2,16 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:quisquislingo_app/services/app_metadata.dart';
+import 'package:quisquislingo_app/services/storage/qql_storage.dart';
 
 void main() {
   test('technical version matches the current public build label', () {
     final pubspec = File('pubspec.yaml').readAsStringSync();
 
-    expect(AppMetadata.technicalVersion, '2.0.54+254000');
-    expect(AppMetadata.publicBuildLabel, 'Build 254, Revision 0');
-    expect(AppMetadata.displayLabel, 'Version 2.0.54\nBuild 254, Revision 0');
-    expect(pubspec, contains('version: 2.0.54+254000'));
+    expect(AppMetadata.technicalVersion, '2.0.55+255000');
+    expect(AppMetadata.publicBuildLabel, 'Build 255, Revision 0');
+    expect(AppMetadata.displayLabel, 'Version 2.0.55\nBuild 255, Revision 0');
+    expect(pubspec, contains('version: 2.0.55+255000'));
   });
 
   test('platform application identities use the QuisquisLingo namespace', () {
@@ -74,8 +75,18 @@ void main() {
         'lib/screens/user_data_settings_screen.dart',
       ).readAsStringSync();
 
-      expect(service, contains("'Exports'"));
-      expect(service, contains("'Imports'"));
+      // The Quick folders are storage roles; on desktop they stay the
+      // QuisquisLingo Exports and Imports folders.
+      expect(service, contains('QqlStorageRole.recoveryKeyExports'));
+      expect(service, contains('QqlStorageRole.recoveryKeyImports'));
+      expect(
+        QqlStorageLayout.documents.segments(QqlStorageRole.recoveryKeyExports),
+        ['Exports'],
+      );
+      expect(
+        QqlStorageLayout.documents.segments(QqlStorageRole.recoveryKeyImports),
+        ['Imports'],
+      );
       expect(screen, contains('Export User Recovery Key'));
       expect(screen, contains('Import User Recovery Key'));
       expect(screen, isNot(contains('FilePicker')));
