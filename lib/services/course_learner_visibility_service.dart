@@ -88,7 +88,7 @@ class CourseLearnerVisibilityService {
     final selected = await _settings.getLastSelectedCourseCode();
     if (selected == null) return false;
     final reference = course.originType == CourseOriginType.bundledOfficial
-        ? CourseService.codeForCourse(course)
+        ? CourseService.bundledCodeForCourse(course)
         : 'custom:${course.courseId}';
     return selected == reference;
   }

@@ -49,6 +49,9 @@ class CourseEditorService {
   static const externalOfficialStorageKey =
       CourseEditorStorage.externalOfficialCoursesKey;
   static const _bundledOfficialCourseIds = {
+    'course_50d68435-d2c2-4b63-9a0b-b23161357f1d',
+    'course_6f6a1fa3-b834-4936-b324-92fb57f73502',
+    'course_e5f5585a-7762-43a0-a6b2-62754e02d17b',
     'sample_it_en_it',
     'sample_de_en_de',
     'sample_es_en_es',

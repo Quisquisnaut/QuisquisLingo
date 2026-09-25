@@ -121,7 +121,7 @@ void main() {
   });
 
   test(
-    'Course Manager classifies its current course by declared origin',
+    'Course Manager retains bundled sources and classifies current origins',
     () async {
       // Since Build 249 the listing is CourseLibraryOperations.load, so the rule
       // is checked by behaviour rather than by searching the screen's source.
@@ -134,7 +134,8 @@ void main() {
         'title': 'Current bundled copy',
       });
       final withBundled = await ops.load(currentCourse: bundledCurrent);
-      expect(withBundled.bundledCourses.first.title, 'Current bundled copy');
+      expect(withBundled.bundledCourses.first.toJson(), italian.toJson());
+      expect(withBundled.activeCourseId, italian.courseId);
       expect(
         withBundled.bundledCourses.where((c) => c.courseId == italian.courseId),
         hasLength(1),
@@ -167,6 +168,29 @@ void main() {
       expect(
         withCustom.bundledCourses.where((c) => c.courseId == italian.courseId),
         hasLength(1),
+      );
+      expect(withCustom.activeCourseId, customCurrent.courseId);
+
+      final externalCurrent = Course.fromJson(
+        jsonDecode(
+              await File(
+                'test/fixtures/publishers/dummy-signed-v1.json',
+              ).readAsString(),
+            )
+            as Map<String, dynamic>,
+      );
+      expect(externalCurrent.originType, CourseOriginType.externalOfficial);
+      final withExternal = await ops.load(currentCourse: externalCurrent);
+      expect(withExternal.activeCourseId, externalCurrent.courseId);
+      expect(
+        withExternal.bundledCourses.map((course) => course.courseId),
+        unorderedEquals(
+          withBundled.bundledCourses.map((course) => course.courseId),
+        ),
+      );
+      expect(
+        withExternal.bundledCourses.map((course) => course.courseId),
+        isNot(contains(externalCurrent.courseId)),
       );
     },
   );

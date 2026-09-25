@@ -1736,7 +1736,9 @@ class CourseProjectsScreenState extends State<CourseProjectsScreen> {
   }
 
   Future<void> _openBundled() async {
-    final course = widget.currentCourse;
+    final course = _library.bundledCourses
+        .where((course) => course.courseId == widget.currentCourse?.courseId)
+        .firstOrNull;
     if (course == null) return;
     final result = await Navigator.of(context).push<CourseConfirmationResult>(
       MaterialPageRoute(

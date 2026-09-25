@@ -26,8 +26,8 @@ class CreditsScreen extends StatelessWidget {
           ),
           const SizedBox(height: 10),
           const _CreditCard(
-            title: 'Italian course',
-            text: 'Course authors: To be added',
+            title: 'Exercise Laboratory (English → Italian)',
+            text: 'AI-generated model and exercise workflow test content.',
           ),
           const SizedBox(height: 8),
           const _CreditCard(
@@ -47,7 +47,7 @@ class CreditsScreen extends StatelessWidget {
           const SizedBox(height: 8),
           const _CreditCard(
             title:
-                'Welsh / Dutch / Portuguese / Finnish / Korean / Neapolitan courses',
+                'Welsh / Portuguese / Korean / Neapolitan / Edge Case / Piedmontais courses',
             text:
                 'Temporary AI-generated sample content; human course authors are still to be added.',
           ),

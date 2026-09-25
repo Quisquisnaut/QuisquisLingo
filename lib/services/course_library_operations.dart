@@ -330,13 +330,14 @@ class CourseLibraryOperations {
         for (final code in CourseService.courseAssets.keys)
           await _courses.loadCourse(code),
     ];
-    final currentIsBundled =
-        currentCourse?.originType == CourseOriginType.bundledOfficial;
+    // Home supplies its learner projection, which omits authored Draft content.
+    // Keep the active bundle first without replacing its immutable source.
+    final currentBundled = bundled
+        .where((course) => course.courseId == currentCourse?.courseId)
+        .firstOrNull;
     final includedBundled = await _membership.included([
-      if (currentIsBundled) currentCourse!,
-      ...bundled.where(
-        (c) => c.courseId != currentCourse?.courseId || !currentIsBundled,
-      ),
+      if (currentBundled != null) currentBundled,
+      ...bundled.where((course) => course.courseId != currentBundled?.courseId),
     ]);
     final importAuthoringEnabled =
         !importOnly || await _settings.isCourseEditorUnlocked();
@@ -381,7 +382,7 @@ class CourseLibraryOperations {
       final bundledSource =
           course.originType == CourseOriginType.bundledOfficial
           ? await _courses.loadBundledCourse(
-              CourseService.codeForCourse(course),
+              CourseService.bundledCodeForCourse(course),
             )
           : null;
       final official = await editor.officialSourceFor(

@@ -116,26 +116,29 @@ void main() {
       expect((await ops.load(importOnly: true)).importAuthoringEnabled, isTrue);
     });
 
-    test('lists the Bundled Courses, the current one as given', () async {
-      final italian = await CourseService().loadCourse('IT');
-      final current = Course.fromJson({
-        ...italian.toJson(),
-        'title': 'Current copy in memory',
-      });
+    test(
+      'lists immutable Bundled sources with the current Course first',
+      () async {
+        final italian = await CourseService().loadCourse('IT');
+        final current = Course.fromJson({
+          ...italian.toJson(),
+          'title': 'Current copy in memory',
+        });
 
-      final library = await ops.load(currentCourse: current);
+        final library = await ops.load(currentCourse: current);
 
-      expect(
-        library.bundledCourses,
-        hasLength(CourseService.courseAssets.length),
-      );
-      expect(library.bundledCourses.first.title, 'Current copy in memory');
-      expect(
-        library.bundledCourses.where((c) => c.courseId == italian.courseId),
-        hasLength(1),
-      );
-      expect(library.activeCourseId, current.courseId);
-    });
+        expect(
+          library.bundledCourses,
+          hasLength(CourseService.courseAssets.length),
+        );
+        expect(library.bundledCourses.first.toJson(), italian.toJson());
+        expect(
+          library.bundledCourses.where((c) => c.courseId == italian.courseId),
+          hasLength(1),
+        );
+        expect(library.activeCourseId, current.courseId);
+      },
+    );
 
     test(
       'loads hidden Personal Library Course IDs for the active learner',
@@ -275,7 +278,7 @@ void main() {
     });
 
     test('a Bundled Course is read only and exportable', () async {
-      final bundled = await CourseService().loadCourse('IT');
+      final bundled = await CourseService().loadCourse('DE');
       expect(admin.actionsFor(bundled), const [
         CourseManagerAction.removeFromMyCourses,
         CourseManagerAction.courseInfo,
@@ -353,7 +356,7 @@ void main() {
     });
 
     test('official Courses hide what can never apply', () async {
-      final bundled = await CourseService().loadCourse('IT');
+      final bundled = await CourseService().loadCourse('DE');
       final shown = reasons(admin, bundled);
       expect(shown.keys, const [
         CourseManagerAction.removeFromMyCourses,

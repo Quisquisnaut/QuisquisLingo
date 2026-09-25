@@ -42,7 +42,7 @@ class _OfficialCourseInspectionScreenState
   _loadOfficialSource() async {
     final bundled = widget.course.originType == CourseOriginType.bundledOfficial
         ? await _courseService.loadBundledCourse(
-            CourseService.codeForCourse(widget.course),
+            CourseService.bundledCodeForCourse(widget.course),
           )
         : null;
     final source = await _service.officialSourceFor(

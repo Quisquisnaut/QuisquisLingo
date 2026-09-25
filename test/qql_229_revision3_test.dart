@@ -11,6 +11,7 @@ import 'package:quisquislingo_app/screens/course_projects_screen.dart';
 import 'package:quisquislingo_app/screens/team_manager_screen.dart';
 import 'package:quisquislingo_app/services/app_metadata.dart';
 import 'package:quisquislingo_app/services/course_access_policy.dart';
+import 'package:quisquislingo_app/services/course_editor_service.dart';
 import 'package:quisquislingo_app/services/custom_course_transfer_service.dart';
 import 'package:quisquislingo_app/services/profile_service.dart';
 import 'package:quisquislingo_app/services/settings_service.dart';
@@ -24,13 +25,17 @@ const _teamId = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+  late _BadgeCourses badgeCourses;
 
-  setUp(() => SharedPreferences.setMockInitialValues({}));
+  setUp(() {
+    SharedPreferences.setMockInitialValues({});
+    badgeCourses = _BadgeCourses();
+  });
 
   test('current release metadata uses Build and revision terminology', () {
-    expect(AppMetadata.technicalVersion, '2.0.53+253001');
-    expect(AppMetadata.build, '253');
-    expect(AppMetadata.displayLabel, 'Version 2.0.53\nBuild 253, Revision 1');
+    expect(AppMetadata.technicalVersion, '2.0.54+254000');
+    expect(AppMetadata.build, '254');
+    expect(AppMetadata.displayLabel, 'Version 2.0.54\nBuild 254, Revision 0');
   });
 
   testWidgets(
@@ -230,14 +235,17 @@ void main() {
   testWidgets('Course Manager shows all Draft and Unpublished combinations', (
     tester,
   ) async {
+    await _profiles(activeId: _leadId);
     for (final brightness in Brightness.values) {
       for (final published in [true, false]) {
         for (final hasDraft in [false, true]) {
-          final course = _officialCourse(
-            published: published,
-            hasDraft: hasDraft,
+          final course = _badgeCourse(published: published, hasDraft: hasDraft);
+          await _pumpManager(
+            tester,
+            course,
+            editor: badgeCourses,
+            brightness: brightness,
           );
-          await _pumpManager(tester, course, brightness: brightness);
           expect(
             find.byKey(ValueKey('course-manager-draft-${course.courseId}')),
             hasDraft ? findsOneWidget : findsNothing,
@@ -261,30 +269,40 @@ void main() {
       tester.view.physicalSize = const Size(320, 700);
       addTearDown(tester.view.resetDevicePixelRatio);
       addTearDown(tester.view.resetPhysicalSize);
+      await _profiles(activeId: _leadId);
 
-      var course = _officialCourse(published: true, hasDraft: false);
-      await _pumpManager(tester, course, brightness: Brightness.dark);
-      expect(find.text('Draft'), findsNothing);
-      expect(find.text('Unpublished'), findsNothing);
-
-      course = _officialCourse(published: true, hasDraft: true);
-      await _pumpManager(tester, course, brightness: Brightness.dark);
-      expect(find.text('Draft'), findsOneWidget);
-      expect(find.text('Unpublished'), findsNothing);
-
-      course = _officialCourse(published: false, hasDraft: false);
-      await _pumpManager(tester, course, brightness: Brightness.dark);
-      expect(find.text('Draft'), findsNothing);
-      expect(find.text('Unpublished'), findsOneWidget);
-
-      course = _officialCourse(published: false, hasDraft: true);
-      await _pumpManager(tester, course, brightness: Brightness.dark);
       final draft = find.byKey(
-        ValueKey('course-manager-draft-${course.courseId}'),
+        const ValueKey('course-manager-draft-revision-three-badge-course'),
       );
       final unpublished = find.byKey(
-        ValueKey('course-manager-unpublished-${course.courseId}'),
+        const ValueKey(
+          'course-manager-unpublished-revision-three-badge-course',
+        ),
       );
+      Future<void> show(Course course) => _pumpManager(
+        tester,
+        course,
+        editor: badgeCourses,
+        brightness: Brightness.dark,
+      );
+
+      var course = _badgeCourse(published: true, hasDraft: false);
+      await show(course);
+      expect(draft, findsNothing);
+      expect(unpublished, findsNothing);
+
+      course = _badgeCourse(published: true, hasDraft: true);
+      await show(course);
+      expect(draft, findsOneWidget);
+      expect(unpublished, findsNothing);
+
+      course = _badgeCourse(published: false, hasDraft: false);
+      await show(course);
+      expect(draft, findsNothing);
+      expect(unpublished, findsOneWidget);
+
+      course = _badgeCourse(published: false, hasDraft: true);
+      await show(course);
       expect(draft, findsOneWidget);
       expect(unpublished, findsOneWidget);
       final draftPosition = tester.getTopLeft(draft);
@@ -386,6 +404,27 @@ Course _officialCourse({
   lessons: [_lesson(hasDraft: hasDraft)],
 );
 
+Course _badgeCourse({
+  required bool published,
+  required bool hasDraft,
+}) => Course.fromJson({
+  ..._customCourse().toJson(),
+  'courseId': 'revision-three-badge-course',
+  'title':
+      'A deliberately very long Course Manager title for narrow layout coverage',
+  'publicationState': published ? 'published' : 'draft',
+  'lessons': [_lesson(hasDraft: hasDraft).toJson()],
+});
+
+/// Exposes the selected local Course snapshot through the normal listing seam.
+/// Synthetic Courses cannot replace immutable bundled registry sources.
+class _BadgeCourses extends CourseEditorService {
+  Course? course;
+
+  @override
+  Future<List<Course>> listUserCourses() async => [if (course != null) course!];
+}
+
 Lesson _lesson({required bool hasDraft}) => Lesson(
   lessonId: 'revision-three-lesson',
   title: 'Lesson',
@@ -420,15 +459,21 @@ Exercise _exercise() => Exercise(
 Future<void> _pumpManager(
   WidgetTester tester,
   Course course, {
+  required _BadgeCourses editor,
   required Brightness brightness,
 }) async {
+  editor.course = course;
   await tester.pumpWidget(
     MaterialApp(
       theme: ThemeData(brightness: brightness),
-      home: CourseProjectsScreen(currentCourse: course),
+      home: CourseProjectsScreen(currentCourse: course, editorService: editor),
     ),
   );
   await tester.pumpUntilFileIoState(
-    () => find.text('Bundled Courses').evaluate().isNotEmpty,
+    () => find.byType(ListView).evaluate().isNotEmpty,
   );
+  final row = find.byKey(ValueKey('course-manager-status-${course.courseId}'));
+  await tester.scrollUntilVisible(row, 400);
+  await tester.ensureVisible(row);
+  await tester.pump();
 }

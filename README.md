@@ -1,6 +1,21 @@
 # QuisquisLingo App
 
-**Current source version: 2.0.53+253001 · Build 253, Revision 1 · Course Model v11 (`formatVersion: 11`).**
+**Current source version: 2.0.54+254000 · Build 254, Revision 0 · Course Model v11 (`formatVersion: 11`).**
+
+**QuisquisLingo 2.0.54 Beta — QQL 254 bundled exercise demos**
+
+Build 254 replaces the Italian, Finnish and Dutch demos with **Exercise
+Laboratory** (English → Italian), **AI-Slop Demo: Edge Case Course**
+(Italian → English), and **AI-Slop Demo: Piedmontais** (English → Piedmontais).
+The Laboratory is organized by Select, Input, Arrange, Match and Presentation;
+Piedmontais uses one Lesson per named exercise type. Edge Case Course covers
+valid text, media and publication boundaries, including deliberate Audit
+warnings and Draft content. **Show unavailable** controls its visibility in Courses.
+Fork these bundled originals to author changes, switch audio modes, Copy or
+Merge. The existing Spanish → English demo remains separately selectable.
+Course Model v11, package format 1, scoring and learner data remain unchanged.
+See the [Build 254 coverage and handoff](docs/254_HANDOFF.md) and
+[validation](docs/254_VALIDATION.md).
 
 **QuisquisLingo 2.0.53 Beta — QQL 253 Help localization and QQL Guide**
 
@@ -251,7 +266,7 @@ The MPL-2.0 covers the QuisquisLingo software source. Courses, the Image Bank an
 
 ## Beta lifecycle
 
-Version 2.0.53, Build 253, Revision 1 is a time-limited Beta with an expiry of **2026-10-24 23:59:59 local time** (unchanged from Build 253 Revision 0). Near expiry it displays reminders. After expiry, learner exercises and Review are blocked until a newer Beta is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when a Beta expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM.
+Version 2.0.54, Build 254, Revision 0 is a time-limited Beta with an expiry of **2026-10-25 23:59:59 local time** (30 days after the 25 September 2026 release date). Near expiry it displays reminders. After expiry, learner exercises and Review are blocked until a newer Beta is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when a Beta expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM.
 
 ## Core logic
 
@@ -284,7 +299,7 @@ On Android, the platform's own Auto Backup is deliberately left enabled, because
 - Local daily quest
 - XP
 - Local TTS service with generated-file caching
-- Ten bundled sample courses, including Korean from English and Neapolitan from Italian
+- Ten bundled sample courses, including Exercise Laboratory, Edge Case Course, Piedmontais, Korean and Neapolitan
 - Local authoring Teams with stable profile-ID membership and one or more Team Leaders
 - No account
 - Local offline leaderboard for the previous completed week, based on each participating learner’s XP across all courses

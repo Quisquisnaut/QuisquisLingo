@@ -187,8 +187,12 @@ void main() {
         findsOneWidget,
       );
     }
-    final bundled = CourseService.courseAssets.length;
-    expect(count(tester, 0), ' · $bundled');
+    expect(CourseService.courseAssets, hasLength(10));
+    expect(count(tester, 0), ' · 9 of 10 shown');
+    final edge = (await tester.runAsync(
+      () => CourseService().loadCourse('EN_EDGE'),
+    ))!;
+    expect(row(edge), findsNothing);
     expect(count(tester, 1), ' · 0 of 1 shown');
     expect(count(tester, 2), ' · 0');
     // Detached test Courses belong to no local profile: Other Local Courses.
@@ -212,6 +216,16 @@ void main() {
 
     await tester.tap(find.byKey(const Key('show-unavailable-courses')));
     await tester.pump();
+    expect(count(tester, 0), ' · 10');
+    expect(row(edge), findsOneWidget);
+    expect(
+      find.descendant(of: row(edge), matching: find.text('Draft')),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(of: row(edge), matching: find.text('Unpublished')),
+      findsNothing,
+    );
     expect(count(tester, 1), ' · 1');
     expect(count(tester, 3), ' · 3');
     expect(
@@ -285,11 +299,18 @@ void main() {
     expect(availableCoursesHelp, isNot(contains('Course Manager')));
   });
 
-  test('every bundled Course is published and free of Draft content', () async {
-    for (final code in CourseService.courseAssets.keys) {
-      final course = await CourseService().loadCourse(code);
-      expect(course.publicationState.isPublished, isTrue, reason: code);
-      expect(CourseDraftStatus.courseHasDraft(course), isFalse, reason: code);
-    }
-  });
+  test(
+    'bundled roots are Published and only EN_EDGE has authored Drafts',
+    () async {
+      final withDraftContent = <String>[];
+      for (final code in CourseService.courseAssets.keys) {
+        final course = await CourseService().loadCourse(code);
+        expect(course.publicationState.isPublished, isTrue, reason: code);
+        if (CourseDraftStatus.courseHasDraft(course)) {
+          withDraftContent.add(code);
+        }
+      }
+      expect(withDraftContent, ['EN_EDGE']);
+    },
+  );
 }

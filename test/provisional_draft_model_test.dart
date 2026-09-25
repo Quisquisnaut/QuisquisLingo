@@ -178,5 +178,5 @@ void main() {
 }
 
 Map<String, dynamic> _courseJson() =>
-    jsonDecode(File('assets/courses/italian_en.json').readAsStringSync())
+    jsonDecode(File('assets/courses/german_en.json').readAsStringSync())
         as Map<String, dynamic>;

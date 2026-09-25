@@ -14,19 +14,19 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 COURSES = ROOT / "assets" / "courses"
 EXPECTED_TTS = {
-    "dutch_en.json": "nl-NL",
+    "exercise_laboratory_en_it.json": "it-IT",
+    "edge_case_it_en.json": "en-GB",
     "english_es.json": "en-GB",
-    "finnish_en.json": "fi-FI",
     "german_en.json": "de-DE",
-    "italian_en.json": "it-IT",
     "korean_en.json": "ko-KR",
     "neapolitan_it.json": "nap-IT",
+    "piedmontais_en.json": "pms-IT",
     "portuguese_en.json": "pt-PT",
     "spanish_en.json": "es-ES",
     "welsh_en.json": "cy-GB",
 }
 INTERACTIONS = {"select", "input", "arrange", "match"}
-EVALUATIONS = {"selected_items", "text_match", "ordered_items", "matched_items"}
+EVALUATIONS = {"selected_items", "text_match", "ordered_items", "matched_items", "gap_items"}
 CONTENT_KINDS = {"exercise", "presentation", "explanation", "example", "vocabulary", "text", "image", "audio", "dialogue"}
 ROUND_VISUAL_TYPES = {"listening", "story", "generic", "test"}
 PUBLICATION_STATES = {"draft", "published"}
@@ -73,6 +73,26 @@ def _official_checksum(course: dict[str, object]) -> str:
 
 def _ordered_text(value: str) -> str:
     return re.sub(r"[.!?…]+$", "", " ".join(value.strip().split())).casefold()
+
+
+def _portable_png(asset: str) -> bool:
+    """Bounded structural check; Flutter's import validator decodes the pixels."""
+    prefix = "data:image/png;base64,"
+    if not asset.startswith(prefix) or len(asset) > 68300:
+        return False
+    encoded = asset[len(prefix):]
+    try:
+        png = base64.b64decode(encoded, validate=True)
+    except (binascii.Error, ValueError):
+        return False
+    return (
+        24 <= len(png) <= 50 * 1024
+        and base64.b64encode(png).decode("ascii") == encoded
+        and png[:8] == b"\x89PNG\r\n\x1a\n"
+        and png[12:16] == b"IHDR"
+        and 1 <= int.from_bytes(png[16:20], "big") <= 4096
+        and 1 <= int.from_bytes(png[20:24], "big") <= 4096
+    )
 
 
 def _timestamp(value: object, where: str, issues: list[str]) -> None:
@@ -267,12 +287,14 @@ def validate(path: Path, global_ids: dict[str, str]) -> list[str]:
                     continue
                 if element.get("type") == "image":
                     asset = element.get("asset")
-                    if not isinstance(asset, str) or not asset.startswith(
+                    if isinstance(asset, str) and _portable_png(asset):
+                        pass
+                    elif not isinstance(asset, str) or not asset.startswith(
                         "assets/exercise_images/"
                     ):
                         issues.append(
                             f"{where}: prompt image {prompt_index} must reference "
-                            "the bundled exercise-image library"
+                            "the bundled exercise-image library or a bounded portable PNG"
                         )
                     elif not (ROOT / asset).is_file():
                         issues.append(
@@ -327,12 +349,26 @@ def validate(path: Path, global_ids: dict[str, str]) -> list[str]:
             elif any(not isinstance(pair, list) or len(pair) != 2 or any(value not in item_ids for value in pair) for pair in pairs):
                 issues.append(f"{where}: invalid matched_items pair")
             if evaluation.get("kind") == "text_match":
-                accepted = evaluation.get("acceptedAnswers")
+                accepted = exercise.get("missingWords") if content.get("editorTemplate") == "missing_word" else evaluation.get("acceptedAnswers")
                 if not isinstance(accepted, list) or not any(isinstance(value, str) and value.strip() for value in accepted):
-                    issues.append(f"{where}: text_match requires non-empty acceptedAnswers")
+                    issues.append(f"{where}: text_match requires non-empty acceptedAnswers (missingWords for missing_word)")
             if interaction.get("kind") == "input" and evaluation.get("kind") != "text_match":
                 issues.append(f"{where}: input interaction must use text_match evaluation")
-            if interaction.get("kind") == "arrange":
+            layout = interaction.get("layout", [])
+            gap_ids = [part.get("text") for part in layout if isinstance(part, dict) and part.get("type") == "gap"] if isinstance(layout, list) else []
+            if gap_ids:
+                assignments = evaluation.get("gapAssignments", {})
+                if any(not isinstance(gap, str) or not gap.strip() for gap in gap_ids) or len(set(gap_ids)) != len(gap_ids):
+                    issues.append(f"{where}: layout needs nonempty unique gap IDs")
+                if not isinstance(assignments, dict) or set(assignments) != set(gap_ids):
+                    issues.append(f"{where}: every gap needs exactly one assignment")
+                elif any(value not in item_ids for value in assignments.values()):
+                    issues.append(f"{where}: gap assignment references a missing Item")
+                elif len(set(item_ids) - set(assignments.values())) > 2:
+                    issues.append(f"{where}: gap exercise has more than two distractors")
+                if interaction.get("kind") not in {"select", "arrange"}:
+                    issues.append(f"{where}: inline gaps require Select or Arrange")
+            if interaction.get("kind") == "arrange" and not gap_ids:
                 orders = evaluation.get("correctOrders")
                 if not isinstance(orders, list) or not orders:
                     issues.append(f"{where}: arrange requires non-empty correctOrders")
@@ -359,7 +395,8 @@ def validate(path: Path, global_ids: dict[str, str]) -> list[str]:
                         if any(item_id not in item_ids for item_id in sequence):
                             issues.append(f"{where}: correctOrders {order_index} references a missing Item")
                             continue
-                        if _ordered_text(" ".join(item_values.get(item_id, "") for item_id in sequence)) != key:
+                        separator = "" if content.get("editorTemplate") == "image_word" else " "
+                        if _ordered_text(separator.join(item_values.get(item_id, "") for item_id in sequence)) != key:
                             issues.append(f"{where}: correctOrders {order_index} is not constructible")
         if kind == "presentation":
             presentation = content.get("presentation")
@@ -371,7 +408,11 @@ def validate(path: Path, global_ids: dict[str, str]) -> list[str]:
     lessons = data.get("lessons")
     if not isinstance(lessons, list):
         return issues + ["root: lessons must be a list"]
-    expected_lessons = 9
+    expected_lessons = {
+        "exercise_laboratory_en_it.json": 5,
+        "edge_case_it_en.json": 5,
+        "piedmontais_en.json": 24,
+    }.get(path.name, 9)
     if len(lessons) != expected_lessons:
         issues.append(
             f"root: bundled course must contain exactly {expected_lessons} Lessons, "
@@ -516,7 +557,7 @@ def validate(path: Path, global_ids: dict[str, str]) -> list[str]:
 def main() -> int:
     files = sorted(COURSES.glob("*.json"))
     if {path.name for path in files} != set(EXPECTED_TTS):
-        print(f"Expected exactly these ten bundled files: {sorted(EXPECTED_TTS)}")
+        print(f"Expected exactly these bundled files: {sorted(EXPECTED_TTS)}")
         print(f"Found: {[path.name for path in files]}")
         return 1
     total = 0
