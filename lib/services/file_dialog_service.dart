@@ -11,6 +11,8 @@ import 'import/import_result.dart';
 import 'import/import_stager.dart';
 import 'import/safe_file_name.dart';
 import 'import/selected_external_file.dart';
+import 'storage/android_file_dialog_backend.dart';
+import 'storage/qql_storage_layout.dart';
 
 /// Result of asking the operating system to save or open a file.
 ///
@@ -291,7 +293,7 @@ class DesktopFileDialogBackend
       path.split(RegExp(r'[\\/]')).where((part) => part.isNotEmpty).last;
 }
 
-/// Additive "Save to…" / "Open from…" support. It knows nothing about
+/// Additive "Save as…" / "Open from…" support. It knows nothing about
 /// courses or backups: callers supply bytes, a suggested name and a size
 /// limit, and validate whatever comes back.
 class FileDialogService {
@@ -335,15 +337,22 @@ class FileDialogService {
     } catch (_) {}
   }
 
-  static FileDialogBackend _defaultBackend() {
-    if (kIsWeb) return const UnavailableFileDialogBackend();
-    if (Platform.isWindows || Platform.isMacOS || Platform.isLinux) {
-      return const DesktopFileDialogBackend();
-    }
-    // Android (Storage Access Framework) has no backend yet; the buttons stay
-    // hidden there and the fixed-folder actions remain the only route.
-    return const UnavailableFileDialogBackend();
-  }
+  static FileDialogBackend _defaultBackend() =>
+      backendFor(QqlStoragePlatform.current);
+
+  /// The dialogs of [platform]: the desktop dialogs on Windows, macOS and
+  /// Linux, the Storage Access Framework pickers on Android. iOS has none
+  /// yet, so its buttons stay hidden and the Quick actions remain.
+  @visibleForTesting
+  static FileDialogBackend backendFor(QqlStoragePlatform platform) =>
+      switch (platform) {
+        QqlStoragePlatform.windows ||
+        QqlStoragePlatform.macos ||
+        QqlStoragePlatform.linux => const DesktopFileDialogBackend(),
+        QqlStoragePlatform.android => const AndroidFileDialogBackend(),
+        QqlStoragePlatform.ios ||
+        QqlStoragePlatform.unsupported => const UnavailableFileDialogBackend(),
+      };
 
   /// False when the dialog buttons should be hidden.
   bool get isAvailable => _backend.isAvailable;

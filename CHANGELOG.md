@@ -1,3 +1,33 @@
+# 2.0.55 (Build 255, Revision 1) - Android Save as… and Open from… - 2026-09-25
+
+Android now has **Save as…** and **Open from…** wherever the desktop has them:
+Course export and import, Merge From…, learner data, the User Recovery Key,
+Crash and Diagnostic Log copies, images, Image Bank ZIPs, portable images,
+Lesson icons and MP3s. They use Android's own document screens (the Storage
+Access Framework), so a person can choose any folder or provider the device
+shows, such as Downloads, a memory card or Google Drive when its app is
+installed and signed in. Before this revision these buttons were hidden on
+Android.
+
+A new platform bridge (`android/.../QqlStorageBridge.kt` and
+`lib/services/storage/android_storage_bridge.dart`) shows the system screens
+on the UI thread and moves bytes on a background thread in pieces of at most
+1 MB, so no file crosses to Dart in one piece. A chosen document is streamed
+into the same bounded private staging as a desktop file and passes exactly the
+same checks and size limits. A save that fails part-way deletes the new
+document rather than leaving a truncated file. Cancelling changes and shows
+nothing; failures are logged with the file name only, never a document
+address. `FileDialogService.backendFor` picks the dialogs per platform; iOS
+still has none.
+
+Checked on the Android 16 emulator: Save as… wrote a valid Course package to
+Download, Open from… read it back through the ordinary import checks, and
+cancelling showed nothing. Quick Import and Quick Export are unchanged in this
+revision; Android's public Quick folders follow in Revision 2.
+
+Version `2.0.55+255001`; Beta expiry **2026-10-25 23:59:59 local time**. See
+[handoff](docs/255_HANDOFF.md) and [validation](docs/255_VALIDATION.md).
+
 # 2.0.55 (Build 255, Revision 0) - Logical storage roles and Course Quick folders - 2026-09-25
 
 QQL's user folders are now **logical storage roles**: a direction (Imports,

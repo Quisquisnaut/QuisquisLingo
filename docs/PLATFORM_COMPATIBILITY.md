@@ -24,7 +24,7 @@ Linux is a supported code path. TTS uses eSpeak NG/eSpeak when installed and mus
 
 The shared Flutter/Dart architecture includes iOS/macOS-compatible paths, but builds require macOS and Xcode. Do not claim validated support until the application has been built and smoke-tested there.
 
-QQL 240 file dialogs (`Save to…` / `Open from…`): macOS uses the same desktop code path as Windows and Linux but is **unverified**. **iOS is not supported yet**: the repository has no `ios` project and the dialog buttons stay hidden there. The fixed-folder Export and Import always remain available.
+QQL 240 file dialogs (named `Save as…` / `Open from…` since Build 255): macOS uses the same desktop code path as Windows and Linux but is **unverified**. Android uses its own document screens since Build 255 Revision 1 (checked on the Android 16 emulator). **iOS is not supported yet**: the repository has no `ios` project and the dialog buttons stay hidden there. The Quick Export and Quick Import folders always remain available.
 
 ### Cloud folders in file dialogs
 

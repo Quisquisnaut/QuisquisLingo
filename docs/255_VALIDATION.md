@@ -72,3 +72,51 @@ except the first:
    0 failed** in 23 min 42 s. No production or test file changed after it.
 
 Revision 0 is a source revision; no Windows or Android package was built.
+
+## Revision 1 — `2.0.55+255001`, 25 September 2026
+
+Beta expiry `2026-10-25 23:59:59` local time.
+
+### Scope
+
+Android Save as… and Open from… through the Storage Access Framework:
+`QqlStorageBridge.kt` (registered by `MainActivity`), the Dart bridge
+`android_storage_bridge.dart`, `AndroidFileDialogBackend`,
+`FileDialogService.backendFor(QqlStoragePlatform)` and
+`ExternalFileSource.document`. Quick Import and Quick Export are unchanged.
+
+### Focused evidence
+
+- New `test/android_storage_bridge_255_test.dart` (13 tests, mocked Android
+  channels): a save writes all bytes in chunks of at most 1 MB and names the
+  document; a cancelled save writes and says nothing; a failed write deletes
+  the new document and the Diagnostic Log never contains a document address;
+  Open from… streams the document into staging and returns its bytes; reading
+  stops as soon as the caller's limit is passed; a provider failure part-way
+  and an unreadable document fail cleanly with the ordinary messages; a
+  cancelled picker opens nothing; provider names are sanitized for display
+  while the exact name is kept for checks; several documents stage one by one
+  within the batch limits; a real Course package opened from a document passes
+  the ordinary package checks; picker filters are generous hints and saves
+  declare one type; Android gets the document pickers while desktops keep
+  theirs and iOS has none. Every handle is closed in every case.
+- `flutter build apk --debug --no-pub` compiled the Kotlin bridge (134 s).
+- Android 16 emulator (Pixel_8 AVD, API 36), debug APK, fresh test profile:
+  Course Studio → Export Course showed **Quick Export** and **Save as…**;
+  Save as… opened Android's save screen in Downloads with the suggested name,
+  and saving wrote `quisquislingo_ai_slop_demo_german_for_english_speakers.zip`
+  (33,011 bytes, a valid package: manifest plus `course.json`, Course Model
+  v11, 9 Lessons). Course Import → **Open from…** listed that ZIP, and picking
+  it read it through the bridge and the ordinary checks, which correctly
+  refused to reinstall a bundled official Course ("Bundled official courses
+  are installed only with QuisquisLingo application builds."). Cancelling the
+  picker showed nothing.
+- Not tested on a device: Android 7–10 (no emulator images, owner decision);
+  the Storage Access Framework screens are the same there.
+
+### Final release checks
+
+`flutter analyze --no-pub`: **No issues found**. Complete
+`flutter test --no-pub --concurrency=1` on the final tree: **2,711 passed,
+1 existing skip, 0 failed** in 23 min 29 s. No production or test file changed
+after it. A debug APK was built for the emulator check; no release package.

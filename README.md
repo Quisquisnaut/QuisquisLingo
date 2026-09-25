@@ -1,6 +1,6 @@
 # QuisquisLingo App
 
-**Current source version: 2.0.55+255000 · Build 255, Revision 0 · Course Model v11 (`formatVersion: 11`).**
+**Current source version: 2.0.55+255001 · Build 255, Revision 1 · Course Model v11 (`formatVersion: 11`).**
 
 **QuisquisLingo 2.0.55 Beta — QQL 255 logical storage and Quick folders**
 
@@ -10,8 +10,9 @@ builds a platform path. On Windows, Linux and macOS, Course packages now use
 `Documents/QuisquisLingo/Imports/Courses` (**Quick Import**) and
 `Documents/QuisquisLingo/Exports/Courses` (**Quick Export**); every other folder
 keeps its place. Dialog saves are named **Save as…**; **Open from…** is
-unchanged. Screens and Help name each platform's folders. Android public
-folders and Android Save as… / Open from… follow in Revisions 1 and 2. See
+unchanged. Screens and Help name each platform's folders. Revision 1 brings
+**Save as…** and **Open from…** to Android through its own document screens;
+Android public Quick folders follow in Revision 2. See
 the [Build 255 plan and audit](docs/255_STORAGE_PLAN.md), the
 [handoff](docs/255_HANDOFF.md) and [validation](docs/255_VALIDATION.md).
 
@@ -218,7 +219,7 @@ QQL 241 completes the course file-store integration: custom and installed offici
 
 **QuisquisLingo 2.0.40 Beta — QQL 240 native file dialogs (Save to… / Open from…)**
 
-QQL 240 adds the operating system's Save and Open dialogs next to the existing fixed-folder Export and Import (which are unchanged): `Save to…` for Course JSON, my data, the User Recovery Key and copies of the Crash and Diagnostic Logs, and `Open from…` for Course import, Merge From…, Image Bank ZIPs, single images, custom Lesson icons, recorded MP3s, my data and the User Recovery Key. Cloud folders such as Google Drive appear only if the device already shows them; QQL does not sign in to any cloud service. A failed or unavailable dialog explains how to use the fixed-folder route and is logged. Windows, macOS and Linux are supported; Android's picker is not wired yet (the buttons stay hidden) and iOS is not supported. See `docs/240_FILE_DIALOGS_PLAN.md`, `docs/240_VALIDATION.md` and `CHANGELOG.md`.
+QQL 240 adds the operating system's Save and Open dialogs next to the existing fixed-folder Export and Import (which are unchanged): `Save to…` for Course JSON, my data, the User Recovery Key and copies of the Crash and Diagnostic Logs, and `Open from…` for Course import, Merge From…, Image Bank ZIPs, single images, custom Lesson icons, recorded MP3s, my data and the User Recovery Key. Cloud folders such as Google Drive appear only if the device already shows them; QQL does not sign in to any cloud service. A failed or unavailable dialog explains how to use the fixed-folder route and is logged. Windows, macOS and Linux are supported; Android followed in Build 255 Revision 1 (Storage Access Framework), and iOS is not supported. See `docs/240_FILE_DIALOGS_PLAN.md`, `docs/240_VALIDATION.md` and `CHANGELOG.md`.
 
 **QuisquisLingo 2.0.39 Beta — QQL 239 Pick the translation (Select)**
 
@@ -279,7 +280,7 @@ The MPL-2.0 covers the QuisquisLingo software source. Courses, the Image Bank an
 
 ## Beta lifecycle
 
-Version 2.0.55, Build 255, Revision 0 is a time-limited Beta with an expiry of **2026-10-25 23:59:59 local time** (30 days after the 25 September 2026 release date). Near expiry it displays reminders. After expiry, learner exercises and Review are blocked until a newer Beta is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when a Beta expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM.
+Version 2.0.55, Build 255, Revision 1 is a time-limited Beta with an expiry of **2026-10-25 23:59:59 local time** (30 days after the 25 September 2026 release date). Near expiry it displays reminders. After expiry, learner exercises and Review are blocked until a newer Beta is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when a Beta expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM.
 
 ## Core logic
 
