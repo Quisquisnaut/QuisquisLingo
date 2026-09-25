@@ -1,0 +1,2667 @@
+{
+  "formatVersion": 11,
+  "publicationState": "published",
+  "lessonNumberingMode": "lesson",
+  "defaultLessonIconStyle": "monochrome",
+  "createDuels": false,
+  "courseId": "course_6f6a1fa3-b834-4936-b324-92fb57f73502",
+  "originType": "bundledOfficial",
+  "publisherId": "org.quisquislingo",
+  "publisherName": "QuisquisLingo",
+  "officialCourseVersion": "1.0.0",
+  "officialReleaseDateUtc": "2026-09-25T00:00:00.000Z",
+  "officialReleaseNotes": "QQL Build 254: edge-case demonstration Course.",
+  "distributionChannel": "bundled",
+  "publisherVerificationStatus": "verified",
+  "originalCourseCreator": {
+    "type": "publisher",
+    "id": "org.quisquislingo",
+    "displayName": "QuisquisLingo"
+  },
+  "originalCreatedAtUtc": "2026-09-25T00:00:00.000Z",
+  "modifiedAtUtc": "2026-09-25T00:00:00.000Z",
+  "learningLanguage": "English",
+  "interfaceLanguage": "Italian",
+  "sourceLanguage": "Italian",
+  "targetLanguage": "English",
+  "sourceLanguageTag": "it-IT",
+  "targetLanguageTag": "en-GB",
+  "title": "AI-Slop Demo: Edge Case Course",
+  "ttsLanguage": "en-GB",
+  "audioMode": "hybrid",
+  "authors": [
+    {
+      "name": "QuisquisLingo — AI-generated test content",
+      "roles": [
+        "Author"
+      ]
+    }
+  ],
+  "license": "All rights reserved; derivative works allowed for this test Course.",
+  "derivativeWorksPolicy": "allowed",
+  "courseDescription": "TEMPORARY AI-GENERATED TEST COURSE. Italiano → inglese. Per trovarlo abilita Show unavailable: contiene strutture Draft valide, omesse nel Learner. Include due avvisi Audit intenzionali (opzioni duplicate e testo lungo). Hybrid prova MP3 preinstallati e fallback TTS; i campioni MP3 non hanno una trascrizione verificata e sono solo prove di riproduzione. Fork abilita i collaudi Copy as New Course e Merge su copie personali. Non è un percorso didattico revisionato.",
+  "textDirection": "ltr",
+  "flagCode": "GB",
+  "temporarySample": true,
+  "keywords": [
+    "demo",
+    "edge cases",
+    "Unicode",
+    "audio",
+    "Draft"
+  ],
+  "audioLibrary": [
+    {
+      "id": "qql_edge_254_audio_01",
+      "text": "recorded sample one",
+      "filePath": "assets/audio/en_sample/sample_1.mp3"
+    },
+    {
+      "id": "qql_edge_254_audio_02",
+      "text": "recorded sample two",
+      "filePath": "assets/audio/en_sample/sample_2.mp3"
+    }
+  ],
+  "lessons": [
+    {
+      "lessonId": "qql_edge_254_l01",
+      "publicationState": "published",
+      "updatedAt": "2026-09-25T00:00:00.000Z",
+      "title": "Testi lunghi, Unicode e opzioni: café · 東京 · القاهرة · 🙂",
+      "section": true,
+      "guidebook": {
+        "content": [
+          {
+            "id": "qql_edge_254_l01_overview",
+            "publicationState": "published",
+            "kind": "explanation",
+            "required": false,
+            "role": "overview",
+            "text": "Casi validi per testo lungo, caratteri Unicode, opzioni numerose e ripetizioni intenzionali."
+          },
+          {
+            "id": "qql_edge_254_l01_v1",
+            "publicationState": "published",
+            "kind": "vocabulary",
+            "required": false,
+            "role": "vocabulary",
+            "text": "yes = sì"
+          },
+          {
+            "id": "qql_edge_254_l01_v2",
+            "publicationState": "published",
+            "kind": "vocabulary",
+            "required": false,
+            "role": "vocabulary",
+            "text": "a window → una finestra"
+          },
+          {
+            "id": "qql_edge_254_l01_v3",
+            "publicationState": "published",
+            "kind": "vocabulary",
+            "required": false,
+            "role": "vocabulary",
+            "text": "red - rosso"
+          },
+          {
+            "id": "qql_edge_254_l01_v4",
+            "publicationState": "published",
+            "kind": "vocabulary",
+            "required": false,
+            "role": "vocabulary",
+            "text": "blue: blu"
+          },
+          {
+            "id": "qql_edge_254_l01_v5",
+            "publicationState": "published",
+            "kind": "vocabulary",
+            "required": false,
+            "role": "vocabulary",
+            "text": "hello = ciao"
+          },
+          {
+            "id": "qql_edge_254_l01_v6",
+            "publicationState": "published",
+            "kind": "vocabulary",
+            "required": false,
+            "role": "vocabulary",
+            "text": "hello = ciao"
+          },
+          {
+            "id": "qql_edge_254_v_caffè_日本語",
+            "publicationState": "published",
+            "kind": "vocabulary",
+            "required": false,
+            "role": "vocabulary",
+            "text": "café = caffè"
+          }
+        ]
+      },
+      "rounds": [
+        {
+          "id": "qql_edge_254_r01",
+          "publicationState": "published",
+          "updatedAt": "2026-09-25T00:00:00.000Z",
+          "visualType": "generic",
+          "content": [
+            {
+              "id": "qql_edge_254_intro01",
+              "publicationState": "published",
+              "kind": "explanation",
+              "required": false,
+              "role": "lesson_intro",
+              "text": "Demo di collaudo: risposte e avvisi intenzionali sono nella matrice 254. Completa i casi Published; i casi Draft restano nell’Editor."
+            },
+            {
+              "id": "qql_edge_254_e01_min",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "editorTemplate": "choice",
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "prompt": [
+                  {
+                    "role": "question",
+                    "type": "text",
+                    "text": "Traduci «sì» in inglese."
+                  }
+                ],
+                "interaction": {
+                  "kind": "select",
+                  "minSelections": 1,
+                  "maxSelections": 1,
+                  "items": [
+                    {
+                      "id": "qql_edge_254_e01_min_i1",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "yes"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_edge_254_e01_min_i2",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "no"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "evaluation": {
+                  "kind": "selected_items",
+                  "correctItemIds": [
+                    "qql_edge_254_e01_min_i1"
+                  ]
+                }
+              }
+            },
+            {
+              "id": "qql_edge_254_e02_max_translation",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "editorTemplate": "translation_choice_to_target",
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "prompt": [
+                  {
+                    "role": "question",
+                    "type": "text",
+                    "text": "una finestra"
+                  }
+                ],
+                "interaction": {
+                  "kind": "select",
+                  "minSelections": 1,
+                  "maxSelections": 1,
+                  "items": [
+                    {
+                      "id": "qql_edge_254_e02_max_translation_i1",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "a window"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_edge_254_e02_max_translation_i2",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "a door"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_edge_254_e02_max_translation_i3",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "a roof"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_edge_254_e02_max_translation_i4",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "a wall"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_edge_254_e02_max_translation_i5",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "a floor"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "evaluation": {
+                  "kind": "selected_items",
+                  "correctItemIds": [
+                    "qql_edge_254_e02_max_translation_i1"
+                  ]
+                }
+              }
+            },
+            {
+              "id": "qql_edge_254_e03_many",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "editorTemplate": "choice",
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "prompt": [
+                  {
+                    "role": "question",
+                    "type": "text",
+                    "text": "Quale numero inglese corrisponde a «dodici»?"
+                  }
+                ],
+                "interaction": {
+                  "kind": "select",
+                  "minSelections": 1,
+                  "maxSelections": 1,
+                  "items": [
+                    {
+                      "id": "qql_edge_254_e03_many_i1",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "one"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_edge_254_e03_many_i2",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "two"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_edge_254_e03_many_i3",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "three"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_edge_254_e03_many_i4",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "four"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_edge_254_e03_many_i5",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "five"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_edge_254_e03_many_i6",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "six"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_edge_254_e03_many_i7",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "seven"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_edge_254_e03_many_i8",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "eight"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_edge_254_e03_many_i9",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "nine"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_edge_254_e03_many_i10",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "ten"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_edge_254_e03_many_i11",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "eleven"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_edge_254_e03_many_i12",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "twelve"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "evaluation": {
+                  "kind": "selected_items",
+                  "correctItemIds": [
+                    "qql_edge_254_e03_many_i12"
+                  ]
+                }
+              }
+            },
+            {
+              "id": "qql_edge_254_e04_duplicate",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "editorTemplate": "choice",
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "prompt": [
+                  {
+                    "role": "question",
+                    "type": "text",
+                    "text": "Quale colore inglese corrisponde a «rosso»? Le due opzioni blue sono intenzionali."
+                  }
+                ],
+                "interaction": {
+                  "kind": "select",
+                  "minSelections": 1,
+                  "maxSelections": 1,
+                  "items": [
+                    {
+                      "id": "qql_edge_254_e04_duplicate_i1",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "red"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_edge_254_e04_duplicate_i2",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "blue"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_edge_254_e04_duplicate_i3",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "blue"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "evaluation": {
+                  "kind": "selected_items",
+                  "correctItemIds": [
+                    "qql_edge_254_e04_duplicate_i1"
+                  ]
+                }
+              }
+            },
+            {
+              "id": "qql_edge_254_e05_unicode",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "editorTemplate": "choice",
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "prompt": [
+                  {
+                    "role": "question",
+                    "type": "text",
+                    "text": "Nella nota «café / café — 東京・서울・Αθήνα・القاهرة 🙂», traduci «ciao»."
+                  }
+                ],
+                "interaction": {
+                  "kind": "select",
+                  "minSelections": 1,
+                  "maxSelections": 1,
+                  "items": [
+                    {
+                      "id": "qql_edge_254_e05_unicode_i1",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "hello"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_edge_254_e05_unicode_i2",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "goodbye"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "evaluation": {
+                  "kind": "selected_items",
+                  "correctItemIds": [
+                    "qql_edge_254_e05_unicode_i1"
+                  ]
+                }
+              },
+              "sourceRefs": [
+                "qql_edge_254_v_caffè_日本語"
+              ]
+            },
+            {
+              "id": "qql_edge_254_e06_multi",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "editorTemplate": "choice",
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "prompt": [
+                  {
+                    "role": "question",
+                    "type": "text",
+                    "text": "Seleziona entrambi i nomi di animali in inglese."
+                  }
+                ],
+                "interaction": {
+                  "kind": "select",
+                  "minSelections": 2,
+                  "maxSelections": 2,
+                  "items": [
+                    {
+                      "id": "qql_edge_254_e06_multi_i1",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "cat"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_edge_254_e06_multi_i2",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "chair"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_edge_254_e06_multi_i3",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "dog"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_edge_254_e06_multi_i4",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "window"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "evaluation": {
+                  "kind": "selected_items",
+                  "correctItemIds": [
+                    "qql_edge_254_e06_multi_i1",
+                    "qql_edge_254_e06_multi_i3"
+                  ]
+                }
+              }
+            }
+          ],
+          "title": "Scelte minime, numerose e ripetute"
+        },
+        {
+          "id": "qql_edge_254_r02",
+          "publicationState": "published",
+          "updatedAt": "2026-09-25T00:00:00.000Z",
+          "visualType": "story",
+          "content": [
+            {
+              "id": "qql_edge_254_e07_long",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "editorTemplate": "reading_comprehension",
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "prompt": [
+                  {
+                    "role": "passage",
+                    "type": "text",
+                    "text": "On a rainy afternoon, the librarian opens a small notebook and reads a visitor's message. The visitor writes the names café, naïve, São Tomé, Łódź, 東京, 서울, Αθήνα and القاهرة, then adds a smiling face 🙂 and a musical note ♫. These names are quoted text, not new language lessons. The shelves hold dictionaries, maps, old photographs and books with very long titles. A child asks why the same word can appear twice in a sentence. The librarian answers that repetition can be intentional and that each printed occurrence still has its own place. Outside, the rain stops, a red bicycle leans against a wall, and the clock above the door shows five o'clock. On a rainy afternoon, the librarian opens a small notebook and reads a visitor's message. The visitor writes the names café, naïve, São Tomé, Łódź, 東京, 서울, Αθήνα and القاهرة, then adds a smiling face 🙂 and a musical note ♫. These names are quoted text, not new language lessons. The shelves hold dictionaries, maps, old photographs and books with very long titles. A child asks why the same word can appear twice in a sentence. The librarian answers that repetition can be intentional and that each printed occurrence still has its own place. Outside, the rain stops, a red bicycle leans against a wall, and the clock above the door shows five o'clock. The notebook is blue."
+                  },
+                  {
+                    "role": "question",
+                    "type": "text",
+                    "text": "Di che colore è il quaderno?"
+                  }
+                ],
+                "interaction": {
+                  "kind": "select",
+                  "minSelections": 1,
+                  "maxSelections": 1,
+                  "items": [
+                    {
+                      "id": "qql_edge_254_e07_long_i1",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "blue"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_edge_254_e07_long_i2",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "red"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_edge_254_e07_long_i3",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "green"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "evaluation": {
+                  "kind": "selected_items",
+                  "correctItemIds": [
+                    "qql_edge_254_e07_long_i1"
+                  ]
+                }
+              }
+            },
+            {
+              "id": "qql_edge_254_e08_long_answer",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "editorTemplate": "type_translation",
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "prompt": [
+                  {
+                    "role": "primary",
+                    "type": "text",
+                    "text": "Traduci: Oggi scrivo un messaggio accurato al mio amico perché il treno è in ritardo, la stazione è affollata e vorrei spiegare che arriverò dopo cena con una piccola valigia blu e un libro sulla storia della nostra città."
+                  }
+                ],
+                "interaction": {
+                  "kind": "input",
+                  "inputType": "text"
+                },
+                "evaluation": {
+                  "kind": "text_match",
+                  "acceptedAnswers": [
+                    "Today I am writing a careful message to my friend because the train is late, the station is crowded, and I would like to explain that I will arrive after dinner with a small blue suitcase and a book about the history of our town."
+                  ]
+                }
+              }
+            },
+            {
+              "id": "qql_edge_254_e09_accents",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "editorTemplate": "type_translation",
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "prompt": [
+                  {
+                    "role": "primary",
+                    "type": "text",
+                    "text": "Scrivi il prestito inglese per un piccolo locale dove bere un caffè: café. Sono accettate le forme Unicode composta e decomposta."
+                  }
+                ],
+                "interaction": {
+                  "kind": "input",
+                  "inputType": "text"
+                },
+                "evaluation": {
+                  "kind": "text_match",
+                  "acceptedAnswers": [
+                    "café",
+                    "café"
+                  ]
+                }
+              },
+              "sourceRefs": [
+                "qql_edge_254_v_caffè_日本語"
+              ]
+            },
+            {
+              "id": "qql_edge_254_e10_names",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "editorTemplate": "fill_blank",
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "prompt": [
+                  {
+                    "role": "primary",
+                    "type": "text",
+                    "text": "Copia esattamente questa citazione con nomi internazionali: 東京 서울 Αθήνα القاهرة"
+                  }
+                ],
+                "interaction": {
+                  "kind": "input",
+                  "inputType": "text"
+                },
+                "evaluation": {
+                  "kind": "text_match",
+                  "acceptedAnswers": [
+                    "東京 서울 Αθήνα القاهرة"
+                  ]
+                }
+              }
+            }
+          ],
+          "title": "Passaggi e risposte estese"
+        },
+        {
+          "id": "qql_edge_254_r03",
+          "publicationState": "published",
+          "updatedAt": "2026-09-25T00:00:00.000Z",
+          "visualType": "generic",
+          "content": [
+            {
+              "id": "qql_edge_254_e11_repeat",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "editorTemplate": "word_order",
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "prompt": [
+                  {
+                    "role": "clue",
+                    "type": "text",
+                    "text": "Ricostruisci: Mi piace molto, molto questo libro."
+                  }
+                ],
+                "interaction": {
+                  "kind": "arrange",
+                  "items": [
+                    {
+                      "id": "qql_edge_254_e11_repeat_i1",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "I"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_edge_254_e11_repeat_i2",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "really"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_edge_254_e11_repeat_i3",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "really"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_edge_254_e11_repeat_i4",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "like"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_edge_254_e11_repeat_i5",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "this"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_edge_254_e11_repeat_i6",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "book"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "evaluation": {
+                  "kind": "ordered_items",
+                  "correctOrders": [
+                    {
+                      "text": "I really really like this book",
+                      "itemIds": [
+                        "qql_edge_254_e11_repeat_i1",
+                        "qql_edge_254_e11_repeat_i2",
+                        "qql_edge_254_e11_repeat_i3",
+                        "qql_edge_254_e11_repeat_i4",
+                        "qql_edge_254_e11_repeat_i5",
+                        "qql_edge_254_e11_repeat_i6"
+                      ]
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "id": "qql_edge_254_e12_alternatives",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "editorTemplate": "build_translation",
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "prompt": [
+                  {
+                    "role": "clue",
+                    "type": "text",
+                    "text": "Traduci: Oggi studio a casa."
+                  }
+                ],
+                "interaction": {
+                  "kind": "arrange",
+                  "items": [
+                    {
+                      "id": "qql_edge_254_e12_alternatives_i1",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "I"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_edge_254_e12_alternatives_i2",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "study"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_edge_254_e12_alternatives_i3",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "at"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_edge_254_e12_alternatives_i4",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "home"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_edge_254_e12_alternatives_i5",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "today"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "evaluation": {
+                  "kind": "ordered_items",
+                  "correctOrders": [
+                    {
+                      "text": "I study at home today",
+                      "itemIds": [
+                        "qql_edge_254_e12_alternatives_i1",
+                        "qql_edge_254_e12_alternatives_i2",
+                        "qql_edge_254_e12_alternatives_i3",
+                        "qql_edge_254_e12_alternatives_i4",
+                        "qql_edge_254_e12_alternatives_i5"
+                      ]
+                    },
+                    {
+                      "text": "today I study at home",
+                      "itemIds": [
+                        "qql_edge_254_e12_alternatives_i5",
+                        "qql_edge_254_e12_alternatives_i1",
+                        "qql_edge_254_e12_alternatives_i2",
+                        "qql_edge_254_e12_alternatives_i3",
+                        "qql_edge_254_e12_alternatives_i4"
+                      ]
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "id": "qql_edge_254_e13_many_blocks",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "editorTemplate": "word_order",
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "prompt": [
+                  {
+                    "role": "clue",
+                    "type": "text",
+                    "text": "Ricostruisci la frase inglese: Il piccolo gatto nero dorme sempre tranquillamente vicino alla finestra aperta della nostra calda cucina ogni pomeriggio."
+                  }
+                ],
+                "interaction": {
+                  "kind": "arrange",
+                  "items": [
+                    {
+                      "id": "qql_edge_254_e13_many_blocks_i1",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "the"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_edge_254_e13_many_blocks_i2",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "small"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_edge_254_e13_many_blocks_i3",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "black"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_edge_254_e13_many_blocks_i4",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "cat"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_edge_254_e13_many_blocks_i5",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "always"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_edge_254_e13_many_blocks_i6",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "sleeps"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_edge_254_e13_many_blocks_i7",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "quietly"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_edge_254_e13_many_blocks_i8",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "beside"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_edge_254_e13_many_blocks_i9",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "the"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_edge_254_e13_many_blocks_i10",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "open"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_edge_254_e13_many_blocks_i11",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "window"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_edge_254_e13_many_blocks_i12",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "in"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_edge_254_e13_many_blocks_i13",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "our"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_edge_254_e13_many_blocks_i14",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "warm"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_edge_254_e13_many_blocks_i15",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "kitchen"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_edge_254_e13_many_blocks_i16",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "every"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_edge_254_e13_many_blocks_i17",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "afternoon"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_edge_254_e13_many_blocks_i18",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "outside"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_edge_254_e13_many_blocks_i19",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "never"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "evaluation": {
+                  "kind": "ordered_items",
+                  "correctOrders": [
+                    {
+                      "text": "the small black cat always sleeps quietly beside the open window in our warm kitchen every afternoon",
+                      "itemIds": [
+                        "qql_edge_254_e13_many_blocks_i1",
+                        "qql_edge_254_e13_many_blocks_i2",
+                        "qql_edge_254_e13_many_blocks_i3",
+                        "qql_edge_254_e13_many_blocks_i4",
+                        "qql_edge_254_e13_many_blocks_i5",
+                        "qql_edge_254_e13_many_blocks_i6",
+                        "qql_edge_254_e13_many_blocks_i7",
+                        "qql_edge_254_e13_many_blocks_i8",
+                        "qql_edge_254_e13_many_blocks_i9",
+                        "qql_edge_254_e13_many_blocks_i10",
+                        "qql_edge_254_e13_many_blocks_i11",
+                        "qql_edge_254_e13_many_blocks_i12",
+                        "qql_edge_254_e13_many_blocks_i13",
+                        "qql_edge_254_e13_many_blocks_i14",
+                        "qql_edge_254_e13_many_blocks_i15",
+                        "qql_edge_254_e13_many_blocks_i16",
+                        "qql_edge_254_e13_many_blocks_i17"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          ],
+          "title": "Blocchi ripetuti e risposte alternative"
+        }
+      ],
+      "duel": {
+        "id": "qql_edge_254_l01_duel",
+        "title": "Duel"
+      },
+      "sectionName": "Collaudo dei contenuti — Unicode e confini",
+      "themeIconAsset": "assets/lesson_icons/school.png"
+    },
+    {
+      "lessonId": "qql_edge_254_l02",
+      "publicationState": "published",
+      "updatedAt": "2026-09-25T00:00:00.000Z",
+      "title": "Uno o più gap, blocchi e opzioni collegate",
+      "section": false,
+      "guidebook": {
+        "content": [
+          {
+            "id": "qql_edge_254_l02_overview",
+            "publicationState": "published",
+            "kind": "explanation",
+            "required": false,
+            "role": "overview",
+            "text": "Arrange usa occorrenze separate; Select può riutilizzare una stessa opzione in più gap."
+          },
+          {
+            "id": "qql_edge_254_l02_v1",
+            "publicationState": "published",
+            "kind": "vocabulary",
+            "required": false,
+            "role": "vocabulary",
+            "text": "tea = tè"
+          },
+          {
+            "id": "qql_edge_254_l02_v2",
+            "publicationState": "published",
+            "kind": "vocabulary",
+            "required": false,
+            "role": "vocabulary",
+            "text": "very = molto"
+          },
+          {
+            "id": "qql_edge_254_l02_v3",
+            "publicationState": "published",
+            "kind": "vocabulary",
+            "required": false,
+            "role": "vocabulary",
+            "text": "would like = vorrei"
+          },
+          {
+            "id": "qql_edge_254_l02_v4",
+            "publicationState": "published",
+            "kind": "vocabulary",
+            "required": false,
+            "role": "vocabulary",
+            "text": "a cup of tea = una tazza di tè"
+          }
+        ]
+      },
+      "rounds": [
+        {
+          "id": "qql_edge_254_r04",
+          "publicationState": "published",
+          "updatedAt": "2026-09-25T00:00:00.000Z",
+          "visualType": "generic",
+          "content": [
+            {
+              "id": "qql_edge_254_intro02",
+              "publicationState": "published",
+              "kind": "explanation",
+              "required": false,
+              "role": "lesson_intro",
+              "text": "Completa i gap: Arrange consuma un blocco distinto per ogni occorrenza; Select permette di riutilizzare la stessa opzione."
+            },
+            {
+              "id": "qql_edge_254_e14_arrange_min",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "editorTemplate": "word_order",
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "prompt": [
+                  {
+                    "role": "clue",
+                    "type": "text",
+                    "text": "Completa la frase inglese con l’unico blocco."
+                  }
+                ],
+                "interaction": {
+                  "kind": "arrange",
+                  "items": [
+                    {
+                      "id": "qql_edge_254_e14_arrange_min_i1",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "tea"
+                        }
+                      ]
+                    }
+                  ],
+                  "layout": [
+                    {
+                      "role": "primary",
+                      "type": "text",
+                      "text": "I drink"
+                    },
+                    {
+                      "role": "primary",
+                      "type": "gap",
+                      "text": "qql_edge_254_e14_arrange_min_g1"
+                    },
+                    {
+                      "role": "primary",
+                      "type": "text",
+                      "text": "."
+                    }
+                  ]
+                },
+                "evaluation": {
+                  "kind": "gap_items",
+                  "gapAssignments": {
+                    "qql_edge_254_e14_arrange_min_g1": "qql_edge_254_e14_arrange_min_i1"
+                  }
+                }
+              }
+            },
+            {
+              "id": "qql_edge_254_e15_arrange_repeat",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "editorTemplate": "word_order",
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "prompt": [
+                  {
+                    "role": "clue",
+                    "type": "text",
+                    "text": "Completa con due occorrenze distinte di very."
+                  }
+                ],
+                "interaction": {
+                  "kind": "arrange",
+                  "items": [
+                    {
+                      "id": "qql_edge_254_e15_arrange_repeat_i1",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "very"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_edge_254_e15_arrange_repeat_i2",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "very"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_edge_254_e15_arrange_repeat_i3",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "never"
+                        }
+                      ]
+                    }
+                  ],
+                  "layout": [
+                    {
+                      "role": "primary",
+                      "type": "text",
+                      "text": "It is"
+                    },
+                    {
+                      "role": "primary",
+                      "type": "gap",
+                      "text": "qql_edge_254_e15_arrange_repeat_g1"
+                    },
+                    {
+                      "role": "primary",
+                      "type": "text",
+                      "text": ","
+                    },
+                    {
+                      "role": "primary",
+                      "type": "gap",
+                      "text": "qql_edge_254_e15_arrange_repeat_g2"
+                    },
+                    {
+                      "role": "primary",
+                      "type": "text",
+                      "text": "cold."
+                    }
+                  ]
+                },
+                "evaluation": {
+                  "kind": "gap_items",
+                  "gapAssignments": {
+                    "qql_edge_254_e15_arrange_repeat_g1": "qql_edge_254_e15_arrange_repeat_i1",
+                    "qql_edge_254_e15_arrange_repeat_g2": "qql_edge_254_e15_arrange_repeat_i2"
+                  }
+                }
+              }
+            },
+            {
+              "id": "qql_edge_254_e16_arrange_phrases",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "editorTemplate": "word_order",
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "prompt": [
+                  {
+                    "role": "clue",
+                    "type": "text",
+                    "text": "Inserisci le espressioni nei due gap."
+                  }
+                ],
+                "interaction": {
+                  "kind": "arrange",
+                  "items": [
+                    {
+                      "id": "qql_edge_254_e16_arrange_phrases_i1",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "would like"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_edge_254_e16_arrange_phrases_i2",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "a cup of tea"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_edge_254_e16_arrange_phrases_i3",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "has been"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_edge_254_e16_arrange_phrases_i4",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "a glass of milk"
+                        }
+                      ]
+                    }
+                  ],
+                  "layout": [
+                    {
+                      "role": "primary",
+                      "type": "text",
+                      "text": "I"
+                    },
+                    {
+                      "role": "primary",
+                      "type": "gap",
+                      "text": "qql_edge_254_e16_arrange_phrases_g1"
+                    },
+                    {
+                      "role": "primary",
+                      "type": "gap",
+                      "text": "qql_edge_254_e16_arrange_phrases_g2"
+                    },
+                    {
+                      "role": "primary",
+                      "type": "text",
+                      "text": ", please."
+                    }
+                  ]
+                },
+                "evaluation": {
+                  "kind": "gap_items",
+                  "gapAssignments": {
+                    "qql_edge_254_e16_arrange_phrases_g1": "qql_edge_254_e16_arrange_phrases_i1",
+                    "qql_edge_254_e16_arrange_phrases_g2": "qql_edge_254_e16_arrange_phrases_i2"
+                  }
+                }
+              }
+            }
+          ],
+          "title": "Arrange: uno e più gap"
+        },
+        {
+          "id": "qql_edge_254_r05",
+          "publicationState": "published",
+          "updatedAt": "2026-09-25T00:00:00.000Z",
+          "visualType": "generic",
+          "content": [
+            {
+              "id": "qql_edge_254_e17_select_min",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "editorTemplate": "choice",
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "prompt": [
+                  {
+                    "role": "primary",
+                    "type": "text",
+                    "text": "Completa: un gatto."
+                  }
+                ],
+                "interaction": {
+                  "kind": "select",
+                  "items": [
+                    {
+                      "id": "qql_edge_254_e17_select_min_i1",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "cat"
+                        }
+                      ]
+                    }
+                  ],
+                  "layout": [
+                    {
+                      "role": "primary",
+                      "type": "text",
+                      "text": "a"
+                    },
+                    {
+                      "role": "primary",
+                      "type": "gap",
+                      "text": "qql_edge_254_e17_select_min_g1"
+                    }
+                  ],
+                  "minSelections": 1,
+                  "maxSelections": 1
+                },
+                "evaluation": {
+                  "kind": "selected_items",
+                  "gapAssignments": {
+                    "qql_edge_254_e17_select_min_g1": "qql_edge_254_e17_select_min_i1"
+                  }
+                }
+              }
+            },
+            {
+              "id": "qql_edge_254_e18_select_linked",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "editorTemplate": "choice",
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "prompt": [
+                  {
+                    "role": "primary",
+                    "type": "text",
+                    "text": "Completa entrambe le domande riutilizzando la stessa opzione."
+                  }
+                ],
+                "interaction": {
+                  "kind": "select",
+                  "items": [
+                    {
+                      "id": "qql_edge_254_e18_select_linked_i1",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "Was"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_edge_254_e18_select_linked_i2",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "Were"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_edge_254_e18_select_linked_i3",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "Are"
+                        }
+                      ]
+                    }
+                  ],
+                  "layout": [
+                    {
+                      "role": "primary",
+                      "type": "gap",
+                      "text": "qql_edge_254_e18_select_linked_g1"
+                    },
+                    {
+                      "role": "primary",
+                      "type": "text",
+                      "text": "she happy?"
+                    },
+                    {
+                      "role": "primary",
+                      "type": "gap",
+                      "text": "qql_edge_254_e18_select_linked_g2"
+                    },
+                    {
+                      "role": "primary",
+                      "type": "text",
+                      "text": "he late?"
+                    }
+                  ],
+                  "minSelections": 1,
+                  "maxSelections": 1
+                },
+                "evaluation": {
+                  "kind": "selected_items",
+                  "gapAssignments": {
+                    "qql_edge_254_e18_select_linked_g1": "qql_edge_254_e18_select_linked_i1",
+                    "qql_edge_254_e18_select_linked_g2": "qql_edge_254_e18_select_linked_i1"
+                  }
+                }
+              }
+            },
+            {
+              "id": "qql_edge_254_e19_select_distinct",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "editorTemplate": "choice",
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "prompt": [
+                  {
+                    "role": "primary",
+                    "type": "text",
+                    "text": "Completa con due opzioni diverse."
+                  }
+                ],
+                "interaction": {
+                  "kind": "select",
+                  "items": [
+                    {
+                      "id": "qql_edge_254_e19_select_distinct_i1",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "am"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_edge_254_e19_select_distinct_i2",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "to"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_edge_254_e19_select_distinct_i3",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "is"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_edge_254_e19_select_distinct_i4",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "from"
+                        }
+                      ]
+                    }
+                  ],
+                  "layout": [
+                    {
+                      "role": "primary",
+                      "type": "text",
+                      "text": "I"
+                    },
+                    {
+                      "role": "primary",
+                      "type": "gap",
+                      "text": "qql_edge_254_e19_select_distinct_g1"
+                    },
+                    {
+                      "role": "primary",
+                      "type": "text",
+                      "text": "going"
+                    },
+                    {
+                      "role": "primary",
+                      "type": "gap",
+                      "text": "qql_edge_254_e19_select_distinct_g2"
+                    },
+                    {
+                      "role": "primary",
+                      "type": "text",
+                      "text": "London."
+                    }
+                  ],
+                  "minSelections": 1,
+                  "maxSelections": 1
+                },
+                "evaluation": {
+                  "kind": "selected_items",
+                  "gapAssignments": {
+                    "qql_edge_254_e19_select_distinct_g1": "qql_edge_254_e19_select_distinct_i1",
+                    "qql_edge_254_e19_select_distinct_g2": "qql_edge_254_e19_select_distinct_i2"
+                  }
+                }
+              }
+            }
+          ],
+          "title": "Select: gap singolo e riuso"
+        }
+      ],
+      "duel": {
+        "id": "qql_edge_254_l02_duel",
+        "title": "Duel"
+      }
+    },
+    {
+      "lessonId": "qql_edge_254_l03",
+      "publicationState": "published",
+      "updatedAt": "2026-09-25T00:00:00.000Z",
+      "title": "Immagini, MP3 e fallback TTS",
+      "section": false,
+      "guidebook": {
+        "content": [
+          {
+            "id": "qql_edge_254_l03_overview",
+            "publicationState": "published",
+            "kind": "explanation",
+            "required": false,
+            "role": "overview",
+            "text": "Modalità iniziale Hybrid: i campioni MP3 verificano la riproduzione; le frasi inglesi non mappate usano TTS. Attiva Enable Audio Exercises e Text-to-speech per eseguire tutti i casi."
+          },
+          {
+            "id": "qql_edge_254_l03_v1",
+            "publicationState": "published",
+            "kind": "vocabulary",
+            "required": false,
+            "role": "vocabulary",
+            "text": "cat = gatto"
+          },
+          {
+            "id": "qql_edge_254_l03_v2",
+            "publicationState": "published",
+            "kind": "vocabulary",
+            "required": false,
+            "role": "vocabulary",
+            "text": "dog = cane"
+          },
+          {
+            "id": "qql_edge_254_l03_v3",
+            "publicationState": "published",
+            "kind": "vocabulary",
+            "required": false,
+            "role": "vocabulary",
+            "text": "ice cream = gelato"
+          },
+          {
+            "id": "qql_edge_254_l03_v4",
+            "publicationState": "published",
+            "kind": "vocabulary",
+            "required": false,
+            "role": "vocabulary",
+            "text": "window = finestra"
+          }
+        ]
+      },
+      "rounds": [
+        {
+          "id": "qql_edge_254_r06",
+          "publicationState": "published",
+          "updatedAt": "2026-09-25T00:00:00.000Z",
+          "visualType": "generic",
+          "content": [
+            {
+              "id": "qql_edge_254_intro03",
+              "publicationState": "published",
+              "kind": "explanation",
+              "required": false,
+              "role": "lesson_intro",
+              "text": "Confronta immagini e testo, poi verifica i campioni MP3 e le frasi TTS. Le registrazioni preinstallate sono campioni di riproduzione, senza trascrizione verificata."
+            },
+            {
+              "id": "qql_edge_254_e20_image_letters",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "editorTemplate": "image_word",
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "prompt": [
+                  {
+                    "role": "clue",
+                    "type": "text",
+                    "text": "Componi il nome inglese dell’animale nell’immagine."
+                  },
+                  {
+                    "role": "clue",
+                    "type": "image",
+                    "text": "gatto",
+                    "asset": "assets/exercise_images/cat.webp"
+                  }
+                ],
+                "interaction": {
+                  "kind": "arrange",
+                  "items": [
+                    {
+                      "id": "qql_edge_254_e20_image_letters_i1",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "c"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_edge_254_e20_image_letters_i2",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "a"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_edge_254_e20_image_letters_i3",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "t"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "evaluation": {
+                  "kind": "ordered_items",
+                  "correctOrders": [
+                    {
+                      "text": "cat",
+                      "itemIds": [
+                        "qql_edge_254_e20_image_letters_i1",
+                        "qql_edge_254_e20_image_letters_i2",
+                        "qql_edge_254_e20_image_letters_i3"
+                      ]
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "id": "qql_edge_254_e21_image",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "editorTemplate": "choice",
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "prompt": [
+                  {
+                    "role": "clue",
+                    "type": "image",
+                    "text": "gelato",
+                    "asset": "assets/exercise_images/ice_cream.webp"
+                  },
+                  {
+                    "role": "question",
+                    "type": "text",
+                    "text": "Come si chiama in inglese il cibo raffigurato?"
+                  }
+                ],
+                "interaction": {
+                  "kind": "select",
+                  "minSelections": 1,
+                  "maxSelections": 1,
+                  "items": [
+                    {
+                      "id": "qql_edge_254_e21_image_i1",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "ice cream"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_edge_254_e21_image_i2",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "bread"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_edge_254_e21_image_i3",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "rice"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "evaluation": {
+                  "kind": "selected_items",
+                  "correctItemIds": [
+                    "qql_edge_254_e21_image_i1"
+                  ]
+                }
+              }
+            },
+            {
+              "id": "qql_edge_254_e22_no_image",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "editorTemplate": "choice",
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "prompt": [
+                  {
+                    "role": "question",
+                    "type": "text",
+                    "text": "Traduci «gelato» senza un’immagine di supporto."
+                  }
+                ],
+                "interaction": {
+                  "kind": "select",
+                  "minSelections": 1,
+                  "maxSelections": 1,
+                  "items": [
+                    {
+                      "id": "qql_edge_254_e22_no_image_i1",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "ice cream"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_edge_254_e22_no_image_i2",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "bread"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_edge_254_e22_no_image_i3",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "rice"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "evaluation": {
+                  "kind": "selected_items",
+                  "correctItemIds": [
+                    "qql_edge_254_e22_no_image_i1"
+                  ]
+                }
+              }
+            },
+            {
+              "id": "qql_edge_254_e23_two_images",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "editorTemplate": "choice",
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "prompt": [
+                  {
+                    "role": "clue",
+                    "type": "image",
+                    "text": "gatto",
+                    "asset": "assets/exercise_images/cat.webp"
+                  },
+                  {
+                    "role": "clue",
+                    "type": "image",
+                    "text": "cane",
+                    "asset": "assets/exercise_images/dog.webp"
+                  },
+                  {
+                    "role": "question",
+                    "type": "text",
+                    "text": "Quale coppia inglese descrive le due immagini nell’ordine mostrato?"
+                  }
+                ],
+                "interaction": {
+                  "kind": "select",
+                  "minSelections": 1,
+                  "maxSelections": 1,
+                  "items": [
+                    {
+                      "id": "qql_edge_254_e23_two_images_i1",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "cat and dog"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_edge_254_e23_two_images_i2",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "dog and cat"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_edge_254_e23_two_images_i3",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "cat and bird"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "evaluation": {
+                  "kind": "selected_items",
+                  "correctItemIds": [
+                    "qql_edge_254_e23_two_images_i1"
+                  ]
+                }
+              }
+            }
+          ],
+          "title": "Con e senza immagini"
+        },
+        {
+          "id": "qql_edge_254_r07",
+          "publicationState": "published",
+          "updatedAt": "2026-09-25T00:00:00.000Z",
+          "visualType": "listening",
+          "content": [
+            {
+              "id": "qql_edge_254_e24_mp3",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "editorTemplate": "listening_choice",
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "prompt": [
+                  {
+                    "role": "primary",
+                    "type": "audio",
+                    "text": "recorded sample one"
+                  },
+                  {
+                    "role": "question",
+                    "type": "text",
+                    "text": "Collaudo MP3 1: se senti il campione, scegli «audio riprodotto». Il campione preinstallato non ha una trascrizione verificata; questa è una prova di riproduzione."
+                  }
+                ],
+                "interaction": {
+                  "kind": "select",
+                  "minSelections": 1,
+                  "maxSelections": 1,
+                  "items": [
+                    {
+                      "id": "qql_edge_254_e24_mp3_i1",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "audio riprodotto"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_edge_254_e24_mp3_i2",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "nessun audio"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "evaluation": {
+                  "kind": "selected_items",
+                  "correctItemIds": [
+                    "qql_edge_254_e24_mp3_i1"
+                  ]
+                }
+              }
+            },
+            {
+              "id": "qql_edge_254_e25_mp3_sequence",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "editorTemplate": "listening_choice",
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "prompt": [
+                  {
+                    "role": "primary",
+                    "type": "audio",
+                    "text": "recorded sample one recorded sample two"
+                  },
+                  {
+                    "role": "question",
+                    "type": "text",
+                    "text": "Collaudo MP3 1 + 2: verifica che si sentano due campioni in sequenza. Le etichette audio sono identificatori di collaudo, non trascrizioni."
+                  }
+                ],
+                "interaction": {
+                  "kind": "select",
+                  "minSelections": 1,
+                  "maxSelections": 1,
+                  "items": [
+                    {
+                      "id": "qql_edge_254_e25_mp3_sequence_i1",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "due campioni riprodotti"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_edge_254_e25_mp3_sequence_i2",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "riproduzione incompleta"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "evaluation": {
+                  "kind": "selected_items",
+                  "correctItemIds": [
+                    "qql_edge_254_e25_mp3_sequence_i1"
+                  ]
+                }
+              }
+            },
+            {
+              "id": "qql_edge_254_e26_tts",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "editorTemplate": "listening_comprehension",
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "prompt": [
+                  {
+                    "role": "passage",
+                    "type": "audio",
+                    "text": "The little cat is sitting beside the open window."
+                  },
+                  {
+                    "role": "question",
+                    "type": "text",
+                    "text": "Quale animale è vicino alla finestra nel testo pronunciato?"
+                  }
+                ],
+                "interaction": {
+                  "kind": "select",
+                  "minSelections": 1,
+                  "maxSelections": 1,
+                  "items": [
+                    {
+                      "id": "qql_edge_254_e26_tts_i1",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "cat"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_edge_254_e26_tts_i2",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "dog"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_edge_254_e26_tts_i3",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "bird"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "evaluation": {
+                  "kind": "selected_items",
+                  "correctItemIds": [
+                    "qql_edge_254_e26_tts_i1"
+                  ]
+                }
+              }
+            },
+            {
+              "id": "qql_edge_254_e27_tts_spelling",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "editorTemplate": "listening_spelling",
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "prompt": [
+                  {
+                    "role": "primary",
+                    "type": "text",
+                    "text": "Scrivi la frase inglese che senti."
+                  },
+                  {
+                    "role": "primary",
+                    "type": "audio",
+                    "text": "We are ready to leave."
+                  }
+                ],
+                "interaction": {
+                  "kind": "input",
+                  "inputType": "text"
+                },
+                "evaluation": {
+                  "kind": "text_match",
+                  "acceptedAnswers": [
+                    "We are ready to leave."
+                  ]
+                }
+              }
+            }
+          ],
+          "title": "Riproduzione registrata e sintesi"
+        }
+      ],
+      "duel": {
+        "id": "qql_edge_254_l03_duel",
+        "title": "Duel"
+      },
+      "themeIconAsset": "assets/lesson_icons/speech_bubbles.png"
+    },
+    {
+      "lessonId": "qql_edge_254_l04",
+      "publicationState": "published",
+      "updatedAt": "2026-09-25T00:00:00.000Z",
+      "title": "Published con discendenti Draft",
+      "section": false,
+      "guidebook": {
+        "content": [
+          {
+            "id": "qql_edge_254_l04_overview",
+            "publicationState": "published",
+            "kind": "explanation",
+            "required": false,
+            "role": "overview",
+            "text": "Il primo Round non ha titolo personalizzato. Il GuideBook e il secondo Round sono Draft; il Learner vede soltanto il primo Exercise Published."
+          },
+          {
+            "id": "qql_edge_254_l04_v1",
+            "publicationState": "published",
+            "kind": "vocabulary",
+            "required": false,
+            "role": "vocabulary",
+            "text": "ready = pronto"
+          },
+          {
+            "id": "qql_edge_254_l04_v2",
+            "publicationState": "published",
+            "kind": "vocabulary",
+            "required": false,
+            "role": "vocabulary",
+            "text": "late = tardi"
+          },
+          {
+            "id": "qql_edge_254_l04_draft_vocab",
+            "publicationState": "draft",
+            "kind": "vocabulary",
+            "required": false,
+            "role": "vocabulary",
+            "text": "early = presto"
+          }
+        ],
+        "publicationState": "draft"
+      },
+      "rounds": [
+        {
+          "id": "qql_edge_254_r08",
+          "publicationState": "published",
+          "updatedAt": "2026-09-25T00:00:00.000Z",
+          "visualType": "test",
+          "content": [
+            {
+              "id": "qql_edge_254_intro04",
+              "publicationState": "published",
+              "kind": "explanation",
+              "required": false,
+              "role": "lesson_intro",
+              "text": "Qui il Learner mostra soltanto i contenuti Published. Il GuideBook, un Exercise e il Round successivo sono Draft validi."
+            },
+            {
+              "id": "qql_edge_254_e28_published",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "editorTemplate": "choice",
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "prompt": [
+                  {
+                    "role": "question",
+                    "type": "text",
+                    "text": "Traduci «pronto» in inglese."
+                  }
+                ],
+                "interaction": {
+                  "kind": "select",
+                  "minSelections": 1,
+                  "maxSelections": 1,
+                  "items": [
+                    {
+                      "id": "qql_edge_254_e28_published_i1",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "ready"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_edge_254_e28_published_i2",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "late"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "evaluation": {
+                  "kind": "selected_items",
+                  "correctItemIds": [
+                    "qql_edge_254_e28_published_i1"
+                  ]
+                }
+              }
+            },
+            {
+              "id": "qql_edge_254_e29_draft_exercise",
+              "publicationState": "draft",
+              "kind": "exercise",
+              "required": true,
+              "editorTemplate": "choice",
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "prompt": [
+                  {
+                    "role": "question",
+                    "type": "text",
+                    "text": "Caso Draft valido: traduci «tardi» in inglese."
+                  }
+                ],
+                "interaction": {
+                  "kind": "select",
+                  "minSelections": 1,
+                  "maxSelections": 1,
+                  "items": [
+                    {
+                      "id": "qql_edge_254_e29_draft_exercise_i1",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "late"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_edge_254_e29_draft_exercise_i2",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "ready"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "evaluation": {
+                  "kind": "selected_items",
+                  "correctItemIds": [
+                    "qql_edge_254_e29_draft_exercise_i1"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "qql_edge_254_r09_draft",
+          "publicationState": "draft",
+          "updatedAt": "2026-09-25T00:00:00.000Z",
+          "visualType": "generic",
+          "content": [
+            {
+              "id": "qql_edge_254_e30_under_draft_round",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "editorTemplate": "choice",
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "prompt": [
+                  {
+                    "role": "question",
+                    "type": "text",
+                    "text": "Contenuto Published sotto Round Draft: traduci «presto»."
+                  }
+                ],
+                "interaction": {
+                  "kind": "select",
+                  "minSelections": 1,
+                  "maxSelections": 1,
+                  "items": [
+                    {
+                      "id": "qql_edge_254_e30_under_draft_round_i1",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "early"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_edge_254_e30_under_draft_round_i2",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "late"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "evaluation": {
+                  "kind": "selected_items",
+                  "correctItemIds": [
+                    "qql_edge_254_e30_under_draft_round_i1"
+                  ]
+                }
+              }
+            }
+          ],
+          "title": "Round Draft con contenuto valido"
+        }
+      ],
+      "duel": {
+        "id": "qql_edge_254_l04_duel",
+        "title": "Duel"
+      }
+    },
+    {
+      "lessonId": "qql_edge_254_l05_draft",
+      "publicationState": "draft",
+      "updatedAt": "2026-09-25T00:00:00.000Z",
+      "title": "Lesson Draft valida — candidato per copia e confronto",
+      "section": false,
+      "guidebook": {
+        "content": [
+          {
+            "id": "qql_edge_254_l05_draft_overview",
+            "publicationState": "published",
+            "kind": "explanation",
+            "required": false,
+            "role": "overview",
+            "text": "Lesson intenzionalmente Draft con struttura completa. Ispezionala nell’Editor o in Preview; il Learner la omette."
+          },
+          {
+            "id": "qql_edge_254_l05_draft_v1",
+            "publicationState": "published",
+            "kind": "vocabulary",
+            "required": false,
+            "role": "vocabulary",
+            "text": "a copy = una copia"
+          }
+        ]
+      },
+      "rounds": [
+        {
+          "id": "qql_edge_254_r10_under_draft_lesson",
+          "publicationState": "published",
+          "updatedAt": "2026-09-25T00:00:00.000Z",
+          "visualType": "generic",
+          "content": [
+            {
+              "id": "qql_edge_254_intro05",
+              "publicationState": "published",
+              "kind": "explanation",
+              "required": false,
+              "role": "lesson_intro",
+              "text": "Questa Lesson Draft è una struttura completa per ispezione e Preview; il Learner la omette anche se i suoi discendenti sono Published."
+            },
+            {
+              "id": "qql_edge_254_e31_under_draft_lesson",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "editorTemplate": "choice",
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "prompt": [
+                  {
+                    "role": "question",
+                    "type": "text",
+                    "text": "Traduci «una copia» in inglese."
+                  }
+                ],
+                "interaction": {
+                  "kind": "select",
+                  "minSelections": 1,
+                  "maxSelections": 1,
+                  "items": [
+                    {
+                      "id": "qql_edge_254_e31_under_draft_lesson_i1",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "a copy"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_edge_254_e31_under_draft_lesson_i2",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "a window"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "evaluation": {
+                  "kind": "selected_items",
+                  "correctItemIds": [
+                    "qql_edge_254_e31_under_draft_lesson_i1"
+                  ]
+                }
+              }
+            }
+          ],
+          "title": "Round Published sotto Lesson Draft"
+        }
+      ],
+      "duel": {
+        "id": "qql_edge_254_l05_draft_duel",
+        "title": "Duel"
+      }
+    }
+  ],
+  "officialChecksum": "8d7dda68e97d7584095bc032111a9797700c063c1ea411be866c7078792c59f9"
+}

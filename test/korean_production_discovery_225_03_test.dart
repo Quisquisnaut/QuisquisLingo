@@ -72,6 +72,50 @@ void main() {
     await SettingsService().setAudioExercisesEnabled(false);
   });
 
+  testWidgets('two English bundled Courses switch and restart independently', (
+    tester,
+  ) async {
+    final settings = SettingsService();
+    await settings.setLastSelectedCourseCode('EN_EDGE');
+    await _openHome(tester);
+    UnifiedLearnerTopBar current() =>
+        tester.widget<UnifiedLearnerTopBar>(find.byType(UnifiedLearnerTopBar));
+    expect(current().course.title, 'AI-Slop Demo: Edge Case Course');
+    expect(current().course.sourceLanguage, 'Italian');
+    await _openCoursePicker(tester);
+    await _expectCourseTile(
+      tester,
+      const ValueKey('bundled-course-EN'),
+      'AI-Slop Demo: Inglés para hispanohablantes',
+      selected: false,
+    );
+    await tester.tap(find.byKey(const ValueKey('bundled-course-EN')));
+    await _pumpIo(tester, frames: 30);
+    expect(current().course.courseId, 'sample_en_es_en');
+    expect(await settings.getLastSelectedCourseCode(), 'EN');
+    await tester.pump(
+      CourseEntryAnimationPolicy.duration + const Duration(milliseconds: 50),
+    );
+    await tester.pump();
+    await _openCoursePicker(tester);
+    await _expectCourseTile(
+      tester,
+      const ValueKey('recent-course-EN_EDGE'),
+      'AI-Slop Demo: Edge Case Course',
+      selected: false,
+    );
+    await tester.tap(find.byKey(const ValueKey('recent-course-EN_EDGE')));
+    await _pumpIo(tester, frames: 30);
+    expect(current().course.sourceLanguage, 'Italian');
+    expect(await settings.getLastSelectedCourseCode(), 'EN_EDGE');
+    await tester.pumpWidget(const SizedBox.shrink());
+    await _pumpIo(tester, frames: 4);
+    await _openHome(tester);
+    expect(current().course.title, 'AI-Slop Demo: Edge Case Course');
+    expect(await settings.getLastSelectedCourseCode(), 'EN_EDGE');
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets(
     'existing v6 installation discovers, opens, and retains one Korean bundled course through the real selector',
     (tester) async {
@@ -235,9 +279,7 @@ void main() {
           await _expectCourseTile(
             tester,
             const Key('current-course'),
-            selectCustom
-                ? custom.title
-                : 'AI-Slop Demo: Italian for English Speakers',
+            selectCustom ? custom.title : 'Exercise Laboratory',
             selected: true,
           );
           for (final entry in {
@@ -255,7 +297,7 @@ void main() {
           await _expectCourseTile(
             tester,
             const ValueKey('bundled-course-IT'),
-            'AI-Slop Demo: Italian for English Speakers',
+            'Exercise Laboratory',
             selected: !selectCustom,
           );
           await _expectCourseTile(

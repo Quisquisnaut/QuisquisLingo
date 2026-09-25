@@ -10,7 +10,7 @@ import 'package:quisquislingo_app/services/course_editor_transaction.dart';
 import 'package:quisquislingo_app/services/custom_course_transfer_service.dart';
 
 Map<String, dynamic> _bundledJson() =>
-    jsonDecode(File('assets/courses/italian_en.json').readAsStringSync())
+    jsonDecode(File('assets/courses/german_en.json').readAsStringSync())
         as Map<String, dynamic>;
 
 Course _course({bool options = true}) {

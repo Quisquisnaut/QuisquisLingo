@@ -3161,6 +3161,7 @@ ExerciseInteraction _legacyInteraction(
     'contextual_comprehension',
     'translation_choice_to_target',
     'translation_choice_to_source',
+    'flashcard',
   }.contains(type)) {
     final items = <ExerciseItem>[];
     for (var i = 0; i < answers.length; i++) {

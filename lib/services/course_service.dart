@@ -16,16 +16,16 @@ import 'course_language_resolver.dart';
 class CourseService {
   final DiagnosticLogService _log = DiagnosticLogService();
   static const Map<String, String> courseAssets = {
-    'IT': 'assets/courses/italian_en.json',
+    'IT': 'assets/courses/exercise_laboratory_en_it.json',
     'DE': 'assets/courses/german_en.json',
     'ES': 'assets/courses/spanish_en.json',
     'EN': 'assets/courses/english_es.json',
     'CY': 'assets/courses/welsh_en.json',
-    'NL': 'assets/courses/dutch_en.json',
     'PT': 'assets/courses/portuguese_en.json',
-    'FI': 'assets/courses/finnish_en.json',
     'KO': 'assets/courses/korean_en.json',
     'NAP': 'assets/courses/neapolitan_it.json',
+    'EN_EDGE': 'assets/courses/edge_case_it_en.json',
+    'PMS': 'assets/courses/piedmontais_en.json',
   };
 
   static const bundledCourseIndexStorageKey =
@@ -37,11 +37,11 @@ class CourseService {
     'ES': 'Spanish',
     'EN': 'English',
     'CY': 'Welsh',
-    'NL': 'Dutch',
     'PT': 'Portuguese',
-    'FI': 'Finnish',
     'KO': 'Korean',
     'NAP': 'Neapolitan',
+    'EN_EDGE': 'English',
+    'PMS': 'Piedmontais',
   };
 
   static const Map<String, String> sourceLabels = {
@@ -50,11 +50,11 @@ class CourseService {
     'ES': 'English',
     'EN': 'Spanish',
     'CY': 'English',
-    'NL': 'English',
     'PT': 'English',
-    'FI': 'English',
     'KO': 'English',
     'NAP': 'Italian',
+    'EN_EDGE': 'Italian',
+    'PMS': 'English',
   };
 
   Future<Course> loadItalianCourse() => loadCourse('IT');
@@ -87,6 +87,16 @@ class CourseService {
 
   static bool hasCourse(String languageCode) =>
       courseAssets.containsKey(languageCode.trim().toUpperCase());
+
+  /// Bundled selection and source lookup use a distinct reference when more
+  /// than one bundled Course teaches the same language. Language-scoped XP,
+  /// streaks and flags continue to use [codeForCourse].
+  static String bundledCodeForCourse(Course course) =>
+      _additionalBundledCodes[course.courseId] ?? codeForCourse(course);
+
+  static const _additionalBundledCodes = {
+    'course_6f6a1fa3-b834-4936-b324-92fb57f73502': 'EN_EDGE',
+  };
 
   static String codeForCourse(Course course) {
     final resolved = CourseLanguageResolver.learning(course).code;

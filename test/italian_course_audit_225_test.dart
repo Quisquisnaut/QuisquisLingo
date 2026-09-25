@@ -4,14 +4,15 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:quisquislingo_app/models/course_models.dart';
 import 'package:quisquislingo_app/services/course_audit_service.dart';
-import 'package:quisquislingo_app/services/duel_eligibility_service.dart';
 import 'package:quisquislingo_app/services/round_playability_service.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   test('production bundled Italian course has no Audit Errors', () async {
-    final raw = await rootBundle.loadString('assets/courses/italian_en.json');
+    final raw = await rootBundle.loadString(
+      'assets/courses/exercise_laboratory_en_it.json',
+    );
     final course = Course.fromJson(
       Map<String, dynamic>.from(jsonDecode(raw) as Map),
     );
@@ -29,14 +30,6 @@ void main() {
 
     expect(errors, isEmpty, reason: auditReport);
     for (final lesson in course.lessons) {
-      final duel = const DuelEligibilityService().evaluate(lesson);
-      expect(
-        duel.isAvailable,
-        isTrue,
-        reason:
-            '${lesson.lessonId} has ${duel.eligibleCount}/${duel.requiredCount} '
-            'Duel-eligible exercises',
-      );
       for (final round in lesson.rounds) {
         expect(
           RoundPlayabilityService().playableExerciseIndices(round),

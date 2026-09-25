@@ -18,7 +18,10 @@ void main() {
       final course = Course.fromJson(Map<String, dynamic>.from(raw as Map));
       expect(course.originType, CourseOriginType.bundledOfficial);
       expect(course.temporarySample, isTrue);
-      expect(course.title, startsWith('AI-Slop Demo: '));
+      expect(
+        course.title,
+        anyOf('Exercise Laboratory', startsWith('AI-Slop Demo: ')),
+      );
       titles.add(course.title);
       expect(course.publisherId, 'org.quisquislingo');
       expect(
@@ -32,11 +35,11 @@ void main() {
     }
     expect(mismatches, isEmpty, reason: 'bundled checksum mismatches');
     expect(titles, {
-      'AI-Slop Demo: Dutch for English Speakers',
+      'AI-Slop Demo: Edge Case Course',
       'AI-Slop Demo: Inglés para hispanohablantes',
-      'AI-Slop Demo: Finnish for English Speakers',
+      'AI-Slop Demo: Piedmontais',
       'AI-Slop Demo: German for English Speakers',
-      'AI-Slop Demo: Italian for English Speakers',
+      'Exercise Laboratory',
       'AI-Slop Demo: Korean for English Speakers',
       'AI-Slop Demo: Napoletano per italofoni',
       'AI-Slop Demo: Portuguese for English Speakers',

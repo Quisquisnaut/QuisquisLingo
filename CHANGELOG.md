@@ -1,3 +1,23 @@
+# 2.0.54 (Build 254, Revision 0) - Bundled exercise demos - 2026-09-25
+
+Replaces the Italian, Finnish and Dutch demos with **Exercise Laboratory**
+(English → Italian, five primitive Lessons), **AI-Slop Demo: Edge Case Course**
+(Italian → English, valid stress cases and Draft structures), and
+**AI-Slop Demo: Piedmontais** (English → Piedmontais, one Lesson per named type).
+Laboratory and Piedmontais each cover all 24 current named exercise types.
+Dedicated generators, case matrices and workflow tests accompany the content.
+
+The new English Course is independently selectable alongside the existing
+Spanish → English bundle while both retain English language XP/streak identity.
+Studio, inspection and export retain the full immutable bundled source when
+the current learner view omits Draft descendants. An owner-approved narrow
+Flashcard fix preserves usage sentences and translations through learner/editor
+projection and saving. Course Model v11, package format 1, scoring, progression
+and stored learner data remain unchanged.
+
+Version `2.0.54+254000`; Beta expiry **2026-10-25 23:59:59 local time**.
+See [handoff](docs/254_HANDOFF.md) and [validation](docs/254_VALIDATION.md).
+
 # 2.0.53 (Build 253, Revision 1) - QQL Guide - 2026-09-24
 
 Settings now opens **QQL Guide** immediately after Do Not Disturb. The shared

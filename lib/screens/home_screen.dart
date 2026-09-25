@@ -519,7 +519,7 @@ class _HomeScreenState extends State<HomeScreen> {
           .toList();
       String reference(Course c) =>
           c.originType == CourseOriginType.bundledOfficial
-          ? CourseService.codeForCourse(c)
+          ? CourseService.bundledCodeForCourse(c)
           : 'custom:${c.courseId}';
       if (playable.isEmpty) {
         final editorUnlocked = await _settings.isCourseEditorUnlocked();

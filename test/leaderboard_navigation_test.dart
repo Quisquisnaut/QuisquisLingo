@@ -38,6 +38,8 @@ import 'package:quisquislingo_app/widgets/learner_shell.dart';
 import 'package:quisquislingo_app/widgets/unified_learner_top_bar.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+const _navigationCourseCode = 'DE';
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -129,7 +131,7 @@ void main() {
   testWidgets('Unified Home opens a Round directly from the active Lesson', (
     tester,
   ) async {
-    final course = await _loadItalianCourse(tester);
+    final course = await _loadNavigationCourse(tester);
     await _openHome(tester, scrollToActions: false);
     final firstLesson = course.lessons.first;
     final firstRound = firstLesson.rounds.first;
@@ -155,7 +157,7 @@ void main() {
   testWidgets(
     'Guidebooks own Lesson identity while Guidebook and Duel stay centered',
     (tester) async {
-      final course = await _loadItalianCourse(tester);
+      final course = await _loadNavigationCourse(tester);
       await _openHome(tester, scrollToActions: false);
       final viewport = tester.getRect(
         find.byKey(const Key('unified-learner-scroll')),
@@ -415,7 +417,7 @@ void main() {
   testWidgets(
     'persisted completion with errors keeps the Round icon bright after rebuild and repeat',
     (tester) async {
-      final course = await _loadItalianCourse(tester);
+      final course = await _loadNavigationCourse(tester);
       final lesson = course.lessons.first;
       final completedRound = lesson.rounds.first;
       final incompleteRound = lesson.rounds.last;
@@ -423,7 +425,7 @@ void main() {
       await progress.completeRound(
         completedRound.id,
         courseId: course.courseId,
-        courseCode: 'IT',
+        courseCode: _navigationCourseCode,
       );
       await progress.recordRecentRound(
         course.courseId,
@@ -450,7 +452,7 @@ void main() {
       await progress.completeRound(
         completedRound.id,
         courseId: course.courseId,
-        courseCode: 'IT',
+        courseCode: _navigationCourseCode,
       );
       await tester.pumpWidget(const SizedBox.shrink());
       await _openHome(tester, scrollToActions: false);
@@ -461,7 +463,7 @@ void main() {
   testWidgets(
     'learner content flows through subsequent Lessons once in course order',
     (tester) async {
-      final course = await _loadItalianCourse(tester);
+      final course = await _loadNavigationCourse(tester);
       await _openHome(tester, scrollToActions: false);
 
       final listView = tester.widget<ListView>(
@@ -496,7 +498,7 @@ void main() {
   testWidgets(
     'restored intermediate Lesson is the initial target with earlier and later Lessons retained',
     (tester) async {
-      final course = await _loadItalianCourse(tester);
+      final course = await _loadNavigationCourse(tester);
       final restoredLesson = course.lessons[1];
       await SettingsService().setLastVisitedLessonId(
         course.courseId,
@@ -553,7 +555,7 @@ void main() {
   testWidgets(
     'restored final Lesson is the initial target with previous Lessons retained',
     (tester) async {
-      final course = await _loadItalianCourse(tester);
+      final course = await _loadNavigationCourse(tester);
       final finalIndex = course.lessons.length - 1;
       final finalLesson = course.lessons[finalIndex];
       await SettingsService().setLastVisitedLessonId(
@@ -603,7 +605,7 @@ void main() {
   testWidgets(
     'Section picker scrolls to the first Lesson in the selected block',
     (tester) async {
-      final course = await _loadItalianCourse(tester);
+      final course = await _loadNavigationCourse(tester);
       await _openHome(tester, scrollToActions: false);
 
       final selector = find.byKey(const Key('unified-section-selector'));
@@ -680,7 +682,7 @@ void main() {
   testWidgets(
     'Lesson arrows navigate within the full flow without opening the picker',
     (tester) async {
-      final course = await _loadItalianCourse(tester, enableIddqd: false);
+      final course = await _loadNavigationCourse(tester, enableIddqd: false);
       await _openHome(tester, scrollToActions: false);
 
       expect(
@@ -743,7 +745,7 @@ void main() {
   testWidgets('continuous flow keeps locked Lesson content inaccessible', (
     tester,
   ) async {
-    final course = await _loadItalianCourse(tester, enableIddqd: false);
+    final course = await _loadNavigationCourse(tester, enableIddqd: false);
     await _openHome(tester, scrollToActions: false);
 
     final lockedLesson = course.lessons[1];
@@ -783,11 +785,11 @@ void main() {
   testWidgets(
     'Collapse completed expands every incomplete accessible Lesson only',
     (tester) async {
-      final course = await _loadItalianCourse(tester, enableIddqd: false);
+      final course = await _loadNavigationCourse(tester, enableIddqd: false);
       await ProgressService().completeLesson(
         course.lessons.first.lessonId,
         courseId: course.courseId,
-        courseCode: 'IT',
+        courseCode: _navigationCourseCode,
       );
       await SettingsService().setLessonExpansionMode(
         course.courseId,
@@ -842,7 +844,7 @@ void main() {
   testWidgets(
     'Focused opens one accessible Lesson and manual opening closes the previous one',
     (tester) async {
-      final course = await _loadItalianCourse(tester);
+      final course = await _loadNavigationCourse(tester);
       final settings = SettingsService();
       await settings.setLessonExpansionMode(
         course.courseId,
@@ -921,7 +923,7 @@ void main() {
   testWidgets(
     'bottom IDDQD toggles access immediately without authoritative progress',
     (tester) async {
-      final course = await _loadItalianCourse(tester, enableIddqd: false);
+      final course = await _loadNavigationCourse(tester, enableIddqd: false);
       await SettingsService().setAudioExercisesEnabled(true);
       await SettingsService().setTtsEnabled(true);
       final progress = ProgressService();
@@ -929,7 +931,7 @@ void main() {
       final completedBefore = await progress.getCompletedRounds(
         courseId: course.courseId,
       );
-      final xpBefore = await xp.getXp(courseCode: 'IT');
+      final xpBefore = await xp.getXp(courseCode: _navigationCourseCode);
       await _openHome(tester, scrollToActions: false);
 
       final lockedLesson = course.lessons[1];
@@ -1064,14 +1066,14 @@ void main() {
         await progress.getCompletedRounds(courseId: course.courseId),
         completedBefore,
       );
-      expect(await xp.getXp(courseCode: 'IT'), xpBefore);
+      expect(await xp.getXp(courseCode: _navigationCourseCode), xpBefore);
     },
   );
 
   testWidgets(
     'three same-Lesson lock taps keep view-only previews for the app session',
     (tester) async {
-      final course = await _loadItalianCourse(tester, enableIddqd: false);
+      final course = await _loadNavigationCourse(tester, enableIddqd: false);
       await _openHome(tester, scrollToActions: false);
       final progress = ProgressService();
       final xp = XpService();
@@ -1102,7 +1104,7 @@ void main() {
       final completedLessonsBefore = await progress.getCompletedLessons(
         courseId: course.courseId,
       );
-      final xpBefore = await xp.getXp(courseCode: 'IT');
+      final xpBefore = await xp.getXp(courseCode: _navigationCourseCode);
       final weeklyXpBefore = await xp.getWeeklyXp();
 
       expect(lock, findsOneWidget);
@@ -1264,7 +1266,7 @@ void main() {
         await progress.getCompletedLessons(courseId: course.courseId),
         completedLessonsBefore,
       );
-      expect(await xp.getXp(courseCode: 'IT'), xpBefore);
+      expect(await xp.getXp(courseCode: _navigationCourseCode), xpBefore);
       expect(await xp.getWeeklyXp(), weeklyXpBefore);
     },
   );
@@ -1275,7 +1277,7 @@ void main() {
       final dispatcher = tester.binding.platformDispatcher;
       dispatcher.platformBrightnessTestValue = Brightness.light;
       addTearDown(dispatcher.clearPlatformBrightnessTestValue);
-      final course = await _loadItalianCourse(tester, enableIddqd: false);
+      final course = await _loadNavigationCourse(tester, enableIddqd: false);
       await _openHome(tester, scrollToActions: false);
 
       final guidebookAction = find.byKey(
@@ -1339,7 +1341,7 @@ void main() {
   testWidgets(
     'scrolling into the next Lesson updates the fixed selector once',
     (tester) async {
-      final course = await _loadItalianCourse(tester);
+      final course = await _loadNavigationCourse(tester);
       await _openHome(tester, scrollToActions: false);
       final secondLesson = course.lessons[3];
       final secondSection = find.byKey(
@@ -1444,7 +1446,7 @@ void main() {
   testWidgets(
     'selectors and bottom controls stay fixed while learner content scrolls',
     (tester) async {
-      final course = await _loadItalianCourse(tester);
+      final course = await _loadNavigationCourse(tester);
       await _openHome(
         tester,
         scrollToActions: false,
@@ -1565,7 +1567,7 @@ void main() {
   testWidgets(
     'phone learner scroll viewport stays above every bottom control',
     (tester) async {
-      final course = await _loadItalianCourse(tester);
+      final course = await _loadNavigationCourse(tester);
       await _openHome(tester, scrollToActions: false);
       tester.view.devicePixelRatio = 1;
       addTearDown(tester.view.resetDevicePixelRatio);
@@ -1941,7 +1943,7 @@ void main() {
       final dispatcher = tester.binding.platformDispatcher;
       dispatcher.platformBrightnessTestValue = Brightness.light;
       addTearDown(dispatcher.clearPlatformBrightnessTestValue);
-      final italianCourse = await _loadItalianCourse(tester);
+      final course = await _loadNavigationCourse(tester);
       await _openHome(
         tester,
         scrollToActions: false,
@@ -1986,10 +1988,10 @@ void main() {
       ].map((finder) => tester.getRect(finder).center.dx).toList();
       expect(topBarOrder, orderedEquals(topBarOrder.toList()..sort()));
       expect(
-        find.descendant(of: topBar, matching: find.text(italianCourse.title)),
+        find.descendant(of: topBar, matching: find.text(course.title)),
         findsNothing,
       );
-      expect(find.text(italianCourse.title), findsNothing);
+      expect(find.text(course.title), findsNothing);
       expect(
         find.descendant(of: topBar, matching: find.byType(CourseFlagBadge)),
         findsOneWidget,
@@ -2010,8 +2012,8 @@ void main() {
       var background = tester.widget<CourseFlagBackdrop>(
         find.byKey(const Key('unified-learner-flag-background')),
       );
-      expect(background.course.courseId, italianCourse.courseId);
-      expect(background.fallbackCode, 'IT');
+      expect(background.course.courseId, course.courseId);
+      expect(background.fallbackCode, _navigationCourseCode);
       expect(background.opacity, 1);
       expect(
         find.image(const AssetImage('assets/olive_tree.png')),
@@ -2077,8 +2079,8 @@ void main() {
       expect(page.backgroundColor, const Color(0xFF080B09));
       expect(topBarMaterial.color, pageTheme.colorScheme.surface);
       expect(topBarMaterial.color!.computeLuminance(), lessThan(.2));
-      expect(background.course.courseId, italianCourse.courseId);
-      expect(background.fallbackCode, 'IT');
+      expect(background.course.courseId, course.courseId);
+      expect(background.fallbackCode, _navigationCourseCode);
       expect(background.opacity, 1);
       final darkVeil = tester.widget<ColoredBox>(
         find.byKey(const Key('unified-learner-dark-veil')),
@@ -2100,7 +2102,7 @@ void main() {
       final sectionTitle = tester.widget<Text>(
         find.descendant(
           of: selector,
-          matching: find.text(italianCourse.lessons.first.sectionName!),
+          matching: find.text(course.lessons.first.sectionName!),
         ),
       );
       expect(sectionTitle.style?.color, Colors.white);
@@ -2111,7 +2113,7 @@ void main() {
       expect(sectionTitle.maxLines, 2);
       expect(sectionTitle.overflow, TextOverflow.ellipsis);
       expect(sectionTitle.style?.fontWeight, FontWeight.normal);
-      expect(sectionTitle.data, italianCourse.lessons.first.sectionName);
+      expect(sectionTitle.data, course.lessons.first.sectionName);
       expect(
         find.descendant(
           of: selector,
@@ -2138,6 +2140,7 @@ void main() {
   testWidgets('Unified Home supports narrow width and enlarged text', (
     tester,
   ) async {
+    await _loadNavigationCourse(tester);
     await tester.binding.setSurfaceSize(const Size(320, 900));
     addTearDown(() => tester.binding.setSurfaceSize(null));
     await tester.pumpWidget(
@@ -2495,7 +2498,7 @@ void main() {
     final dispatcher = tester.binding.platformDispatcher;
     addTearDown(dispatcher.clearPlatformBrightnessTestValue);
     addTearDown(() => tester.binding.setSurfaceSize(null));
-    final course = await _loadItalianCourse(tester);
+    final course = await _loadNavigationCourse(tester);
 
     var firstLaunch = true;
     for (final brightness in [Brightness.light, Brightness.dark]) {
@@ -2538,7 +2541,7 @@ void main() {
         expect(page.width, width);
         expect(selector.left, greaterThanOrEqualTo(page.left));
         expect(selector.right, lessThanOrEqualTo(page.right));
-        expect(tester.getSize(flagPaint).aspectRatio, closeTo(1.5, .001));
+        expect(tester.getSize(flagPaint).aspectRatio, closeTo(5 / 3, .001));
         expect(
           veil.color.a,
           closeTo(brightness == Brightness.dark ? .25 : .10, .01),
@@ -2571,7 +2574,7 @@ void main() {
     (tester) async {
       final dispatcher = tester.binding.platformDispatcher;
       addTearDown(dispatcher.clearPlatformBrightnessTestValue);
-      final course = await _loadItalianCourse(tester);
+      final course = await _loadNavigationCourse(tester);
 
       var firstLaunch = true;
       for (final brightness in Brightness.values) {
@@ -2662,7 +2665,7 @@ void main() {
   testWidgets(
     'new flag background modes replace the learner surface immediately',
     (tester) async {
-      final course = await _loadItalianCourse(tester);
+      final course = await _loadNavigationCourse(tester);
       await _openHome(
         tester,
         scrollToActions: false,
@@ -3129,7 +3132,7 @@ void main() {
     addTearDown(tester.view.resetDevicePixelRatio);
     addTearDown(tester.view.resetPhysicalSize);
     final settings = SettingsService();
-    for (final ref in ['DE', 'ES', 'FI', 'PT', 'IT']) {
+    for (final ref in ['DE', 'ES', 'CY', 'PT', 'IT']) {
       await settings.setLastSelectedCourseCode(ref);
     }
     await _openHome(tester, scrollToActions: false);
@@ -3162,7 +3165,7 @@ void main() {
 
     final recentTitles = [
       'AI-Slop Demo: Portuguese for English Speakers',
-      'AI-Slop Demo: Finnish for English Speakers',
+      'AI-Slop Demo: Welsh for English Speakers',
       'AI-Slop Demo: Spanish for English Speakers',
     ];
     final recentPositions = recentTitles
@@ -3447,7 +3450,7 @@ void main() {
       final betaDialog = tester.widget<AlertDialog>(find.byType(AlertDialog));
       expect(betaDialog.backgroundColor, isNull);
       expect(betaDialog.surfaceTintColor, isNull);
-      expect(find.textContaining('Expiry date: 2026-10-24.'), findsOneWidget);
+      expect(find.textContaining('Expiry date: 2026-10-25.'), findsOneWidget);
       expect(find.widgetWithText(FilledButton, 'OK'), findsOneWidget);
       expect(
         tester
@@ -3605,6 +3608,21 @@ Course _courseFixture() => Course(
   ttsLanguage: 'it-IT',
   lessons: const [],
 );
+
+// Structural navigation needs Sections and Duels. The retained German sample
+// provides both; IT now points to the Laboratory, which deliberately has neither.
+Future<Course> _loadNavigationCourse(
+  WidgetTester tester, {
+  bool enableIddqd = true,
+}) async {
+  final course = await _loadCourse(
+    tester,
+    _navigationCourseCode,
+    enableIddqd: enableIddqd,
+  );
+  await SettingsService().setLastSelectedCourseCode(_navigationCourseCode);
+  return course;
+}
 
 Future<Course> _loadItalianCourse(
   WidgetTester tester, {

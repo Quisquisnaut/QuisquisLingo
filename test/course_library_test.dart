@@ -256,11 +256,19 @@ void main() {
       CoursesTab.allCourses,
     );
     await tester.scrollUntilVisible(
-      find.byKey(const ValueKey('add-course-sample_it_en_it')),
+      find.byKey(
+        const ValueKey(
+          'add-course-course_50d68435-d2c2-4b63-9a0b-b23161357f1d',
+        ),
+      ),
       250,
     );
     expect(
-      find.byKey(const ValueKey('add-course-sample_it_en_it')),
+      find.byKey(
+        const ValueKey(
+          'add-course-course_50d68435-d2c2-4b63-9a0b-b23161357f1d',
+        ),
+      ),
       findsOneWidget,
     );
     expect(tester.takeException(), isNull);

@@ -6,14 +6,11 @@ import 'package:quisquislingo_app/models/course_models.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   const samples = [
-    'italian_en.json',
     'german_en.json',
     'spanish_en.json',
     'english_es.json',
     'portuguese_en.json',
-    'dutch_en.json',
     'welsh_en.json',
-    'finnish_en.json',
     'korean_en.json',
     'neapolitan_it.json',
   ];

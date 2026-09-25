@@ -18,8 +18,13 @@ import 'support/test_directories.dart';
 /// Fifteen days before expiry is deliberately outside every warning milestone
 /// (7 / 3 / 1 / 0 days), so tests see the ordinary, unwarned learner state.
 Future<void> testExecutable(FutureOr<void> Function() testMain) async {
-  BetaLifecycleService.clock = () =>
-      BetaLifecycleService.expiryDate.subtract(const Duration(days: 15));
+  // Calendar construction avoids shifting the pinned day across autumn DST.
+  BetaLifecycleService.clock = () => DateTime(
+    BetaLifecycleService.expiryDate.year,
+    BetaLifecycleService.expiryDate.month,
+    BetaLifecycleService.expiryDate.day - 15,
+    12,
+  );
   // File-backed course storage is used by both authoring and profile services.
   // Give every test its own real filesystem, including callers created by UI.
   // Individual tests can still override the channel for their own fixtures.

@@ -5,14 +5,11 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   const files = [
-    'italian_en.json',
     'german_en.json',
     'spanish_en.json',
     'english_es.json',
     'portuguese_en.json',
-    'dutch_en.json',
     'welsh_en.json',
-    'finnish_en.json',
     'korean_en.json',
     'neapolitan_it.json',
   ];
@@ -79,7 +76,7 @@ void main() {
   test(
     'sample Lessons cover complete Sections, icons and Round title layouts',
     () async {
-      final raw = await rootBundle.loadString('assets/courses/italian_en.json');
+      final raw = await rootBundle.loadString('assets/courses/german_en.json');
       final data = jsonDecode(raw) as Map<String, dynamic>;
       final lessons = (data['lessons'] as List).cast<Map<String, dynamic>>();
 

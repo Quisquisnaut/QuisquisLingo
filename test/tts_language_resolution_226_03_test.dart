@@ -42,7 +42,11 @@ void main() {
     'custom und metadata and bundled Italian resolve identically without mutation',
     () {
       final bundledJson =
-          jsonDecode(File('assets/courses/italian_en.json').readAsStringSync())
+          jsonDecode(
+                File(
+                  'assets/courses/exercise_laboratory_en_it.json',
+                ).readAsStringSync(),
+              )
               as Map<String, dynamic>;
       final bundled = Course.fromJson(bundledJson);
       final customJson = <String, dynamic>{

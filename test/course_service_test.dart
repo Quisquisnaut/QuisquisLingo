@@ -29,13 +29,15 @@ void main() {
     expect(CourseService.targetLabels['NAP'], 'Neapolitan');
   });
 
-  test('empty authoring course shells are registered explicitly', () {
-    expect(CourseService.hasCourse('NL'), isTrue);
-    expect(CourseService.hasCourse('CY'), isTrue);
-    expect(CourseService.hasCourse('PT'), isTrue);
-    expect(CourseService.hasCourse('FI'), isTrue);
-    expect(CourseService.courseAssets['FI'], 'assets/courses/finnish_en.json');
-  });
+  test(
+    'retained samples stay registered and removed demos are unavailable',
+    () {
+      expect(CourseService.hasCourse('NL'), isFalse);
+      expect(CourseService.hasCourse('CY'), isTrue);
+      expect(CourseService.hasCourse('PT'), isTrue);
+      expect(CourseService.hasCourse('FI'), isFalse);
+    },
+  );
 
   test('unknown language is not silently mapped to Italian', () {
     expect(CourseService.hasCourse('ZZ'), isFalse);

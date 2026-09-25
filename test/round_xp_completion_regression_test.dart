@@ -750,10 +750,22 @@ Future<void> _completeMixedPerfectRound(
     );
     if (find.text('Got it').evaluate().isNotEmpty) {
       await _tapAndPump(tester, 'Got it');
+      expect(find.text('Card reviewed.'), findsOneWidget);
     } else {
       await _answerChoice(tester, correctly: true);
     }
     final label = index + 1 == itemCount ? 'Finish round' : 'Next';
+    // A card with usage can leave the advance button outside the lazy
+    // ListView's built area; scroll to build it before locating the control.
+    await tester.scrollUntilVisible(
+      find.text(label),
+      200,
+      scrollable: find.descendant(
+        of: find.byType(RoundScreen),
+        matching: find.byType(Scrollable),
+      ),
+      maxScrolls: 10,
+    );
     if (label == 'Finish round' && !closeCompletionDialog) {
       final finder = find.text(label);
       await tester.ensureVisible(finder);
