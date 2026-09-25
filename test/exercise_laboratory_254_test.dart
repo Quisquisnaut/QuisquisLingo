@@ -164,14 +164,21 @@ class _Speech extends TtsCacheService {
 }
 
 Future<void> _until(WidgetTester tester, Finder finder) async {
-  for (var attempt = 0; attempt < 100; attempt++) {
-    // Round initialization and completion await diagnostic log file I/O.
-    // Pumping only the fake widget clock cannot complete that work.
+  // Round initialization and completion await diagnostic log file I/O.
+  // Pumping only the fake widget clock cannot complete that work, so real
+  // time is allowed too: up to 10 seconds, like the shared
+  // `pumpUntilFileIoState`, because a busy machine can need more than one.
+  // The fake clock still advances at most 100 × 25 ms, as before.
+  final deadline = DateTime.now().add(const Duration(seconds: 10));
+  for (var attempt = 0; ; attempt++) {
     await tester.runAsync(
       () => Future<void>.delayed(const Duration(milliseconds: 10)),
     );
-    await tester.pump(const Duration(milliseconds: 25));
+    await tester.pump(
+      attempt < 100 ? const Duration(milliseconds: 25) : Duration.zero,
+    );
     if (finder.evaluate().isNotEmpty) return;
+    if (DateTime.now().isAfter(deadline)) break;
   }
   fail('Timed out waiting for $finder');
 }
