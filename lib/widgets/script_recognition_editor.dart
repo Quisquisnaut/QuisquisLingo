@@ -12,6 +12,7 @@ import '../services/portable_exercise_image.dart';
 import '../services/storage/qql_storage.dart';
 import 'file_dialog_feedback.dart';
 import 'portable_exercise_image.dart';
+import 'quick_import_access.dart';
 
 // The editor is a const StatelessWidget, so its dialog service is shared.
 final FileDialogService _dialogs = FileDialogService();
@@ -301,7 +302,7 @@ class ScriptRecognitionEditor extends StatelessWidget {
   }
 
   Future<String?> _pickImage(BuildContext context) async {
-    final source = await showDialog<String>(
+    var source = await showDialog<String>(
       context: context,
       builder: (context) => SimpleDialog(
         title: const Text('Choose character image'),
@@ -324,6 +325,20 @@ class ScriptRecognitionEditor extends StatelessWidget {
       ),
     );
     if (source == null || !context.mounted) return null;
+    if (source == 'import') {
+      switch (await ensureQuickImportAccess(
+        context,
+        offerOpenFrom: _dialogs.isAvailable,
+      )) {
+        case QuickImportAccess.ready:
+          break;
+        case QuickImportAccess.openFrom:
+          source = 'open_from';
+        case QuickImportAccess.stop:
+          return null;
+      }
+      if (!context.mounted) return null;
+    }
     try {
       if (source == 'bundled') {
         final asset = await Navigator.of(context).push<String>(

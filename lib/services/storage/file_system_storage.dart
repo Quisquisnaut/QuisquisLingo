@@ -45,6 +45,21 @@ class FileSystemStorageBackend implements QqlStorageBackend {
   @override
   Future<QuickExportFolder> exportFolder(QqlStorageRole role) async =>
       FileSystemExportFolder(await directoryFor(role));
+
+  /// Ordinary folders need no permission.
+  @override
+  Future<bool> hasImportAccess() async => true;
+
+  @override
+  Future<QuickImportAccessResult> requestImportAccess() async =>
+      QuickImportAccessResult.granted;
+
+  @override
+  Future<String?> importAccessSteps() async => null;
+
+  /// Inventory and Reset already cover `<Documents>/QuisquisLingo`.
+  @override
+  QqlPublicFolders? get publicFolders => null;
 }
 
 class FileSystemImportFolder implements QuickImportFolder {

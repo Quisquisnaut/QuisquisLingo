@@ -10,6 +10,7 @@ import 'inventory_screen.dart';
 import 'update_settings_screen.dart';
 import 'device_administration_help_screen.dart';
 import 'user_data_settings_screen.dart';
+import '../services/storage/qql_storage.dart';
 
 /// Admin-only page that gathers the device-level administration features.
 ///
@@ -783,8 +784,10 @@ class _ResetSection extends StatelessWidget {
                   value: keepImports,
                   onChanged: (v) => setLocal(() => keepImports = v ?? true),
                   title: const Text('Keep the Imports folder'),
-                  subtitle: const Text(
-                    'The original images, audio files and course files you copied into QuisquisLingo/Imports yourself. Untick to delete them.',
+                  subtitle: Text(
+                    'The original images, audio files and course files you copied into '
+                    '${QqlStorageLayout.current.directionLabel(QqlTransferDirection.imports)} '
+                    'yourself. Untick to delete them.',
                   ),
                 ),
               ],
@@ -889,7 +892,9 @@ class _ResetSection extends StatelessWidget {
 
   String _backupText(_ResetPlan plan, List<String> affectedOthers) {
     final buffer = StringBuffer(
-      'A backup lets you restore what you are about to delete. Backups are saved in the QuisquisLingo/Exports folder, which a full wipe keeps unless you untick it.\n\n',
+      'A backup lets you restore what you are about to delete. Backups are saved in '
+      '${QqlStorageLayout.current.directionLabel(QqlTransferDirection.exports)}, '
+      'which a full wipe keeps unless you untick it.\n\n',
     );
     final touchesLearners =
         _affectsAdminData(plan) || plan.scope == AppResetScope.nonAdminLearners;

@@ -1,7 +1,9 @@
 package org.quisquislingo.app
 
+import android.Manifest
 import android.app.Activity
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.provider.DocumentsContract
 import android.provider.OpenableColumns
@@ -18,11 +20,13 @@ import java.util.concurrent.atomic.AtomicInteger
 /**
  * Android side of QQL's storage bridge.
  *
- * The UI channel shows the system document pickers of the Storage Access
- * Framework (Save as… and Open from…). The I/O channel runs on a background
- * task queue and moves bytes in bounded chunks, so a large file never
- * crosses the channel whole and storage never blocks the UI thread. Dart
- * checks every byte it receives; this side only moves them.
+ * The UI channel shows the system screens: the Storage Access Framework
+ * document pickers (Save as… and Open from…), the folder screen that grants
+ * Quick Import its folder, and the Android 7–9 storage permission. The I/O
+ * channel runs on a background task queue and moves bytes in bounded chunks,
+ * so a large file never crosses the channel whole and storage never blocks
+ * the UI thread. Dart checks every byte it receives; this side only moves
+ * them. See [QuickFolders] for the public `Download/QuisquisLingo` folders.
  */
 class QqlStorageBridge(private val activity: Activity) {
     companion object {
@@ -30,12 +34,25 @@ class QqlStorageBridge(private val activity: Activity) {
         const val IO_CHANNEL = "org.quisquislingo.app/storage_io"
         private const val REQUEST_CREATE = 0x5101
         private const val REQUEST_OPEN = 0x5102
+        private const val REQUEST_TREE = 0x5103
+        private const val REQUEST_PERMISSION = 0x5104
         private const val MAX_CHUNK = 1024 * 1024
     }
 
+    /** One open write: a picked document, or a Download entry being made. */
+    private class Writer(
+        val uri: Uri,
+        val stream: OutputStream,
+        val download: QuickFolders.DownloadTarget?,
+    )
+
+    private val folders = QuickFolders(activity)
     private var pending: MethodChannel.Result? = null
+
+    /** What the pending permission request answers: "import" or "write". */
+    private var pendingPermissionFor: String? = null
     private val readers = ConcurrentHashMap<Int, InputStream>()
-    private val writers = ConcurrentHashMap<Int, Pair<Uri, OutputStream>>()
+    private val writers = ConcurrentHashMap<Int, Writer>()
     private val nextHandle = AtomicInteger(1)
 
     fun register(engine: FlutterEngine) {
@@ -76,6 +93,16 @@ class QqlStorageBridge(private val activity: Activity) {
                 }
                 launch(intent, REQUEST_OPEN, result)
             }
+            "requestImportAccess" -> {
+                if (!folders.scopedStorage) {
+                    requestLegacyPermission("import", result)
+                    return
+                }
+                // The folder must exist for the folder screen to open on it.
+                folders.ensureImportsFolder()
+                launch(folders.treePickerIntent(), REQUEST_TREE, result)
+            }
+            "requestLegacyWriteAccess" -> requestLegacyPermission("write", result)
             else -> result.notImplemented()
         }
     }
@@ -95,11 +122,63 @@ class QqlStorageBridge(private val activity: Activity) {
         }
     }
 
+    /** Android 7–9 only: the storage permission, asked once by the system. */
+    private fun requestLegacyPermission(purpose: String, result: MethodChannel.Result) {
+        val answer: (Boolean) -> Any =
+            { granted -> if (purpose == "import") (if (granted) "granted" else "denied") else granted }
+        if (folders.hasLegacyPermission()) {
+            result.success(answer(true))
+            return
+        }
+        if (pending != null) {
+            result.error("busy", "Another request is already open.", null)
+            return
+        }
+        pending = result
+        pendingPermissionFor = purpose
+        activity.requestPermissions(
+            arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE),
+            REQUEST_PERMISSION,
+        )
+    }
+
+    /** From MainActivity.onRequestPermissionsResult; true when it was ours. */
+    fun onRequestPermissionsResult(requestCode: Int, grantResults: IntArray): Boolean {
+        if (requestCode != REQUEST_PERMISSION) return false
+        val result = pending ?: return true
+        val purpose = pendingPermissionFor
+        pending = null
+        pendingPermissionFor = null
+        val granted = grantResults.isNotEmpty() &&
+            grantResults[0] == PackageManager.PERMISSION_GRANTED
+        result.success(if (purpose == "import") (if (granted) "granted" else "denied") else granted)
+        return true
+    }
+
     /** From MainActivity.onActivityResult; true when the result was ours. */
     fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?): Boolean {
-        if (requestCode != REQUEST_CREATE && requestCode != REQUEST_OPEN) return false
+        if (requestCode != REQUEST_CREATE &&
+            requestCode != REQUEST_OPEN &&
+            requestCode != REQUEST_TREE
+        ) {
+            return false
+        }
         val result = pending ?: return true
         pending = null
+        if (requestCode == REQUEST_TREE) {
+            result.success(
+                if (resultCode != Activity.RESULT_OK) {
+                    "cancelled"
+                } else {
+                    try {
+                        folders.acceptTree(data)
+                    } catch (error: Exception) {
+                        "denied"
+                    }
+                },
+            )
+            return true
+        }
         if (resultCode != Activity.RESULT_OK || data == null) {
             result.success(null) // cancelled
             return true
@@ -187,19 +266,71 @@ class QqlStorageBridge(private val activity: Activity) {
                         throw error
                     }
                     val handle = nextHandle.getAndIncrement()
-                    writers[handle] = uri to stream
+                    writers[handle] = Writer(uri, stream, null)
+                    result.success(handle)
+                }
+                "beginDownload" -> {
+                    val target = folders.beginDownload(
+                        call.argument<String>("relativeFolder")!!,
+                        call.argument<String>("baseName")!!,
+                        call.argument<String>("extension")!!,
+                        call.argument<String>("mimeType") ?: "application/octet-stream",
+                        call.argument<Boolean>("replace") == true,
+                    )
+                    val stream = try {
+                        openTruncating(target.uri)
+                    } catch (error: Exception) {
+                        folders.finishDownload(target, keep = false)
+                        throw error
+                    }
+                    val handle = nextHandle.getAndIncrement()
+                    writers[handle] = Writer(target.uri, stream, target)
                     result.success(handle)
                 }
                 "write" -> {
                     val writer = writers[call.argument<Int>("handle")!!]
                         ?: throw IllegalStateException("closed")
-                    writer.second.write(call.argument<ByteArray>("bytes")!!)
+                    writer.stream.write(call.argument<ByteArray>("bytes")!!)
                     result.success(null)
                 }
                 "closeWrite" -> {
                     val writer = writers.remove(call.argument<Int>("handle")!!)
                     val keep = call.argument<Boolean>("keep") == true
-                    if (writer != null) finishWrite(writer, keep)
+                    result.success(if (writer == null) null else finishWrite(writer, keep))
+                }
+                "storageInfo" -> result.success(folders.storageInfo())
+                "hasImportAccess" -> result.success(folders.hasImportAccess())
+                "listImports" -> {
+                    val segments = call.argument<List<String>>("segments").orEmpty()
+                    val items = try {
+                        folders.listImports(segments)
+                    } catch (error: SecurityException) {
+                        null
+                    } catch (error: FileNotFoundException) {
+                        null
+                    } catch (error: IllegalArgumentException) {
+                        null
+                    }
+                    if (items == null) {
+                        result.error("accessRequired", "Quick Import access is missing.", null)
+                    } else {
+                        result.success(items)
+                    }
+                }
+                "listAllImports" -> result.success(folders.listAllImports())
+                "deleteImports" -> result.success(folders.deleteImports())
+                "releaseImportAccess" -> {
+                    folders.releaseImportAccess()
+                    result.success(null)
+                }
+                "listOwnDownloads" -> result.success(
+                    folders.listOwnDownloads(call.argument<String>("relativePrefix")!!),
+                )
+                "deleteOwnDownloads" -> result.success(
+                    folders.deleteOwnDownloads(call.argument<String>("relativePrefix")!!),
+                )
+                "scanFile" -> {
+                    folders.scanFile(call.argument<String>("path")!!)
                     result.success(null)
                 }
                 else -> result.notImplemented()
@@ -222,15 +353,28 @@ class QqlStorageBridge(private val activity: Activity) {
         return stream ?: throw FileNotFoundException()
     }
 
-    /** Closes a document; one that failed or was abandoned is deleted. */
-    private fun finishWrite(writer: Pair<Uri, OutputStream>, keep: Boolean) {
+    /**
+     * Closes a write. A picked document that failed or was abandoned is
+     * deleted; a Download entry is published or removed. Returns the Download
+     * entry's final name, or null for a picked document.
+     */
+    private fun finishWrite(writer: Writer, keep: Boolean): String? {
         var closed = false
         try {
-            writer.second.close()
+            writer.stream.close()
             closed = true
         } finally {
-            if (!keep || !closed) deleteQuietly(writer.first)
+            if (!keep || !closed) {
+                val download = writer.download
+                if (download == null) {
+                    deleteQuietly(writer.uri)
+                } else {
+                    folders.finishDownload(download, keep = false)
+                }
+            }
         }
+        if (!keep) return null
+        return writer.download?.let { folders.finishDownload(it, keep = true) }
     }
 
     /** Best effort: an empty document may stay where the user chose. */

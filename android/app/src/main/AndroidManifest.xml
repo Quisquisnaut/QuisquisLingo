@@ -1,4 +1,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Android 7–9 only: Quick Export and Quick Import use the public
+         Download/QuisquisLingo folders. Android 10 and later need no storage
+         permission (MediaStore and one folder permission instead). -->
+    <uses-permission
+        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        android:maxSdkVersion="28" />
     <application
         android:label="QuisquisLingo"
         android:name="${applicationName}"

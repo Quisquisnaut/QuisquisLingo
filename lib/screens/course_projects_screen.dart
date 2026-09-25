@@ -33,6 +33,7 @@ import 'course_info_screen.dart';
 import 'team_manager_screen.dart';
 import 'flat_image_library_screen.dart';
 import '../services/storage/qql_storage.dart';
+import '../widgets/quick_import_access.dart';
 
 String _folder(QqlStorageRole role) =>
     QqlStorageLayout.current.folderLabel(role);
@@ -260,6 +261,20 @@ class _CourseMergeScreenState extends State<CourseMergeScreen> {
   final _sounds = SoundEffectService();
 
   Future<void> _loadMergeCourse({bool fromDialog = false}) async {
+    if (!fromDialog) {
+      switch (await ensureQuickImportAccess(
+        context,
+        offerOpenFrom: _merge.fileDialogsAvailable,
+      )) {
+        case QuickImportAccess.ready:
+          break;
+        case QuickImportAccess.openFrom:
+          return _loadMergeCourse(fromDialog: true);
+        case QuickImportAccess.stop:
+          return;
+      }
+      if (!mounted) return;
+    }
     setState(() => _loading = true);
     try {
       final CoursePackage loaded;
@@ -2022,6 +2037,20 @@ class CourseProjectsScreenState extends State<CourseProjectsScreen> {
   }
 
   Future<void> _importCourse({bool fromDialog = false}) async {
+    if (!fromDialog) {
+      switch (await ensureQuickImportAccess(
+        context,
+        offerOpenFrom: _transfer.fileDialogsAvailable,
+      )) {
+        case QuickImportAccess.ready:
+          break;
+        case QuickImportAccess.openFrom:
+          return _importCourse(fromDialog: true);
+        case QuickImportAccess.stop:
+          return;
+      }
+      if (!mounted) return;
+    }
     // One import attempt owns the package's staged media until it ends.
     CoursePackageImport? attempt;
     try {

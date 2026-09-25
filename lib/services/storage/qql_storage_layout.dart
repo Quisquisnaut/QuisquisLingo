@@ -28,23 +28,37 @@ enum QqlStoragePlatform {
 /// it names folders for messages and for backends, and never touches
 /// storage. Backends decide how a folder is reached.
 class QqlStorageLayout {
-  const QqlStorageLayout._(this.rootLabel);
+  const QqlStorageLayout._(this.rootLabel, {required bool publicRoots})
+    : _publicRoots = publicRoots;
 
   /// Windows, macOS, Linux and iOS: one QuisquisLingo folder in the
   /// platform's documents directory. Courses have their own Imports and
   /// Exports subfolders; every other folder keeps its earlier place.
-  static const documents = QqlStorageLayout._('Documents/QuisquisLingo');
+  static const documents = QqlStorageLayout._(
+    'Documents/QuisquisLingo',
+    publicRoots: false,
+  );
+
+  /// Android: two public roots in the shared Download folder, Imports and
+  /// Exports, with the same categories below them.
+  static const androidPublic = QqlStorageLayout._(
+    'Download/QuisquisLingo',
+    publicRoots: true,
+  );
 
   /// How the QQL root is named to people, with `/` separators.
   final String rootLabel;
 
+  /// True when every folder lives below an Imports or Exports root.
+  final bool _publicRoots;
+
   static QqlStorageLayout forPlatform(QqlStoragePlatform platform) =>
       switch (platform) {
+        QqlStoragePlatform.android => androidPublic,
         QqlStoragePlatform.windows ||
         QqlStoragePlatform.macos ||
         QqlStoragePlatform.linux ||
         QqlStoragePlatform.ios ||
-        QqlStoragePlatform.android ||
         QqlStoragePlatform.unsupported => documents,
       };
 
@@ -57,9 +71,24 @@ class QqlStorageLayout {
 
   /// Folder names from the QQL root to [role]'s folder.
   List<String> segments(QqlStorageRole role) {
-    final top = role.direction == QqlTransferDirection.imports
-        ? 'Imports'
-        : 'Exports';
+    final top = directionFolder(role.direction);
+    if (_publicRoots) {
+      return [
+        top,
+        ...switch (role.category) {
+          QqlFileCategory.courses => const ['Courses'],
+          QqlFileCategory.merges => const ['Merges'],
+          QqlFileCategory.audio => const ['Audio'],
+          QqlFileCategory.images => const ['Images'],
+          QqlFileCategory.lessonIcons => const ['Lesson Icons'],
+          QqlFileCategory.diagnosticLogs => const ['Logs'],
+          QqlFileCategory.learnerData ||
+          QqlFileCategory.recoveryKeys ||
+          QqlFileCategory.courseFlags ||
+          QqlFileCategory.auditReports => const <String>[],
+        },
+      ];
+    }
     return switch (role.category) {
       QqlFileCategory.courses => [top, 'Courses'],
       QqlFileCategory.merges => const ['Merges'],
@@ -74,9 +103,17 @@ class QqlStorageLayout {
     };
   }
 
+  static String directionFolder(QqlTransferDirection direction) =>
+      direction == QqlTransferDirection.imports ? 'Imports' : 'Exports';
+
   /// The folder as people see it, e.g. `Documents/QuisquisLingo/Imports/Courses`.
   String folderLabel(QqlStorageRole role) =>
       [rootLabel, ...segments(role)].join('/');
+
+  /// The Imports or Exports root as people see it, e.g.
+  /// `Download/QuisquisLingo/Imports`.
+  String directionLabel(QqlTransferDirection direction) =>
+      '$rootLabel/${directionFolder(direction)}';
 
   /// One file in [role]'s folder, e.g.
   /// `Documents/QuisquisLingo/Imports/learner_import.json`.

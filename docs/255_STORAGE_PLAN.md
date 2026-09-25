@@ -26,6 +26,9 @@ Owner plan of 25 September 2026 (Europe/Rome), with the owner's answers:
 | 2 | `2.0.55+255002` | Android public Quick folders: dialog-free Quick Export to `Download/QuisquisLingo/Exports/...`, Quick Import from `Download/QuisquisLingo/Imports/...` with one persisted folder permission, the other user outputs, Inventory and Reset. |
 
 One local commit per revision, handoff in `docs/255_HANDOFF.md`, no push.
+All three revisions are implemented; Android was checked on the Android 16
+emulator, and the Android 10 and Android 7–9 paths by mocked tests only (the
+owner chose not to download older emulator images).
 
 ## Architecture
 

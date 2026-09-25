@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import '../import/import_stager.dart';
 import '../import/selected_external_file.dart';
+import 'android_storage_backend.dart';
 import 'file_system_storage.dart';
 import 'qql_storage_layout.dart';
 import 'qql_storage_role.dart';
@@ -68,6 +69,59 @@ abstract class QuickExportFolder {
   });
 }
 
+/// What happened when QQL asked for access to the Quick Import folders.
+enum QuickImportAccessResult {
+  granted,
+
+  /// Android's folder screen returned a different folder; QQL kept nothing.
+  wrongFolder,
+
+  /// The person refused the permission.
+  denied,
+  cancelled,
+}
+
+/// Quick Import cannot read its folders: the platform has not given, or no
+/// longer gives, QQL access to them. Nothing falls back to private storage.
+class QuickImportAccessRequired implements Exception {
+  const QuickImportAccessRequired(this.folder);
+
+  /// The folder that needs access, as people see it.
+  final String folder;
+
+  @override
+  String toString() =>
+      'Quick Import needs permission to read $folder. Choose Quick Import '
+      'again to allow it, or use Open from….';
+}
+
+/// One file found in a public QQL folder, for Inventory.
+class QqlPublicFile {
+  const QqlPublicFile(this.name, {this.size, this.modified});
+
+  /// Path below the Imports or Exports root, with `/` separators.
+  final String name;
+  final int? size;
+  final DateTime? modified;
+}
+
+/// Public QQL folders outside the documents QuisquisLingo folder (Android's
+/// `Download/QuisquisLingo`), for Inventory and Wipe everything.
+abstract class QqlPublicFolders {
+  /// The Imports or Exports root as people see it.
+  String label(QqlTransferDirection direction);
+
+  /// The files QQL can see there: in Exports, the ones it wrote itself; in
+  /// Imports, all of them while it holds access.
+  Future<List<QqlPublicFile>> list(QqlTransferDirection direction);
+
+  /// Deletes what [list] shows. Returns how many files were deleted.
+  Future<int> delete(QqlTransferDirection direction);
+
+  /// Gives back the Quick Import folder permission, if QQL holds one.
+  Future<void> releaseImportAccess();
+}
+
 /// How one platform reaches the QQL user folders.
 abstract class QqlStorageBackend {
   /// The layout this backend resolves roles with; message labels use it.
@@ -76,6 +130,19 @@ abstract class QqlStorageBackend {
   Future<QuickImportFolder> importFolder(QqlStorageRole role);
 
   Future<QuickExportFolder> exportFolder(QqlStorageRole role);
+
+  /// Whether Quick Import can read its folders now, without asking.
+  Future<bool> hasImportAccess();
+
+  /// Asks once for access to the Quick Import folders.
+  Future<QuickImportAccessResult> requestImportAccess();
+
+  /// What the platform will show when access is requested, to explain it
+  /// beforehand; null where no access is ever needed.
+  Future<String?> importAccessSteps();
+
+  /// Public folders outside the documents QuisquisLingo folder, or null.
+  QqlPublicFolders? get publicFolders;
 }
 
 /// The one door from feature code to the QQL user folders. Callers ask for
@@ -87,7 +154,10 @@ class QqlStorage {
 
   final QqlStorageBackend _backend;
 
-  static QqlStorageBackend defaultBackend() => FileSystemStorageBackend();
+  static QqlStorageBackend defaultBackend() =>
+      QqlStoragePlatform.current == QqlStoragePlatform.android
+      ? AndroidStorageBackend()
+      : FileSystemStorageBackend();
 
   QqlStorageLayout get layout => _backend.layout;
 
@@ -102,6 +172,20 @@ class QqlStorage {
 
   String fileLabel(QqlStorageRole role, String fileName) =>
       layout.fileLabel(role, fileName);
+
+  /// The Quick Import root as people see it, e.g.
+  /// `Download/QuisquisLingo/Imports`.
+  String get importsRootLabel =>
+      layout.directionLabel(QqlTransferDirection.imports);
+
+  Future<bool> hasImportAccess() => _backend.hasImportAccess();
+
+  Future<QuickImportAccessResult> requestImportAccess() =>
+      _backend.requestImportAccess();
+
+  Future<String?> importAccessSteps() => _backend.importAccessSteps();
+
+  QqlPublicFolders? get publicFolders => _backend.publicFolders;
 }
 
 /// Reads all of [file] into memory, refusing more than [maxBytes] with

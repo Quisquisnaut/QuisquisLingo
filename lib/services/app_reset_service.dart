@@ -10,6 +10,7 @@ import 'course_media_store.dart';
 import 'learner_status_events.dart';
 import 'profile_service.dart';
 import 'import/import_stager.dart';
+import 'storage/qql_storage.dart';
 
 /// The ways an admin can reset this device. See
 /// docs/239_RESET_STORAGE_INVENTORY.md for what each scope removes.
@@ -112,14 +113,17 @@ class AppResetService {
   final ProfileService _profiles;
   final Future<Directory> Function() _documents;
   final Future<Directory> Function() _support;
+  final QqlStorage _storage;
 
   AppResetService({
     ProfileService? profiles,
     Future<Directory> Function()? documentsDirectory,
     Future<Directory> Function()? supportDirectory,
+    QqlStorage? storage,
   }) : _profiles = profiles ?? ProfileService(),
        _documents = documentsDirectory ?? getApplicationDocumentsDirectory,
-       _support = supportDirectory ?? getApplicationSupportDirectory;
+       _support = supportDirectory ?? getApplicationSupportDirectory,
+       _storage = storage ?? QqlStorage();
 
   Future<Directory> _qqlDocuments() async => Directory(
     '${(await _documents()).path}${Platform.pathSeparator}QuisquisLingo',
@@ -365,6 +369,15 @@ class AppResetService {
         if (kept.contains(name)) continue;
         await entity.delete(recursive: true);
       }
+    }
+    // Android keeps the user folders public, in Download/QuisquisLingo: the
+    // same ticks decide them, and a full wipe gives back the Quick Import
+    // folder permission.
+    final public = _storage.publicFolders;
+    if (public != null) {
+      if (!keepExports) await public.delete(QqlTransferDirection.exports);
+      if (!keepImports) await public.delete(QqlTransferDirection.imports);
+      await public.releaseImportAccess();
     }
     await (await SharedPreferences.getInstance()).clear();
   }

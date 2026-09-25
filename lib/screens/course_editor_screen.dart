@@ -67,6 +67,7 @@ import '../widgets/course_flag_picker.dart';
 import '../widgets/lesson_fallback_icon.dart';
 import '../widgets/import_summary.dart';
 import '../services/storage/qql_storage.dart';
+import '../widgets/quick_import_access.dart';
 
 String _exerciseCountLabel(int count) =>
     '$count ${count == 1 ? 'Exercise' : 'Exercises'}';
@@ -4607,9 +4608,24 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
       return;
     }
     if (selected == import || selected == importFrom) {
+      var fromDialog = selected == importFrom;
+      if (!fromDialog) {
+        switch (await ensureQuickImportAccess(
+          context,
+          offerOpenFrom: _lessonIcons.fileDialogsAvailable,
+        )) {
+          case QuickImportAccess.ready:
+            break;
+          case QuickImportAccess.openFrom:
+            fromDialog = true;
+          case QuickImportAccess.stop:
+            return;
+        }
+        if (!mounted) return;
+      }
       try {
         final ImportedLessonIcon imported;
-        if (selected == importFrom) {
+        if (fromDialog) {
           // Open from…: same normalization as the fixed-folder import.
           final picked = await _lessonIcons.importPreparedIconFromDialog();
           if (!mounted) return;
@@ -9663,6 +9679,18 @@ class _AudioLibraryScreenState extends State<AudioLibraryScreen> {
   }
 
   Future<void> _import() async {
+    switch (await ensureQuickImportAccess(
+      context,
+      offerOpenFrom: _audio.fileDialogsAvailable,
+    )) {
+      case QuickImportAccess.ready:
+        break;
+      case QuickImportAccess.openFrom:
+        return _importFromDialog();
+      case QuickImportAccess.stop:
+        return;
+    }
+    if (!mounted) return;
     try {
       final clips = await _audio.importMp3Files(
         _course.courseId,

@@ -14,22 +14,22 @@ owner's and not part of this work: never stage, move or delete them.
 | `be330e4` | Owner's own correction, committed on its own at their request: Italian Debug Help, Crash Log "tiene" → "conserva". |
 | `2d97210` | Tests only, owner request: the Exercise Laboratory and character-recognition image waits allow up to 10 s of real time (fake clock unchanged). |
 | `ff4a572` | **Revision 0** `2.0.55+255000`: logical storage roles, every Quick route on them, Course Quick folders `Imports/Courses` / `Exports/Courses` on every desktop, Quick Import / Quick Export / Save as…, Help folder placeholders. Complete suite 2,698 passed, 1 skip. |
+| `826f4e1` | **Revision 1** `2.0.55+255001`: Android Save as… / Open from… (SAF bridge). Emulator-checked on Android 16. Complete suite 2,711 passed, 1 skip. |
 
 ## Status
 
-Checkpoint 23:57, 25 September 2026: Revision 1 (`2.0.55+255001`, Android
-Save as… / Open from…) is complete in the working tree and not yet committed:
-Kotlin bridge `android/app/src/main/kotlin/org/quisquislingo/app/QqlStorageBridge.kt`
-(+ `MainActivity`), `lib/services/storage/android_storage_bridge.dart`,
-`lib/services/storage/android_file_dialog_backend.dart`,
-`FileDialogService.backendFor`, `ExternalFileSource.document`, test
-`test/android_storage_bridge_255_test.dart` (13 pass), version bump, CHANGELOG,
-README, AGENTS.md boundary, PLATFORM_COMPATIBILITY note, validation section.
-Analyzer: 0 issues. Debug APK builds; checked on the Android 16 emulator
-(Save as… wrote a valid package to Download; Open from… read it through the
-ordinary checks; cancel shows nothing). The complete suite is running
-(`suite_r1.log` in the scratchpad). When it passes: record the result in
-`docs/255_VALIDATION.md`, commit Revision 1, update this file.
+Checkpoint 01:45, 26 September 2026: Revision 2 (`2.0.55+255002`, Android
+public Quick folders) is complete in the working tree and not yet committed:
+`QqlStorageLayout.androidPublic`, `lib/services/storage/android_storage_backend.dart`,
+bridge additions, `android/.../QuickFolders.kt`, `MainActivity` permission
+hook, manifest `WRITE_EXTERNAL_STORAGE` (maxSdk 28),
+`lib/widgets/quick_import_access.dart` at all Quick Import buttons, Inventory
+and Wipe everything for the public folders, Help/Inventory wording, tests
+`test/android_quick_folders_255_test.dart` (20 pass) with
+`test/support/fake_android_storage.dart`, version bump, Beta expiry
+`2026-10-26 23:59:59` (release date 26 September), CHANGELOG, README, AGENTS,
+docs. Emulator-checked on Android 16 (see validation). Next: complete suite,
+record it, commit Revision 2.
 
 ## Next
 

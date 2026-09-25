@@ -24,6 +24,7 @@ import '../widgets/image_badges.dart';
 import '../widgets/import_summary.dart';
 import '../services/course_package_service.dart';
 import '../services/import/image_validator.dart';
+import '../widgets/quick_import_access.dart';
 
 class FlatImageLibraryScreen extends StatefulWidget {
   final bool selectMode;
@@ -221,6 +222,20 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
   Future<void> _importSingle({bool fromDialog = false}) async {
     final actor = widget.actorProfileId;
     if (!_canManageMetadata || actor == null) return;
+    if (!fromDialog) {
+      switch (await ensureQuickImportAccess(
+        context,
+        offerOpenFrom: _images.fileDialogsAvailable,
+      )) {
+        case QuickImportAccess.ready:
+          break;
+        case QuickImportAccess.openFrom:
+          return _importSingle(fromDialog: true);
+        case QuickImportAccess.stop:
+          return;
+      }
+      if (!mounted) return;
+    }
     try {
       final PickedImage picked;
       if (fromDialog) {
@@ -347,6 +362,20 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
   Future<void> _importBank({bool fromDialog = false}) async {
     final actor = widget.actorProfileId;
     if (!_canManageMetadata || actor == null) return;
+    if (!fromDialog) {
+      switch (await ensureQuickImportAccess(
+        context,
+        offerOpenFrom: _banks.fileDialogsAvailable,
+      )) {
+        case QuickImportAccess.ready:
+          break;
+        case QuickImportAccess.openFrom:
+          return _importBank(fromDialog: true);
+        case QuickImportAccess.stop:
+          return;
+      }
+      if (!mounted) return;
+    }
     try {
       final ParsedImageBank bank;
       // IDs already in the library are resolved one by one below (skip,
@@ -1141,6 +1170,20 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
   /// package limit; duplicates are skipped. Nothing reaches the Shared Image
   /// Library.
   Future<void> _addToCourse(String source) async {
+    if (source == 'image' || source == 'bank') {
+      switch (await ensureQuickImportAccess(
+        context,
+        offerOpenFrom: _images.fileDialogsAvailable,
+      )) {
+        case QuickImportAccess.ready:
+          break;
+        case QuickImportAccess.openFrom:
+          return _addToCourse(source == 'image' ? 'images_from' : 'bank_from');
+        case QuickImportAccess.stop:
+          return;
+      }
+      if (!mounted) return;
+    }
     final course = _course;
     final onChanged = widget.onCourseChanged;
     if (course == null || onChanged == null) return;

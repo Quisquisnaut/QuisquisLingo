@@ -1,3 +1,55 @@
+# 2.0.55 (Build 255, Revision 2) - Android public Quick folders - 2026-09-26
+
+On Android, every Quick folder is now public, in the shared Download folder
+where file managers, browser downloads and cable copies can reach it, instead
+of app-private storage that people could not open:
+`Download/QuisquisLingo/Imports/…` and `Download/QuisquisLingo/Exports/…`,
+with the same categories below them (Imports: `Courses`, `Merges`, `Audio`,
+`Images`, `Lesson Icons`, plus `learner_import.json`, Recovery Keys and
+`flag.png` in the Imports folder itself; Exports: `Courses`, `Logs`, plus
+learner backups, Recovery Keys and Audit reports in the Exports folder
+itself). Desktop folders are unchanged.
+
+**Quick Export** needs no dialog. On Android 10 and later it writes through
+MediaStore, with no permission at all; a file appears only once it is
+complete, names follow `name`, `name_2`, `name_3` among QQL's own files, and
+the Diagnostic Log snapshot replaces its previous copy. On Android 7–9,
+Android asks once for the storage permission, then QQL writes ordinary files
+in Download.
+
+**Quick Import** reads without a dialog once QQL has access. On Android 10
+and later that is one persisted folder permission for exactly
+`Download/QuisquisLingo/Imports`. The first time, QQL creates the folder,
+explains in one short message, and opens Android's folder screen on it; the
+person taps Use this folder and Allow, and QQL creates the category folders
+inside. Any other folder is refused. The permission is kept across restarts;
+when it is missing, revoked or the folder is gone, QQL asks again and offers
+**Open from…** as the alternative, and never falls back to private storage.
+On Android 7–9 the same message leads to the storage permission. The
+explanation appears at every Quick Import button: Course Import, Course
+Merge, Import my data, Import User Recovery Key, Import MP3, custom and
+single images, Image Bank ZIPs, the portable character image, Lesson icons
+and the custom flag.
+
+**Inventory** lists the Quick Export folder (the files QQL wrote) and the
+Quick Import folder (while QQL has access). **Wipe everything** applies the
+same Keep Exports and Keep Imports ticks to them, and always gives back the
+folder permission. Internal data stays private: Crash Log, Course Backups
+v11, stored Courses and media, staging and preferences. The manifest gains
+`WRITE_EXTERNAL_STORAGE` for Android 9 and older only (`maxSdkVersion 28`).
+
+Checked on the Android 16 emulator: Quick Export of a Course (and a second
+one named `_2`), Export my data, the first Quick Import with its explanation
+and folder screen, Quick Import without any dialog afterwards (a forked
+Course imported as a new Course; a bundled one correctly refused), Import my
+data, a moved (revoked) folder asking again, Open from… instead, Inventory,
+and a full wipe deleting both folders' files and giving back the permission.
+Android 10 and Android 7–9 paths are checked with mocked tests only.
+
+Version `2.0.55+255002`; Beta expiry **2026-10-26 23:59:59 local time** (30
+days from the 26 September 2026 release date). See
+[handoff](docs/255_HANDOFF.md) and [validation](docs/255_VALIDATION.md).
+
 # 2.0.55 (Build 255, Revision 1) - Android Save as… and Open from… - 2026-09-25
 
 Android now has **Save as…** and **Open from…** wherever the desktop has them:

@@ -15,6 +15,7 @@ import 'course_favorite_service.dart';
 import 'course_received_service.dart';
 import 'team_service.dart';
 import 'import/import_stager.dart';
+import 'storage/qql_storage.dart';
 
 /// One thing QQL stores because of user activity: a file, a folder, or a
 /// record kept inside QQL's own settings (which has no file of its own).
@@ -76,6 +77,7 @@ class InventoryService {
   final Future<List<Course>> Function()? _courses;
   final CourseEditorService? _courseService;
   final Future<List<AuthoringTeam>> Function() _teams;
+  final QqlStorage _storage;
 
   InventoryService({
     ProfileService? profiles,
@@ -83,7 +85,9 @@ class InventoryService {
     Future<Directory> Function()? supportDirectory,
     Future<List<Course>> Function()? courses,
     Future<List<AuthoringTeam>> Function()? teams,
+    QqlStorage? storage,
   }) : _profiles = profiles ?? ProfileService(),
+       _storage = storage ?? QqlStorage(),
        _documents = documentsDirectory ?? getApplicationDocumentsDirectory,
        _support = supportDirectory ?? getApplicationSupportDirectory,
        _courseService = courses == null
@@ -145,6 +149,9 @@ class InventoryService {
       return parts.join(' · ');
     }
 
+    // On Android the user folders are public (Download/QuisquisLingo): the
+    // app's own folders then hold only internal files.
+    final public = _storage.publicFolders;
     final documentsRoot = Directory(
       '${(await _documents()).path}${Platform.pathSeparator}QuisquisLingo',
     );
@@ -373,8 +380,9 @@ class InventoryService {
     sections.add(
       await folder(
         title: 'Exports and backups',
-        description:
-            'Learner backups, User Recovery Keys, course exports and the course backups the Course Editor makes automatically before saving changes (in "Course Backups v11"; an older "Course Backups v9" folder is kept but no longer read).',
+        description: public != null
+            ? 'The course backups the Course Editor makes automatically before saving changes (in "Course Backups v11"; an older "Course Backups v9" folder is kept but no longer read). Quick Export files are in the Quick Export folder below.'
+            : 'Learner backups, User Recovery Keys, course exports and the course backups the Course Editor makes automatically before saving changes (in "Course Backups v11"; an older "Course Backups v9" folder is kept but no longer read).',
         directory: Directory('${documentsRoot.path}${sep}Exports'),
         describe: (file, root) async {
           final rel = _relative(file, root);
@@ -416,8 +424,9 @@ class InventoryService {
     sections.add(
       await folder(
         title: 'Imports',
-        description:
-            'Files copied into the Imports folder from outside QQL: images, audio (MP3) files, lesson icons and course files waiting to be imported. QQL only reads them; importing makes separate copies.',
+        description: public != null
+            ? 'Files left in the app\'s own Imports folder by earlier versions. Quick Import now reads the Quick Import folder below.'
+            : 'Files copied into the Imports folder from outside QQL: images, audio (MP3) files, lesson icons and course files waiting to be imported. QQL only reads them; importing makes separate copies.',
         directory: Directory('${documentsRoot.path}${sep}Imports'),
         describe: (file, root) =>
             plain(file, root, note: 'Added from outside QQL.'),
@@ -426,8 +435,9 @@ class InventoryService {
     sections.add(
       await folder(
         title: 'Merges',
-        description:
-            'Course files placed in the Merges folder for a Course Merge.',
+        description: public != null
+            ? 'Files left in the app\'s own Merges folder by earlier versions. Course Merge now reads the Quick Import folder below.'
+            : 'Course files placed in the Merges folder for a Course Merge.',
         directory: Directory('${documentsRoot.path}${sep}Merges'),
         describe: (file, root) =>
             plain(file, root, note: 'Added from outside QQL.'),
@@ -436,12 +446,68 @@ class InventoryService {
     sections.add(
       await folder(
         title: 'Logs',
-        description:
-            'The crash log, the diagnostic log export and the session marker QQL uses to detect an abnormal shutdown.',
+        description: public != null
+            ? 'The crash log and the session marker QQL uses to detect an abnormal shutdown. Diagnostic Log exports are in the Quick Export folder below.'
+            : 'The crash log, the diagnostic log export and the session marker QQL uses to detect an abnormal shutdown.',
         directory: Directory('${documentsRoot.path}${sep}Logs'),
         describe: (file, root) => plain(file, root, note: 'Written by QQL.'),
       ),
     );
+
+    // ---- Android's public folders, Download/QuisquisLingo
+    if (public != null) {
+      for (final (direction, title, description, note) in [
+        (
+          QqlTransferDirection.exports,
+          'Quick Export folder',
+          'Files QQL saved with Quick Export: Course packages, learner '
+              'backups, User Recovery Keys, Audit reports and Diagnostic Log '
+              'copies. Only the files QQL wrote itself are listed.',
+          'Written by QQL.',
+        ),
+        (
+          QqlTransferDirection.imports,
+          'Quick Import folder',
+          'Files copied into the Quick Import folder from outside QQL. QQL '
+              'only reads them; importing makes separate copies. They are '
+              'listed only while QQL has permission to read this folder.',
+          'Added from outside QQL.',
+        ),
+      ]) {
+        List<QqlPublicFile> files;
+        try {
+          files = await public.list(direction);
+        } catch (_) {
+          files = const [];
+        }
+        files = [...files]
+          ..sort(
+            (a, b) => (b.modified ?? DateTime(0)).compareTo(
+              a.modified ?? DateTime(0),
+            ),
+          );
+        sections.add(
+          InventorySection(
+            title: title,
+            description: description,
+            location: public.label(direction),
+            items: [
+              for (final file in files.take(maxListedPerSection))
+                InventoryItem(
+                  name: file.name,
+                  sizeBytes: file.size,
+                  modified: file.modified,
+                  note: note,
+                ),
+            ],
+            hiddenCount: files.length > maxListedPerSection
+                ? files.length - maxListedPerSection
+                : 0,
+            totalBytes: files.fold(0, (sum, file) => sum + (file.size ?? 0)),
+          ),
+        );
+      }
+    }
 
     // ---- Imported media copies in QQL's own storage
     final mediaOwners = <String, String>{};

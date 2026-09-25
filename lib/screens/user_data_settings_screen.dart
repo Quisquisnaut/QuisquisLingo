@@ -8,6 +8,7 @@ import '../services/progress_service.dart';
 import '../services/user_recovery_key_service.dart';
 import '../widgets/file_dialog_feedback.dart';
 import '../services/storage/qql_storage.dart';
+import '../widgets/quick_import_access.dart';
 
 
 String _folder(QqlStorageRole role) =>
@@ -48,6 +49,20 @@ class _UserDataSettingsScreenState extends State<UserDataSettingsScreen> {
       _importRecoveryKey(fromDialog: true);
 
   Future<void> _importRecoveryKey({bool fromDialog = false}) async {
+    if (!fromDialog) {
+      switch (await ensureQuickImportAccess(
+        context,
+        offerOpenFrom: _recovery.fileDialogsAvailable,
+      )) {
+        case QuickImportAccess.ready:
+          break;
+        case QuickImportAccess.openFrom:
+          return _importRecoveryKey(fromDialog: true);
+        case QuickImportAccess.stop:
+          return;
+      }
+      if (!mounted) return;
+    }
     try {
       UserRecoveryKeyCandidate? selected;
       if (fromDialog) {
@@ -70,8 +85,11 @@ class _UserDataSettingsScreenState extends State<UserDataSettingsScreen> {
         if (!mounted) return;
         if (candidates.isEmpty) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('No User Recovery Key is available in Imports.'),
+            SnackBar(
+              content: Text(
+                'No User Recovery Key is available in '
+                '${_folder(QqlStorageRole.recoveryKeyImports)}.',
+              ),
             ),
           );
           return;
@@ -282,6 +300,20 @@ class _UserDataSettingsScreenState extends State<UserDataSettingsScreen> {
   Future<void> _importLearnerFromDialog() => _importLearner(fromDialog: true);
 
   Future<void> _importLearner({bool fromDialog = false}) async {
+    if (!fromDialog) {
+      switch (await ensureQuickImportAccess(
+        context,
+        offerOpenFrom: _backup.fileDialogsAvailable,
+      )) {
+        case QuickImportAccess.ready:
+          break;
+        case QuickImportAccess.openFrom:
+          return _importLearner(fromDialog: true);
+        case QuickImportAccess.stop:
+          return;
+      }
+      if (!mounted) return;
+    }
     try {
       final LearnerBackupDocument document;
       if (fromDialog) {
