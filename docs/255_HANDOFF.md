@@ -1,8 +1,11 @@
 # Build 255 handoff
 
 Plan and audit: [255_STORAGE_PLAN.md](255_STORAGE_PLAN.md). Validation:
-[255_VALIDATION.md](255_VALIDATION.md). Branch `claude/255-storage-roles`
-from `main` at `acf75e4`. One local commit per revision; not pushed, no PR.
+[255_VALIDATION.md](255_VALIDATION.md). Built on branch
+`claude/255-storage-roles` from `main` at `acf75e4`, one commit per revision,
+and merged into `main` through
+[PR #24](https://github.com/Quisquisnaut/QuisquisLingo/pull/24) (merge commit
+`292044e`, 26 September 2026, 17:10 local time). The branch no longer exists.
 
 The untracked `devtools_options.yaml` and `tools/cloud_setup.sh` are the
 owner's and not part of this work: never stage, move or delete them.
@@ -19,12 +22,24 @@ owner's and not part of this work: never stage, move or delete them.
 | `86abde0` | **Revision 3** `2.0.55+255003`: one folder pattern on every system (`Import`, `Export`, `Logs`, `ToBeMerged` below the QuisquisLingo folder, one subfolder per kind), flag from `Import/Flags`, `QQL_` export names, private Crash Log and Course Backups, Crash Log Quick Export, one Android permission for `Download/QuisquisLingo`. Emulator-checked on Android 16. Suite 2,739 passed, 1 skip. |
 | `09e88ba` | **Revision 4** `2.0.55+255004`: private folders and language pairs (`QQL_Courses`, `QQL_CourseMedia`, `QQL_CourseBackups`, `QQL_SharedImages`, `QQL_ImageBanks`, `QQL_ImportStaging`, `QQL_Logs`; `QQL_<pair>_<ID>` in every per-Course name, exports `QQL_<pair>_<title>.zip`, historical `QQL_bkp_…`), clean cut with `tools/move_private_storage_255.dart`, Android Auto Backup exclusions for the new media folders. Emulator-checked on Android 16. Suite 2,757 passed, 1 skip. |
 | `75e699d` | **Revision 5** `2.0.55+255005`: the Backups folder — Course Backups in `QuisquisLingo/Backups/Courses` beside Import and Export on every system (Android: own files, no permission from Android 11, storage permission on 7–10), tolerant Version History, "Keep the Backups folder" in Wipe everything, the tool moves earlier backups there. Emulator-checked on Android 16. Suite 2,764 passed, 1 skip. |
+| `292044e` | Merge of PR #24 into `main` (merge commit, as for earlier PRs; the repository has no CI). |
 
 ## Status
 
+**Build 255 is complete and merged** (26 September 2026): Revisions 0–5 and
+the two earlier commits reached `main` through
+[PR #24](https://github.com/Quisquisnaut/QuisquisLingo/pull/24), merge commit
+`292044e`. The branch `claude/255-storage-roles` was deleted on GitHub and
+locally; the old local branches `codex/build-253-localization` and
+`codex/qql-tools-integration` were deleted too, after checking that all their
+commits were in `main`. The local checkout is on `main`, up to date with
+`origin/main`, and only `main` remains on both sides. The Android emulator
+is closed. The next build starts from `main` at `292044e` (or this handoff's
+own commit).
+
 **Revision 5 (`2.0.55+255005`) is complete** (26 September 2026): the
-Backups folder, analyzer clean, complete suite 2,764 passed with 1 existing skip, emulator-checked on Android 16
-(details in the validation). Nothing is pushed.
+Backups folder, analyzer clean, complete suite 2,764 passed with 1 existing
+skip, emulator-checked on Android 16 (details in the validation).
 
 - Course Backups are in `QuisquisLingo/Backups/Courses` on every system
   (`QqlTopFolder.backups`, `QqlStorage.courseBackupsDirectory()`), written and
@@ -45,7 +60,7 @@ Backups folder, analyzer clean, complete suite 2,764 passed with 1 existing skip
 **Revision 4 (`2.0.55+255004`) is complete** (26 September 2026, ~14:15):
 private folders and language pairs, analyzer clean, complete suite 2,757
 passed with 1 existing skip, emulator-checked on Android 16 (details in the
-validation). Nothing is pushed.
+validation).
 
 - `CourseStorageNames` (`lib/services/storage/course_storage_names.dart`,
   plain Dart) names every per-Course file and folder:
@@ -78,7 +93,7 @@ validation). Nothing is pushed.
 pattern on every system, analyzer clean, complete suite 2,739 passed with
 1 existing skip, emulator-checked on Android 16 (details in the validation).
 
-Revisions 0–2 were complete on 26 September 2026, 02:00. Nothing is pushed.
+Revisions 0–2 were complete on 26 September 2026, 02:00.
 
 Open points for the owner:
 
@@ -131,11 +146,33 @@ is disabled.
   every system.
 - Course Backups are private everywhere; desktop backups made before stay
   where they were, unread (owner chose this after discussion, not a one-time
-  move).
+  move). Superseded by Revision 5, which makes them public.
 - Exported files start with `QQL_` instead of `quisquislingo_`, Save as…
   suggestions included.
 - Android asks once for the whole `Download/QuisquisLingo` folder.
 - Don't worry about existing files: no move, no hint.
+
+## Owner decisions for Revision 4 (26 September 2026)
+
+- QQL's private folders get `QQL_` names in the no-space style of the public
+  ones (`QQL_Courses`, `QQL_CourseMedia`, `QQL_SharedImages`,
+  `QQL_ImageBanks`, `QQL_ImportStaging`, `QQL_Logs`).
+- No language folder levels: the language pair, source then target, goes into
+  every per-Course name instead (`QQL_EN_IT_<ID>`; Italian → Neapolitan is
+  `IT_NAP`); a QQL-made ID is not repeated after the prefix.
+- Backups and exported earlier versions are marked `QQL_bkp_`; exports are
+  `QQL_<pair>_<title>.zip`. The backup format stays as it is.
+- Clean cut in the app, plus a one-off desktop tool the owner runs to move
+  earlier Courses, media and backups.
+
+## Owner decisions for Revision 5 (26 September 2026)
+
+- For consistency, Course Backups move out of private storage into a public
+  folder beside Import, Export, Logs and ToBeMerged, on every system:
+  `Backups/Courses`.
+- Learner backups (User Data) stay in `Export/UserData`.
+- Wipe everything gets "Keep the Backups folder", ticked by default like the
+  others.
 
 ## Gotchas
 
@@ -153,3 +190,11 @@ is disabled.
   `test/support/fake_android_storage.dart` for the Android side.
 - Python scripts are more reliable than shell heredocs for multi-line edits
   here (heredocs lose backslashes).
+- The emulator lags: pause after each input (`adb shell "input tap X Y; sleep
+  1.5"`) and confirm with a screenshot, because a failed `uiautomator dump`
+  leaves the previous XML behind and shows an old screen.
+- `adb shell run-as org.quisquislingo.app` reaches the app's private files but
+  not `/storage/emulated`; check the public folders with a plain `adb shell ls
+  /sdcard/Download/QuisquisLingo`.
+- Course Info Editor shows an existing Course's languages as read-only, so a
+  language change (and Revision 4's rename) cannot be made from the UI.
