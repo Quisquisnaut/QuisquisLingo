@@ -23,13 +23,14 @@ owner's and not part of this work: never stage, move or delete them.
 | `09e88ba` | **Revision 4** `2.0.55+255004`: private folders and language pairs (`QQL_Courses`, `QQL_CourseMedia`, `QQL_CourseBackups`, `QQL_SharedImages`, `QQL_ImageBanks`, `QQL_ImportStaging`, `QQL_Logs`; `QQL_<pair>_<ID>` in every per-Course name, exports `QQL_<pair>_<title>.zip`, historical `QQL_bkp_…`), clean cut with `tools/move_private_storage_255.dart`, Android Auto Backup exclusions for the new media folders. Emulator-checked on Android 16. Suite 2,757 passed, 1 skip. |
 | `75e699d` | **Revision 5** `2.0.55+255005`: the Backups folder — Course Backups in `QuisquisLingo/Backups/Courses` beside Import and Export on every system (Android: own files, no permission from Android 11, storage permission on 7–10), tolerant Version History, "Keep the Backups folder" in Wipe everything, the tool moves earlier backups there. Emulator-checked on Android 16. Suite 2,764 passed, 1 skip. |
 | `292044e` | Merge of PR #24 into `main` (merge commit, as for earlier PRs; the repository has no CI). |
+| `b56b9bf` | **Revision 6** `2.0.55+255006` on local branch `claude/255-rev6-fixes` (from `main` at `2f4f89b`; not pushed, no PR): twelve small corrections — four bundled demos left (German, Spanish, English-from-Spanish, Welsh, Portuguese and Neapolitan removed), All rights reserved demo licenses with Fork kept on Exercise Laboratory and Edge Case, Piedmontais renamed Piedmontese, Courses sections Minimal and saved per learner/tab/category, no startup Beta testing dialog, Advanced (Admin) after Do Not Disturb, enlargeable Flag Game flags and Course Info image, a Course cover in the Course Info Editor (1 MB for the cover alone), a Team Google Drive folder link. Suite 2,766 passed, 1 skip. |
 
 ## Status
 
-**Revision 6 (`2.0.55+255006`) is in progress** (26 September 2026, from
-20:30) on local branch `claude/255-rev6-fixes`, created from `main` at
-`2f4f89b`. Small owner-requested corrections, one local commit when done; no
-push or PR unless asked. Owner decisions (26 September 2026):
+**Revision 6 (`2.0.55+255006`) is complete** (26 September 2026, 20:30 to
+22:30): local commit `b56b9bf` on branch `claude/255-rev6-fixes`, created
+from `main` at `2f4f89b`; not pushed and no PR (the owner decides). Small
+owner-requested corrections. Owner decisions (26 September 2026):
 
 1. Demo licenses: every remaining demo says `All rights reserved`. Exercise
    Laboratory and Edge Case keep `derivativeWorksPolicy: allowed` (they are
