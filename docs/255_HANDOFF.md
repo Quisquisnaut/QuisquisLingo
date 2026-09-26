@@ -20,24 +20,41 @@ owner's and not part of this work: never stage, move or delete them.
 
 ## Status
 
+**Revision 4 (`2.0.55+255004`) is complete** (26 September 2026, ~14:15):
+private folders and language pairs, analyzer clean, complete suite 2,757
+passed with 1 existing skip, emulator-checked on Android 16 (details in the
+validation). Nothing is pushed.
+
+- `CourseStorageNames` (`lib/services/storage/course_storage_names.dart`,
+  plain Dart) names every per-Course file and folder:
+  `QQL_Courses/Custom|Publisher/QQL_<pair>_<ID>.json`,
+  `QQL_CourseMedia/QQL_<pair>_<hash>` (`QQL_<hash>` until first stored),
+  `QQL_CourseBackups/QQL_bkp_<pair>_<ID>/…_v<version>_<stamp>.json`, exports
+  `QQL_<pair>_<title>.zip` and `QQL_bkp_<pair>_<title>_v<version>.zip`.
+  Stores find a Course by the ID inside a file or by the ID or ID hash at
+  the end of a folder name; `CourseEditorService` aligns the media and
+  backup folders after every store write, and the file store renames in
+  place, so a language change renames all three.
+- Other private folders: `QQL_SharedImages`, `QQL_ImageBanks`,
+  `QQL_ImportStaging`, `QQL_Logs` (`QQL_crash.log`, `QQL_session.marker`);
+  temp prefixes `QQL_ImageBank_`, `QQL_TTS_`. `QqlEarlierPrivateFolders`
+  lists the earlier names (never read, except earlier shared images and
+  banks through their stored paths), matches them by exact name and renames
+  Revision 3's `qql_logs` to `QQL_Logs` where case is ignored.
+- Inventory has a "Private folders from earlier versions" section; Wipe
+  everything removes those folders (earlier logs with the Logs choice).
+  Android Auto Backup excludes the new media folders (both XML files; a test
+  ties them to the constants).
+- The store no longer blocks a save because of a readable file holding
+  another Course; a taken name is still never replaced.
+- `tools/move_private_storage_255.dart` (+ test) moves the owner's earlier
+  Courses, media and backups; a dry run on the development PC would move 6
+  Courses and 6 media folders (22 files). It has **not** been run for real:
+  the owner decides when (QQL closed).
+
 **Revision 3 (`2.0.55+255003`) is complete** (26 September 2026): one folder
 pattern on every system, analyzer clean, complete suite 2,739 passed with
 1 existing skip, emulator-checked on Android 16 (details in the validation).
-Nothing is pushed.
-
-**Next: Revision 4 (`2.0.55+255004`), planned, not started**: QQL's private
-folders get `QQL_` names and Course names carry their language pair; see
-[plan › Revision 4](255_STORAGE_PLAN.md#revision-4-private-folders-and-language-levels-planned).
-Decided with the owner: `QQL_` plus no-space names; a clean cut in the app
-plus a one-off desktop tool that moves existing Courses, media and backups;
-Shared Images and Image Banks renamed (existing ones keep working through the
-full paths their records hold); languages as source then target (`EN`, `IT`,
-`NAP`…); no language folder levels: every per-Course name carries the pair
-instead (the owner dropped `source_EN/target_IT` folders), and exported
-packages carry the same pair in the flat `Export/Courses`. **Open
-question** (26 September): one prefix for per-Course names and exports
-(`QQL_EN_IT_<ID>` and `QQL_EN_IT_<title>`) instead of `course_` inside
-private storage.
 
 Revisions 0–2 were complete on 26 September 2026, 02:00. Nothing is pushed.
 
@@ -51,6 +68,13 @@ Open points for the owner:
   renaming them to match Quick Import is a possible follow-up.
 - No Windows or Android release package was built (debug APK only, for the
   emulator checks).
+- Run `dart run tools/move_private_storage_255.dart --dry-run`, then without
+  `--dry-run`, on each desktop with earlier Courses (QQL closed). Until then
+  those Courses are not listed; nothing is lost.
+- Not in Revision 4, for a later decision: Course Backups (`QQL_CourseBackups`,
+  with media copies) and staging leftovers are still included in Android's
+  cloud Auto Backup, as before; the older `qql_courses_v1` and
+  `quisquislingo_audio` stay out of Inventory and Wipe (Build 243 decision).
 
 The one-time scheduled task `resume-qql-build-255` fired at 00:35 while this
 session was active; its run was stopped before it did anything and the task

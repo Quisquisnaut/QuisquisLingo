@@ -83,7 +83,9 @@ class ImportStager {
   ImportStager({Future<Directory> Function()? supportDirectory})
     : _supportDirectory = supportDirectory ?? getApplicationSupportDirectory;
 
-  static const stagingDirectoryName = 'qql_import_staging';
+  /// Build 255 Revision 4 renamed it from `qql_import_staging`, which is
+  /// left untouched.
+  static const stagingDirectoryName = 'QQL_ImportStaging';
 
   /// Batch limits for a multiple selection (owner decision).
   static const maxFilesPerBatch = 100;

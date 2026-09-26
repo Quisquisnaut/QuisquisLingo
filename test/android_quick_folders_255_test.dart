@@ -129,11 +129,11 @@ void main() {
       final second = await transfer.exportCourse(dialogTestCourse());
       expect(
         first,
-        'Download/QuisquisLingo/Export/Courses/QQL_dialog_course.zip',
+        'Download/QuisquisLingo/Export/Courses/QQL_EN_IT_dialog_course.zip',
       );
       expect(
         second,
-        'Download/QuisquisLingo/Export/Courses/QQL_dialog_course_2.zip',
+        'Download/QuisquisLingo/Export/Courses/QQL_EN_IT_dialog_course_2.zip',
       );
       final written = android.downloads[first]!;
       expect(written.sublist(0, 2), [0x50, 0x4B]); // a ZIP
@@ -323,11 +323,11 @@ void main() {
       );
       expect(
         location,
-        'Download/QuisquisLingo/Export/Courses/QQL_dialog_course.zip',
+        'Download/QuisquisLingo/Export/Courses/QQL_EN_IT_dialog_course.zip',
       );
       expect(android.uiCalls, ['requestLegacyWriteAccess']);
       final file = File(
-        '${downloads.path}/QuisquisLingo/Export/Courses/QQL_dialog_course.zip',
+        '${downloads.path}/QuisquisLingo/Export/Courses/QQL_EN_IT_dialog_course.zip',
       );
       expect(await file.exists(), isTrue);
       expect(

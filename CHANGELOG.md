@@ -1,3 +1,56 @@
+# 2.0.55 (Build 255, Revision 4) - Private folders and language pairs - 2026-09-26
+
+QQL's private storage (the application support folder, where it keeps
+Courses, media, backups and logs) now uses short `QQL_` names in the same
+style as the public folders, and every name that belongs to one Course
+carries its language pair, source then target, so sorting by name groups
+the Courses of one pair. There are no language folder levels.
+
+- **Folders:** `QQL_Courses` (`Custom`, `Publisher`), `QQL_CourseMedia`,
+  `QQL_CourseBackups`, `QQL_SharedImages`, `QQL_ImageBanks`,
+  `QQL_ImportStaging` and `QQL_Logs` (`QQL_crash.log`, `QQL_session.marker`)
+  replace `qql_courses_v2`, `quisquislingo_course_media`,
+  `qql_course_backups_v11`, `exercise_images`, `image_banks`,
+  `qql_import_staging` and `qql_logs`. Temporary folders start with `QQL_`
+  too.
+- **Language pairs:** a stored Course is `QQL_EN_IT_<ID>.json`, its media
+  folder `QQL_EN_IT_<hash of the ID>`, its backups
+  `QQL_bkp_EN_IT_<ID>/QQL_bkp_EN_IT_<ID>_v<version>_<date-time>.json`. A
+  code is the language tag's primary subtag, then the language name (Italian
+  → Neapolitan is `IT_NAP`), otherwise `UNKNOWN`. A QQL-made ID is written
+  without its `course_` prefix. When a confirmed change alters a Course's
+  languages, its file, media folder and backup folder are renamed in place;
+  saved versions keep the names of the languages they had. A new Course's
+  media folder is `QQL_<hash>` until it is first stored.
+- **Exports:** Course packages are `QQL_EN_IT_<title>.zip`; an earlier
+  version exported from Version History is `QQL_bkp_EN_IT_<title>_v3.zip`,
+  so it cannot be mistaken for the current Course. The backup format itself
+  is unchanged.
+- **Earlier files (clean cut):** the earlier private folders are no longer
+  read. Shared Image Library images and Image Banks added before keep
+  working from their folders, because their records hold full paths.
+  Inventory lists the other earlier folders as "Private folders from earlier
+  versions", and Wipe everything removes them (the earlier Crash Log with the
+  Logs choice). On Windows and macOS, which ignore case, Revision 3's
+  `qql_logs` is renamed `QQL_Logs` at startup.
+- **One-off tool:** `dart run tools/move_private_storage_255.dart
+  [--support DIR] [--documents DIR] [--dry-run]`, with QQL closed, moves
+  earlier Courses, their media and their backups (including those a desktop
+  kept in `Documents/QuisquisLingo/Exports/Course Backups v11`) to the new
+  names. It never overwrites or deletes, and reports what it moved and what
+  it left.
+- **Course store:** a readable stored file that holds another Course no
+  longer blocks saving this one (two IDs such as `course_ab` and `ab` share
+  a name part); a name that is taken is still never replaced.
+- **Android backup:** the new media folders are excluded from Android's
+  cloud Auto Backup like the earlier ones, so a media import cannot push the
+  app past the 25 MB quota and stop the backup of learner progress.
+
+Version `2.0.55+255004`; Beta expiry **2026-10-26 23:59:59 local time** (30
+days from the 26 September 2026 release date). See
+[plan](docs/255_STORAGE_PLAN.md#revision-4-private-folders-and-language-pairs),
+[handoff](docs/255_HANDOFF.md) and [validation](docs/255_VALIDATION.md).
+
 # 2.0.55 (Build 255, Revision 3) - One folder pattern on every system - 2026-09-26
 
 Windows, Linux, macOS and Android now use the same folders below their

@@ -8,10 +8,10 @@ void main() {
   test('technical version matches the current public build label', () {
     final pubspec = File('pubspec.yaml').readAsStringSync();
 
-    expect(AppMetadata.technicalVersion, '2.0.55+255003');
-    expect(AppMetadata.publicBuildLabel, 'Build 255, Revision 3');
-    expect(AppMetadata.displayLabel, 'Version 2.0.55\nBuild 255, Revision 3');
-    expect(pubspec, contains('version: 2.0.55+255003'));
+    expect(AppMetadata.technicalVersion, '2.0.55+255004');
+    expect(AppMetadata.publicBuildLabel, 'Build 255, Revision 4');
+    expect(AppMetadata.displayLabel, 'Version 2.0.55\nBuild 255, Revision 4');
+    expect(pubspec, contains('version: 2.0.55+255004'));
   });
 
   test('platform application identities use the QuisquisLingo namespace', () {
@@ -45,7 +45,7 @@ void main() {
         .where((file) => file.path.endsWith('.dart'))
         .toList();
     final writers = dartSources.where(
-      (file) => file.readAsStringSync().contains('quisquislingo_crash.log'),
+      (file) => file.readAsStringSync().contains("'QQL_crash.log'"),
     );
     final crash = File(
       'lib/services/crash_log_service.dart',
@@ -59,9 +59,10 @@ void main() {
       'lib/services/crash_log_service.dart',
     ]);
     expect(crash, contains('DiagnosticLogService.logsDirectory(create: true)'));
-    // Build 255 Revision 3: the live Crash Log is private on every system.
+    // Build 255 Revision 3: the live Crash Log is private on every system;
+    // Revision 4 gave its folder a QQL_ name.
     expect(directory, contains('getApplicationSupportDirectory()'));
-    expect(directory, contains("logsDirectoryName = 'qql_logs'"));
+    expect(directory, contains("logsDirectoryName = 'QQL_Logs'"));
     expect(debug, contains("tooltip: 'Share Crash Log'"));
   });
 

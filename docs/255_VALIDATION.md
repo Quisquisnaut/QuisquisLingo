@@ -301,3 +301,110 @@ placeholders).
 1 existing skip, 0 failed** in 27 min 42 s. No production or test file
 changed after it. A debug APK was built for the emulator check; no release
 package.
+
+## Revision 4 — `2.0.55+255004`, 26 September 2026
+
+Beta expiry `2026-10-26 23:59:59` local time (unchanged: released on the same
+day as Revision 3).
+
+### Scope
+
+Private folders and language pairs (owner decisions of 26 September 2026,
+see the plan): QQL's private storage uses `QQL_` names (`QQL_Courses`,
+`QQL_CourseMedia`, `QQL_CourseBackups`, `QQL_SharedImages`, `QQL_ImageBanks`,
+`QQL_ImportStaging`, `QQL_Logs` with `QQL_crash.log` and
+`QQL_session.marker`); every per-Course name carries the language pair,
+source then target (`QQL_EN_IT_<ID>.json`, media `QQL_EN_IT_<hash>`, backups
+`QQL_bkp_EN_IT_<ID>/…_v<version>_<stamp>.json`, exports
+`QQL_EN_IT_<title>.zip`, historical exports `QQL_bkp_EN_IT_<title>_v3.zip`);
+no language folder levels; the backup format is unchanged; clean cut with a
+one-off tool, `tools/move_private_storage_255.dart`.
+
+### Focused evidence
+
+- New `test/private_storage_names_255_test.dart` (12 tests): language codes
+  (tag, name table, the name itself cut to 16, `UNKNOWN`) and pairs
+  (`IT_NAP`, the learning language when no target is named); file, media,
+  backup and export names, including a QQL-made ID written once and an empty
+  version saved as `v0`; the Course store names Custom (`course`) and
+  Publisher (`source`) entries by their pair, renames a file in place on
+  `replaceIfUnchanged` and on `write`, finds a file by the ID inside it
+  whatever its name, and never replaces a taken name (`course_ab` and `ab`
+  share the name part `ab`: both are stored, and a rename onto the other's
+  name is refused); a confirmed language change through
+  `CourseEditorService` renames the Course file, its media folder (which was
+  `QQL_<hash>` before the first save) and its backup folder, while the saved
+  version keeps the name of the languages it had; `qql_logs` becomes
+  `QQL_Logs` only where case is ignored and earlier folders are matched by
+  exact name; both Android Auto Backup files exclude every bulk media folder,
+  new and earlier.
+- New `test/move_private_storage_255_test.dart` (4): the tool moves a
+  Revision 3 layout (Courses of both kinds, media, a private backup folder
+  and a Documents backup folder made by the app's own services) to the new
+  names, where `CourseFileStore`, `CourseMediaStore` and
+  `CourseBackupService.listBackups`/`reinstateMedia` read it; a dry run
+  changes nothing; a Course or file already under the new names is never
+  overwritten and is reported; option parsing and the Windows defaults.
+- `app_reset_service_239_test`: imported media removes the new and the
+  earlier image and bank folders; Wipe everything removes the earlier
+  private folders, the earlier Crash Log only with Logs (two new tests).
+- `inventory_239_test`, `universal_folders_255_test`: the pair-named Course
+  file, media owners found by the ID hash, images and banks from old and new
+  folders, the new "Private folders from earlier versions" section.
+- Existing tests follow the new names (export names now carry `EN_IT`; the
+  race and corruption tests write the file the store actually uses). Three
+  widget tests waited a fixed number of frames for file work that Revision 4
+  lengthened (Version History now finds its folder by listing, Inventory and
+  the media dialog read more folders); they now wait for the expected screen
+  state with the repo's `pumpUntilFileIoState` (10 s real-time bound).
+- Dry run of the tool on the development PC's real data: 6 Courses and 6
+  media folders (22 files) would move to `QQL_Courses/Custom` and
+  `QQL_CourseMedia` as `EN_IT`; no earlier backups there. Nothing was
+  changed; the owner runs it.
+- A case-only folder rename (`qql_logs` → `QQL_Logs`) was checked directly
+  on Windows with the project's Dart: it keeps the folder and its files.
+
+- `flutter build apk --debug --no-pub` built `versionCode 255004` (200 s).
+- Android 16 emulator (Pixel_8 AVD, API 36), installed over the 2.0.42 build
+  the image still held, with Revision 3's private folders laid out by hand
+  in the app's `files/` (`qql_logs/quisquislingo_crash.log`,
+  `qql_courses_v2/custom/course_earlier.json`,
+  `quisquislingo_course_media/course_<hash>/aa.png`,
+  `qql_course_backups_v11/course_earlier/…json`,
+  `qql_import_staging/left.part`), and a new test profile:
+  1. At start QQL created `files/QQL_Logs/QQL_crash.log` and left every
+     earlier folder untouched; Android tells case apart, so `qql_logs` stayed
+     a separate folder, as intended.
+  2. The first-run Beta message and Settings › Debug show the live Crash Log
+     at `/data/user/0/org.quisquislingo.app/files/QQL_Logs/QQL_crash.log`;
+     the Quick Export location is unchanged
+     (`Download/QuisquisLingo/Logs/QQL_crash_log.txt`).
+  3. Course Studio › AI-Slop Demo: Napoletano per italofoni › Export Course ›
+     **Quick Export** wrote
+     `Download/QuisquisLingo/Export/Courses/QQL_IT_NAP_ai_slop_demo_napoletano_per_italofoni.zip`
+     (32,760 bytes) with no dialog: Italian → Neapolitan is `IT_NAP`.
+  4. **Fork** of Exercise Laboratory stored
+     `files/QQL_Courses/Custom/QQL_EN_IT_e1729b00-2fc8-4a1b-ab54-7d709e3eb96c.json`
+     for the Course ID `course_e1729b00-…`: the pair is there and `course_` is
+     not repeated.
+  5. Inventory listed the fork by title and owner with that file, the Crash
+     Log in `QQL_Logs`, the 2.0.42 build's documents-folder log under
+     "Folders from earlier versions", and the five earlier files under the new
+     "Private folders from earlier versions", each with its note.
+  6. Wipe everything with all three Keep choices ticked removed
+     `QQL_Courses` and the four earlier internal folders, kept `QQL_Logs` and
+     the earlier `qql_logs` (Logs choice) and the exported ZIP (Export
+     choice).
+  7. No Flutter error or crash from QQL in the device log; QQL's own Crash Log
+     holds only the session header and debug events.
+- Not checked on the device: the rename after a language change (Course Info
+  is read-only until the Editor is in Edit mode; the unit test runs the same
+  `CourseEditorService` path) and the tool, which is for desktops.
+
+### Final release checks
+
+`flutter analyze --no-pub`: **No issues found**. Complete
+`flutter test --no-pub --concurrency=1` on the final tree: **2,757 passed,
+1 existing skip, 0 failed** in 23 min 42 s. No production or test file
+changed after it. A debug APK was built for the emulator check; no release
+package.

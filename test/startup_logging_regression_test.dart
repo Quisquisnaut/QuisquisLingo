@@ -83,7 +83,7 @@ void main() {
         isTrue,
       );
       expect(source.contains('QuisquisLingo Logs'), isFalse);
-      expect(source.contains('quisquislingo_crash.log'), isTrue);
+      expect(source.contains("'QQL_crash.log'"), isTrue);
       expect(source.contains(r"Build mode: ${_buildMode()}"), isTrue);
     },
   );
@@ -135,8 +135,9 @@ void main() {
       'lib/services/storage/qql_storage_layout.dart': [
         'Documents/QuisquisLingo',
       ],
-      'lib/services/course_media_store.dart': ['quisquislingo_course_media'],
-      'lib/services/tts_linux_backend_io.dart': ['quisquislingo_tts_'],
+      // Build 255 Revision 4: QQL's own folders start with QQL_.
+      'lib/services/course_media_store.dart': ["'QQL_CourseMedia'"],
+      'lib/services/tts_linux_backend_io.dart': ["'QQL_TTS_'"],
     };
 
     for (final entry in expectedByFile.entries) {

@@ -9,9 +9,12 @@ import 'course_file_store.dart';
 import 'course_received_service.dart';
 import 'course_media_store.dart';
 import 'diagnostic_log_service.dart';
+import 'exercise_image_service.dart';
+import 'image_bank_service.dart';
 import 'learner_status_events.dart';
 import 'profile_service.dart';
 import 'import/import_stager.dart';
+import 'storage/qql_earlier_private_folders.dart';
 import 'storage/qql_storage.dart';
 
 /// The ways an admin can reset this device. See
@@ -91,7 +94,14 @@ class AppResetService {
   /// stored date meaningless, so the audio reset clears it too.
   static const audioOrphanCheckKeyPrefix = 'audio_orphan_check_last_';
 
-  static const _imageFolders = <String>['exercise_images', 'image_banks'];
+  /// Shared Image Library device images and Image Banks, in their folders and
+  /// in the folders earlier versions used, whose files are still in use.
+  static const _imageFolders = <String>[
+    ExerciseImageService.sharedImagesDirectoryName,
+    QqlEarlierPrivateFolders.sharedImages,
+    ImageBankService.banksDirectoryName,
+    QqlEarlierPrivateFolders.imageBanks,
+  ];
 
   /// Course media (`CourseMediaStore`) holds both images and recordings, one
   /// folder per Course; the imported-media reset removes them by file type.
@@ -361,6 +371,21 @@ class AppResetService {
       if (!keepLogs) DiagnosticLogService.logsDirectoryName,
     ])) {
       if (await directory.exists()) await directory.delete(recursive: true);
+    }
+    // The private folders earlier versions used go too; their Crash Log
+    // follows the Logs choice.
+    final support = await _support();
+    for (final name in await QqlEarlierPrivateFolders.presentIn(
+      support,
+      [
+        ...QqlEarlierPrivateFolders.retired,
+        if (!keepLogs) QqlEarlierPrivateFolders.logs,
+      ],
+      current: const [DiagnosticLogService.logsDirectoryName],
+    )) {
+      await Directory(
+        '${support.path}${Platform.pathSeparator}$name',
+      ).delete(recursive: true);
     }
     final root = await _qqlDocuments();
     if (await root.exists()) {

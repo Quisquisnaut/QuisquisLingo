@@ -313,7 +313,7 @@ void main() {
       final exported = await transfer.exportCourse(course);
       final qql = await root();
       expect(File(exported).parent.path, '$qql${_sep}Export${_sep}Courses');
-      expect(File(exported).uri.pathSegments.last, 'QQL_dialog_course.zip');
+      expect(File(exported).uri.pathSegments.last, 'QQL_EN_IT_dialog_course.zip');
 
       final imports = await transfer.importFolder();
       expect(imports.location, '$qql${_sep}Import${_sep}Courses');

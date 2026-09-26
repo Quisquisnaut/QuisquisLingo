@@ -14,8 +14,12 @@ import 'course_media_store.dart';
 import 'course_favorite_service.dart';
 import 'course_received_service.dart';
 import 'diagnostic_log_service.dart';
+import 'exercise_image_service.dart';
+import 'image_bank_service.dart';
 import 'team_service.dart';
 import 'import/import_stager.dart';
+import 'storage/course_storage_names.dart';
+import 'storage/qql_earlier_private_folders.dart';
 import 'storage/qql_storage.dart';
 
 /// One thing QQL stores because of user activity: a file, a folder, or a
@@ -351,11 +355,20 @@ class InventoryService {
       return null;
     }
 
+    // A stored file is `QQL_<pair>_<ID>.json`: it is matched by the ID part,
+    // which stays when the Course's languages change.
     final courseByFile = <String, Course>{
       for (final course in courses)
-        '${course.originType == CourseOriginType.custom ? CourseStoreKind.custom.directoryName : CourseStoreKind.externalOfficial.directoryName}$sep${CourseBackupService.sanitizedCourseId(course.courseId)}.json':
+        '${course.originType == CourseOriginType.custom ? CourseStoreKind.custom.directoryName : CourseStoreKind.externalOfficial.directoryName}$sep${CourseStorageNames.idPart(course.courseId)}':
             course,
     };
+    Course? storedCourse(String relative) {
+      final parts = relative.split(RegExp(r'[\\/]'));
+      if (parts.length != 2) return null;
+      final idPart = CourseStorageNames.idPartOfCourseFile(parts.last);
+      return idPart == null ? null : courseByFile['${parts.first}$sep$idPart'];
+    }
+
     sections.add(
       await folder(
         title: 'Custom and installed courses',
@@ -366,7 +379,7 @@ class InventoryService {
           '$supportRoot$sep${CourseFileStore.rootDirectoryName}',
         ),
         describe: (file, root) async {
-          final course = courseByFile[_relative(file, root)];
+          final course = storedCourse(_relative(file, root));
           final stat = await file.stat();
           return InventoryItem(
             name: course == null
@@ -546,19 +559,65 @@ class InventoryService {
         describe: describeBackupOrExport,
       ),
     );
+    const earlierPrivateNotes = <String, String>{
+      QqlEarlierPrivateFolders.courses: 'Stored course from an earlier version.',
+      QqlEarlierPrivateFolders.courseMedia:
+          'Course media from an earlier version.',
+      QqlEarlierPrivateFolders.courseBackups:
+          'Course backup from an earlier version.',
+      QqlEarlierPrivateFolders.importStaging:
+          'Import copy left by an earlier version.',
+      QqlEarlierPrivateFolders.logs: 'Crash Log from an earlier version.',
+    };
+    sections.add(
+      await folder(
+        title: 'Private folders from earlier versions',
+        description:
+            'Courses, course media, Course Backups, import copies and the '
+            'Crash Log where QQL kept them before Build 255 Revision 4 gave '
+            'its own folders QQL_ names. QQL no longer reads them; a one-off '
+            'tool moves earlier Courses, their media and backups to the new '
+            'names. Wipe everything removes them, the earlier Crash Log with '
+            'the Logs choice.',
+        directory: Directory(supportRoot),
+        only: await QqlEarlierPrivateFolders.presentIn(
+          Directory(supportRoot),
+          earlierPrivateNotes.keys,
+          current: const [DiagnosticLogService.logsDirectoryName],
+        ),
+        describe: (file, root) => plain(
+          file,
+          root,
+          note:
+              earlierPrivateNotes[_relative(
+                file,
+                root,
+              ).split(RegExp(r'[\\/]')).first] ??
+              'From an earlier version.',
+        ),
+      ),
+    );
 
     // ---- Imported media copies in QQL's own storage
+    // Keyed by the ID hash a Course media folder's name ends with, whatever
+    // its language pair.
     final mediaOwners = <String, String>{};
     for (final course in courses) {
-      mediaOwners[CourseMediaStore.folderNameFor(course.courseId)] =
+      mediaOwners[CourseStorageNames.hashOf(course.courseId)] =
           '${course.title.isEmpty ? course.courseId : course.title} · ${ownerOf(course)}';
     }
     sections.add(
       await folder(
         title: 'Imported images',
         description:
-            'Copies QQL made in its own storage when you imported images or image banks.',
-        directory: Directory('$supportRoot${sep}exercise_images'),
+            'Copies QQL made in its own storage when you imported images or image banks. '
+            'Images added before Build 255 Revision 4 stay in the earlier '
+            '${QqlEarlierPrivateFolders.sharedImages} folder, where they keep working.',
+        directory: Directory(supportRoot),
+        only: const [
+          ExerciseImageService.sharedImagesDirectoryName,
+          QqlEarlierPrivateFolders.sharedImages,
+        ],
         describe: (file, root) =>
             plain(file, root, note: 'Imported exercise image.'),
       ),
@@ -579,8 +638,14 @@ class InventoryService {
       await folder(
         title: 'Image banks',
         description:
-            'Imported image banks (each with its manifest and images).',
-        directory: Directory('$supportRoot${sep}image_banks'),
+            'Imported image banks (each with its manifest and images). Banks '
+            'imported before Build 255 Revision 4 stay in the earlier '
+            '${QqlEarlierPrivateFolders.imageBanks} folder, where they keep working.',
+        directory: Directory(supportRoot),
+        only: const [
+          ImageBankService.banksDirectoryName,
+          QqlEarlierPrivateFolders.imageBanks,
+        ],
         describe: (file, root) =>
             plain(file, root, note: 'Part of an imported image bank.'),
       ),
@@ -603,7 +668,9 @@ class InventoryService {
                 ? 'Course recording (MP3).'
                 : 'Course image.',
             owner:
-                mediaOwners[courseFolder] ??
+                mediaOwners[CourseStorageNames.hashOfMediaFolder(
+                  courseFolder,
+                )] ??
                 'A course no longer on this device',
           );
         },

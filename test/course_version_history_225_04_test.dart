@@ -6,6 +6,8 @@ import 'package:quisquislingo_app/models/course_models.dart';
 import 'package:quisquislingo_app/screens/course_version_history_screen.dart';
 import 'package:quisquislingo_app/services/course_backup_service.dart';
 
+import 'support/pump_file_io.dart';
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -66,9 +68,14 @@ void main() {
         ),
       );
       await tester.tap(find.text('Open history'));
-      await tester.pumpAndSettle();
+      // Version History lists the backup folders to find this Course's.
+      await tester.pumpUntilFileIoState(
+        () => find.text('Course version: 3').evaluate().isNotEmpty,
+      );
 
-      final folder = await backups.courseBackupDirectory('history-course');
+      final folder = (await tester.runAsync(
+        () => backups.courseBackupDirectory('history-course'),
+      ))!;
       expect(
         find.text('Course Backups: ${folder.absolute.path}'),
         findsOneWidget,
@@ -111,7 +118,7 @@ class _HistoryBackupService extends CourseBackupService {
       records;
 
   @override
-  Future<bool> openBackupFolder(String courseId) async => false;
+  Future<bool> openBackupFolder(Course course) async => false;
 }
 
 Course _course({

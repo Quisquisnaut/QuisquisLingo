@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -8,24 +7,29 @@ import 'package:path_provider/path_provider.dart';
 import '../models/course_models.dart';
 import 'course_image_usage.dart';
 import 'import/image_validator.dart';
+import 'storage/course_storage_names.dart';
 
 /// The one home of a Course's own images and recordings.
 ///
 /// A Course names such a file by content, never by path: `media:<sha256>.<ext>`
 /// with the lowercase SHA-256 of the bytes. Every device keeps the file in
-/// `<AppSupport>/quisquislingo_course_media/<course folder>/<sha256>.<ext>`, so
-/// the Course JSON is identical everywhere and a signature over it also pins
-/// the media bytes. Each Course has its own folder: Fork, Copy as New Course
-/// and Merge copy the files they need, and deleting a Course deletes its
-/// folder. Bundled `assets/` media and embedded `data:` images are not stored
-/// here.
+/// `<AppSupport>/QQL_CourseMedia/<course folder>/<sha256>.<ext>`, so the Course
+/// JSON is identical everywhere and a signature over it also pins the media
+/// bytes. Each Course has its own folder, `QQL_<pair>_<hash of the ID>` (see
+/// [CourseStorageNames]); a new Course's folder is `QQL_<hash>` until its
+/// first confirmed save gives it the language pair ([alignFolder]). A folder
+/// is found by the hash at the end of its name. Fork, Copy as New Course and
+/// Merge copy the files they need, and deleting a Course deletes its folder.
+/// Bundled `assets/` media and embedded `data:` images are not stored here.
 class CourseMediaStore {
   CourseMediaStore({Future<Directory> Function()? supportDirectory})
     : _supportDirectory = supportDirectory ?? getApplicationSupportDirectory;
 
   final Future<Directory> Function() _supportDirectory;
 
-  static const rootDirectoryName = 'quisquislingo_course_media';
+  /// Build 255 Revision 4 renamed it from `quisquislingo_course_media`, which
+  /// is left untouched and no longer read.
+  static const rootDirectoryName = 'QQL_CourseMedia';
   static const audioExtensions = {'mp3'};
   static const imageExtensions = {'png', 'jpg', 'jpeg', 'webp'};
   static const maxAudioBytes = 50 * 1024 * 1024;
@@ -64,14 +68,10 @@ class CourseMediaStore {
     return 'media:${sha256.convert(bytes)}.$ext';
   }
 
-  /// The folder name used for a Course, stable across devices.
-  static String folderNameFor(String courseId) {
-    final value = courseId.trim();
-    if (value.isEmpty) {
-      throw ArgumentError.value(courseId, 'courseId', 'Course ID is required');
-    }
-    return 'course_${sha256.convert(utf8.encode(value))}';
-  }
+  /// The folder name a Course has before its first confirmed save,
+  /// `QQL_<hash of the ID>`; afterwards the language pair precedes the hash.
+  static String folderNameFor(String courseId) =>
+      CourseStorageNames.mediaFolderName(courseId);
 
   /// Every `media:` reference [course] keeps: Audio Library clips, the images
   /// [CourseImageUsage] finds in its Lessons and cover, and the unused images
@@ -89,16 +89,72 @@ class CourseMediaStore {
     '$rootDirectoryName',
   );
 
+  /// Folders already found, by root and Course ID, so showing an image does
+  /// not list every Course folder.
+  static final Map<String, String> _knownFolders = {};
+
+  /// The folder of [courseId], found by the ID hash at the end of its name
+  /// whatever its language pair; the neutral `QQL_<hash>` when it has none.
   Future<Directory> courseDirectory(
     String courseId, {
     bool create = false,
   }) async {
-    final directory = Directory(
-      '${(await rootDirectory()).path}${Platform.pathSeparator}'
-      '${folderNameFor(courseId)}',
+    final root = await rootDirectory();
+    final key = '${root.path}\u0000$courseId';
+    Directory? directory;
+    final known = _knownFolders[key];
+    if (known != null && await Directory(known).exists()) {
+      directory = Directory(known);
+    } else {
+      directory = await _findFolder(root, courseId);
+      if (directory == null) {
+        _knownFolders.remove(key);
+      } else {
+        _knownFolders[key] = directory.path;
+      }
+    }
+    directory ??= Directory(
+      '${root.path}${Platform.pathSeparator}${folderNameFor(courseId)}',
     );
     if (create) await directory.create(recursive: true);
     return directory;
+  }
+
+  static Future<Directory?> _findFolder(Directory root, String courseId) async {
+    if (!await root.exists()) return null;
+    final hash = CourseStorageNames.hashOf(courseId);
+    Directory? neutral;
+    await for (final entity in root.list(followLinks: false)) {
+      if (entity is! Directory) continue;
+      final name = entity.uri.pathSegments.lastWhere((s) => s.isNotEmpty);
+      if (CourseStorageNames.hashOfMediaFolder(name) != hash) continue;
+      if (name != folderNameFor(courseId)) return entity;
+      neutral = entity;
+    }
+    return neutral;
+  }
+
+  /// Gives [course]'s folder the name of its current language pair, after
+  /// its first confirmed save or a change of its languages. A folder that
+  /// cannot be renamed keeps its name and is still found by the ID hash.
+  Future<void> alignFolder(Course course) async {
+    try {
+      final root = await rootDirectory();
+      final existing = await _findFolder(root, course.courseId);
+      if (existing == null) return;
+      final wanted = CourseStorageNames.mediaFolderName(
+        course.courseId,
+        pair: CourseStorageNames.pairOfCourse(course),
+      );
+      final current = existing.uri.pathSegments.lastWhere((s) => s.isNotEmpty);
+      if (current == wanted) return;
+      final target = Directory('${root.path}${Platform.pathSeparator}$wanted');
+      if (await target.exists()) return;
+      await existing.rename(target.path);
+      _knownFolders['${root.path}\u0000${course.courseId}'] = target.path;
+    } catch (_) {
+      // Only a name: the folder is still found by the Course ID hash.
+    }
   }
 
   /// Where [reference] lives for [courseId], whether or not it exists.
@@ -268,6 +324,7 @@ class CourseMediaStore {
     try {
       final directory = await courseDirectory(courseId);
       if (await directory.exists()) await directory.delete(recursive: true);
+      _knownFolders.remove('${(await rootDirectory()).path}\u0000$courseId');
     } catch (_) {}
   }
 

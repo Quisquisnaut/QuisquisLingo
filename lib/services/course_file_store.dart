@@ -6,11 +6,12 @@ import 'package:crypto/crypto.dart';
 import 'package:path_provider/path_provider.dart';
 
 import 'course_backup_service.dart';
+import 'storage/course_storage_names.dart';
 
 /// Which authoring store a Course belongs to.
 enum CourseStoreKind {
-  custom('custom'),
-  externalOfficial('external_official');
+  custom('Custom'),
+  externalOfficial('Publisher');
 
   const CourseStoreKind(this.directoryName);
   final String directoryName;
@@ -54,11 +55,11 @@ class CourseFileStore {
   }) : _supportDirectory = supportDirectory ?? getApplicationSupportDirectory,
        _fileWriter = fileWriter;
 
-  /// Versioned so a later storage change can be another clean cut. `v2`
-  /// arrived with Course Model v11: the `qql_courses_v1` tree holds v9/v10
-  /// Courses, is left on disk untouched and is never read, so one unreadable
-  /// old Course cannot block every Course list.
-  static const rootDirectoryName = 'qql_courses_v2';
+  /// Build 255 Revision 4 renamed the store and its files (a clean cut). The
+  /// earlier `qql_courses_v2` tree (Course Model v11) and `qql_courses_v1`
+  /// tree (v9/v10) are left on disk untouched and are never read; a one-off
+  /// tool moves the owner's earlier Courses.
+  static const rootDirectoryName = 'QQL_Courses';
 
   /// Per Course, replacing the old 8 MB cap on all courses combined. It matches
   /// the import limit, so anything importable is storable.
@@ -132,10 +133,98 @@ class CourseFileStore {
     return Directory('${root.path}${Platform.pathSeparator}$rootDirectoryName');
   }
 
-  File _fileFor(Directory directory, String courseId) => File(
+  /// The file [entry] is stored in: `QQL_<pair>_<id>.json`, with the
+  /// language pair of the Course the entry holds (`course` for a custom
+  /// Course, `source` for a Publisher Course).
+  File _targetFor(Directory directory, String courseId, Object? entry) => File(
     '${directory.path}${Platform.pathSeparator}'
-    '${CourseBackupService.sanitizedCourseId(courseId)}.json',
+    '${CourseStorageNames.courseFileName(courseId, _pairOf(entry))}',
   );
+
+  static String _pairOf(Object? entry) {
+    if (entry is Map) {
+      final course = entry['course'] ?? entry['source'];
+      if (course is Map) return CourseStorageNames.pairOfJson(course);
+    }
+    const unknown = CourseStorageNames.unknownLanguage;
+    return '${unknown}_$unknown';
+  }
+
+  static bool _sameIdPart(String? a, String b) {
+    if (a == null) return false;
+    return Platform.isWindows ? a.toLowerCase() == b.toLowerCase() : a == b;
+  }
+
+  static bool _samePath(File a, File b) => Platform.isWindows
+      ? a.absolute.path.toLowerCase() == b.absolute.path.toLowerCase()
+      : a.absolute.path == b.absolute.path;
+
+  /// The one file holding [courseId], with its record, or null. A file is
+  /// found by the ID inside it, because its name is lossy and carries a
+  /// language pair that can change. A file named for this ID that cannot be
+  /// read, one claiming the ID without an entry, and a second file claiming
+  /// it are refused rather than silently chosen or replaced. A readable file
+  /// holding another Course is not this one; the writes below never replace
+  /// it, because they refuse a name that is taken.
+  Future<({File file, Map<String, dynamic> record, List<int> bytes})?>
+  _findUnlocked(Directory directory, String courseId) async {
+    final idPart = CourseStorageNames.idPart(courseId);
+    ({File file, Map<String, dynamic> record, List<int> bytes})? found;
+    await for (final entity in directory.list(followLinks: false)) {
+      if (entity is! File || !entity.path.toLowerCase().endsWith('.json')) {
+        continue;
+      }
+      final named = _sameIdPart(
+        CourseStorageNames.idPartOfCourseFile(_name(entity)),
+        idPart,
+      );
+      final ({Map<String, dynamic> record, List<int> bytes}) read;
+      try {
+        read = await _readRecord(entity);
+      } on FormatException {
+        if (named) rethrow;
+        continue;
+      }
+      final id = read.record['courseId'];
+      if (id == courseId) {
+        if (!read.record.containsKey('entry')) {
+          throw FormatException(
+            'Stored Course record ${_name(entity)} has no entry. '
+            'The file was preserved.',
+          );
+        }
+        if (found != null) {
+          throw FormatException(
+            'Two stored Course records both claim the Course ID $courseId. '
+            'Both files were preserved.',
+          );
+        }
+        found = (file: entity, record: read.record, bytes: read.bytes);
+      }
+    }
+    return found;
+  }
+
+  /// Moves [found] to [target] when the Course's language pair changed, so the
+  /// write that follows replaces it in place. Refuses when [target] is taken
+  /// by another file, which is never replaced.
+  Future<void> _renameTo(File found, File target) async {
+    if (_samePath(found, target)) return;
+    await _refuseTaken(target);
+    await found.rename(target.path);
+  }
+
+  /// Refuses [target] when another file has its name already: one holding
+  /// another Course, which is never replaced.
+  static Future<void> _refuseTaken(File target) async {
+    if (await target.exists()) {
+      throw FormatException(
+        'The stored file ${_name(target)} already holds another Course, so '
+        'it was kept and nothing was saved. Move that file out of '
+        '${target.parent.path} to save this Course.',
+      );
+    }
+  }
 
   /// Every stored record for [kind], keyed by the Course ID held inside each
   /// file rather than by its file name, because the file name is sanitized and
@@ -264,47 +353,12 @@ class CourseFileStore {
   ) async {
     final directory = await directoryFor(kind);
     if (!await directory.exists()) return null;
-    final target = _fileFor(directory, courseId);
-    CourseStoredRecord? result;
-    if (await target.exists()) {
-      final stored = await _readRecord(target);
-      if (stored.record['courseId'] != courseId ||
-          !stored.record.containsKey('entry')) {
-        throw FormatException(
-          'Stored Course record ${_name(target)} does not belong to '
-          '$courseId or has no entry. The file was preserved.',
-        );
-      }
-      result = CourseStoredRecord(
-        stored.record['entry'],
-        sha256.convert(stored.bytes).toString(),
-      );
-    }
-    // The filename is a lossy form of the ID. Detect another readable file
-    // claiming this ID before a create, replacement, or deletion.
-    await for (final entity in directory.list(followLinks: false)) {
-      if (entity is! File || !entity.path.toLowerCase().endsWith('.json')) {
-        continue;
-      }
-      final samePath = Platform.isWindows
-          ? entity.absolute.path.toLowerCase() ==
-                target.absolute.path.toLowerCase()
-          : entity.absolute.path == target.absolute.path;
-      if (samePath) continue;
-      final Map<String, dynamic> other;
-      try {
-        other = await _decode(entity);
-      } on FormatException {
-        continue;
-      }
-      if (other['courseId'] == courseId) {
-        throw FormatException(
-          'Two stored Course records both claim the Course ID $courseId. '
-          'Both files were preserved.',
-        );
-      }
-    }
-    return result;
+    final found = await _findUnlocked(directory, courseId);
+    if (found == null) return null;
+    return CourseStoredRecord(
+      found.record['entry'],
+      sha256.convert(found.bytes).toString(),
+    );
   }
 
   /// Creates only when no file or duplicate record claims this Course ID.
@@ -317,11 +371,9 @@ class CourseFileStore {
       throw StateError('Stored Course $courseId already exists.');
     }
     final directory = await directoryFor(kind, create: true);
-    await _writeEncoded(
-      _fileFor(directory, courseId),
-      _encode(courseId, entry),
-      requireAbsent: true,
-    );
+    final target = _targetFor(directory, courseId, entry);
+    await _refuseTaken(target);
+    await _writeEncoded(target, _encode(courseId, entry), requireAbsent: true);
   });
 
   /// Replaces one record only when it still has the caller's exact token.
@@ -331,16 +383,20 @@ class CourseFileStore {
     Object? entry, {
     required String expectedToken,
   }) => withCourseLock(courseId, () async {
-    final current = await _snapshotUnlocked(kind, courseId);
-    if (current == null || current.token != expectedToken) {
+    final directory = await directoryFor(kind);
+    final found = await directory.exists()
+        ? await _findUnlocked(directory, courseId)
+        : null;
+    if (found == null ||
+        sha256.convert(found.bytes).toString() != expectedToken) {
       throw StateError('Stored Course $courseId changed before replacement.');
     }
-    final directory = await directoryFor(kind);
-    await _writeEncoded(
-      _fileFor(directory, courseId),
-      _encode(courseId, entry),
-      expectedToken: expectedToken,
-    );
+    final encoded = _encode(courseId, entry);
+    final target = _targetFor(directory, courseId, entry);
+    // A changed language pair renames the file first, so the replacement
+    // below stays atomic and never leaves two files claiming the Course.
+    await _renameTo(found.file, target);
+    await _writeEncoded(target, encoded, expectedToken: expectedToken);
   });
 
   /// Removes one record only when it still has the caller's exact token.
@@ -349,26 +405,36 @@ class CourseFileStore {
     String courseId, {
     required String expectedToken,
   }) => withCourseLock(courseId, () async {
-    final current = await _snapshotUnlocked(kind, courseId);
-    if (current == null || current.token != expectedToken) {
+    final directory = await directoryFor(kind);
+    final found = await directory.exists()
+        ? await _findUnlocked(directory, courseId)
+        : null;
+    if (found == null ||
+        sha256.convert(found.bytes).toString() != expectedToken) {
       throw StateError('Stored Course $courseId changed before removal.');
     }
-    final directory = await directoryFor(kind);
-    final target = _fileFor(directory, courseId);
-    if (!await target.exists()) {
-      throw StateError('Stored Course $courseId disappeared before removal.');
-    }
-    final latest = await _readRecord(target);
+    final latest = await _readRecord(found.file);
     if (sha256.convert(latest.bytes).toString() != expectedToken) {
       throw StateError('Stored Course $courseId changed before removal.');
     }
-    await target.delete();
+    await found.file.delete();
   });
 
+  /// Whether a file named for [courseId] is stored, readable or not.
   Future<bool> contains(CourseStoreKind kind, String courseId) async {
     final directory = await directoryFor(kind);
     if (!await directory.exists()) return false;
-    return _fileFor(directory, courseId).exists();
+    final idPart = CourseStorageNames.idPart(courseId);
+    await for (final entity in directory.list(followLinks: false)) {
+      if (entity is File &&
+          _sameIdPart(
+            CourseStorageNames.idPartOfCourseFile(_name(entity)),
+            idPart,
+          )) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /// Writes one Course record, leaving every other Course untouched.
@@ -379,23 +445,23 @@ class CourseFileStore {
   ) => withCourseLock(courseId, () async {
     final encoded = _encode(courseId, entry);
     final directory = await directoryFor(kind, create: true);
-    final target = _fileFor(directory, courseId);
+    final target = _targetFor(directory, courseId, entry);
     // Never replace a file that the listing skipped: it may be the only copy
     // of a Course, and its owner has to recover it by hand.
-    if (await target.exists()) {
-      Object? existingId;
-      try {
-        existingId = (await _decode(target))['courseId'];
-      } on FormatException {
-        existingId = null;
-      }
-      if (existingId != courseId) {
-        throw FormatException(
-          'The stored file ${_name(target)} cannot be read as this Course, so '
-          'it was kept and nothing was saved. Move that file out of '
-          '${directory.path} to save this Course.',
-        );
-      }
+    final ({File file, Map<String, dynamic> record, List<int> bytes})? found;
+    try {
+      found = await _findUnlocked(directory, courseId);
+    } on FormatException {
+      throw FormatException(
+        'A stored file for this Course cannot be read as this Course, so it '
+        'was kept and nothing was saved. Move that file out of '
+        '${directory.path} to save this Course.',
+      );
+    }
+    if (found != null) {
+      await _renameTo(found.file, target);
+    } else {
+      await _refuseTaken(target);
     }
     await _writeEncoded(target, encoded);
   });
@@ -469,8 +535,8 @@ class CourseFileStore {
       withCourseLock(courseId, () async {
         final directory = await directoryFor(kind);
         if (!await directory.exists()) return;
-        final target = _fileFor(directory, courseId);
-        if (await target.exists()) await target.delete();
+        final found = await _findUnlocked(directory, courseId);
+        if (found != null) await found.file.delete();
       });
 }
 

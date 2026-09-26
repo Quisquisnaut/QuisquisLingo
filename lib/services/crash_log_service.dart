@@ -16,6 +16,12 @@ import 'storage/qql_storage.dart';
 class CrashLogService {
   static const _maximumLogBytes = 2 * 1024 * 1024;
 
+  /// The live Crash Log and the session marker, in
+  /// [DiagnosticLogService.logsDirectory]. Build 255 Revision 4 renamed them
+  /// from `quisquislingo_crash.log` and `quisquislingo_session.marker`.
+  static const crashLogFileName = 'QQL_crash.log';
+  static const sessionMarkerFileName = 'QQL_session.marker';
+
   CrashLogService._();
 
   static final CrashLogService instance = CrashLogService._();
@@ -38,14 +44,14 @@ class CrashLogService {
       final directory = await DiagnosticLogService.logsDirectory(create: true);
       if (directory == null) return;
       _file = File(
-        '${directory.path}${Platform.pathSeparator}quisquislingo_crash.log',
+        '${directory.path}${Platform.pathSeparator}$crashLogFileName',
       );
       // Only desktop close paths are hooked (see window_setup_io.dart), so
       // detection is limited there to avoid false alarms on mobile, where the
       // OS may end a session without any notification.
       if (Platform.isWindows || Platform.isLinux) {
         _markerFile = File(
-          '${directory.path}${Platform.pathSeparator}quisquislingo_session.marker',
+          '${directory.path}${Platform.pathSeparator}$sessionMarkerFileName',
         );
       }
       _initialised = true;

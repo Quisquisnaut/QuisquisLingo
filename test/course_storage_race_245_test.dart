@@ -8,6 +8,7 @@ import 'package:quisquislingo_app/models/course_models.dart';
 import 'package:quisquislingo_app/services/course_backup_service.dart';
 import 'package:quisquislingo_app/services/course_editor_service.dart';
 import 'package:quisquislingo_app/services/course_file_store.dart';
+import 'package:quisquislingo_app/services/storage/course_storage_names.dart';
 import 'package:quisquislingo_app/services/course_media_store.dart';
 import 'package:quisquislingo_app/services/course_package_import.dart';
 import 'package:quisquislingo_app/services/course_package_service.dart';
@@ -120,7 +121,7 @@ void main() {
     final directory = await store.directoryFor(CourseStoreKind.custom);
     final target = File(
       '${directory.path}${Platform.pathSeparator}'
-      '${CourseBackupService.sanitizedCourseId(original.courseId)}.json',
+      '${CourseStorageNames.courseFileName(original.courseId, CourseStorageNames.pairOfCourse(original))}',
     );
     await target.writeAsString(
       jsonEncode({

@@ -10,6 +10,8 @@ import 'package:quisquislingo_app/services/profile_service.dart';
 import 'package:quisquislingo_app/widgets/app_restart_scope.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'support/pump_file_io.dart';
+
 final _course = Course(
   courseId: 'qql-239-admin-course',
   learningLanguage: 'Italian',
@@ -62,6 +64,17 @@ void main() {
         () => Future<void>.delayed(const Duration(milliseconds: 25)),
       );
     }
+    await tester.pumpAndSettle();
+  }
+
+  /// The media dialog counts the files in every media folder first.
+  Future<void> settleMediaDialog(WidgetTester tester) async {
+    await tester.pumpUntilFileIoState(
+      () => find
+          .byKey(const Key('admin-media-remove-audio'))
+          .evaluate()
+          .isNotEmpty,
+    );
     await tester.pumpAndSettle();
   }
 
@@ -396,7 +409,7 @@ void main() {
 
     final image = touch('${root.path}/support/exercise_images/a.png');
     final audio = touch(
-      '${root.path}/support/quisquislingo_course_media/c/${'a' * 64}.mp3',
+      '${root.path}/support/QQL_CourseMedia/c/${'a' * 64}.mp3',
     );
     await open(tester);
     await tester.ensureVisible(
@@ -404,7 +417,7 @@ void main() {
     );
     await tester.pump();
     await tester.tap(find.byKey(const Key('admin-reset-button-importedMedia')));
-    await settle(tester);
+    await settleMediaDialog(tester);
 
     final images = find.byKey(const Key('admin-media-remove-images'));
     final audios = find.byKey(const Key('admin-media-remove-audio'));
@@ -438,7 +451,7 @@ void main() {
     tester,
   ) async {
     await profiles.setOwnAccessPin(actorProfileId: adminId, pin: '1234');
-    File('${root.path}/support/quisquislingo_course_media/c/${'a' * 64}.mp3')
+    File('${root.path}/support/QQL_CourseMedia/c/${'a' * 64}.mp3')
       ..createSync(recursive: true)
       ..writeAsStringSync('x');
     await open(tester);
@@ -447,7 +460,7 @@ void main() {
     );
     await tester.pump();
     await tester.tap(find.byKey(const Key('admin-reset-button-importedMedia')));
-    await settle(tester);
+    await settleMediaDialog(tester);
 
     final images = find.byKey(const Key('admin-media-remove-images'));
     final audio = find.byKey(const Key('admin-media-remove-audio'));
@@ -467,7 +480,7 @@ void main() {
     );
     await tester.pump();
     await tester.tap(find.byKey(const Key('admin-reset-button-importedMedia')));
-    await settle(tester);
+    await settleMediaDialog(tester);
 
     expect(find.byKey(const Key('admin-media-nothing')), findsOneWidget);
     expect(
@@ -498,7 +511,7 @@ void main() {
     );
     await tester.pump();
     await tester.tap(find.byKey(const Key('admin-reset-button-importedMedia')));
-    await settle(tester);
+    await settleMediaDialog(tester);
 
     final images = find.byKey(const Key('admin-media-remove-images'));
     expect(tester.widget<CheckboxListTile>(images).onChanged, isNotNull);

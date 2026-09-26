@@ -48,15 +48,15 @@ void main() {
     await store.write(CourseStoreKind.custom, 'b', {'v': 1});
 
     final directory = await store.directoryFor(CourseStoreKind.custom);
-    final before = await File(
-      '${directory.path}${Platform.pathSeparator}b.json',
-    ).lastModified();
+    // An entry without Course languages is named with UNKNOWN_UNKNOWN.
+    final b = File(
+      '${directory.path}${Platform.pathSeparator}QQL_UNKNOWN_UNKNOWN_b.json',
+    );
+    final before = await b.lastModified();
 
     await store.write(CourseStoreKind.custom, 'a', {'v': 2});
 
-    final after = await File(
-      '${directory.path}${Platform.pathSeparator}b.json',
-    ).lastModified();
+    final after = await b.lastModified();
     expect(after, before, reason: 'an unrelated Course file was rewritten');
     expect(await store.readAll(CourseStoreKind.custom), {
       'a': {'v': 2},
@@ -182,15 +182,16 @@ void main() {
     });
   });
 
-  test('records are plain JSON on disk under a versioned root', () async {
+  test('records are plain JSON on disk, one QQL_ file per Course', () async {
     final store = CourseFileStore(supportDirectory: supportDirectory);
     await store.write(CourseStoreKind.custom, 'a', {'title': 'A'});
 
     final root = await store.rootDirectory();
-    expect(root.path, endsWith(CourseFileStore.rootDirectoryName));
+    expect(root.path, endsWith('QQL_Courses'));
 
     final file = File(
-      '${root.path}${Platform.pathSeparator}custom${Platform.pathSeparator}a.json',
+      '${root.path}${Platform.pathSeparator}Custom${Platform.pathSeparator}'
+      'QQL_UNKNOWN_UNKNOWN_a.json',
     );
     expect(jsonDecode(await file.readAsString()), {
       'courseId': 'a',

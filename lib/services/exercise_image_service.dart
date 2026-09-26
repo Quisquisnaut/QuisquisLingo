@@ -60,6 +60,12 @@ class ExerciseImageService {
        _stager = stager ?? ImportStager(supportDirectory: supportDirectory),
        _storage = storage ?? QqlStorage();
 
+  /// The Shared Image Library's device images, in QQL's private storage.
+  /// Build 255 Revision 4 renamed it from `exercise_images`; images added
+  /// before keep opening from there, because their records hold full
+  /// paths.
+  static const sharedImagesDirectoryName = 'QQL_SharedImages';
+
   static const int maxImageBytes = 50 * 1024;
   static const int recommendedImageBytes = 15 * 1024;
   static const int recommendedPixels = 256;
@@ -241,7 +247,8 @@ class ExerciseImageService {
     final now = DateTime.now();
     final id = 'local_${now.microsecondsSinceEpoch}';
     final dir = Directory(
-      '${(await _supportDirectory()).path}${Platform.pathSeparator}exercise_images',
+      '${(await _supportDirectory()).path}${Platform.pathSeparator}'
+      '$sharedImagesDirectoryName',
     );
     await dir.create(recursive: true);
     // QQL chooses the name and the extension (from the content), never the

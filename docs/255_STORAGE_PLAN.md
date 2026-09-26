@@ -25,9 +25,10 @@ Owner plan of 25 September 2026 (Europe/Rome), with the owner's answers:
 | 1 | `2.0.55+255001` | Android native storage bridge: Storage Access Framework **Save as…** and **Open from…** (document URIs streamed into the existing bounded staging). |
 | 2 | `2.0.55+255002` | Android public Quick folders: dialog-free Quick Export to `Download/QuisquisLingo/Exports/...`, Quick Import from `Download/QuisquisLingo/Imports/...` with one persisted folder permission, the other user outputs, Inventory and Reset. |
 | 3 | `2.0.55+255003` | One folder pattern on every system (see [Revision 3](#revision-3-one-folder-pattern-on-every-system)): `Import`, `Export`, `Logs`, `ToBeMerged`; flag import fixed; Crash Log Quick Export; `QQL_` export names; Crash Log and Course Backups private everywhere. |
+| 4 | `2.0.55+255004` | Private folders (see [Revision 4](#revision-4-private-folders-and-language-pairs)): `QQL_` names, the language pair in every per-Course name (`QQL_EN_IT_<ID>`, backups `QQL_bkp_…`), exports `QQL_EN_IT_<title>.zip`; clean cut plus a one-off tool. |
 
 One local commit per revision, handoff in `docs/255_HANDOFF.md`, no push.
-Revisions 0–3 are implemented; Android was checked on the Android 16
+Revisions 0–4 are implemented; Android was checked on the Android 16
 emulator, and the Android 10 and Android 7–9 paths by mocked tests only (the
 owner chose not to download older emulator images).
 
@@ -86,30 +87,31 @@ QuisquisLingo/
 Files read by name stay the same (`import.zip`, `merge.zip`,
 `learner_import.json`, `flag.png`). Internal data stays private as before.
 
-## Revision 4: private folders and language pairs (planned)
+## Revision 4: private folders and language pairs
 
 Owner decisions of 26 September 2026, `2.0.55+255004`. QQL's private storage
 (the platform's application-support directory) gets `QQL_` names in the same
-no-space style as the public folders, and every per-Course file or folder
-name carries the Course's language pair, source then target. There are no
-language folder levels: sorting by name groups each pair, paths stay short
-on Windows, and a language change is a rename in place.
+no-space style as the public folders, and every per-Course name carries the
+Course's language pair, source then target (`EN_IT`). There are no language
+folder levels: sorting by name groups each pair, paths stay short on
+Windows, and a language change is a rename in place.
 
 ```
-QQL_Courses/Custom/<pair>_<ID>.json
-QQL_Courses/Publisher/<pair>_<ID>.json
-QQL_CourseMedia/<pair>_<sha256 of the ID>/<sha256>.<ext>   images and recordings
-QQL_CourseBackups/<pair>_<ID>/…                            Version History
+QQL_Courses/Custom/QQL_EN_IT_<ID>.json
+QQL_Courses/Publisher/QQL_EN_IT_<ID>.json
+QQL_CourseMedia/QQL_EN_IT_<sha256 of the ID>/<sha256>.<ext>    images and recordings
+QQL_CourseBackups/QQL_bkp_EN_IT_<ID>/
+    QQL_bkp_EN_IT_<ID>_v<version>_<date-time>.json (+ …_assets/)  one per saved version
 QQL_SharedImages/        Shared Image Library device images
 QQL_ImageBanks/
 QQL_ImportStaging/
 QQL_Logs/                QQL_crash.log, QQL_session.marker
 ```
 
-`<pair>` is the prefix and the two codes, e.g. `…_EN_IT`; the exact prefix
-of per-Course names (`course_` or `QQL_`) is being settled with the owner.
-Exported Course packages carry the same pair before their title in the flat
-`Export/Courses` folder.
+Exported Course packages carry the same pair in the flat `Export/Courses`
+folder: `QQL_EN_IT_<title>.zip`. An earlier version exported from Version
+History (Export historical version, Save historical version as…) is marked
+as a backup and carries its version: `QQL_bkp_EN_IT_<title>_v3.zip`.
 
 1. **Language codes.** One owner turns a Course into its pair. A code is the
    primary subtag of the Course's language tag in capitals when there is one
@@ -117,14 +119,16 @@ Exported Course packages carry the same pair before their title in the flat
    name (English → `EN`, Neapolitan → `NAP`), otherwise the name itself in
    capitals with letters and digits only; empty gives `UNKNOWN`. Exercise
    Laboratory (English → Italian) is `EN_IT`; Italian → Neapolitan is
-   `IT_NAP`.
+   `IT_NAP`. The naming owner is plain Dart, so the one-off tool uses the
+   same code.
 2. **Finding a Course.** Most callers know only the Course ID. A stored name
    ends with the ID (or its hash for media), so the stores find it whatever
    the pair; new names use the Course's current pair.
 3. **Changing languages.** When a confirmed save changes a Course's source or
    target language, its file, media folder and backup folder are renamed in
-   place under the same per-Course lock. A rename that fails part-way leaves
-   the Course readable under its old name.
+   place under the same per-Course lock. Versions saved earlier keep their
+   own names, which record the languages they had. A rename that fails
+   part-way leaves the Course readable under its old name.
 4. **IDs in names.** A QQL-made ID's own `course_` prefix is not repeated;
    bundled and Publisher IDs are used as they are. The store keeps refusing
    to replace a file that holds another Course, so even an unlikely name
@@ -139,10 +143,44 @@ Exported Course packages carry the same pair before their title in the flat
    private data (earlier logs follow the Logs choice).
 6. **One-off tool.** A desktop tool, like `tools/convert_course_to_v11.dart`,
    that the owner runs once with QQL closed: it moves each stored Course, its
-   media and its backups from the earlier folders to the new names, never
-   deletes or overwrites, and reports what it moved.
+   media and its backups (also those a desktop kept in
+   `Documents/QuisquisLingo/Exports/Course Backups v11` before Revision 3)
+   to the new names, never deletes or overwrites, and reports what it moved.
 7. Preference keys keep their names (renaming them would reset settings).
    Course JSON is unchanged: media references stay `media:<sha256>.<ext>`.
+   A backup is a complete earlier version of a Course with copies of its
+   media; `bkp` marks it as earlier, not partial.
+
+What the implementation added, found while building it:
+
+8. **Case.** `qql_logs` and `QQL_Logs` differ only in case, so on
+   Windows and macOS they are one folder. At startup
+   (`DiagnosticLogService.logsDirectory(create: true)`)
+   `QqlEarlierPrivateFolders.giveCurrentCase` gives such a folder its new
+   name; a direct case-only rename was checked to work on Windows. Inventory
+   and Wipe everything find earlier folders by their exact names
+   (`QqlEarlierPrivateFolders.presentIn`) and skip one that is the same
+   folder as a current one. On Linux and Android the earlier folder stays
+   untouched.
+9. **Taken names.** The Course store finds a file by the ID inside it; a
+   readable file holding another Course is now simply not this one,
+   instead of blocking the save (IDs such as `course_ab` and `ab` share
+   the name part `ab`). A name that is taken is still never replaced:
+   create, write and the rename on a language change refuse it.
+10. **Android backup.** The Auto Backup exclusions follow the renames:
+    `QQL_ImageBanks`, `QQL_SharedImages` and `QQL_CourseMedia` are
+    excluded in both XML files beside the earlier names, and a test ties
+    the files to the code's constants.
+11. Temporary folders in the system's temp directory start with `QQL_`
+    too (`QQL_ImageBank_…`, `QQL_TTS_…`).
+12. **The tool.** `dart run tools/move_private_storage_255.dart
+    [--support DIR] [--documents DIR] [--dry-run]`; on Windows the
+    defaults are `%APPDATA%\QuisquisLingo\quisquislingo_app` and
+    `%USERPROFILE%\Documents`. A Course already stored under the new
+    names is left alone; media and backup files are merged into an
+    existing folder file by file, never replacing one; a file on another
+    drive is copied and its earlier copy stays. A dry run on the
+    development PC showed 6 Courses and 6 media folders to move.
 
 ## Architecture
 

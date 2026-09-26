@@ -19,7 +19,7 @@ Build 243 makes v11 the single accepted format and a clean cut: v9 and v10 files
 
 ### Course media references (v11, Build 243 Revision 2)
 
-A Course names its own images and recordings by content, never by a path on one device: `media:<sha256>.<ext>`, where `<sha256>` is the lowercase SHA-256 of the file bytes and `<ext>` is `mp3`, `png`, `jpg`, `jpeg` or `webp`. Each device keeps the file in the Course's own folder, `<AppSupport>/quisquislingo_course_media/course_<sha256(courseId)>/<sha256>.<ext>` (`CourseMediaStore`), so the same JSON is valid everywhere and a signature over it also pins the media.
+A Course names its own images and recordings by content, never by a path on one device: `media:<sha256>.<ext>`, where `<sha256>` is the lowercase SHA-256 of the file bytes and `<ext>` is `mp3`, `png`, `jpg`, `jpeg` or `webp`. Each device keeps the file in the Course's own folder, `<AppSupport>/QQL_CourseMedia/QQL_<pair>_<sha256(courseId)>/<sha256>.<ext>` (`CourseMediaStore`; Build 255 Revision 4, where `<pair>` is the Course's language pair and a new Course's folder is `QQL_<sha256(courseId)>` until it is first stored), so the same JSON is valid everywhere and a signature over it also pins the media.
 
 - Audio Library `filePath`: empty, a bundled `assets/…` recording or `media:<sha256>.mp3`.
 - Every `image` element `asset` (prompt and Item content, anywhere in the Lessons): empty, a bundled `assets/…` image, an embedded `data:image/…` image or an image `media:` reference.

@@ -413,6 +413,7 @@ class _HistoryBackups extends CourseBackupService {
   Future<Directory> courseBackupDirectory(
     String courseId, {
     bool create = false,
+    String? pair,
   }) async {
     final directory = Directory(
       '${Directory.systemTemp.path}/qql_22601_readonly_ui/$courseId',

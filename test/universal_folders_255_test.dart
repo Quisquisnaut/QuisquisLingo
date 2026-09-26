@@ -75,13 +75,14 @@ void main() {
     test('the live Crash Log and the Course Backups live in QQL\'s private '
         'storage, not in the QuisquisLingo folder', () async {
       final support = (await getApplicationSupportDirectory()).path;
+      // Revision 4 gave both folders QQL_ names.
       expect(
         (await DiagnosticLogService.logsDirectory())!.path,
-        '$support${_sep}qql_logs',
+        '$support${_sep}QQL_Logs',
       );
       expect(
         (await CourseBackupService().backupRoot()).path,
-        '$support${_sep}qql_course_backups_v11',
+        '$support${_sep}QQL_CourseBackups',
       );
     });
 
@@ -92,8 +93,9 @@ void main() {
       final live = File(crash.crashLogPath!);
       expect(
         live.parent.path,
-        '${(await getApplicationSupportDirectory()).path}${_sep}qql_logs',
+        '${(await getApplicationSupportDirectory()).path}${_sep}QQL_Logs',
       );
+      expect(live.uri.pathSegments.last, 'QQL_crash.log');
       final expected = '${await qqlRoot()}${_sep}Logs${_sep}QQL_crash_log.txt';
       expect(await crash.exportPath(), expected);
 
@@ -135,8 +137,10 @@ void main() {
       ]) {
         await put(qql, relative);
       }
+      await put(support.path, 'QQL_CourseBackups/QQL_bkp_EN_IT_c1/backup.json');
+      await put(support.path, 'QQL_Logs/QQL_crash.log');
+      // Revision 3's private backup folder, before Revision 4's names.
       await put(support.path, 'qql_course_backups_v11/c1/backup.json');
-      await put(support.path, 'qql_logs/quisquislingo_crash.log');
     });
 
     test('Inventory lists the four folders, the private copies and the '
@@ -156,8 +160,11 @@ void main() {
       expect(names('Import folder'), ['Courses/import.zip']);
       expect(names('ToBeMerged folder'), ['Courses/merge.zip']);
       expect(names('Logs folder'), ['QQL_crash_log.txt']);
-      expect(names('Course backups'), ['c1/backup.json']);
-      expect(names('Crash Log'), ['quisquislingo_crash.log']);
+      expect(names('Course backups'), ['QQL_bkp_EN_IT_c1/backup.json']);
+      expect(names('Crash Log'), ['QQL_crash.log']);
+      expect(names('Private folders from earlier versions'), [
+        'qql_course_backups_v11/c1/backup.json',
+      ]);
       expect(names('Folders from earlier versions'), [
         'Exports/Course Backups v11/c1/backup.json',
         'Imports/old.zip',
@@ -205,11 +212,11 @@ void main() {
         'Merges',
         'ToBeMerged',
       ]);
-      expect(topLevel(support.path), ['qql_logs']);
+      expect(topLevel(support.path), ['QQL_Logs']);
 
       await wipe(keepExports: false, keepImports: false);
       expect(topLevel(qql), ['Logs']);
-      expect(topLevel(support.path), ['qql_logs']);
+      expect(topLevel(support.path), ['QQL_Logs']);
 
       await wipe(keepLogs: false);
       expect(topLevel(qql), isEmpty);

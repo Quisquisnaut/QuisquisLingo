@@ -12,6 +12,11 @@
     data_extraction_rules.xml for the full reasoning.
 -->
 <full-backup-content>
+    <exclude domain="file" path="QQL_ImageBanks/" />
+    <exclude domain="file" path="QQL_SharedImages/" />
+    <exclude domain="file" path="QQL_CourseMedia/" />
+    <!-- Names before Build 255 Revision 4; images and banks added then are
+         still in use there, and the other folders may stay on the device. -->
     <exclude domain="file" path="image_banks/" />
     <exclude domain="file" path="exercise_images/" />
     <exclude domain="file" path="quisquislingo_course_media/" />

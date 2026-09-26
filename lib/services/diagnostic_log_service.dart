@@ -7,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'app_errors.dart';
 import 'bounded_log_writer.dart';
+import 'storage/qql_earlier_private_folders.dart';
 import 'storage/qql_storage.dart';
 
 class DiagnosticLogService {
@@ -44,8 +45,9 @@ class DiagnosticLogService {
 
   /// The private folder of the live Crash Log and the session marker, in
   /// QQL's own app storage on every system. People get copies through
-  /// Settings › Debug, in the Logs folder.
-  static const logsDirectoryName = 'qql_logs';
+  /// Settings › Debug, in the Logs folder. Build 255 Revision 4 renamed it
+  /// from `qql_logs`.
+  static const logsDirectoryName = 'QQL_Logs';
 
   static Future<Directory?> logsDirectory({bool create = false}) async {
     if (kIsWeb) return null;
@@ -53,7 +55,14 @@ class DiagnosticLogService {
     final directory = Directory(
       '${support.path}${Platform.pathSeparator}$logsDirectoryName',
     );
-    if (create) await directory.create(recursive: true);
+    if (create) {
+      // Where case is ignored, Revision 3's `qql_logs` is this folder.
+      await QqlEarlierPrivateFolders.giveCurrentCase(
+        support,
+        logsDirectoryName,
+      );
+      await directory.create(recursive: true);
+    }
     return directory;
   }
 

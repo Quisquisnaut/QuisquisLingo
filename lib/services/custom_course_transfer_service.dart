@@ -16,6 +16,7 @@ import 'import/json_limits.dart';
 import 'import/image_validator.dart';
 import 'storage/file_system_storage.dart';
 import 'storage/qql_storage.dart';
+import 'storage/course_storage_names.dart';
 
 /// The exact bytes and base file name a course export produces, shared by the
 /// Quick Export and the dialog-based Save as…
@@ -291,8 +292,13 @@ class CustomCourseTransferService {
   }
 
   /// Builds the export bytes and base name. Shared by [exportCourse] and
-  /// [exportCourseTo], so both write identical data.
-  Future<CourseExportPayload> buildCourseExport(Course course) async {
+  /// [exportCourseTo], so both write identical data. The name is
+  /// `QQL_<pair>_<title>`; an earlier version from Version History passes its
+  /// [historicalVersion] and is named `QQL_bkp_<pair>_<title>_v<version>`.
+  Future<CourseExportPayload> buildCourseExport(
+    Course course, {
+    String? historicalVersion,
+  }) async {
     final payload = const JsonEncoder.withIndent('  ').convert(course.toJson());
     final bytes = Uint8List.fromList(utf8.encode(payload));
     if (bytes.length > maxJsonBytes) {
@@ -300,22 +306,27 @@ class CustomCourseTransferService {
         'Course JSON exceeds the 10 MB export safety limit.',
       );
     }
-    final safe = course.title
-        .trim()
-        .toLowerCase()
-        .replaceAll(RegExp(r'[^a-z0-9]+'), '_')
-        .replaceAll(RegExp(r'^_+|_+$'), '');
     return CourseExportPayload(
       await _packages.build(course, bytes),
-      'QQL_${safe.isEmpty ? 'custom_course' : safe}',
+      CourseStorageNames.exportBaseName(
+        pair: CourseStorageNames.pairOfCourse(course),
+        title: course.title,
+        historicalVersion: historicalVersion,
+      ),
     );
   }
 
   /// Save as…: the same export as [exportCourse], written wherever the user
   /// chooses in the system dialog. Additional to, not a replacement for, the
   /// Quick Export folder.
-  Future<FileDialogResult> exportCourseTo(Course course) async {
-    final payload = await buildCourseExport(course);
+  Future<FileDialogResult> exportCourseTo(
+    Course course, {
+    String? historicalVersion,
+  }) async {
+    final payload = await buildCourseExport(
+      course,
+      historicalVersion: historicalVersion,
+    );
     return _fileDialogs.saveBytes(
       bytes: payload.bytes,
       suggestedName: payload.fileName,
@@ -409,8 +420,11 @@ class CustomCourseTransferService {
     return (dialog: result, course: course);
   }
 
-  Future<String> exportCourse(Course course) async {
-    final export = await buildCourseExport(course);
+  Future<String> exportCourse(Course course, {String? historicalVersion}) async {
+    final export = await buildCourseExport(
+      course,
+      historicalVersion: historicalVersion,
+    );
     // Keep course exports independent from desktop file-picker/portal support.
     // They always go to one predictable Quick Export folder. (Save as… is a
     // separate, additional route: see exportCourseTo.)

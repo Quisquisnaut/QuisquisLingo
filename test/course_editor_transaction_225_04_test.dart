@@ -6,6 +6,7 @@ import 'dart:typed_data';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:quisquislingo_app/models/course_models.dart';
 import 'package:quisquislingo_app/services/course_backup_service.dart';
+import 'package:quisquislingo_app/services/storage/course_storage_names.dart';
 import 'package:quisquislingo_app/services/course_media_store.dart';
 import 'package:quisquislingo_app/services/course_editor_service.dart';
 import 'package:quisquislingo_app/services/course_file_store.dart';
@@ -203,8 +204,9 @@ void main() {
       expect(
         result.backupPath,
         contains(
-          '${Platform.pathSeparator}qql_course_backups_v11${Platform.pathSeparator}'
-          '${source.courseId}${Platform.pathSeparator}',
+          '${Platform.pathSeparator}QQL_CourseBackups${Platform.pathSeparator}'
+          '${CourseStorageNames.backupFolderName(source.courseId, CourseStorageNames.pairOfCourse(source))}'
+          '${Platform.pathSeparator}',
         ),
       );
       final history = await backups.listBackups(source.courseId);

@@ -4,6 +4,7 @@ import '../models/course_models.dart';
 import '../services/course_backup_service.dart';
 import '../services/course_audit_service.dart';
 import '../services/custom_course_transfer_service.dart';
+import '../services/storage/course_storage_names.dart';
 import '../widgets/file_dialog_feedback.dart';
 
 class CourseHistorySelection {
@@ -39,6 +40,7 @@ class _CourseVersionHistoryScreenState
   _loadHistory() async {
     final directory = await widget.backupService.courseBackupDirectory(
       widget.course.courseId,
+      pair: CourseStorageNames.pairOfCourse(widget.course),
     );
     final records = widget.course.originType.isOfficial
         ? await widget.backupService.listOfficialBackups(widget.course.courseId)
@@ -114,10 +116,19 @@ class _CourseVersionHistoryScreenState
     Navigator.pop(context, CourseHistorySelection.restore(record.course));
   }
 
+  /// The version an exported earlier version is named with: its Course
+  /// version, or the official version of a bundled or Publisher Course.
+  static String _versionOf(Course course) => course.originType.isOfficial
+      ? course.officialCourseVersion
+      : course.courseVersion;
+
   Future<void> _exportHistorical(Course course) async {
     try {
       final notice = CourseAuditService().auditCourse(course).exportNotice;
-      final path = await _transfer.exportCourse(course);
+      final path = await _transfer.exportCourse(
+        course,
+        historicalVersion: _versionOf(course),
+      );
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -139,7 +150,10 @@ class _CourseVersionHistoryScreenState
   Future<void> _saveHistoricalTo(Course course) async {
     try {
       final notice = CourseAuditService().auditCourse(course).exportNotice;
-      final result = await _transfer.exportCourseTo(course);
+      final result = await _transfer.exportCourseTo(
+        course,
+        historicalVersion: _versionOf(course),
+      );
       if (!mounted) return;
       showFileDialogFeedback(
         context,
@@ -182,7 +196,7 @@ class _CourseVersionHistoryScreenState
             OutlinedButton.icon(
               onPressed: () async {
                 final opened = await widget.backupService.openBackupFolder(
-                  widget.course.courseId,
+                  widget.course,
                 );
                 if (!opened && context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(

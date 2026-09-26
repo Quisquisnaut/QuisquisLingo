@@ -8,6 +8,7 @@ import 'package:quisquislingo_app/screens/course_projects_screen.dart';
 import 'package:quisquislingo_app/services/course_editor_service.dart';
 import 'package:quisquislingo_app/services/course_file_store.dart';
 import 'package:quisquislingo_app/services/profile_service.dart';
+import 'package:quisquislingo_app/services/storage/course_storage_names.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'support/pump_file_io.dart';
@@ -96,7 +97,11 @@ void main() {
 
     test('write never replaces an unreadable or foreign file', () async {
       final store = CourseFileStore();
-      final broken = await writeRaw('victim.json', '{ not json');
+      // Named as the store names this Course (an entry without languages).
+      final broken = await writeRaw(
+        'QQL_UNKNOWN_UNKNOWN_victim.json',
+        '{ not json',
+      );
       await expectLater(
         store.write(CourseStoreKind.custom, 'victim', {'v': 1}),
         throwsA(isA<FormatException>()),
@@ -104,7 +109,7 @@ void main() {
       expect(await broken.readAsString(), '{ not json');
 
       final foreign = await writeRaw(
-        'claimed.json',
+        'QQL_UNKNOWN_UNKNOWN_claimed.json',
         jsonEncode({'courseId': 'someone-else', 'entry': {}}),
       );
       final before = await foreign.readAsString();
@@ -155,7 +160,13 @@ void main() {
         learnerProfileId: _profileId,
       );
       await ProfileService().setActiveProfileById(_profileId);
-      final broken = await writeRaw('victim.json', '{ not json');
+      final broken = await writeRaw(
+        CourseStorageNames.courseFileName(
+          'victim',
+          CourseStorageNames.pairOfCourse(_course('victim')),
+        ),
+        '{ not json',
+      );
       await expectLater(
         CourseEditorService().installImportedCustomCourse(_course('victim')),
         throwsA(isA<FormatException>()),

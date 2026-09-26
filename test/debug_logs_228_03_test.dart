@@ -48,9 +48,9 @@ void main() {
       // app support and documents share a root here.
       expect(
         File(crashPath!).parent.path,
-        '${documents.path}${Platform.pathSeparator}qql_logs',
+        '${documents.path}${Platform.pathSeparator}QQL_Logs',
       );
-      expect(File(crashPath).uri.pathSegments.last, 'quisquislingo_crash.log');
+      expect(File(crashPath).uri.pathSegments.last, 'QQL_crash.log');
       expect(await File(crashPath).exists(), isTrue);
       expect(File(diagnosticPath!).parent.path, logsFolder);
       expect(

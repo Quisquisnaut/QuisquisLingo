@@ -45,13 +45,22 @@ void main() {
     );
     await earlierV11.create(recursive: true);
     await earlierV11.writeAsString(legacyBytes, flush: true);
+    // Revision 4 renamed the private folder of Revision 3, which is left
+    // alone and not read either.
+    final revision3 = File(
+      '${documents.path}${Platform.pathSeparator}qql_course_backups_v11'
+      '${Platform.pathSeparator}backup-clean-cut${Platform.pathSeparator}old.json',
+    );
+    await revision3.create(recursive: true);
+    await revision3.writeAsString(legacyBytes, flush: true);
 
     expect(await backups.listBackups('backup-clean-cut'), isEmpty);
     expect(await legacyManifest.readAsString(), legacyBytes);
     expect(await earlierV11.readAsString(), legacyBytes);
+    expect(await revision3.readAsString(), legacyBytes);
     expect(
       (await backups.backupRoot()).path,
-      '${documents.path}${Platform.pathSeparator}qql_course_backups_v11',
+      '${documents.path}${Platform.pathSeparator}QQL_CourseBackups',
     );
 
     await expectLater(
@@ -97,6 +106,7 @@ void main() {
       final directory = await backups.courseBackupDirectory(
         'obsolete-local-variant',
         create: true,
+        pair: 'EN_IT',
       );
       final manifest = File(
         '${directory.path}${Platform.pathSeparator}obsolete.json',

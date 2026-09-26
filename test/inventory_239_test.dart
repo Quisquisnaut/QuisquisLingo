@@ -9,8 +9,10 @@ import 'package:quisquislingo_app/screens/inventory_screen.dart';
 import 'package:quisquislingo_app/services/inventory_service.dart';
 import 'package:quisquislingo_app/services/course_file_store.dart';
 import 'package:quisquislingo_app/services/profile_service.dart';
-import 'package:quisquislingo_app/services/course_media_store.dart';
+import 'package:quisquislingo_app/services/storage/course_storage_names.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import 'support/pump_file_io.dart';
 
 final _course = Course(
   courseId: 'qql-239-inventory-course',
@@ -96,7 +98,9 @@ void main() {
       expect(item.sizeBytes, file.lengthSync());
       expect(item.modified, file.statSync().modified);
       expect(courses.totalBytes, file.lengthSync());
-      expect(courses.location, endsWith('qql_courses_v2'));
+      expect(courses.location, endsWith('QQL_Courses'));
+      // Revision 4: QQL_<pair>_<ID>.json, the ID without its course_ prefix.
+      expect(file.uri.pathSegments.last, startsWith('QQL_EN_IT_'));
       expect(courses.items.single.owner, isNotNull);
     },
   );
@@ -135,7 +139,7 @@ void main() {
     'inventory lists unreadable course files without altering them',
     () async {
       final file = touch(
-        '${support.path}${sep}qql_courses_v2${sep}custom${sep}broken.json',
+        '${support.path}${sep}QQL_Courses${sep}Custom${sep}broken.json',
         'broken-json',
       );
       final actual = InventoryService(
@@ -170,7 +174,8 @@ void main() {
       );
       // Course backups are private since Build 255 Revision 3.
       touch(
-        '${support.path}${sep}qql_course_backups_v11${sep}c_1_2026.json',
+        '${support.path}${sep}QQL_CourseBackups${sep}QQL_bkp_EN_IT_c$sep'
+        'QQL_bkp_EN_IT_c_v1_2026.json',
         jsonEncode({'reason': 'Pre-change Course Editor transaction backup'}),
       );
       touch(
@@ -182,14 +187,27 @@ void main() {
       touch(qql('Logs/QQL_crash_log.txt'));
       touch(qql('notes.txt'));
       touch(qql('Stuff/inner.bin'));
+      // Images and banks from before Revision 4 keep working where they are.
       touch('${support.path}${sep}exercise_images${sep}a.png');
+      touch('${support.path}${sep}QQL_SharedImages${sep}b.png');
       touch('${support.path}${sep}image_banks${sep}bank_1${sep}manifest.json');
-      final hash = CourseMediaStore.folderNameFor(_course.courseId);
-      touch(
-        '${support.path}${sep}quisquislingo_course_media$sep$hash$sep${'a' * 64}.mp3',
+      touch('${support.path}${sep}QQL_ImageBanks${sep}bank_2${sep}manifest.json');
+      final folder = CourseStorageNames.mediaFolderName(
+        _course.courseId,
+        pair: CourseStorageNames.pairOfCourse(_course),
       );
       touch(
-        '${support.path}${sep}quisquislingo_course_media${sep}course_unknown$sep${'b' * 64}.png',
+        '${support.path}${sep}QQL_CourseMedia$sep$folder$sep${'a' * 64}.mp3',
+      );
+      touch(
+        '${support.path}${sep}QQL_CourseMedia${sep}course_unknown$sep${'b' * 64}.png',
+      );
+      // Private folders from before Revision 4, which QQL no longer reads.
+      touch(
+        '${support.path}${sep}qql_courses_v2${sep}custom${sep}old.json',
+      );
+      touch(
+        '${support.path}${sep}quisquislingo_course_media${sep}course_old$sep${'c' * 64}.png',
       );
 
       final all = await service.load();
@@ -225,12 +243,12 @@ void main() {
       expect(sectionOf(all, 'Import folder').count, 1);
       expect(sectionOf(all, 'ToBeMerged folder').count, 1);
       expect(sectionOf(all, 'Logs folder').count, 1);
-      expect(sectionOf(all, 'Imported images').count, 1);
-      expect(sectionOf(all, 'Image banks').count, 1);
+      expect(sectionOf(all, 'Imported images').count, 2);
+      expect(sectionOf(all, 'Image banks').count, 2);
 
       final media = sectionOf(all, 'Course media');
       expect(media.count, 2);
-      final known = media.items.firstWhere((i) => i.name.startsWith(hash));
+      final known = media.items.firstWhere((i) => i.name.startsWith(folder));
       expect(known.owner, contains('Inventory Course'));
       expect(known.note, 'Course recording (MP3).');
       final unknown = media.items.firstWhere(
@@ -238,6 +256,18 @@ void main() {
       );
       expect(unknown.owner, 'A course no longer on this device');
       expect(unknown.note, 'Course image.');
+
+      final earlierPrivate = sectionOf(
+        all,
+        'Private folders from earlier versions',
+      );
+      expect(
+        {for (final item in earlierPrivate.items) item.note},
+        {
+          'Stored course from an earlier version.',
+          'Course media from an earlier version.',
+        },
+      );
 
       final other = sectionOf(all, 'Other files in the QQL folder');
       expect(other.count, 2);
@@ -287,13 +317,9 @@ void main() {
       MaterialApp(home: InventoryScreen(service: service)),
     );
     // The load uses real file-system calls, so give them real time.
-    for (var i = 0; i < 40; i++) {
-      await tester.pump(const Duration(milliseconds: 50));
-      await tester.runAsync(
-        () => Future<void>.delayed(const Duration(milliseconds: 25)),
-      );
-      if (find.byType(CircularProgressIndicator).evaluate().isEmpty) break;
-    }
+    await tester.pumpUntilFileIoState(
+      () => find.byType(CircularProgressIndicator).evaluate().isEmpty,
+    );
     await tester.pumpAndSettle();
 
     expect(find.byKey(const Key('inventory-summary')), findsOneWidget);

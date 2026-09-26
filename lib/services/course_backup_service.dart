@@ -9,6 +9,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../models/course_models.dart';
 import 'course_media_store.dart';
+import 'storage/course_storage_names.dart';
 
 class CourseBackupRecord {
   final File manifestFile;
@@ -34,10 +35,12 @@ class CourseBackupRecord {
 /// Durable, course-scoped backups for final Course Editor transactions.
 ///
 /// Backups are internal: they live in QQL's private app storage on every
-/// system ([backupRootName]). A manifest contains the complete v11 course
-/// plus SHA-256 integrity data; the Course's own media (every `media:` image
-/// and recording it uses) is copied alongside it, so a version restores even
-/// after the confirmed change removed a file from the Course folder.
+/// system ([backupRootName]), one folder per Course named
+/// `QQL_bkp_<pair>_<id>` (see [CourseStorageNames]). A manifest contains the
+/// complete v11 course plus SHA-256 integrity data; the Course's own media
+/// (every `media:` image and recording it uses) is copied alongside it, so a
+/// version restores even after the confirmed change removed a file from the
+/// Course folder.
 class CourseBackupService {
   CourseBackupService({
     Future<Directory> Function()? supportDirectoryProvider,
@@ -61,10 +64,11 @@ class CourseBackupService {
   // untouched and unread, so an old backup cannot block Version History.
   static const backupFormat = 'QuisquisLingo Course Backup v11';
 
-  /// The private backup folder in QQL's app storage. Build 255 Revision 3
-  /// moved the backups here from `Documents/QuisquisLingo/Exports/Course
-  /// Backups v11`, which is left untouched and no longer read.
-  static const backupRootName = 'qql_course_backups_v11';
+  /// The private backup folder in QQL's app storage. Build 255 Revision 4
+  /// renamed it from `qql_course_backups_v11` (Revision 3), and Revision 3
+  /// had moved backups there from `Documents/QuisquisLingo/Exports/Course
+  /// Backups v11`; both are left untouched and no longer read.
+  static const backupRootName = 'QQL_CourseBackups';
   final Future<Directory> Function() _supportDirectoryProvider;
   final Future<void> Function(File file, List<int> bytes)? _fileWriter;
   final Future<bool> Function(Uri uri)? _uriLauncher;
@@ -78,25 +82,33 @@ class CourseBackupService {
     return directory;
   }
 
-  static String sanitizedCourseId(String courseId) {
-    final clean = courseId
-        .trim()
-        .replaceAll(RegExp(r'[^A-Za-z0-9._-]'), '_')
-        .replaceAll(RegExp(r'^\.+|\.+$'), '');
-    if (clean.isEmpty || clean == '.' || clean == '..') {
-      throw const FormatException('Course ID cannot form a safe backup path.');
-    }
-    return clean;
-  }
+  static String sanitizedCourseId(String courseId) =>
+      CourseStorageNames.sanitizedId(courseId);
 
+  /// The backup folder of [courseId], found by the ID at the end of its name
+  /// whatever its language pair. A folder that does not exist yet is named
+  /// with [pair], which creating one requires.
   Future<Directory> courseBackupDirectory(
     String courseId, {
     bool create = false,
+    String? pair,
   }) async {
     final root = await backupRoot(create: create);
-    final directory = Directory(
-      '${root.path}${Platform.pathSeparator}${sanitizedCourseId(courseId)}',
-    );
+    final existing = await _existingFolder(root, courseId);
+    if (existing == null && create && pair == null) {
+      throw ArgumentError.value(
+        pair,
+        'pair',
+        'A new backup folder needs the Course language pair',
+      );
+    }
+    const unknown = CourseStorageNames.unknownLanguage;
+    final directory =
+        existing ??
+        Directory(
+          '${root.path}${Platform.pathSeparator}'
+          '${CourseStorageNames.backupFolderName(courseId, pair ?? '${unknown}_$unknown')}',
+        );
     final rootPath = root.absolute.path;
     final childPath = directory.absolute.path;
     if (!childPath.startsWith('$rootPath${Platform.pathSeparator}')) {
@@ -104,6 +116,50 @@ class CourseBackupService {
     }
     if (create) await directory.create(recursive: true);
     return directory;
+  }
+
+  static Future<Directory?> _existingFolder(
+    Directory root,
+    String courseId,
+  ) async {
+    if (!await root.exists()) return null;
+    final idPart = CourseStorageNames.idPart(courseId);
+    await for (final entity in root.list(followLinks: false)) {
+      if (entity is! Directory) continue;
+      final name = entity.uri.pathSegments.lastWhere((s) => s.isNotEmpty);
+      final found = CourseStorageNames.idPartOfBackupFolder(name);
+      if (found == null) continue;
+      final same = Platform.isWindows
+          ? found.toLowerCase() == idPart.toLowerCase()
+          : found == idPart;
+      if (same) return entity;
+    }
+    return null;
+  }
+
+  /// Renames the backup folder of [course] to its current language pair, so
+  /// it keeps matching the Course's other names after its languages change.
+  /// Saved versions keep their own names, which record the languages they
+  /// had. A folder that cannot be renamed keeps its name and is still found.
+  Future<void> alignFolder(Course course) async {
+    try {
+      final root = await backupRoot();
+      final existing = await _existingFolder(root, course.courseId);
+      if (existing == null) return;
+      final wanted = CourseStorageNames.backupFolderName(
+        course.courseId,
+        CourseStorageNames.pairOfCourse(course),
+      );
+      final current = existing.uri.pathSegments.lastWhere((s) => s.isNotEmpty);
+      if (current == wanted) return;
+      final target = Directory(
+        '${root.path}${Platform.pathSeparator}$wanted',
+      );
+      if (await target.exists()) return;
+      await existing.rename(target.path);
+    } catch (_) {
+      // Only a name: the folder is still found by the Course ID.
+    }
   }
 
   static String courseChecksum(Course course) => CourseChecksums.whole(course);
@@ -148,15 +204,21 @@ class CourseBackupService {
     required String reason,
   }) async {
     final when = backedUpAt.toUtc();
+    final pair = CourseStorageNames.pairOfCourse(course);
     final directory = await courseBackupDirectory(
       course.courseId,
       create: true,
+      pair: pair,
     );
     final version = course.originType.isOfficial
-        ? 'official_${sanitizedCourseId(course.officialCourseVersion)}'
-        : 'course_${sanitizedCourseId(course.courseVersion.trim().isEmpty ? '0' : course.courseVersion)}';
-    final base =
-        '${sanitizedCourseId(course.courseId)}_${version}_${_filenameStamp(when)}';
+        ? course.officialCourseVersion
+        : (course.courseVersion.trim().isEmpty ? '0' : course.courseVersion);
+    final base = CourseStorageNames.backupVersionName(
+      course.courseId,
+      pair,
+      version: version,
+      stamp: _filenameStamp(when),
+    );
     var manifest = File('${directory.path}${Platform.pathSeparator}$base.json');
     _requireChildPath(directory, manifest);
     var suffix = 2;
@@ -408,8 +470,12 @@ class CourseBackupService {
     return records;
   }
 
-  Future<bool> openBackupFolder(String courseId) async {
-    final directory = await courseBackupDirectory(courseId, create: true);
+  Future<bool> openBackupFolder(Course course) async {
+    final directory = await courseBackupDirectory(
+      course.courseId,
+      create: true,
+      pair: CourseStorageNames.pairOfCourse(course),
+    );
     final uri = Uri.directory(
       directory.absolute.path,
       windows: Platform.isWindows,

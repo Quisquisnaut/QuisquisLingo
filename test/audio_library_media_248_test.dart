@@ -6,7 +6,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:quisquislingo_app/models/course_models.dart';
 import 'package:quisquislingo_app/screens/course_editor_screen.dart';
 import 'package:quisquislingo_app/services/course_authoring_media.dart';
-import 'package:quisquislingo_app/services/course_backup_service.dart';
 import 'package:quisquislingo_app/services/course_editor_service.dart';
 import 'package:quisquislingo_app/services/course_file_store.dart';
 import 'package:quisquislingo_app/services/course_media_store.dart';
@@ -15,6 +14,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'support/pump_file_io.dart';
 import 'support/synthetic_mp3.dart';
+import 'package:quisquislingo_app/services/storage/course_storage_names.dart';
 import 'package:quisquislingo_app/services/storage/qql_storage.dart';
 import 'support/quick_folders.dart';
 
@@ -515,10 +515,12 @@ Future<void> _corruptStoredCourse() async {
   final directory = await CourseFileStore().directoryFor(
     CourseStoreKind.custom,
   );
-  await File(
-    '${directory.path}${Platform.pathSeparator}'
-    '${CourseBackupService.sanitizedCourseId(_courseId)}.json',
-  ).writeAsString('{ this is not a Course record', flush: true);
+  final stored = directory.listSync().whereType<File>().singleWhere(
+    (file) =>
+        CourseStorageNames.idPartOfCourseFile(file.uri.pathSegments.last) ==
+        CourseStorageNames.idPart(_courseId),
+  );
+  await stored.writeAsString('{ this is not a Course record', flush: true);
 }
 
 Future<void> _openEditor(

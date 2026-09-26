@@ -152,6 +152,11 @@ class ImageBankService {
   static const int maxInflatedArchiveBytes = 50 * 1024 * 1024;
   static const banksKey = 'quisquislingo_imported_image_banks_v2';
 
+  /// One folder per imported bank, in QQL's private storage. Build 255
+  /// Revision 4 renamed it from `image_banks`; banks imported before keep
+  /// working from there, because their entries hold full paths.
+  static const banksDirectoryName = 'QQL_ImageBanks';
+
   ImageBankService({
     FileDialogService? fileDialogs,
     Future<Directory> Function()? temporaryDirectory,
@@ -210,7 +215,7 @@ class ImageBankService {
     Future<void> Function(File zip) body,
   ) async {
     final staging = await (await _temporaryDirectory()).createTemp(
-      'qql_image_bank_',
+      'QQL_ImageBank_',
     );
     try {
       final safeName = name.replaceAll(RegExp(r'[\\/:*?"<>|]'), '_');
@@ -889,7 +894,8 @@ class ImageBankService {
     final support = await getApplicationSupportDirectory();
     final bankId = 'bank_${DateTime.now().microsecondsSinceEpoch}';
     final dir = Directory(
-      '${support.path}${Platform.pathSeparator}image_banks${Platform.pathSeparator}$bankId',
+      '${support.path}${Platform.pathSeparator}$banksDirectoryName'
+      '${Platform.pathSeparator}$bankId',
     );
     await dir.create(recursive: true);
     final imagesDir = Directory('${dir.path}${Platform.pathSeparator}images');
