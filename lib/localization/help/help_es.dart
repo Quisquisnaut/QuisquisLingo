@@ -44,7 +44,7 @@ const Map<String, String> helpEs = {
   'editorHelp.localCourseEditsAndBackups.title':
       'Cambios locales y backups del curso',
   'editorHelp.localCourseEditsAndBackups.body':
-      'Antes de confirmar un cambio en un Custom Course existente, QQL archiva la versión completa en Documents/QuisquisLingo/Exports/Course Backups v11/<courseId>. El manifiesto incluye Course Model v11, Maintainer, Assigned Team, origen, versiones, autores, fecha UTC, notas opcionales, checksum y audios referenciados. Los backups no se eliminan automáticamente. Version History muestra la versión actual y los backups verificados del más nuevo al más antiguo, con Open backup folder y Export JSON. Solo el historial custom permite Restore into working copy; también requiere la confirmación final para guardar. El historial oficial conserva solo los orígenes del editor.',
+      'Antes de confirmar un cambio en un Custom Course existente, QQL archiva la versión completa en su almacenamiento privado, en una carpeta por cada Course ID. El manifiesto incluye Course Model v11, Maintainer, Assigned Team, origen, versiones, autores, fecha UTC, notas opcionales, checksum y audios referenciados. Los backups no se eliminan automáticamente. Version History muestra la versión actual y los backups verificados del más nuevo al más antiguo, con Open backup folder y Export JSON. Solo el historial custom permite Restore into working copy; también requiere la confirmación final para guardar. El historial oficial conserva solo los orígenes del editor.',
   'editorHelp.androidDeviceBackupTechnical.title':
       'Backup del dispositivo Android (técnico)',
   'editorHelp.androidDeviceBackupTechnical.body':
@@ -264,7 +264,7 @@ const Map<String, String> helpEs = {
       'Al final de Settings aparecen Version y Build antes de Update. Settings > Update muestra el repositorio público https://github.com/Quisquisnaut/QuisquisLingo, consulta a mano las GitHub Releases y puede comprobarlas al iniciar. La comprobación automática empieza activada. No envía datos del estudiante ni del curso y nunca descarga ni instala software. Si hay una versión más nueva, muestra información e instrucciones por plataforma en el orden Windows, macOS, Linux, Android, iOS y Web.',
   'appInfo.crashLogAndDiagnosticLog.title': 'Crash Log y Diagnostic Log',
   'appInfo.crashLogAndDiagnosticLog.body':
-      'Settings > Debug ofrece ambos registros. Usa Crash Log para cierres inesperados. Para problemas sin cierre, reproduce el fallo si puedes y exporta Diagnostic Log justo después. Borrarlo antes es opcional; si el problema es intermitente, exporta primero. El Diagnostic Log exportado se guarda en {folderDiagnosticLogExports}; Settings > Debug muestra dónde está el Crash Log. El diagnóstico de audio registra códigos y estados breves sin guardar el texto leído, las respuestas, el contenido de cursos ni rutas completas.',
+      'Settings > Debug ofrece ambos registros. Usa Crash Log para cierres inesperados. Para problemas sin cierre, reproduce el fallo si puedes y exporta Diagnostic Log justo después. Borrarlo antes es opcional; si el problema es intermitente, exporta primero. Quick Export guarda copias del Diagnostic Log y del Crash Log en {folderDiagnosticLogExports}; Settings > Debug también muestra dónde está el Crash Log activo. El diagnóstico de audio registra códigos y estados breves sin guardar el texto leído, las respuestas, el contenido de cursos ni rutas completas.',
   'appInfo.courseStudioAndCourseEditor.title': 'Course Studio y Course Editor',
   'appInfo.courseStudioAndCourseEditor.body':
       'Course Studio se abre desde Course Selector, no desde Settings. Gestiona los cursos: los oficiales permiten consulta, Fork según licencia, Audit y Export; los custom permiten Edit, Copy as New Course, Merge, Audit, Export y Delete según tus permisos. Fork conserva el origen; Copy as New Course inicia otro. Para las operaciones de la biblioteca, abre Course Studio Help. Para crear y modificar cursos, abre Editor Help desde una página de Course Editor.',
@@ -526,13 +526,13 @@ const Map<String, String> helpEs = {
   'deviceAdminHelp.inventory.bullet1':
       'Estudiantes y cursos custom están dentro de los ajustes de QQL y no tienen ruta propia. Cada curso muestra Maintainer o creador.',
   'deviceAdminHelp.inventory.bullet2':
-      'Exports y backups: copias de estudiantes, User Recovery Keys, cursos exportados y backups creados por Course Editor antes de guardar cambios.',
+      'Export: cursos exportados, copias de estudiantes, User Recovery Keys e informes de Audit. Los backups que Course Editor crea antes de guardar cambios son privados de QQL y aparecen en una sección aparte.',
   'deviceAdminHelp.inventory.bullet3':
-      'Imports y Merges: archivos que copiaste desde fuera de QQL.',
+      'Import y ToBeMerged: archivos que copiaste desde fuera de QQL. Las carpetas de versiones anteriores (Imports, Exports, Merges) aparecen en una sección aparte; QQL ya no las lee.',
   'deviceAdminHelp.inventory.bullet4':
       'Imágenes, Image Banks y MP3 importados: copias guardadas por QQL. El audio indica su curso.',
   'deviceAdminHelp.inventory.bullet5':
-      'Logs: Crash Log, Diagnostic Log exportado y marcador de sesión.',
+      'Logs: las copias del Crash Log y del Diagnostic Log guardadas con Quick Export. El Crash Log activo y el marcador de sesión son privados de QQL y aparecen en una sección aparte.',
   'deviceAdminHelp.inventory.bullet6':
       'Otros archivos en la carpeta de QQL: los añadidos desde el sistema operativo que QQL no creó ni usa.',
   'deviceAdminHelp.inventory.bullet7':
@@ -565,17 +565,17 @@ const Map<String, String> helpEs = {
   'deviceAdminHelp.resetOptions.bullet4':
       'Remove custom courses: borra cursos custom e instalados, Teams y todos los medios importados. Conserva estudiantes.',
   'deviceAdminHelp.resetOptions.bullet5':
-      'Wipe out everything: devuelve QQL al estado de una instalación nueva, incluidos estudiantes y Admin. Puedes conservar Exports, Logs e Imports; las tres carpetas vienen marcadas para conservarse.',
+      'Wipe out everything: devuelve QQL al estado de una instalación nueva, incluidos estudiantes y Admin. Puedes conservar la carpeta Export, la carpeta Logs y las carpetas Import y ToBeMerged; todas vienen marcadas para conservarse. Los backups de los cursos se eliminan siempre con los cursos.',
   'deviceAdminHelp.beforeResetBackups.title': 'Backups antes de Reset',
   'deviceAdminHelp.beforeResetBackups.paragraph1':
-      'Profile > User Data exporta solo el perfil activo. Un Admin no puede exportar los datos de otros: pídeles que hagan su backup antes de un Reset que les afecte. Los cursos se exportan uno a uno desde Course Studio. Exports queda en {folderLearnerDataExports}, que Wipe out everything conserva salvo que la desmarques.',
+      'Profile > User Data exporta solo el perfil activo. Un Admin no puede exportar los datos de otros: pídeles que hagan su backup antes de un Reset que les afecte. Los cursos se exportan uno a uno desde Course Studio. Las exportaciones quedan en {folderExport}, que Wipe out everything conserva salvo que la desmarques.',
   'deviceAdminHelp.forgottenPin.title': 'PIN olvidado',
   'deviceAdminHelp.forgottenPin.paragraph1':
       'Otro Admin puede restablecer tu PIN desde Learner Profiles. Si eres el único Admin y lo olvidas, no podrás recuperar el acceso al perfil ni usar Reset. Elige un PIN que recuerdes y considera nombrar a otra persona Admin.',
   'debugHelp.title': 'Ayuda de Debug',
   'debugHelp.crashLog.title': 'Crash Log',
   'debugHelp.crashLog.body':
-      'Esta beta guarda automáticamente un Crash Log local para investigar cierres y problemas técnicos graves. Si QQL se cierra de forma inesperada, vuelve a abrirlo y envía el archivo completo con una breve descripción de lo que pulsaste justo antes; una captura de pantalla no basta. El registro contiene datos técnicos del sistema, inicios de sesión, errores no capturados y trazas. No está pensado para guardar nombres de estudiantes, respuestas o contenido de cursos. Si se borra, QQL lo vuelve a crear al iniciar o escribir otro fallo.',
+      'Esta beta guarda automáticamente un Crash Log local para investigar cierres y problemas técnicos graves. Si QQL se cierra de forma inesperada, vuelve a abrirlo y envía el archivo completo con una breve descripción de lo que pulsaste justo antes; una captura de pantalla no basta. El Crash Log activo está en el almacenamiento privado de QQL; Settings > Debug muestra dónde. Quick Export guarda una copia llamada QQL_crash_log.txt en {folderLogs}, sustituyendo la anterior; Save log copy as… te deja elegir dónde guardarla y, en los teléfonos, Share la envía directamente. El registro contiene datos técnicos del sistema, inicios de sesión, errores no capturados y trazas. No está pensado para guardar nombres de estudiantes, respuestas o contenido de cursos. Si se borra, QQL lo vuelve a crear al iniciar o escribir otro fallo.',
   'debugHelp.diagnosticLog.title': 'Diagnostic Log',
   'debugHelp.diagnosticLog.body':
       'Para problemas que no cierran QQL, como audio, TTS, Recorded MP3 o reproducción inesperada, reproduce el fallo si puedes y exporta Diagnostic Log poco después. Puedes borrarlo antes para aislar un problema repetible, pero no es obligatorio. Si el fallo es intermitente, exporta el registro actual antes de borrarlo.',
@@ -586,7 +586,7 @@ const Map<String, String> helpEs = {
   'publisherSigningHelp.status.title':
       'Estado: verificación de firmas implementada',
   'publisherSigningHelp.status.body':
-      r'''QQL verifica firmas Ed25519 al importar Publisher Courses, tanto desde Imports como desde el diálogo del sistema. La comprobación se repite antes de instalar. Se rechazan firmas ausentes, inválidas, desconocidas o revocadas. El registro normal aún no contiene editores externos aprobados; Dummy solo se usa en builds de prueba activadas expresamente.
+      r'''QQL verifica firmas Ed25519 al importar Publisher Courses, tanto con Quick Import como desde el diálogo del sistema. La comprobación se repite antes de instalar. Se rechazan firmas ausentes, inválidas, desconocidas o revocadas. El registro normal aún no contiene editores externos aprobados; Dummy solo se usa en builds de prueba activadas expresamente.
 
 La aprobación es un proceso manual del propietario de QQL. Este mantiene las claves públicas en lib/services/trusted_publishers.dart y distribuye los cambios con una actualización. No hay portal de aprobación ni botón de firma en la app. La firma se hace fuera de QQL con una herramienta de desarrollo y OpenSSL.
 
@@ -717,7 +717,7 @@ Los tests inyectan el registro Dummy. Las builds normales no confían en él. Pa
 flutter run -d windows --dart-define=QQL_ENABLE_DUMMY_PUBLISHER=true
 flutter build windows --release --dart-define=QQL_ENABLE_DUMMY_PUBLISHER=true
 
-Estas builds muestran TEST ONLY. No las distribuyas como versiones públicas; compila la versión normal sin la opción y en una salida limpia. Importa test/fixtures/publishers/dummy-signed-media.zip desde Course Studio > Course Import > Open from… o como Imports/import.zip. Debe confirmarse el editor y la grabación. dummy-signed-v2.json prueba una actualización que elimina ese medio. dummy-unsigned.json y un título firmado alterado deben rechazarse. Una build normal sin la opción rechaza los archivos Dummy como clave desconocida. Estas pruebas no requieren la aprobación de un editor real.''',
+Estas builds muestran TEST ONLY. No las distribuyas como versiones públicas; compila la versión normal sin la opción y en una salida limpia. Importa test/fixtures/publishers/dummy-signed-media.zip desde Course Studio > Course Import > Open from… o como {folderCourseImports}/import.zip. Debe confirmarse el editor y la grabación. dummy-signed-v2.json prueba una actualización que elimina ese medio. dummy-unsigned.json y un título firmado alterado deben rechazarse. Una build normal sin la opción rechaza los archivos Dummy como clave desconocida. Estas pruebas no requieren la aprobación de un editor real.''',
   'exerciseHelp.title': 'Ayuda de Exercise',
   'exerciseHelp.search': 'Search Exercise Help',
   'exerciseHelp.clearSearch': 'Clear search',

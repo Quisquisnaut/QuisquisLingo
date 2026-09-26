@@ -31,7 +31,7 @@ void main() {
     support = await Directory.systemTemp.createTemp('qql_backup_media_');
     media = CourseMediaStore(supportDirectory: () async => support);
     backups = CourseBackupService(
-      documentsDirectoryProvider: () async => documents,
+      supportDirectoryProvider: () async => documents,
       mediaStore: media,
     );
   });

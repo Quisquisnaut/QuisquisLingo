@@ -5,9 +5,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:quisquislingo_app/services/storage/android_storage_bridge.dart';
 
 /// Plays the Android side of the storage bridge (`QqlStorageBridge.kt` and
-/// `QuickFolders.kt`) in memory: MediaStore Download entries, the Imports
-/// folder behind its permission, and the Android 7–9 storage permission.
-/// Every call is recorded; [uiCalls] are the ones that would show a screen.
+/// `QuickFolders.kt`) in memory: MediaStore Download entries, the
+/// QuisquisLingo folder behind its permission, and the Android 7–9 storage
+/// permission. Every call is recorded; [uiCalls] are the ones that would
+/// show a screen.
 class FakeAndroidStorage {
   FakeAndroidStorage({this.scoped = true, this.downloadsPath = '/unused'}) {
     final messenger =
@@ -29,8 +30,8 @@ class FakeAndroidStorage {
   /// Android 7–9: the public Download directory (a test folder).
   String downloadsPath;
 
-  /// The Imports folder permission (Android 10+) or the storage permission
-  /// (Android 7–9).
+  /// The QuisquisLingo folder permission (Android 10+) or the storage
+  /// permission (Android 7–9).
   bool importAccess = false;
 
   /// What the folder screen or permission prompt answers; 'granted' also
@@ -41,13 +42,17 @@ class FakeAndroidStorage {
   bool legacyWriteGranted = true;
 
   /// The permission is still listed, but the folder is gone.
-  bool importsFolderGone = false;
+  bool folderGone = false;
 
   /// The permission disappears between the access check and the read.
   bool revokeOnList = false;
 
-  /// Files below Imports, by path such as `Courses/import.zip`.
+  /// Files people put below the QuisquisLingo folder, read through the
+  /// permission, by path such as `Import/Courses/import.zip`.
   final imports = <String, Uint8List>{};
+
+  /// The folders the last folder request asked Android to create.
+  List<String> requestedFolders = const [];
 
   /// QQL's own Download entries, by relative path and name, such as
   /// `Download/QuisquisLingo/Exports/Courses/x.zip`.
@@ -67,9 +72,12 @@ class FakeAndroidStorage {
     uiCalls.add(call.method);
     switch (call.method) {
       case 'requestImportAccess':
+        requestedFolders =
+            ((call.arguments as Map?)?['folders'] as List? ?? const [])
+                .cast<String>();
         if (requestAnswer == 'granted') {
           importAccess = true;
-          importsFolderGone = false;
+          folderGone = false;
         }
         return requestAnswer;
       case 'requestLegacyWriteAccess':
@@ -89,9 +97,9 @@ class FakeAndroidStorage {
           'downloadsPath': downloadsPath,
         };
       case 'hasImportAccess':
-        return importAccess && !importsFolderGone;
+        return importAccess && !folderGone;
       case 'listImports':
-        if (!importAccess || importsFolderGone || revokeOnList) {
+        if (!importAccess || folderGone || revokeOnList) {
           throw PlatformException(code: 'accessRequired');
         }
         final folder = (args['segments']! as List).cast<String>().join('/');
@@ -106,15 +114,26 @@ class FakeAndroidStorage {
                 'size': entry.value.length,
               },
         ];
-      case 'listAllImports':
+      case 'listTree':
+        if (!importAccess || folderGone) return const [];
+        final prefix =
+            '${(args['segments']! as List).cast<String>().join('/')}/';
         return [
           for (final entry in imports.entries)
-            {'name': entry.key, 'size': entry.value.length, 'modified': 1000},
+            if (entry.key.startsWith(prefix))
+              {
+                'name': entry.key.substring(prefix.length),
+                'size': entry.value.length,
+                'modified': 1000,
+              },
         ];
-      case 'deleteImports':
-        final count = imports.length;
-        imports.clear();
-        return count;
+      case 'deleteTree':
+        if (!importAccess || folderGone) return 0;
+        final prefix =
+            '${(args['segments']! as List).cast<String>().join('/')}/';
+        final gone = imports.keys.where((k) => k.startsWith(prefix)).toList();
+        gone.forEach(imports.remove);
+        return gone.length;
       case 'releaseImportAccess':
         released = true;
         importAccess = false;

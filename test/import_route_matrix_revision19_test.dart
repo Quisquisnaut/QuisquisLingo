@@ -147,7 +147,7 @@ void main() {
           documentsDirectoryProvider: () async => temp,
           fileDialogs: dialogs,
         );
-        await put('QuisquisLingo/Imports/learner_import.json', bytes);
+        await put('QuisquisLingo/Import/UserData/learner_import.json', bytes);
         backend.onOpen = () async => FileDialogResult.opened('bad.json', bytes);
         await rejects(backup.readImportFile, reason);
         await rejects(backup.readImportFromDialog, reason);
@@ -231,7 +231,7 @@ void main() {
         documentsDirectoryProvider: () async => temp,
         fileDialogs: dialogs,
       );
-      await put('QuisquisLingo/Imports/learner_import.json', backupBytes);
+      await put('QuisquisLingo/Import/UserData/learner_import.json', backupBytes);
       backend.onOpen = () async =>
           FileDialogResult.opened('bad.json', backupBytes);
       await rejects(backup.readImportFile, 'NUL character');
@@ -266,7 +266,7 @@ void main() {
         fileDialogs: dialogs,
         temporaryDirectory: () async => temp,
       );
-      final file = await put('QuisquisLingo/Imports/Images/bank.zip', bytes);
+      final file = await put('QuisquisLingo/Import/Images/bank.zip', bytes);
       backend.onOpen = () async => FileDialogResult.opened('bank.zip', bytes);
       await rejects(bank.readBankFromFolder, reason);
       await rejects(bank.readBankFromDialog, reason);
@@ -311,7 +311,7 @@ void main() {
         supportDirectory: () async => temp,
         stager: stager,
       );
-      await put('QuisquisLingo/Imports/Images/bad.png', bytes);
+      await put('QuisquisLingo/Import/Images/bad.png', bytes);
       backend.onOpen = () async => FileDialogResult.opened('bad.png', bytes);
       backend.onOpenMany = [MemorySelectedFile('bad.png', bytes)];
       await rejects(image.readImage, reason);
@@ -361,7 +361,7 @@ void main() {
       () async {
         final bytes = fixture(name);
         final icons = LessonIconService(fileDialogs: dialogs);
-        await put('QuisquisLingo/Imports/Lesson Icons/bad.png', bytes);
+        await put('QuisquisLingo/Import/LessonIcons/bad.png', bytes);
         backend.onOpen = () async => FileDialogResult.opened('bad.png', bytes);
         await rejects(icons.importPreparedIcon, reason);
         await rejects(icons.importPreparedIconFromDialog, reason);
@@ -372,7 +372,7 @@ void main() {
     test('$name: custom flag fixed and embedded preparation', () async {
       final bytes = fixture(name);
       final flags = CourseFlagService();
-      await put('QuisquisLingo/Exports/flag.png', bytes);
+      await put('QuisquisLingo/Import/Flags/flag.png', bytes);
       await rejects(flags.importPreparedFlag, reason);
       await rejects(() => flags.prepareFlag(bytes), reason);
     });
@@ -420,7 +420,7 @@ void main() {
         supportDirectory: () async => temp,
         stager: stager,
       );
-      await put('QuisquisLingo/Imports/Audio/bad.mp3', bytes);
+      await put('QuisquisLingo/Import/Audio/bad.mp3', bytes);
       backend.onOpen = () async => FileDialogResult.opened('bad.mp3', bytes);
       backend.onOpenMany = [MemorySelectedFile('bad.mp3', bytes)];
       await rejects(() => audio.importMp3Files('course-a'), reason);
@@ -465,7 +465,7 @@ void main() {
         supportDirectory: () async => temp,
         stager: stager,
       );
-      await put('QuisquisLingo/Imports/Images/valid_flag.png', bytes);
+      await put('QuisquisLingo/Import/Images/valid_flag.png', bytes);
       backend.onOpen = () async =>
           FileDialogResult.opened('valid_flag.png', bytes);
       backend.onOpenMany = [MemorySelectedFile('valid_flag.png', bytes)];
@@ -489,7 +489,7 @@ void main() {
       expect(await PortableExerciseImageService.fromFile(file), embedded);
 
       final icons = LessonIconService(fileDialogs: dialogs);
-      await put('QuisquisLingo/Imports/Lesson Icons/icon.png', bytes);
+      await put('QuisquisLingo/Import/LessonIcons/icon.png', bytes);
       expect((await icons.importPreparedIcon()).sourceWidth, 64);
       expect(
         (await icons.importPreparedIconFromDialog()).icon!.sourceHeight,
@@ -497,7 +497,7 @@ void main() {
       );
 
       final flags = CourseFlagService();
-      await put('QuisquisLingo/Exports/flag.png', bytes);
+      await put('QuisquisLingo/Import/Flags/flag.png', bytes);
       expect((await flags.importPreparedFlag()).sourceWidth, 64);
       expect((await flags.prepareFlag(bytes)).sourceHeight, 40);
     },
@@ -510,7 +510,7 @@ void main() {
       temporaryDirectory: () async => temp,
     );
     final bankFile = await put(
-      'QuisquisLingo/Imports/Images/bank.zip',
+      'QuisquisLingo/Import/Images/bank.zip',
       bankBytes,
     );
     backend.onOpen = () async => FileDialogResult.opened('bank.zip', bankBytes);
@@ -524,7 +524,7 @@ void main() {
       supportDirectory: () async => temp,
       stager: stager,
     );
-    await put('QuisquisLingo/Imports/Audio/valid.mp3', mp3);
+    await put('QuisquisLingo/Import/Audio/valid.mp3', mp3);
     backend.onOpen = () async => FileDialogResult.opened('valid.mp3', mp3);
     backend.onOpenMany = [MemorySelectedFile('valid.mp3', mp3)];
     expect(await audio.importMp3Files('course-a'), hasLength(1));

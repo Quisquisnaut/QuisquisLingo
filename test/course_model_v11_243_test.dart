@@ -124,11 +124,11 @@ void main() {
           }),
         );
         final backups = CourseBackupService(
-          documentsDirectoryProvider: () async => root,
+          supportDirectoryProvider: () async => root,
         );
         expect(
           (await backups.backupRoot()).path,
-          endsWith('Course Backups v11'),
+          endsWith('qql_course_backups_v11'),
         );
         expect(await backups.listBackups('v11-course'), isEmpty);
         expect(await old.exists(), isTrue);

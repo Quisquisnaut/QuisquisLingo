@@ -29,6 +29,7 @@ void main() {
             throw PlatformException(code: 'test-storage');
           },
         );
+    keepCrashLogUnavailable();
   });
 
   test(

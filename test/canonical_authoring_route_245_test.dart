@@ -648,7 +648,7 @@ Course _courseWithDestination() {
 
 class _RecordingBackupService extends CourseBackupService {
   _RecordingBackupService(Directory documents)
-    : super(documentsDirectoryProvider: () async => documents);
+    : super(supportDirectoryProvider: () async => documents);
 
   final List<CourseBackupRecord> records = [];
 

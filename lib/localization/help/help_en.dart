@@ -43,7 +43,7 @@ const Map<String, String> helpEn = <String, String>{
   'editorHelp.localCourseEditsAndBackups.title':
       r'''Local course edits and backups''',
   'editorHelp.localCourseEditsAndBackups.body':
-      r'''Every confirmed change to an existing custom course first archives the complete currently persisted course under Documents/QuisquisLingo/Exports/Course Backups v11/<courseId>. Backup manifests include the full v11 Course, Course Maintainer, optional Assigned Team, provenance, versions, authors, UTC modification timestamp, optional notes, checksum and referenced managed audio assets. Backups are never pruned automatically. Version History lists the current version and verified backups newest first, with Open backup folder and Export JSON. Only custom history supports Restore into working copy. Official history contains publisher sources only; older backup directories are not loaded or deleted. A restore is still only a working-copy change until the top-level confirmation succeeds.''',
+      r'''Every confirmed change to an existing custom course first archives the complete currently persisted course in QQL's private storage, one folder per Course ID. Backup manifests include the full v11 Course, Course Maintainer, optional Assigned Team, provenance, versions, authors, UTC modification timestamp, optional notes, checksum and referenced managed audio assets. Backups are never pruned automatically. Version History lists the current version and verified backups newest first, with Open backup folder and Export JSON. Only custom history supports Restore into working copy. Official history contains publisher sources only; older backup directories are not loaded or deleted. A restore is still only a working-copy change until the top-level confirmation succeeds.''',
   'editorHelp.androidDeviceBackupTechnical.title':
       r'''Android device backup (technical)''',
   'editorHelp.androidDeviceBackupTechnical.body':
@@ -268,7 +268,7 @@ const Map<String, String> helpEn = <String, String>{
   'appInfo.updates.body':
       r'''At the bottom of Settings, Version and Build are shown immediately before Update. Settings > Update displays the published QuisquisLingo source repository https://github.com/Quisquisnaut/QuisquisLingo, lets you check the latest packaged GitHub Release manually, and can optionally check automatically at startup. If no packaged GitHub Release exists, the page distinguishes that from the published source repository. Automatic checks are on by default. Update checks send no learner data or course data and never download or install software. If a newer release exists, the page shows release information and installation guidance in the fixed order Windows, macOS, Linux, Android, iOS and Web, marking platforms that have no matching published release asset as not currently available.''',
   'appInfo.crashLogAndDiagnosticLog.body':
-      r'''Settings > Debug contains both logging tools and concise reporting guidance. Use the Crash Log for startup/runtime crashes or unexpected closes. For non-crashing runtime problems, reproduce the issue when possible and export the Diagnostic Log shortly afterward; clearing it first is optional and is useful only to isolate a specific reproducible problem, while intermittent evidence should be exported before clearing. The exported Diagnostic Log is saved in {folderDiagnosticLogExports}; Settings > Debug shows where the Crash Log is. Learner audio diagnostics use short correlation IDs and bounded lifecycles with preparation, learner UI state, stable exercise ID/type, activation trigger, suppression, source, backend, playback, failure and disposal status. They are designed to avoid spoken text, answers, course content and full personal file paths.''',
+      r'''Settings > Debug contains both logging tools and concise reporting guidance. Use the Crash Log for startup/runtime crashes or unexpected closes. For non-crashing runtime problems, reproduce the issue when possible and export the Diagnostic Log shortly afterward; clearing it first is optional and is useful only to isolate a specific reproducible problem, while intermittent evidence should be exported before clearing. Quick Export saves copies of the Diagnostic Log and the Crash Log in {folderDiagnosticLogExports}; Settings > Debug also shows where the live Crash Log is kept. Learner audio diagnostics use short correlation IDs and bounded lifecycles with preparation, learner UI state, stable exercise ID/type, activation trigger, suppression, source, backend, playback, failure and disposal status. They are designed to avoid spoken text, answers, course content and full personal file paths.''',
   'appInfo.courseStudioAndCourseEditor.body':
       r'''Course Studio is opened from the learner Course Selector rather than Settings. It is the lifecycle hub: official courses provide read-only inspection, licensed Fork, Audit and supported Export; custom courses provide Edit, Copy as New Course, Merge, Audit, Export and Delete. Fork preserves the source lineage; Copy as New Course starts an independent Course lineage. Open Course Studio Help for library operations, and Editor Help from any Course Editor hierarchy page for authoring instructions.''',
   'appInfo.courseContentAndAi.body':
@@ -401,6 +401,8 @@ Remove from my courses, in the Selector or Course Studio, removes the course onl
 
 For cases where QQL crashes or closes unexpectedly. If available after a crash, copy or export this file and provide it with your report. It is primarily useful for startup and runtime crashes.
 
+The live Crash Log is private to QQL; Settings > Debug shows where it is. Quick Export saves a copy as QQL_crash_log.txt in {folderLogs}, replacing the previous copy. Save log copy as… lets you choose the place, and on phones Share sends it directly.
+
 Please use the app normally and reproduce the crash. After the app closes, reopen it if necessary. When you send the Crash Log, also say what you clicked immediately before the crash. Please send the whole log file, not a screenshot of it.
 
 The Crash Log contains technical system information, session starts, uncaught errors and stack traces. It does not intentionally record learner names, exercise answers or course content.
@@ -463,13 +465,13 @@ If the Crash Log file is deleted, QuisquisLingo recreates it automatically at th
   'deviceAdminHelp.inventory.bullet1':
       r'''Learners and custom courses are kept inside QQL’s own settings, not as files, so they show no path. Each course shows its maintainer or creator.''',
   'deviceAdminHelp.inventory.bullet2':
-      r'''Exports and backups: learner backups, User Recovery Keys, course exports, and the course backups the Course Editor makes automatically before saving a change.''',
+      r'''Export: exported Courses, learner backups, User Recovery Keys and Audit reports. The course backups the Course Editor makes automatically before saving a change are private to QQL and listed on their own.''',
   'deviceAdminHelp.inventory.bullet3':
-      r'''Imports and Merges: files you copied into those folders from outside QQL.''',
+      r'''Import and ToBeMerged: files you copied into those folders from outside QQL. Folders from earlier versions (Imports, Exports, Merges) are listed on their own; QQL no longer reads them.''',
   'deviceAdminHelp.inventory.bullet4':
       r'''Imported images, image banks and imported audio (MP3) files: the copies QQL made in its own storage. Audio shows the course it belongs to.''',
   'deviceAdminHelp.inventory.bullet5':
-      r'''Logs: the crash log, diagnostic export and session marker.''',
+      r'''Logs: the copies of the Crash Log and Diagnostic Log saved with Quick Export. The live Crash Log and the session marker are private to QQL and listed on their own.''',
   'deviceAdminHelp.inventory.bullet6':
       r'''Other files in the QQL folder: anything added directly to the QuisquisLingo folder with the operating system, which QQL did not create and does not use.''',
   'deviceAdminHelp.inventory.bullet7':
@@ -502,10 +504,10 @@ If the Crash Log file is deleted, QuisquisLingo recreates it automatically at th
   'deviceAdminHelp.resetOptions.bullet4':
       r'''Remove custom courses: deletes all custom and installed courses, all Teams and all imported media, meaning every imported image and every imported recorded MP3 audio file. Learners stay.''',
   'deviceAdminHelp.resetOptions.bullet5':
-      r'''Wipe out everything: returns QQL to a brand-new installation, including all learners and admins. You can keep the Exports, Logs and Imports folders; all three are kept unless you untick them in the first step. Imports holds the original files you copied there yourself.''',
+      r'''Wipe out everything: returns QQL to a brand-new installation, including all learners and admins. You can keep the Export folder, the Logs folder, and the Import and ToBeMerged folders; all are kept unless you untick them in the first step. Import and ToBeMerged hold the original files you copied there yourself. Course backups are always removed with the courses.''',
   'deviceAdminHelp.beforeResetBackups.title': r'''Before you reset: backups''',
   'deviceAdminHelp.beforeResetBackups.paragraph1':
-      r'''Learner data is exported from Profile → User Data, and each backup covers only the learner who is logged in: an admin cannot export other learners’ data, so before a reset that affects other learners, ask each of them to export their own. Courses are exported one at a time from Course Studio. Exports are saved in {folderLearnerDataExports}, which the full wipe keeps unless you untick it.''',
+      r'''Learner data is exported from Profile → User Data, and each backup covers only the learner who is logged in: an admin cannot export other learners’ data, so before a reset that affects other learners, ask each of them to export their own. Courses are exported one at a time from Course Studio. Exports are saved in {folderExport}, which the full wipe keeps unless you untick it.''',
   'deviceAdminHelp.forgottenPin.title': r'''Forgotten PIN''',
   'deviceAdminHelp.forgottenPin.paragraph1':
       r'''If another admin exists, they can reset your PIN from the Learner Profiles list. If you are the only admin and forget your PIN, there is no way to recover it: you cannot open your profile or use the reset options. Choose a PIN you will remember, and consider making a second person an admin.''',
@@ -513,7 +515,7 @@ If the Crash Log file is deleted, QuisquisLingo recreates it automatically at th
   'publisherSigningHelp.status.title':
       r'''Status: signature verification implemented''',
   'publisherSigningHelp.status.body':
-      r'''Build 241 now verifies Ed25519 publisher signatures for Publisher Course imports, both from the Imports folder and from the system file dialog. The storage service checks again before installation. Missing, invalid, unknown or revoked signatures are rejected. The normal trusted publisher registry currently has no approved external publishers; the Dummy identity is for explicitly enabled test builds only.
+      r'''Build 241 now verifies Ed25519 publisher signatures for Publisher Course imports, both with Quick Import and from the system file dialog. The storage service checks again before installation. Missing, invalid, unknown or revoked signatures are rejected. The normal trusted publisher registry currently has no approved external publishers; the Dummy identity is for explicitly enabled test builds only.
 
 Publisher approval is a manual owner process. The owner maintains the public-key registry in lib/services/trusted_publishers.dart and distributes changes with an app update. There is no approval portal or in-app signing button. A developer command and OpenSSL provide course signing outside the app.
 
@@ -715,7 +717,7 @@ flutter build windows --release --dart-define=QQL_ENABLE_DUMMY_PUBLISHER=true
 
 These builds show a TEST ONLY banner and recognize Dummy. Do not distribute them as public production releases. A public build must omit the flag; build into a clean output location so artifacts cannot be confused.
 
-Import test/fixtures/publishers/dummy-signed-media.zip through Course Studio → Course Import → Open from… or copy it to Imports/import.zip. Expect the verified publisher confirmation and the packaged recording. Then import dummy-signed-v2.json to test an update that removes the unused recording. dummy-unsigned.json must be rejected; changing a signed title must also be rejected, even if an attacker recalculates the checksum. A normal build without the flag rejects the Dummy signed files as an unknown key.
+Import test/fixtures/publishers/dummy-signed-media.zip through Course Studio → Course Import → Open from… or copy it to {folderCourseImports}/import.zip. Expect the verified publisher confirmation and the packaged recording. Then import dummy-signed-v2.json to test an update that removes the unused recording. dummy-unsigned.json must be rejected; changing a signed title must also be rejected, even if an attacker recalculates the checksum. A normal build without the flag rejects the Dummy signed files as an unknown key.
 
 Dummy testing requires no approval request to a real publisher. All dummy release files must retain their TEST ONLY identification.''',
   'exerciseHelp.title': r'''Exercise Help''',

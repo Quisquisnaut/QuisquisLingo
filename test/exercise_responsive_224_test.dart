@@ -27,6 +27,7 @@ void main() {
             throw PlatformException(code: 'test_storage_unavailable');
           },
         );
+    keepCrashLogUnavailable();
   });
 
   for (final width in [320.0, 375.0, 430.0, 1100.0]) {

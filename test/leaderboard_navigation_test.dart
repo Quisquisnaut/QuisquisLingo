@@ -63,6 +63,7 @@ void main() {
         );
       },
     );
+    keepCrashLogUnavailable();
     messenger.setMockMethodCallHandler(
       const MethodChannel('xyz.luan/audioplayers.global'),
       (_) async => null,

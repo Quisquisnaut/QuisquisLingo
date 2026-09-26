@@ -1,3 +1,52 @@
+# 2.0.55 (Build 255, Revision 3) - One folder pattern on every system - 2026-09-26
+
+Windows, Linux, macOS and Android now use the same folders below their
+QuisquisLingo folder (`Documents/QuisquisLingo` on desktops,
+`Download/QuisquisLingo` on Android), so Help, messages and habits carry over
+from one device to another:
+
+- `Import`, with `Courses`, `Audio`, `Images`, `LessonIcons`, `Flags`,
+  `UserData` and `RecoveryKeys`;
+- `Export`, with `Courses`, `UserData`, `RecoveryKeys` and `AuditReports`;
+- `Logs`, for copies of the Crash Log and the Diagnostic Log;
+- `ToBeMerged`, with `Courses`, for the second Course of a Course Merge (no
+  longer inside the import folder).
+
+Every kind of file has its own subfolder, and no folder name has a space.
+Files read by name are unchanged (`import.zip`, `merge.zip`,
+`learner_import.json`, `flag.png`).
+
+- **Custom flag:** Upload custom flag now reads `Import/Flags`. On desktops
+  it used to read the Exports folder, although it is an import.
+- **Crash Log:** the live Crash Log and the session marker are now private on
+  every system, like on Android before. A new **Quick Export** button in
+  Settings › Debug copies the Crash Log to `Logs/QQL_crash_log.txt` without a
+  dialog, replacing the previous copy, next to Save log copy as… and Share.
+  The one-time Beta testing message now tells testers to attach that copy
+  and still shows where the live log is kept.
+- **Course Backups:** the backups Version History uses are now private on
+  every system. Backups a desktop made before this revision stay in
+  `Documents/QuisquisLingo/Exports/Course Backups v11` and are no longer
+  listed.
+- **File names:** every exported file starts with `QQL_` instead of
+  `quisquislingo_`, including the names Save as… suggests
+  (`QQL_<title>.zip`, `QQL_<profile>_backup.json`, `QQL_<id>.user-recovery-key.json`,
+  `QQL_audit_….txt`, `QQL_diagnostic_log.txt`, `QQL_crash_log.txt`).
+- **Android permission:** Quick Import now asks once for the whole
+  `Download/QuisquisLingo` folder, so the same permission covers `Import` and
+  `ToBeMerged`; the folders are created as soon as it is given. A full wipe
+  gives back this permission and one an earlier version asked for.
+- **Earlier folders:** `Imports`, `Exports` and `Merges` are not moved, read
+  or hinted at. Inventory lists them as "Folders from earlier versions", and
+  Wipe everything keeps or deletes them together with `Import`, `Export` and
+  `ToBeMerged`. Course Backups are always removed with the Courses; the
+  private Crash Log follows the Logs choice.
+
+Version `2.0.55+255003`; Beta expiry **2026-10-26 23:59:59 local time** (30
+days from the 26 September 2026 release date). See
+[plan](docs/255_STORAGE_PLAN.md#revision-3-one-folder-pattern-on-every-system),
+[handoff](docs/255_HANDOFF.md) and [validation](docs/255_VALIDATION.md).
+
 # 2.0.55 (Build 255, Revision 2) - Android public Quick folders - 2026-09-26
 
 On Android, every Quick folder is now public, in the shared Download folder

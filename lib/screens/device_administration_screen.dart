@@ -452,7 +452,7 @@ const _plans = <_ResetPlan>[
       'The media that comes with QQL itself: the built-in image library, flags, lesson icons, mascots and the recordings of the bundled courses',
       'Learners and progress',
       'Courses (which may then show missing media until it is imported again)',
-      'The original files you placed in the Imports folder, backups and logs',
+      'The original files you placed in the Import folder, backups and logs',
     ],
     warning:
         'A course that used removed recordings shows them as File missing in Course Editor > Audio Library. Delete those recordings there to remove their references, then confirm the course.',
@@ -484,12 +484,12 @@ const _plans = <_ResetPlan>[
         'Returns QQL to the state of a brand-new installation on this device.',
     removes: [
       'All learners, admins, PINs, progress and settings, including yours',
-      'All custom courses, Teams and imported media (images and MP3 audio files)',
+      'All custom courses, their automatic backups, Teams and imported media (images and MP3 audio files)',
       'The device name and all other saved preferences',
       'Every other file QQL stored, except what you choose to keep',
     ],
     keeps: [
-      'Only the Exports, Logs and Imports folders, unless you untick them in the first step. Imports holds the original files you copied there yourself.',
+      'Only the Export, Logs, Import and ToBeMerged folders, unless you untick them in the first step. Import and ToBeMerged hold the original files you copied there yourself.',
       'The bundled official courses (part of the app)',
     ],
     warning:
@@ -761,9 +761,11 @@ class _ResetSection extends StatelessWidget {
                   controlAffinity: ListTileControlAffinity.leading,
                   value: keepExports,
                   onChanged: (v) => setLocal(() => keepExports = v ?? true),
-                  title: const Text('Keep the Exports folder'),
-                  subtitle: const Text(
-                    'Your learner and course backups. Untick to delete them permanently.',
+                  title: const Text('Keep the Export folder'),
+                  subtitle: Text(
+                    'The Courses, learner backups, User Recovery Keys and Audit reports QQL saved in '
+                    '${QqlStorageLayout.current.topFolderLabel(QqlTopFolder.export)}. '
+                    'Untick to delete them permanently.',
                   ),
                 ),
                 CheckboxListTile(
@@ -774,7 +776,7 @@ class _ResetSection extends StatelessWidget {
                   onChanged: (v) => setLocal(() => keepLogs = v ?? true),
                   title: const Text('Keep the Logs folder'),
                   subtitle: const Text(
-                    'Crash and diagnostic logs, useful when reporting a problem. Untick to delete them.',
+                    'The Crash Log and the log copies you exported, useful when reporting a problem. Untick to delete them.',
                   ),
                 ),
                 CheckboxListTile(
@@ -783,10 +785,11 @@ class _ResetSection extends StatelessWidget {
                   controlAffinity: ListTileControlAffinity.leading,
                   value: keepImports,
                   onChanged: (v) => setLocal(() => keepImports = v ?? true),
-                  title: const Text('Keep the Imports folder'),
+                  title: const Text('Keep the Import and ToBeMerged folders'),
                   subtitle: Text(
                     'The original images, audio files and course files you copied into '
-                    '${QqlStorageLayout.current.directionLabel(QqlTransferDirection.imports)} '
+                    '${QqlStorageLayout.current.topFolderLabel(QqlTopFolder.import)} and '
+                    '${QqlStorageLayout.current.topFolderLabel(QqlTopFolder.toBeMerged)} '
                     'yourself. Untick to delete them.',
                   ),
                 ),
@@ -893,7 +896,7 @@ class _ResetSection extends StatelessWidget {
   String _backupText(_ResetPlan plan, List<String> affectedOthers) {
     final buffer = StringBuffer(
       'A backup lets you restore what you are about to delete. Backups are saved in '
-      '${QqlStorageLayout.current.directionLabel(QqlTransferDirection.exports)}, '
+      '${QqlStorageLayout.current.topFolderLabel(QqlTopFolder.export)}, '
       'which a full wipe keeps unless you untick it.\n\n',
     );
     final touchesLearners =
@@ -988,8 +991,8 @@ class _ResetSection extends StatelessWidget {
                 const SizedBox(height: 8),
                 Text(
                   choices.keepExports
-                      ? 'Exports folder: kept.'
-                      : 'Exports folder: will be DELETED with everything else.',
+                      ? 'Export folder: kept.'
+                      : 'Export folder: will be DELETED with everything else.',
                   key: const Key('admin-nuke-reminder-exports'),
                   style: const TextStyle(fontWeight: FontWeight.w600),
                 ),
@@ -1002,8 +1005,8 @@ class _ResetSection extends StatelessWidget {
                 ),
                 Text(
                   choices.keepImports
-                      ? 'Imports folder: kept.'
-                      : 'Imports folder: will be DELETED with everything else.',
+                      ? 'Import and ToBeMerged folders: kept.'
+                      : 'Import and ToBeMerged folders: will be DELETED with everything else.',
                   key: const Key('admin-nuke-reminder-imports'),
                   style: const TextStyle(fontWeight: FontWeight.w600),
                 ),

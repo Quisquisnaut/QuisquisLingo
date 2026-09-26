@@ -35,6 +35,7 @@ void main() {
         throw PlatformException(code: 'test-storage');
       },
     );
+    keepCrashLogUnavailable();
     messenger.setMockMethodCallHandler(
       const MethodChannel('xyz.luan/audioplayers.global'),
       (_) async => null,

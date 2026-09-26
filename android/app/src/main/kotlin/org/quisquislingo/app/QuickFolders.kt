@@ -17,21 +17,21 @@ import java.io.FileNotFoundException
 import java.io.IOException
 
 /**
- * The public QQL folders on Android, `Download/QuisquisLingo/Imports` and
- * `Download/QuisquisLingo/Exports`.
+ * The public QQL folder on Android, `Download/QuisquisLingo`, with its
+ * Import, Export, Logs and ToBeMerged folders.
  *
  * Android 10 and later: Quick Export writes through MediaStore Downloads,
  * which needs no permission and no dialog; Quick Import reads through one
  * persisted folder permission (a Storage Access Framework tree) on exactly
- * `Download/QuisquisLingo/Imports`. Android 7–9 use ordinary files in the
- * Download folder once the storage permission is granted; Dart does that
- * part. Nothing here uses app-private storage for these folders.
+ * `Download/QuisquisLingo`, which covers Import and ToBeMerged. Android 7–9
+ * use ordinary files in the Download folder once the storage permission is
+ * granted; Dart does that part. Nothing here uses app-private storage for
+ * these folders. Dart names every folder below the QuisquisLingo folder.
  */
 class QuickFolders(private val activity: Activity) {
     companion object {
         const val AUTHORITY = "com.android.externalstorage.documents"
-        val IMPORTS_DOC_ID = "primary:${Environment.DIRECTORY_DOWNLOADS}/QuisquisLingo/Imports"
-        val CATEGORY_FOLDERS = listOf("Courses", "Merges", "Audio", "Images", "Lesson Icons")
+        val ROOT_DOC_ID = "primary:${Environment.DIRECTORY_DOWNLOADS}/QuisquisLingo"
     }
 
     private val resolver get() = activity.contentResolver
@@ -57,18 +57,28 @@ class QuickFolders(private val activity: Activity) {
 
     // ---------------------------------------------------------------- Imports
 
-    private fun isImportsTree(uri: Uri?): Boolean {
-        if (uri == null || uri.authority != AUTHORITY) return false
+    private fun treeId(uri: Uri?): String? {
+        if (uri == null || uri.authority != AUTHORITY) return null
         return try {
-            DocumentsContract.getTreeDocumentId(uri).equals(IMPORTS_DOC_ID, ignoreCase = true)
+            DocumentsContract.getTreeDocumentId(uri)
         } catch (ignored: IllegalArgumentException) {
-            false
+            null
         }
     }
 
-    /** The persisted Imports permission, while QQL still holds it. */
-    private fun importsTree(): Uri? = resolver.persistedUriPermissions
-        .firstOrNull { it.isReadPermission && isImportsTree(it.uri) }
+    private fun isRootTree(uri: Uri?): Boolean =
+        treeId(uri)?.equals(ROOT_DOC_ID, ignoreCase = true) == true
+
+    /** The QuisquisLingo folder or any folder in it, such as an earlier version's Imports. */
+    private fun isQqlTree(uri: Uri?): Boolean {
+        val id = treeId(uri) ?: return false
+        return id.equals(ROOT_DOC_ID, ignoreCase = true) ||
+            id.startsWith("$ROOT_DOC_ID/", ignoreCase = true)
+    }
+
+    /** The persisted QuisquisLingo folder permission, while QQL still holds it. */
+    private fun rootTree(): Uri? = resolver.persistedUriPermissions
+        .firstOrNull { it.isReadPermission && isRootTree(it.uri) }
         ?.uri
 
     /**
@@ -78,7 +88,7 @@ class QuickFolders(private val activity: Activity) {
      */
     fun hasImportAccess(): Boolean {
         if (!scopedStorage) return hasLegacyPermission()
-        val tree = importsTree() ?: return false
+        val tree = rootTree() ?: return false
         return try {
             val root = DocumentsContract.buildDocumentUriUsingTree(
                 tree,
@@ -98,19 +108,19 @@ class QuickFolders(private val activity: Activity) {
         }
     }
 
-    /** Makes Download/QuisquisLingo/Imports exist before the folder screen opens on it. */
-    fun ensureImportsFolder() {
+    /** Makes Download/QuisquisLingo exist before the folder screen opens on it. */
+    fun ensureRootFolder() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            File(downloadsDirectory(), "QuisquisLingo/Imports").mkdirs()
+            File(downloadsDirectory(), "QuisquisLingo").mkdirs()
             return
         }
         // Android 10 has no direct file access to Download: a pending
-        // placeholder makes MediaStore create the folders, then it goes.
+        // placeholder makes MediaStore create the folder, then it goes.
         val values = ContentValues().apply {
             put(MediaStore.MediaColumns.DISPLAY_NAME, ".quisquislingo")
             put(
                 MediaStore.MediaColumns.RELATIVE_PATH,
-                "${Environment.DIRECTORY_DOWNLOADS}/QuisquisLingo/Imports/",
+                "${Environment.DIRECTORY_DOWNLOADS}/QuisquisLingo/",
             )
             put(MediaStore.MediaColumns.IS_PENDING, 1)
         }
@@ -126,7 +136,7 @@ class QuickFolders(private val activity: Activity) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             putExtra(
                 DocumentsContract.EXTRA_INITIAL_URI,
-                DocumentsContract.buildDocumentUri(AUTHORITY, IMPORTS_DOC_ID),
+                DocumentsContract.buildDocumentUri(AUTHORITY, ROOT_DOC_ID),
             )
         }
         addFlags(
@@ -138,26 +148,31 @@ class QuickFolders(private val activity: Activity) {
 
     /**
      * Keeps the permission the folder screen returned when it is exactly the
-     * Imports folder, and creates the category folders inside it.
+     * QuisquisLingo folder, and creates [folders] inside it (`/`-separated
+     * paths such as `Import/Courses`, named by Dart).
      */
-    fun acceptTree(data: Intent?): String {
+    fun acceptTree(data: Intent?, folders: List<String>): String {
         val tree = data?.data ?: return "cancelled"
-        if (!isImportsTree(tree)) return "wrongFolder"
+        if (!isRootTree(tree)) return "wrongFolder"
         val flags = data.flags and
             (Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
         resolver.takePersistableUriPermission(tree, flags)
-        for (name in CATEGORY_FOLDERS) {
+        for (path in folders) {
             try {
-                childDirectory(tree, DocumentsContract.getTreeDocumentId(tree), name, create = true)
+                var id = DocumentsContract.getTreeDocumentId(tree)
+                for (name in path.split('/').filter { it.isNotEmpty() }) {
+                    id = childDirectory(tree, id, name, create = true)!!
+                }
             } catch (ignored: Exception) {
             }
         }
         return "granted"
     }
 
+    /** Gives back every QuisquisLingo folder permission, an earlier version's included. */
     fun releaseImportAccess() {
         for (permission in resolver.persistedUriPermissions) {
-            if (isImportsTree(permission.uri)) {
+            if (isQqlTree(permission.uri)) {
                 resolver.releasePersistableUriPermission(
                     permission.uri,
                     Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION,
@@ -219,9 +234,9 @@ class QuickFolders(private val activity: Activity) {
         return DocumentsContract.getDocumentId(created)
     }
 
-    /** The files (not folders) in Imports/[segments]; missing folders are created. */
+    /** The files (not folders) in QuisquisLingo/[segments]; missing folders are created. */
     fun listImports(segments: List<String>): List<Map<String, Any?>> {
-        val tree = importsTree() ?: throw SecurityException("accessRequired")
+        val tree = rootTree() ?: throw SecurityException("accessRequired")
         var id = DocumentsContract.getTreeDocumentId(tree)
         for (segment in segments) id = childDirectory(tree, id, segment, create = true)!!
         return children(tree, id)
@@ -235,9 +250,18 @@ class QuickFolders(private val activity: Activity) {
             }
     }
 
-    /** Every file below Imports, named relative to it, for Inventory. */
-    fun listAllImports(): List<Map<String, Any?>> {
-        val tree = importsTree() ?: return emptyList()
+    /** The document ID of QuisquisLingo/[segments], or null while a folder is missing. */
+    private fun folderId(tree: Uri, segments: List<String>): String? {
+        var id = DocumentsContract.getTreeDocumentId(tree)
+        for (segment in segments) {
+            id = childDirectory(tree, id, segment, create = false) ?: return null
+        }
+        return id
+    }
+
+    /** Every file below QuisquisLingo/[segments], named relative to it, for Inventory. */
+    fun listTree(segments: List<String>): List<Map<String, Any?>> {
+        val tree = rootTree() ?: return emptyList()
         val out = mutableListOf<Map<String, Any?>>()
         fun walk(parentId: String, prefix: String) {
             for (child in children(tree, parentId)) {
@@ -255,17 +279,22 @@ class QuickFolders(private val activity: Activity) {
             }
         }
         try {
-            walk(DocumentsContract.getTreeDocumentId(tree), "")
+            folderId(tree, segments)?.let { walk(it, "") }
         } catch (ignored: Exception) {
         }
         return out
     }
 
-    /** Deletes everything below Imports, keeping the folder. Returns the file count. */
-    fun deleteImports(): Int {
-        val files = listAllImports().size
-        val tree = importsTree() ?: return 0
-        for (child in children(tree, DocumentsContract.getTreeDocumentId(tree))) {
+    /** Deletes everything below QuisquisLingo/[segments], keeping that folder. Returns the file count. */
+    fun deleteTree(segments: List<String>): Int {
+        val files = listTree(segments).size
+        val tree = rootTree() ?: return 0
+        val entries = try {
+            folderId(tree, segments)?.let { children(tree, it) }
+        } catch (ignored: Exception) {
+            null
+        } ?: return 0
+        for (child in entries) {
             try {
                 DocumentsContract.deleteDocument(
                     resolver,

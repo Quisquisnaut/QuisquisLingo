@@ -29,6 +29,7 @@ void main() {
             throw PlatformException(code: 'test_storage_unavailable');
           },
         );
+    keepCrashLogUnavailable();
   });
 
   testWidgets('unsaved Fill in the Blank Hint uses shared no-write Preview', (

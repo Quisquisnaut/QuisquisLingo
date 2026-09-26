@@ -159,7 +159,7 @@ class UserRecoveryKeyService {
     });
     return (
       bytes: Uint8List.fromList(utf8.encode(payload)),
-      stem: 'quisquislingo_${profile.learnerProfileId}.user-recovery-key',
+      stem: 'QQL_${profile.learnerProfileId}.user-recovery-key',
     );
   }
 

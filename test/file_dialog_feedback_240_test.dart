@@ -51,7 +51,7 @@ void main() {
       findsOneWidget,
     );
     expect(
-      find.textContaining('Documents/QuisquisLingo/Exports'),
+      find.textContaining('Documents/QuisquisLingo/Export/Courses'),
       findsOneWidget,
     );
     expect(find.textContaining('Export instead'), findsOneWidget);
@@ -80,7 +80,7 @@ void main() {
     await tester.tap(find.text('go'));
     await tester.pump();
     expect(find.textContaining('Couldn’t open that file.'), findsOneWidget);
-    expect(find.textContaining('Imports/Courses/import.zip'), findsOneWidget);
+    expect(find.textContaining('Import/Courses/import.zip'), findsOneWidget);
     expect(
       find.textContaining('media-free JSON to import.json'),
       findsOneWidget,

@@ -50,7 +50,7 @@ void main() {
     await profiles.setActiveProfileById(_alice);
     final media = CourseMediaStore(supportDirectory: () async => root);
     backups = CourseBackupService(
-      documentsDirectoryProvider: () async => root,
+      supportDirectoryProvider: () async => root,
       mediaStore: media,
     );
     store = _PostCommitFailureStore(root);

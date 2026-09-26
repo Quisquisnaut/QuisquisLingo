@@ -35,7 +35,7 @@ void main() {
     });
     service = CourseEditorService(
       backupService: CourseBackupService(
-        documentsDirectoryProvider: () async => documents,
+        supportDirectoryProvider: () async => documents,
       ),
       clock: () => DateTime.utc(2026, 9, 6, 12),
     );

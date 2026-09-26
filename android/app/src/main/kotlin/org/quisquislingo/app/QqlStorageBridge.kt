@@ -49,6 +49,9 @@ class QqlStorageBridge(private val activity: Activity) {
     private val folders = QuickFolders(activity)
     private var pending: MethodChannel.Result? = null
 
+    /** The folders to create once the pending folder screen grants access. */
+    private var pendingTreeFolders: List<String> = emptyList()
+
     /** What the pending permission request answers: "import" or "write". */
     private var pendingPermissionFor: String? = null
     private val readers = ConcurrentHashMap<Int, InputStream>()
@@ -99,7 +102,8 @@ class QqlStorageBridge(private val activity: Activity) {
                     return
                 }
                 // The folder must exist for the folder screen to open on it.
-                folders.ensureImportsFolder()
+                folders.ensureRootFolder()
+                pendingTreeFolders = call.argument<List<String>>("folders").orEmpty()
                 launch(folders.treePickerIntent(), REQUEST_TREE, result)
             }
             "requestLegacyWriteAccess" -> requestLegacyPermission("write", result)
@@ -171,7 +175,7 @@ class QqlStorageBridge(private val activity: Activity) {
                     "cancelled"
                 } else {
                     try {
-                        folders.acceptTree(data)
+                        folders.acceptTree(data, pendingTreeFolders)
                     } catch (error: Exception) {
                         "denied"
                     }
@@ -317,8 +321,12 @@ class QqlStorageBridge(private val activity: Activity) {
                         result.success(items)
                     }
                 }
-                "listAllImports" -> result.success(folders.listAllImports())
-                "deleteImports" -> result.success(folders.deleteImports())
+                "listTree" -> result.success(
+                    folders.listTree(call.argument<List<String>>("segments").orEmpty()),
+                )
+                "deleteTree" -> result.success(
+                    folders.deleteTree(call.argument<List<String>>("segments").orEmpty()),
+                )
                 "releaseImportAccess" -> {
                     folders.releaseImportAccess()
                     result.success(null)

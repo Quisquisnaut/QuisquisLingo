@@ -42,12 +42,16 @@ class DiagnosticLogService {
     return operation;
   }
 
+  /// The private folder of the live Crash Log and the session marker, in
+  /// QQL's own app storage on every system. People get copies through
+  /// Settings › Debug, in the Logs folder.
+  static const logsDirectoryName = 'qql_logs';
+
   static Future<Directory?> logsDirectory({bool create = false}) async {
     if (kIsWeb) return null;
-    final documents = await getApplicationDocumentsDirectory();
+    final support = await getApplicationSupportDirectory();
     final directory = Directory(
-      '${documents.path}${Platform.pathSeparator}QuisquisLingo'
-      '${Platform.pathSeparator}Logs',
+      '${support.path}${Platform.pathSeparator}$logsDirectoryName',
     );
     if (create) await directory.create(recursive: true);
     return directory;
@@ -95,8 +99,8 @@ class DiagnosticLogService {
     }
   }
 
-  static const exportBaseName = 'quisquislingo_diagnostic_log';
-  static const exportFileName = 'quisquislingo_diagnostic_log.txt';
+  static const exportBaseName = 'QQL_diagnostic_log';
+  static const exportFileName = 'QQL_diagnostic_log.txt';
 
   /// Where Export Diagnostic Log writes, for display.
   Future<String?> exportPath() async {

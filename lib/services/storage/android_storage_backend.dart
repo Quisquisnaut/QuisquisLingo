@@ -10,7 +10,8 @@ import 'qql_storage.dart';
 ///
 /// * Android 10 and later: Quick Export writes through MediaStore, with no
 ///   permission and no dialog. Quick Import reads through one persisted
-///   folder permission on exactly `Download/QuisquisLingo/Imports`.
+///   folder permission on exactly `Download/QuisquisLingo`, which covers
+///   both Import and ToBeMerged.
 /// * Android 7–9: both use ordinary files in the Download folder once the
 ///   storage permission is granted; Android asks for it once.
 ///
@@ -31,11 +32,19 @@ class AndroidStorageBackend implements QqlStorageBackend {
   Future<AndroidStorageInfo> _storageInfo() =>
       _info ??= _bridge.storageInfo();
 
-  String get _importsLabel =>
-      layout.directionLabel(QqlTransferDirection.imports);
+  /// The folder the Quick Import permission is for.
+  String get _accessLabel => layout.rootLabel;
 
   Directory _legacyDirectory(AndroidStorageInfo info, List<String> segments) =>
       Directory([info.downloadsPath, 'QuisquisLingo', ...segments].join('/'));
+
+  /// The Import and ToBeMerged folders QQL creates once it may read the
+  /// QuisquisLingo folder, so people see where to put files.
+  List<String> get importFolderPaths => {
+    for (final role in QqlStorageRole.values)
+      if (role.direction == QqlTransferDirection.imports)
+        layout.segments(role).join('/'),
+  }.toList();
 
   @override
   Future<QuickExportFolder> exportFolder(QqlStorageRole role) async {
@@ -57,20 +66,20 @@ class AndroidStorageBackend implements QqlStorageBackend {
     final info = await _storageInfo();
     final label = layout.folderLabel(role);
     if (!await _bridge.hasImportAccess()) {
-      throw QuickImportAccessRequired(_importsLabel);
+      throw QuickImportAccessRequired(_accessLabel);
     }
     if (!info.scopedStorage) {
       final directory = _legacyDirectory(info, layout.segments(role));
       await directory.create(recursive: true);
       return LabelledImportFolder(FileSystemImportFolder(directory), label);
     }
-    // The permission is for the Imports folder; the role's folders are
+    // The permission is for the QuisquisLingo folder; the role's folder is
     // below it.
     return AndroidTreeImportFolder(
       _bridge,
-      layout.segments(role).skip(1).toList(),
+      layout.segments(role),
       label,
-      _importsLabel,
+      _accessLabel,
     );
   }
 
@@ -79,12 +88,12 @@ class AndroidStorageBackend implements QqlStorageBackend {
 
   @override
   Future<QuickImportAccessResult> requestImportAccess() =>
-      _bridge.requestImportAccess();
+      _bridge.requestImportAccess(folders: importFolderPaths);
 
   @override
   Future<String?> importAccessSteps() async =>
       (await _storageInfo()).scopedStorage
-      ? 'On the next screen Android opens $_importsLabel. Tap Use this '
+      ? 'On the next screen Android opens $_accessLabel. Tap Use this '
             'folder, then Allow.'
       : 'On the next screen Android asks whether QuisquisLingo may use '
             'files on this device. Tap Allow.';
@@ -107,7 +116,7 @@ class QuickExportAccessDenied implements Exception {
 }
 
 /// An import folder that names itself by its label, so messages show
-/// `Download/QuisquisLingo/Imports/…` rather than a device path.
+/// `Download/QuisquisLingo/Import/…` rather than a device path.
 class LabelledImportFolder implements QuickImportFolder {
   LabelledImportFolder(this._inner, this.location);
 
@@ -127,18 +136,20 @@ class LabelledImportFolder implements QuickImportFolder {
 }
 
 /// Android 10 and later: a Quick Import folder below
-/// `Download/QuisquisLingo/Imports`, read through the folder permission.
+/// `Download/QuisquisLingo`, read through the folder permission.
 class AndroidTreeImportFolder implements QuickImportFolder {
   AndroidTreeImportFolder(
     this._bridge,
     this._segments,
     this.location,
-    this._importsLabel,
+    this._accessLabel,
   );
 
   final AndroidStorageBridge _bridge;
+
+  /// Folder names below the QuisquisLingo folder, e.g. `Import`, `Courses`.
   final List<String> _segments;
-  final String _importsLabel;
+  final String _accessLabel;
 
   @override
   final String location;
@@ -154,7 +165,7 @@ class AndroidTreeImportFolder implements QuickImportFolder {
           AndroidQuickImportFile(document, _bridge),
       ];
     } on AndroidImportAccessMissing {
-      throw QuickImportAccessRequired(_importsLabel);
+      throw QuickImportAccessRequired(_accessLabel);
     }
   }
 
@@ -180,8 +191,8 @@ class AndroidQuickImportFile extends AndroidDocumentFile
   bool get isOrdinaryFile => true;
 }
 
-/// Android 10 and later: Quick Export to `Download/QuisquisLingo/Exports/…`
-/// through MediaStore.
+/// Android 10 and later: Quick Export to `Download/QuisquisLingo/Export/…`
+/// and `Download/QuisquisLingo/Logs` through MediaStore.
 class AndroidDownloadsExportFolder implements QuickExportFolder {
   AndroidDownloadsExportFolder(this._bridge, this.location);
 
@@ -263,44 +274,47 @@ class AndroidPublicFolders implements QqlPublicFolders {
   AndroidStorageBridge get _bridge => _backend._bridge;
 
   @override
-  String label(QqlTransferDirection direction) =>
-      _backend.layout.directionLabel(direction);
+  String label(QqlTopFolder folder) => _backend.layout.topFolderLabel(folder);
 
-  String _relativePrefix(QqlTransferDirection direction) =>
-      '${label(direction)}/';
+  String _relativePrefix(QqlTopFolder folder) => '${label(folder)}/';
 
-  Directory _legacyRoot(AndroidStorageInfo info, QqlTransferDirection d) =>
-      _backend._legacyDirectory(info, [QqlStorageLayout.directionFolder(d)]);
+  Directory _legacyRoot(AndroidStorageInfo info, QqlTopFolder folder) =>
+      _backend._legacyDirectory(info, [folder.folderName]);
+
+  /// Import and ToBeMerged hold files people put there, read through the
+  /// folder permission; Export and Logs hold QQL's own Download entries.
+  static bool _peoplesFiles(QqlTopFolder folder) =>
+      folder == QqlTopFolder.import || folder == QqlTopFolder.toBeMerged;
 
   @override
-  Future<List<QqlPublicFile>> list(QqlTransferDirection direction) async {
+  Future<List<QqlPublicFile>> list(QqlTopFolder folder) async {
     final info = await _backend._storageInfo();
     if (!info.scopedStorage) {
       if (!await _bridge.hasImportAccess()) return const [];
-      return _legacyFiles(_legacyRoot(info, direction));
+      return _legacyFiles(_legacyRoot(info, folder));
     }
-    if (direction == QqlTransferDirection.exports) {
-      return _bridge.listOwnDownloads(_relativePrefix(direction));
+    if (!_peoplesFiles(folder)) {
+      return _bridge.listOwnDownloads(_relativePrefix(folder));
     }
     if (!await _bridge.hasImportAccess()) return const [];
-    return _bridge.listAllImports();
+    return _bridge.listTree([folder.folderName]);
   }
 
   @override
-  Future<int> delete(QqlTransferDirection direction) async {
+  Future<int> delete(QqlTopFolder folder) async {
     final info = await _backend._storageInfo();
     if (!info.scopedStorage) {
       if (!await _bridge.hasImportAccess()) return 0;
-      final root = _legacyRoot(info, direction);
+      final root = _legacyRoot(info, folder);
       final count = (await _legacyFiles(root)).length;
       if (await root.exists()) await root.delete(recursive: true);
       return count;
     }
-    if (direction == QqlTransferDirection.exports) {
-      return _bridge.deleteOwnDownloads(_relativePrefix(direction));
+    if (!_peoplesFiles(folder)) {
+      return _bridge.deleteOwnDownloads(_relativePrefix(folder));
     }
     if (!await _bridge.hasImportAccess()) return 0;
-    return _bridge.deleteImports();
+    return _bridge.deleteTree([folder.folderName]);
   }
 
   @override

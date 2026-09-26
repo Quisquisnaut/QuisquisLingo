@@ -965,7 +965,7 @@ Course _withUntouchedMetadata(Course base) {
 
 class _MemoryBackupService extends CourseBackupService {
   _MemoryBackupService(Directory documents)
-    : super(documentsDirectoryProvider: () async => documents);
+    : super(supportDirectoryProvider: () async => documents);
 
   final List<CourseBackupRecord> records = [];
 

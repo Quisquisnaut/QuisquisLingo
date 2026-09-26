@@ -618,7 +618,13 @@ void main() {
         .data!;
     final path = text.replaceFirst('Exported “Mine” to ', '').split(' ').first;
     expect(await tester.runAsync(() => File(path).exists()), isTrue);
-    expect(path, contains('${Platform.pathSeparator}Exports'));
+    expect(
+      path,
+      contains(
+        '${Platform.pathSeparator}Export${Platform.pathSeparator}Courses'
+        '${Platform.pathSeparator}QQL_',
+      ),
+    );
   });
 
   group('Remove Publisher Course from device', () {
@@ -808,7 +814,9 @@ void main() {
     await setUpDevice(tester);
     await install(tester, _course('left', title: 'Mine'));
     await tester.runAsync(() async {
-      final merges = Directory('${documents.path}/QuisquisLingo/Merges');
+      final merges = Directory(
+        '${documents.path}/QuisquisLingo/ToBeMerged/Courses',
+      );
       await merges.create(recursive: true);
       await File(
         '${merges.path}/merge.json',

@@ -194,6 +194,7 @@ void main() {
               throw PlatformException(code: 'test-storage');
             },
           );
+      keepCrashLogUnavailable();
     });
 
     Future<void> pumpGapExercise(WidgetTester tester, Exercise exercise) async {

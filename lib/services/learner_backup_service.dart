@@ -144,7 +144,7 @@ class LearnerBackupService {
     final profileName = profile.displayName
         .replaceAll(RegExp(r'[^A-Za-z0-9_-]'), '_')
         .toLowerCase();
-    return (bytes: bytes, baseName: 'quisquislingo_${profileName}_backup');
+    return (bytes: bytes, baseName: 'QQL_${profileName}_backup');
   }
 
   /// Save as…: the same backup as [saveActiveProfile], written wherever the

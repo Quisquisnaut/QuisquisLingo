@@ -13,6 +13,7 @@ import 'profile_service.dart';
 import 'course_media_store.dart';
 import 'course_favorite_service.dart';
 import 'course_received_service.dart';
+import 'diagnostic_log_service.dart';
 import 'team_service.dart';
 import 'import/import_stager.dart';
 import 'storage/qql_storage.dart';
@@ -98,11 +99,11 @@ class InventoryService {
        _courses = courses,
        _teams = teams ?? (() => TeamService().listTeams());
 
-  static const _knownTopLevel = <String>{
-    'exports',
-    'imports',
-    'logs',
-    'merges',
+  /// The QuisquisLingo folder's own folders, current and earlier, in lower
+  /// case.
+  static final _knownTopLevel = <String>{
+    for (final folder in QqlTopFolder.values) folder.folderName.toLowerCase(),
+    for (final name in QqlTopFolder.earlierFolders.keys) name.toLowerCase(),
   };
 
   Future<List<InventorySection>> load() async {
@@ -150,7 +151,7 @@ class InventoryService {
     }
 
     // On Android the user folders are public (Download/QuisquisLingo): the
-    // app's own folders then hold only internal files.
+    // app's own documents folder then holds only earlier versions' files.
     final public = _storage.publicFolders;
     final documentsRoot = Directory(
       '${(await _documents()).path}${Platform.pathSeparator}QuisquisLingo',
@@ -264,15 +265,21 @@ class InventoryService {
       ),
     );
 
-    // ---- Folders under Documents/QuisquisLingo
+    // ---- Folders; [only] lists just those subfolders of [directory]
     Future<InventorySection> folder({
       required String title,
       required String description,
       required Directory directory,
+      List<String>? only,
       required Future<InventoryItem> Function(File file, Directory root)
       describe,
     }) async {
-      final files = await _files(directory);
+      final files = only == null
+          ? await _files(directory)
+          : [
+              for (final name in only)
+                ...await _files(Directory('${directory.path}$sep$name')),
+            ];
       final items = <InventoryItem>[];
       var total = 0;
       for (final file in files) {
@@ -377,137 +384,168 @@ class InventoryService {
       ),
     );
 
-    sections.add(
-      await folder(
-        title: 'Exports and backups',
-        description: public != null
-            ? 'The course backups the Course Editor makes automatically before saving changes (in "Course Backups v11"; an older "Course Backups v9" folder is kept but no longer read). Quick Export files are in the Quick Export folder below.'
-            : 'Learner backups, User Recovery Keys, course exports and the course backups the Course Editor makes automatically before saving changes (in "Course Backups v11"; an older "Course Backups v9" folder is kept but no longer read).',
-        directory: Directory('${documentsRoot.path}${sep}Exports'),
-        describe: (file, root) async {
-          final rel = _relative(file, root);
-          final lower = rel.toLowerCase();
-          String kind;
-          String? reason;
-          if (RegExp(r'course backups v\d+').hasMatch(lower)) {
-            kind = 'Course backup';
-            try {
-              if (lower.endsWith('.json') &&
-                  await file.length() <= _maxJsonBytesForOwner) {
-                final decoded = jsonDecode(await file.readAsString());
-                if (decoded is Map && decoded['reason'] is String) {
-                  reason = decoded['reason'] as String;
-                }
-              }
-            } catch (_) {}
-            if (reason != null &&
-                reason.toLowerCase().startsWith('pre-change')) {
-              kind = 'Automatic course backup (made before a change)';
+    // Course backups and exports are told apart by name and, for backups,
+    // by the reason in their manifest.
+    Future<InventoryItem> describeBackupOrExport(
+      File file,
+      Directory root,
+    ) async {
+      final rel = _relative(file, root);
+      final lower = rel.toLowerCase();
+      String kind;
+      String? reason;
+      final isBackup =
+          RegExp(r'course backups v\d+').hasMatch(lower) ||
+          root.path.endsWith(CourseBackupService.backupRootName);
+      if (isBackup) {
+        kind = 'Course backup';
+        try {
+          if (lower.endsWith('.json') &&
+              await file.length() <= _maxJsonBytesForOwner) {
+            final decoded = jsonDecode(await file.readAsString());
+            if (decoded is Map && decoded['reason'] is String) {
+              reason = decoded['reason'] as String;
             }
-          } else if (lower.endsWith('.user-recovery-key.json')) {
-            kind = 'User Recovery Key';
-          } else if (lower.contains('_backup') && lower.endsWith('.json')) {
-            kind = 'Learner backup';
-          } else {
-            kind = 'Export';
           }
-          return plain(
-            file,
-            root,
-            note: kind,
-            owner: await ownerFromJson(file),
-          );
-        },
-      ),
-    );
+        } catch (_) {}
+        if (reason != null && reason.toLowerCase().startsWith('pre-change')) {
+          kind = 'Automatic course backup (made before a change)';
+        }
+      } else if (lower.endsWith('.user-recovery-key.json')) {
+        kind = 'User Recovery Key';
+      } else if (lower.contains('_backup') && lower.endsWith('.json')) {
+        kind = 'Learner backup';
+      } else {
+        kind = 'Export';
+      }
+      return plain(file, root, note: kind, owner: await ownerFromJson(file));
+    }
 
+    // ---- QQL's private copies, the same on every system
     sections.add(
       await folder(
-        title: 'Imports',
-        description: public != null
-            ? 'Files left in the app\'s own Imports folder by earlier versions. Quick Import now reads the Quick Import folder below.'
-            : 'Files copied into the Imports folder from outside QQL: images, audio (MP3) files, lesson icons and course files waiting to be imported. QQL only reads them; importing makes separate copies.',
-        directory: Directory('${documentsRoot.path}${sep}Imports'),
-        describe: (file, root) =>
-            plain(file, root, note: 'Added from outside QQL.'),
+        title: 'Course backups',
+        description:
+            'The backups the Course Editor makes automatically before saving a change, which Version History lists. They are private to QQL.',
+        directory: Directory(
+          '$supportRoot$sep${CourseBackupService.backupRootName}',
+        ),
+        describe: describeBackupOrExport,
       ),
     );
     sections.add(
       await folder(
-        title: 'Merges',
-        description: public != null
-            ? 'Files left in the app\'s own Merges folder by earlier versions. Course Merge now reads the Quick Import folder below.'
-            : 'Course files placed in the Merges folder for a Course Merge.',
-        directory: Directory('${documentsRoot.path}${sep}Merges'),
-        describe: (file, root) =>
-            plain(file, root, note: 'Added from outside QQL.'),
-      ),
-    );
-    sections.add(
-      await folder(
-        title: 'Logs',
-        description: public != null
-            ? 'The crash log and the session marker QQL uses to detect an abnormal shutdown. Diagnostic Log exports are in the Quick Export folder below.'
-            : 'The crash log, the diagnostic log export and the session marker QQL uses to detect an abnormal shutdown.',
-        directory: Directory('${documentsRoot.path}${sep}Logs'),
+        title: 'Crash Log',
+        description:
+            'The live Crash Log and the session marker QQL uses to detect an abnormal shutdown. They are private to QQL; Settings › Debug saves copies in the Logs folder.',
+        directory: Directory(
+          '$supportRoot$sep${DiagnosticLogService.logsDirectoryName}',
+        ),
         describe: (file, root) => plain(file, root, note: 'Written by QQL.'),
       ),
     );
 
-    // ---- Android's public folders, Download/QuisquisLingo
-    if (public != null) {
-      for (final (direction, title, description, note) in [
-        (
-          QqlTransferDirection.exports,
-          'Quick Export folder',
-          'Files QQL saved with Quick Export: Course packages, learner '
-              'backups, User Recovery Keys, Audit reports and Diagnostic Log '
-              'copies. Only the files QQL wrote itself are listed.',
-          'Written by QQL.',
-        ),
-        (
-          QqlTransferDirection.imports,
-          'Quick Import folder',
-          'Files copied into the Quick Import folder from outside QQL. QQL '
-              'only reads them; importing makes separate copies. They are '
-              'listed only while QQL has permission to read this folder.',
-          'Added from outside QQL.',
-        ),
-      ]) {
-        List<QqlPublicFile> files;
-        try {
-          files = await public.list(direction);
-        } catch (_) {
-          files = const [];
-        }
-        files = [...files]
-          ..sort(
-            (a, b) => (b.modified ?? DateTime(0)).compareTo(
-              a.modified ?? DateTime(0),
-            ),
-          );
+    // ---- The QuisquisLingo folder: Export, Import, ToBeMerged and Logs
+    const topFolders = <(QqlTopFolder, String, String)>[
+      (
+        QqlTopFolder.export,
+        'Export folder',
+        'Files QQL saved with Quick Export: Course packages, learner backups, '
+            'User Recovery Keys and Audit reports.',
+      ),
+      (
+        QqlTopFolder.import,
+        'Import folder',
+        'Files copied into the Import folder from outside QQL: Courses, '
+            'images, audio (MP3) files, lesson icons, flags, learner data and '
+            'User Recovery Keys waiting to be imported. QQL only reads them; '
+            'importing makes separate copies.',
+      ),
+      (
+        QqlTopFolder.toBeMerged,
+        'ToBeMerged folder',
+        'Course files placed there for a Course Merge. QQL only reads them.',
+      ),
+      (
+        QqlTopFolder.logs,
+        'Logs folder',
+        'Copies of the Crash Log and the Diagnostic Log saved with Quick '
+            'Export in Settings › Debug.',
+      ),
+    ];
+    for (final (top, title, description) in topFolders) {
+      final writtenByQql =
+          top == QqlTopFolder.export || top == QqlTopFolder.logs;
+      final note = writtenByQql ? 'Written by QQL.' : 'Added from outside QQL.';
+      if (public == null) {
         sections.add(
-          InventorySection(
+          await folder(
             title: title,
             description: description,
-            location: public.label(direction),
-            items: [
-              for (final file in files.take(maxListedPerSection))
-                InventoryItem(
-                  name: file.name,
-                  sizeBytes: file.size,
-                  modified: file.modified,
-                  note: note,
-                ),
-            ],
-            hiddenCount: files.length > maxListedPerSection
-                ? files.length - maxListedPerSection
-                : 0,
-            totalBytes: files.fold(0, (sum, file) => sum + (file.size ?? 0)),
+            directory: Directory('${documentsRoot.path}$sep${top.folderName}'),
+            describe: top == QqlTopFolder.export
+                ? describeBackupOrExport
+                : (file, root) => plain(file, root, note: note),
           ),
         );
+        continue;
       }
+      // Android: the public Download/QuisquisLingo folder.
+      List<QqlPublicFile> files;
+      try {
+        files = await public.list(top);
+      } catch (_) {
+        files = const [];
+      }
+      files = [...files]
+        ..sort(
+          (a, b) =>
+              (b.modified ?? DateTime(0)).compareTo(a.modified ?? DateTime(0)),
+        );
+      sections.add(
+        InventorySection(
+          title: title,
+          description: writtenByQql
+              ? '$description Only the files QQL wrote itself are listed.'
+              : '$description They are listed only while QQL has permission '
+                    'to read the QuisquisLingo folder.',
+          location: public.label(top),
+          items: [
+            for (final file in files.take(maxListedPerSection))
+              InventoryItem(
+                name: file.name,
+                sizeBytes: file.size,
+                modified: file.modified,
+                note: note,
+              ),
+          ],
+          hiddenCount: files.length > maxListedPerSection
+              ? files.length - maxListedPerSection
+              : 0,
+          totalBytes: files.fold(0, (sum, file) => sum + (file.size ?? 0)),
+        ),
+      );
     }
+
+    // ---- Folders earlier versions used: never read, listed so nothing
+    // stays hidden. On Android the app's own documents folder held only
+    // those (Crash Log and Course Backups).
+    sections.add(
+      await folder(
+        title: 'Folders from earlier versions',
+        description: public == null
+            ? 'Imports, Exports and Merges from versions before Build 255 '
+                  'Revision 3, including Course Backups made before then. QQL '
+                  'no longer reads them; Wipe everything treats them like '
+                  'Import, Export and ToBeMerged.'
+            : 'Files earlier versions kept in QQL\'s own documents folder, '
+                  'such as an older Crash Log and Course Backups. QQL no '
+                  'longer uses them.',
+        directory: documentsRoot,
+        only: public == null ? QqlTopFolder.earlierFolders.keys.toList() : null,
+        describe: describeBackupOrExport,
+      ),
+    );
 
     // ---- Imported media copies in QQL's own storage
     final mediaOwners = <String, String>{};
@@ -572,7 +610,9 @@ class InventoryService {
       ),
     );
 
-    // ---- Anything else in the QQL documents folder
+    // ---- Anything else in the QQL folder. On Android the app's documents
+    // folder is listed whole above, as earlier versions' files.
+    if (public != null) return sections;
     final other = <InventoryItem>[];
     var otherTotal = 0;
     var otherCount = 0;

@@ -34,6 +34,7 @@ void main() {
             throw PlatformException(code: 'test_storage_unavailable');
           },
         );
+    keepCrashLogUnavailable();
   });
 
   testWidgets('main Course Editor uses a compact Lessons navigation row', (

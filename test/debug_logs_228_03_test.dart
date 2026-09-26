@@ -33,25 +33,32 @@ void main() {
   });
 
   test(
-    '228.03 Crash and Diagnostic Logs use the same existing directory',
+    '255 R3: the live Crash Log is private; both log copies go to Logs',
     () async {
       await CrashLogService.instance.initialise();
       final crashPath = CrashLogService.instance.crashLogPath;
       final diagnosticPath = await DiagnosticLogService().exportPath();
-      final expectedDirectory = Directory(
+      final crashCopyPath = await CrashLogService.instance.exportPath();
+      final logsFolder = Directory(
         '${documents.path}${Platform.pathSeparator}QuisquisLingo'
         '${Platform.pathSeparator}Logs',
       ).path;
 
-      expect(File(crashPath!).parent.path, expectedDirectory);
-      expect(File(diagnosticPath!).parent.path, expectedDirectory);
+      // This file's path_provider answers one directory for everything, so
+      // app support and documents share a root here.
+      expect(
+        File(crashPath!).parent.path,
+        '${documents.path}${Platform.pathSeparator}qql_logs',
+      );
       expect(File(crashPath).uri.pathSegments.last, 'quisquislingo_crash.log');
+      expect(await File(crashPath).exists(), isTrue);
+      expect(File(diagnosticPath!).parent.path, logsFolder);
       expect(
         File(diagnosticPath).uri.pathSegments.last,
-        'quisquislingo_diagnostic_log.txt',
+        'QQL_diagnostic_log.txt',
       );
-      expect(crashPath, isNot(contains('QuisquisLingo Logs')));
-      expect(await File(crashPath).exists(), isTrue);
+      expect(File(crashCopyPath!).parent.path, logsFolder);
+      expect(File(crashCopyPath).uri.pathSegments.last, 'QQL_crash_log.txt');
     },
   );
 
@@ -71,6 +78,9 @@ void main() {
     expect(find.widgetWithText(ListTile, 'Diagnostic Log'), findsOneWidget);
     expect(find.byTooltip('Export Diagnostic Log'), findsOneWidget);
     expect(find.byTooltip('Clear Diagnostic Log'), findsOneWidget);
+    expect(find.byKey(const Key('quick-export-crash-log')), findsOneWidget);
+    expect(find.byTooltip('Quick Export Crash Log'), findsOneWidget);
+    expect(find.textContaining('Quick Export location:'), findsOneWidget);
     expect(
       find.textContaining('crashes or closes unexpectedly'),
       findsOneWidget,

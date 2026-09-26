@@ -42,6 +42,7 @@ void main() {
             throw PlatformException(code: 'test_storage_unavailable');
           },
         );
+    keepCrashLogUnavailable();
   });
 
   for (final mode in ScriptRecognitionMode.values) {

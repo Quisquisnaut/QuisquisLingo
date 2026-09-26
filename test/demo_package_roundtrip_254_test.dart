@@ -131,7 +131,7 @@ class _Device {
       courseStore: CourseFileStore(supportDirectory: () async => directory),
       mediaStore: media,
       backupService: CourseBackupService(
-        documentsDirectoryProvider: () async => directory,
+        supportDirectoryProvider: () async => directory,
         mediaStore: media,
       ),
       clock: () => _clock,

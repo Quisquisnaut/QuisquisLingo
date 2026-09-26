@@ -300,7 +300,7 @@ void main() {
       );
       expect(find.text('Import instructions'), findsOneWidget);
       expect(
-        find.textContaining('Documents/QuisquisLingo/Imports/Courses/import.zip'),
+        find.textContaining('Documents/QuisquisLingo/Import/Courses/import.zip'),
         findsOneWidget,
       );
       expect(find.textContaining('/Exports/'), findsNothing);

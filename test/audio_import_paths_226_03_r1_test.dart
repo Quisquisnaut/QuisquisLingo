@@ -131,7 +131,7 @@ void main() {
   );
 
   test(
-    'default documents paths export to Exports/Courses and import from Imports/Courses without changing source files',
+    'default documents paths export to Export/Courses and import from Import/Courses without changing source files',
     () async {
       const pathProviderChannel = MethodChannel(
         'plugins.flutter.io/path_provider',
@@ -157,11 +157,11 @@ void main() {
       final service = CustomCourseTransferService();
       final expectedExports = Directory(
         '${documents.path}${Platform.pathSeparator}QuisquisLingo'
-        '${Platform.pathSeparator}Exports${Platform.pathSeparator}Courses',
+        '${Platform.pathSeparator}Export${Platform.pathSeparator}Courses',
       );
       final expectedImports = Directory(
         '${documents.path}${Platform.pathSeparator}QuisquisLingo'
-        '${Platform.pathSeparator}Imports${Platform.pathSeparator}Courses',
+        '${Platform.pathSeparator}Import${Platform.pathSeparator}Courses',
       );
       final course = _audioCourse(
         CourseMediaStore.referenceFor(mp3Bytes, 'mp3'),

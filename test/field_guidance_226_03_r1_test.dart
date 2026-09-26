@@ -30,6 +30,7 @@ void main() {
             throw PlatformException(code: 'test_storage_unavailable');
           },
         );
+    keepCrashLogUnavailable();
   });
 
   testWidgets(
@@ -149,7 +150,7 @@ void main() {
         );
         for (final required in [
           'Course Editor > Audio Library',
-          'Documents/QuisquisLingo/Imports/Audio',
+          'Documents/QuisquisLingo/Import/Audio',
           'Import MP3',
           'Associate recording',
           'Word or expression',

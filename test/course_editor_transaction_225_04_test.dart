@@ -26,7 +26,7 @@ void main() {
     documents = await Directory.systemTemp.createTemp('qql_22504_');
     backups = CourseBackupService(
       publisherVerification: fixtureVerifier('team.example', 'Team Example'),
-      documentsDirectoryProvider: () async => documents,
+      supportDirectoryProvider: () async => documents,
     );
     SharedPreferences.setMockInitialValues({
       ProfileService.profilesKey: [
@@ -203,8 +203,7 @@ void main() {
       expect(
         result.backupPath,
         contains(
-          '${Platform.pathSeparator}QuisquisLingo${Platform.pathSeparator}Exports'
-          '${Platform.pathSeparator}Course Backups v11${Platform.pathSeparator}'
+          '${Platform.pathSeparator}qql_course_backups_v11${Platform.pathSeparator}'
           '${source.courseId}${Platform.pathSeparator}',
         ),
       );
@@ -390,7 +389,7 @@ void main() {
             'team.example',
             'Team Example',
           ),
-          documentsDirectoryProvider: () async => documents,
+          supportDirectoryProvider: () async => documents,
           fileWriter: (_, _) async => throw FileSystemException('disk full'),
         ),
         clock: () => _when,

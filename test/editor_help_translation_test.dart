@@ -181,7 +181,7 @@ void main() {
           );
           expect(
             body,
-            contains('Documents/QuisquisLingo/Imports/'),
+            contains('Documents/QuisquisLingo/Import/'),
             reason: '$title ($language) dropped the fixed-folder route',
           );
           expect(

@@ -99,7 +99,8 @@ class QuickImportAccessRequired implements Exception {
 class QqlPublicFile {
   const QqlPublicFile(this.name, {this.size, this.modified});
 
-  /// Path below the Imports or Exports root, with `/` separators.
+  /// Path below its top folder (Import, Export, Logs or ToBeMerged), with
+  /// `/` separators.
   final String name;
   final int? size;
   final DateTime? modified;
@@ -108,15 +109,16 @@ class QqlPublicFile {
 /// Public QQL folders outside the documents QuisquisLingo folder (Android's
 /// `Download/QuisquisLingo`), for Inventory and Wipe everything.
 abstract class QqlPublicFolders {
-  /// The Imports or Exports root as people see it.
-  String label(QqlTransferDirection direction);
+  /// [folder] as people see it.
+  String label(QqlTopFolder folder);
 
-  /// The files QQL can see there: in Exports, the ones it wrote itself; in
-  /// Imports, all of them while it holds access.
-  Future<List<QqlPublicFile>> list(QqlTransferDirection direction);
+  /// The files QQL can see in [folder]: in Export and Logs, the ones it
+  /// wrote itself; in Import and ToBeMerged, all of them while it holds
+  /// access.
+  Future<List<QqlPublicFile>> list(QqlTopFolder folder);
 
   /// Deletes what [list] shows. Returns how many files were deleted.
-  Future<int> delete(QqlTransferDirection direction);
+  Future<int> delete(QqlTopFolder folder);
 
   /// Gives back the Quick Import folder permission, if QQL holds one.
   Future<void> releaseImportAccess();
@@ -167,16 +169,16 @@ class QqlStorage {
   Future<QuickExportFolder> exportFolder(QqlStorageRole role) =>
       _backend.exportFolder(role);
 
-  /// The folder as people see it, e.g. `Documents/QuisquisLingo/Imports/Courses`.
+  /// The folder as people see it, e.g. `Documents/QuisquisLingo/Import/Courses`.
   String label(QqlStorageRole role) => layout.folderLabel(role);
 
   String fileLabel(QqlStorageRole role, String fileName) =>
       layout.fileLabel(role, fileName);
 
-  /// The Quick Import root as people see it, e.g.
-  /// `Download/QuisquisLingo/Imports`.
-  String get importsRootLabel =>
-      layout.directionLabel(QqlTransferDirection.imports);
+  /// The folder Quick Import needs access to, as people see it: the whole
+  /// QuisquisLingo folder, e.g. `Download/QuisquisLingo`, so one permission
+  /// covers Import and ToBeMerged.
+  String get importAccessLabel => layout.rootLabel;
 
   Future<bool> hasImportAccess() => _backend.hasImportAccess();
 

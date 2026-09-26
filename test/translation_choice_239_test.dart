@@ -131,6 +131,7 @@ void _installPluginMocks() {
       throw PlatformException(code: 'test_storage_unavailable');
     },
   );
+  keepCrashLogUnavailable();
   messenger.setMockMethodCallHandler(
     const MethodChannel('xyz.luan/audioplayers.global'),
     (_) async => null,

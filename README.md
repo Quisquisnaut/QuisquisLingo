@@ -1,6 +1,6 @@
 # QuisquisLingo App
 
-**Current source version: 2.0.55+255002 · Build 255, Revision 2 · Course Model v11 (`formatVersion: 11`).**
+**Current source version: 2.0.55+255003 · Build 255, Revision 3 · Course Model v11 (`formatVersion: 11`).**
 
 **QuisquisLingo 2.0.55 Beta — QQL 255 logical storage and Quick folders**
 
@@ -12,10 +12,14 @@ builds a platform path. On Windows, Linux and macOS, Course packages now use
 keeps its place. Dialog saves are named **Save as…**; **Open from…** is
 unchanged. Screens and Help name each platform's folders. Revision 1 brings
 **Save as…** and **Open from…** to Android through its own document screens.
-Revision 2 moves Android's Quick folders to `Download/QuisquisLingo/Imports`
-and `Download/QuisquisLingo/Exports`: Quick Export needs no dialog, and Quick
-Import asks once for that Imports folder (with Open from… as the alternative).
-See
+Revision 2 moves Android's Quick folders to `Download/QuisquisLingo`: Quick
+Export needs no dialog, and Quick Import asks once for folder access (with Open
+from… as the alternative). Revision 3 gives every system the same folders
+below its QuisquisLingo folder: `Import` and `Export` with one subfolder per
+kind, `Logs`, and `ToBeMerged/Courses` for Course Merge. The custom flag is read
+from `Import/Flags`, exported files start with `QQL_`, Settings › Debug can
+Quick Export the Crash Log, and the live Crash Log and Course Backups are
+private on every system. See
 the [Build 255 plan and audit](docs/255_STORAGE_PLAN.md), the
 [handoff](docs/255_HANDOFF.md) and [validation](docs/255_VALIDATION.md).
 
@@ -283,7 +287,7 @@ The MPL-2.0 covers the QuisquisLingo software source. Courses, the Image Bank an
 
 ## Beta lifecycle
 
-Version 2.0.55, Build 255, Revision 2 is a time-limited Beta with an expiry of **2026-10-26 23:59:59 local time** (30 days after the 26 September 2026 release date). Near expiry it displays reminders. After expiry, learner exercises and Review are blocked until a newer Beta is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when a Beta expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM.
+Version 2.0.55, Build 255, Revision 3 is a time-limited Beta with an expiry of **2026-10-26 23:59:59 local time** (30 days after the 26 September 2026 release date). Near expiry it displays reminders. After expiry, learner exercises and Review are blocked until a newer Beta is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when a Beta expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM.
 
 ## Core logic
 

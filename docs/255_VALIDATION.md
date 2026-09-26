@@ -193,3 +193,111 @@ Android, `WRITE_EXTERNAL_STORAGE` (`maxSdkVersion 28`).
 `flutter test --no-pub --concurrency=1` on the final tree: **2,731 passed,
 1 existing skip, 0 failed** in 21 min 33 s. No production or test file changed
 after it. A debug APK was built for the emulator checks; no release package.
+
+## Revision 3 — `2.0.55+255003`, 26 September 2026
+
+Beta expiry `2026-10-26 23:59:59` local time (unchanged: released on the same
+day as Revision 2).
+
+### Scope
+
+One folder pattern on every system (owner decisions of 26 September 2026,
+see the plan): `Import`, `Export`, `Logs` and `ToBeMerged` below the
+QuisquisLingo folder, one subfolder per kind without spaces; Upload custom
+flag reads `Import/Flags`; exported files start with `QQL_`; the live Crash
+Log and Course Backups are private on every system; a Crash Log Quick Export
+button in Settings › Debug; Android's one folder permission covers the whole
+`Download/QuisquisLingo`; Inventory and Wipe everything follow the four
+folders and treat the earlier `Imports`, `Exports` and `Merges` like their
+replacements. EN/IT/ES Help name the new folders through placeholders
+(`{folderExport}`, `{folderLogs}`, … and `{folderRoot}` join the role
+placeholders).
+
+### Focused evidence
+
+- New `test/universal_folders_255_test.dart` (6 tests): the flag is read from
+  `Import/Flags` and not from the old `Exports`; learner backups and the
+  Diagnostic Log copy are named `QQL_…` in `Export/UserData` and `Logs`; the
+  live Crash Log (`<support>/qql_logs`) and Course Backups
+  (`<support>/qql_course_backups_v11`) are private; the Crash Log Quick Export
+  copies the live log to `Logs/QQL_crash_log.txt` and replaces its copy;
+  desktop Inventory lists the four folders, the two private folders, the
+  earlier folders (with an old Course backup recognised) and other files;
+  a full wipe keeps each ticked folder with its earlier counterpart, always
+  removes Course Backups and removes the private Crash Log only with Logs.
+- `test/android_quick_folders_255_test.dart` (22 tests, rewritten for the new
+  layout): every Android folder equals the desktop one below
+  `Download/QuisquisLingo`; Help names them; Quick Export and the Diagnostic
+  and Crash Log copies write `Export/…` and `Logs/…` with no dialog; Quick
+  Import without permission names `Download/QuisquisLingo`; with it, Import
+  reads `Import/Courses` and Merge reads `ToBeMerged/Courses` through the same
+  permission; granting it asks Android to create exactly the eight Import and
+  ToBeMerged folders; Android 7–9 writes and reads the new folders; Inventory
+  lists Export and Logs (QQL's own entries) and, with access, Import and
+  ToBeMerged; a full wipe follows each of the three ticks separately.
+- `test/storage_roles_255_test.dart` (13): the one-pattern table for every
+  role, no spaces, the Help placeholders (roles, four folders, root), no
+  catalog spelling out a folder path or an old `Imports/`, `Exports/` or
+  `Merges/` path, and the Course Quick routes with `QQL_` names.
+- Test environment: 34 test files give path_provider only app support. The
+  Crash Log used to live in the documents folder, so it was unavailable there;
+  now in app support, its real file writes stalled widget flows in fake time
+  (the first batch showed this in `audio_settings_runtime_228_04_test` and
+  `field_guidance_226_03_r1_test`; a blocker file did not help, because
+  creating the folder is itself real I/O). Those files now call
+  `keepCrashLogUnavailable()` from `test/support/test_directories.dart`,
+  which uses the test-only `CrashLogService.debugMarkUnavailable()` and keeps
+  their earlier environment exactly, without touching storage.
+- The first sequential run of the 54 affected files (559 passed, 51 failed)
+  found only expected changes: old folder names and file names in 20 test
+  files, the renamed backup seam in three `CourseBackupService` subclasses, and
+  the Crash Log environment above. All were updated.
+- The first complete run (2,738 passed, 1 existing skip, 1 failed) found that
+  `docs/PUBLISHER_SIGNING_GUIDE.md` must follow the changed English Help word
+  for word; the guide was updated and `publisher_signing_help_test` passes.
+- `flutter build apk --debug --no-pub` built `versionCode 255003` with the
+  changed Kotlin (143 s).
+- Android 16 emulator (Pixel_8 AVD, API 36), fresh install, test profile:
+  1. The first-run Beta message and Settings › Debug show the live Crash Log
+     at `/data/user/0/org.quisquislingo.app/files/qql_logs/quisquislingo_crash.log`;
+     Debug shows the Quick Export location
+     `Download/QuisquisLingo/Logs/QQL_crash_log.txt`.
+  2. **Quick Export Crash Log** wrote that file (1,016 bytes) with no dialog;
+     pressing it again replaced it (one file, newer time).
+  3. Course Studio › Export Course › **Quick Export** wrote
+     `Download/QuisquisLingo/Export/Courses/QQL_ai_slop_demo_german_for_english_speakers.zip`
+     (33,011 bytes) with no dialog.
+  4. The first **Quick Import** explained that QQL reads the Import and
+     ToBeMerged folders of `Download/QuisquisLingo` and offered Open from…;
+     Continue opened Android's folder screen exactly on
+     `Download › QuisquisLingo`; Use this folder and Allow granted it
+     (`dumpsys`: persisted tree
+     `primary%3ADownload%2FQuisquisLingo`), and QQL created `Import/Audio`,
+     `Courses`, `Flags`, `Images`, `LessonIcons`, `RecoveryKeys`, `UserData`
+     and `ToBeMerged/Courses`.
+  5. With a package in `Import/Courses/import.zip`, Quick Import read it with
+     no dialog (a bundled Course, correctly refused).
+  6. For a new custom Course, **Merge Course package or JSON** read
+     `ToBeMerged/Courses` through the same permission with no dialog: first
+     "No Course file found… Download/QuisquisLingo/ToBeMerged/Courses", then,
+     with `merge.zip` there, the package was read (a bundled Course, correctly
+     refused).
+  7. Inventory listed Course backups and Crash Log (private, in `files/`),
+     and the Export, Import, ToBeMerged and Logs folders with their files.
+  8. Wipe everything with Keep Export and Keep Import unticked and Keep Logs
+     ticked emptied `Export/Courses`, `Import` and `ToBeMerged`, kept
+     `Logs/QQL_crash_log.txt`, and released the folder permission
+     (`persisted=0x0`).
+  9. No crash or Flutter error in the device log.
+- The check showed that the one-time Beta testing message still told testers
+  to attach the live Crash Log from its (now private) path. `lib/main.dart`
+  now tells them to attach the copy Quick Export makes and still shows where
+  the live log is kept. No test reads that sentence; the startup tests pass.
+
+### Final release checks
+
+`flutter analyze --no-pub`: **No issues found**. Complete
+`flutter test --no-pub --concurrency=1` on the final tree: **2,739 passed,
+1 existing skip, 0 failed** in 27 min 42 s. No production or test file
+changed after it. A debug APK was built for the emulator check; no release
+package.

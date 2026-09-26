@@ -236,7 +236,7 @@ void main() {
       );
       addTearDown(() => directory.delete(recursive: true));
       final backups = CourseBackupService(
-        documentsDirectoryProvider: () async => directory,
+        supportDirectoryProvider: () async => directory,
         publisherVerification: verifier,
       );
       final service = CourseEditorService(
@@ -333,7 +333,7 @@ void main() {
       final editor = CourseEditorService(
         publisherVerification: rotationVerifier,
         backupService: CourseBackupService(
-          documentsDirectoryProvider: () async => directory,
+          supportDirectoryProvider: () async => directory,
           publisherVerification: rotationVerifier,
         ),
       );
@@ -395,7 +395,7 @@ void main() {
       final service = CourseEditorService(
         publisherVerification: verifier,
         backupService: CourseBackupService(
-          documentsDirectoryProvider: () async => directory,
+          supportDirectoryProvider: () async => directory,
           publisherVerification: verifier,
         ),
       );

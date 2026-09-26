@@ -374,11 +374,11 @@ void main() {
       // The last dialog only reminds; it has no checkboxes of its own.
       expect(find.byKey(const Key('admin-nuke-keep-exports')), findsNothing);
       expect(
-        find.text('Exports folder: will be DELETED with everything else.'),
+        find.text('Export folder: will be DELETED with everything else.'),
         findsOneWidget,
       );
       expect(find.text('Logs folder: kept.'), findsOneWidget);
-      expect(find.text('Imports folder: kept.'), findsOneWidget);
+      expect(find.text('Import and ToBeMerged folders: kept.'), findsOneWidget);
       expect(find.textContaining('NUKE EVERYTHING'), findsWidgets);
     },
   );

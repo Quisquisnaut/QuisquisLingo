@@ -16,7 +16,7 @@ void main() {
   setUp(() async {
     documents = await Directory.systemTemp.createTemp('qql_v9_backups_');
     backups = CourseBackupService(
-      documentsDirectoryProvider: () async => documents,
+      supportDirectoryProvider: () async => documents,
     );
   });
 
@@ -36,15 +36,22 @@ void main() {
     );
     const legacyBytes = 'opaque Course Model v8 backup bytes';
     await legacyManifest.writeAsString(legacyBytes, flush: true);
+    // Build 255 Revision 3 made backups private; the folder earlier versions
+    // wrote v11 backups to is left alone and not read either.
+    final earlierV11 = File(
+      '${documents.path}${Platform.pathSeparator}QuisquisLingo'
+      '${Platform.pathSeparator}Exports${Platform.pathSeparator}Course Backups v11'
+      '${Platform.pathSeparator}backup-clean-cut${Platform.pathSeparator}old.json',
+    );
+    await earlierV11.create(recursive: true);
+    await earlierV11.writeAsString(legacyBytes, flush: true);
 
     expect(await backups.listBackups('backup-clean-cut'), isEmpty);
     expect(await legacyManifest.readAsString(), legacyBytes);
+    expect(await earlierV11.readAsString(), legacyBytes);
     expect(
       (await backups.backupRoot()).path,
-      endsWith(
-        '${Platform.pathSeparator}QuisquisLingo${Platform.pathSeparator}Exports'
-        '${Platform.pathSeparator}Course Backups v11',
-      ),
+      '${documents.path}${Platform.pathSeparator}qql_course_backups_v11',
     );
 
     await expectLater(

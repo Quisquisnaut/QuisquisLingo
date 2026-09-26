@@ -138,7 +138,7 @@ class AndroidStorageBridge {
   }
 
   /// Android 10 and later: writes [bytes] as a Download entry in
-  /// [relativeFolder] (for example `Download/QuisquisLingo/Exports/Courses`),
+  /// [relativeFolder] (for example `Download/QuisquisLingo/Export/Courses`),
   /// named `baseName.extension`, or `baseName_2.extension` and so on when
   /// QQL already has one; [replace] overwrites QQL's own entry. Nothing is
   /// visible until the write has finished. Returns the final file name.
@@ -192,15 +192,20 @@ class AndroidStorageBridge {
     (await _io.invokeMapMethod<Object?, Object?>('storageInfo'))!,
   );
 
-  /// Whether Quick Import can read `Download/QuisquisLingo/Imports` now.
+  /// Whether Quick Import can read `Download/QuisquisLingo` now.
   Future<bool> hasImportAccess() async =>
       await _io.invokeMethod<bool>('hasImportAccess') ?? false;
 
   /// Android 10 and later: the folder screen, opened on
-  /// `Download/QuisquisLingo/Imports`; only that folder is accepted. Android
-  /// 7–9: the storage permission.
-  Future<QuickImportAccessResult> requestImportAccess() async =>
-      switch (await _ui.invokeMethod<String>('requestImportAccess')) {
+  /// `Download/QuisquisLingo`; only that folder is accepted, and once it is,
+  /// the [folders] below it (`/`-separated, e.g. `Import/Courses`) are
+  /// created. Android 7–9: the storage permission.
+  Future<QuickImportAccessResult> requestImportAccess({
+    List<String> folders = const [],
+  }) async =>
+      switch (await _ui.invokeMethod<String>('requestImportAccess', {
+        'folders': folders,
+      })) {
         'granted' => QuickImportAccessResult.granted,
         'wrongFolder' => QuickImportAccessResult.wrongFolder,
         'denied' => QuickImportAccessResult.denied,
@@ -211,8 +216,9 @@ class AndroidStorageBridge {
   Future<bool> requestLegacyWriteAccess() async =>
       await _ui.invokeMethod<bool>('requestLegacyWriteAccess') ?? false;
 
-  /// The files in `Imports/[segments]`, creating missing folders. Throws
-  /// [AndroidImportAccessMissing] when the folder permission is gone.
+  /// The files in `Download/QuisquisLingo/[segments]`, creating missing
+  /// folders. Throws [AndroidImportAccessMissing] when the folder permission
+  /// is gone.
   Future<List<AndroidDocument>> listImports(List<String> segments) async {
     try {
       final items = await _io.invokeListMethod<Object?>('listImports', {
@@ -230,13 +236,18 @@ class AndroidStorageBridge {
     }
   }
 
-  /// Every file below Imports, for Inventory.
-  Future<List<QqlPublicFile>> listAllImports() async =>
-      _publicFiles(await _io.invokeListMethod<Object?>('listAllImports'));
+  /// Every file below `Download/QuisquisLingo/[segments]`, read through the
+  /// folder permission and named relative to that folder, for Inventory.
+  /// Empty without the permission or the folder.
+  Future<List<QqlPublicFile>> listTree(List<String> segments) async =>
+      _publicFiles(
+        await _io.invokeListMethod<Object?>('listTree', {'segments': segments}),
+      );
 
-  /// Deletes everything below Imports; returns the file count.
-  Future<int> deleteImports() async =>
-      await _io.invokeMethod<int>('deleteImports') ?? 0;
+  /// Deletes everything below `Download/QuisquisLingo/[segments]`, keeping
+  /// the folder itself; returns the file count.
+  Future<int> deleteTree(List<String> segments) async =>
+      await _io.invokeMethod<int>('deleteTree', {'segments': segments}) ?? 0;
 
   Future<void> releaseImportAccess() =>
       _io.invokeMethod<void>('releaseImportAccess');

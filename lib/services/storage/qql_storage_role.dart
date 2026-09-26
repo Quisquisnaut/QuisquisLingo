@@ -47,7 +47,8 @@ final class QqlStorageRole {
     'folderCourseExports',
   );
 
-  /// Where the second Course of a Course Merge is read from.
+  /// Where the second Course of a Course Merge is read from (ToBeMerged,
+  /// beside Import rather than inside it).
   static const mergeImports = QqlStorageRole._(
     QqlTransferDirection.imports,
     QqlFileCategory.merges,
@@ -117,7 +118,8 @@ final class QqlStorageRole {
     'folderAuditReportExports',
   );
 
-  /// Export Diagnostic Log writes its snapshot here.
+  /// Export Diagnostic Log and the Crash Log's Quick Export write their
+  /// copies here (Logs).
   static const diagnosticLogExports = QqlStorageRole._(
     QqlTransferDirection.exports,
     QqlFileCategory.diagnosticLogs,

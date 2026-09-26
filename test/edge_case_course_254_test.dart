@@ -93,7 +93,7 @@ void main() {
         courseStore: CourseFileStore(supportDirectory: () async => directory),
         mediaStore: store,
         backupService: CourseBackupService(
-          documentsDirectoryProvider: () async => directory,
+          supportDirectoryProvider: () async => directory,
           mediaStore: store,
         ),
         clock: () => _clock,

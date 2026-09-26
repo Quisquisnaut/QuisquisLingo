@@ -8,10 +8,10 @@ void main() {
   test('technical version matches the current public build label', () {
     final pubspec = File('pubspec.yaml').readAsStringSync();
 
-    expect(AppMetadata.technicalVersion, '2.0.55+255002');
-    expect(AppMetadata.publicBuildLabel, 'Build 255, Revision 2');
-    expect(AppMetadata.displayLabel, 'Version 2.0.55\nBuild 255, Revision 2');
-    expect(pubspec, contains('version: 2.0.55+255002'));
+    expect(AppMetadata.technicalVersion, '2.0.55+255003');
+    expect(AppMetadata.publicBuildLabel, 'Build 255, Revision 3');
+    expect(AppMetadata.displayLabel, 'Version 2.0.55\nBuild 255, Revision 3');
+    expect(pubspec, contains('version: 2.0.55+255003'));
   });
 
   test('platform application identities use the QuisquisLingo namespace', () {
@@ -38,7 +38,7 @@ void main() {
     );
   });
 
-  test('one crash-log writer uses the authoritative Documents log tree', () {
+  test('one crash-log writer uses the private logs folder', () {
     final dartSources = Directory('lib')
         .listSync(recursive: true)
         .whereType<File>()
@@ -59,14 +59,14 @@ void main() {
       'lib/services/crash_log_service.dart',
     ]);
     expect(crash, contains('DiagnosticLogService.logsDirectory(create: true)'));
-    expect(directory, contains('getApplicationDocumentsDirectory()'));
-    expect(directory, contains('QuisquisLingo'));
-    expect(directory, contains('Logs'));
+    // Build 255 Revision 3: the live Crash Log is private on every system.
+    expect(directory, contains('getApplicationSupportDirectory()'));
+    expect(directory, contains("logsDirectoryName = 'qql_logs'"));
     expect(debug, contains("tooltip: 'Share Crash Log'"));
   });
 
   test(
-    'default Recovery Key actions use Imports and Exports without pickers',
+    'default Recovery Key actions use Import and Export without pickers',
     () {
       final service = File(
         'lib/services/user_recovery_key_service.dart',
@@ -75,17 +75,17 @@ void main() {
         'lib/screens/user_data_settings_screen.dart',
       ).readAsStringSync();
 
-      // The Quick folders are storage roles; on desktop they stay the
-      // QuisquisLingo Exports and Imports folders.
+      // The Quick folders are storage roles; on every system they are the
+      // QuisquisLingo Export/RecoveryKeys and Import/RecoveryKeys folders.
       expect(service, contains('QqlStorageRole.recoveryKeyExports'));
       expect(service, contains('QqlStorageRole.recoveryKeyImports'));
       expect(
         QqlStorageLayout.documents.segments(QqlStorageRole.recoveryKeyExports),
-        ['Exports'],
+        ['Export', 'RecoveryKeys'],
       );
       expect(
         QqlStorageLayout.documents.segments(QqlStorageRole.recoveryKeyImports),
-        ['Imports'],
+        ['Import', 'RecoveryKeys'],
       );
       expect(screen, contains('Export User Recovery Key'));
       expect(screen, contains('Import User Recovery Key'));

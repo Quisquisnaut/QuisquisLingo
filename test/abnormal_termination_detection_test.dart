@@ -13,10 +13,10 @@ void main() {
 
   setUpAll(() async {
     documents = await Directory.systemTemp.createTemp('qql_abnormal_');
-    logs = Directory(
-      '${documents.path}${Platform.pathSeparator}QuisquisLingo'
-      '${Platform.pathSeparator}Logs',
-    )..createSync(recursive: true);
+    // The private logs folder in app support (Build 255 Revision 3); this
+    // file's path_provider answers one directory for everything.
+    logs = Directory('${documents.path}${Platform.pathSeparator}qql_logs')
+      ..createSync(recursive: true);
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(pathProvider, (_) async => documents.path);
   });

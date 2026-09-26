@@ -114,22 +114,20 @@ void main() {
       expect(source.contains('QuisquisLingo'), isTrue);
       expect(source.contains('quisquislingo_startup_trace.log'), isTrue);
     }
-    expect(diagnosticSource.contains('QuisquisLingo'), isTrue);
-    expect(
-      diagnosticSource.contains('quisquislingo_diagnostic_log.txt'),
-      isTrue,
-    );
+    // Exported files carry the short QQL_ prefix (Build 255 Revision 3).
+    expect(diagnosticSource.contains('QQL_diagnostic_log.txt'), isTrue);
   });
 
   test('user-facing filesystem locations use QuisquisLingo branding', () async {
     final expectedByFile = <String, List<String>>{
       'lib/services/custom_course_transfer_service.dart': [
         'QuisquisLingo',
-        'quisquislingo_',
+        'QQL_',
       ],
       'lib/services/learner_backup_service.dart': [
         'QuisquisLingo',
         'quisquislingo_',
+        'QQL_',
       ],
       'lib/services/course_flag_service.dart': ['QuisquisLingo'],
       // Quick Import and Quick Export folders are named by the storage layer.
@@ -151,7 +149,7 @@ void main() {
     final documents = await getApplicationDocumentsDirectory();
     final expectedImageDirectory =
         '${documents.path}${Platform.pathSeparator}QuisquisLingo'
-        '${Platform.pathSeparator}Imports${Platform.pathSeparator}Images';
+        '${Platform.pathSeparator}Import${Platform.pathSeparator}Images';
     // Single images and Image Bank ZIPs share one role, so one folder.
     final imageFolder = await QqlStorage().importFolder(
       QqlStorageRole.imageImports,

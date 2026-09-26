@@ -16,10 +16,29 @@ owner's and not part of this work: never stage, move or delete them.
 | `ff4a572` | **Revision 0** `2.0.55+255000`: logical storage roles, every Quick route on them, Course Quick folders `Imports/Courses` / `Exports/Courses` on every desktop, Quick Import / Quick Export / Save as…, Help folder placeholders. Suite 2,698 passed, 1 skip. |
 | `826f4e1` | **Revision 1** `2.0.55+255001`: Android Save as… / Open from… (SAF bridge). Emulator-checked on Android 16. Suite 2,711 passed, 1 skip. |
 | `3e0f512` | **Revision 2** `2.0.55+255002`: Android public Quick folders (MediaStore Quick Export, persisted folder permission for Quick Import, Android 7–9 storage permission, Inventory and Wipe everything). Emulator-checked on Android 16. Suite 2,731 passed, 1 skip. Beta expiry `2026-10-26 23:59:59`. |
+| (this commit) | **Revision 3** `2.0.55+255003`: one folder pattern on every system (`Import`, `Export`, `Logs`, `ToBeMerged` below the QuisquisLingo folder, one subfolder per kind), flag from `Import/Flags`, `QQL_` export names, private Crash Log and Course Backups, Crash Log Quick Export, one Android permission for `Download/QuisquisLingo`. Emulator-checked on Android 16. Suite 2,739 passed, 1 skip. |
 
 ## Status
 
-Build 255 is complete (26 September 2026, 02:00). Nothing is pushed.
+**Revision 3 (`2.0.55+255003`) is complete** (26 September 2026): one folder
+pattern on every system, analyzer clean, complete suite 2,739 passed with
+1 existing skip, emulator-checked on Android 16 (details in the validation).
+Nothing is pushed.
+
+**Next: Revision 4 (`2.0.55+255004`), planned, not started**: QQL's private
+folders get `QQL_` names and Course names carry their language pair; see
+[plan › Revision 4](255_STORAGE_PLAN.md#revision-4-private-folders-and-language-levels-planned).
+Decided with the owner: `QQL_` plus no-space names; a clean cut in the app
+plus a one-off desktop tool that moves existing Courses, media and backups;
+Shared Images and Image Banks renamed (existing ones keep working through the
+full paths their records hold); languages as source then target (`EN`, `IT`,
+`NAP`…); Course files named `course_<SRC>_<TGT>_<ID>`. **Open question**
+(asked on 26 September): whether names alone replace the two language
+folder levels (`source_EN/target_IT`). Recommended: drop the levels (the
+names already group by pair, paths stay shorter on Windows, a language
+change is a rename) and name exports `QQL_EN_IT_<title>.zip`.
+
+Revisions 0–2 were complete on 26 September 2026, 02:00. Nothing is pushed.
 
 Open points for the owner:
 
@@ -49,6 +68,24 @@ is disabled.
 - Only the Android 16 emulator; no emulator downloads for now.
 - The owner's Italian Help wording fix is its own commit; the exercise-test
   waits were lengthened on request.
+
+## Owner decisions for Revision 3 (26 September 2026)
+
+- Desktop and mobile behave the same wherever possible: one universal
+  pattern below the QuisquisLingo folder, `Import`, `Export`, `Logs` and
+  `ToBeMerged` (not `Merges`, not inside Import) with a `Courses` subfolder.
+- Every kind of file gets its own subfolder; folder names have no spaces
+  (`LessonIcons`, `UserData`, `RecoveryKeys`, `AuditReports`).
+- Fix the flag: it is read from `Import/Flags`.
+- A Quick Export button for the Crash Log; the live Crash Log is private on
+  every system.
+- Course Backups are private everywhere; desktop backups made before stay
+  where they were, unread (owner chose this after discussion, not a one-time
+  move).
+- Exported files start with `QQL_` instead of `quisquislingo_`, Save as…
+  suggestions included.
+- Android asks once for the whole `Download/QuisquisLingo` folder.
+- Don't worry about existing files: no move, no hint.
 
 ## Gotchas
 

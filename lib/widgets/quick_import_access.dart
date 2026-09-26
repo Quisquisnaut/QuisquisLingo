@@ -16,8 +16,8 @@ enum QuickImportAccess {
 
 /// Call before every Quick Import. On desktop it returns at once. On
 /// Android, while QQL does not hold (or no longer holds) its one permission
-/// for `Download/QuisquisLingo/Imports`, it explains why, asks Android once,
-/// and offers Open from… as the alternative. It never uses private storage
+/// for `Download/QuisquisLingo`, it explains why, asks Android once, and
+/// offers Open from… as the alternative. It never uses private storage
 /// instead.
 Future<QuickImportAccess> ensureQuickImportAccess(
   BuildContext context, {
@@ -28,15 +28,17 @@ Future<QuickImportAccess> ensureQuickImportAccess(
   if (await qql.hasImportAccess()) return QuickImportAccess.ready;
   final steps = await qql.importAccessSteps();
   if (!context.mounted) return QuickImportAccess.stop;
-  final folder = qql.importsRootLabel;
+  final folder = qql.importAccessLabel;
   final choice = await showDialog<QuickImportAccess>(
     context: context,
     builder: (dialogContext) => AlertDialog(
       key: const Key('quick-import-access-dialog'),
       title: const Text('Allow Quick Import'),
       content: Text(
-        'Quick Import reads the files you put in $folder, without a dialog. '
-        'Android asks you once to let QQL read that folder.'
+        'Quick Import reads the files you put in the '
+        '${QqlTopFolder.import.folderName} and '
+        '${QqlTopFolder.toBeMerged.folderName} folders of $folder, without a '
+        'dialog. Android asks you once to let QQL read $folder.'
         '${steps == null ? '' : '\n\n$steps'}'
         '${offerOpenFrom ? '\n\nOr choose Open from… to pick one file '
                   'anywhere, without giving folder access.' : ''}',

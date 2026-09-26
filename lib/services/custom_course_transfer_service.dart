@@ -307,7 +307,7 @@ class CustomCourseTransferService {
         .replaceAll(RegExp(r'^_+|_+$'), '');
     return CourseExportPayload(
       await _packages.build(course, bytes),
-      'quisquislingo_${safe.isEmpty ? 'custom_course' : safe}',
+      'QQL_${safe.isEmpty ? 'custom_course' : safe}',
     );
   }
 

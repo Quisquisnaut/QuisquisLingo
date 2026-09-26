@@ -287,6 +287,7 @@ Future<void> _expectPersistedHome(WidgetTester tester, Course course) async {
           throw PlatformException(code: 'test_storage_unavailable');
         },
       );
+  keepCrashLogUnavailable();
   addTearDown(() {
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(

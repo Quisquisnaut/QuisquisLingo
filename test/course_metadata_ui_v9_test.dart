@@ -84,7 +84,7 @@ void main() {
     );
     final service = CourseEditorService(
       backupService: CourseBackupService(
-        documentsDirectoryProvider: () async => documents,
+        supportDirectoryProvider: () async => documents,
       ),
     );
     final original = _course();

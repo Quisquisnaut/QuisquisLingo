@@ -27,12 +27,22 @@ Everything else under the prefix (identity, avatar, theme, PIN verifier, recover
 ## Files
 | Location | Contents | Scopes that remove it |
 |---|---|---|
-| `Documents/QuisquisLingo/Exports` | learner and course backups, exports (Course packages in `Exports/Courses` since Build 255) | everything, only when the admin unticks "keep" |
-| `Documents/QuisquisLingo/Logs` | crash log, session marker, diagnostic export | everything, only when the admin unticks "keep" |
-| `Documents/QuisquisLingo/Imports` | the original images, audio and course files the user copied there (Course packages in `Imports/Courses` since Build 255) | everything, only when the admin unticks "keep" |
-| `Documents/QuisquisLingo/Merges` and other files | merge input and other user files | everything |
-| Android only (Build 255): `Download/QuisquisLingo/Exports` (public) | the files QQL wrote with Quick Export (MediaStore entries it owns) | everything, only when the admin unticks "keep" |
-| Android only (Build 255): `Download/QuisquisLingo/Imports` (public) | files people copied there for Quick Import, readable through QQL's folder permission | everything, only when the admin unticks "keep"; the folder permission itself is released by every full wipe |
+| `<QQL>/Export` (Build 255 Revision 3) | Quick Export files: `Courses`, `UserData` (learner backups), `RecoveryKeys`, `AuditReports` | everything, only when the admin unticks "Keep the Export folder" |
+| `<QQL>/Logs` | copies of the Crash Log and the Diagnostic Log made with Quick Export (`QQL_crash_log.txt`, `QQL_diagnostic_log.txt`) | everything, only when the admin unticks "Keep the Logs folder" |
+| `<QQL>/Import` | the original files people copied there for Quick Import: `Courses`, `Audio`, `Images`, `LessonIcons`, `Flags`, `UserData`, `RecoveryKeys` | everything, only when the admin unticks "Keep the Import and ToBeMerged folders" |
+| `<QQL>/ToBeMerged` | `Courses`: the second Course of a Course Merge | everything, with the same tick as `Import` |
+| `<QQL>/Imports`, `<QQL>/Exports`, `<QQL>/Merges` (earlier versions; `Exports` also holds Course Backups made before Revision 3) | never read since Build 255 Revision 3; Inventory lists them as "Folders from earlier versions" | everything, with the tick of `Import`, `Export` and `ToBeMerged` respectively |
+| other files in `<QQL>` | anything people added there themselves | everything |
+| `<AppSupport>/qql_course_backups_v11` (Build 255 Revision 3) | Course Backups for Version History, private on every system | everything, always |
+| `<AppSupport>/qql_logs` (Build 255 Revision 3) | the live Crash Log and the Windows/Linux session marker, private on every system | everything, only when the admin unticks "Keep the Logs folder" |
+
+`<QQL>` is `Documents/QuisquisLingo` on Windows, Linux and macOS and the
+public `Download/QuisquisLingo` on Android. On Android 10 and later, Export
+and Logs hold MediaStore entries QQL owns, and Import and ToBeMerged are read
+through one folder permission for `Download/QuisquisLingo`; every full wipe
+releases that permission (and one an earlier version held). On Android the
+app's own documents folder holds only earlier versions' files (Crash Log,
+Course Backups).
 | `<AppSupport>/qql_courses_v2/custom`, `<AppSupport>/qql_courses_v2/external_official` (Build 243; the retired `qql_courses_v1` tree of v9/v10 Courses is left untouched and is neither read, listed nor reset) | one JSON file per custom or installed official course; interrupted `.tmp` files also belong to this store | custom courses, everything |
 | `<AppSupport>/qql_import_staging` | temporary copies of files being checked during an import (Build 243 Revision 10); normally empty, `.part` leftovers are removed at startup | everything |
 | `<AppSupport>/exercise_images`, `<AppSupport>/image_banks`, `<AppSupport>/quisquislingo_course_media` | shared-library images and image banks; each Course's own images and recorded MP3s, one folder per Course named by content (Build 243; the retired `quisquislingo_audio` folder is left untouched and unread) | imported media (images or audio, chosen separately: course media is removed by file type), custom courses (both), everything |

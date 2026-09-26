@@ -224,4 +224,5 @@ void _installPathProviderMock() {
           );
         },
       );
+  keepCrashLogUnavailable();
 }

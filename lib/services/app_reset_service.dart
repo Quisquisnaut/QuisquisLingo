@@ -3,10 +3,12 @@ import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'course_backup_service.dart';
 import 'course_editor_storage.dart';
 import 'course_file_store.dart';
 import 'course_received_service.dart';
 import 'course_media_store.dart';
+import 'diagnostic_log_service.dart';
 import 'learner_status_events.dart';
 import 'profile_service.dart';
 import 'import/import_stager.dart';
@@ -351,16 +353,30 @@ class AppResetService {
     // dies part-way the admin (and the PIN) still exist and can run it again.
     await _removeCourseFiles();
     await _removeImportedMedia();
-    final staging = (await _directories([
+    // Course backups are internal, like the Courses they back up. The live
+    // Crash Log goes with the Logs choice.
+    for (final directory in await _directories([
       ImportStager.stagingDirectoryName,
-    ])).single;
-    if (await staging.exists()) await staging.delete(recursive: true);
+      CourseBackupService.backupRootName,
+      if (!keepLogs) DiagnosticLogService.logsDirectoryName,
+    ])) {
+      if (await directory.exists()) await directory.delete(recursive: true);
+    }
     final root = await _qqlDocuments();
     if (await root.exists()) {
+      // Folders from earlier versions follow the choice for their
+      // replacement.
+      bool keeps(QqlTopFolder folder) => switch (folder) {
+        QqlTopFolder.export => keepExports,
+        QqlTopFolder.logs => keepLogs,
+        QqlTopFolder.import || QqlTopFolder.toBeMerged => keepImports,
+      };
       final kept = <String>{
-        if (keepExports) 'exports',
-        if (keepLogs) 'logs',
-        if (keepImports) 'imports',
+        for (final folder in QqlTopFolder.values)
+          if (keeps(folder)) folder.folderName.toLowerCase(),
+        for (final MapEntry(key: name, value: folder)
+            in QqlTopFolder.earlierFolders.entries)
+          if (keeps(folder)) name.toLowerCase(),
       };
       await for (final entity in root.list(followLinks: false)) {
         final name = entity.uri.pathSegments
@@ -375,8 +391,12 @@ class AppResetService {
     // folder permission.
     final public = _storage.publicFolders;
     if (public != null) {
-      if (!keepExports) await public.delete(QqlTransferDirection.exports);
-      if (!keepImports) await public.delete(QqlTransferDirection.imports);
+      if (!keepExports) await public.delete(QqlTopFolder.export);
+      if (!keepLogs) await public.delete(QqlTopFolder.logs);
+      if (!keepImports) {
+        await public.delete(QqlTopFolder.import);
+        await public.delete(QqlTopFolder.toBeMerged);
+      }
       await public.releaseImportAccess();
     }
     await (await SharedPreferences.getInstance()).clear();

@@ -8,6 +8,7 @@ import 'package:quisquislingo_app/localization/help/help_text.dart';
 import 'package:quisquislingo_app/localization/locale_service.dart';
 import 'package:quisquislingo_app/services/app_reset_service.dart';
 import 'package:quisquislingo_app/services/course_package_service.dart';
+import 'package:quisquislingo_app/services/crash_log_service.dart';
 import 'package:quisquislingo_app/services/custom_course_transfer_service.dart';
 import 'package:quisquislingo_app/services/diagnostic_log_service.dart';
 import 'package:quisquislingo_app/services/file_dialog_service.dart';
@@ -58,26 +59,27 @@ void main() {
   });
 
   group('Build 255 Android layout', () {
-    test('every folder is below Download/QuisquisLingo/Imports or Exports', () {
+    test('every folder is below Download/QuisquisLingo, in the same place as '
+        'on desktop', () {
       const layout = QqlStorageLayout.androidPublic;
       expect(
         QqlStorageLayout.forPlatform(QqlStoragePlatform.android),
         same(layout),
       );
       final expected = <QqlStorageRole, String>{
-        QqlStorageRole.courseImports: 'Imports/Courses',
-        QqlStorageRole.courseExports: 'Exports/Courses',
-        QqlStorageRole.mergeImports: 'Imports/Merges',
-        QqlStorageRole.learnerDataImports: 'Imports',
-        QqlStorageRole.learnerDataExports: 'Exports',
-        QqlStorageRole.recoveryKeyImports: 'Imports',
-        QqlStorageRole.recoveryKeyExports: 'Exports',
-        QqlStorageRole.audioImports: 'Imports/Audio',
-        QqlStorageRole.imageImports: 'Imports/Images',
-        QqlStorageRole.lessonIconImports: 'Imports/Lesson Icons',
-        QqlStorageRole.courseFlagImports: 'Imports',
-        QqlStorageRole.auditReportExports: 'Exports',
-        QqlStorageRole.diagnosticLogExports: 'Exports/Logs',
+        QqlStorageRole.courseImports: 'Import/Courses',
+        QqlStorageRole.courseExports: 'Export/Courses',
+        QqlStorageRole.mergeImports: 'ToBeMerged/Courses',
+        QqlStorageRole.learnerDataImports: 'Import/UserData',
+        QqlStorageRole.learnerDataExports: 'Export/UserData',
+        QqlStorageRole.recoveryKeyImports: 'Import/RecoveryKeys',
+        QqlStorageRole.recoveryKeyExports: 'Export/RecoveryKeys',
+        QqlStorageRole.audioImports: 'Import/Audio',
+        QqlStorageRole.imageImports: 'Import/Images',
+        QqlStorageRole.lessonIconImports: 'Import/LessonIcons',
+        QqlStorageRole.courseFlagImports: 'Import/Flags',
+        QqlStorageRole.auditReportExports: 'Export/AuditReports',
+        QqlStorageRole.diagnosticLogExports: 'Logs',
       };
       expect(expected.keys.toSet(), QqlStorageRole.values.toSet());
       for (final entry in expected.entries) {
@@ -86,10 +88,15 @@ void main() {
           'Download/QuisquisLingo/${entry.value}',
           reason: '${entry.key}',
         );
+        expect(
+          layout.segments(entry.key),
+          QqlStorageLayout.documents.segments(entry.key),
+          reason: '${entry.key}',
+        );
       }
       expect(
-        layout.directionLabel(QqlTransferDirection.imports),
-        'Download/QuisquisLingo/Imports',
+        layout.topFolderLabel(QqlTopFolder.toBeMerged),
+        'Download/QuisquisLingo/ToBeMerged',
       );
     });
 
@@ -98,31 +105,35 @@ void main() {
       for (final locale in AppLocale.values) {
         expect(
           helpText.lookup(locale, 'editorHelp.importCustomCourse.body'),
-          contains('Download/QuisquisLingo/Imports/Courses/import.zip'),
+          contains('Download/QuisquisLingo/Import/Courses/import.zip'),
         );
         final logs = helpText.lookup(
           locale,
           'appInfo.crashLogAndDiagnosticLog.body',
         );
-        expect(logs, contains('Download/QuisquisLingo/Exports/Logs'));
+        expect(logs, contains('Download/QuisquisLingo/Logs'));
         expect(logs, contains('Crash Log'));
+        expect(
+          helpText.lookup(locale, 'debugHelp.crashLog.body'),
+          contains('QQL_crash_log.txt'),
+        );
       }
     });
   });
 
   group('Build 255 Android Quick Export (Android 10 and later)', () {
-    test('writes to Download/QuisquisLingo/Exports/Courses with no dialog '
+    test('writes to Download/QuisquisLingo/Export/Courses with no dialog '
         'and no permission', () async {
       final transfer = _transfer(dialogs);
       final first = await transfer.exportCourse(dialogTestCourse());
       final second = await transfer.exportCourse(dialogTestCourse());
       expect(
         first,
-        'Download/QuisquisLingo/Exports/Courses/quisquislingo_dialog_course.zip',
+        'Download/QuisquisLingo/Export/Courses/QQL_dialog_course.zip',
       );
       expect(
         second,
-        'Download/QuisquisLingo/Exports/Courses/quisquislingo_dialog_course_2.zip',
+        'Download/QuisquisLingo/Export/Courses/QQL_dialog_course_2.zip',
       );
       final written = android.downloads[first]!;
       expect(written.sublist(0, 2), [0x50, 0x4B]); // a ZIP
@@ -131,22 +142,48 @@ void main() {
       expect(android.allClosed, isTrue);
     });
 
-    test('the Diagnostic Log snapshot replaces its previous copy', () async {
+    test('the Diagnostic Log snapshot replaces its previous copy in Logs',
+        () async {
       final log = DiagnosticLogService(storage: _androidStorage());
       await log.logInfo('first');
       final path = await log.exportToFile();
       await log.logInfo('second');
       expect(await log.exportToFile(), path);
-      expect(
-        path,
-        'Download/QuisquisLingo/Exports/Logs/quisquislingo_diagnostic_log.txt',
-      );
+      expect(path, 'Download/QuisquisLingo/Logs/QQL_diagnostic_log.txt');
       expect(utf8.decode(android.downloads[path]!), contains('second'));
       expect(
         android.downloads.keys.where((key) => key.contains('diagnostic')),
         hasLength(1),
       );
       expect(await log.exportPath(), path);
+    });
+
+    test('the Crash Log Quick Export copies the private log into Logs with no '
+        'dialog, replacing its previous copy', () async {
+      final crash = CrashLogService.instance;
+      await crash.initialise();
+      final live = File(crash.crashLogPath!);
+      // The live log stays in QQL's private storage.
+      expect(live.parent.path, endsWith(DiagnosticLogService.logsDirectoryName));
+
+      final first = await crash.exportCopy(storage: _androidStorage());
+      expect(first!.location, 'Download/QuisquisLingo/Logs/QQL_crash_log.txt');
+      await live.writeAsString('later entry\n', mode: FileMode.append);
+      final second = await crash.exportCopy(storage: _androidStorage());
+      expect(second!.location, first.location);
+      expect(
+        utf8.decode(android.downloads[first.location]!),
+        endsWith('later entry\n'),
+      );
+      expect(
+        android.downloads.keys.where((key) => key.contains('crash')),
+        hasLength(1),
+      );
+      expect(android.uiCalls, isEmpty);
+      expect(
+        await crash.exportPath(storage: _androidStorage()),
+        first.location,
+      );
     });
   });
 
@@ -160,7 +197,7 @@ void main() {
           isA<QuickImportAccessRequired>().having(
             (error) => error.folder,
             'folder',
-            'Download/QuisquisLingo/Imports',
+            'Download/QuisquisLingo',
           ),
         ),
       );
@@ -168,16 +205,30 @@ void main() {
       expect(android.uiCalls, isEmpty);
     });
 
-    test('with the permission, Quick Import reads Imports/Courses without a '
+    test('with the permission, Quick Import reads Import/Courses without a '
         'dialog, through the ordinary checks', () async {
       android.importAccess = true;
-      android.imports['Courses/import.zip'] = await _package();
+      android.imports['Import/Courses/import.zip'] = await _package();
       final package = await _transfer(dialogs).importCoursePackage();
       addTearDown(package.discard);
       expect(package.course.courseId, dialogTestCourse().courseId);
       expect(android.uiCalls, isEmpty);
       expect(dialogs.startedIn, isEmpty);
       expect(android.allClosed, isTrue);
+    });
+
+    test('the same permission lets Merge read ToBeMerged/Courses', () async {
+      android.importAccess = true;
+      android.imports['ToBeMerged/Courses/merge.zip'] = await _package();
+      final package = await _transfer(dialogs).mergeCoursePackage();
+      addTearDown(package.discard);
+      expect(package.course.courseId, dialogTestCourse().courseId);
+      expect(android.uiCalls, isEmpty);
+      final listed = android.calls
+          .where((call) => call.method == 'listImports')
+          .map((call) => ((call.arguments as Map)['segments'] as List).join('/'))
+          .toSet();
+      expect(listed, {'ToBeMerged/Courses'});
     });
 
     test('an empty folder names the Android folder', () async {
@@ -188,7 +239,7 @@ void main() {
           isA<FormatException>().having(
             (error) => error.message,
             'message',
-            contains('Download/QuisquisLingo/Imports/Courses'),
+            contains('Download/QuisquisLingo/Import/Courses'),
           ),
         ),
       );
@@ -196,10 +247,10 @@ void main() {
 
     test('a deleted folder or a revoked permission asks again', () async {
       android.importAccess = true;
-      android.imports['learner_import.json'] = Uint8List(1);
+      android.imports['Import/UserData/learner_import.json'] = Uint8List(1);
       final backup = LearnerBackupService(storage: _androidStorage());
 
-      android.importsFolderGone = true;
+      android.folderGone = true;
       expect(await _androidStorage().hasImportAccess(), isFalse);
       await expectLater(
         backup.readImportFile(),
@@ -207,7 +258,7 @@ void main() {
       );
 
       // Held at the check, gone when the folder is read.
-      android.importsFolderGone = false;
+      android.folderGone = false;
       android.revokeOnList = true;
       expect(await _androidStorage().hasImportAccess(), isTrue);
       await expectLater(
@@ -216,13 +267,14 @@ void main() {
           isA<QuickImportAccessRequired>().having(
             (error) => error.folder,
             'folder',
-            'Download/QuisquisLingo/Imports',
+            'Download/QuisquisLingo',
           ),
         ),
       );
     });
 
-    test('asking maps every answer; only "granted" gives access', () async {
+    test('asking maps every answer, only "granted" gives access, and the '
+        'Import and ToBeMerged folders are created', () async {
       final storage = _androidStorage();
       for (final (answer, expected) in [
         ('wrongFolder', QuickImportAccessResult.wrongFolder),
@@ -234,9 +286,19 @@ void main() {
         expect(await storage.requestImportAccess(), expected);
       }
       expect(await storage.hasImportAccess(), isTrue);
+      expect(android.requestedFolders.toSet(), {
+        'Import/Courses',
+        'Import/UserData',
+        'Import/RecoveryKeys',
+        'Import/Audio',
+        'Import/Images',
+        'Import/LessonIcons',
+        'Import/Flags',
+        'ToBeMerged/Courses',
+      });
       expect(
         await storage.importAccessSteps(),
-        contains('Use this folder'),
+        allOf(contains('Download/QuisquisLingo'), contains('Use this folder')),
       );
     });
   });
@@ -261,12 +323,11 @@ void main() {
       );
       expect(
         location,
-        'Download/QuisquisLingo/Exports/Courses/quisquislingo_dialog_course.zip',
+        'Download/QuisquisLingo/Export/Courses/QQL_dialog_course.zip',
       );
       expect(android.uiCalls, ['requestLegacyWriteAccess']);
       final file = File(
-        '${downloads.path}/QuisquisLingo/Exports/Courses/'
-        'quisquislingo_dialog_course.zip',
+        '${downloads.path}/QuisquisLingo/Export/Courses/QQL_dialog_course.zip',
       );
       expect(await file.exists(), isTrue);
       expect(
@@ -288,7 +349,7 @@ void main() {
         () async {
       android.importAccess = true;
       final file = File(
-        '${downloads.path}/QuisquisLingo/Imports/Courses/import.zip',
+        '${downloads.path}/QuisquisLingo/Import/Courses/import.zip',
       );
       await file.create(recursive: true);
       await file.writeAsBytes(await _package());
@@ -299,11 +360,14 @@ void main() {
   });
 
   group('Build 255 Android Inventory and Wipe everything', () {
-    test('Inventory lists QQL exports and, with access, the Imports files',
-        () async {
-      android.downloads['Download/QuisquisLingo/Exports/Courses/a.zip'] =
+    test('Inventory lists each folder: QQL\'s own files in Export and Logs '
+        'and, with access, the files in Import and ToBeMerged', () async {
+      android.downloads['Download/QuisquisLingo/Export/Courses/a.zip'] =
           Uint8List(3);
-      android.imports['Courses/import.zip'] = Uint8List(5);
+      android.downloads['Download/QuisquisLingo/Logs/QQL_crash_log.txt'] =
+          Uint8List(2);
+      android.imports['Import/Courses/import.zip'] = Uint8List(5);
+      android.imports['ToBeMerged/Courses/merge.zip'] = Uint8List(4);
       Future<InventorySection> section(String title) async =>
           (await InventoryService(
             storage: _androidStorage(),
@@ -311,23 +375,27 @@ void main() {
             teams: () async => const [],
           ).load()).singleWhere((section) => section.title == title);
 
-      final exports = await section('Quick Export folder');
-      expect(exports.location, 'Download/QuisquisLingo/Exports');
+      final exports = await section('Export folder');
+      expect(exports.location, 'Download/QuisquisLingo/Export');
       expect(exports.items.single.name, 'Courses/a.zip');
       expect(exports.totalBytes, 3);
-      expect((await section('Quick Import folder')).items, isEmpty);
+      final logs = await section('Logs folder');
+      expect(logs.location, 'Download/QuisquisLingo/Logs');
+      expect(logs.items.single.name, 'QQL_crash_log.txt');
+      expect((await section('Import folder')).items, isEmpty);
 
       android.importAccess = true;
-      final imports = await section('Quick Import folder');
-      expect(imports.location, 'Download/QuisquisLingo/Imports');
+      final imports = await section('Import folder');
+      expect(imports.location, 'Download/QuisquisLingo/Import');
       expect(imports.items.single.name, 'Courses/import.zip');
+      final merges = await section('ToBeMerged folder');
+      expect(merges.location, 'Download/QuisquisLingo/ToBeMerged');
+      expect(merges.items.single.name, 'Courses/merge.zip');
     });
 
     test('a full wipe follows the ticks and gives back the folder permission',
         () async {
       final profiles = ProfileService();
-      final admin = (await profiles.createProfile('Admin')).learnerProfileId;
-      await profiles.setOwnAccessPin(actorProfileId: admin, pin: '1234');
       final root = await Directory.systemTemp.createTemp('qql_wipe_');
       addTearDown(() => root.delete(recursive: true));
       AppResetService service() => AppResetService(
@@ -336,32 +404,58 @@ void main() {
         supportDirectory: () async => root,
         storage: _androidStorage(),
       );
-      android.importAccess = true;
-      android.downloads['Download/QuisquisLingo/Exports/x.json'] = Uint8List(1);
-      android.imports['Courses/import.zip'] = Uint8List(1);
+      Future<String> admin() async {
+        final id = (await profiles.createProfile('Admin')).learnerProfileId;
+        await profiles.setOwnAccessPin(actorProfileId: id, pin: '1234');
+        return id;
+      }
 
+      void fill() {
+        android.importAccess = true;
+        android.downloads['Download/QuisquisLingo/Export/UserData/x.json'] =
+            Uint8List(1);
+        android.downloads['Download/QuisquisLingo/Logs/QQL_crash_log.txt'] =
+            Uint8List(1);
+        android.imports['Import/Courses/import.zip'] = Uint8List(1);
+        android.imports['ToBeMerged/Courses/merge.zip'] = Uint8List(1);
+      }
+
+      fill();
       await service().reset(
         AppResetScope.everything,
-        actorProfileId: admin,
+        actorProfileId: await admin(),
         pin: '1234',
       );
       // Kept by default, but the permission is given back.
-      expect(android.downloads, hasLength(1));
-      expect(android.imports, hasLength(1));
+      expect(android.downloads, hasLength(2));
+      expect(android.imports, hasLength(2));
       expect(android.released, isTrue);
 
-      final again = (await profiles.createProfile('Admin')).learnerProfileId;
-      await profiles.setOwnAccessPin(actorProfileId: again, pin: '1234');
-      android.importAccess = true;
+      fill();
       await service().reset(
         AppResetScope.everything,
-        actorProfileId: again,
+        actorProfileId: await admin(),
         pin: '1234',
         keepExports: false,
         keepImports: false,
       );
-      expect(android.downloads, isEmpty);
+      expect(android.downloads.keys, [
+        'Download/QuisquisLingo/Logs/QQL_crash_log.txt',
+      ]);
       expect(android.imports, isEmpty);
+
+      fill();
+      await service().reset(
+        AppResetScope.everything,
+        actorProfileId: await admin(),
+        pin: '1234',
+        keepLogs: false,
+      );
+      expect(
+        android.downloads.keys,
+        ['Download/QuisquisLingo/Export/UserData/x.json'],
+      );
+      expect(android.imports, hasLength(2));
     });
   });
 
@@ -425,7 +519,9 @@ void main() {
       await run(tester, offerOpenFrom: true);
       expect(find.byKey(const Key('quick-import-access-dialog')), findsOneWidget);
       expect(
-        find.textContaining('Download/QuisquisLingo/Imports'),
+        find.textContaining(
+          'Import and ToBeMerged folders of Download/QuisquisLingo',
+        ),
         findsOneWidget,
       );
       expect(find.textContaining('Use this folder'), findsOneWidget);
@@ -468,7 +564,7 @@ void main() {
         QuickImportAccess.stop,
       );
       expect(
-        find.textContaining('That was not Download/QuisquisLingo/Imports'),
+        find.textContaining('That was not Download/QuisquisLingo.'),
         findsOneWidget,
       );
       expect(android.importAccess, isFalse);

@@ -47,6 +47,7 @@ void main() {
             throw PlatformException(code: 'test_storage_unavailable');
           },
         );
+    keepCrashLogUnavailable();
     backups = _HistoryBackups();
     service = CourseEditorService(
       backupService: backups,

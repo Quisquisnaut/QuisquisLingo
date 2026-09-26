@@ -563,7 +563,7 @@ void main() {
     },
   );
 
-  test('learner import reads only Imports/learner_import.json', () async {
+  test('learner import reads only Import/UserData/learner_import.json', () async {
     final documents = await Directory.systemTemp.createTemp(
       'qql_learner_import_path_',
     );
@@ -582,8 +582,8 @@ void main() {
     });
     final importPath =
         '${documents.path}${Platform.pathSeparator}QuisquisLingo'
-        '${Platform.pathSeparator}Imports${Platform.pathSeparator}'
-        'learner_import.json';
+        '${Platform.pathSeparator}Import${Platform.pathSeparator}UserData'
+        '${Platform.pathSeparator}learner_import.json';
     await File(importPath).create(recursive: true);
     await File(importPath).writeAsString(payload);
 
@@ -620,7 +620,7 @@ void main() {
             (error) => error.message,
             'message',
             contains(
-              '${Platform.pathSeparator}Imports${Platform.pathSeparator}',
+              '${Platform.pathSeparator}Import${Platform.pathSeparator}UserData',
             ),
           ),
         ),
@@ -628,7 +628,7 @@ void main() {
     },
   );
 
-  test('learner export keeps Exports and learner-based filenames', () async {
+  test('learner export writes Export/UserData with learner-based QQL_ filenames', () async {
     final documents = await Directory.systemTemp.createTemp(
       'qql_learner_export_path_',
     );
@@ -649,14 +649,14 @@ void main() {
     final second = await backup.saveActiveProfile();
     final exportDirectory =
         '${documents.path}${Platform.pathSeparator}QuisquisLingo'
-        '${Platform.pathSeparator}Exports';
+        '${Platform.pathSeparator}Export${Platform.pathSeparator}UserData';
     expect(
       first,
-      '$exportDirectory${Platform.pathSeparator}quisquislingo_export_name_66666_backup.json',
+      '$exportDirectory${Platform.pathSeparator}QQL_export_name_66666_backup.json',
     );
     expect(
       second,
-      '$exportDirectory${Platform.pathSeparator}quisquislingo_export_name_66666_backup_2.json',
+      '$exportDirectory${Platform.pathSeparator}QQL_export_name_66666_backup_2.json',
     );
     expect(await File(first).exists(), isTrue);
     expect(await File(second).exists(), isTrue);

@@ -33,20 +33,20 @@ class CourseBackupRecord {
 
 /// Durable, course-scoped backups for final Course Editor transactions.
 ///
-/// Backups live outside application storage under the existing resolved
-/// Documents/QuisquisLingo/Exports tree. A manifest contains the complete v11
-/// course plus SHA-256 integrity data; the Course's own media (every `media:`
-/// image and recording it uses) is copied alongside it, so a version restores
-/// even after the confirmed change removed a file from the Course folder.
+/// Backups are internal: they live in QQL's private app storage on every
+/// system ([backupRootName]). A manifest contains the complete v11 course
+/// plus SHA-256 integrity data; the Course's own media (every `media:` image
+/// and recording it uses) is copied alongside it, so a version restores even
+/// after the confirmed change removed a file from the Course folder.
 class CourseBackupService {
   CourseBackupService({
-    Future<Directory> Function()? documentsDirectoryProvider,
+    Future<Directory> Function()? supportDirectoryProvider,
     Future<void> Function(File file, List<int> bytes)? fileWriter,
     Future<bool> Function(Uri uri)? uriLauncher,
     PublisherVerificationService? publisherVerification,
     CourseMediaStore? mediaStore,
-  }) : _documentsDirectoryProvider =
-           documentsDirectoryProvider ?? getApplicationDocumentsDirectory,
+  }) : _supportDirectoryProvider =
+           supportDirectoryProvider ?? getApplicationSupportDirectory,
        _fileWriter = fileWriter,
        _uriLauncher = uriLauncher,
        _media = mediaStore ?? CourseMediaStore(),
@@ -60,15 +60,19 @@ class CourseBackupService {
   // v11 clean cut: `Course Backups v9` holds v9/v10 Courses and is left
   // untouched and unread, so an old backup cannot block Version History.
   static const backupFormat = 'QuisquisLingo Course Backup v11';
-  final Future<Directory> Function() _documentsDirectoryProvider;
+
+  /// The private backup folder in QQL's app storage. Build 255 Revision 3
+  /// moved the backups here from `Documents/QuisquisLingo/Exports/Course
+  /// Backups v11`, which is left untouched and no longer read.
+  static const backupRootName = 'qql_course_backups_v11';
+  final Future<Directory> Function() _supportDirectoryProvider;
   final Future<void> Function(File file, List<int> bytes)? _fileWriter;
   final Future<bool> Function(Uri uri)? _uriLauncher;
 
   Future<Directory> backupRoot({bool create = false}) async {
-    final documents = await _documentsDirectoryProvider();
+    final support = await _supportDirectoryProvider();
     final directory = Directory(
-      '${documents.path}${Platform.pathSeparator}QuisquisLingo'
-      '${Platform.pathSeparator}Exports${Platform.pathSeparator}Course Backups v11',
+      '${support.path}${Platform.pathSeparator}$backupRootName',
     );
     if (create) await directory.create(recursive: true);
     return directory;

@@ -357,9 +357,9 @@ void main() {
     () async {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString(profiles.keyForProfileId(adminId, 'locale'), 'ES');
-      touch('${documents.path}${sep}QuisquisLingo${sep}Exports${sep}b.json');
+      touch('${documents.path}${sep}QuisquisLingo${sep}Export${sep}b.json');
       touch('${documents.path}${sep}QuisquisLingo${sep}Logs${sep}crash.log');
-      touch('${documents.path}${sep}QuisquisLingo${sep}Imports${sep}i.json');
+      touch('${documents.path}${sep}QuisquisLingo${sep}Import${sep}i.json');
       touch('${support.path}${sep}image_banks${sep}b${sep}m.json');
       await service.reset(
         AppResetScope.everything,
@@ -367,12 +367,12 @@ void main() {
         pin: '4321',
       );
       final qql = '${documents.path}${sep}QuisquisLingo$sep';
-      expect(File('${qql}Exports${sep}b.json').existsSync(), isTrue);
+      expect(File('${qql}Export${sep}b.json').existsSync(), isTrue);
       expect(File('${qql}Logs${sep}crash.log').existsSync(), isTrue);
       expect(
-        File('${qql}Imports${sep}i.json').existsSync(),
+        File('${qql}Import${sep}i.json').existsSync(),
         isTrue,
-        reason: 'Imports is kept by default',
+        reason: 'Import is kept by default',
       );
       expect(
         Directory('${support.path}${sep}image_banks').existsSync(),
@@ -386,8 +386,8 @@ void main() {
   test(
     'everything can also remove exports, logs and imports when asked',
     () async {
-      touch('${documents.path}${sep}QuisquisLingo${sep}Imports${sep}i.json');
-      touch('${documents.path}${sep}QuisquisLingo${sep}Exports${sep}b.json');
+      touch('${documents.path}${sep}QuisquisLingo${sep}Import${sep}i.json');
+      touch('${documents.path}${sep}QuisquisLingo${sep}Export${sep}b.json');
       touch('${documents.path}${sep}QuisquisLingo${sep}Logs${sep}crash.log');
       await service.reset(
         AppResetScope.everything,

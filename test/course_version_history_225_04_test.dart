@@ -16,7 +16,7 @@ void main() {
   setUp(() async {
     documents = await Directory.systemTemp.createTemp('qql_history_22504_');
     backups = CourseBackupService(
-      documentsDirectoryProvider: () async => documents,
+      supportDirectoryProvider: () async => documents,
       uriLauncher: (_) async => false,
     );
     await backups.createBackup(
@@ -101,7 +101,7 @@ void main() {
 
 class _HistoryBackupService extends CourseBackupService {
   _HistoryBackupService(this.documents, this.records)
-    : super(documentsDirectoryProvider: () async => documents);
+    : super(supportDirectoryProvider: () async => documents);
 
   final Directory documents;
   final List<CourseBackupRecord> records;

@@ -131,7 +131,7 @@ class CourseAuditReportService {
         .substring(0, 17);
     final coursePart = _safePart(course.title, fallback: 'course');
     final idPart = _safePart(course.courseId, fallback: 'unknown_id');
-    final baseName = 'quisquislingo_audit_${coursePart}_${idPart}_$stamp';
+    final baseName = 'QQL_audit_${coursePart}_${idPart}_$stamp';
     final injected = _exportDirectory;
     final QuickExportFolder folder;
     if (injected == null) {

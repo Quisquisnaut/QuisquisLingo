@@ -158,23 +158,28 @@ void main() {
     'finds exports, imports, logs, media and outside files with owners',
     () async {
       touch(
-        qql('Exports/quisquislingo_admin_one_backup.json'),
+        qql('Export/UserData/QQL_admin_one_backup.json'),
         jsonEncode({'learnerProfileId': adminId, 'displayName': 'Admin One'}),
       );
       touch(
-        qql('Exports/gone.user-recovery-key.json'),
+        qql('Export/RecoveryKeys/gone.user-recovery-key.json'),
         jsonEncode({
           'learnerProfileId': '11111111-1111-4111-8111-111111111111',
           'displayName': 'Old Learner',
         }),
       );
+      // Course backups are private since Build 255 Revision 3.
       touch(
-        qql('Exports/Course Backups v11/c_1_2026.json'),
+        '${support.path}${sep}qql_course_backups_v11${sep}c_1_2026.json',
         jsonEncode({'reason': 'Pre-change Course Editor transaction backup'}),
       );
-      touch(qql('Imports/Audio/word.mp3'));
-      touch(qql('Merges/merge.json'));
-      touch(qql('Logs/quislingo_crash.log'));
+      touch(
+        qql('Exports/Course Backups v11/c_0_2025.json'),
+        jsonEncode({'reason': 'Pre-change Course Editor transaction backup'}),
+      );
+      touch(qql('Import/Audio/word.mp3'));
+      touch(qql('ToBeMerged/Courses/merge.json'));
+      touch(qql('Logs/QQL_crash_log.txt'));
       touch(qql('notes.txt'));
       touch(qql('Stuff/inner.bin'));
       touch('${support.path}${sep}exercise_images${sep}a.png');
@@ -189,8 +194,8 @@ void main() {
 
       final all = await service.load();
 
-      final exports = sectionOf(all, 'Exports and backups');
-      expect(exports.count, 3);
+      final exports = sectionOf(all, 'Export folder');
+      expect(exports.count, 2);
       InventoryItem byName(String part) =>
           exports.items.firstWhere((i) => i.name.contains(part));
       expect(byName('admin_one_backup').owner, 'Admin One');
@@ -201,17 +206,25 @@ void main() {
       );
       expect(byName('gone.user-recovery-key').note, 'User Recovery Key');
       expect(
-        byName('c_1_2026').note,
-        'Automatic course backup (made before a change)',
-      );
-      expect(
         exports.items.every((i) => i.path!.contains('QuisquisLingo')),
         isTrue,
       );
+      final backups = sectionOf(all, 'Course backups');
+      expect(
+        backups.items.single.note,
+        'Automatic course backup (made before a change)',
+      );
+      expect(backups.items.single.path, isNot(contains('QuisquisLingo')));
+      final earlier = sectionOf(all, 'Folders from earlier versions');
+      expect(earlier.items.single.name, contains('c_0_2025'));
+      expect(
+        earlier.items.single.note,
+        'Automatic course backup (made before a change)',
+      );
 
-      expect(sectionOf(all, 'Imports').count, 1);
-      expect(sectionOf(all, 'Merges').count, 1);
-      expect(sectionOf(all, 'Logs').count, 1);
+      expect(sectionOf(all, 'Import folder').count, 1);
+      expect(sectionOf(all, 'ToBeMerged folder').count, 1);
+      expect(sectionOf(all, 'Logs folder').count, 1);
       expect(sectionOf(all, 'Imported images').count, 1);
       expect(sectionOf(all, 'Image banks').count, 1);
 
@@ -237,9 +250,9 @@ void main() {
   );
 
   test('reports sizes and never lists media bundled with the app', () async {
-    touch(qql('Imports/a.bin'), 'x' * 2048);
+    touch(qql('Import/a.bin'), 'x' * 2048);
     final all = await service.load();
-    expect(sectionOf(all, 'Imports').totalBytes, 2048);
+    expect(sectionOf(all, 'Import folder').totalBytes, 2048);
     expect(
       all
           .expand((s) => s.items)
@@ -252,9 +265,9 @@ void main() {
     'a very large folder lists only the newest files and counts the rest',
     () async {
       for (var i = 0; i < InventoryService.maxListedPerSection + 3; i++) {
-        touch(qql('Imports/f$i.txt'));
+        touch(qql('Import/f$i.txt'));
       }
-      final imports = sectionOf(await service.load(), 'Imports');
+      final imports = sectionOf(await service.load(), 'Import folder');
       expect(imports.items.length, InventoryService.maxListedPerSection);
       expect(imports.hiddenCount, 3);
       expect(imports.count, InventoryService.maxListedPerSection + 3);
@@ -267,7 +280,7 @@ void main() {
     tester.view.physicalSize = const Size(900, 6000);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
-    touch(qql('Imports/Audio/word.mp3'));
+    touch(qql('Import/Audio/word.mp3'));
     touch(qql('notes.txt'));
 
     await tester.pumpWidget(
@@ -285,7 +298,7 @@ void main() {
 
     expect(find.byKey(const Key('inventory-summary')), findsOneWidget);
     expect(find.textContaining('Files found: 2'), findsOneWidget);
-    expect(find.textContaining('Imports (1)'), findsOneWidget);
+    expect(find.textContaining('Import folder (1)'), findsOneWidget);
     expect(find.textContaining('Added from outside QQL.'), findsWidgets);
     expect(
       find.textContaining('Belongs to: Admin One (admin)'),

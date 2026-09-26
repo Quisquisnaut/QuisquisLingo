@@ -313,7 +313,7 @@ void main() {
         );
         addTearDown(() => documents.deleteSync(recursive: true));
         final imports = Directory(
-          '${documents.path}/QuisquisLingo/Imports/Lesson Icons',
+          '${documents.path}/QuisquisLingo/Import/LessonIcons',
         )..createSync(recursive: true);
         File(
           'assets/lesson_icons/home.png',
