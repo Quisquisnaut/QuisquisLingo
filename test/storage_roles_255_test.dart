@@ -44,11 +44,20 @@ void main() {
       }
     });
 
-    test('one pattern on every system: Import, Export, Logs and ToBeMerged, '
-        'one subfolder per kind, no spaces', () {
+    test('one pattern on every system: Import, Export, Logs, ToBeMerged and '
+        'Backups, one subfolder per kind, no spaces', () {
       expect(
         [for (final folder in QqlTopFolder.values) folder.folderName],
-        ['Import', 'Export', 'Logs', 'ToBeMerged'],
+        ['Import', 'Export', 'Logs', 'ToBeMerged', 'Backups'],
+      );
+      // Revision 5: Course Backups are public, beside the other folders.
+      expect(
+        QqlStorageLayout.documents.courseBackupsLabel,
+        'Documents/QuisquisLingo/Backups/Courses',
+      );
+      expect(
+        QqlStorageLayout.androidPublic.courseBackupsLabel,
+        'Download/QuisquisLingo/Backups/Courses',
       );
       final expected = <QqlStorageRole, String>{
         QqlStorageRole.courseImports: 'Import/Courses',
@@ -102,6 +111,7 @@ void main() {
         'folderExport',
         'folderLogs',
         'folderToBeMerged',
+        'folderBackups',
         'folderRoot',
       });
       expect(values['folderRoot'], 'Documents/QuisquisLingo');

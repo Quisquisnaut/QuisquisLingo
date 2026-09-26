@@ -376,6 +376,11 @@ void main() {
       expect(imports, findsOneWidget);
       expect(tester.getTopLeft(imports).dy, lessThan(view.height));
       expect(tester.widget<CheckboxListTile>(imports).value, isTrue);
+      // Build 255 Revision 5: the public Backups folder, kept by default.
+      final backups = find.byKey(const Key('admin-nuke-keep-backups'));
+      expect(backups, findsOneWidget);
+      expect(tester.getTopLeft(backups).dy, lessThan(view.height));
+      expect(tester.widget<CheckboxListTile>(backups).value, isTrue);
 
       await tester.tap(exports);
       await tester.pump();
@@ -392,6 +397,7 @@ void main() {
       );
       expect(find.text('Logs folder: kept.'), findsOneWidget);
       expect(find.text('Import and ToBeMerged folders: kept.'), findsOneWidget);
+      expect(find.text('Backups folder: kept.'), findsOneWidget);
       expect(find.textContaining('NUKE EVERYTHING'), findsWidgets);
     },
   );

@@ -30,7 +30,7 @@ void main() {
         'test.publisher',
         'Test Publisher',
       ),
-      supportDirectoryProvider: () async => documents,
+      backupsDirectoryProvider: () async => documents,
     );
     service = CourseEditorService(
       publisherVerification: fixtureVerifier(

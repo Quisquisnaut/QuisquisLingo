@@ -15,8 +15,16 @@ void main() {
 
   setUp(() async {
     documents = await Directory.systemTemp.createTemp('qql_v9_backups_');
+    // The public Backups folder, as below Documents/QuisquisLingo.
     backups = CourseBackupService(
-      supportDirectoryProvider: () async => documents,
+      backupsDirectoryProvider: () async => Directory(
+        [
+          documents.path,
+          'QuisquisLingo',
+          'Backups',
+          'Courses',
+        ].join(Platform.pathSeparator),
+      ),
     );
   });
 
@@ -53,14 +61,29 @@ void main() {
     );
     await revision3.create(recursive: true);
     await revision3.writeAsString(legacyBytes, flush: true);
+    // Revision 5 moved them again, from Revision 4's private folder to the
+    // public Backups folder; that folder is not read either.
+    final revision4 = File(
+      '${documents.path}${Platform.pathSeparator}QQL_CourseBackups'
+      '${Platform.pathSeparator}QQL_bkp_UNKNOWN_UNKNOWN_backup-clean-cut'
+      '${Platform.pathSeparator}old.json',
+    );
+    await revision4.create(recursive: true);
+    await revision4.writeAsString(legacyBytes, flush: true);
 
     expect(await backups.listBackups('backup-clean-cut'), isEmpty);
     expect(await legacyManifest.readAsString(), legacyBytes);
     expect(await earlierV11.readAsString(), legacyBytes);
     expect(await revision3.readAsString(), legacyBytes);
+    expect(await revision4.readAsString(), legacyBytes);
     expect(
       (await backups.backupRoot()).path,
-      '${documents.path}${Platform.pathSeparator}QQL_CourseBackups',
+      [
+        documents.path,
+        'QuisquisLingo',
+        'Backups',
+        'Courses',
+      ].join(Platform.pathSeparator),
     );
 
     await expectLater(

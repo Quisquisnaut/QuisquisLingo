@@ -18,7 +18,7 @@ void main() {
   setUp(() async {
     documents = await Directory.systemTemp.createTemp('qql_history_22504_');
     backups = CourseBackupService(
-      supportDirectoryProvider: () async => documents,
+      backupsDirectoryProvider: () async => documents,
       uriLauncher: (_) async => false,
     );
     await backups.createBackup(
@@ -108,14 +108,16 @@ void main() {
 
 class _HistoryBackupService extends CourseBackupService {
   _HistoryBackupService(this.documents, this.records)
-    : super(supportDirectoryProvider: () async => documents);
+    : super(backupsDirectoryProvider: () async => documents);
 
   final Directory documents;
   final List<CourseBackupRecord> records;
 
   @override
-  Future<List<CourseBackupRecord>> listBackups(String courseId) async =>
-      records;
+  Future<List<CourseBackupRecord>> listBackups(
+    String courseId, {
+    List<String>? skipped,
+  }) async => records;
 
   @override
   Future<bool> openBackupFolder(Course course) async => false;

@@ -8,7 +8,6 @@ import '../models/authoring_team.dart';
 import '../models/course_models.dart';
 import 'course_editor_service.dart';
 import 'course_file_store.dart';
-import 'course_backup_service.dart';
 import 'profile_service.dart';
 import 'course_media_store.dart';
 import 'course_favorite_service.dart';
@@ -409,7 +408,7 @@ class InventoryService {
       String? reason;
       final isBackup =
           RegExp(r'course backups v\d+').hasMatch(lower) ||
-          root.path.endsWith(CourseBackupService.backupRootName);
+          root.path.endsWith('$sep${QqlTopFolder.backups.folderName}');
       if (isBackup) {
         kind = 'Course backup';
         try {
@@ -437,17 +436,6 @@ class InventoryService {
     // ---- QQL's private copies, the same on every system
     sections.add(
       await folder(
-        title: 'Course backups',
-        description:
-            'The backups the Course Editor makes automatically before saving a change, which Version History lists. They are private to QQL.',
-        directory: Directory(
-          '$supportRoot$sep${CourseBackupService.backupRootName}',
-        ),
-        describe: describeBackupOrExport,
-      ),
-    );
-    sections.add(
-      await folder(
         title: 'Crash Log',
         description:
             'The live Crash Log and the session marker QQL uses to detect an abnormal shutdown. They are private to QQL; Settings › Debug saves copies in the Logs folder.',
@@ -458,7 +446,8 @@ class InventoryService {
       ),
     );
 
-    // ---- The QuisquisLingo folder: Export, Import, ToBeMerged and Logs
+    // ---- The QuisquisLingo folder: Export, Import, ToBeMerged, Logs and
+    // Backups
     const topFolders = <(QqlTopFolder, String, String)>[
       (
         QqlTopFolder.export,
@@ -485,10 +474,19 @@ class InventoryService {
         'Copies of the Crash Log and the Diagnostic Log saved with Quick '
             'Export in Settings › Debug.',
       ),
+      (
+        QqlTopFolder.backups,
+        'Backups folder',
+        'The Course Backups the Course Editor makes automatically before '
+            'saving a change, one folder per Course in Courses, which Version '
+            'History lists.',
+      ),
     ];
     for (final (top, title, description) in topFolders) {
       final writtenByQql =
-          top == QqlTopFolder.export || top == QqlTopFolder.logs;
+          top == QqlTopFolder.export ||
+          top == QqlTopFolder.logs ||
+          top == QqlTopFolder.backups;
       final note = writtenByQql ? 'Written by QQL.' : 'Added from outside QQL.';
       if (public == null) {
         sections.add(
@@ -496,7 +494,8 @@ class InventoryService {
             title: title,
             description: description,
             directory: Directory('${documentsRoot.path}$sep${top.folderName}'),
-            describe: top == QqlTopFolder.export
+            describe:
+                top == QqlTopFolder.export || top == QqlTopFolder.backups
                 ? describeBackupOrExport
                 : (file, root) => plain(file, root, note: note),
           ),
@@ -565,6 +564,8 @@ class InventoryService {
           'Course media from an earlier version.',
       QqlEarlierPrivateFolders.courseBackups:
           'Course backup from an earlier version.',
+      QqlEarlierPrivateFolders.privateCourseBackups:
+          'Course backup from an earlier version.',
       QqlEarlierPrivateFolders.importStaging:
           'Import copy left by an earlier version.',
       QqlEarlierPrivateFolders.logs: 'Crash Log from an earlier version.',
@@ -575,10 +576,11 @@ class InventoryService {
         description:
             'Courses, course media, Course Backups, import copies and the '
             'Crash Log where QQL kept them before Build 255 Revision 4 gave '
-            'its own folders QQL_ names. QQL no longer reads them; a one-off '
-            'tool moves earlier Courses, their media and backups to the new '
-            'names. Wipe everything removes them, the earlier Crash Log with '
-            'the Logs choice.',
+            'its own folders QQL_ names, and the private Course Backups of '
+            'Revision 4. QQL no longer reads them; a one-off tool moves '
+            'earlier Courses, their media and backups to where QQL keeps them '
+            'now. Wipe everything removes them, the earlier Crash Log with the '
+            'Logs choice and the earlier backups with the Backups choice.',
         directory: Directory(supportRoot),
         only: await QqlEarlierPrivateFolders.presentIn(
           Directory(supportRoot),

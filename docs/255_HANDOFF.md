@@ -21,6 +21,26 @@ owner's and not part of this work: never stage, move or delete them.
 
 ## Status
 
+**Revision 5 (`2.0.55+255005`) is complete** (26 September 2026): the
+Backups folder, analyzer clean, complete suite 2,764 passed with 1 existing skip, emulator-checked on Android 16
+(details in the validation). Nothing is pushed.
+
+- Course Backups are in `QuisquisLingo/Backups/Courses` on every system
+  (`QqlTopFolder.backups`, `QqlStorage.courseBackupsDirectory()`), written and
+  read as ordinary files; `CourseBackupService`'s seam is
+  `backupsDirectoryProvider`. Android: no permission from Android 11
+  (checked: a confirmation wrote and read back its backup in
+  `Download/QuisquisLingo/Backups/Courses`), the storage permission on
+  Android 7–10 (`requestBackupAccess`; manifest `WRITE_EXTERNAL_STORAGE` up
+  to API 29 and `requestLegacyExternalStorage`), refused →
+  `CourseBackupsAccessDenied` and the confirmation stops.
+- Version History lists readable versions and names other files
+  (`skipped:`); the strict listings still throw.
+- Wipe everything: "Keep the Backups folder", ticked by default; the
+  earlier private backup folders follow it. Inventory: "Backups folder".
+- The one-off tool moves every earlier backup into
+  `Documents/QuisquisLingo/Backups/Courses` (needs `--documents` off Windows).
+
 **Revision 4 (`2.0.55+255004`) is complete** (26 September 2026, ~14:15):
 private folders and language pairs, analyzer clean, complete suite 2,757
 passed with 1 existing skip, emulator-checked on Android 16 (details in the
@@ -72,10 +92,13 @@ Open points for the owner:
 - Run `dart run tools/move_private_storage_255.dart --dry-run`, then without
   `--dry-run`, on each desktop with earlier Courses (QQL closed). Until then
   those Courses are not listed; nothing is lost.
-- Not in Revision 4, for a later decision: Course Backups (`QQL_CourseBackups`,
-  with media copies) and staging leftovers are still included in Android's
-  cloud Auto Backup, as before; the older `qql_courses_v1` and
-  `quisquislingo_audio` stay out of Inventory and Wipe (Build 243 decision).
+- Import staging leftovers (`QQL_ImportStaging`, normally empty) are still
+  included in Android's cloud Auto Backup; Course Backups no longer are
+  (Revision 5). The older `qql_courses_v1` and `quisquislingo_audio` stay out
+  of Inventory and Wipe (Build 243 decision).
+- Android 10 (legacy storage flag for the Backups folder) and Android 7–9 are
+  covered by mocked tests only. On Android, Version History lists only the
+  backups this installation made; Open backup folder is best effort there.
 
 The one-time scheduled task `resume-qql-build-255` fired at 00:35 while this
 session was active; its run was stopped before it did anything and the task

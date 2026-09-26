@@ -26,6 +26,7 @@ Owner plan of 25 September 2026 (Europe/Rome), with the owner's answers:
 | 2 | `2.0.55+255002` | Android public Quick folders: dialog-free Quick Export to `Download/QuisquisLingo/Exports/...`, Quick Import from `Download/QuisquisLingo/Imports/...` with one persisted folder permission, the other user outputs, Inventory and Reset. |
 | 3 | `2.0.55+255003` | One folder pattern on every system (see [Revision 3](#revision-3-one-folder-pattern-on-every-system)): `Import`, `Export`, `Logs`, `ToBeMerged`; flag import fixed; Crash Log Quick Export; `QQL_` export names; Crash Log and Course Backups private everywhere. |
 | 4 | `2.0.55+255004` | Private folders (see [Revision 4](#revision-4-private-folders-and-language-pairs)): `QQL_` names, the language pair in every per-Course name (`QQL_EN_IT_<ID>`, backups `QQL_bkp_…`), exports `QQL_EN_IT_<title>.zip`; clean cut plus a one-off tool. |
+| 5 | `2.0.55+255005` | Course Backups in the public QuisquisLingo folder (see [Revision 5](#revision-5-the-backups-folder)): `Backups/Courses`, beside Import, Export, Logs and ToBeMerged, on every system; a Keep tick in Wipe everything. |
 
 One local commit per revision, handoff in `docs/255_HANDOFF.md`, no push.
 Revisions 0–4 are implemented; Android was checked on the Android 16
@@ -181,6 +182,58 @@ What the implementation added, found while building it:
     existing folder file by file, never replacing one; a file on another
     drive is copied and its earlier copy stays. A dry run on the
     development PC showed 6 Courses and 6 media folders to move.
+
+## Revision 5: the Backups folder
+
+Owner decisions of 26 September 2026, `2.0.55+255005`: for consistency the
+Course Backups Version History uses leave QQL's private storage and live in
+a new public folder beside Import, Export, Logs and ToBeMerged, on every
+system. This reverses Revision 3's choice to keep them private.
+
+```
+Documents/QuisquisLingo/Backups/Courses/QQL_bkp_EN_IT_<ID>/   Windows, Linux, macOS (iOS later)
+Download/QuisquisLingo/Backups/Courses/QQL_bkp_EN_IT_<ID>/    Android
+    QQL_bkp_EN_IT_<ID>_v<version>_<date-time>.json (+ …_assets/)
+```
+
+1. **Folder.** `QqlTopFolder.backups` (`Backups`) with one subfolder per kind
+   like the others; only `Courses` for now. Help names it
+   `{folderBackups}`. Names inside are Revision 4's. Learner backups stay in
+   `Export/UserData`: they are exports made on purpose to move or restore a
+   profile, not automatic backups (owner decision).
+2. **Files, not a new protocol.** A backup is written and read as ordinary
+   files, as on desktops. Android 11 and later let an app create, read,
+   rename and delete its own files in the Download folder with no
+   permission. Android 7–10 need the storage permission, asked when a
+   backup is first needed; Android 10 gets it through the legacy storage
+   flag in the manifest (`WRITE_EXTERNAL_STORAGE` up to API 29,
+   `requestLegacyExternalStorage`), which Android 11 and later ignore. If
+   it is refused, the Course confirmation stops as for any backup failure,
+   and the working copy stays open.
+3. **Android limit.** Android lets an app read only its own files there, so
+   backups an earlier installation made (before an uninstall) or files copied
+   in from elsewhere stay in the folder but are not listed.
+4. **Version History** lists the versions it can read and names the files it
+   skipped, instead of refusing the whole history because of one foreign or
+   damaged file in a folder people can reach.
+5. **Wipe everything** gains "Keep the Backups folder", ticked by default like
+   the others (owner decision). The earlier private backup folders
+   (`qql_course_backups_v11`, `QQL_CourseBackups`) follow the same tick.
+6. **Earlier folders.** Revision 4's private `QQL_CourseBackups` is never read
+   again; Inventory lists it with the other earlier private folders. The
+   one-off tool moves every earlier backup (`QQL_CourseBackups`,
+   `qql_course_backups_v11`, `Documents/QuisquisLingo/Exports/Course Backups
+   v11`) straight into `Backups/Courses`.
+7. **Android backup.** Files in the Download folder are outside Android's
+   app Auto Backup, so backups no longer count against its 25 MB quota and
+   survive an uninstall; a phone restore does not bring them back.
+
+Checked on the Android 16 emulator: with no permission screen, a Course
+confirmation wrote its backup into `Download/QuisquisLingo/Backups/Courses`,
+read it back, Version History and Inventory listed it, and Wipe everything
+removed the folder only when its tick was removed. Course Info Editor keeps
+an existing Course's languages read-only, so Revision 4's folder rename on a
+language change comes only from other routes (such as an imported update).
 
 ## Architecture
 

@@ -4,12 +4,12 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:crypto/crypto.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../models/course_models.dart';
 import 'course_media_store.dart';
 import 'storage/course_storage_names.dart';
+import 'storage/qql_storage.dart';
 
 class CourseBackupRecord {
   final File manifestFile;
@@ -34,22 +34,23 @@ class CourseBackupRecord {
 
 /// Durable, course-scoped backups for final Course Editor transactions.
 ///
-/// Backups are internal: they live in QQL's private app storage on every
-/// system ([backupRootName]), one folder per Course named
-/// `QQL_bkp_<pair>_<id>` (see [CourseStorageNames]). A manifest contains the
-/// complete v11 course plus SHA-256 integrity data; the Course's own media
-/// (every `media:` image and recording it uses) is copied alongside it, so a
-/// version restores even after the confirmed change removed a file from the
-/// Course folder.
+/// Backups live in the public Backups folder beside Import and Export on
+/// every system, `QuisquisLingo/Backups/Courses` ([QqlStorage.courseBackupsDirectory]),
+/// one folder per Course named `QQL_bkp_<pair>_<id>` (see
+/// [CourseStorageNames]). A manifest contains the complete v11 course plus
+/// SHA-256 integrity data; the Course's own media (every `media:` image and
+/// recording it uses) is copied alongside it, so a version restores even
+/// after the confirmed change removed a file from the Course folder.
 class CourseBackupService {
   CourseBackupService({
-    Future<Directory> Function()? supportDirectoryProvider,
+    Future<Directory> Function()? backupsDirectoryProvider,
     Future<void> Function(File file, List<int> bytes)? fileWriter,
     Future<bool> Function(Uri uri)? uriLauncher,
     PublisherVerificationService? publisherVerification,
     CourseMediaStore? mediaStore,
-  }) : _supportDirectoryProvider =
-           supportDirectoryProvider ?? getApplicationSupportDirectory,
+  }) : _backupsDirectoryProvider =
+           backupsDirectoryProvider ??
+           (() => QqlStorage().courseBackupsDirectory()),
        _fileWriter = fileWriter,
        _uriLauncher = uriLauncher,
        _media = mediaStore ?? CourseMediaStore(),
@@ -64,20 +65,18 @@ class CourseBackupService {
   // untouched and unread, so an old backup cannot block Version History.
   static const backupFormat = 'QuisquisLingo Course Backup v11';
 
-  /// The private backup folder in QQL's app storage. Build 255 Revision 4
-  /// renamed it from `qql_course_backups_v11` (Revision 3), and Revision 3
-  /// had moved backups there from `Documents/QuisquisLingo/Exports/Course
-  /// Backups v11`; both are left untouched and no longer read.
-  static const backupRootName = 'QQL_CourseBackups';
-  final Future<Directory> Function() _supportDirectoryProvider;
+  /// Build 255 Revision 5 moved the backups here from QQL's private storage
+  /// (`QQL_CourseBackups`, and `qql_course_backups_v11` before Revision 4),
+  /// and Revision 3 had moved them there from
+  /// `Documents/QuisquisLingo/Exports/Course Backups v11`; the earlier
+  /// folders are left untouched and no longer read.
+  final Future<Directory> Function() _backupsDirectoryProvider;
   final Future<void> Function(File file, List<int> bytes)? _fileWriter;
   final Future<bool> Function(Uri uri)? _uriLauncher;
 
+  /// The Course Backups folder, `QuisquisLingo/Backups/Courses`.
   Future<Directory> backupRoot({bool create = false}) async {
-    final support = await _supportDirectoryProvider();
-    final directory = Directory(
-      '${support.path}${Platform.pathSeparator}$backupRootName',
-    );
+    final directory = await _backupsDirectoryProvider();
     if (create) await directory.create(recursive: true);
     return directory;
   }
@@ -163,6 +162,9 @@ class CourseBackupService {
   }
 
   static String courseChecksum(Course course) => CourseChecksums.whole(course);
+
+  static String _nameOf(FileSystemEntity entity) =>
+      entity.path.split(RegExp(r'[\\/]')).lastWhere((part) => part.isNotEmpty);
 
   static String officialContentChecksum(Course course) =>
       CourseChecksums.official(course);
@@ -421,7 +423,15 @@ class CourseBackupService {
     }
   }
 
-  Future<List<CourseBackupRecord>> listBackups(String courseId) async {
+  /// The verified backups of [courseId], newest first. A file in its folder
+  /// that is not a readable backup of this Course stops the listing with a
+  /// [FormatException] naming it, unless [skipped] is given: people can reach
+  /// the Backups folder, so Version History lists what it can read and adds
+  /// every other file's name to [skipped], leaving the file unchanged.
+  Future<List<CourseBackupRecord>> listBackups(
+    String courseId, {
+    List<String>? skipped,
+  }) async {
     final directory = await courseBackupDirectory(courseId);
     if (!await directory.exists()) return const [];
     final records = <CourseBackupRecord>[];
@@ -432,6 +442,10 @@ class CourseBackupService {
       try {
         records.add(await loadBackup(entity, expectedCourseId: courseId));
       } catch (error) {
+        if (skipped != null) {
+          skipped.add(_nameOf(entity));
+          continue;
+        }
         throw FormatException(
           'Course Backup history contains an unreadable entry at ${entity.path}. The file was preserved. $error',
         );
@@ -442,7 +456,11 @@ class CourseBackupService {
   }
 
   /// History preserves publisher sources; authenticity is re-evaluated on read.
-  Future<List<CourseBackupRecord>> listOfficialBackups(String courseId) async {
+  /// [skipped] works as for [listBackups].
+  Future<List<CourseBackupRecord>> listOfficialBackups(
+    String courseId, {
+    List<String>? skipped,
+  }) async {
     final directory = await courseBackupDirectory(courseId);
     if (!await directory.exists()) return const [];
     final records = <CourseBackupRecord>[];
@@ -461,6 +479,10 @@ class CourseBackupService {
         }
         records.add(record);
       } catch (error) {
+        if (skipped != null) {
+          skipped.add(_nameOf(entity));
+          continue;
+        }
         throw FormatException(
           'Official Course history contains an unreadable entry at ${entity.path}. The file was preserved. $error',
         );

@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:typed_data';
 
 import '../import/import_stager.dart';
@@ -99,8 +100,8 @@ class QuickImportAccessRequired implements Exception {
 class QqlPublicFile {
   const QqlPublicFile(this.name, {this.size, this.modified});
 
-  /// Path below its top folder (Import, Export, Logs or ToBeMerged), with
-  /// `/` separators.
+  /// Path below its top folder (Import, Export, Logs, ToBeMerged or
+  /// Backups), with `/` separators.
   final String name;
   final int? size;
   final DateTime? modified;
@@ -112,9 +113,9 @@ abstract class QqlPublicFolders {
   /// [folder] as people see it.
   String label(QqlTopFolder folder);
 
-  /// The files QQL can see in [folder]: in Export and Logs, the ones it
-  /// wrote itself; in Import and ToBeMerged, all of them while it holds
-  /// access.
+  /// The files QQL can see in [folder]: in Export, Logs and Backups, the
+  /// ones it wrote itself; in Import and ToBeMerged, all of them while it
+  /// holds access.
   Future<List<QqlPublicFile>> list(QqlTopFolder folder);
 
   /// Deletes what [list] shows. Returns how many files were deleted.
@@ -145,6 +146,25 @@ abstract class QqlStorageBackend {
 
   /// Public folders outside the documents QuisquisLingo folder, or null.
   QqlPublicFolders? get publicFolders;
+
+  /// The Course Backups folder ([QqlStorageLayout.courseBackupsLabel]) as an
+  /// ordinary directory, which may not exist yet. Where QQL needs the
+  /// storage permission for it (Android 7–10), this asks for it and throws
+  /// [CourseBackupsAccessDenied] when it is refused.
+  Future<Directory> courseBackupsDirectory();
+}
+
+/// QQL may not use the Course Backups folder: Android 7–10 without the
+/// storage permission.
+class CourseBackupsAccessDenied implements Exception {
+  const CourseBackupsAccessDenied(this.folder);
+
+  final String folder;
+
+  @override
+  String toString() =>
+      'QQL needs permission to keep Course Backups in $folder. Allow it when '
+      'Android asks, then try again.';
 }
 
 /// The one door from feature code to the QQL user folders. Callers ask for
@@ -188,6 +208,14 @@ class QqlStorage {
   Future<String?> importAccessSteps() => _backend.importAccessSteps();
 
   QqlPublicFolders? get publicFolders => _backend.publicFolders;
+
+  /// See [QqlStorageBackend.courseBackupsDirectory].
+  Future<Directory> courseBackupsDirectory() =>
+      _backend.courseBackupsDirectory();
+
+  /// The Course Backups folder as people see it, e.g.
+  /// `Download/QuisquisLingo/Backups/Courses`.
+  String get courseBackupsLabel => layout.courseBackupsLabel;
 }
 
 /// Reads all of [file] into memory, refusing more than [maxBytes] with

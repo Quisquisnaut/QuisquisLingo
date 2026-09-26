@@ -6,7 +6,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:quisquislingo_app/localization/help/help_text.dart';
 import 'package:quisquislingo_app/localization/locale_service.dart';
+import 'package:quisquislingo_app/models/course_models.dart';
 import 'package:quisquislingo_app/services/app_reset_service.dart';
+import 'package:quisquislingo_app/services/course_backup_service.dart';
 import 'package:quisquislingo_app/services/course_package_service.dart';
 import 'package:quisquislingo_app/services/crash_log_service.dart';
 import 'package:quisquislingo_app/services/custom_course_transfer_service.dart';
@@ -456,6 +458,110 @@ void main() {
         ['Download/QuisquisLingo/Export/UserData/x.json'],
       );
       expect(android.imports, hasLength(2));
+    });
+  });
+
+  group('Build 255 Revision 5 Android Backups folder', () {
+    late Directory downloads;
+
+    setUp(() async {
+      downloads = await Directory.systemTemp.createTemp('qql_downloads_');
+      android.downloadsPath = downloads.path;
+    });
+
+    tearDown(() async {
+      if (await downloads.exists()) await downloads.delete(recursive: true);
+    });
+
+    String backupsPath() =>
+        ['${downloads.path}/QuisquisLingo', 'Backups', 'Courses'].join('/');
+
+    test('Android 11 and later: ordinary files in Download, no permission '
+        'screen', () async {
+      final storage = _androidStorage();
+      expect(storage.courseBackupsLabel, 'Download/QuisquisLingo/Backups/Courses');
+      expect((await storage.courseBackupsDirectory()).path, backupsPath());
+      expect(android.backupPermission, isFalse);
+
+      // A backup is written there and Version History reads it back.
+      final backups = CourseBackupService(
+        backupsDirectoryProvider: storage.courseBackupsDirectory,
+      );
+      final course = Course.fromJson(dialogTestCourse().toJson());
+      final record = await backups.createBackup(
+        course,
+        backedUpAt: DateTime.utc(2026, 9, 26, 15),
+        reason: 'Pre-change Course Editor transaction backup',
+      );
+      expect(
+        record.manifestFile.path.replaceAll(r'\', '/'),
+        startsWith('${backupsPath().replaceAll(r'\', '/')}/QQL_bkp_EN_IT_'),
+      );
+      expect(await backups.listBackups(course.courseId), hasLength(1));
+    });
+
+    test('Android 7–10: asks for the storage permission; refused, no backup',
+        () async {
+      android.scoped = false;
+      final storage = _androidStorage();
+      expect((await storage.courseBackupsDirectory()).path, backupsPath());
+      expect(android.backupPermission, isTrue);
+
+      android.backupPermission = false;
+      android.legacyWriteGranted = false;
+      await expectLater(
+        storage.courseBackupsDirectory(),
+        throwsA(
+          isA<CourseBackupsAccessDenied>().having(
+            (error) => error.folder,
+            'folder',
+            'Download/QuisquisLingo/Backups/Courses',
+          ),
+        ),
+      );
+    });
+
+    test('Inventory lists the Backups folder; Wipe everything follows its '
+        'tick', () async {
+      final file = File(
+        '${backupsPath()}/QQL_bkp_EN_IT_x/QQL_bkp_EN_IT_x_v1_S.json',
+      );
+      await file.create(recursive: true);
+      await file.writeAsString('{}');
+      final section = (await InventoryService(
+        storage: _androidStorage(),
+        courses: () async => const [],
+        teams: () async => const [],
+      ).load()).singleWhere((section) => section.title == 'Backups folder');
+      expect(section.location, 'Download/QuisquisLingo/Backups');
+      expect(
+        section.items.single.name,
+        'Courses/QQL_bkp_EN_IT_x/QQL_bkp_EN_IT_x_v1_S.json',
+      );
+
+      final profiles = ProfileService();
+      final root = await Directory.systemTemp.createTemp('qql_wipe_');
+      addTearDown(() => root.delete(recursive: true));
+      Future<void> wipe({required bool keepBackups}) async {
+        final id = (await profiles.createProfile('Admin')).learnerProfileId;
+        await profiles.setOwnAccessPin(actorProfileId: id, pin: '1234');
+        await AppResetService(
+          profiles: profiles,
+          documentsDirectory: () async => root,
+          supportDirectory: () async => root,
+          storage: _androidStorage(),
+        ).reset(
+          AppResetScope.everything,
+          actorProfileId: id,
+          pin: '1234',
+          keepBackups: keepBackups,
+        );
+      }
+
+      await wipe(keepBackups: true);
+      expect(await file.exists(), isTrue);
+      await wipe(keepBackups: false);
+      expect(await file.exists(), isFalse);
     });
   });
 

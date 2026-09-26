@@ -1,16 +1,20 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- Android 7–9 only: Quick Export and Quick Import use the public
-         Download/QuisquisLingo folders. Android 10 and later need no storage
-         permission (MediaStore and one folder permission instead). -->
+    <!-- Android 7–9: Quick Export and Quick Import use the public
+         Download/QuisquisLingo folders with this permission; Android 10 and
+         later use MediaStore and one folder permission for them instead.
+         Android 7–10: the Backups folder (Course Backups) is ordinary files,
+         which Android 10 allows only with this permission and the legacy
+         storage flag below; Android 11 and later need neither. -->
     <uses-permission
         android:name="android.permission.WRITE_EXTERNAL_STORAGE"
-        android:maxSdkVersion="28" />
+        android:maxSdkVersion="29" />
     <application
         android:label="QuisquisLingo"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:allowBackup="true"
+        android:requestLegacyExternalStorage="true"
         android:fullBackupContent="@xml/backup_rules"
         android:dataExtractionRules="@xml/data_extraction_rules">
         <activity

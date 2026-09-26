@@ -29,6 +29,8 @@ What is excluded, and why:
 | `QQL_CourseMedia/`, earlier `quisquislingo_course_media/` | Same quota; each Course's own images and recorded MP3s (Build 243; formerly `quisquislingo_audio/`), which grow without a practical bound. A restored device gets the Courses back without these files; importing the Course package again restores them. |
 | `quisquislingo_audio/` | Retired by Build 243 and no longer written or read, but still excluded because a device may keep the old folder. |
 
+Course Backups need no rule: since Build 255 Revision 5 they are in the public `Download/QuisquisLingo/Backups` folder, which the app's Auto Backup does not cover. They survive an uninstall; a restored phone does not bring them back.
+
 The reason is the **quota, not privacy**. An app whose data exceeds 25 MB does not get a partial backup — the platform silently stops backing that app up at all. One media import would therefore cost the learner every backup of their progress, without any warning. Bulk media is re-importable from the user's own files; progress is not. This is the same set of folders `AppResetService` treats as bulk media (`_imageFolders`, `_courseMediaFolder`), and it lives under `getApplicationSupportDirectory()`, which is `getFilesDir()` on Android, hence `domain="file"`.
 
 Direct **device-to-device transfer is deliberately not restricted**. It has no 25 MB quota, so a phone-to-phone migration carries the media across as well. `<device-transfer>` is therefore omitted from the rules file rather than left empty.

@@ -71,18 +71,19 @@ void main() {
     });
   });
 
-  group('Build 255 Revision 3 private Crash Log and Course Backups', () {
-    test('the live Crash Log and the Course Backups live in QQL\'s private '
-        'storage, not in the QuisquisLingo folder', () async {
+  group('Build 255 private Crash Log and public Course Backups', () {
+    test('the live Crash Log lives in QQL\'s private storage and the Course '
+        'Backups in the Backups folder', () async {
       final support = (await getApplicationSupportDirectory()).path;
-      // Revision 4 gave both folders QQL_ names.
+      // Revision 4 gave the log folder a QQL_ name; Revision 5 moved the
+      // Course Backups beside Import and Export.
       expect(
         (await DiagnosticLogService.logsDirectory())!.path,
         '$support${_sep}QQL_Logs',
       );
       expect(
         (await CourseBackupService().backupRoot()).path,
-        '$support${_sep}QQL_CourseBackups',
+        '${await qqlRoot()}${_sep}Backups${_sep}Courses',
       );
     });
 
@@ -134,16 +135,17 @@ void main() {
         'Exports/Course Backups v11/c1/backup.json',
         'Merges/merge.zip',
         'Notes/readme.txt',
+        'Backups/Courses/QQL_bkp_EN_IT_c1/backup.json',
       ]) {
         await put(qql, relative);
       }
-      await put(support.path, 'QQL_CourseBackups/QQL_bkp_EN_IT_c1/backup.json');
       await put(support.path, 'QQL_Logs/QQL_crash.log');
-      // Revision 3's private backup folder, before Revision 4's names.
+      // The private backup folders of Revisions 4 and 3.
+      await put(support.path, 'QQL_CourseBackups/QQL_bkp_EN_IT_c1/backup.json');
       await put(support.path, 'qql_course_backups_v11/c1/backup.json');
     });
 
-    test('Inventory lists the four folders, the private copies and the '
+    test('Inventory lists the five folders, the private Crash Log and the '
         'folders earlier versions used', () async {
       final sections = await InventoryService(
         documentsDirectory: () async => documents,
@@ -160,9 +162,12 @@ void main() {
       expect(names('Import folder'), ['Courses/import.zip']);
       expect(names('ToBeMerged folder'), ['Courses/merge.zip']);
       expect(names('Logs folder'), ['QQL_crash_log.txt']);
-      expect(names('Course backups'), ['QQL_bkp_EN_IT_c1/backup.json']);
+      expect(names('Backups folder'), [
+        'Courses/QQL_bkp_EN_IT_c1/backup.json',
+      ]);
       expect(names('Crash Log'), ['QQL_crash.log']);
       expect(names('Private folders from earlier versions'), [
+        'QQL_CourseBackups/QQL_bkp_EN_IT_c1/backup.json',
         'qql_course_backups_v11/c1/backup.json',
       ]);
       expect(names('Folders from earlier versions'), [
@@ -177,6 +182,7 @@ void main() {
       bool keepExports = true,
       bool keepLogs = true,
       bool keepImports = true,
+      bool keepBackups = true,
     }) async {
       final profiles = ProfileService();
       final admin = (await profiles.createProfile('Admin')).learnerProfileId;
@@ -192,6 +198,7 @@ void main() {
         keepExports: keepExports,
         keepLogs: keepLogs,
         keepImports: keepImports,
+        keepBackups: keepBackups,
       );
     }
 
@@ -200,10 +207,12 @@ void main() {
         entity.uri.pathSegments.lastWhere((s) => s.isNotEmpty),
     ]..sort();
 
-    test('a full wipe keeps the ticked folders with their earlier '
-        'counterparts and always removes Course Backups', () async {
+    test('a full wipe keeps each ticked folder with its earlier '
+        'counterparts', () async {
+      const earlierBackups = ['QQL_CourseBackups', 'qql_course_backups_v11'];
       await wipe();
       expect(topLevel(qql), [
+        'Backups',
         'Export',
         'Exports',
         'Import',
@@ -212,13 +221,17 @@ void main() {
         'Merges',
         'ToBeMerged',
       ]);
-      expect(topLevel(support.path), ['QQL_Logs']);
+      expect(topLevel(support.path), [...earlierBackups, 'QQL_Logs']..sort());
 
       await wipe(keepExports: false, keepImports: false);
-      expect(topLevel(qql), ['Logs']);
-      expect(topLevel(support.path), ['QQL_Logs']);
+      expect(topLevel(qql), ['Backups', 'Logs']);
+      expect(topLevel(support.path), [...earlierBackups, 'QQL_Logs']..sort());
 
       await wipe(keepLogs: false);
+      expect(topLevel(qql), ['Backups']);
+      expect(topLevel(support.path), earlierBackups);
+
+      await wipe(keepBackups: false);
       expect(topLevel(qql), isEmpty);
       expect(topLevel(support.path), isEmpty);
     });

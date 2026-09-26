@@ -309,8 +309,13 @@ class _ReadOnlyBackups extends CourseBackupService {
   }) async =>
       Directory('${Directory.systemTemp.path}/qql_22603_readonly_ui/$courseId');
   @override
-  Future<List<CourseBackupRecord>> listOfficialBackups(String courseId) async =>
-      [];
+  Future<List<CourseBackupRecord>> listOfficialBackups(
+    String courseId, {
+    List<String>? skipped,
+  }) async => [];
   @override
-  Future<List<CourseBackupRecord>> listBackups(String courseId) async => [];
+  Future<List<CourseBackupRecord>> listBackups(
+    String courseId, {
+    List<String>? skipped,
+  }) async => [];
 }

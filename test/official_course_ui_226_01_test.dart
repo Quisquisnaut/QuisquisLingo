@@ -423,13 +423,19 @@ class _HistoryBackups extends CourseBackupService {
   }
 
   @override
-  Future<List<CourseBackupRecord>> listOfficialBackups(String courseId) async {
+  Future<List<CourseBackupRecord>> listOfficialBackups(
+    String courseId, {
+    List<String>? skipped,
+  }) async {
     officialHistoryReads++;
     return [];
   }
 
   @override
-  Future<List<CourseBackupRecord>> listBackups(String courseId) async {
+  Future<List<CourseBackupRecord>> listBackups(
+    String courseId, {
+    List<String>? skipped,
+  }) async {
     customHistoryReads++;
     return [];
   }

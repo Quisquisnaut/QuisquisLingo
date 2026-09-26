@@ -99,7 +99,7 @@ void main() {
     await SettingsService().setAudioExercisesEnabled(false);
     editor = CourseEditorService(
       backupService: CourseBackupService(
-        supportDirectoryProvider: () async => backupRoot,
+        backupsDirectoryProvider: () async => backupRoot,
       ),
       clock: () => DateTime.utc(2026, 9, 7, 12),
     );

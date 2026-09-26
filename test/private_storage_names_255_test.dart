@@ -281,7 +281,9 @@ void main() {
       });
       final media = CourseMediaStore(supportDirectory: () async => support);
       final backups = CourseBackupService(
-        supportDirectoryProvider: () async => support,
+        backupsDirectoryProvider: () async => Directory(
+          '${support.path}${sep}QuisquisLingo${sep}Backups${sep}Courses',
+        ),
         mediaStore: media,
       );
       final service = CourseEditorService(
@@ -328,7 +330,7 @@ void main() {
       expect(names('${support.path}${sep}QQL_CourseMedia'), [
         'QQL_EN_NAP_$hash',
       ]);
-      expect(names('${support.path}${sep}QQL_CourseBackups'), [
+      expect(names('${support.path}${sep}QuisquisLingo${sep}Backups${sep}Courses'), [
         'QQL_bkp_EN_NAP_1234abcd',
       ]);
       expect((await service.listUserCourses()).single.targetLanguage,

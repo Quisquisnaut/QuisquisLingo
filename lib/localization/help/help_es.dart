@@ -44,11 +44,11 @@ const Map<String, String> helpEs = {
   'editorHelp.localCourseEditsAndBackups.title':
       'Cambios locales y backups del curso',
   'editorHelp.localCourseEditsAndBackups.body':
-      'Antes de confirmar un cambio en un Custom Course existente, QQL archiva la versión completa en su almacenamiento privado, en una carpeta por cada Course ID. El manifiesto incluye Course Model v11, Maintainer, Assigned Team, origen, versiones, autores, fecha UTC, notas opcionales, checksum y audios referenciados. Los backups no se eliminan automáticamente. Version History muestra la versión actual y los backups verificados del más nuevo al más antiguo, con Open backup folder y Export JSON. Solo el historial custom permite Restore into working copy; también requiere la confirmación final para guardar. El historial oficial conserva solo los orígenes del editor.',
+      'Antes de confirmar un cambio en un Custom Course existente, QQL archiva la versión completa en {folderBackups}/Courses, en una carpeta por curso con su par de idiomas y su ID. En Android 7–10, QQL pide una vez permiso para usar esa carpeta; en Android, Version History muestra solo los backups que hizo esta instalación de QQL. El manifiesto incluye Course Model v11, Maintainer, Assigned Team, origen, versiones, autores, fecha UTC, notas opcionales, checksum y audios referenciados. Los backups no se eliminan automáticamente. Version History muestra la versión actual y los backups verificados del más nuevo al más antiguo, con Open backup folder y Export JSON. Solo el historial custom permite Restore into working copy; también requiere la confirmación final para guardar. El historial oficial conserva solo los orígenes del editor.',
   'editorHelp.androidDeviceBackupTechnical.title':
       'Backup del dispositivo Android (técnico)',
   'editorHelp.androidDeviceBackupTechnical.body':
-      'QQL no tiene cuenta ni servidor. En Android, Auto Backup sigue activado para recuperar perfiles, progreso, XP, streaks, Review, cursos locales, Teams, ajustes, el verificador de Access PIN y User Recovery Key tras perder o cambiar de teléfono. Access PIN es una protección de acceso casual, no una barrera de seguridad. Image Banks, imágenes importadas y MP3 quedan fuera del backup en la nube por capacidad: el límite de Android es 25 MB y superarlo puede desactivar el backup completo. Conserva tus archivos originales y el Course JSON exportado. La transferencia directa entre teléfonos sí mueve esos medios. QQL no sube datos por sí mismo. Las reglas están en res/xml/data_extraction_rules.xml para API 31+ y res/xml/backup_rules.xml para API 30−; deben cambiarse juntas. Un reset local no puede borrar un backup que Android ya haya hecho.',
+      'QQL no tiene cuenta ni servidor. En Android, Auto Backup sigue activado para recuperar perfiles, progreso, XP, streaks, Review, cursos locales, Teams, ajustes, el verificador de Access PIN y User Recovery Key tras perder o cambiar de teléfono. Access PIN es una protección de acceso casual, no una barrera de seguridad. Image Banks, imágenes importadas y MP3 quedan fuera del backup en la nube por capacidad: el límite de Android es 25 MB y superarlo puede desactivar el backup completo. Conserva tus archivos originales y el Course JSON exportado. La transferencia directa entre teléfonos sí mueve esos medios. QQL no sube datos por sí mismo. Las reglas están en res/xml/data_extraction_rules.xml para API 31+ y res/xml/backup_rules.xml para API 30−; deben cambiarse juntas. Un reset local no puede borrar un backup que Android ya haya hecho. Los Course Backups están en {folderBackups}, fuera del Auto Backup de la app: se conservan si desinstalas QQL, y un teléfono restaurado no los recupera.',
   'editorHelp.officialCourseUpdates.title':
       'Actualizaciones de cursos oficiales',
   'editorHelp.officialCourseUpdates.body':
@@ -526,7 +526,7 @@ const Map<String, String> helpEs = {
   'deviceAdminHelp.inventory.bullet1':
       'Estudiantes y cursos custom están dentro de los ajustes de QQL y no tienen ruta propia. Cada curso muestra Maintainer o creador.',
   'deviceAdminHelp.inventory.bullet2':
-      'Export: cursos exportados, copias de estudiantes, User Recovery Keys e informes de Audit. Los backups que Course Editor crea antes de guardar cambios son privados de QQL y aparecen en una sección aparte.',
+      'Export: cursos exportados, copias de estudiantes, User Recovery Keys e informes de Audit. Backups: los Course Backups que Course Editor crea automáticamente antes de guardar cambios, que muestra Version History.',
   'deviceAdminHelp.inventory.bullet3':
       'Import y ToBeMerged: archivos que copiaste desde fuera de QQL. Las carpetas de versiones anteriores (Imports, Exports, Merges) aparecen en una sección aparte; QQL ya no las lee.',
   'deviceAdminHelp.inventory.bullet4':
@@ -565,7 +565,7 @@ const Map<String, String> helpEs = {
   'deviceAdminHelp.resetOptions.bullet4':
       'Remove custom courses: borra cursos custom e instalados, Teams y todos los medios importados. Conserva estudiantes.',
   'deviceAdminHelp.resetOptions.bullet5':
-      'Wipe out everything: devuelve QQL al estado de una instalación nueva, incluidos estudiantes y Admin. Puedes conservar la carpeta Export, la carpeta Logs y las carpetas Import y ToBeMerged; todas vienen marcadas para conservarse. Los backups de los cursos se eliminan siempre con los cursos.',
+      'Wipe out everything: devuelve QQL al estado de una instalación nueva, incluidos estudiantes y Admin. Puedes conservar la carpeta Export, la carpeta Logs, las carpetas Import y ToBeMerged y la carpeta Backups; todas vienen marcadas para conservarse. Backups contiene los Course Backups automáticos.',
   'deviceAdminHelp.beforeResetBackups.title': 'Backups antes de Reset',
   'deviceAdminHelp.beforeResetBackups.paragraph1':
       'Profile > User Data exporta solo el perfil activo. Un Admin no puede exportar los datos de otros: pídeles que hagan su backup antes de un Reset que les afecte. Los cursos se exportan uno a uno desde Course Studio. Las exportaciones quedan en {folderExport}, que Wipe out everything conserva salvo que la desmarques.',

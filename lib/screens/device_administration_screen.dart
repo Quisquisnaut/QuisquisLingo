@@ -484,12 +484,12 @@ const _plans = <_ResetPlan>[
         'Returns QQL to the state of a brand-new installation on this device.',
     removes: [
       'All learners, admins, PINs, progress and settings, including yours',
-      'All custom courses, their automatic backups, Teams and imported media (images and MP3 audio files)',
+      'All custom courses, Teams and imported media (images and MP3 audio files)',
       'The device name and all other saved preferences',
       'Every other file QQL stored, except what you choose to keep',
     ],
     keeps: [
-      'Only the Export, Logs, Import and ToBeMerged folders, unless you untick them in the first step. Import and ToBeMerged hold the original files you copied there yourself.',
+      'Only the Export, Logs, Import, ToBeMerged and Backups folders, unless you untick them in the first step. Import and ToBeMerged hold the original files you copied there yourself; Backups holds the automatic Course Backups.',
       'The bundled official courses (part of the app)',
     ],
     warning:
@@ -503,6 +503,7 @@ class _ResetChoices {
   final bool keepExports;
   final bool keepLogs;
   final bool keepImports;
+  final bool keepBackups;
   final bool removeImages;
   final bool removeAudio;
 
@@ -510,6 +511,7 @@ class _ResetChoices {
     this.keepExports = true,
     this.keepLogs = true,
     this.keepImports = true,
+    this.keepBackups = true,
     this.removeImages = true,
     this.removeAudio = true,
   });
@@ -733,6 +735,7 @@ class _ResetSection extends StatelessWidget {
     var keepExports = true;
     var keepLogs = true;
     var keepImports = true;
+    var keepBackups = true;
     // Removing media asks the admin to opt in: nothing is ticked at first.
     var removeImages = false;
     var removeAudio = false;
@@ -752,7 +755,7 @@ class _ResetSection extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  'Choose what to keep. All three are kept unless you untick them, and the choice is used only if you finish every step.',
+                  'Choose what to keep. All four are kept unless you untick them, and the choice is used only if you finish every step.',
                   style: TextStyle(fontWeight: FontWeight.w600),
                 ),
                 CheckboxListTile(
@@ -791,6 +794,19 @@ class _ResetSection extends StatelessWidget {
                     '${QqlStorageLayout.current.topFolderLabel(QqlTopFolder.import)} and '
                     '${QqlStorageLayout.current.topFolderLabel(QqlTopFolder.toBeMerged)} '
                     'yourself. Untick to delete them.',
+                  ),
+                ),
+                CheckboxListTile(
+                  key: const Key('admin-nuke-keep-backups'),
+                  contentPadding: EdgeInsets.zero,
+                  controlAffinity: ListTileControlAffinity.leading,
+                  value: keepBackups,
+                  onChanged: (v) => setLocal(() => keepBackups = v ?? true),
+                  title: const Text('Keep the Backups folder'),
+                  subtitle: Text(
+                    'The Course Backups the Course Editor made automatically in '
+                    '${QqlStorageLayout.current.topFolderLabel(QqlTopFolder.backups)}, '
+                    'which Version History lists. Untick to delete them.',
                   ),
                 ),
               ],
@@ -873,6 +889,7 @@ class _ResetSection extends StatelessWidget {
                           keepExports: keepExports,
                           keepLogs: keepLogs,
                           keepImports: keepImports,
+                          keepBackups: keepBackups,
                           removeImages: removeImages,
                           removeAudio: removeAudio,
                         ),
@@ -1010,6 +1027,13 @@ class _ResetSection extends StatelessWidget {
                   key: const Key('admin-nuke-reminder-imports'),
                   style: const TextStyle(fontWeight: FontWeight.w600),
                 ),
+                Text(
+                  choices.keepBackups
+                      ? 'Backups folder: kept.'
+                      : 'Backups folder: will be DELETED with everything else.',
+                  key: const Key('admin-nuke-reminder-backups'),
+                  style: const TextStyle(fontWeight: FontWeight.w600),
+                ),
                 const SizedBox(height: 4),
                 const Text('To change this, cancel and start the reset again.'),
                 const SizedBox(height: 12),
@@ -1134,6 +1158,7 @@ class _ResetSection extends StatelessWidget {
                           keepExports: choices.keepExports,
                           keepLogs: choices.keepLogs,
                           keepImports: choices.keepImports,
+                          keepBackups: choices.keepBackups,
                           removeImages: choices.removeImages,
                           removeAudio: choices.removeAudio,
                         );

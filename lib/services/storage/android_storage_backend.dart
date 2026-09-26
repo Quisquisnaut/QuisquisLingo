@@ -15,9 +15,14 @@ import 'qql_storage.dart';
 /// * Android 7–9: both use ordinary files in the Download folder once the
 ///   storage permission is granted; Android asks for it once.
 ///
+/// The Backups folder is ordinary files in `Download/QuisquisLingo/Backups`
+/// on every version: Android 11 and later let QQL use its own files there
+/// with no permission, Android 7–10 with the storage permission.
+///
 /// Nothing falls back to app-private storage: without access, Quick Import
-/// reports [QuickImportAccessRequired] and Quick Export reports
-/// [QuickExportAccessDenied].
+/// reports [QuickImportAccessRequired], Quick Export reports
+/// [QuickExportAccessDenied] and the Backups folder
+/// [CourseBackupsAccessDenied].
 class AndroidStorageBackend implements QqlStorageBackend {
   AndroidStorageBackend({
     AndroidStorageBridge bridge = const AndroidStorageBridge(),
@@ -100,6 +105,15 @@ class AndroidStorageBackend implements QqlStorageBackend {
 
   @override
   QqlPublicFolders get publicFolders => AndroidPublicFolders(this);
+
+  @override
+  Future<Directory> courseBackupsDirectory() async {
+    final info = await _storageInfo();
+    if (!await _bridge.requestBackupAccess()) {
+      throw CourseBackupsAccessDenied(layout.courseBackupsLabel);
+    }
+    return _legacyDirectory(info, QqlStorageLayout.courseBackupsSegments);
+  }
 }
 
 /// Quick Export on Android 7–9 needs the storage permission, and it was not
@@ -282,13 +296,18 @@ class AndroidPublicFolders implements QqlPublicFolders {
       _backend._legacyDirectory(info, [folder.folderName]);
 
   /// Import and ToBeMerged hold files people put there, read through the
-  /// folder permission; Export and Logs hold QQL's own Download entries.
+  /// folder permission; Export and Logs hold QQL's own Download entries;
+  /// Backups holds QQL's own ordinary files.
   static bool _peoplesFiles(QqlTopFolder folder) =>
       folder == QqlTopFolder.import || folder == QqlTopFolder.toBeMerged;
 
   @override
   Future<List<QqlPublicFile>> list(QqlTopFolder folder) async {
     final info = await _backend._storageInfo();
+    if (folder == QqlTopFolder.backups) {
+      if (!await _bridge.hasBackupAccess()) return const [];
+      return _legacyFiles(_legacyRoot(info, folder));
+    }
     if (!info.scopedStorage) {
       if (!await _bridge.hasImportAccess()) return const [];
       return _legacyFiles(_legacyRoot(info, folder));
@@ -303,6 +322,17 @@ class AndroidPublicFolders implements QqlPublicFolders {
   @override
   Future<int> delete(QqlTopFolder folder) async {
     final info = await _backend._storageInfo();
+    if (folder == QqlTopFolder.backups) {
+      if (!await _bridge.hasBackupAccess()) return 0;
+      final root = _legacyRoot(info, folder);
+      final count = (await _legacyFiles(root)).length;
+      try {
+        if (await root.exists()) await root.delete(recursive: true);
+      } on FileSystemException {
+        // Files QQL did not write (an earlier installation's) stay.
+      }
+      return count;
+    }
     if (!info.scopedStorage) {
       if (!await _bridge.hasImportAccess()) return 0;
       final root = _legacyRoot(info, folder);

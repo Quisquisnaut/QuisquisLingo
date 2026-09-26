@@ -317,7 +317,7 @@ void main() {
       final imported = await transfer.importCoursePackage();
       expect(imported.course.toJson(), course.toJson());
       final backups = CourseBackupService(
-        supportDirectoryProvider: () async => directory,
+        backupsDirectoryProvider: () async => directory,
       );
       final backup = await backups.createBackup(
         course,

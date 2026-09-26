@@ -41,6 +41,13 @@ class FakeAndroidStorage {
   /// Android 7–9: whether the storage permission prompt is accepted.
   bool legacyWriteGranted = true;
 
+  /// The storage permission for the Backups folder, which the prompt grants
+  /// when [legacyWriteGranted]. Android 11 and later ([scoped] here, SDK 36)
+  /// need none.
+  bool backupPermission = false;
+
+  bool get _backupAccess => scoped || backupPermission;
+
   /// The permission is still listed, but the folder is gone.
   bool folderGone = false;
 
@@ -82,6 +89,9 @@ class FakeAndroidStorage {
         return requestAnswer;
       case 'requestLegacyWriteAccess':
         return legacyWriteGranted;
+      case 'requestBackupAccess':
+        if (!_backupAccess && legacyWriteGranted) backupPermission = true;
+        return _backupAccess;
     }
     throw MissingPluginException(call.method);
   }
@@ -98,6 +108,8 @@ class FakeAndroidStorage {
         };
       case 'hasImportAccess':
         return importAccess && !folderGone;
+      case 'hasBackupAccess':
+        return _backupAccess;
       case 'listImports':
         if (!importAccess || folderGone || revokeOnList) {
           throw PlatformException(code: 'accessRequired');

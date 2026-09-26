@@ -1,3 +1,44 @@
+# 2.0.55 (Build 255, Revision 5) - The Backups folder - 2026-09-26
+
+The Course Backups Version History uses leave QQL's private storage and live
+in a new folder beside Import, Export, Logs and ToBeMerged, on every system,
+so they can be seen, copied and kept like the other QQL files:
+`Documents/QuisquisLingo/Backups/Courses` on Windows, Linux and macOS,
+`Download/QuisquisLingo/Backups/Courses` on Android. Names inside are
+Revision 4's (`QQL_bkp_EN_IT_<ID>/…_v<version>_<date-time>.json`).
+
+- **Android:** backups are ordinary files QQL writes itself in the Download
+  folder. Android 11 and later need no permission; Android 7–10 ask once for
+  the storage permission (Android 10 through the legacy storage setting),
+  and a refusal stops the Course confirmation as any backup failure does,
+  with the working copy still open. Android lets QQL read only its own files
+  there, so backups an earlier installation made stay in the folder but are
+  not listed. Being outside the app's Auto Backup, they survive an uninstall
+  and no longer count against its 25 MB quota; a restored phone does not
+  bring them back.
+- **Version History** lists the versions it can read and names any other
+  file in the Course's backup folder, instead of refusing the whole history
+  because of one foreign or damaged file in a folder people can reach.
+- **Wipe everything** has a fourth choice, "Keep the Backups folder", ticked
+  by default like the others; Revision 4's private `QQL_CourseBackups` and
+  Revision 3's `qql_course_backups_v11` follow it. Other resets keep backups
+  as before.
+- **Learner backups** stay in `Export/UserData`: they are exports made on
+  purpose to move or restore a profile.
+- **Earlier backups:** the private folders are no longer read; Inventory
+  lists them with the other earlier private folders, and
+  `tools/move_private_storage_255.dart` now moves every earlier backup
+  (`QQL_CourseBackups`, `qql_course_backups_v11`,
+  `Documents/QuisquisLingo/Exports/Course Backups v11`) straight into
+  `Documents/QuisquisLingo/Backups/Courses`.
+- Inventory shows a Backups folder section; EN/IT/ES Help name the folder
+  with the new `{folderBackups}` placeholder.
+
+Version `2.0.55+255005`; Beta expiry **2026-10-26 23:59:59 local time** (30
+days from the 26 September 2026 release date). See
+[plan](docs/255_STORAGE_PLAN.md#revision-5-the-backups-folder),
+[handoff](docs/255_HANDOFF.md) and [validation](docs/255_VALIDATION.md).
+
 # 2.0.55 (Build 255, Revision 4) - Private folders and language pairs - 2026-09-26
 
 QQL's private storage (the application support folder, where it keeps

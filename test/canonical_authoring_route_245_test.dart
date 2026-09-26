@@ -648,7 +648,7 @@ Course _courseWithDestination() {
 
 class _RecordingBackupService extends CourseBackupService {
   _RecordingBackupService(Directory documents)
-    : super(supportDirectoryProvider: () async => documents);
+    : super(backupsDirectoryProvider: () async => documents);
 
   final List<CourseBackupRecord> records = [];
 
@@ -671,6 +671,9 @@ class _RecordingBackupService extends CourseBackupService {
   }
 
   @override
-  Future<List<CourseBackupRecord>> listBackups(String courseId) async =>
+  Future<List<CourseBackupRecord>> listBackups(
+    String courseId, {
+    List<String>? skipped,
+  }) async =>
       records.where((record) => record.course.courseId == courseId).toList();
 }

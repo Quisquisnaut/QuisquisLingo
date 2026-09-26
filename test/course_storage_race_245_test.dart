@@ -173,7 +173,7 @@ void main() {
         courseStore: store,
         mediaStore: media,
         backupService: CourseBackupService(
-          supportDirectoryProvider: () async => documents,
+          backupsDirectoryProvider: () async => documents,
           publisherVerification: verifier,
           mediaStore: media,
         ),
@@ -350,7 +350,7 @@ Course _withTitle(Course course, String title) =>
 
 class _PausingBackupService extends CourseBackupService {
   _PausingBackupService(Directory documents)
-    : super(supportDirectoryProvider: () async => documents);
+    : super(backupsDirectoryProvider: () async => documents);
 
   Completer<void>? _entered;
   Completer<void>? _resume;

@@ -49,6 +49,17 @@ class QuickFolders(private val activity: Activity) {
     private fun downloadsDirectory(): File =
         Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
 
+    /**
+     * The Backups folder is used as ordinary files. Android 11 and later let
+     * QQL create, read and rename its own files in the Download folder with
+     * no permission; Android 7–10 need the storage permission (Android 10
+     * through the legacy storage flag in the manifest).
+     */
+    fun hasBackupAccess(): Boolean =
+        Build.VERSION.SDK_INT >= Build.VERSION_CODES.R || activity.checkSelfPermission(
+            Manifest.permission.WRITE_EXTERNAL_STORAGE,
+        ) == PackageManager.PERMISSION_GRANTED
+
     /** Android 7–9: the storage permission. Always true from Android 10. */
     fun hasLegacyPermission(): Boolean =
         scopedStorage || activity.checkSelfPermission(

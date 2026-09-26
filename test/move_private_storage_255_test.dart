@@ -14,9 +14,10 @@ import '../tools/move_private_storage_255.dart';
 const _profileId = '12345678-1234-4234-9234-123456789abc';
 const _courseId = 'course_abc';
 
-/// Build 255 Revision 4: the one-off tool moves what an earlier version
-/// stored to the new private names, so the app finds it again, and never
-/// overwrites or deletes anything.
+/// Build 255 Revisions 4 and 5: the one-off tool moves what an earlier
+/// version stored to where QQL keeps it now (Course Backups to the public
+/// Backups folder), so the app finds it again, and never overwrites or
+/// deletes anything.
 void main() {
   final sep = Platform.pathSeparator;
   late Directory support;
@@ -57,9 +58,10 @@ void main() {
 
   /// Lays out what Revision 3 stored: a Course with a recording, its media
   /// folder and a backup in private storage, a backup a desktop kept in
-  /// Documents before Revision 3, a Publisher Course and a few files the
-  /// tool must leave alone. The media and backups are made by the app's own
-  /// services, then put under the earlier names.
+  /// Documents before Revision 3, a backup in Revision 4's private folder, a
+  /// Publisher Course and a few files the tool must leave alone. The media
+  /// and backups are made by the app's own services, then put under the
+  /// earlier names.
   Future<String> earlierLayout() async {
     final media = CourseMediaStore(supportDirectory: () async => staging);
     final reference = await media.addBytes(
@@ -71,7 +73,7 @@ void main() {
       CourseAudioClip(id: 'a', text: 'uno', filePath: reference),
     ]);
     final backups = CourseBackupService(
-      supportDirectoryProvider: () async => staging,
+      backupsDirectoryProvider: () async => staging,
       mediaStore: media,
     );
     final first = await backups.createBackup(
@@ -82,6 +84,11 @@ void main() {
     final second = await backups.createBackup(
       course,
       backedUpAt: DateTime.utc(2026, 9, 19, 9),
+      reason: 'Pre-change Course Editor transaction backup',
+    );
+    final third = await backups.createBackup(
+      course,
+      backedUpAt: DateTime.utc(2026, 9, 26, 12),
       reason: 'Pre-change Course Editor transaction backup',
     );
     final hash = CourseStorageNames.hashOf(_courseId);
@@ -122,6 +129,19 @@ void main() {
     await Directory(
       '${r3Folder.path}$sep${secondBase}_assets',
     ).rename('${documentsFolder.path}$sep${secondBase}_assets');
+    // The third version in Revision 4's private folder.
+    final r4Folder = Directory(
+      path(support, 'QQL_CourseBackups/QQL_bkp_EN_IT_abc'),
+    );
+    await r4Folder.create(recursive: true);
+    final thirdName = third.manifestFile.uri.pathSegments.last;
+    final thirdBase = thirdName.substring(0, thirdName.length - '.json'.length);
+    await File(
+      '${r3Folder.path}$sep$thirdName',
+    ).rename('${r4Folder.path}$sep$thirdName');
+    await Directory(
+      '${r3Folder.path}$sep${thirdBase}_assets',
+    ).rename('${r4Folder.path}$sep${thirdBase}_assets');
 
     await put(
       support,
@@ -181,7 +201,9 @@ void main() {
       isTrue,
     );
     expect(
-      Directory(path(support, 'QQL_CourseBackups/QQL_bkp_EN_IT_abc')).existsSync(),
+      Directory(
+        path(documents, 'QuisquisLingo/Backups/Courses/QQL_bkp_EN_IT_abc'),
+      ).existsSync(),
       isTrue,
     );
 
@@ -197,11 +219,12 @@ void main() {
     final media = CourseMediaStore(supportDirectory: () async => support);
     expect(await media.existingFile(_courseId, reference), isNotNull);
     final backups = CourseBackupService(
-      supportDirectoryProvider: () async => support,
+      backupsDirectoryProvider: () async =>
+          Directory(path(documents, 'QuisquisLingo/Backups/Courses')),
       mediaStore: media,
     );
     final history = await backups.listBackups(_courseId);
-    expect(history, hasLength(2));
+    expect(history, hasLength(3));
     // The saved version keeps the name its manifest was written under.
     expect(
       history.map((r) => r.manifestFile.uri.pathSegments.last),
@@ -222,7 +245,30 @@ void main() {
     );
     expect(report.kept, 1);
     expect(report.copied, 0);
-    expect(report.moved, greaterThanOrEqualTo(6));
+    expect(report.moved, greaterThanOrEqualTo(8));
+  });
+
+  test('without a Documents folder, backups stay where they are', () async {
+    await earlierLayout();
+
+    final report = await movePrivateStorage(support: support);
+
+    expect(
+      File(path(support, 'qql_courses_v2/custom/course_abc.json')).existsSync(),
+      isFalse,
+    );
+    expect(
+      Directory(path(support, 'qql_course_backups_v11/course_abc')).existsSync(),
+      isTrue,
+    );
+    expect(
+      Directory(path(support, 'QQL_CourseBackups/QQL_bkp_EN_IT_abc')).existsSync(),
+      isTrue,
+    );
+    expect(
+      report.lines.where((line) => line.contains('pass --documents')),
+      hasLength(2),
+    );
   });
 
   test('a dry run changes nothing', () async {
@@ -283,7 +329,9 @@ void main() {
     );
     // The stored Course's pair (EN_FR) names its backup folder.
     expect(
-      Directory(path(support, 'QQL_CourseBackups/QQL_bkp_EN_FR_abc')).existsSync(),
+      Directory(
+        path(documents, 'QuisquisLingo/Backups/Courses/QQL_bkp_EN_FR_abc'),
+      ).existsSync(),
       isTrue,
     );
     expect(

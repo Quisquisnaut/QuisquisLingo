@@ -45,7 +45,8 @@ class AndroidStorageInfo {
   /// that, ordinary files in [downloadsPath] with the storage permission.
   final bool scopedStorage;
 
-  /// The public Download directory, used directly only before Android 10.
+  /// The public Download directory, used directly before Android 10 and, on
+  /// every version, for the Backups folder.
   final String downloadsPath;
 }
 
@@ -215,6 +216,16 @@ class AndroidStorageBridge {
   /// Android 7–9: the storage permission for Quick Export; true when held.
   Future<bool> requestLegacyWriteAccess() async =>
       await _ui.invokeMethod<bool>('requestLegacyWriteAccess') ?? false;
+
+  /// Whether QQL may use the Backups folder as ordinary files now: always
+  /// from Android 11, with the storage permission on Android 7–10.
+  Future<bool> hasBackupAccess() async =>
+      await _io.invokeMethod<bool>('hasBackupAccess') ?? false;
+
+  /// Android 7–10: asks for the storage permission for the Backups folder
+  /// when it is not held; true when QQL may use it.
+  Future<bool> requestBackupAccess() async =>
+      await _ui.invokeMethod<bool>('requestBackupAccess') ?? false;
 
   /// The files in `Download/QuisquisLingo/[segments]`, creating missing
   /// folders. Throws [AndroidImportAccessMissing] when the folder permission

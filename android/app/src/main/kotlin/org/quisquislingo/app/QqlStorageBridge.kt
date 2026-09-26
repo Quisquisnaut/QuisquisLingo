@@ -107,6 +107,7 @@ class QqlStorageBridge(private val activity: Activity) {
                 launch(folders.treePickerIntent(), REQUEST_TREE, result)
             }
             "requestLegacyWriteAccess" -> requestLegacyPermission("write", result)
+            "requestBackupAccess" -> requestLegacyPermission("backup", result)
             else -> result.notImplemented()
         }
     }
@@ -126,11 +127,15 @@ class QqlStorageBridge(private val activity: Activity) {
         }
     }
 
-    /** Android 7–9 only: the storage permission, asked once by the system. */
+    /**
+     * The storage permission, asked once by the system: on Android 7–9 for the
+     * Quick folders, and on Android 7–10 for the Backups folder.
+     */
     private fun requestLegacyPermission(purpose: String, result: MethodChannel.Result) {
         val answer: (Boolean) -> Any =
             { granted -> if (purpose == "import") (if (granted) "granted" else "denied") else granted }
-        if (folders.hasLegacyPermission()) {
+        val held = if (purpose == "backup") folders.hasBackupAccess() else folders.hasLegacyPermission()
+        if (held) {
             result.success(answer(true))
             return
         }
@@ -304,6 +309,7 @@ class QqlStorageBridge(private val activity: Activity) {
                 }
                 "storageInfo" -> result.success(folders.storageInfo())
                 "hasImportAccess" -> result.success(folders.hasImportAccess())
+                "hasBackupAccess" -> result.success(folders.hasBackupAccess())
                 "listImports" -> {
                     val segments = call.argument<List<String>>("segments").orEmpty()
                     val items = try {

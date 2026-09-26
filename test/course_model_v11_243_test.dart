@@ -124,9 +124,15 @@ void main() {
           }),
         );
         final backups = CourseBackupService(
-          supportDirectoryProvider: () async => root,
+          backupsDirectoryProvider: () async => Directory(
+            [
+              root.path,
+              'QuisquisLingo',
+              'Backups',
+              'Courses',
+            ].join(Platform.pathSeparator),
+          ),
         );
-        expect((await backups.backupRoot()).path, endsWith('QQL_CourseBackups'));
         expect(await backups.listBackups('v11-course'), isEmpty);
         expect(await old.exists(), isTrue);
       },

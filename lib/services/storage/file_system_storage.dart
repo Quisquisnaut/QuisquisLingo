@@ -60,6 +60,15 @@ class FileSystemStorageBackend implements QqlStorageBackend {
   /// Inventory and Reset already cover `<Documents>/QuisquisLingo`.
   @override
   QqlPublicFolders? get publicFolders => null;
+
+  /// Ordinary folders need no permission.
+  @override
+  Future<Directory> courseBackupsDirectory() async => Directory(
+    [
+      (await rootDirectory()).path,
+      ...QqlStorageLayout.courseBackupsSegments,
+    ].join(Platform.pathSeparator),
+  );
 }
 
 class FileSystemImportFolder implements QuickImportFolder {

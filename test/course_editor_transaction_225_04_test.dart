@@ -27,7 +27,7 @@ void main() {
     documents = await Directory.systemTemp.createTemp('qql_22504_');
     backups = CourseBackupService(
       publisherVerification: fixtureVerifier('team.example', 'Team Example'),
-      supportDirectoryProvider: () async => documents,
+      backupsDirectoryProvider: () async => documents,
     );
     SharedPreferences.setMockInitialValues({
       ProfileService.profilesKey: [
@@ -204,7 +204,7 @@ void main() {
       expect(
         result.backupPath,
         contains(
-          '${Platform.pathSeparator}QQL_CourseBackups${Platform.pathSeparator}'
+          '${Platform.pathSeparator}'
           '${CourseStorageNames.backupFolderName(source.courseId, CourseStorageNames.pairOfCourse(source))}'
           '${Platform.pathSeparator}',
         ),
@@ -391,7 +391,7 @@ void main() {
             'team.example',
             'Team Example',
           ),
-          supportDirectoryProvider: () async => documents,
+          backupsDirectoryProvider: () async => documents,
           fileWriter: (_, _) async => throw FileSystemException('disk full'),
         ),
         clock: () => _when,

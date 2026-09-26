@@ -6,8 +6,9 @@ import 'package:quisquislingo_app/services/storage/course_storage_names.dart';
 /// Developer tool, run once with QQL closed.
 ///
 /// Build 255 Revision 4 renamed QQL's private folders and gave every
-/// per-Course name the Course's language pair (docs/255_STORAGE_PLAN.md). The
-/// app reads only the new names, so this tool moves what an earlier version
+/// per-Course name the Course's language pair, and Revision 5 moved Course
+/// Backups to the public Backups folder (docs/255_STORAGE_PLAN.md). The app
+/// reads only the new places, so this tool moves what an earlier version
 /// stored:
 ///
 /// - each stored Course from `qql_courses_v2/custom` and
@@ -16,11 +17,12 @@ import 'package:quisquislingo_app/services/storage/course_storage_names.dart';
 /// - each Course media folder from `quisquislingo_course_media/course_<hash>`
 ///   to `QQL_CourseMedia/QQL_<pair>_<hash>`, or `QQL_<hash>` when no stored
 ///   Course names it;
-/// - each Course's backups from `qql_course_backups_v11/<ID>` and, as a
-///   desktop kept them before Revision 3,
-///   `Documents/QuisquisLingo/Exports/Course Backups v11/<ID>`, to
-///   `QQL_CourseBackups/QQL_bkp_<pair>_<ID>`. The saved versions keep their
-///   names, which their manifests refer to.
+/// - each Course's backups from Revision 4's `QQL_CourseBackups`, Revision 3's
+///   `qql_course_backups_v11/<ID>` and, as a desktop kept them before
+///   Revision 3, `Documents/QuisquisLingo/Exports/Course Backups v11/<ID>`, to
+///   `Documents/QuisquisLingo/Backups/Courses/QQL_bkp_<pair>_<ID>`. The saved
+///   versions keep their names, which their manifests refer to. Without a
+///   Documents folder ([MoveStorageOptions.documents]) backups stay.
 ///
 /// It never overwrites or deletes. A file whose new place is taken, a file it
 /// cannot read and a Course already stored under the new names stay where
@@ -126,7 +128,8 @@ class PrivateStorageMoveReport {
 
 /// Moves the Courses, Course media and Course Backups an earlier version
 /// stored in [support] (and, for backups made before Revision 3, in
-/// [documents]) to Revision 4's names. See the library comment.
+/// [documents]) to where QQL keeps them now, backups in [documents]. See the
+/// library comment.
 Future<PrivateStorageMoveReport> movePrivateStorage({
   required Directory support,
   Directory? documents,
@@ -211,10 +214,10 @@ Future<PrivateStorageMoveReport> movePrivateStorage({
     await mover.moveContents(folder, target);
   }
 
-  // ---- Course Backups, from the private folder of Revision 3 and the
-  // Documents folder a desktop used before.
-  final backupRoot = _join(support.path, ['QQL_CourseBackups']);
+  // ---- Course Backups, from the private folders of Revisions 3 and 4 and
+  // the Documents folder a desktop used before, to the public Backups folder.
   final backupSources = [
+    _join(support.path, ['QQL_CourseBackups']),
     _join(support.path, ['qql_course_backups_v11']),
     if (documents != null)
       _join(documents.path, [
@@ -223,6 +226,23 @@ Future<PrivateStorageMoveReport> movePrivateStorage({
         'Course Backups v11',
       ]),
   ];
+  if (documents == null) {
+    for (final source in backupSources) {
+      if (await Directory(source).exists()) {
+        mover.keep(
+          source,
+          'pass --documents to move Course Backups to '
+          'QuisquisLingo/Backups/Courses',
+        );
+      }
+    }
+    return report;
+  }
+  final backupRoot = _join(documents.path, [
+    'QuisquisLingo',
+    'Backups',
+    'Courses',
+  ]);
   for (final source in backupSources) {
     for (final folder in await _folders(source)) {
       String? id;
@@ -243,12 +263,14 @@ Future<PrivateStorageMoveReport> movePrivateStorage({
           newest = course;
         }
       }
-      // The earlier folder was named by the sanitized Course ID.
-      id ??= _nameOf(folder);
+      // Revision 4 named a folder QQL_bkp_<pair>_<ID part>; earlier versions
+      // by the sanitized Course ID.
+      final folderName = _nameOf(folder);
+      id ??= CourseStorageNames.idPartOfBackupFolder(folderName) ?? folderName;
       final pair =
           pairs[id] ??
           (newest == null
-              ? _unknownPair
+              ? _pairOfBackupFolder(folderName) ?? _unknownPair
               : CourseStorageNames.pairOfJson(newest));
       final String name;
       try {
@@ -268,6 +290,11 @@ Future<PrivateStorageMoveReport> movePrivateStorage({
 
 const _unknownPair =
     '${CourseStorageNames.unknownLanguage}_${CourseStorageNames.unknownLanguage}';
+
+/// The pair in a Revision 4 backup folder name, `QQL_bkp_<pair>_<ID part>`.
+String? _pairOfBackupFolder(String name) => RegExp(
+  r'^QQL_bkp_([A-Z0-9]+_[A-Z0-9]+)_.+$',
+).firstMatch(name)?.group(1);
 
 /// The pair of a stored record: `course` for a custom Course, `source` for a
 /// Publisher Course.

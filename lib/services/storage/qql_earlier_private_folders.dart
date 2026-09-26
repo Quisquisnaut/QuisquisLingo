@@ -1,7 +1,9 @@
 import 'dart:io';
 
 /// Names QQL's private storage (the platform's application-support directory)
-/// used before Build 255 Revision 4 gave every private folder a `QQL_` name.
+/// used before Build 255 Revision 4 gave every private folder a `QQL_` name,
+/// and Revision 4's `QQL_CourseBackups`, which Revision 5 replaced with the
+/// public Backups folder.
 ///
 /// The app no longer reads them, with one exception: Shared Image Library
 /// images and Image Banks added earlier keep opening from their old folders,
@@ -14,20 +16,20 @@ class QqlEarlierPrivateFolders {
   static const courses = 'qql_courses_v2';
   static const courseMedia = 'quisquislingo_course_media';
   static const courseBackups = 'qql_course_backups_v11';
+  static const privateCourseBackups = 'QQL_CourseBackups';
   static const importStaging = 'qql_import_staging';
   static const logs = 'qql_logs';
   static const sharedImages = 'exercise_images';
   static const imageBanks = 'image_banks';
 
-  /// The earlier folders QQL no longer reads at all. The earlier [logs] are
-  /// apart because they follow the Logs choice of Wipe everything, and
-  /// [sharedImages] and [imageBanks] because their files are still in use.
-  static const retired = <String>[
-    courses,
-    courseMedia,
-    courseBackups,
-    importStaging,
-  ];
+  /// The earlier folders QQL no longer reads at all. The earlier [logs] and
+  /// [backups] are apart because they follow the Logs and Backups choices of
+  /// Wipe everything, and [sharedImages] and [imageBanks] because their files
+  /// are still in use.
+  static const retired = <String>[courses, courseMedia, importStaging];
+
+  /// The earlier private Course Backup folders.
+  static const backups = <String>[courseBackups, privateCourseBackups];
 
   /// Those of [names] that are folders in [support], by their exact names.
   /// On a system that ignores case (Windows, macOS) `qql_logs` and

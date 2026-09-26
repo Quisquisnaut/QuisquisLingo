@@ -417,13 +417,14 @@ void main() {
     },
   );
 
-  for (final keepLogs in [true, false]) {
+  for (final keep in [true, false]) {
     test('everything removes the private folders earlier versions used '
-        '(keepLogs: $keepLogs)', () async {
+        '(keepLogs and keepBackups: $keep)', () async {
       for (final earlier in [
         'qql_courses_v2${sep}custom${sep}course_a.json',
         'quisquislingo_course_media${sep}course_${'c' * 64}$sep${'a' * 64}.mp3',
         'qql_course_backups_v11${sep}course_a${sep}m.json',
+        'QQL_CourseBackups${sep}QQL_bkp_EN_IT_a${sep}m.json',
         'qql_import_staging${sep}x.part',
         'qql_logs${sep}quisquislingo_crash.log',
       ]) {
@@ -434,16 +435,47 @@ void main() {
         AppResetScope.everything,
         actorProfileId: adminId,
         pin: '4321',
-        keepLogs: keepLogs,
+        keepLogs: keep,
+        keepBackups: keep,
       );
       final left = support
           .listSync()
           .map((entity) => entity.uri.pathSegments.lastWhere((s) => s.isNotEmpty))
           .toSet();
-      expect(left, {'unrelated', if (keepLogs) 'qql_logs'});
+      // Earlier logs follow the Logs choice, earlier backups the Backups one.
+      expect(left, {
+        'unrelated',
+        if (keep) ...['qql_logs', 'qql_course_backups_v11', 'QQL_CourseBackups'],
+      });
       expect(unrelated.existsSync(), isTrue);
     });
   }
+
+  test('everything keeps the Backups folder unless it is unticked', () async {
+    final backup = touch(
+      '${documents.path}${sep}QuisquisLingo${sep}Backups${sep}Courses$sep'
+      'QQL_bkp_EN_IT_a${sep}QQL_bkp_EN_IT_a_v1_S.json',
+    );
+    await service.reset(
+      AppResetScope.everything,
+      actorProfileId: adminId,
+      pin: '4321',
+    );
+    expect(backup.existsSync(), isTrue);
+
+    adminId = (await profiles.createProfile('Admin Again')).learnerProfileId;
+    await profiles.setOwnAccessPin(actorProfileId: adminId, pin: '4321');
+    await service.reset(
+      AppResetScope.everything,
+      actorProfileId: adminId,
+      pin: '4321',
+      keepBackups: false,
+    );
+    expect(
+      Directory('${documents.path}${sep}QuisquisLingo${sep}Backups').existsSync(),
+      isFalse,
+    );
+  });
 
   test('preview counts learners, media files and courses', () async {
     touch('${support.path}${sep}exercise_images${sep}a.png');

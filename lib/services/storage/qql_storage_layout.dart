@@ -24,7 +24,7 @@ enum QqlStoragePlatform {
   }
 }
 
-/// The four folders directly in the QuisquisLingo folder, the same on every
+/// The folders directly in the QuisquisLingo folder, the same on every
 /// system.
 enum QqlTopFolder {
   /// Files people put in for Quick Import, one subfolder per kind.
@@ -37,7 +37,12 @@ enum QqlTopFolder {
   logs('Logs'),
 
   /// The second Course of a Course Merge.
-  toBeMerged('ToBeMerged');
+  toBeMerged('ToBeMerged'),
+
+  /// Backups QQL makes by itself, one subfolder per kind: `Courses` holds the
+  /// Course Backups Version History uses (Build 255 Revision 5; they were in
+  /// QQL's private storage before).
+  backups('Backups');
 
   const QqlTopFolder(this.folderName);
 
@@ -128,6 +133,17 @@ class QqlStorageLayout {
   /// A top folder as people see it, e.g. `Download/QuisquisLingo/Export`.
   String topFolderLabel(QqlTopFolder folder) =>
       '$rootLabel/${folder.folderName}';
+
+  /// Folder names from the QQL root to the Course Backups folder.
+  static List<String> get courseBackupsSegments => [
+    QqlTopFolder.backups.folderName,
+    'Courses',
+  ];
+
+  /// The Course Backups folder as people see it, e.g.
+  /// `Documents/QuisquisLingo/Backups/Courses`.
+  String get courseBackupsLabel =>
+      [rootLabel, ...courseBackupsSegments].join('/');
 
   /// One file in [role]'s folder, e.g.
   /// `Documents/QuisquisLingo/Import/UserData/learner_import.json`.

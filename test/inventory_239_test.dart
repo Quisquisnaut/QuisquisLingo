@@ -172,10 +172,10 @@ void main() {
           'displayName': 'Old Learner',
         }),
       );
-      // Course backups are private since Build 255 Revision 3.
+      // Course backups are in the public Backups folder since Build 255
+      // Revision 5.
       touch(
-        '${support.path}${sep}QQL_CourseBackups${sep}QQL_bkp_EN_IT_c$sep'
-        'QQL_bkp_EN_IT_c_v1_2026.json',
+        qql('Backups/Courses/QQL_bkp_EN_IT_c/QQL_bkp_EN_IT_c_v1_2026.json'),
         jsonEncode({'reason': 'Pre-change Course Editor transaction backup'}),
       );
       touch(
@@ -227,12 +227,16 @@ void main() {
         exports.items.every((i) => i.path!.contains('QuisquisLingo')),
         isTrue,
       );
-      final backups = sectionOf(all, 'Course backups');
+      final backups = sectionOf(all, 'Backups folder');
       expect(
         backups.items.single.note,
         'Automatic course backup (made before a change)',
       );
-      expect(backups.items.single.path, isNot(contains('QuisquisLingo')));
+      expect(backups.items.single.path, contains('QuisquisLingo'));
+      expect(
+        backups.items.single.name.replaceAll(r'\', '/'),
+        'Courses/QQL_bkp_EN_IT_c/QQL_bkp_EN_IT_c_v1_2026.json',
+      );
       final earlier = sectionOf(all, 'Folders from earlier versions');
       expect(earlier.items.single.name, contains('c_0_2025'));
       expect(

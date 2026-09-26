@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'course_backup_service.dart';
 import 'course_editor_storage.dart';
 import 'course_file_store.dart';
 import 'course_received_service.dart';
@@ -194,9 +193,10 @@ class AppResetService {
     );
   }
 
-  /// Resets [scope]. [keepExports], [keepLogs] and [keepImports] apply only to
-  /// [AppResetScope.everything]. [removeImages] and [removeAudio] choose what
-  /// [AppResetScope.importedMedia] removes; at least one must be true.
+  /// Resets [scope]. [keepExports], [keepLogs], [keepImports] and
+  /// [keepBackups] apply only to [AppResetScope.everything]. [removeImages]
+  /// and [removeAudio] choose what [AppResetScope.importedMedia] removes; at
+  /// least one must be true.
   Future<void> reset(
     AppResetScope scope, {
     required String actorProfileId,
@@ -204,6 +204,7 @@ class AppResetService {
     bool keepExports = true,
     bool keepLogs = true,
     bool keepImports = true,
+    bool keepBackups = true,
     bool removeImages = true,
     bool removeAudio = true,
   }) async {
@@ -227,6 +228,7 @@ class AppResetService {
           keepExports: keepExports,
           keepLogs: keepLogs,
           keepImports: keepImports,
+          keepBackups: keepBackups,
         );
     }
     // Only a full wipe ends the session. Any other reset must leave the admin
@@ -358,28 +360,28 @@ class AppResetService {
     required bool keepExports,
     required bool keepLogs,
     required bool keepImports,
+    required bool keepBackups,
   }) async {
     // Files first and preferences last: the reset is idempotent, so if the app
     // dies part-way the admin (and the PIN) still exist and can run it again.
     await _removeCourseFiles();
     await _removeImportedMedia();
-    // Course backups are internal, like the Courses they back up. The live
-    // Crash Log goes with the Logs choice.
+    // The live Crash Log goes with the Logs choice.
     for (final directory in await _directories([
       ImportStager.stagingDirectoryName,
-      CourseBackupService.backupRootName,
       if (!keepLogs) DiagnosticLogService.logsDirectoryName,
     ])) {
       if (await directory.exists()) await directory.delete(recursive: true);
     }
     // The private folders earlier versions used go too; their Crash Log
-    // follows the Logs choice.
+    // follows the Logs choice and their Course Backups the Backups choice.
     final support = await _support();
     for (final name in await QqlEarlierPrivateFolders.presentIn(
       support,
       [
         ...QqlEarlierPrivateFolders.retired,
         if (!keepLogs) QqlEarlierPrivateFolders.logs,
+        if (!keepBackups) ...QqlEarlierPrivateFolders.backups,
       ],
       current: const [DiagnosticLogService.logsDirectoryName],
     )) {
@@ -395,6 +397,7 @@ class AppResetService {
         QqlTopFolder.export => keepExports,
         QqlTopFolder.logs => keepLogs,
         QqlTopFolder.import || QqlTopFolder.toBeMerged => keepImports,
+        QqlTopFolder.backups => keepBackups,
       };
       final kept = <String>{
         for (final folder in QqlTopFolder.values)
@@ -422,6 +425,7 @@ class AppResetService {
         await public.delete(QqlTopFolder.import);
         await public.delete(QqlTopFolder.toBeMerged);
       }
+      if (!keepBackups) await public.delete(QqlTopFolder.backups);
       await public.releaseImportAccess();
     }
     await (await SharedPreferences.getInstance()).clear();

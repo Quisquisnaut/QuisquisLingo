@@ -7,6 +7,14 @@ import '../services/custom_course_transfer_service.dart';
 import '../services/storage/course_storage_names.dart';
 import '../widgets/file_dialog_feedback.dart';
 
+/// What Version History shows: the readable versions, where they are, and
+/// the files in that folder it could not read.
+typedef _History = ({
+  List<CourseBackupRecord> records,
+  String path,
+  List<String> skipped,
+});
+
 class CourseHistorySelection {
   final Course course;
 
@@ -32,20 +40,31 @@ class CourseVersionHistoryScreen extends StatefulWidget {
 
 class _CourseVersionHistoryScreenState
     extends State<CourseVersionHistoryScreen> {
-  late final Future<({List<CourseBackupRecord> records, String path})>
-  _history = _loadHistory();
+  late final Future<_History> _history = _loadHistory();
   final _transfer = CustomCourseTransferService();
 
-  Future<({List<CourseBackupRecord> records, String path})>
-  _loadHistory() async {
+  Future<_History> _loadHistory() async {
     final directory = await widget.backupService.courseBackupDirectory(
       widget.course.courseId,
       pair: CourseStorageNames.pairOfCourse(widget.course),
     );
+    // The Backups folder is one people can reach: list what can be read and
+    // name the rest rather than hiding the whole history.
+    final skipped = <String>[];
     final records = widget.course.originType.isOfficial
-        ? await widget.backupService.listOfficialBackups(widget.course.courseId)
-        : await widget.backupService.listBackups(widget.course.courseId);
-    return (records: records, path: directory.absolute.path);
+        ? await widget.backupService.listOfficialBackups(
+            widget.course.courseId,
+            skipped: skipped,
+          )
+        : await widget.backupService.listBackups(
+            widget.course.courseId,
+            skipped: skipped,
+          );
+    return (
+      records: records,
+      path: directory.absolute.path,
+      skipped: skipped..sort(),
+    );
   }
 
   String _dateTime(BuildContext context, String utc) {
@@ -175,7 +194,7 @@ class _CourseVersionHistoryScreenState
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(title: const Text('Version history')),
-    body: FutureBuilder<({List<CourseBackupRecord> records, String path})>(
+    body: FutureBuilder<_History>(
       future: _history,
       builder: (context, snapshot) {
         if (snapshot.connectionState != ConnectionState.done) {
@@ -192,6 +211,15 @@ class _CourseVersionHistoryScreenState
           padding: const EdgeInsets.all(16),
           children: [
             SelectableText('Course Backups: ${data.path}'),
+            if (data.skipped.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              Text(
+                key: const Key('course-history-skipped-files'),
+                'These files in the backup folder are not backups of this '
+                'Course that QQL can read, so they are not listed. They were '
+                'left unchanged: ${data.skipped.join(', ')}.',
+              ),
+            ],
             const SizedBox(height: 8),
             OutlinedButton.icon(
               onPressed: () async {

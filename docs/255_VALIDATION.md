@@ -408,3 +408,89 @@ one-off tool, `tools/move_private_storage_255.dart`.
 1 existing skip, 0 failed** in 23 min 42 s. No production or test file
 changed after it. A debug APK was built for the emulator check; no release
 package.
+
+## Revision 5 — `2.0.55+255005`, 26 September 2026
+
+Beta expiry `2026-10-26 23:59:59` local time (unchanged: released on the same
+day as Revision 4).
+
+### Scope
+
+The Backups folder (owner decisions of 26 September 2026, see the plan):
+Course Backups leave QQL's private storage for `QuisquisLingo/Backups/Courses`,
+beside Import, Export, Logs and ToBeMerged, on every system; learner backups
+stay in `Export/UserData`; Wipe everything gains "Keep the Backups folder",
+ticked by default. Android uses ordinary files in the Download folder (no
+permission from Android 11; the storage permission on Android 7–10, Android 10
+through the legacy storage flag). Version History lists readable versions and
+names other files. The one-off tool moves every earlier backup into the new
+folder.
+
+### Focused evidence
+
+- Layout: `QqlTopFolder.backups` (`Backups`) with `courseBackupsSegments`
+  (`Backups/Courses`) and `courseBackupsLabel`; `{folderBackups}` joins the
+  Help placeholders (`storage_roles_255_test`).
+- `test/backups_folder_255_test.dart` (2): a file in a Course's backup folder
+  that is not a backup is named in `skipped` and left unchanged while the
+  strict listing still refuses; Version History shows the readable version
+  and the skipped-file note.
+- `android_quick_folders_255_test` (3 new): on Android 11 and later the
+  Backups folder is `<Download>/QuisquisLingo/Backups/Courses` with no
+  permission, and a backup written there is read back; on Android 7–10 the
+  storage permission is asked, and a refusal throws
+  `CourseBackupsAccessDenied` naming `Download/QuisquisLingo/Backups/Courses`;
+  Inventory lists the folder and Wipe everything follows its tick.
+- `app_reset_service_239_test`: the earlier private backup folders
+  (`qql_course_backups_v11`, `QQL_CourseBackups`) follow the Backups choice
+  and the earlier logs the Logs choice; the public Backups folder is kept by
+  default and removed only when unticked.
+- `device_administration_239_test`: the fourth tick, visible without
+  scrolling and ticked, and its reminder in the last step.
+- `inventory_239_test`, `universal_folders_255_test`: the Backups folder
+  section (with the manifest's reason), the five folders, the earlier private
+  backup folders, and a wipe sequence over all four ticks.
+- `move_private_storage_255_test` (5): the tool moves backups from Revision
+  4's `QQL_CourseBackups`, Revision 3's `qql_course_backups_v11` and the
+  pre-Revision-3 Documents folder into `Documents/QuisquisLingo/Backups/Courses`,
+  where Version History lists all three versions; without `--documents` the
+  backups stay and are reported.
+- The 25 test files that built `CourseBackupService` on the renamed seam
+  (`backupsDirectoryProvider`) and five subclasses overriding the listings
+  follow the new signatures; root-path expectations now name the Backups
+  folder.
+- Android 16 emulator (Pixel_8 AVD, API 36), `versionCode 255005` installed
+  over the Revision 4 build, new test profile:
+  1. A Fork of Exercise Laboratory was stored as
+     `files/QQL_Courses/Custom/QQL_EN_IT_03e8633f-….json` ("No previous version
+     existed, so no backup was required").
+  2. In Edit, Use GuideBook changed and Confirm course changes wrote, with no
+     permission screen,
+     `/storage/emulated/0/Download/QuisquisLingo/Backups/Courses/QQL_bkp_EN_IT_03e8633f-…/QQL_bkp_EN_IT_03e8633f-…_v1_20260926T134911785940Z.json`
+     (206,198 bytes, owned by the app); the confirmation's read-back check
+     passed ("New course version: 2", with that backup path).
+  3. Version History showed "Course Backups:
+     /storage/emulated/0/Download/QuisquisLingo/Backups/Courses/QQL_bkp_EN_IT_03e8633f-…"
+     and the version with Restore this version.
+  4. Inventory showed "Backups folder (1) · 201.4 KB" at
+     `Download/QuisquisLingo/Backups` with that file, "Written by QQL".
+  5. Wipe everything showed the four ticks; with Keep the Backups folder
+     unticked ("Backups folder: will be DELETED with everything else") it
+     removed `Download/QuisquisLingo/Backups`, kept
+     `Download/QuisquisLingo/Export/Courses/QQL_IT_NAP_….zip` and the logs.
+  6. No Flutter error or crash in the device log.
+- Not checked on a device: Android 7–10 (mocked tests only; Android 10's
+  legacy storage flag cannot be checked on the Android 16 image). Course Info
+  Editor shows the languages of an existing Course as read-only, so the
+  folder rename on a language change (Revision 4) arises only through other
+  routes and remains covered by tests.
+
+### Final release checks
+
+`flutter analyze --no-pub`: **No issues found**. Complete
+`flutter test --no-pub --concurrency=1` on the final tree: **2,764 passed,
+1 existing skip, 0 failed** in 32 min 27 s. An earlier start of the suite
+was stopped when a doc comment in `android_storage_bridge.dart` turned out to
+be outdated; after correcting it, the Android storage tests and the whole
+suite ran again. No production or test file changed after that run. A debug
+APK was built for the emulator check; no release package.
