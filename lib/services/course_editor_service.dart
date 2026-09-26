@@ -239,6 +239,13 @@ class CourseEditorService {
     'course': course.toJson(),
   };
 
+  /// Gives [course]'s media and backup folders the names of its current
+  /// language pair once it is stored; the store names the Course file itself.
+  Future<void> _alignStorageNames(Course course) async {
+    await _media.alignFolder(course);
+    await backupService.alignFolder(course);
+  }
+
   Future<void> saveUserCourse(Course course) => _store.withCourseLock(
     course.courseId,
     () => _saveUserCourseLocked(course),
@@ -283,6 +290,7 @@ class CourseEditorService {
         expectedToken: stored.token,
       );
     }
+    await _alignStorageNames(course);
     if (existing == null) await _addToImporterLibrary(course);
     await _receivedCourses.clear(course.courseId);
     LearnerStatusEvents.publish(LearnerStatusInvalidation.courseMetadata);
@@ -408,6 +416,7 @@ class CourseEditorService {
         } catch (_) {}
         rethrow;
       }
+      await _alignStorageNames(course);
       await _addToImporterLibrary(course);
       LearnerStatusEvents.publish(LearnerStatusInvalidation.courseMetadata);
     });
@@ -440,6 +449,7 @@ class CourseEditorService {
             jsonEncode(incoming.toJson())) {
       throw StateError('Course persistence verification failed.');
     }
+    await _alignStorageNames(incoming);
     await _media.deleteUnreferenced(
       incoming.courseId,
       CourseMediaStore.referencesOf(incoming),
@@ -1036,6 +1046,7 @@ class CourseEditorService {
     if (jsonEncode(verified.toJson()) != jsonEncode(committed.toJson())) {
       throw StateError('Course persistence verification failed.');
     }
+    await _alignStorageNames(committed);
     await _receivedCourses.clear(storageId);
     // Media added while editing and then removed, or no longer used by the
     // confirmed version, leave the Course folder. The pre-change backup above
@@ -1208,6 +1219,7 @@ class CourseEditorService {
         normalizedUpdate.courseId,
         entry,
       );
+      await _alignStorageNames(normalizedUpdate);
       await _addToImporterLibrary(normalizedUpdate);
       LearnerStatusEvents.publish(LearnerStatusInvalidation.courseMetadata);
       return OfficialCourseUpdateResult(
@@ -1268,6 +1280,7 @@ class CourseEditorService {
       entry,
       expectedToken: stored.token,
     );
+    await _alignStorageNames(normalizedUpdate);
     await _addToImporterLibrary(normalizedUpdate);
     await _media.deleteUnreferenced(
       normalizedUpdate.courseId,

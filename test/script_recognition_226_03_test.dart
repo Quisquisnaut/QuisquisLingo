@@ -42,6 +42,7 @@ void main() {
             throw PlatformException(code: 'test_storage_unavailable');
           },
         );
+    keepCrashLogUnavailable();
   });
 
   for (final mode in ScriptRecognitionMode.values) {
@@ -748,13 +749,19 @@ Future<void> _waitForImageAction(
 ) async {
   // Compressed-image validation calls the real engine decoder. Advancing only
   // the widget test's fake clock does not let its native callbacks complete.
-  // Allow bounded real event-loop turns, then flush widget microtasks/frames.
-  for (var attempt = 0; attempt < 100; attempt++) {
+  // Allow bounded real event-loop turns, then flush widget microtasks/frames:
+  // up to 10 seconds of real time, because a busy machine can need more than
+  // one. The fake clock still advances at most 100 × 20 ms, as before.
+  final deadline = DateTime.now().add(const Duration(seconds: 10));
+  for (var attempt = 0; ; attempt++) {
     if (completed() || find.byType(AlertDialog).evaluate().isNotEmpty) return;
+    if (DateTime.now().isAfter(deadline)) break;
     await tester.runAsync(
       () => Future<void>.delayed(const Duration(milliseconds: 10)),
     );
-    await tester.pump(const Duration(milliseconds: 20));
+    await tester.pump(
+      attempt < 100 ? const Duration(milliseconds: 20) : Duration.zero,
+    );
   }
   expect(
     completed() || find.byType(AlertDialog).evaluate().isNotEmpty,

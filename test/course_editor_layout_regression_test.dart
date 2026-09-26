@@ -295,12 +295,12 @@ void main() {
       expect(find.byType(CourseImportScreen), findsOneWidget);
       expect(find.text('Course Import'), findsOneWidget);
       expect(
-        find.widgetWithText(FilledButton, 'Import Course package or JSON'),
+        find.widgetWithText(FilledButton, 'Quick Import'),
         findsOneWidget,
       );
       expect(find.text('Import instructions'), findsOneWidget);
       expect(
-        find.textContaining('Documents/QuisquisLingo/Imports/import.zip'),
+        find.textContaining('Documents/QuisquisLingo/Import/Courses/import.zip'),
         findsOneWidget,
       );
       expect(find.textContaining('/Exports/'), findsNothing);

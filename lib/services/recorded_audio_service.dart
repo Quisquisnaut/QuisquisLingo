@@ -2,7 +2,6 @@ import 'dart:io';
 import 'dart:math';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/services.dart';
-import 'package:path_provider/path_provider.dart';
 import '../models/course_models.dart';
 import 'audio_diagnostic_service.dart';
 import 'course_media_store.dart';
@@ -11,6 +10,7 @@ import 'import/import_result.dart';
 import 'import/import_stager.dart';
 import 'import/mp3_validator.dart';
 import 'import/selected_external_file.dart';
+import 'storage/qql_storage.dart';
 
 /// Manages creator-supplied recorded speech. Imported MP3 files are copied into
 /// the Course's own media folder and named by content (`media:<sha256>.mp3`,
@@ -21,15 +21,18 @@ class RecordedAudioService {
     FileDialogService? fileDialogs,
     Future<Directory> Function()? supportDirectory,
     ImportStager? stager,
+    QqlStorage? storage,
   }) : _fileDialogs = fileDialogs ?? FileDialogService(),
        _media = CourseMediaStore(supportDirectory: supportDirectory),
-       _stager = stager ?? ImportStager(supportDirectory: supportDirectory);
+       _stager = stager ?? ImportStager(supportDirectory: supportDirectory),
+       _storage = storage ?? QqlStorage();
 
   static const int maxMp3Bytes = 50 * 1024 * 1024;
 
   final FileDialogService _fileDialogs;
   final CourseMediaStore _media;
   final ImportStager _stager;
+  final QqlStorage _storage;
 
   /// False when the system dialog is unsupported; hide Open from….
   bool get fileDialogsAvailable => _fileDialogs.isAvailable;
@@ -45,42 +48,29 @@ class RecordedAudioService {
       .replaceAll(_nonWordBoundary, '')
       .toLowerCase();
 
-  Future<Directory> fixedImportDirectory() async {
-    final documents = await getApplicationDocumentsDirectory();
-    final dir = Directory(
-      '${documents.path}${Platform.pathSeparator}QuisquisLingo${Platform.pathSeparator}Imports${Platform.pathSeparator}Audio',
-    );
-    await dir.create(recursive: true);
-    return dir;
-  }
-
-  /// Imports every MP3 in the fixed folder. Each is staged under the 50 MB
+  /// Imports every MP3 in the Quick Import folder for audio. Each is staged under the 50 MB
   /// limit and checked by [Mp3Validator] before any is stored, so one bad
   /// file stores nothing. Recordings in [existingReferences] are skipped.
   Future<List<CourseAudioClip>> importMp3Files(
     String courseId, {
     Set<String> existingReferences = const {},
   }) async {
-    final importDir = await fixedImportDirectory();
-    final sources = await importDir
-        .list(followLinks: false)
-        .where((entity) => entity is File)
-        .cast<File>()
-        .where((file) => file.path.toLowerCase().endsWith('.mp3'))
+    final folder = await _storage.importFolder(QqlStorageRole.audioImports);
+    final sources = (await folder.files())
+        .where((file) => file.name.toLowerCase().endsWith('.mp3'))
         .toList();
     sources.sort(
-      (a, b) => a.path.toLowerCase().compareTo(b.path.toLowerCase()),
+      (a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()),
     );
     if (sources.isEmpty) {
       throw StateError(
-        'No MP3 files found in ${importDir.path}. Copy the MP3 files you want to import there and try again.',
+        'No MP3 files found in ${folder.location}. Copy the MP3 files you want to import there and try again.',
       );
     }
     // Checked copies wait in staging, not in memory, until all have passed.
     final checked = <StagedFile>[];
     try {
-      for (final source in sources) {
-        final selected = FileSystemSelectedFile(source.path);
+      for (final selected in sources) {
         final StagedFile staged;
         try {
           staged = await _stager.stage(selected, maxBytes: maxMp3Bytes);

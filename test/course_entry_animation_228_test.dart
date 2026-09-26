@@ -332,6 +332,7 @@ void main() {
               );
             },
           );
+      keepCrashLogUnavailable();
     });
 
     tearDown(() {

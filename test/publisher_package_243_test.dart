@@ -65,7 +65,7 @@ void main() {
         courseStore: CourseFileStore(supportDirectory: () async => root),
         mediaStore: media,
         backupService: CourseBackupService(
-          documentsDirectoryProvider: () async => root,
+          backupsDirectoryProvider: () async => root,
           publisherVerification: verifier,
           mediaStore: media,
         ),

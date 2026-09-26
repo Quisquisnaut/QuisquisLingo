@@ -83,6 +83,7 @@ void main() {
             throw PlatformException(code: 'test_storage_unavailable');
           },
         );
+    keepCrashLogUnavailable();
   });
 
   testWidgets(

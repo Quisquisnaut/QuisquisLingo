@@ -231,8 +231,10 @@ void main() {
       if (await support.exists()) await support.delete(recursive: true);
     });
 
-    Directory shared() =>
-        Directory('${support.path}${Platform.pathSeparator}exercise_images');
+    Directory shared() => Directory(
+      '${support.path}${Platform.pathSeparator}'
+      '${ExerciseImageService.sharedImagesDirectoryName}',
+    );
 
     testWidgets('content wins over the name: a WebP named .png is a WebP', (
       tester,

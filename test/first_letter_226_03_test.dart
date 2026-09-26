@@ -44,6 +44,7 @@ void main() {
             throw PlatformException(code: 'unavailable');
           },
         );
+    keepCrashLogUnavailable();
   });
   test(
     'complete word stays intact and authoritative typo tolerance survives',

@@ -56,7 +56,7 @@ Future<bool> speakWithLinuxTts({
   final aplay = await _findExecutable(const ['aplay']);
   if (command == null || aplay == null) return false;
   final wordsPerMinute = (110 + (rate.clamp(0.0, 1.0) * 100)).round();
-  final tempDir = await Directory.systemTemp.createTemp('quisquislingo_tts_');
+  final tempDir = await Directory.systemTemp.createTemp('QQL_TTS_');
   final wav = File('${tempDir.path}/speech.wav');
   try {
     // User/course text is passed as a separate Process argument, never

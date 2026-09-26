@@ -3,8 +3,9 @@ import 'dart:typed_data';
 
 import 'safe_file_name.dart';
 
-/// Where a selected file came from.
-enum ExternalFileSource { filesystem, memory }
+/// Where a selected file came from. A document comes from a document
+/// provider (Android's Storage Access Framework) as a content URI.
+enum ExternalFileSource { filesystem, memory, document }
 
 /// A file chosen outside QQL, read as a stream. No path crosses this
 /// interface: document providers do not have one, and import code must not

@@ -24,10 +24,12 @@ What is excluded, and why:
 
 | Excluded from cloud backup | Reason |
 | --- | --- |
-| `image_banks/` | Android's Auto Backup quota is 25 MB per app. One Image Bank import alone is capped at 50 MB. |
-| `exercise_images/` | Same quota. |
-| `quisquislingo_course_media/` | Same quota; each Course's own images and recorded MP3s (Build 243; formerly `quisquislingo_audio/`), which grow without a practical bound. A restored device gets the Courses back without these files; importing the Course package again restores them. |
+| `QQL_ImageBanks/`, earlier `image_banks/` | Android's Auto Backup quota is 25 MB per app. One Image Bank import alone is capped at 50 MB. Build 255 Revision 4 renamed the folder; banks imported before stay in the earlier one. |
+| `QQL_SharedImages/`, earlier `exercise_images/` | Same quota. |
+| `QQL_CourseMedia/`, earlier `quisquislingo_course_media/` | Same quota; each Course's own images and recorded MP3s (Build 243; formerly `quisquislingo_audio/`), which grow without a practical bound. A restored device gets the Courses back without these files; importing the Course package again restores them. |
 | `quisquislingo_audio/` | Retired by Build 243 and no longer written or read, but still excluded because a device may keep the old folder. |
+
+Course Backups need no rule: since Build 255 Revision 5 they are in the public `Download/QuisquisLingo/Backups` folder, which the app's Auto Backup does not cover. They survive an uninstall; a restored phone does not bring them back.
 
 The reason is the **quota, not privacy**. An app whose data exceeds 25 MB does not get a partial backup — the platform silently stops backing that app up at all. One media import would therefore cost the learner every backup of their progress, without any warning. Bulk media is re-importable from the user's own files; progress is not. This is the same set of folders `AppResetService` treats as bulk media (`_imageFolders`, `_courseMediaFolder`), and it lives under `getApplicationSupportDirectory()`, which is `getFilesDir()` on Android, hence `domain="file"`.
 
@@ -37,6 +39,8 @@ Two files express this, and they must be changed together:
 
 - `android/app/src/main/res/xml/data_extraction_rules.xml` — API 31 and above
 - `android/app/src/main/res/xml/backup_rules.xml` — API 30 and below, because `android:dataExtractionRules` is ignored there
+
+**Public Quick folders (Build 255).** Quick Export and Quick Import use `Download/QuisquisLingo` (its `Export` and `Logs` folders, and its `Import` and `ToBeMerged` folders), outside the app's data, so Auto Backup never includes them and other apps can read them. On Android 10 and later QQL holds no storage permission: it writes through MediaStore and reads only the one folder the person grants, and only if that folder is exactly `Download/QuisquisLingo`. `WRITE_EXTERNAL_STORAGE` is declared for Android 9 and older only (`maxSdkVersion 28`). Files read from these folders pass the same bounded staging and validation as every other import; private data (Crash Log, Course Backups, stored Courses, media, preferences) never moves there.
 
 Whether Auto Backup runs at all is an Android setting owned by the device owner, not by QuisquisLingo. The app neither enables nor disables it, and still uploads nothing itself: Export, `Save to…` and the User Recovery Key remain the only deliberate ways a user moves their own data.
 

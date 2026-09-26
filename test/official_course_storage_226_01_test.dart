@@ -105,7 +105,7 @@ void main() {
           'org.quisquislingo',
           'QuisquisLingo',
         ),
-        documentsDirectoryProvider: () async => directory,
+        backupsDirectoryProvider: () async => directory,
       );
       final editor = CourseEditorService(
         publisherVerification: fixtureVerifier(
@@ -160,7 +160,7 @@ void main() {
           'org.quisquislingo',
           'QuisquisLingo',
         ),
-        documentsDirectoryProvider: () async => directory,
+        backupsDirectoryProvider: () async => directory,
       );
       await backups.createBackup(
         official,
@@ -252,7 +252,7 @@ void main() {
           'org.quisquislingo',
           'QuisquisLingo',
         ),
-        documentsDirectoryProvider: () async => directory,
+        backupsDirectoryProvider: () async => directory,
       );
       final record = await backups.createBackup(
         official,

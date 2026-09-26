@@ -39,7 +39,7 @@ void main() {
       courseStore: store,
       mediaStore: media,
       backupService: CourseBackupService(
-        documentsDirectoryProvider: () async => support,
+        backupsDirectoryProvider: () async => support,
         mediaStore: media,
       ),
       clock: () => _when,

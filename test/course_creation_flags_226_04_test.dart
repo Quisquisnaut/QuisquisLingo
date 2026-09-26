@@ -167,7 +167,7 @@ void main() {
       );
       final imports = Directory(
         '${directory.path}${Platform.pathSeparator}QuisquisLingo'
-        '${Platform.pathSeparator}Exports',
+        '${Platform.pathSeparator}Import${Platform.pathSeparator}Flags',
       );
       await imports.create(recursive: true);
       await File(

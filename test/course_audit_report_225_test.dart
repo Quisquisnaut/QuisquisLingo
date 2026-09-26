@@ -19,11 +19,11 @@ void main() {
       sortMode: AuditSortMode.lesson,
     );
 
-    expect(report, contains('Version: 2.0.54'));
-    expect(report, contains('Build 254, Revision 0'));
+    expect(report, contains('Version: 2.0.55'));
+    expect(report, contains('Build 255, Revision 5'));
     expect(report, isNot(contains('Phase:')));
     expect(report, isNot(contains('revision')));
-    expect(report, contains('Technical version: 2.0.54+254000'));
+    expect(report, contains('Technical version: 2.0.55+255005'));
     expect(report, contains('Generated: 2026-09-03T20:15:30.000'));
     expect(report, contains('Course name: Italian test'));
     expect(report, contains('Course ID: stable_course_id'));
@@ -82,7 +82,7 @@ void main() {
     expect(
       path,
       endsWith(
-        'quisquislingo_audit_italian_test_stable_course_id_20260903201530123.txt',
+        'QQL_audit_italian_test_stable_course_id_20260903201530123.txt',
       ),
     );
     final contents = await File(path).readAsString();

@@ -57,6 +57,7 @@ void main() {
         throw PlatformException(code: 'test-storage');
       },
     );
+    keepCrashLogUnavailable();
     messenger.setMockMethodCallHandler(
       const MethodChannel('xyz.luan/audioplayers.global'),
       (_) async => null,
@@ -98,7 +99,7 @@ void main() {
     await SettingsService().setAudioExercisesEnabled(false);
     editor = CourseEditorService(
       backupService: CourseBackupService(
-        documentsDirectoryProvider: () async => backupRoot,
+        backupsDirectoryProvider: () async => backupRoot,
       ),
       clock: () => DateTime.utc(2026, 9, 7, 12),
     );

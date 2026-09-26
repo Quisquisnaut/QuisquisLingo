@@ -7,9 +7,14 @@ import 'course_editor_storage.dart';
 import 'course_file_store.dart';
 import 'course_received_service.dart';
 import 'course_media_store.dart';
+import 'diagnostic_log_service.dart';
+import 'exercise_image_service.dart';
+import 'image_bank_service.dart';
 import 'learner_status_events.dart';
 import 'profile_service.dart';
 import 'import/import_stager.dart';
+import 'storage/qql_earlier_private_folders.dart';
+import 'storage/qql_storage.dart';
 
 /// The ways an admin can reset this device. See
 /// docs/239_RESET_STORAGE_INVENTORY.md for what each scope removes.
@@ -88,7 +93,14 @@ class AppResetService {
   /// stored date meaningless, so the audio reset clears it too.
   static const audioOrphanCheckKeyPrefix = 'audio_orphan_check_last_';
 
-  static const _imageFolders = <String>['exercise_images', 'image_banks'];
+  /// Shared Image Library device images and Image Banks, in their folders and
+  /// in the folders earlier versions used, whose files are still in use.
+  static const _imageFolders = <String>[
+    ExerciseImageService.sharedImagesDirectoryName,
+    QqlEarlierPrivateFolders.sharedImages,
+    ImageBankService.banksDirectoryName,
+    QqlEarlierPrivateFolders.imageBanks,
+  ];
 
   /// Course media (`CourseMediaStore`) holds both images and recordings, one
   /// folder per Course; the imported-media reset removes them by file type.
@@ -112,14 +124,17 @@ class AppResetService {
   final ProfileService _profiles;
   final Future<Directory> Function() _documents;
   final Future<Directory> Function() _support;
+  final QqlStorage _storage;
 
   AppResetService({
     ProfileService? profiles,
     Future<Directory> Function()? documentsDirectory,
     Future<Directory> Function()? supportDirectory,
+    QqlStorage? storage,
   }) : _profiles = profiles ?? ProfileService(),
        _documents = documentsDirectory ?? getApplicationDocumentsDirectory,
-       _support = supportDirectory ?? getApplicationSupportDirectory;
+       _support = supportDirectory ?? getApplicationSupportDirectory,
+       _storage = storage ?? QqlStorage();
 
   Future<Directory> _qqlDocuments() async => Directory(
     '${(await _documents()).path}${Platform.pathSeparator}QuisquisLingo',
@@ -178,9 +193,10 @@ class AppResetService {
     );
   }
 
-  /// Resets [scope]. [keepExports], [keepLogs] and [keepImports] apply only to
-  /// [AppResetScope.everything]. [removeImages] and [removeAudio] choose what
-  /// [AppResetScope.importedMedia] removes; at least one must be true.
+  /// Resets [scope]. [keepExports], [keepLogs], [keepImports] and
+  /// [keepBackups] apply only to [AppResetScope.everything]. [removeImages]
+  /// and [removeAudio] choose what [AppResetScope.importedMedia] removes; at
+  /// least one must be true.
   Future<void> reset(
     AppResetScope scope, {
     required String actorProfileId,
@@ -188,6 +204,7 @@ class AppResetService {
     bool keepExports = true,
     bool keepLogs = true,
     bool keepImports = true,
+    bool keepBackups = true,
     bool removeImages = true,
     bool removeAudio = true,
   }) async {
@@ -211,6 +228,7 @@ class AppResetService {
           keepExports: keepExports,
           keepLogs: keepLogs,
           keepImports: keepImports,
+          keepBackups: keepBackups,
         );
     }
     // Only a full wipe ends the session. Any other reset must leave the admin
@@ -342,21 +360,51 @@ class AppResetService {
     required bool keepExports,
     required bool keepLogs,
     required bool keepImports,
+    required bool keepBackups,
   }) async {
     // Files first and preferences last: the reset is idempotent, so if the app
     // dies part-way the admin (and the PIN) still exist and can run it again.
     await _removeCourseFiles();
     await _removeImportedMedia();
-    final staging = (await _directories([
+    // The live Crash Log goes with the Logs choice.
+    for (final directory in await _directories([
       ImportStager.stagingDirectoryName,
-    ])).single;
-    if (await staging.exists()) await staging.delete(recursive: true);
+      if (!keepLogs) DiagnosticLogService.logsDirectoryName,
+    ])) {
+      if (await directory.exists()) await directory.delete(recursive: true);
+    }
+    // The private folders earlier versions used go too; their Crash Log
+    // follows the Logs choice and their Course Backups the Backups choice.
+    final support = await _support();
+    for (final name in await QqlEarlierPrivateFolders.presentIn(
+      support,
+      [
+        ...QqlEarlierPrivateFolders.retired,
+        if (!keepLogs) QqlEarlierPrivateFolders.logs,
+        if (!keepBackups) ...QqlEarlierPrivateFolders.backups,
+      ],
+      current: const [DiagnosticLogService.logsDirectoryName],
+    )) {
+      await Directory(
+        '${support.path}${Platform.pathSeparator}$name',
+      ).delete(recursive: true);
+    }
     final root = await _qqlDocuments();
     if (await root.exists()) {
+      // Folders from earlier versions follow the choice for their
+      // replacement.
+      bool keeps(QqlTopFolder folder) => switch (folder) {
+        QqlTopFolder.export => keepExports,
+        QqlTopFolder.logs => keepLogs,
+        QqlTopFolder.import || QqlTopFolder.toBeMerged => keepImports,
+        QqlTopFolder.backups => keepBackups,
+      };
       final kept = <String>{
-        if (keepExports) 'exports',
-        if (keepLogs) 'logs',
-        if (keepImports) 'imports',
+        for (final folder in QqlTopFolder.values)
+          if (keeps(folder)) folder.folderName.toLowerCase(),
+        for (final MapEntry(key: name, value: folder)
+            in QqlTopFolder.earlierFolders.entries)
+          if (keeps(folder)) name.toLowerCase(),
       };
       await for (final entity in root.list(followLinks: false)) {
         final name = entity.uri.pathSegments
@@ -365,6 +413,20 @@ class AppResetService {
         if (kept.contains(name)) continue;
         await entity.delete(recursive: true);
       }
+    }
+    // Android keeps the user folders public, in Download/QuisquisLingo: the
+    // same ticks decide them, and a full wipe gives back the Quick Import
+    // folder permission.
+    final public = _storage.publicFolders;
+    if (public != null) {
+      if (!keepExports) await public.delete(QqlTopFolder.export);
+      if (!keepLogs) await public.delete(QqlTopFolder.logs);
+      if (!keepImports) {
+        await public.delete(QqlTopFolder.import);
+        await public.delete(QqlTopFolder.toBeMerged);
+      }
+      if (!keepBackups) await public.delete(QqlTopFolder.backups);
+      await public.releaseImportAccess();
     }
     await (await SharedPreferences.getInstance()).clear();
   }

@@ -965,7 +965,7 @@ Course _withUntouchedMetadata(Course base) {
 
 class _MemoryBackupService extends CourseBackupService {
   _MemoryBackupService(Directory documents)
-    : super(documentsDirectoryProvider: () async => documents);
+    : super(backupsDirectoryProvider: () async => documents);
 
   final List<CourseBackupRecord> records = [];
 
@@ -988,7 +988,10 @@ class _MemoryBackupService extends CourseBackupService {
   }
 
   @override
-  Future<List<CourseBackupRecord>> listBackups(String courseId) async =>
+  Future<List<CourseBackupRecord>> listBackups(
+    String courseId, {
+    List<String>? skipped,
+  }) async =>
       records.where((record) => record.course.courseId == courseId).toList();
 }
 

@@ -95,7 +95,11 @@ void main() {
         created: '2026-09-02T00:00:00.000Z',
         version: '2',
       );
-      final file = File(await transfer.mergeFilePath());
+      final file = File(
+        (await transfer.mergeFolder()).locationOf(
+          CustomCourseTransferService.mergeJsonName,
+        ),
+      );
       await file.writeAsString(jsonEncode(source.toJson()));
 
       expect(

@@ -1,6 +1,35 @@
 # QuisquisLingo App
 
-**Current source version: 2.0.54+254000 · Build 254, Revision 0 · Course Model v11 (`formatVersion: 11`).**
+**Current source version: 2.0.55+255005 · Build 255, Revision 5 · Course Model v11 (`formatVersion: 11`).**
+
+**QuisquisLingo 2.0.55 Beta — QQL 255 logical storage and Quick folders**
+
+Build 255 gives QQL's user folders logical storage roles (Imports or Exports,
+and a category such as Courses), resolved per platform, so feature code never
+builds a platform path. On Windows, Linux and macOS, Course packages now use
+`Documents/QuisquisLingo/Imports/Courses` (**Quick Import**) and
+`Documents/QuisquisLingo/Exports/Courses` (**Quick Export**); every other folder
+keeps its place. Dialog saves are named **Save as…**; **Open from…** is
+unchanged. Screens and Help name each platform's folders. Revision 1 brings
+**Save as…** and **Open from…** to Android through its own document screens.
+Revision 2 moves Android's Quick folders to `Download/QuisquisLingo`: Quick
+Export needs no dialog, and Quick Import asks once for folder access (with Open
+from… as the alternative). Revision 3 gives every system the same folders
+below its QuisquisLingo folder: `Import` and `Export` with one subfolder per
+kind, `Logs`, and `ToBeMerged/Courses` for Course Merge. The custom flag is read
+from `Import/Flags`, exported files start with `QQL_`, Settings › Debug can
+Quick Export the Crash Log, and the live Crash Log and Course Backups are
+private on every system. Revision 4 gives QQL's private folders `QQL_`
+names (`QQL_Courses`, `QQL_CourseMedia`, `QQL_CourseBackups`, …) and puts
+the Course's language pair, source then target, in every per-Course name:
+`QQL_EN_IT_<ID>.json`, exports `QQL_EN_IT_<title>.zip`, backups
+`QQL_bkp_EN_IT_…`. Earlier private folders are no longer read; the one-off
+`tools/move_private_storage_255.dart` moves earlier Courses, media and
+backups to the new names. Revision 5 moves the Course Backups out of private
+storage into a new `Backups/Courses` folder beside `Import` and `Export`, on
+every system; Wipe everything keeps it unless its tick is removed. See
+the [Build 255 plan and audit](docs/255_STORAGE_PLAN.md), the
+[handoff](docs/255_HANDOFF.md) and [validation](docs/255_VALIDATION.md).
 
 **QuisquisLingo 2.0.54 Beta — QQL 254 bundled exercise demos**
 
@@ -205,7 +234,7 @@ QQL 241 completes the course file-store integration: custom and installed offici
 
 **QuisquisLingo 2.0.40 Beta — QQL 240 native file dialogs (Save to… / Open from…)**
 
-QQL 240 adds the operating system's Save and Open dialogs next to the existing fixed-folder Export and Import (which are unchanged): `Save to…` for Course JSON, my data, the User Recovery Key and copies of the Crash and Diagnostic Logs, and `Open from…` for Course import, Merge From…, Image Bank ZIPs, single images, custom Lesson icons, recorded MP3s, my data and the User Recovery Key. Cloud folders such as Google Drive appear only if the device already shows them; QQL does not sign in to any cloud service. A failed or unavailable dialog explains how to use the fixed-folder route and is logged. Windows, macOS and Linux are supported; Android's picker is not wired yet (the buttons stay hidden) and iOS is not supported. See `docs/240_FILE_DIALOGS_PLAN.md`, `docs/240_VALIDATION.md` and `CHANGELOG.md`.
+QQL 240 adds the operating system's Save and Open dialogs next to the existing fixed-folder Export and Import (which are unchanged): `Save to…` for Course JSON, my data, the User Recovery Key and copies of the Crash and Diagnostic Logs, and `Open from…` for Course import, Merge From…, Image Bank ZIPs, single images, custom Lesson icons, recorded MP3s, my data and the User Recovery Key. Cloud folders such as Google Drive appear only if the device already shows them; QQL does not sign in to any cloud service. A failed or unavailable dialog explains how to use the fixed-folder route and is logged. Windows, macOS and Linux are supported; Android followed in Build 255 Revision 1 (Storage Access Framework), and iOS is not supported. See `docs/240_FILE_DIALOGS_PLAN.md`, `docs/240_VALIDATION.md` and `CHANGELOG.md`.
 
 **QuisquisLingo 2.0.39 Beta — QQL 239 Pick the translation (Select)**
 
@@ -266,7 +295,7 @@ The MPL-2.0 covers the QuisquisLingo software source. Courses, the Image Bank an
 
 ## Beta lifecycle
 
-Version 2.0.54, Build 254, Revision 0 is a time-limited Beta with an expiry of **2026-10-25 23:59:59 local time** (30 days after the 25 September 2026 release date). Near expiry it displays reminders. After expiry, learner exercises and Review are blocked until a newer Beta is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when a Beta expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM.
+Version 2.0.55, Build 255, Revision 5 is a time-limited Beta with an expiry of **2026-10-26 23:59:59 local time** (30 days after the 26 September 2026 release date). Near expiry it displays reminders. After expiry, learner exercises and Review are blocked until a newer Beta is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when a Beta expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM.
 
 ## Core logic
 

@@ -48,12 +48,12 @@ void main() {
       expect(
         first,
         '${directory.path}${Platform.pathSeparator}'
-        'quisquislingo_dialog_course.zip',
+        'QQL_EN_IT_dialog_course.zip',
       );
       expect(
         second,
         '${directory.path}${Platform.pathSeparator}'
-        'quisquislingo_dialog_course_2.zip',
+        'QQL_EN_IT_dialog_course_2.zip',
       );
       expect(
         backend.saved,
@@ -63,12 +63,12 @@ void main() {
     },
   );
 
-  test('Save to… writes exactly the bytes the default Export writes', () async {
+  test('Save as… writes exactly the bytes the Quick Export writes', () async {
     final path = await service.exportCourse(dialogTestCourse());
     final result = await service.exportCourseTo(dialogTestCourse());
 
     expect(result.outcome, FileDialogOutcome.saved);
-    expect(backend.saved.single.name, 'quisquislingo_dialog_course.zip');
+    expect(backend.saved.single.name, 'QQL_EN_IT_dialog_course.zip');
     expect(backend.saved.single.bytes, await File(path).readAsBytes());
   });
 
@@ -172,7 +172,7 @@ void main() {
       expect(log, contains('FILE-001'));
       expect(log, contains('direction=save'));
       expect(log, contains('artifact=course'));
-      expect(log, contains('file=quisquislingo_dialog_course.zip'));
+      expect(log, contains('file=QQL_EN_IT_dialog_course.zip'));
       expect(log, contains('Access is denied'));
       expect(log, isNot(contains('Someone')));
       expect(log, isNot(contains('Secret Folder')));

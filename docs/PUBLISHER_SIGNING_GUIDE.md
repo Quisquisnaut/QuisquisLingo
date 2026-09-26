@@ -2,7 +2,7 @@
 
 ## Status: signature verification implemented
 
-Build 241 now verifies Ed25519 publisher signatures for Publisher Course imports, both from the Imports folder and from the system file dialog. The storage service checks again before installation. Missing, invalid, unknown or revoked signatures are rejected. The normal trusted publisher registry currently has no approved external publishers; the Dummy identity is for explicitly enabled test builds only.
+Build 241 now verifies Ed25519 publisher signatures for Publisher Course imports, both with Quick Import and from the system file dialog. The storage service checks again before installation. Missing, invalid, unknown or revoked signatures are rejected. The normal trusted publisher registry currently has no approved external publishers; the Dummy identity is for explicitly enabled test builds only.
 
 Publisher approval is a manual owner process. The owner maintains the public-key registry in lib/services/trusted_publishers.dart and distributes changes with an app update. There is no approval portal or in-app signing button. A developer command and OpenSSL provide course signing outside the app.
 
@@ -237,6 +237,6 @@ flutter build windows --release --dart-define=QQL_ENABLE_DUMMY_PUBLISHER=true
 
 These builds show a TEST ONLY banner and recognize Dummy. Do not distribute them as public production releases. A public build must omit the flag; build into a clean output location so artifacts cannot be confused.
 
-Import test/fixtures/publishers/dummy-signed-media.zip through Course Studio → Course Import → Open from… or copy it to Imports/import.zip. Expect the verified publisher confirmation and the packaged recording. Then import dummy-signed-v2.json to test an update that removes the unused recording. dummy-unsigned.json must be rejected; changing a signed title must also be rejected, even if an attacker recalculates the checksum. A normal build without the flag rejects the Dummy signed files as an unknown key.
+Import test/fixtures/publishers/dummy-signed-media.zip through Course Studio → Course Import → Open from… or copy it to Documents/QuisquisLingo/Import/Courses/import.zip. Expect the verified publisher confirmation and the packaged recording. Then import dummy-signed-v2.json to test an update that removes the unused recording. dummy-unsigned.json must be rejected; changing a signed title must also be rejected, even if an attacker recalculates the checksum. A normal build without the flag rejects the Dummy signed files as an unknown key.
 
 Dummy testing requires no approval request to a real publisher. All dummy release files must retain their TEST ONLY identification.

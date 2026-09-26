@@ -24,11 +24,11 @@ The active trace rotates at approximately 1 MiB and keeps at most two previous f
 
 ## Crash Log
 
-The Crash Log is intended for cases where QuisquisLingo crashes or closes unexpectedly, especially startup and runtime crashes. It is an automatic text file created or recreated when the app starts and appended when QuisquisLingo catches an uncaught Flutter/Dart error. **Settings > Debug** shows the actual path. On desktop systems, the one authoritative file is:
+The Crash Log is intended for cases where QuisquisLingo crashes or closes unexpectedly, especially startup and runtime crashes. It is an automatic text file created or recreated when the app starts and appended when QuisquisLingo catches an uncaught Flutter/Dart error. **Settings > Debug** shows the actual path. On every system the one authoritative file is private to QQL, in its application support directory:
 
-`Documents/QuisquisLingo/Logs/quisquislingo_crash.log`
+`<AppSupport>/QQL_Logs/QQL_crash.log`
 
-This uses the platform's native Documents directory. On Android and iOS, the same `QuisquisLingo/Logs/quisquislingo_crash.log` structure is inside the app's private application-documents directory; **Settings > Debug > Share Crash Log** provides access through the platform share UI. QuisquisLingo does not intentionally keep another active crash-log copy in application preferences. Files left in former locations are not read, migrated, copied or deleted.
+with the Windows/Linux session marker `QQL_session.marker` beside it (Build 255 Revision 4; Revision 3 made the log private in `qql_logs` as `quisquislingo_crash.log`, and earlier versions wrote `Documents/QuisquisLingo/Logs/quisquislingo_crash.log`). Where case is ignored (Windows, macOS) Revision 3's `qql_logs` is the same folder as `QQL_Logs` and gets the new name at startup. **Settings > Debug** offers Quick Export, which copies the log to `QuisquisLingo/Logs/QQL_crash_log.txt` (replacing the previous copy), **Save log copy as…**, and on phones **Share Crash Log** through the platform share UI. QuisquisLingo does not intentionally keep another active crash-log copy in application preferences. Files left in former locations are not read, migrated or copied; Wipe everything removes them with the Logs choice.
 
 Each launch appends a session header with the app version, operating system, architecture, locale, Dart runtime and build mode. If a crash-log file is deleted, append mode recreates it at the next launch or diagnostic write. Uncaught Flutter/Dart errors are recorded in all non-web build modes, while detailed action breadcrumbs remain debug-only. Logs remain local and are never uploaded automatically.
 

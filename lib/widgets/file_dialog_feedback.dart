@@ -3,14 +3,15 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 
 import '../services/file_dialog_service.dart';
+import '../services/storage/qql_storage.dart';
 
 /// One place that turns a [FileDialogResult] into the message the user sees.
 ///
 /// * saved: [savedMessage]
 /// * cancelled: nothing at all
 /// * failed / unavailable: what went wrong plus [fallbackHint], which points
-///   at the ordinary fixed-folder action. The fixed folder is only offered,
-///   never used silently.
+///   at the ordinary Quick action. The Quick folder is only offered, never
+///   used silently.
 ///
 /// An opened file is not handled here: the caller validates it like any
 /// other import and reports validation errors itself.
@@ -85,30 +86,43 @@ String cloudFolderHelpText({String? operatingSystem}) {
       'service. $how';
 }
 
-/// Fixed-folder fallback wording, matching the existing on-screen paths.
-const String exportFallbackHint =
-    'You can use Export instead; it saves to Documents/QuisquisLingo/Exports.';
-const String mp3FallbackHint =
-    'Copy the MP3 to Documents/QuisquisLingo/Imports/Audio and use Import MP3 '
-    'instead.';
-const String exerciseImageFallbackHint =
-    'Copy one image to Documents/QuisquisLingo/Imports/Images and use '
+String _folder(QqlStorageRole role) =>
+    QqlStorageLayout.current.folderLabel(role);
+
+String _file(QqlStorageRole role, String name) =>
+    QqlStorageLayout.current.fileLabel(role, name);
+
+/// Quick-folder fallback wording. The folders are named for the current
+/// platform, the same way the screens name them.
+String get exportFallbackHint =>
+    'You can use Quick Export instead; it saves to '
+    '${_folder(QqlStorageRole.courseExports)}.';
+String get userDataExportFallbackHint =>
+    'You can use Export instead; it saves to '
+    '${_folder(QqlStorageRole.learnerDataExports)}.';
+String get mp3FallbackHint =>
+    'Copy the MP3 to ${_folder(QqlStorageRole.audioImports)} and use Import '
+    'MP3 instead.';
+String get exerciseImageFallbackHint =>
+    'Copy one image to ${_folder(QqlStorageRole.imageImports)} and use '
     'Import custom image (or Import single image) instead.';
-const String lessonIconFallbackHint =
-    'Copy one image to Documents/QuisquisLingo/Imports/Lesson Icons and use '
+String get lessonIconFallbackHint =>
+    'Copy one image to ${_folder(QqlStorageRole.lessonIconImports)} and use '
     'Import custom icon instead.';
-const String userDataImportFallbackHint =
-    'Copy the file to Documents/QuisquisLingo/Imports/learner_import.json '
+String get userDataImportFallbackHint =>
+    'Copy the file to '
+    '${_file(QqlStorageRole.learnerDataImports, 'learner_import.json')} '
     'and use Import my data instead.';
-const String recoveryKeyImportFallbackHint =
-    'Copy the key file to Documents/QuisquisLingo/Imports and use Import '
-    'User Recovery Key instead.';
-const String imageBankFallbackHint =
-    'Copy the ZIP to Documents/QuisquisLingo/Imports/Images (only one ZIP '
+String get recoveryKeyImportFallbackHint =>
+    'Copy the key file to ${_folder(QqlStorageRole.recoveryKeyImports)} and '
+    'use Import User Recovery Key instead.';
+String get imageBankFallbackHint =>
+    'Copy the ZIP to ${_folder(QqlStorageRole.imageImports)} (only one ZIP '
     'there) and use Import Image Bank ZIP instead.';
-const String mergeImportFallbackHint =
-    'Copy the package to Documents/QuisquisLingo/Merges/merge.zip (or a '
-    'media-free JSON to merge.json) and use Merge Course package or JSON instead.';
-const String courseImportFallbackHint =
-    'Copy the package to Documents/QuisquisLingo/Imports/import.zip (or a '
-    'media-free JSON to import.json) and use Import Course package or JSON instead.';
+String get mergeImportFallbackHint =>
+    'Copy the package to ${_file(QqlStorageRole.mergeImports, 'merge.zip')} '
+    '(or a media-free JSON to merge.json) and use Merge Course package or '
+    'JSON instead.';
+String get courseImportFallbackHint =>
+    'Copy the package to ${_file(QqlStorageRole.courseImports, 'import.zip')} '
+    '(or a media-free JSON to import.json) and use Quick Import instead.';

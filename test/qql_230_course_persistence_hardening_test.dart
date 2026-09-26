@@ -29,7 +29,7 @@ void main() {
         'publisher.qql230',
         'QQL 230 Publisher',
       ),
-      documentsDirectoryProvider: () async => documents,
+      backupsDirectoryProvider: () async => documents,
     );
     SharedPreferences.setMockInitialValues({
       ProfileService.profilesKey: [

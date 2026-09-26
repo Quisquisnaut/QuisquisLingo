@@ -10,6 +10,8 @@ import 'package:quisquislingo_app/services/profile_service.dart';
 import 'package:quisquislingo_app/widgets/app_restart_scope.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'support/pump_file_io.dart';
+
 final _course = Course(
   courseId: 'qql-239-admin-course',
   learningLanguage: 'Italian',
@@ -62,6 +64,17 @@ void main() {
         () => Future<void>.delayed(const Duration(milliseconds: 25)),
       );
     }
+    await tester.pumpAndSettle();
+  }
+
+  /// The media dialog counts the files in every media folder first.
+  Future<void> settleMediaDialog(WidgetTester tester) async {
+    await tester.pumpUntilFileIoState(
+      () => find
+          .byKey(const Key('admin-media-remove-audio'))
+          .evaluate()
+          .isNotEmpty,
+    );
     await tester.pumpAndSettle();
   }
 
@@ -363,6 +376,11 @@ void main() {
       expect(imports, findsOneWidget);
       expect(tester.getTopLeft(imports).dy, lessThan(view.height));
       expect(tester.widget<CheckboxListTile>(imports).value, isTrue);
+      // Build 255 Revision 5: the public Backups folder, kept by default.
+      final backups = find.byKey(const Key('admin-nuke-keep-backups'));
+      expect(backups, findsOneWidget);
+      expect(tester.getTopLeft(backups).dy, lessThan(view.height));
+      expect(tester.widget<CheckboxListTile>(backups).value, isTrue);
 
       await tester.tap(exports);
       await tester.pump();
@@ -374,11 +392,12 @@ void main() {
       // The last dialog only reminds; it has no checkboxes of its own.
       expect(find.byKey(const Key('admin-nuke-keep-exports')), findsNothing);
       expect(
-        find.text('Exports folder: will be DELETED with everything else.'),
+        find.text('Export folder: will be DELETED with everything else.'),
         findsOneWidget,
       );
       expect(find.text('Logs folder: kept.'), findsOneWidget);
-      expect(find.text('Imports folder: kept.'), findsOneWidget);
+      expect(find.text('Import and ToBeMerged folders: kept.'), findsOneWidget);
+      expect(find.text('Backups folder: kept.'), findsOneWidget);
       expect(find.textContaining('NUKE EVERYTHING'), findsWidgets);
     },
   );
@@ -396,7 +415,7 @@ void main() {
 
     final image = touch('${root.path}/support/exercise_images/a.png');
     final audio = touch(
-      '${root.path}/support/quisquislingo_course_media/c/${'a' * 64}.mp3',
+      '${root.path}/support/QQL_CourseMedia/c/${'a' * 64}.mp3',
     );
     await open(tester);
     await tester.ensureVisible(
@@ -404,7 +423,7 @@ void main() {
     );
     await tester.pump();
     await tester.tap(find.byKey(const Key('admin-reset-button-importedMedia')));
-    await settle(tester);
+    await settleMediaDialog(tester);
 
     final images = find.byKey(const Key('admin-media-remove-images'));
     final audios = find.byKey(const Key('admin-media-remove-audio'));
@@ -438,7 +457,7 @@ void main() {
     tester,
   ) async {
     await profiles.setOwnAccessPin(actorProfileId: adminId, pin: '1234');
-    File('${root.path}/support/quisquislingo_course_media/c/${'a' * 64}.mp3')
+    File('${root.path}/support/QQL_CourseMedia/c/${'a' * 64}.mp3')
       ..createSync(recursive: true)
       ..writeAsStringSync('x');
     await open(tester);
@@ -447,7 +466,7 @@ void main() {
     );
     await tester.pump();
     await tester.tap(find.byKey(const Key('admin-reset-button-importedMedia')));
-    await settle(tester);
+    await settleMediaDialog(tester);
 
     final images = find.byKey(const Key('admin-media-remove-images'));
     final audio = find.byKey(const Key('admin-media-remove-audio'));
@@ -467,7 +486,7 @@ void main() {
     );
     await tester.pump();
     await tester.tap(find.byKey(const Key('admin-reset-button-importedMedia')));
-    await settle(tester);
+    await settleMediaDialog(tester);
 
     expect(find.byKey(const Key('admin-media-nothing')), findsOneWidget);
     expect(
@@ -498,7 +517,7 @@ void main() {
     );
     await tester.pump();
     await tester.tap(find.byKey(const Key('admin-reset-button-importedMedia')));
-    await settle(tester);
+    await settleMediaDialog(tester);
 
     final images = find.byKey(const Key('admin-media-remove-images'));
     expect(tester.widget<CheckboxListTile>(images).onChanged, isNotNull);

@@ -23,6 +23,7 @@ import 'widgets/learner_shell.dart';
 import 'widgets/learner_navigation.dart';
 import 'widgets/learner_theme_mode_scope.dart';
 import 'services/import/import_stager.dart';
+import 'services/storage/qql_storage.dart';
 
 Future<void> main() async {
   StartupDiagnosticService.checkpoint('DART_MAIN_ENTER');
@@ -634,7 +635,16 @@ class _StartupCrashLogNoticeState extends State<_StartupCrashLogNotice> {
                 'Please use the app normally and reproduce the crash. After the app closes, reopen it if necessary.',
               ),
               const SizedBox(height: 12),
-              const Text('Then send this file as an attachment:'),
+              // The live Crash Log is private (Build 255 Revision 3), so
+              // testers attach the copy Quick Export makes.
+              Text(
+                'Then send a copy of the Crash Log as an attachment. To make '
+                'one, open Settings › Debug and use Quick Export: it saves '
+                '${CrashLogService.exportFileName} in '
+                '${QqlStorageLayout.current.folderLabel(QqlStorageRole.diagnosticLogExports)}.',
+              ),
+              const SizedBox(height: 12),
+              const Text('The Crash Log itself is kept here:'),
               const SizedBox(height: 6),
               SelectableText(
                 logPath,

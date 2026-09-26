@@ -660,14 +660,17 @@ void main() {
   });
 
   group('Export, Audit, Delete and Publisher removal', () {
-    test('Export writes the package into Exports', () async {
+    test('Export writes the package into Export/Courses', () async {
       final mine = _course('mine', title: 'Mine');
       await editor.installImportedCustomCourse(mine);
 
       final exported = await ops.exportCourse(mine);
 
       expect(await File(exported.path).exists(), isTrue);
-      expect(exported.path, contains('Exports'));
+      expect(
+        exported.path,
+        contains('Export${Platform.pathSeparator}Courses'),
+      );
     });
 
     test('Audit names an unavailable World Flag and still audits', () async {

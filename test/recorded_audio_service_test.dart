@@ -8,7 +8,7 @@ void main() {
     final unsafe = CourseMediaStore.folderNameFor(r'..\..\outside');
     final other = CourseMediaStore.folderNameFor('outside');
 
-    expect(unsafe, matches(RegExp(r'^course_[0-9a-f]{64}$')));
+    expect(unsafe, matches(RegExp(r'^QQL_[0-9a-f]{64}$')));
     expect(unsafe, isNot(other));
     expect(unsafe, isNot(contains('..')));
     expect(unsafe, isNot(contains('/')));

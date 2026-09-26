@@ -2,8 +2,7 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:quisquislingo_app/services/exercise_image_service.dart';
-import 'package:quisquislingo_app/services/image_bank_service.dart';
+import 'package:quisquislingo_app/services/storage/qql_storage.dart';
 
 void main() {
   test('first-profile gate owns startup before animation and notices', () {
@@ -84,7 +83,7 @@ void main() {
         isTrue,
       );
       expect(source.contains('QuisquisLingo Logs'), isFalse);
-      expect(source.contains('quisquislingo_crash.log'), isTrue);
+      expect(source.contains("'QQL_crash.log'"), isTrue);
       expect(source.contains(r"Build mode: ${_buildMode()}"), isTrue);
     },
   );
@@ -115,28 +114,30 @@ void main() {
       expect(source.contains('QuisquisLingo'), isTrue);
       expect(source.contains('quisquislingo_startup_trace.log'), isTrue);
     }
-    expect(diagnosticSource.contains('QuisquisLingo'), isTrue);
-    expect(
-      diagnosticSource.contains('quisquislingo_diagnostic_log.txt'),
-      isTrue,
-    );
+    // Exported files carry the short QQL_ prefix (Build 255 Revision 3).
+    expect(diagnosticSource.contains('QQL_diagnostic_log.txt'), isTrue);
   });
 
   test('user-facing filesystem locations use QuisquisLingo branding', () async {
     final expectedByFile = <String, List<String>>{
       'lib/services/custom_course_transfer_service.dart': [
         'QuisquisLingo',
-        'quisquislingo_',
+        'QQL_',
       ],
       'lib/services/learner_backup_service.dart': [
         'QuisquisLingo',
         'quisquislingo_',
+        'QQL_',
       ],
       'lib/services/course_flag_service.dart': ['QuisquisLingo'],
-      'lib/services/exercise_image_service.dart': ['QuisquisLingo'],
-      'lib/services/recorded_audio_service.dart': ['QuisquisLingo'],
-      'lib/services/course_media_store.dart': ['quisquislingo_course_media'],
-      'lib/services/tts_linux_backend_io.dart': ['quisquislingo_tts_'],
+      // Quick Import and Quick Export folders are named by the storage layer.
+      'lib/services/storage/file_system_storage.dart': ['QuisquisLingo'],
+      'lib/services/storage/qql_storage_layout.dart': [
+        'Documents/QuisquisLingo',
+      ],
+      // Build 255 Revision 4: QQL's own folders start with QQL_.
+      'lib/services/course_media_store.dart': ["'QQL_CourseMedia'"],
+      'lib/services/tts_linux_backend_io.dart': ["'QQL_TTS_'"],
     };
 
     for (final entry in expectedByFile.entries) {
@@ -149,11 +150,12 @@ void main() {
     final documents = await getApplicationDocumentsDirectory();
     final expectedImageDirectory =
         '${documents.path}${Platform.pathSeparator}QuisquisLingo'
-        '${Platform.pathSeparator}Imports${Platform.pathSeparator}Images';
-    final imageDirectory = await ExerciseImageService().fixedImportDirectory();
-    final bankDirectory = await ImageBankService().fixedImportDirectory();
-    expect(imageDirectory.path, expectedImageDirectory);
-    expect(bankDirectory.path, expectedImageDirectory);
-    expect(await bankDirectory.exists(), isTrue);
+        '${Platform.pathSeparator}Import${Platform.pathSeparator}Images';
+    // Single images and Image Bank ZIPs share one role, so one folder.
+    final imageFolder = await QqlStorage().importFolder(
+      QqlStorageRole.imageImports,
+    );
+    expect(imageFolder.location, expectedImageDirectory);
+    expect(await Directory(expectedImageDirectory).exists(), isTrue);
   });
 }

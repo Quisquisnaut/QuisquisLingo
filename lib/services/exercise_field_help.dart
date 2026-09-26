@@ -1,4 +1,5 @@
 import 'translation_choice_service.dart';
+import 'storage/qql_storage.dart';
 
 /// Shared meanings for the fields that the current Exercise Editor exposes.
 /// These definitions describe authoring; they do not implement validation.
@@ -188,12 +189,12 @@ abstract final class ExerciseFieldHelpRegistry {
       );
     }
     if (presetId == 'listening_choice' && fieldKey == 'tts') {
-      return const ExerciseFieldHelp(
+      return ExerciseFieldHelp(
         title: 'Spoken text',
         purpose:
             'Enter exactly what the learner should hear. On-Device TTS sends this text to the device’s native text-to-speech engine; no audio file is required in that mode. Example: Buongiorno, come stai?',
         entryRules:
-            'Playback follows the Course Audio Library mode. Recorded MP3 resolves this text against Course recordings; Hybrid tries a complete recording sequence before native TTS. Enter spoken words, not an MP3 filename or path. For MP3, open Course Editor > Audio Library, place files in Documents/QuisquisLingo/Imports/Audio, press Import MP3, then Associate recording and enter its Word or expression. Select Recorded MP3 only or Hybrid. Exercises use these text mappings; there is no per-exercise file attachment.',
+            'Playback follows the Course Audio Library mode. Recorded MP3 resolves this text against Course recordings; Hybrid tries a complete recording sequence before native TTS. Enter spoken words, not an MP3 filename or path. For MP3, open Course Editor > Audio Library, place files in ${QqlStorageLayout.current.folderLabel(QqlStorageRole.audioImports)}, press Import MP3, then Associate recording and enter its Word or expression. Select Recorded MP3 only or Hybrid. Exercises use these text mappings; there is no per-exercise file attachment.',
         validation:
             'Recordings are stored physically by learning language; metadata and references belong to the Course. Verified Course backups copy referenced recordings. Course JSON does not contain MP3 bytes and JSON alone does not transfer recordings.',
         example: 'Buongiorno, come stai?',
@@ -424,12 +425,12 @@ abstract final class ExerciseFieldHelpRegistry {
           'Text to image requires a nonempty text prompt, at least two image-only options and exactly one correct option.',
       example: 'Choose the character pronounced ga.',
     ),
-    ExerciseAuthoringField.scriptPromptImages => const ExerciseFieldHelp(
+    ExerciseAuthoringField.scriptPromptImages => ExerciseFieldHelp(
       title: 'Character prompt images',
       purpose:
           'Shows one or more representations of the same character or syllable.',
       entryRules:
-          'Add printed forms, different fonts, handwriting or stylistic variants. Choose an Image Bank image or import a PNG, JPEG or WEBP from Documents/QuisquisLingo/Imports/Images. Imported bytes belong to the course and are retained in Course JSON; no absolute local path is saved.',
+          'Add printed forms, different fonts, handwriting or stylistic variants. Choose an Image Bank image or import a PNG, JPEG or WEBP from ${QqlStorageLayout.current.folderLabel(QqlStorageRole.imageImports)}. Imported bytes belong to the course and are retained in Course JSON; no absolute local path is saved.',
       validation:
           'Image to text requires at least one readable prompt image and at least two text options. Each imported image must be at most 50 KB (51,200 bytes) and no more than 4096 pixels in either dimension. Invalid image data blocks Save and Preview.',
       example:
@@ -823,11 +824,11 @@ abstract final class ExerciseFieldHelpRegistry {
           'Every entered turn needs both a non-empty speaker and non-empty text. Speaker labels do not create separate voice settings.',
       example: 'Jane: Are you coming?\nJim: I changed my mind.',
     ),
-    ExerciseAuthoringField.image => const ExerciseFieldHelp(
+    ExerciseAuthoringField.image => ExerciseFieldHelp(
       title: 'Exercise image',
       purpose: 'Adds one image to the exercise prompt or context.',
       entryRules:
-          'Choose a flat image from the shared image library (managed by admins), or place exactly one PNG, JPG, JPEG or WebP file in Documents/QuisquisLingo/Imports/Images and press Import custom image. Any course editor can import a custom image; it is not added to the shared library. Import copies the original bytes to local app storage; it does not resize, crop or change transparency.',
+          'Choose a flat image from the shared image library (managed by admins), or place exactly one PNG, JPG, JPEG or WebP file in ${QqlStorageLayout.current.folderLabel(QqlStorageRole.imageImports)} and press Import custom image. Any course editor can import a custom image; it is not added to the shared library. Import copies the original bytes to local app storage; it does not resize, crop or change transparency.',
       validation:
           'Maximum 50 KB (51,200 bytes). 256 × 256 pixels and 15 KB or less are recommendations, not enforced dimensions. Image-prompt ordering requires an image; other current presets may omit it. Missing or multiple source files and oversized files are rejected. Preview checks that the image displays. Course JSON stores the image path, not these image bytes, so custom exercise images are not portable through course JSON alone.',
       example:

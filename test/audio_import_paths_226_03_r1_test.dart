@@ -91,10 +91,10 @@ void main() {
     });
     final service = CustomCourseTransferService(directory: () async => temp);
 
-    expect((await service.transferDirectory()).path, temp.path);
-    expect((await service.importDirectory()).path, temp.path);
+    expect((await service.exportFolder()).location, temp.path);
+    expect((await service.importFolder()).location, temp.path);
     expect(
-      await service.importFilePath(),
+      (await service.importFolder()).locationOf('import.json'),
       '${temp.path}${Platform.pathSeparator}import.json',
     );
   });
@@ -119,10 +119,10 @@ void main() {
         importDirectory: () async => imports,
       );
 
-      expect((await service.transferDirectory()).path, exports.path);
-      expect((await service.importDirectory()).path, imports.path);
+      expect((await service.exportFolder()).location, exports.path);
+      expect((await service.importFolder()).location, imports.path);
       expect(
-        await service.importFilePath(),
+        (await service.importFolder()).locationOf('import.json'),
         '${imports.path}${Platform.pathSeparator}import.json',
       );
       expect(await exports.exists(), isTrue);
@@ -131,7 +131,7 @@ void main() {
   );
 
   test(
-    'default documents paths export to Exports and import from Imports without changing source files',
+    'default documents paths export to Export/Courses and import from Import/Courses without changing source files',
     () async {
       const pathProviderChannel = MethodChannel(
         'plugins.flutter.io/path_provider',
@@ -157,11 +157,11 @@ void main() {
       final service = CustomCourseTransferService();
       final expectedExports = Directory(
         '${documents.path}${Platform.pathSeparator}QuisquisLingo'
-        '${Platform.pathSeparator}Exports',
+        '${Platform.pathSeparator}Export${Platform.pathSeparator}Courses',
       );
       final expectedImports = Directory(
         '${documents.path}${Platform.pathSeparator}QuisquisLingo'
-        '${Platform.pathSeparator}Imports',
+        '${Platform.pathSeparator}Import${Platform.pathSeparator}Courses',
       );
       final course = _audioCourse(
         CourseMediaStore.referenceFor(mp3Bytes, 'mp3'),
@@ -171,7 +171,9 @@ void main() {
       final exportPath = await service.exportCourse(course);
       final exportFile = File(exportPath);
       final exportedBytes = await exportFile.readAsBytes();
-      final importPath = await service.importPackagePath();
+      final importPath = (await service.importFolder()).locationOf(
+        CustomCourseTransferService.importPackageName,
+      );
       final importFile = await exportFile.copy(importPath);
       final imported = (await service.importCoursePackage()).course;
 

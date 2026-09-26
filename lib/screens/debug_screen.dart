@@ -13,6 +13,7 @@ import '../services/diagnostic_log_service.dart';
 import '../services/file_dialog_service.dart';
 import '../widgets/app_locale_selector.dart';
 import '../widgets/file_dialog_feedback.dart';
+import '../services/storage/qql_storage.dart';
 
 class DebugScreen extends StatefulWidget {
   const DebugScreen({super.key});
@@ -28,6 +29,7 @@ class _DebugScreenState extends State<DebugScreen> {
   bool _hasDiagnosticLog = false;
   String? _diagnosticExportPath;
   String? _crashLogPath;
+  String? _crashExportPath;
 
   @override
   void initState() {
@@ -43,11 +45,13 @@ class _DebugScreenState extends State<DebugScreen> {
       final hasDiagnosticLog = await _logs.hasEntries();
       final diagnosticExportPath = await _logs.exportPath();
       final crashLogPath = CrashLogService.instance.crashLogPath;
+      final crashExportPath = await CrashLogService.instance.exportPath();
       if (!mounted) return;
       setState(() {
         _hasDiagnosticLog = hasDiagnosticLog;
         _diagnosticExportPath = diagnosticExportPath;
         _crashLogPath = crashLogPath;
+        _crashExportPath = crashExportPath;
         _loading = false;
       });
     } catch (error, stackTrace) {
@@ -136,7 +140,7 @@ class _DebugScreenState extends State<DebugScreen> {
         saving: true,
         savedMessage: 'Diagnostic Log copy saved as ${result.displayName}.',
         fallbackHint:
-            'You can use Export Diagnostic Log instead; it saves to Documents/QuisquisLingo/Logs.',
+            'You can use Export Diagnostic Log instead; it saves to ${QqlStorageLayout.current.folderLabel(QqlStorageRole.diagnosticLogExports)}.',
       );
     } catch (_) {
       if (!mounted) return;
@@ -147,6 +151,24 @@ class _DebugScreenState extends State<DebugScreen> {
         ),
       );
     }
+  }
+
+  /// Quick Export: a copy of the live Crash Log in the Logs folder, with no
+  /// dialog, replacing the previous copy.
+  Future<void> _quickExportCrashLog() async {
+    String message;
+    try {
+      final written = await CrashLogService.instance.exportCopy();
+      message = written == null
+          ? 'The Crash Log is not available to export.'
+          : 'Crash Log copy exported to ${written.location}';
+    } catch (_) {
+      message = 'The Crash Log copy could not be exported.';
+    }
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(duration: const Duration(seconds: 8), content: Text(message)),
+    );
   }
 
   /// Saves a copy of the live Crash Log. The live file is only read: it is
@@ -167,7 +189,7 @@ class _DebugScreenState extends State<DebugScreen> {
       final bytes = await File(path).readAsBytes();
       final result = await _dialogs.saveBytes(
         bytes: bytes,
-        suggestedName: path.split(RegExp(r'[\\/]')).last,
+        suggestedName: CrashLogService.exportFileName,
         extensions: const ['txt', 'log'],
         artifact: 'crash-log',
       );
@@ -178,7 +200,7 @@ class _DebugScreenState extends State<DebugScreen> {
         saving: true,
         savedMessage: 'Crash Log copy saved as ${result.displayName}.',
         fallbackHint:
-            'The Crash Log stays at the location shown here; you can copy it from there.',
+            'You can use Quick Export instead; it saves a copy to ${QqlStorageLayout.current.folderLabel(QqlStorageRole.diagnosticLogExports)}.',
       );
     } catch (_) {
       if (!mounted) return;
@@ -258,15 +280,24 @@ class _DebugScreenState extends State<DebugScreen> {
                   title: const Text('Crash Log'),
                   subtitle: Text(
                     'For cases where QQL crashes or closes unexpectedly. If available after a crash, copy or export this file and provide it with your report. It is primarily useful for startup and runtime crashes.\n'
-                    'Saved at: ${_crashLogPath ?? 'Path unavailable on this platform.'}',
+                    'Saved at: ${_crashLogPath ?? 'Path unavailable on this platform.'}\n'
+                    'Quick Export location: ${_crashExportPath ?? 'Unavailable on this platform.'}',
                   ),
                   trailing: Wrap(
                     spacing: 2,
                     children: [
+                      IconButton(
+                        key: const Key('quick-export-crash-log'),
+                        tooltip: 'Quick Export Crash Log',
+                        onPressed: _crashLogPath == null
+                            ? null
+                            : _quickExportCrashLog,
+                        icon: const Icon(Icons.file_download_outlined),
+                      ),
                       if (_dialogs.isAvailable)
                         IconButton(
                           key: const Key('save-crash-log-copy-to'),
-                          tooltip: 'Save log copy to…',
+                          tooltip: 'Save log copy as…',
                           onPressed: _crashLogPath == null
                               ? null
                               : _saveCrashLogCopyTo,
@@ -303,7 +334,7 @@ class _DebugScreenState extends State<DebugScreen> {
                       if (_dialogs.isAvailable)
                         IconButton(
                           key: const Key('save-diagnostic-log-copy-to'),
-                          tooltip: 'Save log copy to…',
+                          tooltip: 'Save log copy as…',
                           onPressed: _hasDiagnosticLog
                               ? _saveDiagnosticLogCopyTo
                               : null,

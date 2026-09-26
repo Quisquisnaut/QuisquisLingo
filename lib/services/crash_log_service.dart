@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'app_metadata.dart';
 import 'bounded_log_writer.dart';
 import 'diagnostic_log_service.dart';
+import 'storage/qql_storage.dart';
 
 /// Writes uncaught Flutter/Dart errors to a persistent local text file.
 ///
@@ -14,6 +15,12 @@ import 'diagnostic_log_service.dart';
 /// not collect course answers, profile names, or other user content.
 class CrashLogService {
   static const _maximumLogBytes = 2 * 1024 * 1024;
+
+  /// The live Crash Log and the session marker, in
+  /// [DiagnosticLogService.logsDirectory]. Build 255 Revision 4 renamed them
+  /// from `quisquislingo_crash.log` and `quisquislingo_session.marker`.
+  static const crashLogFileName = 'QQL_crash.log';
+  static const sessionMarkerFileName = 'QQL_session.marker';
 
   CrashLogService._();
 
@@ -37,14 +44,14 @@ class CrashLogService {
       final directory = await DiagnosticLogService.logsDirectory(create: true);
       if (directory == null) return;
       _file = File(
-        '${directory.path}${Platform.pathSeparator}quisquislingo_crash.log',
+        '${directory.path}${Platform.pathSeparator}$crashLogFileName',
       );
       // Only desktop close paths are hooked (see window_setup_io.dart), so
       // detection is limited there to avoid false alarms on mobile, where the
       // OS may end a session without any notification.
       if (Platform.isWindows || Platform.isLinux) {
         _markerFile = File(
-          '${directory.path}${Platform.pathSeparator}quisquislingo_session.marker',
+          '${directory.path}${Platform.pathSeparator}$sessionMarkerFileName',
         );
       }
       _initialised = true;
@@ -262,10 +269,55 @@ class CrashLogService {
     await _appendToLogs(buffer.toString());
   }
 
+  /// Tests only: makes the Crash Log unavailable for this process, as if its
+  /// folder could not be made, without touching storage.
+  @visibleForTesting
+  void debugMarkUnavailable() {
+    _initialisationFailed = true;
+    _initialised = false;
+    _file = null;
+    _markerFile = null;
+  }
+
   String? get visibleLogPath => _file?.path;
 
   /// Returns the easiest valid crash-log path for the current platform.
   String? get crashLogPath => _file?.path;
+
+  static const exportBaseName = 'QQL_crash_log';
+  static const exportFileName = 'QQL_crash_log.txt';
+
+  /// Where Quick Export puts the Crash Log copy, for display.
+  Future<String?> exportPath({QqlStorage? storage}) async {
+    if (kIsWeb) return null;
+    try {
+      final folder = await (storage ?? QqlStorage()).exportFolder(
+        QqlStorageRole.diagnosticLogExports,
+      );
+      return folder.locationOf(exportFileName);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// Quick Export: copies the live Crash Log into the Logs folder as
+  /// [exportFileName], replacing the previous copy. The live file is only
+  /// read. Null when there is no Crash Log; a failed write throws.
+  Future<QuickExportResult?> exportCopy({QqlStorage? storage}) async {
+    if (kIsWeb) return null;
+    final file = _file;
+    if (file == null || !await file.exists()) return null;
+    final bytes = await file.readAsBytes();
+    final folder = await (storage ?? QqlStorage()).exportFolder(
+      QqlStorageRole.diagnosticLogExports,
+    );
+    return folder.write(
+      baseName: exportBaseName,
+      extension: 'txt',
+      bytes: bytes,
+      replace: true,
+    );
+  }
 
   void installFlutterHandler() {
     FlutterError.onError = (FlutterErrorDetails details) {

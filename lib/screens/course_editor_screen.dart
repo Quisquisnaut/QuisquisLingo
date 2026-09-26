@@ -66,6 +66,8 @@ import '../widgets/flag_art.dart';
 import '../widgets/course_flag_picker.dart';
 import '../widgets/lesson_fallback_icon.dart';
 import '../widgets/import_summary.dart';
+import '../services/storage/qql_storage.dart';
+import '../widgets/quick_import_access.dart';
 
 String _exerciseCountLabel(int count) =>
     '$count ${count == 1 ? 'Exercise' : 'Exercises'}';
@@ -4606,9 +4608,24 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
       return;
     }
     if (selected == import || selected == importFrom) {
+      var fromDialog = selected == importFrom;
+      if (!fromDialog) {
+        switch (await ensureQuickImportAccess(
+          context,
+          offerOpenFrom: _lessonIcons.fileDialogsAvailable,
+        )) {
+          case QuickImportAccess.ready:
+            break;
+          case QuickImportAccess.openFrom:
+            fromDialog = true;
+          case QuickImportAccess.stop:
+            return;
+        }
+        if (!mounted) return;
+      }
       try {
         final ImportedLessonIcon imported;
-        if (selected == importFrom) {
+        if (fromDialog) {
           // Open from…: same normalization as the fixed-folder import.
           final picked = await _lessonIcons.importPreparedIconFromDialog();
           if (!mounted) return;
@@ -8507,8 +8524,8 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
               _ => 'QQL reads this text aloud using the device’s native TTS.',
             },
           ),
-          const Text(
-            'MP3: open Course Editor > Audio Library. Copy MP3 files to Documents/QuisquisLingo/Imports/Audio, press Import MP3, then Associate recording with its Word or expression. Choose Recorded MP3 only or Hybrid. This exercise uses those text mappings.',
+          Text(
+            'MP3: open Course Editor > Audio Library. Copy MP3 files to ${QqlStorageLayout.current.folderLabel(QqlStorageRole.audioImports)}, press Import MP3, then Associate recording with its Word or expression. Choose Recorded MP3 only or Hybrid. This exercise uses those text mappings.',
           ),
           const SizedBox(height: 12),
           _field(_question, 'Question', lines: 2),
@@ -9662,6 +9679,18 @@ class _AudioLibraryScreenState extends State<AudioLibraryScreen> {
   }
 
   Future<void> _import() async {
+    switch (await ensureQuickImportAccess(
+      context,
+      offerOpenFrom: _audio.fileDialogsAvailable,
+    )) {
+      case QuickImportAccess.ready:
+        break;
+      case QuickImportAccess.openFrom:
+        return _importFromDialog();
+      case QuickImportAccess.stop:
+        return;
+    }
+    if (!mounted) return;
     try {
       final clips = await _audio.importMp3Files(
         _course.courseId,
@@ -9678,7 +9707,7 @@ class _AudioLibraryScreenState extends State<AudioLibraryScreen> {
           SnackBar(
             duration: Duration(seconds: 8),
             content: Text(
-              'Imported ${clips.length} MP3 file${clips.length == 1 ? '' : 's'} from Documents/QuisquisLingo/Imports/Audio.',
+              'Imported ${clips.length} MP3 file${clips.length == 1 ? '' : 's'} from ${QqlStorageLayout.current.folderLabel(QqlStorageRole.audioImports)}.',
             ),
           ),
         );
@@ -9894,11 +9923,11 @@ class _AudioLibraryScreenState extends State<AudioLibraryScreen> {
           'On-Device TTS: this device reads the Course text aloud with its own text-to-speech voice. No MP3 files are needed. Choose Recorded MP3 only or Hybrid to manage Course recordings.',
       }),
       const SizedBox(height: 8),
-      if (_course.audioMode != 'tts') const Card(
+      if (_course.audioMode != 'tts') Card(
         child: Padding(
-          padding: EdgeInsets.all(12),
+          padding: const EdgeInsets.all(12),
           child: Text(
-            'Import MP3: copy the MP3 files you want to import to Documents/QuisquisLingo/Imports/Audio, then press Import MP3. All MP3 files in that folder are imported. Source files are left in place, so move or remove them after a successful import to avoid importing them again.',
+            'Import MP3: copy the MP3 files you want to import to ${QqlStorageLayout.current.folderLabel(QqlStorageRole.audioImports)}, then press Import MP3. All MP3 files in that folder are imported. Source files are left in place, so move or remove them after a successful import to avoid importing them again.',
           ),
         ),
       ),

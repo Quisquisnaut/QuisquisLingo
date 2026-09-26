@@ -63,6 +63,7 @@ void main() {
         );
       },
     );
+    keepCrashLogUnavailable();
     messenger.setMockMethodCallHandler(
       const MethodChannel('xyz.luan/audioplayers.global'),
       (_) async => null,
@@ -3450,7 +3451,7 @@ void main() {
       final betaDialog = tester.widget<AlertDialog>(find.byType(AlertDialog));
       expect(betaDialog.backgroundColor, isNull);
       expect(betaDialog.surfaceTintColor, isNull);
-      expect(find.textContaining('Expiry date: 2026-10-25.'), findsOneWidget);
+      expect(find.textContaining('Expiry date: 2026-10-26.'), findsOneWidget);
       expect(find.widgetWithText(FilledButton, 'OK'), findsOneWidget);
       expect(
         tester

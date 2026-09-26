@@ -7,7 +7,12 @@ import '../services/profile_service.dart';
 import '../services/progress_service.dart';
 import '../services/user_recovery_key_service.dart';
 import '../widgets/file_dialog_feedback.dart';
+import '../services/storage/qql_storage.dart';
+import '../widgets/quick_import_access.dart';
 
+
+String _folder(QqlStorageRole role) =>
+    QqlStorageLayout.current.folderLabel(role);
 class UserDataSettingsScreen extends StatefulWidget {
   final Course? course;
   const UserDataSettingsScreen({super.key, required this.course});
@@ -44,6 +49,20 @@ class _UserDataSettingsScreenState extends State<UserDataSettingsScreen> {
       _importRecoveryKey(fromDialog: true);
 
   Future<void> _importRecoveryKey({bool fromDialog = false}) async {
+    if (!fromDialog) {
+      switch (await ensureQuickImportAccess(
+        context,
+        offerOpenFrom: _recovery.fileDialogsAvailable,
+      )) {
+        case QuickImportAccess.ready:
+          break;
+        case QuickImportAccess.openFrom:
+          return _importRecoveryKey(fromDialog: true);
+        case QuickImportAccess.stop:
+          return;
+      }
+      if (!mounted) return;
+    }
     try {
       UserRecoveryKeyCandidate? selected;
       if (fromDialog) {
@@ -66,8 +85,11 @@ class _UserDataSettingsScreenState extends State<UserDataSettingsScreen> {
         if (!mounted) return;
         if (candidates.isEmpty) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('No User Recovery Key is available in Imports.'),
+            SnackBar(
+              content: Text(
+                'No User Recovery Key is available in '
+                '${_folder(QqlStorageRole.recoveryKeyImports)}.',
+              ),
             ),
           );
           return;
@@ -197,7 +219,7 @@ class _UserDataSettingsScreenState extends State<UserDataSettingsScreen> {
         result,
         saving: true,
         savedMessage: 'Learner backup saved as ${result.displayName}.',
-        fallbackHint: exportFallbackHint,
+        fallbackHint: userDataExportFallbackHint,
       );
     } catch (error) {
       if (!mounted) return;
@@ -216,7 +238,7 @@ class _UserDataSettingsScreenState extends State<UserDataSettingsScreen> {
     final proceed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Save Recovery Key to…'),
+        title: const Text('Save Recovery Key as…'),
         content: const Text(
           'The User Recovery Key is a private credential. Someone who has it may be able to claim your QQL identity. '
           'A folder you choose, such as Downloads or a cloud folder, may be synced or shared with other people or devices. '
@@ -244,7 +266,7 @@ class _UserDataSettingsScreenState extends State<UserDataSettingsScreen> {
         saving: true,
         savedMessage: 'User Recovery Key saved as ${result.displayName}.',
         fallbackHint:
-            'You can use Export User Recovery Key instead; it saves to Documents/QuisquisLingo/Exports.',
+            'You can use Export User Recovery Key instead; it saves to ${_folder(QqlStorageRole.recoveryKeyExports)}.',
       );
     } catch (error) {
       if (!mounted) return;
@@ -278,6 +300,20 @@ class _UserDataSettingsScreenState extends State<UserDataSettingsScreen> {
   Future<void> _importLearnerFromDialog() => _importLearner(fromDialog: true);
 
   Future<void> _importLearner({bool fromDialog = false}) async {
+    if (!fromDialog) {
+      switch (await ensureQuickImportAccess(
+        context,
+        offerOpenFrom: _backup.fileDialogsAvailable,
+      )) {
+        case QuickImportAccess.ready:
+          break;
+        case QuickImportAccess.openFrom:
+          return _importLearner(fromDialog: true);
+        case QuickImportAccess.stop:
+          return;
+      }
+      if (!mounted) return;
+    }
     try {
       final LearnerBackupDocument document;
       if (fromDialog) {
@@ -515,8 +551,8 @@ class _UserDataSettingsScreenState extends State<UserDataSettingsScreen> {
           ListTile(
             leading: const Icon(Icons.upload_file_outlined),
             title: const Text('Export my data'),
-            subtitle: const Text(
-              'Saves directly to Documents/QuisquisLingo/Exports.',
+            subtitle: Text(
+              'Saves directly to ${_folder(QqlStorageRole.learnerDataExports)}.',
             ),
             onTap: _exportLearner,
           ),
@@ -524,7 +560,7 @@ class _UserDataSettingsScreenState extends State<UserDataSettingsScreen> {
             ListTile(
               key: const Key('save-user-data-to'),
               leading: const Icon(Icons.save_alt_outlined),
-              title: const Text('Save my data to…'),
+              title: const Text('Save my data as…'),
               subtitle: Text(
                 'The same backup, saved wherever you choose with the system file dialog.\n${cloudFolderHelpText()}',
               ),
@@ -533,8 +569,8 @@ class _UserDataSettingsScreenState extends State<UserDataSettingsScreen> {
           ListTile(
             leading: const Icon(Icons.download_outlined),
             title: const Text('Import my data'),
-            subtitle: const Text(
-              'Copy the backup to Documents/QuisquisLingo/Imports/learner_import.json, then tap here.',
+            subtitle: Text(
+              'Copy the backup to ${QqlStorageLayout.current.fileLabel(QqlStorageRole.learnerDataImports, LearnerBackupService.importFileName)}, then tap here.',
             ),
             onTap: _importLearner,
           ),
@@ -559,8 +595,8 @@ class _UserDataSettingsScreenState extends State<UserDataSettingsScreen> {
             key: const Key('export-user-recovery-key'),
             leading: const Icon(Icons.key_outlined),
             title: const Text('Export User Recovery Key'),
-            subtitle: const Text(
-              'Saves directly to Documents/QuisquisLingo/Exports.',
+            subtitle: Text(
+              'Saves directly to ${_folder(QqlStorageRole.recoveryKeyExports)}.',
             ),
             onTap: _exportRecoveryKey,
           ),
@@ -568,7 +604,7 @@ class _UserDataSettingsScreenState extends State<UserDataSettingsScreen> {
             ListTile(
               key: const Key('save-user-recovery-key-to'),
               leading: const Icon(Icons.save_alt_outlined),
-              title: const Text('Save Recovery Key to…'),
+              title: const Text('Save Recovery Key as…'),
               subtitle: const Text(
                 'The same key file, saved wherever you choose. Keep it private: you will be reminded first.',
               ),
@@ -578,7 +614,9 @@ class _UserDataSettingsScreenState extends State<UserDataSettingsScreen> {
             key: const Key('import-user-recovery-key'),
             leading: const Icon(Icons.key),
             title: const Text('Import User Recovery Key'),
-            subtitle: const Text('Searches Documents/QuisquisLingo/Imports.'),
+            subtitle: Text(
+              'Searches ${_folder(QqlStorageRole.recoveryKeyImports)}.',
+            ),
             onTap: _importRecoveryKey,
           ),
           if (_recovery.fileDialogsAvailable)

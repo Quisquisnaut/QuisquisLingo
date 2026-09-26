@@ -26,6 +26,7 @@ void main() {
             throw PlatformException(code: 'test-storage');
           },
         );
+    keepCrashLogUnavailable();
   });
 
   for (final brightness in [Brightness.light, Brightness.dark]) {

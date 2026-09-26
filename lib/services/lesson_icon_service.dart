@@ -1,13 +1,13 @@
 import 'dart:convert';
-import 'dart:io';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
-
-import 'package:path_provider/path_provider.dart';
 
 import '../models/course_models.dart';
 import 'file_dialog_service.dart';
 import 'import/image_validator.dart';
+import 'import/import_stager.dart';
+import 'import/selected_external_file.dart';
+import 'storage/qql_storage.dart';
 
 class ImportedLessonIcon {
   final CourseLessonIconAsset asset;
@@ -22,14 +22,16 @@ class ImportedLessonIcon {
 }
 
 class LessonIconService {
-  LessonIconService({FileDialogService? fileDialogs})
-    : _fileDialogs = fileDialogs ?? FileDialogService();
+  LessonIconService({FileDialogService? fileDialogs, QqlStorage? storage})
+    : _fileDialogs = fileDialogs ?? FileDialogService(),
+      _storage = storage ?? QqlStorage();
 
   static const int canvasSize = 256;
   static const int maxInputBytes = 2 * 1024 * 1024;
   static const int maxSourceDimension = 4096;
 
   final FileDialogService _fileDialogs;
+  final QqlStorage _storage;
 
   /// False when the system dialog is unsupported; hide Open from….
   bool get fileDialogsAvailable => _fileDialogs.isAvailable;
@@ -47,48 +49,42 @@ class LessonIconService {
     );
   }
 
-  Future<Directory> iconImportDirectory() async {
-    final documents = await getApplicationDocumentsDirectory();
-    final directory = Directory(
-      '${documents.path}${Platform.pathSeparator}QuisquisLingo'
-      '${Platform.pathSeparator}Imports${Platform.pathSeparator}Lesson Icons',
-    );
-    await directory.create(recursive: true);
-    return directory;
-  }
-
   Future<ImportedLessonIcon> importPreparedIcon() async {
-    final directory = await iconImportDirectory();
-    final candidates = await directory
-        .list(followLinks: false)
-        .where((entity) => entity is File)
-        .cast<File>()
-        .where((file) {
-          final extension = file.path.toLowerCase().split('.').last;
-          return const {'png', 'jpg', 'jpeg', 'webp'}.contains(extension);
-        })
-        .toList();
+    final folder = await _storage.importFolder(
+      QqlStorageRole.lessonIconImports,
+    );
+    final candidates = (await folder.files()).where((file) {
+      final extension = file.name.toLowerCase().split('.').last;
+      return const {'png', 'jpg', 'jpeg', 'webp'}.contains(extension);
+    }).toList();
     candidates.sort(
-      (a, b) => a.path.toLowerCase().compareTo(b.path.toLowerCase()),
+      (a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()),
     );
     if (candidates.isEmpty) {
       throw StateError(
-        'No icon image found in ${directory.path}. Copy one PNG, JPG, JPEG or WEBP image there and try again.',
+        'No icon image found in ${folder.location}. Copy one PNG, JPG, JPEG or WEBP image there and try again.',
       );
     }
     if (candidates.length > 1) {
       throw StateError(
-        'More than one image was found in ${directory.path}. Keep only the icon you want to import, then try again.',
+        'More than one image was found in ${folder.location}. Keep only the icon you want to import, then try again.',
       );
     }
     final file = candidates.single;
-    if (await file.length() > maxInputBytes) {
-      throw const FormatException(
-        'Lesson icon image is too large. Export a smaller picture and try again.',
-      );
+    const tooLarge = FormatException(
+      'Lesson icon image is too large. Export a smaller picture and try again.',
+    );
+    if ((file.reportedSize ?? 0) > maxInputBytes) throw tooLarge;
+    final Uint8List bytes;
+    try {
+      bytes = await readQuickImportFile(file, maxBytes: maxInputBytes);
+    } on ImportTooLargeException {
+      throw tooLarge;
+    } on ImportAccessException catch (error) {
+      throw StateError(error.message);
     }
     return prepareIcon(
-      await file.readAsBytes(),
+      bytes,
       assetId: 'custom_${DateTime.now().microsecondsSinceEpoch}',
     );
   }

@@ -14,6 +14,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'support/pump_file_io.dart';
 import 'support/synthetic_mp3.dart';
+import 'package:quisquislingo_app/services/storage/qql_storage.dart';
+import 'support/quick_folders.dart';
 
 const _profileId = '12345678-1234-4234-9234-123456789abc';
 const _otherProfileId = '22222222-2222-4222-8222-222222222222';
@@ -294,7 +296,7 @@ void main() {
     'imported recordings are course media and play from the folder',
     () async {
       final service = RecordedAudioService();
-      final imports = await service.fixedImportDirectory();
+      final imports = await quickFolder(QqlStorageRole.audioImports);
       File(
         '${imports.path}${Platform.pathSeparator}ciao.mp3',
       ).writeAsBytesSync(syntheticMp3());

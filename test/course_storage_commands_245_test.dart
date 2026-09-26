@@ -3,12 +3,18 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:quisquislingo_app/services/course_file_store.dart';
+import 'package:quisquislingo_app/services/storage/course_storage_names.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   late Directory support;
   Future<Directory> supportDirectory() async => support;
+
+  /// The file the store keeps [courseId] in: these entries name no
+  /// languages, so their pair is UNKNOWN_UNKNOWN (Build 255 Revision 4).
+  String fileOf(String courseId) =>
+      CourseStorageNames.courseFileName(courseId, 'UNKNOWN_UNKNOWN');
 
   setUp(() async {
     support = await Directory.systemTemp.createTemp('qql_245_store_');
@@ -36,7 +42,7 @@ void main() {
       final directory = await store.directoryFor(CourseStoreKind.custom);
       expect(
         await File(
-          '${directory.path}${Platform.pathSeparator}a.json',
+          '${directory.path}${Platform.pathSeparator}${fileOf('a')}',
         ).readAsString(),
         '{"courseId":"a","entry":{"value":1}}',
       );
@@ -49,7 +55,9 @@ void main() {
     await store.createIfAbsent(CourseStoreKind.custom, 'b', {'value': 1});
     final old = (await store.snapshot(CourseStoreKind.custom, 'a'))!;
     final directory = await store.directoryFor(CourseStoreKind.custom);
-    final unrelated = File('${directory.path}${Platform.pathSeparator}b.json');
+    final unrelated = File(
+      '${directory.path}${Platform.pathSeparator}${fileOf('b')}',
+    );
     final unrelatedBytes = await unrelated.readAsBytes();
     final unrelatedModified = await unrelated.lastModified();
 
@@ -94,7 +102,9 @@ void main() {
     await store.createIfAbsent(CourseStoreKind.custom, 'a', {'v': 1});
     final old = (await store.snapshot(CourseStoreKind.custom, 'a'))!;
     final directory = await store.directoryFor(CourseStoreKind.custom);
-    final target = File('${directory.path}${Platform.pathSeparator}a.json');
+    final target = File(
+      '${directory.path}${Platform.pathSeparator}${fileOf('a')}',
+    );
     await target.writeAsString('{"courseId":"a","entry":{"v":9}}');
 
     await expectLater(
@@ -123,7 +133,7 @@ void main() {
 
     final directory = await store.directoryFor(CourseStoreKind.custom);
     final canonical = File(
-      '${directory.path}${Platform.pathSeparator}course_a.json',
+      '${directory.path}${Platform.pathSeparator}${fileOf('course/a')}',
     );
     await canonical.copy(
       '${directory.path}${Platform.pathSeparator}duplicate.json',
@@ -151,7 +161,7 @@ void main() {
         create: true,
       );
       final corrupt = File(
-        '${directory.path}${Platform.pathSeparator}bad.json',
+        '${directory.path}${Platform.pathSeparator}${fileOf('bad')}',
       );
       await corrupt.writeAsString('{ truncated');
 
@@ -175,7 +185,9 @@ void main() {
     await good.createIfAbsent(CourseStoreKind.custom, 'a', {'v': 1});
     final old = (await good.snapshot(CourseStoreKind.custom, 'a'))!;
     final directory = await good.directoryFor(CourseStoreKind.custom);
-    final target = File('${directory.path}${Platform.pathSeparator}a.json');
+    final target = File(
+      '${directory.path}${Platform.pathSeparator}${fileOf('a')}',
+    );
     final originalBytes = await target.readAsBytes();
     final broken = CourseFileStore(
       supportDirectory: supportDirectory,
@@ -204,7 +216,9 @@ void main() {
       await good.createIfAbsent(CourseStoreKind.custom, 'a', {'v': 1});
       final original = (await good.snapshot(CourseStoreKind.custom, 'a'))!;
       final directory = await good.directoryFor(CourseStoreKind.custom);
-      final target = File('${directory.path}${Platform.pathSeparator}a.json');
+      final target = File(
+      '${directory.path}${Platform.pathSeparator}${fileOf('a')}',
+    );
       final staged = Completer<void>();
       final release = Completer<void>();
       final delayed = CourseFileStore(
@@ -256,7 +270,9 @@ void main() {
     });
     await staged.future;
     final directory = await delayed.directoryFor(CourseStoreKind.custom);
-    final target = File('${directory.path}${Platform.pathSeparator}a.json');
+    final target = File(
+      '${directory.path}${Platform.pathSeparator}${fileOf('a')}',
+    );
     await target.writeAsString('{"courseId":"a","entry":{"v":9}}');
     release.complete();
 

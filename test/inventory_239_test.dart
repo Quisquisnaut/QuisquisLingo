@@ -9,8 +9,10 @@ import 'package:quisquislingo_app/screens/inventory_screen.dart';
 import 'package:quisquislingo_app/services/inventory_service.dart';
 import 'package:quisquislingo_app/services/course_file_store.dart';
 import 'package:quisquislingo_app/services/profile_service.dart';
-import 'package:quisquislingo_app/services/course_media_store.dart';
+import 'package:quisquislingo_app/services/storage/course_storage_names.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import 'support/pump_file_io.dart';
 
 final _course = Course(
   courseId: 'qql-239-inventory-course',
@@ -96,7 +98,9 @@ void main() {
       expect(item.sizeBytes, file.lengthSync());
       expect(item.modified, file.statSync().modified);
       expect(courses.totalBytes, file.lengthSync());
-      expect(courses.location, endsWith('qql_courses_v2'));
+      expect(courses.location, endsWith('QQL_Courses'));
+      // Revision 4: QQL_<pair>_<ID>.json, the ID without its course_ prefix.
+      expect(file.uri.pathSegments.last, startsWith('QQL_EN_IT_'));
       expect(courses.items.single.owner, isNotNull);
     },
   );
@@ -135,7 +139,7 @@ void main() {
     'inventory lists unreadable course files without altering them',
     () async {
       final file = touch(
-        '${support.path}${sep}qql_courses_v2${sep}custom${sep}broken.json',
+        '${support.path}${sep}QQL_Courses${sep}Custom${sep}broken.json',
         'broken-json',
       );
       final actual = InventoryService(
@@ -158,39 +162,58 @@ void main() {
     'finds exports, imports, logs, media and outside files with owners',
     () async {
       touch(
-        qql('Exports/quisquislingo_admin_one_backup.json'),
+        qql('Export/UserData/QQL_admin_one_backup.json'),
         jsonEncode({'learnerProfileId': adminId, 'displayName': 'Admin One'}),
       );
       touch(
-        qql('Exports/gone.user-recovery-key.json'),
+        qql('Export/RecoveryKeys/gone.user-recovery-key.json'),
         jsonEncode({
           'learnerProfileId': '11111111-1111-4111-8111-111111111111',
           'displayName': 'Old Learner',
         }),
       );
+      // Course backups are in the public Backups folder since Build 255
+      // Revision 5.
       touch(
-        qql('Exports/Course Backups v11/c_1_2026.json'),
+        qql('Backups/Courses/QQL_bkp_EN_IT_c/QQL_bkp_EN_IT_c_v1_2026.json'),
         jsonEncode({'reason': 'Pre-change Course Editor transaction backup'}),
       );
-      touch(qql('Imports/Audio/word.mp3'));
-      touch(qql('Merges/merge.json'));
-      touch(qql('Logs/quislingo_crash.log'));
+      touch(
+        qql('Exports/Course Backups v11/c_0_2025.json'),
+        jsonEncode({'reason': 'Pre-change Course Editor transaction backup'}),
+      );
+      touch(qql('Import/Audio/word.mp3'));
+      touch(qql('ToBeMerged/Courses/merge.json'));
+      touch(qql('Logs/QQL_crash_log.txt'));
       touch(qql('notes.txt'));
       touch(qql('Stuff/inner.bin'));
+      // Images and banks from before Revision 4 keep working where they are.
       touch('${support.path}${sep}exercise_images${sep}a.png');
+      touch('${support.path}${sep}QQL_SharedImages${sep}b.png');
       touch('${support.path}${sep}image_banks${sep}bank_1${sep}manifest.json');
-      final hash = CourseMediaStore.folderNameFor(_course.courseId);
-      touch(
-        '${support.path}${sep}quisquislingo_course_media$sep$hash$sep${'a' * 64}.mp3',
+      touch('${support.path}${sep}QQL_ImageBanks${sep}bank_2${sep}manifest.json');
+      final folder = CourseStorageNames.mediaFolderName(
+        _course.courseId,
+        pair: CourseStorageNames.pairOfCourse(_course),
       );
       touch(
-        '${support.path}${sep}quisquislingo_course_media${sep}course_unknown$sep${'b' * 64}.png',
+        '${support.path}${sep}QQL_CourseMedia$sep$folder$sep${'a' * 64}.mp3',
+      );
+      touch(
+        '${support.path}${sep}QQL_CourseMedia${sep}course_unknown$sep${'b' * 64}.png',
+      );
+      // Private folders from before Revision 4, which QQL no longer reads.
+      touch(
+        '${support.path}${sep}qql_courses_v2${sep}custom${sep}old.json',
+      );
+      touch(
+        '${support.path}${sep}quisquislingo_course_media${sep}course_old$sep${'c' * 64}.png',
       );
 
       final all = await service.load();
 
-      final exports = sectionOf(all, 'Exports and backups');
-      expect(exports.count, 3);
+      final exports = sectionOf(all, 'Export folder');
+      expect(exports.count, 2);
       InventoryItem byName(String part) =>
           exports.items.firstWhere((i) => i.name.contains(part));
       expect(byName('admin_one_backup').owner, 'Admin One');
@@ -201,23 +224,35 @@ void main() {
       );
       expect(byName('gone.user-recovery-key').note, 'User Recovery Key');
       expect(
-        byName('c_1_2026').note,
-        'Automatic course backup (made before a change)',
-      );
-      expect(
         exports.items.every((i) => i.path!.contains('QuisquisLingo')),
         isTrue,
       );
+      final backups = sectionOf(all, 'Backups folder');
+      expect(
+        backups.items.single.note,
+        'Automatic course backup (made before a change)',
+      );
+      expect(backups.items.single.path, contains('QuisquisLingo'));
+      expect(
+        backups.items.single.name.replaceAll(r'\', '/'),
+        'Courses/QQL_bkp_EN_IT_c/QQL_bkp_EN_IT_c_v1_2026.json',
+      );
+      final earlier = sectionOf(all, 'Folders from earlier versions');
+      expect(earlier.items.single.name, contains('c_0_2025'));
+      expect(
+        earlier.items.single.note,
+        'Automatic course backup (made before a change)',
+      );
 
-      expect(sectionOf(all, 'Imports').count, 1);
-      expect(sectionOf(all, 'Merges').count, 1);
-      expect(sectionOf(all, 'Logs').count, 1);
-      expect(sectionOf(all, 'Imported images').count, 1);
-      expect(sectionOf(all, 'Image banks').count, 1);
+      expect(sectionOf(all, 'Import folder').count, 1);
+      expect(sectionOf(all, 'ToBeMerged folder').count, 1);
+      expect(sectionOf(all, 'Logs folder').count, 1);
+      expect(sectionOf(all, 'Imported images').count, 2);
+      expect(sectionOf(all, 'Image banks').count, 2);
 
       final media = sectionOf(all, 'Course media');
       expect(media.count, 2);
-      final known = media.items.firstWhere((i) => i.name.startsWith(hash));
+      final known = media.items.firstWhere((i) => i.name.startsWith(folder));
       expect(known.owner, contains('Inventory Course'));
       expect(known.note, 'Course recording (MP3).');
       final unknown = media.items.firstWhere(
@@ -225,6 +260,18 @@ void main() {
       );
       expect(unknown.owner, 'A course no longer on this device');
       expect(unknown.note, 'Course image.');
+
+      final earlierPrivate = sectionOf(
+        all,
+        'Private folders from earlier versions',
+      );
+      expect(
+        {for (final item in earlierPrivate.items) item.note},
+        {
+          'Stored course from an earlier version.',
+          'Course media from an earlier version.',
+        },
+      );
 
       final other = sectionOf(all, 'Other files in the QQL folder');
       expect(other.count, 2);
@@ -237,9 +284,9 @@ void main() {
   );
 
   test('reports sizes and never lists media bundled with the app', () async {
-    touch(qql('Imports/a.bin'), 'x' * 2048);
+    touch(qql('Import/a.bin'), 'x' * 2048);
     final all = await service.load();
-    expect(sectionOf(all, 'Imports').totalBytes, 2048);
+    expect(sectionOf(all, 'Import folder').totalBytes, 2048);
     expect(
       all
           .expand((s) => s.items)
@@ -252,9 +299,9 @@ void main() {
     'a very large folder lists only the newest files and counts the rest',
     () async {
       for (var i = 0; i < InventoryService.maxListedPerSection + 3; i++) {
-        touch(qql('Imports/f$i.txt'));
+        touch(qql('Import/f$i.txt'));
       }
-      final imports = sectionOf(await service.load(), 'Imports');
+      final imports = sectionOf(await service.load(), 'Import folder');
       expect(imports.items.length, InventoryService.maxListedPerSection);
       expect(imports.hiddenCount, 3);
       expect(imports.count, InventoryService.maxListedPerSection + 3);
@@ -267,25 +314,21 @@ void main() {
     tester.view.physicalSize = const Size(900, 6000);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
-    touch(qql('Imports/Audio/word.mp3'));
+    touch(qql('Import/Audio/word.mp3'));
     touch(qql('notes.txt'));
 
     await tester.pumpWidget(
       MaterialApp(home: InventoryScreen(service: service)),
     );
     // The load uses real file-system calls, so give them real time.
-    for (var i = 0; i < 40; i++) {
-      await tester.pump(const Duration(milliseconds: 50));
-      await tester.runAsync(
-        () => Future<void>.delayed(const Duration(milliseconds: 25)),
-      );
-      if (find.byType(CircularProgressIndicator).evaluate().isEmpty) break;
-    }
+    await tester.pumpUntilFileIoState(
+      () => find.byType(CircularProgressIndicator).evaluate().isEmpty,
+    );
     await tester.pumpAndSettle();
 
     expect(find.byKey(const Key('inventory-summary')), findsOneWidget);
     expect(find.textContaining('Files found: 2'), findsOneWidget);
-    expect(find.textContaining('Imports (1)'), findsOneWidget);
+    expect(find.textContaining('Import folder (1)'), findsOneWidget);
     expect(find.textContaining('Added from outside QQL.'), findsWidgets);
     expect(
       find.textContaining('Belongs to: Admin One (admin)'),

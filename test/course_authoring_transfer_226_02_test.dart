@@ -577,7 +577,7 @@ void main() {
       });
       var writes = 0;
       final backups = CourseBackupService(
-        documentsDirectoryProvider: () async => directory,
+        backupsDirectoryProvider: () async => directory,
       );
       final storage = CourseEditorService(
         backupService: backups,

@@ -9,6 +9,7 @@ import '../services/course_flag_service.dart';
 import '../services/world_flag_repository.dart';
 import 'flag_art.dart';
 import 'world_flag_art.dart';
+import 'quick_import_access.dart';
 
 Future<CourseFlagSelection?> showCourseFlagPicker({
   required BuildContext context,
@@ -211,6 +212,12 @@ class _CourseFlagPickerDialogState extends State<CourseFlagPickerDialog> {
 
   Future<void> _importCustomFlag() async {
     setState(() => _importError = null);
+    // The custom flag has no Open from… route.
+    if (await ensureQuickImportAccess(context, offerOpenFrom: false) !=
+            QuickImportAccess.ready ||
+        !mounted) {
+      return;
+    }
     try {
       final imported = await _flags.importPreparedFlag();
       if (!mounted) return;

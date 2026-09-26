@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'dart:typed_data';
@@ -10,8 +9,11 @@ import 'file_dialog_service.dart';
 import 'learner_status_events.dart';
 import 'profile_service.dart';
 import 'flag_game_score_service.dart';
+import 'import/import_stager.dart';
 import 'import/selected_external_file.dart';
 import 'import/json_limits.dart';
+import 'storage/file_system_storage.dart';
+import 'storage/qql_storage.dart';
 
 typedef LearnerBackupPreferenceWriter =
     Future<bool> Function(
@@ -54,7 +56,7 @@ class LearnerBackupService {
   static const String importFileName = 'learner_import.json';
 
   final ProfileService _profiles;
-  final Future<Directory> Function() _documentsDirectoryProvider;
+  final QqlStorage _storage;
   final LearnerBackupPreferenceWriter? _preferenceWriter;
   final FileDialogService _fileDialogs;
 
@@ -63,32 +65,30 @@ class LearnerBackupService {
     Future<Directory> Function()? documentsDirectoryProvider,
     LearnerBackupPreferenceWriter? preferenceWriter,
     FileDialogService? fileDialogs,
+    QqlStorage? storage,
   }) : _profiles = profileService ?? ProfileService(),
-       _documentsDirectoryProvider =
-           documentsDirectoryProvider ?? getApplicationDocumentsDirectory,
+       _storage =
+           storage ??
+           QqlStorage(
+             backend: documentsDirectoryProvider == null
+                 ? null
+                 : FileSystemStorageBackend(
+                     documentsDirectory: documentsDirectoryProvider,
+                   ),
+           ),
        _preferenceWriter = preferenceWriter,
        _fileDialogs = fileDialogs ?? FileDialogService();
 
-  /// False when the system dialog is unsupported; hide Save to… / Open from….
+  /// False when the system dialog is unsupported; hide Save as… / Open from….
   bool get fileDialogsAvailable => _fileDialogs.isAvailable;
 
-  Future<Directory> transferDirectory() async {
-    final documents = await _documentsDirectoryProvider();
-    final directory = Directory(
-      '${documents.path}${Platform.pathSeparator}QuisquisLingo${Platform.pathSeparator}Exports',
-    );
-    await directory.create(recursive: true);
-    return directory;
-  }
+  /// Quick Import source: Import my data reads [importFileName] here.
+  Future<QuickImportFolder> importFolder() =>
+      _storage.importFolder(QqlStorageRole.learnerDataImports);
 
-  Future<String> importFilePath() async {
-    final documents = await _documentsDirectoryProvider();
-    final directory = Directory(
-      '${documents.path}${Platform.pathSeparator}QuisquisLingo${Platform.pathSeparator}Imports',
-    );
-    await directory.create(recursive: true);
-    return '${directory.path}${Platform.pathSeparator}$importFileName';
-  }
+  /// Quick Export destination for Export my data.
+  Future<QuickExportFolder> exportFolder() =>
+      _storage.exportFolder(QqlStorageRole.learnerDataExports);
 
   Future<Map<String, dynamic>> exportActiveProfile() async {
     final profile = await _profiles.getActiveProfileRecord();
@@ -144,10 +144,10 @@ class LearnerBackupService {
     final profileName = profile.displayName
         .replaceAll(RegExp(r'[^A-Za-z0-9_-]'), '_')
         .toLowerCase();
-    return (bytes: bytes, baseName: 'quisquislingo_${profileName}_backup');
+    return (bytes: bytes, baseName: 'QQL_${profileName}_backup');
   }
 
-  /// Save to…: the same backup as [saveActiveProfile], written wherever the
+  /// Save as…: the same backup as [saveActiveProfile], written wherever the
   /// user chooses in the system dialog.
   Future<FileDialogResult> saveActiveProfileTo() async {
     final export = await buildActiveProfileExport();
@@ -161,40 +161,42 @@ class LearnerBackupService {
 
   Future<String> saveActiveProfile() async {
     final export = await buildActiveProfileExport();
-    final bytes = export.bytes;
-    final baseName = export.baseName;
-    final directory = await transferDirectory();
-    var path = '${directory.path}${Platform.pathSeparator}$baseName.json';
-    var suffix = 2;
-    while (await File(path).exists()) {
-      path =
-          '${directory.path}${Platform.pathSeparator}${baseName}_$suffix.json';
-      suffix++;
-    }
-    await File(path).writeAsBytes(bytes, flush: true);
-    return path;
+    final written = await (await exportFolder()).write(
+      baseName: export.baseName,
+      extension: 'json',
+      bytes: export.bytes,
+    );
+    return written.location;
   }
 
   Future<LearnerBackupDocument> readImportFile() async {
-    final path = await importFilePath();
-    final file = File(path);
-    if (!await file.exists()) {
+    final folder = await importFolder();
+    final file = await folder.file(importFileName);
+    if (file == null) {
       throw FormatException(
-        'No $importFileName found. Copy the learner backup to $path, then press Import my data again.',
+        'No $importFileName found. Copy the learner backup to '
+        '${folder.locationOf(importFileName)}, then press Import my data again.',
       );
     }
-    if (!await isOrdinaryFile(path)) {
+    if (!file.isOrdinaryFile) {
       throw const FormatException(
         '$importFileName is not an ordinary file. Copy the file itself, not a '
         'link or folder, and try again.',
       );
     }
-    if (await file.length() > maxBackupBytes) {
-      throw const FormatException(
-        'Learner backup is larger than the 10 MB safety limit.',
-      );
+    const tooLarge = FormatException(
+      'Learner backup is larger than the 10 MB safety limit.',
+    );
+    if ((file.reportedSize ?? 0) > maxBackupBytes) throw tooLarge;
+    final Uint8List bytes;
+    try {
+      bytes = await readQuickImportFile(file, maxBytes: maxBackupBytes);
+    } on ImportTooLargeException {
+      throw tooLarge;
+    } on ImportAccessException catch (error) {
+      throw FormatException(error.message);
     }
-    return decodeDocument(await file.readAsBytes());
+    return decodeDocument(bytes);
   }
 
   /// Open from…: pick a learner backup in the system dialog. The document is

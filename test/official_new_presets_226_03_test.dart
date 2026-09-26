@@ -34,6 +34,7 @@ void main() {
             throw PlatformException(code: 'test_storage_unavailable');
           },
         );
+    keepCrashLogUnavailable();
   });
 
   for (final origin in [
@@ -304,11 +305,17 @@ class _ReadOnlyBackups extends CourseBackupService {
   Future<Directory> courseBackupDirectory(
     String courseId, {
     bool create = false,
+    String? pair,
   }) async =>
       Directory('${Directory.systemTemp.path}/qql_22603_readonly_ui/$courseId');
   @override
-  Future<List<CourseBackupRecord>> listOfficialBackups(String courseId) async =>
-      [];
+  Future<List<CourseBackupRecord>> listOfficialBackups(
+    String courseId, {
+    List<String>? skipped,
+  }) async => [];
   @override
-  Future<List<CourseBackupRecord>> listBackups(String courseId) async => [];
+  Future<List<CourseBackupRecord>> listBackups(
+    String courseId, {
+    List<String>? skipped,
+  }) async => [];
 }

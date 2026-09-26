@@ -10,11 +10,16 @@ class LocalizedText {
     required this.english,
     required this.italian,
     required this.spanish,
+    this.defaultValues,
   });
 
   final Map<String, String> english;
   final Map<String, String> italian;
   final Map<String, String> spanish;
+
+  /// Placeholder values every lookup receives unless the caller passes its
+  /// own, such as the current platform's folder names.
+  final Map<String, String> Function()? defaultValues;
 
   String lookup(
     AppLocale locale,
@@ -33,9 +38,11 @@ class LocalizedText {
     if (source == null || source.isEmpty) {
       throw StateError('Missing English localization key: $key');
     }
+    final defaults = defaultValues?.call() ?? const <String, String>{};
     return source.replaceAllMapped(
       RegExp(r'\{([a-zA-Z][a-zA-Z0-9_]*)\}'),
-      (match) => values[match.group(1)] ?? match.group(0)!,
+      (match) =>
+          values[match.group(1)] ?? defaults[match.group(1)] ?? match.group(0)!,
     );
   }
 }

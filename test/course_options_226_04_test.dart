@@ -8,6 +8,7 @@ import 'package:quisquislingo_app/services/course_authoring_transfer_service.dar
 import 'package:quisquislingo_app/services/course_backup_service.dart';
 import 'package:quisquislingo_app/services/course_editor_transaction.dart';
 import 'package:quisquislingo_app/services/custom_course_transfer_service.dart';
+import 'support/quick_folders.dart';
 
 Map<String, dynamic> _bundledJson() =>
     jsonDecode(File('assets/courses/german_en.json').readAsStringSync())
@@ -316,7 +317,7 @@ void main() {
       final imported = await transfer.importCoursePackage();
       expect(imported.course.toJson(), course.toJson());
       final backups = CourseBackupService(
-        documentsDirectoryProvider: () async => directory,
+        backupsDirectoryProvider: () async => directory,
       );
       final backup = await backups.createBackup(
         course,

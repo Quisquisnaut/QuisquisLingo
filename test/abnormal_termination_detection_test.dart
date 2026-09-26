@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:quisquislingo_app/services/crash_log_service.dart';
+import 'package:quisquislingo_app/services/diagnostic_log_service.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -13,9 +14,11 @@ void main() {
 
   setUpAll(() async {
     documents = await Directory.systemTemp.createTemp('qql_abnormal_');
+    // The private logs folder in app support (Build 255 Revision 3); this
+    // file's path_provider answers one directory for everything.
     logs = Directory(
-      '${documents.path}${Platform.pathSeparator}QuisquisLingo'
-      '${Platform.pathSeparator}Logs',
+      '${documents.path}${Platform.pathSeparator}'
+      '${DiagnosticLogService.logsDirectoryName}',
     )..createSync(recursive: true);
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(pathProvider, (_) async => documents.path);
@@ -35,14 +38,15 @@ void main() {
     'leftover session marker is reported, then removed on clean exit',
     () async {
       final sep = Platform.pathSeparator;
-      final marker = File('${logs.path}${sep}quisquislingo_session.marker')
+      final marker =
+          File('${logs.path}$sep${CrashLogService.sessionMarkerFileName}')
         ..writeAsStringSync(
           'Started: earlier\nLast state: resumed at earlier\n',
         );
 
       await CrashLogService.instance.initialise();
 
-      final log = File('${logs.path}${sep}quisquislingo_crash.log');
+      final log = File('${logs.path}$sep${CrashLogService.crashLogFileName}');
       final text = log.readAsStringSync();
       expect(text, contains('abnormal termination detected'));
       expect(text, contains('Last state: resumed at earlier'));

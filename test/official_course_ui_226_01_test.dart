@@ -47,6 +47,7 @@ void main() {
             throw PlatformException(code: 'test_storage_unavailable');
           },
         );
+    keepCrashLogUnavailable();
     backups = _HistoryBackups();
     service = CourseEditorService(
       backupService: backups,
@@ -412,6 +413,7 @@ class _HistoryBackups extends CourseBackupService {
   Future<Directory> courseBackupDirectory(
     String courseId, {
     bool create = false,
+    String? pair,
   }) async {
     final directory = Directory(
       '${Directory.systemTemp.path}/qql_22601_readonly_ui/$courseId',
@@ -421,13 +423,19 @@ class _HistoryBackups extends CourseBackupService {
   }
 
   @override
-  Future<List<CourseBackupRecord>> listOfficialBackups(String courseId) async {
+  Future<List<CourseBackupRecord>> listOfficialBackups(
+    String courseId, {
+    List<String>? skipped,
+  }) async {
     officialHistoryReads++;
     return [];
   }
 
   @override
-  Future<List<CourseBackupRecord>> listBackups(String courseId) async {
+  Future<List<CourseBackupRecord>> listBackups(
+    String courseId, {
+    List<String>? skipped,
+  }) async {
     customHistoryReads++;
     return [];
   }

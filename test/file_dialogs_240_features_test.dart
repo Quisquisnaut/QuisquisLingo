@@ -21,6 +21,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'support/dialog_test_course.dart';
 import 'support/fake_file_dialog_backend.dart';
 import 'support/synthetic_mp3.dart';
+import 'support/quick_folders.dart';
 
 // A ZIP with no image_bank_manifest.json: the ordinary importer rejects it.
 const _zipWithoutManifest =
@@ -84,7 +85,7 @@ void main() {
 
       final picked = await merge.readMergeCourseFromDialog();
       await File(
-        '${(await transfer.mergeDirectory()).path}${Platform.pathSeparator}merge.json',
+        await transfer.mergeFilePath(),
       ).writeAsBytes(bytes);
       final viaFolder = await merge.readMergeCourse();
 
@@ -174,7 +175,7 @@ void main() {
       );
     });
 
-    test('Save to… writes the same backup as the default Export', () async {
+    test('Save as… writes the same backup as the default Export', () async {
       final path = await backup.saveActiveProfile();
       final result = await backup.saveActiveProfileTo();
 
@@ -260,7 +261,7 @@ void main() {
       );
     });
 
-    test('Save to… writes the same key file as the default export', () async {
+    test('Save as… writes the same key file as the default export', () async {
       final path = await keys.exportActiveUserRecoveryKey();
       final result = await keys.exportActiveUserRecoveryKeyTo();
 

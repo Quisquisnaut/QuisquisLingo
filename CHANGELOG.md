@@ -1,3 +1,273 @@
+# 2.0.55 (Build 255, Revision 5) - The Backups folder - 2026-09-26
+
+The Course Backups Version History uses leave QQL's private storage and live
+in a new folder beside Import, Export, Logs and ToBeMerged, on every system,
+so they can be seen, copied and kept like the other QQL files:
+`Documents/QuisquisLingo/Backups/Courses` on Windows, Linux and macOS,
+`Download/QuisquisLingo/Backups/Courses` on Android. Names inside are
+Revision 4's (`QQL_bkp_EN_IT_<ID>/…_v<version>_<date-time>.json`).
+
+- **Android:** backups are ordinary files QQL writes itself in the Download
+  folder. Android 11 and later need no permission; Android 7–10 ask once for
+  the storage permission (Android 10 through the legacy storage setting),
+  and a refusal stops the Course confirmation as any backup failure does,
+  with the working copy still open. Android lets QQL read only its own files
+  there, so backups an earlier installation made stay in the folder but are
+  not listed. Being outside the app's Auto Backup, they survive an uninstall
+  and no longer count against its 25 MB quota; a restored phone does not
+  bring them back.
+- **Version History** lists the versions it can read and names any other
+  file in the Course's backup folder, instead of refusing the whole history
+  because of one foreign or damaged file in a folder people can reach.
+- **Wipe everything** has a fourth choice, "Keep the Backups folder", ticked
+  by default like the others; Revision 4's private `QQL_CourseBackups` and
+  Revision 3's `qql_course_backups_v11` follow it. Other resets keep backups
+  as before.
+- **Learner backups** stay in `Export/UserData`: they are exports made on
+  purpose to move or restore a profile.
+- **Earlier backups:** the private folders are no longer read; Inventory
+  lists them with the other earlier private folders, and
+  `tools/move_private_storage_255.dart` now moves every earlier backup
+  (`QQL_CourseBackups`, `qql_course_backups_v11`,
+  `Documents/QuisquisLingo/Exports/Course Backups v11`) straight into
+  `Documents/QuisquisLingo/Backups/Courses`.
+- Inventory shows a Backups folder section; EN/IT/ES Help name the folder
+  with the new `{folderBackups}` placeholder.
+
+Version `2.0.55+255005`; Beta expiry **2026-10-26 23:59:59 local time** (30
+days from the 26 September 2026 release date). See
+[plan](docs/255_STORAGE_PLAN.md#revision-5-the-backups-folder),
+[handoff](docs/255_HANDOFF.md) and [validation](docs/255_VALIDATION.md).
+
+# 2.0.55 (Build 255, Revision 4) - Private folders and language pairs - 2026-09-26
+
+QQL's private storage (the application support folder, where it keeps
+Courses, media, backups and logs) now uses short `QQL_` names in the same
+style as the public folders, and every name that belongs to one Course
+carries its language pair, source then target, so sorting by name groups
+the Courses of one pair. There are no language folder levels.
+
+- **Folders:** `QQL_Courses` (`Custom`, `Publisher`), `QQL_CourseMedia`,
+  `QQL_CourseBackups`, `QQL_SharedImages`, `QQL_ImageBanks`,
+  `QQL_ImportStaging` and `QQL_Logs` (`QQL_crash.log`, `QQL_session.marker`)
+  replace `qql_courses_v2`, `quisquislingo_course_media`,
+  `qql_course_backups_v11`, `exercise_images`, `image_banks`,
+  `qql_import_staging` and `qql_logs`. Temporary folders start with `QQL_`
+  too.
+- **Language pairs:** a stored Course is `QQL_EN_IT_<ID>.json`, its media
+  folder `QQL_EN_IT_<hash of the ID>`, its backups
+  `QQL_bkp_EN_IT_<ID>/QQL_bkp_EN_IT_<ID>_v<version>_<date-time>.json`. A
+  code is the language tag's primary subtag, then the language name (Italian
+  → Neapolitan is `IT_NAP`), otherwise `UNKNOWN`. A QQL-made ID is written
+  without its `course_` prefix. When a confirmed change alters a Course's
+  languages, its file, media folder and backup folder are renamed in place;
+  saved versions keep the names of the languages they had. A new Course's
+  media folder is `QQL_<hash>` until it is first stored.
+- **Exports:** Course packages are `QQL_EN_IT_<title>.zip`; an earlier
+  version exported from Version History is `QQL_bkp_EN_IT_<title>_v3.zip`,
+  so it cannot be mistaken for the current Course. The backup format itself
+  is unchanged.
+- **Earlier files (clean cut):** the earlier private folders are no longer
+  read. Shared Image Library images and Image Banks added before keep
+  working from their folders, because their records hold full paths.
+  Inventory lists the other earlier folders as "Private folders from earlier
+  versions", and Wipe everything removes them (the earlier Crash Log with the
+  Logs choice). On Windows and macOS, which ignore case, Revision 3's
+  `qql_logs` is renamed `QQL_Logs` at startup.
+- **One-off tool:** `dart run tools/move_private_storage_255.dart
+  [--support DIR] [--documents DIR] [--dry-run]`, with QQL closed, moves
+  earlier Courses, their media and their backups (including those a desktop
+  kept in `Documents/QuisquisLingo/Exports/Course Backups v11`) to the new
+  names. It never overwrites or deletes, and reports what it moved and what
+  it left.
+- **Course store:** a readable stored file that holds another Course no
+  longer blocks saving this one (two IDs such as `course_ab` and `ab` share
+  a name part); a name that is taken is still never replaced.
+- **Android backup:** the new media folders are excluded from Android's
+  cloud Auto Backup like the earlier ones, so a media import cannot push the
+  app past the 25 MB quota and stop the backup of learner progress.
+
+Version `2.0.55+255004`; Beta expiry **2026-10-26 23:59:59 local time** (30
+days from the 26 September 2026 release date). See
+[plan](docs/255_STORAGE_PLAN.md#revision-4-private-folders-and-language-pairs),
+[handoff](docs/255_HANDOFF.md) and [validation](docs/255_VALIDATION.md).
+
+# 2.0.55 (Build 255, Revision 3) - One folder pattern on every system - 2026-09-26
+
+Windows, Linux, macOS and Android now use the same folders below their
+QuisquisLingo folder (`Documents/QuisquisLingo` on desktops,
+`Download/QuisquisLingo` on Android), so Help, messages and habits carry over
+from one device to another:
+
+- `Import`, with `Courses`, `Audio`, `Images`, `LessonIcons`, `Flags`,
+  `UserData` and `RecoveryKeys`;
+- `Export`, with `Courses`, `UserData`, `RecoveryKeys` and `AuditReports`;
+- `Logs`, for copies of the Crash Log and the Diagnostic Log;
+- `ToBeMerged`, with `Courses`, for the second Course of a Course Merge (no
+  longer inside the import folder).
+
+Every kind of file has its own subfolder, and no folder name has a space.
+Files read by name are unchanged (`import.zip`, `merge.zip`,
+`learner_import.json`, `flag.png`).
+
+- **Custom flag:** Upload custom flag now reads `Import/Flags`. On desktops
+  it used to read the Exports folder, although it is an import.
+- **Crash Log:** the live Crash Log and the session marker are now private on
+  every system, like on Android before. A new **Quick Export** button in
+  Settings › Debug copies the Crash Log to `Logs/QQL_crash_log.txt` without a
+  dialog, replacing the previous copy, next to Save log copy as… and Share.
+  The one-time Beta testing message now tells testers to attach that copy
+  and still shows where the live log is kept.
+- **Course Backups:** the backups Version History uses are now private on
+  every system. Backups a desktop made before this revision stay in
+  `Documents/QuisquisLingo/Exports/Course Backups v11` and are no longer
+  listed.
+- **File names:** every exported file starts with `QQL_` instead of
+  `quisquislingo_`, including the names Save as… suggests
+  (`QQL_<title>.zip`, `QQL_<profile>_backup.json`, `QQL_<id>.user-recovery-key.json`,
+  `QQL_audit_….txt`, `QQL_diagnostic_log.txt`, `QQL_crash_log.txt`).
+- **Android permission:** Quick Import now asks once for the whole
+  `Download/QuisquisLingo` folder, so the same permission covers `Import` and
+  `ToBeMerged`; the folders are created as soon as it is given. A full wipe
+  gives back this permission and one an earlier version asked for.
+- **Earlier folders:** `Imports`, `Exports` and `Merges` are not moved, read
+  or hinted at. Inventory lists them as "Folders from earlier versions", and
+  Wipe everything keeps or deletes them together with `Import`, `Export` and
+  `ToBeMerged`. Course Backups are always removed with the Courses; the
+  private Crash Log follows the Logs choice.
+
+Version `2.0.55+255003`; Beta expiry **2026-10-26 23:59:59 local time** (30
+days from the 26 September 2026 release date). See
+[plan](docs/255_STORAGE_PLAN.md#revision-3-one-folder-pattern-on-every-system),
+[handoff](docs/255_HANDOFF.md) and [validation](docs/255_VALIDATION.md).
+
+# 2.0.55 (Build 255, Revision 2) - Android public Quick folders - 2026-09-26
+
+On Android, every Quick folder is now public, in the shared Download folder
+where file managers, browser downloads and cable copies can reach it, instead
+of app-private storage that people could not open:
+`Download/QuisquisLingo/Imports/…` and `Download/QuisquisLingo/Exports/…`,
+with the same categories below them (Imports: `Courses`, `Merges`, `Audio`,
+`Images`, `Lesson Icons`, plus `learner_import.json`, Recovery Keys and
+`flag.png` in the Imports folder itself; Exports: `Courses`, `Logs`, plus
+learner backups, Recovery Keys and Audit reports in the Exports folder
+itself). Desktop folders are unchanged.
+
+**Quick Export** needs no dialog. On Android 10 and later it writes through
+MediaStore, with no permission at all; a file appears only once it is
+complete, names follow `name`, `name_2`, `name_3` among QQL's own files, and
+the Diagnostic Log snapshot replaces its previous copy. On Android 7–9,
+Android asks once for the storage permission, then QQL writes ordinary files
+in Download.
+
+**Quick Import** reads without a dialog once QQL has access. On Android 10
+and later that is one persisted folder permission for exactly
+`Download/QuisquisLingo/Imports`. The first time, QQL creates the folder,
+explains in one short message, and opens Android's folder screen on it; the
+person taps Use this folder and Allow, and QQL creates the category folders
+inside. Any other folder is refused. The permission is kept across restarts;
+when it is missing, revoked or the folder is gone, QQL asks again and offers
+**Open from…** as the alternative, and never falls back to private storage.
+On Android 7–9 the same message leads to the storage permission. The
+explanation appears at every Quick Import button: Course Import, Course
+Merge, Import my data, Import User Recovery Key, Import MP3, custom and
+single images, Image Bank ZIPs, the portable character image, Lesson icons
+and the custom flag.
+
+**Inventory** lists the Quick Export folder (the files QQL wrote) and the
+Quick Import folder (while QQL has access). **Wipe everything** applies the
+same Keep Exports and Keep Imports ticks to them, and always gives back the
+folder permission. Internal data stays private: Crash Log, Course Backups
+v11, stored Courses and media, staging and preferences. The manifest gains
+`WRITE_EXTERNAL_STORAGE` for Android 9 and older only (`maxSdkVersion 28`).
+
+Checked on the Android 16 emulator: Quick Export of a Course (and a second
+one named `_2`), Export my data, the first Quick Import with its explanation
+and folder screen, Quick Import without any dialog afterwards (a forked
+Course imported as a new Course; a bundled one correctly refused), Import my
+data, a moved (revoked) folder asking again, Open from… instead, Inventory,
+and a full wipe deleting both folders' files and giving back the permission.
+Android 10 and Android 7–9 paths are checked with mocked tests only.
+
+Version `2.0.55+255002`; Beta expiry **2026-10-26 23:59:59 local time** (30
+days from the 26 September 2026 release date). See
+[handoff](docs/255_HANDOFF.md) and [validation](docs/255_VALIDATION.md).
+
+# 2.0.55 (Build 255, Revision 1) - Android Save as… and Open from… - 2026-09-25
+
+Android now has **Save as…** and **Open from…** wherever the desktop has them:
+Course export and import, Merge From…, learner data, the User Recovery Key,
+Crash and Diagnostic Log copies, images, Image Bank ZIPs, portable images,
+Lesson icons and MP3s. They use Android's own document screens (the Storage
+Access Framework), so a person can choose any folder or provider the device
+shows, such as Downloads, a memory card or Google Drive when its app is
+installed and signed in. Before this revision these buttons were hidden on
+Android.
+
+A new platform bridge (`android/.../QqlStorageBridge.kt` and
+`lib/services/storage/android_storage_bridge.dart`) shows the system screens
+on the UI thread and moves bytes on a background thread in pieces of at most
+1 MB, so no file crosses to Dart in one piece. A chosen document is streamed
+into the same bounded private staging as a desktop file and passes exactly the
+same checks and size limits. A save that fails part-way deletes the new
+document rather than leaving a truncated file. Cancelling changes and shows
+nothing; failures are logged with the file name only, never a document
+address. `FileDialogService.backendFor` picks the dialogs per platform; iOS
+still has none.
+
+Checked on the Android 16 emulator: Save as… wrote a valid Course package to
+Download, Open from… read it back through the ordinary import checks, and
+cancelling showed nothing. Quick Import and Quick Export are unchanged in this
+revision; Android's public Quick folders follow in Revision 2.
+
+Version `2.0.55+255001`; Beta expiry **2026-10-25 23:59:59 local time**. See
+[handoff](docs/255_HANDOFF.md) and [validation](docs/255_VALIDATION.md).
+
+# 2.0.55 (Build 255, Revision 0) - Logical storage roles and Course Quick folders - 2026-09-25
+
+QQL's user folders are now **logical storage roles**: a direction (Imports,
+Exports) and a category (Courses, Merges, Audio, Images, Lesson icons, Flags,
+Learner data, Recovery keys, Audit reports, Diagnostic logs). Feature code asks
+for a role, such as "the Quick Import source for Courses"; a per-platform
+layout and backend decide what that folder is. No feature code builds a
+Windows, Android or iOS path for a user folder any more, so Android public
+folders (Revisions 1–2) and a later iOS Files backend plug in without changing
+the features. Every folder-based ("Quick") route uses the layer: Course import,
+export and Merge, Audit reports, Export/Import my data, the User Recovery Key,
+the Diagnostic Log export, Import MP3, custom and portable images, Image Bank
+ZIPs, Lesson icons and the custom flag. A Quick Import file is read as a
+bounded stream, like a file chosen with Open from…; a Course package goes
+through the same private staging as Open from… before it is parsed.
+
+On **every desktop** (Windows, Linux and macOS) Course packages now have their
+own folders: Quick Import reads `import.zip` or `import.json` from
+`Documents/QuisquisLingo/Imports/Courses`, and Quick Export (including a
+Version History export) writes to `Documents/QuisquisLingo/Exports/Courses`.
+Files left in the old `Imports` and `Exports` places are not read or moved
+(clean cut). Every other folder keeps its place: Merges, learner data,
+Recovery Keys, Audio, Images, Lesson Icons, the flag in Exports, Audit reports
+in Exports and the Diagnostic Log in Logs. The owner audit of every import,
+export, save, restore and merge operation, and which files stay internal, is
+in [the Build 255 plan](docs/255_STORAGE_PLAN.md).
+
+The folder-based buttons are renamed **Quick Import** and **Quick Export**
+(Course Import and Course Export screens), and every dialog save is now
+**Save as…** (Save as…, Save my data as…, Save Recovery Key as…, Save log copy
+as…, Save historical version as…). **Open from…** is unchanged. Screens,
+fallback hints and Help (English, Italian and Spanish) name folders through the
+layout, so they always show the current platform's folders; Help catalogs use
+`{folder…}` placeholders.
+
+An empty `import.zip` now reports "import.zip is empty." like the Open from…
+route, and a too-large Image Bank ZIP in the folder gives the Open from…
+message. Export folders are created by their first write, as before. Course
+Model v11, package format 1, rights, scoring, progression and learner data are
+unchanged.
+
+Version `2.0.55+255000`; Beta expiry **2026-10-25 23:59:59 local time** (30
+days from the 25 September 2026 release date). See
+[handoff](docs/255_HANDOFF.md) and [validation](docs/255_VALIDATION.md).
+
 # 2.0.54 (Build 254, Revision 0) - Bundled exercise demos - 2026-09-25
 
 Replaces the Italian, Finnish and Dutch demos with **Exercise Laboratory**

@@ -11,6 +11,8 @@ import '../services/exercise_image_service.dart';
 import 'course_media_image.dart';
 import 'file_dialog_feedback.dart';
 import 'image_badges.dart';
+import '../services/storage/qql_storage.dart';
+import 'quick_import_access.dart';
 
 /// A new image for an Exercise: the asset, and the Shared Image Library
 /// record it came from when there is one. An empty asset removes the image.
@@ -121,6 +123,20 @@ class _ExerciseImageFieldState extends State<ExerciseImageField> {
 
   Future<void> _importCustomImage({bool fromDialog = false}) async {
     if (widget.readOnly) return;
+    if (!fromDialog) {
+      switch (await ensureQuickImportAccess(
+        context,
+        offerOpenFrom: _imageService.fileDialogsAvailable,
+      )) {
+        case QuickImportAccess.ready:
+          break;
+        case QuickImportAccess.openFrom:
+          return _importCustomImage(fromDialog: true);
+        case QuickImportAccess.stop:
+          return;
+      }
+      if (!mounted) return;
+    }
     try {
       final PickedImage picked;
       if (fromDialog) {
@@ -270,8 +286,8 @@ class _ExerciseImageFieldState extends State<ExerciseImageField> {
               ],
             ),
             const SizedBox(height: 4),
-            const Text(
-              'The shared image library (admin-managed) has lightweight flat images. For Import custom image, place exactly one PNG, JPG, JPEG or WEBP file in Documents/QuisquisLingo/Imports/Images. Image-prompt ordering requires an image; otherwise it is optional and can be changed at any time.',
+            Text(
+              'The shared image library (admin-managed) has lightweight flat images. For Import custom image, place exactly one PNG, JPG, JPEG or WEBP file in ${QqlStorageLayout.current.folderLabel(QqlStorageRole.imageImports)}. Image-prompt ordering requires an image; otherwise it is optional and can be changed at any time.',
               style: TextStyle(fontSize: 12),
             ),
           ],

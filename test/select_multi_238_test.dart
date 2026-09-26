@@ -158,6 +158,7 @@ void main() {
               throw PlatformException(code: 'test-storage');
             },
           );
+      keepCrashLogUnavailable();
     });
 
     Future<void> pumpExercise(WidgetTester tester, Exercise exercise) async {

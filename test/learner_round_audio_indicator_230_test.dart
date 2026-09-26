@@ -36,6 +36,7 @@ void main() {
             throw PlatformException(code: 'test-storage');
           },
         );
+    keepCrashLogUnavailable();
   });
 
   group('effective Round audio availability', () {

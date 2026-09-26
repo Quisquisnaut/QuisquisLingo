@@ -107,7 +107,7 @@ void main() {
           }),
         );
         final store = CourseFileStore(supportDirectory: () async => root);
-        expect(CourseFileStore.rootDirectoryName, 'qql_courses_v2');
+        expect(CourseFileStore.rootDirectoryName, 'QQL_Courses');
         expect(await store.readAll(CourseStoreKind.custom), isEmpty);
         expect(await old.exists(), isTrue);
       },
@@ -124,11 +124,14 @@ void main() {
           }),
         );
         final backups = CourseBackupService(
-          documentsDirectoryProvider: () async => root,
-        );
-        expect(
-          (await backups.backupRoot()).path,
-          endsWith('Course Backups v11'),
+          backupsDirectoryProvider: () async => Directory(
+            [
+              root.path,
+              'QuisquisLingo',
+              'Backups',
+              'Courses',
+            ].join(Platform.pathSeparator),
+          ),
         );
         expect(await backups.listBackups('v11-course'), isEmpty);
         expect(await old.exists(), isTrue);
