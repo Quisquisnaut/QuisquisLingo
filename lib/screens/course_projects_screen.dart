@@ -8,6 +8,7 @@ import '../models/course_models.dart';
 import '../models/course_metadata_options.dart';
 import '../services/course_editor_service.dart';
 import '../services/course_favorite_service.dart';
+import '../services/course_library_view_service.dart';
 import '../services/custom_course_transfer_service.dart';
 import '../services/course_service.dart';
 import '../services/course_language_resolver.dart';
@@ -829,7 +830,15 @@ class CourseProjectsScreenState extends State<CourseProjectsScreen> {
   bool _loading = true;
   String? _loadError;
   bool _openedInitialCourse = false;
-  final _compactSections = <CourseLibraryCategory, bool>{};
+
+  /// Each section's view, saved per learner (Build 255 Revision 6).
+  final _viewService = CourseLibraryViewService();
+  Map<CourseLibraryCategory, CourseLibraryView> _sectionViews = const {};
+
+  /// Saved views are read once per learner. Later reloads keep this visit's
+  /// choices, which are saved as they are made.
+  bool _viewsLoaded = false;
+  String? _viewsProfileId;
   Set<String> _favoriteIds = const {};
   Map<String, String> _profileNames = {};
 
@@ -873,9 +882,21 @@ class CourseProjectsScreenState extends State<CourseProjectsScreen> {
         for (final profile in await _ops.profiles.getProfileRecords())
           profile.learnerProfileId: profile.displayName,
       };
+      final profileId = library.activeProfileId;
+      final savedViews = _viewsLoaded && _viewsProfileId == profileId
+          ? null
+          : await _viewService.views(
+              CourseLibrarySectionSurface.courseStudio.storageName,
+              profileId: profileId,
+            );
       if (!mounted) return;
       setState(() {
         _library = library;
+        if (savedViews != null) {
+          _sectionViews = savedViews;
+          _viewsLoaded = true;
+          _viewsProfileId = profileId;
+        }
         _favoriteIds = favoriteIds;
         _profileNames = profileNames;
         _loading = false;
@@ -2459,9 +2480,20 @@ class CourseProjectsScreenState extends State<CourseProjectsScreen> {
     search: widget.search,
     sort: widget.sort,
     maintainerOf: _managerMaintainer,
-    compact: _compactSections[category] ?? false,
-    onCompactChanged: (value) =>
-        setState(() => _compactSections[category] = value),
+    view: _sectionViews[category] ?? CourseLibraryView.expanded,
+    onViewChanged: (view) {
+      setState(() => _sectionViews = {..._sectionViews, category: view});
+      // A view that could not be saved still applies while the page is open.
+      unawaited(
+        _viewService
+            .setView(
+              CourseLibrarySectionSurface.courseStudio.storageName,
+              category,
+              view,
+            )
+            .catchError((Object _) {}),
+      );
+    },
     rowBuilder: (course, compact, favorites) => _courseStatusCard(
       course,
       CourseLibraryRow(

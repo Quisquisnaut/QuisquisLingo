@@ -45,10 +45,17 @@ void main() {
       },
     );
 
+    // Build 255 Revision 6 removed the flagless bundled German demo; a
+    // flagless German Course still gets its automatic FlagPainter flag.
     test(
-      'flagless bundled German uses its automatic FlagPainter flag',
+      'a flagless German Course uses its automatic FlagPainter flag',
       () async {
-        final german = await CourseService().loadCourse('DE');
+        final german = _course(
+          id: 'flagless-german',
+          learningLanguage: 'German',
+          targetLanguage: 'German',
+          ttsLanguage: 'de-DE',
+        );
 
         expect(german.toJson().containsKey('flagCode'), isFalse);
         expect(german.toJson().containsKey('worldFlagId'), isFalse);
@@ -411,18 +418,18 @@ void main() {
         final courses = await tester.runAsync(
           () => Future.wait([
             CourseService().loadCourse('IT'),
-            CourseService().loadCourse('DE'),
+            CourseService().loadCourse('PMS'),
           ]),
         );
         final italian = courses![0];
-        final german = courses[1];
+        final piedmontese = courses[1];
         final profiles = _BlockingFlagBackgroundProfileService();
         await profiles.setFlagBackgroundMode(
           italian.courseId,
           LearnerFlagBackgroundMode.extended,
         );
         await profiles.setFlagBackgroundMode(
-          german.courseId,
+          piedmontese.courseId,
           LearnerFlagBackgroundMode.off,
         );
         await _openHome(tester, profileService: profiles);
@@ -438,10 +445,10 @@ void main() {
           italian.courseId,
         );
 
-        profiles.blockNextFlagReadFor(german.courseId);
+        profiles.blockNextFlagReadFor(piedmontese.courseId);
         addTearDown(profiles.releaseFlagRead);
         await _openCoursePicker(tester);
-        await _tapBundledCourse(tester, 'DE');
+        await _tapBundledCourse(tester, 'PMS');
 
         void expectCoherentFrame() {
           if (find.byType(UnifiedLearnerTopBar).evaluate().isEmpty) return;
@@ -449,7 +456,7 @@ void main() {
           final extendedBackdrop = find.byKey(
             const Key('unified-learner-flag-background'),
           );
-          if (activeCourseId == german.courseId) {
+          if (activeCourseId == piedmontese.courseId) {
             expect(
               extendedBackdrop,
               findsNothing,
@@ -490,9 +497,9 @@ void main() {
           );
           await tester.pump(const Duration(milliseconds: 10));
           expectCoherentFrame();
-          if (_activeCourseId(tester) == german.courseId) break;
+          if (_activeCourseId(tester) == piedmontese.courseId) break;
         }
-        expect(_activeCourseId(tester), german.courseId);
+        expect(_activeCourseId(tester), piedmontese.courseId);
         await _pumpUntil(tester, find.byTooltip('Flag background: Off'));
         expect(find.byTooltip('Flag background: Off'), findsOneWidget);
       },
@@ -505,18 +512,18 @@ void main() {
         await SettingsService().setAnimationsEnabled(false);
         final courses = await tester.runAsync(
           () => Future.wait([
-            CourseService().loadCourse('DE'),
+            CourseService().loadCourse('PMS'),
             CourseService().loadCourse('KO'),
           ]),
         );
-        final german = courses![0];
+        final piedmontese = courses![0];
         final korean = courses[1];
         final profiles = _BlockingFlagBackgroundProfileService();
-        profiles.blockNextFlagReadFor(german.courseId);
+        profiles.blockNextFlagReadFor(piedmontese.courseId);
         addTearDown(profiles.releaseFlagRead);
         await _openHome(tester, profileService: profiles);
 
-        await _selectBundledCourse(tester, 'DE');
+        await _selectBundledCourse(tester, 'PMS');
         for (
           var attempt = 0;
           attempt < 100 && !profiles.flagReadStarted;
@@ -548,7 +555,7 @@ void main() {
     );
 
     testWidgets(
-      'Do Not Disturb suppresses; enabling animations allows automatic flags',
+      'Do Not Disturb suppresses; enabling animations shows the entry flag',
       (tester) async {
         _useLargeTestWindow(tester);
         await SettingsService().setAnimationsEnabled(false);
@@ -559,13 +566,16 @@ void main() {
         expect(await SettingsService().getLastSelectedCourseCode(), 'KO');
 
         await SettingsService().setAnimationsEnabled(true);
-        await _selectBundledCourse(tester, 'DE');
+        await _selectBundledCourse(tester, 'IT');
         await _pumpUntil(
           tester,
-          find.byKey(const Key('course-entry-built-in-flag-DE')),
+          find.byKey(const Key('course-entry-built-in-flag-IT')),
         );
-        expect(_activeCourseId(tester), 'sample_de_en_de');
-        expect(await SettingsService().getLastSelectedCourseCode(), 'DE');
+        expect(
+          _activeCourseId(tester),
+          'course_50d68435-d2c2-4b63-9a0b-b23161357f1d',
+        );
+        expect(await SettingsService().getLastSelectedCourseCode(), 'IT');
       },
     );
 
@@ -715,7 +725,7 @@ Future<void> _selectBundledCourse(WidgetTester tester, String code) async {
 Future<void> _openCoursePicker(WidgetTester tester) async {
   await tester.tap(find.byKey(const Key('unified-topbar-course-selector')));
   await _pumpUntil(tester, find.text('Choose course'));
-  // The bundled Napoletano row resolves its World Flag asynchronously and
+  // The bundled Piedmontese row resolves its World Flag asynchronously and
   // legitimately shows an indeterminate progress indicator in the meantime.
   // Waiting for the whole tree to settle would therefore conflate that asset
   // load with the bottom-sheet transition under test.

@@ -23,15 +23,20 @@ void main() {
   );
 
   test(
-    'Piedmontais demo is an independent published v11 bundled identity',
+    'Piedmontese demo is an independent published v11 bundled identity',
     () async {
       final course = await loadCourse();
       expect(course.formatVersion, 11);
       expect(course.courseId, 'course_e5f5585a-7762-43a0-a6b2-62754e02d17b');
       expect(course.originType, CourseOriginType.bundledOfficial);
-      expect(course.title, 'AI-Slop Demo: Piedmontais');
+      // Build 255 Revision 6 renamed it from Piedmontais, keeping its ID.
+      expect(course.title, 'AI-Slop Demo: Piedmontese');
+      expect(course.learningLanguage, 'Piedmontese');
       expect(course.sourceLanguage, 'English');
-      expect(course.targetLanguage, 'Piedmontais');
+      expect(course.targetLanguage, 'Piedmontese');
+      expect(jsonEncode(course.toJson()), isNot(contains('Piedmontais')));
+      expect(course.license, 'All rights reserved');
+      expect(course.derivativeWorksPolicy, DerivativeWorksPolicy.forbidden);
       expect(course.sourceLanguageTag, 'en-GB');
       expect(course.targetLanguageTag, 'pms-IT');
       expect(course.worldFlagId, 'piedmontese');
@@ -49,7 +54,7 @@ void main() {
   );
 
   test(
-    'every current named preset has exactly one titled Piedmontais Lesson',
+    'every current named preset has exactly one titled Piedmontese Lesson',
     () async {
       final course = await loadCourse();
       final presets = ExercisePresetRegistry.presets;
@@ -83,7 +88,7 @@ void main() {
   );
 
   test(
-    'all 72 Piedmontais examples pass Audit and enter the runnable queue',
+    'all 72 Piedmontese examples pass Audit and enter the runnable queue',
     () async {
       final course = await loadCourse();
       final audit = CourseAuditService().auditCourse(course);

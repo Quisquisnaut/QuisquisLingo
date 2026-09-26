@@ -73,7 +73,9 @@ void main() {
     await SettingsService().setAudioExercisesEnabled(false);
   });
 
-  testWidgets('two English bundled Courses switch and restart independently', (
+  // Build 255 Revision 6 removed the Spanish-to-English bundle; the Edge
+  // Course and Piedmontese still switch and restart independently.
+  testWidgets('two bundled Courses switch and restart independently', (
     tester,
   ) async {
     final settings = SettingsService();
@@ -86,14 +88,17 @@ void main() {
     await _openCoursePicker(tester);
     await _expectCourseTile(
       tester,
-      const ValueKey('bundled-course-EN'),
-      'AI-Slop Demo: Inglés para hispanohablantes',
+      const ValueKey('bundled-course-PMS'),
+      'AI-Slop Demo: Piedmontese',
       selected: false,
     );
-    await tester.tap(find.byKey(const ValueKey('bundled-course-EN')));
+    await tester.tap(find.byKey(const ValueKey('bundled-course-PMS')));
     await _pumpIo(tester, frames: 30);
-    expect(current().course.courseId, 'sample_en_es_en');
-    expect(await settings.getLastSelectedCourseCode(), 'EN');
+    expect(
+      current().course.courseId,
+      'course_e5f5585a-7762-43a0-a6b2-62754e02d17b',
+    );
+    expect(await settings.getLastSelectedCourseCode(), 'PMS');
     await tester.pump(
       CourseEntryAnimationPolicy.duration + const Duration(milliseconds: 50),
     );
@@ -135,7 +140,7 @@ void main() {
 
       await _openHome(tester);
       await _openCoursePicker(tester);
-      await _expectTenBundledTiles(tester);
+      await _expectEveryBundledTile(tester);
       final koreanTile = find.byKey(const ValueKey('bundled-course-KO'));
       expect(koreanTile, findsOneWidget);
       expect(
@@ -223,7 +228,7 @@ void main() {
       );
       expect(restartedTopBar.course.courseId, 'sample_ko_en_ko');
       await _openCoursePicker(tester);
-      await _expectTenBundledTiles(tester);
+      await _expectEveryBundledTile(tester);
       expect(find.byKey(const ValueKey('bundled-course-KO')), findsOneWidget);
       await _expectCourseTile(
         tester,
@@ -268,8 +273,8 @@ void main() {
           final settings = SettingsService();
           for (final ref in [
             'custom:${otherCustom.courseId}',
-            'EN',
-            'DE',
+            'EN_EDGE',
+            'PMS',
             selectCustom ? 'custom:${custom.courseId}' : 'IT',
           ]) {
             await settings.setLastSelectedCourseCode(ref);
@@ -284,8 +289,8 @@ void main() {
             selected: true,
           );
           for (final entry in {
-            'DE': 'AI-Slop Demo: German for English Speakers',
-            'EN': 'AI-Slop Demo: Inglés para hispanohablantes',
+            'PMS': 'AI-Slop Demo: Piedmontese',
+            'EN_EDGE': 'AI-Slop Demo: Edge Case Course',
             'custom:${otherCustom.courseId}': otherCustom.title,
           }.entries) {
             await _expectCourseTile(
@@ -303,14 +308,14 @@ void main() {
           );
           await _expectCourseTile(
             tester,
-            const ValueKey('recent-course-DE'),
-            'AI-Slop Demo: German for English Speakers',
+            const ValueKey('recent-course-PMS'),
+            'AI-Slop Demo: Piedmontese',
             selected: false,
           );
           await _expectCourseTile(
             tester,
-            const ValueKey('recent-course-EN'),
-            'AI-Slop Demo: Inglés para hispanohablantes',
+            const ValueKey('recent-course-EN_EDGE'),
+            'AI-Slop Demo: Edge Case Course',
             selected: false,
           );
           await _expectCourseTile(
@@ -409,8 +414,8 @@ Future<void> _pumpUntilWithIo(WidgetTester tester, Finder finder) async {
   fail('Timed out waiting for $finder. Visible text: $visibleText');
 }
 
-Future<void> _expectTenBundledTiles(WidgetTester tester) async {
-  expect(CourseService.courseAssets, hasLength(10));
+Future<void> _expectEveryBundledTile(WidgetTester tester) async {
+  expect(CourseService.courseAssets, hasLength(4));
   final settings = SettingsService();
   final selected = await settings.getLastSelectedCourseCode();
   final recent = (await settings.getRecentCourseRefs())

@@ -1,6 +1,6 @@
 # QuisquisLingo App
 
-**Current source version: 2.0.55+255005 · Build 255, Revision 5 · Course Model v11 (`formatVersion: 11`).**
+**Current source version: 2.0.55+255006 · Build 255, Revision 6 · Course Model v11 (`formatVersion: 11`).**
 
 **QuisquisLingo 2.0.55 Beta — QQL 255 logical storage and Quick folders**
 
@@ -27,9 +27,18 @@ the Course's language pair, source then target, in every per-Course name:
 `tools/move_private_storage_255.dart` moves earlier Courses, media and
 backups to the new names. Revision 5 moves the Course Backups out of private
 storage into a new `Backups/Courses` folder beside `Import` and `Export`, on
-every system; Wipe everything keeps it unless its tick is removed. See
-the [Build 255 plan and audit](docs/255_STORAGE_PLAN.md), the
-[handoff](docs/255_HANDOFF.md) and [validation](docs/255_VALIDATION.md).
+every system; Wipe everything keeps it unless its tick is removed. Revision
+6 gathers small corrections: four bundled demos remain (Exercise Laboratory,
+Korean, Edge Case Course and **AI-Slop Demo: Piedmontese**, renamed from
+Piedmontais), all *All rights reserved*, with Fork kept on the two test demos;
+Courses sections add a **Minimal** view and remember each view per learner;
+the startup Beta testing dialog is gone; Device Administration is called
+**Advanced (Admin)** and follows Do Not Disturb in Settings; Flag Game flags
+and the Course Info image open enlarged; the Course Info Editor sets a
+**cover image** (cropped and scaled to 512 × 512, up to 1 MB); and a Team can
+link its shared Google Drive folder. See the [Build 255 plan and
+audit](docs/255_STORAGE_PLAN.md), the [handoff](docs/255_HANDOFF.md) and
+[validation](docs/255_VALIDATION.md).
 
 **QuisquisLingo 2.0.54 Beta — QQL 254 bundled exercise demos**
 
@@ -295,7 +304,7 @@ The MPL-2.0 covers the QuisquisLingo software source. Courses, the Image Bank an
 
 ## Beta lifecycle
 
-Version 2.0.55, Build 255, Revision 5 is a time-limited Beta with an expiry of **2026-10-26 23:59:59 local time** (30 days after the 26 September 2026 release date). Near expiry it displays reminders. After expiry, learner exercises and Review are blocked until a newer Beta is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when a Beta expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM.
+Version 2.0.55, Build 255, Revision 6 is a time-limited Beta with an expiry of **2026-10-26 23:59:59 local time** (30 days after the 26 September 2026 release date). Near expiry it displays reminders. After expiry, learner exercises and Review are blocked until a newer Beta is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when a Beta expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM.
 
 ## Core logic
 
@@ -328,7 +337,7 @@ On Android, the platform's own Auto Backup is deliberately left enabled, because
 - Local daily quest
 - XP
 - Local TTS service with generated-file caching
-- Ten bundled sample courses, including Exercise Laboratory, Edge Case Course, Piedmontais, Korean and Neapolitan
+- Four bundled sample courses: Exercise Laboratory, Edge Case Course, Piedmontese and Korean
 - Local authoring Teams with stable profile-ID membership and one or more Team Leaders
 - No account
 - Local offline leaderboard for the previous completed week, based on each participating learner’s XP across all courses

@@ -87,7 +87,7 @@ void main() {
 
   setUp(() => SharedPreferences.setMockInitialValues({}));
 
-  testWidgets('Device Administration shows QQL-Tools only to an Admin', (
+  testWidgets('Advanced (Admin) shows QQL-Tools only to an Admin', (
     tester,
   ) async {
     final profiles = ProfileService();
@@ -166,7 +166,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(
-        find.text('Device Administration is available only to admins.'),
+        find.text('Advanced (Admin) is available only to admins.'),
         findsOneWidget,
       );
       expect(find.text(executablePath), findsNothing);

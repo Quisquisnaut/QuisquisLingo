@@ -8,7 +8,7 @@ Where QuisquisLingo keeps data, and which reset scope removes it.
 | `learner_profiles_v2`, `active_learner_profile_id`, `local_admin_profile_ids_v1` | learner registry, active learner, admin list | non-admin learners (their records only), everything |
 | `qql_device_display_name_v1` | device name | everything |
 | `quisquislingo_user_courses_v9_233030`, `quisquislingo_external_official_courses_v9_233030`, `quisquislingo_course_editor_corrupt_backup_v9_233030` | obsolete course blobs and corrupt-course backup; no longer read or migrated by the file store | custom courses, everything |
-| `quisquislingo_authoring_teams_v1_2291` | authoring teams | custom courses, everything |
+| `quisquislingo_authoring_teams_v1_2291` | authoring teams, each with its optional Google Drive shared-folder link (`sharedFolderUrl`, Build 255 Revision 6; registries without it read unchanged) | custom courses, everything |
 | `quisquislingo_received_custom_course_<URI-encoded trimmed Course ID>` | device-local `true` flag for a Custom Course imported while no local profile was its Maintainer or in its assigned Team; absent means not received | custom courses, everything; also cleared on physical deletion or local authoring of that Course |
 | `quisquislingo_imported_image_banks_v2`, `quisquislingo_exercise_image_metadata_v2` | imported image bank index and image metadata | imported media (images), custom courses, everything |
 | `audio_orphan_check_last_<COURSECODE>` | device-level date the Audio Library orphan check last ran for that Course code | imported media (audio), custom courses, everything |
@@ -75,3 +75,11 @@ Progress reset preserves membership, Hide in Learner and Favorite. Profile delet
 `quisquislingo_received_custom_course_<URI-encoded trimmed Course ID>` is a device-level SharedPreferences boolean. Only `true` is meaningful; missing keys are not inferred from Course metadata, including Courses stored before this feature. An imported Custom Course is marked received only when no profile on this device is its Maintainer or belongs to its assigned Team. A later local Maintainer or assigned Team profile blocks the special received-update path. Physical Course deletion and local authoring clear the flag. The flag is never written into Course JSON, package files or learner progress.
 
 An update through this path requires that the importing profile include the Course in its Personal Library, that the Maintainer, assigned Team ID and immutable provenance match, and that both Course versions are positive integers with the imported version strictly newer. It preserves the imported version and learner progress and makes the usual pre-change Course backup. The Inventory lists the flags as records in QQL settings. Learner-progress, non-admin-learner and imported-media resets preserve them; custom-course and full resets remove them.
+
+### Courses section views (Build 255 Revision 6)
+
+`learner_<UUID>_course_library_view_<tab>_<category>` holds `expanded`, `compact` or `minimal` for one Courses section: `<tab>` is `all_courses` or `course_studio`, `<category>` is `favorites`, `bundled`, `publisher`, `my_local` or `other_local`. A missing or unknown value means Expanded. It is a learner display setting like Hide in Learner and Favorite: it never changes a Course or Personal Library membership, travels in learner backups (every key under the learner prefix does), is kept by *learner progress* and custom-course resets, and is removed with its learner (profile deletion, non-admin learners) or by *everything*. The Inventory's Learners section covers it as a learner setting; no file or folder is added.
+
+### Course covers (Build 255 Revision 6)
+
+A Course's cover is ordinary Course media in `QQL_CourseMedia`, so the scopes that remove a Course's media remove it too. The Course Info Editor can now set one, and the cover alone may be up to 1 MB (other Course images stay at 50 KB). No key or folder is added.

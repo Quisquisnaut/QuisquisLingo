@@ -79,8 +79,13 @@ class ExerciseImageService {
   /// False when the system dialog is unsupported; hide Open from….
   bool get fileDialogsAvailable => _fileDialogs.isAvailable;
 
-  /// The one image in the Quick Import folder for images, checked.
-  Future<PickedImage> readImage() async {
+  /// The one image in the Quick Import folder for images, checked. A Course
+  /// cover's source picture is read here too, with its own [maxBytes] and
+  /// [profile] (Build 255 Revision 6).
+  Future<PickedImage> readImage({
+    int maxBytes = maxImageBytes,
+    ImageProfile profile = ImageProfile.exerciseImage,
+  }) async {
     final folder = await _storage.importFolder(QqlStorageRole.imageImports);
     final candidates = (await folder.files())
         .where((file) => _supportedName(file.name))
@@ -101,9 +106,9 @@ class ExerciseImageService {
     final source = candidates.single;
     final StagedFile staged;
     try {
-      staged = await _stager.stage(source, maxBytes: maxImageBytes);
+      staged = await _stager.stage(source, maxBytes: maxBytes);
     } on ImportTooLargeException {
-      throw StateError(_tooLarge);
+      throw StateError(_tooLargeFor(maxBytes));
     } on ImportEmptyException {
       throw StateError('${source.displayName} is empty. Choose a picture that opens normally and try again.');
     } on ImportAccessException catch (error) {
@@ -111,10 +116,7 @@ class ExerciseImageService {
     }
     try {
       return PickedImage(
-        await ImageValidator.validate(
-          await staged.readBytes(),
-          ImageProfile.exerciseImage,
-        ),
+        await ImageValidator.validate(await staged.readBytes(), profile),
         source.displayName,
       );
     } finally {
@@ -126,14 +128,18 @@ class ExerciseImageService {
   /// is null when the user cancelled or the dialog failed; see the dialog
   /// result.
   Future<({FileDialogResult dialog, PickedImage? picked})>
-  readImageFromDialog() async {
+  readImageFromDialog({
+    int maxBytes = maxImageBytes,
+    ImageProfile profile = ImageProfile.exerciseImage,
+    String artifact = 'exercise-image',
+  }) async {
     final result = await _fileDialogs.openBytes(
       extensions: supportedExtensions.toList(),
-      maxBytes: maxImageBytes,
-      artifact: 'exercise-image',
+      maxBytes: maxBytes,
+      artifact: artifact,
     );
     if (result.outcome == FileDialogOutcome.tooLarge) {
-      throw StateError(_tooLarge);
+      throw StateError(_tooLargeFor(maxBytes));
     }
     if (result.outcome != FileDialogOutcome.opened) {
       return (dialog: result, picked: null);
@@ -145,10 +151,7 @@ class ExerciseImageService {
     return (
       dialog: result,
       picked: PickedImage(
-        await ImageValidator.validate(
-          result.bytes!,
-          ImageProfile.exerciseImage,
-        ),
+        await ImageValidator.validate(result.bytes!, profile),
         name,
       ),
     );
@@ -303,4 +306,9 @@ class ExerciseImageService {
 
   static const String _tooLarge =
       'Image is larger than the 50 KB maximum. Compress or resize it before importing.';
+
+  static String _tooLargeFor(int maxBytes) => maxBytes == maxImageBytes
+      ? _tooLarge
+      : 'Image is larger than the ${maxBytes ~/ (1024 * 1024)} MB maximum. '
+            'Compress or resize it before importing.';
 }

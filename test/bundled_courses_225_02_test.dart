@@ -126,12 +126,8 @@ void main() {
         }
       }
 
-      expect(CourseService.courseAssets, hasLength(10));
+      expect(CourseService.courseAssets, hasLength(4));
       expect(CourseService.courseAssets['KO'], 'assets/courses/korean_en.json');
-      expect(
-        CourseService.courseAssets['NAP'],
-        'assets/courses/neapolitan_it.json',
-      );
       final auditReport = <String>[
         ...auditSummaries,
         'BUNDLED_AUDIT aggregate: $aggregateErrors errors, '

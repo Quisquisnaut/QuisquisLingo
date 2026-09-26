@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../models/authoring_team.dart';
+import '../models/team_shared_folder_link.dart';
 import '../services/formal_name_policy.dart';
 import '../services/profile_service.dart';
 import '../services/team_service.dart';
@@ -15,7 +17,7 @@ Future<void> _showExperimentalTeamHelp(
     title: const Text('Experimental Team model'),
     content: const SingleChildScrollView(
       child: Text(
-        'Teams are an experimental QQL collaboration model. Course maintenance and Team governance are separate. A Course has one individual Maintainer, who may assign a Team to manage it and may revoke that assignment.\n\nA Team can manage Courses created or maintained by different individuals. Team Leaders govern Team membership and roles under the Team rules; being a Course Maintainer does not make someone a Team Leader, and being a Team Leader does not make someone a Course Maintainer.\n\nQQL permissions control behavior inside QQL. They do not by themselves determine copyright ownership, contractual rights, or authority in an external organization.',
+        'Teams are an experimental QQL collaboration model. Course maintenance and Team governance are separate. A Course has one individual Maintainer, who may assign a Team to manage it and may revoke that assignment.\n\nA Team can manage Courses created or maintained by different individuals. Team Leaders govern Team membership and roles under the Team rules; being a Course Maintainer does not make someone a Team Leader, and being a Team Leader does not make someone a Course Maintainer.\n\nA Team Leader can add the link of the Team\u2019s shared Google Drive folder, where members share their work. QQL accepts only Google Drive folder links and opens the folder in the browser after a warning; it never downloads anything itself. $_downloadWarning\n\nQQL permissions control behavior inside QQL. They do not by themselves determine copyright ownership, contractual rights, or authority in an external organization.',
       ),
     ),
     actions: [
@@ -222,17 +224,26 @@ class _TeamManagerScreenState extends State<TeamManagerScreen> {
   );
 }
 
+/// Shown wherever a Team member can reach the shared folder.
+const _downloadWarning =
+    'Download only files whose origin you are sure of: QQL does not check '
+    'what is in the folder, and anyone with access to it can add files.';
+
 class TeamDetailScreen extends StatefulWidget {
   const TeamDetailScreen({
     super.key,
     required this.teamId,
     required this.teamService,
     required this.profileService,
+    this.launchExternal,
   });
 
   final String teamId;
   final TeamService teamService;
   final ProfileService profileService;
+
+  /// Opens the shared folder; tests supply their own.
+  final Future<bool> Function(Uri uri)? launchExternal;
 
   @override
   State<TeamDetailScreen> createState() => _TeamDetailScreenState();
@@ -415,6 +426,200 @@ class _TeamDetailScreenState extends State<TeamDetailScreen> {
     SnackBar(content: Text(error.toString().replaceFirst('StateError: ', ''))),
   );
 
+  /// Build 255 Revision 6: a Team Leader sets the Team's Google Drive folder.
+  Future<void> _editSharedFolder() async {
+    final team = _team;
+    final active = _active;
+    if (team == null || active == null || !_canManage) return;
+    var draft = team.sharedFolderUrl;
+    String? error;
+    final link = await showDialog<String>(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: const Text('Team shared folder'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Paste the link of the Google Drive folder the Team shares. '
+                  'Only Google Drive folder links are accepted.',
+                ),
+                const SizedBox(height: 12),
+                TextFormField(
+                  key: const Key('team-shared-folder-field'),
+                  initialValue: draft,
+                  maxLength: TeamSharedFolderLink.maxLength,
+                  keyboardType: TextInputType.url,
+                  onChanged: (value) => draft = value,
+                  decoration: InputDecoration(
+                    border: const OutlineInputBorder(),
+                    hintText: 'https://drive.google.com/drive/folders/\u2026',
+                    errorText: error,
+                    errorMaxLines: 5,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                const Text(_downloadWarning),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              key: const Key('team-shared-folder-save'),
+              onPressed: () {
+                try {
+                  Navigator.pop(context, TeamSharedFolderLink.normalize(draft));
+                } on FormatException catch (refused) {
+                  setDialogState(() => error = refused.message);
+                }
+              },
+              child: const Text('Save'),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (link == null) return;
+    await _run(() async {
+      await widget.teamService.setSharedFolderUrl(
+        teamId: team.teamId,
+        actorProfileId: active.learnerProfileId,
+        url: link,
+      );
+    });
+  }
+
+  Future<void> _removeSharedFolder() async {
+    final team = _team;
+    final active = _active;
+    if (team == null || active == null || !_canManage) return;
+    await _run(() async {
+      await widget.teamService.setSharedFolderUrl(
+        teamId: team.teamId,
+        actorProfileId: active.learnerProfileId,
+        url: '',
+      );
+    });
+  }
+
+  /// Every member may open the folder, after a warning about downloads. The
+  /// stored link is checked again first.
+  Future<void> _openSharedFolder() async {
+    final team = _team;
+    if (team == null) return;
+    final String link;
+    try {
+      link = TeamSharedFolderLink.normalize(team.sharedFolderUrl);
+    } on FormatException catch (refused) {
+      _showError(refused.message);
+      return;
+    }
+    final open = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        key: const Key('team-shared-folder-warning'),
+        title: const Text('Open the Team shared folder?'),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text('Google Drive opens in your browser:'),
+              const SizedBox(height: 6),
+              SelectableText(link),
+              const SizedBox(height: 12),
+              const Text(
+                _downloadWarning,
+                style: TextStyle(fontWeight: FontWeight.w700),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            key: const Key('team-shared-folder-open-confirm'),
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Open folder'),
+          ),
+        ],
+      ),
+    );
+    if (open != true || !mounted) return;
+    final uri = Uri.parse(link);
+    final launch = widget.launchExternal;
+    final opened = launch == null
+        ? await launchUrl(uri, mode: LaunchMode.externalApplication)
+        : await launch(uri);
+    if (!opened && mounted) {
+      _showError(
+        'The shared folder could not be opened. Copy the link into your browser.',
+      );
+    }
+  }
+
+  Widget _sharedFolder(AuthoringTeam team) {
+    final link = team.sharedFolderUrl;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Shared folder', style: Theme.of(context).textTheme.titleMedium),
+        ListTile(
+          key: const Key('team-shared-folder'),
+          contentPadding: EdgeInsets.zero,
+          leading: const Icon(Icons.folder_shared_outlined),
+          title: Text(
+            link.isEmpty ? 'No shared folder yet' : 'Google Drive folder',
+          ),
+          subtitle: link.isEmpty
+              ? Text(
+                  _canManage
+                      ? 'Add the Google Drive folder where the Team shares its work.'
+                      : 'A Team Leader can add the Team\u2019s Google Drive folder.',
+                )
+              : SelectableText(link),
+        ),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            if (link.isNotEmpty)
+              FilledButton.tonalIcon(
+                key: const Key('team-shared-folder-open'),
+                onPressed: _openSharedFolder,
+                icon: const Icon(Icons.open_in_new),
+                label: const Text('Open'),
+              ),
+            if (_canManage)
+              OutlinedButton(
+                key: const Key('team-shared-folder-edit'),
+                onPressed: _editSharedFolder,
+                child: Text(
+                  link.isEmpty ? 'Add link\u2026' : 'Change link\u2026',
+                ),
+              ),
+            if (_canManage && link.isNotEmpty)
+              TextButton(
+                key: const Key('team-shared-folder-remove'),
+                onPressed: _removeSharedFolder,
+                child: const Text('Remove link'),
+              ),
+          ],
+        ),
+      ],
+    );
+  }
+
   Future<void> _memberAction(String action, String profileId) async {
     final team = _team!;
     final actor = _active!.learnerProfileId;
@@ -543,6 +748,8 @@ class _TeamDetailScreenState extends State<TeamDetailScreen> {
             id: team.teamId,
             padding: const EdgeInsets.only(top: 6),
           ),
+          const SizedBox(height: 16),
+          _sharedFolder(team),
           const SizedBox(height: 16),
           Text('Team Leaders', style: Theme.of(context).textTheme.titleMedium),
           for (final id in leads) _memberTile(team, id, isLead: true),

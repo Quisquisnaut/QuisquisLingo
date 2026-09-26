@@ -69,9 +69,9 @@ Run before distributing a Windows build:
 5. Copy the entire `build\\windows\\x64\\runner\\Release` directory to a Windows machine without Flutter or VS Code.
 6. Start QuisquisLingo from the packaged `QuisquisLingo.exe` bootstrap. Also
    confirm direct `quisquislingo_app.exe` execution still bypasses preflight.
-7. Verify Settings is ordered Profile, Audio Settings, Do Not Disturb, QQL Guide,
-   Debug, Version and Build, Update (with Device Administration for eligible
-   profiles). Locale and App Info no longer appear directly in Settings;
+7. Verify Settings is ordered Profile, Audio Settings, Do Not Disturb,
+   Advanced (Admin) (eligible profiles only), QQL Guide, Debug, Version and
+   Build, Update. Locale and App Info no longer appear directly in Settings;
    Course Manager and User Data remain absent there. Open QQL Guide and verify
    Help Language with its description, then App Info with its description,
    then all standalone Help links sorted alphabetically by the

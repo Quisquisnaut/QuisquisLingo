@@ -347,7 +347,7 @@ void main() {
     expect(find.text('Nothing found.'), findsWidgets);
   });
 
-  testWidgets('Device Administration shows Inventory before Reset', (
+  testWidgets('Advanced (Admin) shows Inventory before Reset', (
     tester,
   ) async {
     await profiles.setActiveProfileById(adminId);

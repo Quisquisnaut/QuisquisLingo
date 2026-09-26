@@ -144,7 +144,7 @@ void main() {
     }
   });
 
-  test('QQL-Tools Device Administration Help explains its boundaries', () {
+  test('QQL-Tools Advanced (Admin) Help explains its boundaries', () {
     expect(deviceAdminHelpSectionIds, contains('qqlTools'));
     expect(
       deviceAdminHelpSectionShape['qqlTools'],

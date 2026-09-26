@@ -2,6 +2,52 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../models/world_flag_entity.dart';
+import 'enlarged_image_dialog.dart';
+
+/// Opens [entity]'s flag enlarged (Build 255 Revision 6). During a Flag Game
+/// question [showName] is false, so the enlargement never gives the answer
+/// away; the reference lists show the name.
+Future<void> showWorldFlagPreview(
+  BuildContext context,
+  WorldFlagEntity entity, {
+  required bool showName,
+}) => showEnlargedImage(
+  context,
+  dialogKey: const ValueKey('world-flag-preview'),
+  closeKey: const ValueKey('world-flag-preview-close'),
+  title: showName ? entity.displayNameEn : null,
+  aspectRatio: 4 / 3,
+  builder: (_, _) => WorldFlagArt(
+    entity: entity,
+    semanticsLabel: showName
+        ? '${entity.displayNameEn} flag'
+        : 'Flag to identify',
+  ),
+);
+
+/// A flag that opens enlarged when tapped.
+class EnlargeableWorldFlag extends StatelessWidget {
+  const EnlargeableWorldFlag({
+    super.key,
+    required this.entity,
+    required this.showName,
+    required this.child,
+  });
+
+  final WorldFlagEntity entity;
+  final bool showName;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) => Tooltip(
+    message: 'Enlarge flag',
+    child: InkWell(
+      borderRadius: BorderRadius.circular(8),
+      onTap: () => showWorldFlagPreview(context, entity, showName: showName),
+      child: child,
+    ),
+  );
+}
 
 class WorldFlagArt extends StatelessWidget {
   final WorldFlagEntity entity;

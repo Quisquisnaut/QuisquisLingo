@@ -494,3 +494,100 @@ was stopped when a doc comment in `android_storage_bridge.dart` turned out to
 be outdated; after correcting it, the Android storage tests and the whole
 suite ran again. No production or test file changed after that run. A debug
 APK was built for the emulator check; no release package.
+
+## Revision 6 — `2.0.55+255006`, 26 September 2026
+
+Beta expiry `2026-10-26 23:59:59` local time (unchanged: released on the same
+day as Revision 5).
+
+### Scope
+
+Twelve small owner-requested corrections (decisions of 26 September 2026 in
+the handoff): demo licenses aligned to All rights reserved (Fork kept on the
+two test demos), Piedmontais renamed Piedmontese, a Minimal view for Courses
+sections and per-learner saved views, no startup Beta testing dialog,
+Advanced (Admin) after Do Not Disturb, six demos removed, enlargeable Flag
+Game flags and Course Info image, a Course cover set in the Course Info
+Editor (up to 1 MB for the cover alone), and a Team Google Drive folder link.
+
+### Focused evidence
+
+- Course data: `python tools/validate_courses.py` validates the 4 remaining
+  bundled Courses; `generate_exercise_laboratory_254.py --check`,
+  `generate_edge_case_demo_254.py --check` and
+  `generate_piedmontais_demo_254.py --check` pass (the last two regenerate
+  Edge Case 1.1.0 and Piedmontese 1.1.0); `validate_media_assets.py`: 443
+  files, 0 issues. Korean 1.2.0 was edited with the validator's checksum
+  rule; the Dart checksum check of every bundled load agrees.
+- `course_official_provenance_225_04_test` (new test): every demo is
+  All rights reserved; Exercise Laboratory and Edge Case allow derivative
+  works, Korean and Piedmontese forbid them. `piedmontais_course_254_test`:
+  title, learning and target language say Piedmontese and nothing says
+  Piedmontais. `demo_package_roundtrip_254_test`: the shipped Piedmontese
+  refuses Fork; its content still takes the fork/export/import round trip
+  through a test-only permissive copy.
+- Removed demos: `course_service_test`, `bundled_demo_registry_254_test`,
+  `bundled_courses_225_02_test`, `sample_courses_test`,
+  `course_model_v6_test`, `course_model_v11_243_test`,
+  `korean_production_discovery_225_03_test` and the Course Studio tests use
+  the four remaining demos; `neapolitan_bundled_course_234_test` is removed
+  with its Course. `leaderboard_navigation_test` uses the Korean sample as
+  its navigation course (Sections and Duels); its Course Selector steps use
+  fixed frames because the Piedmontese World Flag row keeps a loading
+  indicator, and short lists get a frame after `scrollUntilVisible`.
+  `course_entry_animation_228_test` checks the automatic FlagPainter flag
+  with a synthetic flagless German Course.
+- `course_library_view_255_test` (new, 8): the Expanded → Compact → Minimal
+  cycle; Minimal shows only "S of N shown"; views saved per learner, tab and
+  category (key `course_library_view_all_courses_other_local` = `minimal`),
+  read back on a new visit, independent for another learner and for Course
+  Studio; nothing written without a learner; the key suffix fits learner
+  backups and is not a progress key; an imported Course's Minimal section is
+  shown Expanded until the learner picks a view.
+  `course_library_compact_244_test` follows the new cycle.
+- Startup: `startup_profile_gate_test` waits for Home instead of the removed
+  dialog and checks it never appears and its notice flag is never written;
+  `startup_logging_regression_test` and `update_notice_239_test` check the
+  update check starts without a notice in front of it.
+- `device_administration_239_test`: Settings order Profile, Audio Settings,
+  Do Not Disturb, Advanced (Admin), QQL Guide, Debug, Version and Build,
+  Update for an admin; the page and its Help are titled Advanced (Admin).
+- `enlarge_images_255_test` (new, 4): a question flag enlarges without its
+  name and the question goes on; a reference flag enlarges with its name;
+  Course Info opens the flag, or the cover shown instead of it, in the shared
+  dialog. `course_artwork_preview_250_test` still passes through the shared
+  dialog.
+- `course_cover_255_test` (new, 8): a ready 512 × 512 picture is kept byte
+  for byte; a 300 × 200 picture is centre-cropped (red left, blue right) and
+  scaled to 512 × 512; a small one is enlarged; non-pictures and pictures
+  over 10 MB are refused; a 512 × 512 cover above 50 KB is stored, copied and
+  exported/imported as a cover but refused as an ordinary image; Quick
+  Import through `CourseCoverField` and Remove cover; end to end, the Course
+  Info Editor cover shows in the Course Editor header and is confirmed with
+  the Course. `course_info_update_service_245_test`: the cover is set and
+  cleared (omitted from JSON when empty).
+- `team_shared_folder_255_test` (new, 6): accepted links and their stored
+  form; 26 refused links (http, look-alike hosts, user info, ports, files,
+  direct downloads, `open?id=`, Docs, shorteners, extra parameters, fragments,
+  `javascript:`, `file:`, too long); registries without the field read
+  unchanged and a bad stored link is refused; only a Team Leader sets or
+  removes it; the member view opens it only after the download warning, with
+  the stored form.
+
+### Final release checks
+
+`flutter analyze --no-pub`: **No issues found**. The first complete
+`flutter test --no-pub --concurrency=1` (21 min 55 s) found 8 failures, all in
+tests the smaller demo set or the version bump affected:
+`qql_233_revision_platform_contract_test` still pinned `2.0.55+255005`; five
+Course Studio and Course Library taps followed a `scrollUntilVisible` that
+only brought an already built row into view without a frame (a `pump` before
+the tap fixes it); `course_creation_flags_226_04_test` counted every World
+Flag in the tree, including a Course Studio row below the Editor that the
+shorter list now builds, and now looks only inside the Editor's AppBar. After
+those corrections (the four files pass) and a clean analyzer, the complete
+suite on the final tree: **2,766 passed, 1 existing skip, 0 failed** in
+20 min 35 s. The course validators (`validate_courses.py`, the three
+`--check` generators, `validate_media_assets.py`) pass. No production or test
+file changed after that run. No Windows or Android package was built, and no
+emulator check was made for this revision.

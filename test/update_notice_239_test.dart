@@ -134,18 +134,16 @@ void main() {
     expect(find.text('QuisquisLingo update available'), findsNothing);
   });
 
-  test('the update check does not depend on the one-time Beta notice', () {
+  // Build 255 Revision 6 removed the one-time Beta testing notice; nothing
+  // waits in front of the update check any more.
+  test('the update check does not wait for a one-time notice', () {
     final source = File('lib/main.dart').readAsStringSync();
-    final start = source.indexOf('Future<void> _showInstructions()');
-    final end = source.indexOf('Future<void> _checkForUpdateAtStartup()');
-    expect(start, greaterThan(0));
-    expect(end, greaterThan(start));
-    // The Beta notice returns early once seen, so the check must not live in it.
+    expect(source.contains('_showInstructions'), isFalse);
+    expect(source.contains("Text('QuisquisLingo Beta testing')"), isFalse);
     expect(
-      source.substring(start, end).contains('_checkForUpdateAtStartup()'),
-      isFalse,
+      source.contains('if (mounted) unawaited(_checkForUpdateAtStartup());'),
+      isTrue,
     );
-    expect(source.contains('await _showInstructions();'), isTrue);
   });
 
   testWidgets('only an admin can change the startup update check', (
@@ -171,7 +169,7 @@ void main() {
     expect(find.textContaining('only by an admin'), findsOneWidget);
   });
 
-  testWidgets('Device Administration lists Update first', (tester) async {
+  testWidgets('Advanced (Admin) lists Update first', (tester) async {
     tester.view.physicalSize = const Size(800, 3600);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);

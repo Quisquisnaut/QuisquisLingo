@@ -15,15 +15,12 @@ import 'course_language_resolver.dart';
 /// course must fail rather than silently opening Italian or another course.
 class CourseService {
   final DiagnosticLogService _log = DiagnosticLogService();
+  // Build 255 Revision 6 removed the German, Spanish, English-from-Spanish,
+  // Welsh, Portuguese and Neapolitan demos. Their Course IDs stay reserved in
+  // CourseEditorService, as the demos removed in Build 254 do.
   static const Map<String, String> courseAssets = {
     'IT': 'assets/courses/exercise_laboratory_en_it.json',
-    'DE': 'assets/courses/german_en.json',
-    'ES': 'assets/courses/spanish_en.json',
-    'EN': 'assets/courses/english_es.json',
-    'CY': 'assets/courses/welsh_en.json',
-    'PT': 'assets/courses/portuguese_en.json',
     'KO': 'assets/courses/korean_en.json',
-    'NAP': 'assets/courses/neapolitan_it.json',
     'EN_EDGE': 'assets/courses/edge_case_it_en.json',
     'PMS': 'assets/courses/piedmontais_en.json',
   };
@@ -33,36 +30,20 @@ class CourseService {
 
   static const Map<String, String> targetLabels = {
     'IT': 'Italian',
-    'DE': 'German',
-    'ES': 'Spanish',
-    'EN': 'English',
-    'CY': 'Welsh',
-    'PT': 'Portuguese',
     'KO': 'Korean',
-    'NAP': 'Neapolitan',
     'EN_EDGE': 'English',
-    'PMS': 'Piedmontais',
+    'PMS': 'Piedmontese',
   };
 
   static const Map<String, String> sourceLabels = {
     'IT': 'English',
-    'DE': 'English',
-    'ES': 'English',
-    'EN': 'Spanish',
-    'CY': 'English',
-    'PT': 'English',
     'KO': 'English',
-    'NAP': 'Italian',
     'EN_EDGE': 'Italian',
     'PMS': 'English',
   };
 
   Future<Course> loadItalianCourse() => loadCourse('IT');
-  Future<Course> loadGermanCourse() => loadCourse('DE');
-  Future<Course> loadSpanishCourse() => loadCourse('ES');
-  Future<Course> loadEnglishCourse() => loadCourse('EN');
   Future<Course> loadKoreanCourse() => loadCourse('KO');
-  Future<Course> loadNeapolitanCourse() => loadCourse('NAP');
 
   /// Reconciles the device-local discovery index with the authoritative
   /// bundled registry. This is normal startup initialization: it does not

@@ -26,6 +26,82 @@ owner's and not part of this work: never stage, move or delete them.
 
 ## Status
 
+**Revision 6 (`2.0.55+255006`) is in progress** (26 September 2026, from
+20:30) on local branch `claude/255-rev6-fixes`, created from `main` at
+`2f4f89b`. Small owner-requested corrections, one local commit when done; no
+push or PR unless asked. Owner decisions (26 September 2026):
+
+1. Demo licenses: every remaining demo says `All rights reserved`. Exercise
+   Laboratory and Edge Case keep `derivativeWorksPolicy: allowed` (they are
+   the forkable test demos); Korean and Piedmontese get `forbidden` (the
+   value QQL maps to All rights reserved). Edge Case's license text loses its
+   "; derivative works allowed…" suffix. Changed demos get a minor
+   `officialCourseVersion` bump with release notes (precedent: Korean 226.02).
+2. Piedmontais becomes Piedmontese: title `AI-Slop Demo: Piedmontese`,
+   learning/target language and every in-course mention; same Course ID,
+   stable IDs, code `PMS`, TTS `pms-IT`; file names stay.
+3. + 4. Courses sections: Expanded → Compact → Minimal (cycle button, like
+   the Lesson display control). Minimal shows only the header with
+   "S of N shown". Persisted per learner × tab × category
+   (`course_library_view_<tab>_<category>`, default Expanded); an imported
+   Course's Minimal section shows Expanded for that visit.
+5. Remove the one-time "QuisquisLingo Beta testing" startup dialog; the
+   startup update check stays.
+6. + 7. "Device Administration" is labelled **Advanced (Admin)** (classes,
+   files and keys unchanged) and sits after Do Not Disturb in Settings.
+8. Delete German, Spanish, Inglés para hispanohablantes (EN), Welsh,
+   Portuguese and Neapolitan; keep Exercise Laboratory, Korean, Edge Case and
+   Piedmontese. IDs stay reserved, progress orphaned, media assets kept.
+9. Flag Game: tap a flag to enlarge it (no name during a question; name in
+   the reference lists).
+10. Course Info: the Course image (cover if any, else flag, as in Courses) is
+    tappable and opens the same enlargement dialog, extracted from the
+    Courses row into one shared implementation.
+11. Team: optional Google Drive shared-folder link (Team Leaders set it,
+    members open it after a safety warning); only
+    `https://drive.google.com/drive/(u/N/)folders/<ID>` is accepted.
+12. Cover image in the Course Info Editor (Choose image / Quick Import / Open
+    from… / Remove): any picture is centre-cropped and scaled to a 512 × 512
+    PNG (a ready 512 × 512 file up to 1 MB is kept as it is). The cover alone
+    may be up to **1 MB** (owner decision; other images stay at 50 KB): the
+    store, package import, backup restore and Fork/Copy/Merge copies apply the
+    cover limit only to the file that is the Course's cover. The Course
+    Editor header shows the cover instead of the flag when there is one.
+
+Status (22:27): all twelve tasks are implemented and documented (CHANGELOG,
+README, AGENTS.md, `255_VALIDATION.md`, `239_RESET_STORAGE_INVENTORY.md`,
+`WINDOWS_RELEASE_TEST.md` step 7, and `SEND_DEBUG_LOG_TO_DEVELOPER.txt`,
+which still described the removed dialog). Analyzer clean; the complete
+suite on the final tree passed: 2,766 passed, 1 existing skip, 0 failed
+(20 min 35 s). A first complete run had found 8 failures in tests the
+smaller demo set or the version bump affected (details in the validation);
+they were corrected before the final run.
+
+Revision 6 open points for the owner:
+
+- Fork is unavailable on Korean and Piedmontese by decision; the Build 254
+  package round-trip test keeps Piedmontese content covered through a
+  test-only copy that allows derivative works.
+- The removed demos' learner progress stays in preferences, orphaned, as
+  after Build 254; until the week rolls over, the Gamification breakdown of
+  last week's XP may name such a Course by its ID.
+- The earlier `one_time_notice_seen_beta_testing` flag stays where it was
+  set; nothing reads it any more.
+- A cover made from a Shared Image Library picture is a new, cropped image
+  and does not carry the library picture's provenance: credit it under
+  Media credits. A Course package whose cover is over 50 KB does not import
+  into Revision 5 or earlier.
+- `tools/regenerate_bundled_courses_225_02.py` (historical) still names the
+  removed files; as before, it must not be run.
+- Not checked on a device: the cover's Quick Import and Open from… on
+  Android, and opening a Team folder link on Android (desktop flows are
+  covered by tests). No Windows or Android package was built.
+
+Measured before deciding: library images (256 × 256 WebP) scaled to a
+512 × 512 PNG weigh 10–87 KB; a detailed 1254 × 1254 logo 145 KB. Before this
+revision the real cover limit was 50 KB, because every package image passed
+the general 50 KB check before the declared 100 KB cover check.
+
 **Build 255 is complete and merged** (26 September 2026): Revisions 0–5 and
 the two earlier commits reached `main` through
 [PR #24](https://github.com/Quisquisnaut/QuisquisLingo/pull/24), merge commit
@@ -175,6 +251,17 @@ is disabled.
   others.
 
 ## Gotchas
+
+- Revision 6: the Course Selector and Course Studio lists are shorter now
+  (four bundled demos), so rows are often already built: after
+  `scrollUntilVisible` add `await tester.pump()` before tapping, and do not
+  `pumpAndSettle` while the Piedmontese World Flag row is on screen (its
+  loading indicator never settles; see `_settleSelector` in
+  `leaderboard_navigation_test`). Here-doc scripts in the Bash tool lose
+  escaped backslashes: put Python edit scripts in a file. Several files are
+  not `dart format`-clean at HEAD (for example `course_editor_screen.dart`,
+  `course_package_service.dart`, `exercise_image_service.dart`); check with
+  a copy before formatting a whole file, or edit by hand.
 
 - Never run two Flutter commands at once (shared SDK lock), and do not start
   the emulator during a full suite: this PC has 4 cores and 8 GB RAM, and load

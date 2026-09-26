@@ -100,7 +100,7 @@ void main() {
     await profiles.setActiveProfileById(learner.learnerProfileId);
     await open(tester);
     expect(
-      find.text('Device Administration is available only to admins.'),
+      find.text('Advanced (Admin) is available only to admins.'),
       findsOneWidget,
     );
     expect(find.byKey(const Key('admin-reset-locked')), findsNothing);
@@ -176,7 +176,7 @@ void main() {
 
       await tester.tap(find.byKey(const Key('admin-help')));
       await tester.pumpAndSettle();
-      expect(find.text('Device Administration Help'), findsOneWidget);
+      expect(find.text('Advanced (Admin) Help'), findsOneWidget);
       for (final title in const [
         'What admins CAN do',
         'What admins CANNOT do',
@@ -254,7 +254,7 @@ void main() {
 
     // Regression: the admin must stay logged in and see the page afterwards.
     expect(
-      find.text('Device Administration is available only to admins.'),
+      find.text('Advanced (Admin) is available only to admins.'),
       findsNothing,
     );
     expect(await profiles.getActiveProfileId(), adminId);
@@ -615,9 +615,13 @@ void main() {
     expect(restarted, greaterThan(builds));
   });
 
-  testWidgets('Settings shows Device Administration only to admins', (
-    tester,
-  ) async {
+  // Build 255 Revision 6: the page is called Advanced (Admin) and comes
+  // right after Do Not Disturb.
+  testWidgets('Settings shows Advanced (Admin) only to admins', (tester) async {
+    tester.view.physicalSize = const Size(900, 1400);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
     await tester.pumpWidget(
       MaterialApp(
         home: SettingsScreen(course: _course, onManageLearners: (_) async {}),
@@ -630,6 +634,25 @@ void main() {
       find.byKey(const Key('settings-device-administration')),
       findsOneWidget,
     );
+    expect(
+      tester
+          .widgetList<ListTile>(find.byType(ListTile))
+          .map((tile) => tile.title)
+          .whereType<Text>()
+          .map((text) => text.data)
+          .toList(),
+      [
+        'Profile',
+        'Audio Settings',
+        'Do Not Disturb',
+        'Advanced (Admin)',
+        'QQL Guide',
+        'Debug',
+        'Version and Build',
+        'Update',
+      ],
+    );
+    expect(find.text('Device Administration'), findsNothing);
 
     final learner = await profiles.createProfile('Learner');
     await profiles.setActiveProfileById(learner.learnerProfileId);

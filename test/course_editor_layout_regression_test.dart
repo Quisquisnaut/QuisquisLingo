@@ -440,6 +440,7 @@ void main() {
       find.byKey(const Key('course-manager-actions-custom_menu')),
       400,
     );
+    await tester.pump();
     await tester.tap(
       find.byKey(const Key('course-manager-actions-custom_menu')),
     );
@@ -511,6 +512,7 @@ void main() {
           find.byKey(const Key('course-manager-actions-official-actions')),
           400,
         );
+        await tester.pump();
         await tester.tap(
           find.byKey(const Key('course-manager-actions-official-actions')),
         );
@@ -645,6 +647,7 @@ void main() {
         find.byKey(const Key('course-manager-actions-official-actions')),
         400,
       );
+      await tester.pump();
       await tester.tap(
         find.byKey(const Key('course-manager-actions-official-actions')),
       );

@@ -1,5 +1,3 @@
-import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
 
 import '../models/course_draft_status.dart';
@@ -57,59 +55,6 @@ class CourseLibraryRow extends StatelessWidget {
               dark
           ? Colors.black
           : null,
-    );
-  }
-
-  void _showArtworkPreview(BuildContext context) {
-    showDialog<void>(
-      context: context,
-      builder: (dialogContext) {
-        final viewport = MediaQuery.sizeOf(dialogContext);
-        final artworkSize = math.max(
-          96.0,
-          math.min(520.0, math.min(viewport.width - 80, viewport.height - 180)),
-        );
-        return Dialog(
-          key: ValueKey('course-artwork-preview-${course.courseId}'),
-          insetPadding: const EdgeInsets.all(16),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                SizedBox(
-                  width: artworkSize,
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          course.title,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: Theme.of(dialogContext).textTheme.titleMedium,
-                        ),
-                      ),
-                      IconButton(
-                        key: const ValueKey('course-artwork-preview-close'),
-                        tooltip: 'Close',
-                        onPressed: () => Navigator.of(dialogContext).pop(),
-                        icon: const Icon(Icons.close),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 8),
-                CourseArtwork(
-                  course: course,
-                  size: artworkSize,
-                  coverFit: BoxFit.contain,
-                  mediaStore: mediaStore,
-                ),
-              ],
-            ),
-          ),
-        );
-      },
     );
   }
 
@@ -198,7 +143,11 @@ class CourseLibraryRow extends StatelessWidget {
                   message: 'Enlarge Course image',
                   child: InkWell(
                     key: ValueKey('course-artwork-open-${course.courseId}'),
-                    onTap: () => _showArtworkPreview(context),
+                    onTap: () => showCourseArtworkPreview(
+                      context,
+                      course,
+                      mediaStore: mediaStore,
+                    ),
                     borderRadius: BorderRadius.circular(8),
                     child: CourseArtwork(
                       course: course,

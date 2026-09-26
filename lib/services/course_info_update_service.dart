@@ -22,6 +22,8 @@ typedef CourseInfoChange = ({
   String flagCode,
   String flagImageBase64,
   String worldFlagId,
+  // The Course's cover reference, or '' for none (Build 255 Revision 6).
+  String coverImage,
   String maintainerProfileId,
   String? assignedTeamId,
 });
@@ -79,6 +81,7 @@ class CourseInfoUpdateService {
       'keywords': change.keywords.isEmpty ? null : change.keywords,
       'publisherContact': change.publisherContact?.toJson(),
       'minimumAppBuild': change.minimumAppBuild,
+      'coverImage': change.coverImage.isEmpty ? null : change.coverImage,
     };
     final updated = Course.fromJson({
       // Cleared optional fields are omitted, never stored as null.

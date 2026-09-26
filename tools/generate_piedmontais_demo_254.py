@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Reproduce the approved Build 254 English -> Piedmontais sample only.
+"""Reproduce the approved Build 254 English -> Piedmontese sample only.
 
 This is authored demo data, not a language-course generation framework.
 The Course ID was allocated once with Course.newCourseId(); regeneration
@@ -20,6 +20,10 @@ ROOT = Path(__file__).resolve().parents[1]
 OUTPUT = ROOT / "assets/courses/piedmontais_en.json"
 COURSE_ID = "course_e5f5585a-7762-43a0-a6b2-62754e02d17b"
 STAMP = "2026-09-25T00:00:00.000Z"
+# Build 255 Revision 6 released version 1.1.0: the Course was renamed from
+# Piedmontais to Piedmontese, the name of its target language, and its
+# derivative-works policy became forbidden (All rights reserved).
+RELEASE_STAMP = "2026-09-26T00:00:00.000Z"
 PREFIX = "pms_e5f5585a"
 NORMALIZATION = {
     "case": "ignore", "punctuation": "ignore",
@@ -27,7 +31,7 @@ NORMALIZATION = {
 }
 AUDIO_NOTE = (
     "Audio uses On-Device TTS with pms-IT. This demo contains no recorded "
-    "Piedmontais voice. Listening examples require a suitable device voice; "
+    "Piedmontese voice. Listening examples require a suitable device voice; "
     "availability and pronunciation depend on the device."
 )
 
@@ -158,10 +162,10 @@ def lesson_specs() -> list[tuple[str, str, str, list[dict]]]:
     def add(kind, topic, guide, examples):
         specs.append((kind, topic, guide, examples))
 
-    add("choice", "First words", "pan = bread; gat = cat; eva = water. Choose the Piedmontais word.", [
-        choose("choice", [text("How do you say bread in Piedmontais?")], ["pan", "gat", "eva"]),
-        choose("choice", [text("How do you say cat in Piedmontais?")], ["can", "gat", "pan"], 1),
-        choose("choice", [text("How do you say water in Piedmontais?")], ["pom", "pan", "eva"], 2),
+    add("choice", "First words", "pan = bread; gat = cat; eva = water. Choose the Piedmontese word.", [
+        choose("choice", [text("How do you say bread in Piedmontese?")], ["pan", "gat", "eva"]),
+        choose("choice", [text("How do you say cat in Piedmontese?")], ["can", "gat", "pan"], 1),
+        choose("choice", [text("How do you say water in Piedmontese?")], ["pom", "pan", "eva"], 2),
     ])
     add("gap_choice", "Small phrases", "ël can = the dog; la ca = the house; bon-a matin = good morning.", [
         choose("gap_choice", [text("Complete the phrase meaning the dog."), text("ël ___", "question")], ["pan", "can", "pom"], 1),
@@ -217,22 +221,22 @@ def lesson_specs() -> list[tuple[str, str, str, list[dict]]]:
                  dict(text(second, "dialogue_turn"), speaker="Tòni")]
         context_examples.append(choose("contextual_comprehension", turns + [text(question, "question")], choices, correct))
     add("contextual_comprehension", "Who said it", "Read the two speakers' words. I l'hai means I have. Keep track of who owns the object or responds to the other speaker.", context_examples)
-    add("type_translation", "Write in Piedmontais", "Translate English into Piedmontais. Thank you accepts grassie or mersì. The happy speaker is masculine: i son content; mi is optional. The house is la ca.", [
+    add("type_translation", "Write in Piedmontese", "Translate English into Piedmontese. Thank you accepts grassie or mersì. The happy speaker is masculine: i son content; mi is optional. The house is la ca.", [
         enter("type_translation", [text("thank you")], ["grassie", "mersì"]),
         enter("type_translation", [text("I am happy. (masculine speaker)")], ["{mi} i son content"]),
         enter("type_translation", [text("the house")], ["la ca"]),
     ])
-    add("build_translation", "Translate with blocks", "Build an English phrase in Piedmontais. ël lìber = the book; i son content = I am happy (masculine); pan e eva = bread and water. For I am happy, both mi i son content and i son content are accepted.", [
+    add("build_translation", "Translate with blocks", "Build an English phrase in Piedmontese. ël lìber = the book; i son content = I am happy (masculine); pan e eva = bread and water. For I am happy, both mi i son content and i son content are accepted.", [
         arrange("build_translation", [text("the book")], ["lìber", "la", "ël"], [[2, 0]]),
         arrange("build_translation", [text("I am happy. (masculine speaker)")], ["content", "mi", "son", "i"], [[1, 3, 2, 0], [3, 2, 0]]),
         arrange("build_translation", [text("bread and water")], ["eva", "pan", "e"], [[1, 2, 0]]),
     ])
-    add("translation_choice_to_target", "English to Piedmontais", "Read the English source and pick its Piedmontais translation. ël can = the dog; ross = red; tre = three.", [
+    add("translation_choice_to_target", "English to Piedmontese", "Read the English source and pick its Piedmontese translation. ël can = the dog; ross = red; tre = three.", [
         choose("translation_choice_to_target", [text("the dog", "question")], ["ël can", "ël gat", "ël pan"]),
         choose("translation_choice_to_target", [text("red", "question")], ["nèir", "ross", "bianch"], 1),
         choose("translation_choice_to_target", [text("three", "question")], ["un", "doi", "tre"], 2),
     ])
-    add("translation_choice_to_source", "Piedmontais to English", "Read the Piedmontais source and pick its English meaning. bon-aneuit = good night; ël pan = the bread; mi i son content = I am happy.", [
+    add("translation_choice_to_source", "Piedmontese to English", "Read the Piedmontese source and pick its English meaning. bon-aneuit = good night; ël pan = the bread; mi i son content = I am happy.", [
         choose("translation_choice_to_source", [text("bon-aneuit", "question")], ["good night", "good morning", "thank you"]),
         choose("translation_choice_to_source", [text("ël pan", "question")], ["the dog", "the bread", "the house"], 1),
         choose("translation_choice_to_source", [text("mi i son content", "question")], ["I have a book", "I am at home", "I am happy"], 2),
@@ -263,43 +267,43 @@ def lesson_specs() -> list[tuple[str, str, str, list[dict]]]:
             ("I l'hai un lìber.", ["lìber"]),
         ]
     ])
-    add("matching", "Everyday pairs", "Match each English meaning with its Piedmontais phrase. Pair relationships stay the same when the display is shuffled.", [
+    add("matching", "Everyday pairs", "Match each English meaning with its Piedmontese phrase. Pair relationships stay the same when the display is shuffled.", [
         match("matching", "Match each greeting with its English meaning.", [("bondì", "good morning"), ("bon-aneuit", "good night"), ("grassie", "thank you")]),
-        match("matching", "Match each Piedmontais phrase with its English meaning.", [("ël lìber", "the book"), ("la ca", "the house"), ("ël can", "the dog")]),
-        match("matching", "Match each Piedmontais colour with its English meaning.", [("ross", "red"), ("nèir", "black"), ("bianch", "white")]),
+        match("matching", "Match each Piedmontese phrase with its English meaning.", [("ël lìber", "the book"), ("la ca", "the house"), ("ël can", "the dog")]),
+        match("matching", "Match each Piedmontese colour with its English meaning.", [("ross", "red"), ("nèir", "black"), ("bianch", "white")]),
     ])
-    add("word_match", "Three translations", "Match English words with Piedmontais words. Food: pan, eva, pom. Animals: gat, can, caval. At home: tàula, cadrega, pòrta.", [
-        match("word_match", f"Match English {topic} words to Piedmontais.", pairs)
+    add("word_match", "Three translations", "Match English words with Piedmontese words. Food: pan, eva, pom. Animals: gat, can, caval. At home: tàula, cadrega, pòrta.", [
+        match("word_match", f"Match English {topic} words to Piedmontese.", pairs)
         for topic, pairs in [
             ("food and drink", [("bread", "pan"), ("water", "eva"), ("apple", "pom")]),
             ("animal", [("cat", "gat"), ("dog", "can"), ("horse", "caval")]),
             ("household", [("table", "tàula"), ("chair", "cadrega"), ("door", "pòrta")]),
         ]
     ])
-    add("super_match", "Related Piedmontais words", "Follow the relationship named in each exercise. Opposites: càud/frèid (hot/cold), nèir/bianch (black/white), grand/cit (big/small). Plurals: ël lìber/ij lìber, la ca/le ca, la cadrega/le cadreghe. Articles: ël gat, la ca, ël lìber.", [
-        match("super_match", "Match the Piedmontais opposites.", [("càud", "frèid"), ("nèir", "bianch"), ("grand", "cit")]),
+    add("super_match", "Related Piedmontese words", "Follow the relationship named in each exercise. Opposites: càud/frèid (hot/cold), nèir/bianch (black/white), grand/cit (big/small). Plurals: ël lìber/ij lìber, la ca/le ca, la cadrega/le cadreghe. Articles: ël gat, la ca, ël lìber.", [
+        match("super_match", "Match the Piedmontese opposites.", [("càud", "frèid"), ("nèir", "bianch"), ("grand", "cit")]),
         match("super_match", "Match each singular phrase to its plural.", [("ël lìber", "ij lìber"), ("la ca", "le ca"), ("la cadrega", "le cadreghe")]),
         match("super_match", "Match each noun to the same noun with its definite article.", [("gat", "ël gat"), ("ca", "la ca"), ("lìber", "ël lìber")]),
     ])
-    add("audio_match", "Match what you hear", "Play each Piedmontais item and match it to the English meaning. Each exercise has three unique audio/text pairs and no distractors. " + AUDIO_NOTE, [
-        match("audio_match", f"Match each spoken Piedmontais {topic} word to its English meaning.", pairs)
+    add("audio_match", "Match what you hear", "Play each Piedmontese item and match it to the English meaning. Each exercise has three unique audio/text pairs and no distractors. " + AUDIO_NOTE, [
+        match("audio_match", f"Match each spoken Piedmontese {topic} word to its English meaning.", pairs)
         for topic, pairs in [
             ("food or drink", [("pan", "bread"), ("eva", "water"), ("pom", "apple")]),
             ("animal", [("gat", "cat"), ("can", "dog"), ("caval", "horse")]),
             ("colour", [("ross", "red"), ("nèir", "black"), ("bianch", "white")]),
         ]
     ])
-    add("word_order", "Put words in order", "Restore the Piedmontais phrase. Keep i before son. A repeated ël needs its own block each time. These are ordering exercises; no English sentence is being translated.", [
+    add("word_order", "Put words in order", "Restore the Piedmontese phrase. Keep i before son. A repeated ël needs its own block each time. These are ordering exercises; no English sentence is being translated.", [
         arrange("word_order", [text("Put the speaker, verb and description in order.", "clue")], ["content", "son", "mi", "i"], [[2, 3, 1, 0]]),
         arrange("word_order", [text("Put the food first, then the link, then the drink.", "clue")], ["eva", "e", "pan"], [[2, 1, 0]]),
         arrange("word_order", [text("Put the cat first and the dog second, with an article before each.", "clue")], ["can", "ël", "e", "gat", "ël"], [[1, 3, 2, 4, 0]]),
     ])
-    add("image_word", "Build pictured words", "Use every letter to spell the Piedmontais word in the picture: pan (bread), gat (cat), caval (horse). The two a letters in caval are separate blocks.", [
+    add("image_word", "Build pictured words", "Use every letter to spell the Piedmontese word in the picture: pan (bread), gat (cat), caval (horse). The two a letters in caval are separate blocks.", [
         arrange("image_word", [text(instruction, "clue"), image(asset, alternative)], blocks, [order])
         for asset, alternative, blocks, order, instruction in [
-            ("bread", "Bread", ["n", "p", "a"], [1, 2, 0], "Spell the pictured food in Piedmontais."),
-            ("cat", "A cat", ["t", "g", "a"], [1, 2, 0], "Spell the pictured pet in Piedmontais."),
-            ("horse", "A horse", ["a", "l", "c", "a", "v"], [2, 0, 4, 3, 1], "Spell the pictured farm animal in Piedmontais."),
+            ("bread", "Bread", ["n", "p", "a"], [1, 2, 0], "Spell the pictured food in Piedmontese."),
+            ("cat", "A cat", ["t", "g", "a"], [1, 2, 0], "Spell the pictured pet in Piedmontese."),
+            ("horse", "A horse", ["a", "l", "c", "a", "v"], [2, 0, 4, 3, 1], "Spell the pictured farm animal in Piedmontese."),
         ]
     ])
     add("flashcard", "Remember useful words", "Read each term, meaning and example. Choose Got it or Review again. Flashcards do not award ordinary correct-answer XP. Pronunciation is optional and depends on the device. " + AUDIO_NOTE, [
@@ -364,27 +368,27 @@ def build_course() -> dict:
         "lessonNumberingMode": "lesson", "defaultLessonIconStyle": "monochrome",
         "createDuels": False, "courseId": COURSE_ID, "originType": "bundledOfficial",
         "publisherId": "org.quisquislingo", "publisherName": "QuisquisLingo",
-        "officialCourseVersion": "1.0.0", "officialReleaseDateUtc": STAMP,
-        "officialReleaseNotes": "QQL Build 254: English-to-Piedmontais AI-Slop Demo with one Lesson per current named exercise type.",
+        "officialCourseVersion": "1.1.0", "officialReleaseDateUtc": RELEASE_STAMP,
+        "officialReleaseNotes": "QQL Build 255 Revision 6: renamed Piedmontese, the name of its target language; derivative works forbidden (All rights reserved).",
         "distributionChannel": "bundled", "publisherVerificationStatus": "verified",
         "originalCourseCreator": {"type": "publisher", "id": "org.quisquislingo", "displayName": "QuisquisLingo"},
-        "originalCreatedAtUtc": STAMP, "modifiedAtUtc": STAMP,
-        "learningLanguage": "Piedmontais", "interfaceLanguage": "English",
-        "sourceLanguage": "English", "targetLanguage": "Piedmontais",
-        "title": "AI-Slop Demo: Piedmontais", "ttsLanguage": "pms-IT", "audioMode": "tts",
+        "originalCreatedAtUtc": STAMP, "modifiedAtUtc": RELEASE_STAMP,
+        "learningLanguage": "Piedmontese", "interfaceLanguage": "English",
+        "sourceLanguage": "English", "targetLanguage": "Piedmontese",
+        "title": "AI-Slop Demo: Piedmontese", "ttsLanguage": "pms-IT", "audioMode": "tts",
         "authors": [{"name": "OpenAI Codex (AI-generated sample; not linguistically reviewed)", "roles": ["Author"]}],
         "license": "All rights reserved",
-        "derivativeWorksPolicy": "allowed",
+        "derivativeWorksPolicy": "forbidden",
         "mediaAttributions": [{
             "author": "OpenAI Codex",
             "license": "Original code-rendered letter diagrams for this temporary sample",
-            "title": "Accented Piedmontais letters",
+            "title": "Accented Piedmontese letters",
             "source": "tools/generate_piedmontais_demo_254.py glyph_png",
             "appliesTo": "The three embedded character-recognition PNGs: ë, é and ò",
         }],
         "languageVariant": "Piedmontese literary spelling; introductory AI-authored examples awaiting native-speaker review",
         "startLevel": "Beginner", "targetLevel": "Beginner",
-        "courseDescription": "TEMPORARY UNREVIEWED AI-GENERATED SAMPLE. English to Piedmontais (Piedmontese), with 24 Lessons demonstrating the 24 current named Exercise types. The content is for testing and requires native-speaker review before language-teaching use. Basic spellings were checked against Claudio Panero's English-Piedmontese dictionary; examples and letter diagrams are newly authored. " + AUDIO_NOTE,
+        "courseDescription": "TEMPORARY UNREVIEWED AI-GENERATED SAMPLE. English to Piedmontese, with 24 Lessons demonstrating the 24 current named Exercise types. The content is for testing and requires native-speaker review before language-teaching use. Basic spellings were checked against Claudio Panero's English-Piedmontese dictionary; examples and letter diagrams are newly authored. " + AUDIO_NOTE,
         "sourceLanguageTag": "en-GB", "targetLanguageTag": "pms-IT",
         "textDirection": "ltr", "worldFlagId": "piedmontese", "temporarySample": True,
         "lessons": lessons,
@@ -406,7 +410,7 @@ def main() -> int:
         if not OUTPUT.is_file() or OUTPUT.read_text(encoding="utf-8") != rendered:
             print(f"FAIL: {OUTPUT.relative_to(ROOT)} differs from the authored generator")
             return 1
-        print("PASS: Piedmontais course is reproducible; 24 named types, 24 Lessons, 72 examples")
+        print("PASS: Piedmontese course is reproducible; 24 named types, 24 Lessons, 72 examples")
         return 0
     OUTPUT.write_text(rendered, encoding="utf-8", newline="\n")
     print(f"Wrote {OUTPUT.relative_to(ROOT)}: 24 Lessons, 24 Rounds, 69 Exercises and 3 Flashcards")

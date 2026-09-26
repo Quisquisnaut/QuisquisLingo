@@ -7,10 +7,10 @@
   "originType": "bundledOfficial",
   "publisherId": "org.quisquislingo",
   "publisherName": "QuisquisLingo",
-  "officialCourseVersion": "1.1.0",
-  "officialReleaseDateUtc": "2026-09-06T00:00:00.000Z",
-  "officialChecksum": "8f8b18af75e2562d9b35b7db9e36b89f4e4f1dc7df4efbb3f77e1e9e910a1351",
-  "officialReleaseNotes": "Build 226.02 revision 3 AI-generated sample label update.",
+  "officialCourseVersion": "1.2.0",
+  "officialReleaseDateUtc": "2026-09-26T00:00:00.000Z",
+  "officialChecksum": "5e24f498f61dd11e659ff1556bd0ac0ebdd876dd6b015731106ac5fb7df3892f",
+  "officialReleaseNotes": "QQL Build 255 Revision 6: All rights reserved; derivative works explicitly forbidden.",
   "distributionChannel": "bundled",
   "publisherVerificationStatus": "verified",
   "originalCourseCreator": {
@@ -19,7 +19,7 @@
     "displayName": "QuisquisLingo"
   },
   "originalCreatedAtUtc": "2026-09-06T00:00:00.000Z",
-  "modifiedAtUtc": "2026-09-06T00:00:00.000Z",
+  "modifiedAtUtc": "2026-09-26T00:00:00.000Z",
   "learningLanguage": "Korean",
   "interfaceLanguage": "English",
   "sourceLanguage": "English",
@@ -36,6 +36,7 @@
     }
   ],
   "license": "All rights reserved",
+  "derivativeWorksPolicy": "forbidden",
   "languageVariant": "Contemporary polite Korean",
   "startLevel": "Beginner",
   "targetLevel": "Beginner",

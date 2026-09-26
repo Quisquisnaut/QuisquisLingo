@@ -1,3 +1,5 @@
+import 'team_shared_folder_link.dart';
+
 class AuthoringTeam {
   static const storageKey = 'quisquislingo_authoring_teams_v1_2291';
 
@@ -12,6 +14,10 @@ class AuthoringTeam {
   final List<String> memberProfileIds;
   final List<String> leadProfileIds;
 
+  /// The Team's shared Google Drive folder, in its stored form, or '' for
+  /// none (Build 255 Revision 6). Registries written before simply lack it.
+  final String sharedFolderUrl;
+
   AuthoringTeam({
     required this.teamId,
     required this.displayName,
@@ -19,6 +25,7 @@ class AuthoringTeam {
     required this.createdAtUtc,
     required Iterable<String> memberProfileIds,
     required Iterable<String> leadProfileIds,
+    this.sharedFolderUrl = '',
   }) : memberProfileIds = List.unmodifiable(memberProfileIds.toSet()),
        leadProfileIds = List.unmodifiable(leadProfileIds.toSet()) {
     if (!uuidV4Pattern.hasMatch(teamId) ||
@@ -30,7 +37,9 @@ class AuthoringTeam {
         this.memberProfileIds.any((id) => !uuidV4Pattern.hasMatch(id)) ||
         this.leadProfileIds.any((id) => !uuidV4Pattern.hasMatch(id)) ||
         this.leadProfileIds.isEmpty ||
-        !this.leadProfileIds.every(this.memberProfileIds.contains)) {
+        !this.leadProfileIds.every(this.memberProfileIds.contains) ||
+        (sharedFolderUrl.isNotEmpty &&
+            !TeamSharedFolderLink.isStored(sharedFolderUrl))) {
       throw const FormatException(
         'Authoring Team data are incomplete or invalid.',
       );
@@ -44,6 +53,7 @@ class AuthoringTeam {
     String? displayName,
     Iterable<String>? memberProfileIds,
     Iterable<String>? leadProfileIds,
+    String? sharedFolderUrl,
   }) => AuthoringTeam(
     teamId: teamId,
     displayName: displayName ?? this.displayName,
@@ -51,6 +61,7 @@ class AuthoringTeam {
     createdAtUtc: createdAtUtc,
     memberProfileIds: memberProfileIds ?? this.memberProfileIds,
     leadProfileIds: leadProfileIds ?? this.leadProfileIds,
+    sharedFolderUrl: sharedFolderUrl ?? this.sharedFolderUrl,
   );
 
   Map<String, dynamic> toJson() => {
@@ -60,6 +71,7 @@ class AuthoringTeam {
     'createdAtUtc': createdAtUtc,
     'memberProfileIds': memberProfileIds,
     'leadProfileIds': leadProfileIds,
+    if (sharedFolderUrl.isNotEmpty) 'sharedFolderUrl': sharedFolderUrl,
   };
 
   factory AuthoringTeam.fromJson(Map<String, dynamic> json) {
@@ -79,6 +91,10 @@ class AuthoringTeam {
       return value;
     }
 
+    final sharedFolderUrl = json['sharedFolderUrl'];
+    if (sharedFolderUrl != null && sharedFolderUrl is! String) {
+      throw const FormatException('team.sharedFolderUrl must be a string.');
+    }
     return AuthoringTeam(
       teamId: requiredString('teamId'),
       displayName: requiredString('displayName').trim(),
@@ -86,6 +102,7 @@ class AuthoringTeam {
       createdAtUtc: requiredString('createdAtUtc'),
       memberProfileIds: ids('memberProfileIds'),
       leadProfileIds: ids('leadProfileIds'),
+      sharedFolderUrl: (sharedFolderUrl as String?) ?? '',
     );
   }
 }

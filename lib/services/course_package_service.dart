@@ -115,6 +115,7 @@ class CoursePackage {
           targetCourseId,
           bytes,
           CourseMediaStore.extensionOf(reference),
+          cover: reference == course.coverImage,
         );
         created.add(reference);
       }
@@ -165,7 +166,7 @@ class CoursePackageService {
 
   static const int maxPackageBytes = 300 * 1024 * 1024;
   static const int maxCourseJsonBytes = 10 * 1024 * 1024;
-  static const int maxCoverBytes = 100 * 1024;
+  static const int maxCoverBytes = CourseMediaStore.maxCoverBytes;
   static const int maxManifestBytes = 1024 * 1024;
 
   /// Archive entries (files and folders) a package may list.
@@ -218,7 +219,7 @@ class CoursePackageService {
           '${_usage(course, reference)}. Restore the original file to the Course and export again.',
         );
       }
-      _checkMedia(reference, bytes);
+      _checkMedia(reference, bytes, cover: reference == course.coverImage);
       total += bytes.length;
       if (total > sizeLimit) {
         throw const FormatException('Course package exceeds the 300 MB limit. Remove or shrink media and export again.');
@@ -389,8 +390,9 @@ class CoursePackageService {
         final value = zipReader.read(
           entries['media/${CourseMediaStore.fileNameOf(reference)}']!,
         );
-        _checkMedia(reference, value);
-        _checkImportedImage(reference, value);
+        final cover = reference == course.coverImage;
+        _checkMedia(reference, value, cover: cover);
+        _checkImportedImage(reference, value, cover: cover);
         if (CourseMediaStore.isAudioReference(reference)) {
           try {
             await Mp3Validator.validate(value);
@@ -401,7 +403,7 @@ class CoursePackageService {
           }
         }
         if (reference == course.coverImage) {
-          await _checkCover(course.coverImage, value);
+          await checkCover(course.coverImage, value);
         }
         staged[reference] = await _stager.stageBytes(value);
       }
@@ -448,12 +450,18 @@ class CoursePackageService {
 
   /// An imported image medium must be a valid image of the type its name
   /// says. Applied when a package is read, never when one is written.
-  static void _checkImportedImage(String reference, Uint8List bytes) {
+  static void _checkImportedImage(
+    String reference,
+    Uint8List bytes, {
+    required bool cover,
+  }) {
     if (!CourseMediaStore.isImageReference(reference)) return;
     try {
       final facts = ImageValidator.inspect(
         bytes,
-        const ImageProfile(maxBytes: CourseMediaStore.maxImageBytes),
+        cover
+            ? ImageProfile.courseCover
+            : const ImageProfile(maxBytes: CourseMediaStore.maxImageBytes),
       );
       final extension = CourseMediaStore.extensionOf(reference);
       if (facts.format.extension != extension &&
@@ -469,9 +477,15 @@ class CoursePackageService {
     }
   }
 
-  static void _checkMedia(String reference, Uint8List bytes) {
+  static void _checkMedia(
+    String reference,
+    Uint8List bytes, {
+    required bool cover,
+  }) {
     final max = CourseMediaStore.isAudioReference(reference)
         ? CourseMediaStore.maxAudioBytes
+        : cover
+        ? CourseMediaStore.maxCoverBytes
         : CourseMediaStore.maxImageBytes;
     if (bytes.isEmpty || bytes.length > max) {
       throw FormatException(
@@ -488,9 +502,12 @@ class CoursePackageService {
 
   @visibleForTesting
   static Future<void> checkCoverForTest(String reference, Uint8List bytes) =>
-      _checkCover(reference, bytes);
+      checkCover(reference, bytes);
 
-  static Future<void> _checkCover(String reference, Uint8List bytes) async {
+  /// The one cover rule: a PNG, JPEG or WebP of exactly 512 × 512 pixels,
+  /// up to [maxCoverBytes]. Import checks it, and the Course Editor checks
+  /// every cover it makes, so an exported cover always imports again.
+  static Future<void> checkCover(String reference, Uint8List bytes) async {
     if (!CourseMediaStore.isImageReference(reference) ||
         bytes.length > maxCoverBytes) {
       throw const FormatException(

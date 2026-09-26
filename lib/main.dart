@@ -23,7 +23,6 @@ import 'widgets/learner_shell.dart';
 import 'widgets/learner_navigation.dart';
 import 'widgets/learner_theme_mode_scope.dart';
 import 'services/import/import_stager.dart';
-import 'services/storage/qql_storage.dart';
 
 Future<void> main() async {
   StartupDiagnosticService.checkpoint('DART_MAIN_ENTER');
@@ -536,7 +535,7 @@ class _StartupGateState extends State<_StartupGate>
   Widget build(BuildContext context) {
     if (!_show) {
       StartupDiagnosticService.checkpointOnce('DART_HOME_GATE_ENTER');
-      return const _StartupCrashLogNotice(child: HomeScreen());
+      return const _StartupUpdateCheck(child: HomeScreen());
     }
     StartupDiagnosticService.verboseCheckpointOnce('DART_SPLASH_BUILD');
     return Scaffold(
@@ -571,101 +570,32 @@ class _StartupGateState extends State<_StartupGate>
   }
 }
 
-class _StartupCrashLogNotice extends StatefulWidget {
+/// Starts the automatic update check once Home is on screen.
+///
+/// Build 255 Revision 6 removed the one-time "QuisquisLingo Beta testing"
+/// notice that used to open first: startup already has enough screens. The
+/// Crash Log itself is unchanged; Settings › Debug still exports it.
+class _StartupUpdateCheck extends StatefulWidget {
   final Widget child;
 
-  const _StartupCrashLogNotice({required this.child});
+  const _StartupUpdateCheck({required this.child});
 
   @override
-  State<_StartupCrashLogNotice> createState() => _StartupCrashLogNoticeState();
+  State<_StartupUpdateCheck> createState() => _StartupUpdateCheckState();
 }
 
-class _StartupCrashLogNoticeState extends State<_StartupCrashLogNotice> {
-  static const _betaTestingNoticeId = 'beta_testing';
-  bool _shown = false;
+class _StartupUpdateCheckState extends State<_StartupUpdateCheck> {
+  bool _started = false;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (_shown) return;
-    _shown = true;
+    if (_started) return;
+    _started = true;
+    // The update check runs on every launch.
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) unawaited(_startupSequence());
+      if (mounted) unawaited(_checkForUpdateAtStartup());
     });
-  }
-
-  /// The Beta notice is shown once per device; the update check must run on
-  /// every launch whether or not the notice was needed.
-  Future<void> _startupSequence() async {
-    await _showInstructions();
-    if (mounted) unawaited(_checkForUpdateAtStartup());
-  }
-
-  Future<void> _showInstructions() async {
-    final settings = SettingsService();
-    if (await settings.hasSeenOneTimeNotice(_betaTestingNoticeId) || !mounted) {
-      return;
-    }
-    // Show the diagnostic path actually used on the current platform.
-    final logPath =
-        CrashLogService.instance.crashLogPath ??
-        'QuisquisLingo crash log (path unavailable)';
-    final media = MediaQuery.of(context);
-    await CrashLogService.instance.recordDebugEvent(
-      'Startup crash-log instructions displayed. Log path: $logPath; '
-      'viewport: ${media.size.width.toStringAsFixed(1)}x${media.size.height.toStringAsFixed(1)}; '
-      'devicePixelRatio: ${media.devicePixelRatio.toStringAsFixed(2)}',
-    );
-    if (!mounted) return;
-    await showDialog<void>(
-      context: context,
-      barrierDismissible: false,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('QuisquisLingo Beta testing'),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'This Beta version keeps an automatic local Crash Log to help investigate crashes and other serious technical problems.',
-              ),
-              const SizedBox(height: 12),
-              const Text(
-                'Please use the app normally and reproduce the crash. After the app closes, reopen it if necessary.',
-              ),
-              const SizedBox(height: 12),
-              // The live Crash Log is private (Build 255 Revision 3), so
-              // testers attach the copy Quick Export makes.
-              Text(
-                'Then send a copy of the Crash Log as an attachment. To make '
-                'one, open Settings › Debug and use Quick Export: it saves '
-                '${CrashLogService.exportFileName} in '
-                '${QqlStorageLayout.current.folderLabel(QqlStorageRole.diagnosticLogExports)}.',
-              ),
-              const SizedBox(height: 12),
-              const Text('The Crash Log itself is kept here:'),
-              const SizedBox(height: 6),
-              SelectableText(
-                logPath,
-                style: const TextStyle(fontWeight: FontWeight.w700),
-              ),
-              const SizedBox(height: 12),
-              const Text(
-                'When you send it, also say what you clicked immediately before the crash. Please send the whole log file, not a screenshot of it.',
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          FilledButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Start testing'),
-          ),
-        ],
-      ),
-    );
-    await settings.markOneTimeNoticeSeen(_betaTestingNoticeId);
   }
 
   Future<void> _checkForUpdateAtStartup() async {

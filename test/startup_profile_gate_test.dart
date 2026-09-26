@@ -110,17 +110,13 @@ void main() {
       // The image-ready animation test below owns its frame timing. First-run
       // profile creation waits for that asynchronous animation to finish.
       await _finishStartupGate(tester);
-      await _pumpUntil(tester, find.text('QuisquisLingo Beta testing'));
+      await _pumpUntilHome(tester);
 
       expect(find.text('Create Profile'), findsNothing);
       expect(find.text('QuisquisLingo'), findsNothing);
-      expect(find.text('QuisquisLingo Beta testing'), findsOneWidget);
-      await tester.pump(const Duration(milliseconds: 200));
-      expect(find.text('QuisquisLingo Beta testing'), findsOneWidget);
+      // Build 255 Revision 6 removed the one-time Beta testing notice.
+      expect(find.text('QuisquisLingo Beta testing'), findsNothing);
       expect(await profiles.getProfileRecords(), hasLength(1));
-
-      await tester.tap(find.widgetWithText(FilledButton, 'Start testing'));
-      await tester.pump();
       await tester.pump(const Duration(seconds: 2));
       expect(find.text('QuisquisLingo Beta testing'), findsNothing);
       expect(find.byKey(const Key('qql-startup-animation')), findsNothing);
@@ -167,10 +163,10 @@ void main() {
       await tester.pump(const Duration(milliseconds: 1799));
       expect(startup, findsOneWidget);
       await tester.pump(const Duration(milliseconds: 2));
-      await _pumpUntil(tester, find.text('QuisquisLingo Beta testing'));
+      await _pumpUntilHome(tester);
 
       expect(find.text('Create Profile'), findsNothing);
-      expect(find.text('QuisquisLingo Beta testing'), findsOneWidget);
+      expect(find.text('QuisquisLingo Beta testing'), findsNothing);
     },
   );
 
@@ -243,13 +239,12 @@ void main() {
     expect(opacity(), 1);
   });
 
-  testWidgets('Beta testing acknowledgement is shown only once', (
+  testWidgets('startup never shows the removed Beta testing notice', (
     tester,
   ) async {
     SharedPreferences.setMockInitialValues({
       'startup_animation_enabled': false,
       'automatic_update_check_enabled': false,
-      'one_time_notice_seen_beta_testing': true,
     });
     final profiles = ProfileService(
       idGenerator: () => _existingLearnerId,
@@ -261,9 +256,15 @@ void main() {
     await tester.pumpWidget(QuisquisLingoApp(profileService: profiles));
     await _pumpUntil(tester, find.byKey(const Key('qql-startup-animation')));
     await _finishStartupGate(tester);
+    await _pumpUntilHome(tester);
     await tester.pump(const Duration(milliseconds: 300));
 
     expect(find.text('QuisquisLingo Beta testing'), findsNothing);
+    expect(find.text('Start testing'), findsNothing);
+    expect(
+      await SettingsService().hasSeenOneTimeNotice('beta_testing'),
+      isFalse,
+    );
   });
 
   testWidgets(
@@ -344,10 +345,7 @@ void main() {
     await tester.tap(find.byKey(const Key('startup-profile-retry')));
     await _pumpUntil(tester, find.byKey(const Key('qql-startup-animation')));
     await _finishStartupGate(tester);
-    await _pumpUntilAny(tester, [
-      find.text('QuisquisLingo Beta testing'),
-      find.text('Welcome to QuisquisLingo'),
-    ]);
+    await _pumpUntilHome(tester);
 
     expect(profiles.readAttempts, greaterThan(attemptsBeforeRetry));
     expect(find.text('Create Profile'), findsNothing);
@@ -407,6 +405,13 @@ Future<void> _finishStartupGate(WidgetTester tester) async {
   }
   fail('Timed out waiting for the startup gate to finish.');
 }
+
+/// Home's first notice for these learners: the Welcome Wizard or the Beta
+/// expiry reminder.
+Future<void> _pumpUntilHome(WidgetTester tester) => _pumpUntilAny(tester, [
+  find.text('Welcome to QuisquisLingo'),
+  find.text('Beta expiry'),
+]);
 
 Future<void> _pumpUntilAny(WidgetTester tester, List<Finder> finders) async {
   for (var attempt = 0; attempt < 100; attempt++) {

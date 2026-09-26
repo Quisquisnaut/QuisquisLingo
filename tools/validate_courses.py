@@ -16,14 +16,8 @@ COURSES = ROOT / "assets" / "courses"
 EXPECTED_TTS = {
     "exercise_laboratory_en_it.json": "it-IT",
     "edge_case_it_en.json": "en-GB",
-    "english_es.json": "en-GB",
-    "german_en.json": "de-DE",
     "korean_en.json": "ko-KR",
-    "neapolitan_it.json": "nap-IT",
     "piedmontais_en.json": "pms-IT",
-    "portuguese_en.json": "pt-PT",
-    "spanish_en.json": "es-ES",
-    "welsh_en.json": "cy-GB",
 }
 INTERACTIONS = {"select", "input", "arrange", "match"}
 EVALUATIONS = {"selected_items", "text_match", "ordered_items", "matched_items", "gap_items"}
@@ -37,23 +31,6 @@ LESSON_ICON_PATHS = set(re.findall(
     (ROOT / "lib" / "services" / "lesson_icon_catalog.dart").read_text(encoding="utf-8"),
 ))
 UTC_TIMESTAMP = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?Z$")
-NEAPOLITAN_IMAGE_ASSETS = {
-    "assets/exercise_images/airplane.webp",
-    "assets/exercise_images/carrot.webp",
-    "assets/exercise_images/horse.webp",
-    "assets/exercise_images/man.webp",
-    "assets/exercise_images/jump.webp",
-    "assets/exercise_images/table.webp",
-}
-DUEL_SUPPORTED_PRESETS = {
-    "choice",
-    "gap_choice",
-    "dialogue_response",
-    "icon_choice",
-    "listening_choice",
-    "listening_comprehension",
-    "reading_comprehension",
-}
 
 
 def _official_checksum(course: dict[str, object]) -> str:
@@ -115,8 +92,6 @@ def validate(path: Path, global_ids: dict[str, str]) -> list[str]:
     issues: list[str] = []
     ids: set[str] = set()
     pending_refs: list[tuple[str, str]] = []
-    image_assets: set[str] = set()
-    image_asset_references: list[str] = []
 
     def add_id(value: object, where: str) -> None:
         if not isinstance(value, str) or not value.strip():
@@ -211,21 +186,6 @@ def validate(path: Path, global_ids: dict[str, str]) -> list[str]:
             issues.append("root: Korean direction must be English to Korean")
         if data.get("flagCode") != "KR":
             issues.append("root: Korean course must use the South Korean KR flag")
-    if path.name == "neapolitan_it.json":
-        if (
-            data.get("sourceLanguage"),
-            data.get("sourceLanguageTag"),
-            data.get("targetLanguage"),
-            data.get("targetLanguageTag"),
-        ) != ("Italian", "it-IT", "Neapolitan", "nap-IT"):
-            issues.append(
-                "root: Neapolitan direction must be Italian it-IT to "
-                "Neapolitan nap-IT"
-            )
-        if data.get("courseId") != "sample_nap_it_nap":
-            issues.append("root: unexpected Neapolitan bundled Course ID")
-        if data.get("worldFlagId") != "neapolitan":
-            issues.append("root: Neapolitan course must use worldFlagId neapolitan")
     add_id(data.get("courseId"), "root")
 
     lesson_icon_assets = data.get("lessonIconAssets", [])
@@ -300,9 +260,6 @@ def validate(path: Path, global_ids: dict[str, str]) -> list[str]:
                         issues.append(
                             f"{where}: prompt image {prompt_index} is missing: {asset}"
                         )
-                    else:
-                        image_assets.add(asset)
-                        image_asset_references.append(asset)
                     if not isinstance(element.get("text"), str) or not str(
                         element.get("text", "")
                     ).strip():
@@ -495,62 +452,6 @@ def validate(path: Path, global_ids: dict[str, str]) -> list[str]:
     for reference, where in pending_refs:
         if reference not in ids:
             issues.append(f"{where}: sourceRefs references missing Content {reference}")
-    if path.name == "neapolitan_it.json":
-        if (
-            image_assets != NEAPOLITAN_IMAGE_ASSETS
-            or len(image_asset_references) != len(NEAPOLITAN_IMAGE_ASSETS)
-        ):
-            issues.append(
-                "root: Neapolitan image exercises must use each approved pilot "
-                "asset exactly once; found "
-                f"{sorted(image_asset_references)}"
-            )
-        exercise_count = 0
-        round_count = 0
-        for lesson_index, lesson in enumerate(lessons, 1):
-            if not isinstance(lesson, dict):
-                continue
-            non_audio_duel_candidates = 0
-            rounds = lesson.get("rounds", [])
-            if not isinstance(rounds, list):
-                continue
-            round_count += len(rounds)
-            for round_data in rounds:
-                if not isinstance(round_data, dict):
-                    continue
-                content_items = round_data.get("content", [])
-                if not isinstance(content_items, list):
-                    continue
-                for content in content_items:
-                    if not isinstance(content, dict) or content.get("kind") != "exercise":
-                        continue
-                    exercise_count += 1
-                    exercise = content.get("exercise")
-                    if not isinstance(exercise, dict):
-                        continue
-                    prompt = exercise.get("prompt", [])
-                    has_audio = isinstance(prompt, list) and any(
-                        isinstance(element, dict) and element.get("type") == "audio"
-                        for element in prompt
-                    )
-                    if (
-                        content.get("editorTemplate") in DUEL_SUPPORTED_PRESETS
-                        and not has_audio
-                    ):
-                        non_audio_duel_candidates += 1
-            if non_audio_duel_candidates < 25:
-                issues.append(
-                    f"lesson {lesson_index}: Neapolitan course needs at least 25 "
-                    "non-audio Duel candidates, found "
-                    f"{non_audio_duel_candidates}"
-                )
-        if round_count != 36:
-            issues.append(f"root: Neapolitan course must contain 36 Rounds, found {round_count}")
-        if exercise_count != 279:
-            issues.append(
-                "root: Neapolitan course must contain 279 exercises, "
-                f"found {exercise_count}"
-            )
     return issues
 
 

@@ -28,7 +28,7 @@ void main() {
     );
   });
 
-  test('startup diagnostic notice is not debug-only', () {
+  test('startup update check is not debug-only', () {
     final source = File('lib/main.dart').readAsStringSync();
     final gateStart = source.indexOf('if (!_show)');
     final gateEnd = source.indexOf('return Scaffold(', gateStart);
@@ -36,27 +36,7 @@ void main() {
     expect(gateEnd, greaterThan(gateStart));
     final gate = source.substring(gateStart, gateEnd);
     expect(gate.contains('kDebugMode'), isFalse);
-    expect(gate.contains('_StartupCrashLogNotice'), isTrue);
-  });
-
-  test('Beta testing popup retains its instructions and start control', () {
-    final source = File('lib/main.dart').readAsStringSync();
-    final noticeStart = source.indexOf('Future<void> _showInstructions()');
-    final noticeEnd = source.indexOf(
-      'Future<void> _checkForUpdateAtStartup()',
-      noticeStart,
-    );
-    expect(noticeStart, greaterThanOrEqualTo(0));
-    expect(noticeEnd, greaterThan(noticeStart));
-
-    final notice = source.substring(noticeStart, noticeEnd);
-    expect(notice, contains('barrierDismissible: false'));
-    expect(notice, contains("Text('QuisquisLingo Beta testing')"));
-    expect(notice, contains('SingleChildScrollView('));
-    expect(notice, contains('SelectableText('));
-    expect(notice, contains('logPath,'));
-    expect(notice, contains('FilledButton('));
-    expect(notice, contains("Text('Start testing')"));
+    expect(gate.contains('_StartupUpdateCheck'), isTrue);
   });
 
   test('automatic update checks start asynchronously after runApp', () {

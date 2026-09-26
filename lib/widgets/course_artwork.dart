@@ -4,7 +4,29 @@ import '../models/course_models.dart';
 import '../services/course_media_store.dart';
 import '../services/course_service.dart';
 import 'course_media_image.dart';
+import 'enlarged_image_dialog.dart';
 import 'flag_art.dart';
+
+/// Opens [course]'s artwork enlarged and uncropped: its cover, or its flag
+/// when it has none. Courses rows and Course Info both use it.
+Future<void> showCourseArtworkPreview(
+  BuildContext context,
+  Course course, {
+  CourseMediaStore? mediaStore,
+  String? closeTooltip,
+}) => showEnlargedImage(
+  context,
+  dialogKey: ValueKey('course-artwork-preview-${course.courseId}'),
+  closeKey: const ValueKey('course-artwork-preview-close'),
+  title: course.title,
+  closeTooltip: closeTooltip,
+  builder: (_, size) => CourseArtwork(
+    course: course,
+    size: size,
+    coverFit: BoxFit.contain,
+    mediaStore: mediaStore,
+  ),
+);
 
 /// A fixed square slot showing the Course cover, or the Course flag when the
 /// Course has no cover or its cover cannot be shown. The slot never changes

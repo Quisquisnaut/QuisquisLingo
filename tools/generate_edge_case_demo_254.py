@@ -16,6 +16,9 @@ ROOT = Path(__file__).resolve().parents[1]
 OUTPUT = ROOT / "assets/courses/edge_case_it_en.json"
 COURSE_ID = "course_6f6a1fa3-b834-4936-b324-92fb57f73502"
 STAMP = "2026-09-25T00:00:00.000Z"
+# Build 255 Revision 6 released version 1.1.0: the license text now says only
+# "All rights reserved"; derivative works stay allowed for this test Course.
+RELEASE_STAMP = "2026-09-26T00:00:00.000Z"
 PREFIX = "qql_edge_254_"
 VOCAB_UNICODE_ID = PREFIX + "v_caffè_日本語"
 
@@ -275,18 +278,18 @@ def build_course() -> dict:
         "formatVersion": 11, "publicationState": "published", "lessonNumberingMode": "lesson",
         "defaultLessonIconStyle": "monochrome", "createDuels": False,
         "courseId": COURSE_ID, "originType": "bundledOfficial", "publisherId": "org.quisquislingo",
-        "publisherName": "QuisquisLingo", "officialCourseVersion": "1.0.0",
-        "officialReleaseDateUtc": STAMP, "officialReleaseNotes": "QQL Build 254: edge-case demonstration Course.",
+        "publisherName": "QuisquisLingo", "officialCourseVersion": "1.1.0",
+        "officialReleaseDateUtc": RELEASE_STAMP, "officialReleaseNotes": "QQL Build 255 Revision 6: license text aligned to All rights reserved; derivative works remain allowed for this test Course.",
         "distributionChannel": "bundled", "publisherVerificationStatus": "verified",
         "originalCourseCreator": {"type": "publisher", "id": "org.quisquislingo", "displayName": "QuisquisLingo"},
-        "originalCreatedAtUtc": STAMP, "modifiedAtUtc": STAMP,
+        "originalCreatedAtUtc": STAMP, "modifiedAtUtc": RELEASE_STAMP,
         "learningLanguage": "English", "interfaceLanguage": "Italian",
         "sourceLanguage": "Italian", "targetLanguage": "English",
         "sourceLanguageTag": "it-IT", "targetLanguageTag": "en-GB",
         "title": "AI-Slop Demo: Edge Case Course",
         "ttsLanguage": "en-GB", "audioMode": "hybrid",
         "authors": [{"name": "QuisquisLingo — AI-generated test content", "roles": ["Author"]}],
-        "license": "All rights reserved; derivative works allowed for this test Course.",
+        "license": "All rights reserved",
         "derivativeWorksPolicy": "allowed", "courseDescription":
             "TEMPORARY AI-GENERATED TEST COURSE. Italiano → inglese. Per trovarlo abilita Show unavailable: "
             "contiene strutture Draft valide, omesse nel Learner. Include due avvisi Audit intenzionali "
