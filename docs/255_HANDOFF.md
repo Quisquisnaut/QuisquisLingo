@@ -16,7 +16,7 @@ owner's and not part of this work: never stage, move or delete them.
 | `ff4a572` | **Revision 0** `2.0.55+255000`: logical storage roles, every Quick route on them, Course Quick folders `Imports/Courses` / `Exports/Courses` on every desktop, Quick Import / Quick Export / Save as…, Help folder placeholders. Suite 2,698 passed, 1 skip. |
 | `826f4e1` | **Revision 1** `2.0.55+255001`: Android Save as… / Open from… (SAF bridge). Emulator-checked on Android 16. Suite 2,711 passed, 1 skip. |
 | `3e0f512` | **Revision 2** `2.0.55+255002`: Android public Quick folders (MediaStore Quick Export, persisted folder permission for Quick Import, Android 7–9 storage permission, Inventory and Wipe everything). Emulator-checked on Android 16. Suite 2,731 passed, 1 skip. Beta expiry `2026-10-26 23:59:59`. |
-| (this commit) | **Revision 3** `2.0.55+255003`: one folder pattern on every system (`Import`, `Export`, `Logs`, `ToBeMerged` below the QuisquisLingo folder, one subfolder per kind), flag from `Import/Flags`, `QQL_` export names, private Crash Log and Course Backups, Crash Log Quick Export, one Android permission for `Download/QuisquisLingo`. Emulator-checked on Android 16. Suite 2,739 passed, 1 skip. |
+| `86abde0` | **Revision 3** `2.0.55+255003`: one folder pattern on every system (`Import`, `Export`, `Logs`, `ToBeMerged` below the QuisquisLingo folder, one subfolder per kind), flag from `Import/Flags`, `QQL_` export names, private Crash Log and Course Backups, Crash Log Quick Export, one Android permission for `Download/QuisquisLingo`. Emulator-checked on Android 16. Suite 2,739 passed, 1 skip. |
 
 ## Status
 
@@ -32,11 +32,12 @@ Decided with the owner: `QQL_` plus no-space names; a clean cut in the app
 plus a one-off desktop tool that moves existing Courses, media and backups;
 Shared Images and Image Banks renamed (existing ones keep working through the
 full paths their records hold); languages as source then target (`EN`, `IT`,
-`NAP`…); Course files named `course_<SRC>_<TGT>_<ID>`. **Open question**
-(asked on 26 September): whether names alone replace the two language
-folder levels (`source_EN/target_IT`). Recommended: drop the levels (the
-names already group by pair, paths stay shorter on Windows, a language
-change is a rename) and name exports `QQL_EN_IT_<title>.zip`.
+`NAP`…); no language folder levels: every per-Course name carries the pair
+instead (the owner dropped `source_EN/target_IT` folders), and exported
+packages carry the same pair in the flat `Export/Courses`. **Open
+question** (26 September): one prefix for per-Course names and exports
+(`QQL_EN_IT_<ID>` and `QQL_EN_IT_<title>`) instead of `course_` inside
+private storage.
 
 Revisions 0–2 were complete on 26 September 2026, 02:00. Nothing is pushed.
 
