@@ -5,7 +5,8 @@ import '../localization/help/help_text.dart';
 import '../localization/locale_builder.dart';
 import '../widgets/app_locale_selector.dart';
 
-/// Help for the Device Administration page.
+/// Help for the Advanced (Admin) page, called Device Administration before
+/// Build 255 Revision 6.
 class DeviceAdministrationHelpScreen extends StatelessWidget {
   const DeviceAdministrationHelpScreen({super.key});
 

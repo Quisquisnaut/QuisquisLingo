@@ -22,8 +22,25 @@ const _authorId = '12345678-1234-4234-9234-123456789abc';
 const _receiverId = '22345678-1234-4234-9234-123456789abc';
 const _demos = {
   'Laboratory': 'assets/courses/exercise_laboratory_en_it.json',
-  'Piedmontais': 'assets/courses/piedmontais_en.json',
+  'Piedmontese': 'assets/courses/piedmontais_en.json',
 };
+
+// Build 255 Revision 6: Piedmontese forbids derivative works, so the shipped
+// Course cannot be forked. Its content still takes the personal-fork route
+// through this test-only copy, which differs only in that permission.
+const _forbidsDerivatives = {'Piedmontese'};
+
+Course _forkableTestCopy(Course shipped) {
+  final allowed = Course.fromJson({
+    ...shipped.toJson(),
+    'derivativeWorksPolicy': DerivativeWorksPolicy.allowed.name,
+  });
+  return Course.fromJson({
+    ...allowed.toJson(),
+    'officialChecksum': CourseChecksums.official(allowed),
+  });
+}
+
 const _allNewDemoAssets = [
   'assets/courses/exercise_laboratory_en_it.json',
   'assets/courses/piedmontais_en.json',
@@ -235,7 +252,13 @@ void main() {
     test(
       '${demo.key} personal Fork survives real export, receiver Import and re-export',
       () async {
-        final source = await _load(demo.value);
+        final shipped = await _load(demo.value);
+        final forbidden = _forbidsDerivatives.contains(demo.key);
+        expect(
+          CourseAccessPolicy.evaluate(shipped, profileId: _authorId).canFork,
+          !forbidden,
+        );
+        final source = forbidden ? _forkableTestCopy(shipped) : shipped;
         final sourceJson = source.toJson();
         expect(
           CourseAccessPolicy.evaluate(source, profileId: _authorId).canFork,

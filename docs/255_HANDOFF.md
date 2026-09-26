@@ -1,8 +1,11 @@
 # Build 255 handoff
 
 Plan and audit: [255_STORAGE_PLAN.md](255_STORAGE_PLAN.md). Validation:
-[255_VALIDATION.md](255_VALIDATION.md). Branch `claude/255-storage-roles`
-from `main` at `acf75e4`. One local commit per revision; not pushed, no PR.
+[255_VALIDATION.md](255_VALIDATION.md). Built on branch
+`claude/255-storage-roles` from `main` at `acf75e4`, one commit per revision,
+and merged into `main` through
+[PR #24](https://github.com/Quisquisnaut/QuisquisLingo/pull/24) (merge commit
+`292044e`, 26 September 2026, 17:10 local time). The branch no longer exists.
 
 The untracked `devtools_options.yaml` and `tools/cloud_setup.sh` are the
 owner's and not part of this work: never stage, move or delete them.
@@ -19,12 +22,101 @@ owner's and not part of this work: never stage, move or delete them.
 | `86abde0` | **Revision 3** `2.0.55+255003`: one folder pattern on every system (`Import`, `Export`, `Logs`, `ToBeMerged` below the QuisquisLingo folder, one subfolder per kind), flag from `Import/Flags`, `QQL_` export names, private Crash Log and Course Backups, Crash Log Quick Export, one Android permission for `Download/QuisquisLingo`. Emulator-checked on Android 16. Suite 2,739 passed, 1 skip. |
 | `09e88ba` | **Revision 4** `2.0.55+255004`: private folders and language pairs (`QQL_Courses`, `QQL_CourseMedia`, `QQL_CourseBackups`, `QQL_SharedImages`, `QQL_ImageBanks`, `QQL_ImportStaging`, `QQL_Logs`; `QQL_<pair>_<ID>` in every per-Course name, exports `QQL_<pair>_<title>.zip`, historical `QQL_bkp_…`), clean cut with `tools/move_private_storage_255.dart`, Android Auto Backup exclusions for the new media folders. Emulator-checked on Android 16. Suite 2,757 passed, 1 skip. |
 | `75e699d` | **Revision 5** `2.0.55+255005`: the Backups folder — Course Backups in `QuisquisLingo/Backups/Courses` beside Import and Export on every system (Android: own files, no permission from Android 11, storage permission on 7–10), tolerant Version History, "Keep the Backups folder" in Wipe everything, the tool moves earlier backups there. Emulator-checked on Android 16. Suite 2,764 passed, 1 skip. |
+| `292044e` | Merge of PR #24 into `main` (merge commit, as for earlier PRs; the repository has no CI). |
+| `b56b9bf` | **Revision 6** `2.0.55+255006` on local branch `claude/255-rev6-fixes` (from `main` at `2f4f89b`; not pushed, no PR): twelve small corrections — four bundled demos left (German, Spanish, English-from-Spanish, Welsh, Portuguese and Neapolitan removed), All rights reserved demo licenses with Fork kept on Exercise Laboratory and Edge Case, Piedmontais renamed Piedmontese, Courses sections Minimal and saved per learner/tab/category, no startup Beta testing dialog, Advanced (Admin) after Do Not Disturb, enlargeable Flag Game flags and Course Info image, a Course cover in the Course Info Editor (1 MB for the cover alone), a Team Google Drive folder link. Suite 2,766 passed, 1 skip. |
 
 ## Status
 
+**Revision 6 (`2.0.55+255006`) is complete** (26 September 2026, 20:30 to
+22:30): local commit `b56b9bf` on branch `claude/255-rev6-fixes`, created
+from `main` at `2f4f89b`; not pushed and no PR (the owner decides). Small
+owner-requested corrections. Owner decisions (26 September 2026):
+
+1. Demo licenses: every remaining demo says `All rights reserved`. Exercise
+   Laboratory and Edge Case keep `derivativeWorksPolicy: allowed` (they are
+   the forkable test demos); Korean and Piedmontese get `forbidden` (the
+   value QQL maps to All rights reserved). Edge Case's license text loses its
+   "; derivative works allowed…" suffix. Changed demos get a minor
+   `officialCourseVersion` bump with release notes (precedent: Korean 226.02).
+2. Piedmontais becomes Piedmontese: title `AI-Slop Demo: Piedmontese`,
+   learning/target language and every in-course mention; same Course ID,
+   stable IDs, code `PMS`, TTS `pms-IT`; file names stay.
+3. + 4. Courses sections: Expanded → Compact → Minimal (cycle button, like
+   the Lesson display control). Minimal shows only the header with
+   "S of N shown". Persisted per learner × tab × category
+   (`course_library_view_<tab>_<category>`, default Expanded); an imported
+   Course's Minimal section shows Expanded for that visit.
+5. Remove the one-time "QuisquisLingo Beta testing" startup dialog; the
+   startup update check stays.
+6. + 7. "Device Administration" is labelled **Advanced (Admin)** (classes,
+   files and keys unchanged) and sits after Do Not Disturb in Settings.
+8. Delete German, Spanish, Inglés para hispanohablantes (EN), Welsh,
+   Portuguese and Neapolitan; keep Exercise Laboratory, Korean, Edge Case and
+   Piedmontese. IDs stay reserved, progress orphaned, media assets kept.
+9. Flag Game: tap a flag to enlarge it (no name during a question; name in
+   the reference lists).
+10. Course Info: the Course image (cover if any, else flag, as in Courses) is
+    tappable and opens the same enlargement dialog, extracted from the
+    Courses row into one shared implementation.
+11. Team: optional Google Drive shared-folder link (Team Leaders set it,
+    members open it after a safety warning); only
+    `https://drive.google.com/drive/(u/N/)folders/<ID>` is accepted.
+12. Cover image in the Course Info Editor (Choose image / Quick Import / Open
+    from… / Remove): any picture is centre-cropped and scaled to a 512 × 512
+    PNG (a ready 512 × 512 file up to 1 MB is kept as it is). The cover alone
+    may be up to **1 MB** (owner decision; other images stay at 50 KB): the
+    store, package import, backup restore and Fork/Copy/Merge copies apply the
+    cover limit only to the file that is the Course's cover. The Course
+    Editor header shows the cover instead of the flag when there is one.
+
+Status (22:27): all twelve tasks are implemented and documented (CHANGELOG,
+README, AGENTS.md, `255_VALIDATION.md`, `239_RESET_STORAGE_INVENTORY.md`,
+`WINDOWS_RELEASE_TEST.md` step 7, and `SEND_DEBUG_LOG_TO_DEVELOPER.txt`,
+which still described the removed dialog). Analyzer clean; the complete
+suite on the final tree passed: 2,766 passed, 1 existing skip, 0 failed
+(20 min 35 s). A first complete run had found 8 failures in tests the
+smaller demo set or the version bump affected (details in the validation);
+they were corrected before the final run.
+
+Revision 6 open points for the owner:
+
+- Fork is unavailable on Korean and Piedmontese by decision; the Build 254
+  package round-trip test keeps Piedmontese content covered through a
+  test-only copy that allows derivative works.
+- The removed demos' learner progress stays in preferences, orphaned, as
+  after Build 254; until the week rolls over, the Gamification breakdown of
+  last week's XP may name such a Course by its ID.
+- The earlier `one_time_notice_seen_beta_testing` flag stays where it was
+  set; nothing reads it any more.
+- A cover made from a Shared Image Library picture is a new, cropped image
+  and does not carry the library picture's provenance: credit it under
+  Media credits. A Course package whose cover is over 50 KB does not import
+  into Revision 5 or earlier.
+- `tools/regenerate_bundled_courses_225_02.py` (historical) still names the
+  removed files; as before, it must not be run.
+- Not checked on a device: the cover's Quick Import and Open from… on
+  Android, and opening a Team folder link on Android (desktop flows are
+  covered by tests). No Windows or Android package was built.
+
+Measured before deciding: library images (256 × 256 WebP) scaled to a
+512 × 512 PNG weigh 10–87 KB; a detailed 1254 × 1254 logo 145 KB. Before this
+revision the real cover limit was 50 KB, because every package image passed
+the general 50 KB check before the declared 100 KB cover check.
+
+**Build 255 is complete and merged** (26 September 2026): Revisions 0–5 and
+the two earlier commits reached `main` through
+[PR #24](https://github.com/Quisquisnaut/QuisquisLingo/pull/24), merge commit
+`292044e`. The branch `claude/255-storage-roles` was deleted on GitHub and
+locally; the old local branches `codex/build-253-localization` and
+`codex/qql-tools-integration` were deleted too, after checking that all their
+commits were in `main`. The local checkout is on `main`, up to date with
+`origin/main`, and only `main` remains on both sides. The Android emulator
+is closed. The next build starts from `main` at `292044e` (or this handoff's
+own commit).
+
 **Revision 5 (`2.0.55+255005`) is complete** (26 September 2026): the
-Backups folder, analyzer clean, complete suite 2,764 passed with 1 existing skip, emulator-checked on Android 16
-(details in the validation). Nothing is pushed.
+Backups folder, analyzer clean, complete suite 2,764 passed with 1 existing
+skip, emulator-checked on Android 16 (details in the validation).
 
 - Course Backups are in `QuisquisLingo/Backups/Courses` on every system
   (`QqlTopFolder.backups`, `QqlStorage.courseBackupsDirectory()`), written and
@@ -45,7 +137,7 @@ Backups folder, analyzer clean, complete suite 2,764 passed with 1 existing skip
 **Revision 4 (`2.0.55+255004`) is complete** (26 September 2026, ~14:15):
 private folders and language pairs, analyzer clean, complete suite 2,757
 passed with 1 existing skip, emulator-checked on Android 16 (details in the
-validation). Nothing is pushed.
+validation).
 
 - `CourseStorageNames` (`lib/services/storage/course_storage_names.dart`,
   plain Dart) names every per-Course file and folder:
@@ -78,7 +170,7 @@ validation). Nothing is pushed.
 pattern on every system, analyzer clean, complete suite 2,739 passed with
 1 existing skip, emulator-checked on Android 16 (details in the validation).
 
-Revisions 0–2 were complete on 26 September 2026, 02:00. Nothing is pushed.
+Revisions 0–2 were complete on 26 September 2026, 02:00.
 
 Open points for the owner:
 
@@ -131,13 +223,46 @@ is disabled.
   every system.
 - Course Backups are private everywhere; desktop backups made before stay
   where they were, unread (owner chose this after discussion, not a one-time
-  move).
+  move). Superseded by Revision 5, which makes them public.
 - Exported files start with `QQL_` instead of `quisquislingo_`, Save as…
   suggestions included.
 - Android asks once for the whole `Download/QuisquisLingo` folder.
 - Don't worry about existing files: no move, no hint.
 
+## Owner decisions for Revision 4 (26 September 2026)
+
+- QQL's private folders get `QQL_` names in the no-space style of the public
+  ones (`QQL_Courses`, `QQL_CourseMedia`, `QQL_SharedImages`,
+  `QQL_ImageBanks`, `QQL_ImportStaging`, `QQL_Logs`).
+- No language folder levels: the language pair, source then target, goes into
+  every per-Course name instead (`QQL_EN_IT_<ID>`; Italian → Neapolitan is
+  `IT_NAP`); a QQL-made ID is not repeated after the prefix.
+- Backups and exported earlier versions are marked `QQL_bkp_`; exports are
+  `QQL_<pair>_<title>.zip`. The backup format stays as it is.
+- Clean cut in the app, plus a one-off desktop tool the owner runs to move
+  earlier Courses, media and backups.
+
+## Owner decisions for Revision 5 (26 September 2026)
+
+- For consistency, Course Backups move out of private storage into a public
+  folder beside Import, Export, Logs and ToBeMerged, on every system:
+  `Backups/Courses`.
+- Learner backups (User Data) stay in `Export/UserData`.
+- Wipe everything gets "Keep the Backups folder", ticked by default like the
+  others.
+
 ## Gotchas
+
+- Revision 6: the Course Selector and Course Studio lists are shorter now
+  (four bundled demos), so rows are often already built: after
+  `scrollUntilVisible` add `await tester.pump()` before tapping, and do not
+  `pumpAndSettle` while the Piedmontese World Flag row is on screen (its
+  loading indicator never settles; see `_settleSelector` in
+  `leaderboard_navigation_test`). Here-doc scripts in the Bash tool lose
+  escaped backslashes: put Python edit scripts in a file. Several files are
+  not `dart format`-clean at HEAD (for example `course_editor_screen.dart`,
+  `course_package_service.dart`, `exercise_image_service.dart`); check with
+  a copy before formatting a whole file, or edit by hand.
 
 - Never run two Flutter commands at once (shared SDK lock), and do not start
   the emulator during a full suite: this PC has 4 cores and 8 GB RAM, and load
@@ -153,3 +278,11 @@ is disabled.
   `test/support/fake_android_storage.dart` for the Android side.
 - Python scripts are more reliable than shell heredocs for multi-line edits
   here (heredocs lose backslashes).
+- The emulator lags: pause after each input (`adb shell "input tap X Y; sleep
+  1.5"`) and confirm with a screenshot, because a failed `uiautomator dump`
+  leaves the previous XML behind and shows an old screen.
+- `adb shell run-as org.quisquislingo.app` reaches the app's private files but
+  not `/storage/emulated`; check the public folders with a plain `adb shell ls
+  /sdcard/Download/QuisquisLingo`.
+- Course Info Editor shows an existing Course's languages as read-only, so a
+  language change (and Revision 4's rename) cannot be made from the UI.

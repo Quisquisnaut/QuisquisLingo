@@ -774,13 +774,19 @@ class _RecordingMediaStore extends CourseMediaStore {
   Future<String> addBytes(
     String courseId,
     Uint8List bytes,
-    String extension,
-  ) async {
+    String extension, {
+    bool cover = false,
+  }) async {
     if (failSecondWriteFor == courseId &&
         writes.any((write) => write.startsWith('$courseId|'))) {
       throw StateError('simulated media write failure');
     }
-    final reference = await super.addBytes(courseId, bytes, extension);
+    final reference = await super.addBytes(
+      courseId,
+      bytes,
+      extension,
+      cover: cover,
+    );
     writes.add('$courseId|$reference');
     return reference;
   }

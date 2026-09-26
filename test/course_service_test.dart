@@ -7,37 +7,25 @@ void main() {
 
   setUp(() => SharedPreferences.setMockInitialValues({}));
 
-  test('bundled course registry includes Spanish', () {
-    expect(CourseService.hasCourse('ES'), isTrue);
-    expect(CourseService.hasCourse('es'), isTrue);
-    expect(CourseService.courseAssets['ES'], 'assets/courses/spanish_en.json');
+  test('Build 255 Revision 6 keeps four bundled demos', () {
+    expect(CourseService.courseAssets, {
+      'IT': 'assets/courses/exercise_laboratory_en_it.json',
+      'KO': 'assets/courses/korean_en.json',
+      'EN_EDGE': 'assets/courses/edge_case_it_en.json',
+      'PMS': 'assets/courses/piedmontais_en.json',
+    });
+    expect(CourseService.hasCourse('ko'), isTrue);
+    expect(CourseService.sourceLabels['PMS'], 'English');
+    expect(CourseService.targetLabels['PMS'], 'Piedmontese');
   });
 
-  test('bundled course registry includes English from Spanish', () {
-    expect(CourseService.hasCourse('EN'), isTrue);
-    expect(CourseService.courseAssets['EN'], 'assets/courses/english_es.json');
+  test('removed demos are unavailable', () {
+    for (final code in ['DE', 'ES', 'EN', 'CY', 'PT', 'NAP', 'NL', 'FI']) {
+      expect(CourseService.hasCourse(code), isFalse, reason: code);
+      expect(CourseService.targetLabels.containsKey(code), isFalse);
+      expect(CourseService.sourceLabels.containsKey(code), isFalse);
+    }
   });
-
-  test('bundled course registry includes Neapolitan from Italian', () {
-    expect(CourseService.hasCourse('NAP'), isTrue);
-    expect(CourseService.hasCourse('nap'), isTrue);
-    expect(
-      CourseService.courseAssets['NAP'],
-      'assets/courses/neapolitan_it.json',
-    );
-    expect(CourseService.sourceLabels['NAP'], 'Italian');
-    expect(CourseService.targetLabels['NAP'], 'Neapolitan');
-  });
-
-  test(
-    'retained samples stay registered and removed demos are unavailable',
-    () {
-      expect(CourseService.hasCourse('NL'), isFalse);
-      expect(CourseService.hasCourse('CY'), isTrue);
-      expect(CourseService.hasCourse('PT'), isTrue);
-      expect(CourseService.hasCourse('FI'), isFalse);
-    },
-  );
 
   test('unknown language is not silently mapped to Italian', () {
     expect(CourseService.hasCourse('ZZ'), isFalse);
@@ -60,9 +48,7 @@ void main() {
 
       expect(first, CourseService.courseAssets.keys);
       expect(second, first);
-      expect(first, hasLength(10));
-      expect(first.where((code) => code == 'KO'), hasLength(1));
-      expect(first.where((code) => code == 'NAP'), hasLength(1));
+      expect(first, ['IT', 'KO', 'EN_EDGE', 'PMS']);
       expect(
         preferences.getStringList(CourseService.bundledCourseIndexStorageKey),
         first,

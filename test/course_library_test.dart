@@ -300,6 +300,7 @@ void main() {
         ValueKey('course-manager-actions-${publisher.courseId}'),
       );
       await tester.scrollUntilVisible(action, 400);
+      await tester.pump();
       await tester.tap(action);
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 350));

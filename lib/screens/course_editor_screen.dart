@@ -63,6 +63,8 @@ import '../services/provisional_publication_service.dart';
 import '../services/new_course_structure.dart';
 import '../widgets/file_dialog_feedback.dart';
 import '../widgets/flag_art.dart';
+import '../widgets/course_artwork.dart';
+import '../widgets/course_cover_field.dart';
 import '../widgets/course_flag_picker.dart';
 import '../widgets/lesson_fallback_icon.dart';
 import '../widgets/import_summary.dart';
@@ -781,6 +783,7 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
     var derivativePolicy = _course.derivativeWorksPolicy;
     String? mediaCreditError;
     var flagSelection = CourseFlagSelection.fromCourse(_course);
+    var coverImage = _course.coverImage;
     final learningLanguage = CourseLanguageResolver.learning(_course);
     final baseLanguage = CourseLanguageResolver.base(_course);
     final narrowCourseInfo = MediaQuery.sizeOf(context).width < 560;
@@ -1103,6 +1106,14 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
                         languageTag: learningLanguage.code,
                         onChanged: (selection) =>
                             setLocalState(() => flagSelection = selection),
+                      ),
+                      const SizedBox(height: 14),
+                      CourseCoverField(
+                        key: const Key('course-info-cover'),
+                        course: _course,
+                        cover: coverImage,
+                        onChanged: (cover) =>
+                            setLocalState(() => coverImage = cover),
                       ),
                       const SizedBox(height: 14),
                       const Text(
@@ -1939,6 +1950,7 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
                       flagCode: flagSelection.flagCode,
                       flagImageBase64: flagSelection.flagImageBase64,
                       worldFlagId: flagSelection.selectedWorldFlagId,
+                      coverImage: coverImage,
                       maintainerProfileId: selectedMaintainerId,
                       assignedTeamId: selectedAssignedTeamId,
                     ));
@@ -2575,12 +2587,21 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
             builder: (context, constraints) => Row(
               children: [
                 if (constraints.maxWidth >= 58) ...[
-                  CourseFlagBadge(
-                    course: _course,
-                    fallbackCode: _code,
-                    width: 38,
-                    height: 27,
-                  ),
+                  // Build 255 Revision 6: the cover, as in Courses, when the
+                  // Course has one.
+                  if (Course.coverImagePattern.hasMatch(_course.coverImage))
+                    CourseArtwork(
+                      key: const Key('course-editor-header-cover'),
+                      course: _course,
+                      size: 38,
+                    )
+                  else
+                    CourseFlagBadge(
+                      course: _course,
+                      fallbackCode: _code,
+                      width: 38,
+                      height: 27,
+                    ),
                   const SizedBox(width: 10),
                 ],
                 Expanded(

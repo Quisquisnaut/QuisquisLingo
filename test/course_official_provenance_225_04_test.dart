@@ -9,8 +9,8 @@ import 'package:quisquislingo_app/services/course_service.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  test('all ten bundled sources have verified immutable provenance', () async {
-    expect(CourseService.courseAssets, hasLength(10));
+  test('all four bundled sources have verified immutable provenance', () async {
+    expect(CourseService.courseAssets, hasLength(4));
     final mismatches = <String, String>{};
     final titles = <String>{};
     for (final entry in CourseService.courseAssets.entries) {
@@ -36,15 +36,9 @@ void main() {
     expect(mismatches, isEmpty, reason: 'bundled checksum mismatches');
     expect(titles, {
       'AI-Slop Demo: Edge Case Course',
-      'AI-Slop Demo: Inglés para hispanohablantes',
-      'AI-Slop Demo: Piedmontais',
-      'AI-Slop Demo: German for English Speakers',
+      'AI-Slop Demo: Piedmontese',
       'Exercise Laboratory',
       'AI-Slop Demo: Korean for English Speakers',
-      'AI-Slop Demo: Napoletano per italofoni',
-      'AI-Slop Demo: Portuguese for English Speakers',
-      'AI-Slop Demo: Spanish for English Speakers',
-      'AI-Slop Demo: Welsh for English Speakers',
     });
     for (final entry in CourseService.courseAssets.entries) {
       expect(
@@ -53,4 +47,27 @@ void main() {
       );
     }
   });
+
+  // Build 255 Revision 6: every demo is All rights reserved. Only the two test
+  // demos keep derivative works allowed, so they can still be forked.
+  test(
+    'bundled demos are All rights reserved; only test demos allow Fork',
+    () async {
+      const derivatives = {
+        'IT': DerivativeWorksPolicy.allowed,
+        'EN_EDGE': DerivativeWorksPolicy.allowed,
+        'KO': DerivativeWorksPolicy.forbidden,
+        'PMS': DerivativeWorksPolicy.forbidden,
+      };
+      expect(
+        CourseService.courseAssets.keys,
+        unorderedEquals(derivatives.keys),
+      );
+      for (final entry in derivatives.entries) {
+        final course = await CourseService().loadBundledCourse(entry.key);
+        expect(course.license, 'All rights reserved', reason: entry.key);
+        expect(course.derivativeWorksPolicy, entry.value, reason: entry.key);
+      }
+    },
+  );
 }

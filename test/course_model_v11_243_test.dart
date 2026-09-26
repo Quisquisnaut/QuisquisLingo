@@ -72,7 +72,7 @@ void main() {
         }),
         throwsA(isA<FormatException>()),
       );
-      final bundled = _bundled('german_en.json');
+      final bundled = _bundled('korean_en.json');
       expect(
         () => Course.fromJson({...bundled, 'mergeProvenance': _merge()}),
         throwsA(isA<FormatException>()),
@@ -388,13 +388,11 @@ void main() {
 
   group('bundled and fixture Courses are v11', () {
     const bundledIds = {
-      'english_es.json': 'sample_en_es_en',
-      'german_en.json': 'sample_de_en_de',
+      'edge_case_it_en.json': 'course_6f6a1fa3-b834-4936-b324-92fb57f73502',
+      'exercise_laboratory_en_it.json':
+          'course_50d68435-d2c2-4b63-9a0b-b23161357f1d',
       'korean_en.json': 'sample_ko_en_ko',
-      'neapolitan_it.json': 'sample_nap_it_nap',
-      'portuguese_en.json': 'sample_pt_en_pt',
-      'spanish_en.json': 'sample_es_en_es',
-      'welsh_en.json': 'sample_cy_en_cy',
+      'piedmontais_en.json': 'course_e5f5585a-7762-43a0-a6b2-62754e02d17b',
     };
 
     test('bundled Courses keep the Course IDs learner progress uses', () {
@@ -446,7 +444,7 @@ void main() {
 
   group('convert_course_to_v11 tool', () {
     test('a v9 bundled Course converts back to exactly the shipped file', () {
-      for (final file in const ['german_en.json', 'neapolitan_it.json']) {
+      for (final file in const ['korean_en.json', 'piedmontais_en.json']) {
         final shipped = _bundled(file);
         final asV9 = {
           ...shipped,
@@ -470,7 +468,7 @@ void main() {
 
     test('the official version can be raised during conversion', () {
       final converted = convertCourseJsonToV11({
-        ..._bundled('german_en.json'),
+        ..._bundled('korean_en.json'),
         'formatVersion': 9,
       }, officialVersion: '9.9.9');
       final course = Course.fromJson(converted);

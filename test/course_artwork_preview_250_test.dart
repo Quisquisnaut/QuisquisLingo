@@ -65,6 +65,8 @@ Future<void> _showRow(WidgetTester tester, String rowKey) async {
     300,
     scrollable: find.byType(Scrollable).first,
   );
+  // An already built row is only brought into view without a new frame.
+  await tester.pump();
 }
 
 Finder _inPreview(String id, Finder matching) => find.descendant(

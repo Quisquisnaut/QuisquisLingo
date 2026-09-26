@@ -1,13 +1,12 @@
-QUISQUISLINGO ALPHA DIAGNOSTIC LOG
+QUISQUISLINGO BETA CRASH LOG
 
-QuisquisLingo shows these testing instructions automatically when the Alpha starts, including standalone Windows release builds.
+QuisquisLingo keeps an automatic local Crash Log. It no longer shows testing instructions at startup (Build 255, Revision 6); follow these steps instead.
 
-1. Start QuisquisLingo and press Start testing.
-2. Use the app normally and reproduce the problem.
-3. Open Documents > QuisquisLingo Logs.
-4. Send the complete file quisquislingo_crash.log as an attachment. Do not send only a screenshot.
-5. In your message, say what you clicked immediately before the problem.
+1. Use the app normally and reproduce the problem. After the app closes, reopen it if necessary.
+2. Open Settings > Debug and use Quick Export. It saves QQL_crash_log.txt in the QuisquisLingo Logs folder (Documents/QuisquisLingo/Logs; on Android, Download/QuisquisLingo/Logs), replacing the previous copy.
+3. Send the complete file QQL_crash_log.txt as an attachment. Do not send only a screenshot.
+4. In your message, say what you clicked immediately before the problem.
 
-The log starts at every app launch and includes technical system information such as Windows version, CPU architecture, logical processor count, locale, Dart runtime, app version, build mode, diagnostic events, errors and stack traces. It does not intentionally record learner names, exercise answers or course content.
+The log starts at every app launch and includes technical system information such as the operating system version, CPU architecture, logical processor count, locale, Dart runtime, app version, build mode, diagnostic events, errors and stack traces. It does not intentionally record learner names, exercise answers or course content.
 
-If you delete quisquislingo_crash.log, QuisquisLingo recreates it automatically at the next launch or diagnostic write.
+The live Crash Log is kept in QuisquisLingo's private storage; QuisquisLingo recreates it automatically at the next launch or diagnostic write.

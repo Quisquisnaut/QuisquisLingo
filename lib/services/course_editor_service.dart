@@ -151,8 +151,14 @@ class CourseEditorService {
         left.courseId,
         merged.courseId,
         references,
+        cover: merged.coverImage,
       );
-      await _media.copyReferences(right.courseId, merged.courseId, missing);
+      await _media.copyReferences(
+        right.courseId,
+        merged.courseId,
+        missing,
+        cover: merged.coverImage,
+      );
       return await confirmCourseTransaction(
         originalCourse: merged,
         workingCourse: merged,
@@ -201,6 +207,7 @@ class CourseEditorService {
         source.courseId,
         copy.courseId,
         CourseMediaStore.referencesOf(copy),
+        cover: copy.coverImage,
       );
       return await create();
     } catch (_) {

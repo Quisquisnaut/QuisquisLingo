@@ -50,6 +50,25 @@ void main() {
     },
   );
 
+  // Build 255 Revision 6: the Course Info Editor sets and removes the cover.
+  test('stores and clears the cover', () async {
+    final original = _course();
+    final cover = 'media:${'b' * 64}.png';
+    final withCover = (await CourseInfoUpdateService().apply(
+      original,
+      _change(original, coverImage: cover),
+      _aliceId,
+    )).course;
+    expect(withCover.coverImage, cover);
+    final cleared = (await CourseInfoUpdateService().apply(
+      withCover,
+      _change(withCover, coverImage: ''),
+      _aliceId,
+    )).course;
+    expect(cleared.coverImage, isEmpty);
+    expect(cleared.toJson().containsKey('coverImage'), isFalse);
+  });
+
   test('assigns Team before transferring Maintainer in one edit', () async {
     final profiles = ProfileService();
     await profiles.createProfile('Alice', learnerProfileId: _aliceId);
@@ -171,6 +190,7 @@ CourseInfoChange _change(
   String? title,
   String? assignedTeamId,
   String? maintainerProfileId,
+  String? coverImage,
 }) => (
   title: title ?? course.title,
   authors: course.authors,
@@ -191,6 +211,7 @@ CourseInfoChange _change(
   flagCode: course.flagCode,
   flagImageBase64: course.flagImageBase64,
   worldFlagId: course.worldFlagId,
+  coverImage: coverImage ?? course.coverImage,
   maintainerProfileId: maintainerProfileId ?? course.maintainer!.profileId,
   assignedTeamId: assignedTeamId ?? course.assignedTeamId,
 );

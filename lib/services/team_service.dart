@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/authoring_team.dart';
+import '../models/team_shared_folder_link.dart';
 import 'formal_name_policy.dart';
 import 'profile_service.dart';
 
@@ -134,6 +135,22 @@ class TeamService {
       teamId,
       actorProfileId,
       (team) => team.copyWith(displayName: name),
+    );
+  }
+
+  /// Sets the Team's shared Google Drive folder, or removes it when [url] is
+  /// blank (Build 255 Revision 6). Only a Team Leader may change it; any other
+  /// kind of link is refused with [TeamSharedFolderLink.refusal].
+  Future<AuthoringTeam> setSharedFolderUrl({
+    required String teamId,
+    required String actorProfileId,
+    required String url,
+  }) {
+    final link = url.trim().isEmpty ? '' : TeamSharedFolderLink.normalize(url);
+    return _update(
+      teamId,
+      actorProfileId,
+      (team) => team.copyWith(sharedFolderUrl: link),
     );
   }
 

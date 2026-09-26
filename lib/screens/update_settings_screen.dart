@@ -171,7 +171,7 @@ class _UpdateSettingsScreenState extends State<UpdateSettingsScreen> {
               'When enabled, QuisquisLingo contacts only the official GitHub Releases API at startup. '
               'No learner data, course data, credentials or analytics are sent. '
               'Each learner is reminded about a new version at most once a day.'
-              '${_isAdmin ? '' : '\n\nThis setting applies to the whole device and can be changed only by an admin (Settings > Device Administration).'}',
+              '${_isAdmin ? '' : '\n\nThis setting applies to the whole device and can be changed only by an admin (Settings > Advanced (Admin)).'}',
             ),
             value: _automatic,
             onChanged: _isAdmin ? _setAutomatic : null,

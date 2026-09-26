@@ -38,7 +38,7 @@ import 'package:quisquislingo_app/widgets/learner_shell.dart';
 import 'package:quisquislingo_app/widgets/unified_learner_top_bar.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-const _navigationCourseCode = 'DE';
+const _navigationCourseCode = 'KO';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -617,8 +617,8 @@ void main() {
         Alignment.centerLeft,
       );
       await tester.tap(selector);
-      final selectedLesson = course.lessons[6];
-      final selectedSectionFinder = find.text('Travel');
+      final selectedLesson = course.lessons[7];
+      final selectedSectionFinder = find.text('Getting around');
       await _pumpUntil(tester, selectedSectionFinder);
       await tester.pumpAndSettle();
       expect(find.text('Browse All Lessons'), findsNothing);
@@ -637,7 +637,7 @@ void main() {
       await tester.tap(selectedSectionFinder.last);
       await tester.pumpAndSettle();
       expect(
-        find.descendant(of: selector, matching: find.text('Travel')),
+        find.descendant(of: selector, matching: find.text('Getting around')),
         findsOneWidget,
       );
       expect(
@@ -702,8 +702,8 @@ void main() {
       await tester.tap(_sectionArrowButton('Next Section'));
       await tester.pumpAndSettle();
       expect(find.byType(BottomSheet), findsNothing);
-      expect(_sectionSelectorLabel(course, 3), findsOneWidget);
-      final lockedLesson = course.lessons[3];
+      expect(_sectionSelectorLabel(course, 1), findsOneWidget);
+      final lockedLesson = course.lessons[1];
       expect(
         find.byKey(ValueKey('unified-lesson-locked-${lockedLesson.lessonId}')),
         findsOneWidget,
@@ -1344,7 +1344,7 @@ void main() {
     (tester) async {
       final course = await _loadNavigationCourse(tester);
       await _openHome(tester, scrollToActions: false);
-      final secondLesson = course.lessons[3];
+      final secondLesson = course.lessons[4];
       final secondSection = find.byKey(
         ValueKey('unified-lesson-section-${secondLesson.lessonId}'),
       );
@@ -1362,7 +1362,7 @@ void main() {
 
       final selectedLessonLabel = find.descendant(
         of: find.byKey(const Key('unified-section-selector')),
-        matching: find.text('Everyday Life'),
+        matching: find.text('Everyday life'),
       );
       expect(
         selectedLessonLabel,
@@ -1387,7 +1387,7 @@ void main() {
         course.lessons
             .singleWhere((lesson) => lesson.lessonId == persistedLessonId)
             .sectionName,
-        'Everyday Life',
+        'Everyday life',
       );
     },
   );
@@ -2542,7 +2542,7 @@ void main() {
         expect(page.width, width);
         expect(selector.left, greaterThanOrEqualTo(page.left));
         expect(selector.right, lessThanOrEqualTo(page.right));
-        expect(tester.getSize(flagPaint).aspectRatio, closeTo(5 / 3, .001));
+        expect(tester.getSize(flagPaint).aspectRatio, closeTo(3 / 2, .001));
         expect(
           veil.color.a,
           closeTo(brightness == Brightness.dark ? .25 : .10, .01),
@@ -2709,14 +2709,14 @@ void main() {
     tester,
   ) async {
     final italianCourse = await _loadItalianCourse(tester);
-    final germanCourse = await _loadCourse(tester, 'DE');
+    final koreanCourse = await _loadCourse(tester, 'KO');
     final profiles = ProfileService();
     await profiles.setFlagBackgroundMode(
       italianCourse.courseId,
       LearnerFlagBackgroundMode.small,
     );
     await profiles.setFlagBackgroundMode(
-      germanCourse.courseId,
+      koreanCourse.courseId,
       LearnerFlagBackgroundMode.off,
     );
     await _openHome(tester, scrollToActions: false);
@@ -2748,7 +2748,7 @@ void main() {
       await tester.pump();
       final expectedCourseId = code == 'IT'
           ? italianCourse.courseId
-          : germanCourse.courseId;
+          : koreanCourse.courseId;
       await _pumpUntilWithIo(
         tester,
         _courseInTopBar(expectedCourseId),
@@ -2775,16 +2775,16 @@ void main() {
     expect(find.text('Other courses'), findsOneWidget);
     expect(find.text(italianCourse.title), findsWidgets);
     tester
-        .widget<ListTile>(find.byKey(const ValueKey('bundled-course-DE')))
+        .widget<ListTile>(find.byKey(const ValueKey('bundled-course-KO')))
         .onTap!();
     await tester.pump();
     await _pumpUntilWithIo(
       tester,
       find.byTooltip('Flag background: Off'),
-      failureMessage: 'Timed out restoring the German flag preference.',
+      failureMessage: 'Timed out restoring the Korean flag preference.',
     );
     expect(find.byType(BottomSheet), findsNothing);
-    expect(_activeCourse(tester).courseId, germanCourse.courseId);
+    expect(_activeCourse(tester).courseId, koreanCourse.courseId);
     expect(
       find.byKey(const Key('unified-learner-flag-background')),
       findsNothing,
@@ -2796,8 +2796,8 @@ void main() {
         matching: find.byType(CourseFlagBadge),
       ),
     );
-    expect(compactFlag.course.courseId, germanCourse.courseId);
-    expect(compactFlag.fallbackCode, 'DE');
+    expect(compactFlag.course.courseId, koreanCourse.courseId);
+    expect(compactFlag.fallbackCode, 'KO');
 
     await chooseCourse('IT');
     await _pumpUntilWithIo(
@@ -2815,7 +2815,7 @@ void main() {
       LearnerFlagBackgroundMode.small,
     );
     expect(
-      await profiles.getFlagBackgroundMode(germanCourse.courseId),
+      await profiles.getFlagBackgroundMode(koreanCourse.courseId),
       LearnerFlagBackgroundMode.off,
     );
   });
@@ -2977,7 +2977,7 @@ void main() {
       await tester.tap(
         find.byKey(const Key('course-selector-actions-current')),
       );
-      await tester.pumpAndSettle();
+      await _settleSelector(tester);
       expect(
         tester
             .widgetList<PopupMenuItem<String>>(
@@ -3002,17 +3002,17 @@ void main() {
         findsOneWidget,
       );
       await tester.tapAt(const Offset(4, 4));
-      await tester.pumpAndSettle();
+      await _settleSelector(tester);
 
       await tester.scrollUntilVisible(
-        find.byKey(const Key('course-selector-actions-bundled-DE')),
+        find.byKey(const Key('course-selector-actions-bundled-KO')),
         260,
         scrollable: selectorScroll,
       );
       await tester.tap(
-        find.byKey(const Key('course-selector-actions-bundled-DE')),
+        find.byKey(const Key('course-selector-actions-bundled-KO')),
       );
-      await tester.pumpAndSettle();
+      await _settleSelector(tester);
       expect(
         find.byWidgetPredicate(
           (widget) =>
@@ -3032,17 +3032,18 @@ void main() {
         isTrue,
       );
       await tester.tapAt(const Offset(4, 4));
-      await tester.pumpAndSettle();
+      await _settleSelector(tester);
 
       await tester.scrollUntilVisible(
         find.byKey(const Key('current-course')),
         -260,
         scrollable: selectorScroll,
       );
+      await tester.pump();
       await tester.tap(
         find.byKey(const Key('course-selector-actions-current')),
       );
-      await tester.pumpAndSettle();
+      await _settleSelector(tester);
       await tester.tap(find.text('Review').last);
       await _pumpUntilWithIo(
         tester,
@@ -3067,13 +3068,13 @@ void main() {
     'hidden Courses leave the Selector while direct Import remains available',
     (tester) async {
       await _loadItalianCourse(tester);
-      final germanCourse = await _loadCourse(tester, 'DE');
+      final koreanCourse = await _loadCourse(tester, 'KO');
       final profiles = ProfileService();
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool(
         profiles.keyForProfileId(
           (await profiles.getActiveProfileId())!,
-          'course_hidden_${germanCourse.courseId}',
+          'course_hidden_${koreanCourse.courseId}',
         ),
         true,
       );
@@ -3089,7 +3090,7 @@ void main() {
         find.text('Choose course'),
         failureMessage: 'Selector did not open',
       );
-      expect(find.byKey(const Key('bundled-course-DE')), findsNothing);
+      expect(find.byKey(const Key('bundled-course-KO')), findsNothing);
       await tester.tap(
         find.byKey(const Key('course-selector-actions-current')),
       );
@@ -3132,8 +3133,31 @@ void main() {
     tester.view.physicalSize = const Size(1200, 1400);
     addTearDown(tester.view.resetDevicePixelRatio);
     addTearDown(tester.view.resetPhysicalSize);
+    // Four other Courses were opened; only the three most recent are listed.
+    // Build 255 Revision 6 left three other bundled demos, so the oldest one
+    // is a local Course.
+    final oldest = Course(
+      courseId: 'user_oldest_recent_course',
+      learningLanguage: 'Italian',
+      interfaceLanguage: 'English',
+      sourceLanguage: 'English',
+      targetLanguage: 'Italian',
+      title: 'Oldest Recent Course',
+      ttsLanguage: 'it-IT',
+      flagCode: 'IT',
+      lessons: [
+        Lesson(lessonId: 'oldest_first', title: 'First', rounds: const []),
+      ],
+    );
+    (await tester.runAsync(() => CourseEditorService().saveUserCourse(oldest)));
     final settings = SettingsService();
-    for (final ref in ['DE', 'ES', 'CY', 'PT', 'IT']) {
+    for (final ref in [
+      'custom:${oldest.courseId}',
+      'KO',
+      'EN_EDGE',
+      'PMS',
+      'IT',
+    ]) {
       await settings.setLastSelectedCourseCode(ref);
     }
     await _openHome(tester, scrollToActions: false);
@@ -3165,9 +3189,9 @@ void main() {
     expect(recentTiles, hasLength(3));
 
     final recentTitles = [
-      'AI-Slop Demo: Portuguese for English Speakers',
-      'AI-Slop Demo: Welsh for English Speakers',
-      'AI-Slop Demo: Spanish for English Speakers',
+      'AI-Slop Demo: Piedmontese',
+      'AI-Slop Demo: Edge Case Course',
+      'AI-Slop Demo: Korean for English Speakers',
     ];
     final recentPositions = recentTitles
         .map((title) => tester.getRect(find.text(title).first).center.dy)
@@ -3198,21 +3222,21 @@ void main() {
       addTearDown(tester.view.resetDevicePixelRatio);
       addTearDown(tester.view.resetPhysicalSize);
       final settings = SettingsService();
-      for (final ref in ['DE', 'PT', 'IT']) {
+      for (final ref in ['PMS', 'KO', 'IT']) {
         await settings.setLastSelectedCourseCode(ref);
       }
       await _openHome(tester, scrollToActions: false);
       final current = _activeCourse(tester);
-      final portuguese = (await tester.runAsync(
-        () => CourseService().loadCourse('PT'),
+      final korean = (await tester.runAsync(
+        () => CourseService().loadCourse('KO'),
       ))!;
-      final german = (await tester.runAsync(
-        () => CourseService().loadCourse('DE'),
+      final piedmontese = (await tester.runAsync(
+        () => CourseService().loadCourse('PMS'),
       ))!;
       final favorites = CourseFavoriteService();
       await favorites.setFavorite(current.courseId, true);
-      await favorites.setFavorite(portuguese.courseId, true);
-      await favorites.setFavorite(german.courseId, true);
+      await favorites.setFavorite(korean.courseId, true);
+      await favorites.setFavorite(piedmontese.courseId, true);
 
       await tester.tap(find.byKey(const Key('unified-topbar-course-selector')));
       await _pumpUntilWithIo(
@@ -3225,8 +3249,8 @@ void main() {
         matching: find.byType(Scrollable),
       );
       expect(find.byKey(const Key('current-course')), findsOneWidget);
-      expect(find.byKey(const Key('recent-course-PT')), findsOneWidget);
-      for (final ref in ['IT', 'PT', 'DE']) {
+      expect(find.byKey(const Key('recent-course-KO')), findsOneWidget);
+      for (final ref in ['IT', 'KO', 'PMS']) {
         await tester.scrollUntilVisible(
           find.byKey(ValueKey('favorite-course-$ref')),
           250,
@@ -3237,24 +3261,24 @@ void main() {
       expect(find.text('Favorites'), findsOneWidget);
 
       await tester.scrollUntilVisible(
-        find.byKey(const Key('course-selector-actions-favorite-DE')),
+        find.byKey(const Key('course-selector-actions-favorite-PMS')),
         250,
         scrollable: selectorScroll,
       );
       await tester.tap(
-        find.byKey(const Key('course-selector-actions-favorite-DE')),
+        find.byKey(const Key('course-selector-actions-favorite-PMS')),
       );
       await tester.pumpAndSettle();
       expect(find.text('Remove from Favorites'), findsOneWidget);
       await tester.tap(find.text('Hide in Learner'));
       await tester.pumpAndSettle();
       expect(
-        await CourseLearnerVisibilityService().isHidden(german.courseId),
+        await CourseLearnerVisibilityService().isHidden(piedmontese.courseId),
         isTrue,
       );
-      expect(await CourseLibraryService().contains(german), isTrue);
+      expect(await CourseLibraryService().contains(piedmontese), isTrue);
       expect(await settings.getLastSelectedCourseCode(), 'IT');
-      expect(find.byKey(const Key('favorite-course-DE')), findsNothing);
+      expect(find.byKey(const Key('favorite-course-PMS')), findsNothing);
 
       await tester.scrollUntilVisible(
         find.byKey(const Key('course-selector-actions-current')),
@@ -3282,7 +3306,7 @@ void main() {
     tester,
   ) async {
     await _loadItalianCourse(tester);
-    final german = await _loadCourse(tester, 'DE');
+    final korean = await _loadCourse(tester, 'KO');
     await _openHome(tester, scrollToActions: false);
     await tester.tap(find.byKey(const Key('unified-topbar-course-selector')));
     await _pumpUntilWithIo(
@@ -3298,17 +3322,18 @@ void main() {
         matching: find.byType(Scrollable),
       ),
     );
+    await tester.pump();
     await tester.tap(find.byKey(const Key('course-selector-import')));
     await _pumpUntilWithIo(
       tester,
       find.byKey(const Key('import-course-json-primary')),
       failureMessage: 'Import screen did not open.',
     );
-    Navigator.of(tester.element(find.byType(CourseProjectsScreen))).pop(german);
+    Navigator.of(tester.element(find.byType(CourseProjectsScreen))).pop(korean);
     await _pumpUntilWithIo(
       tester,
       find.textContaining(
-        'Imported “${german.title}” and added to your courses.',
+        'Imported “${korean.title}” and added to your courses.',
       ),
       failureMessage: 'Import result was not shown on Home.',
     );
@@ -3316,10 +3341,10 @@ void main() {
     await tester.tap(find.text('Study now'));
     await _pumpUntilWithIo(
       tester,
-      _courseInTopBar(german.courseId),
+      _courseInTopBar(korean.courseId),
       failureMessage: 'Study now did not select the imported Course.',
     );
-    expect(await SettingsService().getLastSelectedCourseCode(), 'DE');
+    expect(await SettingsService().getLastSelectedCourseCode(), 'KO');
   });
 
   testWidgets('Selector Import explains when a Course cannot be studied', (
@@ -3341,6 +3366,7 @@ void main() {
         matching: find.byType(Scrollable),
       ),
     );
+    await tester.pump();
     await tester.tap(find.byKey(const Key('course-selector-import')));
     await _pumpUntilWithIo(
       tester,
@@ -3515,7 +3541,7 @@ void main() {
     'direct switching and logout chooser restore learner-scoped courses',
     (tester) async {
       final italianCourse = await _loadItalianCourse(tester);
-      final germanCourse = await _loadCourse(tester, 'DE');
+      final koreanCourse = await _loadCourse(tester, 'KO');
       final profiles = ProfileService();
       final prefs = await SharedPreferences.getInstance();
       final navigationLearnerId = (await profiles.getActiveProfileId())!;
@@ -3526,17 +3552,17 @@ void main() {
         ),
         'IT',
       );
-      final germanLearner = await profiles.createProfile(
-        'German Learner',
+      final koreanLearner = await profiles.createProfile(
+        'Korean Learner',
         generateScreenNameSuffix: false,
       );
       await SettingsService().completeWelcomeWizard();
       await prefs.setString(
         profiles.keyForProfileId(
-          germanLearner.learnerProfileId,
+          koreanLearner.learnerProfileId,
           'last_selected_course_code',
         ),
-        'DE',
+        'KO',
       );
       await profiles.setActiveProfile('Navigation Learner');
 
@@ -3544,15 +3570,15 @@ void main() {
       expect(_activeCourse(tester).courseId, italianCourse.courseId);
 
       await _openLearnerChooserFromHome(tester);
-      await _chooseLearner(tester, 'German Learner');
+      await _chooseLearner(tester, 'Korean Learner');
       Navigator.of(tester.element(find.byType(ProfileScreen))).pop();
       await _pumpUntilWithIo(
         tester,
-        _courseInTopBar(germanCourse.courseId),
-        failureMessage: 'Timed out restoring German Learner Home.',
+        _courseInTopBar(koreanCourse.courseId),
+        failureMessage: 'Timed out restoring Korean Learner Home.',
       );
-      expect(await profiles.getActiveProfile(), 'German Learner');
-      expect(_activeCourse(tester).courseId, germanCourse.courseId);
+      expect(await profiles.getActiveProfile(), 'Korean Learner');
+      expect(_activeCourse(tester).courseId, koreanCourse.courseId);
 
       await _openLearnerChooserFromHome(tester);
       await _chooseLearner(tester, 'Navigation Learner');
@@ -3567,14 +3593,14 @@ void main() {
 
       await _logoutToLearnerChooser(tester);
       expect(await profiles.getActiveProfile(), isNull);
-      await _chooseLearner(tester, 'German Learner');
+      await _chooseLearner(tester, 'Korean Learner');
       await _pumpUntilWithIo(
         tester,
-        _courseInTopBar(germanCourse.courseId),
-        failureMessage: 'Timed out restoring German Learner after logout.',
+        _courseInTopBar(koreanCourse.courseId),
+        failureMessage: 'Timed out restoring Korean Learner after logout.',
       );
-      expect(await profiles.getActiveProfile(), 'German Learner');
-      expect(_activeCourse(tester).courseId, germanCourse.courseId);
+      expect(await profiles.getActiveProfile(), 'Korean Learner');
+      expect(_activeCourse(tester).courseId, koreanCourse.courseId);
 
       await _logoutToLearnerChooser(tester);
       expect(await profiles.getActiveProfile(), isNull);
@@ -3610,8 +3636,9 @@ Course _courseFixture() => Course(
   lessons: const [],
 );
 
-// Structural navigation needs Sections and Duels. The retained German sample
-// provides both; IT now points to the Laboratory, which deliberately has neither.
+// Structural navigation needs Sections and Duels. The retained Korean sample
+// provides both (Build 255 Revision 6 removed the German one); IT points to the
+// Laboratory, which deliberately has neither.
 Future<Course> _loadNavigationCourse(
   WidgetTester tester, {
   bool enableIddqd = true,
@@ -3810,6 +3837,16 @@ Finder _sectionSelectorLabel(Course course, int lessonIndex) => find.descendant(
         : 'Other lessons',
   ),
 );
+
+/// The Course Selector's World Flag rows (Piedmontese) show an indeterminate
+/// progress indicator while their SVG loads, so pumpAndSettle never settles
+/// once such a row is built. Ten 100 ms frames cover the sheet and menu
+/// transitions.
+Future<void> _settleSelector(WidgetTester tester) async {
+  for (var frame = 0; frame < 10; frame++) {
+    await tester.pump(const Duration(milliseconds: 100));
+  }
+}
 
 Finder _sectionArrowButton(String tooltip) => find.widgetWithIcon(
   IconButton,

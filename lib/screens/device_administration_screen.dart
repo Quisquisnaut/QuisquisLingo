@@ -238,11 +238,11 @@ class _DeviceAdministrationScreenState
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Device Administration'),
+        title: const Text('Advanced (Admin)'),
         actions: [
           IconButton(
             key: const Key('admin-help'),
-            tooltip: 'Device Administration Help',
+            tooltip: 'Advanced (Admin) Help',
             icon: const Icon(Icons.help_outline),
             onPressed: () => Navigator.of(context).push<void>(
               MaterialPageRoute(
@@ -259,7 +259,7 @@ class _DeviceAdministrationScreenState
               child: Padding(
                 padding: EdgeInsets.all(24),
                 child: Text(
-                  'Device Administration is available only to admins.',
+                  'Advanced (Admin) is available only to admins.',
                   textAlign: TextAlign.center,
                 ),
               ),
@@ -378,7 +378,7 @@ class _Intro extends StatelessWidget {
   Widget build(BuildContext context) => const Padding(
     padding: EdgeInsets.fromLTRB(16, 8, 16, 0),
     child: Text(
-      'Device Administration gathers the administrator features of this QQL installation in one place. Every feature here is also still available where it always was. Only admins can see this page.',
+      'Advanced (Admin) gathers the administrator features of this QQL installation in one place. Every feature here is also still available where it always was. Only admins can see this page.',
     ),
   );
 }

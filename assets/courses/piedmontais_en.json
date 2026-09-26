@@ -8,9 +8,9 @@
   "originType": "bundledOfficial",
   "publisherId": "org.quisquislingo",
   "publisherName": "QuisquisLingo",
-  "officialCourseVersion": "1.0.0",
-  "officialReleaseDateUtc": "2026-09-25T00:00:00.000Z",
-  "officialReleaseNotes": "QQL Build 254: English-to-Piedmontais AI-Slop Demo with one Lesson per current named exercise type.",
+  "officialCourseVersion": "1.1.0",
+  "officialReleaseDateUtc": "2026-09-26T00:00:00.000Z",
+  "officialReleaseNotes": "QQL Build 255 Revision 6: renamed Piedmontese, the name of its target language; derivative works forbidden (All rights reserved).",
   "distributionChannel": "bundled",
   "publisherVerificationStatus": "verified",
   "originalCourseCreator": {
@@ -19,12 +19,12 @@
     "displayName": "QuisquisLingo"
   },
   "originalCreatedAtUtc": "2026-09-25T00:00:00.000Z",
-  "modifiedAtUtc": "2026-09-25T00:00:00.000Z",
-  "learningLanguage": "Piedmontais",
+  "modifiedAtUtc": "2026-09-26T00:00:00.000Z",
+  "learningLanguage": "Piedmontese",
   "interfaceLanguage": "English",
   "sourceLanguage": "English",
-  "targetLanguage": "Piedmontais",
-  "title": "AI-Slop Demo: Piedmontais",
+  "targetLanguage": "Piedmontese",
+  "title": "AI-Slop Demo: Piedmontese",
   "ttsLanguage": "pms-IT",
   "audioMode": "tts",
   "authors": [
@@ -36,12 +36,12 @@
     }
   ],
   "license": "All rights reserved",
-  "derivativeWorksPolicy": "allowed",
+  "derivativeWorksPolicy": "forbidden",
   "mediaAttributions": [
     {
       "author": "OpenAI Codex",
       "license": "Original code-rendered letter diagrams for this temporary sample",
-      "title": "Accented Piedmontais letters",
+      "title": "Accented Piedmontese letters",
       "source": "tools/generate_piedmontais_demo_254.py glyph_png",
       "appliesTo": "The three embedded character-recognition PNGs: ë, é and ò"
     }
@@ -49,7 +49,7 @@
   "languageVariant": "Piedmontese literary spelling; introductory AI-authored examples awaiting native-speaker review",
   "startLevel": "Beginner",
   "targetLevel": "Beginner",
-  "courseDescription": "TEMPORARY UNREVIEWED AI-GENERATED SAMPLE. English to Piedmontais (Piedmontese), with 24 Lessons demonstrating the 24 current named Exercise types. The content is for testing and requires native-speaker review before language-teaching use. Basic spellings were checked against Claudio Panero's English-Piedmontese dictionary; examples and letter diagrams are newly authored. Audio uses On-Device TTS with pms-IT. This demo contains no recorded Piedmontais voice. Listening examples require a suitable device voice; availability and pronunciation depend on the device.",
+  "courseDescription": "TEMPORARY UNREVIEWED AI-GENERATED SAMPLE. English to Piedmontese, with 24 Lessons demonstrating the 24 current named Exercise types. The content is for testing and requires native-speaker review before language-teaching use. Basic spellings were checked against Claudio Panero's English-Piedmontese dictionary; examples and letter diagrams are newly authored. Audio uses On-Device TTS with pms-IT. This demo contains no recorded Piedmontese voice. Listening examples require a suitable device voice; availability and pronunciation depend on the device.",
   "sourceLanguageTag": "en-GB",
   "targetLanguageTag": "pms-IT",
   "textDirection": "ltr",
@@ -71,7 +71,7 @@
             "kind": "explanation",
             "required": false,
             "role": "overview",
-            "text": "pan = bread; gat = cat; eva = water. Choose the Piedmontais word."
+            "text": "pan = bread; gat = cat; eva = water. Choose the Piedmontese word."
           }
         ]
       },
@@ -102,7 +102,7 @@
                   {
                     "role": "primary",
                     "type": "text",
-                    "text": "How do you say bread in Piedmontais?"
+                    "text": "How do you say bread in Piedmontese?"
                   }
                 ],
                 "interaction": {
@@ -162,7 +162,7 @@
                   {
                     "role": "primary",
                     "type": "text",
-                    "text": "How do you say cat in Piedmontais?"
+                    "text": "How do you say cat in Piedmontese?"
                   }
                 ],
                 "interaction": {
@@ -222,7 +222,7 @@
                   {
                     "role": "primary",
                     "type": "text",
-                    "text": "How do you say water in Piedmontais?"
+                    "text": "How do you say water in Piedmontese?"
                   }
                 ],
                 "interaction": {
@@ -1050,7 +1050,7 @@
             "kind": "explanation",
             "required": false,
             "role": "overview",
-            "text": "bondì = good morning; mersì = thank you; ciàu = hello or bye. Choose the exact written word you hear. Audio uses On-Device TTS with pms-IT. This demo contains no recorded Piedmontais voice. Listening examples require a suitable device voice; availability and pronunciation depend on the device."
+            "text": "bondì = good morning; mersì = thank you; ciàu = hello or bye. Choose the exact written word you hear. Audio uses On-Device TTS with pms-IT. This demo contains no recorded Piedmontese voice. Listening examples require a suitable device voice; availability and pronunciation depend on the device."
           }
         ]
       },
@@ -1288,7 +1288,7 @@
             "kind": "explanation",
             "required": false,
             "role": "overview",
-            "text": "I l'hai = I have; i son = I am; a ca = at home; lìber = book; un = one; doi = two; tre = three. Listen to each short passage and answer its English question. Audio uses On-Device TTS with pms-IT. This demo contains no recorded Piedmontais voice. Listening examples require a suitable device voice; availability and pronunciation depend on the device."
+            "text": "I l'hai = I have; i son = I am; a ca = at home; lìber = book; un = one; doi = two; tre = three. Listen to each short passage and answer its English question. Audio uses On-Device TTS with pms-IT. This demo contains no recorded Piedmontese voice. Listening examples require a suitable device voice; availability and pronunciation depend on the device."
           }
         ]
       },
@@ -2191,7 +2191,7 @@
       "publicationState": "published",
       "updatedAt": "2026-09-25T00:00:00.000Z",
       "section": false,
-      "title": "Type the translation — Write in Piedmontais",
+      "title": "Type the translation — Write in Piedmontese",
       "themeIconAsset": "assets/lesson_icons/speech_bubbles.png",
       "guidebook": {
         "content": [
@@ -2201,7 +2201,7 @@
             "kind": "explanation",
             "required": false,
             "role": "overview",
-            "text": "Translate English into Piedmontais. Thank you accepts grassie or mersì. The happy speaker is masculine: i son content; mi is optional. The house is la ca."
+            "text": "Translate English into Piedmontese. Thank you accepts grassie or mersì. The happy speaker is masculine: i son content; mi is optional. The house is la ca."
           }
         ]
       },
@@ -2219,7 +2219,7 @@
               "kind": "text",
               "required": false,
               "role": "lesson_intro",
-              "text": "Type the translation: Write in Piedmontais. Three short examples use this exercise type."
+              "text": "Type the translation: Write in Piedmontese. Three short examples use this exercise type."
             },
             {
               "publicationState": "published",
@@ -2344,7 +2344,7 @@
             "kind": "explanation",
             "required": false,
             "role": "overview",
-            "text": "Build an English phrase in Piedmontais. ël lìber = the book; i son content = I am happy (masculine); pan e eva = bread and water. For I am happy, both mi i son content and i son content are accepted."
+            "text": "Build an English phrase in Piedmontese. ël lìber = the book; i son content = I am happy (masculine); pan e eva = bread and water. For I am happy, both mi i son content and i son content are accepted."
           }
         ]
       },
@@ -2590,7 +2590,7 @@
       "publicationState": "published",
       "updatedAt": "2026-09-25T00:00:00.000Z",
       "section": false,
-      "title": "Pick the translation (to target) — English to Piedmontais",
+      "title": "Pick the translation (to target) — English to Piedmontese",
       "themeIconAsset": "assets/lesson_icons/speech_bubbles.png",
       "guidebook": {
         "content": [
@@ -2600,7 +2600,7 @@
             "kind": "explanation",
             "required": false,
             "role": "overview",
-            "text": "Read the English source and pick its Piedmontais translation. ël can = the dog; ross = red; tre = three."
+            "text": "Read the English source and pick its Piedmontese translation. ël can = the dog; ross = red; tre = three."
           }
         ]
       },
@@ -2618,7 +2618,7 @@
               "kind": "text",
               "required": false,
               "role": "lesson_intro",
-              "text": "Pick the translation (to target): English to Piedmontais. Three short examples use this exercise type."
+              "text": "Pick the translation (to target): English to Piedmontese. Three short examples use this exercise type."
             },
             {
               "publicationState": "published",
@@ -2813,7 +2813,7 @@
       "publicationState": "published",
       "updatedAt": "2026-09-25T00:00:00.000Z",
       "section": false,
-      "title": "Pick the translation (to source) — Piedmontais to English",
+      "title": "Pick the translation (to source) — Piedmontese to English",
       "themeIconAsset": "assets/lesson_icons/speech_bubbles.png",
       "guidebook": {
         "content": [
@@ -2823,7 +2823,7 @@
             "kind": "explanation",
             "required": false,
             "role": "overview",
-            "text": "Read the Piedmontais source and pick its English meaning. bon-aneuit = good night; ël pan = the bread; mi i son content = I am happy."
+            "text": "Read the Piedmontese source and pick its English meaning. bon-aneuit = good night; ël pan = the bread; mi i son content = I am happy."
           }
         ]
       },
@@ -2841,7 +2841,7 @@
               "kind": "text",
               "required": false,
               "role": "lesson_intro",
-              "text": "Pick the translation (to source): Piedmontais to English. Three short examples use this exercise type."
+              "text": "Pick the translation (to source): Piedmontese to English. Three short examples use this exercise type."
             },
             {
               "publicationState": "published",
@@ -3336,7 +3336,7 @@
             "kind": "explanation",
             "required": false,
             "role": "overview",
-            "text": "Listen and type the whole word. The vocabulary is pan (bread), eva (water), and pom (apple). Audio uses On-Device TTS with pms-IT. This demo contains no recorded Piedmontais voice. Listening examples require a suitable device voice; availability and pronunciation depend on the device."
+            "text": "Listen and type the whole word. The vocabulary is pan (bread), eva (water), and pom (apple). Audio uses On-Device TTS with pms-IT. This demo contains no recorded Piedmontese voice. Listening examples require a suitable device voice; availability and pronunciation depend on the device."
           }
         ]
       },
@@ -3493,7 +3493,7 @@
             "kind": "explanation",
             "required": false,
             "role": "overview",
-            "text": "The transcript supplies the sentence around each missing word. Fill the missing words in order: pan = bread; eva = water; gat = cat; can = dog; lìber = book. Audio uses On-Device TTS with pms-IT. This demo contains no recorded Piedmontais voice. Listening examples require a suitable device voice; availability and pronunciation depend on the device."
+            "text": "The transcript supplies the sentence around each missing word. Fill the missing words in order: pan = bread; eva = water; gat = cat; can = dog; lìber = book. Audio uses On-Device TTS with pms-IT. This demo contains no recorded Piedmontese voice. Listening examples require a suitable device voice; availability and pronunciation depend on the device."
           }
         ]
       },
@@ -3652,7 +3652,7 @@
             "kind": "explanation",
             "required": false,
             "role": "overview",
-            "text": "Match each English meaning with its Piedmontais phrase. Pair relationships stay the same when the display is shuffled."
+            "text": "Match each English meaning with its Piedmontese phrase. Pair relationships stay the same when the display is shuffled."
           }
         ]
       },
@@ -3782,7 +3782,7 @@
                   {
                     "role": "primary",
                     "type": "text",
-                    "text": "Match each Piedmontais phrase with its English meaning."
+                    "text": "Match each Piedmontese phrase with its English meaning."
                   }
                 ],
                 "interaction": {
@@ -3881,7 +3881,7 @@
                   {
                     "role": "primary",
                     "type": "text",
-                    "text": "Match each Piedmontais colour with its English meaning."
+                    "text": "Match each Piedmontese colour with its English meaning."
                   }
                 ],
                 "interaction": {
@@ -3992,7 +3992,7 @@
             "kind": "explanation",
             "required": false,
             "role": "overview",
-            "text": "Match English words with Piedmontais words. Food: pan, eva, pom. Animals: gat, can, caval. At home: tàula, cadrega, pòrta."
+            "text": "Match English words with Piedmontese words. Food: pan, eva, pom. Animals: gat, can, caval. At home: tàula, cadrega, pòrta."
           }
         ]
       },
@@ -4023,7 +4023,7 @@
                   {
                     "role": "primary",
                     "type": "text",
-                    "text": "Match English food and drink words to Piedmontais."
+                    "text": "Match English food and drink words to Piedmontese."
                   }
                 ],
                 "interaction": {
@@ -4122,7 +4122,7 @@
                   {
                     "role": "primary",
                     "type": "text",
-                    "text": "Match English animal words to Piedmontais."
+                    "text": "Match English animal words to Piedmontese."
                   }
                 ],
                 "interaction": {
@@ -4221,7 +4221,7 @@
                   {
                     "role": "primary",
                     "type": "text",
-                    "text": "Match English household words to Piedmontais."
+                    "text": "Match English household words to Piedmontese."
                   }
                 ],
                 "interaction": {
@@ -4322,7 +4322,7 @@
       "publicationState": "published",
       "updatedAt": "2026-09-25T00:00:00.000Z",
       "section": false,
-      "title": "Match related words — Related Piedmontais words",
+      "title": "Match related words — Related Piedmontese words",
       "themeIconAsset": "assets/lesson_icons/speech_bubbles.png",
       "guidebook": {
         "content": [
@@ -4350,7 +4350,7 @@
               "kind": "text",
               "required": false,
               "role": "lesson_intro",
-              "text": "Match related words: Related Piedmontais words. Three short examples use this exercise type."
+              "text": "Match related words: Related Piedmontese words. Three short examples use this exercise type."
             },
             {
               "publicationState": "published",
@@ -4363,7 +4363,7 @@
                   {
                     "role": "primary",
                     "type": "text",
-                    "text": "Match the Piedmontais opposites."
+                    "text": "Match the Piedmontese opposites."
                   }
                 ],
                 "interaction": {
@@ -4672,7 +4672,7 @@
             "kind": "explanation",
             "required": false,
             "role": "overview",
-            "text": "Play each Piedmontais item and match it to the English meaning. Each exercise has three unique audio/text pairs and no distractors. Audio uses On-Device TTS with pms-IT. This demo contains no recorded Piedmontais voice. Listening examples require a suitable device voice; availability and pronunciation depend on the device."
+            "text": "Play each Piedmontese item and match it to the English meaning. Each exercise has three unique audio/text pairs and no distractors. Audio uses On-Device TTS with pms-IT. This demo contains no recorded Piedmontese voice. Listening examples require a suitable device voice; availability and pronunciation depend on the device."
           }
         ]
       },
@@ -4703,7 +4703,7 @@
                   {
                     "role": "primary",
                     "type": "text",
-                    "text": "Match each spoken Piedmontais food or drink word to its English meaning."
+                    "text": "Match each spoken Piedmontese food or drink word to its English meaning."
                   }
                 ],
                 "interaction": {
@@ -4802,7 +4802,7 @@
                   {
                     "role": "primary",
                     "type": "text",
-                    "text": "Match each spoken Piedmontais animal word to its English meaning."
+                    "text": "Match each spoken Piedmontese animal word to its English meaning."
                   }
                 ],
                 "interaction": {
@@ -4901,7 +4901,7 @@
                   {
                     "role": "primary",
                     "type": "text",
-                    "text": "Match each spoken Piedmontais colour word to its English meaning."
+                    "text": "Match each spoken Piedmontese colour word to its English meaning."
                   }
                 ],
                 "interaction": {
@@ -5012,7 +5012,7 @@
             "kind": "explanation",
             "required": false,
             "role": "overview",
-            "text": "Restore the Piedmontais phrase. Keep i before son. A repeated ël needs its own block each time. These are ordering exercises; no English sentence is being translated."
+            "text": "Restore the Piedmontese phrase. Keep i before son. A repeated ël needs its own block each time. These are ordering exercises; no English sentence is being translated."
           }
         ]
       },
@@ -5283,7 +5283,7 @@
             "kind": "explanation",
             "required": false,
             "role": "overview",
-            "text": "Use every letter to spell the Piedmontais word in the picture: pan (bread), gat (cat), caval (horse). The two a letters in caval are separate blocks."
+            "text": "Use every letter to spell the Piedmontese word in the picture: pan (bread), gat (cat), caval (horse). The two a letters in caval are separate blocks."
           }
         ]
       },
@@ -5314,7 +5314,7 @@
                   {
                     "role": "clue",
                     "type": "text",
-                    "text": "Spell the pictured food in Piedmontais."
+                    "text": "Spell the pictured food in Piedmontese."
                   },
                   {
                     "role": "clue",
@@ -5385,7 +5385,7 @@
                   {
                     "role": "clue",
                     "type": "text",
-                    "text": "Spell the pictured pet in Piedmontais."
+                    "text": "Spell the pictured pet in Piedmontese."
                   },
                   {
                     "role": "clue",
@@ -5456,7 +5456,7 @@
                   {
                     "role": "clue",
                     "type": "text",
-                    "text": "Spell the pictured farm animal in Piedmontais."
+                    "text": "Spell the pictured farm animal in Piedmontese."
                   },
                   {
                     "role": "clue",
@@ -5561,7 +5561,7 @@
             "kind": "explanation",
             "required": false,
             "role": "overview",
-            "text": "Read each term, meaning and example. Choose Got it or Review again. Flashcards do not award ordinary correct-answer XP. Pronunciation is optional and depends on the device. Audio uses On-Device TTS with pms-IT. This demo contains no recorded Piedmontais voice. Listening examples require a suitable device voice; availability and pronunciation depend on the device."
+            "text": "Read each term, meaning and example. Choose Got it or Review again. Flashcards do not award ordinary correct-answer XP. Pronunciation is optional and depends on the device. Audio uses On-Device TTS with pms-IT. This demo contains no recorded Piedmontese voice. Listening examples require a suitable device voice; availability and pronunciation depend on the device."
           }
         ]
       },
@@ -5716,5 +5716,5 @@
       }
     }
   ],
-  "officialChecksum": "07e46d6592aa2ef38b6423872ea5d600cd454bf428e119bb1c10392dc65d866c"
+  "officialChecksum": "eb15b7663c8d226d082dc8ae5ff4e70e8ed1a28242438d7d9182d0c240bbc507"
 }

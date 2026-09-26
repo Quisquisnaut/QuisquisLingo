@@ -41,8 +41,15 @@ class ImageProfile {
     formats: {ImageFormat.png, ImageFormat.jpeg},
   );
 
-  /// A Course ZIP cover.
-  static const courseCover = ImageProfile(maxBytes: 100 * 1024);
+  /// A Course cover: exactly 512 × 512 pixels (checked separately), up to
+  /// 1 MB since Build 255 Revision 6. Before, it was 100 KB, which the general
+  /// 50 KB check of package images made unreachable.
+  static const courseCoverMaxBytes = 1024 * 1024;
+  static const courseCover = ImageProfile(maxBytes: courseCoverMaxBytes);
+
+  /// Any picture chosen to become a Course cover, before it is cropped and
+  /// scaled to 512 × 512 (Build 255 Revision 6).
+  static const courseCoverSource = ImageProfile(maxBytes: 10 * 1024 * 1024);
 
   final int maxBytes;
   final Set<ImageFormat> formats;

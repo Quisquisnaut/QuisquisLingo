@@ -35,6 +35,11 @@ class CourseMediaStore {
   static const maxAudioBytes = 50 * 1024 * 1024;
   static const maxImageBytes = 50 * 1024;
 
+  /// A Course's cover may be larger than its other images (Build 255
+  /// Revision 6). Only the file the Course names as its cover is stored,
+  /// copied or imported under this limit.
+  static const maxCoverBytes = ImageProfile.courseCoverMaxBytes;
+
   static final RegExp referencePattern = RegExp(
     r'^media:([0-9a-f]{64})\.(mp3|png|jpg|jpeg|webp)$',
   );
@@ -178,14 +183,20 @@ class CourseMediaStore {
 
   /// Stores [bytes] for [courseId] and returns their reference. Storing the
   /// same bytes twice keeps one file. The written file is read back and its
-  /// digest checked before the reference is returned.
+  /// digest checked before the reference is returned. [cover] marks the
+  /// Course's cover, which may reach [maxCoverBytes].
   Future<String> addBytes(
     String courseId,
     Uint8List bytes,
-    String extension,
-  ) async {
+    String extension, {
+    bool cover = false,
+  }) async {
     final reference = referenceFor(bytes, extension);
-    final limit = isAudioReference(reference) ? maxAudioBytes : maxImageBytes;
+    final limit = isAudioReference(reference)
+        ? maxAudioBytes
+        : cover
+        ? maxCoverBytes
+        : maxImageBytes;
     if (bytes.isEmpty || bytes.length > limit) {
       throw FormatException(
         isAudioReference(reference)
@@ -236,11 +247,13 @@ class CourseMediaStore {
 
   /// Copies each of [references] present for [fromCourseId] into
   /// [toCourseId]'s folder and returns those that were missing at the source.
+  /// [cover] is the destination Course's cover reference.
   Future<Set<String>> copyReferences(
     String fromCourseId,
     String toCourseId,
-    Iterable<String> references,
-  ) async {
+    Iterable<String> references, {
+    String cover = '',
+  }) async {
     final missing = <String>{};
     for (final reference in references.toSet()) {
       if (!isReference(reference)) continue;
@@ -255,6 +268,7 @@ class CourseMediaStore {
         toCourseId,
         await source.readAsBytes(),
         extensionOf(reference),
+        cover: reference == cover,
       );
     }
     return missing;

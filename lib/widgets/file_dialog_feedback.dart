@@ -106,6 +106,9 @@ String get mp3FallbackHint =>
 String get exerciseImageFallbackHint =>
     'Copy one image to ${_folder(QqlStorageRole.imageImports)} and use '
     'Import custom image (or Import single image) instead.';
+String get courseCoverFallbackHint =>
+    'Copy one picture to ${_folder(QqlStorageRole.imageImports)} and use '
+    'Quick Import instead.';
 String get lessonIconFallbackHint =>
     'Copy one image to ${_folder(QqlStorageRole.lessonIconImports)} and use '
     'Import custom icon instead.';

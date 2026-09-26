@@ -114,9 +114,16 @@ class _WorldFlagReferenceScreenState extends State<WorldFlagReferenceScreen> {
                       child: Column(
                         children: [
                           Expanded(
-                            child: WorldFlagArt(
+                            child: EnlargeableWorldFlag(
+                              key: ValueKey(
+                                'flag-reference-enlarge-${entity.id}',
+                              ),
                               entity: entity,
-                              semanticsLabel: '${entity.displayNameEn} flag',
+                              showName: true,
+                              child: WorldFlagArt(
+                                entity: entity,
+                                semanticsLabel: '${entity.displayNameEn} flag',
+                              ),
                             ),
                           ),
                           const SizedBox(height: 7),

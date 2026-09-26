@@ -5,15 +5,8 @@ import 'package:quisquislingo_app/models/course_models.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
-  const samples = [
-    'german_en.json',
-    'spanish_en.json',
-    'english_es.json',
-    'portuguese_en.json',
-    'welsh_en.json',
-    'korean_en.json',
-    'neapolitan_it.json',
-  ];
+  // Build 255 Revision 6 removed the other nine-Lesson samples.
+  const samples = ['korean_en.json'];
 
   for (final file in samples) {
     test(

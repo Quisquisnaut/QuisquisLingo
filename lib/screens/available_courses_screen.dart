@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../localization/help/help_structure.dart';
@@ -13,6 +15,7 @@ import '../services/course_file_store.dart';
 import '../services/course_learner_visibility_service.dart';
 import '../services/course_library_presentation.dart';
 import '../services/course_library_service.dart';
+import '../services/course_library_view_service.dart';
 import '../services/course_media_store.dart';
 import '../services/course_service.dart';
 import '../services/progress_service.dart';
@@ -138,7 +141,21 @@ class _AvailableCoursesScreenState extends State<AvailableCoursesScreen> {
 
   /// Page-session ordering, applied inside each section.
   CourseLibrarySort _sort = CourseLibrarySort.title;
-  final _compactSections = <CourseLibraryCategory, bool>{};
+
+  /// Each section's view, saved per learner (Build 255 Revision 6).
+  final _viewService = CourseLibraryViewService();
+  Map<CourseLibraryCategory, CourseLibraryView> _sectionViews = const {};
+
+  /// Saved views are read once per learner. Later reloads keep this visit's
+  /// choices, which are saved as they are made.
+  bool _viewsLoaded = false;
+  String? _viewsProfileId;
+
+  /// The section of a just-imported Course is shown Expanded for this visit
+  /// even when it is Minimal, so the highlighted row can be seen. Its saved
+  /// view is unchanged until the learner picks another one.
+  CourseLibraryCategory? _revealedCategory;
+  String? _revealedFor;
 
   @override
   void initState() {
@@ -152,6 +169,7 @@ class _AvailableCoursesScreenState extends State<AvailableCoursesScreen> {
     if (oldWidget.refreshToken != widget.refreshToken) {
       _load();
     } else if (oldWidget.highlightCourseId != widget.highlightCourseId) {
+      setState(() => _revealHighlighted(_courses, _profileId));
       WidgetsBinding.instance.addPostFrameCallback((_) => _focusHighlighted());
     }
   }
@@ -217,9 +235,21 @@ class _AvailableCoursesScreenState extends State<AvailableCoursesScreen> {
         for (final course in courses)
           if (CourseDraftStatus.courseHasDraft(course)) course.courseId,
       };
+      final savedViews = _viewsLoaded && _viewsProfileId == profileId
+          ? null
+          : await _viewService.views(
+              CourseLibrarySectionSurface.allCourses.storageName,
+              profileId: profileId,
+            );
       if (!mounted) return;
       setState(() {
         _courses = courses;
+        if (savedViews != null) {
+          _sectionViews = savedViews;
+          _viewsLoaded = true;
+          _viewsProfileId = profileId;
+        }
+        _revealHighlighted(courses, profileId);
         _hasDraft = hasDraft;
         _added = added;
         _hidden = hidden;
@@ -530,6 +560,43 @@ class _AvailableCoursesScreenState extends State<AvailableCoursesScreen> {
     );
   }
 
+  /// Called with every load; acts only when the highlighted Course changes.
+  void _revealHighlighted(List<Course>? courses, String? profileId) {
+    final id = widget.highlightCourseId;
+    if (courses == null || id == _revealedFor) return;
+    _revealedFor = id;
+    _revealedCategory = null;
+    for (final course in courses) {
+      if (course.courseId == id) {
+        _revealedCategory = CourseLibraryCategories.of(course, profileId);
+      }
+    }
+  }
+
+  CourseLibraryView _viewOf(CourseLibraryCategory category) {
+    final saved = _sectionViews[category] ?? CourseLibraryView.expanded;
+    return saved == CourseLibraryView.minimal && category == _revealedCategory
+        ? CourseLibraryView.expanded
+        : saved;
+  }
+
+  void _setView(CourseLibraryCategory category, CourseLibraryView view) {
+    setState(() {
+      _sectionViews = {..._sectionViews, category: view};
+      if (category == _revealedCategory) _revealedCategory = null;
+    });
+    // A view that could not be saved still applies while the page is open.
+    unawaited(
+      _viewService
+          .setView(
+            CourseLibrarySectionSurface.allCourses.storageName,
+            category,
+            view,
+          )
+          .catchError((Object _) {}),
+    );
+  }
+
   Widget _courseSection(CourseLibraryCategory category) => CourseLibrarySection(
     key: ValueKey('course-section-${category.sectionId}'),
     category: category,
@@ -542,9 +609,8 @@ class _AvailableCoursesScreenState extends State<AvailableCoursesScreen> {
     sort: widget.sort ?? _sort,
     maintainerOf: _maintainer,
     draftCourseIds: _hasDraft,
-    compact: _compactSections[category] ?? false,
-    onCompactChanged: (value) =>
-        setState(() => _compactSections[category] = value),
+    view: _viewOf(category),
+    onViewChanged: (view) => _setView(category, view),
     rowBuilder: (course, compact, favorites) =>
         _courseRow(course, compact: compact, favorites: favorites),
   );

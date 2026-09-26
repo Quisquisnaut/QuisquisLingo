@@ -4,13 +4,24 @@ import '../models/course_models.dart';
 import '../services/course_library_categories.dart';
 import '../services/course_library_filter.dart';
 import '../services/course_library_presentation.dart';
+import '../services/course_library_view_service.dart';
 
-enum CourseLibrarySectionSurface { allCourses, courseStudio }
+enum CourseLibrarySectionSurface {
+  allCourses('all_courses'),
+  courseStudio('course_studio');
+
+  const CourseLibrarySectionSurface(this.storageName);
+
+  /// The tab's part of each learner's saved section views.
+  final String storageName;
+}
 
 typedef CourseLibrarySectionRowBuilder =
     Widget Function(Course course, bool compact, bool favorites);
 
-/// Shared Courses section, with its own page-session Expanded / Compact state.
+/// Shared Courses section with its own Expanded / Compact / Minimal view. The
+/// owning tab supplies [view] and saves [onViewChanged]; without them the
+/// section keeps its view while the page is open.
 class CourseLibrarySection extends StatefulWidget {
   const CourseLibrarySection({
     super.key,
@@ -25,9 +36,9 @@ class CourseLibrarySection extends StatefulWidget {
     required this.maintainerOf,
     required this.rowBuilder,
     this.draftCourseIds,
-    this.compact,
-    this.onCompactChanged,
-  }) : assert((compact == null) == (onCompactChanged == null));
+    this.view,
+    this.onViewChanged,
+  }) : assert((view == null) == (onViewChanged == null));
 
   final CourseLibraryCategory category;
   final CourseLibrarySectionSurface surface;
@@ -40,24 +51,24 @@ class CourseLibrarySection extends StatefulWidget {
   final String Function(Course) maintainerOf;
   final CourseLibrarySectionRowBuilder rowBuilder;
   final Set<String>? draftCourseIds;
-  final bool? compact;
-  final ValueChanged<bool>? onCompactChanged;
+  final CourseLibraryView? view;
+  final ValueChanged<CourseLibraryView>? onViewChanged;
 
   @override
   State<CourseLibrarySection> createState() => _CourseLibrarySectionState();
 }
 
 class _CourseLibrarySectionState extends State<CourseLibrarySection> {
-  bool _compact = false;
+  CourseLibraryView _view = CourseLibraryView.expanded;
 
-  bool get _isCompact => widget.compact ?? _compact;
+  CourseLibraryView get _current => widget.view ?? _view;
 
-  void _toggleCompact() {
-    final next = !_isCompact;
-    if (widget.onCompactChanged case final changed?) {
+  void _nextView() {
+    final next = _current.next;
+    if (widget.onViewChanged case final changed?) {
       changed(next);
     } else {
-      setState(() => _compact = next);
+      setState(() => _view = next);
     }
   }
 
@@ -112,16 +123,23 @@ class _CourseLibrarySectionState extends State<CourseLibrarySection> {
       draftCourseIds: widget.draftCourseIds,
     );
     final color = _color(context);
-    final count = selection.shown.length == selection.all.length
+    final view = _current;
+    final minimal = view == CourseLibraryView.minimal;
+    // Minimal shows only this count, so it always gives both numbers.
+    final count = selection.shown.length == selection.all.length && !minimal
         ? '${selection.all.length}'
         : '${selection.shown.length} of ${selection.all.length} shown';
     final sectionId = widget.category.sectionId;
     final keyPrefix = _allCourses ? 'course-section' : 'manager-section';
     final toggle = TextButton.icon(
       key: ValueKey('$keyPrefix-view-$sectionId'),
-      onPressed: _toggleCompact,
-      icon: Icon(_isCompact ? Icons.view_headline : Icons.view_agenda_outlined),
-      label: Text(_isCompact ? 'Compact' : 'Expanded'),
+      onPressed: _nextView,
+      icon: Icon(switch (view) {
+        CourseLibraryView.expanded => Icons.view_agenda_outlined,
+        CourseLibraryView.compact => Icons.view_headline,
+        CourseLibraryView.minimal => Icons.unfold_less,
+      }),
+      label: Text(view.label),
     );
     final content = Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -161,9 +179,11 @@ class _CourseLibrarySectionState extends State<CourseLibrarySection> {
               ),
               if (_allCourses)
                 Tooltip(
-                  message: _isCompact
-                      ? 'Show full details'
-                      : 'Show fewer details',
+                  message: switch (view) {
+                    CourseLibraryView.expanded => 'Show fewer details',
+                    CourseLibraryView.compact => 'Show only the count',
+                    CourseLibraryView.minimal => 'Show full details',
+                  },
                   child: toggle,
                 )
               else
@@ -171,13 +191,18 @@ class _CourseLibrarySectionState extends State<CourseLibrarySection> {
             ],
           ),
         ),
-        if (selection.shown.isEmpty)
+        if (!minimal && selection.shown.isEmpty)
           Padding(
             padding: const EdgeInsets.all(16),
             child: Text(_emptyMessage(selection)),
           ),
-        for (final course in selection.shown)
-          widget.rowBuilder(course, _isCompact, _favorites),
+        if (!minimal)
+          for (final course in selection.shown)
+            widget.rowBuilder(
+              course,
+              view == CourseLibraryView.compact,
+              _favorites,
+            ),
       ],
     );
     return Padding(

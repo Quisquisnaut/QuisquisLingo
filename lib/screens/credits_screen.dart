@@ -31,23 +31,7 @@ class CreditsScreen extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           const _CreditCard(
-            title: 'German course',
-            text: 'Course authors: To be added',
-          ),
-          const SizedBox(height: 8),
-          const _CreditCard(
-            title: 'Spanish course',
-            text: 'Course authors: To be added',
-          ),
-          const SizedBox(height: 8),
-          const _CreditCard(
-            title: 'English course (Spanish → English)',
-            text: 'Course authors: To be added',
-          ),
-          const SizedBox(height: 8),
-          const _CreditCard(
-            title:
-                'Welsh / Portuguese / Korean / Neapolitan / Edge Case / Piedmontais courses',
+            title: 'Korean / Edge Case / Piedmontese courses',
             text:
                 'Temporary AI-generated sample content; human course authors are still to be added.',
           ),

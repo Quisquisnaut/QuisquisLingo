@@ -4,15 +4,8 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
-  const files = [
-    'german_en.json',
-    'spanish_en.json',
-    'english_es.json',
-    'portuguese_en.json',
-    'welsh_en.json',
-    'korean_en.json',
-    'neapolitan_it.json',
-  ];
+  // Build 255 Revision 6 removed the other 225 samples; Korean remains.
+  const files = ['korean_en.json'];
   for (final file in files) {
     test('$file has nine direct temporary-sample Lessons', () async {
       final raw = await rootBundle.loadString('assets/courses/$file');
@@ -35,7 +28,7 @@ void main() {
         expect(lesson['updatedAt'], endsWith('Z'));
         expect(lesson['duel'], {
           'id': '${lesson['lessonId']}_duel',
-          'title': file == 'neapolitan_it.json' ? 'Duello' : 'Duel',
+          'title': 'Duel',
         });
       }
     });
@@ -72,38 +65,4 @@ void main() {
       },
     );
   }
-
-  test(
-    'sample Lessons cover complete Sections, icons and Round title layouts',
-    () async {
-      final raw = await rootBundle.loadString('assets/courses/german_en.json');
-      final data = jsonDecode(raw) as Map<String, dynamic>;
-      final lessons = (data['lessons'] as List).cast<Map<String, dynamic>>();
-
-      expect(
-        lessons.where((lesson) => lesson['section'] == true),
-        hasLength(9),
-      );
-      expect(
-        lessons.every((lesson) => lesson['themeIconAsset'] != null),
-        isTrue,
-      );
-      expect(
-        lessons.any((lesson) => (lesson['title'] as String).length > 50),
-        isTrue,
-      );
-      expect(lessons[0]['sectionName'], lessons[1]['sectionName']);
-      expect(lessons[1]['sectionName'], lessons[2]['sectionName']);
-      expect(lessons[3]['sectionName'], isNot(lessons[0]['sectionName']));
-      expect(lessons[3]['sectionName'], lessons[5]['sectionName']);
-      expect(lessons[6]['sectionName'], lessons[8]['sectionName']);
-
-      final rounds = lessons
-          .expand((lesson) => (lesson['rounds'] as List).cast<Map>())
-          .toList();
-      expect(rounds.any((round) => round['title'] == 'First steps'), isTrue);
-      expect(rounds.any((round) => round['title'] == 'Comprehension'), isTrue);
-      expect(rounds.any((round) => !round.containsKey('title')), isTrue);
-    },
-  );
 }

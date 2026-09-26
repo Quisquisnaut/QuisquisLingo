@@ -376,13 +376,19 @@ class _FailingMediaStore extends CourseMediaStore {
   Future<Set<String>> copyReferences(
     String fromCourseId,
     String toCourseId,
-    Iterable<String> references,
-  ) async {
+    Iterable<String> references, {
+    String cover = '',
+  }) async {
     if (!throwAfterFirstCopy) {
-      return super.copyReferences(fromCourseId, toCourseId, references);
+      return super.copyReferences(
+        fromCourseId,
+        toCourseId,
+        references,
+        cover: cover,
+      );
     }
     final first = references.first;
-    await super.copyReferences(fromCourseId, toCourseId, [first]);
+    await super.copyReferences(fromCourseId, toCourseId, [first], cover: cover);
     throw StateError('simulated error after first media copy');
   }
 }

@@ -95,6 +95,11 @@ void main() {
     await tester.pump();
     expect(inSection(0, find.textContaining('Maintainer: ')), findsNothing);
 
+    // Build 255 Revision 6: the button cycles through Minimal before
+    // returning to Expanded.
+    await tester.tap(toggle(3));
+    await tester.pump();
+    expect(inSection(3, find.text('Minimal')), findsOneWidget);
     await tester.tap(toggle(3));
     await tester.pump();
     expect(inSection(3, find.textContaining('Maintainer: ')), findsWidgets);
@@ -120,16 +125,18 @@ void main() {
     );
   });
 
-  testWidgets('narrow Compact and Expanded sections do not overflow', (
+  testWidgets('narrow Compact, Minimal and Expanded sections do not overflow', (
     tester,
   ) async {
     await pumpLibrary(tester, size: const Size(320, 8000));
     await tester.tap(find.byKey(const Key('show-unavailable-courses')));
     await tester.pump();
-    for (var i = 0; i < 4; i++) {
-      await tester.tap(toggle(i));
-      await tester.pump();
+    for (var pass = 0; pass < 3; pass++) {
+      for (var i = 0; i < 4; i++) {
+        await tester.tap(toggle(i));
+        await tester.pump();
+      }
+      expect(tester.takeException(), isNull);
     }
-    expect(tester.takeException(), isNull);
   });
 }

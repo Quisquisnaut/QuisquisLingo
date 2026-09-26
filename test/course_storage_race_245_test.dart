@@ -478,13 +478,15 @@ class _FailAfterCopyMediaStore extends CourseMediaStore {
   Future<Set<String>> copyReferences(
     String fromCourseId,
     String toCourseId,
-    Iterable<String> references,
-  ) async {
+    Iterable<String> references, {
+    String cover = '',
+  }) async {
     lastDestinationCourseId = toCourseId;
     final result = await super.copyReferences(
       fromCourseId,
       toCourseId,
       references,
+      cover: cover,
     );
     copiedBeforeFailure =
         await existingFile(toCourseId, references.single) != null;

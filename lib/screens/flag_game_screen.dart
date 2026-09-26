@@ -299,7 +299,12 @@ class _FlagGameScreenState extends State<FlagGameScreen> {
             constraints: const BoxConstraints(maxWidth: 290, maxHeight: 180),
             child: AspectRatio(
               aspectRatio: 4 / 3,
-              child: WorldFlagArt(entity: question.target),
+              child: EnlargeableWorldFlag(
+                key: const Key('flag-game-flag-enlarge'),
+                entity: question.target,
+                showName: false,
+                child: WorldFlagArt(entity: question.target),
+              ),
             ),
           ),
         ),

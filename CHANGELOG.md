@@ -1,3 +1,74 @@
+# 2.0.55 (Build 255, Revision 6) - Courses views, Course covers and Team folders - 2026-09-26
+
+Small owner-requested corrections and additions.
+
+- **Bundled demos:** German, Spanish, English for Spanish speakers
+  (Inglés para hispanohablantes), Welsh, Portuguese and Neapolitan are
+  removed. Four remain: Exercise Laboratory, Korean, Edge Case Course and
+  Piedmontese. As for the demos Build 254 removed, their Course IDs stay
+  reserved, learner progress is left in place, a learner whose last Course
+  was removed opens the first available one, and the images, icons and
+  recordings stay in the app.
+- **Demo licenses:** every demo is *All rights reserved*. Exercise
+  Laboratory and Edge Case, the test demos, keep derivative works allowed,
+  so Fork still works on them; Korean and Piedmontese forbid derivative
+  works, so Fork is unavailable there. The changed demos have new versions
+  (Edge Case 1.1.0, Korean 1.2.0, Piedmontese 1.1.0).
+- **Piedmontese:** the Piedmontais demo is renamed *AI-Slop Demo:
+  Piedmontese*, its learning and target language are Piedmontese, and every
+  mention in its content says Piedmontese. Its Course ID, stable IDs, code
+  `PMS` and `pms-IT` voice are unchanged, so progress is kept.
+- **Courses sections:** each section's button now cycles Expanded →
+  Compact → **Minimal**. Minimal hides the Courses and shows only how many
+  are shown and how many the section holds ("3 of 4 shown"). The choice is
+  saved for each learner, separately in All Courses and Course Studio and
+  for each category (learner setting `course_library_view_<tab>_<category>`,
+  default Expanded); before, it lasted only while the page was open. After
+  an Import, a Minimal section holding the imported Course opens Expanded
+  for that visit so the highlighted row can be seen.
+- **Startup:** the one-time "QuisquisLingo Beta testing" dialog about the
+  Crash Log is gone; startup already had enough screens. The Crash Log and
+  its Quick Export in Settings › Debug are unchanged, and the update check
+  still runs at every launch.
+- **Advanced (Admin):** Device Administration is now called Advanced
+  (Admin), since it also holds QQL-Tools, and sits right after Do Not
+  Disturb in Settings. Its Help follows (EN/IT/ES); internal names and keys
+  are unchanged.
+- **Flag Game:** tap a flag to see it enlarged. During a question the
+  enlargement shows no name, so it never gives the answer away; the
+  reference lists show the name.
+- **Course Info:** the Course image is shown as in Courses, the cover when
+  the Course has one and otherwise the flag, and tapping it opens the same
+  enlarged view as Courses (one shared dialog).
+- **Course cover in the Editor:** the Course Info Editor has a Cover image
+  field with Choose image (image library), Quick Import (the one picture in
+  `Import/Images`), Open from… and Remove cover. Any PNG, JPEG or WebP up to
+  10 MB is cropped to its centred square and scaled to a 512 × 512 PNG; a
+  ready 512 × 512 picture of at most 1 MB is kept as it is. The cover alone
+  may be up to **1 MB** (other Course images stay at 50 KB): the Course
+  media store, package export and import, backup restore and the
+  Fork/Copy/Merge copies apply that limit only to the file the Course names
+  as its cover. Before, the declared 100 KB cover limit could never be
+  reached, because every package image first passed the general 50 KB
+  check. The cover is Course media like any other: it travels in the ZIP,
+  stays only when the Course changes are confirmed, and the Course Editor
+  header shows it instead of the flag.
+- **Team shared folder:** a Team Leader can add the link of the Team's
+  Google Drive folder; every member sees it and opens it in the browser
+  after a warning to download only files whose origin they are sure of.
+  Only `https://drive.google.com/drive/folders/…` links are accepted (also
+  with `/u/N/`, `usp` or `resourcekey`), stored in one form; links to files,
+  direct downloads, documents, other sites, look-alike hosts, user names,
+  ports and shortened links are refused, and the stored link is checked
+  again before it is opened. The link lives in the existing Teams registry.
+- Tests that relied on the removed demos now use the remaining ones: the
+  Korean sample is the navigation course, and a flagless Course is tested
+  with a synthetic Course.
+
+Version `2.0.55+255006`; Beta expiry **2026-10-26 23:59:59 local time** (30
+days from the 26 September 2026 release date). See the
+[handoff](docs/255_HANDOFF.md) and [validation](docs/255_VALIDATION.md).
+
 # 2.0.55 (Build 255, Revision 5) - The Backups folder - 2026-09-26
 
 The Course Backups Version History uses leave QQL's private storage and live

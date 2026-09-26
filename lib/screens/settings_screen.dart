@@ -197,24 +197,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     if (mounted) await _load();
                   },
                 ),
-                if (_isAdmin)
-                  ListTile(
-                    key: const Key('settings-device-administration'),
-                    leading: const Icon(Icons.admin_panel_settings_outlined),
-                    title: const Text('Device Administration'),
-                    subtitle: const Text(
-                      'Admins only: learners, startup behavior, device name, media, Teams and reset options.',
-                    ),
-                    trailing: const Icon(Icons.chevron_right),
-                    onTap: () => Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => DeviceAdministrationScreen(
-                          course: widget.course,
-                          onManageLearners: widget.onManageLearners,
-                        ),
-                      ),
-                    ),
-                  ),
                 const Divider(),
                 ListTile(
                   leading: const Icon(Icons.record_voice_over_outlined),
@@ -242,6 +224,27 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                   ),
                 ),
+                // Build 255 Revision 6: Device Administration is called
+                // Advanced (Admin), since it also holds QQL-Tools, and sits
+                // after Do Not Disturb.
+                if (_isAdmin)
+                  ListTile(
+                    key: const Key('settings-device-administration'),
+                    leading: const Icon(Icons.admin_panel_settings_outlined),
+                    title: const Text('Advanced (Admin)'),
+                    subtitle: const Text(
+                      'Admins only: updates, learners, startup behavior, device name, QQL-Tools, media, Inventory and reset options.',
+                    ),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => DeviceAdministrationScreen(
+                          course: widget.course,
+                          onManageLearners: widget.onManageLearners,
+                        ),
+                      ),
+                    ),
+                  ),
                 ListTile(
                   key: const Key('settings-qql-guide'),
                   leading: const Icon(Icons.menu_book_outlined),

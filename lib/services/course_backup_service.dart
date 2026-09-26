@@ -416,6 +416,7 @@ class CourseBackupService {
         record.course.courseId,
         await source.readAsBytes(),
         CourseMediaStore.extensionOf(reference),
+        cover: reference == record.course.coverImage,
       );
       if (stored != reference) {
         throw StateError('Restored course media does not match its reference.');

@@ -148,10 +148,18 @@ void main() {
       expect(course.worldFlagId, 'wales');
       expect(course.flagCode, isEmpty);
       expect(course.flagImageBase64, isEmpty);
-      final appBarArt = tester.widget<WorldFlagArt>(find.byType(WorldFlagArt));
+      // The Course Studio list below the Editor route can build the new
+      // Course's row too (Build 255 Revision 6 left fewer bundled Courses).
+      final appBar = find.byType(AppBar);
+      final appBarArt = tester.widget<WorldFlagArt>(
+        find.descendant(of: appBar, matching: find.byType(WorldFlagArt)),
+      );
       expect(appBarArt.entity.id, 'wales');
       expect(
-        find.byKey(const ValueKey('course-world-flag-wales')),
+        find.descendant(
+          of: appBar,
+          matching: find.byKey(const ValueKey('course-world-flag-wales')),
+        ),
         findsOneWidget,
       );
     },

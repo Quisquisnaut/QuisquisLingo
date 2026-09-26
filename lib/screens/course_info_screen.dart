@@ -13,6 +13,7 @@ import '../services/course_language_resolver.dart';
 import '../services/course_governance_resolver.dart';
 import '../services/course_service.dart';
 import '../services/editor_display_preferences.dart';
+import '../widgets/course_artwork.dart';
 import '../widgets/editor_app_bar_actions.dart';
 import '../widgets/flag_art.dart';
 import '../widgets/app_locale_selector.dart';
@@ -224,13 +225,31 @@ class CourseInfoScreen extends StatefulWidget {
           '${CourseLanguageResolver.learning(course).displayLabel}',
         ),
         const SizedBox(height: 12),
+        // The Course image opens enlarged, as in Courses: the cover when the
+        // Course has one, otherwise the flag (Build 255 Revision 6).
         Align(
           alignment: Alignment.centerLeft,
-          child: CourseFlagBadge(
-            course: course,
-            fallbackCode: CourseService.codeForCourse(course),
-            width: 64,
-            height: 44,
+          child: Tooltip(
+            message: _t(locale, 'enlargeImage'),
+            child: InkWell(
+              key: const Key('course-info-image'),
+              borderRadius: BorderRadius.circular(8),
+              onTap: () => showCourseArtworkPreview(
+                context,
+                course,
+                closeTooltip: MaterialLocalizations.of(
+                  context,
+                ).closeButtonTooltip,
+              ),
+              child: Course.coverImagePattern.hasMatch(course.coverImage)
+                  ? CourseArtwork(course: course, size: 96)
+                  : CourseFlagBadge(
+                      course: course,
+                      fallbackCode: CourseService.codeForCourse(course),
+                      width: 64,
+                      height: 44,
+                    ),
+            ),
           ),
         ),
         ValueListenableBuilder<bool>(
