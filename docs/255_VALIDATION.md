@@ -679,3 +679,34 @@ skip, 0 failed** in 22 min 41 s. `validate_courses.py`, the Edge Case
 generator's `--check` and `validate_media_assets.py` pass. No production or
 test file changed after that run. No Windows or Android package was built,
 and no emulator check was made for this revision.
+
+### Follow-up: Recognize characters, Choose from Image Bank (same version)
+
+The owner asked on 27 September 2026 to fix the defect flagged above in the
+same version. `ScriptRecognitionEditor._pickImage` pushed the image library as
+a `String` route, but the library pops the chosen `ExerciseImageMetadata`. It
+now pushes `<ExerciseImageMetadata>` and uses `assetPath`. QQL `assets/`
+pictures and portable data stay as they are, other pictures become portable
+bytes through `PortableExerciseImageService.fromFile`, and `_remindCredit` is
+unchanged.
+
+- New test in `script_recognition_226_03_test.dart`, *Choose from Image Bank
+  adds the chosen QQL image as it is*. It opens the editor, chooses Choose
+  from Image Bank, searches "apple" and taps Use image. Before the fix it
+  failed with Flutter's "A request was made to pop a route with a result of
+  type ExerciseImageMetadata, but the route expected a value of type String",
+  and the library stayed open. After the fix the library closes,
+  `assets/exercise_images/apple.webp` is added as it is, and no error or
+  credit reminder appears.
+- All 111 QQL Image Bank paths in `assets/exercise_images/metadata_v2.json`
+  satisfy the portable-path rule, so a QQL picture never goes through
+  `fromFile`.
+- Focused run with `--concurrency=1` of the five files that use the editor or
+  the reminder (`script_recognition_226_03_test`,
+  `script_direction_help_226_03_r1_test`, `official_new_presets_226_03_test`,
+  `exercise_laboratory_254_test`, `image_credit_reminder_255_test`): **201
+  passed** in 2 min 6 s. `flutter analyze --no-pub`: **No issues found**.
+- The complete suite was not run again after this change, at the owner's
+  request (27 September 2026). The last complete run is the Revision 7 run
+  above. The route for a picture imported on this device (`fromFile` and the
+  reminder) has no widget test.

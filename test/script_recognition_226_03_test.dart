@@ -579,6 +579,51 @@ void main() {
     },
   );
 
+  testWidgets('Choose from Image Bank adds the chosen QQL image as it is', (
+    tester,
+  ) async {
+    await _viewport(tester, 1000);
+    final controller = ScriptRecognitionController(
+      _exercise(ScriptRecognitionMode.imageToText, blueImage, redImage),
+    );
+    addTearDown(controller.dispose);
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: SingleChildScrollView(
+            child: ScriptRecognitionEditor(controller: controller),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('script-add-prompt-image')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Choose from Image Bank'));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.byKey(const Key('exercise-image-search')),
+      'apple',
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('exercise-image-apple')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Use image'));
+    await tester.pumpAndSettle();
+    // The library returns the chosen image's record, not a path: popping it
+    // into a route typed for a path failed and left the library open.
+    expect(tester.takeException(), isNull);
+    expect(find.byType(FlatImageLibraryScreen), findsNothing);
+    expect(controller.promptImages, hasLength(3));
+    expect(
+      controller.promptImages.last.asset,
+      'assets/exercise_images/apple.webp',
+    );
+    expect(find.textContaining('Image could not be loaded'), findsNothing);
+    // A picture that came with QQL needs no credit reminder.
+    expect(find.byKey(const Key('image-credit-reminder')), findsNothing);
+  });
+
   for (final action in [
     'exercise-preview',
     'exercise-save',

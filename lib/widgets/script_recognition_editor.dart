@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 
 import '../models/course_models.dart';
+import '../models/exercise_image_metadata.dart';
 import '../screens/flat_image_library_screen.dart';
 import '../services/exercise_field_help.dart';
 import '../services/file_dialog_service.dart';
@@ -342,12 +343,14 @@ class ScriptRecognitionEditor extends StatelessWidget {
     }
     try {
       if (source == 'bundled') {
-        final asset = await Navigator.of(context).push<String>(
-          MaterialPageRoute(
-            builder: (_) => const FlatImageLibraryScreen(readOnly: true),
-          ),
-        );
-        if (asset == null) return null;
+        final selected = await Navigator.of(context)
+            .push<ExerciseImageMetadata>(
+              MaterialPageRoute(
+                builder: (_) => const FlatImageLibraryScreen(readOnly: true),
+              ),
+            );
+        if (selected == null) return null;
+        final asset = selected.assetPath;
         // Existing locally imported bank images become course-owned bytes.
         final image = PortableExerciseImageService.isPortable(asset)
             ? asset

@@ -63,6 +63,13 @@ Owner-requested corrections to Revision 6 and a renewed first launch.
   it has expired); before, it appeared at every launch. Learners who already
   finished the previous Wizard do not see the new one; *Show one-time
   notices again* in Do Not Disturb shows it again.
+- **Recognize characters, Choose from Image Bank:** choosing a picture there
+  now works. The image library hands back the chosen image's record, but the
+  editor waited for a file path, so *Use image* failed: the library stayed
+  open and no picture was added. The editor now takes the record and uses its
+  path. A QQL picture is used as it is; a picture imported on this device
+  becomes the Course's own portable image (at most 50 KB) and brings the
+  credit reminder. A new test chooses a QQL picture there.
 - Tests follow the new behavior: Home tests no longer wait for the Beta
   reminder, the Selector tests choose the current Course again through a
   Favorite row, and new tests cover the crop, the creation cover, credits

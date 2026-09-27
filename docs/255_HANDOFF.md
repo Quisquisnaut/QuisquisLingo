@@ -101,13 +101,19 @@ the complete suite on the final tree: **2,786 passed, 1 existing skip, 0
 failed** (22 min 41 s); course and media validators pass. No package or
 emulator check. Details in `docs/255_VALIDATION.md`.
 
-Out of scope, flagged as a separate task and not fixed here: the Recognize
-characters "Choose from Image Bank" route pushes a `String` route but the
-image library pops an `ExerciseImageMetadata`, so choosing an image there
-most likely fails.
+Follow-up in the same version (owner request, 27 September 2026). This was
+done in a separate session on branch `claude/modest-williams-a10e8f`,
+fast-forwarded to `73f3c67`. The Recognize characters "Choose from Image
+Bank" route pushed a `String` route while the image library pops the chosen
+`ExerciseImageMetadata`, so Use image failed and the library stayed open. It
+now pushes `<ExerciseImageMetadata>` and uses `assetPath`, and a new test
+shows the failure and the fix. The focused tests (201) and the analyzer
+pass; the owner asked for no further complete suite run. Details in
+`docs/255_VALIDATION.md`.
 
-Next: the owner's smoke test of Revision 7; push, PR and merge only when
-the owner asks.
+Next (owner, 27 September 2026): push, PR and merge Revision 7 with the
+follow-up; delete the branch on GitHub and locally; bring the local checkout
+to `main`; build the Windows package.
 
 **Revision 6 (`2.0.55+255006`) is complete and merged** (26 September
 2026): commit `b56b9bf` reached `main` through
