@@ -7,7 +7,7 @@ condensed specification). Working rules: Part A.1 of the plan. Reference:
 the Session 2 design). Summary: `docs/256_CHANGE_SUMMARY.md`. Evidence:
 `docs/256_VALIDATION.md`.
 
-## State (27 September 2026, 14:56)
+## State (27 September 2026, 16:50)
 
 - Branch `claude/256-exercise-architecture`, created from `main` at
   `611a1a1` (Build 255 handoff; version `2.0.55+255007`).
@@ -138,10 +138,14 @@ the Session 2 design). Summary: `docs/256_CHANGE_SUMMARY.md`. Evidence:
   3). **Complete suite running from 16:35**
   (`scratchpad/suite_rev3_followup3.log`, UTF-16). **No APK** (owner: do
   not build it unless already built); the sound still plays at the end.
-  Next: fill `<<SUITE3>>`, commit, sound, handoff commit, report. Points 3 and 4 of the owner's list (direction
-  tags in the picker, twin presets with brackets) are Revision 4 work; the
-  owner said "fixes only, then wait".
-  **Revision 4 waits for the owner's approval**: then `git stash pop`
+  16:42: **complete suite 2,951 passed, 1 skipped, 0 failed**; committed as
+  **`02a4aa5` Build 256 Revision 3 follow-up 3** (follow-ups 2 and 3
+  together, same version), sound played, no APK (owner). Points 3 and 4 of
+  the owner's list (direction tags in the picker, twin presets with
+  brackets) and the picture answers of Select the image are Revision 4
+  work (recorded in the catalogue plan). Owner (16:45): "after commit go
+  on with next revision".
+  **Revision 4 starts now**: `git stash pop`
   restores Stage 1 (stash@{0}) and Session 5 continues from "Session 5
   starting points" below, with the direction decisions (pairs only where
   meaningful, bracket only on the twins).
