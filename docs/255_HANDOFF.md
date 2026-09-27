@@ -28,6 +28,8 @@ owner's and not part of this work: never stage, move or delete them.
 | `6cc9154` | Merge of [PR #25](https://github.com/Quisquisnaut/QuisquisLingo/pull/25) into `main` (merge commit; the PR also carried `2f4f89b`, the handoff note for PR #24 that had stayed local). |
 | `3d4de23` | Handoff note: merged through PR #25 (local on `main`, not pushed). |
 | `d2b7132` | **Revision 7** `2.0.55+255007` on branch `claude/255-rev7-fixes` (from `main` at `3d4de23`): Team dialog refusal in full, Advanced (Admin) one line and greyed for non-admins, cover in Create new course, Crop the cover, known credits and reminders (Audit counts the cover), Selector covers without repeating the current Course, enlarged title and languages, Edge Case flag `EN`, first launch with only the renewed Welcome Wizard in the language chosen in Create Profile. Suite 2,786 passed, 1 skip. Beta expiry `2026-10-27 23:59:59`. |
+| `73f3c67` | Handoff through Revision 7. |
+| `3cc644d` | **Revision 7 follow-up** (same version `2.0.55+255007`, owner request): Recognize characters "Choose from Image Bank" pushes an `ExerciseImageMetadata` route and uses `assetPath`. It pushed a `String` route, so Use image failed. New widget test. Focused tests 201 passed, analyzer clean; no further complete suite run (owner). |
 
 ## Status
 
@@ -101,9 +103,9 @@ the complete suite on the final tree: **2,786 passed, 1 existing skip, 0
 failed** (22 min 41 s); course and media validators pass. No package or
 emulator check. Details in `docs/255_VALIDATION.md`.
 
-Follow-up in the same version (owner request, 27 September 2026). This was
-done in a separate session on branch `claude/modest-williams-a10e8f`,
-fast-forwarded to `73f3c67`. The Recognize characters "Choose from Image
+Follow-up in the same version (owner request, 27 September 2026), committed
+as `3cc644d`. This was done in a separate session on branch
+`claude/modest-williams-a10e8f`, fast-forwarded to `73f3c67`. The Recognize characters "Choose from Image
 Bank" route pushed a `String` route while the image library pops the chosen
 `ExerciseImageMetadata`, so Use image failed and the library stayed open. It
 now pushes `<ExerciseImageMetadata>` and uses `assetPath`, and a new test
