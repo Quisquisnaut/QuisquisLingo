@@ -1165,6 +1165,30 @@ class CourseAuditService {
           AuditCode.exerciseSelectionLimits,
       };
 
+  /// What the preset's form needs for the exercise to play as the preset
+  /// says, appended to PRESET_CANONICAL_MISMATCH (owner report, 27 September
+  /// 2026: an empty Icons field turned Select the image into a plain Choose
+  /// with no explanation).
+  static String _mismatchHint(String presetId) => switch (presetId) {
+    'icon_choice' =>
+      ' Select the image needs one icon or image key per answer in Icons / image keys, in the same order as the answers.',
+    'listening_choice' ||
+    'listening_comprehension' ||
+    'listening_spelling' ||
+    'missing_word' ||
+    'audio_match' => ' ${_presetNameOf(presetId)} needs its spoken text.',
+    'script_recognition' =>
+      ' Recognize characters needs character images in the prompt or the options.',
+    'reading_comprehension' => ' Reading comprehension needs a passage.',
+    'dialogue_response' => ' Dialogue response needs a situation.',
+    'contextual_comprehension' =>
+      ' Contextual comprehension needs its context text or audio.',
+    _ => '',
+  };
+
+  static String _presetNameOf(String presetId) =>
+      ExercisePresetRegistry.byId(presetId)?.name ?? presetId;
+
   /// The friendly English name of a learner kind, for messages and lists.
   static String kindLabel(LearnerExerciseKind kind) => switch (kind) {
     LearnerExerciseKind.select => 'a plain Choose',
@@ -1362,7 +1386,7 @@ class CourseAuditService {
         } else if (expected != null && expected != kind) {
           add(
             AuditCode.presetCanonicalMismatch,
-            'This exercise no longer matches ${preset.name}: it plays as ${kindLabel(kind)}.',
+            'This exercise no longer matches ${preset.name}: it plays as ${kindLabel(kind)}.${_mismatchHint(presetId)}',
           );
         }
         switch (presetId) {

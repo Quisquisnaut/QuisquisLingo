@@ -140,7 +140,7 @@ B = both, – = none. Action = the word written on the tile.
 
 | Preset | ID | Action | Dir | Status | Notes |
 |---|---|---|---|---|---|
-| Select the image | `icon_choice` | Choose | T | kept | Word or sentence prompt, picture answers. |
+| Select the image | `icon_choice` | Choose | T | kept | Word or sentence prompt, picture answers. Owner (27 September 2026, evening): today's form takes only icon keys or bundled asset paths; Revision 4 gives it one picture picker per answer (Image Library or Course images) and draws those pictures on the Round and Duel screens, the same machinery as What is in the picture, Listen and pick the image and Match picture to word. |
 | What is in the picture | `picture_choice` | Choose | T | new | Picture prompt, text answers. |
 | Name what you see | `picture_name` | Type | T | new | Picture prompt, typed answer; accepted answers list, same engine as Type the translation. |
 | Spell the word in the picture | `image_word` | Arrange | T | renamed | Was Image-prompt ordering; letter or syllable tiles. |
@@ -184,6 +184,11 @@ Retired IDs after this revision: `choice`, `fill_blank`, `matching`,
 - Syllable tiles: the recipe splits the word at `|`; the runtime already joins
   tiles without spaces.
 - Match with picture left items (Match picture to word).
+- Picture answers everywhere a preset lists pictures: one picker per answer
+  in the form (Image Library or Course images, `media:` assets copied into
+  the Course), image elements on the items, and the Round screen drawing
+  them through `CourseMediaImage` as the Duel already does (owner decision
+  of 27 September 2026: Revision 4, not a follow-up).
 - Picker: skill groups, action chip, direction filter, greyed tiles.
 - Save guard: `requiredFields` per recipe; refusal message lists the fields.
 - Help (EN/IT/ES): the catalogue chapter, Choose the answer's tooltip, the

@@ -172,6 +172,7 @@ class _RoundScreenState extends State<RoundScreen> {
   bool _storyScrolls = false;
   final List<_StoryEntry> _storyLog = [];
   final ScrollController _storyScroll = ScrollController();
+  final GlobalKey _storyNowKey = GlobalKey();
   final List<TextEditingController> _missingWordControllers = [];
   final Map<String, String> _matchingSelections = {};
   List<_ChoiceOption> _choiceOptions = [];
@@ -351,6 +352,10 @@ class _RoundScreenState extends State<RoundScreen> {
       _storyScrolls =
           _isStory &&
           widget.round.flow?.presentation == FlowPresentation.scroll;
+      await CrashLogService.instance.recordDebugEvent(
+        'Round: ${widget.round.id} story=$_isStory scrolling=$_storyScrolls '
+        'presentation=${widget.round.flow?.presentation.serialized ?? 'none'}',
+      );
       if (flowOrder != null) {
         // A Story plays its nodes in authored order and is never shuffled
         // (Build 256, plan A.7).
@@ -1100,17 +1105,56 @@ class _RoundScreenState extends State<RoundScreen> {
     );
   }
 
+  /// Brings the active item ("Now") to the top of the page after Next, so
+  /// the finished cards scroll away above it.
   void _scrollStoryToEnd() {
     if (!_storyScrolls) return;
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted || !_storyScroll.hasClients) return;
-      _storyScroll.animateTo(
-        _storyScroll.position.maxScrollExtent,
-        duration: const Duration(milliseconds: 350),
-        curve: Curves.easeOut,
-      );
+      if (!mounted) return;
+      final now = _storyNowKey.currentContext;
+      if (now != null) {
+        Scrollable.ensureVisible(
+          now,
+          alignment: 0,
+          duration: const Duration(milliseconds: 600),
+          curve: Curves.easeInOut,
+        );
+      } else if (_storyScroll.hasClients) {
+        _storyScroll.animateTo(
+          _storyScroll.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 350),
+          curve: Curves.easeOut,
+        );
+      }
     });
   }
+
+  /// The marker above the active item of a scrolling Story.
+  Widget _storyNowMarker() => Padding(
+    key: _storyNowKey,
+    padding: const EdgeInsets.only(bottom: 10),
+    child: Row(
+      children: [
+        Icon(
+          Icons.play_arrow_rounded,
+          size: 18,
+          color: Theme.of(context).colorScheme.primary,
+        ),
+        const SizedBox(width: 4),
+        Text(
+          _storyLog.isEmpty
+              ? 'Story · ${_queue.length} steps'
+              : 'Now · step ${_storyLog.length + 1} of ${_queue.length}',
+          key: const Key('story-now'),
+          style: Theme.of(context).textTheme.labelLarge?.copyWith(
+            color: Theme.of(context).colorScheme.primary,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+        const Expanded(child: Divider(indent: 8)),
+      ],
+    ),
+  );
 
   Widget _storyEntryCard(_StoryEntry entry, int number) => Container(
     key: ValueKey('story-entry-$number'),
@@ -2836,9 +2880,11 @@ class _RoundScreenState extends State<RoundScreen> {
           controller: _storyScrolls ? _storyScroll : null,
           padding: const EdgeInsets.fromLTRB(20, 20, 20, 28),
           children: [
-            if (_storyScrolls)
+            if (_storyScrolls) ...[
               for (var i = 0; i < _storyLog.length; i++)
                 _storyEntryCard(_storyLog[i], i),
+              _storyNowMarker(),
+            ],
             if (_reviewPhase)
               Padding(
                 padding: const EdgeInsets.only(bottom: 10),
@@ -3018,6 +3064,13 @@ class _RoundScreenState extends State<RoundScreen> {
                 ),
               ),
             ],
+            // A scrolling Story keeps room below the active item, so "Now"
+            // can always be scrolled to the top and the move is visible.
+            if (_storyScrolls)
+              SizedBox(
+                key: const Key('story-spacer'),
+                height: MediaQuery.sizeOf(context).height * 0.6,
+              ),
           ],
         ),
       ),

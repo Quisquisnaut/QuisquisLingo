@@ -104,6 +104,43 @@ the Session 2 design). Summary: `docs/256_CHANGE_SUMMARY.md`. Evidence:
   Revision 3 follow-up** (same version `2.0.56+256003`); the Android debug
   APK was rebuilt (`buildpp\outputslutter-apkpp-debug.apk`,
   208,700,575 bytes, 14:54) and the sound played.
+  **Second follow-up in progress (owner's visual inspection of the Windows
+  build, 15:10–):** applied and analyzer-clean: Round editor buttons **New
+  exercise** / **New canonical** with a compact bottom-bar style
+  (`_compactButtonStyle`, two rows instead of three), choosing a type on an
+  untouched new exercise no longer counts as a change (`_openedSnapshot`
+  reset in `_choosePreset`), the Lesson editor's Round Wizard is greyed with
+  a tooltip while Use GuideBook is off, the intro dialog and Help EN/IT/ES
+  name the two buttons; the owner's "scrolling Story does not scroll"
+  could not be reproduced: a scratch test driving Round editor → Story on →
+  Scrolling → Preview → answer → Next shows the finished-item card
+  (`story-entry-0`); every save path (`OverlayRoundDraft`, session
+  reconcile, `PublicationService._publishedRoundJson`, JSON) keeps
+  `flow.presentation`. 15:50: the scrolling effect is now unmistakable
+  (`story-now` marker "Story · N steps" / "Now · step k of N", the active
+  item scrolled to the top after Next, a Crash Log debug event
+  `story=… scrolling=… presentation=…`); tests added (13 in the follow-up
+  file, all green; batch of 57 green), docs written (CHANGELOG second
+  follow-up block, AGENTS sentence, change summary, validation with the
+  `<<SUITE2>>` placeholder), commit message in
+  `scratchpad/commit_rev3_followup2.txt`. That suite (15:52) was stopped
+  when the owner's second inspection arrived (16:10): New canonical →
+  Assign/Submit still asked to discard (a new exercise blank for its
+  primitive now leaves silently: `_hasUnsavedChanges` compares with
+  `blankExercise`), the scrolling Story showed the card but no visible
+  scroll (a `story-spacer` below the active item lets "Now" glide to the
+  top, 600 ms), and Select the image without icons warned only "plays as a
+  plain Choose" (`CourseAuditService._mismatchHint` names what the preset
+  needs; the Icons field has a helper). Tests updated and added (97
+  passed in the focused batch), analyzer clean, docs written (CHANGELOG
+  third block, AGENTS, validation with `<<SUITE3>>`), commit message in
+  `scratchpad/commit_rev3_followup3.txt` (one commit for follow-ups 2 and
+  3). **Complete suite running from 16:35**
+  (`scratchpad/suite_rev3_followup3.log`, UTF-16). **No APK** (owner: do
+  not build it unless already built); the sound still plays at the end.
+  Next: fill `<<SUITE3>>`, commit, sound, handoff commit, report. Points 3 and 4 of the owner's list (direction
+  tags in the picker, twin presets with brackets) are Revision 4 work; the
+  owner said "fixes only, then wait".
   **Revision 4 waits for the owner's approval**: then `git stash pop`
   restores Stage 1 (stash@{0}) and Session 5 continues from "Session 5
   starting points" below, with the direction decisions (pairs only where

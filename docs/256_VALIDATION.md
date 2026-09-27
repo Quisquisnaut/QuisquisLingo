@@ -93,6 +93,50 @@ held for the run and cleared afterwards).
   passed, 1 skipped, 0 failed** (`All tests passed!` after 24 minutes
   11 seconds).
 
+## Revision 3 second follow-up (same version), 27 September 2026, afternoon
+
+- The owner's report that a scrolling Story plays like a normal Round was
+  chased first: a scratch widget test drove the Round editor → Play as a
+  Story → Scrolling → Preview (speech channel mocked) → answered → Next and
+  found the finished-item card and the scrolling list; every save path
+  (`OverlayRoundDraft`, the session's reconcile,
+  `PublicationService._publishedRoundJson`, Course JSON) keeps
+  `flow.presentation`. Not reproducible; the effect is now unmistakable
+  (`story-now` marker, top-aligned scroll) and a debug event records each
+  Round's Story state for the next report.
+- `test/revision3_followup_256_test.dart` gained the `story-now` texts, the
+  type-choice-on-a-new-exercise test and the Round Wizard tooltip test.
+- Focused batches after the fixes: the follow-up file with the Story-flow,
+  Course Editor, exercise workflow and localization tests (**57 passed**),
+  then the extended follow-up file alone (**13 passed**).
+- `dart format` on the changed files; `flutter analyze --no-pub`: **No
+  issues found**.
+- The complete suite started for this state (15:52) was stopped when the
+  owner's next report arrived; the third follow-up's suite below covers
+  both.
+
+## Revision 3 third follow-up (same version), 27 September 2026, evening
+
+- Owner's second inspection: the canonical editor still asked after New
+  canonical → Assign/Submit (a primitive change on a blank new exercise is
+  now no change); the scrolling Story showed the finished card but no
+  scroll movement when the page fitted the window (a spacer below the
+  active item gives the "Now" marker room to glide to the top); a Select
+  the image exercise without icons warned only that it plays as a plain
+  Choose (the warning now names the missing Icons / image keys, and the
+  field says so too).
+- Tests: the canonical Assign test flipped (no prompt while blank, prompt
+  after an item is added), the scrolling test checks `story-spacer`, a new
+  Audit test checks the Select the image hint.
+- Focused batch (the follow-up file with the primitive editor, runtime
+  canonical, Pick the translation and Audit tests): **97 passed** after a
+  missing test import was added. `dart format`; `flutter analyze
+  --no-pub`: **No issues found**.
+- Complete suite on the final working tree (`flutter test --no-pub
+  --concurrency=1` under the keep-awake wrapper, 16:16–16:42): **2,951
+  passed, 1 skipped, 0 failed** (`All tests passed!` after 25 minutes
+  55 seconds).
+
 ## Revision 2 (2.0.56+256002): runtime and Audit on canonical data, 27 September 2026
 
 - Baseline first: `exercise_laboratory_254_test` records what the Round

@@ -369,7 +369,19 @@ class _PrimitiveEditorScreenState extends State<PrimitiveEditorScreen> {
       publicationState: widget.exercise.publicationState,
       updatedAt: widget.exercise.updatedAt,
     );
-    return !built.semanticallyEquals(widget.exercise);
+    if (built.semanticallyEquals(widget.exercise)) return false;
+    if (widget.isNew) {
+      // A new exercise still blank for its primitive has nothing to lose,
+      // whichever primitive the creator has picked so far (owner report,
+      // 27 September 2026).
+      final blank = CanonicalExerciseDraft.blankExercise(
+        _draft.primitive,
+        id: widget.exercise.id,
+        updatedAt: widget.exercise.updatedAt,
+      );
+      return !built.semanticallyEquals(blank);
+    }
+    return true;
   }
 
   Future<void> _leave() async {

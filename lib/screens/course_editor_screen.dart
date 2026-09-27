@@ -4794,11 +4794,19 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
                     onPressed: () => _saveLesson(PublicationState.published),
                     child: const Text('Save'),
                   ),
-                  FilledButton.icon(
-                    key: const Key('lesson-round-wizard'),
-                    onPressed: _openGuidebookRoundGenerator,
-                    icon: const Icon(Icons.auto_awesome_outlined),
-                    label: const Text('Round Wizard'),
+                  Tooltip(
+                    message: widget.course.useGuidebook
+                        ? 'Generate Rounds from this Lesson\'s GuideBook.'
+                        : 'The Round Wizard builds Rounds from the Lesson GuideBook. Turn on Use GuideBook in the Course Editor\'s Lesson Options to use it.',
+                    child: FilledButton.icon(
+                      key: const Key('lesson-round-wizard'),
+                      style: _compactButtonStyle,
+                      onPressed: widget.course.useGuidebook
+                          ? _openGuidebookRoundGenerator
+                          : null,
+                      icon: const Icon(Icons.auto_awesome_outlined),
+                      label: const Text('Round Wizard'),
+                    ),
                   ),
                 ],
               ],
@@ -7000,6 +7008,7 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
               children: [
                 OutlinedButton.icon(
                   key: const Key('round-preview'),
+                  style: _compactButtonStyle,
                   onPressed: _exercises.isEmpty ? null : _previewRound,
                   icon: const Icon(Icons.play_circle_outline),
                   label: const Text('Preview'),
@@ -7014,28 +7023,33 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
                 if (!widget.readOnly) ...[
                   OutlinedButton(
                     key: const Key('round-save-draft'),
+                    style: _compactButtonStyle,
                     onPressed: () => _saveRound(PublicationState.draft),
                     child: const Text('Save as draft'),
                   ),
                   FilledButton(
                     key: const Key('round-save'),
+                    style: _compactButtonStyle,
                     onPressed: () => _saveRound(PublicationState.published),
                     child: const Text('Save'),
                   ),
                   OutlinedButton.icon(
                     key: const Key('new-exercise'),
+                    style: _compactButtonStyle,
                     onPressed: _insert,
                     icon: const Icon(Icons.add),
-                    label: const Text('New exercise (presets)'),
+                    label: const Text('New exercise'),
                   ),
                   OutlinedButton.icon(
                     key: const Key('new-canonical-exercise'),
+                    style: _compactButtonStyle,
                     onPressed: _insertCanonical,
                     icon: const Icon(Icons.tune),
-                    label: const Text('New exercise (canonical)'),
+                    label: const Text('New canonical'),
                   ),
                   FilledButton.icon(
                     key: const Key('exercise-creation-wizard'),
+                    style: _compactButtonStyle,
                     onPressed: _openCreationWizard,
                     icon: const Icon(Icons.auto_awesome_outlined),
                     label: const Text('Exercise Wizard'),
@@ -7208,6 +7222,18 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
     );
   }
 }
+
+/// The bottom bars' buttons: slightly smaller than Material's defaults so
+/// the Round editor's six actions fit two rows on a laptop window (owner
+/// report, 27 September 2026).
+final ButtonStyle _compactButtonStyle = ButtonStyle(
+  visualDensity: VisualDensity.compact,
+  padding: const WidgetStatePropertyAll(
+    EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+  ),
+  minimumSize: const WidgetStatePropertyAll(Size(0, 36)),
+  textStyle: const WidgetStatePropertyAll(TextStyle(fontSize: 13)),
+);
 
 /// The preset an exercise carries, else its learner kind: the name the
 /// editor's lists and Audit locations show for it.
@@ -8722,7 +8748,13 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
           _field(_question, 'Question', lines: 2),
           _field(_answers, 'Target-language options', lines: 4),
           _field(_correct, 'Correct answer number'),
-          _field(_icons, 'Icons / image keys', lines: 4),
+          _field(
+            _icons,
+            'Icons / image keys',
+            lines: 4,
+            helper:
+                'One per answer, in the same order. Left empty, the answers are plain text and the exercise plays as Choose the answer.',
+          ),
         ];
       case 'listening_choice':
         return [
@@ -9122,6 +9154,7 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
     }
     if (selected != null && mounted) {
       final previousType = _type;
+      final untouched = _formSnapshot() == _openedSnapshot;
       setState(() {
         const arrangeFamily = {'word_order', 'build_translation'};
         final staySameFamily =
@@ -9138,6 +9171,10 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
           _correct.text = '1';
         }
         _dirty = true;
+        // A new exercise with nothing typed yet: the chosen type is its
+        // starting point, not a change to keep (owner report, 27 September
+        // 2026). An existing exercise's type change stays a change.
+        if (widget.isNew && untouched) _openedSnapshot = _formSnapshot();
       });
     }
   }

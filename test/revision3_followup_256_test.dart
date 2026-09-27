@@ -13,6 +13,7 @@ import 'package:quisquislingo_app/screens/primitive_editor_screen.dart';
 import 'package:quisquislingo_app/screens/round_screen.dart';
 import 'package:quisquislingo_app/services/authoring_duplication_service.dart';
 import 'package:quisquislingo_app/services/canonical_exercise_draft.dart';
+import 'package:quisquislingo_app/services/course_audit_service.dart';
 import 'package:quisquislingo_app/services/round_flow_authoring.dart';
 import 'package:quisquislingo_app/services/tts_cache_service.dart';
 import 'package:quisquislingo_app/widgets/exercise_editor_intro.dart';
@@ -325,7 +326,16 @@ void main() {
       await tester.tap(find.text('Submit').last);
       await tester.pumpAndSettle();
       expect(find.byKey(const Key('primitive-violations')), findsNothing);
-      // The primitive changed: leaving now does ask.
+      // A new exercise still blank for its primitive: leaving does not ask.
+      await tester.tap(find.byType(BackButton));
+      await tester.pumpAndSettle();
+      expect(find.text('Unsaved Exercise changes'), findsNothing);
+      expect(find.text('Open page'), findsOneWidget);
+      // Content added: leaving asks.
+      await tester.tap(find.text('Open page'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('primitive-item-add')));
+      await tester.pumpAndSettle();
       await tester.tap(find.byType(BackButton));
       await tester.pumpAndSettle();
       expect(find.text('Unsaved Exercise changes'), findsOneWidget);
@@ -393,8 +403,8 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      expect(find.text('New exercise (presets)'), findsOneWidget);
-      expect(find.text('New exercise (canonical)'), findsOneWidget);
+      expect(find.text('New exercise'), findsOneWidget);
+      expect(find.text('New canonical'), findsOneWidget);
       // The fork's Exercises are Draft: Save says so instead of counting
       // Audit errors.
       await tester.tap(find.byKey(const Key('round-save')));
@@ -487,9 +497,12 @@ void main() {
       );
       await _until(tester, find.text('Question 1'));
       expect(find.byKey(const Key('story-scroll')), findsOneWidget);
+      expect(find.text('Story · 2 steps'), findsOneWidget);
       await _tap(tester, find.widgetWithText(FilledButton, 'Right e1'));
       await _tap(tester, find.widgetWithText(FilledButton, 'Next'));
       expect(find.byKey(const ValueKey('story-entry-0')), findsOneWidget);
+      expect(find.text('Now · step 2 of 2'), findsOneWidget);
+      expect(find.byKey(const Key('story-spacer')), findsOneWidget);
       expect(find.text('Right e1'), findsOneWidget);
       expect(find.text('Question 1'), findsOneWidget);
       expect(find.text('Question 2'), findsOneWidget);
@@ -534,6 +547,104 @@ void main() {
     });
   });
 
+  group('second follow-up (visual inspection)', () {
+    testWidgets('choosing a type on an untouched new exercise never asks', (
+      tester,
+    ) async {
+      _bigWindow(tester);
+      final course = _laboratory();
+      final blank = Exercise(
+        id: 'ex_new_type',
+        publicationState: PublicationState.draft,
+        type: 'translation_choice_to_target',
+        prompt: '',
+        question: '',
+        answers: const [],
+        correct: null,
+        tts: null,
+        accepted: const [],
+        tokens: const [],
+        orderAnswer: const [],
+        pairs: const [],
+        hint: '',
+        icons: const [],
+      );
+      await _open(
+        tester,
+        ExerciseEditorScreen(
+          exercise: blank,
+          title: 'New exercise',
+          isNew: true,
+          course: course,
+          lesson: course.lessons.first,
+          round: course.lessons.first.rounds.first,
+        ),
+      );
+      await tester.tap(find.byKey(const Key('exercise-preset-selector')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Type the translation').last);
+      await tester.pumpAndSettle();
+      await tester.tap(find.byType(BackButton));
+      await tester.pumpAndSettle();
+      expect(find.text('Unsaved Exercise changes'), findsNothing);
+      expect(find.text('Open page'), findsOneWidget);
+    });
+
+    testWidgets('the Round Wizard is greyed out while Use GuideBook is off', (
+      tester,
+    ) async {
+      _bigWindow(tester);
+      final json = _customLaboratory().toJson();
+      json['useGuidebook'] = false;
+      final course = Course.fromJson(json);
+      expect(course.useGuidebook, isFalse);
+      await tester.pumpWidget(
+        MaterialApp(
+          home: LessonEditorScreen(
+            course: course,
+            lesson: course.lessons.first,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      final wizard = tester.widget<FilledButton>(
+        find.byKey(const Key('lesson-round-wizard')),
+      );
+      expect(wizard.onPressed, isNull);
+      final tooltip = tester.widget<Tooltip>(
+        find.ancestor(
+          of: find.byKey(const Key('lesson-round-wizard')),
+          matching: find.byType(Tooltip),
+        ),
+      );
+      expect(tooltip.message, contains('Use GuideBook'));
+    });
+  });
+
+  test('Select the image without icons says what is missing', () {
+    final withoutIcons = Exercise(
+      id: 'ex_icons',
+      type: 'icon_choice',
+      prompt: '',
+      question: 'Which one is the cat?',
+      answers: const ['gatto', 'cane'],
+      correct: 0,
+      tts: null,
+      accepted: const [],
+      tokens: const [],
+      orderAnswer: const [],
+      pairs: const [],
+      hint: '',
+      icons: const [],
+    );
+    final issues = CourseAuditService().auditExercise(withoutIcons);
+    final mismatch = issues.where(
+      (issue) => issue.code == 'PRESET_CANONICAL_MISMATCH',
+    );
+    expect(mismatch, hasLength(1));
+    expect(mismatch.single.message, contains('Icons / image keys'));
+  });
+
   test('Help names the wizards and the two buttons in every language', () {
     for (final catalog in [helpEn, helpIt, helpEs]) {
       expect(
@@ -550,11 +661,11 @@ void main() {
       );
       expect(
         catalog['editorHelp.exerciseCreationWizard.body'],
-        contains('New exercise (canonical)'),
+        contains('New canonical'),
       );
       expect(
         catalog['exerciseHelp.supplement.canonicalEditor.body'],
-        contains('New exercise (presets)'),
+        contains('New exercise'),
       );
       expect(
         catalog['technical.exercisePrimitives.stories.body'],

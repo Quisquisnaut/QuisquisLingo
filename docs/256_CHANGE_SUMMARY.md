@@ -84,7 +84,12 @@ by semantic comparison, the intro hook), `lib/services/canonical_exercise_draft.
 (wizard names, the two buttons, presets versus canonical, scrolling
 Stories), `windows/runner/win32_window.cpp` (window inside the work area),
 `docs/256_PRESET_CATALOGUE_PLAN.md` (direction decisions). Tests:
-`test/revision3_followup_256_test.dart`.
+`test/revision3_followup_256_test.dart`. Second follow-up (owner's visual
+inspection): the Round editor's New exercise / New canonical buttons and
+`_compactButtonStyle`, the type-choice snapshot reset for new exercises,
+the Round Wizard tooltip and disabled state without GuideBooks, the
+scrolling Story's `story-now` marker, top-aligned scroll and debug event;
+two more tests in the same file.
 
 ### Known limitations and deferrals
 

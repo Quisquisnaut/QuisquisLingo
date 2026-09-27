@@ -40,6 +40,45 @@ review of the Windows build):**
 - Owner decisions on preset directions recorded for Revision 4 (pairs only
   where meaningful, bracket only on the twins).
 
+**Second follow-up (same version; the owner's visual inspection of the
+Windows build):**
+
+- **Round editor bottom bar:** the buttons are **New exercise** and **New
+  canonical**, in a slightly smaller style so the bar takes two rows
+  instead of three on a laptop window.
+- **New exercise, then a type:** choosing a preset type on a new exercise
+  whose form is still untouched no longer asks to discard changes on the
+  way out; an existing exercise's type change still counts as a change.
+- **Round Wizard without GuideBooks:** while Use GuideBook is off in the
+  Course Editor's Lesson Options, the Lesson editor's Round Wizard is
+  greyed out and its tooltip says why.
+- **Scrolling Story, made unmistakable:** the page shows "Story · N steps"
+  above the first item and "Now · step k of N" above the active one, the
+  active item is scrolled to the top after Next (the finished cards stay
+  above it), and the Crash Log's debug events record each Round's Story
+  state. The report that a scrolling Story played like a normal Round could
+  not be reproduced: a test driving Round editor → Play as a Story →
+  Scrolling → Preview → answer → Next shows the finished card, and every
+  save path keeps the flow's presentation. If it happens again, the debug
+  event names the Round and the presentation it received.
+- The direction tags in the preset picker and the twin presets with
+  "(to target)" / "(to source)" in their titles are Revision 4 work, not
+  part of this follow-up.
+
+**Third follow-up (same version; the owner's second inspection):**
+
+- **New canonical, then a primitive:** a new canonical exercise that is
+  still blank for the primitive picked so far leaves without a discard
+  prompt; adding content makes leaving ask.
+- **Scrolling Story, visible scroll:** the page keeps room below the
+  active item, so after Next the "Now" marker glides to the top and the
+  finished cards move up above it, whatever the window height.
+- **Select the image without icons:** the Audit's preset warning now says
+  what is missing ("one icon or image key per answer in Icons / image
+  keys") instead of only that the exercise plays as a plain Choose; the
+  same hint exists for the listening, reading, dialogue, context and
+  character presets, and the Icons field explains it in the form.
+
 - **Presets as recipes (plan A.13):** `PresetRecipes`
   (`lib/services/preset_recipes.dart`) decomposes an exercise into a preset
   form's fields, rebuilds it and compares the result semantically, so a
