@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../localization/locale_service.dart';
 import '../services/profile_service.dart';
 import '../widgets/avatar_customization_content.dart';
 
@@ -30,6 +31,17 @@ class _NewLearnerFlowScreenState extends State<NewLearnerFlowScreen> {
   String _hairTone = 'dark';
   String? _error;
   bool _busy = false;
+
+  /// Build 255 Revision 7: the language of the Welcome Wizard, Help, App Info
+  /// and Course Info, preselected from the system language.
+  AppLocale _language = _systemLanguage();
+
+  static AppLocale _systemLanguage() =>
+      switch (WidgetsBinding.instance.platformDispatcher.locale.languageCode) {
+        'it' => AppLocale.italian,
+        'es' => AppLocale.spanish,
+        _ => AppLocale.english,
+      };
 
   @override
   void initState() {
@@ -103,6 +115,8 @@ class _NewLearnerFlowScreenState extends State<NewLearnerFlowScreen> {
         screenNameSuffix: _screenNameSuffix,
         accessPin: pin.isEmpty ? null : pin,
       );
+      // The new profile is active: the choice becomes its Help Language.
+      await LocaleService().write(_language);
       final appearance = await _profiles.getAvatarAppearanceForProfile(
         profile.learnerProfileId,
       );
@@ -217,6 +231,31 @@ class _NewLearnerFlowScreenState extends State<NewLearnerFlowScreen> {
           helperText: 'Exactly 4 digits when used.',
           border: OutlineInputBorder(),
         ),
+      ),
+      const SizedBox(height: 12),
+      Text(
+        'Language for explanations',
+        style: Theme.of(context).textTheme.titleSmall,
+      ),
+      const SizedBox(height: 8),
+      SegmentedButton<AppLocale>(
+        key: const Key('new-learner-language'),
+        showSelectedIcon: false,
+        segments: const [
+          ButtonSegment(value: AppLocale.english, label: Text('English')),
+          ButtonSegment(value: AppLocale.italian, label: Text('Italiano')),
+          ButtonSegment(value: AppLocale.spanish, label: Text('Español')),
+        ],
+        selected: {_language},
+        onSelectionChanged: (selection) =>
+            setState(() => _language = selection.single),
+      ),
+      const SizedBox(height: 6),
+      Text(
+        'The welcome tour, Help, App Info and Course Info use it; the rest of '
+        'QuisquisLingo is in English. You can change it later in Settings › '
+        'QQL Guide.',
+        style: Theme.of(context).textTheme.bodySmall,
       ),
       if (_error != null) ...[
         const SizedBox(height: 8),

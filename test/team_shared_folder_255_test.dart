@@ -201,6 +201,25 @@ void main() {
       await tester.tap(find.byKey(const Key('team-shared-folder-save')));
       await tester.pumpAndSettle();
       expect(find.text(TeamSharedFolderLink.refusal.message), findsOneWidget);
+      // Build 255 Revision 7: the whole explanation, never cut after two
+      // lines, and a slightly smaller type for the link.
+      final error = tester.widget<Text>(
+        find.byKey(const Key('team-shared-folder-error')),
+      );
+      expect(error.data, TeamSharedFolderLink.refusal.message);
+      expect(error.maxLines, isNull);
+      final field = tester.widget<TextField>(
+        find.descendant(
+          of: find.byKey(const Key('team-shared-folder-field')),
+          matching: find.byType(TextField),
+        ),
+      );
+      expect(
+        field.style?.fontSize,
+        Theme.of(
+          tester.element(find.byKey(const Key('team-shared-folder-field'))),
+        ).textTheme.bodyMedium!.fontSize,
+      );
 
       await tester.enterText(
         find.byKey(const Key('team-shared-folder-field')),

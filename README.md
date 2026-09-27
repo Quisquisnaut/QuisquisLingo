@@ -1,6 +1,6 @@
 # QuisquisLingo App
 
-**Current source version: 2.0.55+255006 · Build 255, Revision 6 · Course Model v11 (`formatVersion: 11`).**
+**Current source version: 2.0.55+255007 · Build 255, Revision 7 · Course Model v11 (`formatVersion: 11`).**
 
 **QuisquisLingo 2.0.55 Beta — QQL 255 logical storage and Quick folders**
 
@@ -36,7 +36,16 @@ the startup Beta testing dialog is gone; Device Administration is called
 **Advanced (Admin)** and follows Do Not Disturb in Settings; Flag Game flags
 and the Course Info image open enlarged; the Course Info Editor sets a
 **cover image** (cropped and scaled to 512 × 512, up to 1 MB); and a Team can
-link its shared Google Drive folder. See the [Build 255 plan and
+link its shared Google Drive folder. Revision 7 renews the first launch: Create
+Profile asks the language for explanations (English, Italiano, Español) and
+only a five-step **Welcome Wizard** with mascots follows, in that language;
+this version's Welcome appears only after an update and the Beta reminder only
+in its last seven days. The cover can be chosen in Create new course, its
+square is chosen in **Crop the cover**, a known credit is added to Media
+credits by itself and every picture of unknown origin reminds its author to
+credit it; the Course Selector shows covers and no longer repeats the current
+Course; Advanced (Admin) is shown greyed out to learners who are not admins;
+and the Edge Case demo gets its English flag. See the [Build 255 plan and
 audit](docs/255_STORAGE_PLAN.md), the [handoff](docs/255_HANDOFF.md) and
 [validation](docs/255_VALIDATION.md).
 
@@ -304,7 +313,7 @@ The MPL-2.0 covers the QuisquisLingo software source. Courses, the Image Bank an
 
 ## Beta lifecycle
 
-Version 2.0.55, Build 255, Revision 6 is a time-limited Beta with an expiry of **2026-10-26 23:59:59 local time** (30 days after the 26 September 2026 release date). Near expiry it displays reminders. After expiry, learner exercises and Review are blocked until a newer Beta is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when a Beta expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM.
+Version 2.0.55, Build 255, Revision 7 is a time-limited Beta with an expiry of **2026-10-27 23:59:59 local time** (30 days after the 27 September 2026 release date). In its last seven days it displays reminders. After expiry, learner exercises and Review are blocked until a newer Beta is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when a Beta expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM.
 
 ## Core logic
 

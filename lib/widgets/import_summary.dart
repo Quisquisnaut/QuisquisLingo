@@ -4,10 +4,12 @@ import '../services/import/import_result.dart';
 
 /// The result of a multiple import: one line per outcome that occurred, and
 /// each file's own reason below, expandable. File names only, never paths.
+/// [note], when given, follows the outcome lines.
 Future<void> showImportSummary(
   BuildContext context, {
   required String title,
   required List<ImportItemResult> items,
+  String? note,
 }) {
   final batch = ImportBatchResult(items);
   final problems = [
@@ -29,6 +31,10 @@ Future<void> showImportSummary(
             children: [
               for (final line in batch.summaryLines())
                 Text(line, key: ValueKey('import-summary-$line')),
+              if (note != null) ...[
+                const SizedBox(height: 8),
+                Text(note, key: const Key('import-summary-note')),
+              ],
               if (problems.isNotEmpty)
                 ExpansionTile(
                   key: const Key('import-summary-details'),

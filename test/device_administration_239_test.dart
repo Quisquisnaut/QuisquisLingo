@@ -617,7 +617,7 @@ void main() {
 
   // Build 255 Revision 6: the page is called Advanced (Admin) and comes
   // right after Do Not Disturb.
-  testWidgets('Settings shows Advanced (Admin) only to admins', (tester) async {
+  testWidgets('Settings opens Advanced (Admin) only for admins', (tester) async {
     tester.view.physicalSize = const Size(900, 1400);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
@@ -653,6 +653,11 @@ void main() {
       ],
     );
     expect(find.text('Device Administration'), findsNothing);
+    final entry = find.byKey(const Key('settings-device-administration'));
+    expect(tester.widget<ListTile>(entry).enabled, isTrue);
+    // Build 255 Revision 7: one line at most under the title.
+    final subtitle = tester.widget<ListTile>(entry).subtitle! as Text;
+    expect(subtitle.maxLines, 1);
 
     final learner = await profiles.createProfile('Learner');
     await profiles.setActiveProfileById(learner.learnerProfileId);
@@ -665,10 +670,19 @@ void main() {
     for (var i = 0; i < 16; i++) {
       await tester.pump(const Duration(milliseconds: 50));
     }
-    expect(
-      find.byKey(const Key('settings-device-administration')),
-      findsNothing,
+    // Build 255 Revision 7: a learner who is not an admin sees it greyed
+    // out, cannot open it, and its tooltip says what it holds.
+    expect(entry, findsOneWidget);
+    final tile = tester.widget<ListTile>(entry);
+    expect(tile.enabled, isFalse);
+    expect(tile.onTap, isNull);
+    final tooltip = tester.widget<Tooltip>(
+      find.ancestor(of: entry, matching: find.byType(Tooltip)).first,
     );
+    expect(tooltip.message, contains('Only an admin can open it.'));
+    await tester.tap(entry, warnIfMissed: false);
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(find.byType(DeviceAdministrationScreen), findsNothing);
   });
 
   test(

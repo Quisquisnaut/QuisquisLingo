@@ -591,3 +591,122 @@ suite on the final tree: **2,766 passed, 1 existing skip, 0 failed** in
 `--check` generators, `validate_media_assets.py`) pass. No production or test
 file changed after that run. No Windows or Android package was built, and no
 emulator check was made for this revision.
+
+## Revision 7 — `2.0.55+255007`, 27 September 2026
+
+Beta expiry `2026-10-27 23:59:59` local time (30 days from the 27 September
+2026 release date).
+
+### Scope
+
+Owner-requested corrections to Revision 6 and a renewed first launch
+(decisions of 26–27 September 2026 in the handoff): the whole refusal and a
+smaller link type in the Team folder dialog; one line under Advanced (Admin),
+shown greyed out to learners who are not admins; the cover in Create new
+course; a custom cover crop; credit reminders and automatic known credits,
+with the Audit counting the cover; no repetition of the current Course in the
+Course Selector, which also shows covers; title and languages over an
+enlarged Course image; the Edge Case demo's flag; and a first launch with only
+the renewed Welcome Wizard in the language chosen in Create Profile.
+
+### Focused evidence
+
+- Course data: `validate_courses.py` validates the 4 bundled Courses;
+  `generate_edge_case_demo_254.py` regenerates Edge Case 1.1.1 (flag `EN`)
+  and `--check` passes; `validate_media_assets.py`: 443 files, 0 issues.
+  `bundled_demo_registry_254_test` (new test): every bundled Course's flag
+  resolves to a flag QQL can draw (a renderable QQL code or a World Flag in
+  the manifest), and Edge Case says `EN`.
+- `course_cover_255_test` (15; 7 new): `prepare(crop:)` crops the chosen
+  square, kept inside the picture; a ready 512 × 512 picture is kept only when
+  used whole; the crop dialog starts centred and as large as possible, the
+  smallest size keeps the centre, a drag stops at the edge, the corner makes
+  the square larger and Reset centres it again, Cancel returns nothing
+  (drags are sent in small steps, as a real pointer does; the first test found
+  that the dialog's scroll view took diagonal drags, so the dialog no longer
+  scrolls); Quick Import goes through the crop dialog and leaves the reminder
+  for an unknown picture; `knownImageCredit` for QQL, attributed and unknown
+  pictures; the Course Info Editor adds a known cover credit, replaces it with
+  the next cover's and keeps a row the author changed.
+- `course_creation_flags_226_04_test` (2 new): Create new course's cover field
+  stores for the allocated ID and the Editor receives that ID, the cover and
+  its credit; cancelling the dialog deletes the stored cover's folder.
+  `audio_library_media_248_test` (2 new): a new Course's session owns what its
+  folder held and removes it when never stored, and keeps a stored cover.
+- `media_attribution_test`: a cover raises MEDIA_ATTRIBUTION_MISSING.
+  `image_credit_reminder_255_test` (new, 3): an imported Exercise image shows
+  the reminder, a custom flag carries it and an Automatic one does not, and an
+  import summary shows its note. `lesson_metadata_and_icon_test`: the Lesson
+  icon message now ends with the reminder.
+- `device_administration_239_test`: an admin opens Advanced (Admin), whose
+  subtitle has one line; a learner who is not an admin sees it disabled with
+  a lock, its tooltip says only an admin can open it and tapping opens
+  nothing. `settings_profile_reorganization_228_01_test` lists it for
+  everyone.
+- Course Selector: `leaderboard_navigation_test` shows a stored cover in a
+  44-pixel `CourseArtwork` while a Course without one keeps its flag, and no
+  longer finds the current Course under Other courses;
+  `korean_production_discovery_225_03_test` finds the current Course only in
+  its own row; `course_entry_animation_228_test` chooses the current Course
+  again through its Favorite row, which still replays nothing.
+- `team_shared_folder_255_test`: the refusal is the whole message without a
+  line limit and the field uses `bodyMedium`.
+  `course_artwork_preview_250_test`: the enlarged cover has the title and
+  "English → Italian" above it.
+- First launch: `welcome_wizard_dialog_test` (4): the five steps, the
+  mascots in order (kid, celebrating cat, monkey, robot, dog), Italian and
+  Spanish text, and every key in all three catalogs.
+  `startup_profile_gate_test` (new test): choosing Italiano in Create Profile
+  stores the Italian Locale and the Wizard speaks Italian; this version's
+  Welcome is marked seen and, after Skip, no other dialog follows; the English
+  first run also shows only the Wizard. `leaderboard_navigation_test`'s dialog
+  structure test sets the clock five days before expiry to see the Beta
+  reminder; Home tests in eight files no longer wait for a reminder that now
+  shows only in the last seven days (the suite clock sits fifteen days before
+  expiry).
+
+### Final release checks
+
+`flutter analyze --no-pub`: **No issues found**. The first complete
+`flutter test --no-pub --concurrency=1` (22 min 31 s): 2,782 passed, 1 skip,
+4 failed, none a product defect: three `beta_lifecycle_test` cases still used
+the calendar dates of the 26 October expiry (now one day later), and
+`qql_233_profile_avatar_test` tapped Continue after the suffix message had
+pushed it below the visible part of the longer Create Profile form (it now
+scrolls to it). After those corrections (both files pass) and a clean
+analyzer, the complete suite on the final tree: **2,786 passed, 1 existing
+skip, 0 failed** in 22 min 41 s. `validate_courses.py`, the Edge Case
+generator's `--check` and `validate_media_assets.py` pass. No production or
+test file changed after that run. No Windows or Android package was built,
+and no emulator check was made for this revision.
+
+### Follow-up: Recognize characters, Choose from Image Bank (same version)
+
+The owner asked on 27 September 2026 to fix the defect flagged above in the
+same version. `ScriptRecognitionEditor._pickImage` pushed the image library as
+a `String` route, but the library pops the chosen `ExerciseImageMetadata`. It
+now pushes `<ExerciseImageMetadata>` and uses `assetPath`. QQL `assets/`
+pictures and portable data stay as they are, other pictures become portable
+bytes through `PortableExerciseImageService.fromFile`, and `_remindCredit` is
+unchanged.
+
+- New test in `script_recognition_226_03_test.dart`, *Choose from Image Bank
+  adds the chosen QQL image as it is*. It opens the editor, chooses Choose
+  from Image Bank, searches "apple" and taps Use image. Before the fix it
+  failed with Flutter's "A request was made to pop a route with a result of
+  type ExerciseImageMetadata, but the route expected a value of type String",
+  and the library stayed open. After the fix the library closes,
+  `assets/exercise_images/apple.webp` is added as it is, and no error or
+  credit reminder appears.
+- All 111 QQL Image Bank paths in `assets/exercise_images/metadata_v2.json`
+  satisfy the portable-path rule, so a QQL picture never goes through
+  `fromFile`.
+- Focused run with `--concurrency=1` of the five files that use the editor or
+  the reminder (`script_recognition_226_03_test`,
+  `script_direction_help_226_03_r1_test`, `official_new_presets_226_03_test`,
+  `exercise_laboratory_254_test`, `image_credit_reminder_255_test`): **201
+  passed** in 2 min 6 s. `flutter analyze --no-pub`: **No issues found**.
+- The complete suite was not run again after this change, at the owner's
+  request (27 September 2026). The last complete run is the Revision 7 run
+  above. The route for a picture imported on this device (`fromFile` and the
+  reminder) has no widget test.

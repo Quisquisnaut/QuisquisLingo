@@ -23,6 +23,7 @@ import '../services/formal_name_policy.dart';
 import '../services/course_access_policy.dart';
 import '../services/sound_effect_service.dart';
 import '../services/new_course_structure.dart';
+import '../widgets/course_cover_field.dart';
 import '../widgets/course_flag_picker.dart';
 import '../widgets/course_library_row.dart';
 import '../widgets/course_library_section.dart';
@@ -1110,6 +1111,13 @@ class CourseProjectsScreenState extends State<CourseProjectsScreen> {
     var selectedLicense = CourseMetadataOptions.standardLicenses.first;
     var selectedDerivativePolicy = DerivativeWorksPolicy.forbidden;
     var selectedMaintainer = activeProfile.learnerProfileId;
+    // Build 255 Revision 7: a cover chosen here is stored before the Course
+    // exists, so the Course ID is allocated now. The Editor session of the
+    // new Course owns the cover; a cancelled dialog deletes it.
+    final newCourseId = Course.newCourseId();
+    var coverImage = '';
+    var coverStored = false;
+    CourseMediaAttribution? coverCredit;
 
     final result = await showDialog<Course>(
       context: context,
@@ -1619,6 +1627,17 @@ class CourseProjectsScreenState extends State<CourseProjectsScreen> {
                       onChanged: (selection) =>
                           setDialogState(() => flagSelection = selection),
                     ),
+                    const SizedBox(height: 12),
+                    CourseCoverField(
+                      key: const Key('new-course-cover'),
+                      courseId: newCourseId,
+                      cover: coverImage,
+                      onChanged: (choice) => setDialogState(() {
+                        coverImage = choice.cover;
+                        coverCredit = choice.credit;
+                        coverStored = coverStored || choice.cover.isNotEmpty;
+                      }),
+                    ),
                   ],
                 ),
               ),
@@ -1749,6 +1768,9 @@ class CourseProjectsScreenState extends State<CourseProjectsScreen> {
                             roundsPerLesson: int.parse(
                               roundsPerLesson.text.trim(),
                             ),
+                            courseId: newCourseId,
+                            coverImage: coverImage,
+                            mediaAttributions: [?coverCredit],
                           ),
                         );
                       },
@@ -1759,6 +1781,9 @@ class CourseProjectsScreenState extends State<CourseProjectsScreen> {
         ),
       ),
     );
+    if (result == null && coverStored) {
+      unawaited(CourseMediaStore().deleteCourse(newCourseId));
+    }
     return result;
   }
 

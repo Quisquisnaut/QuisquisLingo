@@ -229,7 +229,8 @@ void main() {
       expect(restartedTopBar.course.courseId, 'sample_ko_en_ko');
       await _openCoursePicker(tester);
       await _expectEveryBundledTile(tester);
-      expect(find.byKey(const ValueKey('bundled-course-KO')), findsOneWidget);
+      // Korean is now the current Course: its own row, not repeated below.
+      expect(find.byKey(const ValueKey('bundled-course-KO')), findsNothing);
       await _expectCourseTile(
         tester,
         ValueKey('local-course-${custom.courseId}'),
@@ -300,12 +301,16 @@ void main() {
               selected: false,
             );
           }
-          await _expectCourseTile(
-            tester,
-            const ValueKey('bundled-course-IT'),
-            'Exercise Laboratory',
-            selected: !selectCustom,
-          );
+          // The current Course keeps its own row and, from Build 255
+          // Revision 7, is not repeated under Other courses.
+          if (selectCustom) {
+            await _expectCourseTile(
+              tester,
+              const ValueKey('bundled-course-IT'),
+              'Exercise Laboratory',
+              selected: false,
+            );
+          }
           await _expectCourseTile(
             tester,
             const ValueKey('recent-course-PMS'),
@@ -324,11 +329,21 @@ void main() {
             otherCustom.title,
             selected: false,
           );
-          await _expectCourseTile(
-            tester,
-            ValueKey('local-course-${custom.courseId}'),
-            custom.title,
-            selected: selectCustom,
+          if (!selectCustom) {
+            await _expectCourseTile(
+              tester,
+              ValueKey('local-course-${custom.courseId}'),
+              custom.title,
+              selected: false,
+            );
+          }
+          expect(
+            find.byKey(
+              selectCustom
+                  ? ValueKey('local-course-${custom.courseId}')
+                  : const ValueKey('bundled-course-IT'),
+            ),
+            findsNothing,
           );
           expect(tester.takeException(), isNull);
         },
@@ -352,9 +367,7 @@ Future<void> _openHome(WidgetTester tester, {double width = 1200}) async {
   addTearDown(tester.view.resetDevicePixelRatio);
   addTearDown(tester.view.resetPhysicalSize);
   await tester.pumpWidget(const MaterialApp(home: HomeScreen()));
-  final betaNotice = find.text('Beta expiry');
-  await _pumpUntilWithIo(tester, betaNotice);
-  await tester.tap(find.widgetWithText(FilledButton, 'OK'));
+  // Build 255 Revision 7: no Beta notice fifteen days before expiry.
   await _pumpUntilWithIo(tester, find.byType(UnifiedLearnerTopBar));
 }
 
@@ -426,9 +439,20 @@ Future<void> _expectEveryBundledTile(WidgetTester tester) async {
     of: find.byType(BottomSheet),
     matching: find.byType(Scrollable),
   );
+  final current = tester
+      .widget<UnifiedLearnerTopBar>(find.byType(UnifiedLearnerTopBar))
+      .course;
   for (final code in CourseService.courseAssets.keys) {
+    final course = await tester.runAsync(
+      () => CourseService().loadCourse(code),
+    );
+    // Build 255 Revision 7: the current Course has only its own row.
     final tile = find.byKey(
-      ValueKey('${recent.contains(code) ? 'recent' : 'bundled'}-course-$code'),
+      course!.courseId == current.courseId
+          ? const Key('current-course')
+          : ValueKey(
+              '${recent.contains(code) ? 'recent' : 'bundled'}-course-$code',
+            ),
     );
     await tester.scrollUntilVisible(tile, 180, scrollable: selectorScroll);
     expect(tile, findsOneWidget);

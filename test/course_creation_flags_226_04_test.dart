@@ -13,10 +13,12 @@ import 'package:quisquislingo_app/screens/course_editor_screen.dart';
 import 'package:quisquislingo_app/screens/course_projects_screen.dart';
 import 'package:quisquislingo_app/services/course_editor_service.dart';
 import 'package:quisquislingo_app/services/course_file_store.dart';
+import 'package:quisquislingo_app/services/course_media_store.dart';
 import 'package:quisquislingo_app/services/course_service.dart';
 import 'package:quisquislingo_app/services/custom_course_transfer_service.dart';
 import 'package:quisquislingo_app/services/profile_service.dart';
 import 'package:quisquislingo_app/services/world_flag_repository.dart';
+import 'package:quisquislingo_app/widgets/course_cover_field.dart';
 import 'package:quisquislingo_app/widgets/course_flag_picker.dart';
 import 'package:quisquislingo_app/widgets/flag_art.dart';
 import 'package:quisquislingo_app/widgets/world_flag_art.dart';
@@ -51,6 +53,85 @@ void main() {
       expect(course.flagCode, isEmpty);
       expect(course.worldFlagId, isEmpty);
       expect(course.flagImageBase64, isEmpty);
+    },
+  );
+
+  testWidgets(
+    'Build 255 Revision 7: Create new course takes a cover and its credit',
+    (tester) async {
+      await _pumpManager(tester);
+      await _openCreation(tester);
+      final field = find.byKey(const Key('new-course-cover'));
+      await tester.ensureVisible(field);
+      await tester.pump();
+      final cover = tester.widget<CourseCoverField>(field);
+      // No Course exists yet: the field stores for the ID allocated now.
+      expect(cover.course, isNull);
+      const credit = CourseMediaAttribution(
+        author: 'QuisquisLingo',
+        license: 'Original QuisquisLingo asset',
+        appliesTo: 'Course cover',
+      );
+      final reference = 'media:${'a' * 64}.png';
+      cover.onChanged((cover: reference, credit: credit));
+      await tester.pump();
+
+      await _enterBasics(tester, title: 'Cover at creation', target: 'Italian');
+      await _create(tester);
+
+      final course = _editorCourse(tester);
+      expect(course.courseId, cover.courseId);
+      expect(course.coverImage, reference);
+      expect(course.mediaAttributions, [credit]);
+    },
+  );
+
+  testWidgets(
+    'Build 255 Revision 7: cancelling Create new course deletes its cover',
+    (tester) async {
+      const channel = MethodChannel('plugins.flutter.io/path_provider');
+      final support = (await tester.runAsync(
+        () => Directory.systemTemp.createTemp('qql_new_course_cover_'),
+      ))!;
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (_) async => support.path);
+      addTearDown(() async {
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+            .setMockMethodCallHandler(channel, null);
+        if (await support.exists()) await support.delete(recursive: true);
+      });
+      await _pumpManager(tester);
+      await _openCreation(tester);
+      final cover = tester.widget<CourseCoverField>(
+        find.byKey(const Key('new-course-cover')),
+      );
+      final name = '${'b' * 64}.png';
+      final folder = (await tester.runAsync(() async {
+        final directory = await CourseMediaStore().courseDirectory(
+          cover.courseId,
+          create: true,
+        );
+        await File(
+          '${directory.path}${Platform.pathSeparator}$name',
+        ).writeAsBytes(const [1, 2, 3]);
+        return directory;
+      }))!;
+      cover.onChanged((cover: 'media:$name', credit: null));
+      await tester.pump();
+
+      final cancel = find.descendant(
+        of: find.byType(AlertDialog),
+        matching: find.widgetWithText(TextButton, 'Cancel'),
+      );
+      await tester.ensureVisible(cancel);
+      await tester.pump();
+      await tester.tap(cancel);
+      await tester.pumpAndSettle();
+      expect(find.byType(AlertDialog), findsNothing);
+      await tester.pumpUntilFileIoState(
+        () => !folder.existsSync(),
+      );
+      expect(folder.existsSync(), isFalse);
     },
   );
 

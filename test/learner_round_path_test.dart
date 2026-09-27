@@ -418,14 +418,7 @@ void main() {
       await tester.runAsync(
         () => Future<void>.delayed(const Duration(milliseconds: 300)),
       );
-      final betaNotice = find.byWidgetPredicate(
-        (widget) =>
-            widget is Text &&
-            (widget.data == 'Beta expiry' || widget.data == 'Beta expired'),
-      );
-      await pumpUntil(betaNotice);
-      await tester.tap(find.text('OK'));
-      await tester.pump();
+      // Build 255 Revision 7: no Beta notice fifteen days before expiry.
 
       final learnerScroll = find.byWidgetPredicate(
         (widget) =>

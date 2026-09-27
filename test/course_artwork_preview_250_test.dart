@@ -110,6 +110,15 @@ void main() {
 
     final preview = find.byKey(ValueKey('course-artwork-preview-$id'));
     expect(preview, findsOneWidget);
+    // Build 255 Revision 7: the title and "Source → Target" head it.
+    expect(
+      find.descendant(of: preview, matching: find.text('Preview $id')),
+      findsOneWidget,
+    );
+    expect(
+      tester.widget<Text>(find.byKey(const Key('enlarged-image-subtitle'))).data,
+      'English → Italian',
+    );
     await tester.pumpUntilFileIoState(
       () => _inPreview(id, find.byType(Image)).evaluate().isNotEmpty,
     );

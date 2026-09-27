@@ -7,17 +7,21 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:quisquislingo_app/models/course_models.dart';
+import 'package:quisquislingo_app/models/exercise_image_metadata.dart';
 import 'package:quisquislingo_app/screens/course_editor_screen.dart';
 import 'package:quisquislingo_app/services/course_access_policy.dart';
 import 'package:quisquislingo_app/services/course_cover_service.dart';
 import 'package:quisquislingo_app/services/course_editor_service.dart';
 import 'package:quisquislingo_app/services/course_media_store.dart';
 import 'package:quisquislingo_app/services/course_package_service.dart';
+import 'package:quisquislingo_app/services/image_credit.dart';
 import 'package:quisquislingo_app/services/profile_service.dart';
 import 'package:quisquislingo_app/services/settings_service.dart';
 import 'package:quisquislingo_app/services/storage/qql_storage.dart';
 import 'package:quisquislingo_app/widgets/course_artwork.dart';
 import 'package:quisquislingo_app/widgets/course_cover_field.dart';
+import 'package:quisquislingo_app/widgets/cover_crop_dialog.dart';
+import 'package:quisquislingo_app/widgets/image_credit_reminder.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'support/pump_file_io.dart';
@@ -146,6 +150,45 @@ void main() {
       );
     });
 
+    test('Revision 7: crops the square its author chose', () async {
+      final source = await _halves(300, 200);
+      // Red runs from x = 0 to 150, blue from 150 to 300.
+      final red = await CourseCoverService.prepare(
+        source,
+        crop: const Rect.fromLTWH(20, 50, 100, 100),
+      );
+      final (width, height, redAt) = await _decode(red.bytes);
+      expect((width, height), (512, 512));
+      expect(redAt(20, 20), const Color(0xffff0000));
+      expect(redAt(490, 490), const Color(0xffff0000));
+      final blue = await CourseCoverService.prepare(
+        source,
+        // Past the right edge: kept inside the picture.
+        crop: const Rect.fromLTWH(260, 150, 100, 100),
+      );
+      final (_, _, blueAt) = await _decode(blue.bytes);
+      expect(blueAt(20, 20), const Color(0xff0000ff));
+      expect(blueAt(490, 490), const Color(0xff0000ff));
+    });
+
+    test('Revision 7: a ready picture is kept only when wholly chosen', () async {
+      final ready = await File(
+        'test/fixtures/import/valid_cover.png',
+      ).readAsBytes();
+      final whole = await CourseCoverService.prepare(
+        ready,
+        crop: const Rect.fromLTWH(0, 0, 512, 512),
+      );
+      expect(whole.bytes, ready);
+      final part = await CourseCoverService.prepare(
+        ready,
+        crop: const Rect.fromLTWH(0, 0, 256, 256),
+      );
+      expect(part.bytes, isNot(ready));
+      final (width, height, _) = await _decode(part.bytes);
+      expect((width, height), (512, 512));
+    });
+
     test('a small picture is enlarged to 512 × 512', () async {
       final cover = await CourseCoverService.prepare(await _halves(64, 64));
       final (width, height, _) = await _decode(cover.bytes);
@@ -163,6 +206,65 @@ void main() {
         CourseCoverService.prepare(Uint8List(10 * 1024 * 1024 + 1)),
         throwsFormatException,
       );
+    });
+  });
+
+  group('Revision 7: the credit QQL knows for a library picture', () {
+    ExerciseImageMetadata picture({
+      String origin = 'local',
+      String asset = 'C:/shared/image_local_1.png',
+      ImageAttribution? attribution,
+    }) => ExerciseImageMetadata(
+      id: 'picture',
+      label: 'Red apple',
+      category: 'food',
+      tags: const [],
+      assetPath: asset,
+      origin: origin,
+      attribution: attribution,
+    );
+
+    test('a QQL picture is an original QuisquisLingo asset', () {
+      expect(
+        knownImageCredit(
+          picture(origin: 'bundled', asset: 'assets/exercise_images/a.webp'),
+          appliesTo: 'Course cover',
+        ),
+        const CourseMediaAttribution(
+          author: 'QuisquisLingo',
+          license: 'Original QuisquisLingo asset',
+          title: 'Red apple',
+          source: 'QuisquisLingo Flat Image Bank',
+          appliesTo: 'Course cover',
+        ),
+      );
+    });
+
+    test('a library picture brings its recorded attribution', () {
+      expect(
+        knownImageCredit(
+          picture(
+            attribution: const ImageAttribution(
+              author: 'Ada',
+              license: 'CC BY 4.0',
+              title: 'Apple study',
+              source: 'example.org/apple',
+            ),
+          ),
+          appliesTo: 'Course cover',
+        ),
+        const CourseMediaAttribution(
+          author: 'Ada',
+          license: 'CC BY 4.0',
+          title: 'Apple study',
+          source: 'example.org/apple',
+          appliesTo: 'Course cover',
+        ),
+      );
+    });
+
+    test('a picture whose maker is unknown has none', () {
+      expect(knownImageCredit(picture(), appliesTo: 'Course cover'), isNull);
     });
   });
 
@@ -229,15 +331,20 @@ void main() {
     });
     final course = _course('course_cover_field');
     var cover = '';
+    CourseMediaAttribution? credit;
     await tester.pumpWidget(
       MaterialApp(
         home: Scaffold(
           body: StatefulBuilder(
             builder: (context, setState) => CourseCoverField(
+              courseId: course.courseId,
               course: course,
               cover: cover,
               mediaStore: media,
-              onChanged: (value) => setState(() => cover = value),
+              onChanged: (choice) => setState(() {
+                cover = choice.cover;
+                credit = choice.credit;
+              }),
             ),
           ),
         ),
@@ -247,6 +354,10 @@ void main() {
     expect(find.byKey(const Key('course-cover-remove')), findsNothing);
 
     await tester.tap(find.byKey(const Key('course-cover-quick-import')));
+    // Revision 7: the author chooses the square before the cover is made.
+    final confirm = find.byKey(const Key('cover-crop-confirm'));
+    await tester.pumpUntilFileIoState(() => confirm.evaluate().isNotEmpty);
+    await tester.tap(confirm);
     await tester.pumpUntilFileIoState(() => cover.isNotEmpty);
     expect(cover, startsWith('media:'));
     expect(cover, endsWith('.png'));
@@ -259,12 +370,228 @@ void main() {
     expect((width, height), (512, 512));
     await tester.pump();
     expect(find.byKey(const Key('course-cover-preview-image')), findsOneWidget);
+    // A picture from a file: QQL does not know its maker.
+    expect(credit, isNull);
+    expect(
+      tester
+          .widget<Text>(find.byKey(const Key('course-cover-credit-note')))
+          .data,
+      imageCreditReminder,
+    );
 
     await tester.tap(find.byKey(const Key('course-cover-remove')));
     await tester.pump();
     expect(cover, isEmpty);
     expect(find.text('No cover: the flag is shown.'), findsOneWidget);
   });
+
+  testWidgets('Revision 7: the crop dialog moves, resizes and resets the '
+      'square', (tester) async {
+    final source = (await tester.runAsync(() => _halves(300, 200)))!;
+    Rect? chosen;
+    var closed = false;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Builder(
+          builder: (context) => FilledButton(
+            onPressed: () async {
+              closed = false;
+              chosen = await showCoverCropDialog(
+                context,
+                bytes: source,
+                width: 300,
+                height: 200,
+              );
+              closed = true;
+            },
+            child: const Text('Crop'),
+          ),
+        ),
+      ),
+    );
+    Future<void> open() async {
+      await tester.tap(find.text('Crop'));
+      await tester.pumpAndSettle();
+    }
+
+    Future<void> close(String key) async {
+      await tester.tap(find.byKey(Key(key)));
+      await tester.pumpAndSettle();
+      expect(closed, isTrue);
+    }
+
+    // In small steps, like a real pointer: the recognizer moves nothing
+    // until the drag is past its slop.
+    Future<void> dragBy(Offset start, Offset offset) async {
+      final gesture = await tester.startGesture(start);
+      for (var step = 0; step < 10; step++) {
+        await gesture.moveBy(offset / 10);
+        await tester.pump();
+      }
+      await gesture.up();
+      await tester.pump();
+    }
+
+    // The centred square, as large as the picture allows.
+    await open();
+    await close('cover-crop-confirm');
+    expect(chosen, const Rect.fromLTWH(50, 0, 200, 200));
+
+    // Smallest size keeps the centre; a long drag stops at the edge.
+    await open();
+    final slider = tester.widget<Slider>(
+      find.byKey(const Key('cover-crop-size')),
+    );
+    expect(slider.min, 40);
+    expect(slider.max, 200);
+    slider.onChanged!(40);
+    await tester.pump();
+    // Away from the corner handle, which sits on the square's lower right.
+    await dragBy(
+      tester.getTopLeft(find.byKey(const Key('cover-crop-square'))) +
+          const Offset(6, 6),
+      const Offset(-500, 0),
+    );
+    await close('cover-crop-confirm');
+    expect(chosen, const Rect.fromLTWH(0, 80, 40, 40));
+
+    // The corner makes it larger again; Reset returns to the centred square.
+    await open();
+    tester
+        .widget<Slider>(find.byKey(const Key('cover-crop-size')))
+        .onChanged!(40);
+    await tester.pump();
+    await dragBy(
+      tester.getCenter(find.byKey(const Key('cover-crop-corner'))),
+      const Offset(60, 60),
+    );
+    expect(
+      tester.widget<Slider>(find.byKey(const Key('cover-crop-size'))).value,
+      greaterThan(40),
+    );
+    await tester.tap(find.byKey(const Key('cover-crop-reset')));
+    await tester.pump();
+    await close('cover-crop-confirm');
+    expect(chosen, const Rect.fromLTWH(50, 0, 200, 200));
+
+    await open();
+    await close('cover-crop-cancel');
+    expect(chosen, isNull);
+  });
+
+  testWidgets(
+    'Revision 7: a cover whose credit QQL knows fills Media credits',
+    (tester) async {
+      const profileId = '31111111-1111-4111-8111-111111111112';
+      final profiles = ProfileService();
+      await profiles.createProfile('Author', learnerProfileId: profileId);
+      await profiles.setActiveProfileById(profileId);
+      await SettingsService().markAudioOrphanCheckRun('IT');
+      const existing = CourseMediaAttribution(
+        author: 'Someone',
+        license: 'CC0',
+        appliesTo: 'Lesson icons',
+      );
+      final course = Course(
+        courseId: 'cover-credit-course',
+        originalCourseCreator: const CourseProvenanceIdentity.qqlUser(
+          profileId: profileId,
+          displayName: 'Author',
+        ),
+        maintainer: const CourseMaintainer(profileId),
+        publicationState: PublicationState.published,
+        learningLanguage: 'Italian',
+        interfaceLanguage: 'English',
+        sourceLanguage: 'English',
+        targetLanguage: 'Italian',
+        title: 'Cover credit course',
+        ttsLanguage: 'it-IT',
+        courseVersion: '1',
+        mediaAttributions: const [existing],
+        lessons: const [],
+      );
+      await SettingsService().setCourseEditorMode(
+        course.courseId,
+        CourseEditorMode.edit,
+      );
+      tester.view.physicalSize = const Size(1000, 1600);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(
+        MaterialApp(
+          home: CourseEditorScreen(
+            course: course,
+            access: CourseAccessPolicy.evaluate(course, profileId: profileId),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('course-editor-course-info')));
+      await tester.pumpAndSettle();
+
+      String row(String field, int index) => tester
+          .widget<TextField>(
+            find.byKey(ValueKey('course-info-media-$field-$index')),
+          )
+          .controller!
+          .text;
+      int rows() => find
+          .byWidgetPredicate(
+            (widget) =>
+                widget.key is ValueKey<String> &&
+                (widget.key! as ValueKey<String>).value.startsWith(
+                  'course-info-media-author-',
+                ),
+          )
+          .evaluate()
+          .length;
+      void choose(CourseMediaAttribution? credit) => tester
+          .widget<CourseCoverField>(find.byKey(const Key('course-info-cover')))
+          .onChanged((
+            cover: credit == null ? '' : 'media:${'c' * 64}.png',
+            credit: credit,
+          ));
+
+      const qql = CourseMediaAttribution(
+        author: 'QuisquisLingo',
+        license: 'Original QuisquisLingo asset',
+        title: 'Red apple',
+        source: 'QuisquisLingo Flat Image Bank',
+        appliesTo: 'Course cover',
+      );
+      choose(qql);
+      await tester.pump();
+      expect(rows(), 2);
+      expect(row('author', 0), 'Someone');
+      expect(row('author', 1), 'QuisquisLingo');
+      expect(row('license', 1), 'Original QuisquisLingo asset');
+      expect(row('title', 1), 'Red apple');
+      expect(row('source', 1), 'QuisquisLingo Flat Image Bank');
+      expect(row('applies-to', 1), 'Course cover');
+
+      // The next cover replaces the credit the last one added.
+      const ada = CourseMediaAttribution(
+        author: 'Ada',
+        license: 'CC BY 4.0',
+        appliesTo: 'Course cover',
+      );
+      choose(ada);
+      await tester.pump();
+      expect(rows(), 2);
+      expect(row('author', 1), 'Ada');
+
+      // A credit the author changed is theirs and stays.
+      await tester.enterText(
+        find.byKey(const ValueKey('course-info-media-title-1')),
+        'Portrait',
+      );
+      choose(null);
+      await tester.pump();
+      expect(rows(), 2);
+      expect(row('title', 1), 'Portrait');
+      expect(row('author', 0), 'Someone');
+    },
+  );
 
   testWidgets(
     'the Course Info Editor cover shows in the header and is confirmed',
@@ -338,6 +665,9 @@ void main() {
       await tester.ensureVisible(quickImport);
       await tester.pumpAndSettle();
       await tester.tap(quickImport);
+      final confirm = find.byKey(const Key('cover-crop-confirm'));
+      await tester.pumpUntilFileIoState(() => confirm.evaluate().isNotEmpty);
+      await tester.tap(confirm);
       await tester.pumpUntilFileIoState(
         () => find
             .byKey(const Key('course-cover-preview-image'))

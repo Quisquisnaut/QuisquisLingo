@@ -453,12 +453,24 @@ class _TeamDetailScreenState extends State<TeamDetailScreen> {
                   initialValue: draft,
                   maxLength: TeamSharedFolderLink.maxLength,
                   keyboardType: TextInputType.url,
+                  // A link is long: a slightly smaller type shows more of it.
+                  style: Theme.of(context).textTheme.bodyMedium,
                   onChanged: (value) => draft = value,
                   decoration: InputDecoration(
                     border: const OutlineInputBorder(),
                     hintText: 'https://drive.google.com/drive/folders/\u2026',
-                    errorText: error,
-                    errorMaxLines: 5,
+                    hintStyle: Theme.of(context).textTheme.bodyMedium,
+                    // The whole explanation, however narrow the dialog: an
+                    // errorText is cut after errorMaxLines.
+                    error: error == null
+                        ? null
+                        : Text(
+                            error!,
+                            key: const Key('team-shared-folder-error'),
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.error,
+                            ),
+                          ),
                   ),
                 ),
                 const SizedBox(height: 8),

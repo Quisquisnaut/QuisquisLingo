@@ -18,7 +18,9 @@ COURSE_ID = "course_6f6a1fa3-b834-4936-b324-92fb57f73502"
 STAMP = "2026-09-25T00:00:00.000Z"
 # Build 255 Revision 6 released version 1.1.0: the license text now says only
 # "All rights reserved"; derivative works stay allowed for this test Course.
-RELEASE_STAMP = "2026-09-26T00:00:00.000Z"
+# Revision 7 released version 1.1.1: the Course flag is QQL's English flag
+# (EN); "GB", which QQL does not draw, showed the neutral flag.
+RELEASE_STAMP = "2026-09-27T00:00:00.000Z"
 PREFIX = "qql_edge_254_"
 VOCAB_UNICODE_ID = PREFIX + "v_caffè_日本語"
 
@@ -278,8 +280,8 @@ def build_course() -> dict:
         "formatVersion": 11, "publicationState": "published", "lessonNumberingMode": "lesson",
         "defaultLessonIconStyle": "monochrome", "createDuels": False,
         "courseId": COURSE_ID, "originType": "bundledOfficial", "publisherId": "org.quisquislingo",
-        "publisherName": "QuisquisLingo", "officialCourseVersion": "1.1.0",
-        "officialReleaseDateUtc": RELEASE_STAMP, "officialReleaseNotes": "QQL Build 255 Revision 6: license text aligned to All rights reserved; derivative works remain allowed for this test Course.",
+        "publisherName": "QuisquisLingo", "officialCourseVersion": "1.1.1",
+        "officialReleaseDateUtc": RELEASE_STAMP, "officialReleaseNotes": "QQL Build 255 Revision 7: the Course flag is the English flag QQL draws (EN) instead of GB, which showed the neutral flag.",
         "distributionChannel": "bundled", "publisherVerificationStatus": "verified",
         "originalCourseCreator": {"type": "publisher", "id": "org.quisquislingo", "displayName": "QuisquisLingo"},
         "originalCreatedAtUtc": STAMP, "modifiedAtUtc": RELEASE_STAMP,
@@ -296,7 +298,7 @@ def build_course() -> dict:
             "(opzioni duplicate e testo lungo). Hybrid prova MP3 preinstallati e fallback TTS; i campioni MP3 "
             "non hanno una trascrizione verificata e sono solo prove di riproduzione. Fork abilita i collaudi "
             "Copy as New Course e Merge su copie personali. Non è un percorso didattico revisionato.",
-        "textDirection": "ltr", "flagCode": "GB", "temporarySample": True,
+        "textDirection": "ltr", "flagCode": "EN", "temporarySample": True,
         "keywords": ["demo", "edge cases", "Unicode", "audio", "Draft"],
         "audioLibrary": [
             {"id": pid("audio_01"), "text": "recorded sample one", "filePath": "assets/audio/en_sample/sample_1.mp3"},

@@ -66,6 +66,7 @@ import '../widgets/flag_art.dart';
 import '../widgets/course_artwork.dart';
 import '../widgets/course_cover_field.dart';
 import '../widgets/course_flag_picker.dart';
+import '../widgets/image_credit_reminder.dart';
 import '../widgets/lesson_fallback_icon.dart';
 import '../widgets/import_summary.dart';
 import '../services/storage/qql_storage.dart';
@@ -755,6 +756,63 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
     }
 
     if (mediaAuthors.isEmpty) addMediaCreditRow();
+    // Build 255 Revision 7: a cover made from a picture whose credit QQL
+    // knows adds that credit. The credit added last leaves again with the
+    // next cover while nobody has changed its row.
+    CourseMediaAttribution? coverCredit;
+    TextEditingController? coverCreditRow;
+    bool mediaCreditRowIs(int row, CourseMediaAttribution credit) =>
+        mediaAuthors[row].text.trim() == credit.author &&
+        mediaLicenses[row].text.trim() == credit.license &&
+        mediaTitles[row].text.trim() == credit.title &&
+        mediaSources[row].text.trim() == credit.source &&
+        mediaAppliesTo[row].text.trim() == credit.appliesTo;
+    void creditCover(CourseMediaAttribution? credit) {
+      final previous = coverCredit;
+      final previousController = coverCreditRow;
+      final previousRow = previousController == null
+          ? -1
+          : mediaAuthors.indexOf(previousController);
+      coverCredit = null;
+      coverCreditRow = null;
+      if (previous != null &&
+          previousRow >= 0 &&
+          mediaCreditRowIs(previousRow, previous)) {
+        if (mediaAuthors.length == 1) {
+          mediaAuthors.single.clear();
+          mediaLicenses.single.clear();
+          mediaTitles.single.clear();
+          mediaSources.single.clear();
+          mediaAppliesTo.single.clear();
+        } else {
+          mediaAuthors.removeAt(previousRow).dispose();
+          mediaLicenses.removeAt(previousRow).dispose();
+          mediaTitles.removeAt(previousRow).dispose();
+          mediaSources.removeAt(previousRow).dispose();
+          mediaAppliesTo.removeAt(previousRow).dispose();
+        }
+      }
+      if (credit == null) return;
+      for (var row = 0; row < mediaAuthors.length; row++) {
+        if (mediaCreditRowIs(row, credit)) return;
+      }
+      final useBlank =
+          mediaAuthors.length == 1 &&
+          mediaCreditRowIs(
+            0,
+            const CourseMediaAttribution(author: '', license: ''),
+          );
+      if (!useBlank) addMediaCreditRow();
+      final row = mediaAuthors.length - 1;
+      mediaAuthors[row].text = credit.author;
+      mediaLicenses[row].text = credit.license;
+      mediaTitles[row].text = credit.title;
+      mediaSources[row].text = credit.source;
+      mediaAppliesTo[row].text = credit.appliesTo;
+      coverCredit = credit;
+      coverCreditRow = mediaAuthors[row];
+    }
+
     final courseTitle = TextEditingController(text: _course.title);
     final variant = TextEditingController(text: _course.languageVariant);
     final startLevel = TextEditingController(text: _course.startLevel);
@@ -1110,10 +1168,14 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
                       const SizedBox(height: 14),
                       CourseCoverField(
                         key: const Key('course-info-cover'),
+                        courseId: _course.courseId,
                         course: _course,
                         cover: coverImage,
-                        onChanged: (cover) =>
-                            setLocalState(() => coverImage = cover),
+                        onChanged: (choice) => setLocalState(() {
+                          coverImage = choice.cover;
+                          creditCover(choice.credit);
+                          mediaCreditError = null;
+                        }),
                       ),
                       const SizedBox(height: 14),
                       const Text(
@@ -4669,12 +4731,9 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
           _lessonIconAssets = [..._lessonIconAssets, imported.asset];
           _themeIconAsset = imported.asset.reference;
         });
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'Custom icon imported and normalized to a 256x256 PNG.',
-            ),
-          ),
+        showImageCreditReminder(
+          context,
+          lead: 'Custom icon imported and normalized to a 256x256 PNG.',
         );
       } catch (error) {
         if (!mounted) return;

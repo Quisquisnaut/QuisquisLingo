@@ -195,6 +195,11 @@ void main() {
         reason: 'an embedded custom flag',
       );
       expect(
+        warns(_course(coverImage: 'media:${'d' * 64}.png')),
+        isTrue,
+        reason: 'Build 255 Revision 7: a cover image',
+      );
+      expect(
         warns(_course(audioPath: 'assets/audio/it_sample/sample_1.mp3')),
         isFalse,
         reason: 'a bundled recording is QQL media',
@@ -230,6 +235,7 @@ Course _course({
   String? exerciseImage,
   String? audioPath,
   String flagImageBase64 = '',
+  String coverImage = '',
 }) => Course(
   courseId: 'media-attribution-course',
   originalCourseCreator: const CourseProvenanceIdentity.qqlUser(
@@ -248,6 +254,7 @@ Course _course({
   ttsLanguage: 'it-IT',
   courseVersion: '1',
   flagImageBase64: flagImageBase64,
+  coverImage: coverImage,
   mediaAttributions: attributions,
   audioLibrary: [
     if (audioPath != null)

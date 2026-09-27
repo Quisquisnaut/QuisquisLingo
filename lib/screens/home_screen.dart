@@ -44,6 +44,7 @@ import 'new_learner_flow_screen.dart';
 import 'profile_screen.dart';
 import 'round_screen.dart';
 import '../widgets/flag_art.dart';
+import '../widgets/course_artwork.dart';
 import '../widgets/course_entry_animation.dart';
 import '../widgets/flag_inspired_background.dart';
 import '../widgets/lesson_fallback_icon.dart';
@@ -53,6 +54,7 @@ import '../widgets/learner_shell.dart';
 import '../widgets/unified_learner_top_bar.dart';
 import '../widgets/learner_theme_mode_scope.dart';
 import '../widgets/welcome_wizard_dialog.dart';
+import '../localization/locale_service.dart';
 
 const _learnerLightPageBackground = Color(0xFFF7F3E8);
 const _learnerDarkPageBackground = Color(0xFF080B09);
@@ -319,8 +321,21 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _prepareWelcome() async {
     _appVersion = AppMetadata.technicalVersion;
+    // Build 255 Revision 7: without an active learner (a first run, or Ask
+    // who is learning) the learner comes first; the start-up notices follow
+    // once one is created or chosen.
+    if (await _profiles.getActiveProfileId() == null || !mounted) return;
+    await _showStartupNotices();
+  }
+
+  bool _startupNoticesShown = false;
+
+  /// A new learner's Welcome Wizard; then, once per session, this version's
+  /// Welcome, the Beta notice and the update notice.
+  Future<void> _showStartupNotices() async {
     await _showWelcomeWizard();
-    if (!mounted) return;
+    if (!mounted || _startupNoticesShown) return;
+    _startupNoticesShown = true;
     await _showWelcome();
     if (mounted) await _showBetaLifecycleNotice();
     // The start-up dialogs come first; the update notice follows them.
@@ -330,7 +345,15 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _showWelcomeWizard() async {
     if (await _profiles.getActiveProfileId() == null || !mounted) return;
     if (await _settings.hasCompletedWelcomeWizard() || !mounted) return;
-    final completed = await showWelcomeWizard(context);
+    // In the language chosen in Create Profile (Build 255 Revision 7).
+    final locale = await LocaleService().read();
+    // The Wizard stands in for this version's Welcome: a new learner never
+    // gets both.
+    await _settings.markOneTimeNoticeSeen(
+      'welcome_${AppMetadata.technicalVersion}',
+    );
+    if (!mounted) return;
+    final completed = await showWelcomeWizard(context, locale: locale);
     if (completed == true) await _settings.completeWelcomeWizard();
   }
 
@@ -436,6 +459,8 @@ class _HomeScreenState extends State<HomeScreen> {
       );
       return;
     }
+    // Build 255 Revision 7: only in the last seven days before expiry.
+    if (BetaLifecycleService.warningStage() == null) return;
     final days = BetaLifecycleService.daysRemaining();
     final message = days == 0
         ? 'This beta expires today.'
@@ -788,7 +813,7 @@ class _HomeScreenState extends State<HomeScreen> {
         return;
       }
       await _reload();
-      await _showWelcomeWizard();
+      await _showStartupNotices();
     } finally {
       _addingLearner = false;
     }
@@ -830,7 +855,7 @@ class _HomeScreenState extends State<HomeScreen> {
       if (mounted) setState(() => _course = null);
       await _profiles.setActiveProfileById(learnerProfileId, accessPin: pin);
       await _reload();
-      await _showWelcomeWizard();
+      await _showStartupNotices();
     } on ProfilePinException catch (error) {
       if (!mounted) return;
       ScaffoldMessenger.of(
@@ -1266,11 +1291,15 @@ class _HomeScreenState extends State<HomeScreen> {
         )
         .toList();
 
+    // The current Course has its own row at the top; Build 255 Revision 7
+    // stops repeating it under Other courses (Favorites may still list it).
     List<String> otherRefs(List<String> recent, List<String> favorites) =>
         allRefs
             .where(
               (ref) =>
                   visibleInPicker(ref) &&
+                  ref != _selectedCourseRef &&
+                  courseByRef[ref]!.courseId != _course?.courseId &&
                   !recent.contains(ref) &&
                   !favorites.contains(ref),
             )
@@ -1375,6 +1404,13 @@ class _HomeScreenState extends State<HomeScreen> {
       }
     }
 
+    // Build 255 Revision 7: a Course with a cover shows it here, as in
+    // Courses; every other Course keeps its flag.
+    Widget courseImage(Course course, String fallbackCode) =>
+        Course.coverImagePattern.hasMatch(course.coverImage)
+        ? CourseArtwork(course: course, size: 44)
+        : CourseFlagBadge(course: course, fallbackCode: fallbackCode);
+
     Widget courseTile({
       Key? key,
       required String rowId,
@@ -1474,10 +1510,7 @@ class _HomeScreenState extends State<HomeScreen> {
           key: key,
           rowId: rowId,
           course: custom,
-          leading: CourseFlagBadge(
-            course: custom,
-            fallbackCode: CourseService.codeForCourse(custom),
-          ),
+          leading: courseImage(custom, CourseService.codeForCourse(custom)),
           subtitle: Text(
             '${custom.sourceLanguage} → ${custom.targetLanguage}'
             ' · ${originLabel(custom)}',
@@ -1499,10 +1532,7 @@ class _HomeScreenState extends State<HomeScreen> {
         key: key,
         rowId: rowId,
         course: bundledCourses[code]!,
-        leading: CourseFlagBadge(
-          course: bundledCourses[code]!,
-          fallbackCode: code,
-        ),
+        leading: courseImage(bundledCourses[code]!, code),
         subtitle: Text(
           '${CourseService.sourceLabels[code] ?? 'English'} → ${CourseService.targetLabels[code] ?? code}'
           ' · Bundled official${CourseService.hasCourse(code) ? '' : ' · Coming soon'}',
@@ -1611,10 +1641,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       key: const Key('current-course'),
                       rowId: 'current',
                       course: _course!,
-                      leading: CourseFlagBadge(
-                        course: _course!,
-                        fallbackCode: _selectedLanguage,
-                      ),
+                      leading: courseImage(_course!, _selectedLanguage),
                       selected: true,
                       showReview: true,
                     ),

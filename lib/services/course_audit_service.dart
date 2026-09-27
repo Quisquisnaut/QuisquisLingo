@@ -735,6 +735,7 @@ class CourseAuditService {
   /// Credits page, so it never needs a Course-level entry. Everything else is
   /// either embedded in the Course (an `assets/`-less Lesson icon, a custom
   /// flag, a `data:` image) or imported by a creator and referenced by path.
+  /// A cover is always the Course's own picture (Build 255 Revision 7).
   static bool _carriesOwnMedia(Course course) {
     bool isOwnMedia(String asset) {
       final value = asset.trim();
@@ -743,6 +744,7 @@ class CourseAuditService {
 
     if (course.lessonIconAssets.isNotEmpty) return true;
     if (course.flagImageBase64.trim().isNotEmpty) return true;
+    if (isOwnMedia(course.coverImage)) return true;
     for (final clip in course.audioLibrary) {
       if (isOwnMedia(clip.filePath)) return true;
     }

@@ -1,97 +1,110 @@
 import 'package:flutter/material.dart';
 
-Future<bool?> showWelcomeWizard(BuildContext context) => showDialog<bool>(
+import '../localization/locale_service.dart';
+import '../localization/welcome_text.dart';
+
+/// Shows the Welcome Wizard in [locale], the language the learner chose in
+/// Create Profile. Returns true when the learner finishes or skips it.
+Future<bool?> showWelcomeWizard(
+  BuildContext context, {
+  AppLocale locale = AppLocale.english,
+}) => showDialog<bool>(
   context: context,
   barrierDismissible: false,
-  builder: (_) => const WelcomeWizardDialog(),
+  builder: (_) => WelcomeWizardDialog(locale: locale),
 );
 
+/// Five short steps, each with a QuisquisLingo mascot (Build 255 Revision 7):
+/// what QQL is, Courses made by others, Lessons and Laurels, studying little
+/// and often, and Course Studio.
 class WelcomeWizardDialog extends StatefulWidget {
-  const WelcomeWizardDialog({super.key});
+  const WelcomeWizardDialog({super.key, this.locale = AppLocale.english});
+
+  final AppLocale locale;
 
   @override
   State<WelcomeWizardDialog> createState() => _WelcomeWizardDialogState();
 }
 
 class _WelcomeWizardDialogState extends State<WelcomeWizardDialog> {
+  /// In order: the kid, the cat, the monkey, the robot and the dog.
   static const _steps = [
-    (
-      color: Color(0xFF1565C0),
-      icon: Icons.language_outlined,
-      title: 'Welcome to QuisquisLingo',
-      body:
-          'Learn languages offline. Your Courses, profiles and progress stay on this device.',
-    ),
-    (
-      color: Color(0xFF6A1B9A),
-      icon: Icons.person_outline,
-      title: 'Your learner profile',
-      body:
-          'Your profile and avatar keep your local learning progress together.',
-    ),
-    (
-      color: Color(0xFF00796B),
-      icon: Icons.menu_book_outlined,
-      title: 'Choose a Course',
-      body:
-          'Use the Course selector to start learning. It also opens Course Studio.',
-    ),
-    (
-      color: Color(0xFFEF6C00),
-      icon: Icons.route_outlined,
-      title: 'Learn through Lessons and Rounds',
-      body:
-          'Complete Lessons and Rounds to unlock more. Review reinforces learning; Duels are optional.',
-    ),
+    (color: Color(0xFF1565C0), mascot: 'assets/mascots/kid_reading.png'),
+    (color: Color(0xFF6A1B9A), mascot: 'assets/mascots/cat-celebrating_tr.png'),
+    (color: Color(0xFF00796B), mascot: 'assets/mascots/monkey-yawning_tr.png'),
+    (color: Color(0xFFEF6C00), mascot: 'assets/mascots/robot_running.png'),
     (
       color: Color(0xFFAD1457),
-      icon: Icons.emoji_events_outlined,
-      title: 'Track your learning',
-      body:
-          'Follow your streak, Laurels and Weekly XP. Settings keeps your preferences local.',
+      mascot: 'assets/mascots/dog-laughing-pencil_tr.png',
     ),
   ];
 
+  static const _mascotHeight = 132.0;
+
   var _step = 0;
+
+  String _text(String key, [Map<String, String> values = const {}]) =>
+      welcomeText.lookup(widget.locale, key, values: values);
 
   @override
   Widget build(BuildContext context) {
     final current = _steps[_step];
-    final finalStep = _step == _steps.length - 1;
+    final number = _step + 1;
+    final finalStep = number == _steps.length;
     return AlertDialog(
       key: const Key('welcome-wizard'),
-      title: Row(
-        children: [
-          Icon(current.icon, color: current.color),
-          const SizedBox(width: 10),
-          Expanded(child: Text(current.title)),
-        ],
+      title: Text(
+        _text('step$number.title'),
+        style: TextStyle(color: current.color, fontWeight: FontWeight.w800),
       ),
       content: SizedBox(
         width: 480,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Step ${_step + 1} of ${_steps.length}',
-              style: TextStyle(
-                color: current.color,
-                fontWeight: FontWeight.w700,
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Center(
+                child: Image.asset(
+                  current.mascot,
+                  key: ValueKey('welcome-wizard-mascot-$number'),
+                  height: _mascotHeight,
+                  // The mascots are large pictures: decode them at the size
+                  // shown.
+                  cacheHeight:
+                      (_mascotHeight * MediaQuery.devicePixelRatioOf(context))
+                          .round(),
+                  fit: BoxFit.contain,
+                  excludeFromSemantics: true,
+                ),
               ),
-            ),
-            const SizedBox(height: 12),
-            DecoratedBox(
-              decoration: BoxDecoration(
-                color: current.color.withValues(alpha: .10),
-                borderRadius: BorderRadius.circular(12),
+              const SizedBox(height: 12),
+              Text(
+                _text('step', {
+                  'current': '$number',
+                  'total': '${_steps.length}',
+                }),
+                style: TextStyle(
+                  color: current.color,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
-              child: Padding(
-                padding: const EdgeInsets.all(14),
-                child: Text(current.body),
+              const SizedBox(height: 8),
+              DecoratedBox(
+                decoration: BoxDecoration(
+                  color: current.color.withValues(alpha: .10),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(14),
+                  child: Text(
+                    _text('step$number.body'),
+                    key: const Key('welcome-wizard-body'),
+                  ),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
       actions: [
@@ -99,12 +112,12 @@ class _WelcomeWizardDialogState extends State<WelcomeWizardDialog> {
           TextButton(
             key: const Key('welcome-wizard-back'),
             onPressed: () => setState(() => _step--),
-            child: const Text('Back'),
+            child: Text(_text('back')),
           ),
         TextButton(
           key: const Key('welcome-wizard-skip'),
           onPressed: () => Navigator.pop(context, true),
-          child: const Text('Skip'),
+          child: Text(_text('skip')),
         ),
         FilledButton(
           key: const Key('welcome-wizard-next'),
@@ -115,7 +128,7 @@ class _WelcomeWizardDialogState extends State<WelcomeWizardDialog> {
               setState(() => _step++);
             }
           },
-          child: Text(finalStep ? 'Start learning' : 'Next'),
+          child: Text(_text(finalStep ? 'start' : 'next')),
         ),
       ],
     );

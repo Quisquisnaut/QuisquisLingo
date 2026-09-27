@@ -17,10 +17,11 @@ typedef CoverSource = ({Uint8List bytes, String name});
 /// Makes a Course cover from any picture (Build 255 Revision 6).
 ///
 /// A ready 512 × 512 picture up to [CourseMediaStore.maxCoverBytes] is kept as
-/// it is. Any other picture is cropped to its centred square and scaled to a
-/// 512 × 512 PNG. Every cover made here passes [CoursePackageService.checkCover],
-/// the check an imported Course package applies, so an exported cover always
-/// imports again.
+/// it is. Any other picture is cropped to a square, the one its author chose
+/// (Revision 7) or else its centred square, and scaled to a 512 × 512 PNG.
+/// Every cover made here passes [CoursePackageService.checkCover], the check
+/// an imported Course package applies, so an exported cover always imports
+/// again.
 class CourseCoverService {
   CourseCoverService({
     CourseMediaStore? mediaStore,
@@ -38,26 +39,40 @@ class CourseCoverService {
 
   /// Prepares [source] and stores it in [courseId]'s own media folder.
   /// Returns the cover's `media:` reference.
-  Future<String> store(String courseId, Uint8List source) async {
-    final cover = await prepare(source);
+  Future<String> store(
+    String courseId,
+    Uint8List source, {
+    ui.Rect? crop,
+  }) async {
+    final cover = await prepare(source, crop: crop);
     return _media.addBytes(courseId, cover.bytes, cover.extension, cover: true);
   }
 
-  /// The cover's bytes and file extension for [source].
+  /// The cover's bytes and file extension for [source]. [crop] is the square
+  /// the cover shows, in the picture's own pixels; null means its centred
+  /// square.
   static Future<({Uint8List bytes, String extension})> prepare(
-    Uint8List source,
-  ) async {
+    Uint8List source, {
+    ui.Rect? crop,
+  }) async {
     final picture = await ImageValidator.validate(
       source,
       ImageProfile.courseCoverSource,
     );
+    final whole =
+        crop == null ||
+        (crop.left <= 0.5 &&
+            crop.top <= 0.5 &&
+            crop.right >= picture.width - 0.5 &&
+            crop.bottom >= picture.height - 0.5);
     final ready =
+        whole &&
         picture.width == size &&
         picture.height == size &&
         picture.bytes.length <= CourseMediaStore.maxCoverBytes;
     final cover = ready
         ? (bytes: picture.bytes, extension: picture.format.extension)
-        : (bytes: await _centredSquarePng(picture.bytes), extension: 'png');
+        : (bytes: await _squarePng(picture.bytes, crop), extension: 'png');
     if (cover.bytes.length > CourseMediaStore.maxCoverBytes) {
       throw const FormatException(
         'This picture is too detailed for a cover of at most 1 MB. Choose a '
@@ -71,7 +86,7 @@ class CourseCoverService {
     return cover;
   }
 
-  static Future<Uint8List> _centredSquarePng(Uint8List bytes) async {
+  static Future<Uint8List> _squarePng(Uint8List bytes, ui.Rect? crop) async {
     final codec = await ui.instantiateImageCodec(bytes);
     final ui.Image source;
     try {
@@ -80,16 +95,21 @@ class CourseCoverService {
       codec.dispose();
     }
     try {
-      final side = math.min(source.width, source.height).toDouble();
+      final shorter = math.min(source.width, source.height).toDouble();
+      // The square asked for, kept inside the picture as decoded.
+      final side = crop == null
+          ? shorter
+          : math.min(shorter, math.max(1.0, math.min(crop.width, crop.height)));
+      final left = crop == null
+          ? (source.width - side) / 2
+          : crop.left.clamp(0.0, source.width - side);
+      final top = crop == null
+          ? (source.height - side) / 2
+          : crop.top.clamp(0.0, source.height - side);
       final recorder = ui.PictureRecorder();
       ui.Canvas(recorder).drawImageRect(
         source,
-        ui.Rect.fromLTWH(
-          (source.width - side) / 2,
-          (source.height - side) / 2,
-          side,
-          side,
-        ),
+        ui.Rect.fromLTWH(left, top, side, side),
         ui.Rect.fromLTWH(0, 0, size.toDouble(), size.toDouble()),
         ui.Paint()..filterQuality = ui.FilterQuality.high,
       );

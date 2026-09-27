@@ -8,6 +8,7 @@ import '../services/course_flag_catalog_service.dart';
 import '../services/course_flag_service.dart';
 import '../services/world_flag_repository.dart';
 import 'flag_art.dart';
+import 'image_credit_reminder.dart';
 import 'world_flag_art.dart';
 import 'quick_import_access.dart';
 
@@ -121,6 +122,15 @@ class _CourseFlagSelectorState extends State<CourseFlagSelector> {
                       ),
                       Text(details.$1),
                       if (details.$2.isNotEmpty) Text(details.$2),
+                      // Build 255 Revision 7: a flag someone else made needs
+                      // a credit.
+                      if (widget.selection.kind ==
+                          CourseFlagSelectionKind.customImage)
+                        Text(
+                          imageCreditReminder,
+                          key: const Key('course-flag-credit-reminder'),
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
                     ],
                   ),
                 ),

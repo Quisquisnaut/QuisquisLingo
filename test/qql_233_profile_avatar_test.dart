@@ -311,7 +311,21 @@ void main() {
     expect(find.text(' 67890'), findsOneWidget);
     expect(await profiles.getProfileRecords(), hasLength(1));
 
-    await tester.tap(find.widgetWithText(FilledButton, 'Continue'));
+    // Build 255 Revision 7 made the form longer (the language for
+    // explanations): with the message, Continue is further down.
+    final continueButton = find.widgetWithText(FilledButton, 'Continue');
+    await tester.scrollUntilVisible(
+      continueButton,
+      200,
+      scrollable: find
+          .ancestor(
+            of: find.byKey(const Key('new-learner-screen-name')),
+            matching: find.byType(Scrollable),
+          )
+          .first,
+    );
+    await tester.pump();
+    await tester.tap(continueButton);
     await tester.pumpAndSettle();
     expect(find.text('Avatar Customization'), findsOneWidget);
     expect(

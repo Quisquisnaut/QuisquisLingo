@@ -152,6 +152,36 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
+  static const _advancedAdminReserved =
+      'Advanced (Admin) holds the admin tools of this device: learners and '
+      'PINs, startup behavior, device name, QQL-Tools, Shared Images, '
+      'Inventory and resets. Only an admin can open it.';
+
+  /// One line at most under the title; greyed out and closed for learners
+  /// who are not admins.
+  Widget _advancedAdmin() => ListTile(
+    key: const Key('settings-device-administration'),
+    enabled: _isAdmin,
+    leading: const Icon(Icons.admin_panel_settings_outlined),
+    title: const Text('Advanced (Admin)'),
+    subtitle: const Text(
+      'Learners, device, QQL-Tools and resets.',
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+    ),
+    trailing: Icon(_isAdmin ? Icons.chevron_right : Icons.lock_outline),
+    onTap: _isAdmin
+        ? () => Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => DeviceAdministrationScreen(
+                course: widget.course,
+                onManageLearners: widget.onManageLearners,
+              ),
+            ),
+          )
+        : null,
+  );
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -226,24 +256,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
                 // Build 255 Revision 6: Device Administration is called
                 // Advanced (Admin), since it also holds QQL-Tools, and sits
-                // after Do Not Disturb.
+                // after Do Not Disturb. Revision 7: everyone sees it, greyed
+                // out and closed for learners who are not admins.
                 if (_isAdmin)
-                  ListTile(
-                    key: const Key('settings-device-administration'),
-                    leading: const Icon(Icons.admin_panel_settings_outlined),
-                    title: const Text('Advanced (Admin)'),
-                    subtitle: const Text(
-                      'Admins only: updates, learners, startup behavior, device name, QQL-Tools, media, Inventory and reset options.',
-                    ),
-                    trailing: const Icon(Icons.chevron_right),
-                    onTap: () => Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => DeviceAdministrationScreen(
-                          course: widget.course,
-                          onManageLearners: widget.onManageLearners,
-                        ),
-                      ),
-                    ),
+                  _advancedAdmin()
+                else
+                  Tooltip(
+                    message: _advancedAdminReserved,
+                    child: _advancedAdmin(),
                   ),
                 ListTile(
                   key: const Key('settings-qql-guide'),

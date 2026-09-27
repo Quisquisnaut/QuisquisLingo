@@ -9,6 +9,7 @@ import 'package:quisquislingo_app/models/course_models.dart';
 import 'package:quisquislingo_app/models/world_flag_entity.dart';
 import 'package:quisquislingo_app/screens/home_screen.dart';
 import 'package:quisquislingo_app/services/course_editor_service.dart';
+import 'package:quisquislingo_app/services/course_favorite_service.dart';
 import 'package:quisquislingo_app/services/course_service.dart';
 import 'package:quisquislingo_app/services/profile_service.dart';
 import 'package:quisquislingo_app/services/settings_service.dart';
@@ -404,8 +405,21 @@ void main() {
         await tester.pump();
         expect(find.byKey(const Key('course-entry-animation')), findsNothing);
 
-        await _selectBundledCourse(tester, 'KO');
+        // Build 255 Revision 7: the current Course is no longer repeated
+        // under Other courses. A Favorite row still offers it, and choosing
+        // it again replays nothing.
+        await CourseFavoriteService().setFavorite('sample_ko_en_ko', true);
+        await _openCoursePicker(tester);
+        expect(find.byKey(const ValueKey('bundled-course-KO')), findsNothing);
+        final favorite = find.byKey(const ValueKey('favorite-course-KO'));
+        await _revealCourseTile(tester, favorite);
+        tester.widget<ListTile>(favorite).onTap!();
+        await tester.pump();
         await _pumpUntilCourse(tester, 'sample_ko_en_ko');
+        // The Selector closes without switching.
+        await tester.pump(const Duration(milliseconds: 350));
+        await tester.pump();
+        expect(find.byType(BottomSheet), findsNothing);
         expect(find.byKey(const Key('course-entry-animation')), findsNothing);
       },
     );
@@ -712,8 +726,7 @@ Future<void> _openHome(
   await tester.runAsync(
     () => Future<void>.delayed(const Duration(milliseconds: 250)),
   );
-  await _pumpUntil(tester, find.text('Beta expiry'));
-  await tester.tap(find.widgetWithText(FilledButton, 'OK'));
+  // Build 255 Revision 7: no Beta notice fifteen days before expiry.
   await _pumpUntil(tester, find.byType(UnifiedLearnerTopBar));
 }
 
